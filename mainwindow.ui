@@ -31,120 +31,120 @@
      <property name="title">
       <string>Заметка</string>
      </property>
-     <addaction name="action_2"/>
-     <addaction name="action_3"/>
-     <addaction name="action_4"/>
+     <addaction name="ActionNoteAdd"/>
+     <addaction name="ActionNoteDelete"/>
+     <addaction name="ActionNoteReindex"/>
      <addaction name="separator"/>
-     <addaction name="action_6"/>
+     <addaction name="ActionNoteSetLabels"/>
      <addaction name="separator"/>
-     <addaction name="action_8"/>
-     <addaction name="action_9"/>
-     <addaction name="action_10"/>
+     <addaction name="ActionNoteHistory"/>
+     <addaction name="ActionNoteCopy"/>
+     <addaction name="ActionNoteUnite"/>
     </widget>
     <widget class="QMenu" name="menu_7">
      <property name="title">
       <string>Блокнот</string>
      </property>
-     <addaction name="action_12"/>
-     <addaction name="action_13"/>
-     <addaction name="action_14"/>
+     <addaction name="ActionNotepadAdd"/>
+     <addaction name="ActionNotepadProperties"/>
+     <addaction name="ActionNotepadDelete"/>
      <addaction name="separator"/>
-     <addaction name="actionSet_stack"/>
-     <addaction name="action_16"/>
+     <addaction name="ActionNotepadSetStack"/>
+     <addaction name="ActionNotepadOpenClose"/>
      <addaction name="separator"/>
-     <addaction name="action_18"/>
+     <addaction name="ActionNotepadChangeIcon"/>
     </widget>
     <widget class="QMenu" name="menu_8">
      <property name="title">
       <string>Метка</string>
      </property>
-     <addaction name="action_20"/>
-     <addaction name="action_21"/>
-     <addaction name="action_22"/>
-     <addaction name="action_23"/>
+     <addaction name="ActionLabelAdd"/>
+     <addaction name="ActionLabelProperties"/>
+     <addaction name="ActionLabelDelete"/>
+     <addaction name="ActionLabelUnite"/>
      <addaction name="separator"/>
-     <addaction name="action_25"/>
+     <addaction name="ActionLabelChangeIcon"/>
     </widget>
     <widget class="QMenu" name="menu_9">
      <property name="title">
       <string>Запрос</string>
      </property>
-     <addaction name="action_27"/>
-     <addaction name="action_28"/>
-     <addaction name="action_29"/>
+     <addaction name="ActionRequestAdd"/>
+     <addaction name="ActionRequestProperties"/>
+     <addaction name="ActionRequestDelete"/>
      <addaction name="separator"/>
-     <addaction name="action_31"/>
+     <addaction name="ActionRequestChangeIcon"/>
     </widget>
     <addaction name="menu_6"/>
     <addaction name="menu_7"/>
     <addaction name="menu_8"/>
     <addaction name="menu_9"/>
     <addaction name="separator"/>
-    <addaction name="action_33"/>
-    <addaction name="action_34"/>
+    <addaction name="ActionSendMail"/>
+    <addaction name="ActionPrint"/>
     <addaction name="separator"/>
-    <addaction name="action_35"/>
-    <addaction name="action_36"/>
-    <addaction name="action_38"/>
-    <addaction name="action_39"/>
+    <addaction name="ActionImportNotes"/>
+    <addaction name="ActionExportChosenNotes"/>
+    <addaction name="ActionBackupCopy"/>
+    <addaction name="ActionRestoreDatabase"/>
     <addaction name="separator"/>
-    <addaction name="action_41"/>
+    <addaction name="ActionSelectiveSync"/>
     <addaction name="separator"/>
-    <addaction name="action_43"/>
-    <addaction name="action_44"/>
+    <addaction name="ActionClenup"/>
+    <addaction name="ActionExit"/>
    </widget>
-   <widget class="QMenu" name="menu">
+   <widget class="QMenu" name="menuEdit">
     <property name="title">
      <string>Правка</string>
     </property>
-    <addaction name="action_45"/>
+    <addaction name="ActionFindInsideNote"/>
     <addaction name="separator"/>
-    <addaction name="action_46"/>
-    <addaction name="action_47"/>
+    <addaction name="ActionUndo"/>
+    <addaction name="ActionRedo"/>
     <addaction name="separator"/>
-    <addaction name="action_49"/>
-    <addaction name="action_50"/>
-    <addaction name="action_51"/>
-    <addaction name="action_52"/>
+    <addaction name="ActionCut"/>
+    <addaction name="ActionCopy"/>
+    <addaction name="ActionInsert"/>
+    <addaction name="ActionInsertAsText"/>
     <addaction name="separator"/>
-    <addaction name="action_54"/>
+    <addaction name="ActionSettings"/>
    </widget>
-   <widget class="QMenu" name="menu_2">
+   <widget class="QMenu" name="menuView">
     <property name="title">
      <string>Вид</string>
     </property>
-    <addaction name="action"/>
-    <addaction name="action_5"/>
+    <addaction name="ActionShowNoteInfo"/>
+    <addaction name="ActionShowSource"/>
     <addaction name="separator"/>
-    <addaction name="action_11"/>
-    <addaction name="action_15"/>
-    <addaction name="action_17"/>
+    <addaction name="ActionWideListView"/>
+    <addaction name="ActionNarrowListView"/>
+    <addaction name="ActionPleliminaryView"/>
     <addaction name="separator"/>
-    <addaction name="action_24"/>
-    <addaction name="action_26"/>
-    <addaction name="action_30"/>
+    <addaction name="ActionShowNotesList"/>
+    <addaction name="ActionShowSearchBar"/>
+    <addaction name="ActionShowQuotaLimit"/>
    </widget>
-   <widget class="QMenu" name="menu_3">
+   <widget class="QMenu" name="menuFormat">
     <property name="title">
      <string>Формат</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menu_4">
+   <widget class="QMenu" name="menuService">
     <property name="title">
      <string>Сервис</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menu_5">
+   <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Справка</string>
     </property>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menu"/>
-   <addaction name="menu_2"/>
-   <addaction name="menu_3"/>
-   <addaction name="menu_4"/>
-   <addaction name="menu_5"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuView"/>
+   <addaction name="menuFormat"/>
+   <addaction name="menuService"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -154,8 +154,12 @@
     <bool>false</bool>
    </attribute>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
-  <action name="action_2">
+  <widget class="QStatusBar" name="statusBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <action name="ActionNoteAdd">
    <property name="text">
     <string>Добавить</string>
    </property>
@@ -166,112 +170,112 @@
     <enum>Qt::WindowShortcut</enum>
    </property>
   </action>
-  <action name="action_3">
+  <action name="ActionNoteDelete">
    <property name="text">
     <string>Удалить</string>
    </property>
   </action>
-  <action name="action_4">
+  <action name="ActionNoteReindex">
    <property name="text">
     <string>Переиндексировать</string>
    </property>
   </action>
-  <action name="action_6">
+  <action name="ActionNoteSetLabels">
    <property name="text">
     <string>Присвоить метки</string>
    </property>
   </action>
-  <action name="action_8">
+  <action name="ActionNoteHistory">
    <property name="text">
     <string>История заметки</string>
    </property>
   </action>
-  <action name="action_9">
+  <action name="ActionNoteCopy">
    <property name="text">
     <string>Копировать</string>
    </property>
   </action>
-  <action name="action_10">
+  <action name="ActionNoteUnite">
    <property name="text">
     <string>Объединить заметки</string>
    </property>
   </action>
-  <action name="action_12">
+  <action name="ActionNotepadAdd">
    <property name="text">
     <string>Добавить</string>
    </property>
   </action>
-  <action name="action_13">
+  <action name="ActionNotepadProperties">
    <property name="text">
     <string>Свойства</string>
    </property>
   </action>
-  <action name="action_14">
+  <action name="ActionNotepadDelete">
    <property name="text">
     <string>Удалить</string>
    </property>
   </action>
-  <action name="actionSet_stack">
+  <action name="ActionNotepadSetStack">
    <property name="text">
     <string>Set stack</string>
    </property>
   </action>
-  <action name="action_16">
+  <action name="ActionNotepadOpenClose">
    <property name="text">
     <string>Открыть/закрыть блокноты</string>
    </property>
   </action>
-  <action name="action_18">
+  <action name="ActionNotepadChangeIcon">
    <property name="text">
     <string>Установить лого</string>
    </property>
   </action>
-  <action name="action_20">
+  <action name="ActionLabelAdd">
    <property name="text">
     <string>Добавить</string>
    </property>
   </action>
-  <action name="action_21">
+  <action name="ActionLabelProperties">
    <property name="text">
     <string>Свойства</string>
    </property>
   </action>
-  <action name="action_22">
+  <action name="ActionLabelDelete">
    <property name="text">
     <string>Удалить</string>
    </property>
   </action>
-  <action name="action_23">
+  <action name="ActionLabelUnite">
    <property name="text">
     <string>Объединить метки</string>
    </property>
   </action>
-  <action name="action_25">
+  <action name="ActionLabelChangeIcon">
    <property name="text">
     <string>Изменить лого</string>
    </property>
   </action>
-  <action name="action_27">
+  <action name="ActionRequestAdd">
    <property name="text">
     <string>Добавить</string>
    </property>
   </action>
-  <action name="action_28">
+  <action name="ActionRequestProperties">
    <property name="text">
     <string>Свойства</string>
    </property>
   </action>
-  <action name="action_29">
+  <action name="ActionRequestDelete">
    <property name="text">
     <string>Удалить</string>
    </property>
   </action>
-  <action name="action_31">
+  <action name="ActionRequestChangeIcon">
    <property name="text">
     <string>Изменить лого</string>
    </property>
   </action>
-  <action name="action_33">
+  <action name="ActionSendMail">
    <property name="text">
     <string>Отправить по почте</string>
    </property>
@@ -279,7 +283,7 @@
     <string>Ctrl+Shift+E</string>
    </property>
   </action>
-  <action name="action_34">
+  <action name="ActionPrint">
    <property name="text">
     <string>Печать</string>
    </property>
@@ -287,37 +291,37 @@
     <string>Ctrl+P</string>
    </property>
   </action>
-  <action name="action_35">
+  <action name="ActionImportNotes">
    <property name="text">
     <string>Импорт заметок</string>
    </property>
   </action>
-  <action name="action_36">
+  <action name="ActionExportChosenNotes">
    <property name="text">
     <string>Экспорт выделенных заметок</string>
    </property>
   </action>
-  <action name="action_38">
+  <action name="ActionBackupCopy">
    <property name="text">
     <string>Резервное копирование базы данных</string>
    </property>
   </action>
-  <action name="action_39">
+  <action name="ActionRestoreDatabase">
    <property name="text">
     <string>Восстановление базы данных</string>
    </property>
   </action>
-  <action name="action_41">
+  <action name="ActionSelectiveSync">
    <property name="text">
     <string>Выборочная синхронизация</string>
    </property>
   </action>
-  <action name="action_43">
+  <action name="ActionClenup">
    <property name="text">
     <string>Очистить корзину</string>
    </property>
   </action>
-  <action name="action_44">
+  <action name="ActionExit">
    <property name="text">
     <string>Выход</string>
    </property>
@@ -325,7 +329,7 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="action_45">
+  <action name="ActionFindInsideNote">
    <property name="text">
     <string>Найти внутри заметки</string>
    </property>
@@ -333,7 +337,7 @@
     <string>Ctrl+F</string>
    </property>
   </action>
-  <action name="action_46">
+  <action name="ActionUndo">
    <property name="text">
     <string>Отменить</string>
    </property>
@@ -341,7 +345,7 @@
     <string>Ctrl+Z</string>
    </property>
   </action>
-  <action name="action_47">
+  <action name="ActionRedo">
    <property name="text">
     <string>Вернуть</string>
    </property>
@@ -349,7 +353,7 @@
     <string>Ctrl+Y</string>
    </property>
   </action>
-  <action name="action_49">
+  <action name="ActionCut">
    <property name="text">
     <string>Вырезать</string>
    </property>
@@ -357,7 +361,7 @@
     <string>Ctrl+X</string>
    </property>
   </action>
-  <action name="action_50">
+  <action name="ActionCopy">
    <property name="text">
     <string>Копировать</string>
    </property>
@@ -365,7 +369,7 @@
     <string>Ctrl+C</string>
    </property>
   </action>
-  <action name="action_51">
+  <action name="ActionInsert">
    <property name="text">
     <string>Вставить</string>
    </property>
@@ -373,7 +377,7 @@
     <string>Ctrl+V</string>
    </property>
   </action>
-  <action name="action_52">
+  <action name="ActionInsertAsText">
    <property name="text">
     <string>Вставить как текст</string>
    </property>
@@ -381,12 +385,12 @@
     <string>Ctrl+Shift+P</string>
    </property>
   </action>
-  <action name="action_54">
+  <action name="ActionSettings">
    <property name="text">
     <string>Настройки</string>
    </property>
   </action>
-  <action name="action">
+  <action name="ActionShowNoteInfo">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -400,7 +404,7 @@
     <string>F8</string>
    </property>
   </action>
-  <action name="action_5">
+  <action name="ActionShowSource">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -408,7 +412,7 @@
     <string>Показать источник</string>
    </property>
   </action>
-  <action name="action_11">
+  <action name="ActionWideListView">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -419,7 +423,7 @@
     <string>Расширенный вид</string>
    </property>
   </action>
-  <action name="action_15">
+  <action name="ActionNarrowListView">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -427,12 +431,12 @@
     <string>Сжатый вид</string>
    </property>
   </action>
-  <action name="action_17">
+  <action name="ActionPleliminaryView">
    <property name="text">
     <string>Предварительный просмотр</string>
    </property>
   </action>
-  <action name="action_24">
+  <action name="ActionShowNotesList">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -446,14 +450,14 @@
     <string>F10</string>
    </property>
   </action>
-  <action name="action_26">
+  <action name="ActionShowSearchBar">
    <property name="text">
     <string>Показать окно поиска</string>
    </property>
   </action>
-  <action name="action_30">
+  <action name="ActionShowQuotaLimit">
    <property name="text">
-    <string>Показать ограничитель</string>
+    <string>Показать лимит доступного места</string>
    </property>
   </action>
  </widget>
