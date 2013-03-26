@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>957</width>
+    <height>458</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralWidget"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>957</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>Файл</string>
+    </property>
+    <widget class="QMenu" name="menu_6">
+     <property name="title">
+      <string>Заметка</string>
+     </property>
+     <addaction name="action_2"/>
+     <addaction name="action_3"/>
+     <addaction name="action_4"/>
+     <addaction name="separator"/>
+     <addaction name="action_6"/>
+     <addaction name="separator"/>
+     <addaction name="action_8"/>
+     <addaction name="action_9"/>
+     <addaction name="action_10"/>
+    </widget>
+    <widget class="QMenu" name="menu_7">
+     <property name="title">
+      <string>Блокнот</string>
+     </property>
+     <addaction name="action_12"/>
+     <addaction name="action_13"/>
+     <addaction name="action_14"/>
+     <addaction name="separator"/>
+     <addaction name="actionSet_stack"/>
+     <addaction name="action_16"/>
+     <addaction name="separator"/>
+     <addaction name="action_18"/>
+    </widget>
+    <widget class="QMenu" name="menu_8">
+     <property name="title">
+      <string>Метка</string>
+     </property>
+     <addaction name="action_20"/>
+     <addaction name="action_21"/>
+     <addaction name="action_22"/>
+     <addaction name="action_23"/>
+     <addaction name="separator"/>
+     <addaction name="action_25"/>
+    </widget>
+    <widget class="QMenu" name="menu_9">
+     <property name="title">
+      <string>Запрос</string>
+     </property>
+     <addaction name="action_27"/>
+     <addaction name="action_28"/>
+     <addaction name="action_29"/>
+     <addaction name="separator"/>
+     <addaction name="action_31"/>
+    </widget>
+    <addaction name="menu_6"/>
+    <addaction name="menu_7"/>
+    <addaction name="menu_8"/>
+    <addaction name="menu_9"/>
+    <addaction name="separator"/>
+    <addaction name="action_33"/>
+    <addaction name="action_34"/>
+    <addaction name="separator"/>
+    <addaction name="action_35"/>
+    <addaction name="action_36"/>
+    <addaction name="action_38"/>
+    <addaction name="action_39"/>
+    <addaction name="separator"/>
+    <addaction name="action_41"/>
+    <addaction name="separator"/>
+    <addaction name="action_43"/>
+    <addaction name="action_44"/>
+   </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Правка</string>
+    </property>
+    <addaction name="action_45"/>
+    <addaction name="separator"/>
+    <addaction name="action_46"/>
+    <addaction name="action_47"/>
+    <addaction name="separator"/>
+    <addaction name="action_49"/>
+    <addaction name="action_50"/>
+    <addaction name="action_51"/>
+    <addaction name="action_52"/>
+    <addaction name="separator"/>
+    <addaction name="action_54"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Вид</string>
+    </property>
+    <addaction name="action"/>
+    <addaction name="action_5"/>
+    <addaction name="separator"/>
+    <addaction name="action_11"/>
+    <addaction name="action_15"/>
+    <addaction name="action_17"/>
+    <addaction name="separator"/>
+    <addaction name="action_24"/>
+    <addaction name="action_26"/>
+    <addaction name="action_30"/>
+   </widget>
+   <widget class="QMenu" name="menu_3">
+    <property name="title">
+     <string>Формат</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_4">
+    <property name="title">
+     <string>Сервис</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menu_5">
+    <property name="title">
+     <string>Справка</string>
+    </property>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menu"/>
+   <addaction name="menu_2"/>
+   <addaction name="menu_3"/>
+   <addaction name="menu_4"/>
+   <addaction name="menu_5"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="action_2">
+   <property name="text">
+    <string>Добавить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WindowShortcut</enum>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>Удалить</string>
+   </property>
+  </action>
+  <action name="action_4">
+   <property name="text">
+    <string>Переиндексировать</string>
+   </property>
+  </action>
+  <action name="action_6">
+   <property name="text">
+    <string>Присвоить метки</string>
+   </property>
+  </action>
+  <action name="action_8">
+   <property name="text">
+    <string>История заметки</string>
+   </property>
+  </action>
+  <action name="action_9">
+   <property name="text">
+    <string>Копировать</string>
+   </property>
+  </action>
+  <action name="action_10">
+   <property name="text">
+    <string>Объединить заметки</string>
+   </property>
+  </action>
+  <action name="action_12">
+   <property name="text">
+    <string>Добавить</string>
+   </property>
+  </action>
+  <action name="action_13">
+   <property name="text">
+    <string>Свойства</string>
+   </property>
+  </action>
+  <action name="action_14">
+   <property name="text">
+    <string>Удалить</string>
+   </property>
+  </action>
+  <action name="actionSet_stack">
+   <property name="text">
+    <string>Set stack</string>
+   </property>
+  </action>
+  <action name="action_16">
+   <property name="text">
+    <string>Открыть/закрыть блокноты</string>
+   </property>
+  </action>
+  <action name="action_18">
+   <property name="text">
+    <string>Установить лого</string>
+   </property>
+  </action>
+  <action name="action_20">
+   <property name="text">
+    <string>Добавить</string>
+   </property>
+  </action>
+  <action name="action_21">
+   <property name="text">
+    <string>Свойства</string>
+   </property>
+  </action>
+  <action name="action_22">
+   <property name="text">
+    <string>Удалить</string>
+   </property>
+  </action>
+  <action name="action_23">
+   <property name="text">
+    <string>Объединить метки</string>
+   </property>
+  </action>
+  <action name="action_25">
+   <property name="text">
+    <string>Изменить лого</string>
+   </property>
+  </action>
+  <action name="action_27">
+   <property name="text">
+    <string>Добавить</string>
+   </property>
+  </action>
+  <action name="action_28">
+   <property name="text">
+    <string>Свойства</string>
+   </property>
+  </action>
+  <action name="action_29">
+   <property name="text">
+    <string>Удалить</string>
+   </property>
+  </action>
+  <action name="action_31">
+   <property name="text">
+    <string>Изменить лого</string>
+   </property>
+  </action>
+  <action name="action_33">
+   <property name="text">
+    <string>Отправить по почте</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+E</string>
+   </property>
+  </action>
+  <action name="action_34">
+   <property name="text">
+    <string>Печать</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="action_35">
+   <property name="text">
+    <string>Импорт заметок</string>
+   </property>
+  </action>
+  <action name="action_36">
+   <property name="text">
+    <string>Экспорт выделенных заметок</string>
+   </property>
+  </action>
+  <action name="action_38">
+   <property name="text">
+    <string>Резервное копирование базы данных</string>
+   </property>
+  </action>
+  <action name="action_39">
+   <property name="text">
+    <string>Восстановление базы данных</string>
+   </property>
+  </action>
+  <action name="action_41">
+   <property name="text">
+    <string>Выборочная синхронизация</string>
+   </property>
+  </action>
+  <action name="action_43">
+   <property name="text">
+    <string>Очистить корзину</string>
+   </property>
+  </action>
+  <action name="action_44">
+   <property name="text">
+    <string>Выход</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="action_45">
+   <property name="text">
+    <string>Найти внутри заметки</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="action_46">
+   <property name="text">
+    <string>Отменить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="action_47">
+   <property name="text">
+    <string>Вернуть</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="action_49">
+   <property name="text">
+    <string>Вырезать</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="action_50">
+   <property name="text">
+    <string>Копировать</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="action_51">
+   <property name="text">
+    <string>Вставить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+  </action>
+  <action name="action_52">
+   <property name="text">
+    <string>Вставить как текст</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+P</string>
+   </property>
+  </action>
+  <action name="action_54">
+   <property name="text">
+    <string>Настройки</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать информацию о заметке</string>
+   </property>
+   <property name="shortcut">
+    <string>F8</string>
+   </property>
+  </action>
+  <action name="action_5">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать источник</string>
+   </property>
+  </action>
+  <action name="action_11">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Расширенный вид</string>
+   </property>
+  </action>
+  <action name="action_15">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Сжатый вид</string>
+   </property>
+  </action>
+  <action name="action_17">
+   <property name="text">
+    <string>Предварительный просмотр</string>
+   </property>
+  </action>
+  <action name="action_24">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать список заметок</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
+   </property>
+  </action>
+  <action name="action_26">
+   <property name="text">
+    <string>Показать окно поиска</string>
+   </property>
+  </action>
+  <action name="action_30">
+   <property name="text">
+    <string>Показать ограничитель</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
