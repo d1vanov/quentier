@@ -27,7 +27,7 @@
     <property name="title">
      <string>Файл</string>
     </property>
-    <widget class="QMenu" name="menu_6">
+    <widget class="QMenu" name="menuNote">
      <property name="title">
       <string>Заметка</string>
      </property>
@@ -41,7 +41,7 @@
      <addaction name="ActionNoteCopy"/>
      <addaction name="ActionNoteUnite"/>
     </widget>
-    <widget class="QMenu" name="menu_7">
+    <widget class="QMenu" name="menuNotepad">
      <property name="title">
       <string>Блокнот</string>
      </property>
@@ -54,7 +54,7 @@
      <addaction name="separator"/>
      <addaction name="ActionNotepadChangeIcon"/>
     </widget>
-    <widget class="QMenu" name="menu_8">
+    <widget class="QMenu" name="menuLabel">
      <property name="title">
       <string>Метка</string>
      </property>
@@ -65,7 +65,7 @@
      <addaction name="separator"/>
      <addaction name="ActionLabelChangeIcon"/>
     </widget>
-    <widget class="QMenu" name="menu_9">
+    <widget class="QMenu" name="menuRequest">
      <property name="title">
       <string>Запрос</string>
      </property>
@@ -75,10 +75,10 @@
      <addaction name="separator"/>
      <addaction name="ActionRequestChangeIcon"/>
     </widget>
-    <addaction name="menu_6"/>
-    <addaction name="menu_7"/>
-    <addaction name="menu_8"/>
-    <addaction name="menu_9"/>
+    <addaction name="menuNote"/>
+    <addaction name="menuNotepad"/>
+    <addaction name="menuLabel"/>
+    <addaction name="menuRequest"/>
     <addaction name="separator"/>
     <addaction name="ActionSendMail"/>
     <addaction name="ActionPrint"/>
@@ -123,11 +123,76 @@
     <addaction name="ActionShowNotesList"/>
     <addaction name="ActionShowSearchBar"/>
     <addaction name="ActionShowQuotaLimit"/>
+    <addaction name="ActionShowZoom"/>
+    <addaction name="ActionShowNotepadList"/>
+    <addaction name="ActionShowLabelList"/>
+    <addaction name="action_3"/>
+    <addaction name="ActionShowSavedRequests"/>
+    <addaction name="ActionShowTrash"/>
+    <addaction name="ActionShowEditorPanel"/>
+    <addaction name="ActionHideAdditionalPanels"/>
+    <addaction name="ActionShowInstrumentsPanel"/>
    </widget>
    <widget class="QMenu" name="menuFormat">
     <property name="title">
      <string>Формат</string>
     </property>
+    <widget class="QMenu" name="menu">
+     <property name="title">
+      <string>Таблица</string>
+     </property>
+     <addaction name="action_4"/>
+     <addaction name="action_5"/>
+     <addaction name="action_6"/>
+     <addaction name="action_7"/>
+     <addaction name="action_8"/>
+    </widget>
+    <widget class="QMenu" name="menu_2">
+     <property name="title">
+      <string>Изображение</string>
+     </property>
+     <addaction name="action_10"/>
+     <addaction name="action_11"/>
+     <addaction name="action_12"/>
+    </widget>
+    <widget class="QMenu" name="menu_3">
+     <property name="title">
+      <string>Выровнять</string>
+     </property>
+     <addaction name="action_15"/>
+     <addaction name="action_16"/>
+     <addaction name="action_17"/>
+    </widget>
+    <widget class="QMenu" name="menu_4">
+     <property name="title">
+      <string>Вставить список</string>
+     </property>
+     <addaction name="action_19"/>
+     <addaction name="action_20"/>
+    </widget>
+    <widget class="QMenu" name="menu_5">
+     <property name="title">
+      <string>Отступ</string>
+     </property>
+     <addaction name="action_22"/>
+     <addaction name="action_23"/>
+    </widget>
+    <addaction name="ActionFontBold"/>
+    <addaction name="ActionFontUnderlined"/>
+    <addaction name="ActionFontItalic"/>
+    <addaction name="separator"/>
+    <addaction name="ActionFontStrikeout"/>
+    <addaction name="ActionInsertHorizontalLine"/>
+    <addaction name="separator"/>
+    <addaction name="ActionUpperIndex"/>
+    <addaction name="ActionLowerIndex"/>
+    <addaction name="separator"/>
+    <addaction name="menu"/>
+    <addaction name="menu_2"/>
+    <addaction name="separator"/>
+    <addaction name="menu_3"/>
+    <addaction name="menu_4"/>
+    <addaction name="menu_5"/>
    </widget>
    <widget class="QMenu" name="menuService">
     <property name="title">
@@ -451,13 +516,246 @@
    </property>
   </action>
   <action name="ActionShowSearchBar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Показать окно поиска</string>
    </property>
   </action>
   <action name="ActionShowQuotaLimit">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Показать лимит доступного места</string>
+   </property>
+  </action>
+  <action name="ActionShowZoom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать коэффициент увеличения шрифта</string>
+   </property>
+  </action>
+  <action name="ActionShowNotepadList">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать список блокнотов</string>
+   </property>
+  </action>
+  <action name="ActionShowLabelList">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать список меток</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать свойства поиска</string>
+   </property>
+  </action>
+  <action name="ActionShowSavedRequests">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать сохранённые запросы</string>
+   </property>
+  </action>
+  <action name="ActionShowTrash">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать корзину</string>
+   </property>
+  </action>
+  <action name="ActionShowEditorPanel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать панель редактирования</string>
+   </property>
+  </action>
+  <action name="ActionHideAdditionalPanels">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Скрыть дополнительные панели</string>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
+   </property>
+  </action>
+  <action name="ActionShowInstrumentsPanel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать панель инструментов</string>
+   </property>
+  </action>
+  <action name="ActionFontBold">
+   <property name="text">
+    <string>Полужирный</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="ActionFontUnderlined">
+   <property name="text">
+    <string>Подчеркнутый</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
+   </property>
+  </action>
+  <action name="ActionFontItalic">
+   <property name="text">
+    <string>Курсив</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="ActionFontStrikeout">
+   <property name="text">
+    <string>Зачеркнутый</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
+   </property>
+  </action>
+  <action name="ActionInsertHorizontalLine">
+   <property name="text">
+    <string>Вставить горизонтальную линию</string>
+   </property>
+  </action>
+  <action name="ActionUpperIndex">
+   <property name="text">
+    <string>Верхний индекс</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+]</string>
+   </property>
+  </action>
+  <action name="ActionLowerIndex">
+   <property name="text">
+    <string>Нижний индекс</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+[</string>
+   </property>
+  </action>
+  <action name="action_4">
+   <property name="text">
+    <string>Вставить таблицу</string>
+   </property>
+  </action>
+  <action name="action_5">
+   <property name="text">
+    <string>Вставить строку</string>
+   </property>
+  </action>
+  <action name="action_6">
+   <property name="text">
+    <string>Вставить столбец</string>
+   </property>
+  </action>
+  <action name="action_7">
+   <property name="text">
+    <string>Удалить строку</string>
+   </property>
+  </action>
+  <action name="action_8">
+   <property name="text">
+    <string>Удалить столбец</string>
+   </property>
+  </action>
+  <action name="action_10">
+   <property name="text">
+    <string>Сохранить изображение</string>
+   </property>
+  </action>
+  <action name="action_11">
+   <property name="text">
+    <string>Повернуть по часовой стрелке</string>
+   </property>
+  </action>
+  <action name="action_12">
+   <property name="text">
+    <string>Повернуть против часовой стрелки</string>
+   </property>
+  </action>
+  <action name="action_15">
+   <property name="text">
+    <string>Влево</string>
+   </property>
+  </action>
+  <action name="action_16">
+   <property name="text">
+    <string>По центру</string>
+   </property>
+  </action>
+  <action name="action_17">
+   <property name="text">
+    <string>Вправо</string>
+   </property>
+  </action>
+  <action name="action_19">
+   <property name="text">
+    <string>Маркированный список</string>
+   </property>
+  </action>
+  <action name="action_20">
+   <property name="text">
+    <string>Нумерованный список</string>
+   </property>
+  </action>
+  <action name="action_22">
+   <property name="text">
+    <string>Увеличить</string>
+   </property>
+  </action>
+  <action name="action_23">
+   <property name="text">
+    <string>Уменьшить</string>
    </property>
   </action>
  </widget>
