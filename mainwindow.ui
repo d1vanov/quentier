@@ -141,41 +141,41 @@
      <property name="title">
       <string>Таблица</string>
      </property>
-     <addaction name="action_4"/>
-     <addaction name="action_5"/>
-     <addaction name="action_6"/>
-     <addaction name="action_7"/>
-     <addaction name="action_8"/>
+     <addaction name="ActionInsertTable"/>
+     <addaction name="ActionInsertRow"/>
+     <addaction name="ActionInsertColumn"/>
+     <addaction name="ActionRemoveRow"/>
+     <addaction name="ActionRemoveColumn"/>
     </widget>
     <widget class="QMenu" name="menu_2">
      <property name="title">
       <string>Изображение</string>
      </property>
-     <addaction name="action_10"/>
-     <addaction name="action_11"/>
-     <addaction name="action_12"/>
+     <addaction name="ActionSaveImage"/>
+     <addaction name="ActionRotateClockwise"/>
+     <addaction name="ActionRotateCounterClockwise"/>
     </widget>
     <widget class="QMenu" name="menu_3">
      <property name="title">
       <string>Выровнять</string>
      </property>
-     <addaction name="action_15"/>
-     <addaction name="action_16"/>
-     <addaction name="action_17"/>
+     <addaction name="ActionAlignLeft"/>
+     <addaction name="ActionAlignCenter"/>
+     <addaction name="ActionAlignRight"/>
     </widget>
     <widget class="QMenu" name="menu_4">
      <property name="title">
       <string>Вставить список</string>
      </property>
-     <addaction name="action_19"/>
-     <addaction name="action_20"/>
+     <addaction name="ActionInsertBulletedList"/>
+     <addaction name="ActionInsertNumberedList"/>
     </widget>
     <widget class="QMenu" name="menu_5">
      <property name="title">
       <string>Отступ</string>
      </property>
-     <addaction name="action_22"/>
-     <addaction name="action_23"/>
+     <addaction name="ActionIncreaseIndentation"/>
+     <addaction name="ActionDecreaseIndentation"/>
     </widget>
     <addaction name="ActionFontBold"/>
     <addaction name="ActionFontUnderlined"/>
@@ -198,11 +198,26 @@
     <property name="title">
      <string>Сервис</string>
     </property>
+    <addaction name="ActionSync"/>
+    <addaction name="ActionConnect"/>
+    <addaction name="separator"/>
+    <addaction name="ActionSpellCheck"/>
+    <addaction name="ActionAccountInfo"/>
+    <addaction name="ActionReindexDatabase"/>
+    <addaction name="ActionDisableNotesIndexing"/>
+    <addaction name="separator"/>
+    <addaction name="ActionEncryptDatabase"/>
+    <addaction name="ActionDatabaseStatus"/>
+    <addaction name="separator"/>
+    <addaction name="ActionImportFolders"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Справка</string>
     </property>
+    <addaction name="ActionReleaseComments"/>
+    <addaction name="ActionCheckForUpdates"/>
+    <addaction name="ActionViewLogs"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -683,79 +698,175 @@
     <string>Ctrl+[</string>
    </property>
   </action>
-  <action name="action_4">
+  <action name="ActionInsertTable">
    <property name="text">
     <string>Вставить таблицу</string>
    </property>
   </action>
-  <action name="action_5">
+  <action name="ActionInsertRow">
    <property name="text">
     <string>Вставить строку</string>
    </property>
   </action>
-  <action name="action_6">
+  <action name="ActionInsertColumn">
    <property name="text">
     <string>Вставить столбец</string>
    </property>
   </action>
-  <action name="action_7">
+  <action name="ActionRemoveRow">
    <property name="text">
     <string>Удалить строку</string>
    </property>
   </action>
-  <action name="action_8">
+  <action name="ActionRemoveColumn">
    <property name="text">
     <string>Удалить столбец</string>
    </property>
   </action>
-  <action name="action_10">
+  <action name="ActionSaveImage">
    <property name="text">
     <string>Сохранить изображение</string>
    </property>
   </action>
-  <action name="action_11">
+  <action name="ActionRotateClockwise">
    <property name="text">
     <string>Повернуть по часовой стрелке</string>
    </property>
   </action>
-  <action name="action_12">
+  <action name="ActionRotateCounterClockwise">
    <property name="text">
     <string>Повернуть против часовой стрелки</string>
    </property>
   </action>
-  <action name="action_15">
+  <action name="ActionAlignLeft">
    <property name="text">
     <string>Влево</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
   </action>
-  <action name="action_16">
+  <action name="ActionAlignCenter">
    <property name="text">
     <string>По центру</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
   </action>
-  <action name="action_17">
+  <action name="ActionAlignRight">
    <property name="text">
     <string>Вправо</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
   </action>
-  <action name="action_19">
+  <action name="ActionInsertBulletedList">
    <property name="text">
     <string>Маркированный список</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+B</string>
+   </property>
   </action>
-  <action name="action_20">
+  <action name="ActionInsertNumberedList">
    <property name="text">
     <string>Нумерованный список</string>
    </property>
-  </action>
-  <action name="action_22">
-   <property name="text">
-    <string>Увеличить</string>
+   <property name="shortcut">
+    <string>Ctrl+Shift+N</string>
    </property>
   </action>
-  <action name="action_23">
+  <action name="ActionIncreaseIndentation">
    <property name="text">
-    <string>Уменьшить</string>
+    <string>&gt;&gt; Увеличить</string>
+   </property>
+   <property name="toolTip">
+    <string>Увеличить отступ</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="ActionDecreaseIndentation">
+   <property name="text">
+    <string>&lt;&lt; Уменьшить</string>
+   </property>
+   <property name="toolTip">
+    <string>Уменьшить отступ</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+M</string>
+   </property>
+  </action>
+  <action name="ActionSync">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Синхронизация</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
+  </action>
+  <action name="ActionConnect">
+   <property name="text">
+    <string>Соединиться</string>
+   </property>
+  </action>
+  <action name="ActionSpellCheck">
+   <property name="text">
+    <string>Проверка орфографии</string>
+   </property>
+  </action>
+  <action name="ActionAccountInfo">
+   <property name="text">
+    <string>Об аккаунте</string>
+   </property>
+  </action>
+  <action name="ActionReindexDatabase">
+   <property name="text">
+    <string>Переиндексировать базу данных</string>
+   </property>
+  </action>
+  <action name="ActionDisableNotesIndexing">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Отключить индексацию заметок</string>
+   </property>
+  </action>
+  <action name="ActionEncryptDatabase">
+   <property name="text">
+    <string>Зашифровать базу данных</string>
+   </property>
+  </action>
+  <action name="ActionDatabaseStatus">
+   <property name="text">
+    <string>Состояние базы данных</string>
+   </property>
+  </action>
+  <action name="ActionImportFolders">
+   <property name="text">
+    <string>Импорт папок</string>
+   </property>
+  </action>
+  <action name="ActionReleaseComments">
+   <property name="text">
+    <string>Комментарии к релизам</string>
+   </property>
+  </action>
+  <action name="ActionCheckForUpdates">
+   <property name="text">
+    <string>Проверка обновлений</string>
+   </property>
+  </action>
+  <action name="ActionViewLogs">
+   <property name="text">
+    <string>Просмотр логов</string>
    </property>
   </action>
  </widget>
