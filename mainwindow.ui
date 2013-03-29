@@ -7,11 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>957</width>
-    <height>458</height>
+    <height>429</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
+  </property>
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonTextOnly</enum>
   </property>
   <widget class="QWidget" name="centralWidget"/>
   <widget class="QMenuBar" name="menuBar">
@@ -25,11 +28,16 @@
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>Файл</string>
+     <string>&amp;Файл</string>
     </property>
     <widget class="QMenu" name="menuNote">
      <property name="title">
       <string>Заметка</string>
+     </property>
+     <property name="icon">
+      <iconset theme="x-office-document">
+       <normaloff/>
+      </iconset>
      </property>
      <addaction name="ActionNoteAdd"/>
      <addaction name="ActionNoteDelete"/>
@@ -45,25 +53,30 @@
      <property name="title">
       <string>Блокнот</string>
      </property>
+     <property name="icon">
+      <iconset theme="folder">
+       <normaloff/>
+      </iconset>
+     </property>
      <addaction name="ActionNotepadAdd"/>
      <addaction name="ActionNotepadProperties"/>
      <addaction name="ActionNotepadDelete"/>
      <addaction name="separator"/>
      <addaction name="ActionNotepadSetStack"/>
      <addaction name="ActionNotepadOpenClose"/>
-     <addaction name="separator"/>
-     <addaction name="ActionNotepadChangeIcon"/>
     </widget>
     <widget class="QMenu" name="menuLabel">
      <property name="title">
       <string>Метка</string>
      </property>
+     <property name="icon">
+      <iconset resource="resource/icons.qrc">
+       <normaloff>:/label/tag.png</normaloff>:/label/tag.png</iconset>
+     </property>
      <addaction name="ActionLabelAdd"/>
      <addaction name="ActionLabelProperties"/>
      <addaction name="ActionLabelDelete"/>
-     <addaction name="ActionLabelUnite"/>
      <addaction name="separator"/>
-     <addaction name="ActionLabelChangeIcon"/>
     </widget>
     <widget class="QMenu" name="menuRequest">
      <property name="title">
@@ -72,8 +85,6 @@
      <addaction name="ActionRequestAdd"/>
      <addaction name="ActionRequestProperties"/>
      <addaction name="ActionRequestDelete"/>
-     <addaction name="separator"/>
-     <addaction name="ActionRequestChangeIcon"/>
     </widget>
     <addaction name="menuNote"/>
     <addaction name="menuNotepad"/>
@@ -95,7 +106,7 @@
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
-     <string>Правка</string>
+     <string>&amp;Правка</string>
     </property>
     <addaction name="ActionFindInsideNote"/>
     <addaction name="separator"/>
@@ -111,7 +122,7 @@
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>Вид</string>
+     <string>&amp;Вид</string>
     </property>
     <addaction name="ActionShowNoteInfo"/>
     <addaction name="ActionShowSource"/>
@@ -126,7 +137,7 @@
     <addaction name="ActionShowZoom"/>
     <addaction name="ActionShowNotepadList"/>
     <addaction name="ActionShowLabelList"/>
-    <addaction name="action_3"/>
+    <addaction name="ActionShowSearchProperties"/>
     <addaction name="ActionShowSavedRequests"/>
     <addaction name="ActionShowTrash"/>
     <addaction name="ActionShowEditorPanel"/>
@@ -135,9 +146,9 @@
    </widget>
    <widget class="QMenu" name="menuFormat">
     <property name="title">
-     <string>Формат</string>
+     <string>Ф&amp;ормат</string>
     </property>
-    <widget class="QMenu" name="menu">
+    <widget class="QMenu" name="menuTable">
      <property name="title">
       <string>Таблица</string>
      </property>
@@ -147,15 +158,18 @@
      <addaction name="ActionRemoveRow"/>
      <addaction name="ActionRemoveColumn"/>
     </widget>
-    <widget class="QMenu" name="menu_2">
+    <widget class="QMenu" name="menuImage">
      <property name="title">
       <string>Изображение</string>
+     </property>
+     <property name="icon">
+      <iconset theme="image-x-generic"/>
      </property>
      <addaction name="ActionSaveImage"/>
      <addaction name="ActionRotateClockwise"/>
      <addaction name="ActionRotateCounterClockwise"/>
     </widget>
-    <widget class="QMenu" name="menu_3">
+    <widget class="QMenu" name="menuAlign">
      <property name="title">
       <string>Выровнять</string>
      </property>
@@ -163,14 +177,14 @@
      <addaction name="ActionAlignCenter"/>
      <addaction name="ActionAlignRight"/>
     </widget>
-    <widget class="QMenu" name="menu_4">
+    <widget class="QMenu" name="menuList">
      <property name="title">
       <string>Вставить список</string>
      </property>
      <addaction name="ActionInsertBulletedList"/>
      <addaction name="ActionInsertNumberedList"/>
     </widget>
-    <widget class="QMenu" name="menu_5">
+    <widget class="QMenu" name="menuIndentation">
      <property name="title">
       <string>Отступ</string>
      </property>
@@ -187,16 +201,16 @@
     <addaction name="ActionUpperIndex"/>
     <addaction name="ActionLowerIndex"/>
     <addaction name="separator"/>
-    <addaction name="menu"/>
-    <addaction name="menu_2"/>
+    <addaction name="menuTable"/>
+    <addaction name="menuImage"/>
     <addaction name="separator"/>
-    <addaction name="menu_3"/>
-    <addaction name="menu_4"/>
-    <addaction name="menu_5"/>
+    <addaction name="menuAlign"/>
+    <addaction name="menuList"/>
+    <addaction name="menuIndentation"/>
    </widget>
    <widget class="QMenu" name="menuService">
     <property name="title">
-     <string>Сервис</string>
+     <string>С&amp;ервис</string>
     </property>
     <addaction name="ActionSync"/>
     <addaction name="ActionConnect"/>
@@ -213,7 +227,7 @@
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Справка</string>
+     <string>&amp;Справка</string>
     </property>
     <addaction name="ActionReleaseComments"/>
     <addaction name="ActionCheckForUpdates"/>
@@ -227,12 +241,26 @@
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonIconOnly</enum>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="ActionGoPrevious"/>
+   <addaction name="ActionGoNext"/>
+   <addaction name="ActionGoUp"/>
+   <addaction name="ActionGoDown"/>
+   <addaction name="ActionSynchronizeButton"/>
+   <addaction name="ActionPrint"/>
+   <addaction name="ActionManageLabelsButton"/>
+   <addaction name="ActionShowNoteAttributesButton"/>
+   <addaction name="ActionSendMail"/>
+   <addaction name="ActionNoteDelete"/>
+   <addaction name="ActionNoteAdd"/>
   </widget>
   <widget class="QStatusBar" name="statusBar">
    <property name="enabled">
@@ -240,6 +268,11 @@
    </property>
   </widget>
   <action name="ActionNoteAdd">
+   <property name="icon">
+    <iconset theme="document-new">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Добавить</string>
    </property>
@@ -251,6 +284,11 @@
    </property>
   </action>
   <action name="ActionNoteDelete">
+   <property name="icon">
+    <iconset theme="edit-delete">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Удалить</string>
    </property>
@@ -271,6 +309,11 @@
    </property>
   </action>
   <action name="ActionNoteCopy">
+   <property name="icon">
+    <iconset theme="edit-copy">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Копировать</string>
    </property>
@@ -281,6 +324,11 @@
    </property>
   </action>
   <action name="ActionNotepadAdd">
+   <property name="icon">
+    <iconset theme="folder-new">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Добавить</string>
    </property>
@@ -291,13 +339,23 @@
    </property>
   </action>
   <action name="ActionNotepadDelete">
+   <property name="icon">
+    <iconset theme="edit-delete">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Удалить</string>
    </property>
   </action>
   <action name="ActionNotepadSetStack">
+   <property name="icon">
+    <iconset theme="list-add">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
-    <string>Set stack</string>
+    <string>Добавить в набор</string>
    </property>
   </action>
   <action name="ActionNotepadOpenClose">
@@ -356,6 +414,11 @@
    </property>
   </action>
   <action name="ActionSendMail">
+   <property name="icon">
+    <iconset theme="mail-send">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Отправить по почте</string>
    </property>
@@ -364,6 +427,11 @@
    </property>
   </action>
   <action name="ActionPrint">
+   <property name="icon">
+    <iconset theme="printer">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Печать</string>
    </property>
@@ -397,11 +465,21 @@
    </property>
   </action>
   <action name="ActionClenup">
+   <property name="icon">
+    <iconset theme="user-trash">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Очистить корзину</string>
    </property>
   </action>
   <action name="ActionExit">
+   <property name="icon">
+    <iconset theme="application-exit">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Выход</string>
    </property>
@@ -410,6 +488,11 @@
    </property>
   </action>
   <action name="ActionFindInsideNote">
+   <property name="icon">
+    <iconset theme="system-search">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Найти внутри заметки</string>
    </property>
@@ -418,6 +501,11 @@
    </property>
   </action>
   <action name="ActionUndo">
+   <property name="icon">
+    <iconset theme="edit-undo">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Отменить</string>
    </property>
@@ -426,6 +514,11 @@
    </property>
   </action>
   <action name="ActionRedo">
+   <property name="icon">
+    <iconset theme="edit-redo">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Вернуть</string>
    </property>
@@ -434,6 +527,11 @@
    </property>
   </action>
   <action name="ActionCut">
+   <property name="icon">
+    <iconset theme="edit-cut">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Вырезать</string>
    </property>
@@ -442,6 +540,11 @@
    </property>
   </action>
   <action name="ActionCopy">
+   <property name="icon">
+    <iconset theme="edit-copy">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Копировать</string>
    </property>
@@ -450,6 +553,11 @@
    </property>
   </action>
   <action name="ActionInsert">
+   <property name="icon">
+    <iconset theme="edit-paste">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Вставить</string>
    </property>
@@ -458,6 +566,11 @@
    </property>
   </action>
   <action name="ActionInsertAsText">
+   <property name="icon">
+    <iconset theme="insert-text">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Вставить как текст</string>
    </property>
@@ -466,6 +579,11 @@
    </property>
   </action>
   <action name="ActionSettings">
+   <property name="icon">
+    <iconset theme="emblem-system">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Настройки</string>
    </property>
@@ -579,7 +697,7 @@
     <string>Показать список меток</string>
    </property>
   </action>
-  <action name="action_3">
+  <action name="ActionShowSearchProperties">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -646,6 +764,11 @@
    </property>
   </action>
   <action name="ActionFontBold">
+   <property name="icon">
+    <iconset theme="format-text-bold">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Полужирный</string>
    </property>
@@ -654,6 +777,11 @@
    </property>
   </action>
   <action name="ActionFontUnderlined">
+   <property name="icon">
+    <iconset theme="format-text-underline">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Подчеркнутый</string>
    </property>
@@ -662,6 +790,11 @@
    </property>
   </action>
   <action name="ActionFontItalic">
+   <property name="icon">
+    <iconset theme="format-text-italic">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Курсив</string>
    </property>
@@ -670,6 +803,11 @@
    </property>
   </action>
   <action name="ActionFontStrikeout">
+   <property name="icon">
+    <iconset theme="format-text-strikethrough">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Зачеркнутый</string>
    </property>
@@ -683,6 +821,9 @@
    </property>
   </action>
   <action name="ActionUpperIndex">
+   <property name="icon">
+    <iconset theme="go-top"/>
+   </property>
    <property name="text">
     <string>Верхний индекс</string>
    </property>
@@ -691,6 +832,9 @@
    </property>
   </action>
   <action name="ActionLowerIndex">
+   <property name="icon">
+    <iconset theme="go-bottom"/>
+   </property>
    <property name="text">
     <string>Нижний индекс</string>
    </property>
@@ -699,6 +843,10 @@
    </property>
   </action>
   <action name="ActionInsertTable">
+   <property name="icon">
+    <iconset resource="resource/icons.qrc">
+     <normaloff>:/format_text_elements/insert_table.png</normaloff>:/format_text_elements/insert_table.png</iconset>
+   </property>
    <property name="text">
     <string>Вставить таблицу</string>
    </property>
@@ -724,21 +872,35 @@
    </property>
   </action>
   <action name="ActionSaveImage">
+   <property name="icon">
+    <iconset theme="document-save"/>
+   </property>
    <property name="text">
     <string>Сохранить изображение</string>
    </property>
   </action>
   <action name="ActionRotateClockwise">
+   <property name="icon">
+    <iconset theme="object-rotate-right"/>
+   </property>
    <property name="text">
     <string>Повернуть по часовой стрелке</string>
    </property>
   </action>
   <action name="ActionRotateCounterClockwise">
+   <property name="icon">
+    <iconset theme="object-rotate-left"/>
+   </property>
    <property name="text">
     <string>Повернуть против часовой стрелки</string>
    </property>
   </action>
   <action name="ActionAlignLeft">
+   <property name="icon">
+    <iconset theme="format-justify-left">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Влево</string>
    </property>
@@ -747,6 +909,11 @@
    </property>
   </action>
   <action name="ActionAlignCenter">
+   <property name="icon">
+    <iconset theme="format-justify-center">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>По центру</string>
    </property>
@@ -755,6 +922,11 @@
    </property>
   </action>
   <action name="ActionAlignRight">
+   <property name="icon">
+    <iconset theme="format-justify-right">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Вправо</string>
    </property>
@@ -779,6 +951,11 @@
    </property>
   </action>
   <action name="ActionIncreaseIndentation">
+   <property name="icon">
+    <iconset theme="format-indent-less">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>&gt;&gt; Увеличить</string>
    </property>
@@ -790,6 +967,11 @@
    </property>
   </action>
   <action name="ActionDecreaseIndentation">
+   <property name="icon">
+    <iconset theme="format-indent-less">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>&lt;&lt; Уменьшить</string>
    </property>
@@ -869,8 +1051,105 @@
     <string>Просмотр логов</string>
    </property>
   </action>
+  <action name="ActionGoPrevious">
+   <property name="icon">
+    <iconset theme="go-previous">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Назад</string>
+   </property>
+   <property name="toolTip">
+    <string>Назад</string>
+   </property>
+  </action>
+  <action name="ActionGoNext">
+   <property name="icon">
+    <iconset theme="go-next">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вперед</string>
+   </property>
+   <property name="toolTip">
+    <string>Вперед</string>
+   </property>
+  </action>
+  <action name="ActionGoUp">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="go-up">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вверх</string>
+   </property>
+   <property name="toolTip">
+    <string>Вверх</string>
+   </property>
+  </action>
+  <action name="ActionGoDown">
+   <property name="icon">
+    <iconset theme="go-down">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вниз</string>
+   </property>
+   <property name="toolTip">
+    <string>Вниз</string>
+   </property>
+  </action>
+  <action name="ActionSynchronizeButton">
+   <property name="icon">
+    <iconset resource="resource/icons.qrc">
+     <normaloff>:/sync_icons/stat_notify_sync.png</normaloff>:/sync_icons/stat_notify_sync.png</iconset>
+   </property>
+   <property name="text">
+    <string>Синхронизация</string>
+   </property>
+   <property name="toolTip">
+    <string>Синхронизация</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
+  </action>
+  <action name="ActionShowNoteAttributesButton">
+   <property name="icon">
+    <iconset theme="dialog-information">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Показать атрибуты заметки</string>
+   </property>
+   <property name="toolTip">
+    <string>Показать атрибуты заметки</string>
+   </property>
+  </action>
+  <action name="ActionManageLabelsButton">
+   <property name="icon">
+    <iconset resource="resource/icons.qrc">
+     <normaloff>:/label/tag.png</normaloff>:/label/tag.png</iconset>
+   </property>
+   <property name="text">
+    <string>Управление метками</string>
+   </property>
+   <property name="toolTip">
+    <string>Управление метками</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="resource/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
