@@ -29,7 +29,7 @@
      <x>0</x>
      <y>0</y>
      <width>1248</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -290,8 +290,8 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>250</width>
-     <height>250</height>
+     <width>350</width>
+     <height>349</height>
     </size>
    </property>
    <property name="sizeIncrement">
@@ -310,6 +310,18 @@
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockContentsNotebooks">
+    <property name="minimumSize">
+     <size>
+      <width>150</width>
+      <height>130</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>350</width>
+      <height>330</height>
+     </size>
+    </property>
     <property name="autoFillBackground">
      <bool>false</bool>
     </property>
@@ -318,9 +330,21 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>131</width>
-       <height>111</height>
+       <width>140</width>
+       <height>130</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>140</width>
+       <height>130</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>340</width>
+       <height>330</height>
+      </size>
      </property>
      <property name="mouseTracking">
       <bool>false</bool>
@@ -345,8 +369,8 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>250</width>
-     <height>250</height>
+     <width>350</width>
+     <height>350</height>
     </size>
    </property>
    <property name="features">
@@ -391,8 +415,8 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>250</width>
-     <height>250</height>
+     <width>1000</width>
+     <height>1000</height>
     </size>
    </property>
    <property name="windowTitle">
@@ -432,6 +456,18 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockSavedRequests">
+   <property name="minimumSize">
+    <size>
+     <width>150</width>
+     <height>150</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>1000</width>
+     <height>1000</height>
+    </size>
+   </property>
    <property name="windowTitle">
     <string>Сохраненные запросы</string>
    </property>
@@ -452,6 +488,18 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockTrash">
+   <property name="minimumSize">
+    <size>
+     <width>150</width>
+     <height>150</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>150</width>
+     <height>349</height>
+    </size>
+   </property>
    <property name="windowTitle">
     <string>Корзина</string>
    </property>
@@ -459,14 +507,32 @@
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockContentsTrash">
+    <property name="maximumSize">
+     <size>
+      <width>330</width>
+      <height>330</height>
+     </size>
+    </property>
     <widget class="QListWidget" name="listTrash">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>0</y>
-       <width>131</width>
-       <height>91</height>
+       <width>130</width>
+       <height>90</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>70</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>990</width>
+       <height>990</height>
+      </size>
      </property>
     </widget>
    </widget>
