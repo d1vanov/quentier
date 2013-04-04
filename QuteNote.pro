@@ -21,3 +21,7 @@ FORMS    += mainwindow.ui
 
 RESOURCES += \
     resource/icons.qrc
+
+linux-g++-64 {
+QMAKE_CXXFLAGS += -std=c++11
+}
