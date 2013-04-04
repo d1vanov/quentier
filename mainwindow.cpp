@@ -54,17 +54,14 @@ void MainWindow::SetDefaultLayoutSettings()
     ResizeHelperDockWidget(ui.dockNotebooks, dockNotebooksHeight, helperWidgetsWidth,
                            minHeightMultiplier, minWidthMultiplier, maxHeightMultiplier,
                            maxWidthMultiplier);
-    qDebug() << "Dock notebooks: " << ui.dockNotebooks->size();
     // 2) Dock labels
     ResizeHelperDockWidget(ui.dockLabels, dockLabelsHeight, helperWidgetsWidth,
                            minHeightMultiplier, minWidthMultiplier, maxHeightMultiplier,
                            maxWidthMultiplier);
-    qDebug() << "Dock labels: " << ui.dockLabels->size();
     // 3) Dock search properties
     ResizeHelperDockWidget(ui.dockSearchProperties, dockSearchPropertiesHeight,
                            helperWidgetsWidth, minHeightMultiplier, minWidthMultiplier,
                            maxHeightMultiplier, maxWidthMultiplier);
-    qDebug() << "Dock search properties: " << ui.dockSearchProperties->size();
     // 4) Dock saved requests
     ResizeHelperDockWidget(ui.dockSavedRequests, dockSavedRequestsHeight,
                            helperWidgetsWidth, minHeightMultiplier, minWidthMultiplier,
@@ -75,7 +72,6 @@ void MainWindow::SetDefaultLayoutSettings()
                            maxWidthMultiplier);
 
     // TODO: rearrange the position of each helper widget
-
 }
 
 void MainWindow::ResizeHelperDockWidget(QDockWidget * pDock, const int dockHeight,
