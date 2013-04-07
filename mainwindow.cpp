@@ -74,6 +74,13 @@ void MainWindow::SetDefaultLayoutSettings()
     // TODO: rearrange the position of each helper widget
 }
 
+void MainWindow::resizeEvent(QResizeEvent * pResizeEvent)
+{
+    Q_CHECK_PTR(pResizeEvent);
+
+    SetDefaultLayoutSettings();
+}
+
 void MainWindow::ResizeHelperDockWidget(QDockWidget * pDock, const int dockHeight,
                                         const int dockWidth, const double minHeightMultiplier,
                                         const double minWidthMultiplier,
@@ -89,7 +96,15 @@ void MainWindow::ResizeHelperDockWidget(QDockWidget * pDock, const int dockHeigh
 
     QDockWidget & rDock = *pDock;
 
-    rDock.resize(dockWidth, dockHeight);
+    int dockOldHeight = pDock->height();
+    int dockOldWidth = pDock->width();
+
+    if ( (std::abs(dockOldWidth - dockWidth) < 1) &&
+         (std::abs(dockOldHeight - dockHeight) < 1) )
+    {
+        rDock.resize(dockWidth, dockHeight);
+    }
+
     rDock.setMaximumHeight(std::floor(dockHeight * maxHeightMultiplier + 0.5));
     rDock.setMaximumWidth(std::floor(dockWidth * maxWidthMultiplier + 0.5));
     rDock.setMinimumHeight(std::floor(dockHeight * minHeightMultiplier + 0.5));

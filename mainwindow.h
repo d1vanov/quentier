@@ -17,6 +17,7 @@ public:
     
 public:
     void SetDefaultLayoutSettings();
+    virtual void resizeEvent(QResizeEvent * pResizeEvent);
 
 private:
     void ResizeHelperDockWidget(QDockWidget * pDock, const int dockHeight,

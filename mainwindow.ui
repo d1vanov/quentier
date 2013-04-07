@@ -22,14 +22,20 @@
   <property name="dockNestingEnabled">
    <bool>true</bool>
   </property>
-  <widget class="QWidget" name="centralWidget"/>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_6">
+    <item>
+     <widget class="QTableWidget" name="notesList"/>
+    </item>
+   </layout>
+  </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>702</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -282,12 +288,6 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <property name="minimumSize">
-    <size>
-     <width>150</width>
-     <height>152</height>
-    </size>
-   </property>
    <property name="maximumSize">
     <size>
      <width>350</width>
@@ -304,12 +304,6 @@
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockContentsNotebooks">
-    <property name="minimumSize">
-     <size>
-      <width>150</width>
-      <height>130</height>
-     </size>
-    </property>
     <property name="maximumSize">
      <size>
       <width>350</width>
@@ -322,12 +316,6 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QTableWidget" name="tableNotebooks">
-       <property name="minimumSize">
-        <size>
-         <width>140</width>
-         <height>130</height>
-        </size>
-       </property>
        <property name="maximumSize">
         <size>
          <width>340</width>
@@ -360,12 +348,6 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <property name="minimumSize">
-    <size>
-     <width>150</width>
-     <height>152</height>
-    </size>
-   </property>
    <property name="maximumSize">
     <size>
      <width>350</width>
@@ -387,12 +369,6 @@
       <horstretch>0</horstretch>
       <verstretch>0</verstretch>
      </sizepolicy>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>150</width>
-      <height>130</height>
-     </size>
     </property>
     <property name="maximumSize">
      <size>
@@ -420,12 +396,6 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <property name="minimumSize">
-    <size>
-     <width>150</width>
-     <height>150</height>
-    </size>
-   </property>
    <property name="maximumSize">
     <size>
      <width>1000</width>
@@ -442,12 +412,6 @@
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QTreeWidget" name="treeSearchProperties">
-       <property name="minimumSize">
-        <size>
-         <width>100</width>
-         <height>100</height>
-        </size>
-       </property>
        <property name="maximumSize">
         <size>
          <width>200</width>
@@ -465,12 +429,6 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockSavedRequests">
-   <property name="minimumSize">
-    <size>
-     <width>150</width>
-     <height>150</height>
-    </size>
-   </property>
    <property name="maximumSize">
     <size>
      <width>1000</width>
@@ -503,6 +461,12 @@
    </attribute>
   </widget>
   <widget class="QDockWidget" name="dockTrash">
+   <property name="maximumSize">
+    <size>
+     <width>350</width>
+     <height>100</height>
+    </size>
+   </property>
    <property name="windowTitle">
     <string>Корзина</string>
    </property>
