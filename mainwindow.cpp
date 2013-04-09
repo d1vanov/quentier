@@ -72,6 +72,8 @@ void MainWindow::SetDefaultLayoutSettings()
                            maxWidthMultiplier);
 
     // TODO: rearrange the position of each helper widget
+
+    // TODO: change vertical sizes of notes table and note editor window
 }
 
 void MainWindow::resizeEvent(QResizeEvent * pResizeEvent)
