@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>NoteRichTextEditor</class>
+ <widget class="QWidget" name="NoteRichTextEditor">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>858</width>
+    <height>438</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string notr="true"/>
+  </property>
+  <widget class="QFrame" name="frameButtons">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>70</y>
+     <width>841</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
+   <widget class="QPushButton" name="buttonRedo">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Повторить</string>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="edit-redo"/>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonCut">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="edit-cut"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonUndo">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Отмена</string>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="edit-undo"/>
+    </property>
+    <property name="autoDefault">
+     <bool>false</bool>
+    </property>
+    <property name="default">
+     <bool>false</bool>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonCopy">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="edit-copy"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonPaste">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="edit-paste"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonFormatTextBold">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-text-bold"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonFormatTextItalic">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-text-italic"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonFormatTextUnderlined">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-text-underline"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonFormatTextStrikethrough">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-text-strikethrough"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonFormatTextAlignLeft">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-justify-left"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonFormatTextAlignCenter">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-justify-center"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonFormatTextAlignRight">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-justify-right"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonAddHorizontalLine">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="insert-horizontal-rule"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonIndentDecrease">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-indent-less"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonIndentIncrease">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-indent-more"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonInsertUnorderedList">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-list-unordered"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonInsertOrderedList">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-list-ordered"/>
+    </property>
+   </widget>
+   <widget class="QFontComboBox" name="fontComboBox">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>10</y>
+      <width>111</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QToolButton" name="toolButtonChooseTextColor">
+    <property name="geometry">
+     <rect>
+      <x>700</x>
+      <y>10</y>
+      <width>30</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>...</string>
+    </property>
+    <property name="icon">
+     <iconset theme="format-text-color"/>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="spinBoxChooseFontSize">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>10</y>
+      <width>54</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QToolButton" name="toolButtonChooseSelectedTextColor">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>10</y>
+      <width>30</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="format-stroke-color"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonSpellCheck">
+    <property name="geometry">
+     <rect>
+      <x>780</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="tools-check-spelling"/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="buttonInsertTodoCheckbox">
+    <property name="geometry">
+     <rect>
+      <x>810</x>
+      <y>10</y>
+      <width>21</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string notr="true"/>
+    </property>
+    <property name="icon">
+     <iconset theme="checkbox"/>
+    </property>
+   </widget>
+   <zorder>buttonRedo</zorder>
+   <zorder>buttonCut</zorder>
+   <zorder>buttonUndo</zorder>
+   <zorder>buttonCopy</zorder>
+   <zorder>buttonPaste</zorder>
+   <zorder>buttonFormatTextBold</zorder>
+   <zorder>buttonFormatTextItalic</zorder>
+   <zorder>buttonFormatTextUnderlined</zorder>
+   <zorder>buttonFormatTextStrikethrough</zorder>
+   <zorder>buttonFormatTextAlignLeft</zorder>
+   <zorder>buttonFormatTextAlignCenter</zorder>
+   <zorder>buttonFormatTextAlignRight</zorder>
+   <zorder>buttonAddHorizontalLine</zorder>
+   <zorder>buttonIndentDecrease</zorder>
+   <zorder>buttonIndentIncrease</zorder>
+   <zorder>splitterTagsNotebooks</zorder>
+   <zorder>buttonInsertUnorderedList</zorder>
+   <zorder>buttonInsertOrderedList</zorder>
+   <zorder>fontComboBox</zorder>
+   <zorder>toolButtonChooseTextColor</zorder>
+   <zorder>spinBoxChooseFontSize</zorder>
+   <zorder>toolButtonChooseSelectedTextColor</zorder>
+   <zorder>buttonSpellCheck</zorder>
+   <zorder>buttonInsertTodoCheckbox</zorder>
+  </widget>
+  <widget class="QLineEdit" name="noteName">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>841</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="noteTextEdit">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>120</y>
+     <width>841</width>
+     <height>311</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QSplitter" name="splitterTagsNotebooks">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>841</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <widget class="QComboBox" name="notebookComboBox"/>
+   <widget class="QWidget" name="">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="tagsLabel">
+       <property name="text">
+        <string>Метки:</string>
+       </property>
+       <property name="buddy">
+        <cstring>tags</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="tags"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

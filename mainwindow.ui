@@ -189,13 +189,12 @@
      <addaction name="ActionRotateClockwise"/>
      <addaction name="ActionRotateCounterClockwise"/>
     </widget>
-    <widget class="QMenu" name="menuAlign">
+    <widget class="QMenu" name="menuIndentation">
      <property name="title">
-      <string>Выровнять</string>
+      <string>Отступ</string>
      </property>
-     <addaction name="ActionAlignLeft"/>
-     <addaction name="ActionAlignCenter"/>
-     <addaction name="ActionAlignRight"/>
+     <addaction name="ActionIncreaseIndentation"/>
+     <addaction name="ActionDecreaseIndentation"/>
     </widget>
     <widget class="QMenu" name="menuList">
      <property name="title">
@@ -204,12 +203,13 @@
      <addaction name="ActionInsertBulletedList"/>
      <addaction name="ActionInsertNumberedList"/>
     </widget>
-    <widget class="QMenu" name="menuIndentation">
+    <widget class="QMenu" name="menuAlign">
      <property name="title">
-      <string>Отступ</string>
+      <string>Выровнять</string>
      </property>
-     <addaction name="ActionIncreaseIndentation"/>
-     <addaction name="ActionDecreaseIndentation"/>
+     <addaction name="ActionAlignLeft"/>
+     <addaction name="ActionAlignCenter"/>
+     <addaction name="ActionAlignRight"/>
     </widget>
     <addaction name="ActionFontBold"/>
     <addaction name="ActionFontUnderlined"/>
@@ -1036,6 +1036,9 @@
    </property>
   </action>
   <action name="ActionInsertHorizontalLine">
+   <property name="icon">
+    <iconset theme="insert-horizontal-rule"/>
+   </property>
    <property name="text">
     <string>Вставить горизонтальную линию</string>
    </property>
@@ -1165,6 +1168,9 @@
    </property>
   </action>
   <action name="ActionInsertBulletedList">
+   <property name="icon">
+    <iconset theme="format-list-unordered"/>
+   </property>
    <property name="text">
     <string>Маркированный список</string>
    </property>
@@ -1173,6 +1179,9 @@
    </property>
   </action>
   <action name="ActionInsertNumberedList">
+   <property name="icon">
+    <iconset theme="format-list-ordered"/>
+   </property>
    <property name="text">
     <string>Нумерованный список</string>
    </property>
