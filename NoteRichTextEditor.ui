@@ -44,7 +44,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="edit-redo"/>
+     <iconset theme="edit-redo">
+      <normaloff/>
+     </iconset>
     </property>
     <property name="flat">
      <bool>false</bool>
@@ -63,7 +65,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="edit-cut"/>
+     <iconset theme="edit-cut">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonUndo">
@@ -82,7 +86,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="edit-undo"/>
+     <iconset theme="edit-undo">
+      <normaloff/>
+     </iconset>
     </property>
     <property name="autoDefault">
      <bool>false</bool>
@@ -107,7 +113,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="edit-copy"/>
+     <iconset theme="edit-copy">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonPaste">
@@ -123,7 +131,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="edit-paste"/>
+     <iconset theme="edit-paste">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonFormatTextBold">
@@ -139,7 +149,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-text-bold"/>
+     <iconset theme="format-text-bold">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonFormatTextItalic">
@@ -155,7 +167,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-text-italic"/>
+     <iconset theme="format-text-italic">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonFormatTextUnderlined">
@@ -171,7 +185,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-text-underline"/>
+     <iconset theme="format-text-underline">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonFormatTextStrikethrough">
@@ -187,7 +203,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-text-strikethrough"/>
+     <iconset theme="format-text-strikethrough">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonFormatTextAlignLeft">
@@ -203,7 +221,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-justify-left"/>
+     <iconset theme="format-justify-left">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonFormatTextAlignCenter">
@@ -219,7 +239,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-justify-center"/>
+     <iconset theme="format-justify-center">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonFormatTextAlignRight">
@@ -235,7 +257,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-justify-right"/>
+     <iconset theme="format-justify-right">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonAddHorizontalLine">
@@ -251,7 +275,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="insert-horizontal-rule"/>
+     <iconset theme="insert-horizontal-rule">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonIndentDecrease">
@@ -267,7 +293,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-indent-less"/>
+     <iconset theme="format-indent-less">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonIndentIncrease">
@@ -283,7 +311,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-indent-more"/>
+     <iconset theme="format-indent-more">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonInsertUnorderedList">
@@ -299,7 +329,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-list-unordered"/>
+     <iconset theme="format-list-unordered">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonInsertOrderedList">
@@ -315,7 +347,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-list-ordered"/>
+     <iconset theme="format-list-ordered">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QFontComboBox" name="fontComboBox">
@@ -341,7 +375,9 @@
      <string>...</string>
     </property>
     <property name="icon">
-     <iconset theme="format-text-color"/>
+     <iconset theme="format-text-color">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QSpinBox" name="spinBoxChooseFontSize">
@@ -367,7 +403,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="format-stroke-color"/>
+     <iconset theme="format-stroke-color">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonSpellCheck">
@@ -383,7 +421,9 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="tools-check-spelling"/>
+     <iconset theme="tools-check-spelling">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="buttonInsertTodoCheckbox">
@@ -399,33 +439,11 @@
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset theme="checkbox"/>
+     <iconset theme="checkbox">
+      <normaloff/>
+     </iconset>
     </property>
    </widget>
-   <zorder>buttonRedo</zorder>
-   <zorder>buttonCut</zorder>
-   <zorder>buttonUndo</zorder>
-   <zorder>buttonCopy</zorder>
-   <zorder>buttonPaste</zorder>
-   <zorder>buttonFormatTextBold</zorder>
-   <zorder>buttonFormatTextItalic</zorder>
-   <zorder>buttonFormatTextUnderlined</zorder>
-   <zorder>buttonFormatTextStrikethrough</zorder>
-   <zorder>buttonFormatTextAlignLeft</zorder>
-   <zorder>buttonFormatTextAlignCenter</zorder>
-   <zorder>buttonFormatTextAlignRight</zorder>
-   <zorder>buttonAddHorizontalLine</zorder>
-   <zorder>buttonIndentDecrease</zorder>
-   <zorder>buttonIndentIncrease</zorder>
-   <zorder>splitterTagsNotebooks</zorder>
-   <zorder>buttonInsertUnorderedList</zorder>
-   <zorder>buttonInsertOrderedList</zorder>
-   <zorder>fontComboBox</zorder>
-   <zorder>toolButtonChooseTextColor</zorder>
-   <zorder>spinBoxChooseFontSize</zorder>
-   <zorder>toolButtonChooseSelectedTextColor</zorder>
-   <zorder>buttonSpellCheck</zorder>
-   <zorder>buttonInsertTodoCheckbox</zorder>
   </widget>
   <widget class="QLineEdit" name="noteName">
    <property name="geometry">
@@ -460,7 +478,7 @@
     <enum>Qt::Horizontal</enum>
    </property>
    <widget class="QComboBox" name="notebookComboBox"/>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QLabel" name="tagsLabel">
@@ -479,6 +497,35 @@
    </widget>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>noteName</tabstop>
+  <tabstop>notebookComboBox</tabstop>
+  <tabstop>tags</tabstop>
+  <tabstop>buttonUndo</tabstop>
+  <tabstop>buttonRedo</tabstop>
+  <tabstop>buttonCut</tabstop>
+  <tabstop>buttonCopy</tabstop>
+  <tabstop>buttonPaste</tabstop>
+  <tabstop>buttonFormatTextBold</tabstop>
+  <tabstop>buttonFormatTextItalic</tabstop>
+  <tabstop>buttonFormatTextUnderlined</tabstop>
+  <tabstop>buttonFormatTextStrikethrough</tabstop>
+  <tabstop>buttonFormatTextAlignLeft</tabstop>
+  <tabstop>buttonFormatTextAlignCenter</tabstop>
+  <tabstop>buttonFormatTextAlignRight</tabstop>
+  <tabstop>buttonAddHorizontalLine</tabstop>
+  <tabstop>buttonIndentIncrease</tabstop>
+  <tabstop>buttonIndentDecrease</tabstop>
+  <tabstop>buttonInsertUnorderedList</tabstop>
+  <tabstop>buttonInsertOrderedList</tabstop>
+  <tabstop>fontComboBox</tabstop>
+  <tabstop>spinBoxChooseFontSize</tabstop>
+  <tabstop>toolButtonChooseTextColor</tabstop>
+  <tabstop>toolButtonChooseSelectedTextColor</tabstop>
+  <tabstop>buttonSpellCheck</tabstop>
+  <tabstop>buttonInsertTodoCheckbox</tabstop>
+  <tabstop>noteTextEdit</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

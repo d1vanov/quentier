@@ -30,7 +30,7 @@
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="QTableWidget" name="notesTable"/>
-      <widget class="QTextEdit" name="notesEditorWindow"/>
+      <widget class="NoteRichTextEditor" name="notesEditorWidget" native="true"/>
      </widget>
     </item>
    </layout>
@@ -1037,7 +1037,9 @@
   </action>
   <action name="ActionInsertHorizontalLine">
    <property name="icon">
-    <iconset theme="insert-horizontal-rule"/>
+    <iconset theme="insert-horizontal-rule">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Вставить горизонтальную линию</string>
@@ -1169,7 +1171,9 @@
   </action>
   <action name="ActionInsertBulletedList">
    <property name="icon">
-    <iconset theme="format-list-unordered"/>
+    <iconset theme="format-list-unordered">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Маркированный список</string>
@@ -1180,7 +1184,9 @@
   </action>
   <action name="ActionInsertNumberedList">
    <property name="icon">
-    <iconset theme="format-list-ordered"/>
+    <iconset theme="format-list-ordered">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Нумерованный список</string>
@@ -1387,6 +1393,14 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>NoteRichTextEditor</class>
+   <extends>QWidget</extends>
+   <header>NoteRichTextEditor.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resource/icons.qrc"/>
  </resources>
