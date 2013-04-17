@@ -28,3 +28,6 @@ RESOURCES += \
 linux-g++-64 {
 QMAKE_CXXFLAGS += -std=c++11
 }
+
+OTHER_FILES += \
+    TODO.txt

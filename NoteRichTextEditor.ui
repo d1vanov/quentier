@@ -419,5 +419,118 @@
   <tabstop>noteTextEdit</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>buttonUndo</sender>
+   <signal>clicked()</signal>
+   <receiver>noteTextEdit</receiver>
+   <slot>undo()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>36</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>36</x>
+     <y>121</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonRedo</sender>
+   <signal>clicked()</signal>
+   <receiver>noteTextEdit</receiver>
+   <slot>redo()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>94</x>
+     <y>76</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>94</x>
+     <y>124</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonCut</sender>
+   <signal>clicked()</signal>
+   <receiver>noteTextEdit</receiver>
+   <slot>cut()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>146</x>
+     <y>76</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>146</x>
+     <y>119</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonCopy</sender>
+   <signal>clicked()</signal>
+   <receiver>noteTextEdit</receiver>
+   <slot>copy()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>188</x>
+     <y>79</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>191</x>
+     <y>111</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonPaste</sender>
+   <signal>clicked()</signal>
+   <receiver>noteTextEdit</receiver>
+   <slot>paste()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>237</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>237</x>
+     <y>132</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>fontComboBox</sender>
+   <signal>currentFontChanged(QFont)</signal>
+   <receiver>noteTextEdit</receiver>
+   <slot>setCurrentFont(QFont)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1018</x>
+     <y>81</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1025</x>
+     <y>113</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinBoxChooseFontSize</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>noteTextEdit</receiver>
+   <slot>setFontWeight(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1086</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1094</x>
+     <y>116</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

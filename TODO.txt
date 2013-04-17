@@ -1,0 +1,2 @@
+1. Connect MainWindow actions & buttons with corresponding slots (programmatically)
+2. Connect NoteRichTextEditor actions & buttons with corresponding slots (programmatically)
