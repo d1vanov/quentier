@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+QT_FORWARD_DECLARE_CLASS(QTextCharFormat)
+
 namespace Ui {
 class NoteRichTextEditor;
 }
@@ -15,6 +17,30 @@ public:
     explicit NoteRichTextEditor(QWidget *parent = 0);
     ~NoteRichTextEditor();
     
+private slots:
+    // format text slots
+    void textBold() { /* TODO: implement */ }
+    void textItalic() { /* TODO: implement */ }
+    void textUnderline() { /* TODO: implement */ }
+    void textStrikeThrough() { /* TODO: implement */ }
+    void textAlignLeft() { /* TODO: implement */ }
+    void textAlignCenter() { /* TODO: implement */ }
+    void textAlignRight() { /* TODO: implement */ }
+    void textAddHorizontalLine() { /* TODO: implement */ }
+    void textIncreaseIndentation() { /* TODO: implement */ }
+    void textDecreaseIndentation() { /* TODO: implement */ }
+    void textInsertUnorderedList() { /* TODO: implement */ }
+    void textInsertOrderedList() { /* TODO: implement */ }
+
+    void chooseTextColor() { /* TODO: implement */ }
+    void chooseSelectedTextColor() { /* TODO: implement */ }
+
+    void textSpellCheck() { /* TODO: implement */ }
+    void textInsertToDoCheckBox() { /* TODO: implement */ }
+
+private:
+    void mergeFormatOnWordOrSelection(const QTextCharFormat & format) { /* TODO: implement */ }
+
 private:
     Ui::NoteRichTextEditor *m_pUI;
 };

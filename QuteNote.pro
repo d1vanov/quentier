@@ -13,11 +13,12 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    NoteRichTextEditor.cpp
+    NoteRichTextEditor.cpp \
+    MainWindow.cpp
 
-HEADERS  += mainwindow.h \
-    NoteRichTextEditor.h
+HEADERS  += \
+    NoteRichTextEditor.h \
+    MainWindow.h
 
 FORMS    += mainwindow.ui \
     NoteRichTextEditor.ui

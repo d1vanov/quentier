@@ -171,6 +171,9 @@
             <normaloff/>
            </iconset>
           </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
@@ -182,6 +185,9 @@
            <iconset theme="format-text-italic">
             <normaloff/>
            </iconset>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -195,6 +201,9 @@
             <normaloff/>
            </iconset>
           </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
@@ -206,6 +215,9 @@
            <iconset theme="format-text-strikethrough">
             <normaloff/>
            </iconset>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -219,6 +231,12 @@
             <normaloff/>
            </iconset>
           </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
         <item>
@@ -231,6 +249,9 @@
             <normaloff/>
            </iconset>
           </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
@@ -242,6 +263,9 @@
            <iconset theme="format-justify-right">
             <normaloff/>
            </iconset>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
