@@ -5,14 +5,14 @@
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
-    pUI(new Ui::MainWindow)
+    m_pUI(new Ui::MainWindow)
 {
-    pUI->setupUi(this);
+    m_pUI->setupUi(this);
 }
 
 MainWindow::~MainWindow()
 {
-    delete pUI;
+    delete m_pUI;
 }
 
 void MainWindow::SetDefaultLayoutSettings()
@@ -38,11 +38,11 @@ void MainWindow::SetDefaultLayoutSettings()
     int dockTrashHeight = std::floor(0.1 * helperWidgetsAvailableHeight + 0.5);
 
     // Now resize helper dock widgets appropriately
-    if (pUI == nullptr) {
+    if (m_pUI == nullptr) {
         qDebug() << "Warning! UI pointer is NULL!";
         return;
     }
-    Ui::MainWindow & ui = *pUI;
+    Ui::MainWindow & ui = *m_pUI;
 
     // multipliers to set min and max height and width for helper widgets
     double minHeightMultiplier = 0.6;

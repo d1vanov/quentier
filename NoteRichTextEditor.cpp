@@ -3,12 +3,12 @@
 
 NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::NoteRichTextEditor)
+    m_pUI(new Ui::NoteRichTextEditor)
 {
-    ui->setupUi(this);
+    m_pUI->setupUi(this);
 }
 
 NoteRichTextEditor::~NoteRichTextEditor()
 {
-    delete ui;
+    delete m_pUI;
 }

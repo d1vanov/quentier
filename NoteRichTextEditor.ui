@@ -6,20 +6,29 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1277</width>
+    <width>1287</width>
     <height>392</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string notr="true"/>
   </property>
-  <layout class="QGridLayout" name="gridLayout_3">
-   <item row="0" column="0">
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetNoConstraint</enum>
+     </property>
+     <item>
       <widget class="QLineEdit" name="noteName"/>
      </item>
-     <item row="1" column="0">
+     <item>
       <widget class="QSplitter" name="splitterTagsNotebooks">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -27,6 +36,9 @@
        <widget class="QComboBox" name="notebookComboBox"/>
        <widget class="QWidget" name="layoutWidget">
         <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetNoConstraint</enum>
+         </property>
          <item>
           <widget class="QLabel" name="tagsLabel">
            <property name="text">
@@ -44,12 +56,24 @@
        </widget>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item>
       <widget class="QFrame" name="frameButtons">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
          <width>0</width>
          <height>40</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>1280</width>
+         <height>16777215</height>
         </size>
        </property>
        <property name="frameShape">
@@ -58,8 +82,8 @@
        <property name="frameShadow">
         <enum>QFrame::Raised</enum>
        </property>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
          <widget class="QPushButton" name="buttonUndo">
           <property name="toolTip">
            <string>Отмена</string>
@@ -83,7 +107,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
+        <item>
          <widget class="QPushButton" name="buttonRedo">
           <property name="toolTip">
            <string>Повторить</string>
@@ -101,7 +125,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="2">
+        <item>
          <widget class="QPushButton" name="buttonCut">
           <property name="text">
            <string notr="true"/>
@@ -113,7 +137,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="3">
+        <item>
          <widget class="QPushButton" name="buttonCopy">
           <property name="text">
            <string notr="true"/>
@@ -125,7 +149,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="4">
+        <item>
          <widget class="QPushButton" name="buttonPaste">
           <property name="text">
            <string notr="true"/>
@@ -137,7 +161,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="5">
+        <item>
          <widget class="QPushButton" name="buttonFormatTextBold">
           <property name="text">
            <string notr="true"/>
@@ -149,7 +173,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="6">
+        <item>
          <widget class="QPushButton" name="buttonFormatTextItalic">
           <property name="text">
            <string notr="true"/>
@@ -161,7 +185,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="7">
+        <item>
          <widget class="QPushButton" name="buttonFormatTextUnderlined">
           <property name="text">
            <string notr="true"/>
@@ -173,7 +197,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="8">
+        <item>
          <widget class="QPushButton" name="buttonFormatTextStrikethrough">
           <property name="text">
            <string notr="true"/>
@@ -185,7 +209,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="9">
+        <item>
          <widget class="QPushButton" name="buttonFormatTextAlignLeft">
           <property name="text">
            <string notr="true"/>
@@ -197,7 +221,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="10">
+        <item>
          <widget class="QPushButton" name="buttonFormatTextAlignCenter">
           <property name="text">
            <string notr="true"/>
@@ -209,7 +233,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="11">
+        <item>
          <widget class="QPushButton" name="buttonFormatTextAlignRight">
           <property name="text">
            <string notr="true"/>
@@ -221,8 +245,14 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="12">
+        <item>
          <widget class="QPushButton" name="buttonAddHorizontalLine">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string notr="true"/>
           </property>
@@ -233,7 +263,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="13">
+        <item>
          <widget class="QPushButton" name="buttonIndentIncrease">
           <property name="text">
            <string notr="true"/>
@@ -245,7 +275,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="14">
+        <item>
          <widget class="QPushButton" name="buttonIndentDecrease">
           <property name="text">
            <string notr="true"/>
@@ -257,7 +287,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="15">
+        <item>
          <widget class="QPushButton" name="buttonInsertUnorderedList">
           <property name="text">
            <string notr="true"/>
@@ -269,7 +299,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="16">
+        <item>
          <widget class="QPushButton" name="buttonInsertOrderedList">
           <property name="text">
            <string notr="true"/>
@@ -281,20 +311,27 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="17">
+        <item>
          <widget class="QFontComboBox" name="fontComboBox">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
          </widget>
         </item>
-        <item row="0" column="18">
-         <widget class="QSpinBox" name="spinBoxChooseFontSize"/>
+        <item>
+         <widget class="QSpinBox" name="spinBoxChooseFontSize">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
-        <item row="0" column="19">
+        <item>
          <widget class="QToolButton" name="toolButtonChooseTextColor">
           <property name="text">
            <string>...</string>
@@ -306,7 +343,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="20">
+        <item>
          <widget class="QToolButton" name="toolButtonChooseSelectedTextColor">
           <property name="text">
            <string notr="true"/>
@@ -318,7 +355,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="21">
+        <item>
          <widget class="QPushButton" name="buttonSpellCheck">
           <property name="text">
            <string notr="true"/>
@@ -330,7 +367,7 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="22">
+        <item>
          <widget class="QPushButton" name="buttonInsertTodoCheckbox">
           <property name="text">
            <string notr="true"/>
@@ -345,7 +382,7 @@
        </layout>
       </widget>
      </item>
-     <item row="3" column="0">
+     <item>
       <widget class="QTextEdit" name="noteTextEdit"/>
      </item>
     </layout>

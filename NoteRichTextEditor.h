@@ -16,7 +16,7 @@ public:
     ~NoteRichTextEditor();
     
 private:
-    Ui::NoteRichTextEditor *ui;
+    Ui::NoteRichTextEditor *m_pUI;
 };
 
 #endif // NOTERICHTEXTEDITOR_H

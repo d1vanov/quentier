@@ -27,7 +27,7 @@ private:
                                 const double maxWidthMultiplier);
 
 private:
-    Ui::MainWindow * pUI;
+    Ui::MainWindow * m_pUI;
 };
 
 #endif // MAINWINDOW_H

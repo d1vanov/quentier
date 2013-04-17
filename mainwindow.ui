@@ -13,6 +13,12 @@
     <height>785</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -26,17 +32,36 @@
    <set>QMainWindow::AllowNestedDocks|QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
   </property>
   <widget class="QWidget" name="centralWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
    </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
      <widget class="QSplitter" name="splitter">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
       <widget class="QTableWidget" name="notesTable"/>
-      <widget class="NoteRichTextEditor" name="notesEditorWidget" native="true"/>
+      <widget class="NoteRichTextEditor" name="notesEditorWidget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -54,25 +79,6 @@
     <property name="title">
      <string>&amp;Файл</string>
     </property>
-    <widget class="QMenu" name="menuNote">
-     <property name="title">
-      <string>Заметка</string>
-     </property>
-     <property name="icon">
-      <iconset theme="x-office-document">
-       <normaloff/>
-      </iconset>
-     </property>
-     <addaction name="ActionNoteAdd"/>
-     <addaction name="ActionNoteDelete"/>
-     <addaction name="ActionNoteReindex"/>
-     <addaction name="separator"/>
-     <addaction name="ActionNoteSetLabels"/>
-     <addaction name="separator"/>
-     <addaction name="ActionNoteHistory"/>
-     <addaction name="ActionNoteCopy"/>
-     <addaction name="ActionNoteUnite"/>
-    </widget>
     <widget class="QMenu" name="menuNotepad">
      <property name="title">
       <string>Блокнот</string>
@@ -109,6 +115,25 @@
      <addaction name="ActionRequestAdd"/>
      <addaction name="ActionRequestProperties"/>
      <addaction name="ActionRequestDelete"/>
+    </widget>
+    <widget class="QMenu" name="menuNote">
+     <property name="title">
+      <string>Заметка</string>
+     </property>
+     <property name="icon">
+      <iconset theme="x-office-document">
+       <normaloff/>
+      </iconset>
+     </property>
+     <addaction name="ActionNoteAdd"/>
+     <addaction name="ActionNoteDelete"/>
+     <addaction name="ActionNoteReindex"/>
+     <addaction name="separator"/>
+     <addaction name="ActionNoteSetLabels"/>
+     <addaction name="separator"/>
+     <addaction name="ActionNoteHistory"/>
+     <addaction name="ActionNoteCopy"/>
+     <addaction name="ActionNoteUnite"/>
     </widget>
     <addaction name="menuNote"/>
     <addaction name="menuNotepad"/>
