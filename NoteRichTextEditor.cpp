@@ -7,6 +7,7 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
 {
     m_pUI->setupUi(this);
     QObject::connect(m_pUI->buttonFormatTextBold, SIGNAL(clicked()), this, SLOT(textBold()));
+    QObject::connect(m_pUI->buttonFormatTextItalic, SIGNAL(clicked()), this, SLOT(textItalic()));
 }
 
 NoteRichTextEditor::~NoteRichTextEditor()
@@ -18,6 +19,13 @@ void NoteRichTextEditor::textBold()
 {
     QTextCharFormat format;
     format.setFontWeight(m_pUI->buttonFormatTextBold->isChecked() ? QFont::Bold : QFont::Normal);
+    mergeFormatOnWordOrSelection(format);
+}
+
+void NoteRichTextEditor::textItalic()
+{
+    QTextCharFormat format;
+    format.setFontItalic(m_pUI->buttonFormatTextItalic->isChecked());
     mergeFormatOnWordOrSelection(format);
 }
 

@@ -21,7 +21,7 @@ public:
 private slots:
     // format text slots
     void textBold();
-    void textItalic() { /* TODO: implement */ }
+    void textItalic();
     void textUnderline() { /* TODO: implement */ }
     void textStrikeThrough() { /* TODO: implement */ }
     void textAlignLeft() { /* TODO: implement */ }
