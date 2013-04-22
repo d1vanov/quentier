@@ -4,6 +4,7 @@
 #include <QWidget>
 
 QT_FORWARD_DECLARE_CLASS(QTextCharFormat)
+QT_FORWARD_DECLARE_CLASS(QTextEdit)
 
 namespace Ui {
 class NoteRichTextEditor;
@@ -19,7 +20,7 @@ public:
     
 private slots:
     // format text slots
-    void textBold() { /* TODO: implement */ }
+    void textBold();
     void textItalic() { /* TODO: implement */ }
     void textUnderline() { /* TODO: implement */ }
     void textStrikeThrough() { /* TODO: implement */ }
@@ -39,10 +40,11 @@ private slots:
     void textInsertToDoCheckBox() { /* TODO: implement */ }
 
 private:
-    void mergeFormatOnWordOrSelection(const QTextCharFormat & format) { /* TODO: implement */ }
+    void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
+    inline QTextEdit * getTextEdit();
 
 private:
-    Ui::NoteRichTextEditor *m_pUI;
+    Ui::NoteRichTextEditor * m_pUI;
 };
 
 #endif // NOTERICHTEXTEDITOR_H
