@@ -22,7 +22,7 @@ private slots:
     // format text slots
     void textBold();
     void textItalic();
-    void textUnderline() { /* TODO: implement */ }
+    void textUnderline();
     void textStrikeThrough() { /* TODO: implement */ }
     void textAlignLeft() { /* TODO: implement */ }
     void textAlignCenter() { /* TODO: implement */ }

@@ -8,6 +8,7 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     m_pUI->setupUi(this);
     QObject::connect(m_pUI->buttonFormatTextBold, SIGNAL(clicked()), this, SLOT(textBold()));
     QObject::connect(m_pUI->buttonFormatTextItalic, SIGNAL(clicked()), this, SLOT(textItalic()));
+    QObject::connect(m_pUI->buttonFormatTextUnderlined, SIGNAL(clicked()), this, SLOT(textUnderline()));
 }
 
 NoteRichTextEditor::~NoteRichTextEditor()
@@ -29,12 +30,22 @@ void NoteRichTextEditor::textItalic()
     mergeFormatOnWordOrSelection(format);
 }
 
+void NoteRichTextEditor::textUnderline()
+{
+    QTextCharFormat format;
+    format.setFontUnderline(m_pUI->buttonFormatTextUnderlined->isChecked());
+    mergeFormatOnWordOrSelection(format);
+}
+
 void NoteRichTextEditor::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
 {
     QTextEdit * noteTextEdit = getTextEdit();
     QTextCursor cursor = noteTextEdit->textCursor();
-    if (!cursor.hasSelection())
+
+    if (!cursor.hasSelection()) {
         cursor.select(QTextCursor::WordUnderCursor);
+    }
+
     cursor.mergeCharFormat(format);
     noteTextEdit->mergeCurrentCharFormat(format);
 }
