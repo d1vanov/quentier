@@ -23,13 +23,13 @@ private slots:
     void textBold();
     void textItalic();
     void textUnderline();
-    void textStrikeThrough() { /* TODO: implement */ }
-    void textAlignLeft() { /* TODO: implement */ }
-    void textAlignCenter() { /* TODO: implement */ }
-    void textAlignRight() { /* TODO: implement */ }
+    void textStrikeThrough();
+    void textAlignLeft();
+    void textAlignCenter();
+    void textAlignRight();
     void textAddHorizontalLine() { /* TODO: implement */ }
-    void textIncreaseIndentation() { /* TODO: implement */ }
-    void textDecreaseIndentation() { /* TODO: implement */ }
+    void textIncreaseIndentation();
+    void textDecreaseIndentation();
     void textInsertUnorderedList() { /* TODO: implement */ }
     void textInsertOrderedList() { /* TODO: implement */ }
 
@@ -41,6 +41,11 @@ private slots:
 
 private:
     void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
+
+    enum ESelectedAlignment { ALIGNED_LEFT, ALIGNED_CENTER, ALIGNED_RIGHT };
+    void setAlignButtonsCheckedState(const ESelectedAlignment alignment);
+
+    void changeIndentation(const bool increase);
     inline QTextEdit * getTextEdit();
 
 private:
