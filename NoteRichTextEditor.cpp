@@ -1,6 +1,7 @@
 #include "NoteRichTextEditor.h"
 #include "ui_NoteRichTextEditor.h"
 #include <QTextList>
+#include <QDebug>
 
 NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QWidget(parent),
@@ -54,19 +55,19 @@ void NoteRichTextEditor::textStrikeThrough()
 void NoteRichTextEditor::textAlignLeft()
 {
     getTextEdit()->setAlignment(Qt::AlignLeft | Qt::AlignAbsolute);
-    // TODO: uncheck center and right alignment buttons
+    setAlignButtonsCheckedState(ALIGNED_LEFT);
 }
 
 void NoteRichTextEditor::textAlignCenter()
 {
     getTextEdit()->setAlignment(Qt::AlignHCenter);
-    // TODO: uncheck left and right alignment buttons
+    setAlignButtonsCheckedState(ALIGNED_CENTER);
 }
 
 void NoteRichTextEditor::textAlignRight()
 {
     getTextEdit()->setAlignment(Qt::AlignRight | Qt::AlignAbsolute);
-    // TODO: unckeck left and center alignment buttons
+    setAlignButtonsCheckedState(ALIGNED_RIGHT);
 }
 
 void NoteRichTextEditor::textIncreaseIndentation()
@@ -94,7 +95,24 @@ void NoteRichTextEditor::mergeFormatOnWordOrSelection(const QTextCharFormat & fo
 
 void NoteRichTextEditor::setAlignButtonsCheckedState(const NoteRichTextEditor::ESelectedAlignment alignment)
 {
-    // TODO: implement; need to unckeck two of three buttons with not selected alignment
+    switch(alignment)
+    {
+    case ALIGNED_LEFT:
+        m_pUI->buttonFormatTextAlignCenter->setChecked(false);
+        m_pUI->buttonFormatTextAlignRight->setChecked(false);
+        break;
+    case ALIGNED_CENTER:
+        m_pUI->buttonFormatTextAlignLeft->setChecked(false);
+        m_pUI->buttonFormatTextAlignRight->setChecked(false);
+        break;
+    case ALIGNED_RIGHT:
+        m_pUI->buttonFormatTextAlignLeft->setChecked(false);
+        m_pUI->buttonFormatTextAlignCenter->setChecked(false);
+        break;
+    default:
+        qDebug() << "Warning! Invalid action passed to setAlignButtonsCheckedState!";
+        break;
+    }
 }
 
 void NoteRichTextEditor::changeIndentation(const bool increase)
