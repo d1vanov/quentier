@@ -1,5 +1,5 @@
-#ifndef NOTERICHTEXTEDITOR_H
-#define NOTERICHTEXTEDITOR_H
+#ifndef __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
+#define __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
 
 #include <QWidget>
 
@@ -52,4 +52,4 @@ private:
     Ui::NoteRichTextEditor * m_pUI;
 };
 
-#endif // NOTERICHTEXTEDITOR_H
+#endif // __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H

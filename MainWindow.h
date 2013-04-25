@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef __QUTE_NOTE__MAINWINDOW_H
+#define __QUTE_NOTE__MAINWINDOW_H
 
 #include <QMainWindow>
 
@@ -30,4 +30,4 @@ private:
     Ui::MainWindow * m_pUI;
 };
 
-#endif // MAINWINDOW_H
+#endif // __QUTE_NOTE__MAINWINDOW_H
