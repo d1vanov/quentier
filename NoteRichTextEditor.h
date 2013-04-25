@@ -30,7 +30,7 @@ private slots:
     void textAddHorizontalLine() { /* TODO: implement */ }
     void textIncreaseIndentation();
     void textDecreaseIndentation();
-    void textInsertUnorderedList() { /* TODO: implement */ }
+    void textInsertUnorderedList();
     void textInsertOrderedList() { /* TODO: implement */ }
 
     void chooseTextColor() { /* TODO: implement */ }

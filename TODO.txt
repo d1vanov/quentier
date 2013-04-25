@@ -3,3 +3,4 @@
 3. Make text format & alignment smart: on putting cursor to some place in the edit window,
 set current font, size, color, format, alignment buttons and fields on the panel
 to the respective ones of the text.
+4. Look at "void textStyle(int styleIndex);" slot from TextEdit class from QtRichTextEditor project

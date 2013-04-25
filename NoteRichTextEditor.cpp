@@ -17,6 +17,7 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QObject::connect(m_pUI->buttonFormatTextAlignRight, SIGNAL(clicked()), this, SLOT(textAlignRight()));
     QObject::connect(m_pUI->buttonIndentIncrease, SIGNAL(clicked()), this, SLOT(textIncreaseIndentation()));
     QObject::connect(m_pUI->buttonIndentDecrease, SIGNAL(clicked()), this, SLOT(textDecreaseIndentation()));
+    QObject::connect(m_pUI->buttonInsertUnorderedList, SIGNAL(clicked()), this, SLOT(textInsertUnorderedList()));
 }
 
 NoteRichTextEditor::~NoteRichTextEditor()
@@ -78,6 +79,32 @@ void NoteRichTextEditor::textIncreaseIndentation()
 void NoteRichTextEditor::textDecreaseIndentation()
 {
     changeIndentation(false);
+}
+
+void NoteRichTextEditor::textInsertUnorderedList()
+{
+    QTextCursor cursor = getTextEdit()->textCursor();
+
+    QTextListFormat::Style style = QTextListFormat::ListDisc;
+    cursor.beginEditBlock();
+    QTextBlockFormat blockFormat = cursor.blockFormat();
+
+    QTextListFormat listFormat;
+
+    if (cursor.currentList()) {
+        listFormat = cursor.currentList()->format();
+    }
+    else {
+        listFormat.setIndent(blockFormat.indent() + 1);
+        blockFormat.setIndent(0);
+        cursor.setBlockFormat(blockFormat);
+    }
+
+    listFormat.setStyle(style);
+
+    cursor.createList(listFormat);
+
+    cursor.endEditBlock();
 }
 
 void NoteRichTextEditor::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
