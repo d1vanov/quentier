@@ -18,6 +18,7 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QObject::connect(m_pUI->buttonIndentIncrease, SIGNAL(clicked()), this, SLOT(textIncreaseIndentation()));
     QObject::connect(m_pUI->buttonIndentDecrease, SIGNAL(clicked()), this, SLOT(textDecreaseIndentation()));
     QObject::connect(m_pUI->buttonInsertUnorderedList, SIGNAL(clicked()), this, SLOT(textInsertUnorderedList()));
+    QObject::connect(m_pUI->buttonInsertOrderedList, SIGNAL(clicked()), this, SLOT(textInsertOrderedList()));
 }
 
 NoteRichTextEditor::~NoteRichTextEditor()
@@ -83,28 +84,14 @@ void NoteRichTextEditor::textDecreaseIndentation()
 
 void NoteRichTextEditor::textInsertUnorderedList()
 {
-    QTextCursor cursor = getTextEdit()->textCursor();
-
     QTextListFormat::Style style = QTextListFormat::ListDisc;
-    cursor.beginEditBlock();
-    QTextBlockFormat blockFormat = cursor.blockFormat();
+    insertList(style);
+}
 
-    QTextListFormat listFormat;
-
-    if (cursor.currentList()) {
-        listFormat = cursor.currentList()->format();
-    }
-    else {
-        listFormat.setIndent(blockFormat.indent() + 1);
-        blockFormat.setIndent(0);
-        cursor.setBlockFormat(blockFormat);
-    }
-
-    listFormat.setStyle(style);
-
-    cursor.createList(listFormat);
-
-    cursor.endEditBlock();
+void NoteRichTextEditor::textInsertOrderedList()
+{
+    QTextListFormat::Style style = QTextListFormat::ListDecimal;
+    insertList(style);
 }
 
 void NoteRichTextEditor::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
@@ -202,4 +189,29 @@ void NoteRichTextEditor::changeIndentation(const bool increase)
 QTextEdit * NoteRichTextEditor::getTextEdit()
 {
     return m_pUI->noteTextEdit;
+}
+
+void NoteRichTextEditor::insertList(const QTextListFormat::Style style)
+{
+    QTextCursor cursor = getTextEdit()->textCursor();
+
+    cursor.beginEditBlock();
+    QTextBlockFormat blockFormat = cursor.blockFormat();
+
+    QTextListFormat listFormat;
+
+    if (cursor.currentList()) {
+        listFormat = cursor.currentList()->format();
+    }
+    else {
+        listFormat.setIndent(blockFormat.indent() + 1);
+        blockFormat.setIndent(0);
+        cursor.setBlockFormat(blockFormat);
+    }
+
+    listFormat.setStyle(style);
+
+    cursor.createList(listFormat);
+
+    cursor.endEditBlock();
 }

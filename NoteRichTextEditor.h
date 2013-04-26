@@ -2,8 +2,8 @@
 #define __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
 
 #include <QWidget>
+#include <QTextListFormat>
 
-QT_FORWARD_DECLARE_CLASS(QTextCharFormat)
 QT_FORWARD_DECLARE_CLASS(QTextEdit)
 
 namespace Ui {
@@ -31,7 +31,7 @@ private slots:
     void textIncreaseIndentation();
     void textDecreaseIndentation();
     void textInsertUnorderedList();
-    void textInsertOrderedList() { /* TODO: implement */ }
+    void textInsertOrderedList();
 
     void chooseTextColor() { /* TODO: implement */ }
     void chooseSelectedTextColor() { /* TODO: implement */ }
@@ -47,6 +47,8 @@ private:
 
     void changeIndentation(const bool increase);
     inline QTextEdit * getTextEdit();
+
+    void insertList(const QTextListFormat::Style style);
 
 private:
     Ui::NoteRichTextEditor * m_pUI;

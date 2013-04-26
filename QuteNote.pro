@@ -27,7 +27,17 @@ RESOURCES += \
     resource/icons.qrc
 
 linux-g++-64 {
-QMAKE_CXXFLAGS += -std=c++11
+
+QMAKE_CXXFLAGS += -std=c++11 -isystem/usr/incude/qt4/QtCore/ -isystem/usr/include/qt4/QtGui/
+
+CONFIG(debug, debug|release) {
+    QMAKE_CXXFLAGS += -isystem -W -Wall -Wextra -Werror -Wwrite-strings -Winit-self \
+                      -Wcast-align -Wcast-qual -Wold-style-cast -Wpointer-arith \
+                      -Wstrict-aliasing -Wformat=2 -Wuninitialized -Wno-unused-variable \
+                      -Wno-missing-declarations -Woverloaded-virtual -Wnon-virtual-dtor \
+                      -Wctor-dtor-privacy -Wno-long-long
+}
+
 }
 
 OTHER_FILES += \
