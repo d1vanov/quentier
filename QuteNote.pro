@@ -20,8 +20,9 @@ HEADERS  += \
     NoteRichTextEditor.h \
     MainWindow.h
 
-FORMS    += mainwindow.ui \
-    NoteRichTextEditor.ui
+FORMS    += \
+    NoteRichTextEditor.ui \
+    MainWindow.ui
 
 RESOURCES += \
     resource/icons.qrc

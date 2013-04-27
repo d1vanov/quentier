@@ -1,6 +1,7 @@
 #include "NoteRichTextEditor.h"
 #include "ui_NoteRichTextEditor.h"
 #include <QTextList>
+#include <QColorDialog>
 #include <QDebug>
 
 NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
@@ -19,6 +20,8 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QObject::connect(m_pUI->buttonIndentDecrease, SIGNAL(clicked()), this, SLOT(textDecreaseIndentation()));
     QObject::connect(m_pUI->buttonInsertUnorderedList, SIGNAL(clicked()), this, SLOT(textInsertUnorderedList()));
     QObject::connect(m_pUI->buttonInsertOrderedList, SIGNAL(clicked()), this, SLOT(textInsertOrderedList()));
+    QObject::connect(m_pUI->toolButtonChooseTextColor, SIGNAL(clicked()), this, SLOT(chooseTextColor()));
+    QObject::connect(m_pUI->toolButtonChooseSelectedTextColor, SIGNAL(clicked()), this, SLOT(chooseSelectedTextColor()));
 }
 
 NoteRichTextEditor::~NoteRichTextEditor()
@@ -92,6 +95,16 @@ void NoteRichTextEditor::textInsertOrderedList()
 {
     QTextListFormat::Style style = QTextListFormat::ListDecimal;
     insertList(style);
+}
+
+void NoteRichTextEditor::chooseTextColor()
+{
+    changeTextColor(COLOR_ALL);
+}
+
+void NoteRichTextEditor::chooseSelectedTextColor()
+{
+    changeTextColor(COLOR_SELECTED);
 }
 
 void NoteRichTextEditor::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
@@ -189,6 +202,38 @@ void NoteRichTextEditor::changeIndentation(const bool increase)
 QTextEdit * NoteRichTextEditor::getTextEdit()
 {
     return m_pUI->noteTextEdit;
+}
+
+void NoteRichTextEditor::changeTextColor(const NoteRichTextEditor::EChangeColor changeColorOption)
+{
+    QColor col = QColorDialog::getColor(getTextEdit()->textColor(), this);
+    if (!col.isValid()) {
+        return;
+    }
+
+    QTextCharFormat format;
+    format.setForeground(col);
+
+    switch(changeColorOption)
+    {
+    case COLOR_ALL:
+    {
+        QTextCursor cursor = getTextEdit()->textCursor();
+        cursor.select(QTextCursor::Document);
+        cursor.mergeCharFormat(format);
+        getTextEdit()->mergeCurrentCharFormat(format);
+        break;
+    }
+    case COLOR_SELECTED:
+    {
+        mergeFormatOnWordOrSelection(format);
+        break;
+    }
+    default:
+        qDebug() << "Warning: wrong option passed to NoteRichTextEditor::changeTextColor: "
+                 << changeColorOption;
+        return;
+    }
 }
 
 void NoteRichTextEditor::insertList(const QTextListFormat::Style style)

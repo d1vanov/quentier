@@ -33,8 +33,8 @@ private slots:
     void textInsertUnorderedList();
     void textInsertOrderedList();
 
-    void chooseTextColor() { /* TODO: implement */ }
-    void chooseSelectedTextColor() { /* TODO: implement */ }
+    void chooseTextColor();
+    void chooseSelectedTextColor();
 
     void textSpellCheck() { /* TODO: implement */ }
     void textInsertToDoCheckBox() { /* TODO: implement */ }
@@ -47,6 +47,9 @@ private:
 
     void changeIndentation(const bool increase);
     inline QTextEdit * getTextEdit();
+
+    enum EChangeColor { COLOR_ALL, COLOR_SELECTED };
+    void changeTextColor(const EChangeColor changeColorOption);
 
     void insertList(const QTextListFormat::Style style);
 
