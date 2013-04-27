@@ -53,11 +53,11 @@
          <x>0</x>
          <y>0</y>
          <width>809</width>
-         <height>700</height>
+         <height>702</height>
         </rect>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
          <widget class="QSplitter" name="splitter">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -91,7 +91,7 @@
      <x>0</x>
      <y>0</y>
      <width>1088</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
