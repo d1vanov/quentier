@@ -5,6 +5,7 @@
 #include <QTextListFormat>
 
 QT_FORWARD_DECLARE_CLASS(QTextEdit)
+QT_FORWARD_DECLARE_CLASS(QPushButton)
 
 namespace Ui {
 class NoteRichTextEditor;
@@ -18,7 +19,12 @@ public:
     explicit NoteRichTextEditor(QWidget *parent = 0);
     ~NoteRichTextEditor();
     
-private slots:
+    QPushButton * getTextBoldButton();
+    QPushButton * getTextItalicButton();
+    QPushButton * getTextUnderlineButton();
+    QPushButton * getTextStrikeThroughButton();
+
+public slots:
     // format text slots
     void textBold();
     void textItalic();

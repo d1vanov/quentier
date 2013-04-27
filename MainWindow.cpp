@@ -1,13 +1,17 @@
 #include "MainWindow.h"
+#include "NoteRichTextEditor.h"
 #include "ui_mainwindow.h"
 #include <cmath>
+#include <QPushButton>
 #include <QtDebug>
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow)
 {
+    Q_CHECK_PTR(m_pUI);
     m_pUI->setupUi(this);
+    ConnectActionsToEditorSlots();
 }
 
 MainWindow::~MainWindow()
@@ -112,3 +116,73 @@ void MainWindow::ResizeHelperDockWidget(QDockWidget * pDock, const int dockHeigh
     rDock.setMinimumHeight(std::floor(dockHeight * minHeightMultiplier + 0.5));
     rDock.setMinimumWidth(std::floor(dockWidth * minWidthMultiplier + 0.5));
 }
+
+void MainWindow::ConnectActionsToEditorSlots()
+{
+    QObject::connect(m_pUI->ActionFontBold, SIGNAL(triggered()), this, SLOT(textBold()));
+    QObject::connect(m_pUI->ActionFontItalic, SIGNAL(triggered()), this, SLOT(textItalic()));
+    QObject::connect(m_pUI->ActionFontUnderlined, SIGNAL(triggered()), this, SLOT(textUnderline()));
+    QObject::connect(m_pUI->ActionFontStrikeout, SIGNAL(triggered()), this, SLOT(textStrikeThrough()));
+}
+
+void MainWindow::textBold()
+{
+    QPushButton * pTextBoldButton = m_pUI->notesEditorWidget->getTextBoldButton();
+    if (pTextBoldButton->isCheckable()) {
+        if (pTextBoldButton->isChecked()) {
+            pTextBoldButton->setChecked(false);
+        }
+        else {
+            pTextBoldButton->setChecked(true);
+        }
+
+        m_pUI->notesEditorWidget->textBold();
+    }
+}
+
+void MainWindow::textItalic()
+{
+    QPushButton * pTextItalicButton = m_pUI->notesEditorWidget->getTextItalicButton();
+    if (pTextItalicButton->isCheckable()) {
+        if (pTextItalicButton->isChecked()) {
+            pTextItalicButton->setChecked(false);
+        }
+        else {
+            pTextItalicButton->setChecked(true);
+        }
+
+        m_pUI->notesEditorWidget->textItalic();
+    }
+}
+
+void MainWindow::textUnderline()
+{
+    QPushButton * pTextUnderlineButton = m_pUI->notesEditorWidget->getTextUnderlineButton();
+    if (pTextUnderlineButton->isCheckable()) {
+        if (pTextUnderlineButton->isChecked()) {
+            pTextUnderlineButton->setChecked(false);
+        }
+        else {
+            pTextUnderlineButton->setChecked(true);
+        }
+
+        m_pUI->notesEditorWidget->textUnderline();
+    }
+}
+
+void MainWindow::textStrikeThrough()
+{
+    QPushButton * pTextStrikeThroughButton = m_pUI->notesEditorWidget->getTextStrikeThroughButton();
+    if (pTextStrikeThroughButton->isCheckable()) {
+        if (pTextStrikeThroughButton->isChecked()) {
+            pTextStrikeThroughButton->setChecked(false);
+        }
+        else {
+            pTextStrikeThroughButton->setChecked(false);
+        }
+
+        m_pUI->notesEditorWidget->textStrikeThrough();
+    }
+}
+
+

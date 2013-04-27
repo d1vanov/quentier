@@ -521,7 +521,7 @@
     <string>Ctrl+N</string>
    </property>
    <property name="shortcutContext">
-    <enum>Qt::WindowShortcut</enum>
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionNoteDelete">
@@ -666,6 +666,9 @@
    <property name="shortcut">
     <string>Ctrl+Shift+E</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionPrint">
    <property name="icon">
@@ -678,6 +681,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionImportNotes">
@@ -727,6 +733,9 @@
    <property name="shortcut">
     <string>Ctrl+Q</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionFindInsideNote">
    <property name="icon">
@@ -739,6 +748,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+F</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionUndo">
@@ -753,6 +765,9 @@
    <property name="shortcut">
     <string>Ctrl+Z</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionRedo">
    <property name="icon">
@@ -765,6 +780,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionCut">
@@ -779,6 +797,9 @@
    <property name="shortcut">
     <string>Ctrl+X</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionCopy">
    <property name="icon">
@@ -791,6 +812,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionInsert">
@@ -805,6 +829,9 @@
    <property name="shortcut">
     <string>Ctrl+V</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionInsertAsText">
    <property name="icon">
@@ -817,6 +844,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+P</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionSettings">
@@ -841,6 +871,9 @@
    </property>
    <property name="shortcut">
     <string>F8</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionShowSource">
@@ -887,6 +920,9 @@
    </property>
    <property name="shortcut">
     <string>F10</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionShowSearchBar">
@@ -1016,6 +1052,9 @@
    <property name="shortcut">
     <string>Ctrl+B</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetWithChildrenShortcut</enum>
+   </property>
   </action>
   <action name="ActionFontUnderlined">
    <property name="icon">
@@ -1028,6 +1067,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+U</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionFontItalic">
@@ -1042,6 +1084,9 @@
    <property name="shortcut">
     <string>Ctrl+I</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionFontStrikeout">
    <property name="icon">
@@ -1054,6 +1099,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+-</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionInsertHorizontalLine">
@@ -1078,6 +1126,9 @@
    <property name="shortcut">
     <string>Ctrl+]</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionLowerIndex">
    <property name="icon">
@@ -1090,6 +1141,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+[</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionInsertTable">
@@ -1163,6 +1217,9 @@
    <property name="shortcut">
     <string>Ctrl+L</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionAlignCenter">
    <property name="icon">
@@ -1175,6 +1232,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionAlignRight">
@@ -1189,6 +1249,9 @@
    <property name="shortcut">
     <string>Ctrl+R</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionInsertBulletedList">
    <property name="icon">
@@ -1202,6 +1265,9 @@
    <property name="shortcut">
     <string>Ctrl+Shift+B</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionInsertNumberedList">
    <property name="icon">
@@ -1214,6 +1280,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+N</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionIncreaseIndentation">
@@ -1231,6 +1300,9 @@
    <property name="shortcut">
     <string>Ctrl+M</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionDecreaseIndentation">
    <property name="icon">
@@ -1247,6 +1319,9 @@
    <property name="shortcut">
     <string>Ctrl+Shift+M</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="ActionSync">
    <property name="enabled">
@@ -1257,6 +1332,9 @@
    </property>
    <property name="shortcut">
     <string>F9</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionConnect">
@@ -1385,6 +1463,9 @@
    </property>
    <property name="shortcut">
     <string>F9</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionShowNoteAttributesButton">

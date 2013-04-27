@@ -2,6 +2,7 @@
 #include "ui_NoteRichTextEditor.h"
 #include <QTextList>
 #include <QColorDialog>
+#include <QKeyEvent>
 #include <QDebug>
 
 NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
@@ -27,6 +28,26 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
 NoteRichTextEditor::~NoteRichTextEditor()
 {
     delete m_pUI;
+}
+
+QPushButton * NoteRichTextEditor::getTextBoldButton()
+{
+    return m_pUI->buttonFormatTextBold;
+}
+
+QPushButton *NoteRichTextEditor::getTextItalicButton()
+{
+    return m_pUI->buttonFormatTextItalic;
+}
+
+QPushButton *NoteRichTextEditor::getTextUnderlineButton()
+{
+    return m_pUI->buttonFormatTextUnderlined;
+}
+
+QPushButton *NoteRichTextEditor::getTextStrikeThroughButton()
+{
+    return m_pUI->buttonFormatTextStrikethrough;
 }
 
 void NoteRichTextEditor::textBold()

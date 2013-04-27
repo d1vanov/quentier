@@ -26,6 +26,14 @@ private:
                                 const double maxHeightMultiplier,
                                 const double maxWidthMultiplier);
 
+    void ConnectActionsToEditorSlots();
+
+private slots:
+    void textBold();
+    void textItalic();
+    void textUnderline();
+    void textStrikeThrough();
+
 private:
     Ui::MainWindow * m_pUI;
 };

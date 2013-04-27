@@ -98,7 +98,7 @@
          </rect>
         </property>
         <property name="toolTip">
-         <string>Отмена</string>
+         <string>Отмена (Ctrl+Z)</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -128,7 +128,7 @@
          </rect>
         </property>
         <property name="toolTip">
-         <string>Повторить</string>
+         <string>Повторить (Ctrl+Y)</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -151,6 +151,9 @@
           <height>25</height>
          </rect>
         </property>
+        <property name="toolTip">
+         <string>Вырезать (Ctrl+X)</string>
+        </property>
         <property name="text">
          <string notr="true"/>
         </property>
@@ -168,6 +171,9 @@
           <width>46</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>Копировать (Ctrl+C)</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -187,6 +193,9 @@
           <height>25</height>
          </rect>
         </property>
+        <property name="toolTip">
+         <string>Вставить (Ctrl+V)</string>
+        </property>
         <property name="text">
          <string notr="true"/>
         </property>
@@ -204,6 +213,9 @@
           <width>46</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>Полужирный (Ctrl+B)</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -226,6 +238,9 @@
           <height>25</height>
          </rect>
         </property>
+        <property name="toolTip">
+         <string>Курсив (Ctrl+I)</string>
+        </property>
         <property name="text">
          <string notr="true"/>
         </property>
@@ -246,6 +261,9 @@
           <width>46</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>Подчеркнутый (Ctrl+U)</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -268,6 +286,9 @@
           <height>25</height>
          </rect>
         </property>
+        <property name="toolTip">
+         <string>Зачеркнутый (Ctrl+S)</string>
+        </property>
         <property name="text">
          <string notr="true"/>
         </property>
@@ -288,6 +309,9 @@
           <width>46</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>По левому краю (Ctrl+L)</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -313,6 +337,9 @@
           <height>25</height>
          </rect>
         </property>
+        <property name="toolTip">
+         <string>По центру (Ctrl+E)</string>
+        </property>
         <property name="text">
          <string notr="true"/>
         </property>
@@ -333,6 +360,9 @@
           <width>46</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>По правому краю (Ctrl+R)</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -361,6 +391,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Вставить горизонтальную линию</string>
+        </property>
         <property name="text">
          <string notr="true"/>
         </property>
@@ -373,11 +406,14 @@
        <widget class="QPushButton" name="buttonIndentIncrease">
         <property name="geometry">
          <rect>
-          <x>410</x>
+          <x>460</x>
           <y>40</y>
           <width>46</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>Увеличить отступ</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -391,11 +427,14 @@
        <widget class="QPushButton" name="buttonIndentDecrease">
         <property name="geometry">
          <rect>
-          <x>460</x>
+          <x>410</x>
           <y>40</y>
           <width>46</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>Уменьшить отступ</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -409,11 +448,14 @@
        <widget class="QPushButton" name="buttonInsertUnorderedList">
         <property name="geometry">
          <rect>
-          <x>510</x>
+          <x>560</x>
           <y>40</y>
           <width>46</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>Маркированный список (Shift+F12)</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -427,11 +469,14 @@
        <widget class="QPushButton" name="buttonInsertOrderedList">
         <property name="geometry">
          <rect>
-          <x>560</x>
+          <x>510</x>
           <y>40</y>
           <width>46</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>Нумерованный список (F12)</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -457,6 +502,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Кегль</string>
+        </property>
        </widget>
        <widget class="QToolButton" name="toolButtonChooseTextColor">
         <property name="geometry">
@@ -466,6 +514,9 @@
           <width>46</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string>Изменить цвет всего текста</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -485,6 +536,9 @@
           <height>25</height>
          </rect>
         </property>
+        <property name="toolTip">
+         <string>Изменить текст выделения</string>
+        </property>
         <property name="text">
          <string notr="true"/>
         </property>
@@ -503,6 +557,9 @@
           <height>25</height>
          </rect>
         </property>
+        <property name="toolTip">
+         <string>Проверка орфографии (F7)</string>
+        </property>
         <property name="text">
          <string notr="true"/>
         </property>
@@ -520,6 +577,9 @@
           <width>46</width>
           <height>25</height>
          </rect>
+        </property>
+        <property name="toolTip">
+         <string notr="true">TODO</string>
         </property>
         <property name="text">
          <string notr="true"/>
@@ -544,6 +604,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Шрифт</string>
         </property>
        </widget>
       </widget>
@@ -596,8 +659,8 @@
      <y>77</y>
     </hint>
     <hint type="destinationlabel">
-     <x>36</x>
-     <y>121</y>
+     <x>41</x>
+     <y>256</y>
     </hint>
    </hints>
   </connection>
@@ -612,8 +675,8 @@
      <y>76</y>
     </hint>
     <hint type="destinationlabel">
-     <x>94</x>
-     <y>124</y>
+     <x>99</x>
+     <y>259</y>
     </hint>
    </hints>
   </connection>
@@ -628,8 +691,8 @@
      <y>76</y>
     </hint>
     <hint type="destinationlabel">
-     <x>146</x>
-     <y>119</y>
+     <x>151</x>
+     <y>254</y>
     </hint>
    </hints>
   </connection>
@@ -644,8 +707,8 @@
      <y>79</y>
     </hint>
     <hint type="destinationlabel">
-     <x>191</x>
-     <y>111</y>
+     <x>196</x>
+     <y>246</y>
     </hint>
    </hints>
   </connection>
@@ -660,8 +723,8 @@
      <y>77</y>
     </hint>
     <hint type="destinationlabel">
-     <x>237</x>
-     <y>132</y>
+     <x>242</x>
+     <y>267</y>
     </hint>
    </hints>
   </connection>
@@ -672,12 +735,12 @@
    <slot>setCurrentFont(QFont)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1018</x>
-     <y>81</y>
+     <x>211</x>
+     <y>121</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1025</x>
-     <y>113</y>
+     <x>668</x>
+     <y>248</y>
     </hint>
    </hints>
   </connection>
@@ -688,12 +751,12 @@
    <slot>setFontWeight(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1086</x>
-     <y>82</y>
+     <x>260</x>
+     <y>121</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1094</x>
-     <y>116</y>
+     <x>668</x>
+     <y>251</y>
     </hint>
    </hints>
   </connection>

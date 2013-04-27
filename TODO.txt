@@ -5,3 +5,4 @@ set current font, size, color, format, alignment buttons and fields on the panel
 to the respective ones of the text.
 4. Look at "void textStyle(int styleIndex);" slot from TextEdit class from QtRichTextEditor project
 5. Add tooltips for note editor buttons
+6. Reconnect keyboard shortcuts on widget selection change (table of notes & editor, I suppose)
