@@ -43,7 +43,7 @@ public slots:
     void chooseSelectedTextColor();
 
     void textSpellCheck() { /* TODO: implement */ }
-    void textInsertToDoCheckBox() { /* TODO: implement */ }
+    void textInsertToDoCheckBox();
 
 private:
     void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
@@ -58,6 +58,8 @@ private:
     void changeTextColor(const EChangeColor changeColorOption);
 
     void insertList(const QTextListFormat::Style style);
+
+    void setupToDoCheckboxTextObject();
 
 private:
     Ui::NoteRichTextEditor * m_pUI;

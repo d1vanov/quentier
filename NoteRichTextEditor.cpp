@@ -1,8 +1,10 @@
 #include "NoteRichTextEditor.h"
 #include "ui_NoteRichTextEditor.h"
+#include "ToDoCheckboxTextObject.h"
 #include <QTextList>
 #include <QColorDialog>
 #include <QKeyEvent>
+#include <QCheckBox>
 #include <QDebug>
 
 NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
@@ -10,6 +12,8 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     m_pUI(new Ui::NoteRichTextEditor)
 {
     m_pUI->setupUi(this);
+    setupToDoCheckboxTextObject();
+
     QObject::connect(m_pUI->buttonFormatTextBold, SIGNAL(clicked()), this, SLOT(textBold()));
     QObject::connect(m_pUI->buttonFormatTextItalic, SIGNAL(clicked()), this, SLOT(textItalic()));
     QObject::connect(m_pUI->buttonFormatTextUnderlined, SIGNAL(clicked()), this, SLOT(textUnderline()));
@@ -21,6 +25,7 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QObject::connect(m_pUI->buttonIndentDecrease, SIGNAL(clicked()), this, SLOT(textDecreaseIndentation()));
     QObject::connect(m_pUI->buttonInsertUnorderedList, SIGNAL(clicked()), this, SLOT(textInsertUnorderedList()));
     QObject::connect(m_pUI->buttonInsertOrderedList, SIGNAL(clicked()), this, SLOT(textInsertOrderedList()));
+    QObject::connect(m_pUI->buttonInsertTodoCheckbox, SIGNAL(clicked()), this, SLOT(textInsertToDoCheckBox()));
     QObject::connect(m_pUI->toolButtonChooseTextColor, SIGNAL(clicked()), this, SLOT(chooseTextColor()));
     QObject::connect(m_pUI->toolButtonChooseSelectedTextColor, SIGNAL(clicked()), this, SLOT(chooseSelectedTextColor()));
 }
@@ -126,6 +131,24 @@ void NoteRichTextEditor::chooseTextColor()
 void NoteRichTextEditor::chooseSelectedTextColor()
 {
     changeTextColor(COLOR_SELECTED);
+}
+
+void NoteRichTextEditor::textInsertToDoCheckBox()
+{
+    QTextCharFormat toDoCheckboxCharFormat;
+    toDoCheckboxCharFormat.setObjectType(ToDoCheckboxTextObject::CheckboxTextFormat);
+
+    // FIXME: replace this with proper icons
+    // ToDoCheckboxTextObject toDoCheckboxTextObject;
+    QCheckBox * pCheckbox = new QCheckBox;
+    QIcon icon = pCheckbox->icon();
+    qDebug() << "icon size: " << icon.actualSize(QSize(200,200));
+    QImage toDoCheckboxImage = icon.pixmap(icon.actualSize(QSize(200,200))).toImage();
+    toDoCheckboxCharFormat.setProperty(ToDoCheckboxTextObject::CheckboxTextData, toDoCheckboxImage);
+
+    QTextCursor cursor = getTextEdit()->textCursor();
+    cursor.insertText(QString(QChar::ObjectReplacementCharacter), toDoCheckboxCharFormat);
+    getTextEdit()->setTextCursor(cursor);
 }
 
 void NoteRichTextEditor::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
@@ -280,4 +303,11 @@ void NoteRichTextEditor::insertList(const QTextListFormat::Style style)
     cursor.createList(listFormat);
 
     cursor.endEditBlock();
+}
+
+void NoteRichTextEditor::setupToDoCheckboxTextObject()
+{
+    QObject * toDoCheckboxTextObjectInterface = new ToDoCheckboxTextObject;
+    getTextEdit()->document()->documentLayout()->registerHandler(ToDoCheckboxTextObject::CheckboxTextFormat,
+                                                                 toDoCheckboxTextObjectInterface);
 }
