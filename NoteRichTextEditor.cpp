@@ -138,12 +138,20 @@ void NoteRichTextEditor::textInsertToDoCheckBox()
     QTextCharFormat toDoCheckboxCharFormat;
     toDoCheckboxCharFormat.setObjectType(ToDoCheckboxTextObject::CheckboxTextFormat);
 
-    // FIXME: replace this with proper icons
-    // ToDoCheckboxTextObject toDoCheckboxTextObject;
     QCheckBox * pCheckbox = new QCheckBox;
-    QIcon icon = pCheckbox->icon();
-    qDebug() << "icon size: " << icon.actualSize(QSize(200,200));
-    QImage toDoCheckboxImage = icon.pixmap(icon.actualSize(QSize(200,200))).toImage();
+    pCheckbox->setChecked(false);
+    pCheckbox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
+    qDebug() << "Size of checkbox object: " << pCheckbox->size();
+    QImage toDoCheckboxImage(pCheckbox->size(), QImage::Format_RGB32);
+    pCheckbox->render(&toDoCheckboxImage);  // FIXME: looks like rendering doesn't go good
+
+    // FIXME: for debug purposes, remove before merging to master
+    m_pUI->label->setPixmap(QPixmap::fromImage(toDoCheckboxImage));
+
+    delete pCheckbox;
+    pCheckbox = nullptr;
+
     toDoCheckboxCharFormat.setProperty(ToDoCheckboxTextObject::CheckboxTextData, toDoCheckboxImage);
 
     QTextCursor cursor = getTextEdit()->textCursor();
