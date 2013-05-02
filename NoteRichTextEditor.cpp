@@ -12,7 +12,7 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     m_pUI(new Ui::NoteRichTextEditor)
 {
     m_pUI->setupUi(this);
-    setupToDoCheckboxTextObject();
+    setupToDoCheckboxTextObjects();
 
     QObject::connect(m_pUI->buttonFormatTextBold, SIGNAL(clicked()), this, SLOT(textBold()));
     QObject::connect(m_pUI->buttonFormatTextItalic, SIGNAL(clicked()), this, SLOT(textItalic()));
@@ -136,10 +136,11 @@ void NoteRichTextEditor::chooseSelectedTextColor()
 void NoteRichTextEditor::textInsertToDoCheckBox()
 {
     QTextCharFormat toDoCheckboxCharFormat;
-    toDoCheckboxCharFormat.setObjectType(ToDoCheckboxTextObject::CheckboxTextFormat);
+    toDoCheckboxCharFormat.setObjectType(CHECKBOX_TEXT_FORMAT_UNCHECKED);
 
     QCheckBox * pCheckbox = new QCheckBox;
     pCheckbox->setChecked(false);
+
     pCheckbox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     qDebug() << "Size of checkbox object: " << pCheckbox->size();
@@ -152,7 +153,7 @@ void NoteRichTextEditor::textInsertToDoCheckBox()
     delete pCheckbox;
     pCheckbox = nullptr;
 
-    toDoCheckboxCharFormat.setProperty(ToDoCheckboxTextObject::CheckboxTextData, toDoCheckboxImage);
+    toDoCheckboxCharFormat.setProperty(CHECKBOX_TEXT_DATA_UNCHECKED, toDoCheckboxImage);
 
     QTextCursor cursor = getTextEdit()->textCursor();
     cursor.insertText(QString(QChar::ObjectReplacementCharacter), toDoCheckboxCharFormat);
@@ -161,7 +162,7 @@ void NoteRichTextEditor::textInsertToDoCheckBox()
 
 void NoteRichTextEditor::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
 {
-    QTextEdit * noteTextEdit = getTextEdit();
+    TextEditWithCheckboxes * noteTextEdit = getTextEdit();
     QTextCursor cursor = noteTextEdit->textCursor();
 
     if (!cursor.hasSelection()) {
@@ -251,7 +252,7 @@ void NoteRichTextEditor::changeIndentation(const bool increase)
     }
 }
 
-QTextEdit * NoteRichTextEditor::getTextEdit()
+TextEditWithCheckboxes * NoteRichTextEditor::getTextEdit()
 {
     return m_pUI->noteTextEdit;
 }
@@ -313,9 +314,12 @@ void NoteRichTextEditor::insertList(const QTextListFormat::Style style)
     cursor.endEditBlock();
 }
 
-void NoteRichTextEditor::setupToDoCheckboxTextObject()
+void NoteRichTextEditor::setupToDoCheckboxTextObjects()
 {
-    QObject * toDoCheckboxTextObjectInterface = new ToDoCheckboxTextObject;
-    getTextEdit()->document()->documentLayout()->registerHandler(ToDoCheckboxTextObject::CheckboxTextFormat,
-                                                                 toDoCheckboxTextObjectInterface);
+    QObject * toDoCheckboxTextObjectInterfaceUnchecked = new ToDoCheckboxTextObjectUnchecked;
+    QObject * toDoCheckboxTextObjectInterfaceChecked = new ToDoCheckboxTextObjectChecked;
+
+    QAbstractTextDocumentLayout * pLayout = getTextEdit()->document()->documentLayout();
+    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_UNCHECKED, toDoCheckboxTextObjectInterfaceUnchecked);
+    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_CHECKED, toDoCheckboxTextObjectInterfaceChecked);
 }

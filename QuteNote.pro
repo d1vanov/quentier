@@ -15,12 +15,14 @@ TEMPLATE = app
 SOURCES += main.cpp\
     NoteRichTextEditor.cpp \
     MainWindow.cpp \
-    ToDoCheckboxTextObject.cpp
+    ToDoCheckboxTextObject.cpp \
+    TextEditWithCheckboxes.cpp
 
 HEADERS  += \
     NoteRichTextEditor.h \
     MainWindow.h \
-    ToDoCheckboxTextObject.h
+    ToDoCheckboxTextObject.h \
+    TextEditWithCheckboxes.h
 
 FORMS    += \
     NoteRichTextEditor.ui \

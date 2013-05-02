@@ -1,28 +1,24 @@
 #include "ToDoCheckboxTextObject.h"
+#include "NoteRichTextEditor.h"
 #include <QTextDocument>
 #include <QTextFormat>
 #include <QPainter>
 #include <QRectF>
 #include <QSizeF>
 
-ToDoCheckboxTextObject::ToDoCheckboxTextObject()
+void ToDoCheckboxTextObjectUnchecked::drawObject(QPainter * pPainter, const QRectF & rect,
+                                                 QTextDocument * /* pDoc */, int /* positionInDocument */,
+                                                 const QTextFormat & format)
 {
-    QCheckBox::setTristate(false);
-}
-
-void ToDoCheckboxTextObject::drawObject(QPainter * pPainter, const QRectF & rect,
-                                        QTextDocument * /* pDoc */, int /* positionInDocument */,
-                                        const QTextFormat & format)
-{
-    QImage bufferedImage = qvariant_cast<QImage>(format.property(CheckboxTextData));
+    QImage bufferedImage = qvariant_cast<QImage>(format.property(NoteRichTextEditor::CHECKBOX_TEXT_DATA_UNCHECKED));
     pPainter->drawImage(rect, bufferedImage);
 }
 
-QSizeF ToDoCheckboxTextObject::intrinsicSize(QTextDocument * /* pDoc */,
-                                             int /* positionInDocument */,
-                                             const QTextFormat & format)
+QSizeF ToDoCheckboxTextObjectUnchecked::intrinsicSize(QTextDocument * /* pDoc */,
+                                                      int /* positionInDocument */,
+                                                      const QTextFormat & format)
 {
-    QImage bufferedImage = qvariant_cast<QImage>(format.property(CheckboxTextData));
+    QImage bufferedImage = qvariant_cast<QImage>(format.property(NoteRichTextEditor::CHECKBOX_TEXT_DATA_UNCHECKED));
     QSize size = bufferedImage.size();
 
     if (size.height() > 25) {
@@ -32,7 +28,24 @@ QSizeF ToDoCheckboxTextObject::intrinsicSize(QTextDocument * /* pDoc */,
     return QSizeF(size);
 }
 
-QImage ToDoCheckboxTextObject::getImage() const
+void ToDoCheckboxTextObjectChecked::drawObject(QPainter * pPainter, const QRectF & rect,
+                                               QTextDocument * /* pDoc */, int /* positionInDocument */,
+                                               const QTextFormat & format)
 {
-    return icon().pixmap(icon().actualSize(QSize(200,200))).toImage();
+    QImage bufferedImage = qvariant_cast<QImage>(format.property(NoteRichTextEditor::CHECKBOX_TEXT_DATA_CHECKED));
+    pPainter->drawImage(rect, bufferedImage);
+}
+
+QSizeF ToDoCheckboxTextObjectChecked::intrinsicSize(QTextDocument * /* pDoc */,
+                                                    int /* positionInDocument */,
+                                                    const QTextFormat & format)
+{
+    QImage bufferedImage = qvariant_cast<QImage>(format.property(NoteRichTextEditor::CHECKBOX_TEXT_DATA_CHECKED));
+    QSize size = bufferedImage.size();
+
+    if (size.height() > 25) {
+        size *= 25.0 / static_cast<double>(size.height());
+    }
+
+    return QSizeF(size);
 }
