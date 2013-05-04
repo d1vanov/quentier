@@ -41,5 +41,21 @@ CONFIG(debug, debug|release) {
 
 }
 
+win32-g++ {
+
+QMAKE_CXXFLAGS += -std=c++0x -isystem${QTDIR}/include
+
+CONFIG(debug, debug|release) {
+    QMAKE_CXXFLAGS += -W -Wall -Wextra -Werror -Wwrite-strings -Winit-self \
+                      -Wcast-align -Wcast-qual -Wold-style-cast -Wpointer-arith \
+                      -Wstrict-aliasing -Wformat=2 -Wuninitialized -Wno-unused-variable \
+                      -Wno-missing-declarations -Woverloaded-virtual -Wnon-virtual-dtor \
+                      -Wctor-dtor-privacy -Wno-long-long
+}
+
+}
+
+
+
 OTHER_FILES += \
     TODO.txt
