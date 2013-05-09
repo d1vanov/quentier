@@ -612,14 +612,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>TextLabel</string>
+      <widget class="TextEditWithCheckboxes" name="noteTextEdit">
+       <property name="mouseTracking">
+        <bool>true</bool>
        </property>
       </widget>
-     </item>
-     <item>
-      <widget class="TextEditWithCheckboxes" name="noteTextEdit"/>
      </item>
     </layout>
    </item>

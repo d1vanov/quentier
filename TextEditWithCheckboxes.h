@@ -12,6 +12,7 @@ public:
 
 protected:
     virtual void mousePressEvent(QMouseEvent * pEvent) override;
+    virtual void mouseMoveEvent(QMouseEvent * pEvent) override;
 };
 
 #endif // TEXT_EDIT_WITH_CHECKBOXES_H

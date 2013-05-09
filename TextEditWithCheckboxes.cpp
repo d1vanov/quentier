@@ -4,6 +4,7 @@
 #include <QMouseEvent>
 #include <QTextCursor>
 #include <QMessageBox>
+#include <QApplication>
 #include <QDebug>
 
 TextEditWithCheckboxes::TextEditWithCheckboxes(QWidget *parent) :
@@ -44,5 +45,19 @@ void TextEditWithCheckboxes::mousePressEvent(QMouseEvent * pEvent)
 
         cursor.mergeCharFormat(format);
         QTextEdit::mergeCurrentCharFormat(format);
+    }
+}
+
+void TextEditWithCheckboxes::mouseMoveEvent(QMouseEvent * pEvent)
+{
+    QTextCursor cursor = cursorForPosition(pEvent->pos());
+    QTextCharFormat format = cursor.charFormat();
+    if ( (format.objectType() == NoteRichTextEditor::CHECKBOX_TEXT_FORMAT_CHECKED) ||
+         (format.objectType() == NoteRichTextEditor::CHECKBOX_TEXT_FORMAT_UNCHECKED) )
+    {
+        QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
+    }
+    else {
+        QApplication::restoreOverrideCursor();
     }
 }
