@@ -1,15 +1,21 @@
 #include "NoteRichTextEditor.h"
 #include "ui_NoteRichTextEditor.h"
+#include "ToDoCheckboxTextObject.h"
 #include <QTextList>
 #include <QColorDialog>
 #include <QKeyEvent>
+#include <QMessageBox>
 #include <QDebug>
 
 NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QWidget(parent),
-    m_pUI(new Ui::NoteRichTextEditor)
+    m_pUI(new Ui::NoteRichTextEditor),
+    m_pToDoCheckboxTextObjectInterfaceUnchecked(nullptr),
+    m_pToDoCheckboxTextObjectInterfaceChecked(nullptr)
 {
     m_pUI->setupUi(this);
+    setupToDoCheckboxTextObjects();
+
     QObject::connect(m_pUI->buttonFormatTextBold, SIGNAL(clicked()), this, SLOT(textBold()));
     QObject::connect(m_pUI->buttonFormatTextItalic, SIGNAL(clicked()), this, SLOT(textItalic()));
     QObject::connect(m_pUI->buttonFormatTextUnderlined, SIGNAL(clicked()), this, SLOT(textUnderline()));
@@ -21,13 +27,27 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QObject::connect(m_pUI->buttonIndentDecrease, SIGNAL(clicked()), this, SLOT(textDecreaseIndentation()));
     QObject::connect(m_pUI->buttonInsertUnorderedList, SIGNAL(clicked()), this, SLOT(textInsertUnorderedList()));
     QObject::connect(m_pUI->buttonInsertOrderedList, SIGNAL(clicked()), this, SLOT(textInsertOrderedList()));
+    QObject::connect(m_pUI->buttonInsertTodoCheckbox, SIGNAL(clicked()), this, SLOT(textInsertToDoCheckBox()));
     QObject::connect(m_pUI->toolButtonChooseTextColor, SIGNAL(clicked()), this, SLOT(chooseTextColor()));
     QObject::connect(m_pUI->toolButtonChooseSelectedTextColor, SIGNAL(clicked()), this, SLOT(chooseSelectedTextColor()));
 }
 
 NoteRichTextEditor::~NoteRichTextEditor()
 {
-    delete m_pUI;
+    if (!m_pUI) {
+        delete m_pUI;
+        m_pUI = nullptr;
+    }
+
+    if (!m_pToDoCheckboxTextObjectInterfaceUnchecked) {
+        delete m_pToDoCheckboxTextObjectInterfaceUnchecked;
+        m_pToDoCheckboxTextObjectInterfaceUnchecked = nullptr;
+    }
+
+    if (!m_pToDoCheckboxTextObjectInterfaceChecked) {
+        delete m_pToDoCheckboxTextObjectInterfaceChecked;
+        m_pToDoCheckboxTextObjectInterfaceChecked = nullptr;
+    }
 }
 
 QPushButton * NoteRichTextEditor::getTextBoldButton()
@@ -128,9 +148,30 @@ void NoteRichTextEditor::chooseSelectedTextColor()
     changeTextColor(COLOR_SELECTED);
 }
 
+void NoteRichTextEditor::textInsertToDoCheckBox()
+{
+    QString checkboxUncheckedImgFileName(":/format_text_elements/checkbox_unchecked.gif");
+    QFile checkboxUncheckedImgFile(checkboxUncheckedImgFileName);
+    if (!checkboxUncheckedImgFile.exists()) {
+        QMessageBox::warning(this, tr("Error Opening File"),
+                             tr("Could not open '%1'").arg(checkboxUncheckedImgFileName));
+        return;
+    }
+
+    QImage checkboxUncheckedImg(checkboxUncheckedImgFileName);
+    QTextCharFormat toDoCheckboxUncheckedCharFormat;
+    toDoCheckboxUncheckedCharFormat.setObjectType(CHECKBOX_TEXT_FORMAT_UNCHECKED);
+    toDoCheckboxUncheckedCharFormat.setProperty(CHECKBOX_TEXT_DATA_UNCHECKED, checkboxUncheckedImg);
+
+    QTextCursor cursor = getTextEdit()->textCursor();
+    cursor.insertText(QString(QChar::ObjectReplacementCharacter), toDoCheckboxUncheckedCharFormat);
+    cursor.insertText(" ", QTextCharFormat());
+    getTextEdit()->setTextCursor(cursor);
+}
+
 void NoteRichTextEditor::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
 {
-    QTextEdit * noteTextEdit = getTextEdit();
+    TextEditWithCheckboxes * noteTextEdit = getTextEdit();
     QTextCursor cursor = noteTextEdit->textCursor();
 
     if (!cursor.hasSelection()) {
@@ -220,7 +261,7 @@ void NoteRichTextEditor::changeIndentation(const bool increase)
     }
 }
 
-QTextEdit * NoteRichTextEditor::getTextEdit()
+TextEditWithCheckboxes * NoteRichTextEditor::getTextEdit()
 {
     return m_pUI->noteTextEdit;
 }
@@ -280,4 +321,14 @@ void NoteRichTextEditor::insertList(const QTextListFormat::Style style)
     cursor.createList(listFormat);
 
     cursor.endEditBlock();
+}
+
+void NoteRichTextEditor::setupToDoCheckboxTextObjects()
+{
+    m_pToDoCheckboxTextObjectInterfaceUnchecked = new ToDoCheckboxTextObjectUnchecked;
+    m_pToDoCheckboxTextObjectInterfaceChecked   = new ToDoCheckboxTextObjectChecked;
+
+    QAbstractTextDocumentLayout * pLayout = getTextEdit()->document()->documentLayout();
+    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_UNCHECKED, m_pToDoCheckboxTextObjectInterfaceUnchecked);
+    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_CHECKED, m_pToDoCheckboxTextObjectInterfaceChecked);
 }

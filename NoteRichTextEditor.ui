@@ -612,12 +612,23 @@
       </widget>
      </item>
      <item>
-      <widget class="QTextEdit" name="noteTextEdit"/>
+      <widget class="TextEditWithCheckboxes" name="noteTextEdit">
+       <property name="mouseTracking">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TextEditWithCheckboxes</class>
+   <extends>QTextEdit</extends>
+   <header>TextEditWithCheckboxes.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>noteName</tabstop>
   <tabstop>notebookComboBox</tabstop>

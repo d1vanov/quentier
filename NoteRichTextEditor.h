@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
 #define __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
 
+#include "TextEditWithCheckboxes.h"
 #include <QWidget>
 #include <QTextListFormat>
 
@@ -16,13 +17,25 @@ class NoteRichTextEditor : public QWidget
     Q_OBJECT
     
 public:
-    explicit NoteRichTextEditor(QWidget *parent = 0);
+    explicit NoteRichTextEditor(QWidget * parent = 0);
     ~NoteRichTextEditor();
     
     QPushButton * getTextBoldButton();
     QPushButton * getTextItalicButton();
     QPushButton * getTextUnderlineButton();
     QPushButton * getTextStrikeThroughButton();
+
+    enum ECheckboxTextFormat
+    {
+        CHECKBOX_TEXT_FORMAT_UNCHECKED = QTextFormat::UserObject + 1,
+        CHECKBOX_TEXT_FORMAT_CHECKED = QTextFormat::UserObject + 2
+    };
+
+    enum ECheckboxTextProperties
+    {
+        CHECKBOX_TEXT_DATA_UNCHECKED = 1,
+        CHECKBOX_TEXT_DATA_CHECKED = 2
+    };
 
 public slots:
     // format text slots
@@ -43,7 +56,7 @@ public slots:
     void chooseSelectedTextColor();
 
     void textSpellCheck() { /* TODO: implement */ }
-    void textInsertToDoCheckBox() { /* TODO: implement */ }
+    void textInsertToDoCheckBox();
 
 private:
     void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
@@ -52,15 +65,19 @@ private:
     void setAlignButtonsCheckedState(const ESelectedAlignment alignment);
 
     void changeIndentation(const bool increase);
-    inline QTextEdit * getTextEdit();
+    inline TextEditWithCheckboxes * getTextEdit();
 
     enum EChangeColor { COLOR_ALL, COLOR_SELECTED };
     void changeTextColor(const EChangeColor changeColorOption);
 
     void insertList(const QTextListFormat::Style style);
 
+    void setupToDoCheckboxTextObjects();
+
 private:
     Ui::NoteRichTextEditor * m_pUI;
+    QObject * m_pToDoCheckboxTextObjectInterfaceUnchecked;
+    QObject * m_pToDoCheckboxTextObjectInterfaceChecked;
 };
 
 #endif // __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
