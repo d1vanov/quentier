@@ -150,7 +150,7 @@ void NoteRichTextEditor::chooseSelectedTextColor()
 
 void NoteRichTextEditor::textInsertToDoCheckBox()
 {
-    QString checkboxUncheckedImgFileName(":/format_text_elements/checkbox_unchecked.png");
+    QString checkboxUncheckedImgFileName(":/format_text_elements/checkbox_unchecked.gif");
     QFile checkboxUncheckedImgFile(checkboxUncheckedImgFileName);
     if (!checkboxUncheckedImgFile.exists()) {
         QMessageBox::warning(this, tr("Error Opening File"),

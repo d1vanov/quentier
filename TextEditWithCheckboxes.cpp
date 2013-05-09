@@ -16,7 +16,7 @@ void TextEditWithCheckboxes::mousePressEvent(QMouseEvent * pEvent)
     QTextCharFormat format = cursor.charFormat();
     if (format.objectType() == NoteRichTextEditor::CHECKBOX_TEXT_FORMAT_UNCHECKED)
     {
-        QString checkboxCheckedImgFileName(":/format_text_elements/checkbox_checked.png");
+        QString checkboxCheckedImgFileName(":/format_text_elements/checkbox_checked.gif");
         QFile checkboxCheckedImgFile(checkboxCheckedImgFileName);
         if (!checkboxCheckedImgFile.exists()) {
             QMessageBox::warning(this, tr("Error Opening File"),

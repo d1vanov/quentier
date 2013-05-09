@@ -14,7 +14,7 @@
         <file>sync_icons/stat_notify_sync_error.png</file>
         <file>label/tag.png</file>
         <file>format_text_elements/insert_table.png</file>
-        <file>format_text_elements/checkbox_checked.png</file>
-        <file>format_text_elements/checkbox_unchecked.png</file>
+        <file>format_text_elements/checkbox_checked.gif</file>
+        <file>format_text_elements/checkbox_unchecked.gif</file>
     </qresource>
 </RCC>
