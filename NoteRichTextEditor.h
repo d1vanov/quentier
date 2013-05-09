@@ -17,7 +17,7 @@ class NoteRichTextEditor : public QWidget
     Q_OBJECT
     
 public:
-    explicit NoteRichTextEditor(QWidget *parent = 0);
+    explicit NoteRichTextEditor(QWidget * parent = 0);
     ~NoteRichTextEditor();
     
     QPushButton * getTextBoldButton();
@@ -76,6 +76,8 @@ private:
 
 private:
     Ui::NoteRichTextEditor * m_pUI;
+    QObject * m_pToDoCheckboxTextObjectInterfaceUnchecked;
+    QObject * m_pToDoCheckboxTextObjectInterfaceChecked;
 };
 
 #endif // __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H

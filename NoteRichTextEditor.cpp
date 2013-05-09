@@ -4,12 +4,14 @@
 #include <QTextList>
 #include <QColorDialog>
 #include <QKeyEvent>
-#include <QCheckBox>
+#include <QMessageBox>
 #include <QDebug>
 
 NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QWidget(parent),
-    m_pUI(new Ui::NoteRichTextEditor)
+    m_pUI(new Ui::NoteRichTextEditor),
+    m_pToDoCheckboxTextObjectInterfaceUnchecked(nullptr),
+    m_pToDoCheckboxTextObjectInterfaceChecked(nullptr)
 {
     m_pUI->setupUi(this);
     setupToDoCheckboxTextObjects();
@@ -32,7 +34,20 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
 
 NoteRichTextEditor::~NoteRichTextEditor()
 {
-    delete m_pUI;
+    if (!m_pUI) {
+        delete m_pUI;
+        m_pUI = nullptr;
+    }
+
+    if (!m_pToDoCheckboxTextObjectInterfaceUnchecked) {
+        delete m_pToDoCheckboxTextObjectInterfaceUnchecked;
+        m_pToDoCheckboxTextObjectInterfaceUnchecked = nullptr;
+    }
+
+    if (!m_pToDoCheckboxTextObjectInterfaceChecked) {
+        delete m_pToDoCheckboxTextObjectInterfaceChecked;
+        m_pToDoCheckboxTextObjectInterfaceChecked = nullptr;
+    }
 }
 
 QPushButton * NoteRichTextEditor::getTextBoldButton()
@@ -135,28 +150,22 @@ void NoteRichTextEditor::chooseSelectedTextColor()
 
 void NoteRichTextEditor::textInsertToDoCheckBox()
 {
-    QTextCharFormat toDoCheckboxCharFormat;
-    toDoCheckboxCharFormat.setObjectType(CHECKBOX_TEXT_FORMAT_UNCHECKED);
+    QString checkboxUncheckedImgFileName(":/format_text_elements/checkbox_unchecked.png");
+    QFile checkboxUncheckedImgFile(checkboxUncheckedImgFileName);
+    if (!checkboxUncheckedImgFile.exists()) {
+        QMessageBox::warning(this, tr("Error Opening File"),
+                             tr("Could not open '%1'").arg(checkboxUncheckedImgFileName));
+        return;
+    }
 
-    QCheckBox * pCheckbox = new QCheckBox;
-    pCheckbox->setChecked(false);
-
-    pCheckbox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-
-    qDebug() << "Size of checkbox object: " << pCheckbox->size();
-    QImage toDoCheckboxImage(pCheckbox->size(), QImage::Format_RGB32);
-    pCheckbox->render(&toDoCheckboxImage);  // FIXME: looks like rendering doesn't go good
-
-    // FIXME: for debug purposes, remove before merging to master
-    m_pUI->label->setPixmap(QPixmap::fromImage(toDoCheckboxImage));
-
-    delete pCheckbox;
-    pCheckbox = nullptr;
-
-    toDoCheckboxCharFormat.setProperty(CHECKBOX_TEXT_DATA_UNCHECKED, toDoCheckboxImage);
+    QImage checkboxUncheckedImg(checkboxUncheckedImgFileName);
+    QTextCharFormat toDoCheckboxUncheckedCharFormat;
+    toDoCheckboxUncheckedCharFormat.setObjectType(CHECKBOX_TEXT_FORMAT_UNCHECKED);
+    toDoCheckboxUncheckedCharFormat.setProperty(CHECKBOX_TEXT_DATA_UNCHECKED, checkboxUncheckedImg);
 
     QTextCursor cursor = getTextEdit()->textCursor();
-    cursor.insertText(QString(QChar::ObjectReplacementCharacter), toDoCheckboxCharFormat);
+    cursor.insertText(QString(QChar::ObjectReplacementCharacter), toDoCheckboxUncheckedCharFormat);
+    cursor.insertText(" ", QTextCharFormat());
     getTextEdit()->setTextCursor(cursor);
 }
 
@@ -316,10 +325,10 @@ void NoteRichTextEditor::insertList(const QTextListFormat::Style style)
 
 void NoteRichTextEditor::setupToDoCheckboxTextObjects()
 {
-    QObject * toDoCheckboxTextObjectInterfaceUnchecked = new ToDoCheckboxTextObjectUnchecked;
-    QObject * toDoCheckboxTextObjectInterfaceChecked = new ToDoCheckboxTextObjectChecked;
+    m_pToDoCheckboxTextObjectInterfaceUnchecked = new ToDoCheckboxTextObjectUnchecked;
+    m_pToDoCheckboxTextObjectInterfaceChecked   = new ToDoCheckboxTextObjectChecked;
 
     QAbstractTextDocumentLayout * pLayout = getTextEdit()->document()->documentLayout();
-    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_UNCHECKED, toDoCheckboxTextObjectInterfaceUnchecked);
-    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_CHECKED, toDoCheckboxTextObjectInterfaceChecked);
+    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_UNCHECKED, m_pToDoCheckboxTextObjectInterfaceUnchecked);
+    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_CHECKED, m_pToDoCheckboxTextObjectInterfaceChecked);
 }

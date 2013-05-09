@@ -3,6 +3,7 @@
 #include "NoteRichTextEditor.h"
 #include <QMouseEvent>
 #include <QTextCursor>
+#include <QMessageBox>
 #include <QDebug>
 
 TextEditWithCheckboxes::TextEditWithCheckboxes(QWidget *parent) :
@@ -11,13 +12,20 @@ TextEditWithCheckboxes::TextEditWithCheckboxes(QWidget *parent) :
 
 void TextEditWithCheckboxes::mousePressEvent(QMouseEvent * pEvent)
 {
-    qDebug() << "Processing mousePressEvent";
     QTextCursor cursor = cursorForPosition(pEvent->pos());
     QTextCharFormat format = cursor.charFormat();
     if (format.objectType() == NoteRichTextEditor::CHECKBOX_TEXT_FORMAT_UNCHECKED)
     {
-        qDebug() << "Unchecked checkbox under mouse cursor";
+        QString checkboxCheckedImgFileName(":/format_text_elements/checkbox_checked.png");
+        QFile checkboxCheckedImgFile(checkboxCheckedImgFileName);
+        if (!checkboxCheckedImgFile.exists()) {
+            QMessageBox::warning(this, tr("Error Opening File"),
+                                 tr("Could not open '%1'").arg(checkboxCheckedImgFileName));
+        }
+
+        QImage checkboxCheckedImg(checkboxCheckedImgFileName);
         format.setObjectType(NoteRichTextEditor::CHECKBOX_TEXT_FORMAT_CHECKED);
+        format.setProperty(NoteRichTextEditor::CHECKBOX_TEXT_DATA_CHECKED, checkboxCheckedImg);
 
         if (!cursor.hasSelection()) {
             cursor.select(QTextCursor::WordUnderCursor);
@@ -25,16 +33,9 @@ void TextEditWithCheckboxes::mousePressEvent(QMouseEvent * pEvent)
 
         cursor.mergeCharFormat(format);
         QTextEdit::mergeCurrentCharFormat(format);
-
-        // FIXME: for debug purposes, cut out before merging with master branch
-        qDebug() << "Changed char format from unchecked to checked checkbox, verifying...";
-        format = cursor.charFormat();
-        if (format.objectType() == NoteRichTextEditor::CHECKBOX_TEXT_FORMAT_CHECKED) {
-            qDebug() << "Char format successfully changed to checked checkbox";
-        }
     }
-    else if (format.objectType() == NoteRichTextEditor::CHECKBOX_TEXT_FORMAT_CHECKED) {
-        qDebug() << "Checked checkbox under mouse cursor";
+    else if (format.objectType() == NoteRichTextEditor::CHECKBOX_TEXT_FORMAT_CHECKED)
+    {
         format.setObjectType(NoteRichTextEditor::CHECKBOX_TEXT_FORMAT_UNCHECKED);
 
         if (!cursor.hasSelection()) {
@@ -43,12 +44,5 @@ void TextEditWithCheckboxes::mousePressEvent(QMouseEvent * pEvent)
 
         cursor.mergeCharFormat(format);
         QTextEdit::mergeCurrentCharFormat(format);
-
-        // FIXME: for debug purposes, cut out before merging with master branch
-        qDebug() << "Changed char format from checked to unchecked checkbox, verifying...";
-        format = cursor.charFormat();
-        if (format.objectType() == NoteRichTextEditor::CHECKBOX_TEXT_FORMAT_UNCHECKED) {
-            qDebug() << "Char format successfully changed to unchecked checkbox";
-        }
     }
 }
