@@ -122,8 +122,11 @@ void NoteRichTextEditor::textAddHorizontalLine()
     TextEditWithCheckboxes * noteTextEdit = getTextEdit();
     QTextCursor cursor = noteTextEdit->textCursor();
     QTextBlockFormat format = cursor.blockFormat();
-    cursor.insertHtml(QString("<hr><br />"));
+
+    cursor.insertHtml("<hr><br>");
     cursor.setBlockFormat(format);
+    cursor.movePosition(QTextCursor::Up);
+
     noteTextEdit->setTextCursor(cursor);
 }
 
