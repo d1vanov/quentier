@@ -30,6 +30,7 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QObject::connect(m_pUI->buttonInsertTodoCheckbox, SIGNAL(clicked()), this, SLOT(textInsertToDoCheckBox()));
     QObject::connect(m_pUI->toolButtonChooseTextColor, SIGNAL(clicked()), this, SLOT(chooseTextColor()));
     QObject::connect(m_pUI->toolButtonChooseSelectedTextColor, SIGNAL(clicked()), this, SLOT(chooseSelectedTextColor()));
+    QObject::connect(m_pUI->buttonAddHorizontalLine, SIGNAL(clicked()), this, SLOT(textAddHorizontalLine()));
 }
 
 NoteRichTextEditor::~NoteRichTextEditor()
@@ -114,6 +115,16 @@ void NoteRichTextEditor::textAlignRight()
 {
     getTextEdit()->setAlignment(Qt::AlignRight | Qt::AlignAbsolute);
     setAlignButtonsCheckedState(ALIGNED_RIGHT);
+}
+
+void NoteRichTextEditor::textAddHorizontalLine()
+{
+    TextEditWithCheckboxes * noteTextEdit = getTextEdit();
+    QTextCursor cursor = noteTextEdit->textCursor();
+    QTextBlockFormat format = cursor.blockFormat();
+    cursor.insertHtml(QString("<hr><br />"));
+    cursor.setBlockFormat(format);
+    noteTextEdit->setTextCursor(cursor);
 }
 
 void NoteRichTextEditor::textIncreaseIndentation()

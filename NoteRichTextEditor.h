@@ -46,7 +46,7 @@ public slots:
     void textAlignLeft();
     void textAlignCenter();
     void textAlignRight();
-    void textAddHorizontalLine() { /* TODO: implement */ }
+    void textAddHorizontalLine();
     void textIncreaseIndentation();
     void textDecreaseIndentation();
     void textInsertUnorderedList();
