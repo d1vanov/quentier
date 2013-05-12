@@ -123,6 +123,11 @@ void NoteRichTextEditor::textAddHorizontalLine()
     QTextCursor cursor = noteTextEdit->textCursor();
     QTextBlockFormat format = cursor.blockFormat();
 
+    QString currentLine = cursor.block().text().trimmed().toAscii();
+    if (currentLine.isEmpty()) {
+        cursor.movePosition(QTextCursor::Up);
+    }
+
     cursor.insertHtml("<hr><br>");
     cursor.setBlockFormat(format);
     cursor.movePosition(QTextCursor::Up);
