@@ -22,7 +22,8 @@ HEADERS  += \
     NoteRichTextEditor.h \
     MainWindow.h \
     ToDoCheckboxTextObject.h \
-    TextEditWithCheckboxes.h
+    TextEditWithCheckboxes.h \
+    HorizontalLineExtraData.h
 
 FORMS    += \
     NoteRichTextEditor.ui \

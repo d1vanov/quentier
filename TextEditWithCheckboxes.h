@@ -11,6 +11,7 @@ public:
     virtual ~TextEditWithCheckboxes() override {}
 
 protected:
+    virtual void keyPressEvent(QKeyEvent * pEvent) override;
     virtual void mousePressEvent(QMouseEvent * pEvent) override;
     virtual void mouseMoveEvent(QMouseEvent * pEvent) override;
 };

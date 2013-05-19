@@ -1,6 +1,7 @@
 #include "NoteRichTextEditor.h"
 #include "ui_NoteRichTextEditor.h"
 #include "ToDoCheckboxTextObject.h"
+#include "HorizontalLineExtraData.h"
 #include <QTextList>
 #include <QColorDialog>
 #include <QKeyEvent>
@@ -135,6 +136,26 @@ void NoteRichTextEditor::textAddHorizontalLine()
         cursor.deletePreviousChar();
         cursor.movePosition(QTextCursor::Down);
     }
+    else
+    {
+        cursor.movePosition(QTextCursor::Up);
+        cursor.movePosition(QTextCursor::Up);
+        QString line = cursor.block().text().trimmed().toAscii();
+        if (line.isEmpty()) {
+            cursor.movePosition(QTextCursor::Down);
+            cursor.deletePreviousChar();
+            cursor.movePosition(QTextCursor::Down);
+        }
+        else {
+            cursor.movePosition(QTextCursor::Down);
+            cursor.movePosition(QTextCursor::Down);
+        }
+    }
+
+    // add extra data
+    cursor.movePosition(QTextCursor::Up);
+    cursor.block().setUserData(new HorizontalLineExtraData);
+    cursor.movePosition(QTextCursor::Down);
 
     noteTextEdit->setTextCursor(cursor);
 }

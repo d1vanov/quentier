@@ -3,13 +3,45 @@
 #include "NoteRichTextEditor.h"
 #include <QMouseEvent>
 #include <QTextCursor>
+#include <QTextBlock>
+#include <QTextDocumentFragment>
 #include <QMessageBox>
 #include <QApplication>
 #include <QDebug>
 
-TextEditWithCheckboxes::TextEditWithCheckboxes(QWidget *parent) :
+TextEditWithCheckboxes::TextEditWithCheckboxes(QWidget * parent) :
     QTextEdit(parent)
 {}
+
+void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
+{
+    if ((pEvent->key() == Qt::Key_Enter) || (pEvent->key() == Qt::Key_Return))
+    {
+        // check whether current line is a horizontal line
+        bool atHorizontalLine = false;
+        QTextCursor cursor = textCursor();
+        QTextBlockFormat initialFormat = cursor.blockFormat();
+        if (cursor.block().userData()) {
+            atHorizontalLine = true;
+        }
+
+        if (atHorizontalLine) {
+            cursor.movePosition(QTextCursor::Down);
+            cursor.insertHtml("<br>");
+            QTextBlockFormat format;
+            format.setLineHeight(initialFormat.lineHeight(), initialFormat.lineHeightType());
+            cursor.mergeBlockFormat(format);
+            cursor.movePosition(QTextCursor::Up);
+            QTextEdit::setTextCursor(cursor);
+        }
+        else {
+            QTextEdit::keyPressEvent(pEvent);
+        }
+    }
+    else {
+        QTextEdit::keyPressEvent(pEvent);
+    }
+}
 
 void TextEditWithCheckboxes::mousePressEvent(QMouseEvent * pEvent)
 {
