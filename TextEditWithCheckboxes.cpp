@@ -26,12 +26,10 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
         }
 
         if (atHorizontalLine) {
-            cursor.movePosition(QTextCursor::Down);
-            cursor.insertHtml("<br>");
+            cursor.insertBlock();
             QTextBlockFormat format;
             format.setLineHeight(initialFormat.lineHeight(), initialFormat.lineHeightType());
-            cursor.mergeBlockFormat(format);
-            cursor.movePosition(QTextCursor::Up);
+            cursor.setBlockFormat(format);
             QTextEdit::setTextCursor(cursor);
         }
         else {
