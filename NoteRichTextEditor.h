@@ -24,6 +24,8 @@ public:
     QPushButton * getTextItalicButton();
     QPushButton * getTextUnderlineButton();
     QPushButton * getTextStrikeThroughButton();
+    QPushButton * getInsertUnorderedListButton();
+    QPushButton * getInsertOrderedListButton();
 
     enum ECheckboxTextFormat
     {

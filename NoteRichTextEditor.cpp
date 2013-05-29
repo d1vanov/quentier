@@ -72,6 +72,16 @@ QPushButton *NoteRichTextEditor::getTextStrikeThroughButton()
     return m_pUI->buttonFormatTextStrikethrough;
 }
 
+QPushButton *NoteRichTextEditor::getInsertUnorderedListButton()
+{
+    return m_pUI->buttonInsertUnorderedList;
+}
+
+QPushButton *NoteRichTextEditor::getInsertOrderedListButton()
+{
+    return m_pUI->buttonInsertOrderedList;
+}
+
 void NoteRichTextEditor::textBold()
 {
     QTextCharFormat format;
