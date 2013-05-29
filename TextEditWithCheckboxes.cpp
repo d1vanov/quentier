@@ -7,11 +7,28 @@
 #include <QTextDocumentFragment>
 #include <QMessageBox>
 #include <QApplication>
+#include <QUrl>
+#include <QString>
+#include <QImage>
 #include <QDebug>
 
 TextEditWithCheckboxes::TextEditWithCheckboxes(QWidget * parent) :
-    QTextEdit(parent)
+    QTextEdit(parent),
+    m_droppedImageCounter(0)
 {}
+
+bool TextEditWithCheckboxes::canInsertFromMimeData(const QMimeData * source) const
+{
+    return (source->hasImage() || QTextEdit::canInsertFromMimeData(source));
+}
+
+void TextEditWithCheckboxes::insertFromMimeData(const QMimeData *source)
+{
+    if (source->hasImage()) {
+        QUrl url(QString("dropped_image_%1").arg(m_droppedImageCounter++));
+        dropImage(url, qvariant_cast<QImage>(source->imageData()));
+    }
+}
 
 void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
 {
@@ -89,5 +106,14 @@ void TextEditWithCheckboxes::mouseMoveEvent(QMouseEvent * pEvent)
     }
     else {
         QApplication::restoreOverrideCursor();
+    }
+}
+
+void TextEditWithCheckboxes::dropImage(const QUrl & url, const QImage & image)
+{
+    if (!image.isNull())
+    {
+        QTextEdit::document()->addResource(QTextDocument::ImageResource, url, image);
+        QTextEdit::textCursor().insertImage(url.toString());
     }
 }
