@@ -168,6 +168,9 @@ void TextEditWithCheckboxes::mousePressEvent(QMouseEvent * pEvent)
         cursor.mergeCharFormat(format);
         QTextEdit::mergeCurrentCharFormat(format);
     }
+    else {
+        QTextEdit::mousePressEvent(pEvent);
+    }
 }
 
 void TextEditWithCheckboxes::mouseMoveEvent(QMouseEvent * pEvent)
@@ -182,6 +185,8 @@ void TextEditWithCheckboxes::mouseMoveEvent(QMouseEvent * pEvent)
     else {
         QApplication::restoreOverrideCursor();
     }
+
+    QTextEdit::mouseMoveEvent(pEvent);
 }
 
 void TextEditWithCheckboxes::dropImage(const QUrl & url, const QImage & image)
