@@ -4,6 +4,7 @@
 #include <QMouseEvent>
 #include <QTextCursor>
 #include <QTextBlock>
+#include <QTextList>
 #include <QTextDocumentFragment>
 #include <QMessageBox>
 #include <QApplication>
@@ -36,7 +37,7 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
     {
         // check whether current line is a horizontal line
         bool atHorizontalLine = false;
-        QTextCursor cursor = textCursor();
+        QTextCursor cursor = QTextEdit::textCursor();
         QTextBlockFormat initialFormat = cursor.blockFormat();
         if (cursor.block().userData()) {
             atHorizontalLine = true;
@@ -48,6 +49,80 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
             format.setLineHeight(initialFormat.lineHeight(), initialFormat.lineHeightType());
             cursor.setBlockFormat(format);
             QTextEdit::setTextCursor(cursor);
+        }
+        else if (cursor.currentList())
+        {
+            QTextList * pList = cursor.currentList();
+            // check whether cursor is on the last element of the list
+            int numElements = pList->count();
+            QTextBlock block = cursor.block();
+            if ( (pList->itemNumber(block) == (numElements - 1)) &&
+                 QString(block.text().trimmed().toAscii()).isEmpty() )
+            {
+                QTextBlockFormat format;
+                cursor.setBlockFormat(format);
+                QTextEdit::setTextCursor(cursor);
+            }
+            else {
+                QTextEdit::keyPressEvent(pEvent);
+            }
+        }
+        else {
+            QTextEdit::keyPressEvent(pEvent);
+        }
+    }
+    else if (pEvent->key() == Qt::Key_Backspace)
+    {
+        QTextCursor cursor = QTextEdit::textCursor();
+        if (cursor.currentList())
+        {
+            QTextList * pList = cursor.currentList();
+            QTextBlock block = cursor.block();
+            int itemNumber = pList->itemNumber(block);
+            int numItems = pList->count();
+            if ( (pList->format().style() == QTextListFormat::ListDecimal) &&
+                 (itemNumber != (numItems - 1)) &&
+                 (QString(block.text().trimmed().toAscii()).isEmpty()) )
+            {
+                // ordered list + not the last item + empty item, specialized logic is required:
+                // 1. Backup all the elements following the one being removed
+                QVector<QTextBlock> buffer;
+                buffer.reserve(numItems - itemNumber - 1);
+                for(int i = itemNumber + 1; i < numItems; ++i) {
+                    buffer.push_back(pList->item(i));
+                }
+                // 2. Remove all the elements following the removed one and it
+                for(int i = numItems - 1; i >= itemNumber; --i) {
+                    pList->removeItem(i);
+                }
+                // NOTE: this action only removes list items but not blocks of text from the editor
+                // 3. Insert empty block of text at the position where the cursor was
+                QTextBlockFormat format;
+                cursor.setBlockFormat(format);
+                QTextEdit::setTextCursor(cursor);
+                // 4. Fix indentation of the remained contents of the list
+                QTextCursor cursorIndentFixer(cursor);
+                for(int i =itemNumber; i < numItems; ++i) {
+                    cursorIndentFixer.movePosition(QTextCursor::Down);
+                    QTextBlockFormat format = cursorIndentFixer.block().blockFormat();
+                    format.setIndent(format.indent() - 1);
+                    cursorIndentFixer.mergeBlockFormat(format);
+                }
+                // 5. Create a new list and fill it with saved items
+                QTextList * pNewList = cursor.createList(QTextListFormat::ListDecimal);
+                Q_CHECK_PTR(pNewList);
+
+                int nBufferedItems = buffer.size();
+                for(int i = 0; i < nBufferedItems; ++i) {
+                    pNewList->add(buffer[i]);
+                }
+                // Don't understand why but QTextList::add doesn't account for the very first item,
+                // so I need to remove it manually
+                pNewList->removeItem(0);
+            }
+            else {
+                QTextEdit::keyPressEvent(pEvent);
+            }
         }
         else {
             QTextEdit::keyPressEvent(pEvent);
