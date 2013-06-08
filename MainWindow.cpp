@@ -1,6 +1,6 @@
 #include "MainWindow.h"
 #include "NoteRichTextEditor.h"
-#include "ui_mainwindow.h"
+#include "ui_MainWindow.h"
 #include <cmath>
 #include <QPushButton>
 #include <QtDebug>
