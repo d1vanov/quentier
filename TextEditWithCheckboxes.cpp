@@ -92,8 +92,13 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
                 {
                     QTextCursor cursorLastItemSupplier(cursor);
                     // FIXME: the position gets wrong if the list contains nested list
-                    for(int i = 0; i <= (numItems - itemNumber); ++i) {
+                    while(!cursorLastItemSupplier.atEnd()) {
                         cursorLastItemSupplier.movePosition(QTextCursor::Down);
+                        QTextBlock regularBlock = cursorLastItemSupplier.block();
+                        if (pList->itemNumber(regularBlock) == numItems) {
+                            cursorLastItemSupplier.movePosition(QTextCursor::Down);
+                            break;
+                        }
                     }
                     cursorLastItemSupplier.insertBlock();
                     pList->add(cursorLastItemSupplier.block());
