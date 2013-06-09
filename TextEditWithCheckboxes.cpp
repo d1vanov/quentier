@@ -4,6 +4,7 @@
 #include <QMouseEvent>
 #include <QTextCursor>
 #include <QTextBlock>
+#include <QTextList>
 #include <QTextDocumentFragment>
 #include <QMessageBox>
 #include <QApplication>
@@ -48,6 +49,23 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
             format.setLineHeight(initialFormat.lineHeight(), initialFormat.lineHeightType());
             cursor.setBlockFormat(format);
             QTextEdit::setTextCursor(cursor);
+        }
+        else if (cursor.currentList())
+        {
+            QTextList * pList = cursor.currentList();
+            // check whether cursor is on the last element of the list
+            int numElements = pList->count();
+            QTextBlock block = cursor.block();
+            if ( (pList->itemNumber(block) == (numElements - 1)) &&
+                 QString(block.text().trimmed().toAscii()).isEmpty() )
+            {
+                QTextBlockFormat format;
+                cursor.setBlockFormat(format);
+                QTextEdit::setTextCursor(cursor);
+            }
+            else {
+                QTextEdit::keyPressEvent(pEvent);
+            }
         }
         else {
             QTextEdit::keyPressEvent(pEvent);
