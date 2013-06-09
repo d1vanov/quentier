@@ -74,14 +74,14 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
     else if (pEvent->key() == Qt::Key_Backspace)
     {
         QTextCursor cursor = QTextEdit::textCursor();
-        if (cursor.currentList())
+        if (cursor.selection().isEmpty() && cursor.currentList())
         {
             QTextList * pList = cursor.currentList();
             QTextBlock block = cursor.block();
-            int itemNumber = pList->itemNumber(block);
+            int itemNumber = pList->itemNumber(block) + 1;
             int numItems = pList->count();
             if ( (pList->format().style() == QTextListFormat::ListDecimal) &&
-                 (itemNumber != (numItems - 1)) &&
+                 (itemNumber != numItems) &&
                  (QString(block.text().trimmed().toAscii()).isEmpty()) )
             {
                 // ordered list + not the last item + empty item, specialized logic is required:
@@ -91,7 +91,8 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
                 if (!QString(pList->itemText(pList->item(numItems - 1)).trimmed().toAscii()).isEmpty())
                 {
                     QTextCursor cursorLastItemSupplier(cursor);
-                    for(int i = 0; i < (numItems - itemNumber); ++i) {
+                    // FIXME: the position gets wrong if the list contains nested list
+                    for(int i = 0; i <= (numItems - itemNumber); ++i) {
                         cursorLastItemSupplier.movePosition(QTextCursor::Down);
                     }
                     cursorLastItemSupplier.insertBlock();
@@ -99,12 +100,12 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
                 }
                 // 2. Backup all the elements following the one being removed
                 QVector<QTextBlock> buffer;
-                buffer.reserve(numItems - itemNumber - 1);
-                for(int i = itemNumber + 1; i < numItems; ++i) {
+                buffer.reserve(numItems - itemNumber + 1);
+                for(int i = itemNumber + 1; i <= numItems; ++i) {
                     buffer.push_back(pList->item(i));
                 }
                 // 3. Remove all the elements following the removed one and it
-                for(int i = numItems - 1; i >= itemNumber; --i) {
+                for(int i = numItems; i >= itemNumber; --i) {
                     pList->removeItem(i);
                 }
                 // NOTE: this action only removes list items but not blocks of text from the editor
@@ -114,13 +115,14 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
                 QTextEdit::setTextCursor(cursor);
                 // 5. Fix indentation of the remained contents of the list
                 QTextCursor cursorIndentFixer(cursor);
-                for(int i =itemNumber; i < numItems; ++i) {
+                for(int i = itemNumber; i <= numItems; ++i) {
                     cursorIndentFixer.movePosition(QTextCursor::Down);
                     QTextBlockFormat format = cursorIndentFixer.block().blockFormat();
                     format.setIndent(format.indent() - 1);
                     cursorIndentFixer.mergeBlockFormat(format);
                 }
                 // 6. Create a new list and fill it with saved items
+                cursor.movePosition(QTextCursor::Down);
                 QTextList * pNewList = cursor.createList(QTextListFormat::ListDecimal);
                 Q_CHECK_PTR(pNewList);
 
@@ -128,11 +130,7 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
                 for(int i = 0; i < nBufferedItems; ++i) {
                     pNewList->add(buffer[i]);
                 }
-                // Don't understand why but QTextList::add doesn't account for the very first item,
-                // so I need to remove it manually
-                pNewList->removeItem(0);
                 // 7. Check the last item of the new list - sometimes it becomes empty
-
                 QString lastItemString(pNewList->item(pNewList->count() - 1).text().trimmed().toAscii());
                 if (lastItemString.isEmpty()) {
                     pNewList->removeItem(pNewList->itemNumber(pNewList->item(pNewList->count() - 1)));
