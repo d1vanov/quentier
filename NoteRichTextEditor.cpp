@@ -1,15 +1,22 @@
 #include "NoteRichTextEditor.h"
 #include "ui_NoteRichTextEditor.h"
+#include "ToDoCheckboxTextObject.h"
+#include "HorizontalLineExtraData.h"
 #include <QTextList>
 #include <QColorDialog>
 #include <QKeyEvent>
+#include <QMessageBox>
 #include <QDebug>
 
 NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QWidget(parent),
-    m_pUI(new Ui::NoteRichTextEditor)
+    m_pUI(new Ui::NoteRichTextEditor),
+    m_pToDoCheckboxTextObjectInterfaceUnchecked(nullptr),
+    m_pToDoCheckboxTextObjectInterfaceChecked(nullptr)
 {
     m_pUI->setupUi(this);
+    setupToDoCheckboxTextObjects();
+
     QObject::connect(m_pUI->buttonFormatTextBold, SIGNAL(clicked()), this, SLOT(textBold()));
     QObject::connect(m_pUI->buttonFormatTextItalic, SIGNAL(clicked()), this, SLOT(textItalic()));
     QObject::connect(m_pUI->buttonFormatTextUnderlined, SIGNAL(clicked()), this, SLOT(textUnderline()));
@@ -21,13 +28,28 @@ NoteRichTextEditor::NoteRichTextEditor(QWidget *parent) :
     QObject::connect(m_pUI->buttonIndentDecrease, SIGNAL(clicked()), this, SLOT(textDecreaseIndentation()));
     QObject::connect(m_pUI->buttonInsertUnorderedList, SIGNAL(clicked()), this, SLOT(textInsertUnorderedList()));
     QObject::connect(m_pUI->buttonInsertOrderedList, SIGNAL(clicked()), this, SLOT(textInsertOrderedList()));
+    QObject::connect(m_pUI->buttonInsertTodoCheckbox, SIGNAL(clicked()), this, SLOT(textInsertToDoCheckBox()));
     QObject::connect(m_pUI->toolButtonChooseTextColor, SIGNAL(clicked()), this, SLOT(chooseTextColor()));
     QObject::connect(m_pUI->toolButtonChooseSelectedTextColor, SIGNAL(clicked()), this, SLOT(chooseSelectedTextColor()));
+    QObject::connect(m_pUI->buttonAddHorizontalLine, SIGNAL(clicked()), this, SLOT(textAddHorizontalLine()));
 }
 
 NoteRichTextEditor::~NoteRichTextEditor()
 {
-    delete m_pUI;
+    if (!m_pUI) {
+        delete m_pUI;
+        m_pUI = nullptr;
+    }
+
+    if (!m_pToDoCheckboxTextObjectInterfaceUnchecked) {
+        delete m_pToDoCheckboxTextObjectInterfaceUnchecked;
+        m_pToDoCheckboxTextObjectInterfaceUnchecked = nullptr;
+    }
+
+    if (!m_pToDoCheckboxTextObjectInterfaceChecked) {
+        delete m_pToDoCheckboxTextObjectInterfaceChecked;
+        m_pToDoCheckboxTextObjectInterfaceChecked = nullptr;
+    }
 }
 
 QPushButton * NoteRichTextEditor::getTextBoldButton()
@@ -48,6 +70,16 @@ QPushButton *NoteRichTextEditor::getTextUnderlineButton()
 QPushButton *NoteRichTextEditor::getTextStrikeThroughButton()
 {
     return m_pUI->buttonFormatTextStrikethrough;
+}
+
+QPushButton *NoteRichTextEditor::getInsertUnorderedListButton()
+{
+    return m_pUI->buttonInsertUnorderedList;
+}
+
+QPushButton *NoteRichTextEditor::getInsertOrderedListButton()
+{
+    return m_pUI->buttonInsertOrderedList;
 }
 
 void NoteRichTextEditor::textBold()
@@ -80,20 +112,79 @@ void NoteRichTextEditor::textStrikeThrough()
 
 void NoteRichTextEditor::textAlignLeft()
 {
+    QTextCursor cursor = getTextEdit()->textCursor();
+    cursor.beginEditBlock();
+
     getTextEdit()->setAlignment(Qt::AlignLeft | Qt::AlignAbsolute);
     setAlignButtonsCheckedState(ALIGNED_LEFT);
+
+    cursor.endEditBlock();
 }
 
 void NoteRichTextEditor::textAlignCenter()
 {
+    QTextCursor cursor = getTextEdit()->textCursor();
+    cursor.beginEditBlock();
+
     getTextEdit()->setAlignment(Qt::AlignHCenter);
     setAlignButtonsCheckedState(ALIGNED_CENTER);
+
+    cursor.endEditBlock();
 }
 
 void NoteRichTextEditor::textAlignRight()
 {
+    QTextCursor cursor = getTextEdit()->textCursor();
+    cursor.beginEditBlock();
+
     getTextEdit()->setAlignment(Qt::AlignRight | Qt::AlignAbsolute);
     setAlignButtonsCheckedState(ALIGNED_RIGHT);
+
+    cursor.endEditBlock();
+}
+
+void NoteRichTextEditor::textAddHorizontalLine()
+{
+    TextEditWithCheckboxes * noteTextEdit = getTextEdit();
+    QTextCursor cursor = noteTextEdit->textCursor();
+    cursor.beginEditBlock();
+
+    QTextBlockFormat format = cursor.blockFormat();
+
+    bool atStart = cursor.atStart();
+
+    cursor.insertHtml("<hr><br>");
+    cursor.setBlockFormat(format);
+    cursor.movePosition(QTextCursor::Up);
+
+    if (atStart)
+    {
+        cursor.movePosition(QTextCursor::Up);
+        cursor.deletePreviousChar();
+        cursor.movePosition(QTextCursor::Down);
+    }
+    else
+    {
+        cursor.movePosition(QTextCursor::Up);
+        cursor.movePosition(QTextCursor::Up);
+        QString line = cursor.block().text().trimmed().toAscii();
+        if (line.isEmpty()) {
+            cursor.movePosition(QTextCursor::Down);
+            cursor.deletePreviousChar();
+            cursor.movePosition(QTextCursor::Down);
+        }
+        else {
+            cursor.movePosition(QTextCursor::Down);
+            cursor.movePosition(QTextCursor::Down);
+        }
+    }
+
+    // add extra data
+    cursor.movePosition(QTextCursor::Up);
+    cursor.block().setUserData(new HorizontalLineExtraData);
+    cursor.movePosition(QTextCursor::Down);
+
+    cursor.endEditBlock();
 }
 
 void NoteRichTextEditor::textIncreaseIndentation()
@@ -128,16 +219,44 @@ void NoteRichTextEditor::chooseSelectedTextColor()
     changeTextColor(COLOR_SELECTED);
 }
 
+void NoteRichTextEditor::textInsertToDoCheckBox()
+{
+    QString checkboxUncheckedImgFileName(":/format_text_elements/checkbox_unchecked.gif");
+    QFile checkboxUncheckedImgFile(checkboxUncheckedImgFileName);
+    if (!checkboxUncheckedImgFile.exists()) {
+        QMessageBox::warning(this, tr("Error Opening File"),
+                             tr("Could not open '%1'").arg(checkboxUncheckedImgFileName));
+        return;
+    }
+
+    QTextCursor cursor = getTextEdit()->textCursor();
+    cursor.beginEditBlock();
+
+    QImage checkboxUncheckedImg(checkboxUncheckedImgFileName);
+    QTextCharFormat toDoCheckboxUncheckedCharFormat;
+    toDoCheckboxUncheckedCharFormat.setObjectType(CHECKBOX_TEXT_FORMAT_UNCHECKED);
+    toDoCheckboxUncheckedCharFormat.setProperty(CHECKBOX_TEXT_DATA_UNCHECKED, checkboxUncheckedImg);
+
+    cursor.insertText(QString(QChar::ObjectReplacementCharacter), toDoCheckboxUncheckedCharFormat);
+    cursor.insertText(" ", QTextCharFormat());
+
+    cursor.endEditBlock();
+    getTextEdit()->setTextCursor(cursor);
+}
+
 void NoteRichTextEditor::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
 {
-    QTextEdit * noteTextEdit = getTextEdit();
+    TextEditWithCheckboxes * noteTextEdit = getTextEdit();
     QTextCursor cursor = noteTextEdit->textCursor();
+    cursor.beginEditBlock();
 
     if (!cursor.hasSelection()) {
         cursor.select(QTextCursor::WordUnderCursor);
     }
 
     cursor.mergeCharFormat(format);
+    cursor.clearSelection();
+    cursor.endEditBlock();
     noteTextEdit->mergeCurrentCharFormat(format);
 }
 
@@ -166,6 +285,8 @@ void NoteRichTextEditor::setAlignButtonsCheckedState(const NoteRichTextEditor::E
 void NoteRichTextEditor::changeIndentation(const bool increase)
 {
     QTextCursor cursor = getTextEdit()->textCursor();
+    cursor.beginEditBlock();
+
     if (cursor.currentList())
     {
         QTextListFormat listFormat = cursor.currentList()->format();
@@ -177,9 +298,7 @@ void NoteRichTextEditor::changeIndentation(const bool increase)
             listFormat.setIndent(std::max(listFormat.indent() - 1, 0));
         }
 
-        cursor.beginEditBlock();
         cursor.createList(listFormat);
-        cursor.endEditBlock();
     }
     else
     {
@@ -218,9 +337,11 @@ void NoteRichTextEditor::changeIndentation(const bool increase)
             c.setBlockFormat(bf);
         }
     }
+
+    cursor.endEditBlock();
 }
 
-QTextEdit * NoteRichTextEditor::getTextEdit()
+TextEditWithCheckboxes * NoteRichTextEditor::getTextEdit()
 {
     return m_pUI->noteTextEdit;
 }
@@ -240,9 +361,11 @@ void NoteRichTextEditor::changeTextColor(const NoteRichTextEditor::EChangeColor 
     case COLOR_ALL:
     {
         QTextCursor cursor = getTextEdit()->textCursor();
+        cursor.beginEditBlock();
         cursor.select(QTextCursor::Document);
         cursor.mergeCharFormat(format);
         getTextEdit()->mergeCurrentCharFormat(format);
+        cursor.endEditBlock();
         break;
     }
     case COLOR_SELECTED:
@@ -260,8 +383,8 @@ void NoteRichTextEditor::changeTextColor(const NoteRichTextEditor::EChangeColor 
 void NoteRichTextEditor::insertList(const QTextListFormat::Style style)
 {
     QTextCursor cursor = getTextEdit()->textCursor();
-
     cursor.beginEditBlock();
+
     QTextBlockFormat blockFormat = cursor.blockFormat();
 
     QTextListFormat listFormat;
@@ -278,6 +401,15 @@ void NoteRichTextEditor::insertList(const QTextListFormat::Style style)
     listFormat.setStyle(style);
 
     cursor.createList(listFormat);
-
     cursor.endEditBlock();
+}
+
+void NoteRichTextEditor::setupToDoCheckboxTextObjects()
+{
+    m_pToDoCheckboxTextObjectInterfaceUnchecked = new ToDoCheckboxTextObjectUnchecked;
+    m_pToDoCheckboxTextObjectInterfaceChecked   = new ToDoCheckboxTextObjectChecked;
+
+    QAbstractTextDocumentLayout * pLayout = getTextEdit()->document()->documentLayout();
+    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_UNCHECKED, m_pToDoCheckboxTextObjectInterfaceUnchecked);
+    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_CHECKED, m_pToDoCheckboxTextObjectInterfaceChecked);
 }

@@ -1,6 +1,6 @@
 #include "MainWindow.h"
 #include "NoteRichTextEditor.h"
-#include "ui_mainwindow.h"
+#include "ui_MainWindow.h"
 #include <cmath>
 #include <QPushButton>
 #include <QtDebug>
@@ -119,10 +119,33 @@ void MainWindow::ResizeHelperDockWidget(QDockWidget * pDock, const int dockHeigh
 
 void MainWindow::ConnectActionsToEditorSlots()
 {
+    // Font
     QObject::connect(m_pUI->ActionFontBold, SIGNAL(triggered()), this, SLOT(textBold()));
     QObject::connect(m_pUI->ActionFontItalic, SIGNAL(triggered()), this, SLOT(textItalic()));
     QObject::connect(m_pUI->ActionFontUnderlined, SIGNAL(triggered()), this, SLOT(textUnderline()));
     QObject::connect(m_pUI->ActionFontStrikeout, SIGNAL(triggered()), this, SLOT(textStrikeThrough()));
+
+    NoteRichTextEditor * pNotesEditor = m_pUI->notesEditorWidget;
+
+    QObject::connect(m_pUI->ActionAlignLeft, SIGNAL(triggered()), pNotesEditor,
+                     SLOT(textAlignLeft()));
+    QObject::connect(m_pUI->ActionAlignCenter, SIGNAL(triggered()), pNotesEditor,
+                     SLOT(textAlignCenter()));
+    QObject::connect(m_pUI->ActionAlignRight, SIGNAL(triggered()), pNotesEditor,
+                     SLOT(textAlignRight()));
+
+    QObject::connect(m_pUI->ActionInsertHorizontalLine, SIGNAL(triggered()),
+                     pNotesEditor, SLOT(textAddHorizontalLine()));
+
+    QObject::connect(m_pUI->ActionIncreaseIndentation, SIGNAL(triggered()),
+                     pNotesEditor, SLOT(textIncreaseIndentation()));
+    QObject::connect(m_pUI->ActionDecreaseIndentation, SIGNAL(triggered()),
+                     pNotesEditor, SLOT(textDecreaseIndentation()));
+
+    QObject::connect(m_pUI->ActionInsertBulletedList, SIGNAL(triggered()),
+                     pNotesEditor, SLOT(textInsertUnorderedList()));
+    QObject::connect(m_pUI->ActionInsertNumberedList, SIGNAL(triggered()),
+                     pNotesEditor, SLOT(textInsertOrderedList()));
 }
 
 void MainWindow::textBold()
@@ -178,11 +201,9 @@ void MainWindow::textStrikeThrough()
             pTextStrikeThroughButton->setChecked(false);
         }
         else {
-            pTextStrikeThroughButton->setChecked(false);
+            pTextStrikeThroughButton->setChecked(true);
         }
 
         m_pUI->notesEditorWidget->textStrikeThrough();
     }
 }
-
-
