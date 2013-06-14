@@ -1,6 +1,7 @@
 #include "TextEditWithCheckboxes.h"
 #include "ToDoCheckboxTextObject.h"
 #include "NoteRichTextEditor.h"
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QTextCursor>
 #include <QTextBlock>
@@ -57,7 +58,7 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
             int numElements = pList->count();
             QTextBlock block = cursor.block();
             if ( (pList->itemNumber(block) == (numElements - 1)) &&
-                 QString(block.text().trimmed().toAscii()).isEmpty() )
+                 QString(block.text().trimmed()).isEmpty() )
             {
                 QTextBlockFormat format;
                 cursor.setBlockFormat(format);
@@ -82,14 +83,14 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
             int numItems = pList->count();
             if ( (pList->format().style() == QTextListFormat::ListDecimal) &&
                  (itemNumber != numItems) &&
-                 (QString(block.text().trimmed().toAscii()).isEmpty()) )
+                 (QString(block.text().trimmed()).isEmpty()) )
             {
                 // ordered list + not the last item + empty item, specialized logic is required:
                 // 1. Check whether the last item is empty, if not, add one.
                 // It is a workaround for problem with inserting new list when the last item
                 // is lost all the time
                 int nLinesToLastItem = 0;
-                if (!QString(pList->itemText(pList->item(numItems - 1)).trimmed().toAscii()).isEmpty())
+                if (!QString(pList->itemText(pList->item(numItems - 1)).trimmed()).isEmpty())
                 {
                     QTextCursor cursorLastItemSupplier(cursor);
                     // FIXME: the position gets wrong if the list contains nested list
@@ -139,6 +140,7 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
                     }
                     else {
                         // FIXME: something is wrong here, the added text seems empty
+                        qDebug() << "Text at line " << i << ": " << cursor.block().text();
                         pNewList->add(cursor.block());
                     }
                 }
