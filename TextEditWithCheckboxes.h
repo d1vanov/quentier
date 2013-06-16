@@ -16,6 +16,7 @@ public:
 public:
     bool canInsertFromMimeData(const QMimeData * source) const;
     void insertFromMimeData(const QMimeData * source);
+    void changeIndentation(const bool increase);
 
 protected:
     virtual void keyPressEvent(QKeyEvent * pEvent) override;

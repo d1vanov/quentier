@@ -189,12 +189,12 @@ void NoteRichTextEditor::textAddHorizontalLine()
 
 void NoteRichTextEditor::textIncreaseIndentation()
 {
-    changeIndentation(true);
+    getTextEdit()->changeIndentation(true);
 }
 
 void NoteRichTextEditor::textDecreaseIndentation()
 {
-    changeIndentation(false);
+    getTextEdit()->changeIndentation(false);
 }
 
 void NoteRichTextEditor::textInsertUnorderedList()
@@ -280,65 +280,6 @@ void NoteRichTextEditor::setAlignButtonsCheckedState(const NoteRichTextEditor::E
         qDebug() << "Warning! Invalid action passed to setAlignButtonsCheckedState!";
         break;
     }
-}
-
-void NoteRichTextEditor::changeIndentation(const bool increase)
-{
-    QTextCursor cursor = getTextEdit()->textCursor();
-    cursor.beginEditBlock();
-
-    if (cursor.currentList())
-    {
-        QTextListFormat listFormat = cursor.currentList()->format();
-
-        if (increase) {
-            listFormat.setIndent(listFormat.indent() + 1);
-        }
-        else {
-            listFormat.setIndent(std::max(listFormat.indent() - 1, 0));
-        }
-
-        cursor.createList(listFormat);
-    }
-    else
-    {
-        int start = cursor.anchor();
-        int end = cursor.position();
-        if (start > end)
-        {
-            start = cursor.position();
-            end = cursor.anchor();
-        }
-
-        QList<QTextBlock> blocks;
-        QTextBlock b = getTextEdit()->document()->begin();
-        while (b.isValid())
-        {
-            b = b.next();
-            if ( ((b.position() >= start) && (b.position() + b.length() <= end) ) ||
-                 b.contains(start) || b.contains(end) )
-            {
-                blocks << b;
-            }
-        }
-
-        foreach(QTextBlock b, blocks)
-        {
-            QTextCursor c(b);
-            QTextBlockFormat bf = c.blockFormat();
-
-            if (increase) {
-                bf.setIndent(bf.indent() + 1);
-            }
-            else {
-                bf.setIndent(std::max(bf.indent() - 1, 0));
-            }
-
-            c.setBlockFormat(bf);
-        }
-    }
-
-    cursor.endEditBlock();
 }
 
 TextEditWithCheckboxes * NoteRichTextEditor::getTextEdit()

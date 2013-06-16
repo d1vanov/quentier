@@ -66,7 +66,6 @@ private:
     enum ESelectedAlignment { ALIGNED_LEFT, ALIGNED_CENTER, ALIGNED_RIGHT };
     void setAlignButtonsCheckedState(const ESelectedAlignment alignment);
 
-    void changeIndentation(const bool increase);
     inline TextEditWithCheckboxes * getTextEdit();
 
     enum EChangeColor { COLOR_ALL, COLOR_SELECTED };

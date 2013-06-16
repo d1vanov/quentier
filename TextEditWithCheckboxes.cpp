@@ -32,6 +32,65 @@ void TextEditWithCheckboxes::insertFromMimeData(const QMimeData *source)
     }
 }
 
+void TextEditWithCheckboxes::changeIndentation(const bool increase)
+{
+    QTextCursor cursor = QTextEdit::textCursor();
+    cursor.beginEditBlock();
+
+    if (cursor.currentList())
+    {
+        QTextListFormat listFormat = cursor.currentList()->format();
+
+        if (increase) {
+            listFormat.setIndent(listFormat.indent() + 1);
+        }
+        else {
+            listFormat.setIndent(std::max(listFormat.indent() - 1, 0));
+        }
+
+        cursor.createList(listFormat);
+    }
+    else
+    {
+        int start = cursor.anchor();
+        int end = cursor.position();
+        if (start > end)
+        {
+            start = cursor.position();
+            end = cursor.anchor();
+        }
+
+        QList<QTextBlock> blocksList;
+        QTextBlock block = QTextEdit::document()->begin();
+        while (block.isValid())
+        {
+            block = block.next();
+            if ( ((block.position() >= start) && (block.position() + block.length() <= end) ) ||
+                 block.contains(start) || block.contains(end) )
+            {
+                blocksList << block;
+            }
+        }
+
+        foreach(QTextBlock block, blocksList)
+        {
+            QTextCursor cursor(block);
+            QTextBlockFormat blockFormat = cursor.blockFormat();
+
+            if (increase) {
+                blockFormat.setIndent(blockFormat.indent() + 1);
+            }
+            else {
+                blockFormat.setIndent(std::max(blockFormat.indent() - 1, 0));
+            }
+
+            cursor.setBlockFormat(blockFormat);
+        }
+    }
+
+    cursor.endEditBlock();
+}
+
 void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
 {
     if ((pEvent->key() == Qt::Key_Enter) || (pEvent->key() == Qt::Key_Return))
@@ -146,6 +205,14 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
         }
 
         cursor.endEditBlock();
+    }
+    else if (pEvent->key() == Qt::Key_Tab)
+    {
+        QTextCursor cursor = QTextEdit::textCursor();
+        if (cursor.selection().isEmpty() && cursor.atBlockStart()) {
+            changeIndentation(true);
+            return;
+        }
     }
 
     QTextEdit::keyPressEvent(pEvent);
