@@ -167,7 +167,7 @@ void NoteRichTextEditor::textAddHorizontalLine()
     {
         cursor.movePosition(QTextCursor::Up);
         cursor.movePosition(QTextCursor::Up);
-        QString line = cursor.block().text().trimmed().toAscii();
+        QString line = cursor.block().text().trimmed();
         if (line.isEmpty()) {
             cursor.movePosition(QTextCursor::Down);
             cursor.deletePreviousChar();

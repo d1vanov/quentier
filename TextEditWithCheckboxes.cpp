@@ -1,6 +1,7 @@
 #include "TextEditWithCheckboxes.h"
 #include "ToDoCheckboxTextObject.h"
 #include "NoteRichTextEditor.h"
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QTextCursor>
 #include <QTextBlock>
@@ -57,7 +58,7 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
             int numElements = pList->count();
             QTextBlock block = cursor.block();
             if ( (pList->itemNumber(block) == (numElements - 1)) &&
-                 QString(block.text().trimmed().toAscii()).isEmpty() )
+                 QString(block.text().trimmed()).isEmpty() )
             {
                 QTextBlockFormat format;
                 cursor.setBlockFormat(format);
@@ -82,28 +83,23 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
             int numItems = pList->count();
             if ( (pList->format().style() == QTextListFormat::ListDecimal) &&
                  (itemNumber != numItems) &&
-                 (QString(block.text().trimmed().toAscii()).isEmpty()) )
+                 (QString(block.text().trimmed()).isEmpty()) )
             {
                 // ordered list + not the last item + empty item, specialized logic is required:
-                // 1. Check whether the last item is empty, if not, add one.
-                // It is a workaround for problem with inserting new list when the last item
-                // is lost all the time
+                // 1. Count the number of lines to process further
                 int nLinesToLastItem = 0;
-                if (!QString(pList->itemText(pList->item(numItems - 1)).trimmed().toAscii()).isEmpty())
+                if (!QString(pList->itemText(pList->item(numItems - 1)).trimmed()).isEmpty())
                 {
-                    QTextCursor cursorLastItemSupplier(cursor);
-                    // FIXME: the position gets wrong if the list contains nested list
-                    while(!cursorLastItemSupplier.atEnd()) {
+                    QTextCursor cursorCurrentPosition(cursor);
+                    while(!cursorCurrentPosition.atEnd()) {
                         ++nLinesToLastItem;
-                        cursorLastItemSupplier.movePosition(QTextCursor::Down);
-                        QTextBlock regularBlock = cursorLastItemSupplier.block();
+                        cursorCurrentPosition.movePosition(QTextCursor::Down);
+                        QTextBlock regularBlock = cursorCurrentPosition.block();
                         if (pList->itemNumber(regularBlock) == numItems) {
-                            cursorLastItemSupplier.movePosition(QTextCursor::Down);
+                            cursorCurrentPosition.movePosition(QTextCursor::Down);
                             break;
                         }
                     }
-                    cursorLastItemSupplier.insertBlock();
-                    pList->add(cursorLastItemSupplier.block());
                 }
                 // 2. Remove all the items including the explicitly removed one and all the following ones
                 // NOTE: the text is NOT deleted here, only the ordered list items
@@ -115,7 +111,7 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
                 format.setIndent(std::max(format.indent() - 1, 0));
                 cursor.setBlockFormat(format);
                 QTextEdit::setTextCursor(cursor);
-                // 5. Fix indentation of the remaining contents of the list
+                // 4. Fix indentation of the remaining contents of the list
                 QTextCursor cursorIndentFixer(cursor);
                 for(int i = 0; i < nLinesToLastItem; ++i) {
                     cursorIndentFixer.movePosition(QTextCursor::Down);
@@ -123,7 +119,7 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
                     format.setIndent(format.indent() - 1);
                     cursorIndentFixer.mergeBlockFormat(format);
                 }
-                // 6. Create a new list and fill it with saved items
+                // 5. Create a new list and fill it with saved items
                 cursor.movePosition(QTextCursor::Down);
                 QTextList * pNewList = cursor.createList(QTextListFormat::ListDecimal);
                 Q_CHECK_PTR(pNewList);
@@ -138,12 +134,11 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
                         continue;
                     }
                     else {
-                        // FIXME: something is wrong here, the added text seems empty
                         pNewList->add(cursor.block());
                     }
                 }
 
-                // 7. Seek for empty items in the end of the list, some can be empty
+                // 6. Seek for empty items in the end of the list, some can be empty
                 if (pNewList != nullptr)
                 {
                     size_t nItems = pNewList->count();
@@ -154,13 +149,6 @@ void TextEditWithCheckboxes::keyPressEvent(QKeyEvent * pEvent)
                         }
                     }
                 }
-                // 7. Check the last item of the new list - sometimes it becomes empty
-//                if (pNewList != nullptr) {
-//                    QString lastItemString(pNewList->item(pNewList->count() - 1).text().trimmed().toAscii());
-//                    if (lastItemString.isEmpty()) {
-//                        pNewList->removeItem(pNewList->itemNumber(pNewList->item(pNewList->count() - 1)));
-//                    }
-//                }
             }
             else {
                 QTextEdit::keyPressEvent(pEvent);
