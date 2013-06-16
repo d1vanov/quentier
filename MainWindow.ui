@@ -779,7 +779,7 @@
     <string>Вернуть</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Y</string>
+    <string>Ctrl+Shift+Z</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::WidgetShortcut</enum>

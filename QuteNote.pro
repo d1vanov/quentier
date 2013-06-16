@@ -32,10 +32,17 @@ FORMS    += \
 RESOURCES += \
     resource/icons.qrc
 
-linux-g++-64 {
+linux-g++-64  {
+QMAKE_CXXFLAGS += -isystem/usr/incude/qt4/QtCore/ -isystem/usr/include/qt4/QtGui/
+}
 
-QMAKE_CXXFLAGS += -std=c++11 -isystem/usr/incude/qt4/QtCore/ -isystem/usr/include/qt4/QtGui/
+win32-g++ {
+QMAKE_CXXFLAGS += -isystem${QTDIR}/include/QtCore/ -isystem${QTDIR}/include/QtGui/ \
+                  -isystem${QTDIR}/include/QtWidgets/
+}
 
+linux-g++-64 | win32-g++ {
+QMAKE_CXXFLAGS += -std=c++11
 CONFIG(debug, debug|release) {
     QMAKE_CXXFLAGS += -isystem -W -Wall -Wextra -Werror -Wwrite-strings -Winit-self \
                       -Wcast-align -Wcast-qual -Wold-style-cast -Wpointer-arith \
@@ -43,7 +50,6 @@ CONFIG(debug, debug|release) {
                       -Wno-missing-declarations -Woverloaded-virtual -Wnon-virtual-dtor \
                       -Wctor-dtor-privacy -Wno-long-long
 }
-
 }
 
 OTHER_FILES += \
