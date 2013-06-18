@@ -69,7 +69,7 @@
            <enum>Qt::Vertical</enum>
           </property>
           <widget class="QTableWidget" name="notesTable"/>
-          <widget class="NoteRichTextEditor" name="notesEditorWidget" native="true">
+          <widget class="NoteEditorWidget" name="notesEditorWidget" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -1497,9 +1497,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>NoteRichTextEditor</class>
+   <class>NoteEditorWidget</class>
    <extends>QWidget</extends>
-   <header>NoteRichTextEditor.h</header>
+   <header>NoteEditorWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

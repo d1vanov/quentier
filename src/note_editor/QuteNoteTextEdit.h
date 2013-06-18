@@ -1,17 +1,17 @@
-#ifndef TEXT_EDIT_WITH_CHECKBOXES_H
-#define TEXT_EDIT_WITH_CHECKBOXES_H
+#ifndef __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H
+#define __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H
 
 #include <QTextEdit>
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QImage)
 
-class TextEditWithCheckboxes: public QTextEdit
+class QuteNoteTextEdit: public QTextEdit
 {
     Q_OBJECT
 public:
-    explicit TextEditWithCheckboxes(QWidget * parent = nullptr);
-    virtual ~TextEditWithCheckboxes() override {}
+    explicit QuteNoteTextEdit(QWidget * parent = nullptr);
+    virtual ~QuteNoteTextEdit() override {}
 
 public:
     bool canInsertFromMimeData(const QMimeData * source) const;
@@ -30,4 +30,4 @@ private:
     mutable size_t m_droppedImageCounter;
 };
 
-#endif // TEXT_EDIT_WITH_CHECKBOXES_H
+#endif // __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H

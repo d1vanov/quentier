@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
 #define __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
 
-#include "TextEditWithCheckboxes.h"
+#include "QuteNoteTextEdit.h"
 #include <QWidget>
 #include <QTextListFormat>
 
@@ -9,16 +9,15 @@ QT_FORWARD_DECLARE_CLASS(QTextEdit)
 QT_FORWARD_DECLARE_CLASS(QPushButton)
 
 namespace Ui {
-class NoteRichTextEditor;
+class NoteEditorWidget;
 }
 
-class NoteRichTextEditor : public QWidget
+class NoteEditorWidget : public QWidget
 {
     Q_OBJECT
-    
 public:
-    explicit NoteRichTextEditor(QWidget * parent = 0);
-    ~NoteRichTextEditor();
+    explicit NoteEditorWidget(QWidget * parent = 0);
+    ~NoteEditorWidget();
     
     QPushButton * getTextBoldButton();
     QPushButton * getTextItalicButton();
@@ -66,7 +65,7 @@ private:
     enum ESelectedAlignment { ALIGNED_LEFT, ALIGNED_CENTER, ALIGNED_RIGHT };
     void setAlignButtonsCheckedState(const ESelectedAlignment alignment);
 
-    inline TextEditWithCheckboxes * getTextEdit();
+    inline QuteNoteTextEdit * getTextEdit();
 
     enum EChangeColor { COLOR_ALL, COLOR_SELECTED };
     void changeTextColor(const EChangeColor changeColorOption);
@@ -76,7 +75,7 @@ private:
     void setupToDoCheckboxTextObjects();
 
 private:
-    Ui::NoteRichTextEditor * m_pUI;
+    Ui::NoteEditorWidget * m_pUI;
     QObject * m_pToDoCheckboxTextObjectInterfaceUnchecked;
     QObject * m_pToDoCheckboxTextObjectInterfaceChecked;
 };
