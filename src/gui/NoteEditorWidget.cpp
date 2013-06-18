@@ -11,11 +11,17 @@
 NoteEditorWidget::NoteEditorWidget(QWidget *parent) :
     QWidget(parent),
     m_pUI(new Ui::NoteEditorWidget),
-    m_pToDoCheckboxTextObjectInterfaceUnchecked(nullptr),
-    m_pToDoCheckboxTextObjectInterfaceChecked(nullptr)
+    m_pToDoChkboxTxtObjUnchecked(nullptr),
+    m_pToDoChkboxTxtObjChecked(nullptr)
 {
     m_pUI->setupUi(this);
-    setupToDoCheckboxTextObjects();
+
+    m_pToDoChkboxTxtObjUnchecked = new ToDoCheckboxTextObjectUnchecked;
+    m_pToDoChkboxTxtObjChecked   = new ToDoCheckboxTextObjectChecked;
+
+    QAbstractTextDocumentLayout * pLayout = getTextEdit()->document()->documentLayout();
+    pLayout->registerHandler(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_UNCHECKED, m_pToDoChkboxTxtObjUnchecked);
+    pLayout->registerHandler(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_CHECKED, m_pToDoChkboxTxtObjChecked);
 
     QObject::connect(m_pUI->buttonFormatTextBold, SIGNAL(clicked()), this, SLOT(textBold()));
     QObject::connect(m_pUI->buttonFormatTextItalic, SIGNAL(clicked()), this, SLOT(textItalic()));
@@ -41,14 +47,14 @@ NoteEditorWidget::~NoteEditorWidget()
         m_pUI = nullptr;
     }
 
-    if (!m_pToDoCheckboxTextObjectInterfaceUnchecked) {
-        delete m_pToDoCheckboxTextObjectInterfaceUnchecked;
-        m_pToDoCheckboxTextObjectInterfaceUnchecked = nullptr;
+    if (!m_pToDoChkboxTxtObjUnchecked) {
+        delete m_pToDoChkboxTxtObjUnchecked;
+        m_pToDoChkboxTxtObjUnchecked = nullptr;
     }
 
-    if (!m_pToDoCheckboxTextObjectInterfaceChecked) {
-        delete m_pToDoCheckboxTextObjectInterfaceChecked;
-        m_pToDoCheckboxTextObjectInterfaceChecked = nullptr;
+    if (!m_pToDoChkboxTxtObjChecked) {
+        delete m_pToDoChkboxTxtObjChecked;
+        m_pToDoChkboxTxtObjChecked = nullptr;
     }
 }
 
@@ -86,28 +92,28 @@ void NoteEditorWidget::textBold()
 {
     QTextCharFormat format;
     format.setFontWeight(m_pUI->buttonFormatTextBold->isChecked() ? QFont::Bold : QFont::Normal);
-    mergeFormatOnWordOrSelection(format);
+    getTextEdit()->mergeFormatOnWordOrSelection(format);
 }
 
 void NoteEditorWidget::textItalic()
 {
     QTextCharFormat format;
     format.setFontItalic(m_pUI->buttonFormatTextItalic->isChecked());
-    mergeFormatOnWordOrSelection(format);
+    getTextEdit()->mergeFormatOnWordOrSelection(format);
 }
 
 void NoteEditorWidget::textUnderline()
 {
     QTextCharFormat format;
     format.setFontUnderline(m_pUI->buttonFormatTextUnderlined->isChecked());
-    mergeFormatOnWordOrSelection(format);
+    getTextEdit()->mergeFormatOnWordOrSelection(format);
 }
 
 void NoteEditorWidget::textStrikeThrough()
 {
     QTextCharFormat format;
     format.setFontStrikeOut(m_pUI->buttonFormatTextStrikethrough->isChecked());
-    mergeFormatOnWordOrSelection(format);
+    getTextEdit()->mergeFormatOnWordOrSelection(format);
 }
 
 void NoteEditorWidget::textAlignLeft()
@@ -211,12 +217,12 @@ void NoteEditorWidget::textInsertOrderedList()
 
 void NoteEditorWidget::chooseTextColor()
 {
-    changeTextColor(COLOR_ALL);
+    changeTextColor(CHANGE_COLOR_ALL);
 }
 
 void NoteEditorWidget::chooseSelectedTextColor()
 {
-    changeTextColor(COLOR_SELECTED);
+    changeTextColor(CHANGE_COLOR_SELECTED);
 }
 
 void NoteEditorWidget::textInsertToDoCheckBox()
@@ -234,30 +240,14 @@ void NoteEditorWidget::textInsertToDoCheckBox()
 
     QImage checkboxUncheckedImg(checkboxUncheckedImgFileName);
     QTextCharFormat toDoCheckboxUncheckedCharFormat;
-    toDoCheckboxUncheckedCharFormat.setObjectType(CHECKBOX_TEXT_FORMAT_UNCHECKED);
-    toDoCheckboxUncheckedCharFormat.setProperty(CHECKBOX_TEXT_DATA_UNCHECKED, checkboxUncheckedImg);
+    toDoCheckboxUncheckedCharFormat.setObjectType(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_UNCHECKED);
+    toDoCheckboxUncheckedCharFormat.setProperty(QuteNoteTextEdit::TODO_CHKBOX_TXT_DATA_UNCHECKED, checkboxUncheckedImg);
 
     cursor.insertText(QString(QChar::ObjectReplacementCharacter), toDoCheckboxUncheckedCharFormat);
     cursor.insertText(" ", QTextCharFormat());
 
     cursor.endEditBlock();
     getTextEdit()->setTextCursor(cursor);
-}
-
-void NoteEditorWidget::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
-{
-    QuteNoteTextEdit * noteTextEdit = getTextEdit();
-    QTextCursor cursor = noteTextEdit->textCursor();
-    cursor.beginEditBlock();
-
-    if (!cursor.hasSelection()) {
-        cursor.select(QTextCursor::WordUnderCursor);
-    }
-
-    cursor.mergeCharFormat(format);
-    cursor.clearSelection();
-    cursor.endEditBlock();
-    noteTextEdit->mergeCurrentCharFormat(format);
 }
 
 void NoteEditorWidget::setAlignButtonsCheckedState(const NoteEditorWidget::ESelectedAlignment alignment)
@@ -277,7 +267,7 @@ void NoteEditorWidget::setAlignButtonsCheckedState(const NoteEditorWidget::ESele
         m_pUI->buttonFormatTextAlignCenter->setChecked(false);
         break;
     default:
-        qDebug() << "Warning! Invalid action passed to setAlignButtonsCheckedState!";
+        qWarning() << "Invalid action passed to setAlignButtonsCheckedState!";
         break;
     }
 }
@@ -291,6 +281,7 @@ void NoteEditorWidget::changeTextColor(const NoteEditorWidget::EChangeColor chan
 {
     QColor col = QColorDialog::getColor(getTextEdit()->textColor(), this);
     if (!col.isValid()) {
+        qWarning() << "Invalid color";
         return;
     }
 
@@ -299,7 +290,7 @@ void NoteEditorWidget::changeTextColor(const NoteEditorWidget::EChangeColor chan
 
     switch(changeColorOption)
     {
-    case COLOR_ALL:
+    case CHANGE_COLOR_ALL:
     {
         QTextCursor cursor = getTextEdit()->textCursor();
         cursor.beginEditBlock();
@@ -309,9 +300,9 @@ void NoteEditorWidget::changeTextColor(const NoteEditorWidget::EChangeColor chan
         cursor.endEditBlock();
         break;
     }
-    case COLOR_SELECTED:
+    case CHANGE_COLOR_SELECTED:
     {
-        mergeFormatOnWordOrSelection(format);
+        getTextEdit()->mergeFormatOnWordOrSelection(format);
         break;
     }
     default:
@@ -343,14 +334,4 @@ void NoteEditorWidget::insertList(const QTextListFormat::Style style)
 
     cursor.createList(listFormat);
     cursor.endEditBlock();
-}
-
-void NoteEditorWidget::setupToDoCheckboxTextObjects()
-{
-    m_pToDoCheckboxTextObjectInterfaceUnchecked = new ToDoCheckboxTextObjectUnchecked;
-    m_pToDoCheckboxTextObjectInterfaceChecked   = new ToDoCheckboxTextObjectChecked;
-
-    QAbstractTextDocumentLayout * pLayout = getTextEdit()->document()->documentLayout();
-    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_UNCHECKED, m_pToDoCheckboxTextObjectInterfaceUnchecked);
-    pLayout->registerHandler(CHECKBOX_TEXT_FORMAT_CHECKED, m_pToDoCheckboxTextObjectInterfaceChecked);
 }

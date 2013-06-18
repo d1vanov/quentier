@@ -222,7 +222,7 @@ void QuteNoteTextEdit::mousePressEvent(QMouseEvent * pEvent)
 {
     QTextCursor cursor = cursorForPosition(pEvent->pos());
     QTextCharFormat format = cursor.charFormat();
-    if (format.objectType() == NoteEditorWidget::CHECKBOX_TEXT_FORMAT_UNCHECKED)
+    if (format.objectType() == TODO_CHKBOX_TXT_FMT_UNCHECKED)
     {
         QString checkboxCheckedImgFileName(":/format_text_elements/checkbox_checked.gif");
         QFile checkboxCheckedImgFile(checkboxCheckedImgFileName);
@@ -232,8 +232,8 @@ void QuteNoteTextEdit::mousePressEvent(QMouseEvent * pEvent)
         }
 
         QImage checkboxCheckedImg(checkboxCheckedImgFileName);
-        format.setObjectType(NoteEditorWidget::CHECKBOX_TEXT_FORMAT_CHECKED);
-        format.setProperty(NoteEditorWidget::CHECKBOX_TEXT_DATA_CHECKED, checkboxCheckedImg);
+        format.setObjectType(TODO_CHKBOX_TXT_FMT_CHECKED);
+        format.setProperty(TODO_CHKBOX_TXT_DATA_CHECKED, checkboxCheckedImg);
 
         if (!cursor.hasSelection()) {
             cursor.select(QTextCursor::WordUnderCursor);
@@ -242,9 +242,9 @@ void QuteNoteTextEdit::mousePressEvent(QMouseEvent * pEvent)
         cursor.mergeCharFormat(format);
         QTextEdit::mergeCurrentCharFormat(format);
     }
-    else if (format.objectType() == NoteEditorWidget::CHECKBOX_TEXT_FORMAT_CHECKED)
+    else if (format.objectType() == TODO_CHKBOX_TXT_FMT_CHECKED)
     {
-        format.setObjectType(NoteEditorWidget::CHECKBOX_TEXT_FORMAT_UNCHECKED);
+        format.setObjectType(TODO_CHKBOX_TXT_FMT_UNCHECKED);
 
         if (!cursor.hasSelection()) {
             cursor.select(QTextCursor::WordUnderCursor);
@@ -262,8 +262,8 @@ void QuteNoteTextEdit::mouseMoveEvent(QMouseEvent * pEvent)
 {
     QTextCursor cursor = cursorForPosition(pEvent->pos());
     QTextCharFormat format = cursor.charFormat();
-    if ( (format.objectType() == NoteEditorWidget::CHECKBOX_TEXT_FORMAT_CHECKED) ||
-         (format.objectType() == NoteEditorWidget::CHECKBOX_TEXT_FORMAT_UNCHECKED) )
+    if ( (format.objectType() == TODO_CHKBOX_TXT_FMT_CHECKED) ||
+         (format.objectType() == TODO_CHKBOX_TXT_FMT_UNCHECKED) )
     {
         QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
     }
@@ -281,4 +281,19 @@ void QuteNoteTextEdit::dropImage(const QUrl & url, const QImage & image)
         QTextEdit::document()->addResource(QTextDocument::ImageResource, url, image);
         QTextEdit::textCursor().insertImage(url.toString());
     }
+}
+
+void QuteNoteTextEdit::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
+{
+    QTextCursor cursor = QTextEdit::textCursor();
+    cursor.beginEditBlock();
+
+    if (!cursor.hasSelection()) {
+        cursor.select(QTextCursor::WordUnderCursor);
+    }
+    cursor.mergeCharFormat(format);
+    cursor.clearSelection();
+    QTextEdit::mergeCurrentCharFormat(format);
+
+    cursor.endEditBlock();
 }

@@ -14,9 +14,21 @@ public:
     virtual ~QuteNoteTextEdit() override {}
 
 public:
+    enum ECheckboxTextFormat {
+        TODO_CHKBOX_TXT_FMT_UNCHECKED = QTextFormat::UserObject + 1,
+        TODO_CHKBOX_TXT_FMT_CHECKED   = QTextFormat::UserObject + 2
+    };
+
+    enum ECheckboxTextProperties {
+        TODO_CHKBOX_TXT_DATA_UNCHECKED = 1,
+        TODO_CHKBOX_TXT_DATA_CHECKED   = 2
+    };
+
+public:
     bool canInsertFromMimeData(const QMimeData * source) const;
     void insertFromMimeData(const QMimeData * source);
     void changeIndentation(const bool increase);
+    void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
 
 protected:
     virtual void keyPressEvent(QKeyEvent * pEvent) override;

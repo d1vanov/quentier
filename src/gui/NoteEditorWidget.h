@@ -26,18 +26,6 @@ public:
     QPushButton * getInsertUnorderedListButton();
     QPushButton * getInsertOrderedListButton();
 
-    enum ECheckboxTextFormat
-    {
-        CHECKBOX_TEXT_FORMAT_UNCHECKED = QTextFormat::UserObject + 1,
-        CHECKBOX_TEXT_FORMAT_CHECKED = QTextFormat::UserObject + 2
-    };
-
-    enum ECheckboxTextProperties
-    {
-        CHECKBOX_TEXT_DATA_UNCHECKED = 1,
-        CHECKBOX_TEXT_DATA_CHECKED = 2
-    };
-
 public slots:
     // format text slots
     void textBold();
@@ -60,24 +48,20 @@ public slots:
     void textInsertToDoCheckBox();
 
 private:
-    void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
-
     enum ESelectedAlignment { ALIGNED_LEFT, ALIGNED_CENTER, ALIGNED_RIGHT };
     void setAlignButtonsCheckedState(const ESelectedAlignment alignment);
 
     inline QuteNoteTextEdit * getTextEdit();
 
-    enum EChangeColor { COLOR_ALL, COLOR_SELECTED };
+    enum EChangeColor { CHANGE_COLOR_ALL, CHANGE_COLOR_SELECTED };
     void changeTextColor(const EChangeColor changeColorOption);
 
     void insertList(const QTextListFormat::Style style);
 
-    void setupToDoCheckboxTextObjects();
-
 private:
     Ui::NoteEditorWidget * m_pUI;
-    QObject * m_pToDoCheckboxTextObjectInterfaceUnchecked;
-    QObject * m_pToDoCheckboxTextObjectInterfaceChecked;
+    QObject * m_pToDoChkboxTxtObjUnchecked;
+    QObject * m_pToDoChkboxTxtObjChecked;
 };
 
 #endif // __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
