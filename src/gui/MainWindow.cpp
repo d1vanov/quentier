@@ -1,5 +1,5 @@
 #include "MainWindow.h"
-#include "NoteRichTextEditor.h"
+#include "NoteEditorWidget.h"
 #include "ui_MainWindow.h"
 #include <cmath>
 #include <QPushButton>
@@ -125,7 +125,7 @@ void MainWindow::ConnectActionsToEditorSlots()
     QObject::connect(m_pUI->ActionFontUnderlined, SIGNAL(triggered()), this, SLOT(textUnderline()));
     QObject::connect(m_pUI->ActionFontStrikeout, SIGNAL(triggered()), this, SLOT(textStrikeThrough()));
 
-    NoteRichTextEditor * pNotesEditor = m_pUI->notesEditorWidget;
+    NoteEditorWidget * pNotesEditor = m_pUI->notesEditorWidget;
 
     QObject::connect(m_pUI->ActionAlignLeft, SIGNAL(triggered()), pNotesEditor,
                      SLOT(textAlignLeft()));

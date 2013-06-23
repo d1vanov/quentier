@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>NoteRichTextEditor</class>
- <widget class="QWidget" name="NoteRichTextEditor">
+ <class>NoteEditorWidget</class>
+ <widget class="QWidget" name="NoteEditorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -612,7 +612,7 @@
       </widget>
      </item>
      <item>
-      <widget class="TextEditWithCheckboxes" name="noteTextEdit">
+      <widget class="QuteNoteTextEdit" name="noteTextEdit">
        <property name="mouseTracking">
         <bool>true</bool>
        </property>
@@ -624,9 +624,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>TextEditWithCheckboxes</class>
+   <class>QuteNoteTextEdit</class>
    <extends>QTextEdit</extends>
-   <header>TextEditWithCheckboxes.h</header>
+   <header>QuteNoteTextEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

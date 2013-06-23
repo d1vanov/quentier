@@ -11,23 +11,24 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = QuteNote
 TEMPLATE = app
 
+INCLUDEPATH += . src/note_editor src/gui
 
 SOURCES += main.cpp\
-    NoteRichTextEditor.cpp \
-    MainWindow.cpp \
-    ToDoCheckboxTextObject.cpp \
-    TextEditWithCheckboxes.cpp
+    src/gui/MainWindow.cpp \
+    src/gui/NoteEditorWidget.cpp \
+    src/note_editor/ToDoCheckboxTextObject.cpp \
+    src/note_editor/QuteNoteTextEdit.cpp
 
 HEADERS  += \
-    NoteRichTextEditor.h \
-    MainWindow.h \
-    ToDoCheckboxTextObject.h \
-    TextEditWithCheckboxes.h \
-    HorizontalLineExtraData.h
+    src/gui/MainWindow.h \
+    src/gui/NoteEditorWidget.h \
+    src/note_editor/ToDoCheckboxTextObject.h \
+    src/note_editor/HorizontalLineExtraData.h \
+    src/note_editor/QuteNoteTextEdit.h
 
 FORMS    += \
-    NoteRichTextEditor.ui \
-    MainWindow.ui
+    src/gui/MainWindow.ui \
+    src/gui/NoteEditorWidget.ui
 
 RESOURCES += \
     resource/icons.qrc

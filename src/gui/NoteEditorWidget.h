@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
 #define __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
 
-#include "TextEditWithCheckboxes.h"
+#include "QuteNoteTextEdit.h"
 #include <QWidget>
 #include <QTextListFormat>
 
@@ -9,16 +9,15 @@ QT_FORWARD_DECLARE_CLASS(QTextEdit)
 QT_FORWARD_DECLARE_CLASS(QPushButton)
 
 namespace Ui {
-class NoteRichTextEditor;
+class NoteEditorWidget;
 }
 
-class NoteRichTextEditor : public QWidget
+class NoteEditorWidget : public QWidget
 {
     Q_OBJECT
-    
 public:
-    explicit NoteRichTextEditor(QWidget * parent = 0);
-    ~NoteRichTextEditor();
+    explicit NoteEditorWidget(QWidget * parent = 0);
+    ~NoteEditorWidget();
     
     QPushButton * getTextBoldButton();
     QPushButton * getTextItalicButton();
@@ -26,18 +25,6 @@ public:
     QPushButton * getTextStrikeThroughButton();
     QPushButton * getInsertUnorderedListButton();
     QPushButton * getInsertOrderedListButton();
-
-    enum ECheckboxTextFormat
-    {
-        CHECKBOX_TEXT_FORMAT_UNCHECKED = QTextFormat::UserObject + 1,
-        CHECKBOX_TEXT_FORMAT_CHECKED = QTextFormat::UserObject + 2
-    };
-
-    enum ECheckboxTextProperties
-    {
-        CHECKBOX_TEXT_DATA_UNCHECKED = 1,
-        CHECKBOX_TEXT_DATA_CHECKED = 2
-    };
 
 public slots:
     // format text slots
@@ -61,24 +48,20 @@ public slots:
     void textInsertToDoCheckBox();
 
 private:
-    void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
-
     enum ESelectedAlignment { ALIGNED_LEFT, ALIGNED_CENTER, ALIGNED_RIGHT };
     void setAlignButtonsCheckedState(const ESelectedAlignment alignment);
 
-    inline TextEditWithCheckboxes * getTextEdit();
+    inline QuteNoteTextEdit * getTextEdit();
 
-    enum EChangeColor { COLOR_ALL, COLOR_SELECTED };
+    enum EChangeColor { CHANGE_COLOR_ALL, CHANGE_COLOR_SELECTED };
     void changeTextColor(const EChangeColor changeColorOption);
 
     void insertList(const QTextListFormat::Style style);
 
-    void setupToDoCheckboxTextObjects();
-
 private:
-    Ui::NoteRichTextEditor * m_pUI;
-    QObject * m_pToDoCheckboxTextObjectInterfaceUnchecked;
-    QObject * m_pToDoCheckboxTextObjectInterfaceChecked;
+    Ui::NoteEditorWidget * m_pUI;
+    QObject * m_pToDoChkboxTxtObjUnchecked;
+    QObject * m_pToDoChkboxTxtObjChecked;
 };
 
 #endif // __QUTE_NOTE__NOTE_RICH_TEXT_EDITOR_H
