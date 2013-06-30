@@ -76,7 +76,7 @@ CONFIG(debug, debug|release) {
                       -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wuninitialized \
                       -Wno-unused-variable -Wno-missing-declarations -Woverloaded-virtual \
                       -Wnon-virtual-dtor -Wctor-dtor-privacy -Wno-long-long -Wno-old-style-cast \
-                      -Wno-return-type
+                      -Werror
 }
 }
 

@@ -1563,7 +1563,9 @@ class UserStoreProcessor : virtual public ::apache::thrift::TProcessor {
     processMap_["getNoteStoreUrl"] = &UserStoreProcessor::process_getNoteStoreUrl;
   }
 
-  virtual bool process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot);
+  virtual bool process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot,
+                       boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot,
+                       void * connectionContext = nullptr) override;
   virtual ~UserStoreProcessor() {}
 };
 
@@ -1588,6 +1590,8 @@ class UserStoreMultiface : virtual public UserStoreIf {
         ifaces_[i]->checkVersion(clientName, edamVersionMajor, edamVersionMinor);
       }
     }
+
+    return false;
   }
 
   void getBootstrapInfo(BootstrapInfo& _return, const std::string& locale) {

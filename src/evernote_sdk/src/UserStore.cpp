@@ -3306,7 +3306,8 @@ void UserStoreClient::recv_getNoteStoreUrl(std::string& _return)
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "getNoteStoreUrl failed: unknown result");
 }
 
-bool UserStoreProcessor::process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot) {
+bool UserStoreProcessor::process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot,
+                                 boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot, void *) {
 
   ::apache::thrift::protocol::TProtocol* iprot = piprot.get();
   ::apache::thrift::protocol::TProtocol* oprot = poprot.get();

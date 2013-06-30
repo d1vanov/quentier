@@ -23201,7 +23201,8 @@ void NoteStoreClient::recv_findRelated(RelatedResult& _return)
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "findRelated failed: unknown result");
 }
 
-bool NoteStoreProcessor::process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot) {
+bool NoteStoreProcessor::process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot,
+                                 boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot, void *) {
 
   ::apache::thrift::protocol::TProtocol* iprot = piprot.get();
   ::apache::thrift::protocol::TProtocol* oprot = poprot.get();

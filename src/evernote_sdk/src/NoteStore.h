@@ -10076,7 +10076,9 @@ class NoteStoreProcessor : virtual public ::apache::thrift::TProcessor {
     processMap_["findRelated"] = &NoteStoreProcessor::process_findRelated;
   }
 
-  virtual bool process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot);
+  virtual bool process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot,
+                       boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot,
+                       void * connectionContent = nullptr);
   virtual ~NoteStoreProcessor() {}
 };
 
@@ -10221,6 +10223,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->updateNotebook(authenticationToken, notebook);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   int32_t expungeNotebook(const std::string& authenticationToken, const evernote::edam::Guid& guid) {
@@ -10232,6 +10235,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->expungeNotebook(authenticationToken, guid);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void listTags(std::vector<evernote::edam::Tag> & _return, const std::string& authenticationToken) {
@@ -10291,6 +10295,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->updateTag(authenticationToken, tag);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void untagAll(const std::string& authenticationToken, const evernote::edam::Guid& guid) {
@@ -10309,6 +10314,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->expungeTag(authenticationToken, guid);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void listSearches(std::vector<evernote::edam::SavedSearch> & _return, const std::string& authenticationToken) {
@@ -10356,6 +10362,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->updateSearch(authenticationToken, search);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   int32_t expungeSearch(const std::string& authenticationToken, const evernote::edam::Guid& guid) {
@@ -10367,6 +10374,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->expungeSearch(authenticationToken, guid);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void findNotes(NoteList& _return, const std::string& authenticationToken, const NoteFilter& filter, const int32_t offset, const int32_t maxNotes) {
@@ -10390,6 +10398,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->findNoteOffset(authenticationToken, filter, guid);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void findNotesMetadata(NotesMetadataList& _return, const std::string& authenticationToken, const NoteFilter& filter, const int32_t offset, const int32_t maxNotes, const NotesMetadataResultSpec& resultSpec) {
@@ -10461,6 +10470,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->setNoteApplicationDataEntry(authenticationToken, guid, key, value);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   int32_t unsetNoteApplicationDataEntry(const std::string& authenticationToken, const evernote::edam::Guid& guid, const std::string& key) {
@@ -10472,6 +10482,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->unsetNoteApplicationDataEntry(authenticationToken, guid, key);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void getNoteContent(std::string& _return, const std::string& authenticationToken, const evernote::edam::Guid& guid) {
@@ -10555,6 +10566,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->deleteNote(authenticationToken, guid);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   int32_t expungeNote(const std::string& authenticationToken, const evernote::edam::Guid& guid) {
@@ -10566,6 +10578,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->expungeNote(authenticationToken, guid);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   int32_t expungeNotes(const std::string& authenticationToken, const std::vector<evernote::edam::Guid> & noteGuids) {
@@ -10577,6 +10590,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->expungeNotes(authenticationToken, noteGuids);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   int32_t expungeInactiveNotes(const std::string& authenticationToken) {
@@ -10588,6 +10602,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->expungeInactiveNotes(authenticationToken);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void copyNote(evernote::edam::Note& _return, const std::string& authenticationToken, const evernote::edam::Guid& noteGuid, const evernote::edam::Guid& toNotebookGuid) {
@@ -10671,6 +10686,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->setResourceApplicationDataEntry(authenticationToken, guid, key, value);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   int32_t unsetResourceApplicationDataEntry(const std::string& authenticationToken, const evernote::edam::Guid& guid, const std::string& key) {
@@ -10682,6 +10698,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->unsetResourceApplicationDataEntry(authenticationToken, guid, key);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   int32_t updateResource(const std::string& authenticationToken, const evernote::edam::Resource& resource) {
@@ -10693,6 +10710,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->updateResource(authenticationToken, resource);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void getResourceData(std::string& _return, const std::string& authenticationToken, const evernote::edam::Guid& guid) {
@@ -10788,6 +10806,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->updateSharedNotebook(authenticationToken, sharedNotebook);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   int32_t setSharedNotebookRecipientSettings(const std::string& authenticationToken, const int64_t sharedNotebookId, const evernote::edam::SharedNotebookRecipientSettings& recipientSettings) {
@@ -10799,6 +10818,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->setSharedNotebookRecipientSettings(authenticationToken, sharedNotebookId, recipientSettings);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   int32_t sendMessageToSharedNotebookMembers(const std::string& authenticationToken, const evernote::edam::Guid& notebookGuid, const std::string& messageText, const std::vector<std::string> & recipients) {
@@ -10810,6 +10830,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->sendMessageToSharedNotebookMembers(authenticationToken, notebookGuid, messageText, recipients);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void listSharedNotebooks(std::vector<evernote::edam::SharedNotebook> & _return, const std::string& authenticationToken) {
@@ -10833,6 +10854,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->expungeSharedNotebooks(authenticationToken, sharedNotebookIds);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void createLinkedNotebook(evernote::edam::LinkedNotebook& _return, const std::string& authenticationToken, const evernote::edam::LinkedNotebook& linkedNotebook) {
@@ -10856,6 +10878,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->updateLinkedNotebook(authenticationToken, linkedNotebook);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void listLinkedNotebooks(std::vector<evernote::edam::LinkedNotebook> & _return, const std::string& authenticationToken) {
@@ -10879,6 +10902,7 @@ class NoteStoreMultiface : virtual public NoteStoreIf {
         ifaces_[i]->expungeLinkedNotebook(authenticationToken, guid);
       }
     }
+    return std::numeric_limits<int32_t>::max();
   }
 
   void authenticateToSharedNotebook(evernote::edam::AuthenticationResult& _return, const std::string& shareKey, const std::string& authenticationToken) {
