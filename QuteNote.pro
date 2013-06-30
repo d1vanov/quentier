@@ -48,7 +48,8 @@ HEADERS  += \
     src/evernote_sdk/src/Limits_types.h \
     src/evernote_sdk/src/Limits_constants.h \
     src/evernote_sdk/src/Errors_types.h \
-    src/evernote_sdk/src/Errors_constants.h
+    src/evernote_sdk/src/Errors_constants.h \
+    src/service_frontend/INoteTakingService.h
 
 FORMS    += \
     src/gui/MainWindow.ui \
