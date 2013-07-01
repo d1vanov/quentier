@@ -25,6 +25,12 @@ public:
      */
     class NoteInfo;
 
+    /**
+     * Class for search content - search within note, withon notebook or any other
+     * data somehow related to search
+     */
+    class SearchContent;
+
 public:
     /**
      * @brief AddNote - adds new note to the database
@@ -47,6 +53,14 @@ public:
      */
     bool DeleteNote(const UserInfo & userInfo, const NotebookInfo & notebookInfo,
                     const NoteInfo & noteInfo, const char *& err_str);
+
+    // TODO: add Doxygen doc
+    bool SearchForNote(const UserInfo & userInfo, const NotebookInfo & notebookInfo,
+                       const SearchContent & searchContent, NoteInfo * pNoteInfo,
+                       const char *& err_str);
+    bool SearchFotNote(const UserInfo & UserInfo, const NotebookInfo & notebookInfo,
+                       const SearchContent & searchContent, const NoteInfo * pNoteInfo,
+                       const char *& err_str) const;
 };
 
 #endif // __QUTE_NOTE__SERVICE_FRONTEND__INOTE_TAKING_SERVICE_H
