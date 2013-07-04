@@ -1,6 +1,8 @@
 #ifndef __QUTE_NOTE__SERVICE_FRONTEND__INOTE_TAKING_SERVICE_H
 #define __QUTE_NOTE__SERVICE_FRONTEND__INOTE_TAKING_SERVICE_H
 
+#include <QString>
+
 class INoteTakingService
 {
 public:
@@ -26,12 +28,35 @@ public:
     class NoteInfo;
 
     /**
-     * Class for search content - search within note, withon notebook or any other
+     * Class for search content - search within note, within notebook or any other
      * data somehow related to search
      */
     class SearchContent;
 
 public:
+    /**
+     * @brief EncodeNote - converts the note HTML from QString to the internal
+     * service note representation stored in NoteInfo object.
+     * @param noteHtml - the note content represented in HTML
+     * @param encodedNote - the object to contain the encoded internal representation of note text
+     * @param err_str - error string if encoding the note was not successful
+     * @return true if the note was encoded successfully, false otherwise
+     */
+    virtual bool EncodeNote(const QString & noteHtml, NoteInfo & encodedNote,
+                            const char *& err_str) const = 0;
+
+    /**
+     * @brief DecodeNote - converts the note content to QString HTML from
+     * the internal service note representation format stored in NoteInfo object.
+     * @param noteHtml - the note content represented in HTML
+     * @param encodedNote - the object containing the encoded internal
+     * representation of note content
+     * @param err_str - error string if decoding the note was not successful
+     * @return true if the note was decoded successfully, false otherwise
+     */
+    virtual bool DecodeNote(QString & noteHtml, const NoteInfo & encodedNote,
+                            const char *& err_str) const = 0;
+
     /**
      * @brief AddNote - adds new note to the database
      * @param userInfo - login, password and all other data related to authentication in the service
@@ -40,8 +65,8 @@ public:
      * @param err_str - error string if adding the note was not successful
      * @return true if the note was added successfully, false otherwise
      */
-    bool AddNote(const UserInfo & userInfo, const NotebookInfo & notebookInfo,
-                 const NoteInfo & noteInfo, const char *& err_str);
+    virtual bool AddNote(const UserInfo & userInfo, const NotebookInfo & notebookInfo,
+                         const NoteInfo & noteInfo, const char *& err_str) = 0;
 
     /**
      * @brief DeleteNote - deletes specific note from the database
@@ -51,8 +76,8 @@ public:
      * @param err_str - error string if deleting the note was not successful
      * @return true if the note was deleted successfully, false otherwise
      */
-    bool DeleteNote(const UserInfo & userInfo, const NotebookInfo & notebookInfo,
-                    const NoteInfo & noteInfo, const char *& err_str);
+    virtual bool DeleteNote(const UserInfo & userInfo, const NotebookInfo & notebookInfo,
+                            const NoteInfo & noteInfo, const char *& err_str) = 0;
 
     /**
      * @brief SearchForNote - non-const version; searches for specific note in specific notebook or
@@ -66,9 +91,9 @@ public:
      * contains explanation why the rearch failed
      * @return true if the note was found, false otherwise
      */
-    bool SearchForNote(const UserInfo & userInfo, const NotebookInfo & notebookInfo,
-                       const SearchContent & searchContent, NoteInfo * pNoteInfo,
-                       const char *& err_str);
+    virtual bool SearchForNote(const UserInfo & userInfo, const NotebookInfo & notebookInfo,
+                               const SearchContent & searchContent, NoteInfo * pNoteInfo,
+                               const char *& err_str) = 0;
 
     /**
      * @brief SearchFotNote - const version; searches for specific note in specific notebook or
@@ -82,9 +107,11 @@ public:
      * contains explanation why the rearch failed
      * @return true if the note was found, false otherwise
      */
-    bool SearchFotNote(const UserInfo & UserInfo, const NotebookInfo & notebookInfo,
-                       const SearchContent & searchContent, const NoteInfo * pNoteInfo,
-                       const char *& err_str) const;
+    virtual bool SearchFotNote(const UserInfo & UserInfo, const NotebookInfo & notebookInfo,
+                               const SearchContent & searchContent, const NoteInfo * pNoteInfo,
+                               const char *& err_str) const = 0;
+
+    // TODO: create an interface attaching the resource in QMimeData format to specific note
 };
 
 #endif // __QUTE_NOTE__SERVICE_FRONTEND__INOTE_TAKING_SERVICE_H
