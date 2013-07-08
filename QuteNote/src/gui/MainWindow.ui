@@ -1,0 +1,1510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::WindowModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1088</width>
+    <height>785</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonTextOnly</enum>
+  </property>
+  <property name="dockNestingEnabled">
+   <bool>true</bool>
+  </property>
+  <property name="dockOptions">
+   <set>QMainWindow::AllowNestedDocks|QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QScrollArea" name="scrollArea">
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="scrollAreaWidgetContents">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>797</width>
+         <height>688</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="QSplitter" name="splitter">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <widget class="QTableWidget" name="notesTable"/>
+          <widget class="NoteEditorWidget" name="notesEditorWidget" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1088</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>&amp;Файл</string>
+    </property>
+    <widget class="QMenu" name="menuNotepad">
+     <property name="title">
+      <string>Блокнот</string>
+     </property>
+     <property name="icon">
+      <iconset theme="folder">
+       <normaloff/>
+      </iconset>
+     </property>
+     <addaction name="ActionNotepadAdd"/>
+     <addaction name="ActionNotepadProperties"/>
+     <addaction name="ActionNotepadDelete"/>
+     <addaction name="separator"/>
+     <addaction name="ActionNotepadSetStack"/>
+     <addaction name="ActionNotepadOpenClose"/>
+    </widget>
+    <widget class="QMenu" name="menuLabel">
+     <property name="title">
+      <string>Метка</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../resource/icons.qrc">
+       <normaloff>:/label/tag.png</normaloff>:/label/tag.png</iconset>
+     </property>
+     <addaction name="ActionLabelAdd"/>
+     <addaction name="ActionLabelProperties"/>
+     <addaction name="ActionLabelDelete"/>
+     <addaction name="separator"/>
+    </widget>
+    <widget class="QMenu" name="menuRequest">
+     <property name="title">
+      <string>Запрос</string>
+     </property>
+     <addaction name="ActionRequestAdd"/>
+     <addaction name="ActionRequestProperties"/>
+     <addaction name="ActionRequestDelete"/>
+    </widget>
+    <widget class="QMenu" name="menuNote">
+     <property name="title">
+      <string>Заметка</string>
+     </property>
+     <property name="icon">
+      <iconset theme="x-office-document">
+       <normaloff/>
+      </iconset>
+     </property>
+     <addaction name="ActionNoteAdd"/>
+     <addaction name="ActionNoteDelete"/>
+     <addaction name="ActionNoteReindex"/>
+     <addaction name="separator"/>
+     <addaction name="ActionNoteSetLabels"/>
+     <addaction name="separator"/>
+     <addaction name="ActionNoteHistory"/>
+     <addaction name="ActionNoteCopy"/>
+     <addaction name="ActionNoteUnite"/>
+    </widget>
+    <addaction name="menuNote"/>
+    <addaction name="menuNotepad"/>
+    <addaction name="menuLabel"/>
+    <addaction name="menuRequest"/>
+    <addaction name="separator"/>
+    <addaction name="ActionSendMail"/>
+    <addaction name="ActionPrint"/>
+    <addaction name="separator"/>
+    <addaction name="ActionImportNotes"/>
+    <addaction name="ActionExportChosenNotes"/>
+    <addaction name="ActionBackupCopy"/>
+    <addaction name="ActionRestoreDatabase"/>
+    <addaction name="separator"/>
+    <addaction name="ActionSelectiveSync"/>
+    <addaction name="separator"/>
+    <addaction name="ActionClenup"/>
+    <addaction name="ActionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>&amp;Правка</string>
+    </property>
+    <addaction name="ActionFindInsideNote"/>
+    <addaction name="separator"/>
+    <addaction name="ActionUndo"/>
+    <addaction name="ActionRedo"/>
+    <addaction name="separator"/>
+    <addaction name="ActionCut"/>
+    <addaction name="ActionCopy"/>
+    <addaction name="ActionInsert"/>
+    <addaction name="ActionInsertAsText"/>
+    <addaction name="separator"/>
+    <addaction name="ActionSettings"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>&amp;Вид</string>
+    </property>
+    <addaction name="ActionShowNoteInfo"/>
+    <addaction name="ActionShowSource"/>
+    <addaction name="separator"/>
+    <addaction name="ActionWideListView"/>
+    <addaction name="ActionNarrowListView"/>
+    <addaction name="ActionPleliminaryView"/>
+    <addaction name="separator"/>
+    <addaction name="ActionShowNotesList"/>
+    <addaction name="ActionShowSearchBar"/>
+    <addaction name="ActionShowQuotaLimit"/>
+    <addaction name="ActionShowZoom"/>
+    <addaction name="ActionShowNotepadList"/>
+    <addaction name="ActionShowLabelList"/>
+    <addaction name="ActionShowSearchProperties"/>
+    <addaction name="ActionShowSavedRequests"/>
+    <addaction name="ActionShowTrash"/>
+    <addaction name="ActionShowEditorPanel"/>
+    <addaction name="ActionHideAdditionalPanels"/>
+    <addaction name="ActionShowInstrumentsPanel"/>
+   </widget>
+   <widget class="QMenu" name="menuFormat">
+    <property name="title">
+     <string>Ф&amp;ормат</string>
+    </property>
+    <widget class="QMenu" name="menuTable">
+     <property name="title">
+      <string>Таблица</string>
+     </property>
+     <addaction name="ActionInsertTable"/>
+     <addaction name="ActionInsertRow"/>
+     <addaction name="ActionInsertColumn"/>
+     <addaction name="ActionRemoveRow"/>
+     <addaction name="ActionRemoveColumn"/>
+    </widget>
+    <widget class="QMenu" name="menuImage">
+     <property name="title">
+      <string>Изображение</string>
+     </property>
+     <property name="icon">
+      <iconset theme="image-x-generic">
+       <normaloff/>
+      </iconset>
+     </property>
+     <addaction name="ActionSaveImage"/>
+     <addaction name="ActionRotateClockwise"/>
+     <addaction name="ActionRotateCounterClockwise"/>
+    </widget>
+    <widget class="QMenu" name="menuIndentation">
+     <property name="title">
+      <string>Отступ</string>
+     </property>
+     <addaction name="ActionIncreaseIndentation"/>
+     <addaction name="ActionDecreaseIndentation"/>
+    </widget>
+    <widget class="QMenu" name="menuList">
+     <property name="title">
+      <string>Вставить список</string>
+     </property>
+     <addaction name="ActionInsertBulletedList"/>
+     <addaction name="ActionInsertNumberedList"/>
+    </widget>
+    <widget class="QMenu" name="menuAlign">
+     <property name="title">
+      <string>Выровнять</string>
+     </property>
+     <addaction name="ActionAlignLeft"/>
+     <addaction name="ActionAlignCenter"/>
+     <addaction name="ActionAlignRight"/>
+    </widget>
+    <addaction name="ActionFontBold"/>
+    <addaction name="ActionFontUnderlined"/>
+    <addaction name="ActionFontItalic"/>
+    <addaction name="separator"/>
+    <addaction name="ActionFontStrikeout"/>
+    <addaction name="ActionInsertHorizontalLine"/>
+    <addaction name="separator"/>
+    <addaction name="ActionUpperIndex"/>
+    <addaction name="ActionLowerIndex"/>
+    <addaction name="separator"/>
+    <addaction name="menuTable"/>
+    <addaction name="menuImage"/>
+    <addaction name="separator"/>
+    <addaction name="menuAlign"/>
+    <addaction name="menuList"/>
+    <addaction name="menuIndentation"/>
+   </widget>
+   <widget class="QMenu" name="menuService">
+    <property name="title">
+     <string>С&amp;ервис</string>
+    </property>
+    <addaction name="ActionSync"/>
+    <addaction name="ActionConnect"/>
+    <addaction name="separator"/>
+    <addaction name="ActionSpellCheck"/>
+    <addaction name="ActionAccountInfo"/>
+    <addaction name="ActionReindexDatabase"/>
+    <addaction name="ActionDisableNotesIndexing"/>
+    <addaction name="separator"/>
+    <addaction name="ActionEncryptDatabase"/>
+    <addaction name="ActionDatabaseStatus"/>
+    <addaction name="separator"/>
+    <addaction name="ActionImportFolders"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>&amp;Справка</string>
+    </property>
+    <addaction name="ActionReleaseComments"/>
+    <addaction name="ActionCheckForUpdates"/>
+    <addaction name="ActionViewLogs"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuView"/>
+   <addaction name="menuFormat"/>
+   <addaction name="menuService"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonIconOnly</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="ActionGoPrevious"/>
+   <addaction name="ActionGoNext"/>
+   <addaction name="ActionGoUp"/>
+   <addaction name="ActionGoDown"/>
+   <addaction name="ActionSynchronizeButton"/>
+   <addaction name="ActionPrint"/>
+   <addaction name="ActionManageLabelsButton"/>
+   <addaction name="ActionShowNoteAttributesButton"/>
+   <addaction name="ActionSendMail"/>
+   <addaction name="ActionNoteDelete"/>
+   <addaction name="ActionNoteAdd"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QDockWidget" name="dockNotebooks">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <property name="windowTitle">
+    <string> Блокноты</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockContentsNotebooks">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_6">
+     <item row="0" column="0">
+      <widget class="QTableWidget" name="tableNotebooks">
+       <property name="mouseTracking">
+        <bool>false</bool>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="columnCount">
+        <number>2</number>
+       </property>
+       <column/>
+       <column/>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockLabels">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <property name="windowTitle">
+    <string>Метки</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockContentsLabels">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_5">
+     <item row="0" column="0">
+      <widget class="QTreeWidget" name="treeLabels">
+       <column>
+        <property name="text">
+         <string notr="true">1</string>
+        </property>
+       </column>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockSearchProperties">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="windowTitle">
+    <string>Свойства поиска</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockContentsSearchProperties">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_4">
+     <item row="0" column="0">
+      <widget class="QTreeWidget" name="treeSearchProperties">
+       <column>
+        <property name="text">
+         <string notr="true">1</string>
+        </property>
+       </column>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockSavedRequests">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="windowTitle">
+    <string>Сохраненные запросы</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockContentsSavedRequests">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="0" column="0">
+      <widget class="QListWidget" name="listSavedRequests"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockTrash">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="windowTitle">
+    <string>Корзина</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockContentsTrash">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="0">
+      <widget class="QListWidget" name="listTrash"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="ActionNoteAdd">
+   <property name="icon">
+    <iconset theme="document-new">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Добавить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionNoteDelete">
+   <property name="icon">
+    <iconset theme="edit-delete">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Удалить</string>
+   </property>
+  </action>
+  <action name="ActionNoteReindex">
+   <property name="text">
+    <string>Переиндексировать</string>
+   </property>
+  </action>
+  <action name="ActionNoteSetLabels">
+   <property name="text">
+    <string>Присвоить метки</string>
+   </property>
+  </action>
+  <action name="ActionNoteHistory">
+   <property name="text">
+    <string>История заметки</string>
+   </property>
+  </action>
+  <action name="ActionNoteCopy">
+   <property name="icon">
+    <iconset theme="edit-copy">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Копировать</string>
+   </property>
+  </action>
+  <action name="ActionNoteUnite">
+   <property name="text">
+    <string>Объединить заметки</string>
+   </property>
+  </action>
+  <action name="ActionNotepadAdd">
+   <property name="icon">
+    <iconset theme="folder-new">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Добавить</string>
+   </property>
+  </action>
+  <action name="ActionNotepadProperties">
+   <property name="text">
+    <string>Свойства</string>
+   </property>
+  </action>
+  <action name="ActionNotepadDelete">
+   <property name="icon">
+    <iconset theme="edit-delete">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Удалить</string>
+   </property>
+  </action>
+  <action name="ActionNotepadSetStack">
+   <property name="icon">
+    <iconset theme="list-add">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Добавить в набор</string>
+   </property>
+  </action>
+  <action name="ActionNotepadOpenClose">
+   <property name="text">
+    <string>Открыть/закрыть блокноты</string>
+   </property>
+  </action>
+  <action name="ActionNotepadChangeIcon">
+   <property name="text">
+    <string>Установить лого</string>
+   </property>
+  </action>
+  <action name="ActionLabelAdd">
+   <property name="text">
+    <string>Добавить</string>
+   </property>
+  </action>
+  <action name="ActionLabelProperties">
+   <property name="text">
+    <string>Свойства</string>
+   </property>
+  </action>
+  <action name="ActionLabelDelete">
+   <property name="text">
+    <string>Удалить</string>
+   </property>
+  </action>
+  <action name="ActionLabelUnite">
+   <property name="text">
+    <string>Объединить метки</string>
+   </property>
+  </action>
+  <action name="ActionLabelChangeIcon">
+   <property name="text">
+    <string>Изменить лого</string>
+   </property>
+  </action>
+  <action name="ActionRequestAdd">
+   <property name="text">
+    <string>Добавить</string>
+   </property>
+  </action>
+  <action name="ActionRequestProperties">
+   <property name="text">
+    <string>Свойства</string>
+   </property>
+  </action>
+  <action name="ActionRequestDelete">
+   <property name="text">
+    <string>Удалить</string>
+   </property>
+  </action>
+  <action name="ActionRequestChangeIcon">
+   <property name="text">
+    <string>Изменить лого</string>
+   </property>
+  </action>
+  <action name="ActionSendMail">
+   <property name="icon">
+    <iconset theme="mail-send">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Отправить по почте</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+E</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionPrint">
+   <property name="icon">
+    <iconset theme="printer">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Печать</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionImportNotes">
+   <property name="text">
+    <string>Импорт заметок</string>
+   </property>
+  </action>
+  <action name="ActionExportChosenNotes">
+   <property name="text">
+    <string>Экспорт выделенных заметок</string>
+   </property>
+  </action>
+  <action name="ActionBackupCopy">
+   <property name="text">
+    <string>Резервное копирование базы данных</string>
+   </property>
+  </action>
+  <action name="ActionRestoreDatabase">
+   <property name="text">
+    <string>Восстановление базы данных</string>
+   </property>
+  </action>
+  <action name="ActionSelectiveSync">
+   <property name="text">
+    <string>Выборочная синхронизация</string>
+   </property>
+  </action>
+  <action name="ActionClenup">
+   <property name="icon">
+    <iconset theme="user-trash">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Очистить корзину</string>
+   </property>
+  </action>
+  <action name="ActionExit">
+   <property name="icon">
+    <iconset theme="application-exit">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Выход</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionFindInsideNote">
+   <property name="icon">
+    <iconset theme="system-search">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Найти внутри заметки</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionUndo">
+   <property name="icon">
+    <iconset theme="edit-undo">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Отменить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionRedo">
+   <property name="icon">
+    <iconset theme="edit-redo">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вернуть</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Z</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionCut">
+   <property name="icon">
+    <iconset theme="edit-cut">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вырезать</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionCopy">
+   <property name="icon">
+    <iconset theme="edit-copy">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Копировать</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionInsert">
+   <property name="icon">
+    <iconset theme="edit-paste">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вставить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionInsertAsText">
+   <property name="icon">
+    <iconset theme="insert-text">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вставить как текст</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+P</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionSettings">
+   <property name="icon">
+    <iconset theme="emblem-system">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Настройки</string>
+   </property>
+  </action>
+  <action name="ActionShowNoteInfo">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать информацию о заметке</string>
+   </property>
+   <property name="shortcut">
+    <string>F8</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionShowSource">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать источник</string>
+   </property>
+  </action>
+  <action name="ActionWideListView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Расширенный вид</string>
+   </property>
+  </action>
+  <action name="ActionNarrowListView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Сжатый вид</string>
+   </property>
+  </action>
+  <action name="ActionPleliminaryView">
+   <property name="text">
+    <string>Предварительный просмотр</string>
+   </property>
+  </action>
+  <action name="ActionShowNotesList">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать список заметок</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionShowSearchBar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать окно поиска</string>
+   </property>
+  </action>
+  <action name="ActionShowQuotaLimit">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать лимит доступного места</string>
+   </property>
+  </action>
+  <action name="ActionShowZoom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать коэффициент увеличения шрифта</string>
+   </property>
+  </action>
+  <action name="ActionShowNotepadList">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать список блокнотов</string>
+   </property>
+  </action>
+  <action name="ActionShowLabelList">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать список меток</string>
+   </property>
+  </action>
+  <action name="ActionShowSearchProperties">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать свойства поиска</string>
+   </property>
+  </action>
+  <action name="ActionShowSavedRequests">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать сохранённые запросы</string>
+   </property>
+  </action>
+  <action name="ActionShowTrash">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать корзину</string>
+   </property>
+  </action>
+  <action name="ActionShowEditorPanel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать панель редактирования</string>
+   </property>
+  </action>
+  <action name="ActionHideAdditionalPanels">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Скрыть дополнительные панели</string>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
+   </property>
+  </action>
+  <action name="ActionShowInstrumentsPanel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Показать панель инструментов</string>
+   </property>
+  </action>
+  <action name="ActionFontBold">
+   <property name="icon">
+    <iconset theme="format-text-bold">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Полужирный</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetWithChildrenShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionFontUnderlined">
+   <property name="icon">
+    <iconset theme="format-text-underline">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Подчеркнутый</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionFontItalic">
+   <property name="icon">
+    <iconset theme="format-text-italic">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Курсив</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionFontStrikeout">
+   <property name="icon">
+    <iconset theme="format-text-strikethrough">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Зачеркнутый</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionInsertHorizontalLine">
+   <property name="icon">
+    <iconset theme="insert-horizontal-rule">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вставить горизонтальную линию</string>
+   </property>
+  </action>
+  <action name="ActionUpperIndex">
+   <property name="icon">
+    <iconset theme="go-top">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Верхний индекс</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+]</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionLowerIndex">
+   <property name="icon">
+    <iconset theme="go-bottom">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Нижний индекс</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+[</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionInsertTable">
+   <property name="icon">
+    <iconset resource="../../resource/icons.qrc">
+     <normaloff>:/format_text_elements/insert_table.png</normaloff>:/format_text_elements/insert_table.png</iconset>
+   </property>
+   <property name="text">
+    <string>Вставить таблицу</string>
+   </property>
+  </action>
+  <action name="ActionInsertRow">
+   <property name="text">
+    <string>Вставить строку</string>
+   </property>
+  </action>
+  <action name="ActionInsertColumn">
+   <property name="text">
+    <string>Вставить столбец</string>
+   </property>
+  </action>
+  <action name="ActionRemoveRow">
+   <property name="text">
+    <string>Удалить строку</string>
+   </property>
+  </action>
+  <action name="ActionRemoveColumn">
+   <property name="text">
+    <string>Удалить столбец</string>
+   </property>
+  </action>
+  <action name="ActionSaveImage">
+   <property name="icon">
+    <iconset theme="document-save">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Сохранить изображение</string>
+   </property>
+  </action>
+  <action name="ActionRotateClockwise">
+   <property name="icon">
+    <iconset theme="object-rotate-right">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Повернуть по часовой стрелке</string>
+   </property>
+  </action>
+  <action name="ActionRotateCounterClockwise">
+   <property name="icon">
+    <iconset theme="object-rotate-left">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Повернуть против часовой стрелки</string>
+   </property>
+  </action>
+  <action name="ActionAlignLeft">
+   <property name="icon">
+    <iconset theme="format-justify-left">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Влево</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionAlignCenter">
+   <property name="icon">
+    <iconset theme="format-justify-center">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>По центру</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionAlignRight">
+   <property name="icon">
+    <iconset theme="format-justify-right">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вправо</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionInsertBulletedList">
+   <property name="icon">
+    <iconset theme="format-list-unordered">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Маркированный список</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+B</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionInsertNumberedList">
+   <property name="icon">
+    <iconset theme="format-list-ordered">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Нумерованный список</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+N</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionIncreaseIndentation">
+   <property name="icon">
+    <iconset theme="format-indent-less">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>&gt;&gt; Увеличить</string>
+   </property>
+   <property name="toolTip">
+    <string>Увеличить отступ</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionDecreaseIndentation">
+   <property name="icon">
+    <iconset theme="format-indent-less">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>&lt;&lt; Уменьшить</string>
+   </property>
+   <property name="toolTip">
+    <string>Уменьшить отступ</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+M</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionSync">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Синхронизация</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionConnect">
+   <property name="text">
+    <string>Соединиться</string>
+   </property>
+  </action>
+  <action name="ActionSpellCheck">
+   <property name="text">
+    <string>Проверка орфографии</string>
+   </property>
+  </action>
+  <action name="ActionAccountInfo">
+   <property name="text">
+    <string>Об аккаунте</string>
+   </property>
+  </action>
+  <action name="ActionReindexDatabase">
+   <property name="text">
+    <string>Переиндексировать базу данных</string>
+   </property>
+  </action>
+  <action name="ActionDisableNotesIndexing">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Отключить индексацию заметок</string>
+   </property>
+  </action>
+  <action name="ActionEncryptDatabase">
+   <property name="text">
+    <string>Зашифровать базу данных</string>
+   </property>
+  </action>
+  <action name="ActionDatabaseStatus">
+   <property name="text">
+    <string>Состояние базы данных</string>
+   </property>
+  </action>
+  <action name="ActionImportFolders">
+   <property name="text">
+    <string>Импорт папок</string>
+   </property>
+  </action>
+  <action name="ActionReleaseComments">
+   <property name="text">
+    <string>Комментарии к релизам</string>
+   </property>
+  </action>
+  <action name="ActionCheckForUpdates">
+   <property name="text">
+    <string>Проверка обновлений</string>
+   </property>
+  </action>
+  <action name="ActionViewLogs">
+   <property name="text">
+    <string>Просмотр логов</string>
+   </property>
+  </action>
+  <action name="ActionGoPrevious">
+   <property name="icon">
+    <iconset theme="go-previous">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Назад</string>
+   </property>
+   <property name="toolTip">
+    <string>Назад</string>
+   </property>
+  </action>
+  <action name="ActionGoNext">
+   <property name="icon">
+    <iconset theme="go-next">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вперед</string>
+   </property>
+   <property name="toolTip">
+    <string>Вперед</string>
+   </property>
+  </action>
+  <action name="ActionGoUp">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="go-up">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вверх</string>
+   </property>
+   <property name="toolTip">
+    <string>Вверх</string>
+   </property>
+  </action>
+  <action name="ActionGoDown">
+   <property name="icon">
+    <iconset theme="go-down">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Вниз</string>
+   </property>
+   <property name="toolTip">
+    <string>Вниз</string>
+   </property>
+  </action>
+  <action name="ActionSynchronizeButton">
+   <property name="icon">
+    <iconset resource="../../resource/icons.qrc">
+     <normaloff>:/sync_icons/stat_notify_sync.png</normaloff>:/sync_icons/stat_notify_sync.png</iconset>
+   </property>
+   <property name="text">
+    <string>Синхронизация</string>
+   </property>
+   <property name="toolTip">
+    <string>Синхронизация</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionShowNoteAttributesButton">
+   <property name="icon">
+    <iconset theme="dialog-information">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Показать атрибуты заметки</string>
+   </property>
+   <property name="toolTip">
+    <string>Показать атрибуты заметки</string>
+   </property>
+  </action>
+  <action name="ActionManageLabelsButton">
+   <property name="icon">
+    <iconset resource="../../resource/icons.qrc">
+     <normaloff>:/label/tag.png</normaloff>:/label/tag.png</iconset>
+   </property>
+   <property name="text">
+    <string>Управление метками</string>
+   </property>
+   <property name="toolTip">
+    <string>Управление метками</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>NoteEditorWidget</class>
+   <extends>QWidget</extends>
+   <header>NoteEditorWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../../resource/icons.qrc"/>
+ </resources>
+ <connections/>
+</ui>
