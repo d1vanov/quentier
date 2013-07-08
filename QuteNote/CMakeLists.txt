@@ -1,0 +1,90 @@
+cmake_minimum_required(VERSION 2.8)
+project(QuteNote)
+
+find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED)
+include_directories(${QT_INCLUDES})
+include(${QT_USE_FILE})
+add_definitions(${QT_DEFINITIONS})
+
+set(CMAKE_AUTOMOC ON)
+
+include_directories(${QuteNoteProject_SOURCE_DIR}/thrift/src
+                    ${QuteNoteProject_SOURCE_DIR}/thrift/src/thrift
+                    ${CMAKE_CURRENT_SOURCE_DIR}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui
+                    ${CMAKE_CURRENT_BINARY_DIR})
+
+set(${PROJECT_NAME}_QT_HEADERS
+    src/gui/MainWindow.h
+    src/gui/NoteEditorWidget.h
+    src/note_editor/ToDoCheckboxTextObject.h
+    src/note_editor/HorizontalLineExtraData.h
+    src/note_editor/QuteNoteTextEdit.h)
+
+set(${PROJECT_NAME}_HEADERS
+    src/evernote_sdk/src/UserStore_types.h
+    src/evernote_sdk/src/UserStore_constants.h
+    src/evernote_sdk/src/UserStore.h
+    src/evernote_sdk/src/Types_types.h
+    src/evernote_sdk/src/Types_constants.h
+    src/evernote_sdk/src/NoteStore_types.h
+    src/evernote_sdk/src/NoteStore_constants.h
+    src/evernote_sdk/src/NoteStore.h
+    src/evernote_sdk/src/Limits_types.h
+    src/evernote_sdk/src/Limits_constants.h
+    src/evernote_sdk/src/Errors_types.h
+    src/evernote_sdk/src/Errors_constants.h
+    src/service_frontend/INoteTakingService.h)
+
+qt4_wrap_cpp(${PROJECT_NAME}_HEADERS_MOC ${${PROJECT_NAME}_QT_HEADERS})
+
+set(${PROJECT_NAME}_SOURCES
+    src/gui/MainWindow.cpp
+    src/gui/NoteEditorWidget.cpp
+    src/note_editor/ToDoCheckboxTextObject.cpp
+    src/note_editor/QuteNoteTextEdit.cpp
+    src/evernote_sdk/src/UserStore_types.cpp
+    src/evernote_sdk/src/UserStore_constants.cpp
+    src/evernote_sdk/src/UserStore.cpp
+    src/evernote_sdk/src/Types_types.cpp
+    src/evernote_sdk/src/Types_constants.cpp
+    src/evernote_sdk/src/NoteStore_types.cpp
+    src/evernote_sdk/src/NoteStore_constants.cpp
+    src/evernote_sdk/src/NoteStore.cpp
+    src/evernote_sdk/src/Limits_types.cpp
+    src/evernote_sdk/src/Limits_constants.cpp
+    src/evernote_sdk/src/Errors_types.cpp
+    src/evernote_sdk/src/Errors_constants.cpp
+    main.cpp)
+
+set(FORMS
+    src/gui/MainWindow.ui
+    src/gui/NoteEditorWidget.ui)
+
+qt4_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
+
+set(RESOURCES
+    resource/icons.qrc)
+
+qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
+
+add_executable(${PROJECT_NAME}
+               ${${PROJECT_NAME}_HEADERS}
+               ${${PROJECT_NAME}_SOURCES}
+               ${${PROJECT_NAME}_QT_HEADERS_MOC}
+               ${${PROJECT_NAME}_FORMS_HEADERS}
+               ${${PROJECT_NAME}_RESOURCES_RCC})
+
+find_package(OpenSSL REQUIRED)
+
+target_link_libraries(${PROJECT_NAME}
+                      ${QuteNoteProject_BINARY_DIR}/thrift/libthrift.so
+                      ${QT_LIBRARIES}
+                      ${OPENSSL_LIBRARIES})
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
