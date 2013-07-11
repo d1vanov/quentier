@@ -35,7 +35,7 @@ set(${PROJECT_NAME}_HEADERS
     src/evernote_sdk/src/Limits_constants.h
     src/evernote_sdk/src/Errors_types.h
     src/evernote_sdk/src/Errors_constants.h
-    src/service_frontend/INoteTakingService.h)
+    src/client/EvernoteService.h)
 
 qt4_wrap_cpp(${PROJECT_NAME}_HEADERS_MOC ${${PROJECT_NAME}_QT_HEADERS})
 
@@ -78,8 +78,22 @@ add_executable(${PROJECT_NAME}
 
 find_package(OpenSSL REQUIRED)
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/libthrift.so")
+  set(KQOAUTH_LIB "${QuteNoteProject_BINARY_DIR}/kqoauth/libkqoauth.so")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+  set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/libthrift.dylib")
+  set(KQOAUTH_LIB "${QuteNoteProject_BINARY_DIR}/kqoauth/libkqoauth.dylib")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/thrift.dll")
+  set(KQOAUTH_LIB "${QuteNoteProject_BINARY_DIR}/kqoauth/kqoauth.dll")
+else()
+  message(FATAL_ERROR "Unsupported platform. Only Windows, Mac OS X and Linux are supported at the moment")
+endif()
+
 target_link_libraries(${PROJECT_NAME}
-                      ${QuteNoteProject_BINARY_DIR}/thrift/libthrift.so
+                      ${THRIFT_LIB}
+                      ${KQOAUTH_LIB}
                       ${QT_LIBRARIES}
                       ${OPENSSL_LIBRARIES})
 
