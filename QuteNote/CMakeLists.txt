@@ -10,6 +10,7 @@ set(CMAKE_AUTOMOC ON)
 
 include_directories(${QuteNoteProject_SOURCE_DIR}/thrift/src
                     ${QuteNoteProject_SOURCE_DIR}/thrift/src/thrift
+                    ${QuteNoteProject_SOURCE_DIR}/kqoauth/src
                     ${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui
@@ -35,7 +36,8 @@ set(${PROJECT_NAME}_HEADERS
     src/evernote_sdk/src/Limits_constants.h
     src/evernote_sdk/src/Errors_types.h
     src/evernote_sdk/src/Errors_constants.h
-    src/client/EvernoteService.h)
+    src/tools/Singleton.h
+    src/client/EvernoteServiceManager.h)
 
 qt4_wrap_cpp(${PROJECT_NAME}_HEADERS_MOC ${${PROJECT_NAME}_QT_HEADERS})
 
@@ -56,6 +58,7 @@ set(${PROJECT_NAME}_SOURCES
     src/evernote_sdk/src/Limits_constants.cpp
     src/evernote_sdk/src/Errors_types.cpp
     src/evernote_sdk/src/Errors_constants.cpp
+    src/client/EvernoteServiceManager.cpp
     main.cpp)
 
 set(FORMS
