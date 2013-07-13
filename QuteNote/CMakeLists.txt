@@ -37,7 +37,9 @@ set(${PROJECT_NAME}_HEADERS
     src/evernote_sdk/src/Errors_types.h
     src/evernote_sdk/src/Errors_constants.h
     src/tools/Singleton.h
-    src/client/EvernoteServiceManager.h)
+    src/client/EvernoteServiceManager.h
+    src/client/EvernoteServiceOAuthHandler.h
+    src/client/CredentialsModel.h)
 
 qt4_wrap_cpp(${PROJECT_NAME}_HEADERS_MOC ${${PROJECT_NAME}_QT_HEADERS})
 
@@ -59,6 +61,8 @@ set(${PROJECT_NAME}_SOURCES
     src/evernote_sdk/src/Errors_types.cpp
     src/evernote_sdk/src/Errors_constants.cpp
     src/client/EvernoteServiceManager.cpp
+    src/client/EvernoteServiceOAuthHandler.cpp
+    src/client/CredentialsModel.cpp
     main.cpp)
 
 set(FORMS

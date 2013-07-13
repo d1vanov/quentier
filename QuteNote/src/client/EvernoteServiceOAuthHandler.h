@@ -4,8 +4,8 @@
 #include <QObject>
 #include <QString>
 #include <QSettings>
+#include <kqoauthmanager.h>
 
-class KQOAuthManager;
 class KQOAuthRequest;
 
 class EvernoteServiceOAuthHandler: public QObject
@@ -15,16 +15,24 @@ public:
     explicit EvernoteServiceOAuthHandler(QObject * parent = nullptr);
     virtual ~EvernoteServiceOAuthHandler() override;
 
-    void getAccess();
+    bool getAccess(QString & errorMessage);
     void xauth();
+
+private:
+    void getKQOAuthManagerErrorDescription(const KQOAuthManager::KQOAuthError errorCode,
+                                           const char *& errorMessage) const;
 
 private slots:
     void onTemporaryTokenReceived(QString temporaryToken,
                                   QString temporaryTokenSecret);
     void onAuthorizationReceived(QString token, QString verifier);
     void onAccessTokenReceived(QString token, QString tokenSecret);
-    void onAuthorizedRequestDone();
-    void onRequestReady(QByteArray);
+    void onRequestReady(QByteArray response);
+
+private:
+    EvernoteServiceOAuthHandler() = delete;
+    EvernoteServiceOAuthHandler(const EvernoteServiceOAuthHandler & other) = delete;
+    EvernoteServiceOAuthHandler & operator=(const EvernoteServiceOAuthHandler & other) = delete;
 
 private:
     KQOAuthManager * m_pOAuthManager;
