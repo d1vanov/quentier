@@ -15,10 +15,16 @@
 
 EvernoteServiceOAuthHandler::EvernoteServiceOAuthHandler(QObject * parent) :
     QObject(parent),
+    m_manager(EvernoteServiceManager::Instance()),
     m_pOAuthManager(new KQOAuthManager(this)),
     m_pOAuthRequest(new KQOAuthRequest)
 {
     m_pOAuthRequest->setEnableDebugOutput(false);
+
+    QObject::connect(this, SIGNAL(accessGranted(std::pair<QString,QString>)),
+                     &m_manager, SLOT(onOAuthSuccess(std::pair<QString,QString>)));
+    QObject::connect(this, SIGNAL(accessDenied(QString)),
+                     &m_manager, SLOT(onOAuthFailure(QString)));
 }
 
 EvernoteServiceOAuthHandler::~EvernoteServiceOAuthHandler()
@@ -44,13 +50,13 @@ bool EvernoteServiceOAuthHandler::getAccess(QString & errorMessage)
                      this, SLOT(onRequestReady(QByteArray)));
 
     QString evernoteHostname;
-    EvernoteServiceManager::Instance().GetHostName(evernoteHostname);
+    m_manager.GetHostName(evernoteHostname);
 
     m_pOAuthRequest->initRequest(KQOAuthRequest::TemporaryCredentials,
                                  QUrl(evernoteHostname + QString("/oauth")));
-    const CredentialsModel & credentials = EvernoteServiceManager::Instance().getCredentials();
-    m_pOAuthRequest->setConsumerKey(QString(credentials.GetConsumerKey()));
-    m_pOAuthRequest->setConsumerSecretKey(QString(credentials.GetConsumerSecret()));
+    const CredentialsModel & credentials = m_manager.getCredentials();
+    m_pOAuthRequest->setConsumerKey(credentials.GetConsumerKey());
+    m_pOAuthRequest->setConsumerSecretKey(credentials.GetConsumerSecret());
 
     m_pOAuthManager->setHandleUserAuthorization(true);
 
@@ -69,44 +75,44 @@ void EvernoteServiceOAuthHandler::xauth()
                      this, SLOT(onAccessTokenReceived(QString,QString)));
 
     QString evernoteHostname;
-    EvernoteServiceManager::Instance().GetHostName(evernoteHostname);
+    m_manager.GetHostName(evernoteHostname);
 
     KQOAuthRequest_XAuth * pOAuthRequest = new KQOAuthRequest_XAuth(this);
     pOAuthRequest->initRequest(KQOAuthRequest::AccessToken,
                                QUrl(evernoteHostname + QString("/oauth")));
 
-    const CredentialsModel & credentials = EvernoteServiceManager::Instance().getCredentials();
+    const CredentialsModel & credentials = m_manager.getCredentials();
 
-    pOAuthRequest->setConsumerKey(QString(credentials.GetConsumerKey()));
-    pOAuthRequest->setConsumerSecretKey(QString(credentials.GetConsumerSecret()));
-    pOAuthRequest->setXAuthLogin(QString(credentials.GetUsername()),
-                                 QString(credentials.GetPassword()));
+    pOAuthRequest->setConsumerKey(credentials.GetConsumerKey());
+    pOAuthRequest->setConsumerSecretKey(credentials.GetConsumerSecret());
+    pOAuthRequest->setXAuthLogin(credentials.GetUsername(),
+                                 credentials.GetPassword());
 
     m_pOAuthManager->executeRequest(pOAuthRequest);
 }
 
 void EvernoteServiceOAuthHandler::getKQOAuthManagerErrorDescription(const KQOAuthManager::KQOAuthError errorCode,
-                                                                    const char *& errorMessage) const
+                                                                    QString & errorMessage) const
 {
     switch(errorCode)
     {
     case KQOAuthManager::NetworkError:
-        errorMessage = "network error";
+        errorMessage = tr("network error");
         break;
     case KQOAuthManager::RequestEndpointError:
-        errorMessage = "request endpoint error";
+        errorMessage = tr("request endpoint error");
         break;
     case KQOAuthManager::RequestValidationError:
-        errorMessage = "request is invalid";
+        errorMessage = tr("request is invalid");
         break;
     case KQOAuthManager::RequestUnauthorized:
-        errorMessage = "request is unauthorized";
+        errorMessage = tr("request is unauthorized");
         break;
     case KQOAuthManager::RequestError:
-        errorMessage = "request is invalid (NULL)";
+        errorMessage = tr("request is invalid (NULL)");
         break;
     case KQOAuthManager::ManagerError:
-        errorMessage = "KQOAuth manager error";
+        errorMessage = tr("KQOAuth manager error");
         break;
     case KQOAuthManager::NoError:
         break;
@@ -120,9 +126,9 @@ void EvernoteServiceOAuthHandler::onTemporaryTokenReceived(QString temporaryToke
              << ", token secret: " << temporaryTokenSecret;
 
     QString evernoteHostname;
-    EvernoteServiceManager::Instance().GetHostName(evernoteHostname);
+    m_manager.GetHostName(evernoteHostname);
 
-    QUrl userAuthURL(QString(evernoteHostname) + QString("/OAuth.action"));
+    QUrl userAuthURL(evernoteHostname + QString("/OAuth.action"));
 
     KQOAuthManager::KQOAuthError lastError = m_pOAuthManager->lastError();
     if (lastError == KQOAuthManager::NoError)
@@ -133,16 +139,12 @@ void EvernoteServiceOAuthHandler::onTemporaryTokenReceived(QString temporaryToke
     }
     else
     {
-        const char * errorMessage = nullptr;
-        std::stringstream strm;
-        strm << "Failed to get user authorization: ";
-
+        QString errorMessage;
         getKQOAuthManagerErrorDescription(lastError, errorMessage);
-        strm << errorMessage;
-        errorMessage = strm.str().c_str();
+        errorMessage.prepend(tr("Failed to get user authorization: "));
 
         qDebug() << errorMessage;
-        EvernoteServiceManager::Instance().notifyAuthorizationFailure(errorMessage);
+        emit accessDenied(errorMessage);
     }
 }
 
@@ -153,24 +155,20 @@ void EvernoteServiceOAuthHandler::onAuthorizationReceived(QString token,
              << ", verifier:: " << verifier;
 
     QString evernoteHostname;
-    EvernoteServiceManager::Instance().GetHostName(evernoteHostname);
+    m_manager.GetHostName(evernoteHostname);
 
-    QUrl userAuthURL(QString(evernoteHostname) + QString("/oauth"));
+    QUrl userAuthURL(evernoteHostname + QString("/oauth"));
 
     m_pOAuthManager->getUserAccessTokens(userAuthURL);
     KQOAuthManager::KQOAuthError lastError = m_pOAuthManager->lastError();
     if (lastError != KQOAuthManager::NoError)
     {
-        const char * errorMessage = nullptr;
-        std::stringstream strm;
-        strm << "Failed to get user access tokens: ";
-
+        QString errorMessage;
         getKQOAuthManagerErrorDescription(lastError, errorMessage);
-        strm << errorMessage;
-        errorMessage = strm.str().c_str();
+        errorMessage.prepend(tr("Failed to get user access tokens: "));
 
         qDebug() << errorMessage;
-        EvernoteServiceManager::Instance().notifyAuthorizationFailure(errorMessage);
+        emit accessDenied(errorMessage);
     }
 }
 
@@ -180,20 +178,18 @@ void EvernoteServiceOAuthHandler::onAccessTokenReceived(QString token,
     qDebug() << "Access token received: token: " << token
              << ", token secret: " << tokenSecret;
 
-    m_OAuthSettings.setValue("oauth_token", token);
-    m_OAuthSettings.setValue("oauth_token_secret", tokenSecret);
+    m_OAuthTokens.first = token;
+    m_OAuthTokens.second = tokenSecret;
 
-    EvernoteServiceManager::Instance().notifyAuthorizationSuccess(m_OAuthSettings);
+    emit accessGranted(m_OAuthTokens);
 }
 
 void EvernoteServiceOAuthHandler::onRequestReady(QByteArray response)
 {
     qDebug() << "Response from the service: " << response;
 
-    if (response == "") {
-        const char * error = "Got empty response from the server";
-        EvernoteServiceManager::Instance().notifyAuthorizationFailure(error);
+    if (response.isEmpty()) {
+        QString errorMessage = tr("Got empty response from the server");
+        emit accessDenied(errorMessage);
     }
 }
-
-// TODO: continue from here

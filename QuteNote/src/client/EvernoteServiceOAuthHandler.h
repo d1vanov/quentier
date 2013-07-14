@@ -3,8 +3,9 @@
 
 #include <QObject>
 #include <QString>
-#include <QSettings>
 #include <kqoauthmanager.h>
+
+class EvernoteServiceManager;
 
 class KQOAuthRequest;
 
@@ -20,7 +21,11 @@ public:
 
 private:
     void getKQOAuthManagerErrorDescription(const KQOAuthManager::KQOAuthError errorCode,
-                                           const char *& errorMessage) const;
+                                           QString & errorMessage) const;
+
+signals:
+    void accessGranted(std::pair<QString,QString> tokens);
+    void accessDenied(QString errorMessage);
 
 private slots:
     void onTemporaryTokenReceived(QString temporaryToken,
@@ -35,9 +40,10 @@ private:
     EvernoteServiceOAuthHandler & operator=(const EvernoteServiceOAuthHandler & other) = delete;
 
 private:
+    EvernoteServiceManager & m_manager;
     KQOAuthManager * m_pOAuthManager;
     KQOAuthRequest * m_pOAuthRequest;
-    QSettings m_OAuthSettings;
+    std::pair<QString,QString> m_OAuthTokens;
 };
 
 #endif // __QUTE_NOTE__EVERNOTE_SERVICE_OAUTH_HANDLER_H

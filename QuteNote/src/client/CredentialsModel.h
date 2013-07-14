@@ -1,16 +1,19 @@
 #ifndef __QUTE_NOTE__CLIENT__CREDENTIALS_MODEL_H
 #define __QUTE_NOTE__CLIENT__CREDENTIALS_MODEL_H
 
+#include <QObject>
 #include <QString>
 
-class CredentialsModel
+class CredentialsModel: public QObject
 {
+    Q_OBJECT
 public:
-    CredentialsModel() {}
+    explicit CredentialsModel(QObject * parent = nullptr) : QObject(parent) {}
     CredentialsModel(const QString & username,
                      const QString & password,
                      const QString & consumerKey,
-                     const QString & consumerSecret);
+                     const QString & consumerSecret,
+                     QObject * parent = nullptr);
     CredentialsModel(const CredentialsModel & other);
     CredentialsModel & operator=(const CredentialsModel & other);
 
@@ -19,7 +22,7 @@ public:
     const QString GetConsumerKey() const { return m_consumerKey; }
     const QString GetConsumerSecret() const { return m_consumerSecret; }
 
-    bool Empty(const char *& errorMessage) const;
+    bool Empty(QString & errorMessage) const;
 
 private:
     QString m_username;

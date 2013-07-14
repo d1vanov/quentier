@@ -1,10 +1,11 @@
 #include "CredentialsModel.h"
-#include <sstream>
 
 CredentialsModel::CredentialsModel(const QString & username,
                                    const QString & password,
                                    const QString & consumerKey,
-                                   const QString & consumerSecret) :
+                                   const QString & consumerSecret,
+                                   QObject * parent) :
+    QObject(parent),
     m_username(username),
     m_password(password),
     m_consumerKey(consumerKey),
@@ -31,33 +32,32 @@ CredentialsModel & CredentialsModel::operator=(const CredentialsModel & other)
     return *this;
 }
 
-bool CredentialsModel::Empty(const char *& errorMessage) const
+bool CredentialsModel::Empty(QString & errorMessage) const
 {
-    std::stringstream strm;
     bool somethingIsEmpty = false;
+    errorMessage.clear();
 
     if (m_username.isEmpty()) {
-        strm << "Username is empty. ";
+        errorMessage.append(tr("Username is empty. "));
         somethingIsEmpty = true;
     }
 
     if (m_password.isEmpty()) {
-        strm << "Password is empty. ";
+        errorMessage.append(tr("Password is empty. "));
         somethingIsEmpty = true;
     }
 
     if (m_consumerKey.isEmpty()) {
-        strm << "Consumer key is empty. ";
+        errorMessage.append(tr("Consumer key is empty. "));
         somethingIsEmpty = true;
     }
 
     if (m_consumerSecret.isEmpty()) {
-        strm << "Consumer secret is empty. ";
+        errorMessage.append(tr("Consumer secret is empty. "));
         somethingIsEmpty = true;
     }
 
     if (somethingIsEmpty) {
-        errorMessage = strm.str().c_str();
         return true;
     }
 

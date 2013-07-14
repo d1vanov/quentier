@@ -1,8 +1,6 @@
 #ifndef __QUTE_NOTE__TOOLS__SINGLETON_H
 #define __QUTE_NOTE__TOOLS__SINGLETON_H
 
-namespace qutenote_tools {
-
 /**
  * @brief Primitive but effective and thread-safe since C++11
  * implementation of singleton pattern
@@ -26,9 +24,7 @@ private:
     Singleton() = delete;
     ~Singleton() = delete;
     Singleton(const Singleton & other) = delete;
-    Singleton& operator=(const Singleton&) = delete;
+    Singleton & operator=(const Singleton & other) = delete;
 };
-
-} // namespace qutenote_tools
 
 #endif // __QUTE_NOTE__TOOLS__SINGLETON_H
