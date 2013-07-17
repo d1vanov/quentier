@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(QuteNote)
 
-find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED)
+find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork QtWebkit REQUIRED)
 include_directories(${QT_INCLUDES})
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})

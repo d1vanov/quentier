@@ -1,5 +1,6 @@
 #include "EvernoteServiceManager.h"
 #include "../tools/Singleton.h"
+#include <QWebView>
 
 EvernoteServiceManager::EvernoteServiceManager()
 {
@@ -49,4 +50,12 @@ bool EvernoteServiceManager::CheckAuthenticationState(QString & errorMessage) co
 void EvernoteServiceManager::GetHostName(QString & hostname) const
 {
     hostname = m_evernoteHostName;
+}
+
+void EvernoteServiceManager::onRequestToShowAuthorizationPage(QUrl authUrl)
+{
+    // TODO: rethink: maybe gui should handle this?
+    QWebView evernoteWebView;
+    evernoteWebView.load(authUrl);
+    evernoteWebView.show();
 }

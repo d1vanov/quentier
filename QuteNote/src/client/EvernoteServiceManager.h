@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QUrl>
 #include "../tools/Singleton.h"
 #include "CredentialsModel.h"
 
@@ -43,6 +44,7 @@ signals:
 public slots:
     void onOAuthSuccess(std::pair<QString,QString>) { /* TODO: implement */ }
     void onOAuthFailure(QString) { /* TODO: implement */ }
+    void onRequestToShowAuthorizationPage(QUrl authUrl);
 
 private:
     EvernoteServiceManager(const EvernoteServiceManager & other) = delete;

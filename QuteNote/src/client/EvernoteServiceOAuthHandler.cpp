@@ -20,20 +20,30 @@ EvernoteServiceOAuthHandler::EvernoteServiceOAuthHandler(QObject * parent) :
     m_pOAuthRequest(new KQOAuthRequest)
 {
     m_pOAuthRequest->setEnableDebugOutput(false);
+    m_pOAuthManager->setHandleUserAuthorization(true);
+    m_pOAuthManager->setHandleAuthorizationPageOpening(false);
 
     QObject::connect(this, SIGNAL(accessGranted(std::pair<QString,QString>)),
                      &m_manager, SLOT(onOAuthSuccess(std::pair<QString,QString>)));
     QObject::connect(this, SIGNAL(accessDenied(QString)),
                      &m_manager, SLOT(onOAuthFailure(QString)));
+    QObject::connect(m_pOAuthManager, SIGNAL(authorizationPageRequested(QUrl)),
+                     &m_manager, SLOT(onRequestToShowAuthorizationPage(QUrl)));
 }
 
 EvernoteServiceOAuthHandler::~EvernoteServiceOAuthHandler()
 {
     if (m_pOAuthRequest != nullptr) {
         delete m_pOAuthRequest;
+        m_pOAuthRequest = nullptr;
     }
 
     if (m_pOAuthManager != nullptr) {
+        m_pOAuthManager->disconnect(this, SLOT(onTemporaryTokenReceived(QString,QString)));
+        m_pOAuthManager->disconnect(this, SLOT(onAuthorizationReceived(QString,QString)));
+        m_pOAuthManager->disconnect(this, SLOT(onAccessTokenReceived(QString,QString)));
+        m_pOAuthManager->disconnect(this, SLOT(onRequestReady(QByteArray)));
+        m_pOAuthManager->disconnect(&m_manager, SLOT(onRequestToShowAuthorizationPage(QUrl)));
         delete m_pOAuthManager;
     }
 }
