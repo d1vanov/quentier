@@ -36,7 +36,11 @@ class TAsyncProtocolProcessor : public TAsyncBufferProcessor {
   {}
 
   virtual void process(
+#ifndef __MACH__
       std::tr1::function<void(bool healthy)> _return,
+#else
+      std::function<void(bool healthy)> _return,
+#endif
       boost::shared_ptr<apache::thrift::transport::TBufferBase> ibuf,
       boost::shared_ptr<apache::thrift::transport::TBufferBase> obuf);
 
@@ -44,7 +48,12 @@ class TAsyncProtocolProcessor : public TAsyncBufferProcessor {
 
  private:
   static void finish(
+#ifndef __MACH__
       std::tr1::function<void(bool healthy)> _return,
+#else
+      std::function<void(bool healthy)> _return,
+#endif
+
       boost::shared_ptr<apache::thrift::protocol::TProtocol> oprot,
       bool healthy);
 

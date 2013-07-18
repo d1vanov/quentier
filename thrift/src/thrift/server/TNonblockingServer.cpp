@@ -1122,7 +1122,11 @@ void TNonblockingServer::listenSocket(int s) {
 void TNonblockingServer::setThreadManager(boost::shared_ptr<ThreadManager> threadManager) {
   threadManager_ = threadManager;
   if (threadManager != NULL) {
+#ifndef __MACH__
     threadManager->setExpireCallback(std::tr1::bind(&TNonblockingServer::expireClose, this, std::tr1::placeholders::_1));
+#else
+    threadManager->setExpireCallback(std::bind(&TNonblockingServer::expireClose, this, std::placeholders::_1));
+#endif
     threadPoolProcessing_ = true;
   } else {
     threadPoolProcessing_ = false;

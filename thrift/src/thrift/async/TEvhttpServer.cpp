@@ -116,11 +116,19 @@ void TEvhttpServer::request(struct evhttp_request* req, void* self) {
 void TEvhttpServer::process(struct evhttp_request* req) {
   RequestContext* ctx = new RequestContext(req);
   return processor_->process(
+#ifndef __MACH__
       std::tr1::bind(
+#else
+      std::bind(
+#endif
         &TEvhttpServer::complete,
         this,
         ctx,
+#ifndef __MACH__
         std::tr1::placeholders::_1),
+#else
+        std::placeholders::_1),
+#endif
       ctx->ibuf,
       ctx->obuf);
 }

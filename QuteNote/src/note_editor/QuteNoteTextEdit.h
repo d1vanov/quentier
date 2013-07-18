@@ -2,7 +2,6 @@
 #define __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H
 
 #include <QTextEdit>
-#include<qt4/QtGui/QTextEdit>
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QImage)

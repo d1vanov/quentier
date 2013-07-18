@@ -372,7 +372,7 @@ class TFileTransport : public TFileReaderTransport,
 
   // writer thread id
 #ifdef USE_BOOST_THREAD
-    std::shared_ptr<boost::thread> writerThreadId_;
+    boost::shared_ptr<boost::thread> writerThreadId_;
 #else
 	pthread_t writerThreadId_;
 #endif

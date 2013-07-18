@@ -21,7 +21,11 @@
 #define _THRIFT_CONCURRENCY_THREADMANAGER_H_ 1
 
 #include <boost/shared_ptr.hpp>
+#ifndef __MACH__
 #include <tr1/functional>
+#else
+#include <functional>
+#endif
 #include <sys/types.h>
 #include "Thread.h"
 
@@ -58,7 +62,13 @@ class ThreadManager {
 
  public:
   class Task;
+  
+#ifndef __MACH__
   typedef std::tr1::function<void(boost::shared_ptr<Runnable>)> ExpireCallback;
+#else
+  typedef std::function<void(boost::shared_ptr<Runnable>)> ExpireCallback;
+#endif
+
 
   virtual ~ThreadManager() {}
 

@@ -20,7 +20,11 @@
 #ifndef _THRIFT_ASYNC_TASYNCCHANNEL_H_
 #define _THRIFT_ASYNC_TASYNCCHANNEL_H_ 1
 
+#ifndef __MACH__
 #include <tr1/functional>
+#else
+#include <functional>
+#endif
 #include <thrift/Thrift.h>
 
 namespace apache { namespace thrift { namespace transport {
@@ -32,7 +36,11 @@ using apache::thrift::transport::TMemoryBuffer;
 
 class TAsyncChannel {
  public:
-  typedef std::tr1::function<void()> VoidCallback;
+#ifndef __MACH__
+ typedef std::tr1::function<void()> VoidCallback;
+#else
+ typedef std::function<void()> VoidCallback;
+#endif
 
   virtual ~TAsyncChannel() {}
 

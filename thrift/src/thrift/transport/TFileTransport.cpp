@@ -27,11 +27,28 @@
 #ifdef HAVE_PTHREAD_H
 #include <pthread.h>
 #endif
+
+#ifdef __MACH__
+#include <sys/time.h>
+//clock_gettime is not implemented on OSX
+inline int clock_gettime(int /*clk_id*/, struct timespec* t) {
+    struct timeval now;
+    int rv = gettimeofday(&now, NULL);
+    if (rv) return rv;
+    t->tv_sec  = now.tv_sec;
+    t->tv_nsec = now.tv_usec * 1000;
+    return 0;
+}
+#define CLOCK_REALTIME 0
+#define CLOCK_MONOTONIC 0
+#else
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #else
 #include <time.h>
 #endif
+#endif
+
 #include <fcntl.h>
 #include <errno.h>
 #ifdef HAVE_UNISTD_H

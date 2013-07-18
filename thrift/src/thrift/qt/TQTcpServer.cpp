@@ -22,7 +22,11 @@
 
 #include <QTcpSocket>
 
+#ifndef __MACH__
 #include <tr1/functional>
+#else
+#include <functional>
+#endif
 
 #include <thrift/protocol/TProtocol.h>
 #include <thrift/async/TAsyncProcessor.h>
@@ -33,8 +37,13 @@ using apache::thrift::protocol::TProtocolFactory;
 using apache::thrift::transport::TTransport;
 using apache::thrift::transport::TTransportException;
 using apache::thrift::transport::TQIODeviceTransport;
+#ifndef __MACH__
 using std::tr1::function;
 using std::tr1::bind;
+#else
+using std::function;
+using std::bind;
+#endif
 
 QT_USE_NAMESPACE
 
@@ -120,8 +129,13 @@ void TQTcpServer::beginDecode()
   
   try {
     processor_->process(
+#ifndef __MACH__
       bind(&TQTcpServer::finish, this,
            ctx, std::tr1::placeholders::_1),
+#else
+      bind(&TQTcpServer::finish, this,
+           ctx, std::placeholders::_1),
+#endif
       ctx->iprot_, ctx->oprot_);
   } catch(const TTransportException& ex) {
     qWarning("[TQTcpServer] TTransportException during processing: '%s'",

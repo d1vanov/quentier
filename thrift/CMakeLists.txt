@@ -151,7 +151,9 @@ else()
   message(FATAL_ERROR "Event library not found")
 endif()
 
-find_package(Boost COMPONENTS thread REQUIRED)
+find_package(Boost COMPONENTS thread system REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(Zlib REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${QT_INCLUDES})
 add_definitions(-DVERSION=0.9 -DUSE_BOOST_THREAD)
@@ -269,10 +271,13 @@ set(SOURCES
     src/thrift/async/TAsyncChannel.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} ${EVENT_LIBRARY} ${QT_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${EVENT_LIBRARY} ${QT_LIBRARIES} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES})
 
 if(${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -D__STRICT_ANSI__")
+  if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  endif()
 endif()

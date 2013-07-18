@@ -25,22 +25,40 @@ using apache::thrift::protocol::TProtocol;
 namespace apache { namespace thrift { namespace async {
 
 void TAsyncProtocolProcessor::process(
+#ifndef __MACH__
     std::tr1::function<void(bool healthy)> _return,
+#else
+    std::function<void(bool healthy)> _return,
+#endif
+
     boost::shared_ptr<TBufferBase> ibuf,
     boost::shared_ptr<TBufferBase> obuf) {
   boost::shared_ptr<TProtocol> iprot(pfact_->getProtocol(ibuf));
   boost::shared_ptr<TProtocol> oprot(pfact_->getProtocol(obuf));
   return underlying_->process(
+#ifndef __MACH__
       std::tr1::bind(
+#else
+      std::bind(
+#endif
         &TAsyncProtocolProcessor::finish,
         _return,
         oprot,
+#ifndef __MACH__
         std::tr1::placeholders::_1),
+#else
+        std::placeholders::_1),
+#endif
       iprot, oprot);
 }
 
 /* static */ void TAsyncProtocolProcessor::finish(
+#ifndef __MACH__
     std::tr1::function<void(bool healthy)> _return,
+#else
+    std::function<void(bool healthy)> _return,
+#endif
+
     boost::shared_ptr<TProtocol> oprot,
     bool healthy) {
   (void) oprot;

@@ -20,7 +20,11 @@
 #ifndef _THRIFT_TASYNCPROCESSOR_H_
 #define _THRIFT_TASYNCPROCESSOR_H_ 1
 
+#ifndef __MACH__
 #include <tr1/functional>
+#else
+#include <functional>
+#endif
 #include <boost/shared_ptr.hpp>
 #include <thrift/protocol/TProtocol.h>
 #include <thrift/TProcessor.h>
@@ -38,12 +42,23 @@ class TAsyncProcessor {
  public:
   virtual ~TAsyncProcessor() {}
 
+#ifndef __MACH__
   virtual void process(std::tr1::function<void(bool success)> _return,
                        boost::shared_ptr<protocol::TProtocol> in,
                        boost::shared_ptr<protocol::TProtocol> out) = 0;
+#else
+  virtual void process(std::function<void(bool success)> _return,
+                       boost::shared_ptr<protocol::TProtocol> in,
+                       boost::shared_ptr<protocol::TProtocol> out) = 0;
+#endif
 
+#ifndef __MACH__
   void process(std::tr1::function<void(bool success)> _return,
                boost::shared_ptr<apache::thrift::protocol::TProtocol> io) {
+#else
+  void process(std::function<void(bool success)> _return,
+               boost::shared_ptr<apache::thrift::protocol::TProtocol> io) {
+#endif
     return process(_return, io, io);
   }
 
