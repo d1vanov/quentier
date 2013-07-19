@@ -153,7 +153,7 @@ endif()
 
 find_package(Boost COMPONENTS thread system REQUIRED)
 find_package(OpenSSL REQUIRED)
-find_package(Zlib REQUIRED)
+find_package(ZLIB REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${QT_INCLUDES})
 add_definitions(-DVERSION=0.9 -DUSE_BOOST_THREAD)
