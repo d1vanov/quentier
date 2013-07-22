@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(kqoauth)
 
 find_package(Qt4 COMPONENTS QtCore QtNetwork QtWebkit REQUIRED)
-include_directories(${QT_INCLUDES})
+include_directories(SYSTEM "${QT_INCLUDES} ${SYSTEM}")
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 add_definitions("-DKQOAUTH")
@@ -38,3 +38,9 @@ add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_SOURCES})
 
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -isystem${QT_USE_FILE} -Wno-uninitialized")
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -isystem${QT_USE_FILE} -Wno-uninitialized")
+endif()

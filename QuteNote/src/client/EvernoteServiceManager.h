@@ -4,8 +4,10 @@
 #include <QObject>
 #include <QString>
 #include <QUrl>
-#include "../tools/Singleton.h"
 #include "CredentialsModel.h"
+
+template <class T>
+class Singleton;
 
 class EvernoteServiceManager: public QObject
 {
@@ -31,8 +33,6 @@ public:
     CredentialsModel & getCredentials() { return m_credentials; }
     const CredentialsModel & getCredentials() const { return m_credentials; }
 
-
-
     bool CheckAuthenticationState(QString & errorMessage) const;
 
     void GetHostName(QString & hostname) const;
@@ -42,8 +42,8 @@ signals:
     void authorizationFailure(QString errorMessage);
 
 public slots:
-    void onOAuthSuccess(std::pair<QString,QString>) { /* TODO: implement */ }
-    void onOAuthFailure(QString) { /* TODO: implement */ }
+    void onOAuthSuccess(std::pair<QString,QString>);
+    void onOAuthFailure(QString message);
     void onRequestToShowAuthorizationPage(QUrl authUrl);
 
 private:

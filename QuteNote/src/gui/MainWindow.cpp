@@ -1,13 +1,21 @@
 #include "MainWindow.h"
 #include "NoteEditorWidget.h"
 #include "ui_MainWindow.h"
+#include "../tools/Singleton.h"
 #include <cmath>
 #include <QPushButton>
+#include <QLabel>
 #include <QtDebug>
+
+MainWindow & MainWindow::Instance()
+{
+    return Singleton<MainWindow>::Instance();
+}
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
-    m_pUI(new Ui::MainWindow)
+    m_pUI(new Ui::MainWindow),
+    m_currentStatusBarChildWidget(nullptr)
 {
     Q_CHECK_PTR(m_pUI);
     m_pUI->setupUi(this);
@@ -16,7 +24,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
 MainWindow::~MainWindow()
 {
-    delete m_pUI;
+    if (m_pUI != nullptr) {
+        delete m_pUI;
+        m_pUI = nullptr;
+    }
 }
 
 void MainWindow::SetDefaultLayoutSettings()
@@ -146,6 +157,24 @@ void MainWindow::ConnectActionsToEditorSlots()
                      pNotesEditor, SLOT(textInsertUnorderedList()));
     QObject::connect(m_pUI->ActionInsertNumberedList, SIGNAL(triggered()),
                      pNotesEditor, SLOT(textInsertOrderedList()));
+}
+
+void MainWindow::setStatusBarText(QString message, const int duration)
+{
+    QStatusBar * pStatusBar = m_pUI->statusBar;
+
+    if (m_currentStatusBarChildWidget != nullptr) {
+        pStatusBar->removeWidget(m_currentStatusBarChildWidget);
+        m_currentStatusBarChildWidget = nullptr;
+    }
+
+    if (duration == 0) {
+        m_currentStatusBarChildWidget = new QLabel(message);
+        pStatusBar->addWidget(m_currentStatusBarChildWidget);
+    }
+    else {
+        pStatusBar->showMessage(message, duration);
+    }
 }
 
 void MainWindow::textBold()

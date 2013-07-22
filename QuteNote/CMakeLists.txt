@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(QuteNote)
 
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork QtWebkit REQUIRED)
-include_directories(${QT_INCLUDES})
+include_directories(SYSTEM "${QT_INCLUDES} ${SYSTEM}")
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
@@ -105,7 +105,7 @@ target_link_libraries(${PROJECT_NAME}
                       ${OPENSSL_LIBRARIES})
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -isystem${QT_USE_FILE} -Wno-uninitialized")
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -isystem${QT_USE_FILE} -Wno-uninitialized")
 endif()

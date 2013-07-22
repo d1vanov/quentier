@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 
+template <class T>
+class Singleton;
+
 namespace Ui {
 class MainWindow;
 }
@@ -12,6 +15,10 @@ class MainWindow : public QMainWindow
     Q_OBJECT
     
 public:
+    static MainWindow & Instance();
+    friend class Singleton<MainWindow>;
+
+private:
     explicit MainWindow(QWidget * pParentWidget = nullptr);
     ~MainWindow();
     
@@ -28,6 +35,9 @@ private:
 
     void ConnectActionsToEditorSlots();
 
+public slots:
+    void setStatusBarText(QString message, const int duration = 0);
+
 private slots:
     void textBold();
     void textItalic();
@@ -36,6 +46,7 @@ private slots:
 
 private:
     Ui::MainWindow * m_pUI;
+    QWidget * m_currentStatusBarChildWidget;
 };
 
 #endif // __QUTE_NOTE__MAINWINDOW_H
