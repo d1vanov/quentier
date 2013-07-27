@@ -9,11 +9,11 @@ class MainWindow;
 
 QT_FORWARD_DECLARE_CLASS(EvernoteOAuthBrowser)
 QT_FORWARD_DECLARE_CLASS(QUrl)
+QT_FORWARD_DECLARE_CLASS(AskConsumerKeyAndSecret)
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    
 public:
     explicit MainWindow(QWidget * pParentWidget = nullptr);
     virtual ~MainWindow() final;
@@ -33,6 +33,9 @@ private:
 
     void ConnectActionsToEditorSlots();
 
+    void CheckAndSetupConsumerKeyAndSecret();
+    void CheckAndSetupUserLoginAndPassword();
+
 public slots:
     void onSetStatusBarText(QString message, const int duration = 0);
     void onShowAuthWebPage(QUrl url);
@@ -45,6 +48,7 @@ private slots:
 
 private:
     Ui::MainWindow * m_pUI;
+    AskConsumerKeyAndSecret * m_pAskConsumerKeyAndSecretWidget;
     QWidget * m_currentStatusBarChildWidget;
     EvernoteOAuthBrowser * m_pBrowser;
 };

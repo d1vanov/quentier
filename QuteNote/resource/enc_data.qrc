@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>enc_data/consks.dat</file>
+        <file>enc_data/ulp.dat</file>
+        <file>enc_data/oautk.dat</file>
+    </qresource>
+</RCC>

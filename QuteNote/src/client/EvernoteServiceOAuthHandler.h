@@ -24,7 +24,7 @@ private:
                                            QString & errorMessage) const;
 
 signals:
-    void accessGranted(std::pair<QString,QString> tokens);
+    void accessGranted(QString key, QString secret);
     void accessDenied(QString errorMessage);
 
 private slots:
@@ -43,7 +43,8 @@ private:
     EvernoteServiceManager & m_manager;
     KQOAuthManager * m_pOAuthManager;
     KQOAuthRequest * m_pOAuthRequest;
-    std::pair<QString,QString> m_OAuthTokens;
+    QString m_OAuthKey;
+    QString m_OAuthSecret;
 };
 
 #endif // __QUTE_NOTE__EVERNOTE_SERVICE_OAUTH_HANDLER_H

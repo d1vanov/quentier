@@ -2,18 +2,27 @@
 #include "NoteEditorWidget.h"
 #include "ui_MainWindow.h"
 #include "EvernoteOAuthBrowser.h"
+#include "../client/EvernoteServiceManager.h"
+#include "AskConsumerKeyAndSecret.h"
+#include "../SimpleCrypt/src/simplecrypt.h"
+#include "../client/CredentialsModel.h"
 #include <cmath>
 #include <QPushButton>
 #include <QLabel>
+#include <QFile>
+#include <QMessageBox>
 #include <QtDebug>
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
+    m_pAskConsumerKeyAndSecretWidget(new AskConsumerKeyAndSecret(this)),
     m_currentStatusBarChildWidget(nullptr),
     m_pBrowser(new EvernoteOAuthBrowser(this))
 {
     Q_CHECK_PTR(m_pUI);
+    Q_CHECK_PTR(m_pAskConsumerKeyAndSecretWidget);
+
     m_pUI->setupUi(this);
     ConnectActionsToEditorSlots();
 
@@ -22,6 +31,17 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
                      this, SLOT(onSetStatusBarText(QString,int)));
     QObject::connect(&manager, SIGNAL(showAuthWebPage(QUrl)),
                      this, SLOT(onShowAuthWebPage(QUrl)));
+    QObject::connect(m_pAskConsumerKeyAndSecretWidget,
+                     SIGNAL(consumerKeyAndSecretEntered(QString,QString)),
+                     &manager, SLOT(onConsumerKeyAndSecretSet(QString,QString)));
+
+    QObject::connect(m_pAskConsumerKeyAndSecretWidget,
+                     SIGNAL(cancelled(QString)),
+                     this, SLOT(onSetStatusBarText(QString)));
+
+    CheckAndSetupConsumerKeyAndSecret();
+    CheckAndSetupUserLoginAndPassword();
+    manager.connect();
 }
 
 MainWindow::~MainWindow()
@@ -164,6 +184,54 @@ void MainWindow::ConnectActionsToEditorSlots()
                      pNotesEditor, SLOT(textInsertUnorderedList()));
     QObject::connect(m_pUI->ActionInsertNumberedList, SIGNAL(triggered()),
                      pNotesEditor, SLOT(textInsertOrderedList()));
+}
+
+void MainWindow::CheckAndSetupConsumerKeyAndSecret()
+{
+    bool needToAskUserForKeyAndSecret = false;
+
+    QFile consumerKeyAndSecretFile(":/enc_data/consks.dat");
+
+    if (!consumerKeyAndSecretFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::information(0, "Error: cannot open file with consumer key and secret: ",
+                                 consumerKeyAndSecretFile.errorString());
+        needToAskUserForKeyAndSecret = true;
+    }
+
+    if (!needToAskUserForKeyAndSecret)
+    {
+        QTextStream textStream(&consumerKeyAndSecretFile);
+        QString consumerKeyEncrypted = textStream.readLine();
+        QString consumerSecretEncrypted = textStream.readLine();
+
+        if (consumerKeyEncrypted.isEmpty() || consumerSecretEncrypted.isEmpty())
+        {
+            needToAskUserForKeyAndSecret = true;
+        }
+        else
+        {
+            SimpleCrypt crypto(CredentialsModel::RANDOM_CRYPTO_KEY);
+            QString consumerKeyDecrypted = crypto.decryptToString(consumerKeyEncrypted);
+            QString consumerSecretDecrypted = crypto.decryptToString(consumerSecretEncrypted);
+
+            EvernoteServiceManager & manager = EvernoteServiceManager::Instance();
+            CredentialsModel & credentials = manager.getCredentials();
+            credentials.SetConsumerKey(consumerKeyDecrypted);
+            credentials.SetConsumerSecret(consumerSecretDecrypted);
+            // Don't try to set credentials here as user name and password are likely missing
+        }
+    }
+
+    if (needToAskUserForKeyAndSecret)
+    {
+        Q_CHECK_PTR(m_pAskConsumerKeyAndSecretWidget);
+        m_pAskConsumerKeyAndSecretWidget->show();
+    }
+}
+
+void MainWindow::CheckAndSetupUserLoginAndPassword()
+{
+    // TODO: implement
 }
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)

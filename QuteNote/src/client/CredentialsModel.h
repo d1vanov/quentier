@@ -22,7 +22,14 @@ public:
     const QString GetConsumerKey() const { return m_consumerKey; }
     const QString GetConsumerSecret() const { return m_consumerSecret; }
 
+    void SetUsername(const QString & username) { m_username = username; }
+    void SetPassword(const QString & password) { m_password = password; }
+    void SetConsumerKey(const QString & consumerKey) { m_consumerKey = consumerKey; }
+    void SetConsumerSecret(const QString & consumerSecret) { m_consumerSecret = consumerSecret; }
+
     bool Empty(QString & errorMessage) const;
+
+    static const unsigned long long RANDOM_CRYPTO_KEY = 0x44bb133f85f412e2;
 
 private:
     QString m_username;

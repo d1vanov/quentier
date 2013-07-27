@@ -1,7 +1,20 @@
 #include "EvernoteServiceManager.h"
 #include "../gui/MainWindow.h"
-#include "../tools/Singleton.h"
 #include "../gui/EvernoteOAuthBrowser.h"
+#include "../tools/Singleton.h"
+#include "../../SimpleCrypt/src/simplecrypt.h"
+#include <QFile>
+#include <QMessageBox>
+
+void EvernoteServiceManager::connect()
+{
+    // TODO: implement
+}
+
+void EvernoteServiceManager::disconnect()
+{
+    // TODO: implement
+}
 
 EvernoteServiceManager::EvernoteServiceManager() :
     m_credentials(this),
@@ -54,18 +67,48 @@ void EvernoteServiceManager::GetHostName(QString & hostname) const
     hostname = m_evernoteHostName;
 }
 
-void EvernoteServiceManager::onOAuthSuccess(std::pair<QString, QString>)
+void EvernoteServiceManager::onOAuthSuccess(QString key, QString secret)
 {
-    // TODO: store this information encrypted in an external file
+    SimpleCrypt crypto(CredentialsModel::RANDOM_CRYPTO_KEY);
+    QString encryptedKey = crypto.encryptToString(key);
+    QString encryptedSecret = crypto.encryptToString(secret);
+    QFile tokensFile(":/enc_data/oautk.dat");
+    if (!tokensFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::information(0, tr("Error: cannot open file with OAuth tokens: "),
+                                 tokensFile.errorString());
+        m_authorizationState = EAS_UNAUTHORIZED_INTERNAL_ERROR;
+        emit statusText(tr("Got OAuth tokens but unable to save them encrypted in file"), 0);
+        return;
+    }
+
+    tokensFile.write(encryptedKey.toAscii());
+    tokensFile.write(encryptedSecret.toAscii());
+    tokensFile.close();
+
+    m_authorizationState = EAS_AUTHORIZED;
     emit statusText("Successfully authenticated to Evernote!", 2000);
 }
 
 void EvernoteServiceManager::onOAuthFailure(QString message)
 {
+    // TODO: think twice how should I deduce the state here
+    m_authorizationState = EAS_UNAUTHORIZED_CREDENTIALS_REJECTED;
     emit statusText("Unable to authenticate to Evernote: " + message, 0);
 }
 
 void EvernoteServiceManager::onRequestToShowAuthorizationPage(QUrl authUrl)
 {
     emit showAuthWebPage(authUrl);
+}
+
+void EvernoteServiceManager::onConsumerKeyAndSecretSet(QString key, QString secret)
+{
+    m_credentials.SetConsumerKey(key);
+    m_credentials.SetConsumerSecret(secret);
+}
+
+void EvernoteServiceManager::onUserNameAndPasswordSet(QString name, QString password)
+{
+    m_credentials.SetUsername(name);
+    m_credentials.SetPassword(password);
 }

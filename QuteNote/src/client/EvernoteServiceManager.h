@@ -16,9 +16,18 @@ class EvernoteServiceManager: public QObject
     Q_OBJECT
 public:
     // User interface
-    bool authenticate(QString & errorMessage);
-    bool connectToService(QString & errorMessage);
-    void disconnectFromService();
+
+    /**
+     * @brief connect - attempts to connect to Evernote service using
+     * prespecified credentials and obtained OAuth tokens. Emits
+     * statusText in case of both success and failure
+     */
+    void connect();
+
+    /**
+     * @brief disconnect - disconnects from Evernote service. Emits statusText.
+     */
+    void disconnect();
 
 private:
     // standard constructor does nothing but exists as private method
@@ -40,15 +49,15 @@ public:
     void GetHostName(QString & hostname) const;
 
 signals:
-    void authorizationSuccess(std::pair<QString,QString> authorizationTokens);
-    void authorizationFailure(QString errorMessage);
     void statusText(QString, const int);
     void showAuthWebPage(QUrl);
 
 public slots:
-    void onOAuthSuccess(std::pair<QString,QString>);
+    void onOAuthSuccess(QString key, QString secret);
     void onOAuthFailure(QString message);
     void onRequestToShowAuthorizationPage(QUrl authUrl);
+    void onConsumerKeyAndSecretSet(QString key, QString secret);
+    void onUserNameAndPasswordSet(QString name, QString password);
 
 private:
     EvernoteServiceManager(const EvernoteServiceManager & other) = delete;

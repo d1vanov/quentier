@@ -24,8 +24,8 @@ EvernoteServiceOAuthHandler::EvernoteServiceOAuthHandler(QObject * parent) :
     m_pOAuthManager->setHandleUserAuthorization(true);
     m_pOAuthManager->setHandleAuthorizationPageOpening(false);
 
-    QObject::connect(this, SIGNAL(accessGranted(std::pair<QString,QString>)),
-                     &m_manager, SLOT(onOAuthSuccess(std::pair<QString,QString>)));
+    QObject::connect(this, SIGNAL(accessGranted(QString, QString)),
+                     &m_manager, SLOT(onOAuthSuccess(QString, QString)));
     QObject::connect(this, SIGNAL(accessDenied(QString)),
                      &m_manager, SLOT(onOAuthFailure(QString)));
     QObject::connect(m_pOAuthManager, SIGNAL(authorizationPageRequested(QUrl)),
@@ -189,10 +189,10 @@ void EvernoteServiceOAuthHandler::onAccessTokenReceived(QString token,
     qDebug() << "Access token received: token: " << token
              << ", token secret: " << tokenSecret;
 
-    m_OAuthTokens.first = token;
-    m_OAuthTokens.second = tokenSecret;
+    m_OAuthKey = token;
+    m_OAuthSecret = tokenSecret;
 
-    emit accessGranted(m_OAuthTokens);
+    emit accessGranted(m_OAuthKey, m_OAuthSecret);
 }
 
 void EvernoteServiceOAuthHandler::onRequestReady(QByteArray response)

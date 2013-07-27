@@ -30,6 +30,7 @@ include_directories(${QuteNoteProject_SOURCE_DIR}/thrift/src
 set(${PROJECT_NAME}_QT_HEADERS
     src/gui/MainWindow.h
     src/gui/NoteEditorWidget.h
+    src/gui/AskConsumerKeyAndSecret.h
     src/gui/EvernoteOAuthBrowser.h
     src/note_editor/ToDoCheckboxTextObject.h
     src/note_editor/HorizontalLineExtraData.h
@@ -58,6 +59,7 @@ qt4_wrap_cpp(${PROJECT_NAME}_HEADERS_MOC ${${PROJECT_NAME}_QT_HEADERS})
 set(${PROJECT_NAME}_SOURCES
     src/gui/MainWindow.cpp
     src/gui/NoteEditorWidget.cpp
+    src/gui/AskConsumerKeyAndSecret.cpp
     src/gui/EvernoteOAuthBrowser.cpp
     src/note_editor/ToDoCheckboxTextObject.cpp
     src/note_editor/QuteNoteTextEdit.cpp
@@ -79,12 +81,14 @@ set(${PROJECT_NAME}_SOURCES
 
 set(FORMS
     src/gui/MainWindow.ui
-    src/gui/NoteEditorWidget.ui)
+    src/gui/NoteEditorWidget.ui
+    src/gui/AskConsumerKeyAndSecret.ui)
 
 qt4_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
 
 set(RESOURCES
-    resource/icons.qrc)
+    resource/icons.qrc
+    resource/enc_data.qrc)
 
 qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 
