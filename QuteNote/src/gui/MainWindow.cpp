@@ -123,8 +123,8 @@ void MainWindow::ResizeHelperDockWidget(QDockWidget * pDock, const int dockHeigh
     int dockOldHeight = pDock->height();
     int dockOldWidth = pDock->width();
 
-    if ( (std::abs(dockOldWidth - dockWidth) < 1) &&
-         (std::abs(dockOldHeight - dockHeight) < 1) )
+    if ( (std::fabs(dockOldWidth - dockWidth) < 1) &&
+         (std::fabs(dockOldHeight - dockHeight) < 1) )
     {
         rDock.resize(dockWidth, dockHeight);
     }

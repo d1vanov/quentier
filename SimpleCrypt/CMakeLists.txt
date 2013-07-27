@@ -4,6 +4,12 @@ project(simplecrypt)
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
    ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-uninitialized")
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    find_library(LIBCPP NAMES libc++.so libc++.so.1.0 libc++.dylib OPTIONAL)
+    if(LIBCPP)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    endif()
+  endif()
 endif()
 
 find_package(Qt4 COMPONENTS QtCore REQUIRED)
