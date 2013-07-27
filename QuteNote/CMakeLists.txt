@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 2.8)
 project(QuteNote)
 
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
+   ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-uninitialized")
+endif()
+
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork QtWebkit REQUIRED)
 include_directories(SYSTEM "${QT_INCLUDES} ${SYSTEM}")
 include(${QT_USE_FILE})
@@ -19,6 +24,7 @@ include_directories(${QuteNoteProject_SOURCE_DIR}/thrift/src
 set(${PROJECT_NAME}_QT_HEADERS
     src/gui/MainWindow.h
     src/gui/NoteEditorWidget.h
+    src/gui/EvernoteOAuthBrowser.h
     src/note_editor/ToDoCheckboxTextObject.h
     src/note_editor/HorizontalLineExtraData.h
     src/note_editor/QuteNoteTextEdit.h)
@@ -46,6 +52,7 @@ qt4_wrap_cpp(${PROJECT_NAME}_HEADERS_MOC ${${PROJECT_NAME}_QT_HEADERS})
 set(${PROJECT_NAME}_SOURCES
     src/gui/MainWindow.cpp
     src/gui/NoteEditorWidget.cpp
+    src/gui/EvernoteOAuthBrowser.cpp
     src/note_editor/ToDoCheckboxTextObject.cpp
     src/note_editor/QuteNoteTextEdit.cpp
     src/evernote_sdk/src/UserStore_types.cpp
@@ -62,8 +69,7 @@ set(${PROJECT_NAME}_SOURCES
     src/evernote_sdk/src/Errors_constants.cpp
     src/client/EvernoteServiceManager.cpp
     src/client/EvernoteServiceOAuthHandler.cpp
-    src/client/CredentialsModel.cpp
-    main.cpp)
+    src/client/CredentialsModel.cpp)
 
 set(FORMS
     src/gui/MainWindow.ui
@@ -81,7 +87,14 @@ add_executable(${PROJECT_NAME}
                ${${PROJECT_NAME}_SOURCES}
                ${${PROJECT_NAME}_QT_HEADERS_MOC}
                ${${PROJECT_NAME}_FORMS_HEADERS}
-               ${${PROJECT_NAME}_RESOURCES_RCC})
+               ${${PROJECT_NAME}_RESOURCES_RCC}
+               main.cpp)
+
+add_executable("${PROJECT_NAME}_Test_EvernoteOAuthBrowser"
+               ${${PROJECT_NAME}_HEADERS}
+               ${${PROJECT_NAME}_SOURCES}
+               ${${PROJECT_NAME}_QT_HEADERS_MOC}
+               tests/Test_EvernoteOAuthBrowser.cpp)
 
 find_package(OpenSSL REQUIRED)
 
@@ -104,8 +117,8 @@ target_link_libraries(${PROJECT_NAME}
                       ${QT_LIBRARIES}
                       ${OPENSSL_LIBRARIES})
 
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -isystem${QT_USE_FILE} -Wno-uninitialized")
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -isystem${QT_USE_FILE} -Wno-uninitialized")
-endif()
+target_link_libraries("${PROJECT_NAME}_Test_EvernoteOAuthBrowser"
+                      ${THRIFT_LIB}
+                      ${KQOAUTH_LIB}
+                      ${QT_LIBRARIES}
+                      ${OPENSSL_LIBRARIES})

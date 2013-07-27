@@ -9,6 +9,8 @@
 template <class T>
 class Singleton;
 
+class EvernoteOAuthBrowser;
+
 class EvernoteServiceManager: public QObject
 {
     Q_OBJECT
@@ -40,6 +42,8 @@ public:
 signals:
     void authorizationSuccess(std::pair<QString,QString> authorizationTokens);
     void authorizationFailure(QString errorMessage);
+    void statusText(QString, const int);
+    void showAuthWebPage(QUrl);
 
 public slots:
     void onOAuthSuccess(std::pair<QString,QString>);

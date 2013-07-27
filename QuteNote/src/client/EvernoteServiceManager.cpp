@@ -1,14 +1,15 @@
 #include "EvernoteServiceManager.h"
 #include "../gui/MainWindow.h"
 #include "../tools/Singleton.h"
-#include <QWebView>
+#include "../gui/EvernoteOAuthBrowser.h"
 
-EvernoteServiceManager::EvernoteServiceManager()
-{
-    m_evernoteHostName = "https://sandbox.evernote.com";
-}
+EvernoteServiceManager::EvernoteServiceManager() :
+    m_credentials(this),
+    m_authorizationState(EAS_UNAUTHORIZED_NEVER_ATTEMPTED),
+    m_evernoteHostName("https://sandbox.evernote.com")
+{}
 
-EvernoteServiceManager &EvernoteServiceManager::Instance()
+EvernoteServiceManager & EvernoteServiceManager::Instance()
 {
     return Singleton<EvernoteServiceManager>::Instance();
 }
@@ -56,18 +57,15 @@ void EvernoteServiceManager::GetHostName(QString & hostname) const
 void EvernoteServiceManager::onOAuthSuccess(std::pair<QString, QString>)
 {
     // TODO: store this information encrypted in an external file
-    MainWindow::Instance().setStatusBarText("Successfully authenticated to Evernote!", 2000);
+    emit statusText("Successfully authenticated to Evernote!", 2000);
 }
 
 void EvernoteServiceManager::onOAuthFailure(QString message)
 {
-    MainWindow::Instance().setStatusBarText("Unable to authenticate to Evernote: " + message);
+    emit statusText("Unable to authenticate to Evernote: " + message, 0);
 }
 
 void EvernoteServiceManager::onRequestToShowAuthorizationPage(QUrl authUrl)
 {
-    // TODO: create class based on QWebView so that I could catch the close window button pressing
-    QWebView evernoteWebView;
-    evernoteWebView.load(authUrl);
-    evernoteWebView.show();
+    emit showAuthWebPage(authUrl);
 }

@@ -1,25 +1,27 @@
 #include "MainWindow.h"
 #include "NoteEditorWidget.h"
 #include "ui_MainWindow.h"
-#include "../tools/Singleton.h"
+#include "EvernoteOAuthBrowser.h"
 #include <cmath>
 #include <QPushButton>
 #include <QLabel>
 #include <QtDebug>
 
-MainWindow & MainWindow::Instance()
-{
-    return Singleton<MainWindow>::Instance();
-}
-
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
-    m_currentStatusBarChildWidget(nullptr)
+    m_currentStatusBarChildWidget(nullptr),
+    m_pBrowser(new EvernoteOAuthBrowser(this))
 {
     Q_CHECK_PTR(m_pUI);
     m_pUI->setupUi(this);
     ConnectActionsToEditorSlots();
+
+    EvernoteServiceManager & manager = EvernoteServiceManager::Instance();
+    QObject::connect(&manager, SIGNAL(statusText(QString,int)),
+                     this, SLOT(onSetStatusBarText(QString,int)));
+    QObject::connect(&manager, SIGNAL(showAuthWebPage(QUrl)),
+                     this, SLOT(onShowAuthWebPage(QUrl)));
 }
 
 MainWindow::~MainWindow()
@@ -98,6 +100,11 @@ void MainWindow::resizeEvent(QResizeEvent * pResizeEvent)
     SetDefaultLayoutSettings();
 }
 
+EvernoteOAuthBrowser * MainWindow::OAuthBrowser()
+{
+    return m_pBrowser;
+}
+
 void MainWindow::ResizeHelperDockWidget(QDockWidget * pDock, const int dockHeight,
                                         const int dockWidth, const double minHeightMultiplier,
                                         const double minWidthMultiplier,
@@ -159,7 +166,7 @@ void MainWindow::ConnectActionsToEditorSlots()
                      pNotesEditor, SLOT(textInsertOrderedList()));
 }
 
-void MainWindow::setStatusBarText(QString message, const int duration)
+void MainWindow::onSetStatusBarText(QString message, const int duration)
 {
     QStatusBar * pStatusBar = m_pUI->statusBar;
 
@@ -175,6 +182,27 @@ void MainWindow::setStatusBarText(QString message, const int duration)
     else {
         pStatusBar->showMessage(message, duration);
     }
+
+    // Check whether authentication is done and we need to close the browser
+    EvernoteServiceManager & manager = EvernoteServiceManager::Instance();
+    QString dummyErrorString;
+    if (manager.CheckAuthenticationState(dummyErrorString)) {
+        if (m_pBrowser != nullptr) {
+            m_pBrowser->authSuccessful();
+            m_pBrowser->close();
+        }
+    }
+}
+
+void MainWindow::onShowAuthWebPage(QUrl url)
+{
+    if (m_pBrowser == nullptr) {
+        m_pBrowser = new EvernoteOAuthBrowser(this);
+        Q_CHECK_PTR(m_pBrowser);
+    }
+
+    m_pBrowser->load(url);
+    m_pBrowser->show();
 }
 
 void MainWindow::textBold()

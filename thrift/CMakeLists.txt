@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 2.8)
 project(thrift)
 
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
+   ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-uninitialized")
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STRICT_ANSI__")
+    if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    endif()
+  endif()
+endif()
+
 find_package(Qt4 COMPONENTS QTCORE QTNETWORK)
 include_directories(SYSTEM "${QT_INCLUDES} ${SYSTEM}")
 include(${QT_USE_FILE})
@@ -280,10 +291,4 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
   if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
   endif()
-endif()
-
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -isystem${QT_USE_FILE} -Wno-uninitialized")
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -isystem${QT_USE_FILE} -Wno-uninitialized")
 endif()

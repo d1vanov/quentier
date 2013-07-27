@@ -1,12 +1,13 @@
 #include "EvernoteServiceOAuthHandler.h"
 #include "EvernoteServiceManager.h"
-#include <sstream>
 #include <QtCore>
+
 #if QT_VERSION < 0x050000
 #include <QCoreApplication>
 #else
 #include <QApplication>
 #endif
+
 #include <QStringList>
 #include <QDebug>
 #include <kqoauthrequest.h>

@@ -3,28 +3,26 @@
 
 #include <QMainWindow>
 
-template <class T>
-class Singleton;
-
 namespace Ui {
 class MainWindow;
 }
+
+QT_FORWARD_DECLARE_CLASS(EvernoteOAuthBrowser)
+QT_FORWARD_DECLARE_CLASS(QUrl)
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
     
 public:
-    static MainWindow & Instance();
-    friend class Singleton<MainWindow>;
-
-private:
     explicit MainWindow(QWidget * pParentWidget = nullptr);
-    ~MainWindow();
+    virtual ~MainWindow() final;
     
 public:
     void SetDefaultLayoutSettings();
     virtual void resizeEvent(QResizeEvent * pResizeEvent);
+
+    EvernoteOAuthBrowser * OAuthBrowser();
 
 private:
     void ResizeHelperDockWidget(QDockWidget * pDock, const int dockHeight,
@@ -36,7 +34,8 @@ private:
     void ConnectActionsToEditorSlots();
 
 public slots:
-    void setStatusBarText(QString message, const int duration = 0);
+    void onSetStatusBarText(QString message, const int duration = 0);
+    void onShowAuthWebPage(QUrl url);
 
 private slots:
     void textBold();
@@ -47,6 +46,7 @@ private slots:
 private:
     Ui::MainWindow * m_pUI;
     QWidget * m_currentStatusBarChildWidget;
+    EvernoteOAuthBrowser * m_pBrowser;
 };
 
 #endif // __QUTE_NOTE__MAINWINDOW_H
