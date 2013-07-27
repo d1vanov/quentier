@@ -101,12 +101,15 @@ find_package(OpenSSL REQUIRED)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/libthrift.so")
   set(KQOAUTH_LIB "${QuteNoteProject_BINARY_DIR}/kqoauth/libkqoauth.so")
+  set(SIMPLECRYPT_LIB "${QuteNoteProject_BINARY_DIR}/SimpleCrypt/libsimplecrypt.so")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
   set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/libthrift.dylib")
   set(KQOAUTH_LIB "${QuteNoteProject_BINARY_DIR}/kqoauth/libkqoauth.dylib")
+  set(SIMPLECRYPT_LIB "${QuteNoteProject_BINARY_DIR}/SimpleCrypt/libsimplecrypt.dylib")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/thrift.dll")
   set(KQOAUTH_LIB "${QuteNoteProject_BINARY_DIR}/kqoauth/kqoauth.dll")
+  set(SIMPLECRYPT_LIB "${QuteNoteProject_BINARY_DIR}/SimpleCrypt/simplecrypt.dll")
 else()
   message(FATAL_ERROR "Unsupported platform. Only Windows, Mac OS X and Linux are supported at the moment")
 endif()
@@ -114,11 +117,13 @@ endif()
 target_link_libraries(${PROJECT_NAME}
                       ${THRIFT_LIB}
                       ${KQOAUTH_LIB}
+                      ${SIMPLECRYPT_LIB}
                       ${QT_LIBRARIES}
                       ${OPENSSL_LIBRARIES})
 
 target_link_libraries("${PROJECT_NAME}_Test_EvernoteOAuthBrowser"
                       ${THRIFT_LIB}
                       ${KQOAUTH_LIB}
+                      ${SIMPLECRYPT_LIB}
                       ${QT_LIBRARIES}
                       ${OPENSSL_LIBRARIES})
