@@ -1,10 +1,21 @@
 #include "EvernoteServiceManager.h"
+#include "EvernoteServiceOAuthHandler.h"
 #include "../gui/MainWindow.h"
 #include "../gui/EvernoteOAuthBrowser.h"
 #include "../tools/Singleton.h"
 #include "../../SimpleCrypt/src/simplecrypt.h"
 #include <QFile>
 #include <QMessageBox>
+
+void EvernoteServiceManager::authenticate()
+{
+    Q_CHECK_PTR(m_pOAuthHandler);
+
+    QString errorMessage;
+    if (!m_pOAuthHandler->getAccess(errorMessage)) {
+        emit statusText(errorMessage, 0);
+    }
+}
 
 void EvernoteServiceManager::connect()
 {
@@ -17,6 +28,7 @@ void EvernoteServiceManager::disconnect()
 }
 
 EvernoteServiceManager::EvernoteServiceManager() :
+    m_pOAuthHandler(new EvernoteServiceOAuthHandler(this)),
     m_credentials(this),
     m_authorizationState(EAS_UNAUTHORIZED_NEVER_ATTEMPTED),
     m_evernoteHostName("https://sandbox.evernote.com")
@@ -69,6 +81,9 @@ void EvernoteServiceManager::GetHostName(QString & hostname) const
 
 void EvernoteServiceManager::onOAuthSuccess(QString key, QString secret)
 {
+    m_credentials.SetOAuthKey(key);
+    m_credentials.SetOAuthSecret(secret);
+
     SimpleCrypt crypto(CredentialsModel::RANDOM_CRYPTO_KEY);
     QString encryptedKey = crypto.encryptToString(key);
     QString encryptedSecret = crypto.encryptToString(secret);

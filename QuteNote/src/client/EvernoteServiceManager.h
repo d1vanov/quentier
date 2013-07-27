@@ -9,7 +9,8 @@
 template <class T>
 class Singleton;
 
-class EvernoteOAuthBrowser;
+QT_FORWARD_DECLARE_CLASS(EvernoteOAuthBrowser)
+QT_FORWARD_DECLARE_CLASS(EvernoteServiceOAuthHandler)
 
 class EvernoteServiceManager: public QObject
 {
@@ -18,14 +19,20 @@ public:
     // User interface
 
     /**
+     * @brief authenticate - attempts to receive OAuth tokens from Evernote service.
+     * As a result of its job statusText signal is emitted in case of both success and failure.
+     */
+    void authenticate();
+
+    /**
      * @brief connect - attempts to connect to Evernote service using
-     * prespecified credentials and obtained OAuth tokens. Emits
-     * statusText in case of both success and failure
+     * prespecified credentials and obtained OAuth tokens. As a result of its job
+     * statusText signal is emitted in case of both success and failure.
      */
     void connect();
 
     /**
-     * @brief disconnect - disconnects from Evernote service. Emits statusText.
+     * @brief disconnect - disconnects from Evernote service.
      */
     void disconnect();
 
@@ -74,10 +81,10 @@ private:
     };
 
 private:
+    EvernoteServiceOAuthHandler * m_pOAuthHandler;
     CredentialsModel     m_credentials;
     EAuthorizationState  m_authorizationState;
     QString              m_evernoteHostName;
-    std::pair<QString,QString> m_OAuthTokens;
 };
 
 #endif // __QUTE_NOTE__CLIENT__EVERNOTE_SERVICE_MANAGER_H

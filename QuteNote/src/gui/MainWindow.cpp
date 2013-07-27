@@ -4,6 +4,7 @@
 #include "EvernoteOAuthBrowser.h"
 #include "../client/EvernoteServiceManager.h"
 #include "AskConsumerKeyAndSecret.h"
+#include "AskUserNameAndPassword.h"
 #include "../SimpleCrypt/src/simplecrypt.h"
 #include "../client/CredentialsModel.h"
 #include <cmath>
@@ -17,6 +18,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
     m_pAskConsumerKeyAndSecretWidget(new AskConsumerKeyAndSecret(this)),
+    m_pAskUserNameAndPasswordWidget(new AskUserNameAndPassword(this)),
     m_currentStatusBarChildWidget(nullptr),
     m_pBrowser(new EvernoteOAuthBrowser(this))
 {
@@ -40,7 +42,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
                      this, SLOT(onSetStatusBarText(QString)));
 
     CheckAndSetupConsumerKeyAndSecret();
-    CheckAndSetupUserLoginAndPassword();
+    CheckAndSetupUserNameAndPassword();
     manager.connect();
 }
 
@@ -188,50 +190,113 @@ void MainWindow::ConnectActionsToEditorSlots()
 
 void MainWindow::CheckAndSetupConsumerKeyAndSecret()
 {
-    bool needToAskUserForKeyAndSecret = false;
+    checkAndSetupCredentials(CHECK_CONSUMER_KEY_AND_SECRET);
+}
 
-    QFile consumerKeyAndSecretFile(":/enc_data/consks.dat");
+void MainWindow::CheckAndSetupUserNameAndPassword()
+{
+    checkAndSetupCredentials(CHECK_USER_NAME_AND_PASSWORD);
+}
 
-    if (!consumerKeyAndSecretFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::information(0, "Error: cannot open file with consumer key and secret: ",
-                                 consumerKeyAndSecretFile.errorString());
-        needToAskUserForKeyAndSecret = true;
+void MainWindow::CheckAndSetupOAuthTokenAndSecret()
+{
+    checkAndSetupCredentials(CHECK_OAUTH_TOKEN_AND_SECRET);
+}
+
+void MainWindow::checkAndSetupCredentials(MainWindow::ECredentialsToCheck credentialsFlag)
+{
+    bool noStoredCredentials = false;
+
+    QFile credentialsFile;
+
+    switch(credentialsFlag)
+    {
+    case CHECK_CONSUMER_KEY_AND_SECRET:
+        credentialsFile.setFileName(":/enc_data/consks.dat");
+        break;
+    case CHECK_USER_NAME_AND_PASSWORD:
+        credentialsFile.setFileName(":/enc_data/ulp.dat");
+        break;
+    case CHECK_OAUTH_TOKEN_AND_SECRET:
+        credentialsFile.setFileName(":/enc_data/oautk.dat");
+        break;
+    default:
+        QMessageBox::critical(0, tr("Internal error"),
+                              tr("Wrong credentials flag in MainWindow::checkAndSetupCredentials."));
+        QApplication::quit();
     }
 
-    if (!needToAskUserForKeyAndSecret)
-    {
-        QTextStream textStream(&consumerKeyAndSecretFile);
-        QString consumerKeyEncrypted = textStream.readLine();
-        QString consumerSecretEncrypted = textStream.readLine();
+    if (!credentialsFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::information(0, "Error: cannot open file with credentials: ",
+                                 credentialsFile.errorString());
+        noStoredCredentials = true;
+    }
 
-        if (consumerKeyEncrypted.isEmpty() || consumerSecretEncrypted.isEmpty())
+    if (!noStoredCredentials)
+    {
+        QTextStream textStream(&credentialsFile);
+        QString keyEncrypted = textStream.readLine();
+        QString secretEncrypted = textStream.readLine();
+
+        if (keyEncrypted.isEmpty() || secretEncrypted.isEmpty())
         {
-            needToAskUserForKeyAndSecret = true;
+            noStoredCredentials = true;
         }
         else
         {
             SimpleCrypt crypto(CredentialsModel::RANDOM_CRYPTO_KEY);
-            QString consumerKeyDecrypted = crypto.decryptToString(consumerKeyEncrypted);
-            QString consumerSecretDecrypted = crypto.decryptToString(consumerSecretEncrypted);
+            QString keyDecrypted = crypto.decryptToString(keyEncrypted);
+            QString secretDecrypted = crypto.decryptToString(secretEncrypted);
 
             EvernoteServiceManager & manager = EvernoteServiceManager::Instance();
             CredentialsModel & credentials = manager.getCredentials();
-            credentials.SetConsumerKey(consumerKeyDecrypted);
-            credentials.SetConsumerSecret(consumerSecretDecrypted);
-            // Don't try to set credentials here as user name and password are likely missing
+
+            switch(credentialsFlag)
+            {
+            case CHECK_CONSUMER_KEY_AND_SECRET:
+                credentials.SetConsumerKey(keyDecrypted);
+                credentials.SetConsumerSecret(secretDecrypted);
+                break;
+            case CHECK_USER_NAME_AND_PASSWORD:
+                credentials.SetUsername(keyDecrypted);
+                credentials.SetPassword(secretDecrypted);
+                break;
+            case CHECK_OAUTH_TOKEN_AND_SECRET:
+                credentials.SetOAuthKey(keyDecrypted);
+                credentials.SetOAuthSecret(secretDecrypted);
+                break;
+            default:
+                QMessageBox::critical(0, tr("Internal error"),
+                                      tr("Wrong credentials flag in MainWindow::checkAndSetupCredentials."));
+                QApplication::quit();
+            }
         }
     }
 
-    if (needToAskUserForKeyAndSecret)
+    if (noStoredCredentials)
     {
-        Q_CHECK_PTR(m_pAskConsumerKeyAndSecretWidget);
-        m_pAskConsumerKeyAndSecretWidget->show();
+        switch(credentialsFlag)
+        {
+        case CHECK_CONSUMER_KEY_AND_SECRET:
+            Q_CHECK_PTR(m_pAskConsumerKeyAndSecretWidget);
+            m_pAskConsumerKeyAndSecretWidget->show();
+            break;
+        case CHECK_USER_NAME_AND_PASSWORD:
+            Q_CHECK_PTR(m_pAskUserNameAndPasswordWidget);
+            m_pAskUserNameAndPasswordWidget->show();
+            break;
+        case CHECK_OAUTH_TOKEN_AND_SECRET:
+        {
+            EvernoteServiceManager & manager = EvernoteServiceManager::Instance();
+            manager.authenticate();
+            break;
+        }
+        default:
+            QMessageBox::critical(0, tr("Internal error"),
+                                  tr("Wrong credentials flag in MainWindow::checkAndSetupCredentials."));
+            QApplication::quit();
+        }
     }
-}
-
-void MainWindow::CheckAndSetupUserLoginAndPassword()
-{
-    // TODO: implement
 }
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)

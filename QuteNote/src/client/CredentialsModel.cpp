@@ -1,22 +1,12 @@
 #include "CredentialsModel.h"
 
-CredentialsModel::CredentialsModel(const QString & username,
-                                   const QString & password,
-                                   const QString & consumerKey,
-                                   const QString & consumerSecret,
-                                   QObject * parent) :
-    QObject(parent),
-    m_username(username),
-    m_password(password),
-    m_consumerKey(consumerKey),
-    m_consumerSecret(consumerSecret)
-{}
-
 CredentialsModel::CredentialsModel(const CredentialsModel & other) :
     m_username(other.m_username),
     m_password(other.m_password),
     m_consumerKey(other.m_consumerKey),
-    m_consumerSecret(other.m_consumerSecret)
+    m_consumerSecret(other.m_consumerSecret),
+    m_OAuthKey(other.m_OAuthKey),
+    m_OAuthSecret(other.m_OAuthSecret)
 {}
 
 CredentialsModel & CredentialsModel::operator=(const CredentialsModel & other)
@@ -27,6 +17,8 @@ CredentialsModel & CredentialsModel::operator=(const CredentialsModel & other)
         m_password = other.m_password;
         m_consumerKey = other.m_consumerKey;
         m_consumerSecret = other.m_consumerSecret;
+        m_OAuthKey = other.m_OAuthKey;
+        m_OAuthSecret = other.m_OAuthSecret;
     }
 
     return *this;
@@ -54,6 +46,16 @@ bool CredentialsModel::Empty(QString & errorMessage) const
 
     if (m_consumerSecret.isEmpty()) {
         errorMessage.append(tr("Consumer secret is empty. "));
+        somethingIsEmpty = true;
+    }
+
+    if (m_OAuthKey.isEmpty()) {
+        errorMessage.append(tr("OAuth token is empty. "));
+        somethingIsEmpty = true;
+    }
+
+    if (m_OAuthSecret.isEmpty()) {
+        errorMessage.append(tr("OAuth token secret is empty. "));
         somethingIsEmpty = true;
     }
 

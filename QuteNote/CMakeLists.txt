@@ -31,6 +31,7 @@ set(${PROJECT_NAME}_QT_HEADERS
     src/gui/MainWindow.h
     src/gui/NoteEditorWidget.h
     src/gui/AskConsumerKeyAndSecret.h
+    src/gui/AskUserNameAndPassword.h
     src/gui/EvernoteOAuthBrowser.h
     src/note_editor/ToDoCheckboxTextObject.h
     src/note_editor/HorizontalLineExtraData.h
@@ -60,6 +61,7 @@ set(${PROJECT_NAME}_SOURCES
     src/gui/MainWindow.cpp
     src/gui/NoteEditorWidget.cpp
     src/gui/AskConsumerKeyAndSecret.cpp
+    src/gui/AskUserNameAndPassword.cpp
     src/gui/EvernoteOAuthBrowser.cpp
     src/note_editor/ToDoCheckboxTextObject.cpp
     src/note_editor/QuteNoteTextEdit.cpp
@@ -82,7 +84,8 @@ set(${PROJECT_NAME}_SOURCES
 set(FORMS
     src/gui/MainWindow.ui
     src/gui/NoteEditorWidget.ui
-    src/gui/AskConsumerKeyAndSecret.ui)
+    src/gui/AskConsumerKeyAndSecret.ui
+    src/gui/AskUserNameAndPassword.ui)
 
 qt4_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
 
