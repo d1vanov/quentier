@@ -37,7 +37,14 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#ifdef _MSC_VER
+#include <event2/event.h>
+#include <event2/event_struct.h>
+#include <event2/event_compat.h>
+#else
 #include <event.h>
+#endif
 
 
 

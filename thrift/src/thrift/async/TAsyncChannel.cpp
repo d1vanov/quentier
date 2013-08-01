@@ -18,10 +18,10 @@
  */
 
 #include <thrift/async/TAsyncChannel.h>
-#ifndef __MACH__
-#include <tr1/functional>
-#else
+#if defined(__MACH__) | defined(_MSC_VER)
 #include <functional>
+#else
+#include <tr1/functional>
 #endif
 
 namespace apache { namespace thrift { namespace async {

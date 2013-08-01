@@ -20,6 +20,7 @@
 #ifndef _THRIFT_CONCURRENCY_UTIL_H_
 #define _THRIFT_CONCURRENCY_UTIL_H_ 1
 
+#include "../Thrift.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>

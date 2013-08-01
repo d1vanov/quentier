@@ -21,6 +21,10 @@
 #include "TAsyncBufferProcessor.h"
 #include <thrift/transport/TBufferTransports.h>
 #include <evhttp.h>
+#ifdef _MSC_VER
+#include <buffer.h>
+#include <buffer_compat.h>
+#endif
 
 #include <iostream>
 

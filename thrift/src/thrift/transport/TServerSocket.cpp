@@ -167,7 +167,11 @@ void TServerSocket::listen() {
   std::memset(&hints, 0, sizeof(hints));
   hints.ai_family = PF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
+#if (_WIN32_WINNT < 0x0600)
+  hints.ai_flags = AI_PASSIVE;
+#else
   hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
+#endif
   sprintf(port, "%d", port_);
 
   // Wildcard address

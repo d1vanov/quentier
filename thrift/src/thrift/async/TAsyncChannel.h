@@ -20,10 +20,10 @@
 #ifndef _THRIFT_ASYNC_TASYNCCHANNEL_H_
 #define _THRIFT_ASYNC_TASYNCCHANNEL_H_ 1
 
-#ifndef __MACH__
-#include <tr1/functional>
-#else
+#if defined(__MACH__) | defined(_MSC_VER)
 #include <functional>
+#else
+#include <tr1/functional>
 #endif
 #include <thrift/Thrift.h>
 

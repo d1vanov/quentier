@@ -22,10 +22,10 @@
 
 #include <QTcpSocket>
 
-#ifndef __MACH__
-#include <tr1/functional>
-#else
+#if defined(__MACH__) | defined(_MSC_VER)
 #include <functional>
+#else
+#include <tr1/functional>
 #endif
 
 #include <thrift/protocol/TProtocol.h>

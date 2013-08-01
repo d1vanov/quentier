@@ -21,10 +21,11 @@
 #define _THRIFT_CONCURRENCY_THREADMANAGER_H_ 1
 
 #include <boost/shared_ptr.hpp>
-#ifndef __MACH__
-#include <tr1/functional>
-#else
+
+#if defined(__MACH__) | defined (_MSC_VER)
 #include <functional>
+#else
+#include <tr1/functional>
 #endif
 #include <sys/types.h>
 #include "Thread.h"

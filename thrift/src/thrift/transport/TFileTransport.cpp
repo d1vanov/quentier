@@ -86,7 +86,7 @@ using namespace apache::thrift::concurrency;
 static int clock_gettime(int clk_id /*ignored*/, struct timespec *tp) {
   struct timeval now;
 
-  int rv = gettimeofday(&now, NULL);
+  int rv = gettimeofday(&now, static_cast<struct timezone*>(NULL));
   if (rv != 0) {
     return rv;
   }
@@ -540,7 +540,7 @@ void TFileTransport::writerThread() {
       flush = true;
     } else {
       struct timespec current_time;
-      clock_gettime(CLOCK_REALTIME, &current_time);
+      apache::thrift::transport::clock_gettime(CLOCK_REALTIME, &current_time);
       if (current_time.tv_sec > ts_next_flush.tv_sec ||
           (current_time.tv_sec == ts_next_flush.tv_sec &&
            current_time.tv_nsec > ts_next_flush.tv_nsec)) {
@@ -966,7 +966,7 @@ void TFileTransport::openLogFile() {
 }
 
 void TFileTransport::getNextFlushTime(struct timespec* ts_next_flush) {
-  clock_gettime(CLOCK_REALTIME, ts_next_flush);
+  apache::thrift::transport::clock_gettime(CLOCK_REALTIME, ts_next_flush);
   ts_next_flush->tv_nsec += (flushMaxUs_ % 1000000) * 1000;
   if (ts_next_flush->tv_nsec > 1000000000) {
     ts_next_flush->tv_nsec -= 1000000000;

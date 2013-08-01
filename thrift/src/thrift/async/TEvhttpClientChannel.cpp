@@ -19,6 +19,10 @@
 
 #include "TEvhttpClientChannel.h"
 #include <evhttp.h>
+#ifdef _MSC_VER
+#include <buffer.h>
+#include <buffer_compat.h>
+#endif
 #include <thrift/transport/TBufferTransports.h>
 #include <thrift/protocol/TProtocolException.h>
 
