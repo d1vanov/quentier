@@ -540,7 +540,11 @@ void TFileTransport::writerThread() {
       flush = true;
     } else {
       struct timespec current_time;
+#ifdef _MSC_VER
       apache::thrift::transport::clock_gettime(CLOCK_REALTIME, &current_time);
+#else
+      clock_gettime(CLOCK_REALTIME, &current_time);
+#endif
       if (current_time.tv_sec > ts_next_flush.tv_sec ||
           (current_time.tv_sec == ts_next_flush.tv_sec &&
            current_time.tv_nsec > ts_next_flush.tv_nsec)) {
@@ -966,7 +970,11 @@ void TFileTransport::openLogFile() {
 }
 
 void TFileTransport::getNextFlushTime(struct timespec* ts_next_flush) {
+#ifdef _MSC_VER
   apache::thrift::transport::clock_gettime(CLOCK_REALTIME, ts_next_flush);
+#else
+  clock_gettime(CLOCK_REALTIME, ts_next_flush);
+#endif
   ts_next_flush->tv_nsec += (flushMaxUs_ % 1000000) * 1000;
   if (ts_next_flush->tv_nsec > 1000000000) {
     ts_next_flush->tv_nsec -= 1000000000;
