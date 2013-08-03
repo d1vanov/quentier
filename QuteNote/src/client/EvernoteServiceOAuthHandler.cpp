@@ -60,8 +60,7 @@ bool EvernoteServiceOAuthHandler::getAccess(QString & errorMessage)
     QObject::connect(m_pOAuthManager, SIGNAL(requestReady(QByteArray)),
                      this, SLOT(onRequestReady(QByteArray)));
 
-    QString evernoteHostname;
-    m_manager.GetHostName(evernoteHostname);
+    QString evernoteHostname = m_manager.GetHostName();
 
     m_pOAuthRequest->initRequest(KQOAuthRequest::TemporaryCredentials,
                                  QUrl(evernoteHostname + QString("/oauth")));
@@ -85,8 +84,7 @@ void EvernoteServiceOAuthHandler::xauth()
     QObject::connect(m_pOAuthManager, SIGNAL(accessTokenReceived(QString,QString)),
                      this, SLOT(onAccessTokenReceived(QString,QString)));
 
-    QString evernoteHostname;
-    m_manager.GetHostName(evernoteHostname);
+    QString evernoteHostname = m_manager.GetHostName();
 
     KQOAuthRequest_XAuth * pOAuthRequest = new KQOAuthRequest_XAuth(this);
     pOAuthRequest->initRequest(KQOAuthRequest::AccessToken,
@@ -136,8 +134,7 @@ void EvernoteServiceOAuthHandler::onTemporaryTokenReceived(QString temporaryToke
     qDebug() << "Temporary token received: token: " << temporaryToken
              << ", token secret: " << temporaryTokenSecret;
 
-    QString evernoteHostname;
-    m_manager.GetHostName(evernoteHostname);
+    QString evernoteHostname = m_manager.GetHostName();
 
     QUrl userAuthURL(evernoteHostname + QString("/OAuth.action"));
 
@@ -165,8 +162,7 @@ void EvernoteServiceOAuthHandler::onAuthorizationReceived(QString token,
     qDebug() << "User authorization received: token: " << token
              << ", verifier:: " << verifier;
 
-    QString evernoteHostname;
-    m_manager.GetHostName(evernoteHostname);
+    QString evernoteHostname = m_manager.GetHostName();
 
     QUrl userAuthURL(evernoteHostname + QString("/oauth"));
 

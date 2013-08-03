@@ -53,7 +53,7 @@ public:
 
     bool CheckAuthenticationState(QString & errorMessage) const;
 
-    void GetHostName(QString & hostname) const;
+    const QString GetHostName() const;
 
 signals:
     void statusText(QString, const int);
@@ -80,8 +80,11 @@ private:
         EAS_UNAUTHORIZED_INTERNAL_ERROR
     };
 
+    class EvernoteDataHolder;
+
 private:
     EvernoteServiceOAuthHandler * m_pOAuthHandler;
+    EvernoteDataHolder * m_pEvernoteDataHolder;
     CredentialsModel     m_credentials;
     EAuthorizationState  m_authorizationState;
     QString              m_evernoteHostName;
