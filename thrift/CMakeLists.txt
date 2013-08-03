@@ -327,9 +327,8 @@ set(SOURCES
     src/thrift/async/TAsyncChannel.cpp)
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  set(SOURCES "${SOURCES} 
-      src/thrift/transport/TSSLSocket.cpp
-      src/thrift/server/TServer.cpp")
+  list(APPEND SOURCES  "src/thrift/transport/TSSLSocket.cpp")
+  list(APPEND SOURCES  "src/thrift/server/TServer.cpp")
 endif()
 	
 add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
