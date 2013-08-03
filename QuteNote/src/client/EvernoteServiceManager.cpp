@@ -16,6 +16,7 @@
 #include "../evernote_sdk/src/UserStore.h"
 #include "../evernote_sdk/src/NoteStore.h"
 #include <boost/shared_ptr.hpp>
+#include <vector>
 #include <string>
 #include <QFile>
 #include <QMessageBox>
@@ -43,22 +44,22 @@ class EvernoteServiceManager::EvernoteDataHolder
         return m_binaryProtocolPtr;
     }
 
-    evernote::edam::UserStoreClient * userStoreClientPtr()
+    evernote::edam::UserStoreClient *& userStoreClientPtr()
     {
         return m_userStoreClientPtr;
     }
 
-    evernote::edam::NoteStoreClient * noteStoreClientPtr()
+    evernote::edam::NoteStoreClient *& noteStoreClientPtr()
     {
         return m_noteStoreClientPtr;
     }
 
-    evernote::edam::Notebook * notebookPtr()
+    evernote::edam::Notebook *& notebookPtr()
     {
         return m_notebookPtr;
     }
 
-    evernote::edam::Tag * favouriteTagPtr()
+    evernote::edam::Tag *& favouriteTagPtr()
     {
         return m_favouriteTagPtr;
     }
@@ -179,7 +180,7 @@ void EvernoteServiceManager::connect()
     m_pEvernoteDataHolder->binaryProtocolPtr().reset(new TBinaryProtocol(httpClientPtr));
 
     typedef evernote::edam::NoteStoreClient NoteStoreClient;
-    NoteStoreClient * pNoteStoreClient = m_pEvernoteDataHolder->noteStoreClientPtr();
+    NoteStoreClient *& pNoteStoreClient = m_pEvernoteDataHolder->noteStoreClientPtr();
     if (pNoteStoreClient != nullptr) {
         delete pNoteStoreClient;
         pNoteStoreClient = nullptr;
@@ -209,6 +210,46 @@ EvernoteServiceManager::EvernoteServiceManager() :
     m_authorizationState(EAS_UNAUTHORIZED_NEVER_ATTEMPTED),
     m_evernoteHostName("https://sandbox.evernote.com")
 {}
+
+void EvernoteServiceManager::SetDefaultNotebook()
+{
+    typedef evernote::edam::Notebook Notebook;
+    std::vector<Notebook> notebooks;
+
+    if (m_pEvernoteDataHolder == nullptr) {
+        emit statusText(QString(tr("Unable to set default notebook: EvernoteDataHolder is null. ")) +
+                        QString(tr("Please contact application developer.")), 0);
+        return;
+    }
+
+    typedef evernote::edam::NoteStoreClient NoteStoreClient;
+    NoteStoreClient * noteStoreClientPtr = m_pEvernoteDataHolder->noteStoreClientPtr();
+    if (noteStoreClientPtr == nullptr) {
+        emit statusText(QString(tr("Unable to set default notebook: NoteStoreClient is null. ")) +
+                        QString(tr("Please contact application developer.")), 0);
+        return;
+    }
+
+    std::string authToken = m_credentials.GetOAuthKey().toStdString();
+    noteStoreClientPtr->listNotebooks(notebooks, authToken);
+
+    size_t numNotebooks = notebooks.size();
+    for(size_t i = 0; i < numNotebooks; ++i)
+    {
+        Notebook & notebook = notebooks[i];
+        if (notebook.name == m_defaultNotebookName) {
+            Notebook *& notebookPtr = m_pEvernoteDataHolder->notebookPtr();
+            if (notebookPtr != nullptr) {
+                delete notebookPtr;
+                notebookPtr = nullptr;
+            }
+            notebookPtr = new Notebook(notebook);
+            return;
+        }
+    }
+
+    // TODO: Notebook with default name was not found, need to create a new one
+}
 
 EvernoteServiceManager & EvernoteServiceManager::Instance()
 {
