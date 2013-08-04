@@ -233,11 +233,15 @@ void EvernoteServiceManager::SetDefaultNotebook()
     std::string authToken = m_credentials.GetOAuthKey().toStdString();
     noteStoreClientPtr->listNotebooks(notebooks, authToken);
 
+    Notebook defaultNotebook;
+    noteStoreClientPtr->getDefaultNotebook(defaultNotebook, authToken);
+
     size_t numNotebooks = notebooks.size();
     for(size_t i = 0; i < numNotebooks; ++i)
     {
         Notebook & notebook = notebooks[i];
-        if (notebook.name == m_defaultNotebookName) {
+        if (notebook.guid == defaultNotebook.guid)
+        {
             Notebook *& notebookPtr = m_pEvernoteDataHolder->notebookPtr();
             if (notebookPtr != nullptr) {
                 delete notebookPtr;

@@ -90,7 +90,6 @@ private:
     CredentialsModel     m_credentials;
     EAuthorizationState  m_authorizationState;
     QString              m_evernoteHostName;
-    std::string          m_defaultNotebookName; // TODO: handle it?
 };
 
 #endif // __QUTE_NOTE__CLIENT__EVERNOTE_SERVICE_MANAGER_H
