@@ -30,6 +30,7 @@ class EvernoteServiceManager::EvernoteDataHolder
         m_userStoreClientPtr(nullptr),
         m_noteStoreClientPtr(nullptr),
         m_notebookPtr(nullptr),
+        m_trashNotebookPtr(nullptr),
         m_favouriteTagPtr(nullptr),
         m_noteStoreUrl("")
     {}
@@ -59,6 +60,11 @@ class EvernoteServiceManager::EvernoteDataHolder
         return m_notebookPtr;
     }
 
+    evernote::edam::Notebook *& trashNotebookPtr()
+    {
+        return m_trashNotebookPtr;
+    }
+
     evernote::edam::Tag *& favouriteTagPtr()
     {
         return m_favouriteTagPtr;
@@ -75,6 +81,7 @@ private:
     evernote::edam::UserStoreClient * m_userStoreClientPtr;
     evernote::edam::NoteStoreClient * m_noteStoreClientPtr;
     evernote::edam::Notebook * m_notebookPtr;
+    evernote::edam::Notebook * m_trashNotebookPtr;
     evernote::edam::Tag * m_favouriteTagPtr;
     std::string m_noteStoreUrl;
 };
@@ -194,8 +201,9 @@ void EvernoteServiceManager::connect()
         return;
     }
 
-    // TODO: set and store connection status, set and store refresh time, set default notebook,
-    // set trash notebook, set favourite tag, synchronize
+    SetDefaultNotebook();
+    SetTrashNotebook();
+    // TODO: set and store connection status, set and store refresh time, set favourite tag, synchronize
 }
 
 void EvernoteServiceManager::disconnect()
@@ -236,13 +244,13 @@ void EvernoteServiceManager::SetDefaultNotebook()
     Notebook defaultNotebook;
     noteStoreClientPtr->getDefaultNotebook(defaultNotebook, authToken);
 
+    Notebook *& notebookPtr = m_pEvernoteDataHolder->notebookPtr();
     size_t numNotebooks = notebooks.size();
     for(size_t i = 0; i < numNotebooks; ++i)
     {
         Notebook & notebook = notebooks[i];
         if (notebook.guid == defaultNotebook.guid)
-        {
-            Notebook *& notebookPtr = m_pEvernoteDataHolder->notebookPtr();
+        {   
             if (notebookPtr != nullptr) {
                 delete notebookPtr;
                 notebookPtr = nullptr;
@@ -256,12 +264,65 @@ void EvernoteServiceManager::SetDefaultNotebook()
     noteStoreClientPtr->createNotebook(defaultNotebook, authToken, defaultNotebook);
     noteStoreClientPtr->getNotebook(defaultNotebook, authToken, defaultNotebook.guid);
 
-    Notebook *& notebookPtr = m_pEvernoteDataHolder->notebookPtr();
     if (notebookPtr != nullptr) {
         delete notebookPtr;
         notebookPtr = nullptr;
     }
     notebookPtr = new Notebook(defaultNotebook);
+}
+
+void EvernoteServiceManager::SetTrashNotebook()
+{
+    typedef evernote::edam::Notebook Notebook;
+    std::vector<Notebook> notebooks;
+
+    if (m_pEvernoteDataHolder == nullptr) {
+        emit statusText(QString(tr("Unable to set default notebook: EvernoteDataHolder is null. ")) +
+                        QString(tr("Please contact application developer.")), 0);
+        return;
+    }
+
+    typedef evernote::edam::NoteStoreClient NoteStoreClient;
+    NoteStoreClient * noteStoreClientPtr = m_pEvernoteDataHolder->noteStoreClientPtr();
+    if (noteStoreClientPtr == nullptr) {
+        emit statusText(QString(tr("Unable to set default notebook: NoteStoreClient is null. ")) +
+                        QString(tr("Please contact application developer.")), 0);
+        return;
+    }
+
+    std::string authToken = m_credentials.GetOAuthKey().toStdString();
+
+    Notebook *& trashNotebookPtr = m_pEvernoteDataHolder->trashNotebookPtr();
+    if (trashNotebookPtr == nullptr)
+    {
+        trashNotebookPtr = new Notebook;
+        trashNotebookPtr->name = QString(tr("Trash notebook")).toStdString();
+        noteStoreClientPtr->createNotebook(*trashNotebookPtr, authToken,
+                                           *trashNotebookPtr);
+    }
+    else
+    {
+        noteStoreClientPtr->listNotebooks(notebooks, authToken);
+
+        size_t numNotebooks = notebooks.size();
+        for(size_t i = 0; i < numNotebooks; ++i)
+        {
+            Notebook & notebook = notebooks[i];
+            if (notebook.guid == trashNotebookPtr->guid)
+            {
+                delete trashNotebookPtr;
+                trashNotebookPtr = new Notebook(notebook);
+                return;
+            }
+        }
+
+        // Trash notebook not found, creating one
+        delete trashNotebookPtr;
+        trashNotebookPtr = new Notebook;
+        trashNotebookPtr->name = QString(tr("Trash notebook")).toStdString();
+        noteStoreClientPtr->createNotebook(*trashNotebookPtr, authToken,
+                                           *trashNotebookPtr);
+    }
 }
 
 EvernoteServiceManager & EvernoteServiceManager::Instance()

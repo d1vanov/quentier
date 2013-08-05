@@ -83,6 +83,7 @@ private:
     class EvernoteDataHolder;
 
     void SetDefaultNotebook();
+    void SetTrashNotebook();
 
 private:
     EvernoteServiceOAuthHandler * m_pOAuthHandler;
