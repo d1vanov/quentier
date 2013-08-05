@@ -22,7 +22,7 @@
 
 #include <QTcpSocket>
 
-#if defined(__MACH__) | defined(_MSC_VER)
+#if (defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
 #include <functional>
 #else
 #include <tr1/functional>
@@ -37,7 +37,7 @@ using apache::thrift::protocol::TProtocolFactory;
 using apache::thrift::transport::TTransport;
 using apache::thrift::transport::TTransportException;
 using apache::thrift::transport::TQIODeviceTransport;
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
 using std::tr1::function;
 using std::tr1::bind;
 #else
@@ -129,7 +129,7 @@ void TQTcpServer::beginDecode()
   
   try {
     processor_->process(
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
       bind(&TQTcpServer::finish, this,
            ctx, std::tr1::placeholders::_1),
 #else

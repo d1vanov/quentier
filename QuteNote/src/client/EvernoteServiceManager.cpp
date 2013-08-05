@@ -252,7 +252,16 @@ void EvernoteServiceManager::SetDefaultNotebook()
         }
     }
 
-    // TODO: Notebook with default name was not found, need to create a new one
+    // Default notebook not found, creating one
+    noteStoreClientPtr->createNotebook(defaultNotebook, authToken, defaultNotebook);
+    noteStoreClientPtr->getNotebook(defaultNotebook, authToken, defaultNotebook.guid);
+
+    Notebook *& notebookPtr = m_pEvernoteDataHolder->notebookPtr();
+    if (notebookPtr != nullptr) {
+        delete notebookPtr;
+        notebookPtr = nullptr;
+    }
+    notebookPtr = new Notebook(defaultNotebook);
 }
 
 EvernoteServiceManager & EvernoteServiceManager::Instance()

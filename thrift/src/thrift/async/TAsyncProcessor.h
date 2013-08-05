@@ -20,7 +20,7 @@
 #ifndef _THRIFT_TASYNCPROCESSOR_H_
 #define _THRIFT_TASYNCPROCESSOR_H_ 1
 
-#if defined(__MACH__) | defined(_MSC_VER)
+#if defined(__MACH__) | defined(_MSC_VER) | defined (HAVE_LIBCPP)
 #include <functional>
 #else
 #include <tr1/functional>
@@ -42,7 +42,7 @@ class TAsyncProcessor {
  public:
   virtual ~TAsyncProcessor() {}
 
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
   virtual void process(std::tr1::function<void(bool success)> _return,
                        boost::shared_ptr<protocol::TProtocol> in,
                        boost::shared_ptr<protocol::TProtocol> out) = 0;
@@ -52,7 +52,7 @@ class TAsyncProcessor {
                        boost::shared_ptr<protocol::TProtocol> out) = 0;
 #endif
 
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
   void process(std::tr1::function<void(bool success)> _return,
                boost::shared_ptr<apache::thrift::protocol::TProtocol> io) {
 #else

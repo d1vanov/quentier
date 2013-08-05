@@ -120,7 +120,7 @@ void TEvhttpServer::request(struct evhttp_request* req, void* self) {
 void TEvhttpServer::process(struct evhttp_request* req) {
   RequestContext* ctx = new RequestContext(req);
   return processor_->process(
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
       std::tr1::bind(
 #else
       std::bind(
@@ -128,7 +128,7 @@ void TEvhttpServer::process(struct evhttp_request* req) {
         &TEvhttpServer::complete,
         this,
         ctx,
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
         std::tr1::placeholders::_1),
 #else
         std::placeholders::_1),

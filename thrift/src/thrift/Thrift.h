@@ -45,6 +45,8 @@
 #include <exception>
 #include <typeinfo>
 
+#include <ctime>
+
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_convertible.hpp>
 

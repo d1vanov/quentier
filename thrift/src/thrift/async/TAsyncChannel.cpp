@@ -18,7 +18,7 @@
  */
 
 #include <thrift/async/TAsyncChannel.h>
-#if defined(__MACH__) | defined(_MSC_VER)
+#if (defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
 #include <functional>
 #else
 #include <tr1/functional>
@@ -29,7 +29,7 @@ namespace apache { namespace thrift { namespace async {
 void TAsyncChannel::sendAndRecvMessage(const VoidCallback& cob,
                                        TMemoryBuffer* sendBuf,
                                        TMemoryBuffer* recvBuf) {
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
   std::tr1::function<void()> send_done =
     std::tr1::bind(&TAsyncChannel::recvMessage, this, cob, recvBuf);
 #else

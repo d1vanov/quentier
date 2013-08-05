@@ -20,7 +20,7 @@
 #ifndef _THRIFT_ASYNC_TASYNCCHANNEL_H_
 #define _THRIFT_ASYNC_TASYNCCHANNEL_H_ 1
 
-#if defined(__MACH__) | defined(_MSC_VER)
+#if (defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
 #include <functional>
 #else
 #include <tr1/functional>
@@ -36,7 +36,7 @@ using apache::thrift::transport::TMemoryBuffer;
 
 class TAsyncChannel {
  public:
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
  typedef std::tr1::function<void()> VoidCallback;
 #else
  typedef std::function<void()> VoidCallback;

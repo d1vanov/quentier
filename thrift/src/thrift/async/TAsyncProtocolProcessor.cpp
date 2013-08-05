@@ -25,7 +25,7 @@ using apache::thrift::protocol::TProtocol;
 namespace apache { namespace thrift { namespace async {
 
 void TAsyncProtocolProcessor::process(
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
     std::tr1::function<void(bool healthy)> _return,
 #else
     std::function<void(bool healthy)> _return,
@@ -36,7 +36,7 @@ void TAsyncProtocolProcessor::process(
   boost::shared_ptr<TProtocol> iprot(pfact_->getProtocol(ibuf));
   boost::shared_ptr<TProtocol> oprot(pfact_->getProtocol(obuf));
   return underlying_->process(
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
       std::tr1::bind(
 #else
       std::bind(
@@ -44,7 +44,7 @@ void TAsyncProtocolProcessor::process(
         &TAsyncProtocolProcessor::finish,
         _return,
         oprot,
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
         std::tr1::placeholders::_1),
 #else
         std::placeholders::_1),
@@ -53,7 +53,7 @@ void TAsyncProtocolProcessor::process(
 }
 
 /* static */ void TAsyncProtocolProcessor::finish(
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
     std::tr1::function<void(bool healthy)> _return,
 #else
     std::function<void(bool healthy)> _return,

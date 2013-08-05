@@ -22,7 +22,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
   find_library(LIBCPP NAMES libc++.so libc++.so.1.0 libc++.dylib OPTIONAL)
   if(LIBCPP)
     message(STATUS "Using native clang C++ standard library: ${LIBCPP}")
-    add_definitions("-stdlib=libc++")
+    add_definitions("-stdlib=libc++ -DHAVELIBCPP")
   endif()
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC11")
   message(STATUS "Using MSVC C++ compiler, version 17")
@@ -180,3 +180,8 @@ target_link_libraries("${PROJECT_NAME}_Test_EvernoteOAuthBrowser"
                       ${SIMPLECRYPT_LIB}
                       ${QT_LIBRARIES}
                       ${OPENSSL_LIBRARIES})
+
+if(LIBCPP)
+  target_link_libraries(${PROJECT_NAME} ${LIBCPP})
+  target_link_libraries("${PROJECT_NAME}_Test_EvernoteOAuthBrowser" ${LIBCPP})
+endif()

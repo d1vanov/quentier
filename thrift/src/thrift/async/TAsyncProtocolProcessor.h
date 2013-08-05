@@ -36,7 +36,7 @@ class TAsyncProtocolProcessor : public TAsyncBufferProcessor {
   {}
 
   virtual void process(
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
       std::tr1::function<void(bool healthy)> _return,
 #else
       std::function<void(bool healthy)> _return,
@@ -48,7 +48,7 @@ class TAsyncProtocolProcessor : public TAsyncBufferProcessor {
 
  private:
   static void finish(
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
       std::tr1::function<void(bool healthy)> _return,
 #else
       std::function<void(bool healthy)> _return,

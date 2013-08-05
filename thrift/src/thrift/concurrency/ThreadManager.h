@@ -22,7 +22,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-#if defined(__MACH__) | defined (_MSC_VER)
+#if defined(__MACH__) | defined (_MSC_VER) | defined (HAVE_LIBCPP)
 #include <functional>
 #else
 #include <tr1/functional>
@@ -64,7 +64,7 @@ class ThreadManager {
  public:
   class Task;
   
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
   typedef std::tr1::function<void(boost::shared_ptr<Runnable>)> ExpireCallback;
 #else
   typedef std::function<void(boost::shared_ptr<Runnable>)> ExpireCallback;

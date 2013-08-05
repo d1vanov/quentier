@@ -20,7 +20,7 @@
 #ifndef _THRIFT_TASYNC_BUFFER_PROCESSOR_H_
 #define _THRIFT_TASYNC_BUFFER_PROCESSOR_H_ 1
 
-#if defined(__MACH__) | defined(_MSC_VER)
+#if (defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
 #include <functional>
 #else
 #include <tr1/functional>
@@ -39,7 +39,7 @@ class TAsyncBufferProcessor {
   // "in" and "out" should be TMemoryBuffer or similar,
   // not a wrapper around a socket.
   virtual void process(
-#ifndef __MACH__
+#if !(defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
       std::tr1::function<void(bool healthy)> _return,
 #else
       std::function<void(bool healthy)> _return,
