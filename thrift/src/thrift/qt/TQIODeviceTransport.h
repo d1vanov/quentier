@@ -22,7 +22,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <thrift/transport/TVirtualTransport.h>
+#include "../transport/TVirtualTransport.h"
 
 class QIODevice;
 

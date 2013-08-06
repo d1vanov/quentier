@@ -26,8 +26,8 @@
 #include <tr1/functional>
 #endif
 #include <boost/shared_ptr.hpp>
-#include <thrift/protocol/TProtocol.h>
-#include <thrift/TProcessor.h>
+#include "../protocol/TProtocol.h"
+#include "../TProcessor.h"
 
 namespace apache { namespace thrift { namespace async {
 

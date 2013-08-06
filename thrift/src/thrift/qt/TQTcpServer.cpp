@@ -28,8 +28,8 @@
 #include <tr1/functional>
 #endif
 
-#include <thrift/protocol/TProtocol.h>
-#include <thrift/async/TAsyncProcessor.h>
+#include "../protocol/TProtocol.h"
+#include "../async/TAsyncProcessor.h"
 
 using boost::shared_ptr;
 using apache::thrift::protocol::TProtocol;

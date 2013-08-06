@@ -20,7 +20,7 @@
 #include <cassert>
 #include <cstring>
 #include <algorithm>
-#include <thrift/transport/TZlibTransport.h>
+#include "TZlibTransport.h"
 #include <zlib.h>
 
 using std::string;

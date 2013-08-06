@@ -20,7 +20,7 @@
 #ifndef _THRIFT_TAPPLICATIONEXCEPTION_H_
 #define _THRIFT_TAPPLICATIONEXCEPTION_H_ 1
 
-#include <thrift/Thrift.h>
+#include "Thrift.h"
 #include <stdint.h>
 
 namespace apache { namespace thrift {

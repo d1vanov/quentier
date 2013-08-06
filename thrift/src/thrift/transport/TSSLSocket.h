@@ -23,7 +23,7 @@
 #include <string>
 #include <boost/shared_ptr.hpp>
 #include <openssl/ssl.h>
-#include <thrift/concurrency/Mutex.h>
+#include "../concurrency/Mutex.h"
 #include "TSocket.h"
 
 namespace apache { namespace thrift { namespace transport {

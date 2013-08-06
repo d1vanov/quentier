@@ -21,9 +21,9 @@
 #define _THRIFT_CONCURRENCY_PLATFORMTHREADFACTORY_H_ 1
 
 #ifndef USE_BOOST_THREAD
-#  include <thrift/concurrency/PosixThreadFactory.h>
+#  include "PosixThreadFactory.h"
 #else
-#  include <thrift/concurrency/BoostThreadFactory.h>
+#  include "BoostThreadFactory.h"
 #endif
 
 namespace apache { namespace thrift { namespace concurrency {

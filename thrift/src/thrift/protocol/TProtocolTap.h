@@ -20,7 +20,7 @@
 #ifndef _THRIFT_PROTOCOL_TPROTOCOLTAP_H_
 #define _THRIFT_PROTOCOL_TPROTOCOLTAP_H_ 1
 
-#include <thrift/protocol/TVirtualProtocol.h>
+#include "TVirtualProtocol.h"
 
 namespace apache { namespace thrift { namespace protocol {
 

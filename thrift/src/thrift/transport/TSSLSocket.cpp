@@ -35,7 +35,7 @@
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 #include <openssl/x509v3.h>
-#include <thrift/concurrency/Mutex.h>
+#include "../concurrency/Mutex.h"
 #include "TSSLSocket.h"
 
 #define OPENSSL_VERSION_NO_THREAD_ID 0x10000000L

@@ -19,7 +19,7 @@
 
 #include "TEvhttpServer.h"
 #include "TAsyncBufferProcessor.h"
-#include <thrift/transport/TBufferTransports.h>
+#include "../transport/TBufferTransports.h"
 #include <evhttp.h>
 #ifdef _MSC_VER
 #include <buffer.h>

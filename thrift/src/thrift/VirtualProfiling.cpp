@@ -17,7 +17,7 @@
  * under the License.
  */
 
-#include <thrift/Thrift.h>
+#include "Thrift.h"
 
 // Do nothing if virtual call profiling is not enabled
 #if T_GLOBAL_DEBUG_VIRTUAL > 1

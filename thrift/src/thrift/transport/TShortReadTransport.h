@@ -22,8 +22,8 @@
 
 #include <cstdlib>
 
-#include <thrift/transport/TTransport.h>
-#include <thrift/transport/TVirtualTransport.h>
+#include "TTransport.h"
+#include "TVirtualTransport.h"
 
 namespace apache { namespace thrift { namespace transport { namespace test {
 

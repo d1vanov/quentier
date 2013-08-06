@@ -22,7 +22,7 @@
 #include <math.h>
 #include <boost/lexical_cast.hpp>
 #include "TBase64Utils.h"
-#include <thrift/transport/TTransportException.h>
+#include "../transport/TTransportException.h"
 
 using namespace apache::thrift::transport;
 

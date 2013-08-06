@@ -17,7 +17,7 @@
  * under the License.
  */
 
-#include <thrift/Thrift.h>
+#include "Thrift.h"
 #include <cstring>
 #include <cstdlib>
 #include <boost/lexical_cast.hpp>

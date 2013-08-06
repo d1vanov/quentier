@@ -45,7 +45,7 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#include <thrift/concurrency/Monitor.h>
+#include "../concurrency/Monitor.h"
 #include "TSocket.h"
 #include "TTransportException.h"
 

@@ -21,7 +21,7 @@
 #define _THRIFT_CONCURRENCY_EXCEPTION_H_ 1
 
 #include <exception>
-#include <thrift/Thrift.h>
+#include "../Thrift.h"
 
 namespace apache { namespace thrift { namespace concurrency {
 

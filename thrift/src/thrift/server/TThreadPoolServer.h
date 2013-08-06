@@ -20,9 +20,9 @@
 #ifndef _THRIFT_SERVER_TTHREADPOOLSERVER_H_
 #define _THRIFT_SERVER_TTHREADPOOLSERVER_H_ 1
 
-#include <thrift/concurrency/ThreadManager.h>
-#include <thrift/server/TServer.h>
-#include <thrift/transport/TServerTransport.h>
+#include "../concurrency/ThreadManager.h"
+#include "TServer.h"
+#include "../transport/TServerTransport.h"
 
 #include <boost/shared_ptr.hpp>
 

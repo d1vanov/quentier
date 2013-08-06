@@ -20,7 +20,7 @@
 #include <cerrno>
 #include <exception>
 
-#include <thrift/transport/TFDTransport.h>
+#include "TFDTransport.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

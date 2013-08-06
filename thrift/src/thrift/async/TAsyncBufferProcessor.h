@@ -27,7 +27,7 @@
 #endif
 #include <boost/shared_ptr.hpp>
 
-#include <thrift/transport/TBufferTransports.h>
+#include "../transport/TBufferTransports.h"
 
 namespace apache { namespace thrift { namespace async {
 

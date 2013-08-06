@@ -18,7 +18,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
   execute_process(COMMAND ${CMAKE_C_COMPILER} --version OUTPUT_VARIABLE CLANG_VERSION)
   message(STATUS "Using LLVM/Clang C++ compiler, version info: ${CLANG_VERSION}")
   message(STATUS "You may have issues with compilation if your compiler is too old to support the C++11 features used in the project. In that case update your compiler. ")
-  add_definitions("-std=c++11 -Wno-uninitialized")
+  add_definitions("-std=c++11 -Wno-uninitialized -Wno-null-conversion -Wno-format")
   find_library(LIBCPP NAMES libc++.so libc++.so.1.0 libc++.dylib OPTIONAL)
   if(LIBCPP)
     message(STATUS "Using native clang C++ standard library: ${LIBCPP}")
@@ -212,6 +212,8 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 
 find_package(ZLIB REQUIRED)
 include_directories(${ZLIB_INCLUDE_DIR})
+
+include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/src ${SYSTEM}")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${QT_INCLUDES})
 add_definitions("-DUSE_BOOST_THREAD -DVERSION=0.9")

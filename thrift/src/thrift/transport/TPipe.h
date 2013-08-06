@@ -20,8 +20,8 @@
 #ifndef _THRIFT_TRANSPORT_TPIPE_H_
 #define _THRIFT_TRANSPORT_TPIPE_H_ 1
 
-#include <thrift/transport/TTransport.h>
-#include <thrift/transport/TVirtualTransport.h>
+#include "TTransport.h"
+#include "TVirtualTransport.h"
 #ifndef _WIN32
 #  include "TSocket.h"
 #endif

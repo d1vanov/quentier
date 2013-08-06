@@ -22,7 +22,7 @@
 
 #include <thrift/Thrift.h>
 #include <boost/shared_ptr.hpp>
-#include <thrift/transport/TTransportException.h>
+#include "TTransportException.h"
 #include <string>
 
 namespace apache { namespace thrift { namespace transport {

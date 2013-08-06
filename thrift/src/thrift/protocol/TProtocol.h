@@ -20,8 +20,8 @@
 #ifndef _THRIFT_PROTOCOL_TPROTOCOL_H_
 #define _THRIFT_PROTOCOL_TPROTOCOL_H_ 1
 
-#include <thrift/transport/TTransport.h>
-#include <thrift/protocol/TProtocolException.h>
+#include "../transport/TTransport.h"
+#include "TProtocolException.h"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/static_assert.hpp>

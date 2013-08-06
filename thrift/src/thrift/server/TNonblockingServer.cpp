@@ -24,9 +24,9 @@
 #endif
 
 #include "TNonblockingServer.h"
-#include <thrift/concurrency/Exception.h>
-#include <thrift/transport/TSocket.h>
-#include <thrift/concurrency/PlatformThreadFactory.h>
+#include "../concurrency/Exception.h"
+#include "../transport/TSocket.h"
+#include "../concurrency/PlatformThreadFactory.h"
 
 #include <iostream>
 

@@ -23,8 +23,8 @@
 #include <buffer.h>
 #include <buffer_compat.h>
 #endif
-#include <thrift/transport/TBufferTransports.h>
-#include <thrift/protocol/TProtocolException.h>
+#include "../transport/TBufferTransports.h"
+#include "../protocol/TProtocolException.h"
 
 #include <iostream>
 #include <sstream>

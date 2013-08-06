@@ -20,7 +20,7 @@
 #ifndef _THRIFT_TRANSPORT_THTTPCLIENT_H_
 #define _THRIFT_TRANSPORT_THTTPCLIENT_H_ 1
 
-#include <thrift/transport/THttpTransport.h>
+#include "THttpTransport.h"
 
 namespace apache { namespace thrift { namespace transport {
 

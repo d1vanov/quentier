@@ -17,9 +17,9 @@
  * under the License.
  */
 
-#include <thrift/server/TThreadedServer.h>
-#include <thrift/transport/TTransportException.h>
-#include <thrift/concurrency/PlatformThreadFactory.h>
+#include "TThreadedServer.h"
+#include "../transport/TTransportException.h"
+#include "../concurrency/PlatformThreadFactory.h"
 
 #include <string>
 #include <iostream>

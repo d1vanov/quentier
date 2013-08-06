@@ -17,12 +17,12 @@
  * under the License.
  */
 
-#include <thrift/qt/TQIODeviceTransport.h>
+#include "../qt/TQIODeviceTransport.h"
 
 #include <QAbstractSocket>
 #include <QIODevice>
 
-#include <thrift/transport/TBufferTransports.h>
+#include "../transport/TBufferTransports.h"
 
 using boost::shared_ptr;
   

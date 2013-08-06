@@ -20,9 +20,9 @@
 #ifndef _THRIFT_TRANSPORT_TFILETRANSPORT_H_
 #define _THRIFT_TRANSPORT_TFILETRANSPORT_H_ 1
 
-#include <thrift/transport/TTransport.h>
-#include <thrift/Thrift.h>
-#include <thrift/TProcessor.h>
+#include "TTransport.h"
+#include "../Thrift.h"
+#include "../TProcessor.h"
 
 #include <string>
 #include <stdio.h>
@@ -38,8 +38,8 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include <thrift/concurrency/Mutex.h>
-#include <thrift/concurrency/Monitor.h>
+#include "../concurrency/Mutex.h"
+#include "../concurrency/Monitor.h"
 
 namespace apache { namespace thrift { namespace transport {
 

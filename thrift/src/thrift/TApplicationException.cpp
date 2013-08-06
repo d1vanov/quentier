@@ -17,8 +17,8 @@
  * under the License.
  */
 
-#include <thrift/TApplicationException.h>
-#include <thrift/protocol/TProtocol.h>
+#include "TApplicationException.h"
+#include "protocol/TProtocol.h"
 
 namespace apache { namespace thrift {
 

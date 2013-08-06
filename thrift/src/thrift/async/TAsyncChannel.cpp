@@ -17,7 +17,7 @@
  * under the License.
  */
 
-#include <thrift/async/TAsyncChannel.h>
+#include "TAsyncChannel.h"
 #if (defined (__MACH__) | defined (_MSC_VER) | defined(HAVE_LIBCPP))
 #include <functional>
 #else

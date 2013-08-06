@@ -22,7 +22,7 @@
 
 #include "TAsyncProcessor.h"
 #include "TAsyncBufferProcessor.h"
-#include <thrift/protocol/TProtocol.h>
+#include "../protocol/TProtocol.h"
 
 namespace apache { namespace thrift { namespace async {
 

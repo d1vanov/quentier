@@ -21,10 +21,10 @@
 #include <config.h>
 #endif
 
-#include <thrift/server/TThreadPoolServer.h>
-#include <thrift/transport/TTransportException.h>
-#include <thrift/concurrency/Thread.h>
-#include <thrift/concurrency/ThreadManager.h>
+#include "TThreadPoolServer.h"
+#include "../transport/TTransportException.h"
+#include "../concurrency/Thread.h"
+#include "../concurrency/ThreadManager.h"
 #include <string>
 #include <iostream>
 

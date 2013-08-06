@@ -21,7 +21,7 @@
 #define _THRIFT_THRIFT_H_ 1
 
 #ifdef _WIN32
-#include <thrift/windows/config.h>
+#include "windows/config.h"
 #endif
 
 #ifdef HAVE_CONFIG_H

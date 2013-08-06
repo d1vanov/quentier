@@ -20,7 +20,7 @@
 #include <cassert>
 #include <algorithm>
 
-#include <thrift/transport/TBufferTransports.h>
+#include "TBufferTransports.h"
 
 using std::string;
 

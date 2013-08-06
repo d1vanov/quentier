@@ -25,7 +25,7 @@
 #else
 #include <tr1/functional>
 #endif
-#include <thrift/Thrift.h>
+#include "../Thrift.h"
 
 namespace apache { namespace thrift { namespace transport {
 class TMemoryBuffer;

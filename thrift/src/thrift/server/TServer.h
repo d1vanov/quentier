@@ -20,10 +20,10 @@
 #ifndef _THRIFT_SERVER_TSERVER_H_
 #define _THRIFT_SERVER_TSERVER_H_ 1
 
-#include <thrift/TProcessor.h>
-#include <thrift/transport/TServerTransport.h>
-#include <thrift/protocol/TBinaryProtocol.h>
-#include <thrift/concurrency/Thread.h>
+#include "../TProcessor.h"
+#include "../transport/TServerTransport.h"
+#include "../protocol/TBinaryProtocol.h"
+#include "../concurrency/Thread.h"
 
 #include <boost/shared_ptr.hpp>
 
