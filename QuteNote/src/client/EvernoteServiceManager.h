@@ -84,6 +84,7 @@ private:
 
     void SetDefaultNotebook();
     void SetTrashNotebook();
+    void SetFavouriteTag();
 
 private:
     EvernoteServiceOAuthHandler * m_pOAuthHandler;

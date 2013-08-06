@@ -203,7 +203,8 @@ void EvernoteServiceManager::connect()
 
     SetDefaultNotebook();
     SetTrashNotebook();
-    // TODO: set and store connection status, set and store refresh time, set favourite tag, synchronize
+    SetFavouriteTag();
+    // TODO: set and store connection status, set and store refresh time, synchronize
 }
 
 void EvernoteServiceManager::disconnect()
@@ -322,6 +323,59 @@ void EvernoteServiceManager::SetTrashNotebook()
         trashNotebookPtr->name = QString(tr("Trash notebook")).toStdString();
         noteStoreClientPtr->createNotebook(*trashNotebookPtr, authToken,
                                            *trashNotebookPtr);
+    }
+}
+
+void EvernoteServiceManager::SetFavouriteTag()
+{
+    typedef evernote::edam::Tag Tag;
+    std::vector<Tag> tags;
+
+    if (m_pEvernoteDataHolder == nullptr) {
+        emit statusText(QString(tr("Unable to set favourite tag: EvernoteDataHolder is null. ")) +
+                        QString(tr("Please contact application developer.")), 0);
+        return;
+    }
+
+    typedef evernote::edam::NoteStoreClient NoteStoreClient;
+    NoteStoreClient  * noteStoreClientPtr = m_pEvernoteDataHolder->noteStoreClientPtr();
+    if (noteStoreClientPtr == nullptr) {
+        emit statusText(QString(tr("Unable to set favourite tag: NoteStoreClient is null. ")) +
+                        QString(tr("Please contact application developer.")), 0);
+        return;
+    }
+
+    std::string authToken = m_credentials.GetOAuthKey().toStdString();
+
+    Tag *& favouriteTagPtr = m_pEvernoteDataHolder->favouriteTagPtr();
+    if (favouriteTagPtr == nullptr)
+    {
+        favouriteTagPtr = new Tag;
+        favouriteTagPtr->name = QString(tr("Favourite tag")).toStdString();
+        noteStoreClientPtr->createTag(*favouriteTagPtr, authToken, *favouriteTagPtr);
+        return;
+    }
+    else
+    {
+        noteStoreClientPtr->listTags(tags, authToken);
+
+        size_t numTags = tags.size();
+        for(size_t i = 0; i < numTags; ++i)
+        {
+            Tag & tag = tags[i];
+            if (tag.guid == favouriteTagPtr->guid)
+            {
+                delete favouriteTagPtr;
+                favouriteTagPtr = new Tag(tag);
+                return;
+            }
+        }
+
+        // Favourite tag not found, creating one
+        delete favouriteTagPtr;
+        favouriteTagPtr = new Tag;
+        favouriteTagPtr->name = QString(tr("Favourite tag")).toStdString();
+        noteStoreClientPtr->createTag(*favouriteTagPtr, authToken, *favouriteTagPtr);
     }
 }
 
