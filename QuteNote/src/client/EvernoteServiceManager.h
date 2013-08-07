@@ -36,6 +36,12 @@ public:
      */
     void disconnect();
 
+    /**
+     * @brief setRefreshTime - define interval in seconds needed to maintain connection
+     * @param refreshTime - time to refresh connection in seconds
+     */
+    void setRefreshTime(const double refreshTime);
+
 private:
     // standard constructor does nothing but exists as private method
     EvernoteServiceManager();
@@ -56,7 +62,7 @@ public:
     const QString GetHostName() const;
 
 signals:
-    void statusText(QString, const int);
+    void statusTextUpdate(QString, const int);
     void showAuthWebPage(QUrl);
 
 public slots:
@@ -80,7 +86,16 @@ private:
         EAS_UNAUTHORIZED_INTERNAL_ERROR
     };
 
+    enum EConnectionState
+    {
+        ECS_CONNECTED,
+        ECS_DISCONNECTED
+    };
+
     class EvernoteDataHolder;
+
+    bool CheckConnectionState() const;
+    void SetConnectionState(const EConnectionState connectionState);
 
     void SetDefaultNotebook();
     void SetTrashNotebook();
@@ -91,7 +106,9 @@ private:
     EvernoteDataHolder * m_pEvernoteDataHolder;
     CredentialsModel     m_credentials;
     EAuthorizationState  m_authorizationState;
+    EConnectionState     m_connectionState;
     QString              m_evernoteHostName;
+    double               m_refreshTime;     // Refresh interval in seconds
 };
 
 #endif // __QUTE_NOTE__CLIENT__EVERNOTE_SERVICE_MANAGER_H

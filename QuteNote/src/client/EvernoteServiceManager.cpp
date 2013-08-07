@@ -92,7 +92,7 @@ void EvernoteServiceManager::authenticate()
 
     QString errorMessage;
     if (!m_pOAuthHandler->getAccess(errorMessage)) {
-        emit statusText(errorMessage, 0);
+        emit statusTextUpdate(errorMessage, 0);
     }
 }
 
@@ -100,7 +100,7 @@ void EvernoteServiceManager::connect()
 {
     QString errorMessage;
     if (!CheckAuthenticationState(errorMessage)) {
-        emit statusText(QString(tr("Unable to connect to Evernote - authentication failed: ")) +
+        emit statusTextUpdate(QString(tr("Unable to connect to Evernote - authentication failed: ")) +
                         errorMessage, 0);
         return;
     }
@@ -118,7 +118,7 @@ void EvernoteServiceManager::connect()
     typedef apache::thrift::transport::THttpClient THttpClient;
     boost::shared_ptr<THttpClient> authClientPtr(new THttpClient(hostname, 80, evernoteUser));
     if (authClientPtr.get() == nullptr) {
-        emit statusText(QString(tr("Unable to connect to Evernote: cannot instantiate THttp client. ")) +
+        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: cannot instantiate THttp client. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -128,7 +128,7 @@ void EvernoteServiceManager::connect()
     typedef apache::thrift::protocol::TBinaryProtocol TBinaryProtocol;
     boost::shared_ptr<TBinaryProtocol> userStoreProtocolPtr(new TBinaryProtocol(authClientPtr));
     if (userStoreProtocolPtr.get() == nullptr) {
-        emit statusText(QString(tr("Unable to connect to Evernote: cannot instantiate TBinaryProtocol. ")) +
+        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: cannot instantiate TBinaryProtocol. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -141,7 +141,7 @@ void EvernoteServiceManager::connect()
     authClientPtr->close();
 
     if (m_pEvernoteDataHolder == nullptr) {
-        emit statusText(QString(tr("Unable to connect to Evernote: data holder ptr is null! ")) +
+        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: data holder ptr is null! ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -154,7 +154,7 @@ void EvernoteServiceManager::connect()
     typedef apache::thrift::transport::TSSLSocketFactory TSSLSocketFactory;
     boost::shared_ptr<TSSLSocketFactory> factoryPtr(new TSSLSocketFactory);
     if (factoryPtr.get() == nullptr) {
-        emit statusText(QString(tr("Unable to connect to Evernote: unable to instantiate TSSLSocketFactory. ")) +
+        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: unable to instantiate TSSLSocketFactory. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -162,15 +162,20 @@ void EvernoteServiceManager::connect()
     typedef apache::thrift::transport::TSSLSocket TSSLSocket;
     boost::shared_ptr<TSSLSocket> socketPtr = factoryPtr->createSocket();
     if (socketPtr.get() == nullptr) {
-        emit statusText(QString(tr("Unable to connect to Evernote: unable to instantiate TSSLSocket. ")) +
+        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: unable to instantiate TSSLSocket. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
 
+    // TODO: make it adjustable at runtime
+    socketPtr->setConnTimeout(12000);
+    socketPtr->setRecvTimeout(12000);
+    socketPtr->setSendTimeout(12000);
+
     typedef apache::thrift::transport::TBufferedTransport TBufferedTransport;
     boost::shared_ptr<TBufferedTransport> transportPtr(new TBufferedTransport(socketPtr));
     if (transportPtr.get() == nullptr) {
-        emit statusText(QString(tr("Unable to connect to Evernote: unable to instantiate TBufferedTransport. ")) +
+        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: unable to instantiate TBufferedTransport. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -178,7 +183,7 @@ void EvernoteServiceManager::connect()
     boost::shared_ptr<THttpClient> & httpClientPtr = m_pEvernoteDataHolder->httpClientPtr();
     httpClientPtr.reset(new THttpClient(transportPtr, hostname, path.toUtf8().constData()));
     if (httpClientPtr.get() == nullptr) {
-        emit statusText(QString(tr("Unable to connect to Evernote: unable to instantiate THttpClient. ")) +
+        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: unable to instantiate THttpClient. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -196,7 +201,7 @@ void EvernoteServiceManager::connect()
     pNoteStoreClient = new NoteStoreClient(m_pEvernoteDataHolder->binaryProtocolPtr(),
                                            m_pEvernoteDataHolder->binaryProtocolPtr());
     if (pNoteStoreClient == nullptr) {
-        emit statusText(QString(tr("Unable to connect to Evernote: unable to instantiate NoteStoreClient. ")) +
+        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: unable to instantiate NoteStoreClient. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -204,12 +209,31 @@ void EvernoteServiceManager::connect()
     SetDefaultNotebook();
     SetTrashNotebook();
     SetFavouriteTag();
-    // TODO: set and store connection status, set and store refresh time, synchronize
+    SetConnectionState(ECS_CONNECTED);
+    // TODO: set up timer to refresh connection, synchronize
 }
 
 void EvernoteServiceManager::disconnect()
 {
-    // TODO: implement
+    if (m_pEvernoteDataHolder == nullptr) {
+        return;
+    }
+
+    typedef apache::thrift::transport::THttpClient THttpClient;
+    boost::shared_ptr<THttpClient> & httpClientPtr = m_pEvernoteDataHolder->httpClientPtr();
+    if (httpClientPtr.get() == nullptr) {
+        return;
+    }
+    else {
+        httpClientPtr->flush();
+        httpClientPtr->close();
+        SetConnectionState(ECS_DISCONNECTED);
+    }
+}
+
+void EvernoteServiceManager::setRefreshTime(const double refreshTime)
+{
+    m_refreshTime = refreshTime;
 }
 
 EvernoteServiceManager::EvernoteServiceManager() :
@@ -217,8 +241,25 @@ EvernoteServiceManager::EvernoteServiceManager() :
     m_pEvernoteDataHolder(new EvernoteDataHolder),
     m_credentials(this),
     m_authorizationState(EAS_UNAUTHORIZED_NEVER_ATTEMPTED),
-    m_evernoteHostName("https://sandbox.evernote.com")
+    m_connectionState(ECS_DISCONNECTED),
+    m_evernoteHostName("https://sandbox.evernote.com"),
+    m_refreshTime(0.0)
 {}
+
+bool EvernoteServiceManager::CheckConnectionState() const
+{
+    if (m_connectionState == ECS_CONNECTED) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+void EvernoteServiceManager::SetConnectionState(const EvernoteServiceManager::EConnectionState connectionState)
+{
+    m_connectionState = connectionState;
+}
 
 void EvernoteServiceManager::SetDefaultNotebook()
 {
@@ -226,7 +267,7 @@ void EvernoteServiceManager::SetDefaultNotebook()
     std::vector<Notebook> notebooks;
 
     if (m_pEvernoteDataHolder == nullptr) {
-        emit statusText(QString(tr("Unable to set default notebook: EvernoteDataHolder is null. ")) +
+        emit statusTextUpdate(QString(tr("Unable to set default notebook: EvernoteDataHolder is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -234,7 +275,7 @@ void EvernoteServiceManager::SetDefaultNotebook()
     typedef evernote::edam::NoteStoreClient NoteStoreClient;
     NoteStoreClient * noteStoreClientPtr = m_pEvernoteDataHolder->noteStoreClientPtr();
     if (noteStoreClientPtr == nullptr) {
-        emit statusText(QString(tr("Unable to set default notebook: NoteStoreClient is null. ")) +
+        emit statusTextUpdate(QString(tr("Unable to set default notebook: NoteStoreClient is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -278,7 +319,7 @@ void EvernoteServiceManager::SetTrashNotebook()
     std::vector<Notebook> notebooks;
 
     if (m_pEvernoteDataHolder == nullptr) {
-        emit statusText(QString(tr("Unable to set default notebook: EvernoteDataHolder is null. ")) +
+        emit statusTextUpdate(QString(tr("Unable to set default notebook: EvernoteDataHolder is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -286,7 +327,7 @@ void EvernoteServiceManager::SetTrashNotebook()
     typedef evernote::edam::NoteStoreClient NoteStoreClient;
     NoteStoreClient * noteStoreClientPtr = m_pEvernoteDataHolder->noteStoreClientPtr();
     if (noteStoreClientPtr == nullptr) {
-        emit statusText(QString(tr("Unable to set default notebook: NoteStoreClient is null. ")) +
+        emit statusTextUpdate(QString(tr("Unable to set default notebook: NoteStoreClient is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -332,7 +373,7 @@ void EvernoteServiceManager::SetFavouriteTag()
     std::vector<Tag> tags;
 
     if (m_pEvernoteDataHolder == nullptr) {
-        emit statusText(QString(tr("Unable to set favourite tag: EvernoteDataHolder is null. ")) +
+        emit statusTextUpdate(QString(tr("Unable to set favourite tag: EvernoteDataHolder is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -340,7 +381,7 @@ void EvernoteServiceManager::SetFavouriteTag()
     typedef evernote::edam::NoteStoreClient NoteStoreClient;
     NoteStoreClient  * noteStoreClientPtr = m_pEvernoteDataHolder->noteStoreClientPtr();
     if (noteStoreClientPtr == nullptr) {
-        emit statusText(QString(tr("Unable to set favourite tag: NoteStoreClient is null. ")) +
+        emit statusTextUpdate(QString(tr("Unable to set favourite tag: NoteStoreClient is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
@@ -437,7 +478,7 @@ void EvernoteServiceManager::onOAuthSuccess(QString key, QString secret)
         QMessageBox::information(0, tr("Error: cannot open file with OAuth tokens: "),
                                  tokensFile.errorString());
         m_authorizationState = EAS_UNAUTHORIZED_INTERNAL_ERROR;
-        emit statusText(tr("Got OAuth tokens but unable to save them encrypted in file"), 0);
+        emit statusTextUpdate(tr("Got OAuth tokens but unable to save them encrypted in file"), 0);
         return;
     }
 
@@ -446,14 +487,14 @@ void EvernoteServiceManager::onOAuthSuccess(QString key, QString secret)
     tokensFile.close();
 
     m_authorizationState = EAS_AUTHORIZED;
-    emit statusText("Successfully authenticated to Evernote!", 2000);
+    emit statusTextUpdate("Successfully authenticated to Evernote!", 2000);
 }
 
 void EvernoteServiceManager::onOAuthFailure(QString message)
 {
     // TODO: think twice how should I deduce the state here
     m_authorizationState = EAS_UNAUTHORIZED_CREDENTIALS_REJECTED;
-    emit statusText("Unable to authenticate to Evernote: " + message, 0);
+    emit statusTextUpdate("Unable to authenticate to Evernote: " + message, 0);
 }
 
 void EvernoteServiceManager::onRequestToShowAuthorizationPage(QUrl authUrl)
