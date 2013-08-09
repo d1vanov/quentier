@@ -131,7 +131,8 @@ qt4_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
 
 set(RESOURCES
     resource/icons.qrc
-    resource/enc_data.qrc)
+    resource/enc_data.qrc
+    resource/enml.qrc)
 
 qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 
