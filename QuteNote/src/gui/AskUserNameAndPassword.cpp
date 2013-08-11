@@ -2,7 +2,7 @@
 #include "ui_AskUserNameAndPassword.h"
 #include <QMessageBox>
 
-AskUserNameAndPassword::AskUserNameAndPassword(QWidget *parent) :
+AskUserNameAndPassword::AskUserNameAndPassword(QWidget * parent) :
     QWidget(parent),
     m_pUI(new Ui::AskUserNameAndPassword)
 {
@@ -12,6 +12,10 @@ AskUserNameAndPassword::AskUserNameAndPassword(QWidget *parent) :
                      this, SLOT(onOkButtonPressed()));
     QObject::connect(m_pUI->cancelButton, SIGNAL(clicked()),
                      this, SLOT(onCancelButtonPressed()));
+
+    if (parent == nullptr) {
+        QWidget::setAttribute(Qt::WA_DeleteOnClose);
+    }
 }
 
 AskUserNameAndPassword::~AskUserNameAndPassword()
@@ -45,4 +49,5 @@ void AskUserNameAndPassword::onOkButtonPressed()
 void AskUserNameAndPassword::onCancelButtonPressed()
 {
     emit cancelled("User didn't provide user name and password for authentication");
+    QWidget::close();
 }

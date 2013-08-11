@@ -17,25 +17,28 @@
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
-    m_pAskConsumerKeyAndSecretWidget(new AskConsumerKeyAndSecret(this)),
-    m_pAskUserNameAndPasswordWidget(new AskUserNameAndPassword(this)),
+    m_pAskConsumerKeyAndSecretWidget(new AskConsumerKeyAndSecret),
+    m_pAskUserNameAndPasswordWidget(new AskUserNameAndPassword),
     m_currentStatusBarChildWidget(nullptr),
-    m_pBrowser(new EvernoteOAuthBrowser(this))
+    m_pManager(new EvernoteServiceManager),
+    m_pBrowser(new EvernoteOAuthBrowser(this, *m_pManager))
 {
     Q_CHECK_PTR(m_pUI);
     Q_CHECK_PTR(m_pAskConsumerKeyAndSecretWidget);
+    Q_CHECK_PTR(m_pAskUserNameAndPasswordWidget);
+    Q_CHECK_PTR(m_pManager);
+    Q_CHECK_PTR(m_pBrowser);
 
     m_pUI->setupUi(this);
     ConnectActionsToEditorSlots();
 
-    EvernoteServiceManager & manager = EvernoteServiceManager::Instance();
-    QObject::connect(&manager, SIGNAL(statusText(QString,int)),
+    QObject::connect(m_pManager, SIGNAL(statusTextUpdate(QString,int)),
                      this, SLOT(onSetStatusBarText(QString,int)));
-    QObject::connect(&manager, SIGNAL(showAuthWebPage(QUrl)),
+    QObject::connect(m_pManager, SIGNAL(showAuthWebPage(QUrl)),
                      this, SLOT(onShowAuthWebPage(QUrl)));
     QObject::connect(m_pAskConsumerKeyAndSecretWidget,
                      SIGNAL(consumerKeyAndSecretEntered(QString,QString)),
-                     &manager, SLOT(onConsumerKeyAndSecretSet(QString,QString)));
+                     m_pManager, SLOT(onConsumerKeyAndSecretSet(QString,QString)));
 
     QObject::connect(m_pAskConsumerKeyAndSecretWidget,
                      SIGNAL(cancelled(QString)),
@@ -43,7 +46,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     CheckAndSetupConsumerKeyAndSecret();
     CheckAndSetupUserNameAndPassword();
-    manager.connect();
+    m_pManager->connect();
 }
 
 MainWindow::~MainWindow()
@@ -248,8 +251,7 @@ void MainWindow::checkAndSetupCredentials(MainWindow::ECredentialsToCheck creden
             QString keyDecrypted = crypto.decryptToString(keyEncrypted);
             QString secretDecrypted = crypto.decryptToString(secretEncrypted);
 
-            EvernoteServiceManager & manager = EvernoteServiceManager::Instance();
-            CredentialsModel & credentials = manager.getCredentials();
+            CredentialsModel & credentials = m_pManager->getCredentials();
 
             switch(credentialsFlag)
             {
@@ -287,8 +289,7 @@ void MainWindow::checkAndSetupCredentials(MainWindow::ECredentialsToCheck creden
             break;
         case CHECK_OAUTH_TOKEN_AND_SECRET:
         {
-            EvernoteServiceManager & manager = EvernoteServiceManager::Instance();
-            manager.authenticate();
+            m_pManager->authenticate();
             break;
         }
         default:
@@ -317,9 +318,8 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
     }
 
     // Check whether authentication is done and we need to close the browser
-    EvernoteServiceManager & manager = EvernoteServiceManager::Instance();
     QString dummyErrorString;
-    if (manager.CheckAuthenticationState(dummyErrorString)) {
+    if (m_pManager->CheckAuthenticationState(dummyErrorString)) {
         if (m_pBrowser != nullptr) {
             m_pBrowser->authSuccessful();
             m_pBrowser->close();
@@ -330,7 +330,7 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
 void MainWindow::onShowAuthWebPage(QUrl url)
 {
     if (m_pBrowser == nullptr) {
-        m_pBrowser = new EvernoteOAuthBrowser(this);
+        m_pBrowser = new EvernoteOAuthBrowser(this, *m_pManager);
         Q_CHECK_PTR(m_pBrowser);
     }
 

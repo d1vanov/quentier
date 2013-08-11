@@ -1,23 +1,21 @@
 #include "EvernoteOAuthBrowser.h"
 
-EvernoteOAuthBrowser::EvernoteOAuthBrowser(QWidget *parent) :
-    QWebView(parent)
+EvernoteOAuthBrowser::EvernoteOAuthBrowser(QWidget *parent, EvernoteServiceManager & manager) :
+    QWebView(parent),
+    m_manager(manager),
+    m_authenticationSuccessful(false)
 {
     QWidget::setMinimumHeight(200);
     QWidget::setMinimumWidth(300);
 
-    QObject::connect(this,
-                     SIGNAL(OAUthBrowserClosedBeforeProvidingAccess(QString)),
-                     &(EvernoteServiceManager::Instance()),
-                     SLOT(onOAuthFailure(QString)));
+    QObject::connect(this, SIGNAL(OAUthBrowserClosedBeforeProvidingAccess(QString)),
+                     &m_manager, SLOT(onOAuthFailure(QString)));
 }
 
 EvernoteOAuthBrowser::~EvernoteOAuthBrowser()
 {
-    QObject::disconnect(this,
-                        SIGNAL(OAUthBrowserClosedBeforeProvidingAccess(QString)),
-                        &(EvernoteServiceManager::Instance()),
-                        SLOT(onOAuthFailure(QString)));
+    QObject::disconnect(this, SIGNAL(OAUthBrowserClosedBeforeProvidingAccess(QString)),
+                        &m_manager, SLOT(onOAuthFailure(QString)));
 }
 
 void EvernoteOAuthBrowser::authSuccessful()

@@ -13,6 +13,10 @@ AskConsumerKeyAndSecret::AskConsumerKeyAndSecret(QWidget * parent) :
                      this, SLOT(onOkButtonPressed()));
     QObject::connect(m_pUI->cancelButton, SIGNAL(clicked()),
                      this, SLOT(onCancelButtonPressed()));
+
+    if (parent == nullptr) {
+        QWidget::setAttribute(Qt::WA_DeleteOnClose);
+    }
 }
 
 AskConsumerKeyAndSecret::~AskConsumerKeyAndSecret()
@@ -46,4 +50,5 @@ void AskConsumerKeyAndSecret::onOkButtonPressed()
 void AskConsumerKeyAndSecret::onCancelButtonPressed()
 {
     emit cancelled("User didn't provide consumer key and secret for application");
+    QWidget::close();
 }
