@@ -1,26 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(kqoauth)
 
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
-   ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-uninitialized")
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    find_library(LIBCPP NAMES libc++.so libc++.so.1.0 libc++.dylib OPTIONAL)
-    if(LIBCPP)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    endif()
-  endif()
-endif()
+include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/compiler.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/qt.cmake)
 
-find_package(Qt4 COMPONENTS QtCore QtNetwork QtWebkit REQUIRED)
-include_directories(SYSTEM "${QT_INCLUDES} ${SYSTEM}")
-include(${QT_USE_FILE})
-add_definitions(${QT_DEFINITIONS})
 add_definitions("-DKQOAUTH")
-
-set(CMAKE_AUTOMOC ON)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set(${PROJECT_NAME}_HEADERS
     src/kqoauthauthreplyserver.h
@@ -41,8 +25,7 @@ set(${PROJECT_NAME}_SOURCES
     src/kqoauthrequest.cpp
     src/kqoauthrequest_1.cpp
     src/kqoauthrequest_xauth.cpp
-    src/kqoauthutils.cpp
-    )
+    src/kqoauthutils.cpp)
 
 add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_HEADERS}
