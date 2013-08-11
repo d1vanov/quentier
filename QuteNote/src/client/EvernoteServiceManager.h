@@ -6,9 +6,6 @@
 #include <QUrl>
 #include "CredentialsModel.h"
 
-template <class T>
-class Singleton;
-
 QT_FORWARD_DECLARE_CLASS(EvernoteOAuthBrowser)
 QT_FORWARD_DECLARE_CLASS(EvernoteServiceOAuthHandler)
 
@@ -16,6 +13,8 @@ class EvernoteServiceManager: public QObject
 {
     Q_OBJECT
 public:
+    EvernoteServiceManager();
+
     // User interface
 
     /**
@@ -42,15 +41,8 @@ public:
      */
     void setRefreshTime(const double refreshTime);
 
-private:
-    // standard constructor does nothing but exists as private method
-    EvernoteServiceManager();
-    friend class Singleton<EvernoteServiceManager>;
-
 public:
     // Application interface
-    static EvernoteServiceManager & Instance();
-
     bool setCredentials(const CredentialsModel & credentials,
                         QString & errorMessage);
 

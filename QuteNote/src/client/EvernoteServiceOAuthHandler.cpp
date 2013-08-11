@@ -14,9 +14,10 @@
 #include <kqoauthrequest_xauth.h>
 #include <kqoauthmanager.h>
 
-EvernoteServiceOAuthHandler::EvernoteServiceOAuthHandler(QObject * parent) :
+EvernoteServiceOAuthHandler::EvernoteServiceOAuthHandler(QObject * parent,
+                                                         EvernoteServiceManager & manager) :
     QObject(parent),
-    m_manager(EvernoteServiceManager::Instance()),
+    m_manager(manager),
     m_pOAuthManager(new KQOAuthManager(this)),
     m_pOAuthRequest(new KQOAuthRequest)
 {

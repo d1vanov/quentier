@@ -2,7 +2,6 @@
 #include "EvernoteServiceOAuthHandler.h"
 #include "../gui/MainWindow.h"
 #include "../gui/EvernoteOAuthBrowser.h"
-#include "../tools/Singleton.h"
 #include "../../SimpleCrypt/src/simplecrypt.h"
 #include "../thrift/transport/THttpClient.h"
 #ifdef HAVE_NETINET_IN_H
@@ -237,7 +236,7 @@ void EvernoteServiceManager::setRefreshTime(const double refreshTime)
 }
 
 EvernoteServiceManager::EvernoteServiceManager() :
-    m_pOAuthHandler(new EvernoteServiceOAuthHandler(this)),
+    m_pOAuthHandler(new EvernoteServiceOAuthHandler(this, *this)),
     m_pEvernoteDataHolder(new EvernoteDataHolder),
     m_credentials(this),
     m_authorizationState(EAS_UNAUTHORIZED_NEVER_ATTEMPTED),
@@ -418,11 +417,6 @@ void EvernoteServiceManager::SetFavouriteTag()
         favouriteTagPtr->name = QString(tr("Favourite tag")).toStdString();
         noteStoreClientPtr->createTag(*favouriteTagPtr, authToken, *favouriteTagPtr);
     }
-}
-
-EvernoteServiceManager & EvernoteServiceManager::Instance()
-{
-    return Singleton<EvernoteServiceManager>::Instance();
 }
 
 bool EvernoteServiceManager::setCredentials(const CredentialsModel & credentials,

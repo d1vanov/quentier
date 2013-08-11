@@ -47,7 +47,6 @@ set(${PROJECT_NAME}_HEADERS
     src/evernote_sdk/src/Limits_constants.h
     src/evernote_sdk/src/Errors_types.h
     src/evernote_sdk/src/Errors_constants.h
-    src/tools/Singleton.h
     src/client/EvernoteServiceManager.h
     src/client/EvernoteServiceOAuthHandler.h
     src/client/CredentialsModel.h)
@@ -74,7 +73,8 @@ set(${PROJECT_NAME}_SOURCES
     src/evernote_sdk/src/Errors_constants.cpp
     src/client/EvernoteServiceManager.cpp
     src/client/EvernoteServiceOAuthHandler.cpp
-    src/client/CredentialsModel.cpp)
+    src/client/CredentialsModel.cpp
+    main.cpp)
 
 set(FORMS
     src/gui/MainWindow.ui
@@ -103,13 +103,7 @@ add_executable(${PROJECT_NAME}
                ${${PROJECT_NAME}_HEADERS}
                ${${PROJECT_NAME}_SOURCES}
                ${${PROJECT_NAME}_FORMS_HEADERS}
-               ${${PROJECT_NAME}_RESOURCES_RCC}
-               main.cpp)
-
-add_executable("${PROJECT_NAME}_Test_EvernoteOAuthBrowser"
-               ${${PROJECT_NAME}_HEADERS}
-               ${${PROJECT_NAME}_SOURCES}
-               tests/Test_EvernoteOAuthBrowser.cpp)
+               ${${PROJECT_NAME}_RESOURCES_RCC})
 
 find_package(OpenSSL REQUIRED)
 
@@ -123,7 +117,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set(LIB_FILE_PREFIX "")
   set(DYNAMIC_LIB_FILE_EXTENSION "dll")
 else()
-  message(FATAL_ERROR "Unsupported platform. Only Windows, Mac OS X and Linux are supported at the moment")
+  message(WARNING "Your platform is not officially supported. Only Windows, Mac OS X and Linux are supported at the moment")
 endif()
 
 set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/${LIB_FILE_PREFIX}thrift.${DYNAMIC_LIB_FILE_EXTENSION}")
@@ -137,14 +131,6 @@ target_link_libraries(${PROJECT_NAME}
                       ${QT_LIBRARIES}
                       ${OPENSSL_LIBRARIES})
 
-target_link_libraries("${PROJECT_NAME}_Test_EvernoteOAuthBrowser"
-                      ${THRIFT_LIB}
-                      ${KQOAUTH_LIB}
-                      ${SIMPLECRYPT_LIB}
-                      ${QT_LIBRARIES}
-                      ${OPENSSL_LIBRARIES})
-
 if(LIBCPP)
   target_link_libraries(${PROJECT_NAME} ${LIBCPP})
-  target_link_libraries("${PROJECT_NAME}_Test_EvernoteOAuthBrowser" ${LIBCPP})
 endif()

@@ -13,7 +13,7 @@ class EvernoteServiceOAuthHandler: public QObject
 {
     Q_OBJECT
 public:
-    explicit EvernoteServiceOAuthHandler(QObject * parent = nullptr);
+    explicit EvernoteServiceOAuthHandler(QObject * parent, EvernoteServiceManager & manager);
     virtual ~EvernoteServiceOAuthHandler() override;
 
     bool getAccess(QString & errorMessage);

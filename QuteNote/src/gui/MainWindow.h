@@ -8,6 +8,7 @@ class MainWindow;
 }
 
 QT_FORWARD_DECLARE_CLASS(EvernoteOAuthBrowser)
+QT_FORWARD_DECLARE_CLASS(EvernoteServiceManager)
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(AskConsumerKeyAndSecret)
 QT_FORWARD_DECLARE_CLASS(AskUserNameAndPassword)
@@ -61,8 +62,10 @@ private:
     Ui::MainWindow * m_pUI;
     AskConsumerKeyAndSecret * m_pAskConsumerKeyAndSecretWidget;
     AskUserNameAndPassword * m_pAskUserNameAndPasswordWidget;
+    EvernoteServiceManager * m_pManager;
     EvernoteOAuthBrowser * m_pBrowser;
     QWidget * m_currentStatusBarChildWidget;
+
 };
 
 #endif // __QUTE_NOTE__MAINWINDOW_H
