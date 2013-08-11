@@ -210,131 +210,58 @@ include_directories(${Boost_INCLUDE_DIR})
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
-find_package(ZLIB REQUIRED)
-include_directories(${ZLIB_INCLUDE_DIR})
-
 include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/src ${SYSTEM}")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${QT_INCLUDES})
 add_definitions("-DUSE_BOOST_THREAD -DVERSION=0.9")
 
 set(HEADERS
-    src/thrift/TReflectionLocal.h
     src/thrift/TProcessor.h
     src/thrift/TLogging.h
     src/thrift/Thrift.h
-    src/thrift/TDispatchProcessor.h
     src/thrift/TApplicationException.h
-    src/thrift/transport/TZlibTransport.h
     src/thrift/transport/TVirtualTransport.h
-    src/thrift/transport/TTransportUtils.h
     src/thrift/transport/TTransportException.h
     src/thrift/transport/TTransport.h
     src/thrift/transport/TSSLSocket.h
-    src/thrift/transport/TSSLServerSocket.h
-    src/thrift/transport/TSocketPool.h
     src/thrift/transport/TSocket.h
-    src/thrift/transport/TSimpleFileTransport.h
-    src/thrift/transport/TShortReadTransport.h
-    src/thrift/transport/TServerTransport.h
     src/thrift/transport/TServerSocket.h
-    src/thrift/transport/TPipeServer.h
-    src/thrift/transport/TPipe.h
+    src/thrift/transport/TServerTransport.h
     src/thrift/transport/THttpTransport.h
-    src/thrift/transport/THttpServer.h
     src/thrift/transport/THttpClient.h
-    src/thrift/transport/TFileTransport.h
-    src/thrift/transport/TFDTransport.h
     src/thrift/transport/TBufferTransports.h
-    src/thrift/server/TThreadPoolServer.h
-    src/thrift/server/TThreadedServer.h
-    src/thrift/server/TSimpleServer.h
-    src/thrift/server/TServer.h
-    src/thrift/server/TNonblockingServer.h
-    src/thrift/qt/TQTcpServer.h
-    src/thrift/qt/TQIODeviceTransport.h
     src/thrift/protocol/TVirtualProtocol.h
-    src/thrift/protocol/TProtocolTap.h
     src/thrift/protocol/TProtocolException.h
     src/thrift/protocol/TProtocol.h
-    src/thrift/protocol/TJSONProtocol.h
-    src/thrift/protocol/TDenseProtocol.h
-    src/thrift/protocol/TDebugProtocol.h
-    src/thrift/protocol/TCompactProtocol.h
     src/thrift/protocol/TBinaryProtocol.h
-    src/thrift/protocol/TBase64Utils.h
-    src/thrift/processor/StatsProcessor.h
-    src/thrift/processor/PeekProcessor.h
     src/thrift/concurrency/Mutex.h
     src/thrift/concurrency/Monitor.h
-    src/thrift/concurrency/PosixThreadFactory.h
     src/thrift/concurrency/Util.h
-    src/thrift/concurrency/TimerManager.h
-    src/thrift/concurrency/ThreadManager.h
     src/thrift/concurrency/Thread.h
-    src/thrift/concurrency/PlatformThreadFactory.h
-    src/thrift/concurrency/FunctionRunner.h
     src/thrift/concurrency/Exception.h
-    src/thrift/concurrency/BoostThreadFactory.h
-    src/thrift/async/TEvhttpServer.h
-    src/thrift/async/TEvhttpClientChannel.h
-    src/thrift/async/TAsyncProtocolProcessor.h
-    src/thrift/async/TAsyncProcessor.h
-    src/thrift/async/TAsyncDispatchProcessor.h
-    src/thrift/async/TAsyncChannel.h
-    src/thrift/async/TAsyncBufferProcessor.h)
+    src/thrift/concurrency/BoostThreadFactory.h)
 
 set(SOURCES
-    src/thrift/VirtualProfiling.cpp
     src/thrift/Thrift.cpp
     src/thrift/TApplicationException.cpp
-    src/thrift/transport/TZlibTransport.cpp
-    src/thrift/transport/TTransportUtils.cpp
     src/thrift/transport/TTransportException.cpp
-    src/thrift/transport/TSSLServerSocket.cpp
-    src/thrift/transport/TSocketPool.cpp
     src/thrift/transport/TSocket.cpp
-    src/thrift/transport/TSimpleFileTransport.cpp
     src/thrift/transport/TServerSocket.cpp
-    src/thrift/transport/TPipeServer.cpp
-    src/thrift/transport/TPipe.cpp
     src/thrift/transport/THttpTransport.cpp
-    src/thrift/transport/THttpServer.cpp
     src/thrift/transport/THttpClient.cpp
-    src/thrift/transport/TFileTransport.cpp
-    src/thrift/transport/TFDTransport.cpp
     src/thrift/transport/TBufferTransports.cpp
-    src/thrift/server/TThreadPoolServer.cpp
-    src/thrift/server/TThreadedServer.cpp
-    src/thrift/server/TSimpleServer.cpp
-    src/thrift/server/TNonblockingServer.cpp
-    src/thrift/qt/TQTcpServer.cpp
-    src/thrift/qt/TQIODeviceTransport.cpp
-    src/thrift/protocol/TJSONProtocol.cpp
-    src/thrift/protocol/TDenseProtocol.cpp
-    src/thrift/protocol/TDebugProtocol.cpp
-    src/thrift/protocol/TCompactProtocol.tcc
     src/thrift/protocol/TBinaryProtocol.tcc
-    src/thrift/protocol/TBase64Utils.cpp
-    src/thrift/processor/PeekProcessor.cpp
     src/thrift/concurrency/Util.cpp
-    src/thrift/concurrency/TimerManager.cpp
-    src/thrift/concurrency/ThreadManager.cpp
     src/thrift/concurrency/BoostThreadFactory.cpp
     src/thrift/concurrency/BoostMutex.cpp
-    src/thrift/concurrency/BoostMonitor.cpp
-    src/thrift/async/TEvhttpServer.cpp
-    src/thrift/async/TEvhttpClientChannel.cpp
-    src/thrift/async/TAsyncProtocolProcessor.cpp
-    src/thrift/async/TAsyncChannel.cpp)
+    src/thrift/concurrency/BoostMonitor.cpp)
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND SOURCES  "src/thrift/transport/TSSLSocket.cpp")
-  list(APPEND SOURCES  "src/thrift/server/TServer.cpp")
 endif()
 	
 add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} ${EVENT_LIBRARY} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${EVENT_LIBRARY} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
 
 if(USE_MSVC17)
   target_link_libraries(${PROJECT_NAME} ${Qt5Core_LIBRARIES} ${Qt5Network_LIBRARIES})
