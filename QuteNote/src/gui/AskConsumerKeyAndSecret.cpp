@@ -46,6 +46,7 @@ void AskConsumerKeyAndSecret::onOkButtonPressed()
     }
 
     emit consumerKeyAndSecretEntered(key, secret);
+    QWidget::close();
 }
 
 void AskConsumerKeyAndSecret::onCancelButtonPressed()

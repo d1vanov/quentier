@@ -51,6 +51,7 @@ private:
 public slots:
     void onSetStatusBarText(QString message, const int duration = 0);
     void onShowAuthWebPage(QUrl url);
+    void onRequestUsernameAndPassword();
 
 private slots:
     void textBold();

@@ -45,6 +45,7 @@ void AskUserNameAndPassword::onOkButtonPressed()
     }
 
     emit userNameAndPasswordEntered(name, password);
+    QWidget::close();
 }
 
 void AskUserNameAndPassword::onCancelButtonPressed()

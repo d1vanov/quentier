@@ -56,6 +56,7 @@ public:
 signals:
     void statusTextUpdate(QString, const int);
     void showAuthWebPage(QUrl);
+    void requestUsernameAndPassword();
 
 public slots:
     void onOAuthSuccess(QString key, QString secret);

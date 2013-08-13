@@ -500,6 +500,12 @@ void EvernoteServiceManager::onConsumerKeyAndSecretSet(QString key, QString secr
 {
     m_credentials.SetConsumerKey(key);
     m_credentials.SetConsumerSecret(secret);
+
+    if (m_credentials.GetUsername().isEmpty() ||
+        m_credentials.GetPassword().isEmpty())
+    {
+        emit requestUsernameAndPassword();
+    }
 }
 
 void EvernoteServiceManager::onUserNameAndPasswordSet(QString name, QString password)

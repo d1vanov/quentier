@@ -39,13 +39,30 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QObject::connect(m_pAskConsumerKeyAndSecretWidget,
                      SIGNAL(consumerKeyAndSecretEntered(QString,QString)),
                      m_pManager, SLOT(onConsumerKeyAndSecretSet(QString,QString)));
+    QObject::connect(m_pManager, SIGNAL(requestUsernameAndPassword()),
+                     this, SLOT(onRequestUsernameAndPassword()));
 
     QObject::connect(m_pAskConsumerKeyAndSecretWidget,
                      SIGNAL(cancelled(QString)),
                      this, SLOT(onSetStatusBarText(QString)));
 
-    CheckAndSetupConsumerKeyAndSecret();
-    CheckAndSetupUserNameAndPassword();
+    const CredentialsModel & credentials = m_pManager->getCredentials();
+
+    if (credentials.GetConsumerKey().isEmpty() ||
+        credentials.GetConsumerSecret().isEmpty())
+    {
+        CheckAndSetupConsumerKeyAndSecret();
+        if (!credentials.GetConsumerKey().isEmpty() &&
+            !credentials.GetConsumerSecret().isEmpty())
+        {
+            CheckAndSetupUserNameAndPassword();
+        }
+    }
+    else
+    {
+        CheckAndSetupUserNameAndPassword();
+    }
+
     m_pManager->connect();
 }
 
@@ -336,6 +353,11 @@ void MainWindow::onShowAuthWebPage(QUrl url)
 
     m_pBrowser->load(url);
     m_pBrowser->show();
+}
+
+void MainWindow::onRequestUsernameAndPassword()
+{
+    CheckAndSetupUserNameAndPassword();
 }
 
 void MainWindow::textBold()
