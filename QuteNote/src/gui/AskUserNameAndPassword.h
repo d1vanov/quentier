@@ -12,7 +12,7 @@ class AskUserNameAndPassword : public QWidget
     Q_OBJECT
     
 public:
-    explicit AskUserNameAndPassword(QWidget * parent = 0);
+    explicit AskUserNameAndPassword(QWidget * parent = nullptr);
     ~AskUserNameAndPassword();
     
 signals:

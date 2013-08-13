@@ -16,6 +16,7 @@ AskUserNameAndPassword::AskUserNameAndPassword(QWidget * parent) :
     if (parent == nullptr) {
         QWidget::setAttribute(Qt::WA_DeleteOnClose);
     }
+    QWidget::setWindowFlags(Qt::Window);
 }
 
 AskUserNameAndPassword::~AskUserNameAndPassword()
@@ -48,6 +49,6 @@ void AskUserNameAndPassword::onOkButtonPressed()
 
 void AskUserNameAndPassword::onCancelButtonPressed()
 {
-    emit cancelled("User didn't provide user name and password for authentication");
+    emit cancelled(QString(tr("User didn't provide user name and password for authentication")));
     QWidget::close();
 }

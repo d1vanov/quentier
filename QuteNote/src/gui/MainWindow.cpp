@@ -17,8 +17,8 @@
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
-    m_pAskConsumerKeyAndSecretWidget(new AskConsumerKeyAndSecret),
-    m_pAskUserNameAndPasswordWidget(new AskUserNameAndPassword),
+    m_pAskConsumerKeyAndSecretWidget(new AskConsumerKeyAndSecret(this)),
+    m_pAskUserNameAndPasswordWidget(new AskUserNameAndPassword(this)),
     m_currentStatusBarChildWidget(nullptr),
     m_pManager(new EvernoteServiceManager),
     m_pBrowser(new EvernoteOAuthBrowser(this, *m_pManager))

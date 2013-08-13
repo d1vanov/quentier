@@ -17,6 +17,7 @@ AskConsumerKeyAndSecret::AskConsumerKeyAndSecret(QWidget * parent) :
     if (parent == nullptr) {
         QWidget::setAttribute(Qt::WA_DeleteOnClose);
     }
+    QWidget::setWindowFlags(Qt::Window);
 }
 
 AskConsumerKeyAndSecret::~AskConsumerKeyAndSecret()
@@ -49,6 +50,6 @@ void AskConsumerKeyAndSecret::onOkButtonPressed()
 
 void AskConsumerKeyAndSecret::onCancelButtonPressed()
 {
-    emit cancelled("User didn't provide consumer key and secret for application");
+    emit cancelled(QString(tr("User didn't provide consumer key and secret for application")));
     QWidget::close();
 }

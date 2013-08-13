@@ -12,7 +12,7 @@ class AskConsumerKeyAndSecret : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AskConsumerKeyAndSecret(QWidget * parent = 0);
+    explicit AskConsumerKeyAndSecret(QWidget * parent = nullptr);
     ~AskConsumerKeyAndSecret();
     
 signals:
