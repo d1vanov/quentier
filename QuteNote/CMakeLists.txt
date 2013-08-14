@@ -107,6 +107,15 @@ add_executable(${PROJECT_NAME}
 
 find_package(OpenSSL REQUIRED)
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/find_xerces.cmake)
+if(XERCESC_FOUND)
+  if(${XERCESC_VERSION} VERSION_LESS 3.1.1)
+    message(WARNING "Xerces ${XERCESC_VERSION} is not supported. Only 3.1.1 and newer versions are supported")
+  else()
+    include_directories(${XERCESC_INCLUDE})
+  endif()
+endif()
+
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(LIB_FILE_PREFIX "lib")
   set(DYNAMIC_LIB_FILE_EXTENSION "so")
@@ -129,7 +138,8 @@ target_link_libraries(${PROJECT_NAME}
                       ${KQOAUTH_LIB}
                       ${SIMPLECRYPT_LIB}
                       ${QT_LIBRARIES}
-                      ${OPENSSL_LIBRARIES})
+                      ${OPENSSL_LIBRARIES}
+                      ${XERCESC_LIBRARY})
 
 if(LIBCPP)
   target_link_libraries(${PROJECT_NAME} ${LIBCPP})
