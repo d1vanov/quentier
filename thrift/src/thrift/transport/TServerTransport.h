@@ -31,7 +31,7 @@ namespace apache { namespace thrift { namespace transport {
  * creating base transports to read/write from.
  *
  */
-class TServerTransport {
+class THRIFT_EXPORT TServerTransport {
  public:
   virtual ~TServerTransport() {}
 

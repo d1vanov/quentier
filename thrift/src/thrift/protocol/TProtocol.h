@@ -297,7 +297,7 @@ uint32_t skip(Protocol_& prot, TType type) {
  * looking ahead character by character for a close tag).
  *
  */
-class TProtocol {
+class THRIFT_EXPORT TProtocol {
  public:
   virtual ~TProtocol() {}
 
@@ -674,7 +674,7 @@ class TProtocol {
 /**
  * Constructs input and output protocol objects given transports.
  */
-class TProtocolFactory {
+class THRIFT_EXPORT TProtocolFactory {
  public:
   TProtocolFactory() {}
 
@@ -689,7 +689,7 @@ class TProtocolFactory {
  * This class does nothing, and should never be instantiated.
  * It is used only by the generator code.
  */
-class TDummyProtocol : public TProtocol {
+class THRIFT_EXPORT TDummyProtocol : public TProtocol {
 };
 
 }}} // apache::thrift::protocol

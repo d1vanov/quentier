@@ -53,7 +53,7 @@ uint32_t readAll(Transport_ &trans, uint8_t* buf, uint32_t len) {
  * capable of either reading or writing, but not necessarily both.
  *
  */
-class TTransport {
+class THRIFT_EXPORT TTransport {
  public:
   /**
    * Virtual deconstructor.
@@ -250,7 +250,7 @@ class TTransport {
  * streams out of raw clients.
  *
  */
-class TTransportFactory {
+class THRIFT_EXPORT TTransportFactory {
  public:
   TTransportFactory() {}
 

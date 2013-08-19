@@ -50,6 +50,8 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_convertible.hpp>
 
+#include "Linkage.h"
+
 #include "TLogging.h"
 
 /**
@@ -76,7 +78,7 @@
 
 namespace apache { namespace thrift {
 
-class TEnumIterator : public std::iterator<std::forward_iterator_tag, std::pair<int, const char*> > {
+class THRIFT_EXPORT TEnumIterator : public std::iterator<std::forward_iterator_tag, std::pair<int, const char*> > {
  public:
   TEnumIterator(int n,
                 int* enums,
@@ -104,7 +106,7 @@ class TEnumIterator : public std::iterator<std::forward_iterator_tag, std::pair<
   const char** names_;
 };
 
-class TOutput {
+class THRIFT_EXPORT TOutput {
  public:
   TOutput() : f_(&errorTimeWrapper) {}
 
@@ -145,7 +147,7 @@ class TOutput {
 
 extern TOutput GlobalOutput;
 
-class TException : public std::exception {
+class THRIFT_EXPORT TException : public std::exception {
  public:
   TException():
     message_() {}
@@ -174,11 +176,11 @@ namespace reflection { namespace local {
 struct TypeSpec;
 }}
 
-class TDelayedException {
+class THRIFT_EXPORT TDelayedException {
  public:
   template <class E> static TDelayedException* delayException(const E& e);
   virtual void throw_it() = 0;
-  virtual ~TDelayedException() {};
+  virtual ~TDelayedException() {}
 };
 
 template <class E> class TExceptionWrapper : public TDelayedException {

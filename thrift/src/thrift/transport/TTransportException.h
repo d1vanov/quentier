@@ -33,7 +33,7 @@ namespace apache { namespace thrift { namespace transport {
  * pipes etc.
  *
  */
-class TTransportException : public apache::thrift::TException {
+class THRIFT_EXPORT TTransportException : public apache::thrift::TException {
  public:
   /**
    * Error codes for the various types of exceptions.

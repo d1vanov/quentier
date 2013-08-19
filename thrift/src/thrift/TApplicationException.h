@@ -29,7 +29,7 @@ namespace protocol {
   class TProtocol;
 }
 
-class TApplicationException : public TException {
+class THRIFT_EXPORT TApplicationException : public TException {
  public:
 
   /**

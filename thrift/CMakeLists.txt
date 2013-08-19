@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
-project(thrift C CXX)
+project(thrift)
+
+add_definitions("-DBUILD_LIBTHRIFT")
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # Include files required by thrift
@@ -144,6 +146,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${QT_INCLUDES})
 add_definitions("-DUSE_BOOST_THREAD -DVERSION=0.9")
 
 set(HEADERS
+    src/thrift/Linkage.h
     src/thrift/TProcessor.h
     src/thrift/TLogging.h
     src/thrift/Thrift.h
@@ -186,15 +189,10 @@ set(SOURCES
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND SOURCES  "src/thrift/transport/TSSLSocket.cpp")
-  find_package(Threads REQUIRED)
 endif()
 
-add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
+add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${QT_LIBRARIES})
-
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
-endif()
 
 if(LIBCPP)
   target_link_libraries(${PROJECT_NAME} ${LIBCPP})

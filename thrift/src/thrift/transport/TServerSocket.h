@@ -35,7 +35,7 @@ class TSocket;
  * socket listen and accept calls.
  *
  */
-class TServerSocket : public TServerTransport {
+class THRIFT_EXPORT TServerSocket : public TServerTransport {
  public:
   TServerSocket(int port);
   TServerSocket(int port, int sendTimeout, int recvTimeout);

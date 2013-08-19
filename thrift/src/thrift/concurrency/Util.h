@@ -44,7 +44,7 @@ namespace apache { namespace thrift { namespace concurrency {
  *
  * @version $Id:$
  */
-class Util {
+class THRIFT_EXPORT Util {
 
   static const int64_t NS_PER_S = 1000000000LL;
   static const int64_t US_PER_S = 1000000LL;

@@ -104,10 +104,6 @@ add_executable(${PROJECT_NAME}
 
 find_package(OpenSSL REQUIRED)
 
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  find_package(Threads)
-endif()
-
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(LIB_FILE_PREFIX "lib")
   set(DYNAMIC_LIB_FILE_EXTENSION "so")
@@ -124,7 +120,7 @@ else()
   message(WARNING "Your platform is not officially supported. Only Windows, Mac OS X and Linux are supported at the moment")
 endif()
 
-set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/${LIB_FILE_PREFIX}thrift.${STATIC_LIB_FILE_EXTENSION}")
+set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/${LIB_FILE_PREFIX}thrift.${DYNAMIC_LIB_FILE_EXTENSION}")
 set(KQOAUTH_LIB "${QuteNoteProject_BINARY_DIR}/kqoauth/${LIB_FILE_PREFIX}kqoauth.${DYNAMIC_LIB_FILE_EXTENSION}")
 set(SIMPLECRYPT_LIB "${QuteNoteProject_BINARY_DIR}/SimpleCrypt/${LIB_FILE_PREFIX}simplecrypt.${STATIC_LIB_FILE_EXTENSION}")
 
@@ -135,10 +131,6 @@ target_link_libraries(${PROJECT_NAME}
                       ${QT_LIBRARIES}
                       ${OPENSSL_LIBRARIES}
                       ${XERCESC_LIBRARY})
-
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
-endif()
 
 if(LIBCPP)
   target_link_libraries(${PROJECT_NAME} ${LIBCPP})

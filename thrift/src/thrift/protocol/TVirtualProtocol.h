@@ -37,7 +37,7 @@ using apache::thrift::transport::TTransport;
  * You probably don't want to use this class directly.  Use TVirtualProtocol
  * instead.
  */
-class TProtocolDefaults : public TProtocol {
+class THRIFT_EXPORT TProtocolDefaults : public TProtocol {
  public:
   uint32_t readMessageBegin(std::string& name,
                             TMessageType& messageType,

@@ -34,7 +34,7 @@ class SSLContext;
 /**
  * OpenSSL implementation for SSL socket interface.
  */
-class TSSLSocket: public TSocket {
+class THRIFT_EXPORT TSSLSocket: public TSocket {
  public:
  ~TSSLSocket();
   /**
@@ -104,7 +104,7 @@ protected:
 /**
  * SSL socket factory. SSL sockets should be created via SSL factory.
  */
-class TSSLSocketFactory {
+class THRIFT_EXPORT TSSLSocketFactory {
  public:
   /**
    * Constructor/Destructor
@@ -215,7 +215,7 @@ class TSSLSocketFactory {
 /**
  * SSL exception.
  */
-class TSSLException: public TTransportException {
+class THRIFT_EXPORT TSSLException: public TTransportException {
  public:
   TSSLException(const std::string& message):
     TTransportException(TTransportException::INTERNAL_ERROR, message) {}
@@ -232,7 +232,7 @@ class TSSLException: public TTransportException {
 /**
  * Wrap OpenSSL SSL_CTX into a class.
  */
-class SSLContext {
+class THRIFT_EXPORT SSLContext {
  public:
   SSLContext();
   virtual ~SSLContext();
@@ -248,7 +248,7 @@ class SSLContext {
  * instance. It's passed onto all TSSLSocket instances created by this factory
  * object.
  */
-class AccessManager {
+class THRIFT_EXPORT AccessManager {
  public:
   enum Decision {
     DENY   = -1,    // deny access
@@ -301,7 +301,7 @@ class AccessManager {
 
 typedef AccessManager::Decision Decision;
 
-class DefaultClientAccessManager: public AccessManager {
+class THRIFT_EXPORT DefaultClientAccessManager: public AccessManager {
  public:
   // AccessManager interface
   Decision verify(const sockaddr_storage& sa) throw();

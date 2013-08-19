@@ -41,7 +41,7 @@ namespace apache { namespace thrift { namespace transport {
  * TVirtualTransport::read_virt() calls read(), and TTransport::read() calls
  * read_virt().)
  */
-class TTransportDefaults : public TTransport {
+class THRIFT_EXPORT TTransportDefaults : public TTransport {
  public:
   /*
    * TTransport *_virt() methods provide reasonable default implementations.

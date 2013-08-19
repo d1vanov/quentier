@@ -46,7 +46,7 @@ namespace apache { namespace thrift { namespace concurrency {
  *
  * @version $Id:$
  */
-class Monitor : boost::noncopyable {
+class THRIFT_EXPORT Monitor : boost::noncopyable {
  public:
   /** Creates a new mutex, and takes ownership of it. */
   Monitor();
@@ -109,7 +109,7 @@ class Monitor : boost::noncopyable {
   Impl* impl_;
 };
 
-class Synchronized {
+class THRIFT_EXPORT Synchronized {
  public:
  Synchronized(const Monitor* monitor) : g(monitor->mutex()) { }
  Synchronized(const Monitor& monitor) : g(monitor.mutex()) { }

@@ -32,7 +32,7 @@ namespace apache { namespace thrift { namespace transport {
  * here is a VERY basic HTTP/1.1 client which supports HTTP 100 Continue,
  * chunked transfer encoding, keepalive, etc. Tested against Apache.
  */
-class THttpTransport : public TVirtualTransport<THttpTransport> {
+class THRIFT_EXPORT THttpTransport : public TVirtualTransport<THttpTransport> {
  public:
   THttpTransport(boost::shared_ptr<TTransport> transport);
 

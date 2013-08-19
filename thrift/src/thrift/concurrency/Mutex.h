@@ -22,6 +22,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
+#include "../Linkage.h"
 
 namespace apache { namespace thrift { namespace concurrency {
 
@@ -56,7 +57,7 @@ void enableMutexProfiling(int32_t profilingSampleRate,
  *
  * @version $Id:$
  */
-class Mutex {
+class THRIFT_EXPORT Mutex {
  public:
   typedef void (*Initializer)(void*);
 
@@ -79,7 +80,7 @@ class Mutex {
   boost::shared_ptr<impl> impl_;
 };
 
-class ReadWriteMutex {
+class THRIFT_EXPORT ReadWriteMutex {
 public:
   ReadWriteMutex();
   virtual ~ReadWriteMutex() {}
@@ -108,7 +109,7 @@ private:
  * released it. In some operating systems, this may already be guaranteed
  * by a regular ReadWriteMutex.
  */
-class NoStarveReadWriteMutex : public ReadWriteMutex {
+class THRIFT_EXPORT NoStarveReadWriteMutex : public ReadWriteMutex {
 public:
   NoStarveReadWriteMutex();
 
@@ -120,7 +121,7 @@ private:
   mutable volatile bool writerWaiting_;
 };
 
-class Guard : boost::noncopyable {
+class THRIFT_EXPORT Guard : boost::noncopyable {
  public:
   Guard(const Mutex& value, int64_t timeout = 0) : mutex_(&value) {
     if (timeout == 0) {
@@ -157,7 +158,7 @@ enum RWGuardType {
 };
 
 
-class RWGuard : boost::noncopyable {
+class THRIFT_EXPORT RWGuard : boost::noncopyable {
   public:
     RWGuard(const ReadWriteMutex& value, bool write = false)
          : rw_mutex_(value) {

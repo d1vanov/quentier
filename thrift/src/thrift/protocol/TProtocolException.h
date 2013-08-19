@@ -21,6 +21,7 @@
 #define _THRIFT_PROTOCOL_TPROTOCOLEXCEPTION_H_ 1
 
 #include <string>
+#include "../Linkage.h"
 
 namespace apache { namespace thrift { namespace protocol {
 
@@ -32,7 +33,7 @@ namespace apache { namespace thrift { namespace protocol {
  * pipes etc.
  *
  */
-class TProtocolException : public apache::thrift::TException {
+class THRIFT_EXPORT TProtocolException : public apache::thrift::TException {
  public:
 
   /**

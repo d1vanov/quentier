@@ -42,7 +42,7 @@ namespace apache { namespace thrift { namespace transport {
  * TCP Socket implementation of the TTransport interface.
  *
  */
-class TSocket : public TVirtualTransport<TSocket> {
+class THRIFT_EXPORT TSocket : public TVirtualTransport<TSocket> {
  public:
   /**
    * Constructs a new socket. Note that this does NOT actually connect the

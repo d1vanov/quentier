@@ -47,7 +47,7 @@ namespace apache { namespace thrift { namespace transport {
  * that have to be done when the buffers are full or empty.
  *
  */
-class TBufferBase : public TVirtualTransport<TBufferBase> {
+class THRIFT_EXPORT TBufferBase : public TVirtualTransport<TBufferBase> {
 
  public:
 
@@ -188,7 +188,7 @@ class TBufferBase : public TVirtualTransport<TBufferBase> {
  * stored to an in memory buffer before being written out.
  *
  */
-class TBufferedTransport
+class THRIFT_EXPORT TBufferedTransport
   : public TVirtualTransport<TBufferedTransport, TBufferBase> {
  public:
 
@@ -299,7 +299,7 @@ class TBufferedTransport
  * Wraps a transport into a buffered one.
  *
  */
-class TBufferedTransportFactory : public TTransportFactory {
+class THRIFT_EXPORT TBufferedTransportFactory : public TTransportFactory {
  public:
   TBufferedTransportFactory() {}
 
@@ -322,7 +322,7 @@ class TBufferedTransportFactory : public TTransportFactory {
  * other end to always do fixed-length reads.
  *
  */
-class TFramedTransport
+class THRIFT_EXPORT TFramedTransport
   : public TVirtualTransport<TFramedTransport, TBufferBase> {
  public:
 
@@ -420,7 +420,7 @@ class TFramedTransport
  * Wraps a transport into a framed one.
  *
  */
-class TFramedTransportFactory : public TTransportFactory {
+class THRIFT_EXPORT TFramedTransportFactory : public TTransportFactory {
  public:
   TFramedTransportFactory() {}
 
@@ -445,7 +445,7 @@ class TFramedTransportFactory : public TTransportFactory {
  * doubles as necessary.  We've considered using scoped
  *
  */
-class TMemoryBuffer : public TVirtualTransport<TMemoryBuffer, TBufferBase> {
+class THRIFT_EXPORT TMemoryBuffer : public TVirtualTransport<TMemoryBuffer, TBufferBase> {
  private:
 
   // Common initialization done by all constructors.

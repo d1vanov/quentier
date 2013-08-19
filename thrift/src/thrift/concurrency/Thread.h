@@ -36,6 +36,8 @@
 #include <pthread.h>
 #endif
 
+#include "../Linkage.h"
+
 namespace apache { namespace thrift { namespace concurrency {
 
 class Thread;
@@ -45,10 +47,10 @@ class Thread;
  *
  * @version $Id:$
  */
-class Runnable {
+class THRIFT_EXPORT Runnable {
 
  public:
-  virtual ~Runnable() {};
+  virtual ~Runnable() {}
   virtual void run() = 0;
 
   /**
@@ -76,7 +78,7 @@ class Runnable {
  *
  * @see apache::thrift::concurrency::ThreadFactory)
  */
-class Thread {
+class THRIFT_EXPORT Thread {
 
  public:
 
@@ -91,7 +93,7 @@ class Thread {
   static inline id_t get_current() { return pthread_self(); }
 #endif
 
-  virtual ~Thread() {};
+  virtual ~Thread() {}
 
   /**
    * Starts the thread. Does platform specific thread creation and
@@ -128,7 +130,7 @@ class Thread {
  * Factory to create platform-specific thread object and bind them to Runnable
  * object for execution
  */
-class ThreadFactory {
+class THRIFT_EXPORT ThreadFactory {
 
  public:
   virtual ~ThreadFactory() {}

@@ -33,7 +33,7 @@ namespace apache { namespace thrift {
  * such as additional "arguments" to these methods (stored in the object
  * instance's state).
  */
-class TProcessorEventHandler {
+class THRIFT_EXPORT TProcessorEventHandler {
  public:
 
   virtual ~TProcessorEventHandler() {}
@@ -115,7 +115,7 @@ class TProcessorEventHandler {
 /**
  * A helper class used by the generated code to free each context.
  */
-class TProcessorContextFreer {
+class THRIFT_EXPORT TProcessorContextFreer {
  public:
   TProcessorContextFreer(TProcessorEventHandler* handler, void* context, const char* method) :
     handler_(handler), context_(context), method_(method) {}
@@ -134,7 +134,7 @@ class TProcessorContextFreer {
  * responses to an input stream or forwards data from one pipe onto another.
  *
  */
-class TProcessor {
+class THRIFT_EXPORT TProcessor {
  public:
   virtual ~TProcessor() {}
 
@@ -189,7 +189,7 @@ class ReleaseHandler {
    boost::shared_ptr<HandlerFactory_> handlerFactory_;
 };
 
-struct TConnectionInfo {
+struct THRIFT_EXPORT TConnectionInfo {
   // The input and output protocols
   boost::shared_ptr<protocol::TProtocol> input;
   boost::shared_ptr<protocol::TProtocol> output;
@@ -200,7 +200,7 @@ struct TConnectionInfo {
   boost::shared_ptr<transport::TTransport> transport;
 };
 
-class TProcessorFactory {
+class THRIFT_EXPORT TProcessorFactory {
  public:
   virtual ~TProcessorFactory() {}
 
@@ -215,7 +215,7 @@ class TProcessorFactory {
       const TConnectionInfo& connInfo) = 0;
 };
 
-class TSingletonProcessorFactory : public TProcessorFactory {
+class THRIFT_EXPORT TSingletonProcessorFactory : public TProcessorFactory {
  public:
   TSingletonProcessorFactory(boost::shared_ptr<TProcessor> processor) :
       processor_(processor) {}
