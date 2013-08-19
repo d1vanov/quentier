@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(QuteNote)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/compiler.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/qt.cmake)
-
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # Include files required by thrift
   find_path(NETINET_IN_INCLUDE_DIR netinet/in.h REQUIRED)
@@ -107,31 +104,29 @@ add_executable(${PROJECT_NAME}
 
 find_package(OpenSSL REQUIRED)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/find_xerces.cmake)
-if(XERCESC_FOUND)
-  if(${XERCESC_VERSION} VERSION_LESS 3.1.1)
-    message(WARNING "Xerces ${XERCESC_VERSION} is not supported. Only 3.1.1 and newer versions are supported")
-  else()
-    include_directories(${XERCESC_INCLUDE})
-  endif()
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  find_package(Threads)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(LIB_FILE_PREFIX "lib")
   set(DYNAMIC_LIB_FILE_EXTENSION "so")
+  set(STATIC_LIB_FILE_EXTENSION "a")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
   set(LIB_FILE_PREFIX "lib")
   set(DYNAMIC_LIB_FILE_EXTENSION "dylib")
+  set(STATIC_LIB_FILE_EXTENSION "a")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set(LIB_FILE_PREFIX "")
   set(DYNAMIC_LIB_FILE_EXTENSION "dll")
+  set(STATIC_LIB_FILE_EXTENSION "lib")
 else()
   message(WARNING "Your platform is not officially supported. Only Windows, Mac OS X and Linux are supported at the moment")
 endif()
 
-set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/${LIB_FILE_PREFIX}thrift.${DYNAMIC_LIB_FILE_EXTENSION}")
+set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/${LIB_FILE_PREFIX}thrift.${STATIC_LIB_FILE_EXTENSION}")
 set(KQOAUTH_LIB "${QuteNoteProject_BINARY_DIR}/kqoauth/${LIB_FILE_PREFIX}kqoauth.${DYNAMIC_LIB_FILE_EXTENSION}")
-set(SIMPLECRYPT_LIB "${QuteNoteProject_BINARY_DIR}/SimpleCrypt/${LIB_FILE_PREFIX}simplecrypt.${DYNAMIC_LIB_FILE_EXTENSION}")
+set(SIMPLECRYPT_LIB "${QuteNoteProject_BINARY_DIR}/SimpleCrypt/${LIB_FILE_PREFIX}simplecrypt.${STATIC_LIB_FILE_EXTENSION}")
 
 target_link_libraries(${PROJECT_NAME}
                       ${THRIFT_LIB}
@@ -140,6 +135,10 @@ target_link_libraries(${PROJECT_NAME}
                       ${QT_LIBRARIES}
                       ${OPENSSL_LIBRARIES}
                       ${XERCESC_LIBRARY})
+
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+endif()
 
 if(LIBCPP)
   target_link_libraries(${PROJECT_NAME} ${LIBCPP})

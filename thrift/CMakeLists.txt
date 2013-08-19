@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(thrift)
-
-include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/compiler.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/qt.cmake)
+project(thrift C CXX)
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # Include files required by thrift
@@ -135,26 +132,6 @@ if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   endif()
 endif()
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  find_path(EVENT_CONFIG_INCLUDE_DIR event2/event-config.h REQUIRED)
-  include_directories(${EVENT_CONFIG_INCLUDE_DIR})
-  message(STATUS "Include file event2/event-config.h found in ${EVENT_CONFIG_INCLUDE_DIR}")
-
-  find_path(EVHTTP_INCLUDE_DIR evhttp.h REQUIRED)
-  include_directories(${EVHTTP_INCLUDE_DIR})
-  message(STATUS "Include file evhttp.h found in ${EVHTTP_INCLUDE_DIR}")
-
-  find_path(EVENT_INCLUDE_DIR event2/event.h REQUIRED)
-  include_directories(${EVENT_INCLUDE_DIR})
-  include_directories("${EVENT_INCLUDE_DIR}/event2/")
-  add_definitions("-D_EVENT_HAVE_UINT8_T")
-  message(STATUS "Include file event.h found in ${EVENT_INCLUDE_DIR}/event2/")
-else()
-  find_path(EVENT_INCLUDE_DIR event.h REQUIRED)
-  include_directories(${EVENT_INCLUDE_DIR})
-  message(STATUS "Include file event.h found in ${EVENT_INCLUDE_DIR}")
-endif()
-
 find_package(Boost COMPONENTS thread system REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
@@ -209,10 +186,15 @@ set(SOURCES
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND SOURCES  "src/thrift/transport/TSSLSocket.cpp")
+  find_package(Threads REQUIRED)
 endif()
-	
-add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
+
+add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${QT_LIBRARIES})
+
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+endif()
 
 if(LIBCPP)
   target_link_libraries(${PROJECT_NAME} ${LIBCPP})

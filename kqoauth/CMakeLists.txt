@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(kqoauth)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/compiler.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/qt.cmake)
-
 add_definitions("-DKQOAUTH")
 
 set(${PROJECT_NAME}_HEADERS

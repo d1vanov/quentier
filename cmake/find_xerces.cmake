@@ -57,4 +57,12 @@ else()
   message(FATAL_ERROR "Could not find Xerces-C!")
 endif()
 
+if(XERCESC_FOUND)
+  if(${XERCESC_VERSION} VERSION_LESS 3.1.1)
+    message(WARNING "Xerces ${XERCESC_VERSION} is not supported. Only 3.1.1 and newer versions are supported")
+  else()
+    include_directories(${XERCESC_INCLUDE})
+  endif()
+endif()
+
 mark_as_advanced(XERCESC_INCLUDE XERCESC_LIBRARY)
