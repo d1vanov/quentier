@@ -2,7 +2,7 @@
 #include "EvernoteServiceOAuthHandler.h"
 #include "../gui/MainWindow.h"
 #include "../gui/EvernoteOAuthBrowser.h"
-#include "../../SimpleCrypt/src/simplecrypt.h"
+#include "../../SimpleCrypt/src/Simplecrypt.h"
 #include "../thrift/transport/THttpClient.h"
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>

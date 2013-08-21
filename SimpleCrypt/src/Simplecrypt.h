@@ -30,6 +30,7 @@
 #include <QString>
 #include <QVector>
 #include <QFlags>
+#include "Linkage.h"
 
 /**
       @short Simple encryption and decryption of strings and byte arrays
@@ -54,7 +55,7 @@
       SimpleCrypt is prepared for the case that the encryption and decryption
       algorithm is changed in a later version, by prepending a version identifier to the cypertext.
       */
-class SimpleCrypt
+class SIMPLECRYPT_EXPORT SimpleCrypt
 {
 public:
     /**
@@ -86,7 +87,7 @@ public:
         ErrorNoError,         /*!< No error occurred. */
         ErrorNoKeySet,        /*!< No key was set. You can not encrypt or decrypt without a valid key. */
         ErrorUnknownVersion,  /*!< The version of this data is unknown, or the data is otherwise not valid. */
-        ErrorIntegrityFailed, /*!< The integrity check of the data failed. Perhaps the wrong key was used. */
+        ErrorIntegrityFailed /*!< The integrity check of the data failed. Perhaps the wrong key was used. */
     };
 
     /**

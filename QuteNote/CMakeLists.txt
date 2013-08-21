@@ -104,26 +104,6 @@ add_executable(${PROJECT_NAME}
 
 find_package(OpenSSL REQUIRED)
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  set(LIB_FILE_PREFIX "lib")
-  set(DYNAMIC_LIB_FILE_EXTENSION "so")
-  set(STATIC_LIB_FILE_EXTENSION "a")
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  set(LIB_FILE_PREFIX "lib")
-  set(DYNAMIC_LIB_FILE_EXTENSION "dylib")
-  set(STATIC_LIB_FILE_EXTENSION "a")
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  set(LIB_FILE_PREFIX "")
-  set(DYNAMIC_LIB_FILE_EXTENSION "dll")
-  set(STATIC_LIB_FILE_EXTENSION "lib")
-else()
-  message(WARNING "Your platform is not officially supported. Only Windows, Mac OS X and Linux are supported at the moment")
-endif()
-
-set(THRIFT_LIB "${QuteNoteProject_BINARY_DIR}/thrift/${LIB_FILE_PREFIX}thrift.${DYNAMIC_LIB_FILE_EXTENSION}")
-set(KQOAUTH_LIB "${QuteNoteProject_BINARY_DIR}/kqoauth/${LIB_FILE_PREFIX}kqoauth.${DYNAMIC_LIB_FILE_EXTENSION}")
-set(SIMPLECRYPT_LIB "${QuteNoteProject_BINARY_DIR}/SimpleCrypt/${LIB_FILE_PREFIX}simplecrypt.${STATIC_LIB_FILE_EXTENSION}")
-
 target_link_libraries(${PROJECT_NAME}
                       ${THRIFT_LIB}
                       ${KQOAUTH_LIB}

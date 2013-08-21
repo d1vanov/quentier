@@ -5,7 +5,7 @@
 #include "../client/EvernoteServiceManager.h"
 #include "AskConsumerKeyAndSecret.h"
 #include "AskUserNameAndPassword.h"
-#include "../SimpleCrypt/src/simplecrypt.h"
+#include "../SimpleCrypt/src/Simplecrypt.h"
 #include "../client/CredentialsModel.h"
 #include <cmath>
 #include <QPushButton>
