@@ -1,0 +1,34 @@
+#ifndef __QUTE_NOTE__EVERNOTE_CLIENT__EVERNOTE_SERVICE_MANAGER_H
+#define __QUTE_NOTE__EVERNOTE_CLIENT__EVERNOTE_SERVICE_MANAGER_H
+
+#include <string>
+#include <memory>
+
+namespace qute_note {
+
+class EvernoteServiceManager
+{
+public:
+    EvernoteServiceManager();
+
+    /**
+     * @brief authenticate - attempts to authenticate to Evernote service
+     * with provided username and password
+     */
+    void authenticate(const std::string & username, const std::string & password);
+
+    /**
+     * @brief synchronize - attempts to synchronize to Evernote service; decides
+     * on its own whether it should be full or incremental synchronization. However,
+     * it is possible to force full synchronization by passing a boolean
+     */
+    void synchronize(const bool forceFullSync = false);
+
+private:
+    class EvernoteServiceManagerImpl;
+    std::unique_ptr<EvernoteServiceManagerImpl> m_pImpl;
+};
+
+}
+
+#endif // __QUTE_NOTE__EVERNOTE_CLIENT__EVERNOTE_SERVICE_MANAGER_H
