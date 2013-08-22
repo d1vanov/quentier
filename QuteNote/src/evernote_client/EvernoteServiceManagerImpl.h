@@ -5,12 +5,18 @@
 
 namespace qute_note {
 
+class UserStore;
+class NoteStore;
+
+// TODO: implement all required funtionality
 class EvernoteServiceManager::EvernoteServiceManagerImpl
 {
 public:
-    EvernoteServiceManagerImpl() {}
+    EvernoteServiceManagerImpl();
 
-    // TODO: implement all other required funtionality
+private:
+    std::unique_ptr<UserStore> m_pUserStore;
+    std::unique_ptr<NoteStore> m_pNoteStore;
 };
 
 }

@@ -12,10 +12,16 @@ public:
     EvernoteServiceManager();
 
     /**
-     * @brief authenticate - attempts to authenticate to Evernote service
+     * @brief login - attempts to authenticate to Evernote service
      * with provided username and password
      */
-    void authenticate(const std::string & username, const std::string & password);
+    void login(const std::string & username, const std::string & password);
+
+    /**
+     * @brief logout - quits from current Evernote service user account
+     * or does nothing if there is no current user account
+     */
+    void logout();
 
     /**
      * @brief synchronize - attempts to synchronize to Evernote service; decides

@@ -48,7 +48,11 @@ set(${PROJECT_NAME}_HEADERS
     src/client/EvernoteServiceOAuthHandler.h
     src/client/CredentialsModel.h
     src/evernote_client/EvernoteServiceManager.h
-    src/evernote_client/EvernoteServiceManagerImpl.h)
+    src/evernote_client/EvernoteServiceManagerImpl.h
+    src/evernote_client/UserStore.h
+    src/evernote_client/UserStoreImpl.h
+    src/evernote_client/User.h
+    src/evernote_client/UserImpl.h)
 
 set(${PROJECT_NAME}_SOURCES
     src/gui/MainWindow.cpp
@@ -74,6 +78,10 @@ set(${PROJECT_NAME}_SOURCES
     src/client/EvernoteServiceOAuthHandler.cpp
     src/client/CredentialsModel.cpp
     src/evernote_client/EvernoteServiceManager.cpp
+    src/evernote_client/EvernoteServiceManagerImpl.cpp
+    src/evernote_client/UserStore.cpp
+    src/evernote_client/NoteStore.cpp
+    src/evernote_client/User.cpp
     main.cpp)
 
 set(FORMS
