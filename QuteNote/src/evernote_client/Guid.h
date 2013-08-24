@@ -9,6 +9,8 @@ namespace qute_note {
 class Guid
 {
 public:
+    Guid();
+
     /**
      * @brief Guid - create Guid object from string
      * @param guid - string to be represented as guid
@@ -44,7 +46,6 @@ public:
     bool operator <(const Guid & other) const;
 
 private:
-    Guid() = delete;
     Guid(const Guid & other) = delete;
     Guid & operator=(const Guid & other) = delete;
 

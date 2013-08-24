@@ -2,13 +2,21 @@
 #define __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_H
 
 #include <memory>
+#include <cstdint>
+#include "types/TypeWithError.h"
+#include "types/SynchronizedDataElement.h"
 
 namespace qute_note {
 
-class Note
+class Guid;
+
+class Note: public TypeWithError,
+            public SynchronizedDataElement
 {
 public:
     Note();
+
+    virtual bool isEmpty() const;
 
 private:
     class NoteImpl;

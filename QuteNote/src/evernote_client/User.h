@@ -2,10 +2,11 @@
 #define __QUTE_NOTE__EVERNOTE_CLIENT__USER_H
 
 #include <memory>
+#include "types/TypeWithError.h"
 
 namespace qute_note {
 
-class User
+class User: public TypeWithError
 {
 public:
     User();
