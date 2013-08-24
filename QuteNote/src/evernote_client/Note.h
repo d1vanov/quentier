@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <cstdint>
+#include <ctime>
 #include "types/TypeWithError.h"
 #include "types/SynchronizedDataElement.h"
 
@@ -15,8 +16,28 @@ class Note: public TypeWithError,
 {
 public:
     Note();
+    Note(const Note & other);
+    Note & operator =(const Note & other);
 
     virtual bool isEmpty() const;
+
+    std::string title() const;
+    void setTitle(const std::string & title);
+
+    /**
+     * @brief content - returns content of the note in ENML format
+     * @return
+     */
+    std::string content() const;
+    void setContent(const std::string & content);
+
+    time_t createdTimestamp() const;
+    time_t updatedTimestamp() const;
+    bool deletedTimestamp(time_t & timestamp, const char *& errorMessage) const;
+
+    bool isActive() const;
+
+    const Guid & notebookGuid() const;
 
 private:
     class NoteImpl;
