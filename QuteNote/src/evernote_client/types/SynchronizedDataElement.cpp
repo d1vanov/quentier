@@ -69,4 +69,9 @@ bool SynchronizedDataElement::isEmpty() const
     return m_pGuid->isEmpty();
 }
 
+bool SynchronizedDataElement::operator <(const SynchronizedDataElement & other)
+{
+    return (*m_pGuid < *(other.m_pGuid));
+}
+
 }

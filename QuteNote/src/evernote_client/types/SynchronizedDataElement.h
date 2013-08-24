@@ -28,6 +28,14 @@ public:
 
     virtual bool isEmpty() const;
 
+    /**
+     * @brief operator < - compares two SynchronizedDataElement objects via their guid,
+     * in order to make it possible to have sets ofsynchronized data elements
+     * @param other - the other object for comparison
+     * @return true if current object's guid is less than the other one's, false otherwise
+     */
+    bool operator <(const SynchronizedDataElement & other);
+
 private:
     int64_t m_updateSequenceNumber;
     bool    m_isLocallyModified;
