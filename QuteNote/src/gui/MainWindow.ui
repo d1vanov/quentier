@@ -22,6 +22,15 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">#mainToolbar  { 
+border: 1px solid black;
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);
+}</string>
+  </property>
   <property name="toolButtonStyle">
    <enum>Qt::ToolButtonTextOnly</enum>
   </property>
@@ -52,8 +61,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>797</width>
-         <height>688</height>
+         <width>809</width>
+         <height>700</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
@@ -68,7 +77,11 @@
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
-          <widget class="QTableWidget" name="notesTable"/>
+          <widget class="QTableWidget" name="notesTable">
+           <property name="autoFillBackground">
+            <bool>true</bool>
+           </property>
+          </widget>
           <widget class="NoteEditorWidget" name="notesEditorWidget" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -91,7 +104,7 @@
      <x>0</x>
      <y>0</y>
      <width>1088</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -311,6 +324,28 @@
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
+   <property name="styleSheet">
+    <string notr="true">#mainToolBar {
+border: none;
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, 
+stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, 
+stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, 
+stop: 1 #333333);
+}
+
+#QAction {
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #0A8BC2, 
+stop: 0.08 #0B94CE,
+stop: 0.39999 #0B9CD9, 
+stop: 0.4 #0DA9EC,
+stop: 0.9 #0DAEF2, 
+stop: 1 #0EB7FF);
+}</string>
+   </property>
    <property name="toolButtonStyle">
     <enum>Qt::ToolButtonIconOnly</enum>
    </property>
