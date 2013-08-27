@@ -134,9 +134,6 @@ if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   endif()
 endif()
 
-find_package(Boost COMPONENTS thread system REQUIRED)
-include_directories(${Boost_INCLUDE_DIR})
-
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
@@ -187,8 +184,34 @@ set(SOURCES
     src/thrift/concurrency/BoostMutex.cpp
     src/thrift/concurrency/BoostMonitor.cpp)
 
+# require boost
+SET(Boost_USE_STATIC_LIBS OFF)
+SET(Boost_USE_MULTITHREAD OFF)
+#make sure that at least version 1.46.0 is used
+SET(BOOST_MIN_VERSION "1.46.0")	
+	
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  list(APPEND SOURCES  "src/thrift/transport/TSSLSocket.cpp")
+  list(APPEND SOURCES "src/thrift/transport/TSSLSocket.cpp")
+  find_package(Boost COMPONENTS thread system REQUIRED)
+  include_directories(${Boost_INCLUDE_DIR})
+else()
+  list(APPEND SOURCES "src/thrift/windows/config.h")
+  list(APPEND SOURCES "src/thrift/windows/force_inc.h")
+  list(APPEND SOURCES "src/thrift/windows/GetTimeOfDay.h")
+  list(APPEND SOURCES "src/thrift/windows/GetTimeOfDay.cpp")
+  list(APPEND SOURCES "src/thrift/windows/Operators.h")
+  list(APPEND SOURCES "src/thrift/windows/SocketPair.h")
+  list(APPEND SOURCES "src/thrift/windows/SocketPair.cpp")
+  list(APPEND SOURCES "src/thrift/windows/StdAfx.h")
+  list(APPEND SOURCES "src/thrift/windows/StdAfx.cpp")
+  list(APPEND SOURCES "src/thrift/windows/TargetVersion.h")
+  list(APPEND SOURCES "src/thrift/windows/TWinsockSingleton.h")
+  list(APPEND SOURCES "src/thrift/windows/TWinsockSingleton.cpp")
+  list(APPEND SOURCES "src/thrift/windows/WinFcntl.h")
+  list(APPEND SOURCES "src/thrift/windows/WinFcntl.cpp")
+  list(APPEND SOURCES "src/thrift/windows/tr1/functional")
+  find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS thread system REQUIRED)
+  include_directories(${Boost_INCLUDE_DIR})
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
