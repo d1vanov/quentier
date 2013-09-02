@@ -59,7 +59,7 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
       <x>260</x>
       <y>0</y>
       <width>831</width>
-      <height>160</height>
+      <height>181</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -85,8 +85,11 @@ stop: 1 #333333);
       <layout class="QVBoxLayout" name="noteEditorHeaderVerticalLayout">
        <item>
         <widget class="QLabel" name="noteNameLabel">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -94,8 +97,16 @@ stop: 1 #333333);
          <property name="minimumSize">
           <size>
            <width>15</width>
-           <height>0</height>
+           <height>30</height>
           </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>14</pointsize>
+          </font>
+         </property>
+         <property name="mouseTracking">
+          <bool>false</bool>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(255, 255, 255);</string>
@@ -110,7 +121,7 @@ stop: 1 #333333);
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
          </property>
          <property name="margin">
-          <number>10</number>
+          <number>5</number>
          </property>
         </widget>
        </item>
@@ -122,6 +133,12 @@ stop: 1 #333333);
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>50</height>
+          </size>
+         </property>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QWidget" name="tagNameWidget" native="true">
@@ -130,6 +147,12 @@ stop: 1 #333333);
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>92</width>
+              <height>30</height>
+             </size>
             </property>
             <property name="styleSheet">
              <string notr="true">#tagNameWidget {
@@ -181,7 +204,9 @@ min-width: 80px;
                 <string notr="true"/>
                </property>
                <property name="icon">
-                <iconset theme="edit-delete"/>
+                <iconset theme="edit-delete">
+                 <normaloff/>
+                </iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -199,12 +224,18 @@ min-width: 80px;
           </item>
           <item>
            <widget class="QPushButton" name="addTagPushButton">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="font">
              <font>
               <pointsize>11</pointsize>
-              <weight>75</weight>
-              <italic>true</italic>
-              <bold>true</bold>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
              </font>
             </property>
             <property name="styleSheet">
@@ -463,7 +494,9 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
           <string notr="true"/>
          </property>
          <property name="icon">
-          <iconset theme="format-text-color"/>
+          <iconset theme="format-text-color">
+           <normaloff/>
+          </iconset>
          </property>
         </widget>
        </item>
@@ -503,7 +536,9 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
           <string notr="true"/>
          </property>
          <property name="icon">
-          <iconset theme="format-stroke-color"/>
+          <iconset theme="format-stroke-color">
+           <normaloff/>
+          </iconset>
          </property>
         </widget>
        </item>
@@ -732,7 +767,7 @@ color: rgb(255, 255, 255);</string>
      <x>0</x>
      <y>0</y>
      <width>1088</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
