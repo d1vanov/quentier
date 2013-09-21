@@ -106,7 +106,7 @@ stop: 1 #333333);
           </font>
          </property>
          <property name="mouseTracking">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="styleSheet">
           <string notr="true">color: rgb(255, 255, 255);</string>
@@ -136,7 +136,7 @@ stop: 1 #333333);
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>50</height>
+           <height>35</height>
           </size>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout">
@@ -210,8 +210,8 @@ min-width: 80px;
                </property>
                <property name="iconSize">
                 <size>
-                 <width>8</width>
-                 <height>8</height>
+                 <width>6</width>
+                 <height>6</height>
                 </size>
                </property>
                <property name="flat">
@@ -224,6 +224,12 @@ min-width: 80px;
           </item>
           <item>
            <widget class="QPushButton" name="addTagPushButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -422,6 +428,441 @@ color: rgb(195, 195, 195)
       </layout>
      </item>
      <item>
+      <layout class="QHBoxLayout" name="buttonsUpperSubPaneHorizontalLayout">
+       <item>
+        <widget class="QPushButton" name="undoPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="edit-undo"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="redoPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="edit-redo"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="cutPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="edit-cut"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="copyPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="edit-copy"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pastePushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="edit-paste"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="fontBoldPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="format-text-bold"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="fontItalicPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="format-text-italic"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="fontUnderlinePushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="format-text-underline"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="formatJustifyLeftPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="format-justify-left"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="formatJustifyCenterPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="format-justify-center"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="formatJustifyRightPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="format-justify-right"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="insertToDoCheckboxPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="checkbox"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="spellCheckBox">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="tools-check-spelling"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="buttonsUpperSubPaneHorizontalLayoutHorizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="buttonsLowerSubPaneHorizontalLayout">
        <item>
         <widget class="QFontComboBox" name="fontComboBox">
@@ -433,7 +874,7 @@ color: rgb(195, 195, 195)
          </property>
          <property name="minimumSize">
           <size>
-           <width>100</width>
+           <width>201</width>
            <height>0</height>
           </size>
          </property>
@@ -539,6 +980,176 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
           <iconset theme="format-stroke-color">
            <normaloff/>
           </iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="insertHorizontalLinePushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="insert-horizontal-rule"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="formatIndentLessPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="format-indent-less"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="formatIndentMorePushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="format-indent-more"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="formatListOrderedPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="format-list-ordered"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="formatListUnorderedPushButton">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="format-list-unordered"/>
          </property>
         </widget>
        </item>
@@ -767,7 +1378,7 @@ color: rgb(255, 255, 255);</string>
      <x>0</x>
      <y>0</y>
      <width>1088</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
