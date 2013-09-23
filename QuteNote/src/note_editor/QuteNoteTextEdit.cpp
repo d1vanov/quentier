@@ -1,6 +1,5 @@
 #include "QuteNoteTextEdit.h"
 #include "ToDoCheckboxTextObject.h"
-#include "NoteEditorWidget.h"
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QTextCursor>

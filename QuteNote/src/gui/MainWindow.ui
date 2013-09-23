@@ -20,7 +20,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Qute Note</string>
   </property>
   <property name="autoFillBackground">
    <bool>false</bool>
@@ -297,7 +297,7 @@ color: rgb(255, 255, 255);</string>
         </layout>
        </widget>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="noteListVerticalLayoutWidget">
        <layout class="QVBoxLayout" name="noteListVerticalLayout">
         <property name="spacing">
          <number>0</number>
@@ -419,7 +419,9 @@ color: rgb(255, 255, 255);</string>
                <string/>
               </property>
               <property name="icon">
-               <iconset theme="document-save"/>
+               <iconset theme="document-save">
+                <normaloff/>
+               </iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
@@ -435,12 +437,18 @@ color: rgb(255, 255, 255);</string>
           <property name="styleSheet">
            <string notr="true">border: none</string>
           </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
          </widget>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="noteEditorVerticalLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <item>
          <widget class="QWidget" name="noteEditorHeaderWidget" native="true">
           <property name="minimumSize">
@@ -812,6 +820,9 @@ color: rgb(195, 195, 195)
             <layout class="QHBoxLayout" name="buttonsUpperSubPaneHorizontalLayout">
              <item>
               <widget class="QPushButton" name="undoPushButton">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Undo the last action&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="styleSheet">
                 <string notr="true">QPushButton {
 color: #333;
@@ -843,6 +854,9 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                 <iconset theme="edit-undo">
                  <normaloff/>
                 </iconset>
+               </property>
+               <property name="shortcut">
+                <string>Ctrl+Z</string>
                </property>
               </widget>
              </item>
@@ -880,6 +894,9 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                  <normaloff/>
                 </iconset>
                </property>
+               <property name="shortcut">
+                <string>Ctrl+Y</string>
+               </property>
               </widget>
              </item>
              <item>
@@ -915,6 +932,9 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                 <iconset theme="edit-cut">
                  <normaloff/>
                 </iconset>
+               </property>
+               <property name="shortcut">
+                <string>Ctrl+X</string>
                </property>
               </widget>
              </item>
@@ -952,6 +972,9 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                  <normaloff/>
                 </iconset>
                </property>
+               <property name="shortcut">
+                <string>Ctrl+C</string>
+               </property>
               </widget>
              </item>
              <item>
@@ -987,6 +1010,9 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                 <iconset theme="edit-paste">
                  <normaloff/>
                 </iconset>
+               </property>
+               <property name="shortcut">
+                <string>Ctrl+V</string>
                </property>
               </widget>
              </item>
@@ -1024,6 +1050,12 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                  <normaloff/>
                 </iconset>
                </property>
+               <property name="shortcut">
+                <string>Ctrl+B</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -1060,6 +1092,12 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                  <normaloff/>
                 </iconset>
                </property>
+               <property name="shortcut">
+                <string>Ctrl+I</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -1095,6 +1133,54 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                 <iconset theme="format-text-underline">
                  <normaloff/>
                 </iconset>
+               </property>
+               <property name="shortcut">
+                <string>Ctrl+U</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="fontStrikethroughPushButton">
+               <property name="styleSheet">
+                <string notr="true">QPushButton {
+color: #333;
+border: 2px solid #555;
+border-radius: 8px;
+padding: 2px;
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);
+min-width: 30px;
+}
+
+QPushButton:hover {
+background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);
+}
+
+QPushButton:pressed {
+background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
+}</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset theme="format-text-strikethrough">
+                 <normaloff/>
+                </iconset>
+               </property>
+               <property name="shortcut">
+                <string>Ctrl+S</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1244,6 +1330,9 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
              </item>
              <item>
               <widget class="QCheckBox" name="spellCheckBox">
+               <property name="layoutDirection">
+                <enum>Qt::RightToLeft</enum>
+               </property>
                <property name="text">
                 <string/>
                </property>
@@ -1595,9 +1684,12 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
          </widget>
         </item>
         <item>
-         <widget class="QTextEdit" name="noteEditWidget">
+         <widget class="QuteNoteTextEdit" name="noteEditWidget">
           <property name="styleSheet">
            <string notr="true">border: none</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
           </property>
          </widget>
         </item>
@@ -2868,8 +2960,96 @@ stop: 1 #0EB7FF);
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QuteNoteTextEdit</class>
+   <extends>QTextEdit</extends>
+   <header>QuteNoteTextEdit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../../resource/icons.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>undoPushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>noteEditWidget</receiver>
+   <slot>undo()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>562</x>
+     <y>187</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>558</x>
+     <y>246</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>redoPushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>noteEditWidget</receiver>
+   <slot>redo()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>601</x>
+     <y>180</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>594</x>
+     <y>237</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cutPushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>noteEditWidget</receiver>
+   <slot>cut()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>638</x>
+     <y>181</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>635</x>
+     <y>254</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>copyPushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>noteEditWidget</receiver>
+   <slot>copy()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>683</x>
+     <y>180</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>686</x>
+     <y>259</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pastePushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>noteEditWidget</receiver>
+   <slot>paste()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>722</x>
+     <y>186</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>720</x>
+     <y>269</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
