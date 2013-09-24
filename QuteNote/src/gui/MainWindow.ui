@@ -120,15 +120,12 @@ color: rgb(255, 255, 255);</string>
           </widget>
          </item>
          <item>
-          <widget class="QTreeView" name="notebooksTreeView">
+          <widget class="QTreeWidget" name="notebooksTreeWidget">
            <property name="minimumSize">
             <size>
              <width>150</width>
              <height>0</height>
             </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">border: none</string>
            </property>
            <property name="frameShape">
             <enum>QFrame::Box</enum>
@@ -136,9 +133,17 @@ color: rgb(255, 255, 255);</string>
            <property name="rootIsDecorated">
             <bool>true</bool>
            </property>
-           <attribute name="headerStretchLastSection">
-            <bool>true</bool>
+           <attribute name="headerVisible">
+            <bool>false</bool>
            </attribute>
+           <attribute name="headerMinimumSectionSize">
+            <number>1</number>
+           </attribute>
+           <column>
+            <property name="text">
+             <string notr="true">1</string>
+            </property>
+           </column>
           </widget>
          </item>
         </layout>
@@ -179,7 +184,7 @@ color: rgb(255, 255, 255);</string>
           </widget>
          </item>
          <item>
-          <widget class="QTreeView" name="tagsTreeView">
+          <widget class="QTreeWidget" name="tagsTreeWidget">
            <property name="minimumSize">
             <size>
              <width>150</width>
@@ -192,6 +197,14 @@ color: rgb(255, 255, 255);</string>
            <property name="frameShape">
             <enum>QFrame::Box</enum>
            </property>
+           <attribute name="headerVisible">
+            <bool>false</bool>
+           </attribute>
+           <column>
+            <property name="text">
+             <string notr="true">1</string>
+            </property>
+           </column>
           </widget>
          </item>
         </layout>
@@ -232,7 +245,7 @@ color: rgb(255, 255, 255);</string>
           </widget>
          </item>
          <item>
-          <widget class="QTreeView" name="attributesTreeView">
+          <widget class="QTreeWidget" name="attributesTreeWidget">
            <property name="minimumSize">
             <size>
              <width>150</width>
@@ -242,6 +255,14 @@ color: rgb(255, 255, 255);</string>
            <property name="frameShape">
             <enum>QFrame::Box</enum>
            </property>
+           <attribute name="headerVisible">
+            <bool>false</bool>
+           </attribute>
+           <column>
+            <property name="text">
+             <string notr="true">1</string>
+            </property>
+           </column>
           </widget>
          </item>
         </layout>
@@ -282,7 +303,7 @@ color: rgb(255, 255, 255);</string>
           </widget>
          </item>
          <item>
-          <widget class="QTreeView" name="savedSearchesTreeView">
+          <widget class="QTreeWidget" name="savedSearchesTreeWidget">
            <property name="minimumSize">
             <size>
              <width>150</width>
@@ -292,6 +313,14 @@ color: rgb(255, 255, 255);</string>
            <property name="frameShape">
             <enum>QFrame::Box</enum>
            </property>
+           <attribute name="headerVisible">
+            <bool>false</bool>
+           </attribute>
+           <column>
+            <property name="text">
+             <string notr="true">1</string>
+            </property>
+           </column>
           </widget>
          </item>
         </layout>
