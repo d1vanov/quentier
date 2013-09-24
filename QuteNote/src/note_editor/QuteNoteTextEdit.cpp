@@ -29,6 +29,9 @@ void QuteNoteTextEdit::insertFromMimeData(const QMimeData *source)
         QUrl url(QString("dropped_image_%1").arg(m_droppedImageCounter++));
         dropImage(url, qvariant_cast<QImage>(source->imageData()));
     }
+    else {
+        QTextEdit::insertFromMimeData(source);
+    }
 }
 
 void QuteNoteTextEdit::changeIndentation(const bool increase)
