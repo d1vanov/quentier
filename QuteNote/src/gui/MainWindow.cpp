@@ -136,6 +136,8 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->formatListUnorderedPushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertUnorderedList()));
     QObject::connect(m_pUI->formatListOrderedPushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertOrderedList()));
     QObject::connect(m_pUI->insertToDoCheckboxPushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertToDoCheckBox()));
+    QObject::connect(m_pUI->chooseTextColorPushButton, SIGNAL(clicked()), this, SLOT(noteChooseTextColor()));
+    QObject::connect(m_pUI->chooseSelectedTextColorPushButton, SIGNAL(clicked()), this, SLOT(noteChooseSelectedTextColor()));
 }
 
 void MainWindow::checkAndSetupConsumerKeyAndSecret()
