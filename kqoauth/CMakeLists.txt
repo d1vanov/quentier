@@ -28,4 +28,11 @@ add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_HEADERS}
             ${${PROJECT_NAME}_SOURCES})
 
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
+if(NOT USE_QT5)
+  target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
+else()
+  qt5_use_modules(${PROJECT_NAME} Core)
+  qt5_use_modules(${PROJECT_NAME} Network)
+  qt5_use_modules(${PROJECT_NAME} Webkit)
+endif()
+

@@ -1,0 +1,49 @@
+#ifndef __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_H
+#define __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_H
+
+#include <memory>
+#include <cstdint>
+#include <ctime>
+#include "types/TypeWithError.h"
+#include "types/SynchronizedDataElement.h"
+
+namespace qute_note {
+
+class Guid;
+
+class Note: public TypeWithError,
+            public SynchronizedDataElement
+{
+public:
+    Note();
+    Note(const Note & other);
+    Note & operator =(const Note & other);
+
+    virtual bool isEmpty() const;
+
+    std::string title() const;
+    void setTitle(const std::string & title);
+
+    /**
+     * @brief content - returns content of the note in ENML format
+     * @return
+     */
+    std::string content() const;
+    void setContent(const std::string & content);
+
+    time_t createdTimestamp() const;
+    time_t updatedTimestamp() const;
+    bool deletedTimestamp(time_t & timestamp, const char *& errorMessage) const;
+
+    bool isActive() const;
+
+    const Guid & notebookGuid() const;
+
+private:
+    class NoteImpl;
+    std::unique_ptr<NoteImpl> m_pImpl;
+};
+
+}
+
+#endif // __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_H

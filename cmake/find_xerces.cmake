@@ -16,10 +16,23 @@ NAMES xercesc/util/XercesVersion.hpp
 PATHS ${CMAKE_INCLUDE_PATH} ${C_INCLUDE_PATH} ${CPLUS_INCLUDE_PATH} ${INCLUDE} ${XERCES_INCLUDE_DIR}
 PATH_SUFFIXES xercesc)
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  SET(CMAKE_FIND_LIBRARY_PREFIXES "" "lib")
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".lib" ".dll")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  SET(CMAKE_FIND_LIBRARY_PREFIXES "lib")
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".so" ".a")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+  SET(CMAKE_FIND_LIBRARY_PREFIXES "lib")
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib" ".a")
+else()
+  message(WARNING "Your platform does not seem to be officially supported for this application")
+endif()
+
 find_library(
   XERCESC_LIBRARY
-  NAMES xerces-c xerces-c31 xerces-c_31
-  PATHS ${XERCES_LIBRARY_DIR})
+  NAMES xerces-c xerces-c31 xerces-c_31 xerces-c_3_1 xerces_c_3_1
+  PATHS ${XERCES_LIBRARY_DIR} ${CMAKE_LIBRARY_PATH} ${LIBRARY_PATH} ${LIB} ${PATH})
 
 if(XERCESC_INCLUDE AND XERCESC_LIBRARY)
   set(XERCESC_FOUND TRUE)
