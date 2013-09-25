@@ -23,12 +23,11 @@ include_directories(${QuteNoteProject_SOURCE_DIR}/thrift/src
 
 set(${PROJECT_NAME}_QT_HEADERS
     src/gui/MainWindow.h
-    src/gui/NoteEditorWidget.h
     src/gui/AskConsumerKeyAndSecret.h
     src/gui/AskUserNameAndPassword.h
     src/gui/EvernoteOAuthBrowser.h
-    src/note_editor/ToDoCheckboxTextObject.h
     src/note_editor/HorizontalLineExtraData.h
+    src/note_editor/ToDoCheckboxTextObject.h
     src/note_editor/QuteNoteTextEdit.h)
 
 set(${PROJECT_NAME}_HEADERS
@@ -50,7 +49,6 @@ set(${PROJECT_NAME}_HEADERS
 
 set(${PROJECT_NAME}_SOURCES
     src/gui/MainWindow.cpp
-    src/gui/NoteEditorWidget.cpp
     src/gui/AskConsumerKeyAndSecret.cpp
     src/gui/AskUserNameAndPassword.cpp
     src/gui/EvernoteOAuthBrowser.cpp
@@ -75,7 +73,6 @@ set(${PROJECT_NAME}_SOURCES
 
 set(FORMS
     src/gui/MainWindow.ui
-    src/gui/NoteEditorWidget.ui
     src/gui/AskConsumerKeyAndSecret.ui
     src/gui/AskUserNameAndPassword.ui)
 

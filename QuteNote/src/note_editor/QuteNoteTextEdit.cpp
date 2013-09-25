@@ -1,6 +1,5 @@
 #include "QuteNoteTextEdit.h"
 #include "ToDoCheckboxTextObject.h"
-#include "NoteEditorWidget.h"
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QTextCursor>
@@ -29,6 +28,9 @@ void QuteNoteTextEdit::insertFromMimeData(const QMimeData *source)
     if (source->hasImage()) {
         QUrl url(QString("dropped_image_%1").arg(m_droppedImageCounter++));
         dropImage(url, qvariant_cast<QImage>(source->imageData()));
+    }
+    else {
+        QTextEdit::insertFromMimeData(source);
     }
 }
 

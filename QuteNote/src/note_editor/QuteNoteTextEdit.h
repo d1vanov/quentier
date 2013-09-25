@@ -11,7 +11,7 @@ class QuteNoteTextEdit: public QTextEdit
     Q_OBJECT
 public:
     explicit QuteNoteTextEdit(QWidget * parent = nullptr);
-    virtual ~QuteNoteTextEdit() override {}
+    virtual ~QuteNoteTextEdit() final override {}
 
 public:
     enum ECheckboxTextFormat {
@@ -25,15 +25,15 @@ public:
     };
 
 public:
-    bool canInsertFromMimeData(const QMimeData * source) const;
-    void insertFromMimeData(const QMimeData * source);
+    virtual bool canInsertFromMimeData(const QMimeData * source) const final override;
+    virtual void insertFromMimeData(const QMimeData * source) final override;
     void changeIndentation(const bool increase);
     void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
 
 protected:
-    virtual void keyPressEvent(QKeyEvent * pEvent) override;
-    virtual void mousePressEvent(QMouseEvent * pEvent) override;
-    virtual void mouseMoveEvent(QMouseEvent * pEvent) override;
+    virtual void keyPressEvent(QKeyEvent * pEvent) final override;
+    virtual void mousePressEvent(QMouseEvent * pEvent) final override;
+    virtual void mouseMoveEvent(QMouseEvent * pEvent) final override;
 
 private:
     void dropImage(const QUrl & url, const QImage & image);

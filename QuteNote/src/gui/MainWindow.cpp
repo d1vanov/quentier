@@ -1,6 +1,7 @@
 #include "MainWindow.h"
-#include "NoteEditorWidget.h"
 #include "ui_MainWindow.h"
+#include "../note_editor/HorizontalLineExtraData.h"
+#include "../note_editor/ToDoCheckboxTextObject.h"
 #include "EvernoteOAuthBrowser.h"
 #include "../client/EvernoteServiceManager.h"
 #include "AskConsumerKeyAndSecret.h"
@@ -10,6 +11,9 @@
 #include <cmath>
 #include <QPushButton>
 #include <QLabel>
+#include <QTextEdit>
+#include <QTextList>
+#include <QColorDialog>
 #include <QFile>
 #include <QMessageBox>
 #include <QtDebug>
@@ -21,16 +25,28 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pAskUserNameAndPasswordWidget(new AskUserNameAndPassword(this)),
     m_currentStatusBarChildWidget(nullptr),
     m_pManager(new EvernoteServiceManager),
-    m_pBrowser(new EvernoteOAuthBrowser(this, *m_pManager))
+    m_pOAuthBrowser(new EvernoteOAuthBrowser(this, *m_pManager)),
+    m_pToDoChkboxTxtObjUnchecked(new ToDoCheckboxTextObjectUnchecked),
+    m_pToDoChkboxTxtObjChecked(new ToDoCheckboxTextObjectChecked)
 {
     Q_CHECK_PTR(m_pUI);
     Q_CHECK_PTR(m_pAskConsumerKeyAndSecretWidget);
     Q_CHECK_PTR(m_pAskUserNameAndPasswordWidget);
     Q_CHECK_PTR(m_pManager);
-    Q_CHECK_PTR(m_pBrowser);
+    Q_CHECK_PTR(m_pOAuthBrowser);
+    Q_CHECK_PTR(m_pToDoChkboxTxtObjUnchecked);
+    Q_CHECK_PTR(m_pToDoChkboxTxtObjChecked);
 
     m_pUI->setupUi(this);
-    ConnectActionsToEditorSlots();
+
+    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    Q_CHECK_PTR(pNoteEdit);
+
+    QAbstractTextDocumentLayout * pLayout = pNoteEdit->document()->documentLayout();
+    pLayout->registerHandler(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_UNCHECKED, m_pToDoChkboxTxtObjUnchecked);
+    pLayout->registerHandler(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_CHECKED, m_pToDoChkboxTxtObjChecked);
+
+    connectActionsToEditorSlots();
 
     QObject::connect(m_pManager, SIGNAL(statusTextUpdate(QString,int)),
                      this, SLOT(onSetStatusBarText(QString,int)));
@@ -51,16 +67,16 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     if (credentials.GetConsumerKey().isEmpty() ||
         credentials.GetConsumerSecret().isEmpty())
     {
-        CheckAndSetupConsumerKeyAndSecret();
+        checkAndSetupConsumerKeyAndSecret();
         if (!credentials.GetConsumerKey().isEmpty() &&
             !credentials.GetConsumerSecret().isEmpty())
         {
-            CheckAndSetupUserNameAndPassword();
+            checkAndSetupUserNameAndPassword();
         }
     }
     else
     {
-        CheckAndSetupUserNameAndPassword();
+        checkAndSetupUserNameAndPassword();
     }
 
     m_pManager->connect();
@@ -72,153 +88,67 @@ MainWindow::~MainWindow()
         delete m_pUI;
         m_pUI = nullptr;
     }
-}
 
-void MainWindow::SetDefaultLayoutSettings()
-{
-    int mainWindowHeight = height();
-    int mainWindowWidth = width();
-
-    // Let's make widgets on the left take a reasonable amount of window width
-    int helperWidgetsWidth = std::floor(0.175 * mainWindowWidth + 0.5);
-
-    // Calculating optimal height for each helper widget. Together they are
-    // going to take approx. 85% of useable height. There should be some reasonable
-    // proportion between these widgets heights. For example, labels should have
-    // about 30% of sum height, notebooks - about 25%, search properties - about 20%,
-    // saved requests - about 20%, trash - only about 5%.
-
-    int helperWidgetsAvailableHeight = std::floor(0.9 * mainWindowHeight + 0.5);
-
-    int dockNotebooksHeight = std::floor(0.3 * helperWidgetsAvailableHeight + 0.5);
-    int dockLabelsHeight = std::floor(0.2 * helperWidgetsAvailableHeight + 0.5);
-    int dockSearchPropertiesHeight = std::floor(0.2 * helperWidgetsAvailableHeight + 0.5);
-    int dockSavedRequestsHeight = std::floor(0.2 * helperWidgetsAvailableHeight + 0.5);
-    int dockTrashHeight = std::floor(0.1 * helperWidgetsAvailableHeight + 0.5);
-
-    // Now resize helper dock widgets appropriately
-    if (m_pUI == nullptr) {
-        qDebug() << "Warning! UI pointer is NULL!";
-        return;
+    if (!m_pToDoChkboxTxtObjUnchecked) {
+        delete m_pToDoChkboxTxtObjUnchecked;
+        m_pToDoChkboxTxtObjUnchecked = nullptr;
     }
-    Ui::MainWindow & ui = *m_pUI;
 
-    // multipliers to set min and max height and width for helper widgets
-    double minHeightMultiplier = 0.6;
-    double minWidthMultiplier = 0.6;
-    double maxHeightMultiplier = 1.5;
-    double maxWidthMultiplier = 1.25;
-
-    // 1) Dock notebooks
-    ResizeHelperDockWidget(ui.dockNotebooks, dockNotebooksHeight, helperWidgetsWidth,
-                           minHeightMultiplier, minWidthMultiplier, maxHeightMultiplier,
-                           maxWidthMultiplier);
-    // 2) Dock labels
-    ResizeHelperDockWidget(ui.dockLabels, dockLabelsHeight, helperWidgetsWidth,
-                           minHeightMultiplier, minWidthMultiplier, maxHeightMultiplier,
-                           maxWidthMultiplier);
-    // 3) Dock search properties
-    ResizeHelperDockWidget(ui.dockSearchProperties, dockSearchPropertiesHeight,
-                           helperWidgetsWidth, minHeightMultiplier, minWidthMultiplier,
-                           maxHeightMultiplier, maxWidthMultiplier);
-    // 4) Dock saved requests
-    ResizeHelperDockWidget(ui.dockSavedRequests, dockSavedRequestsHeight,
-                           helperWidgetsWidth, minHeightMultiplier, minWidthMultiplier,
-                           maxHeightMultiplier, maxWidthMultiplier);
-    // 5) Dock trash
-    ResizeHelperDockWidget(ui.dockTrash, dockTrashHeight, helperWidgetsWidth,
-                           minHeightMultiplier, minWidthMultiplier, maxHeightMultiplier,
-                           maxWidthMultiplier);
-
-    // TODO: rearrange the position of each helper widget
-
-    // TODO: change vertical sizes of notes table and note editor window
-}
-
-void MainWindow::resizeEvent(QResizeEvent * pResizeEvent)
-{
-    Q_CHECK_PTR(pResizeEvent);
-
-    SetDefaultLayoutSettings();
+    if (!m_pToDoChkboxTxtObjChecked) {
+        delete m_pToDoChkboxTxtObjChecked;
+        m_pToDoChkboxTxtObjChecked = nullptr;
+    }
 }
 
 EvernoteOAuthBrowser * MainWindow::OAuthBrowser()
 {
-    return m_pBrowser;
+    return m_pOAuthBrowser;
 }
 
-void MainWindow::ResizeHelperDockWidget(QDockWidget * pDock, const int dockHeight,
-                                        const int dockWidth, const double minHeightMultiplier,
-                                        const double minWidthMultiplier,
-                                        const double maxHeightMultiplier,
-                                        const double maxWidthMultiplier)
+void MainWindow::connectActionsToEditorSlots()
 {
-#ifndef QT_NO_DEBUG
-    if (pDock == nullptr) {
-        qDebug() << "MainWindow::ResizeHelperDockWidget: found NULL dock widget pointer!";
-        return;
-    }
-#endif
-
-    QDockWidget & rDock = *pDock;
-
-    int dockOldHeight = pDock->height();
-    int dockOldWidth = pDock->width();
-
-    if ( (std::fabs(dockOldWidth - dockWidth) < 1) &&
-         (std::fabs(dockOldHeight - dockHeight) < 1) )
-    {
-        rDock.resize(dockWidth, dockHeight);
-    }
-
-    rDock.setMaximumHeight(std::floor(dockHeight * maxHeightMultiplier + 0.5));
-    rDock.setMaximumWidth(std::floor(dockWidth * maxWidthMultiplier + 0.5));
-    rDock.setMinimumHeight(std::floor(dockHeight * minHeightMultiplier + 0.5));
-    rDock.setMinimumWidth(std::floor(dockWidth * minWidthMultiplier + 0.5));
+    // Font actions
+    QObject::connect(m_pUI->ActionFontBold, SIGNAL(triggered()), this, SLOT(noteTextBold()));
+    QObject::connect(m_pUI->ActionFontItalic, SIGNAL(triggered()), this, SLOT(noteTextItalic()));
+    QObject::connect(m_pUI->ActionFontUnderlined, SIGNAL(triggered()), this, SLOT(noteTextUnderline()));
+    QObject::connect(m_pUI->ActionFontStrikeout, SIGNAL(triggered()), this, SLOT(noteTextStrikeThrough()));
+    // Font buttons
+    QObject::connect(m_pUI->fontBoldPushButton, SIGNAL(clicked()), this, SLOT(noteTextBold()));
+    QObject::connect(m_pUI->fontItalicPushButton, SIGNAL(clicked()), this, SLOT(noteTextItalic()));
+    QObject::connect(m_pUI->fontUnderlinePushButton, SIGNAL(clicked()), this, SLOT(noteTextUnderline()));
+    QObject::connect(m_pUI->fontStrikethroughPushButton, SIGNAL(clicked()), this, SLOT(noteTextStrikeThrough()));
+    // Format actions
+    QObject::connect(m_pUI->ActionAlignLeft, SIGNAL(triggered()), this, SLOT(noteTextAlignLeft()));
+    QObject::connect(m_pUI->ActionAlignCenter, SIGNAL(triggered()), this, SLOT(noteTextAlignCenter()));
+    QObject::connect(m_pUI->ActionAlignRight, SIGNAL(triggered()), this, SLOT(noteTextAlignRight()));
+    QObject::connect(m_pUI->ActionInsertHorizontalLine, SIGNAL(triggered()), this, SLOT(noteTextAddHorizontalLine()));
+    QObject::connect(m_pUI->ActionIncreaseIndentation, SIGNAL(triggered()), this, SLOT(noteTextIncreaseIndentation()));
+    QObject::connect(m_pUI->ActionDecreaseIndentation, SIGNAL(triggered()), this, SLOT(noteTextDecreaseIndentation()));
+    QObject::connect(m_pUI->ActionInsertBulletedList, SIGNAL(triggered()), this, SLOT(noteTextInsertUnorderedList()));
+    QObject::connect(m_pUI->ActionInsertNumberedList, SIGNAL(triggered()), this, SLOT(noteTextInsertOrderedList()));
+    // Format buttons
+    QObject::connect(m_pUI->formatJustifyLeftPushButton, SIGNAL(clicked()), this, SLOT(noteTextAlignLeft()));
+    QObject::connect(m_pUI->formatJustifyCenterPushButton, SIGNAL(clicked()), this, SLOT(noteTextAlignCenter()));
+    QObject::connect(m_pUI->formatJustifyRightPushButton, SIGNAL(clicked()), this, SLOT(noteTextAlignRight()));
+    QObject::connect(m_pUI->insertHorizontalLinePushButton, SIGNAL(clicked()), this, SLOT(noteTextAddHorizontalLine()));
+    QObject::connect(m_pUI->formatIndentMorePushButton, SIGNAL(clicked()), this, SLOT(noteTextIncreaseIndentation()));
+    QObject::connect(m_pUI->formatIndentLessPushButton, SIGNAL(clicked()), this, SLOT(noteTextDecreaseIndentation()));
+    QObject::connect(m_pUI->formatListUnorderedPushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertUnorderedList()));
+    QObject::connect(m_pUI->formatListOrderedPushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertOrderedList()));
+    QObject::connect(m_pUI->insertToDoCheckboxPushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertToDoCheckBox()));
 }
 
-void MainWindow::ConnectActionsToEditorSlots()
-{
-    // Font
-    QObject::connect(m_pUI->ActionFontBold, SIGNAL(triggered()), this, SLOT(textBold()));
-    QObject::connect(m_pUI->ActionFontItalic, SIGNAL(triggered()), this, SLOT(textItalic()));
-    QObject::connect(m_pUI->ActionFontUnderlined, SIGNAL(triggered()), this, SLOT(textUnderline()));
-    QObject::connect(m_pUI->ActionFontStrikeout, SIGNAL(triggered()), this, SLOT(textStrikeThrough()));
-
-    NoteEditorWidget * pNotesEditor = m_pUI->notesEditorWidget;
-
-    QObject::connect(m_pUI->ActionAlignLeft, SIGNAL(triggered()), pNotesEditor,
-                     SLOT(textAlignLeft()));
-    QObject::connect(m_pUI->ActionAlignCenter, SIGNAL(triggered()), pNotesEditor,
-                     SLOT(textAlignCenter()));
-    QObject::connect(m_pUI->ActionAlignRight, SIGNAL(triggered()), pNotesEditor,
-                     SLOT(textAlignRight()));
-
-    QObject::connect(m_pUI->ActionInsertHorizontalLine, SIGNAL(triggered()),
-                     pNotesEditor, SLOT(textAddHorizontalLine()));
-
-    QObject::connect(m_pUI->ActionIncreaseIndentation, SIGNAL(triggered()),
-                     pNotesEditor, SLOT(textIncreaseIndentation()));
-    QObject::connect(m_pUI->ActionDecreaseIndentation, SIGNAL(triggered()),
-                     pNotesEditor, SLOT(textDecreaseIndentation()));
-
-    QObject::connect(m_pUI->ActionInsertBulletedList, SIGNAL(triggered()),
-                     pNotesEditor, SLOT(textInsertUnorderedList()));
-    QObject::connect(m_pUI->ActionInsertNumberedList, SIGNAL(triggered()),
-                     pNotesEditor, SLOT(textInsertOrderedList()));
-}
-
-void MainWindow::CheckAndSetupConsumerKeyAndSecret()
+void MainWindow::checkAndSetupConsumerKeyAndSecret()
 {
     checkAndSetupCredentials(CHECK_CONSUMER_KEY_AND_SECRET);
 }
 
-void MainWindow::CheckAndSetupUserNameAndPassword()
+void MainWindow::checkAndSetupUserNameAndPassword()
 {
     checkAndSetupCredentials(CHECK_USER_NAME_AND_PASSWORD);
 }
 
-void MainWindow::CheckAndSetupOAuthTokenAndSecret()
+void MainWindow::checkAndSetupOAuthTokenAndSecret()
 {
     checkAndSetupCredentials(CHECK_OAUTH_TOKEN_AND_SECRET);
 }
@@ -337,85 +267,397 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
     // Check whether authentication is done and we need to close the browser
     QString dummyErrorString;
     if (m_pManager->CheckAuthenticationState(dummyErrorString)) {
-        if (m_pBrowser != nullptr) {
-            m_pBrowser->authSuccessful();
-            m_pBrowser->close();
+        if (m_pOAuthBrowser != nullptr) {
+            m_pOAuthBrowser->authSuccessful();
+            m_pOAuthBrowser->close();
         }
     }
 }
 
 void MainWindow::onShowAuthWebPage(QUrl url)
 {
-    if (m_pBrowser == nullptr) {
-        m_pBrowser = new EvernoteOAuthBrowser(this, *m_pManager);
-        Q_CHECK_PTR(m_pBrowser);
+    if (m_pOAuthBrowser == nullptr) {
+        m_pOAuthBrowser = new EvernoteOAuthBrowser(this, *m_pManager);
+        Q_CHECK_PTR(m_pOAuthBrowser);
     }
 
-    m_pBrowser->load(url);
-    m_pBrowser->show();
+    m_pOAuthBrowser->load(url);
+    m_pOAuthBrowser->show();
 }
 
 void MainWindow::onRequestUsernameAndPassword()
 {
-    CheckAndSetupUserNameAndPassword();
+    checkAndSetupUserNameAndPassword();
 }
 
-void MainWindow::textBold()
+void MainWindow::noteTextBold()
 {
-    QPushButton * pTextBoldButton = m_pUI->notesEditorWidget->getTextBoldButton();
+    QPushButton * pTextBoldButton = m_pUI->fontBoldPushButton;
     if (pTextBoldButton->isCheckable()) {
-        if (pTextBoldButton->isChecked()) {
-            pTextBoldButton->setChecked(false);
-        }
-        else {
-            pTextBoldButton->setChecked(true);
-        }
-
-        m_pUI->notesEditorWidget->textBold();
+        QTextCharFormat format;
+        format.setFontWeight(pTextBoldButton->isChecked() ? QFont::Bold : QFont::Normal);
+        mergeFormatOnWordOrSelection(format);
     }
+    m_pUI->noteEditWidget->setFocus();
 }
 
-void MainWindow::textItalic()
+void MainWindow::noteTextItalic()
 {
-    QPushButton * pTextItalicButton = m_pUI->notesEditorWidget->getTextItalicButton();
+    QPushButton * pTextItalicButton = m_pUI->fontItalicPushButton;
     if (pTextItalicButton->isCheckable()) {
-        if (pTextItalicButton->isChecked()) {
-            pTextItalicButton->setChecked(false);
-        }
-        else {
-            pTextItalicButton->setChecked(true);
-        }
-
-        m_pUI->notesEditorWidget->textItalic();
+        QTextCharFormat format;
+        format.setFontItalic(pTextItalicButton->isChecked());
+        mergeFormatOnWordOrSelection(format);
     }
+    m_pUI->noteEditWidget->setFocus();
 }
 
-void MainWindow::textUnderline()
+void MainWindow::noteTextUnderline()
 {
-    QPushButton * pTextUnderlineButton = m_pUI->notesEditorWidget->getTextUnderlineButton();
+    QPushButton * pTextUnderlineButton = m_pUI->fontUnderlinePushButton;
     if (pTextUnderlineButton->isCheckable()) {
-        if (pTextUnderlineButton->isChecked()) {
-            pTextUnderlineButton->setChecked(false);
+        QTextCharFormat format;
+        format.setFontUnderline(pTextUnderlineButton->isChecked());
+        mergeFormatOnWordOrSelection(format);
+    }
+    m_pUI->noteEditWidget->setFocus();
+}
+
+void MainWindow::noteTextStrikeThrough()
+{
+    QPushButton * pTextStrikeThroughButton = m_pUI->fontStrikethroughPushButton;
+    if (pTextStrikeThroughButton->isCheckable()) {
+        QTextCharFormat format;
+        format.setFontStrikeOut(pTextStrikeThroughButton->isChecked());
+        mergeFormatOnWordOrSelection(format);
+    }
+    m_pUI->noteEditWidget->setFocus();
+}
+
+void MainWindow::noteTextAlignLeft()
+{
+    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    Q_CHECK_PTR(pNoteEdit);
+
+    QTextCursor cursor = pNoteEdit->textCursor();
+    cursor.beginEditBlock();
+
+    pNoteEdit->setAlignment(Qt::AlignLeft | Qt::AlignAbsolute);
+    setAlignButtonsCheckedState(ALIGNED_LEFT);
+
+    cursor.endEditBlock();
+    pNoteEdit->setFocus();
+}
+
+void MainWindow::noteTextAlignCenter()
+{
+    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    Q_CHECK_PTR(pNoteEdit);
+
+    QTextCursor cursor = pNoteEdit->textCursor();
+    cursor.beginEditBlock();
+
+    pNoteEdit->setAlignment(Qt::AlignHCenter);
+    setAlignButtonsCheckedState(ALIGNED_CENTER);
+
+    cursor.endEditBlock();
+    pNoteEdit->setFocus();
+}
+
+void MainWindow::noteTextAlignRight()
+{
+    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    Q_CHECK_PTR(pNoteEdit);
+
+    QTextCursor cursor = pNoteEdit->textCursor();
+    cursor.beginEditBlock();
+
+    pNoteEdit->setAlignment(Qt::AlignRight | Qt::AlignAbsolute);
+    setAlignButtonsCheckedState(ALIGNED_RIGHT);
+
+    cursor.endEditBlock();
+    pNoteEdit->setFocus();
+}
+
+void MainWindow::noteTextAddHorizontalLine()
+{
+    QuteNoteTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    Q_CHECK_PTR(pNoteEdit);
+
+    QTextCursor cursor = pNoteEdit->textCursor();
+    cursor.beginEditBlock();
+
+    QTextBlockFormat format = cursor.blockFormat();
+
+    bool atStart = cursor.atStart();
+
+    cursor.insertHtml("<hr><br>");
+    cursor.setBlockFormat(format);
+    cursor.movePosition(QTextCursor::Up);
+
+    if (atStart)
+    {
+        cursor.movePosition(QTextCursor::Up);
+        cursor.deletePreviousChar();
+        cursor.movePosition(QTextCursor::Down);
+    }
+    else
+    {
+        cursor.movePosition(QTextCursor::Up);
+        cursor.movePosition(QTextCursor::Up);
+        QString line = cursor.block().text().trimmed();
+        if (line.isEmpty()) {
+            cursor.movePosition(QTextCursor::Down);
+            cursor.deletePreviousChar();
+            cursor.movePosition(QTextCursor::Down);
         }
         else {
-            pTextUnderlineButton->setChecked(true);
+            cursor.movePosition(QTextCursor::Down);
+            cursor.movePosition(QTextCursor::Down);
+        }
+    }
+
+    // add extra data
+    cursor.movePosition(QTextCursor::Up);
+    cursor.block().setUserData(new HorizontalLineExtraData);
+    cursor.movePosition(QTextCursor::Down);
+
+    cursor.endEditBlock();
+    pNoteEdit->setFocus();
+}
+
+void MainWindow::noteTextIncreaseIndentation()
+{
+    const bool increaseIndentationFlag = true;
+    changeIndentation(increaseIndentationFlag);
+    m_pUI->noteEditWidget->setFocus();
+}
+
+void MainWindow::noteTextDecreaseIndentation()
+{
+    const bool increaseIndentationFlag = false;
+    changeIndentation(increaseIndentationFlag);
+    m_pUI->noteEditWidget->setFocus();
+}
+
+void MainWindow::noteTextInsertUnorderedList()
+{
+    QTextListFormat::Style style = QTextListFormat::ListDisc;
+    insertList(style);
+    m_pUI->noteEditWidget->setFocus();
+}
+
+void MainWindow::noteTextInsertOrderedList()
+{
+    QTextListFormat::Style style = QTextListFormat::ListDecimal;
+    insertList(style);
+    m_pUI->noteEditWidget->setFocus();
+}
+
+void MainWindow::noteChooseTextColor()
+{
+    changeTextColor(CHANGE_COLOR_ALL);
+    m_pUI->noteEditWidget->setFocus();
+}
+
+void MainWindow::noteChooseSelectedTextColor()
+{
+    changeTextColor(CHANGE_COLOR_SELECTED);
+    m_pUI->noteEditWidget->setFocus();
+}
+
+void MainWindow::noteTextInsertToDoCheckBox()
+{
+    QString checkboxUncheckedImgFileName(":/format_text_elements/checkbox_unchecked.gif");
+    QFile checkboxUncheckedImgFile(checkboxUncheckedImgFileName);
+    if (!checkboxUncheckedImgFile.exists()) {
+        QMessageBox::warning(this, tr("Error Opening File"),
+                             tr("Could not open '%1'").arg(checkboxUncheckedImgFileName));
+        return;
+    }
+
+    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    Q_CHECK_PTR(pNoteEdit);
+
+    QTextCursor cursor = pNoteEdit->textCursor();
+    cursor.beginEditBlock();
+
+    QImage checkboxUncheckedImg(checkboxUncheckedImgFileName);
+    QTextCharFormat toDoCheckboxUncheckedCharFormat;
+    toDoCheckboxUncheckedCharFormat.setObjectType(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_UNCHECKED);
+    toDoCheckboxUncheckedCharFormat.setProperty(QuteNoteTextEdit::TODO_CHKBOX_TXT_DATA_UNCHECKED, checkboxUncheckedImg);
+
+    cursor.insertText(QString(QChar::ObjectReplacementCharacter), toDoCheckboxUncheckedCharFormat);
+    cursor.insertText(" ", QTextCharFormat());
+
+    cursor.endEditBlock();
+
+    pNoteEdit->setTextCursor(cursor);
+}
+
+void MainWindow::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
+{
+    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    Q_CHECK_PTR(pNoteEdit);
+
+    QTextCursor cursor = pNoteEdit->textCursor();
+    cursor.beginEditBlock();
+
+    if (!cursor.hasSelection()) {
+        cursor.select(QTextCursor::WordUnderCursor);
+    }
+    cursor.mergeCharFormat(format);
+    cursor.clearSelection();
+    pNoteEdit->mergeCurrentCharFormat(format);
+
+    cursor.endEditBlock();
+}
+
+void MainWindow::changeIndentation(const bool increaseIndentationFlag)
+{
+    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    Q_CHECK_PTR(pNoteEdit);
+
+    QTextCursor cursor = pNoteEdit->textCursor();
+    cursor.beginEditBlock();
+
+    if (cursor.currentList())
+    {
+        QTextListFormat listFormat = cursor.currentList()->format();
+
+        if (increaseIndentationFlag) {
+            listFormat.setIndent(listFormat.indent() + 1);
+        }
+        else {
+            listFormat.setIndent(std::max(listFormat.indent() - 1, 0));
         }
 
-        m_pUI->notesEditorWidget->textUnderline();
+        cursor.createList(listFormat);
+    }
+    else
+    {
+        int start = cursor.anchor();
+        int end = cursor.position();
+        if (start > end)
+        {
+            start = cursor.position();
+            end = cursor.anchor();
+        }
+
+        QList<QTextBlock> blocksList;
+        QTextBlock block = pNoteEdit->document()->begin();
+        while (block.isValid())
+        {
+            block = block.next();
+            if ( ((block.position() >= start) && (block.position() + block.length() <= end) ) ||
+                 block.contains(start) || block.contains(end) )
+            {
+                blocksList << block;
+            }
+        }
+
+        foreach(QTextBlock block, blocksList)
+        {
+            QTextCursor cursor(block);
+            QTextBlockFormat blockFormat = cursor.blockFormat();
+
+            if (increaseIndentationFlag) {
+                blockFormat.setIndent(blockFormat.indent() + 1);
+            }
+            else {
+                blockFormat.setIndent(std::max(blockFormat.indent() - 1, 0));
+            }
+
+            cursor.setBlockFormat(blockFormat);
+        }
+    }
+
+    cursor.endEditBlock();
+}
+
+void MainWindow::insertList(const QTextListFormat::Style style)
+{
+    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    Q_CHECK_PTR(pNoteEdit);
+
+    QTextCursor cursor = pNoteEdit->textCursor();
+    cursor.beginEditBlock();
+
+    QTextBlockFormat blockFormat = cursor.blockFormat();
+
+    QTextListFormat listFormat;
+    if (cursor.currentList()) {
+        listFormat = cursor.currentList()->format();
+    }
+    else {
+        listFormat.setIndent(blockFormat.indent() + 1);
+        blockFormat.setIndent(0);
+        cursor.setBlockFormat(blockFormat);
+    }
+
+    listFormat.setStyle(style);
+
+    cursor.createList(listFormat);
+    cursor.endEditBlock();
+}
+
+void MainWindow::setAlignButtonsCheckedState(const ESelectedAlignment alignment)
+{
+    switch(alignment)
+    {
+    case ALIGNED_LEFT:
+        m_pUI->formatJustifyCenterPushButton->setChecked(false);
+        m_pUI->formatJustifyRightPushButton->setChecked(false);
+        break;
+    case ALIGNED_CENTER:
+        m_pUI->formatJustifyLeftPushButton->setChecked(false);
+        m_pUI->formatJustifyRightPushButton->setChecked(false);
+        break;
+    case ALIGNED_RIGHT:
+        m_pUI->formatJustifyLeftPushButton->setChecked(false);
+        m_pUI->formatJustifyCenterPushButton->setChecked(false);
+        break;
+    default:
+        qWarning() << "MainWindow::setAlignButtonsCheckedState: received invalid action!";
+        break;
     }
 }
 
-void MainWindow::textStrikeThrough()
+void MainWindow::changeTextColor(const MainWindow::EChangeColor changeColorOption)
 {
-    QPushButton * pTextStrikeThroughButton = m_pUI->notesEditorWidget->getTextStrikeThroughButton();
-    if (pTextStrikeThroughButton->isCheckable()) {
-        if (pTextStrikeThroughButton->isChecked()) {
-            pTextStrikeThroughButton->setChecked(false);
-        }
-        else {
-            pTextStrikeThroughButton->setChecked(true);
-        }
+    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    Q_CHECK_PTR(pNoteEdit);
 
-        m_pUI->notesEditorWidget->textStrikeThrough();
+    QColor color = QColorDialog::getColor(pNoteEdit->textColor(), this);
+    if (!color.isValid()) {
+        qWarning() << "MainWindow::changeTextColor: detected invalid color! " << color;
+        return;
+    }
+
+    QTextCharFormat format;
+    format.setForeground(color);
+
+    switch(changeColorOption)
+    {
+    case CHANGE_COLOR_ALL:
+    {
+        QTextCursor cursor = pNoteEdit->textCursor();
+        cursor.beginEditBlock();
+
+        cursor.select(QTextCursor::Document);
+        cursor.mergeCharFormat(format);
+        pNoteEdit->mergeCurrentCharFormat(format);
+
+        cursor.endEditBlock();
+        break;
+    }
+    case CHANGE_COLOR_SELECTED:
+    {
+        mergeFormatOnWordOrSelection(format);
+        break;
+    }
+    default:
+        qWarning() << "MainWindow::changeTextColor: received wrong change color option! " << changeColorOption;
+        return;
     }
 }
