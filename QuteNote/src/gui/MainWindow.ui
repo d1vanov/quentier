@@ -1714,6 +1714,9 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
         </item>
         <item>
          <widget class="QuteNoteTextEdit" name="noteEditWidget">
+          <property name="mouseTracking">
+           <bool>true</bool>
+          </property>
           <property name="styleSheet">
            <string notr="true">border: none</string>
           </property>
