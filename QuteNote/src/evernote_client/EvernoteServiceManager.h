@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__EVERNOTE_CLIENT__EVERNOTE_SERVICE_MANAGER_H
 
 #include <string>
+#include <vector>
 #include <memory>
 
 namespace qute_note {
@@ -9,8 +10,10 @@ namespace qute_note {
 class User;
 class Guid;
 class Note;
+class Tag;
 class Notebook;
 class LinkedNotebook;
+class SharedNotebook;
 
 class EvernoteServiceManager
 {
@@ -102,7 +105,7 @@ public:
                   const char *& errorMessage);
 
     /**
-     * @brief emailNote - attempts to send the note with specified guid to the specified email adress.
+     * @brief emailNote - attempts to send the note with specified guid to the specified email adress
      * @param noteId - guid of note to be emailed
      * @param emailAddress - email adress to send the note to
      * @param message - optional text message, may be empty
@@ -123,14 +126,33 @@ public:
                                   const char *& errorMessage) const;
 
     /**
-     * @brief getNotesCountPerTag - attempts to provide the number of notes market\d with specified tag
+     * @brief getNotesCountPerTag - attempts to provide the number of notes marked with specified tag
      * @param tagId - guid of tag for which the number of notes is to be revealed
-     * @param notesCount - the resulting number of notes
-     * @param errorMessage - message explaining why the number ofnotes could not be provided
+     * @param notesCount - resulting number of notes
+     * @param errorMessage - message explaining why the number of notes could not be provided
      * @return true if the number of notes was provided, false otherwise
      */
     bool getNotesCountPerTag(const Guid & tagId, size_t & notesCount,
                              const char *& errorMessage) const;
+
+    /**
+     * @brief getTags - provides a vector containing all tags within current account
+     * @param tags - resulting vector of tags
+     * @param errorMessage - message explaining why the vector of tags could not be provided
+     * @return true if the vector of tags was provided successfully, false otherwise
+     */
+    bool getTags(std::vector<Tag> & tags, const char *& errorMessage) const;
+
+    /**
+     * @brief getTagsPerNotebook - provides a vector containing all tags assotiated
+     * with notes from the notebook with specified guid
+     * @param tags - resulting vector of tags
+     * @param notebookId - guid of notebook to search the tags for
+     * @param errorMessage - message explaining why the vector of tags per notebook could not be provided
+     * @return true if the vector of tags was provided successfully, false otherwise
+     */
+    bool getTagsPerNotebook(std::vector<Tag> & tags, const Guid & notebookId,
+                            const char *& errorMessage) const;
 
     /**
      * @brief createNotebook - attempts to create a new notebook within current Evernote account
@@ -161,12 +183,19 @@ public:
      * @brief createLinkedNotebook - attempts to create a linked notebook
      * @param notebook - before the call this object should contain the name of
      * the linked notebook and either a username uri or a shard id and share key must be set
-     * @param errorMessage - message explaining why the linker notebook was not created
+     * @param errorMessage - message explaining why the linked notebook was not created
      * @return true if linked notebook was created, false otherwise
      */
     bool createLinkedNotebook(LinkedNotebook & notebook, const char *& errorMessage) const;
 
-
+    /**
+     * @brief createSharedNotebook - attempts to create a shared notebook
+     * @param notebook - before the call this object should contain the email adress of
+     * share recipient, guid and notebook permissions (including "allowPreview" property)
+     * @param errorMessage - message explaining why the shared notebook was not created
+     * @return true if shared notebook was created, false otherwise
+     */
+    bool createSharedNotebook(SharedNotebook & notebook, const char *& errorMessage) const;
 
 private:
     class EvernoteServiceManagerImpl;
