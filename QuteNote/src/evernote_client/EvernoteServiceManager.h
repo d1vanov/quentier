@@ -155,6 +155,18 @@ public:
                             const char *& errorMessage) const;
 
     /**
+     * @brief getTagsPerNote - provides a vector of tags associated with note
+     * with provided guid. Performs double search in the database: first the names
+     * of tags associated with the notes are obtained, then the guids are found
+     * @param tags - resulting vector of tags
+     * @param noteId - guid of note to search for the associated tags
+     * @param errorMessage - message explaining why the vector of tags per note could not be provided
+     * @return true if vector of tags was provided successfully, false otherwise
+     */
+    bool getTagsPerNote(std::vector<Tag> & tags, const Guid & noteId,
+                        const char *& errorMessage) const;
+
+    /**
      * @brief createNotebook - attempts to create a new notebook within current Evernote account
      * @param createdNotebook - created notebook; will have error set if the notebook would not be created
      * @param errorMessage - message explaining why the notebook was not created
