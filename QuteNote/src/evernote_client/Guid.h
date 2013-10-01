@@ -18,6 +18,14 @@ public:
     explicit Guid(const std::string & guid);
 
     /**
+     * @brief Guid - copy constructor
+     * @param other - other guid
+     */
+    Guid(const Guid & other);
+
+    Guid & operator=(const Guid & other);
+
+    /**
      * @brief isEmpty - checks whether Guid is empty
      * @return true if Guid is empty, false otherwise
      */
@@ -46,8 +54,7 @@ public:
     bool operator <(const Guid & other) const;
 
 private:
-    Guid(const Guid & other) = delete;
-    Guid & operator=(const Guid & other) = delete;
+
 
     std::string m_guid;
 };

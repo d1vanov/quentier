@@ -54,9 +54,14 @@ void SynchronizedDataElement::dropLocallyModified()
     m_isLocallyModified = false;
 }
 
-const Guid & SynchronizedDataElement::guid() const
+const Guid SynchronizedDataElement::guid() const
 {
-    return *m_pGuid;
+    if (m_pGuid.get() != nullptr) {
+        return *(m_pGuid.get());
+    }
+    else {
+        return Guid();
+    }
 }
 
 void SynchronizedDataElement::assignGuid(const std::string & guid)
@@ -66,12 +71,22 @@ void SynchronizedDataElement::assignGuid(const std::string & guid)
 
 bool SynchronizedDataElement::isEmpty() const
 {
-    return m_pGuid->isEmpty();
+    if (m_pGuid.get() != nullptr) {
+        return m_pGuid->isEmpty();
+    }
+    else {
+        return true;
+    }
 }
 
 bool SynchronizedDataElement::operator <(const SynchronizedDataElement & other)
 {
-    return (*m_pGuid < *(other.m_pGuid));
+    if ((m_pGuid.get() != nullptr) && (other.m_pGuid.get() != nullptr)) {
+        return (*m_pGuid < *(other.m_pGuid));
+    }
+    else {
+        return true;
+    }
 }
 
 }

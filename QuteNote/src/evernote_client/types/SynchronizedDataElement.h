@@ -23,7 +23,7 @@ public:
     void setLocallyModified();
     void dropLocallyModified();
 
-    const Guid & guid() const;
+    const Guid guid() const;
     void assignGuid(const std::string & guid);
 
     virtual bool isEmpty() const;

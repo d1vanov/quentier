@@ -7,13 +7,22 @@ Note::Note() :
 {}
 
 Note::Note(const Note & other) :
-    m_pImpl(new NoteImpl(*(other.m_pImpl)))
-{}
+    m_pImpl(nullptr)
+{
+    if (!other.isEmpty()) {
+        m_pImpl.reset(new NoteImpl(*(other.m_pImpl)));
+    }
+    else {
+        m_pImpl.reset(new NoteImpl);
+    }
+}
 
 Note & Note::operator =(const Note & other)
 {
     if (this != &other) {
-        *m_pImpl = *(other.m_pImpl);
+        if (!other.isEmpty()) {
+            *m_pImpl = *(other.m_pImpl);
+        }
     }
 
     return *this;
@@ -21,8 +30,14 @@ Note & Note::operator =(const Note & other)
 
 bool Note::isEmpty() const
 {
-    // TODO: implement
-    return true;
+    if (m_pImpl != nullptr) {
+        // TODO: implement
+        return true;
+    }
+    else {
+        return true;
+    }
+
 }
 
 }

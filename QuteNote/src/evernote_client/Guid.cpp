@@ -10,6 +10,19 @@ Guid::Guid(const std::string & guid) :
     m_guid(guid)
 {}
 
+Guid::Guid(const Guid & other) :
+    m_guid(other.m_guid)
+{}
+
+Guid & Guid::operator=(const Guid & other)
+{
+    if (this != &other) {
+        m_guid = other.m_guid;
+    }
+
+    return *this;
+}
+
 bool Guid::isEmpty() const
 {
     return m_guid.empty();

@@ -115,6 +115,11 @@ endif()
 
 find_package(OpenSSL REQUIRED)
 
+find_package(LibXml2 REQUIRED)
+if(LIBXML2_FOUND)
+  include_directories(${LIBXML2_INCLUDE_DIR})
+endif()
+
 if(USE_QT5)
   add_executable(${PROJECT_NAME}
                  ${${PROJECT_NAME}_HEADERS}
@@ -128,7 +133,7 @@ if(USE_QT5)
                         ${KQOAUTH_LIB}
                         ${SIMPLECRYPT_LIB}
 						${OPENSSL_LIBRARIES}
-                        ${XERCESC_LIBRARY})
+                        ${LIBXML2_LIBRARIES})
 else()
   add_executable(${PROJECT_NAME}
                  ${${PROJECT_NAME}_HEADERS}
@@ -141,12 +146,7 @@ else()
                         ${SIMPLECRYPT_LIB}
                         ${QT_LIBRARIES}
                         ${OPENSSL_LIBRARIES}
-                        ${XERCESC_LIBRARY})
-endif()
-
-find_package(LibXml2 REQUIRED)
-if(LIBXML2_FOUND)
-  include_directories(${LIBXML2_INCLUDE_DIR})
+                        ${LIBXML2_LIBRARIES})
 endif()
 
 if(LIBCPP)
