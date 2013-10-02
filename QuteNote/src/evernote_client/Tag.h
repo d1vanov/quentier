@@ -22,8 +22,15 @@ public:
      * @brief parentGuid - guid of parent tag
      * @return guid of parent tag if it exists or empty guid otherwise
      */
-    Guid parentGuid() const;
-    // TODO: continue
+    const Guid parentGuid() const;
+
+    /**
+     * @brief name - name of tag
+     */
+    const std::string name() const;
+
+    void setName(const std::string & name);
+    void setParentGuid(const Guid & parentGuid);
 
 private:
     Tag() = delete;

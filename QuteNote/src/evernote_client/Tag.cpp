@@ -11,7 +11,7 @@ Tag::Tag(const std::string & name, const Guid & parentGuid) :
     m_pImpl(new TagImpl(name, parentGuid))
 {}
 
-Guid Tag::parentGuid() const
+const Guid Tag::parentGuid() const
 {
     if (m_pImpl != nullptr) {
         return m_pImpl->parentGuid();
@@ -21,7 +21,28 @@ Guid Tag::parentGuid() const
     }
 }
 
+const std::string Tag::name() const
+{
+    if (m_pImpl != nullptr) {
+        return m_pImpl->name();
+    }
+    else {
+        return std::string();
+    }
+}
 
+void Tag::setName(const std::string & name)
+{
+    if (m_pImpl != nullptr) {
+        m_pImpl->setName(name);
+    }
+}
 
+void Tag::setParentGuid(const Guid & parentGuid)
+{
+    if (m_pImpl != nullptr) {
+        m_pImpl->setParentGuid(parentGuid);
+    }
+}
 
 }

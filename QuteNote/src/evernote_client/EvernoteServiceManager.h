@@ -48,6 +48,15 @@ public:
                                   const char *& errorMessage);
 
     /**
+     * @brief authenticateToSharedNotebook - attempts to authenticate to shared notebook
+     * @param sharedNotebookKey - share key identifier from the shared notebook
+     * @param errorMessage - message explaining why the authentication to shared notebook failed
+     * @return true if authenticaton to shared notebook was successful, false otherwise
+     */
+    bool authenticateToSharedNotebook(const std::string & sharedNotebookKey,
+                                      const char *& errorMessage);
+
+    /**
      * @brief synchronize - attempts to synchronize to Evernote service; decides
      * on its own whether it should be full or incremental synchronization. However,
      * it is possible to force full synchronization by passing a boolean flag = true to it
@@ -165,6 +174,42 @@ public:
      */
     bool getTagsPerNote(std::vector<Tag> & tags, const Guid & noteId,
                         const char *& errorMessage) const;
+
+    /**
+     * @brief createTag - attempts to create a new tag in current user's account
+     * @param tagToCreate - tag with set name and optionally with non-empty parentGuid.
+     * If the name of tag to create is empty, the method will reject the request
+     * @param errorMessage - message explaining why the tag was not created
+     * @return true if tag was successfully created, false otherwise
+     */
+    bool createTag(const Tag & tagToCreate, const char *& errorMessage);
+
+    /**
+     * @brief updateTag - attempts to update the tag with specified name and parent guid
+     * @param tagToUpdate - tag object which should contain name and parent guid
+     * which will be updated
+     * @param errorMessage - message explaining why the tag was not updated
+     * @return true if tag was updated successfully, false otherwise
+     */
+    bool updateTag(const Tag & tagToUpdate, const char *& errorMessage);
+
+    /**
+     * @brief deleteTag - attempts to delete the tag with provided guid from all notes
+     * within current user's account
+     * @param tagGuid - guid of tag to be untagged from all notes
+     * @param errorMessage - message explaining why untag was not done successfully
+     * @return true if untag was done successfully, false otherwise
+     */
+    bool untagAll(const Guid & tagGuid, const char *& errorMessage);
+
+    /**
+     * @brief findTag - attempts to find the tag with specified guid in current user's account
+     * @param tagGuid - guid of tag to find
+     * @param tag - resulting found tag object
+     * @param errorMessage - message explaining why tag was not found
+     * @return true if tag was found, false otherwise
+     */
+    bool findTag(const Guid & tagGuid, Tag & tag, const char *& errorMessage);
 
     /**
      * @brief createNotebook - attempts to create a new notebook within current Evernote account

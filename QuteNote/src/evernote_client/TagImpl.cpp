@@ -2,32 +2,32 @@
 
 namespace qute_note {
 
-TagImpl::TagImpl(const std::string & name) :
+Tag::TagImpl::TagImpl(const std::string & name) :
     m_name(name),
     m_parentGuid()
 {}
 
-TagImpl::TagImpl(const std::string & name, const Guid & parentGuid) :
+Tag::TagImpl::TagImpl(const std::string & name, const Guid & parentGuid) :
     m_name(name),
     m_parentGuid(parentGuid)
 {}
 
-std::string TagImpl::name()
+const std::string Tag::TagImpl::name() const
 {
     return m_name;
 }
 
-Guid TagImpl::parentGuid()
+const Guid Tag::TagImpl::parentGuid() const
 {
     return m_parentGuid;
 }
 
-void TagImpl::setName(const std::string & name)
+void Tag::TagImpl::setName(const std::string & name)
 {
     m_name = name;
 }
 
-void TagImpl::setParentGuid(const Guid & parentGuid)
+void Tag::TagImpl::setParentGuid(const Guid & parentGuid)
 {
     m_parentGuid = parentGuid;
 }

@@ -3,17 +3,18 @@
 
 #include <string>
 #include "Guid.h"
+#include "Tag.h"
 
 namespace qute_note {
 
-class TagImpl
+class Tag::TagImpl
 {
 public:
     TagImpl(const std::string & name);
     TagImpl(const std::string & name, const Guid & parentGuid);
 
-    std::string name() const;
-    Guid parentGuid() const;
+    const std::string name() const;
+    const Guid parentGuid() const;
 
     void setName(const std::string & name);
     void setParentGuid(const Guid & parentGuid);

@@ -58,6 +58,8 @@ set(${PROJECT_NAME}_HEADERS
     src/evernote_client/NoteImpl.h
     src/evernote_client/Guid.h
     src/evernote_client/Notebook.h
+    src/evernote_client/Tag.h
+    src/evernote_client/TagImpl.h
     src/evernote_client/types/TypeWithError.h
     src/evernote_client/types/SynchronizedDataElement.h)
 
@@ -91,6 +93,8 @@ set(${PROJECT_NAME}_SOURCES
     src/evernote_client/Note.cpp
     src/evernote_client/Guid.cpp
     src/evernote_client/Notebook.cpp
+    src/evernote_client/Tag.cpp
+    src/evernote_client/TagImpl.cpp
     src/evernote_client/types/TypeWithError.cpp
     src/evernote_client/types/SynchronizedDataElement.cpp
     main.cpp)
