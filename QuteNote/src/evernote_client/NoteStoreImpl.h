@@ -6,10 +6,16 @@
 namespace qute_note {
 
 // TODO: implement all required functionality
-class NoteStore::NoteStoreImpl
+class NoteStore::NoteStoreImpl final
 {
 public:
     NoteStoreImpl() {}
+    ~NoteStoreImpl() {}
+
+
+private:
+    NoteStoreImpl(const NoteStoreImpl & other) = delete;
+    NoteStoreImpl & operator=(const NoteStoreImpl & other) = delete;
 };
 
 }

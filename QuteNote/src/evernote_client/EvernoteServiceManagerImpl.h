@@ -9,7 +9,7 @@ class UserStore;
 class NoteStore;
 
 // TODO: implement all required funtionality
-class EvernoteServiceManager::EvernoteServiceManagerImpl
+class EvernoteServiceManager::EvernoteServiceManagerImpl final
 {
 public:
     EvernoteServiceManagerImpl();

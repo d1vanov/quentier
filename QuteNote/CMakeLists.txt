@@ -58,6 +58,7 @@ set(${PROJECT_NAME}_HEADERS
     src/evernote_client/NoteImpl.h
     src/evernote_client/Guid.h
     src/evernote_client/Notebook.h
+    src/evernote_client/Resource.h
     src/evernote_client/Tag.h
     src/evernote_client/TagImpl.h
     src/evernote_client/types/TypeWithError.h
