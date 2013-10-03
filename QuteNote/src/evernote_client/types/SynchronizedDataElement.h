@@ -30,7 +30,7 @@ public:
 
     /**
      * @brief operator < - compares two SynchronizedDataElement objects via their guid,
-     * in order to make it possible to have sets ofsynchronized data elements
+     * in order to make it possible to have sets of synchronized data elements
      * @param other - the other object for comparison
      * @return true if current object's guid is less than the other one's, false otherwise
      */

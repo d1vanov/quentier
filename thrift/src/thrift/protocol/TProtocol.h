@@ -651,15 +651,6 @@ class THRIFT_EXPORT TProtocol {
     return ptrans_;
   }
 
-  // TODO: remove these two calls, they are for backwards
-  // compatibility
-  inline boost::shared_ptr<TTransport> getInputTransport() {
-    return ptrans_;
-  }
-  inline boost::shared_ptr<TTransport> getOutputTransport() {
-    return ptrans_;
-  }
-
  protected:
   TProtocol(boost::shared_ptr<TTransport> ptrans):
     ptrans_(ptrans) {

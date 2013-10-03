@@ -195,7 +195,7 @@ public:
 
     /**
      * @brief deleteTag - attempts to delete the tag with provided guid from all notes
-     * within current user's account
+     * within current user's account + immediately synchronize with the server
      * @param tagGuid - guid of tag to be untagged from all notes
      * @param errorMessage - message explaining why untag was not done successfully
      * @return true if untag was done successfully, false otherwise
