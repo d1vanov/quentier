@@ -35,7 +35,11 @@
 #define HAVE_SYS_STAT_H 1
 
 #include "TargetVersion.h"
+#ifdef _MSC_VER
 #include "GetTimeOfDay.h"
+#elif defined(__MINGW32__)
+#include <time.h>
+#endif
 #include "Operators.h"
 #include "TWinsockSingleton.h"
 #include "WinFcntl.h"
@@ -55,7 +59,7 @@ typedef boost::uint8_t  uint8_t;
 #pragma comment(lib, "advapi32.lib") //For security APIs in TPipeServer
 
 // pthreads
-#if 0
+#if defined __MINGW32__
 #	include <pthread.h>
 #else
 struct timespec {

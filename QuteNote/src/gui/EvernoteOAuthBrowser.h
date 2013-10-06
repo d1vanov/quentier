@@ -1,7 +1,13 @@
 #ifndef __QUTE_NOTE__GUI__EVERNOTE_OAUTH_BROWSER_H
 #define __QUTE_NOTE__GUI__EVERNOTE_OAUTH_BROWSER_H
 
+#include <QtCore>
+
+#if QT_VERSION >= 0x050101
+#include <QtWebKitWidgets/QWebView>
+#else
 #include <QWebView>
+#endif
 #include "../client/EvernoteServiceManager.h"
 
 /**

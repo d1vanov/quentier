@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0020 NEW)
 project(kqoauth)
 
 add_definitions("-DKQOAUTH")
@@ -32,6 +33,7 @@ if(NOT USE_QT5)
   target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
 else()
   qt5_use_modules(${PROJECT_NAME} Core)
+  qt5_use_modules(${PROJECT_NAME} Gui)
   qt5_use_modules(${PROJECT_NAME} Network)
   qt5_use_modules(${PROJECT_NAME} Webkit)
 endif()

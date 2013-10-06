@@ -22,7 +22,6 @@
 
 #include <string>
 #include "../Thrift.h"
-#include "../Linkage.h"
 
 namespace apache { namespace thrift { namespace transport {
 

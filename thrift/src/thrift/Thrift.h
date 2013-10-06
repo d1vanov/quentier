@@ -51,7 +51,6 @@
 #include <boost/type_traits/is_convertible.hpp>
 
 #include "Linkage.h"
-
 #include "TLogging.h"
 
 /**

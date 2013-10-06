@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0020 NEW)
 project(QuteNote)
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -105,7 +106,9 @@ set(FORMS
     src/gui/AskConsumerKeyAndSecret.ui
     src/gui/AskUserNameAndPassword.ui)
 
-if(NOT USE_QT5)
+if(USE_QT5)
+  qt5_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
+else()
   qt4_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
 endif()
 
@@ -114,7 +117,9 @@ set(RESOURCES
     resource/enc_data.qrc
     resource/enml.qrc)
 
-if(NOT USE_QT5)
+if(USE_QT5)
+  qt5_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
+else()
   qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 endif()
 
@@ -125,35 +130,35 @@ if(LIBXML2_FOUND)
   include_directories(${LIBXML2_INCLUDE_DIR})
 endif()
 
+add_executable(${PROJECT_NAME}
+               ${${PROJECT_NAME}_HEADERS}
+               ${${PROJECT_NAME}_SOURCES}
+               ${${PROJECT_NAME}_FORMS_HEADERS}
+               ${${PROJECT_NAME}_RESOURCES_RCC})
+
 if(USE_QT5)
-  add_executable(${PROJECT_NAME}
-                 ${${PROJECT_NAME}_HEADERS}
-                 ${${PROJECT_NAME}_SOURCES})
   qt5_use_modules(${PROJECT_NAME} Core)
   qt5_use_modules(${PROJECT_NAME} Gui)
+  qt5_use_modules(${PROJECT_NAME} Widgets)
   qt5_use_modules(${PROJECT_NAME} Network)
   qt5_use_modules(${PROJECT_NAME} Webkit)
-  target_link_libraries(${PROJECT_NAME}
-                        ${THRIFT_LIB}
-                        ${KQOAUTH_LIB}
-                        ${SIMPLECRYPT_LIB}
-						${OPENSSL_LIBRARIES}
-                        ${LIBXML2_LIBRARIES})
+  qt5_use_modules(${PROJECT_NAME} WebKitWidgets)
 else()
-  add_executable(${PROJECT_NAME}
-                 ${${PROJECT_NAME}_HEADERS}
-                 ${${PROJECT_NAME}_SOURCES}
-                 ${${PROJECT_NAME}_FORMS_HEADERS}
-                 ${${PROJECT_NAME}_RESOURCES_RCC})
   target_link_libraries(${PROJECT_NAME}
-                        ${THRIFT_LIB}
-                        ${KQOAUTH_LIB}
-                        ${SIMPLECRYPT_LIB}
-                        ${QT_LIBRARIES}
-                        ${OPENSSL_LIBRARIES}
-                        ${LIBXML2_LIBRARIES})
+                        ${QT_LIBRARIES}})
 endif()
+
+target_link_libraries(${PROJECT_NAME}
+                      ${THRIFT_LIB}
+                      ${KQOAUTH_LIB}
+                      ${SIMPLECRYPT_LIB}
+                      ${OPENSSL_LIBRARIES}
+                      ${LIBXML2_LIBRARIES})
 
 if(LIBCPP)
   target_link_libraries(${PROJECT_NAME} ${LIBCPP})
+endif()
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
 endif()

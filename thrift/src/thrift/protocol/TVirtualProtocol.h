@@ -310,9 +310,7 @@ class THRIFT_EXPORT TProtocolDefaults : public TProtocol {
   }
 
  protected:
-  TProtocolDefaults(boost::shared_ptr<TTransport> ptrans)
-    : TProtocol(ptrans)
-  {}
+  TProtocolDefaults(boost::shared_ptr<TTransport> ptrans);
 };
 
 /**

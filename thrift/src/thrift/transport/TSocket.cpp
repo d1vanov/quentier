@@ -446,7 +446,11 @@ uint32_t TSocket::read(uint8_t* buf, uint32_t len) {
   // Read from the socket
   struct timeval begin;
   if (recvTimeout_ > 0) {
+#if defined(_WIN32) & defined(__MINGW32__)
+    mingw_gettimeofday(&begin, NULL);
+#else
     gettimeofday(&begin, NULL);
+#endif
   } else {
     // if there is no read timeout we don't need the TOD to determine whether
     // an EAGAIN is due to a timeout or an out-of-resource condition.
@@ -466,7 +470,11 @@ uint32_t TSocket::read(uint8_t* buf, uint32_t len) {
       }
       // check if this is the lack of resources or timeout case
       struct timeval end;
+#if defined(_WIN32) & defined(__MINGW32__)
+      mingw_gettimeofday(&end, NULL);
+#else
       gettimeofday(&end, NULL);
+#endif
       uint32_t readElapsedMicros =  (((end.tv_sec - begin.tv_sec) * 1000 * 1000)
                                      + (((uint64_t)(end.tv_usec - begin.tv_usec))));
 

@@ -17,6 +17,7 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include <string>
+#include <QtCore>
 #include <QFile>
 #include <QMessageBox>
 
@@ -476,8 +477,13 @@ void EvernoteServiceManager::onOAuthSuccess(QString key, QString secret)
         return;
     }
 
+#if QT_VERSION >= 0x050101
+    tokensFile.write(encryptedKey.toUtf8());
+    tokensFile.write(encryptedSecret.toUtf8());
+#else
     tokensFile.write(encryptedKey.toAscii());
     tokensFile.write(encryptedSecret.toAscii());
+#endif
     tokensFile.close();
 
     m_authorizationState = EAS_AUTHORIZED;

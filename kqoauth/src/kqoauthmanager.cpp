@@ -18,7 +18,11 @@
  *  along with KQOAuth.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <QtCore>
+#if QT_VERSION >= 0x050000
+#include <QtGui/QDesktopServices>
+#else
 #include <QDesktopServices>
+#endif
 #if QT_VERSION >= 0x050000
 #include <QUrlQuery>
 #endif

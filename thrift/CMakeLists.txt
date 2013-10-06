@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0020 NEW)
 project(thrift)
 
 add_definitions("-DBUILD_LIBTHRIFT")
@@ -134,9 +135,6 @@ if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   endif()
 endif()
 
-find_package(OpenSSL REQUIRED)
-include_directories(${OPENSSL_INCLUDE_DIR})
-
 include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/src ${SYSTEM}")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${QT_INCLUDES})
@@ -151,8 +149,8 @@ set(HEADERS
     src/thrift/transport/TVirtualTransport.h
     src/thrift/transport/TTransportException.h
     src/thrift/transport/TTransport.h
-    src/thrift/transport/TSSLSocket.h
     src/thrift/transport/TSocket.h
+    src/thrift/transport/TSSLSocket.h
     src/thrift/transport/TServerSocket.h
     src/thrift/transport/TServerTransport.h
     src/thrift/transport/THttpTransport.h
@@ -171,34 +169,29 @@ set(HEADERS
 
 set(SOURCES
     src/thrift/Thrift.cpp
+    src/thrift/TProcessor.cpp
     src/thrift/TApplicationException.cpp
     src/thrift/transport/TTransportException.cpp
     src/thrift/transport/TSocket.cpp
+    src/thrift/transport/TSSLSocket.cpp
     src/thrift/transport/TServerSocket.cpp
     src/thrift/transport/THttpTransport.cpp
     src/thrift/transport/THttpClient.cpp
     src/thrift/transport/TBufferTransports.cpp
     src/thrift/protocol/TBinaryProtocol.tcc
+    src/thrift/protocol/TVirtualProtocol.cpp
     src/thrift/concurrency/Util.cpp
     src/thrift/concurrency/BoostThreadFactory.cpp
     src/thrift/concurrency/BoostMutex.cpp
     src/thrift/concurrency/BoostMonitor.cpp)
 
-# require boost
-SET(Boost_USE_STATIC_LIBS OFF)
-SET(Boost_USE_MULTITHREAD OFF)
-#make sure that at least version 1.46.0 is used
-SET(BOOST_MIN_VERSION "1.46.0")	
-	
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  list(APPEND SOURCES "src/thrift/transport/TSSLSocket.cpp")
-  find_package(Boost COMPONENTS thread system REQUIRED)
-  include_directories(${Boost_INCLUDE_DIR})
-else()
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND SOURCES "src/thrift/windows/config.h")
   list(APPEND SOURCES "src/thrift/windows/force_inc.h")
-  list(APPEND SOURCES "src/thrift/windows/GetTimeOfDay.h")
-  list(APPEND SOURCES "src/thrift/windows/GetTimeOfDay.cpp")
+  if(NOT CMAKE_COMPILER_IS_GNUCXX)
+    list(APPEND SOURCES "src/thrift/windows/GetTimeOfDay.h")
+    list(APPEND SOURCES "src/thrift/windows/GetTimeOfDay.cpp")
+  endif()
   list(APPEND SOURCES "src/thrift/windows/Operators.h")
   list(APPEND SOURCES "src/thrift/windows/SocketPair.h")
   list(APPEND SOURCES "src/thrift/windows/SocketPair.cpp")
@@ -210,13 +203,16 @@ else()
   list(APPEND SOURCES "src/thrift/windows/WinFcntl.h")
   list(APPEND SOURCES "src/thrift/windows/WinFcntl.cpp")
   list(APPEND SOURCES "src/thrift/windows/tr1/functional")
-  find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS thread system REQUIRED)
-  include_directories(${Boost_INCLUDE_DIR})
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
+
+# winsock2
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
+  endif()
 
 if(LIBCPP)
   target_link_libraries(${PROJECT_NAME} ${LIBCPP})

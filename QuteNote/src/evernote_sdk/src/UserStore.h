@@ -1562,11 +1562,10 @@ class UserStoreProcessor : virtual public ::apache::thrift::TProcessor {
     processMap_["getPremiumInfo"] = &UserStoreProcessor::process_getPremiumInfo;
     processMap_["getNoteStoreUrl"] = &UserStoreProcessor::process_getNoteStoreUrl;
   }
-
+  virtual ~UserStoreProcessor() {}
   virtual bool process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot,
                        boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot,
                        void * connectionContext = nullptr) override;
-  virtual ~UserStoreProcessor() {}
 };
 
 class UserStoreMultiface : virtual public UserStoreIf {

@@ -28,7 +28,11 @@
 //clock_gettime is not implemented on OSX
 int clock_gettime(int /*clk_id*/, struct timespec* t) {
     struct timeval now;
+#if defined(_WIN32) & defined(__MINGW32__)
+    int rv = mingw_gettimeofday(&now, NULL);
+#else
     int rv = gettimeofday(&now, NULL);
+#endif
     if (rv) return rv;
     t->tv_sec  = now.tv_sec;
     t->tv_nsec = now.tv_usec * 1000;
@@ -57,7 +61,11 @@ int64_t Util::currentTimeTicks(int64_t ticksPerSec) {
   toTicks(result, now, ticksPerSec);
 #elif defined(HAVE_GETTIMEOFDAY)
   struct timeval now;
+#if defined(_WIN32) & defined(__MINGW32__)
+  int ret = mingw_gettimeofday(&now, NULL);
+#else
   int ret = gettimeofday(&now, NULL);
+#endif
   assert(ret == 0);
   toTicks(result, now, ticksPerSec);
 #else

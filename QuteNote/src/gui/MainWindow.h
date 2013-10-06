@@ -1,7 +1,13 @@
 #ifndef __QUTE_NOTE__MAINWINDOW_H
 #define __QUTE_NOTE__MAINWINDOW_H
 
+#include <QtCore>
+
+#if QT_VERSION >= 0x050000
+#include <QtWidgets/QMainWindow>
+#else
 #include <QMainWindow>
+#endif
 #include <QTextListFormat>
 
 namespace Ui {

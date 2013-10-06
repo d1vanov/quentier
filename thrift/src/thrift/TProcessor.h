@@ -36,7 +36,7 @@ namespace apache { namespace thrift {
 class THRIFT_EXPORT TProcessorEventHandler {
  public:
 
-  virtual ~TProcessorEventHandler() {}
+  virtual ~TProcessorEventHandler();
 
   /**
    * Called before calling other callback methods.
@@ -44,69 +44,42 @@ class THRIFT_EXPORT TProcessorEventHandler {
    * The return value is passed to all other callbacks
    * for that function invocation.
    */
-  virtual void* getContext(const char* fn_name, void* serverContext) {
-    (void) fn_name;
-    (void) serverContext;
-    return NULL;
-  }
+  virtual void* getContext(const char* fn_name, void* serverContext);
 
   /**
    * Expected to free resources associated with a context.
    */
-  virtual void freeContext(void* ctx, const char* fn_name) {
-    (void) ctx;
-    (void) fn_name;
-  }
+  virtual void freeContext(void* ctx, const char* fn_name);
 
   /**
    * Called before reading arguments.
    */
-  virtual void preRead(void* ctx, const char* fn_name) {
-    (void) ctx;
-    (void) fn_name;
-  }
+  virtual void preRead(void* ctx, const char* fn_name);
 
   /**
    * Called between reading arguments and calling the handler.
    */
-  virtual void postRead(void* ctx, const char* fn_name, uint32_t bytes) {
-    (void) ctx;
-    (void) fn_name;
-    (void) bytes;
-  }
+  virtual void postRead(void* ctx, const char* fn_name, uint32_t bytes);
 
   /**
    * Called between calling the handler and writing the response.
    */
-  virtual void preWrite(void* ctx, const char* fn_name) {
-    (void) ctx;
-    (void) fn_name;
-  }
+  virtual void preWrite(void* ctx, const char* fn_name);
 
   /**
    * Called after writing the response.
    */
-  virtual void postWrite(void* ctx, const char* fn_name, uint32_t bytes) {
-    (void) ctx;
-    (void) fn_name;
-    (void) bytes;
-  }
+  virtual void postWrite(void* ctx, const char* fn_name, uint32_t bytes);
 
   /**
    * Called when an async function call completes successfully.
    */
-  virtual void asyncComplete(void* ctx, const char* fn_name) {
-    (void) ctx;
-    (void) fn_name;
-  }
+  virtual void asyncComplete(void* ctx, const char* fn_name);
 
   /**
    * Called if the handler throws an undeclared exception.
    */
-  virtual void handlerError(void* ctx, const char* fn_name) {
-    (void) ctx;
-    (void) fn_name;
-  }
+  virtual void handlerError(void* ctx, const char* fn_name);
 
  protected:
   TProcessorEventHandler() {}
