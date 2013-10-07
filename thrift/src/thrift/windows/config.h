@@ -34,6 +34,12 @@
 #define HAVE_GETTIMEOFDAY 1
 #define HAVE_SYS_STAT_H 1
 
+// workaround MinGW warning
+#ifdef _WINSOCKAPI_
+#undef _WINSOCKAPI_
+#endif
+#include <Winsock2.h>
+
 #include "TargetVersion.h"
 #ifdef _MSC_VER
 #include "GetTimeOfDay.h"
@@ -53,7 +59,6 @@ typedef boost::uint32_t uint32_t;
 typedef boost::uint8_t  uint8_t;
 
 // windows
-#include <Winsock2.h>
 #include <ws2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "advapi32.lib") //For security APIs in TPipeServer

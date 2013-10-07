@@ -625,7 +625,10 @@ void TSocket::setLinger(bool on, int linger) {
     return;
   }
 
-  struct linger l = {(lingerOn_ ? 1 : 0), lingerVal_};
+  struct linger l = {(lingerOn_
+                      ? static_cast<unsigned short int>(1)
+                      : static_cast<unsigned short int>(0)),
+                      static_cast<unsigned short int>(lingerVal_)};
   int ret = setsockopt(socket_, SOL_SOCKET, SO_LINGER, cast_sockopt(&l), sizeof(l));
   if (ret == -1) {
     int errno_copy = errno;  // Copy errno because we're allocating memory.
