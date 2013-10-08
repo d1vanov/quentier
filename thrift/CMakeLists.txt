@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.8)
-cmake_policy(SET CMP0020 NEW)
 project(thrift)
 
 add_definitions("-DBUILD_LIBTHRIFT")

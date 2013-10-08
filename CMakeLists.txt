@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-cmake_policy(SET CMP0020 NEW)
+include("cmake/cmake_policy.cmake")
 project(QuteNoteProject)
 include("cmake/compiler.cmake")
 include("cmake/qt.cmake")

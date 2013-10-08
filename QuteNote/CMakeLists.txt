@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.8)
-cmake_policy(SET CMP0020 NEW)
 project(QuteNote)
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -145,7 +144,7 @@ if(USE_QT5)
   qt5_use_modules(${PROJECT_NAME} WebKitWidgets)
 else()
   target_link_libraries(${PROJECT_NAME}
-                        ${QT_LIBRARIES}})
+                        ${QT_LIBRARIES})
 endif()
 
 target_link_libraries(${PROJECT_NAME}
