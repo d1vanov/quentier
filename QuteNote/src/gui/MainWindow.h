@@ -71,6 +71,8 @@ private slots:
     void noteTextSpellCheck() { /* TODO: implement */ }
     void noteTextInsertToDoCheckBox();
 
+    void noteHtmlContentToStdOut();
+
 private:
     void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
     void changeIndentation(const bool increaseIndentationFlag);

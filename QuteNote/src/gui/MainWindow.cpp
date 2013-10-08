@@ -138,6 +138,8 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->insertToDoCheckboxPushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertToDoCheckBox()));
     QObject::connect(m_pUI->chooseTextColorPushButton, SIGNAL(clicked()), this, SLOT(noteChooseTextColor()));
     QObject::connect(m_pUI->chooseSelectedTextColorPushButton, SIGNAL(clicked()), this, SLOT(noteChooseSelectedTextColor()));
+    // Debug
+    QObject::connect(m_pUI->actionViewCurrentNoteHtmlInStdOut, SIGNAL(triggered()), this, SLOT(noteHtmlContentToStdOut()));
 }
 
 void MainWindow::checkAndSetupConsumerKeyAndSecret()
@@ -495,6 +497,15 @@ void MainWindow::noteTextInsertToDoCheckBox()
     cursor.endEditBlock();
 
     pNoteEdit->setTextCursor(cursor);
+}
+
+void MainWindow::noteHtmlContentToStdOut()
+{
+    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    Q_CHECK_PTR(pNoteEdit);
+
+    QString noteHtml = pNoteEdit->toHtml();
+    qDebug() << noteHtml;
 }
 
 void MainWindow::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
