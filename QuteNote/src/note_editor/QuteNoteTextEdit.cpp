@@ -1,5 +1,6 @@
 #include "QuteNoteTextEdit.h"
 #include "ToDoCheckboxTextObject.h"
+#include "../evernote_client/enml/ENMLConverter.h"
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QTextCursor>
@@ -298,4 +299,9 @@ void QuteNoteTextEdit::mergeFormatOnWordOrSelection(const QTextCharFormat & form
     QTextEdit::mergeCurrentCharFormat(format);
 
     cursor.endEditBlock();
+}
+
+void QuteNoteTextEdit::noteRichTextToENML(QString & ENML) const
+{
+    qute_note::RichTextToENML(*this, ENML);
 }

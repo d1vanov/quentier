@@ -30,6 +30,8 @@ public:
     void changeIndentation(const bool increase);
     void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
 
+    void noteRichTextToENML(QString & ENML) const;
+
 protected:
     virtual void keyPressEvent(QKeyEvent * pEvent) final override;
     virtual void mousePressEvent(QMouseEvent * pEvent) final override;
