@@ -1083,7 +1083,7 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                 <string>Ctrl+B</string>
                </property>
                <property name="checkable">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -1125,7 +1125,7 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                 <string>Ctrl+I</string>
                </property>
                <property name="checkable">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -1167,7 +1167,7 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                 <string>Ctrl+U</string>
                </property>
                <property name="checkable">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -1206,10 +1206,10 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
                 </iconset>
                </property>
                <property name="shortcut">
-                <string>Ctrl+S</string>
+                <string>Ctrl+Shift+S</string>
                </property>
                <property name="checkable">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>

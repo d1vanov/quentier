@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QTextEdit>
+#include <QTextCursor>
 #include <QTextList>
 #include <QColorDialog>
 #include <QFile>
@@ -294,48 +295,54 @@ void MainWindow::onRequestUsernameAndPassword()
     checkAndSetupUserNameAndPassword();
 }
 
+#define FETCH_CURRENT_TEXT_CHAR_FORMAT() \
+    QuteNoteTextEdit * pNoteEditor = m_pUI->noteEditWidget; \
+    Q_CHECK_PTR(pNoteEditor); \
+    QTextCursor cursor = pNoteEditor->textCursor(); \
+    QTextCharFormat format(cursor.charFormat());
+
+#define SET_TEXT_CHAR_FORMAT() \
+    mergeFormatOnWordOrSelection(format); \
+    pNoteEditor->setFocus();
+
 void MainWindow::noteTextBold()
 {
-    QPushButton * pTextBoldButton = m_pUI->fontBoldPushButton;
-    if (pTextBoldButton->isCheckable()) {
-        QTextCharFormat format;
-        format.setFontWeight(pTextBoldButton->isChecked() ? QFont::Bold : QFont::Normal);
-        mergeFormatOnWordOrSelection(format);
-    }
-    m_pUI->noteEditWidget->setFocus();
+    FETCH_CURRENT_TEXT_CHAR_FORMAT();
+
+    bool isBold = format.font().bold();
+    format.setFontWeight(isBold ? QFont::Normal : QFont::Bold);
+
+    SET_TEXT_CHAR_FORMAT();
 }
 
 void MainWindow::noteTextItalic()
 {
-    QPushButton * pTextItalicButton = m_pUI->fontItalicPushButton;
-    if (pTextItalicButton->isCheckable()) {
-        QTextCharFormat format;
-        format.setFontItalic(pTextItalicButton->isChecked());
-        mergeFormatOnWordOrSelection(format);
-    }
-    m_pUI->noteEditWidget->setFocus();
+    FETCH_CURRENT_TEXT_CHAR_FORMAT();
+
+    bool isItalic = format.font().italic();
+    format.setFontItalic(!isItalic);
+
+    SET_TEXT_CHAR_FORMAT();
 }
 
 void MainWindow::noteTextUnderline()
 {
-    QPushButton * pTextUnderlineButton = m_pUI->fontUnderlinePushButton;
-    if (pTextUnderlineButton->isCheckable()) {
-        QTextCharFormat format;
-        format.setFontUnderline(pTextUnderlineButton->isChecked());
-        mergeFormatOnWordOrSelection(format);
-    }
-    m_pUI->noteEditWidget->setFocus();
+    FETCH_CURRENT_TEXT_CHAR_FORMAT();
+
+    bool isUnderlined = format.font().underline();
+    format.setFontUnderline(!isUnderlined);
+
+    SET_TEXT_CHAR_FORMAT();
 }
 
 void MainWindow::noteTextStrikeThrough()
 {
-    QPushButton * pTextStrikeThroughButton = m_pUI->fontStrikethroughPushButton;
-    if (pTextStrikeThroughButton->isCheckable()) {
-        QTextCharFormat format;
-        format.setFontStrikeOut(pTextStrikeThroughButton->isChecked());
-        mergeFormatOnWordOrSelection(format);
-    }
-    m_pUI->noteEditWidget->setFocus();
+    FETCH_CURRENT_TEXT_CHAR_FORMAT();
+
+    bool isStrokenOut = format.font().strikeOut();
+    format.setFontStrikeOut(!isStrokenOut);
+
+    SET_TEXT_CHAR_FORMAT();
 }
 
 void MainWindow::noteTextAlignLeft()
