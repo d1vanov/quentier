@@ -28,14 +28,20 @@ void RichTextToENML(const QuteNoteTextEdit & noteEditor, QString & ENML)
     {
         for(QTextBlock::iterator it = block.begin(); !(it.atEnd()); ++it)
         {
+            ENML.append("<div>");
             QTextFragment currentFragment = it.fragment();
-            if (currentFragment.isValid()) {
+            if (currentFragment.text().isEmpty()) {
+                ENML.append("<br />");
+            }
+            else if (currentFragment.isValid()) {
                 QString encodedCurrentFragment;
                 enml_private::EncodeFragment(currentFragment, encodedCurrentFragment);
+                ENML.append(encodedCurrentFragment);
             }
             else {
                 qWarning() << "Found invalid QTextFragment during encoding note content to ENML! Ignoring it...";
             }
+            ENML.append(("</div>"));
         }
     }
 }
