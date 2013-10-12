@@ -1,6 +1,7 @@
 #include "QuteNoteTextEdit.h"
 #include "ToDoCheckboxTextObject.h"
 #include "../evernote_client/enml/ENMLConverter.h"
+#include "../evernote_client/Note.h"
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QTextCursor>
@@ -16,7 +17,8 @@
 
 QuteNoteTextEdit::QuteNoteTextEdit(QWidget * parent) :
     QTextEdit(parent),
-    m_droppedImageCounter(0)
+    m_droppedImageCounter(0),
+    m_pNote(nullptr)
 {}
 
 bool QuteNoteTextEdit::canInsertFromMimeData(const QMimeData * source) const
@@ -299,6 +301,16 @@ void QuteNoteTextEdit::mergeFormatOnWordOrSelection(const QTextCharFormat & form
     QTextEdit::mergeCurrentCharFormat(format);
 
     cursor.endEditBlock();
+}
+
+const qute_note::Note * QuteNoteTextEdit::getNotePtr() const
+{
+    return m_pNote;
+}
+
+void QuteNoteTextEdit::setNote(const qute_note::Note & note)
+{
+    m_pNote = &note;
 }
 
 void QuteNoteTextEdit::noteRichTextToENML(QString & ENML) const

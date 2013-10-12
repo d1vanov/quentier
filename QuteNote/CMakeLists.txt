@@ -28,6 +28,7 @@ set(${PROJECT_NAME}_QT_HEADERS
     src/gui/EvernoteOAuthBrowser.h
     src/note_editor/HorizontalLineExtraData.h
     src/note_editor/ToDoCheckboxTextObject.h
+    src/note_editor/MediaResourceTextObject.h
     src/note_editor/QuteNoteTextEdit.h)
 
 set(${PROJECT_NAME}_HEADERS

@@ -3,12 +3,6 @@
 
 #include <QTextObjectInterface>
 
-QT_FORWARD_DECLARE_CLASS(QTextDocument)
-QT_FORWARD_DECLARE_CLASS(QTextFormat)
-QT_FORWARD_DECLARE_CLASS(QPainter)
-QT_FORWARD_DECLARE_CLASS(QRectF)
-QT_FORWARD_DECLARE_CLASS(QSizeF)
-
 // NOTE: I have to declare two classes instead of a template one as Q_OBJECT does not support template classes
 
 class ToDoCheckboxTextObjectUnchecked: public QObject, public QTextObjectInterface
@@ -18,7 +12,7 @@ class ToDoCheckboxTextObjectUnchecked: public QObject, public QTextObjectInterfa
 
 public:
     explicit ToDoCheckboxTextObjectUnchecked() {}
-    virtual ~ToDoCheckboxTextObjectUnchecked() override {}
+    virtual ~ToDoCheckboxTextObjectUnchecked() final override {}
 
 public:
     // QTextObjectInterface
@@ -36,7 +30,7 @@ class ToDoCheckboxTextObjectChecked: public QObject, public QTextObjectInterface
 
 public:
     explicit ToDoCheckboxTextObjectChecked() {}
-    virtual ~ToDoCheckboxTextObjectChecked() override {}
+    virtual ~ToDoCheckboxTextObjectChecked() final override {}
 
 public:
     // QTextObjectInterface
