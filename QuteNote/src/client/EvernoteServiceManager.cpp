@@ -105,12 +105,14 @@ void EvernoteServiceManager::connect()
         return;
     }
 
+    /*
     std::string username = m_credentials.GetUsername().toStdString();
     std::string password = m_credentials.GetPassword().toStdString();
     std::string consumerKey = m_credentials.GetConsumerKey().toStdString();
     std::string consumerSecret = m_credentials.GetConsumerSecret().toStdString();
+    */
     std::string authToken = m_credentials.GetOAuthKey().toStdString();
-    std::string authTokenSecret = m_credentials.GetOAuthSecret().toStdString();
+    // std::string authTokenSecret = m_credentials.GetOAuthSecret().toStdString();
 
     std::string hostname = GetHostName().toStdString();
     std::string evernoteUser = "/edam/user";

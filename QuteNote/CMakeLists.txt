@@ -22,98 +22,102 @@ include_directories(${QuteNoteProject_SOURCE_DIR}/thrift/src
                     ${CMAKE_CURRENT_BINARY_DIR})
 
 set(${PROJECT_NAME}_QT_HEADERS
-    src/gui/MainWindow.h
-    src/gui/AskConsumerKeyAndSecret.h
-    src/gui/AskUserNameAndPassword.h
-    src/gui/EvernoteOAuthBrowser.h
-    src/note_editor/HorizontalLineExtraData.h
-    src/note_editor/ToDoCheckboxTextObject.h
-    src/note_editor/MediaResourceTextObject.h
-    src/note_editor/QuteNoteTextEdit.h)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/MainWindow.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/AskConsumerKeyAndSecret.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/AskUserNameAndPassword.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/EvernoteOAuthBrowser.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/HorizontalLineExtraData.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/ToDoCheckboxTextObject.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/MediaResourceTextObject.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/QuteNoteTextEdit.h)
 
 set(${PROJECT_NAME}_HEADERS
-    src/evernote_sdk/src/UserStore_types.h
-    src/evernote_sdk/src/UserStore_constants.h
-    src/evernote_sdk/src/UserStore.h
-    src/evernote_sdk/src/Types_types.h
-    src/evernote_sdk/src/Types_constants.h
-    src/evernote_sdk/src/NoteStore_types.h
-    src/evernote_sdk/src/NoteStore_constants.h
-    src/evernote_sdk/src/NoteStore.h
-    src/evernote_sdk/src/Limits_types.h
-    src/evernote_sdk/src/Limits_constants.h
-    src/evernote_sdk/src/Errors_types.h
-    src/evernote_sdk/src/Errors_constants.h
-    src/client/EvernoteServiceManager.h
-    src/client/EvernoteServiceOAuthHandler.h
-    src/client/CredentialsModel.h
-    src/evernote_client/EvernoteServiceManager.h
-    src/evernote_client/EvernoteServiceManagerImpl.h
-    src/evernote_client/UserStore.h
-    src/evernote_client/UserStoreImpl.h
-    src/evernote_client/User.h
-    src/evernote_client/UserImpl.h
-    src/evernote_client/NoteStore.h
-    src/evernote_client/NoteStoreImpl.h
-    src/evernote_client/Note.h
-    src/evernote_client/NoteImpl.h
-    src/evernote_client/Guid.h
-    src/evernote_client/Notebook.h
-    src/evernote_client/Resource.h
-    src/evernote_client/Tag.h
-    src/evernote_client/TagImpl.h
-    src/evernote_client/types/TypeWithError.h
-    src/evernote_client/types/SynchronizedDataElement.h
-    src/evernote_client/enml/ENMLConverter.h
-    src/tools/Printable.h
-    src/tools/IQuteNoteException.h
-    src/tools/QuteNoteNullPtrException.h
-    src/tools/QuteNoteCheckPtr.h)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceOAuthHandler.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/client/CredentialsModel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/EvernoteServiceManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/EvernoteServiceManagerImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/UserStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/UserStoreImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/User.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/UserImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteStoreImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Note.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Resource.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/TagImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/types/TypeWithError.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/types/SynchronizedDataElement.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml/ENMLConverter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/IQuteNoteException.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/QuteNoteNullPtrException.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/QuteNoteCheckPtr.h)
+
+set(${PROJECT_NAME}_EVERNOTE_SDK_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/UserStore_types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/UserStore_constants.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/UserStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Types_types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Types_constants.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/NoteStore_types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/NoteStore_constants.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/NoteStore.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Limits_types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Limits_constants.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Errors_types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Errors_constants.h)
 
 set(${PROJECT_NAME}_SOURCES
-    src/gui/MainWindow.cpp
-    src/gui/AskConsumerKeyAndSecret.cpp
-    src/gui/AskUserNameAndPassword.cpp
-    src/gui/EvernoteOAuthBrowser.cpp
-    src/note_editor/ToDoCheckboxTextObject.cpp
-    src/note_editor/QuteNoteTextEdit.cpp
-    src/evernote_sdk/src/UserStore_types.cpp
-    src/evernote_sdk/src/UserStore_constants.cpp
-    src/evernote_sdk/src/UserStore.cpp
-    src/evernote_sdk/src/Types_types.cpp
-    src/evernote_sdk/src/Types_constants.cpp
-    src/evernote_sdk/src/NoteStore_types.cpp
-    src/evernote_sdk/src/NoteStore_constants.cpp
-    src/evernote_sdk/src/NoteStore.cpp
-    src/evernote_sdk/src/Limits_types.cpp
-    src/evernote_sdk/src/Limits_constants.cpp
-    src/evernote_sdk/src/Errors_types.cpp
-    src/evernote_sdk/src/Errors_constants.cpp
-    src/client/EvernoteServiceManager.cpp
-    src/client/EvernoteServiceOAuthHandler.cpp
-    src/client/CredentialsModel.cpp
-    src/evernote_client/EvernoteServiceManager.cpp
-    src/evernote_client/EvernoteServiceManagerImpl.cpp
-    src/evernote_client/UserStore.cpp
-    src/evernote_client/NoteStore.cpp
-    src/evernote_client/User.cpp
-    src/evernote_client/Note.cpp
-    src/evernote_client/Guid.cpp
-    src/evernote_client/Notebook.cpp
-    src/evernote_client/Tag.cpp
-    src/evernote_client/TagImpl.cpp
-    src/evernote_client/types/TypeWithError.cpp
-    src/evernote_client/types/SynchronizedDataElement.cpp
-    src/evernote_client/enml/ENMLConverter.cpp
-    src/tools/Printable.cpp
-    src/tools/IQuteNoteException.cpp
-    src/tools/QuteNoteNullPtrException.cpp
-    main.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/MainWindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/AskConsumerKeyAndSecret.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/AskUserNameAndPassword.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/EvernoteOAuthBrowser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/ToDoCheckboxTextObject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/QuteNoteTextEdit.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceOAuthHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/client/CredentialsModel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/EvernoteServiceManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/EvernoteServiceManagerImpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/UserStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/User.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Note.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/TagImpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/types/TypeWithError.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/types/SynchronizedDataElement.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml/ENMLConverter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/IQuteNoteException.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/QuteNoteNullPtrException.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+
+set(${PROJECT_NAME}_EVERNOTE_SDK_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/UserStore_types.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/UserStore_constants.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/UserStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Types_types.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Types_constants.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/NoteStore_types.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/NoteStore_constants.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/NoteStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Limits_types.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Limits_constants.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Errors_types.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_sdk/src/Errors_constants.cpp)
 
 set(FORMS
-    src/gui/MainWindow.ui
-    src/gui/AskConsumerKeyAndSecret.ui
-    src/gui/AskUserNameAndPassword.ui)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/MainWindow.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/AskConsumerKeyAndSecret.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/AskUserNameAndPassword.ui)
 
 if(USE_QT5)
   qt5_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
@@ -142,6 +146,8 @@ endif()
 add_executable(${PROJECT_NAME}
                ${${PROJECT_NAME}_HEADERS}
                ${${PROJECT_NAME}_SOURCES}
+               ${${PROJECT_NAME}_EVERNOTE_SDK_HEADERS}
+               ${${PROJECT_NAME}_EVERNOTE_SDK_SOURCES}
                ${${PROJECT_NAME}_FORMS_HEADERS}
                ${${PROJECT_NAME}_RESOURCES_RCC})
 

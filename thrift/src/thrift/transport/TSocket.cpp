@@ -734,7 +734,7 @@ std::string TSocket::getPeerHost() {
       if (getpeername(socket_, (sockaddr*) &addr, &addrLen) != 0) {
         return peerHost_;
       }
-      addrPtr = (sockaddr*)&addr;
+      addrPtr = reinterpret_cast<sockaddr*>(&addr);
 
       setCachedAddress(addrPtr, addrLen);
     }
@@ -742,7 +742,7 @@ std::string TSocket::getPeerHost() {
     char clienthost[NI_MAXHOST];
     char clientservice[NI_MAXSERV];
 
-    getnameinfo((sockaddr*) addrPtr, addrLen,
+    getnameinfo(addrPtr, addrLen,
                 clienthost, sizeof(clienthost),
                 clientservice, sizeof(clientservice), 0);
 

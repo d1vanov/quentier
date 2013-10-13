@@ -476,8 +476,9 @@ void TSSLSocketFactory::overrideDefaultPasswordCallback() {
 int TSSLSocketFactory::passwordCallback(char* password,
                                         int size,
                                         int,
-                                        void* data) {
-  TSSLSocketFactory* factory = (TSSLSocketFactory*)data;
+                                        void* data)
+{
+  TSSLSocketFactory* factory = reinterpret_cast<TSSLSocketFactory*>(data);
   string userPassword;
   factory->getPassword(userPassword, size);
   int length = userPassword.size();

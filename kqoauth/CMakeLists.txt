@@ -4,25 +4,25 @@ project(kqoauth)
 add_definitions("-DKQOAUTH")
 
 set(${PROJECT_NAME}_HEADERS
-    src/kqoauthauthreplyserver.h
-    src/kqoauthauthreplyserver_p.h
-    src/kqoauthmanager.h
-    src/kqoauthrequest.h
-    src/kqoauthrequest_xauth.h
-    src/kqoauthglobals.h
-    src/kqoauthrequest_1.h
-    src/kqoauthutils.h
-    src/kqoauthrequest_xauth_p.h
-    src/kqoauthrequest_p.h
-    src/kqoauthmanager_p.h)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthauthreplyserver.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthauthreplyserver_p.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthrequest_xauth.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthglobals.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthrequest_1.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthutils.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthrequest_xauth_p.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthrequest_p.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthmanager_p.h)
 
 set(${PROJECT_NAME}_SOURCES
-    src/kqoauthauthreplyserver.cpp
-    src/kqoauthmanager.cpp
-    src/kqoauthrequest.cpp
-    src/kqoauthrequest_1.cpp
-    src/kqoauthrequest_xauth.cpp
-    src/kqoauthutils.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthauthreplyserver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthrequest_1.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthrequest_xauth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthutils.cpp)
 
 add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_HEADERS}

@@ -140,71 +140,71 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${QT_INCLUDES})
 add_definitions("-DUSE_BOOST_THREAD -DVERSION=0.9")
 
 set(HEADERS
-    src/thrift/Linkage.h
-    src/thrift/TProcessor.h
-    src/thrift/TLogging.h
-    src/thrift/Thrift.h
-    src/thrift/TApplicationException.h
-    src/thrift/transport/TVirtualTransport.h
-    src/thrift/transport/TTransportException.h
-    src/thrift/transport/TTransport.h
-    src/thrift/transport/TSocket.h
-    src/thrift/transport/TSSLSocket.h
-    src/thrift/transport/TServerSocket.h
-    src/thrift/transport/TServerTransport.h
-    src/thrift/transport/THttpTransport.h
-    src/thrift/transport/THttpClient.h
-    src/thrift/transport/TBufferTransports.h
-    src/thrift/protocol/TVirtualProtocol.h
-    src/thrift/protocol/TProtocolException.h
-    src/thrift/protocol/TProtocol.h
-    src/thrift/protocol/TBinaryProtocol.h
-    src/thrift/concurrency/Mutex.h
-    src/thrift/concurrency/Monitor.h
-    src/thrift/concurrency/Util.h
-    src/thrift/concurrency/Thread.h
-    src/thrift/concurrency/Exception.h
-    src/thrift/concurrency/BoostThreadFactory.h)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/Linkage.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/TProcessor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/TLogging.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/Thrift.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/TApplicationException.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TVirtualTransport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TTransportException.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TTransport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TSocket.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TSSLSocket.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TServerSocket.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TServerTransport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/THttpTransport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/THttpClient.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TBufferTransports.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/protocol/TVirtualProtocol.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/protocol/TProtocolException.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/protocol/TProtocol.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/protocol/TBinaryProtocol.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/concurrency/Mutex.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/concurrency/Monitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/concurrency/Util.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/concurrency/Thread.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/concurrency/Exception.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/concurrency/BoostThreadFactory.h)
 
-set(SOURCES
-    src/thrift/Thrift.cpp
-    src/thrift/TProcessor.cpp
-    src/thrift/TApplicationException.cpp
-    src/thrift/transport/TTransportException.cpp
-    src/thrift/transport/TSocket.cpp
-    src/thrift/transport/TSSLSocket.cpp
-    src/thrift/transport/TServerSocket.cpp
-    src/thrift/transport/THttpTransport.cpp
-    src/thrift/transport/THttpClient.cpp
-    src/thrift/transport/TBufferTransports.cpp
-    src/thrift/protocol/TBinaryProtocol.tcc
-    src/thrift/protocol/TVirtualProtocol.cpp
-    src/thrift/concurrency/Util.cpp
-    src/thrift/concurrency/BoostThreadFactory.cpp
-    src/thrift/concurrency/BoostMutex.cpp
-    src/thrift/concurrency/BoostMonitor.cpp)
+set(${PROJECT_NAME}_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/Thrift.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/TProcessor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/TApplicationException.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TTransportException.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TSocket.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TSSLSocket.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TServerSocket.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/THttpTransport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/THttpClient.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport/TBufferTransports.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/protocol/TBinaryProtocol.tcc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/protocol/TVirtualProtocol.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/concurrency/Util.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/concurrency/BoostThreadFactory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/concurrency/BoostMutex.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/concurrency/BoostMonitor.cpp)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  list(APPEND SOURCES "src/thrift/windows/config.h")
-  list(APPEND SOURCES "src/thrift/windows/force_inc.h")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/config.h")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/force_inc.h")
   if(NOT CMAKE_COMPILER_IS_GNUCXX)
-    list(APPEND SOURCES "src/thrift/windows/GetTimeOfDay.h")
-    list(APPEND SOURCES "src/thrift/windows/GetTimeOfDay.cpp")
+    list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/GetTimeOfDay.h")
+    list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/GetTimeOfDay.cpp")
   endif()
-  list(APPEND SOURCES "src/thrift/windows/Operators.h")
-  list(APPEND SOURCES "src/thrift/windows/SocketPair.h")
-  list(APPEND SOURCES "src/thrift/windows/SocketPair.cpp")
-  list(APPEND SOURCES "src/thrift/windows/StdAfx.h")
-  list(APPEND SOURCES "src/thrift/windows/StdAfx.cpp")
-  list(APPEND SOURCES "src/thrift/windows/TargetVersion.h")
-  list(APPEND SOURCES "src/thrift/windows/TWinsockSingleton.h")
-  list(APPEND SOURCES "src/thrift/windows/TWinsockSingleton.cpp")
-  list(APPEND SOURCES "src/thrift/windows/WinFcntl.h")
-  list(APPEND SOURCES "src/thrift/windows/WinFcntl.cpp")
-  list(APPEND SOURCES "src/thrift/windows/tr1/functional")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/Operators.h")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/SocketPair.h")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/SocketPair.cpp")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/StdAfx.h")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/StdAfx.cpp")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/TargetVersion.h")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/TWinsockSingleton.h")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/TWinsockSingleton.cpp")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/WinFcntl.h")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/WinFcntl.cpp")
+  list(APPEND ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/windows/tr1/functional")
 endif()
 
-add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
+add_library(${PROJECT_NAME} SHARED ${HEADERS} ${${PROJECT_NAME}_SOURCES})
 
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
 

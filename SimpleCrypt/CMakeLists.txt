@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
-project(simplecrypt)
+project(SimpleCrypt)
 
 add_definitions("-DBUILD_LIBSIMPLECRYPT")
 
 set(${PROJECT_NAME}_HEADERS
-    src/Simplecrypt.h
-    src/Linkage.h)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Simplecrypt.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Linkage.h)
 
 set(${PROJECT_NAME}_SOURCES
-    src/Simplecrypt.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Simplecrypt.cpp)
 
 add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_HEADERS}
@@ -22,3 +22,4 @@ endif()
 
 # include dirs for cppcheck
 set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
