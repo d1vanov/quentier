@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <cstdint>
+#include <cstddef>
+#include <vector>
 #include <ctime>
 #include "types/TypeWithError.h"
 #include "types/SynchronizedDataElement.h"
@@ -10,6 +12,7 @@
 namespace qute_note {
 
 class Guid;
+class Resource;
 
 class Note: public TypeWithError,
             public SynchronizedDataElement
@@ -38,6 +41,11 @@ public:
     bool isActive() const;
 
     const Guid & notebookGuid() const;
+
+    bool hasAttachedResources() const;
+    size_t numAttachedResources() const;
+    // TODO: think how to implement getting the resources metadata conveniently
+    // void getResources(std::vector<Resource> & resources) const;
 
 private:
     class NoteImpl;
