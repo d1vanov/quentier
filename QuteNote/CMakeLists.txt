@@ -64,7 +64,11 @@ set(${PROJECT_NAME}_HEADERS
     src/evernote_client/TagImpl.h
     src/evernote_client/types/TypeWithError.h
     src/evernote_client/types/SynchronizedDataElement.h
-    src/evernote_client/enml/ENMLConverter.h)
+    src/evernote_client/enml/ENMLConverter.h
+    src/tools/Printable.h
+    src/tools/IQuteNoteException.h
+    src/tools/QuteNoteNullPtrException.h
+    src/tools/QuteNoteCheckPtr.h)
 
 set(${PROJECT_NAME}_SOURCES
     src/gui/MainWindow.cpp
@@ -101,6 +105,9 @@ set(${PROJECT_NAME}_SOURCES
     src/evernote_client/types/TypeWithError.cpp
     src/evernote_client/types/SynchronizedDataElement.cpp
     src/evernote_client/enml/ENMLConverter.cpp
+    src/tools/Printable.cpp
+    src/tools/IQuteNoteException.cpp
+    src/tools/QuteNoteNullPtrException.cpp
     main.cpp)
 
 set(FORMS

@@ -1,6 +1,7 @@
 #include "ENMLConverter.h"
 #include "../note_editor/QuteNoteTextEdit.h"
 #include "../Note.h"
+#include "../tools/QuteNoteCheckPtr.h"
 #include <QTextEdit>
 #include <QString>
 #include <QTextDocument>
@@ -22,10 +23,10 @@ void RichTextToENML(const QuteNoteTextEdit & noteEditor, QString & ENML)
     ENML.clear();
 
     const QTextDocument * pNoteDoc = noteEditor.document();
-    Q_CHECK_PTR(pNoteDoc);
+    QUTE_NOTE_CHECK_PTR(pNoteDoc, "Null QTextDocument pointer received from QuteNoteTextEdit");
 
     const Note * pNote = noteEditor.getNotePtr();
-    Q_CHECK_PTR(pNote);
+    QUTE_NOTE_CHECK_PTR(pNote, "Null pointer to Note received from QuteNoteTextEdit");
 
     ENML.append("<en-note>");
 
