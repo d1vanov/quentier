@@ -216,3 +216,9 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 if(LIBCPP)
   target_link_libraries(${PROJECT_NAME} ${LIBCPP})
 endif()
+
+# include dirs for cppcheck
+set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift")
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/concurrency")
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/protocol")
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/transport")
