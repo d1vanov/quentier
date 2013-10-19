@@ -11,9 +11,9 @@ if(NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")    # clang is not supported by 
     endif(is_source_file)
   ENDMACRO()
 
-  set(CPPCHECK_INCLUDEPATH_ARG ${QUTE_NOTE_COMPLETE_INCLUDE_DIRS})
+  set(CPPCHECK_INCLUDEPATH_ARG ${QUTE_NOTE_CPPCHECKABLE_INCLUDE_DIRS})
 
-  foreach(i ${QUTE_NOTE_COMPLETE_SOURCES})
+  foreach(i ${QUTE_NOTE_CPPCHECKABLE_SOURCES})
     add_cppcheck_test(${i})
   endforeach()
 endif()
