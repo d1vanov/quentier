@@ -14,7 +14,7 @@ public:
     TagImpl(const std::string & name, const Guid & parentGuid);
 
     const std::string name() const;
-    const Guid parentGuid() const;
+    const Guid & parentGuid() const;
 
     void setName(const std::string & name);
     void setParentGuid(const Guid & parentGuid);

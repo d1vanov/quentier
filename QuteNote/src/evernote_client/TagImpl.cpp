@@ -17,7 +17,7 @@ const std::string Tag::TagImpl::name() const
     return m_name;
 }
 
-const Guid Tag::TagImpl::parentGuid() const
+const Guid & Tag::TagImpl::parentGuid() const
 {
     return m_parentGuid;
 }

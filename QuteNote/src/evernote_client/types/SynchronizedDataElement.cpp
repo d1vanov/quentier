@@ -29,12 +29,12 @@ SynchronizedDataElement & SynchronizedDataElement::operator =(const Synchronized
 SynchronizedDataElement::~SynchronizedDataElement()
 {}
 
-int64_t SynchronizedDataElement::updateSequenceNumber() const
+uint64_t SynchronizedDataElement::updateSequenceNumber() const
 {
     return m_updateSequenceNumber;
 }
 
-void SynchronizedDataElement::setUpdateSequenceNumber(const int64_t usn)
+void SynchronizedDataElement::setUpdateSequenceNumber(const uint64_t usn)
 {
     m_updateSequenceNumber = usn;
 }

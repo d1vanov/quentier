@@ -16,8 +16,8 @@ public:
     SynchronizedDataElement & operator=(const SynchronizedDataElement & other);
     virtual ~SynchronizedDataElement();
 
-    int64_t updateSequenceNumber() const;
-    void setUpdateSequenceNumber(const int64_t usn);
+    uint64_t updateSequenceNumber() const;
+    void setUpdateSequenceNumber(const uint64_t usn);
 
     bool isLocallyModified() const;
     void setLocallyModified();

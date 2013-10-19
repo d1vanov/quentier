@@ -40,7 +40,7 @@ public:
 
     bool isActive() const;
 
-    const Guid & notebookGuid() const;
+    const Guid notebookGuid() const;
 
     bool hasAttachedResources() const;
     size_t numAttachedResources() const;
