@@ -16,8 +16,8 @@ public:
     SynchronizedDataElement & operator=(const SynchronizedDataElement & other);
     virtual ~SynchronizedDataElement();
 
-    uint64_t updateSequenceNumber() const;
-    void setUpdateSequenceNumber(const uint64_t usn);
+    unsigned int updateSequenceNumber() const;
+    void setUpdateSequenceNumber(const unsigned int usn);
 
     bool isLocallyModified() const;
     void setLocallyModified();
@@ -34,11 +34,11 @@ public:
      * @param other - the other object for comparison
      * @return true if current object's guid is less than the other one's, false otherwise
      */
-    bool operator <(const SynchronizedDataElement & other);
+    bool operator<(const SynchronizedDataElement & other);
 
 private:
-    int64_t m_updateSequenceNumber;
-    bool    m_isLocallyModified;
+    unsigned int  m_updateSequenceNumber;
+    bool          m_isLocallyModified;
     std::unique_ptr<Guid> m_pGuid;
 };
 

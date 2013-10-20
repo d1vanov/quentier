@@ -28,6 +28,7 @@ set(${PROJECT_NAME}_QT_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/EvernoteOAuthBrowser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/HorizontalLineExtraData.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/ToDoCheckboxTextObject.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/ResourceTextObject.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/MediaResourceTextObject.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/QuteNoteTextEdit.h)
 
@@ -48,6 +49,7 @@ set(${PROJECT_NAME}_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Resource.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/ResourceImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/TagImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/types/TypeWithError.h
@@ -77,6 +79,7 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/AskConsumerKeyAndSecret.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/AskUserNameAndPassword.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/EvernoteOAuthBrowser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/ResourceTextObject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/ToDoCheckboxTextObject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/note_editor/QuteNoteTextEdit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceManager.cpp
@@ -90,6 +93,8 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Note.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Resource.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/ResourceImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/TagImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/types/TypeWithError.cpp
