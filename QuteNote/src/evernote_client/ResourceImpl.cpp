@@ -2,25 +2,38 @@
 
 namespace qute_note {
 
-Resource::ResourceImpl::ResourceImpl(const Guid & noteGuid, const QString & resourceName,
-                                     const QByteArray * pResourceBinaryData) :
+Resource::ResourceImpl::ResourceImpl(const Guid & noteGuid,
+                                     const QString & resourceName,
+                                     const QByteArray & resourceBinaryData,
+                                     const QString & resourceMimeType) :
     m_noteGuid(noteGuid),
     m_resourceName(resourceName),
-    m_pResourceBinaryData(pResourceBinaryData)
-{}
+    m_resourceMimeType(resourceMimeType),
+    m_resourceMimeData()
+{
+    m_resourceMimeData.setData(resourceMimeType, resourceBinaryData);
+}
 
 Resource::ResourceImpl::ResourceImpl(const ResourceImpl & other) :
     m_noteGuid(other.m_noteGuid),
     m_resourceName(other.m_resourceName),
-    m_pResourceBinaryData(other.m_pResourceBinaryData)
-{}
+    m_resourceMimeType(other.m_resourceMimeType),
+    m_resourceMimeData()
+{
+    QByteArray resourceBinaryData = other.m_resourceMimeData.data(m_resourceMimeType);
+    m_resourceMimeData.setData(m_resourceMimeType, resourceBinaryData);
+}
 
 Resource::ResourceImpl & Resource::ResourceImpl::operator=(const ResourceImpl & other)
 {
-    if (this != &other) {
+    if (this != &other)
+    {
         m_noteGuid = other.m_noteGuid;
         m_resourceName = other.m_resourceName;
-        m_pResourceBinaryData = other.m_pResourceBinaryData;
+        m_resourceMimeType = other.m_resourceMimeType;
+
+        QByteArray resourceBinaryData = other.m_resourceMimeData.data(m_resourceMimeType);
+        m_resourceMimeData.setData(m_resourceMimeType, resourceBinaryData);
     }
 
     return *this;
@@ -39,14 +52,16 @@ const QString & Resource::ResourceImpl::name() const
     return m_resourceName;
 }
 
-const QByteArray * Resource::ResourceImpl::data() const
+const QMimeData & Resource::ResourceImpl::mimeData() const
 {
-    return m_pResourceBinaryData;
+    return m_resourceMimeData;
 }
 
-void Resource::ResourceImpl::setData(const QByteArray * pResourceBinaryData)
+void Resource::ResourceImpl::setData(const QByteArray & resourceBinaryData,
+                                     const QString & resourceMimeType)
 {
-    m_pResourceBinaryData = pResourceBinaryData;
+    m_resourceMimeType = resourceMimeType;
+    m_resourceMimeData.setData(m_resourceMimeType, resourceBinaryData);
 }
 
 }

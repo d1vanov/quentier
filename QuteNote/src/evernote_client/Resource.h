@@ -32,16 +32,14 @@ public:
     const QString name() const;
 
     /**
-     * @brief data - returns the actual binary data corresponding to the resource
-     */
-    const QByteArray data() const;
-
-    /**
      * @brief setData - assign binary data to the resource
      * @param resourceBinaryData - binary data to be associated with the resource
+     * @param resourceMimeType - optional string representation of mime data of the resource.
+     * For example, "text/plain", "text/html" etc.
      * @throw can throw QuteNoteNullPtrException if pointer to implementation is null by occasion
      */
-    void setData(const QByteArray & resourceBinaryData);
+    void setData(const QByteArray & resourceBinaryData,
+                 const QString & resourceMimeType = QString());
 
     /**
      * @brief dataHash - returns the MD5-hash of binary data corresponding to the resource
@@ -58,13 +56,11 @@ public:
      */
     const Guid noteGuid() const;
 
-
-    /*
+    /**
      * @brief mimeData - returns the mime data of the resource
-     * @throw can throw QuteNoteNullPtrException if pointer to implementation is null by occasion or
-     * if binary data of the resource is empty, so one should check this first
-    const QMimeData & mimeData() const;   // TODO: rethink this, it's bad
-    */
+     * @throw can throw QuteNoteNullPtrException if pointer to implementation is null by occasion
+     */
+    const QMimeData & mimeData() const;
 
     /**
      * @brief width - if set, the displayed width of the resource in pixels, zero otherwise.
