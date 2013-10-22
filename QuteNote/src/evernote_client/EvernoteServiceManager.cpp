@@ -1,7 +1,7 @@
 #include "EvernoteServiceManager.h"
-#include "EvernoteServiceManagerImpl.h"
-#include "NoteStoreImpl.h"
-#include "UserStoreImpl.h"
+#include "../evernote_client_private/EvernoteServiceManagerImpl.h"
+#include "../evernote_client_private/NoteStoreImpl.h"
+#include "../evernote_client_private/UserStoreImpl.h"
 
 namespace qute_note {
 

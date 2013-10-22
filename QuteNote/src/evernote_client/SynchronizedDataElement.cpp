@@ -1,5 +1,5 @@
 #include "SynchronizedDataElement.h"
-#include "../Guid.h"
+#include "Guid.h"
 
 namespace qute_note {
 

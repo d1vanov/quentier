@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__EVERNOTE_SERVICE_MANAGER_IMPL_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__EVERNOTE_SERVICE_MANAGER_IMPL_H
 
-#include "EvernoteServiceManager.h"
+#include "../evernote_client/EvernoteServiceManager.h"
 
 namespace qute_note {
 

@@ -1,4 +1,4 @@
-#include "UserStoreImpl.h"
+#include "../evernote_client_private/UserStoreImpl.h"
 
 namespace qute_note {
 

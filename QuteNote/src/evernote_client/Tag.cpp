@@ -1,5 +1,5 @@
 #include "Tag.h"
-#include "TagImpl.h"
+#include "../evernote_client_private/TagImpl.h"
 
 namespace qute_note {
 

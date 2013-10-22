@@ -1,8 +1,8 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__RESOURCE_IMPL_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__RESOURCE_IMPL_H
 
-#include "Resource.h"
-#include "Guid.h"
+#include "../evernote_client/Resource.h"
+#include "../evernote_client/Guid.h"
 #include <QString>
 #include <QByteArray>
 

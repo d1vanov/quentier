@@ -1,8 +1,8 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__USER_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__USER_H
 
+#include "../tools/TypeWithError.h"
 #include <memory>
-#include "types/TypeWithError.h"
 
 namespace qute_note {
 

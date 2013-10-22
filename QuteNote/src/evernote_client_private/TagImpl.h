@@ -2,8 +2,8 @@
 #define __QUTE_NOTE__EVERNOTE_CLIENT__TAG_IMPL_H
 
 #include <string>
-#include "Guid.h"
-#include "Tag.h"
+#include "../evernote_client/Guid.h"
+#include "../evernote_client/Tag.h"
 
 namespace qute_note {
 

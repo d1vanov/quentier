@@ -30,6 +30,11 @@ void TypeWithError::SetError(const std::string & error)
     SetError(error.c_str());
 }
 
+void TypeWithError::SetError(const QString & error)
+{
+    SetError(error.toStdString());
+}
+
 const char * TypeWithError::GetError() const
 {
     return m_errorText;

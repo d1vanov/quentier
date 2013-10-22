@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__RESOURCE_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__RESOURCE_H
 
-#include "types/SynchronizedDataElement.h"
+#include "SynchronizedDataElement.h"
 #include <QByteArray>
 #include <QString>
 #include <QMimeData>

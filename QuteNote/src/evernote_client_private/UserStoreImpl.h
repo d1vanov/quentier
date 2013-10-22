@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__USER_STORE_IMPL_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__USER_STORE_IMPL_H
 
-#include "UserStore.h"
+#include "../evernote_client/UserStore.h"
 
 namespace qute_note {
 

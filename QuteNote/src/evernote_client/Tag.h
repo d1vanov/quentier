@@ -3,8 +3,8 @@
 
 #include <memory>
 #include <string>
-#include "types/TypeWithError.h"
-#include "types/SynchronizedDataElement.h"
+#include "../tools/TypeWithError.h"
+#include "SynchronizedDataElement.h"
 
 namespace qute_note {
 

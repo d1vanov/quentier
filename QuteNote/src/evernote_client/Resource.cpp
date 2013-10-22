@@ -1,5 +1,5 @@
 #include "Resource.h"
-#include "ResourceImpl.h"
+#include "../evernote_client_private/ResourceImpl.h"
 #include "../tools/QuteNoteCheckPtr.h"
 
 #define CHECK_POINTER_TO_IMPL() \

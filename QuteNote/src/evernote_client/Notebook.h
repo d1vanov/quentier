@@ -1,8 +1,8 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__NOTEBOOK_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__NOTEBOOK_H
 
-#include "types/TypeWithError.h"
-#include "types/SynchronizedDataElement.h"
+#include "../tools/TypeWithError.h"
+#include "SynchronizedDataElement.h"
 
 namespace qute_note {
 

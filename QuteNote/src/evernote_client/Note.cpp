@@ -1,4 +1,4 @@
-#include "NoteImpl.h"
+#include "../evernote_client_private/NoteImpl.h"
 
 namespace qute_note {
 

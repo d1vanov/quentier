@@ -37,25 +37,25 @@ set(${PROJECT_NAME}_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceOAuthHandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/CredentialsModel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/EvernoteServiceManager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/EvernoteServiceManagerImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/UserStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/UserStoreImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/User.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/UserImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteStoreImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Note.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Resource.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/ResourceImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/TagImpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/types/TypeWithError.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/types/SynchronizedDataElement.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/SynchronizedDataElement.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml/ENMLConverter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/EvernoteServiceManagerImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/UserStoreImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/UserImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/NoteStoreImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/NoteImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/ResourceImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/TagImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/IQuteNoteException.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/QuteNoteNullPtrException.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/QuteNoteCheckPtr.h)
@@ -86,7 +86,6 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceOAuthHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/CredentialsModel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/EvernoteServiceManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/EvernoteServiceManagerImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/UserStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/User.cpp
@@ -94,13 +93,14 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Resource.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/ResourceImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/TagImpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/types/TypeWithError.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/types/SynchronizedDataElement.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/SynchronizedDataElement.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml/ENMLConverter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/EvernoteServiceManagerImpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/ResourceImpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/TagImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/IQuteNoteException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/QuteNoteNullPtrException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
