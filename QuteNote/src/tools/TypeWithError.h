@@ -1,19 +1,21 @@
 #ifndef __QUTE_NOTE__TOOLS__TYPE_WITH_ERROR_H
 #define __QUTE_NOTE__TOOLS__TYPE_WITH_ERROR_H
 
-#include <string>
 #include <QString>
 
 namespace qute_note {
 
+/**
+ * @brief The TypeWithError class - base class for any type
+ * which can have error message set instead of value or together with value
+ */
 class TypeWithError
 {
 public:
-    void SetError(const char * error);
-    void SetError(const std::string & error);
     void SetError(const QString & error);
 
-    const char * GetError() const;
+    const QString GetError() const;
+
     bool HasError() const;
 
     void ClearError();
@@ -24,10 +26,8 @@ protected:
     TypeWithError & operator =(const TypeWithError & other);
     virtual ~TypeWithError();
 
-    virtual void Clear();
-
 private:
-    char * m_errorText;
+    QString m_error;
 };
 
 }

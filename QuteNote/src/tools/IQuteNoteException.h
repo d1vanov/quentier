@@ -13,7 +13,7 @@ public:
 
     const QString errorMessage() const;
 
-    virtual std::ostream & Print(std::ostream & strm) const;
+    virtual QTextStream & Print(QTextStream & strm) const;
 
 protected:
     IQuteNoteException(const IQuteNoteException & other);

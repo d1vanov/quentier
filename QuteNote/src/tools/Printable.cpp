@@ -1,19 +1,21 @@
 #include "Printable.h"
-#include <ostream>
-#include <sstream>
 
 namespace qute_note {
 
-std::ostream & operator << (std::ostream & strm, const Printable & printable)
-{
-    return printable.Print(strm);
-}
+Printable::~Printable()
+{}
 
 const QString Printable::ToQString() const
 {
-    std::ostringstream sstrm;
-    sstrm << *this;
-    return QString(sstrm.str().c_str());
+    QTextStream strm;
+    strm << *this;
+    return strm.readAll();
+}
+
+QTextStream & operator <<(QTextStream & strm,
+                          const Printable & printable)
+{
+    return printable.Print(strm);
 }
 
 } // namespace qute_note

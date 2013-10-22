@@ -1,20 +1,21 @@
 #ifndef __QUTE_NOTE__TOOLS_PRINTABLE_H
 #define __QUTE_NOTE__TOOLS_PRINTABLE_H
 
-#include <iosfwd>
 #include <QString>
+#include <QTextStream>
 
 namespace qute_note {
 
 class Printable {
 public:
-    virtual ~Printable() {}
+    virtual ~Printable();
 
-    friend std::ostream & operator << (std::ostream & strm, const Printable & printable);
-
-    virtual std::ostream & Print(std::ostream & strm) const = 0;
+    virtual QTextStream & Print(QTextStream & strm) const = 0;
 
     virtual const QString ToQString() const;
+
+    friend QTextStream & operator << (QTextStream & strm,
+                                      const Printable & printable);
 };
 
 } // namespace qute_note

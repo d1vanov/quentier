@@ -15,10 +15,10 @@ const QString IQuteNoteException::errorMessage() const
     return m_message;
 }
 
-std::ostream & IQuteNoteException::Print(std::ostream & strm) const 
+QTextStream &IQuteNoteException::Print(QTextStream & strm) const
 {
-    strm << "\n" << " " << "<" << exceptionDisplayName().toStdString() << ">";
-    strm << "\n" << " " << " message: " << m_message.toStdString();
+    strm << "\n" << " " << "<" << exceptionDisplayName() << ">";
+    strm << "\n" << " " << " message: " << m_message;
     return strm;
 }
 
