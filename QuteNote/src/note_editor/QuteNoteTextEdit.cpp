@@ -315,5 +315,5 @@ void QuteNoteTextEdit::setNote(const qute_note::Note & note)
 
 void QuteNoteTextEdit::noteRichTextToENML(QString & ENML) const
 {
-    qute_note::RichTextToENML(*this, ENML);
+    qute_note::RichTextToENML(*m_pNote, *this, ENML);
 }

@@ -1,4 +1,5 @@
 #include "../evernote_client_private/NoteImpl.h"
+#include "../evernote_client/Resource.h"
 
 namespace qute_note {
 
@@ -38,6 +39,12 @@ bool Note::isEmpty() const
         return true;
     }
 
+}
+
+const Resource * Note::getResourceByIndex(const size_t) const
+{
+    // TODO: implement
+    return nullptr;
 }
 
 }

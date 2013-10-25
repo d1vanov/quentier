@@ -27,7 +27,7 @@ public:
     enum ECustomTextObjectTextProperties {
         TODO_CHKBOX_TXT_DATA_UNCHECKED = 1,
         TODO_CHKBOX_TXT_DATA_CHECKED   = 2,
-        MEDIA_rESOURCE_TXT_DATA        = 3
+        MEDIA_RESOURCE_TXT_DATA        = 3
     };
 
 public:

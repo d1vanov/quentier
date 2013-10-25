@@ -60,6 +60,12 @@ const QMimeData & Resource::mimeData() const
     return m_pImpl->mimeData();
 }
 
+const QString Resource::mimeType() const
+{
+    CHECK_POINTER_TO_IMPL()
+    return m_pImpl->mimeType();
+}
+
 const std::size_t Resource::width() const
 {
     // TODO: implement;

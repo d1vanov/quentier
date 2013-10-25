@@ -30,6 +30,8 @@ public:
     void setData(const QByteArray & resourceBinaryData,
                  const QString & resourceMimeType);
 
+    const QString & mimeType() const;
+
 private:
     ResourceImpl() = delete;
 

@@ -64,6 +64,11 @@ void Resource::ResourceImpl::setData(const QByteArray & resourceBinaryData,
     m_resourceMimeData.setData(m_resourceMimeType, resourceBinaryData);
 }
 
+const QString & Resource::ResourceImpl::mimeType() const
+{
+    return m_resourceMimeType;
+}
+
 }
 
 

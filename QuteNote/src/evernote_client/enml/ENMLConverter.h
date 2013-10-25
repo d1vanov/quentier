@@ -6,7 +6,10 @@ class QuteNoteTextEdit;
 
 namespace qute_note {
 
-void RichTextToENML(const QuteNoteTextEdit & noteEditor, QString & ENML);
+class Note;
+
+void RichTextToENML(const Note & note, const QuteNoteTextEdit & noteEditor,
+                    QString & ENML);
 
 }
 

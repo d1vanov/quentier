@@ -63,6 +63,11 @@ public:
     const QMimeData & mimeData() const;
 
     /**
+     * @brief mimeType - returns string representation of the mime tye of the resource
+     */
+    const QString mimeType() const;
+
+    /**
      * @brief width - if set, the displayed width of the resource in pixels, zero otherwise.
      */
     const std::size_t width() const;

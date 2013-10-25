@@ -47,6 +47,8 @@ public:
     // TODO: think how to implement getting the resources metadata conveniently
     // void getResources(std::vector<Resource> & resources) const;
 
+    const Resource * getResourceByIndex(const size_t index) const;
+
 private:
     class NoteImpl;
     std::unique_ptr<NoteImpl> m_pImpl;
