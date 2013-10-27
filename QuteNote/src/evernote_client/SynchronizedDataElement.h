@@ -19,9 +19,24 @@ public:
     unsigned int updateSequenceNumber() const;
     void setUpdateSequenceNumber(const unsigned int usn);
 
-    bool isLocallyModified() const;
-    void setLocallyModified();
-    void dropLocallyModified();
+    /**
+     * @brief isDirty - tells the caller whether this synchronized data element
+     * in its latest revision has been synchronized with Evernote's online database
+     * @return true is object was not synchronized or has local modifications,
+     * false otherwise
+     */
+    bool isDirty() const;
+
+    /**
+     * @brief setDirty - mark the object as locally modified and needing synchronization
+     * with Evernote online database
+     */
+    void setDirty();
+
+    /**
+     * @brief setSynchronized - mark the object as synchronized with Evernote online database
+     */
+    void setSynchronized();
 
     const Guid guid() const;
     void assignGuid(const std::string & guid);
@@ -38,7 +53,7 @@ public:
 
 private:
     unsigned int  m_updateSequenceNumber;
-    bool          m_isLocallyModified;
+    bool          m_isDirty;
     std::unique_ptr<Guid> m_pGuid;
 };
 

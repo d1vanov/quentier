@@ -5,13 +5,13 @@ namespace qute_note {
 
 SynchronizedDataElement::SynchronizedDataElement() :
     m_updateSequenceNumber(0),
-    m_isLocallyModified(true),
+    m_isDirty(true),
     m_pGuid(new Guid)
 {}
 
 SynchronizedDataElement::SynchronizedDataElement(const SynchronizedDataElement & other) :
     m_updateSequenceNumber(other.m_updateSequenceNumber + 1),
-    m_isLocallyModified(true),
+    m_isDirty(true),
     m_pGuid(new Guid)
 {}
 
@@ -20,7 +20,7 @@ SynchronizedDataElement & SynchronizedDataElement::operator =(const Synchronized
     if (this != &other)
     {
         m_updateSequenceNumber = other.m_updateSequenceNumber + 1;
-        m_isLocallyModified = true;
+        m_isDirty = true;
     }
 
     return *this;
@@ -39,19 +39,19 @@ void SynchronizedDataElement::setUpdateSequenceNumber(const unsigned int usn)
     m_updateSequenceNumber = usn;
 }
 
-bool SynchronizedDataElement::isLocallyModified() const
+bool SynchronizedDataElement::isDirty() const
 {
-    return m_isLocallyModified;
+    return m_isDirty;
 }
 
-void SynchronizedDataElement::setLocallyModified()
+void SynchronizedDataElement::setDirty()
 {
-    m_isLocallyModified = true;
+    m_isDirty = true;
 }
 
-void SynchronizedDataElement::dropLocallyModified()
+void SynchronizedDataElement::setSynchronized()
 {
-    m_isLocallyModified = false;
+    m_isDirty = false;
 }
 
 const Guid SynchronizedDataElement::guid() const

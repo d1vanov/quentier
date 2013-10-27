@@ -1,11 +1,12 @@
 #include "Resource.h"
 #include "../evernote_client_private/ResourceImpl.h"
 #include "../tools/QuteNoteCheckPtr.h"
+#include <QTranslator>
 
 #define CHECK_POINTER_TO_IMPL() \
     QUTE_NOTE_CHECK_PTR(m_pImpl.get(), \
-                        "Pointer to ResourceImpl is empty in Resource object " \
-                        "when trying to set binary data")
+                        QObject::tr("Pointer to ResourceImpl is empty in Resource object " \
+                        "when trying to set binary data"))
 
 namespace qute_note {
 

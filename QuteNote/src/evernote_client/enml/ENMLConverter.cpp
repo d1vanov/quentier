@@ -25,10 +25,10 @@ void RichTextToENML(const Note & note, const QuteNoteTextEdit & noteEditor, QStr
     ENML.clear();
 
     const QTextDocument * pNoteDoc = noteEditor.document();
-    QUTE_NOTE_CHECK_PTR(pNoteDoc, "Null QTextDocument pointer received from QuteNoteTextEdit");
+    QUTE_NOTE_CHECK_PTR(pNoteDoc, QObject::tr("Null QTextDocument pointer received from QuteNoteTextEdit"));
 
     const Note * pNote = noteEditor.getNotePtr();
-    QUTE_NOTE_CHECK_PTR(pNote, "Null pointer to Note received from QuteNoteTextEdit");
+    QUTE_NOTE_CHECK_PTR(pNote, QObject::tr("Null pointer to Note received from QuteNoteTextEdit"));
 
     size_t resourceIndex = 0;
 

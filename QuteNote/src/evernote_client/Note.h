@@ -13,12 +13,13 @@ namespace qute_note {
 
 class Guid;
 class Resource;
+class Notebook;
 
 class Note: public TypeWithError,
             public SynchronizedDataElement
 {
 public:
-    Note();
+    Note(const Notebook & notebook);
     Note(const Note & other);
     Note & operator =(const Note & other);
 
@@ -50,6 +51,8 @@ public:
     const Resource * getResourceByIndex(const size_t index) const;
 
 private:
+    Note() = delete;
+
     class NoteImpl;
     std::unique_ptr<NoteImpl> m_pImpl;
 };

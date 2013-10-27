@@ -99,6 +99,7 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/EvernoteServiceManagerImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/ResourceImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/TagImpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/NoteImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/IQuteNoteException.cpp
