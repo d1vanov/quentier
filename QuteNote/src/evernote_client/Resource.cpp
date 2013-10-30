@@ -14,6 +14,23 @@ Resource::Resource(const QString & name, const Guid & noteGuid) :
     m_pImpl(new ResourceImpl(noteGuid, name, QByteArray(), QString()))
 {}
 
+Resource::Resource(const Resource & other) :
+    m_pImpl(new ResourceImpl(other.noteGuid(), other.name(),
+                             other.mimeData().data(other.mimeType()),
+                             other.mimeType()))
+{}
+
+Resource & Resource::operator=(const Resource &other)
+{
+    if (this != &other) {
+        m_pImpl.reset(new ResourceImpl(other.noteGuid(), other.name(),
+                                       other.mimeData().data(other.mimeType()),
+                                       other.mimeType()));
+    }
+
+    return *this;
+}
+
 Resource::~Resource()
 {}
 

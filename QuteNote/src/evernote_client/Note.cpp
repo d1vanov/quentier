@@ -4,6 +4,9 @@
 #include "../tools/QuteNoteCheckPtr.h"
 #include <QTranslator>
 
+#define CHECK_PIMPL() \
+    QUTE_NOTE_CHECK_PTR(m_pImpl, QObject::tr("Null pointer to NoteImpl class"));
+
 namespace qute_note {
 
 Note::Note(const Notebook & notebook) :
@@ -27,10 +30,20 @@ Note & Note::operator =(const Note & other)
 }
 
 bool Note::isEmpty() const
-{
-    if (m_pImpl != nullptr) {
-        // TODO: implement
-        return true;
+{   
+    if (m_pImpl != nullptr)
+    {
+        bool result = SynchronizedDataElement::isEmpty();
+        if (result) {
+            return true;
+        }
+
+        if (notebookGuid().isEmpty()) {
+            return true;
+        }
+
+        // TODO: think what else can and should be checked here
+        return false;
     }
     else {
         return true;
@@ -43,12 +56,46 @@ const Guid Note::notebookGuid() const
     if (m_pImpl != nullptr) {
         return m_pImpl->notebookGuid();
     }
+    else {
+        return Guid();
+    }
 }
 
-const Resource * Note::getResourceByIndex(const size_t) const
+bool Note::hasAttachedResources() const
 {
-    // TODO: implement
-    return nullptr;
+    CHECK_PIMPL()
+
+    return !(m_pImpl->resources().empty());
+}
+
+size_t Note::numAttachedResources() const
+{
+    CHECK_PIMPL()
+
+    if (!hasAttachedResources())
+    {
+        return static_cast<size_t>(0);
+    }
+    else
+    {
+        return m_pImpl->resources().size();
+    }
+}
+
+const Resource * Note::getResourceByIndex(const size_t index) const
+{
+    CHECK_PIMPL()
+
+    size_t numResources = numAttachedResources();
+    if (numResources == 0) {
+        return nullptr;
+    }
+    else if (index >= numResources) {
+        return nullptr;
+    }
+    else {
+        return &(m_pImpl->resources().at(index));
+    }
 }
 
 }

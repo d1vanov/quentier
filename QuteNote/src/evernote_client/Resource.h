@@ -24,6 +24,10 @@ public:
      */
     Resource(const QString & name, const Guid & noteGuid);
 
+    Resource(const Resource & other);
+
+    Resource & operator=(const Resource & other);
+
     virtual ~Resource() final override;
 
     /**
