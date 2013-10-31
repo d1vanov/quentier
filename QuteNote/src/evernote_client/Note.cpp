@@ -51,6 +51,18 @@ bool Note::isEmpty() const
 
 }
 
+time_t Note::createdTimestamp() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->createdTimestamp();
+}
+
+time_t Note::updatedTimestamp() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->updatedTimestamp();
+}
+
 const Guid Note::notebookGuid() const
 {
     if (m_pImpl != nullptr) {

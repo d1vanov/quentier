@@ -23,6 +23,9 @@ public:
     const QString & content() const;
     void setContent(const QString & content);
 
+    time_t createdTimestamp() const;
+    time_t updatedTimestamp() const;
+
     const std::vector<Resource> & resources() const;
     std::vector<Resource> & resources();
 
@@ -31,10 +34,15 @@ public:
 private:
     NoteImpl() = delete;
 
+    void initializeTimestamps();
+    void updateTimestamp();
+
     Guid    m_notebookGuid;
     QString m_title;
     QString m_content;
     std::vector<Resource> m_resources;
+    time_t m_createdTimestamp;
+    time_t m_updatedTimestamp;
 };
 
 }

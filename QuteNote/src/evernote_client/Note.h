@@ -37,18 +37,15 @@ public:
 
     time_t createdTimestamp() const;
     time_t updatedTimestamp() const;
-    bool deletedTimestamp(time_t & timestamp, const char *& errorMessage) const;
-
-    bool isActive() const;
 
     const Guid notebookGuid() const;
 
     bool hasAttachedResources() const;
     size_t numAttachedResources() const;
+    const Resource * getResourceByIndex(const size_t index) const;
+
     // TODO: think how to implement getting the resources metadata conveniently
     // void getResources(std::vector<Resource> & resources) const;
-
-    const Resource * getResourceByIndex(const size_t index) const;
 
 private:
     Note() = delete;
