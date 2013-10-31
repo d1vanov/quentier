@@ -110,4 +110,10 @@ const Resource * Note::getResourceByIndex(const size_t index) const
     }
 }
 
+void Note::getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const
+{
+    CHECK_PIMPL()
+    m_pImpl->getResourcesMetadata(resourcesMetadata);
+}
+
 }

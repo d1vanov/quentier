@@ -3,6 +3,7 @@
 
 #include "../evernote_client/Note.h"
 #include "../evernote_client/Resource.h"
+#include "../evernote_client/ResourceMetadata.h"
 #include "../evernote_client/Guid.h"
 
 namespace qute_note {
@@ -27,7 +28,8 @@ public:
     time_t updatedTimestamp() const;
 
     const std::vector<Resource> & resources() const;
-    std::vector<Resource> & resources();
+
+    void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
 
     const Guid & notebookGuid() const;
 

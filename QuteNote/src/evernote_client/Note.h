@@ -13,6 +13,7 @@ namespace qute_note {
 
 class Guid;
 class Resource;
+class ResourceMetadata;
 class Notebook;
 
 class Note: public TypeWithError,
@@ -43,6 +44,8 @@ public:
     bool hasAttachedResources() const;
     size_t numAttachedResources() const;
     const Resource * getResourceByIndex(const size_t index) const;
+
+    void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
 
     // TODO: think how to implement getting the resources metadata conveniently
     // void getResources(std::vector<Resource> & resources) const;

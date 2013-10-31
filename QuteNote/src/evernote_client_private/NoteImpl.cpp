@@ -78,9 +78,14 @@ const std::vector<Resource> & Note::NoteImpl::resources() const
     return m_resources;
 }
 
-std::vector<Resource> & Note::NoteImpl::resources()
+void Note::NoteImpl::getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const
 {
-    return m_resources;
+    size_t numResources = m_resources.size();
+    resourcesMetadata.clear();
+    resourcesMetadata.reserve(numResources);
+    for(size_t i = 0; i < numResources; ++i) {
+        resourcesMetadata.push_back(ResourceMetadata(m_resources[i]));
+    }
 }
 
 const Guid & Note::NoteImpl::notebookGuid() const
