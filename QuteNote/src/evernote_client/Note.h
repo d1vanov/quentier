@@ -44,6 +44,7 @@ public:
     bool hasAttachedResources() const;
     size_t numAttachedResources() const;
     const Resource * getResourceByIndex(const size_t index) const;
+    bool addResource(const Resource & resource, QString & errorMessage);
 
     void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
 

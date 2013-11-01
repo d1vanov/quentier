@@ -110,6 +110,12 @@ const Resource * Note::getResourceByIndex(const size_t index) const
     }
 }
 
+bool Note::addResource(const Resource & resource, QString & errorMessage)
+{
+    CHECK_PIMPL()
+    return m_pImpl->addResource(resource, errorMessage);
+}
+
 void Note::getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const
 {
     CHECK_PIMPL()

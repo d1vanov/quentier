@@ -28,8 +28,8 @@ public:
     time_t updatedTimestamp() const;
 
     const std::vector<Resource> & resources() const;
-
     void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
+    bool addResource(const Resource & resource, QString & errorMessage);
 
     const Guid & notebookGuid() const;
 

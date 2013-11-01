@@ -88,6 +88,20 @@ void Note::NoteImpl::getResourcesMetadata(std::vector<ResourceMetadata> & resour
     }
 }
 
+bool Note::NoteImpl::addResource(const Resource & resource, QString & errorMessage)
+{
+    auto it = std::find_if(m_resources.begin(), m_resources.end(),
+                           [&resource](const Resource & other)
+                           { return (resource.guid() == other.guid()); });
+    if (it != m_resources.end()) {
+        errorMessage = QObject::tr("This resource has already been added to the note");
+        return false;
+    }
+
+    m_resources.push_back(resource);
+    return true;
+}
+
 const Guid & Note::NoteImpl::notebookGuid() const
 {
     return m_notebookGuid;
