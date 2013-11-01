@@ -15,6 +15,7 @@ class Guid;
 class Resource;
 class ResourceMetadata;
 class Notebook;
+class Tag;
 
 class Note: public TypeWithError,
             public SynchronizedDataElement
@@ -45,11 +46,12 @@ public:
     size_t numAttachedResources() const;
     const Resource * getResourceByIndex(const size_t index) const;
     bool addResource(const Resource & resource, QString & errorMessage);
-
     void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
 
-    // TODO: think how to implement getting the resources metadata conveniently
-    // void getResources(std::vector<Resource> & resources) const;
+    bool labeledByAnyTag() const;
+    size_t numTags() const;
+    const Tag * getTagByIndex(const size_t index);
+    bool addTag(const Tag & tag, QString & errorMessage);
 
 private:
     Note() = delete;

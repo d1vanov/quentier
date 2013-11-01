@@ -1,11 +1,11 @@
 #include "../evernote_client_private/NoteImpl.h"
+#include "../evernote_client_private/TagImpl.h"
 #include "Resource.h"
 #include "Notebook.h"
 #include "../tools/QuteNoteCheckPtr.h"
 #include <QTranslator>
 
-#define CHECK_PIMPL() \
-    QUTE_NOTE_CHECK_PTR(m_pImpl, QObject::tr("Null pointer to NoteImpl class"));
+#define CHECK_PIMPL() QUTE_NOTE_CHECK_PTR(m_pImpl, QObject::tr("Null pointer to NoteImpl class"));
 
 namespace qute_note {
 
@@ -122,4 +122,42 @@ void Note::getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadat
     m_pImpl->getResourcesMetadata(resourcesMetadata);
 }
 
+bool Note::labeledByAnyTag() const
+{
+    CHECK_PIMPL()
+    const std::vector<Tag> & tags = m_pImpl->tags();
+    return (!tags.empty());
 }
+
+size_t Note::numTags() const
+{
+    CHECK_PIMPL()
+    const std::vector<Tag> & tags = m_pImpl->tags();
+    return tags.size();
+}
+
+const Tag * Note::getTagByIndex(const size_t index)
+{
+    CHECK_PIMPL()
+
+    size_t nTags = numTags();
+    if (nTags == 0) {
+        return nullptr;
+    }
+    else if (index >= nTags) {
+        return nullptr;
+    }
+    else {
+        return &(m_pImpl->tags().at(index));
+    }
+}
+
+bool Note::addTag(const Tag & tag, QString & errorMessage)
+{
+    CHECK_PIMPL()
+    return m_pImpl->addTag(tag, errorMessage);
+}
+
+}
+
+#undef CHECK_PIMPL

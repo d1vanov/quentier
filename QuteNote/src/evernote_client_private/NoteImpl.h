@@ -4,6 +4,7 @@
 #include "../evernote_client/Note.h"
 #include "../evernote_client/Resource.h"
 #include "../evernote_client/ResourceMetadata.h"
+#include "../evernote_client/Tag.h"
 #include "../evernote_client/Guid.h"
 
 namespace qute_note {
@@ -31,6 +32,9 @@ public:
     void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
     bool addResource(const Resource & resource, QString & errorMessage);
 
+    const std::vector<Tag> & tags() const;
+    bool addTag(const Tag & tag, QString & errorMessage);
+
     const Guid & notebookGuid() const;
 
 private:
@@ -43,6 +47,7 @@ private:
     QString m_title;
     QString m_content;
     std::vector<Resource> m_resources;
+    std::vector<Tag> m_tags;
     time_t m_createdTimestamp;
     time_t m_updatedTimestamp;
 };

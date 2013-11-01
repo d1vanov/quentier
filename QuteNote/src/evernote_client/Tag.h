@@ -17,6 +17,8 @@ class Tag: public TypeWithError,
 public:
     Tag(const std::string & name);
     Tag(const std::string & name, const Guid & parentGuid);
+    Tag(const Tag & other);
+    Tag & operator=(const Tag & other);
 
     /**
      * @brief parentGuid - guid of parent tag
@@ -34,8 +36,6 @@ public:
 
 private:
     Tag() = delete;
-    Tag(const Tag & other) = delete;
-    Tag & operator=(const Tag & other) = delete;
 
 private:
     class TagImpl;
