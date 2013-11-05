@@ -9,6 +9,7 @@
 #include <QTextBlock>
 #include <QTextFragment>
 #include <QTextCharFormat>
+#include <QDomDocument>
 #include <QDebug>
 
 namespace enml_private {
@@ -96,6 +97,55 @@ void RichTextToENML(const Note & note, const QuteNoteTextEdit & noteEditor, QStr
     }
 
     ENML.append("</en_note>");
+}
+
+bool ENMLToRichText(const Note & /* note */, const QString & ENML,
+                    QuteNoteTextEdit & noteEditor, QString & errorMessage)
+{
+    std::unique_ptr<QuteNoteTextEdit> pFakeNoteEditor(new QuteNoteTextEdit());
+    QTextDocument * pNoteEditorDoc = noteEditor.document();
+    pFakeNoteEditor.get()->setDocument(pNoteEditorDoc);
+    // QTextCursor cursor(pNoteEditorDoc);
+
+    // Now we have fake note editor object which we can use to iterate through
+    // document using QTextCursor
+
+    QDomDocument enXmlDomDoc;
+    int errorLine = -1, errorColumn = -1;
+    bool res = enXmlDomDoc.setContent(ENML, &errorMessage, &errorLine,
+                                      &errorColumn);
+    if (!res) {
+        errorMessage.append(QString(". Error happened at line ") +
+                            QString::number(errorLine) + QString(", at column ") +
+                            QString::number(errorColumn));
+        return false;
+    }
+
+    QDomElement docElem = enXmlDomDoc.documentElement();
+    QString rootTag = docElem.tagName();
+    if (rootTag != QString("en-note")) {
+        errorMessage = "Wrong root tag, should be \"en-note\", instead: ";
+        errorMessage.append(rootTag);
+        return false;
+    }
+
+    QDomNode nextNode = docElem.firstChild();
+    while(!nextNode.isNull())
+    {
+        QDomElement element = nextNode.toElement();
+        if (!element.isNull())
+        {
+            // TODO: here the piece of HTML content should be formed to be inserted
+            // into the document via QTextCursor
+        }
+        else
+        {
+            errorMessage = "Found QDomNode not convertable to QDomElement";
+            return false;
+        }
+    }
+
+    return true;
 }
 
 }
