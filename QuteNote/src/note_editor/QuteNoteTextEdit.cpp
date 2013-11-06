@@ -1,6 +1,5 @@
 #include "QuteNoteTextEdit.h"
 #include "ToDoCheckboxTextObject.h"
-#include "../evernote_client/enml/ENMLConverter.h"
 #include "../evernote_client/Note.h"
 #include <QMimeData>
 #include <QMouseEvent>
@@ -315,5 +314,5 @@ void QuteNoteTextEdit::setNote(const qute_note::Note & note)
 
 void QuteNoteTextEdit::noteRichTextToENML(QString & ENML) const
 {
-    qute_note::RichTextToENML(*m_pNote, *this, ENML);
+    m_converter.richTextToENML(*m_pNote, *this, ENML);
 }

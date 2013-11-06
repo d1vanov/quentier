@@ -2,6 +2,7 @@
 #define __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H
 
 #include <QTextEdit>
+#include "../evernote_client/enml/ENMLConverter.h"
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QImage)
@@ -52,6 +53,7 @@ private:
 private:
     mutable size_t    m_droppedImageCounter;
     const qute_note::Note * m_pNote;
+    qute_note::ENMLConverter m_converter;
 };
 
 #endif // __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H

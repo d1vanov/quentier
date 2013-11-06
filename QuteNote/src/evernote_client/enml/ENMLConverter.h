@@ -1,18 +1,46 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
 
-class QString;
+#include <set>
+#include <QString>
+
 class QuteNoteTextEdit;
+class QTextFragment;
+class QDomElement;
 
 namespace qute_note {
 
 class Note;
 
-void RichTextToENML(const Note & note, const QuteNoteTextEdit & noteEditor,
-                    QString & ENML);
+class ENMLConverter
+{
+public:
+    ENMLConverter();
+    ENMLConverter(const ENMLConverter & other);
+    ENMLConverter & operator=(const ENMLConverter & other);
 
-bool ENMLToRichText(const Note & note, const QString & ENML,
-                    QuteNoteTextEdit & noteEditor, QString & errorMessage);
+    void richTextToENML(const Note & note, const QuteNoteTextEdit & noteEditor,
+                        QString & ENML) const;
+
+    bool ENMLToRichText(const Note & note, const QString & ENML,
+                        QuteNoteTextEdit & noteEditor, QString & errorMessage) const;
+
+private:
+    void fillTagsLists();
+    void encodeFragment(const QTextFragment & fragment, QString & encodedFragment) const;
+    const QString domElementToRawXML(const QDomElement & elem) const;
+
+    bool isForbiddenXhtmlTag(const QString & tagName) const;
+    bool isForbiddenXhtmlAttribute(const QString & attributeName) const;
+    bool isEvernoteSpecificXhtmlTag(const QString & tagName) const;
+    bool isAllowedXhtmlTag(const QString & tagName) const;
+
+    std::set<QString> m_forbiddenXhtmlTags;
+    std::set<QString> m_forbiddenXhtmlAttributes;
+    std::set<QString> m_evernoteSpecificXhtmlTags;
+    std::set<QString> m_allowedXhtmlTags;
+};
+
 
 }
 
