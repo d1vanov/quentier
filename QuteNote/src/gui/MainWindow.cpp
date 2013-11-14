@@ -8,6 +8,7 @@
 #include "AskUserNameAndPassword.h"
 #include "../SimpleCrypt/src/Simplecrypt.h"
 #include "../client/CredentialsModel.h"
+#include "../tools/QuteNoteCheckPtr.h"
 #include <cmath>
 #include <QPushButton>
 #include <QLabel>
@@ -30,14 +31,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pToDoChkboxTxtObjUnchecked(new ToDoCheckboxTextObjectUnchecked),
     m_pToDoChkboxTxtObjChecked(new ToDoCheckboxTextObjectChecked)
 {
-    Q_CHECK_PTR(m_pUI);
-    Q_CHECK_PTR(m_pAskConsumerKeyAndSecretWidget);
-    Q_CHECK_PTR(m_pAskUserNameAndPasswordWidget);
-    Q_CHECK_PTR(m_pManager);
-    Q_CHECK_PTR(m_pOAuthBrowser);
-    Q_CHECK_PTR(m_pToDoChkboxTxtObjUnchecked);
-    Q_CHECK_PTR(m_pToDoChkboxTxtObjChecked);
-
     m_pUI->setupUi(this);
 
     QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
@@ -479,31 +472,11 @@ void MainWindow::noteChooseSelectedTextColor()
 
 void MainWindow::noteTextInsertToDoCheckBox()
 {
-    QString checkboxUncheckedImgFileName(":/format_text_elements/checkbox_unchecked.gif");
-    QFile checkboxUncheckedImgFile(checkboxUncheckedImgFileName);
-    if (!checkboxUncheckedImgFile.exists()) {
-        QMessageBox::warning(this, tr("Error Opening File"),
-                             tr("Could not open '%1'").arg(checkboxUncheckedImgFileName));
-        return;
-    }
-
-    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    Q_CHECK_PTR(pNoteEdit);
+    QuteNoteTextEdit * pNoteEdit = m_pUI->noteEditWidget;
+    QUTE_NOTE_CHECK_PTR(pNoteEdit, tr("Can't insert ToDo checkbox, note editor is missing"));
 
     QTextCursor cursor = pNoteEdit->textCursor();
-    cursor.beginEditBlock();
-
-    QImage checkboxUncheckedImg(checkboxUncheckedImgFileName);
-    QTextCharFormat toDoCheckboxUncheckedCharFormat;
-    toDoCheckboxUncheckedCharFormat.setObjectType(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_UNCHECKED);
-    toDoCheckboxUncheckedCharFormat.setProperty(QuteNoteTextEdit::TODO_CHKBOX_TXT_DATA_UNCHECKED, checkboxUncheckedImg);
-
-    cursor.insertText(QString(QChar::ObjectReplacementCharacter), toDoCheckboxUncheckedCharFormat);
-    cursor.insertText(" ", QTextCharFormat());
-
-    cursor.endEditBlock();
-
-    pNoteEdit->setTextCursor(cursor);
+    pNoteEdit->insertUncheckedToDoCheckboxAtCursor(cursor);
 }
 
 void MainWindow::noteHtmlContentToStdOut()

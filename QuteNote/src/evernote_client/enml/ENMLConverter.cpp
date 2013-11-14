@@ -138,8 +138,8 @@ bool ENMLConverter::ENMLToRichText(const Note & /* note */, const QString & ENML
     bool res = enXmlDomDoc.setContent(ENML, &errorMessage, &errorLine,
                                       &errorColumn);
     if (!res) {
-        errorMessage.append(QString(". Error happened at line ") +
-                            QString::number(errorLine) + QString(", at column ") +
+        errorMessage.append(QObject::tr(". Error happened at line ") +
+                            QString::number(errorLine) + QObject::tr(", at column ") +
                             QString::number(errorColumn));
         return false;
     }
@@ -147,7 +147,7 @@ bool ENMLConverter::ENMLToRichText(const Note & /* note */, const QString & ENML
     QDomElement docElem = enXmlDomDoc.documentElement();
     QString rootTag = docElem.tagName();
     if (rootTag != QString("en-note")) {
-        errorMessage = "Wrong root tag, should be \"en-note\", instead: ";
+        errorMessage = QObject::tr("Wrong root tag, should be \"en-note\", instead: ");
         errorMessage.append(rootTag);
         return false;
     }
@@ -160,27 +160,37 @@ bool ENMLConverter::ENMLToRichText(const Note & /* note */, const QString & ENML
         {
             QString tagName = element.tagName();
             if (isForbiddenXhtmlTag(tagName)) {
-                errorMessage = "Found forbidden XHTML tag in ENML: ";
+                errorMessage = QObject::tr("Found forbidden XHTML tag in ENML: ");
                 errorMessage.append(tagName);
                 return false;
             }
             else if (isEvernoteSpecificXhtmlTag(tagName)) {
-                // TODO: process accordingly
+                if (tagName == "en-todo")
+                {
+                    QString checked = element.attribute("checked", "false");
+                    if (checked == "true") {
+                        pFakeNoteEditor->insertCheckedToDoCheckboxAtCursor(cursor);
+                    }
+                    else {
+                        pFakeNoteEditor->insertUncheckedToDoCheckboxAtCursor(cursor);
+                    }
+                }
+                // TODO: process other cases appropriately
             }
             else if (isAllowedXhtmlTag(tagName)) {
                 QString elementHtml = domElementToRawXML(element);
                 cursor.insertHtml(elementHtml);
             }
             else {
-                errorMessage = "Internal error: found XHTML tag not listed as either "
-                               "forbidden or allowed one: ";
+                errorMessage = QObject::tr("Found XHTML tag not listed as either "
+                                           "forbidden or allowed one: ");
                 errorMessage.append(tagName);
                 return false;
             }
         }
         else
         {
-            errorMessage = "Found QDomNode not convertable to QDomElement";
+            errorMessage = QObject::tr("Found QDomNode not convertable to QDomElement");
             return false;
         }
     }

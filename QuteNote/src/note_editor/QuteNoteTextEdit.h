@@ -42,6 +42,9 @@ public:
 
     void noteRichTextToENML(QString & ENML) const;
 
+    void insertCheckedToDoCheckboxAtCursor(QTextCursor cursor);
+    void insertUncheckedToDoCheckboxAtCursor(QTextCursor cursor);
+
 protected:
     virtual void keyPressEvent(QKeyEvent * pEvent) final override;
     virtual void mousePressEvent(QMouseEvent * pEvent) final override;
@@ -49,11 +52,15 @@ protected:
 
 private:
     void dropImage(const QUrl & url, const QImage & image);
+    void insertToDoCheckbox(QTextCursor cursor, const bool checked);
+    const QImage & getCheckedTodoCheckboxImg() const;
+    const QImage & getUncheckedTodoCheckboxImg() const;
 
 private:
     mutable size_t    m_droppedImageCounter;
     const qute_note::Note * m_pNote;
     qute_note::ENMLConverter m_converter;
+    std::pair<QImage, QImage> m_todoCheckboxImgs;
 };
 
 #endif // __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H
