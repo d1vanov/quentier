@@ -43,15 +43,17 @@ public:
     const Guid notebookGuid() const;
 
     bool hasAttachedResources() const;
-    size_t numAttachedResources() const;
-    const Resource * getResourceByIndex(const size_t index) const;
+    std::size_t numAttachedResources() const;
+    const Resource * getResourceByIndex(const std::size_t index) const;
     bool addResource(const Resource & resource, QString & errorMessage);
     void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
 
     bool labeledByAnyTag() const;
-    size_t numTags() const;
-    const Tag * getTagByIndex(const size_t index);
+    std::size_t numTags() const;
+    const Tag * getTagByIndex(const std::size_t index);
     bool addTag(const Tag & tag, QString & errorMessage);
+
+    virtual QTextStream & Print(QTextStream & strm) const;
 
 private:
     Note() = delete;

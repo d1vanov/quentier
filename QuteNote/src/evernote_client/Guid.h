@@ -1,12 +1,12 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__GUID_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__GUID_H
 
+#include "../tools/Printable.h"
 #include <string>
-#include <memory>
 
 namespace qute_note {
 
-class Guid
+class Guid: public Printable
 {
 public:
     Guid();
@@ -24,6 +24,8 @@ public:
     Guid(const Guid & other);
 
     Guid & operator=(const Guid & other);
+
+    void setGuidString(const std::string & guid);
 
     /**
      * @brief isEmpty - checks whether Guid is empty
@@ -53,9 +55,9 @@ public:
      */
     bool operator <(const Guid & other) const;
 
+    virtual QTextStream & Print(QTextStream & strm) const;
+
 private:
-
-
     std::string m_guid;
 };
 

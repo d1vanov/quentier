@@ -23,6 +23,11 @@ Guid & Guid::operator=(const Guid & other)
     return *this;
 }
 
+void Guid::setGuidString(const std::string & guid)
+{
+    m_guid = guid;
+}
+
 bool Guid::isEmpty() const
 {
     return m_guid.empty();
@@ -41,6 +46,12 @@ bool Guid::operator !=(const Guid & other) const
 bool Guid::operator <(const Guid & other) const
 {
     return (m_guid < other.m_guid);
+}
+
+QTextStream & Guid::Print(QTextStream & strm) const
+{
+    strm << QString::fromStdString(m_guid);
+    return strm;
 }
 
 }

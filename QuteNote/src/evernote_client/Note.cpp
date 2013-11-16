@@ -52,6 +52,18 @@ bool Note::isEmpty() const
 
 }
 
+const QString Note::title() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->title();
+}
+
+const QString Note::content() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->content();
+}
+
 time_t Note::createdTimestamp() const
 {
     CHECK_PIMPL()
@@ -81,7 +93,7 @@ bool Note::hasAttachedResources() const
     return !(m_pImpl->resources().empty());
 }
 
-size_t Note::numAttachedResources() const
+std::size_t Note::numAttachedResources() const
 {
     CHECK_PIMPL()
 
@@ -130,7 +142,7 @@ bool Note::labeledByAnyTag() const
     return (!tags.empty());
 }
 
-size_t Note::numTags() const
+std::size_t Note::numTags() const
 {
     CHECK_PIMPL()
     const std::vector<Tag> & tags = m_pImpl->tags();
@@ -157,6 +169,42 @@ bool Note::addTag(const Tag & tag, QString & errorMessage)
 {
     CHECK_PIMPL()
     return m_pImpl->addTag(tag, errorMessage);
+}
+
+QTextStream & Note::Print(QTextStream & strm) const
+{
+    SynchronizedDataElement::Print(strm);
+
+    if (HasError()) {
+        strm << "Error: " << GetError() << ".\n";
+    }
+
+    if (m_pImpl == nullptr) {
+        strm << "WARNING: pointer to implementation is null!";
+    }
+    else
+    {
+        strm << "Notebook's guid: " << notebookGuid() << ";\n";
+        strm << "Note title: " << title() << ";\n";
+        strm << "Note's ENML content: {\n";
+        strm << content() << "\n};\n";
+
+        if (hasAttachedResources())
+        {
+            std::size_t numResources = numAttachedResources();
+            for(std::size_t i = 0; i < numResources; ++i)
+            {
+                const Resource * pResource = getResourceByIndex(i);
+                if (pResource == nullptr) {
+                    strm << "WARNING: null resource for index " << static_cast<int>(i) << "\n";
+                    continue;
+                }
+                // else TODO: print resource
+            }
+        }
+    }
+
+    return strm;
 }
 
 }

@@ -1,14 +1,11 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__TYPES__SYNCHRONIZED_DATA_ELEMENT_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__TYPES__SYNCHRONIZED_DATA_ELEMENT_H
 
-#include <cstdint>
-#include <memory>
+#include "Guid.h"
 
 namespace qute_note {
 
-class Guid;
-
-class SynchronizedDataElement
+class SynchronizedDataElement: public Printable
 {
 public:
     SynchronizedDataElement();
@@ -16,7 +13,7 @@ public:
     SynchronizedDataElement & operator=(const SynchronizedDataElement & other);
     virtual ~SynchronizedDataElement();
 
-    unsigned int updateSequenceNumber() const;
+    unsigned int getUpdateSequenceNumber() const;
     void setUpdateSequenceNumber(const unsigned int usn);
 
     /**
@@ -38,7 +35,7 @@ public:
      */
     void setSynchronized();
 
-    const Guid guid() const;
+    const Guid & guid() const;
     void assignGuid(const std::string & guid);
 
     virtual bool isEmpty() const;
@@ -51,10 +48,12 @@ public:
      */
     bool operator<(const SynchronizedDataElement & other);
 
+    virtual QTextStream & Print(QTextStream & strm) const;
+
 private:
     unsigned int  m_updateSequenceNumber;
     bool          m_isDirty;
-    std::unique_ptr<Guid> m_pGuid;
+    Guid          m_guid;
 };
 
 }

@@ -1,18 +1,17 @@
 #include "SynchronizedDataElement.h"
-#include "Guid.h"
 
 namespace qute_note {
 
 SynchronizedDataElement::SynchronizedDataElement() :
     m_updateSequenceNumber(0),
     m_isDirty(true),
-    m_pGuid(new Guid)
+    m_guid()
 {}
 
 SynchronizedDataElement::SynchronizedDataElement(const SynchronizedDataElement & other) :
     m_updateSequenceNumber(other.m_updateSequenceNumber + 1),
     m_isDirty(true),
-    m_pGuid(new Guid)
+    m_guid()
 {}
 
 SynchronizedDataElement & SynchronizedDataElement::operator =(const SynchronizedDataElement & other)
@@ -29,7 +28,7 @@ SynchronizedDataElement & SynchronizedDataElement::operator =(const Synchronized
 SynchronizedDataElement::~SynchronizedDataElement()
 {}
 
-unsigned int SynchronizedDataElement::updateSequenceNumber() const
+unsigned int SynchronizedDataElement::getUpdateSequenceNumber() const
 {
     return m_updateSequenceNumber;
 }
@@ -54,39 +53,34 @@ void SynchronizedDataElement::setSynchronized()
     m_isDirty = false;
 }
 
-const Guid SynchronizedDataElement::guid() const
+const Guid & SynchronizedDataElement::guid() const
 {
-    if (m_pGuid.get() != nullptr) {
-        return *(m_pGuid.get());
-    }
-    else {
-        return Guid();
-    }
+    return m_guid;
 }
 
 void SynchronizedDataElement::assignGuid(const std::string & guid)
 {
-    m_pGuid.reset(new Guid(guid));
+    m_guid.setGuidString(guid);
 }
 
 bool SynchronizedDataElement::isEmpty() const
 {
-    if (m_pGuid.get() != nullptr) {
-        return m_pGuid->isEmpty();
-    }
-    else {
-        return true;
-    }
+    return m_guid.isEmpty();
 }
 
 bool SynchronizedDataElement::operator <(const SynchronizedDataElement & other)
 {
-    if ((m_pGuid.get() != nullptr) && (other.m_pGuid.get() != nullptr)) {
-        return (*m_pGuid < *(other.m_pGuid));
-    }
-    else {
-        return true;
-    }
+    return (m_guid < other.m_guid);
+}
+
+QTextStream & SynchronizedDataElement::Print(QTextStream & strm) const
+{
+    strm << "SynchronizedDataElement: { " << "\n";
+    strm << "  Update sequence number = " << m_updateSequenceNumber << ",\n";
+    strm << "  \"Is dirty\" = " << (m_isDirty ? "true" : "false") << ",\n";
+    strm << "  Guid = " << m_guid << "\n };";
+
+    return strm;
 }
 
 }
