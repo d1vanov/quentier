@@ -215,6 +215,29 @@ bool ENMLConverter::ENMLToRichText(const Note & note, const QString & ENML,
                         return false;
                     }
 
+                    QString hashFromENML = element.attribute("hash");
+                    if (hashFromENML.isEmpty()) {
+                        errorMessage = QObject::tr("\"en-media\" tag has empty \"hash\" attribute");
+                        return false;
+                    }
+
+                    QString hashFromResource = pCurrentResource->dataHash();
+                    if (hashFromResource.isEmpty()) {
+                        errorMessage = QObject::tr("Binary data hash of the resource object is empty");
+                        // TODO: print resource here
+                        return false;
+                    }
+
+                    if (hashFromENML != hashFromResource) {
+                        errorMessage = QObject::tr("Hashes of binary data of the resource differ for ENML "
+                                                   "and the corresponding Resource object. The ENML's hash: ");
+                        errorMessage.append(hashFromENML);
+                        errorMessage.append(QObject::tr(" , resource's hash: "));
+                        errorMessage.append(hashFromResource);
+                        // TODO: print resource here
+                        return false;
+                    }
+
                     ++resourceIndex;
 
                     /*
@@ -232,7 +255,7 @@ bool ENMLConverter::ENMLToRichText(const Note & note, const QString & ENML,
                             errorMessage = QObject::tr("Internal error: mime type of the resource "
                                                        "was marked as the image one but resource's "
                                                        "mime data does not have an image.");
-                            // TODO: print the resource object here
+                            // TODO: print resource here
                             return false;
                         }
 
