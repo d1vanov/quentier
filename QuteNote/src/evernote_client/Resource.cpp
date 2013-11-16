@@ -10,20 +10,23 @@
 
 namespace qute_note {
 
-Resource::Resource(const QString & name, const Guid & noteGuid) :
-    m_pImpl(new ResourceImpl(noteGuid, name, QByteArray(), QString()))
+Resource::Resource(const Guid & noteGuid, const QByteArray & resourceBinaryData,
+                   const QString & resourceMimeType) :
+    m_pImpl(new ResourceImpl(noteGuid, resourceBinaryData, resourceMimeType))
+{}
+
+Resource::Resource(const Guid & noteGuid, const QMimeData & resourceMimeData) :
+    m_pImpl(new ResourceImpl(noteGuid, resourceMimeData))
 {}
 
 Resource::Resource(const Resource & other) :
-    m_pImpl(new ResourceImpl(other.noteGuid(), other.name(),
-                             other.mimeData().data(other.mimeType()),
-                             other.mimeType()))
+    m_pImpl(new ResourceImpl(other.noteGuid(), other.mimeData()))
 {}
 
 Resource & Resource::operator=(const Resource &other)
 {
     if (this != &other) {
-        m_pImpl.reset(new ResourceImpl(other.noteGuid(), other.name(),
+        m_pImpl.reset(new ResourceImpl(other.noteGuid(),
                                        other.mimeData().data(other.mimeType()),
                                        other.mimeType()));
     }
@@ -33,22 +36,6 @@ Resource & Resource::operator=(const Resource &other)
 
 Resource::~Resource()
 {}
-
-const QString Resource::name() const
-{
-    if (m_pImpl.get() == nullptr) {
-        return QString();
-    }
-    else {
-        return m_pImpl->name();
-    }
-}
-
-void Resource::setData(const QByteArray & resourceBinaryData, const QString & mimeType)
-{
-    CHECK_POINTER_TO_IMPL()
-    m_pImpl->setData(resourceBinaryData, mimeType);
-}
 
 const QString Resource::dataHash() const
 {

@@ -19,31 +19,26 @@ class Resource: public SynchronizedDataElement
 public:
     /**
      * @brief Resource - constructor accepting the guid of note to which the resource corresponds
-     * @param name - name of the resource.
+     * and binary data of the resource in the form of QByteArray object
      * @param noteGuid - the guid of note to which the resource corresponds
-     */
-    Resource(const QString & name, const Guid & noteGuid);
-
-    Resource(const Resource & other);
-
-    Resource & operator=(const Resource & other);
-
-    virtual ~Resource() final override;
-
-    /**
-     * @brief name - returns the name of the resource
-     */
-    const QString name() const;
-
-    /**
-     * @brief setData - assign binary data to the resource
      * @param resourceBinaryData - binary data to be associated with the resource
      * @param resourceMimeType - optional string representation of mime data of the resource.
      * For example, "text/plain", "text/html" etc.
-     * @throw can throw QuteNoteNullPtrException if pointer to implementation is null by occasion
      */
-    void setData(const QByteArray & resourceBinaryData,
-                 const QString & resourceMimeType = QString());
+    Resource(const Guid & noteGuid, const QByteArray & resourceBinaryData,
+             const QString & resourceMimeType);
+
+    /**
+     * @brief Resource - constructor accepting the guid of note to which the resource corresponds
+     * and binary data of the resource in the form of QMimeData
+     * @param noteGuid - the guid of note to which the resource corresponds
+     * @param resourceMimeData - binary data to be associated with the resource
+     */
+    Resource(const Guid & noteGuid, const QMimeData & resourceMimeData);
+
+    Resource(const Resource & other);
+    Resource & operator=(const Resource & other);
+    virtual ~Resource() final override;
 
     /**
      * @brief dataHash - returns the MD5-hash of binary data corresponding to the resource
@@ -61,8 +56,14 @@ public:
     const Guid noteGuid() const;
 
     /**
-     * @brief mimeData - returns the mime data of the resource
+     * @brief mimeData - returns the reference to mime data of the resource
      * @throw can throw QuteNoteNullPtrException if pointer to implementation is null by occasion
+     *
+     * NOTE: this method actually uses lazy initialization, i.e. the actual binary data
+     * exists in memory only after this method has been called at least once. The binary data
+     * is stored in SQL database and does not exist in memory unless this method has been called.
+     * After it's been called, the binary data extracted from the SQL database is kept in memory
+     * until the resource object is destroyed
      */
     const QMimeData & mimeData() const;
 

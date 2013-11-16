@@ -122,7 +122,7 @@ void ENMLConverter::richTextToENML(const Note & note, const QuteNoteTextEdit & n
     ENML.append("</en_note>");
 }
 
-bool ENMLConverter::ENMLToRichText(const Note & /* note */, const QString & ENML,
+bool ENMLConverter::ENMLToRichText(const Note & note, const QString & ENML,
                                    QuteNoteTextEdit & noteEditor, QString & errorMessage) const
 {
     std::unique_ptr<QuteNoteTextEdit> pFakeNoteEditor(new QuteNoteTextEdit());
@@ -152,6 +152,10 @@ bool ENMLConverter::ENMLToRichText(const Note & /* note */, const QString & ENML
         return false;
     }
 
+    bool noteHasAttachedResources = note.hasAttachedResources();
+    std::size_t numAttachedResources = note.numAttachedResources();
+    std::size_t resourceIndex = 0;
+
     QDomNode nextNode = docElem.firstChild();
     while(!nextNode.isNull())
     {
@@ -164,7 +168,8 @@ bool ENMLConverter::ENMLToRichText(const Note & /* note */, const QString & ENML
                 errorMessage.append(tagName);
                 return false;
             }
-            else if (isEvernoteSpecificXhtmlTag(tagName)) {
+            else if (isEvernoteSpecificXhtmlTag(tagName))
+            {
                 if (tagName == "en-todo")
                 {
                     QString checked = element.attribute("checked", "false");
@@ -175,7 +180,83 @@ bool ENMLConverter::ENMLToRichText(const Note & /* note */, const QString & ENML
                         pFakeNoteEditor->insertUncheckedToDoCheckboxAtCursor(cursor);
                     }
                 }
-                // TODO: process other cases appropriately
+                else if (tagName == "en-crypt")
+                {
+                    // TODO: support encrypted note content
+                    errorMessage = QObject::tr("Encrypted note content is not supported in QuteNote yet");
+                    return false;
+                }
+                else if (tagName == "en-note")
+                {
+                    errorMessage = QObject::tr("Internal error: en-note should be the root node of note\'s ENML");
+                    return false;
+                }
+                else if (tagName == "en-media")
+                {
+                    if (!noteHasAttachedResources) {
+                        errorMessage = QObject::tr("Internal error: note reported no attached resources "
+                                                   "but \"en-media\" tag was found in its ENML. ");
+                        // TODO: print note here
+                        return false;
+                    }
+
+                    if (resourceIndex >= numAttachedResources) {
+                        errorMessage = QObject::tr("Internal error: the index of the next resource ");
+                        errorMessage.append(static_cast<int>(resourceIndex));
+                        errorMessage.append(QObject::tr(" must be smaller than the number of resources "
+                                                        "attached to the note."));
+                        return false;
+                    }
+
+                    const Resource * pCurrentResource = note.getResourceByIndex(resourceIndex);
+                    if (pCurrentResource == nullptr) {
+                        errorMessage = QObject::tr("Cannot get pointer to resource with index ");
+                        errorMessage.append(QString::number(resourceIndex));
+                        return false;
+                    }
+
+                    ++resourceIndex;
+
+                    /*
+                    std::size_t width  = pCurrentResource->width();
+                    std::size_t height = pCurrentResource->height();
+                    */
+                    QString mimeType = pCurrentResource->mimeType();
+                    // This should be enough, we don't need the actual binary data just to display the resource
+                    // The only exceptions are resources of image type
+
+                    if (mimeType.contains("image/"))
+                    {
+                        const QMimeData & resourceMimeData = pCurrentResource->mimeData();
+                        if (!resourceMimeData.hasImage()) {
+                            errorMessage = QObject::tr("Internal error: mime type of the resource "
+                                                       "was marked as the image one but resource's "
+                                                       "mime data does not have an image.");
+                            // TODO: print the resource object here
+                            return false;
+                        }
+
+                        QImage resourceImg = qvariant_cast<QImage>(resourceMimeData.imageData());
+                        QTextImageFormat resourceImgFormat;
+                        resourceImgFormat.setWidth(resourceImg.width());
+                        resourceImgFormat.setHeight(resourceImg.height());
+
+                        QTextCursor cursor = pFakeNoteEditor->textCursor();
+                        cursor.insertImage(resourceImgFormat);
+                    }
+                    else
+                    {
+                        // TODO: somehow display the metadata of the resource inside the QuteNoteTextEdit object
+                    }
+                }
+                else
+                {
+                    errorMessage = QObject::tr("Internal error: found some ENML tag specified as "
+                                               "Evernote-specific one but not en-note, en-crypt, "
+                                               "en-media or en-todo: ");
+                    errorMessage.append(tagName);
+                    return false;
+                }
             }
             else if (isAllowedXhtmlTag(tagName)) {
                 QString elementHtml = domElementToRawXML(element);

@@ -42,7 +42,8 @@ bool Note::isEmpty() const
             return true;
         }
 
-        // TODO: think what else can and should be checked here
+        // NOTE: should not check for emptiness of title or text:
+        // notes with these ones empty are completely legal for Evernote service
         return false;
     }
     else {

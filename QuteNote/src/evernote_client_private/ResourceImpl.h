@@ -8,13 +8,15 @@
 
 namespace qute_note {
 
+// FIXME: it's a stub until the storage mechanism is implemented. The this class will need a complete revamp
 class Resource::ResourceImpl
 {
 public:
     ResourceImpl(const Guid & noteGuid,
-                 const QString & resourceName,
                  const QByteArray & resourceBinaryData,
                  const QString & resourceMimeType);
+
+    ResourceImpl(const Guid & noteGuid, const QMimeData & resourceMimeData);
 
     ResourceImpl(const ResourceImpl & other);
 
@@ -36,7 +38,6 @@ private:
     ResourceImpl() = delete;
 
     Guid        m_noteGuid;
-    QString     m_resourceName;
     QString     m_resourceMimeType;
     QMimeData   m_resourceMimeData;
 };
