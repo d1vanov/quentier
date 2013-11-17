@@ -107,10 +107,19 @@ void ENMLConverter::richTextToENML(const Note & note, const QuteNoteTextEdit & n
 
                 ++resourceIndex;
             }
-            else if (currentFragment.isValid()) {
+            else if (currentFragment.isValid())
+            {
                 QString encodedCurrentFragment;
-                encodeFragment(currentFragment, encodedCurrentFragment);
-                ENML.append(encodedCurrentFragment);
+                QString errorMessage;
+                bool res = encodeFragment(currentFragment, encodedCurrentFragment,
+                                          errorMessage);
+                if (!res) {
+                    // TODO: should process error message better
+                    qWarning() << errorMessage;
+                }
+                else {
+                    ENML.append(encodedCurrentFragment);
+                }
             }
             else {
                 qWarning() << "Found invalid QTextFragment during encoding note content to ENML! Ignoring it...";
@@ -135,8 +144,7 @@ bool ENMLConverter::ENMLToRichText(const Note & note, const QString & ENML,
 
     QDomDocument enXmlDomDoc;
     int errorLine = -1, errorColumn = -1;
-    bool res = enXmlDomDoc.setContent(ENML, &errorMessage, &errorLine,
-                                      &errorColumn);
+    bool res = enXmlDomDoc.setContent(ENML, &errorMessage, &errorLine, &errorColumn);
     if (!res) {
         errorMessage.append(QObject::tr(". Error happened at line ") +
                             QString::number(errorLine) + QObject::tr(", at column ") +
@@ -425,10 +433,60 @@ void ENMLConverter::fillTagsLists()
     m_allowedXhtmlTags.insert("xmp");
 }
 
-void ENMLConverter::encodeFragment(const QTextFragment & /* fragment */,
-                                   QString & /* encodedFragment */) const
+bool ENMLConverter::encodeFragment(const QTextFragment & fragment,
+                                   QString & encodedFragment,
+                                   QString & errorMessage) const
 {
-    // TODO: implement
+    if (!fragment.isValid()) {
+        errorMessage = QObject::tr("Cannot encode ENML fragment: fragment is not valid: ");
+        errorMessage.append(fragment.text());
+        return false;
+    }
+
+    QTextCharFormat format = fragment.charFormat();
+    QString text = fragment.text();
+
+    QTextEdit fakeTextEdit;
+    QTextCursor cursor = fakeTextEdit.textCursor();
+    cursor.insertText(text, format);
+
+    QString html = fakeTextEdit.toHtml();
+
+    // Erasing redundant html tags added by Qt's internal method
+    QDomDocument htmlXmlDoc;
+    int errorLine = -1, errorColumn = -1;
+    bool res = htmlXmlDoc.setContent(html, &errorMessage, &errorLine, &errorColumn);
+    if (!res) {
+        errorMessage.append(QObject::tr(". Error happened at line ") +
+                            QString::number(errorLine) + QObject::tr(", at column ") +
+                            QString::number(errorColumn));
+        return false;
+    }
+
+    encodedFragment.clear();
+
+    QDomElement element = htmlXmlDoc.documentElement();
+    QDomNode nextNode = element.firstChild();
+    while(!nextNode.isNull())
+    {
+        element = nextNode.toElement();
+        if (!element.isNull())
+        {
+            QString tagName = element.tagName();
+            if ( (tagName != "html") &&
+                 (tagName != "head") &&
+                 (tagName != "meta") )
+            {
+                QString elementRawXml = domElementToRawXML(element);
+                encodedFragment.append(elementRawXml);
+            }
+        }
+
+        nextNode = element.firstChild();
+    }
+
+    // TODO: verify that encodedFragment has only allowed tags and attributes
+    return true;
 }
 
 const QString ENMLConverter::domElementToRawXML(const QDomElement & elem) const

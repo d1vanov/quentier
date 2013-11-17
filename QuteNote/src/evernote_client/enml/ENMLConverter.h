@@ -27,7 +27,8 @@ public:
 
 private:
     void fillTagsLists();
-    void encodeFragment(const QTextFragment & fragment, QString & encodedFragment) const;
+    bool encodeFragment(const QTextFragment & fragment, QString & encodedFragment,
+                        QString & errorMessage) const;
     const QString domElementToRawXML(const QDomElement & elem) const;
 
     bool isForbiddenXhtmlTag(const QString & tagName) const;
