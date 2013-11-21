@@ -10,10 +10,13 @@ namespace qute_note {
 class DatabaseManager
 {
 public:
-    DatabaseManager();
+    DatabaseManager(const QString & username);
     ~DatabaseManager();
 
 private:
+    bool CreateTables(QString & errorDescription);
+
+    DatabaseManager() = delete;
     DatabaseManager(const DatabaseManager & other) = delete;
     DatabaseManager & operator=(const DatabaseManager & other) = delete;
 
