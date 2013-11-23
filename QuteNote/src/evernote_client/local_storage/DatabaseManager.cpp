@@ -1,5 +1,6 @@
 #include "DatabaseManager.h"
 #include "DatabaseOpeningException.h"
+#include "DatabaseSqlErrorException.h"
 
 #ifdef USE_QT5
 #include <QStandardPaths>
@@ -14,17 +15,27 @@ namespace qute_note {
 DatabaseManager::DatabaseManager(const QString & username) :
     m_applicationPersistenceStoragePath(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
 {
+    bool needsInitializing = false;
+
     m_applicationPersistenceStoragePath.append("/" + username);
+    QDir databaseFolder(m_applicationPersistenceStoragePath);
+    if (!databaseFolder.exists())
+    {
+        needsInitializing = true;
+        if (!databaseFolder.mkpath(m_applicationPersistenceStoragePath)) {
+            throw DatabaseOpeningException(QObject::tr("Cannot create folder "
+                                                       "to store local storage  database."));
+        }
+    }
+
     m_sqlDatabase.addDatabase("QSQLITE");
     QString databaseFileName = m_applicationPersistenceStoragePath + QString("/") +
                                QString(QUTE_NOTE_DATABASE_NAME);
     QFile databaseFile(databaseFileName);
 
-    bool needsInitializing = false;
     if (!databaseFile.exists())
     {
         needsInitializing = true;
-
         if (!databaseFile.open(QIODevice::ReadWrite)) {
             throw DatabaseOpeningException(QObject::tr("Cannot create local storage database: ") +
                                            databaseFile.errorString());
@@ -39,11 +50,18 @@ DatabaseManager::DatabaseManager(const QString & username) :
                                        lastErrorText);
     }
 
+    QSqlQuery query(m_sqlDatabase);
+    if (!query.exec("PRAGMA foreign_keys = ON")) {
+        throw DatabaseSqlErrorException(QObject::tr("Cannot set foreign_keys = ON pragma "
+                                                    "for Sql local storage database"));
+    }
+
     if (needsInitializing)
     {
         QString errorDescription;
         if (!CreateTables(errorDescription)) {
-            // TODO: create and throw exception indicating Sql error
+            throw DatabaseSqlErrorException(QObject::tr("Cannot initialize tables in Sql database: ") +
+                                            errorDescription);
         }
     }
 }
