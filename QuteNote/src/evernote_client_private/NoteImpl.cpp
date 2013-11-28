@@ -12,9 +12,12 @@ Note::NoteImpl::NoteImpl(const Notebook & notebook) :
     m_resources(),
     m_tags(),
     m_createdTimestamp(),
-    m_updatedTimestamp()
+    m_updatedTimestamp(),
+    m_subjectDateTimestamp(),
+    m_location()
 {
     initializeTimestamps();
+    m_subjectDateTimestamp = m_createdTimestamp;
 }
 
 Note::NoteImpl::NoteImpl(const NoteImpl & other) :
@@ -24,7 +27,9 @@ Note::NoteImpl::NoteImpl(const NoteImpl & other) :
     m_resources(other.m_resources),
     m_tags(other.m_tags),
     m_createdTimestamp(),
-    m_updatedTimestamp()
+    m_updatedTimestamp(),
+    m_subjectDateTimestamp(other.m_subjectDateTimestamp),
+    m_location(other.m_location)
 {
     initializeTimestamps();
 }
@@ -38,6 +43,8 @@ Note::NoteImpl & Note::NoteImpl::operator=(const NoteImpl & other)
         m_content = other.m_content;
         m_resources = other.m_resources;
         m_tags = other.m_tags;
+        m_subjectDateTimestamp = other.m_subjectDateTimestamp;
+        m_location = other.m_location;
 
         updateTimestamp();
     }
@@ -75,6 +82,21 @@ time_t Note::NoteImpl::createdTimestamp() const
 time_t Note::NoteImpl::updatedTimestamp() const
 {
     return m_updatedTimestamp;
+}
+
+time_t Note::NoteImpl::subjectDateTimestamp() const
+{
+    return m_subjectDateTimestamp;
+}
+
+const Location & Note::NoteImpl::location() const
+{
+    return m_location;
+}
+
+Location & Note::NoteImpl::location()
+{
+    return m_location;
 }
 
 const std::vector<Resource> & Note::NoteImpl::resources() const

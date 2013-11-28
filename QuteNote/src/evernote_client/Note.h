@@ -31,14 +31,41 @@ public:
     void setTitle(const QString & title);
 
     /**
-     * @brief content - returns content of the note in ENML format
-     * @return
+     * @return content of the note in ENML format
      */
     const QString content() const;
     void setContent(const QString & content);
 
     time_t createdTimestamp() const;
     time_t updatedTimestamp() const;
+
+    /**
+     * @return timestamp of the date to which the note refers to
+     */
+    time_t subjectDateTimestamp() const;
+
+    /**
+     * @return latitude of the location the note refers to
+     */
+    double latitude() const;
+    void setLatitude(const double latitude);
+
+    /**
+     * @return longitude of the location the note refers to
+     */
+    double longitude() const;
+    void setLongitude(const double longitude);
+
+    /**
+     * @return altitude of the location the note refers to
+     */
+    double altitude() const;
+    void setAltitude(const double altitude);
+
+    /**
+     * @return true if location markers are valid for this note, false otherwise
+     */
+    bool hasValidLocationMarks() const;
 
     const Guid notebookGuid() const;
 

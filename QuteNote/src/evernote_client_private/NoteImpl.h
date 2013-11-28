@@ -6,6 +6,7 @@
 #include "../evernote_client/ResourceMetadata.h"
 #include "../evernote_client/Tag.h"
 #include "../evernote_client/Guid.h"
+#include "Location.h"
 
 namespace qute_note {
 
@@ -27,6 +28,10 @@ public:
 
     time_t createdTimestamp() const;
     time_t updatedTimestamp() const;
+    time_t subjectDateTimestamp() const;
+
+    const Location & location() const;
+    Location & location();
 
     const std::vector<Resource> & resources() const;
     void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
@@ -43,13 +48,16 @@ private:
     void initializeTimestamps();
     void updateTimestamp();
 
-    Guid    m_notebookGuid;
-    QString m_title;
-    QString m_content;
+    Guid     m_notebookGuid;
+    QString  m_title;
+    QString  m_content;
+    QString  m_author;
     std::vector<Resource> m_resources;
-    std::vector<Tag> m_tags;
-    time_t m_createdTimestamp;
-    time_t m_updatedTimestamp;
+    std::vector<Tag>      m_tags;
+    time_t   m_createdTimestamp;
+    time_t   m_updatedTimestamp;
+    time_t   m_subjectDateTimestamp;
+    Location m_location;
 };
 
 }

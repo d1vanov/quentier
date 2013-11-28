@@ -76,6 +76,54 @@ time_t Note::updatedTimestamp() const
     return m_pImpl->updatedTimestamp();
 }
 
+time_t Note::subjectDateTimestamp() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->subjectDateTimestamp();
+}
+
+double Note::latitude() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->location().latitude();
+}
+
+void Note::setLatitude(const double latitude)
+{
+    CHECK_PIMPL()
+    m_pImpl->location().setLatitude(latitude);
+}
+
+double Note::longitude() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->location().longitude();
+}
+
+void Note::setLongitude(const double longitude)
+{
+    CHECK_PIMPL()
+    m_pImpl->location().setLongitude(longitude);
+}
+
+double Note::altitude() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->location().altitude();
+}
+
+void Note::setAltitude(const double altitude)
+{
+    CHECK_PIMPL()
+    m_pImpl->location().setAltitude(altitude);
+}
+
+bool Note::hasValidLocationMarks() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->location().isValid();
+}
+
 const Guid Note::notebookGuid() const
 {
     if (m_pImpl != nullptr) {
@@ -89,7 +137,6 @@ const Guid Note::notebookGuid() const
 bool Note::hasAttachedResources() const
 {
     CHECK_PIMPL()
-
     return !(m_pImpl->resources().empty());
 }
 

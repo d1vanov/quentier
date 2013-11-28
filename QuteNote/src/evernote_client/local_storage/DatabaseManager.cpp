@@ -114,7 +114,35 @@ bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
             return false;
         }
 
-        // TODO: update Notes table as well
+        noteAddQueryStr = QString("INSERT INTO Notes (guid, usn, title, isDirty, "
+                                  "body, creationDate, modificationDate, subjectDate, "
+                                  "altitude, latitude, longitude, author, source, "
+                                  "sourceUrl, sourceApplication, isDeleted, notebook) "
+                                  "VALUES(%1, %2, %3, %4, %5, %6, %7, %8, %9, %10, "
+                                  "%11, %12, %13, %14, %15, %16)");
+        noteAddQueryStr = noteAddQueryStr.arg("%1", noteGuid.ToQString());
+        noteAddQueryStr = noteAddQueryStr.arg("%2", note.getUpdateSequenceNumber());
+        noteAddQueryStr = noteAddQueryStr.arg("%3", note.title());
+        noteAddQueryStr = noteAddQueryStr.arg("%4", (note.isDirty() ? QString::number(1) : QString::number(0)));
+        noteAddQueryStr = noteAddQueryStr.arg("%5", note.content());
+        noteAddQueryStr = noteAddQueryStr.arg("%6", note.createdTimestamp());
+        noteAddQueryStr = noteAddQueryStr.arg("%7", note.updatedTimestamp());
+        noteAddQueryStr = noteAddQueryStr.arg("%8", note.subjectDateTimestamp());
+
+        if (note.hasValidLocationMarks())
+        {
+            noteAddQueryStr = noteAddQueryStr.arg("%9", note.altitude());
+            noteAddQueryStr = noteAddQueryStr.arg("%10", note.latitude());
+            noteAddQueryStr = noteAddQueryStr.arg("%11", note.longitude());
+        }
+        else
+        {
+            noteAddQueryStr = noteAddQueryStr.arg("%9", QString());
+            noteAddQueryStr = noteAddQueryStr.arg("%10", QString());
+            noteAddQueryStr = noteAddQueryStr.arg("%11", QString());
+        }
+
+        // TODO: continue with other columns
     }
 
     return true;

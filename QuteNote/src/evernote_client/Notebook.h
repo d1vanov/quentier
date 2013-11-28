@@ -13,6 +13,9 @@ public:
     Notebook();
 
     virtual bool isEmpty() const;
+
+    // TODO: create pimpl to NotebookImpl, in NotebookPimpl hold a ref to NoteStore
+    // whicn in turn would be able to tell the name of the owner of this notebook
 };
 
 }
