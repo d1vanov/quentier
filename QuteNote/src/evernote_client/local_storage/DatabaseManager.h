@@ -6,12 +6,16 @@
 
 namespace qute_note {
 
+class Note;
+
 // TODO: implement all the necessary functionality
 class DatabaseManager
 {
 public:
     DatabaseManager(const QString & username);
     ~DatabaseManager();
+
+    bool AddNote(const Note & note, QString & errorDescription);
 
 private:
     bool CreateTables(QString & errorDescription);

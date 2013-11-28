@@ -1,6 +1,7 @@
 #include "DatabaseManager.h"
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
+#include "../Note.h"
 
 #ifdef USE_QT5
 #include <QStandardPaths>
@@ -73,6 +74,52 @@ DatabaseManager::~DatabaseManager()
     }
 }
 
+bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
+{
+    const Guid notebookGuid = note.notebookGuid();
+    if (notebookGuid.isEmpty()) {
+        errorDescription = QObject::tr("Notebook guid is empty");
+        return false;
+    }
+
+    const Guid noteGuid = note.guid();
+    if (noteGuid.isEmpty()) {
+        errorDescription = QObject::tr("Note guid is empty");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+
+    QString noteExistenceCheckQueryStr("SELECT ROWID FROM Notes WHERE guid = %1");
+    noteExistenceCheckQueryStr = noteExistenceCheckQueryStr.arg("%1", noteGuid.ToQString());
+    bool res = query.exec(noteExistenceCheckQueryStr);
+    if (res)
+    {
+        // TODO: Replace note
+    }
+    else
+    {
+        QString noteAddQueryStr("INSERT INTO NoteText (guid, title, body, notebook) "
+                                "VALUES(%1, %2, %3, %4)");
+        noteAddQueryStr = noteAddQueryStr.arg("%1", noteGuid.ToQString());
+        noteAddQueryStr = noteAddQueryStr.arg("%2", note.title());
+        noteAddQueryStr = noteAddQueryStr.arg("%3", note.content());
+        noteAddQueryStr = noteAddQueryStr.arg("%4", notebookGuid.ToQString());
+
+        res = query.exec(noteAddQueryStr);
+        if (!res)
+        {
+            errorDescription = QObject::tr("Can't add note to local storage database: ");
+            errorDescription.append(m_sqlDatabase.lastError().text());
+            return false;
+        }
+
+        // TODO: update Notes table as well
+    }
+
+    return true;
+}
+
 bool DatabaseManager::CreateTables(QString & errorDescription)
 {
     QSqlQuery query(m_sqlDatabase);
@@ -109,8 +156,10 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR()
 
     res = query.exec("CREATE VIRTUAL TABLE NoteText USING fts3("
+                     "  guid              TEXT PRIMARY KEY     NOT NULL, "
                      "  title             TEXT, "
                      "  body              TEXT, "
+                     "  notebook REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR()
 
@@ -119,7 +168,7 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
                      "  usn               INTEGER              NOT NULL, "
                      "  title             TEXT, "
                      "  isDirty           INTEGER              NOT NULL, "
-                     "  body              TEXT                 NOT NULL, "
+                     "  body              TEXT, "
                      "  creationDate      TEXT                 NOT NULL, "
                      "  modificationDate  TEXT                 NOT NULL, "
                      "  subjectDate       TEXT                 NOT NULL, "
