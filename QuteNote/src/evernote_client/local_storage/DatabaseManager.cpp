@@ -94,7 +94,7 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
                      "  updateCount      INTEGER            DEFAULT 0, "
                      "  isDefault        INTEGER            DEFAULT 0, "
                      "  isLastUsed       INTEGER            DEFAULT 0"
-                     ");");
+                     ")");
     DATABASE_CHECK_AND_SET_ERROR()
 
     res = query.exec("CREATE TRIGGER ReplaceNotebook BEFORE INSERT ON Notebooks"
@@ -108,32 +108,79 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
                      "  END");
     DATABASE_CHECK_AND_SET_ERROR()
 
-    query.exec("CREATE TABLE IF NOT EXISTS Notes("
-               "  guid              TEXT PRIMARY KEY     NOT NULL, "
-               "  usn               INTEGER              NOT NULL, "
-               "  title             TEXT, "
-               "  isDirty           INTEGER              NOT NULL, "
-               "  body              TEXT                 NOT NULL, "
-               "  creationDate      TEXT                 NOT NULL, "
-               "  modificationDate  TEXT                 NOT NULL, "
-               "  subjectDate       TEXT                 NOT NULL, "
-               "  altitude          REAL, "
-               "  latitude          REAL, "
-               "  longitude         REAL, "
-               "  author            TEXT                 NOT NULL, "
-               "  source            TEXT, "
-               "  sourceUrl,        TEXT, "
-               "  sourceApplication TEXT, "
-               "  isDeleted         INTEGER              DEFAULT 0, "
-               "  notebook REFERENCES Notebooks(guid), "
-               "ON DELETE CASCADE ON UPDATE CASCADE"
-               ");");
+    res = query.exec("CREATE VIRTUAL TABLE NoteText USING fts3("
+                     "  title             TEXT, "
+                     "  body              TEXT, "
+                     ")");
+    DATABASE_CHECK_AND_SET_ERROR()
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS Notes("
+                     "  guid              TEXT PRIMARY KEY     NOT NULL, "
+                     "  usn               INTEGER              NOT NULL, "
+                     "  title             TEXT, "
+                     "  isDirty           INTEGER              NOT NULL, "
+                     "  body              TEXT                 NOT NULL, "
+                     "  creationDate      TEXT                 NOT NULL, "
+                     "  modificationDate  TEXT                 NOT NULL, "
+                     "  subjectDate       TEXT                 NOT NULL, "
+                     "  altitude          REAL, "
+                     "  latitude          REAL, "
+                     "  longitude         REAL, "
+                     "  author            TEXT                 NOT NULL, "
+                     "  source            TEXT, "
+                     "  sourceUrl,        TEXT, "
+                     "  sourceApplication TEXT, "
+                     "  isDeleted         INTEGER              DEFAULT 0, "
+                     "  notebook REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE"
+                     ")");
     DATABASE_CHECK_AND_SET_ERROR()
 
     res = query.exec("CREATE INDEX NotesNotebooks ON Notes(notebook)");
     DATABASE_CHECK_AND_SET_ERROR()
 
-    // TODO: proceed with other tables
+    res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
+                     "  guid              TEXT PRIMARY KEY     NOT NULL, "
+                     "  hash              TEXT UNIQUE          NOT NULL, "
+                     "  data              TEXT, "
+                     "  mime              TEXT                 NOT NULL, "
+                     "  width             INTEGER              NOT NULL, "
+                     "  height            INTEGER              NOT NULL, "
+                     "  sourceUrl         TEXT, "
+                     "  timestamp         INTEGER              NOT NULL, "
+                     "  altitude          REAL, "
+                     "  latitude          REAL, "
+                     "  longitude         REAL, "
+                     "  fileName          TEXT, "
+                     "  isAttachment      INTEGER              NOT NULL, "
+                     "  note REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE"
+                     ")");
+    DATABASE_CHECK_AND_SET_ERROR()
+
+    res = query.exec("CREATE INDEX ResourcesNote ON Resources(note)");
+    DATABASE_CHECK_AND_SET_ERROR()
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
+                     "  guid              TEXT PRIMARY KEY     NOT NULL, "
+                     "  usn               INTEGER              NOT NULL, "
+                     "  name              TEXT                 NOT NULL, "
+                     "  parentGuid        TEXT"
+                     "  searchName        TEXT UNIQUE          NOT NULL, "
+                     "  isDirty           INTEGER              NOT NULL"
+                     ")");
+    DATABASE_CHECK_AND_SET_ERROR()
+
+    res = query.exec("CREATE INDEX TagsSearchName ON Tags(searchName)");
+    DATABASE_CHECK_AND_SET_ERROR()
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS NoteTags("
+                     "  note REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  tag  REFERENCES Tags(guid)  ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  UNIQUE(note, tag) ON CONFLICT REPLACE"
+                     ")");
+    DATABASE_CHECK_AND_SET_ERROR()
+
+    res = query.exec("CREATE INDEX NoteTagsNote ON NoteTags(note)");
+    DATABASE_CHECK_AND_SET_ERROR()
 
 #undef DATABASE_CHECK_AND_SET_ERROR
 
