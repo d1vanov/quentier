@@ -69,6 +69,25 @@ public:
 
     const Guid notebookGuid() const;
 
+    /**
+     * @return name of author of the note
+     */
+    const QString author() const;
+    void setAuthor(const QString & author);
+
+    /**
+     * @brief As Evernote API reference says, source is "the method that the note was added
+     * to the account, if the note wasn't directly authored in an Evernote desktop client."
+     */
+    const QString source() const;
+    void setSource(const QString & source);
+
+    const QString sourceUrl() const;
+    void setSourceUrl(const QString & sourceUrl);
+
+    const QString sourceApplication() const;
+    void setSourceApplication(const QString & sourceApplication);
+
     bool hasAttachedResources() const;
     std::size_t numAttachedResources() const;
     const Resource * getResourceByIndex(const std::size_t index) const;
@@ -79,6 +98,10 @@ public:
     std::size_t numTags() const;
     const Tag * getTagByIndex(const std::size_t index);
     bool addTag(const Tag & tag, QString & errorMessage);
+
+    bool isDeleted() const;
+    void deleteNote();
+    void undeleteNote();
 
     virtual QTextStream & Print(QTextStream & strm) const;
 

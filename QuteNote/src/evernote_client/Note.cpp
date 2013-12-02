@@ -126,12 +126,50 @@ bool Note::hasValidLocationMarks() const
 
 const Guid Note::notebookGuid() const
 {
-    if (m_pImpl != nullptr) {
-        return m_pImpl->notebookGuid();
-    }
-    else {
-        return Guid();
-    }
+    CHECK_PIMPL()
+    return m_pImpl->notebookGuid();
+}
+
+const QString Note::author() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->author();
+}
+
+const QString Note::source() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->source();
+}
+
+void Note::setSource(const QString & source)
+{
+    CHECK_PIMPL()
+    m_pImpl->setSource(source);
+}
+
+const QString Note::sourceUrl() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->sourceUrl();
+}
+
+void Note::setSourceUrl(const QString & sourceUrl)
+{
+    CHECK_PIMPL()
+    return m_pImpl->setSourceUrl(sourceUrl);
+}
+
+const QString Note::sourceApplication() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->sourceApplication();
+}
+
+void Note::setSourceApplication(const QString & sourceApplication)
+{
+    CHECK_PIMPL()
+    m_pImpl->setSourceApplication(sourceApplication);
 }
 
 bool Note::hasAttachedResources() const
@@ -216,6 +254,24 @@ bool Note::addTag(const Tag & tag, QString & errorMessage)
 {
     CHECK_PIMPL()
     return m_pImpl->addTag(tag, errorMessage);
+}
+
+bool Note::isDeleted() const
+{
+    CHECK_PIMPL()
+    return m_pImpl->isDeleted();
+}
+
+void Note::deleteNote()
+{
+    CHECK_PIMPL()
+    m_pImpl->setDeletedFlag(true);
+}
+
+void Note::undeleteNote()
+{
+    CHECK_PIMPL()
+    m_pImpl->setDeletedFlag(false);
 }
 
 QTextStream & Note::Print(QTextStream & strm) const

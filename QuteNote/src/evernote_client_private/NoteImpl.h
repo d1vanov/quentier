@@ -26,6 +26,18 @@ public:
     const QString & content() const;
     void setContent(const QString & content);
 
+    const QString & author() const;
+    void setAuthor(const QString & author);
+
+    const QString & source() const;
+    void setSource(const QString & source);
+
+    const QString & sourceUrl() const;
+    void setSourceUrl(const QString & sourceUrl);
+
+    const QString & sourceApplication() const;
+    void setSourceApplication(const QString & sourceApplication);
+
     time_t createdTimestamp() const;
     time_t updatedTimestamp() const;
     time_t subjectDateTimestamp() const;
@@ -41,6 +53,9 @@ public:
     bool addTag(const Tag & tag, QString & errorMessage);
 
     const Guid & notebookGuid() const;
+
+    bool isDeleted() const;
+    void setDeletedFlag(const bool isDeleted);
 
 private:
     NoteImpl() = delete;
@@ -58,6 +73,10 @@ private:
     time_t   m_updatedTimestamp;
     time_t   m_subjectDateTimestamp;
     Location m_location;
+    QString  m_source;
+    QString  m_sourceUrl;
+    QString  m_sourceApplication;
+    bool     m_isDeleted;
 };
 
 }

@@ -109,7 +109,8 @@ bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
         res = query.exec(noteAddQueryStr);
         if (!res)
         {
-            errorDescription = QObject::tr("Can't add note to local storage database: ");
+            errorDescription = QObject::tr("Can't add note to NoteText table in "
+                                           "local storage database: ");
             errorDescription.append(m_sqlDatabase.lastError().text());
             return false;
         }
@@ -119,7 +120,7 @@ bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
                                   "altitude, latitude, longitude, author, source, "
                                   "sourceUrl, sourceApplication, isDeleted, notebook) "
                                   "VALUES(%1, %2, %3, %4, %5, %6, %7, %8, %9, %10, "
-                                  "%11, %12, %13, %14, %15, %16)");
+                                  "%11, %12, %13, %14, %15, %16, %17)");
         noteAddQueryStr = noteAddQueryStr.arg("%1", noteGuid.ToQString());
         noteAddQueryStr = noteAddQueryStr.arg("%2", note.getUpdateSequenceNumber());
         noteAddQueryStr = noteAddQueryStr.arg("%3", note.title());
@@ -142,7 +143,23 @@ bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
             noteAddQueryStr = noteAddQueryStr.arg("%11", QString());
         }
 
-        // TODO: continue with other columns
+        noteAddQueryStr = noteAddQueryStr.arg("%12", note.author());
+        noteAddQueryStr = noteAddQueryStr.arg("%13", note.source());
+        noteAddQueryStr = noteAddQueryStr.arg("%14", note.sourceUrl());
+        noteAddQueryStr = noteAddQueryStr.arg("%15", note.sourceApplication());
+        noteAddQueryStr = noteAddQueryStr.arg("%16", (note.isDeleted()
+                                                      ? QString::number(1)
+                                                      : QString::number(0)));
+        noteAddQueryStr = noteAddQueryStr.arg("%17", note.notebookGuid().ToQString());
+
+        res = query.exec(noteAddQueryStr);
+        if (!res)
+        {
+            errorDescription = QObject::tr("Can't add note to Notes table in "
+                                           "local storage database: ");
+            errorDescription.append(m_sqlDatabase.lastError().text());
+            return false;
+        }
     }
 
     return true;

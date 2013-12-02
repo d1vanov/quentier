@@ -9,12 +9,17 @@ Note::NoteImpl::NoteImpl(const Notebook & notebook) :
     m_notebookGuid(notebook.guid()),
     m_title(),
     m_content(),
+    m_author(),
     m_resources(),
     m_tags(),
     m_createdTimestamp(),
     m_updatedTimestamp(),
     m_subjectDateTimestamp(),
-    m_location()
+    m_location(),
+    m_source(),
+    m_sourceUrl(),
+    m_sourceApplication(),
+    m_isDeleted(false)
 {
     initializeTimestamps();
     m_subjectDateTimestamp = m_createdTimestamp;
@@ -24,12 +29,16 @@ Note::NoteImpl::NoteImpl(const NoteImpl & other) :
     m_notebookGuid(other.m_notebookGuid),
     m_title(other.m_title),
     m_content(other.m_content),
+    m_author(other.m_author),
     m_resources(other.m_resources),
     m_tags(other.m_tags),
     m_createdTimestamp(),
     m_updatedTimestamp(),
     m_subjectDateTimestamp(other.m_subjectDateTimestamp),
-    m_location(other.m_location)
+    m_location(other.m_location),
+    m_source(other.m_source),
+    m_sourceUrl(other.m_sourceUrl),
+    m_sourceApplication(other.m_sourceApplication)
 {
     initializeTimestamps();
 }
@@ -41,10 +50,14 @@ Note::NoteImpl & Note::NoteImpl::operator=(const NoteImpl & other)
         m_notebookGuid = other.m_notebookGuid;
         m_title = other.m_title;
         m_content = other.m_content;
+        m_author = other.m_author;
         m_resources = other.m_resources;
         m_tags = other.m_tags;
         m_subjectDateTimestamp = other.m_subjectDateTimestamp;
         m_location = other.m_location;
+        m_source = other.m_source;
+        m_sourceUrl = other.m_sourceUrl;
+        m_sourceApplication = other.m_sourceApplication;
 
         updateTimestamp();
     }
@@ -72,6 +85,46 @@ void Note::NoteImpl::setContent(const QString & content)
 {
     m_content = content;
     updateTimestamp();
+}
+
+const QString & Note::NoteImpl::author() const
+{
+    return m_author;
+}
+
+void Note::NoteImpl::setAuthor(const QString & author)
+{
+    m_author = author;
+}
+
+const QString & Note::NoteImpl::source() const
+{
+    return m_source;
+}
+
+void Note::NoteImpl::setSource(const QString & source)
+{
+    m_source = source;
+}
+
+const QString & Note::NoteImpl::sourceUrl() const
+{
+    return m_sourceUrl;
+}
+
+void Note::NoteImpl::setSourceUrl(const QString & sourceUrl)
+{
+    m_sourceUrl = sourceUrl;
+}
+
+const QString & Note::NoteImpl::sourceApplication() const
+{
+    return m_sourceApplication;
+}
+
+void Note::NoteImpl::setSourceApplication(const QString & sourceApplication)
+{
+    m_sourceApplication = sourceApplication;
 }
 
 time_t Note::NoteImpl::createdTimestamp() const
@@ -161,6 +214,16 @@ bool Note::NoteImpl::addTag(const Tag & tag, QString & errorMessage)
 const Guid & Note::NoteImpl::notebookGuid() const
 {
     return m_notebookGuid;
+}
+
+bool Note::NoteImpl::isDeleted() const
+{
+    return m_isDeleted;
+}
+
+void Note::NoteImpl::setDeletedFlag(const bool isDeleted)
+{
+    m_isDeleted = isDeleted;
 }
 
 void Note::NoteImpl::initializeTimestamps()
