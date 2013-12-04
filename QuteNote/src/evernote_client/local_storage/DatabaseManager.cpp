@@ -130,7 +130,7 @@ bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
         noteAddQueryStr = noteAddQueryStr.arg("%7", note.updatedTimestamp());
         noteAddQueryStr = noteAddQueryStr.arg("%8", note.subjectDateTimestamp());
 
-        if (note.hasValidLocationMarks())
+        if (note.hasValidLocation())
         {
             noteAddQueryStr = noteAddQueryStr.arg("%9", note.altitude());
             noteAddQueryStr = noteAddQueryStr.arg("%10", note.latitude());

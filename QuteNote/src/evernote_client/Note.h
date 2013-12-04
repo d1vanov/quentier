@@ -1,13 +1,13 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_H
 
-#include <memory>
 #include <cstdint>
 #include <cstddef>
 #include <vector>
 #include <ctime>
 #include "../tools/TypeWithError.h"
 #include "SynchronizedDataElement.h"
+#include <QScopedPointer>
 
 namespace qute_note {
 
@@ -17,13 +17,15 @@ class ResourceMetadata;
 class Notebook;
 class Tag;
 
-class Note: public TypeWithError,
-            public SynchronizedDataElement
+class NotePrivate;
+class Note final: public TypeWithError,
+                  public SynchronizedDataElement
 {
 public:
     Note(const Notebook & notebook);
     Note(const Note & other);
     Note & operator =(const Note & other);
+    ~Note();
 
     virtual bool isEmpty() const;
 
@@ -65,7 +67,7 @@ public:
     /**
      * @return true if location markers are valid for this note, false otherwise
      */
-    bool hasValidLocationMarks() const;
+    bool hasValidLocation() const;
 
     const Guid notebookGuid() const;
 
@@ -92,11 +94,10 @@ public:
     std::size_t numAttachedResources() const;
     const Resource * getResourceByIndex(const std::size_t index) const;
     bool addResource(const Resource & resource, QString & errorMessage);
-    void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
 
     bool labeledByAnyTag() const;
     std::size_t numTags() const;
-    const Tag * getTagByIndex(const std::size_t index);
+    const Tag * getTagByIndex(const std::size_t index) const;
     bool addTag(const Tag & tag, QString & errorMessage);
 
     bool isDeleted() const;
@@ -108,8 +109,8 @@ public:
 private:
     Note() = delete;
 
-    class NoteImpl;
-    std::unique_ptr<NoteImpl> m_pImpl;
+    const QScopedPointer<NotePrivate> d_ptr;
+    Q_DECLARE_PRIVATE(Note)
 };
 
 }
