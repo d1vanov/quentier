@@ -16,9 +16,11 @@ public:
     ~DatabaseManager();
 
     bool AddNote(const Note & note, QString & errorDescription);
+    bool ReplaceNote(const Note & note, QString & errorDescription);
 
 private:
     bool CreateTables(QString & errorDescription);
+    void NoteAttributesToQueryString(const Note & note, QString & queryString);
 
     DatabaseManager() = delete;
     DatabaseManager(const DatabaseManager & other) = delete;

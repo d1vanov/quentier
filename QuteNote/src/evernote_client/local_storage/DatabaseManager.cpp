@@ -74,19 +74,22 @@ DatabaseManager::~DatabaseManager()
     }
 }
 
-bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
-{
-    const Guid notebookGuid = note.notebookGuid();
-    if (notebookGuid.isEmpty()) {
-        errorDescription = QObject::tr("Notebook guid is empty");
-        return false;
+#define CHECK_NOTE_ATTRIBUTES(note) \
+    const Guid notebookGuid = note.notebookGuid(); \
+    if (notebookGuid.isEmpty()) { \
+        errorDescription = QObject::tr("Notebook guid is empty"); \
+        return false; \
+    } \
+    \
+    const Guid noteGuid = note.guid(); \
+    if (noteGuid.isEmpty()) { \
+        errorDescription = QObject::tr("Note guid is empty"); \
+        return false; \
     }
 
-    const Guid noteGuid = note.guid();
-    if (noteGuid.isEmpty()) {
-        errorDescription = QObject::tr("Note guid is empty");
-        return false;
-    }
+bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
+{
+    CHECK_NOTE_ATTRIBUTES(note);
 
     QSqlQuery query(m_sqlDatabase);
 
@@ -95,7 +98,7 @@ bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
     bool res = query.exec(noteExistenceCheckQueryStr);
     if (res)
     {
-        // TODO: Replace note
+        return ReplaceNote(note, errorDescription);
     }
     else
     {
@@ -121,36 +124,7 @@ bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
                                   "sourceUrl, sourceApplication, isDeleted, notebook) "
                                   "VALUES(%1, %2, %3, %4, %5, %6, %7, %8, %9, %10, "
                                   "%11, %12, %13, %14, %15, %16, %17)");
-        noteAddQueryStr = noteAddQueryStr.arg("%1", noteGuid.ToQString());
-        noteAddQueryStr = noteAddQueryStr.arg("%2", note.getUpdateSequenceNumber());
-        noteAddQueryStr = noteAddQueryStr.arg("%3", note.title());
-        noteAddQueryStr = noteAddQueryStr.arg("%4", (note.isDirty() ? QString::number(1) : QString::number(0)));
-        noteAddQueryStr = noteAddQueryStr.arg("%5", note.content());
-        noteAddQueryStr = noteAddQueryStr.arg("%6", note.createdTimestamp());
-        noteAddQueryStr = noteAddQueryStr.arg("%7", note.updatedTimestamp());
-        noteAddQueryStr = noteAddQueryStr.arg("%8", note.subjectDateTimestamp());
-
-        if (note.hasValidLocation())
-        {
-            noteAddQueryStr = noteAddQueryStr.arg("%9", note.altitude());
-            noteAddQueryStr = noteAddQueryStr.arg("%10", note.latitude());
-            noteAddQueryStr = noteAddQueryStr.arg("%11", note.longitude());
-        }
-        else
-        {
-            noteAddQueryStr = noteAddQueryStr.arg("%9", QString());
-            noteAddQueryStr = noteAddQueryStr.arg("%10", QString());
-            noteAddQueryStr = noteAddQueryStr.arg("%11", QString());
-        }
-
-        noteAddQueryStr = noteAddQueryStr.arg("%12", note.author());
-        noteAddQueryStr = noteAddQueryStr.arg("%13", note.source());
-        noteAddQueryStr = noteAddQueryStr.arg("%14", note.sourceUrl());
-        noteAddQueryStr = noteAddQueryStr.arg("%15", note.sourceApplication());
-        noteAddQueryStr = noteAddQueryStr.arg("%16", (note.isDeleted()
-                                                      ? QString::number(1)
-                                                      : QString::number(0)));
-        noteAddQueryStr = noteAddQueryStr.arg("%17", note.notebookGuid().ToQString());
+        NoteAttributesToQueryString(note, noteAddQueryStr);
 
         res = query.exec(noteAddQueryStr);
         if (!res)
@@ -163,6 +137,59 @@ bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
     }
 
     return true;
+}
+
+bool DatabaseManager::ReplaceNote(const Note & note, QString & errorDescription)
+{
+    CHECK_NOTE_ATTRIBUTES(note);
+
+    QSqlQuery query(m_sqlDatabase);
+
+    QString noteExistenceCheckQueryStr("SELECT ROWID FROM Notes WHERE guid = %1");
+    noteExistenceCheckQueryStr = noteExistenceCheckQueryStr.arg("%1", noteGuid.ToQString());
+    bool res = query.exec(noteExistenceCheckQueryStr);
+    if (res)
+    {
+        QString noteTextReplaceQueryStr("INSERT OR REPLACE INTO NotesText (guid, title, "
+                                        "body, notebook) VALUES(%1, %2, %3, %4)");
+        noteTextReplaceQueryStr = noteTextReplaceQueryStr.arg("%1", note.guid().ToQString());
+        noteTextReplaceQueryStr = noteTextReplaceQueryStr.arg("%2", note.title());
+        noteTextReplaceQueryStr = noteTextReplaceQueryStr.arg("%3", note.content());
+        noteTextReplaceQueryStr = noteTextReplaceQueryStr.arg("%4", note.notebookGuid().ToQString());
+
+        res = query.exec(noteTextReplaceQueryStr);
+        if  (!res)
+        {
+            errorDescription = QObject::tr("Can't replace note in NotesText table in "
+                                           "local storage database: ");
+            errorDescription.append(m_sqlDatabase.lastError().text());
+            return false;
+        }
+
+        QString noteReplaceQueryStr("INSERT OR REPLACE INTO Notes (guid, usn, title, isDirty, "
+                                    "body, creationDate, modificationDate, subjectDate, "
+                                    "altitude, latitude, longitude, author, source, "
+                                    "sourceUrl, sourceApplication, isDeleted, notebook) "
+                                    "VALUES(%1, %2, %3, %4, %5, %6, %7, %8, %9, %10, "
+                                    "%11, %12, %13, %14, %15, %16, %17)");
+        NoteAttributesToQueryString(note, noteReplaceQueryStr);
+
+        res = query.exec(noteReplaceQueryStr);
+        if (!res)
+        {
+            errorDescription = QObject::tr("Can't replace note in Notes table in "
+                                           "local storage database: ");
+            errorDescription.append(m_sqlDatabase.lastError().text());
+            return false;
+        }
+
+        return true;
+    }
+    else
+    {
+        errorDescription = QObject::tr("Can't replace note: it doesn't exist yet");
+        return false;
+    }
 }
 
 bool DatabaseManager::CreateTables(QString & errorDescription)
@@ -278,7 +305,41 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
 
 #undef DATABASE_CHECK_AND_SET_ERROR
 
-    return true;
+            return true;
+}
+
+void DatabaseManager::NoteAttributesToQueryString(const Note & note, QString & queryString)
+{
+    queryString = queryString.arg("%1", note.guid().ToQString());
+    queryString = queryString.arg("%2", note.getUpdateSequenceNumber());
+    queryString = queryString.arg("%3", note.title());
+    queryString = queryString.arg("%4", (note.isDirty() ? QString::number(1) : QString::number(0)));
+    queryString = queryString.arg("%5", note.content());
+    queryString = queryString.arg("%6", note.createdTimestamp());
+    queryString = queryString.arg("%7", note.updatedTimestamp());
+    queryString = queryString.arg("%8", note.subjectDateTimestamp());
+
+    if (note.hasValidLocation())
+    {
+        queryString = queryString.arg("%9", note.altitude());
+        queryString = queryString.arg("%10", note.latitude());
+        queryString = queryString.arg("%11", note.longitude());
+    }
+    else
+    {
+        queryString = queryString.arg("%9", QString());
+        queryString = queryString.arg("%10", QString());
+        queryString = queryString.arg("%11", QString());
+    }
+
+    queryString = queryString.arg("%12", note.author());
+    queryString = queryString.arg("%13", note.source());
+    queryString = queryString.arg("%14", note.sourceUrl());
+    queryString = queryString.arg("%15", note.sourceApplication());
+    queryString = queryString.arg("%16", (note.isDeleted()
+                                                  ? QString::number(1)
+                                                  : QString::number(0)));
+    queryString = queryString.arg("%17", note.notebookGuid().ToQString());
 }
 
 }
