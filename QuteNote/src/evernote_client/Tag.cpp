@@ -1,63 +1,81 @@
 #include "Tag.h"
-#include "../evernote_client_private/TagImpl.h"
+#include "Guid.h"
 
 namespace qute_note {
 
-Tag::Tag(const std::string & name) :
-    m_pImpl(new TagImpl(name))
+class TagPrivate
+{
+public:
+    TagPrivate(const QString & name);
+    TagPrivate(const QString & name, const Guid & parentGuid);
+
+    QString m_name;
+    Guid    m_parentGuid;
+
+private:
+    TagPrivate() = delete;
+    TagPrivate(const TagPrivate & other) = delete;
+    TagPrivate & operator=(const TagPrivate & other) = delete;
+};
+
+Tag::Tag(const QString & name) :
+    d_ptr(new TagPrivate(name))
 {}
 
-Tag::Tag(const std::string & name, const Guid & parentGuid) :
-    m_pImpl(new TagImpl(name, parentGuid))
+Tag::Tag(const QString &name, const Tag & parent) :
+    d_ptr(new TagPrivate(name, parent.guid()))
 {}
 
 Tag::Tag(const Tag & other) :
-    m_pImpl(nullptr)
-{
-    m_pImpl.reset(new TagImpl(other.name(), other.parentGuid()));
-}
+    d_ptr(new TagPrivate(other.name(), other.parentGuid()))
+{}
 
 Tag & Tag::operator=(const Tag & other)
 {
-    if (this != &other) {
-        m_pImpl.reset(new TagImpl(other.name(), other.parentGuid()));
+    if (this != &other)
+    {
+        Q_D(Tag);
+        d->m_name = other.name();
+        d->m_parentGuid = other.parentGuid();
     }
 
     return *this;
 }
 
+Tag::~Tag()
+{}
+
 const Guid Tag::parentGuid() const
 {
-    if (m_pImpl != nullptr) {
-        return m_pImpl->parentGuid();
-    }
-    else {
-        return Guid();
-    }
+    Q_D(const Tag);
+    return d->m_parentGuid;
 }
 
-const std::string Tag::name() const
+const QString Tag::name() const
 {
-    if (m_pImpl != nullptr) {
-        return m_pImpl->name();
-    }
-    else {
-        return std::string();
-    }
+    Q_D(const Tag);
+    return d->m_name;
 }
 
-void Tag::setName(const std::string & name)
+void Tag::rename(const QString & name)
 {
-    if (m_pImpl != nullptr) {
-        m_pImpl->setName(name);
-    }
+    Q_D(Tag);
+    d->m_name = name;
 }
 
-void Tag::setParentGuid(const Guid & parentGuid)
+void Tag::setParent(const Tag & parent)
 {
-    if (m_pImpl != nullptr) {
-        m_pImpl->setParentGuid(parentGuid);
-    }
+    Q_D(Tag);
+    d->m_parentGuid = parent.guid();
 }
+
+TagPrivate::TagPrivate(const QString & name) :
+    m_name(name)
+{}
+
+TagPrivate::TagPrivate(const QString & name, const Guid & parentGuid) :
+    m_name(name),
+    m_parentGuid(parentGuid)
+{}
 
 }

@@ -55,7 +55,6 @@ set(${PROJECT_NAME}_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/UserImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/NoteStoreImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/ResourceImpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/TagImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Location.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.h
@@ -104,7 +103,6 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseSqlErrorException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/EvernoteServiceManagerImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/ResourceImpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/TagImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Location.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.cpp

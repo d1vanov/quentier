@@ -25,7 +25,7 @@ public:
     Note(const Notebook & notebook);
     Note(const Note & other);
     Note & operator =(const Note & other);
-    ~Note();
+    virtual ~Note();
 
     virtual bool isEmpty() const;
 

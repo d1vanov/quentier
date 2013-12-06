@@ -1,24 +1,24 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__TAG_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__TAG_H
 
-#include <memory>
-#include <string>
 #include "../tools/TypeWithError.h"
 #include "SynchronizedDataElement.h"
+#include <QScopedPointer>
 
 namespace qute_note {
 
 class Guid;
-class TagImpl;
 
+class TagPrivate;
 class Tag: public TypeWithError,
            public SynchronizedDataElement
 {
 public:
-    Tag(const std::string & name);
-    Tag(const std::string & name, const Guid & parentGuid);
+    Tag(const QString & name);
+    Tag(const QString & name, const Tag & parent);
     Tag(const Tag & other);
     Tag & operator=(const Tag & other);
+    virtual ~Tag();
 
     /**
      * @brief parentGuid - guid of parent tag
@@ -29,17 +29,16 @@ public:
     /**
      * @brief name - name of tag
      */
-    const std::string name() const;
+    const QString name() const;
 
-    void setName(const std::string & name);
-    void setParentGuid(const Guid & parentGuid);
+    void setParent(const Tag & parent);
+    void rename(const QString & name);
 
 private:
     Tag() = delete;
 
-private:
-    class TagImpl;
-    std::unique_ptr<TagImpl> m_pImpl;
+    const QScopedPointer<TagPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(Tag)
 };
 
 }

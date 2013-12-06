@@ -1,8 +1,8 @@
+#include "Tag.h"
 #include "Note.h"
-#include "../evernote_client_private/Location.h"
-#include "../evernote_client_private/TagImpl.h"
 #include "Resource.h"
 #include "Notebook.h"
+#include "../evernote_client_private/Location.h"
 #include <QTranslator>
 #include <QDateTime>
 
