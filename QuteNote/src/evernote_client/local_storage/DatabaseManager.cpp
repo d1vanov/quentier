@@ -93,7 +93,7 @@ bool DatabaseManager::AddNotebook(const Notebook & notebook, QString & errorDesc
 {
     CHECK_GUID(notebook, "Notebook");
 
-    // Check the existence of the notebook prior to attempt to add it
+    // Check the existence of the notebook prior to attempting to add it
     bool res = ReplaceNotebook(notebook, errorDescription);
     if (res) {
         return true;
@@ -130,20 +130,35 @@ bool DatabaseManager::ReplaceNotebook(const Notebook & notebook, QString & error
     DATABASE_CHECK_AND_SET_ERROR("Can't check the existence of notebook "
                                  "in local storage database");
 
-    if (query.next())
-    {
-        int rowId = query.value(0).toInt(&res);
-        if (!res || (rowId < 0)) {
-            errorDescription = QObject::tr("Can't get rowId from SQL selection query result");
-            return false;
-        }
-
-        return ReplaceNotebookAtRowId(rowId, notebook, errorDescription);
-    }
-    else {
-        errorDescription = QObject::tr("Can't replace notebook: can't find existing notebook");
+    if (!query.next()) {
+        errorDescription = QObject::tr("Can't replace notebook: can't find notebook "
+                                       "in local storage database");
         return false;
     }
+
+    int rowId = query.value(0).toInt(&res);
+    if (!res || (rowId < 0)) {
+        errorDescription = QObject::tr("Can't get rowId from SQL selection query result");
+        return false;
+    }
+
+    query.clear();
+    query.prepare("UPDATE Notebooks SET guid=?, usn=?, name=?, creationTimestamp=?, "
+                  "modificationTimestamp=?, isDirty=?, isLocal=?, isDefault=?, isLastUsed=?");
+    query.addBindValue(notebook.guid().ToQString());
+    query.addBindValue(notebook.getUpdateSequenceNumber());
+    query.addBindValue(notebook.name());
+    query.addBindValue(QVariant(static_cast<int>(notebook.createdTimestamp())));
+    query.addBindValue(QVariant(static_cast<int>(notebook.updatedTimestamp())));
+    query.addBindValue((notebook.isDirty() ? 1 : 0));
+    query.addBindValue((notebook.isLocal() ? 1 : 0));
+    query.addBindValue((notebook.isDefault() ? 1 : 0));
+    query.addBindValue((notebook.isLastUsed() ? 1 : 0));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't update Notebooks table: ");
+
+    return true;
 }
 
 #define CHECK_NOTE_ATTRIBUTES(note) \
@@ -158,45 +173,36 @@ bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
 {
     CHECK_NOTE_ATTRIBUTES(note);
 
+    // Check the existence of the note prior to attempting to add it
+    bool res = ReplaceNote(note, errorDescription);
+    if (res) {
+        return true;
+    }
+    errorDescription.clear();
+
     Guid noteGuid = note.guid();
+
     QSqlQuery query(m_sqlDatabase);
+    query.prepare("INSERT INTO NoteText (guid, title, body, notebook) "
+                  "VALUES(?, ?, ?, ?)");
+    query.addBindValue(noteGuid.ToQString());
+    query.addBindValue(note.title());
+    query.addBindValue(note.content());
+    query.addBindValue(notebookGuid.ToQString());
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't add note to NoteText table in local storage database: ");
 
-    QString noteExistenceCheckQueryStr("SELECT rowid FROM Notes WHERE guid = %1");
-    noteExistenceCheckQueryStr = noteExistenceCheckQueryStr.arg("%1", noteGuid.ToQString());
-    bool res = query.exec(noteExistenceCheckQueryStr);
-    if (res)
-    {
-        return ReplaceNote(note, errorDescription);
-    }
-    else
-    {
-        QString noteAddQueryStr("INSERT INTO NoteText (guid, title, body, notebook) "
-                                "VALUES(%1, %2, %3, %4)");
-        noteAddQueryStr = noteAddQueryStr.arg("%1", noteGuid.ToQString());
-        noteAddQueryStr = noteAddQueryStr.arg("%2", note.title());
-        noteAddQueryStr = noteAddQueryStr.arg("%3", note.content());
-        noteAddQueryStr = noteAddQueryStr.arg("%4", notebookGuid.ToQString());
+    query.clear();
+    query.prepare("INSERT INTO Notes (guid, usn, title, isDirty, "
+                  "isLocal, body, creationTimestamp, modificationTimestamp, "
+                  "subjectDate, altitude, latitude, longitude, author, source, "
+                  "sourceUrl, sourceApplication, isDeleted, notebook) "
+                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                  "?, ?, ?, ?, ?, ?, ?, ?)");
+    NoteAttributesToQuery(note, query);
 
-        res = query.exec(noteAddQueryStr);
-        if (!res)
-        {
-            errorDescription = QObject::tr("Can't add note to NoteText table in "
-                                           "local storage database: ");
-            errorDescription.append(m_sqlDatabase.lastError().text());
-            return false;
-        }
-
-        noteAddQueryStr = QString("INSERT INTO Notes (guid, usn, title, isDirty, "
-                                  "isLocal, body, creationTimestamp, modificationTimestamp, "
-                                  "subjectDate, altitude, latitude, longitude, author, source, "
-                                  "sourceUrl, sourceApplication, isDeleted, notebook) "
-                                  "VALUES(%1, %2, %3, %4, %5, %6, %7, %8, %9, %10, "
-                                  "%11, %12, %13, %14, %15, %16, %17, %18)");
-        NoteAttributesToQueryString(note, noteAddQueryStr);
-
-        res = query.exec(noteAddQueryStr);
-        DATABASE_CHECK_AND_SET_ERROR("Can't add note to Notes table in local storage database: ");
-    }
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't add note to Notes table in local storage database: ");
 
     return true;
 }
@@ -206,43 +212,53 @@ bool DatabaseManager::ReplaceNote(const Note & note, QString & errorDescription)
     CHECK_NOTE_ATTRIBUTES(note);
 
     Guid noteGuid = note.guid();
+
     QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT rowid FROM Notes WHERE guid = ?");
+    query.addBindValue(noteGuid.ToQString());
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't check note for existence in local storage database: ");
 
-    QString noteExistenceCheckQueryStr("SELECT rowid FROM Notes WHERE guid = %1");
-    noteExistenceCheckQueryStr = noteExistenceCheckQueryStr.arg("%1", noteGuid.ToQString());
-    bool res = query.exec(noteExistenceCheckQueryStr);
-    if (res)
-    {
-        QString noteTextReplaceQueryStr("INSERT OR REPLACE INTO NotesText (guid, title, "
-                                        "body, notebook) VALUES(%1, %2, %3, %4)");
-        noteTextReplaceQueryStr = noteTextReplaceQueryStr.arg("%1", note.guid().ToQString());
-        noteTextReplaceQueryStr = noteTextReplaceQueryStr.arg("%2", note.title());
-        noteTextReplaceQueryStr = noteTextReplaceQueryStr.arg("%3", note.content());
-        noteTextReplaceQueryStr = noteTextReplaceQueryStr.arg("%4", note.notebookGuid().ToQString());
-
-        res = query.exec(noteTextReplaceQueryStr);
-        DATABASE_CHECK_AND_SET_ERROR("Can't replace note in NotesText table in local "
-                                     "storage database: ");
-
-        QString noteReplaceQueryStr("INSERT OR REPLACE INTO Notes (guid, usn, title, "
-                                    "isDirty, isLocal, body, creationTimestamp, "
-                                    "modificationTimestamp, subjectDate, altitude, "
-                                    "latitude, longitude, author, source, sourceUrl, "
-                                    "sourceApplication, isDeleted, notebook) "
-                                    "VALUES(%1, %2, %3, %4, %5, %6, %7, %8, %9, %10, "
-                                    "%11, %12, %13, %14, %15, %16, %17, %18)");
-        NoteAttributesToQueryString(note, noteReplaceQueryStr);
-
-        res = query.exec(noteReplaceQueryStr);
-        DATABASE_CHECK_AND_SET_ERROR("Can't replace note in Notes table in local "
-                                     "storage database: ");
-        return true;
-    }
-    else
-    {
-        errorDescription = QObject::tr("Can't replace note: it doesn't exist yet");
+    if (!query.next()) {
+        errorDescription = QObject::tr("Can't replace note: can't find note "
+                                       "in local storage database");
         return false;
     }
+
+    int rowId = query.value(0).toInt(&res);
+    if (!res || (rowId < 0)) {
+        errorDescription = QObject::tr("Can't replace note: can't get row id from "
+                                       "SQL query result");
+        return false;
+    }
+
+    query.clear();
+    query.prepare("INSERT OR REPLACE INTO NotesText (guid, title, "
+                  "body, notebook) VALUES(?, ?, ?, ?)");
+    query.addBindValue(noteGuid.ToQString());
+    query.addBindValue(note.title());
+    query.addBindValue(note.content());
+    query.addBindValue(note.notebookGuid().ToQString());
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't replace note in NotesText table in local "
+                                 "storage database: ");
+
+    query.clear();
+    query.prepare("INSERT OR REPLACE INTO Notes (guid, usn, title, "
+                  "isDirty, isLocal, body, creationTimestamp, "
+                  "modificationTimestamp, subjectDate, altitude, "
+                  "latitude, longitude, author, source, sourceUrl, "
+                  "sourceApplication, isDeleted, notebook) "
+                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                  "?, ?, ?, ?, ?, ?, ?, ?)");
+    NoteAttributesToQuery(note, query);
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't replace note in Notes table in local "
+                                 "storage database: ");
+
+    return true;
 }
 
 bool DatabaseManager::DeleteNote(const Note & note, QString & errorDescription)
@@ -420,68 +436,37 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
     return true;
 }
 
-bool DatabaseManager::ReplaceNotebookAtRowId(const int rowId, const Notebook & notebook,
-                                             QString & errorDescription)
+void DatabaseManager::NoteAttributesToQuery(const Note & note, QSqlQuery & query)
 {
-    CHECK_GUID(notebook, "Notebook");
-
-    if (rowId < 0) {
-        errorDescription = QObject::tr("Can't replace notebook: row id is negative");
-        return false;
-    }
-
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("UPDATE Notebooks SET guid=?, usn=?, name=?, creationTimestamp=?, "
-                  "modificationTimestamp=?, isDirty=?, isLocal=?, isDefault=?, isLastUsed=?");
-    query.addBindValue(notebook.guid().ToQString());
-    query.addBindValue(notebook.getUpdateSequenceNumber());
-    query.addBindValue(notebook.name());
-    query.addBindValue(QVariant(static_cast<int>(notebook.createdTimestamp())));
-    query.addBindValue(QVariant(static_cast<int>(notebook.updatedTimestamp())));
-    query.addBindValue((notebook.isDirty() ? 1 : 0));
-    query.addBindValue((notebook.isLocal() ? 1 : 0));
-    query.addBindValue((notebook.isDefault() ? 1 : 0));
-    query.addBindValue((notebook.isLastUsed() ? 1 : 0));
-
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't update Notebooks table: ");
-
-    return true;
-}
-
-void DatabaseManager::NoteAttributesToQueryString(const Note & note, QString & queryString)
-{
-    queryString = queryString.arg("%1", note.guid().ToQString());
-    queryString = queryString.arg("%2", note.getUpdateSequenceNumber());
-    queryString = queryString.arg("%3", note.title());
-    queryString = queryString.arg("%4", (note.isDirty() ? QString::number(1) : QString::number(0)));
-    queryString = queryString.arg("%5", (note.isLocal() ? QString::number(1) : QString::number(0)));
-    queryString = queryString.arg("%6", note.content());
-    queryString = queryString.arg("%7", note.createdTimestamp());
-    queryString = queryString.arg("%8", note.updatedTimestamp());
-    queryString = queryString.arg("%9", note.subjectDateTimestamp());
+    query.addBindValue(note.guid().ToQString());
+    query.addBindValue(note.getUpdateSequenceNumber());
+    query.addBindValue(note.title());
+    query.addBindValue(QVariant(static_cast<int>(note.isDirty() ? 1 : 0)));
+    query.addBindValue(QVariant(static_cast<int>(note.isLocal() ? 1 : 0)));
+    query.addBindValue(note.content());
+    query.addBindValue(QVariant(static_cast<int>(note.createdTimestamp())));
+    query.addBindValue(QVariant(static_cast<int>(note.updatedTimestamp())));
+    query.addBindValue(QVariant(static_cast<int>(note.subjectDateTimestamp())));
 
     if (note.hasValidLocation())
     {
-        queryString = queryString.arg("%10", note.altitude());
-        queryString = queryString.arg("%11", note.latitude());
-        queryString = queryString.arg("%12", note.longitude());
+        query.addBindValue(note.altitude());
+        query.addBindValue(note.latitude());
+        query.addBindValue(note.longitude());
     }
     else
     {
-        queryString = queryString.arg("%10", QString());
-        queryString = queryString.arg("%11", QString());
-        queryString = queryString.arg("%12", QString());
+        query.addBindValue(0.0);
+        query.addBindValue(0.0);
+        query.addBindValue(0.0);
     }
 
-    queryString = queryString.arg("%13", note.author());
-    queryString = queryString.arg("%14", note.source());
-    queryString = queryString.arg("%15", note.sourceUrl());
-    queryString = queryString.arg("%16", note.sourceApplication());
-    queryString = queryString.arg("%17", (note.isDeleted()
-                                                  ? QString::number(1)
-                                                  : QString::number(0)));
-    queryString = queryString.arg("%18", note.notebookGuid().ToQString());
+    query.addBindValue(note.author());
+    query.addBindValue(note.source());
+    query.addBindValue(note.sourceUrl());
+    query.addBindValue(note.sourceApplication());
+    query.addBindValue(QVariant(static_cast<int>(note.isDeleted() ? 1 : 0)));
+    query.addBindValue(note.notebookGuid().ToQString());
 }
 
 #undef DATABASE_CHECK_AND_SET_ERROR

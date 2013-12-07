@@ -70,9 +70,7 @@ public:
 
 private:
     bool CreateTables(QString & errorDescription);
-    bool ReplaceNotebookAtRowId(const int rowId, const Notebook & notebook,
-                                QString & errorDescription);
-    void NoteAttributesToQueryString(const Note & note, QString & queryString);
+    void NoteAttributesToQuery(const Note & note, QSqlQuery & query);
 
     DatabaseManager() = delete;
     DatabaseManager(const DatabaseManager & other) = delete;
