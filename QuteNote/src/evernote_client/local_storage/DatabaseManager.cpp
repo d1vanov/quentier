@@ -2,6 +2,7 @@
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
 #include "../Note.h"
+#include "../Notebook.h"
 
 #ifdef USE_QT5
 #include <QStandardPaths>
@@ -81,26 +82,86 @@ DatabaseManager::~DatabaseManager()
         return false; \
     }
 
+#define CHECK_GUID(object, objectName) \
+    const Guid guid = object.guid(); \
+    if (guid.isEmpty()) { \
+        errorDescription = QObject::tr(objectName " guid is empty"); \
+        return false; \
+    }
+
+bool DatabaseManager::AddNotebook(const Notebook & notebook, QString & errorDescription)
+{
+    CHECK_GUID(notebook, "Notebook");
+
+    // Check the existence of the notebook prior to attempt to add it
+    bool res = ReplaceNotebook(notebook, errorDescription);
+    if (res) {
+        return true;
+    }
+    errorDescription.clear();
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("INSERT INTO Notebooks (guid, usn, name, creationTimestamp, "
+                  "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed) "
+                  "VALUES(?, ?, ?, ?, ?, ?, ?, 0, 0");
+    query.addBindValue(notebook.guid().ToQString());
+    query.addBindValue(notebook.getUpdateSequenceNumber());
+    query.addBindValue(notebook.name());
+    query.addBindValue(QVariant(static_cast<int>(notebook.createdTimestamp())));
+    query.addBindValue(QVariant(static_cast<int>(notebook.updatedTimestamp())));
+    query.addBindValue(notebook.isDirty());
+    query.addBindValue(notebook.isLocal());
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert new notebook into local storage database: ");
+
+    return true;
+}
+
+bool DatabaseManager::ReplaceNotebook(const Notebook & notebook, QString & errorDescription)
+{
+    CHECK_GUID(notebook, "Notebook");
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT rowid FROM Notebooks WHERE guid = ?");
+    query.addBindValue(notebook.guid().ToQString());
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't check the existence of notebook "
+                                 "in local storage database");
+
+    if (query.next())
+    {
+        int rowId = query.value(0).toInt(&res);
+        if (!res || (rowId < 0)) {
+            errorDescription = QObject::tr("Can't get rowId from SQL selection query result");
+            return false;
+        }
+
+        return ReplaceNotebookAtRowId(rowId, notebook, errorDescription);
+    }
+    else {
+        errorDescription = QObject::tr("Can't replace notebook: can't find existing notebook");
+        return false;
+    }
+}
+
 #define CHECK_NOTE_ATTRIBUTES(note) \
     const Guid notebookGuid = note.notebookGuid(); \
     if (notebookGuid.isEmpty()) { \
         errorDescription = QObject::tr("Notebook guid is empty"); \
         return false; \
     } \
-    \
-    const Guid noteGuid = note.guid(); \
-    if (noteGuid.isEmpty()) { \
-        errorDescription = QObject::tr("Note guid is empty"); \
-        return false; \
-    }
+    CHECK_GUID(note, "Note")
 
 bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
 {
     CHECK_NOTE_ATTRIBUTES(note);
 
+    Guid noteGuid = note.guid();
     QSqlQuery query(m_sqlDatabase);
 
-    QString noteExistenceCheckQueryStr("SELECT ROWID FROM Notes WHERE guid = %1");
+    QString noteExistenceCheckQueryStr("SELECT rowid FROM Notes WHERE guid = %1");
     noteExistenceCheckQueryStr = noteExistenceCheckQueryStr.arg("%1", noteGuid.ToQString());
     bool res = query.exec(noteExistenceCheckQueryStr);
     if (res)
@@ -126,8 +187,8 @@ bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
         }
 
         noteAddQueryStr = QString("INSERT INTO Notes (guid, usn, title, isDirty, "
-                                  "isLocal, body, creationDate, modificationDate, subjectDate, "
-                                  "altitude, latitude, longitude, author, source, "
+                                  "isLocal, body, creationTimestamp, modificationTimestamp, "
+                                  "subjectDate, altitude, latitude, longitude, author, source, "
                                   "sourceUrl, sourceApplication, isDeleted, notebook) "
                                   "VALUES(%1, %2, %3, %4, %5, %6, %7, %8, %9, %10, "
                                   "%11, %12, %13, %14, %15, %16, %17, %18)");
@@ -144,6 +205,7 @@ bool DatabaseManager::ReplaceNote(const Note & note, QString & errorDescription)
 {
     CHECK_NOTE_ATTRIBUTES(note);
 
+    Guid noteGuid = note.guid();
     QSqlQuery query(m_sqlDatabase);
 
     QString noteExistenceCheckQueryStr("SELECT rowid FROM Notes WHERE guid = %1");
@@ -163,10 +225,10 @@ bool DatabaseManager::ReplaceNote(const Note & note, QString & errorDescription)
                                      "storage database: ");
 
         QString noteReplaceQueryStr("INSERT OR REPLACE INTO Notes (guid, usn, title, "
-                                    "isDirty, isLocal, body, creationDate, modificationDate, "
-                                    "subjectDate, altitude, latitude, longitude, "
-                                    "author, source, sourceUrl, sourceApplication, "
-                                    "isDeleted, notebook) "
+                                    "isDirty, isLocal, body, creationTimestamp, "
+                                    "modificationTimestamp, subjectDate, altitude, "
+                                    "latitude, longitude, author, source, sourceUrl, "
+                                    "sourceApplication, isDeleted, notebook) "
                                     "VALUES(%1, %2, %3, %4, %5, %6, %7, %8, %9, %10, "
                                     "%11, %12, %13, %14, %15, %16, %17, %18)");
         NoteAttributesToQueryString(note, noteReplaceQueryStr);
@@ -227,9 +289,13 @@ bool DatabaseManager::ExpungeNote(const Note &note, QString &errorDescription)
     bool res = findNoteToBeExpungedQuery.exec(findNoteToBeExpungedQueryStr);
     DATABASE_CHECK_AND_SET_ERROR("Can't find note to be expunged in local storage database: ");
 
+    int rowId = -1;
     bool conversionResult = false;
-    int rowId = findNoteToBeExpungedQuery.value(0).toInt(&conversionResult);
-    if (!conversionResult) {
+    while(findNoteToBeExpungedQuery.next()) {
+        rowId = findNoteToBeExpungedQuery.value(0).toInt(&conversionResult);
+    }
+
+    if (!conversionResult || (rowId < 0)) {
         errorDescription = QObject::tr("Can't get rowId of note to be expunged in Notes table");
         return false;
     }
@@ -250,27 +316,26 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
     bool res;
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
-                     "  guid             TEXT PRIMARY KEY   NOT NULL, "
-                     "  usn              INTEGER            NOT NULL, "
-                     "  name             TEXT               NOT NULL, "
-                     "  creationDate     INTEGER            NOT NULL, "
-                     "  modificationDate INTEGER            NOT NULL, "
-                     "  isDirty          INTEGER            NOT NULL, "
-                     "  isLocal          INTEGER            NOT NULL, "
-                     "  updateCount      INTEGER            DEFAULT 0, "
-                     "  isDefault        INTEGER            DEFAULT 0, "
-                     "  isLastUsed       INTEGER            DEFAULT 0"
+                     "  guid                  TEXT PRIMARY KEY   NOT NULL, "
+                     "  usn                   INTEGER            NOT NULL, "
+                     "  name                  TEXT               NOT NULL, "
+                     "  creationTimestamp     INTEGER            NOT NULL, "
+                     "  modificationTimestamp INTEGER            NOT NULL, "
+                     "  isDirty               INTEGER            NOT NULL, "
+                     "  isLocal               INTEGER            NOT NULL, "
+                     "  isDefault             INTEGER            DEFAULT 0, "
+                     "  isLastUsed            INTEGER            DEFAULT 0"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create Notebooks table: ");
 
     res = query.exec("CREATE TRIGGER ReplaceNotebook BEFORE INSERT ON Notebooks"
                      "  BEGIN"
                      "  UPDATE Notebooks"
-                     "  SET    usn = NEW.usn, name = NEW.name, updateCount = NEW.updateCount,"
-                     "         isDirty = NEW.isDirty, isLocal = NEW.isLocal, "
-                     "         isDefault = NEW.isDefault, isLastUsed = NEW.isLastUsed, "
-                     "         creationDate = NEW.creationDate, "
-                     "         modificationDate = NEW.modificationDate"
+                     "  SET    usn = NEW.usn, name = NEW.name, isDirty = NEW.isDirty, "
+                     "         isLocal = NEW.isLocal, isDefault = NEW.isDefault, "
+                     "         isLastUsed = NEW.isLastUsed, "
+                     "         creationTimestamp = NEW.creationTimestamp, "
+                     "         modificationTimestamp = NEW.modificationTimestamp"
                      "  WHERE  guid = NEW.guid;"
                      "  END");
     DATABASE_CHECK_AND_SET_ERROR("Can't create ReplaceNotebooks trigger: ");
@@ -284,23 +349,23 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("Can't create virtual table NoteText: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notes("
-                     "  guid              TEXT PRIMARY KEY     NOT NULL, "
-                     "  usn               INTEGER              NOT NULL, "
-                     "  title             TEXT, "
-                     "  isDirty           INTEGER              NOT NULL, "
-                     "  isLocal           INTEGER              NOT NULL, "
-                     "  body              TEXT, "
-                     "  creationDate      TEXT                 NOT NULL, "
-                     "  modificationDate  TEXT                 NOT NULL, "
-                     "  subjectDate       TEXT                 NOT NULL, "
-                     "  altitude          REAL, "
-                     "  latitude          REAL, "
-                     "  longitude         REAL, "
-                     "  author            TEXT                 NOT NULL, "
-                     "  source            TEXT, "
-                     "  sourceUrl,        TEXT, "
-                     "  sourceApplication TEXT, "
-                     "  isDeleted         INTEGER              DEFAULT 0, "
+                     "  guid                    TEXT PRIMARY KEY     NOT NULL, "
+                     "  usn                     INTEGER              NOT NULL, "
+                     "  title                   TEXT, "
+                     "  isDirty                 INTEGER              NOT NULL, "
+                     "  isLocal                 INTEGER              NOT NULL, "
+                     "  body                    TEXT, "
+                     "  creationTimestamp       INTEGER              NOT NULL, "
+                     "  modificationTimestamp   INTEGER              NOT NULL, "
+                     "  subjectDate             INTEGER              NOT NULL, "
+                     "  altitude                REAL, "
+                     "  latitude                REAL, "
+                     "  longitude               REAL, "
+                     "  author                  TEXT                 NOT NULL, "
+                     "  source                  TEXT, "
+                     "  sourceUrl,              TEXT, "
+                     "  sourceApplication       TEXT, "
+                     "  isDeleted               INTEGER              DEFAULT 0, "
                      "  notebook REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create Notes table: ");
@@ -352,9 +417,36 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
     res = query.exec("CREATE INDEX NoteTagsNote ON NoteTags(note)");
     DATABASE_CHECK_AND_SET_ERROR("Can't create NoteTagsNote index: ");
 
-#undef DATABASE_CHECK_AND_SET_ERROR
+    return true;
+}
 
-            return true;
+bool DatabaseManager::ReplaceNotebookAtRowId(const int rowId, const Notebook & notebook,
+                                             QString & errorDescription)
+{
+    CHECK_GUID(notebook, "Notebook");
+
+    if (rowId < 0) {
+        errorDescription = QObject::tr("Can't replace notebook: row id is negative");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("UPDATE Notebooks SET guid=?, usn=?, name=?, creationTimestamp=?, "
+                  "modificationTimestamp=?, isDirty=?, isLocal=?, isDefault=?, isLastUsed=?");
+    query.addBindValue(notebook.guid().ToQString());
+    query.addBindValue(notebook.getUpdateSequenceNumber());
+    query.addBindValue(notebook.name());
+    query.addBindValue(QVariant(static_cast<int>(notebook.createdTimestamp())));
+    query.addBindValue(QVariant(static_cast<int>(notebook.updatedTimestamp())));
+    query.addBindValue((notebook.isDirty() ? 1 : 0));
+    query.addBindValue((notebook.isLocal() ? 1 : 0));
+    query.addBindValue((notebook.isDefault() ? 1 : 0));
+    query.addBindValue((notebook.isLastUsed() ? 1 : 0));
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't update Notebooks table: ");
+
+    return true;
 }
 
 void DatabaseManager::NoteAttributesToQueryString(const Note & note, QString & queryString)
@@ -391,5 +483,7 @@ void DatabaseManager::NoteAttributesToQueryString(const Note & note, QString & q
                                                   : QString::number(0)));
     queryString = queryString.arg("%18", note.notebookGuid().ToQString());
 }
+
+#undef DATABASE_CHECK_AND_SET_ERROR
 
 }
