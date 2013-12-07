@@ -35,6 +35,12 @@ public:
      */
     void setSynchronized();
 
+    /**
+     * @return true if the synchronizable object has never actually been synchronized
+     * with remote Evernote service.
+     */
+    bool isLocal() const;
+
     const Guid & guid() const;
     void assignGuid(const std::string & guid);
 
@@ -53,6 +59,7 @@ public:
 private:
     unsigned int  m_updateSequenceNumber;
     bool          m_isDirty;
+    bool          m_isLocal;
     Guid          m_guid;
 };
 

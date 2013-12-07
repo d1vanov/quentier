@@ -5,12 +5,14 @@ namespace qute_note {
 SynchronizedDataElement::SynchronizedDataElement() :
     m_updateSequenceNumber(0),
     m_isDirty(true),
+    m_isLocal(true),
     m_guid()
 {}
 
 SynchronizedDataElement::SynchronizedDataElement(const SynchronizedDataElement & other) :
     m_updateSequenceNumber(other.m_updateSequenceNumber + 1),
     m_isDirty(true),
+    m_isLocal(other.m_isLocal),
     m_guid()
 {}
 
@@ -20,6 +22,7 @@ SynchronizedDataElement & SynchronizedDataElement::operator =(const Synchronized
     {
         m_updateSequenceNumber = other.m_updateSequenceNumber + 1;
         m_isDirty = true;
+        m_isLocal = other.m_isLocal;
     }
 
     return *this;
@@ -40,7 +43,7 @@ void SynchronizedDataElement::setUpdateSequenceNumber(const unsigned int usn)
 
 bool SynchronizedDataElement::isDirty() const
 {
-    return m_isDirty;
+    return (m_isDirty || m_isLocal);
 }
 
 void SynchronizedDataElement::setDirty()
@@ -51,6 +54,12 @@ void SynchronizedDataElement::setDirty()
 void SynchronizedDataElement::setSynchronized()
 {
     m_isDirty = false;
+    m_isLocal = false;
+}
+
+bool SynchronizedDataElement::isLocal() const
+{
+    return m_isLocal;
 }
 
 const Guid & SynchronizedDataElement::guid() const
@@ -78,6 +87,7 @@ QTextStream & SynchronizedDataElement::Print(QTextStream & strm) const
     strm << "SynchronizedDataElement: { " << "\n";
     strm << "  Update sequence number = " << m_updateSequenceNumber << ",\n";
     strm << "  \"Is dirty\" = " << (m_isDirty ? "true" : "false") << ",\n";
+    strm << "  \"Is local\" = " << (m_isLocal ? "true" : "false") << ",\n";
     strm << "  Guid = " << m_guid << "\n };";
 
     return strm;
