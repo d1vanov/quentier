@@ -6,11 +6,14 @@
 
 namespace qute_note {
 
+class NotebookPrivate;
 class Notebook: public TypeWithError,
                 public SynchronizedDataElement
 {
 public:
     Notebook();
+    Notebook(const Notebook & other);
+    Notebook & operator=(const Notebook & other);
 
     virtual bool isEmpty() const;
 
@@ -26,8 +29,9 @@ public:
     bool isDefault() const;
     bool isLastUsed() const;
 
-    // TODO: create pimpl to NotebookImpl, in NotebookPimpl hold a ref to NoteStore
-    // whicn in turn would be able to tell the name of the owner of this notebook
+private:
+    const QScopedPointer<NotebookPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(Notebook)
 };
 
 }

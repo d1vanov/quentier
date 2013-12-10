@@ -49,7 +49,9 @@ Note::Note(const Note & other) :
 Note & Note::operator =(const Note & other)
 {
     if (this != &other) {
-        *(d_func()) = *(other.d_func());
+        if (other.d_func() != nullptr) {
+            *(d_func()) = *(other.d_func());
+        }
     }
 
     return *this;
