@@ -41,6 +41,23 @@ public:
      */
     bool isLocal() const;
 
+    /**
+     * @brief isDeleted - determines whether data element has been marked as deleted
+     * from local storage
+     * @return true if object has been marked deleted in local storage, false otherwise
+     */
+    bool isDeleted() const;
+
+    /**
+     * @brief setDeleted - mark data element as deleted in local storage database
+     */
+    void setDeleted();
+
+    /**
+     * @brief undelete - mark data element as non-deleted in local storage database
+     */
+    void undelete();
+
     const Guid & guid() const;
     void assignGuid(const std::string & guid);
 
@@ -60,6 +77,7 @@ private:
     unsigned int  m_updateSequenceNumber;
     bool          m_isDirty;
     bool          m_isLocal;
+    bool          m_isDeleted;
     Guid          m_guid;
 };
 

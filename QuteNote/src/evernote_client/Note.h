@@ -100,10 +100,6 @@ public:
     const Tag * getTagByIndex(const std::size_t index) const;
     bool addTag(const Tag & tag, QString & errorMessage);
 
-    bool isDeleted() const;
-    void deleteNote();
-    void undeleteNote();
-
     virtual QTextStream & Print(QTextStream & strm) const;
 
 private:

@@ -31,7 +31,6 @@ public:
     QString  m_source;
     QString  m_sourceUrl;
     QString  m_sourceApplication;
-    bool     m_isDeleted;
 
 private:
     void initializeTimestamps();
@@ -266,24 +265,6 @@ bool Note::addTag(const Tag & tag, QString & errorMessage)
     return d->addTag(tag, errorMessage);
 }
 
-bool Note::isDeleted() const
-{
-    Q_D(const Note);
-    return d->m_isDeleted;
-}
-
-void Note::deleteNote()
-{
-    Q_D(Note);
-    d->m_isDeleted = true;
-}
-
-void Note::undeleteNote()
-{
-    Q_D(Note);
-    d->m_isDeleted = false;
-}
-
 QTextStream & Note::Print(QTextStream & strm) const
 {
     SynchronizedDataElement::Print(strm);
@@ -315,8 +296,7 @@ QTextStream & Note::Print(QTextStream & strm) const
 }
 
 NotePrivate::NotePrivate(const Notebook &notebook) :
-    m_notebookGuid(notebook.guid()),
-    m_isDeleted(false)
+    m_notebookGuid(notebook.guid())
 {
     initializeTimestamps();
     m_subjectDateTimestamp = m_createdTimestamp;
@@ -333,15 +313,15 @@ NotePrivate::NotePrivate(const NotePrivate &other) :
     m_location(other.m_location),
     m_source(other.m_source),
     m_sourceUrl(other.m_sourceUrl),
-    m_sourceApplication(other.m_sourceApplication),
-    m_isDeleted(other.m_isDeleted)
+    m_sourceApplication(other.m_sourceApplication)
 {
     initializeTimestamps();
 }
 
 NotePrivate & NotePrivate::operator=(const NotePrivate & other)
 {
-    if (this != &other) {
+    if (this != &other)
+    {
         m_notebookGuid = other.m_notebookGuid;
         m_title   = other.m_title;
         m_content = other.m_content;

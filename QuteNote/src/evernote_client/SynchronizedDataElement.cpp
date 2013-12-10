@@ -6,6 +6,7 @@ SynchronizedDataElement::SynchronizedDataElement() :
     m_updateSequenceNumber(0),
     m_isDirty(true),
     m_isLocal(true),
+    m_isDeleted(false),
     m_guid()
 {}
 
@@ -13,6 +14,7 @@ SynchronizedDataElement::SynchronizedDataElement(const SynchronizedDataElement &
     m_updateSequenceNumber(other.m_updateSequenceNumber + 1),
     m_isDirty(true),
     m_isLocal(other.m_isLocal),
+    m_isDeleted(other.m_isDeleted),
     m_guid()
 {}
 
@@ -23,6 +25,7 @@ SynchronizedDataElement & SynchronizedDataElement::operator =(const Synchronized
         m_updateSequenceNumber = other.m_updateSequenceNumber + 1;
         m_isDirty = true;
         m_isLocal = other.m_isLocal;
+        m_isDeleted = other.m_isDeleted;
     }
 
     return *this;
@@ -60,6 +63,21 @@ void SynchronizedDataElement::setSynchronized()
 bool SynchronizedDataElement::isLocal() const
 {
     return m_isLocal;
+}
+
+bool SynchronizedDataElement::isDeleted() const
+{
+    return m_isDeleted;
+}
+
+void SynchronizedDataElement::setDeleted()
+{
+    m_isDeleted = true;
+}
+
+void SynchronizedDataElement::undelete()
+{
+    m_isDeleted = false;
 }
 
 const Guid & SynchronizedDataElement::guid() const

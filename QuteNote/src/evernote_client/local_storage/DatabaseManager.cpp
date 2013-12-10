@@ -161,6 +161,69 @@ bool DatabaseManager::ReplaceNotebook(const Notebook & notebook, QString & error
     return true;
 }
 
+bool DatabaseManager::DeleteNotebook(const Notebook & notebook, QString & errorDescription)
+{
+    if (notebook.isLocal()) {
+        return ExpungeNotebook(notebook, errorDescription);
+    }
+
+    if (!notebook.isDeleted()) {
+        errorDescription = QObject::tr("Notebook to be deleted from local storage "
+                                       "is not marked as deleted one, rejecting "
+                                       "to mark it deleted in local database");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("UPDATE Notebooks SET isDeleted = 1, isDirty = 1 WHERE guid = ?");
+    query.addBindValue(notebook.guid().ToQString());
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't delete notebook in local storage database: ");
+
+    return true;
+}
+
+bool DatabaseManager::ExpungeNotebook(const Notebook & notebook, QString & errorDescription)
+{
+    if (!notebook.isLocal()) {
+        errorDescription = QObject::tr("Can't expunge non-local notebook");
+        return false;
+    }
+
+    if (!notebook.isDeleted()) {
+        errorDescription = QObject::tr("Local notebook to be expunged is not marked as "
+                                       "deleted one, rejecting to delete it from "
+                                       "local database");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT rowid FROM Notebooks WHERE guid = ?");
+    query.addBindValue(notebook.guid().ToQString());
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't find notebook to be expunged in local storage database: ");
+
+    int rowId = -1;
+    bool conversionResult = false;
+    while(query.next()) {
+        rowId = query.value(0).toInt(&conversionResult);
+    }
+
+    if (!conversionResult || (rowId < 0)) {
+        errorDescription = QObject::tr("Can't get rowId of notebook to be expunged in Notebooks table");
+        return false;
+    }
+
+    query.clear();
+    query.prepare("DELETE FROM Notebooks WHERE rowid = ?");
+    query.addBindValue(QVariant(rowId));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't expunge notebook from local storage database: ");
+
+    return true;
+}
+
 #define CHECK_NOTE_ATTRIBUTES(note) \
     const Guid notebookGuid = note.notebookGuid(); \
     if (notebookGuid.isEmpty()) { \
@@ -274,11 +337,10 @@ bool DatabaseManager::DeleteNote(const Note & note, QString & errorDescription)
         return false;
     }
 
-    QString deleteNoteQueryStr("UPDATE Notes SET isDeleted = 1, isDirty = 1 WHERE guid = %1");
-    deleteNoteQueryStr = deleteNoteQueryStr.arg("%1", note.guid().ToQString());
-
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(deleteNoteQueryStr);
+    query.prepare("UPDATE Notes SET isDeleted = 1, isDirty = 1 WHERE guid = ?");
+    query.addBindValue(note.guid().ToQString());
+    bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't delete note in local storage database: ");
 
     return true;
@@ -298,17 +360,16 @@ bool DatabaseManager::ExpungeNote(const Note &note, QString &errorDescription)
         return false;
     }
 
-    QString findNoteToBeExpungedQueryStr("SELECT rowid FROM Notes WHERE guid = %1");
-    findNoteToBeExpungedQueryStr = findNoteToBeExpungedQueryStr.arg("%1", note.guid().ToQString());
-
-    QSqlQuery findNoteToBeExpungedQuery(m_sqlDatabase);
-    bool res = findNoteToBeExpungedQuery.exec(findNoteToBeExpungedQueryStr);
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT rowid FROM Notes WHERE guid = ?");
+    query.addBindValue(note.guid().ToQString());
+    bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't find note to be expunged in local storage database: ");
 
     int rowId = -1;
     bool conversionResult = false;
-    while(findNoteToBeExpungedQuery.next()) {
-        rowId = findNoteToBeExpungedQuery.value(0).toInt(&conversionResult);
+    while(query.next()) {
+        rowId = query.value(0).toInt(&conversionResult);
     }
 
     if (!conversionResult || (rowId < 0)) {
@@ -316,11 +377,11 @@ bool DatabaseManager::ExpungeNote(const Note &note, QString &errorDescription)
         return false;
     }
 
-    QString expungeNoteQueryStr("DELETE FROM Notes WHERE rowid = %1");
-    expungeNoteQueryStr = expungeNoteQueryStr.arg("%1", QString::number(rowId));
+    query.clear();
+    query.prepare("DELETE FROM Notes WHERE rowid = ?");
+    query.addBindValue(QVariant(rowId));
 
-    QSqlQuery expungeNoteQuery(m_sqlDatabase);
-    res = expungeNoteQuery.exec(expungeNoteQueryStr);
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't expunge note from local storage database: ");
 
     return true;
@@ -339,6 +400,7 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
                      "  modificationTimestamp INTEGER            NOT NULL, "
                      "  isDirty               INTEGER            NOT NULL, "
                      "  isLocal               INTEGER            NOT NULL, "
+                     "  isDeleted             INTEGER            NOT NULL, "
                      "  isDefault             INTEGER            DEFAULT 0, "
                      "  isLastUsed            INTEGER            DEFAULT 0"
                      ")");
@@ -349,7 +411,7 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
                      "  UPDATE Notebooks"
                      "  SET    usn = NEW.usn, name = NEW.name, isDirty = NEW.isDirty, "
                      "         isLocal = NEW.isLocal, isDefault = NEW.isDefault, "
-                     "         isLastUsed = NEW.isLastUsed, "
+                     "         isDeleted = NEW.isDeleted, isLastUsed = NEW.isLastUsed, "
                      "         creationTimestamp = NEW.creationTimestamp, "
                      "         modificationTimestamp = NEW.modificationTimestamp"
                      "  WHERE  guid = NEW.guid;"
