@@ -8,6 +8,7 @@ namespace qute_note {
 
 class Notebook;
 class Note;
+class Tag;
 
 // TODO: implement all the necessary functionality
 class DatabaseManager
@@ -67,6 +68,12 @@ public:
      * @return true if note was expunged successfully, false otherwise
      */
     bool ExpungeNote(const Note & note, QString & errorDescription);
+
+    bool AddTag(const Tag & tag, QString & errorDescription);
+    bool AddTagToNote(const Tag & tag, const Note & note, QString & errorDescription);
+    bool ReplaceTag(const Tag & tag, QString & errorDescription);
+    bool DeleteTag(const Tag & tag, QString & errorDescription);
+    bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
 private:
     bool CreateTables(QString & errorDescription);

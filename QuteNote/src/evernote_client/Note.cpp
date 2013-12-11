@@ -234,6 +234,21 @@ bool Note::addResource(const Resource & resource, QString & errorMessage)
     return d->addResource(resource, errorMessage);
 }
 
+bool Note::labeledByTag(const Tag & tag) const
+{
+    if (tag.isEmpty()) {
+        return false;
+    }
+
+    Q_D(const Note);
+    if (std::find(d->m_tags.begin(), d->m_tags.end(), tag) == d->m_tags.end()) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
 bool Note::labeledByAnyTag() const
 {
     Q_D(const Note);

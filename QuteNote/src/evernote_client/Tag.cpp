@@ -8,6 +8,7 @@ class TagPrivate
 public:
     TagPrivate(const QString & name);
     TagPrivate(const QString & name, const Guid & parentGuid);
+    bool operator==(const TagPrivate & other) const;
 
     QString m_name;
     Guid    m_parentGuid;
@@ -42,8 +43,32 @@ Tag & Tag::operator=(const Tag & other)
     return *this;
 }
 
+bool Tag::operator==(const Tag & other) const
+{
+    if (this == &other) {
+        return true;
+    }
+
+    Q_D(const Tag);
+    if (other.d_func() != nullptr) {
+        return *(d_func()) == *(other.d_func());
+    }
+    else if (d_func() != nullptr) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
 Tag::~Tag()
 {}
+
+bool Tag::isEmpty() const
+{
+    Q_D(const Tag);
+    return (SynchronizedDataElement::isEmpty() || d->m_name.isEmpty());
+}
 
 const Guid Tag::parentGuid() const
 {
@@ -77,5 +102,22 @@ TagPrivate::TagPrivate(const QString & name, const Guid & parentGuid) :
     m_name(name),
     m_parentGuid(parentGuid)
 {}
+
+bool TagPrivate::operator==(const TagPrivate & other) const
+{
+    if (m_name != other.m_name) {
+        return false;
+    }
+
+    if (m_parentGuid.isEmpty() && other.m_parentGuid.isEmpty()) {
+        return true;
+    }
+    else if (m_parentGuid == other.m_parentGuid) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
 
 }

@@ -95,6 +95,7 @@ public:
     const Resource * getResourceByIndex(const std::size_t index) const;
     bool addResource(const Resource & resource, QString & errorMessage);
 
+    bool labeledByTag(const Tag & tag) const;
     bool labeledByAnyTag() const;
     std::size_t numTags() const;
     const Tag * getTagByIndex(const std::size_t index) const;

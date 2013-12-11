@@ -3,6 +3,7 @@
 #include "DatabaseSqlErrorException.h"
 #include "../Note.h"
 #include "../Notebook.h"
+#include "../Tag.h"
 
 #ifdef USE_QT5
 #include <QStandardPaths>
@@ -83,10 +84,12 @@ DatabaseManager::~DatabaseManager()
     }
 
 #define CHECK_GUID(object, objectName) \
-    const Guid guid = object.guid(); \
-    if (guid.isEmpty()) { \
-        errorDescription = QObject::tr(objectName " guid is empty"); \
-        return false; \
+    {\
+        const Guid guid = object.guid(); \
+        if (guid.isEmpty()) { \
+            errorDescription = QObject::tr(objectName " guid is empty"); \
+            return false; \
+        } \
     }
 
 bool DatabaseManager::AddNotebook(const Notebook & notebook, QString & errorDescription)
@@ -387,6 +390,110 @@ bool DatabaseManager::ExpungeNote(const Note &note, QString &errorDescription)
     return true;
 }
 
+#define CHECK_TAG_ATTRIBUTES(tag) \
+    CHECK_GUID(tag, "Tag"); \
+    if (tag.isEmpty()) { \
+        errorDescription = QObject::tr("Tag is empty"); \
+        return false; \
+    }
+
+bool DatabaseManager::AddTag(const Tag & tag, QString & errorDescription)
+{
+    CHECK_TAG_ATTRIBUTES(tag);
+
+    // Check the existence of tag prior to attempting to add it
+    bool res = ReplaceTag(tag, errorDescription);
+    if (res) {
+        return true;
+    }
+    errorDescription.clear();
+
+    Guid tagGuid = tag.guid();
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("INSERT INTO Tags (guid, usn, name, parentGuid, searchName, isDirty, "
+                  "isLocal, isDeleted) VALUES(?, ?, ?, ?, ?, ?, ?, ?)");
+    query.addBindValue(tagGuid.ToQString());
+    query.addBindValue(tag.getUpdateSequenceNumber());
+    query.addBindValue(tag.name());
+    query.addBindValue((tag.parentGuid().isEmpty() ? QString() : tag.parentGuid().ToQString()));
+    query.addBindValue(tag.name().toUpper());
+    query.addBindValue(tag.isDirty());
+    query.addBindValue(tag.isLocal());
+    query.addBindValue(tag.isDeleted());
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't add tag to local storage database: ");
+
+    return true;
+}
+
+bool DatabaseManager::AddTagToNote(const Tag & tag, const Note & note,
+                                   QString & errorDescription)
+{
+    CHECK_TAG_ATTRIBUTES(tag);
+    CHECK_NOTE_ATTRIBUTES(note);
+
+    if (!note.labeledByTag(tag)) {
+        errorDescription = QObject::tr("Can't add tag to note: note is not labeled by this tag");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("INSERT OR REPLACE INTO NoteTags (note, tag) "
+                  "    SELECT ?, tag FROM Tags WHERE tag = ?");
+    query.addBindValue(note.guid().ToQString());
+    query.addBindValue(tag.guid().ToQString());
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't link tag to note in NoteTags table "
+                                 "in local storage database: ");
+
+    return true;
+}
+
+bool DatabaseManager::ReplaceTag(const Tag & tag, QString & errorDescription)
+{
+    CHECK_TAG_ATTRIBUTES(tag);
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT rowid FROM Tags WHERE guid = ?");
+    query.addBindValue(tag.guid().ToQString());
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't check tag for existence in local storage database: ");
+
+    if (!query.next()) {
+        errorDescription = QObject::tr("Can't replace tag: can't find tag in local storage database");
+        return false;
+    }
+
+    int rowId = query.value(0).toInt(&res);
+    if (!res || (rowId < 0)) {
+        errorDescription = QObject::tr("Can't replace tag: can't get row id from SQL query result");
+        return false;
+    }
+
+    query.clear();
+    query.prepare("INSERT OR REPLACE INTO Tags(guid, usn, name, parentGuid, searchName, "
+                  "isDirty, isLocal, isDeleted) VALUES(?, ?, ?, ?, ?, ?, ?, ?)");
+    query.addBindValue(tag.guid().ToQString());
+    query.addBindValue(tag.getUpdateSequenceNumber());
+    query.addBindValue(tag.name());
+    query.addBindValue((tag.parentGuid().isEmpty() ? QString() : tag.parentGuid().ToQString()));
+    query.addBindValue(tag.isDirty());
+    query.addBindValue(tag.isLocal());
+    query.addBindValue(tag.isDeleted());
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't replace tag in local storage database: ");
+
+    return true;
+}
+
+#undef CHECK_TAG_ATTRIBUTES
+#undef CHECK_NOTE_ATTRIBUTES
+#undef CHECK_GUID
+
 bool DatabaseManager::CreateTables(QString & errorDescription)
 {
     QSqlQuery query(m_sqlDatabase);
@@ -478,12 +585,14 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
                      "  name              TEXT                 NOT NULL, "
                      "  parentGuid        TEXT"
                      "  searchName        TEXT UNIQUE          NOT NULL, "
-                     "  isDirty           INTEGER              NOT NULL"
+                     "  isDirty           INTEGER              NOT NULL, "
+                     "  isLocal           INTEGER              NOT NULL, "
+                     "  isDeleted         INTEGER              DEFAULT 0, "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create Tags table: ");
 
     res = query.exec("CREATE INDEX TagsSearchName ON Tags(searchName)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create TassSearchName index: ");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create TagsSearchName index: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteTags("
                      "  note REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "

@@ -18,7 +18,10 @@ public:
     Tag(const QString & name, const Tag & parent);
     Tag(const Tag & other);
     Tag & operator=(const Tag & other);
+    bool operator==(const Tag & other) const;
     virtual ~Tag();
+
+    virtual bool isEmpty() const;
 
     /**
      * @brief parentGuid - guid of parent tag
