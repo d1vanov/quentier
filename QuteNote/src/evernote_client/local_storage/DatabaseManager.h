@@ -72,7 +72,27 @@ public:
     bool AddTag(const Tag & tag, QString & errorDescription);
     bool AddTagToNote(const Tag & tag, const Note & note, QString & errorDescription);
     bool ReplaceTag(const Tag & tag, QString & errorDescription);
+
+    /**
+     * @brief DeleteTag - either expunges the local tag (i.e. deletes it from
+     * local storage completely, without the possibility to restore)
+     * if it has not been synchronized with Evernote service yet or marks the tag
+     * as deleted otherwise. Evernote API doesn't allow thirdparty applications
+     * to expunge tags which have ever been synchronized with remote data store at least once
+     * @param tag - tag to be deleted
+     * @param errorDescription - error description if tag could not be deleted
+     * @return true if tag was deleted successfully, false otherwise
+     */
     bool DeleteTag(const Tag & tag, QString & errorDescription);
+
+    /**
+     * @brief ExpungeTag - permanently deletes local tags i.e. tags which have not yet been
+     * sychronized with Evernote service. This method deletes the tag from local storage
+     * completely, without the possibility to restore it
+     * @param tag - tag to be expunged
+     * @param errorDescription - error description if tag could not be expunged
+     * @return true if tag was expunged successfully, false otherwise
+     */
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
 private:
