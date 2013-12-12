@@ -44,6 +44,7 @@ set(${PROJECT_NAME}_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Resource.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/ResourceMetadata.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/SynchronizedDataElement.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml/ENMLConverter.h
@@ -60,6 +61,7 @@ set(${PROJECT_NAME}_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/IQuteNoteException.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/QuteNoteNullPtrException.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/EmptyDataElementException.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/QuteNoteCheckPtr.h)
 
 set(${PROJECT_NAME}_EVERNOTE_SDK_HEADERS
@@ -95,6 +97,7 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Resource.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/ResourceMetadata.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/SynchronizedDataElement.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml/ENMLConverter.cpp
@@ -108,6 +111,7 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/IQuteNoteException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/QuteNoteNullPtrException.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/EmptyDataElementException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
 set(${PROJECT_NAME}_EVERNOTE_SDK_SOURCES
