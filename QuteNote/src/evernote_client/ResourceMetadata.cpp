@@ -59,6 +59,18 @@ const QString ResourceMetadata::mimeType() const
     return d->m_resourceMimeType;
 }
 
+const QString ResourceMetadata::dataHash() const
+{
+    Q_D(const ResourceMetadata);
+    return d->m_resourceDataHash;
+}
+
+const std::size_t ResourceMetadata::dataSize() const
+{
+    Q_D(const ResourceMetadata);
+    return d->m_resourceDataSize;
+}
+
 const std::size_t ResourceMetadata::width() const
 {
     Q_D(const ResourceMetadata);

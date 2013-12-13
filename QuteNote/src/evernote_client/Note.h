@@ -92,8 +92,9 @@ public:
 
     bool hasAttachedResources() const;
     std::size_t numAttachedResources() const;
-    const Resource * getResourceByIndex(const std::size_t index) const;
-    bool addResource(const Resource & resource, QString & errorMessage);
+    void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
+    bool addResourceMetadata(const ResourceMetadata & resourceMetadata,
+                             QString & errorMessage);
 
     bool labeledByTag(const Tag & tag) const;
     bool labeledByAnyTag() const;

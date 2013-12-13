@@ -31,6 +31,16 @@ public:
     const QString mimeType() const;
 
     /**
+     * @brief dataHash - returns MD5 hash of the resource
+     */
+    const QString dataHash() const;
+
+    /**
+     * @brief dataSize - returns the number of bytes in binary data corresponding to the resource
+     */
+    const std::size_t dataSize() const;
+
+    /**
      * @brief width - if set, the displayed width of the resource in pixels, zero otherwise.
      */
     const std::size_t width() const;

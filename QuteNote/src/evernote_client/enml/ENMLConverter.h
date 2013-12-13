@@ -19,11 +19,10 @@ public:
     ENMLConverter(const ENMLConverter & other);
     ENMLConverter & operator=(const ENMLConverter & other);
 
-    void richTextToENML(const Note & note, const QuteNoteTextEdit & noteEditor,
-                        QString & ENML) const;
+    void richTextToENML(const QuteNoteTextEdit & noteEditor, QString & ENML) const;
 
-    bool ENMLToRichText(const Note & note, const QString & ENML,
-                        QuteNoteTextEdit & noteEditor, QString & errorMessage) const;
+    bool ENMLToRichText(const QString & ENML, QuteNoteTextEdit & noteEditor,
+                        QString & errorMessage) const;
 
 private:
     void fillTagsLists();

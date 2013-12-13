@@ -1,6 +1,6 @@
 #include "Tag.h"
 #include "Note.h"
-#include "Resource.h"
+#include "ResourceMetadata.h"
 #include "Notebook.h"
 #include "../evernote_client_private/Location.h"
 #include <QTranslator>
@@ -15,15 +15,15 @@ public:
     NotePrivate(const NotePrivate & other);
     NotePrivate & operator=(const NotePrivate & other);
 
-    bool addResource(const Resource & resource, QString & errorMessage);
+    bool addResourceMetadata(const ResourceMetadata & resourceMetadata, QString & errorMessage);
     bool addTag(const Tag & tag, QString & errorMessage);
 
     Guid     m_notebookGuid;
     QString  m_title;
     QString  m_content;
     QString  m_author;
-    std::vector<Resource> m_resources;
-    std::vector<Tag>      m_tags;
+    std::vector<ResourceMetadata>  m_resourcesMetadata;
+    std::vector<Tag>  m_tags;
     time_t   m_createdTimestamp;
     time_t   m_updatedTimestamp;
     time_t   m_subjectDateTimestamp;
@@ -199,7 +199,7 @@ void Note::setSourceApplication(const QString & sourceApplication)
 bool Note::hasAttachedResources() const
 {
     Q_D(const Note);
-    return !(d->m_resources.empty());
+    return !(d->m_resourcesMetadata.empty());
 }
 
 std::size_t Note::numAttachedResources() const
@@ -209,29 +209,26 @@ std::size_t Note::numAttachedResources() const
     }
     else {
         Q_D(const Note);
-        return d->m_resources.size();
+        return d->m_resourcesMetadata.size();
     }
 }
 
-const Resource * Note::getResourceByIndex(const size_t index) const
+void Note::getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const
 {
-    std::size_t numResources = numAttachedResources();
-    if (numResources == 0) {
-        return nullptr;
+    if (!hasAttachedResources()) {
+        return;
     }
-    else if (index >= numResources) {
-        return nullptr;
-    }
-    else {
-        Q_D(const Note);
-        return &(d->m_resources.at(index));
-    }
+
+    Q_D(const Note);
+    resourcesMetadata.assign(d->m_resourcesMetadata.cbegin(),
+                             d->m_resourcesMetadata.cend());
 }
 
-bool Note::addResource(const Resource & resource, QString & errorMessage)
+bool Note::addResourceMetadata(const ResourceMetadata & resourceMetadata,
+                               QString & errorMessage)
 {
     Q_D(Note);
-    return d->addResource(resource, errorMessage);
+    return d->addResourceMetadata(resourceMetadata, errorMessage);
 }
 
 bool Note::labeledByTag(const Tag & tag) const
@@ -297,15 +294,28 @@ QTextStream & Note::Print(QTextStream & strm) const
 
     if (hasAttachedResources())
     {
+        strm << "Metadata of resources attached to note: " << "\n";
         std::size_t numResources = numAttachedResources();
+        Q_D(const Note);
         for(std::size_t i = 0; i < numResources; ++i)
         {
-            const Resource * pResource = getResourceByIndex(i);
-            if (pResource == nullptr) {
-                strm << "WARNING: null resource for index " << static_cast<int>(i) << "\n";
-                continue;
+            const ResourceMetadata & resourceMetadata = d->m_resourcesMetadata.at(i);
+            strm << "Resource metadata #" << i << ": mime type: ";
+            strm << resourceMetadata.mimeType() << ", MD5 hash: ";
+            strm << resourceMetadata.dataHash() << ", number of bytes: ";
+            strm << resourceMetadata.dataSize();
+
+            std::size_t width = resourceMetadata.width();
+            if (width != 0) {
+                strm << ", display width: " << width;
             }
-            // else TODO: print resource
+
+            std::size_t height = resourceMetadata.height();
+            if (height != 0) {
+                strm << ", display height: " << height;
+            }
+
+            strm << "\n";
         }
     }
 
@@ -324,7 +334,7 @@ NotePrivate::NotePrivate(const NotePrivate &other) :
     m_title(other.m_title),
     m_content(other.m_content),
     m_author(other.m_author),
-    m_resources(other.m_resources),
+    m_resourcesMetadata(other.m_resourcesMetadata),
     m_tags(other.m_tags),
     m_subjectDateTimestamp(other.m_subjectDateTimestamp),
     m_location(other.m_location),
@@ -343,7 +353,7 @@ NotePrivate & NotePrivate::operator=(const NotePrivate & other)
         m_title   = other.m_title;
         m_content = other.m_content;
         m_author  = other.m_author;
-        m_resources = other.m_resources;
+        m_resourcesMetadata = other.m_resourcesMetadata;
         m_tags = other.m_tags;
         m_subjectDateTimestamp = other.m_subjectDateTimestamp;
         m_location = other.m_location;
@@ -357,17 +367,18 @@ NotePrivate & NotePrivate::operator=(const NotePrivate & other)
     return *this;
 }
 
-bool NotePrivate::addResource(const Resource & resource, QString & errorMessage)
+bool NotePrivate::addResourceMetadata(const ResourceMetadata & resourceMetadata,
+                                      QString & errorMessage)
 {
-    auto it = std::find_if(m_resources.cbegin(), m_resources.cend(),
-                           [&resource](const Resource & other)
-                           { return (resource.guid() == other.guid()); });
-    if (it != m_resources.cend()) {
+    auto it = std::find_if(m_resourcesMetadata.cbegin(), m_resourcesMetadata.cend(),
+                           [&resourceMetadata](const ResourceMetadata & other)
+                           { return (resourceMetadata.guid() == other.guid()); });
+    if (it != m_resourcesMetadata.cend()) {
         errorMessage = QObject::tr("This resource has already been added to the note");
         return false;
     }
 
-    m_resources.push_back(resource);
+    m_resourcesMetadata.push_back(resourceMetadata);
     return true;
 }
 

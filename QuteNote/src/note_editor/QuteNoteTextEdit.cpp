@@ -378,7 +378,7 @@ void QuteNoteTextEdit::setNote(const qute_note::Note & note)
 
 void QuteNoteTextEdit::noteRichTextToENML(QString & ENML) const
 {
-    m_converter.richTextToENML(*m_pNote, *this, ENML);
+    m_converter.richTextToENML(*this, ENML);
 }
 
 void QuteNoteTextEdit::insertCheckedToDoCheckboxAtCursor(QTextCursor cursor)

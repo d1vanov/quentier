@@ -1,7 +1,7 @@
 #include "ENMLConverter.h"
 #include "../note_editor/QuteNoteTextEdit.h"
 #include "../Note.h"
-#include "../Resource.h"
+#include "../ResourceMetadata.h"
 #include "../tools/QuteNoteCheckPtr.h"
 #include <QTextEdit>
 #include <QString>
@@ -43,8 +43,7 @@ ENMLConverter & ENMLConverter::operator=(const ENMLConverter & other)
 }
 
 // TODO: adopt some simple xml node-constructing instead of plain text insertions
-void ENMLConverter::richTextToENML(const Note & note, const QuteNoteTextEdit & noteEditor,
-                                   QString & ENML) const
+void ENMLConverter::richTextToENML(const QuteNoteTextEdit & noteEditor, QString & ENML) const
 {
     ENML.clear();
 
@@ -54,7 +53,10 @@ void ENMLConverter::richTextToENML(const Note & note, const QuteNoteTextEdit & n
     const Note * pNote = noteEditor.getNotePtr();
     QUTE_NOTE_CHECK_PTR(pNote, QObject::tr("Null pointer to Note received from QuteNoteTextEdit"));
 
-    size_t resourceIndex = 0;
+    std::vector<ResourceMetadata> resourcesMetadata;
+    pNote->getResourcesMetadata(resourcesMetadata);
+    std::size_t numAttachedResources = resourcesMetadata.size();
+    std::size_t resourceIndex = 0;
 
     ENML.append("<en-note>");
 
@@ -81,8 +83,7 @@ void ENMLConverter::richTextToENML(const Note & note, const QuteNoteTextEdit & n
             }
             else if (currentFragmentCharFormatObjectType == QuteNoteTextEdit::MEDIA_RESOURCE_TXT_FORMAT)
             {
-                const Resource * pCurrentResource = note.getResourceByIndex(resourceIndex);
-                if (pCurrentResource == nullptr)
+                if (resourceIndex >= numAttachedResources)
                 {
                     qWarning() << "Internal error! Found char format corresponding to resource "
                                << "but haven't found the corresponding resource object for index "
@@ -90,10 +91,12 @@ void ENMLConverter::richTextToENML(const Note & note, const QuteNoteTextEdit & n
                 }
                 else
                 {
-                    QString hash = pCurrentResource->dataHash();
-                    size_t width = pCurrentResource->width();
-                    size_t height = pCurrentResource->height();
-                    QString type = pCurrentResource->mimeType();
+                    const ResourceMetadata & resourceMetadata = resourcesMetadata.at(resourceIndex);
+
+                    QString hash = resourceMetadata.dataHash();
+                    size_t width = resourceMetadata.width();
+                    size_t height = resourceMetadata.height();
+                    QString type = resourceMetadata.mimeType();
                     ENML.append("<en-media width=\"");
                     ENML.append(QString::number(width));
                     ENML.append("\" height=\"");
@@ -131,12 +134,15 @@ void ENMLConverter::richTextToENML(const Note & note, const QuteNoteTextEdit & n
     ENML.append("</en_note>");
 }
 
-bool ENMLConverter::ENMLToRichText(const Note & note, const QString & ENML,
-                                   QuteNoteTextEdit & noteEditor, QString & errorMessage) const
+bool ENMLConverter::ENMLToRichText(const QString & ENML, QuteNoteTextEdit & noteEditor,
+                                   QString & errorMessage) const
 {
-    std::unique_ptr<QuteNoteTextEdit> pFakeNoteEditor(new QuteNoteTextEdit());
+    const Note * pNote = noteEditor.getNotePtr();
+    QUTE_NOTE_CHECK_PTR(pNote, QObject::tr("Null pointer to Note received from QuteNoteTextEdit"));
+
+    const QScopedPointer<QuteNoteTextEdit> pFakeNoteEditor(new QuteNoteTextEdit());
     QTextDocument * pNoteEditorDoc = noteEditor.document();
-    pFakeNoteEditor.get()->setDocument(pNoteEditorDoc);
+    pFakeNoteEditor->setDocument(pNoteEditorDoc);
     QTextCursor cursor(pNoteEditorDoc);
 
     // Now we have fake note editor object which we can use to iterate through
@@ -160,8 +166,10 @@ bool ENMLConverter::ENMLToRichText(const Note & note, const QString & ENML,
         return false;
     }
 
-    bool noteHasAttachedResources = note.hasAttachedResources();
-    std::size_t numAttachedResources = note.numAttachedResources();
+    bool noteHasAttachedResources = pNote->hasAttachedResources();
+    std::size_t numAttachedResources = pNote->numAttachedResources();
+    std::vector<ResourceMetadata> resourcesMetadata;
+    pNote->getResourcesMetadata(resourcesMetadata);
     std::size_t resourceIndex = 0;
 
     QDomNode nextNode = docElem.firstChild();
@@ -216,20 +224,14 @@ bool ENMLConverter::ENMLToRichText(const Note & note, const QString & ENML,
                         return false;
                     }
 
-                    const Resource * pCurrentResource = note.getResourceByIndex(resourceIndex);
-                    if (pCurrentResource == nullptr) {
-                        errorMessage = QObject::tr("Cannot get pointer to resource with index ");
-                        errorMessage.append(QString::number(resourceIndex));
-                        return false;
-                    }
-
                     QString hashFromENML = element.attribute("hash");
                     if (hashFromENML.isEmpty()) {
                         errorMessage = QObject::tr("\"en-media\" tag has empty \"hash\" attribute");
                         return false;
                     }
 
-                    QString hashFromResource = pCurrentResource->dataHash();
+                    const ResourceMetadata & currentResourceMetadata = resourcesMetadata.at(resourceIndex);
+                    QString hashFromResource = currentResourceMetadata.dataHash();
                     if (hashFromResource.isEmpty()) {
                         errorMessage = QObject::tr("Binary data hash of the resource object is empty");
                         // TODO: print resource here
@@ -242,23 +244,26 @@ bool ENMLConverter::ENMLToRichText(const Note & note, const QString & ENML,
                         errorMessage.append(hashFromENML);
                         errorMessage.append(QObject::tr(" , resource's hash: "));
                         errorMessage.append(hashFromResource);
-                        // TODO: print resource here
+                        // TODO: print resource metadata here
                         return false;
                     }
 
                     ++resourceIndex;
 
                     /*
-                    std::size_t width  = pCurrentResource->width();
-                    std::size_t height = pCurrentResource->height();
+                    std::size_t width  = currentResourceMetadata.width();
+                    std::size_t height = currentResourceMetadata.height();
                     */
-                    QString mimeType = pCurrentResource->mimeType();
+                    QString mimeType = currentResourceMetadata.mimeType();
                     // This should be enough, we don't need the actual binary data just to display the resource
                     // The only exceptions are resources of image type
 
                     if (mimeType.contains("image/"))
                     {
-                        const QMimeData & resourceMimeData = pCurrentResource->mimeData();
+                        // FIXME: reimplement: obtain resource's binary data from local storage database
+
+                        /*
+                        const QMimeData & resourceMimeData = currentResourceMetadata->mimeData();
                         if (!resourceMimeData.hasImage()) {
                             errorMessage = QObject::tr("Internal error: mime type of the resource "
                                                        "was marked as the image one but resource's "
@@ -274,6 +279,7 @@ bool ENMLConverter::ENMLToRichText(const Note & note, const QString & ENML,
 
                         QTextCursor cursor = pFakeNoteEditor->textCursor();
                         cursor.insertImage(resourceImgFormat);
+                        */
                     }
                     else
                     {
