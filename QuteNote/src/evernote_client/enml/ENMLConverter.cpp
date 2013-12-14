@@ -43,7 +43,8 @@ ENMLConverter & ENMLConverter::operator=(const ENMLConverter & other)
 }
 
 // TODO: adopt some simple xml node-constructing instead of plain text insertions
-void ENMLConverter::richTextToENML(const QuteNoteTextEdit & noteEditor, QString & ENML) const
+bool ENMLConverter::richTextToENML(const QuteNoteTextEdit & noteEditor, QString & ENML,
+                                   QString & errorDescription) const
 {
     ENML.clear();
 
@@ -85,9 +86,10 @@ void ENMLConverter::richTextToENML(const QuteNoteTextEdit & noteEditor, QString 
             {
                 if (resourceIndex >= numAttachedResources)
                 {
-                    qWarning() << "Internal error! Found char format corresponding to resource "
-                               << "but haven't found the corresponding resource object for index "
-                               << resourceIndex;
+                    errorDescription = QObject::tr("Internal error! Found char format corresponding to resource "
+                                                   "but haven't found the corresponding resource object for index ");
+                    errorDescription.append(QString::number(resourceIndex));
+                    return false;
                 }
                 else
                 {
@@ -113,29 +115,33 @@ void ENMLConverter::richTextToENML(const QuteNoteTextEdit & noteEditor, QString 
             else if (currentFragment.isValid())
             {
                 QString encodedCurrentFragment;
-                QString errorMessage;
                 bool res = encodeFragment(currentFragment, encodedCurrentFragment,
-                                          errorMessage);
+                                          errorDescription);
                 if (!res) {
-                    // TODO: should process error message better
-                    qWarning() << errorMessage;
+                    errorDescription = QObject::tr("ENML converter: can't encode fragment: ") +
+                                       errorDescription;
+                    return false;
                 }
                 else {
                     ENML.append(encodedCurrentFragment);
                 }
             }
             else {
-                qWarning() << "Found invalid QTextFragment during encoding note content to ENML! Ignoring it...";
+                errorDescription = QObject::tr("Found invalid QTextFragment during "
+                                               "encoding note content to ENML: ");
+                errorDescription.append(currentFragment.text());
+                return false;
             }
             ENML.append(("</div>"));
         }
     }
 
     ENML.append("</en_note>");
+    return true;
 }
 
-bool ENMLConverter::ENMLToRichText(const QString & ENML, QuteNoteTextEdit & noteEditor,
-                                   QString & errorMessage) const
+bool ENMLConverter::ENMLToRichText(const QString & ENML, const DatabaseManager & /* databaseManager */,
+                                   QuteNoteTextEdit & noteEditor, QString & errorMessage) const
 {
     const Note * pNote = noteEditor.getNotePtr();
     QUTE_NOTE_CHECK_PTR(pNote, QObject::tr("Null pointer to Note received from QuteNoteTextEdit"));

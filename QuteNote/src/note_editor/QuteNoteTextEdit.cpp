@@ -18,6 +18,7 @@ QuteNoteTextEdit::QuteNoteTextEdit(QWidget * parent) :
     QTextEdit(parent),
     m_droppedImageCounter(0),
     m_pNote(nullptr),
+    m_converter(),
     m_todoCheckboxImgs()
 {
     QString checkboxUncheckedImgFileName(":/format_text_elements/checkbox_unchecked.gif");
@@ -376,9 +377,9 @@ void QuteNoteTextEdit::setNote(const qute_note::Note & note)
     m_pNote = &note;
 }
 
-void QuteNoteTextEdit::noteRichTextToENML(QString & ENML) const
+bool QuteNoteTextEdit::noteRichTextToENML(QString & ENML, QString & errorDescription) const
 {
-    m_converter.richTextToENML(*this, ENML);
+    return m_converter.richTextToENML(*this, ENML, errorDescription);
 }
 
 void QuteNoteTextEdit::insertCheckedToDoCheckboxAtCursor(QTextCursor cursor)

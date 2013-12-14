@@ -4,13 +4,14 @@
 #include <set>
 #include <QString>
 
-class QuteNoteTextEdit;
-class QTextFragment;
-class QDomElement;
+QT_FORWARD_DECLARE_CLASS(QuteNoteTextEdit)
+QT_FORWARD_DECLARE_CLASS(QTextFragment)
+QT_FORWARD_DECLARE_CLASS(QDomElement)
 
 namespace qute_note {
 
-class Note;
+QT_FORWARD_DECLARE_CLASS(DatabaseManager)
+QT_FORWARD_DECLARE_CLASS(Note)
 
 class ENMLConverter
 {
@@ -19,10 +20,11 @@ public:
     ENMLConverter(const ENMLConverter & other);
     ENMLConverter & operator=(const ENMLConverter & other);
 
-    void richTextToENML(const QuteNoteTextEdit & noteEditor, QString & ENML) const;
+    bool richTextToENML(const QuteNoteTextEdit & noteEditor, QString & ENML,
+                        QString & errorDescription) const;
 
-    bool ENMLToRichText(const QString & ENML, QuteNoteTextEdit & noteEditor,
-                        QString & errorMessage) const;
+    bool ENMLToRichText(const QString & ENML, const DatabaseManager & databaseManager,
+                        QuteNoteTextEdit & noteEditor, QString & errorMessage) const;
 
 private:
     void fillTagsLists();

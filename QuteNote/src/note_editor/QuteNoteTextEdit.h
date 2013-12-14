@@ -40,7 +40,7 @@ public:
     const qute_note::Note * getNotePtr() const;
     void setNote(const qute_note::Note & note);
 
-    void noteRichTextToENML(QString & ENML) const;
+    bool noteRichTextToENML(QString & ENML, QString & errorDescription) const;
 
     void insertCheckedToDoCheckboxAtCursor(QTextCursor cursor);
     void insertUncheckedToDoCheckboxAtCursor(QTextCursor cursor);
