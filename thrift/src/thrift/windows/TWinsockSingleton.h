@@ -48,10 +48,6 @@ public:
 
 private:
 
-    friend void boost::call_once(void (*func)(void), boost::once_flag& flag);
-
-private:
-
     TWinsockSingleton(void);
 
 public:

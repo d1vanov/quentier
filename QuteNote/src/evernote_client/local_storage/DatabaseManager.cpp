@@ -16,7 +16,11 @@ namespace qute_note {
 #define QUTE_NOTE_DATABASE_NAME "qn.storage.sqlite"
 
 DatabaseManager::DatabaseManager(const QString & username) :
+#ifdef USE_QT5
+    m_applicationPersistenceStoragePath(QStandardPaths::writableLocation(QStandardPaths::DataLocation))
+#else
     m_applicationPersistenceStoragePath(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
+#endif
 {
     bool needsInitializing = false;
 
