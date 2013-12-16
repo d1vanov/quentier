@@ -6,9 +6,10 @@
 
 namespace qute_note {
 
-class Notebook;
-class Note;
-class Tag;
+QT_FORWARD_DECLARE_CLASS(Notebook)
+QT_FORWARD_DECLARE_CLASS(Note)
+QT_FORWARD_DECLARE_CLASS(Tag)
+QT_FORWARD_DECLARE_CLASS(ResourceMetadata)
 
 // TODO: implement all the necessary functionality
 class DatabaseManager
@@ -94,6 +95,13 @@ public:
      * @return true if tag was expunged successfully, false otherwise
      */
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
+
+    bool AddResource(const ResourceMetadata & resourceMetadata,
+                     const QByteArray & resourceBinaryData,
+                     QString & errorDescription);
+    bool ReplaceResource(const ResourceMetadata & resourceMetadata,
+                         const QByteArray & resourceBinaryData,
+                         QString & errorDescription);
 
 private:
     bool CreateTables(QString & errorDescription);

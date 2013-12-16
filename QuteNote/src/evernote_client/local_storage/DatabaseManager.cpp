@@ -4,6 +4,7 @@
 #include "../Note.h"
 #include "../Notebook.h"
 #include "../Tag.h"
+#include "../ResourceMetadata.h"
 
 #ifdef USE_QT5
 #include <QStandardPaths>
@@ -557,6 +558,107 @@ bool DatabaseManager::ExpungeTag(const Tag & tag, QString & errorDescription)
     return true;
 }
 
+#define CHECK_RESOURCE_ATTRIBUTES(resourceMetadata, resourceBinaryData) \
+    CHECK_GUID(resourceMetadata, "ResourceMetadata"); \
+    if (resourceMetadata.isEmpty()) { \
+        errorDescription = QObject::tr("Resource metadata is empty"); \
+        return false; \
+    } \
+    if (resourceBinaryData.isEmpty()) { \
+        errorDescription = QObject::tr("Resource binary data is empty"); \
+        return false; \
+    }
+
+bool DatabaseManager::AddResource(const ResourceMetadata & resourceMetadata,
+                                  const QByteArray & resourceBinaryData,
+                                  QString & errorDescription)
+{
+    CHECK_RESOURCE_ATTRIBUTES(resourceMetadata, resourceBinaryData);
+
+    // Check the existence of the resource prior to attempting to add it
+    bool res = ReplaceResource(resourceMetadata, resourceBinaryData, errorDescription);
+    if (res) {
+        return true;
+    }
+    errorDescription.clear();
+
+    Guid resourceGuid = resourceMetadata.guid();
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("INSERT INTO Resources (guid, hash, data, mime, width, height, "
+                  "sourceUrl, timestamp, altitude, latitude, longitude, fileName, "
+                  "isAttachment, noteGuid) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                  "?, ?, ?)");
+    query.addBindValue(resourceGuid.ToQString());
+    query.addBindValue(resourceMetadata.dataHash());
+    query.addBindValue(resourceBinaryData);
+    query.addBindValue(resourceMetadata.mimeType());
+    query.addBindValue(QVariant(static_cast<int>(resourceMetadata.width())));
+    query.addBindValue(QVariant(static_cast<int>(resourceMetadata.height())));
+    query.addBindValue(resourceMetadata.sourceUrl());
+    query.addBindValue(QVariant(static_cast<int>(resourceMetadata.timestamp())));
+    query.addBindValue(resourceMetadata.altitude());
+    query.addBindValue(resourceMetadata.latitude());
+    query.addBindValue(resourceMetadata.longitude());
+    query.addBindValue(resourceMetadata.filename());
+    query.addBindValue(QVariant((resourceMetadata.isAttachment() ? 1 : 0)));
+    query.addBindValue(resourceMetadata.noteGuid().ToQString());
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't add resource to local storage database: ");
+
+    return true;
+}
+
+bool DatabaseManager::ReplaceResource(const ResourceMetadata & resourceMetadata,
+                                      const QByteArray & resourceBinaryData,
+                                      QString & errorDescription)
+{
+    CHECK_RESOURCE_ATTRIBUTES(resourceMetadata, resourceBinaryData);
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT rowid FROM Resources WHERE guid = ?");
+    query.addBindValue(resourceMetadata.guid().ToQString());
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't check resource for existence in local storage database: ");
+
+    if (!query.next()) {
+        errorDescription = QObject::tr("Can't replace resource: can't find resource in local storage database");
+        return false;
+    }
+
+    int rowId = query.value(0).toInt(&res);
+    if (!res || (rowId < 0)) {
+        errorDescription = QObject::tr("Can't replace resource: can't get row id from SQL query result");
+        return false;
+    }
+
+    query.clear();
+    query.prepare("INSERT OR REPLACE INTO Resources(guid, hash, data, mime, width, height, "
+                  "sourceUrl, timestamp, altitude, latitude, longitude, fileName, "
+                  "isAttachment, noteGuid) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                  "?, ?, ?)");
+    query.addBindValue(resourceMetadata.guid().ToQString());
+    query.addBindValue(resourceMetadata.dataHash());
+    query.addBindValue(resourceBinaryData);
+    query.addBindValue(resourceMetadata.mimeType());
+    query.addBindValue(QVariant(static_cast<int>(resourceMetadata.width())));
+    query.addBindValue(QVariant(static_cast<int>(resourceMetadata.height())));
+    query.addBindValue(resourceMetadata.sourceUrl());
+    query.addBindValue(QVariant(static_cast<int>(resourceMetadata.timestamp())));
+    query.addBindValue(resourceMetadata.altitude());
+    query.addBindValue(resourceMetadata.latitude());
+    query.addBindValue(resourceMetadata.longitude());
+    query.addBindValue(resourceMetadata.filename());
+    query.addBindValue(QVariant((resourceMetadata.isAttachment() ? 1 : 0)));
+    query.addBindValue(resourceMetadata.noteGuid().ToQString());
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't replace resource in local storage database: ");
+
+    return true;
+}
+
+#undef CHECK_RESOURCE_ATTRIBUTES
 #undef CHECK_TAG_ATTRIBUTES
 #undef CHECK_NOTE_ATTRIBUTES
 #undef CHECK_GUID
@@ -628,7 +730,7 @@ bool DatabaseManager::CreateTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
                      "  guid              TEXT PRIMARY KEY     NOT NULL, "
                      "  hash              TEXT UNIQUE          NOT NULL, "
-                     "  data              TEXT, "
+                     "  data              TEXT,                NOT NULL, "
                      "  mime              TEXT                 NOT NULL, "
                      "  width             INTEGER              NOT NULL, "
                      "  height            INTEGER              NOT NULL, "
