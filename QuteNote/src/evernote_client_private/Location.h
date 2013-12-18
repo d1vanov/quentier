@@ -1,9 +1,11 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__LOCATION_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__LOCATION_H
 
+#include "../tools/Printable.h"
+
 namespace qute_note {
 
-class Location
+class Location: public Printable
 {
 public:
     Location();
@@ -21,6 +23,8 @@ public:
     void setAltitude(const double altitude);
 
     bool isValid() const;
+
+    virtual QTextStream & Print(QTextStream & strm) const;
 
 private:
     double m_latitude;

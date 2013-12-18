@@ -71,6 +71,8 @@ public:
     const QString filename() const;
     void setFilename(const QString & filename);
 
+    virtual QTextStream & Print(QTextStream & strm) const;
+
 private:
     ResourceMetadata() = delete;
 

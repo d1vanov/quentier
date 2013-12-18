@@ -238,19 +238,23 @@ bool ENMLConverter::ENMLToRichText(const QString & ENML, const DatabaseManager &
 
                     const ResourceMetadata & currentResourceMetadata = resourcesMetadata.at(resourceIndex);
                     QString hashFromResource = currentResourceMetadata.dataHash();
-                    if (hashFromResource.isEmpty()) {
+                    if (hashFromResource.isEmpty())
+                    {
                         errorMessage = QObject::tr("Binary data hash of the resource object is empty");
-                        // TODO: print resource here
+                        errorMessage.append(", ");
+                        errorMessage.append(currentResourceMetadata.ToQString());
                         return false;
                     }
 
-                    if (hashFromENML != hashFromResource) {
+                    if (hashFromENML != hashFromResource)
+                    {
                         errorMessage = QObject::tr("Hashes of binary data of the resource differ for ENML "
                                                    "and the corresponding Resource object. The ENML's hash: ");
                         errorMessage.append(hashFromENML);
                         errorMessage.append(QObject::tr(" , resource's hash: "));
                         errorMessage.append(hashFromResource);
-                        // TODO: print resource metadata here
+                        errorMessage.append(", ");
+                        errorMessage.append(currentResourceMetadata.ToQString());
                         return false;
                     }
 
@@ -497,7 +501,7 @@ bool ENMLConverter::encodeFragment(const QTextFragment & fragment,
         nextNode = element.firstChild();
     }
 
-    // TODO: verify that encodedFragment has only allowed tags and attributes
+    // TODO: verify that encodedFragment has only allowed tags and attributes using Evernote's DTD file
     return true;
 }
 

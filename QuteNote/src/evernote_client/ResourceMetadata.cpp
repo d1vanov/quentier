@@ -169,6 +169,37 @@ void ResourceMetadata::setFilename(const QString & filename)
     d->m_filename = filename;
 }
 
+QTextStream & ResourceMetadata::Print(QTextStream & strm) const
+{
+    Q_D(const ResourceMetadata);
+
+    strm << "ResourceMetadata: { \n";
+    strm << SynchronizedDataElement::Print(strm).readAll();
+    strm << "note guid = ";
+    strm << d->m_noteGuid.ToQString() << ", \n";
+    strm << "mime type = ";
+    strm << d->m_resourceMimeType << ", \n";
+    strm << "hash = ";
+    strm << d->m_resourceDataHash << ", \n";
+    strm << "size = ";
+    strm << d->m_resourceDataSize << ", \n";
+    strm << "display width = ";
+    strm << d->m_resourceDisplayWidth << ", \n";
+    strm << "display height = ";
+    strm << d->m_resourceDisplayHeight << ", \n";
+    strm << (isAttachment() ? "is attachment" : "is not attachment");
+    strm << ", \n";
+    strm << "timestamp = ";
+    strm << d->m_timestamp << ", \n";
+    strm << "source URL = ";
+    strm << d->m_sourceUrl << ", \n";
+    strm << " " << d->m_location << ", \n";
+    strm << "filename = ";
+    strm << d->m_filename << "\n }; \n";
+
+    return strm;
+}
+
 ResourceMetadataPrivate::ResourceMetadataPrivate(const Note & note,
                                                  const QString & resourceMimeType,
                                                  const QString & dataHash,

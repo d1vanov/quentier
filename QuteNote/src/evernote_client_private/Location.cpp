@@ -79,4 +79,11 @@ bool Location::isValid() const
     }
 }
 
+QTextStream & Location::Print(QTextStream & strm) const
+{
+    strm << "Location: latitude = " << m_latitude << ", longitude = ";
+    strm << m_longitude << ", altitude = " << m_altitude;
+    return strm;
+}
+
 }
