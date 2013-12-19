@@ -658,6 +658,72 @@ bool DatabaseManager::ReplaceResource(const ResourceMetadata & resourceMetadata,
     return true;
 }
 
+bool DatabaseManager::DeleteResource(const ResourceMetadata & resourceMetadata,
+                                     QString & errorDescription)
+{
+    if (resourceMetadata.isLocal()) {
+        return ExpungeResource(resourceMetadata, errorDescription);
+    }
+
+    if (!resourceMetadata.isDeleted()) {
+        errorDescription = QObject::tr("Metadata of the resource to be deleted from local storage "
+                                       "is not marked deleted, rejecting to mark it deleted "
+                                       "in local database");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("UPDATE Resources SET isDeleted = 1, isDirty = 1 WHERE guid = ?");
+    query.addBindValue(resourceMetadata.guid().ToQString());
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't delete resource in local storage database: ");
+
+    return true;
+}
+
+bool DatabaseManager::ExpungeResource(const ResourceMetadata & resourceMetadata,
+                                      QString & errorDescription)
+{
+    if (!resourceMetadata.isLocal()) {
+        errorDescription = QObject::tr("Can't expunge non-local resource");
+        return false;
+    }
+
+    if (!resourceMetadata.isDeleted()) {
+        errorDescription = QObject::tr("Metadata of local resource to be deleted "
+                                       "is not marked deleted, rejecting to delete it from "
+                                       "local database");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT rowid FROM Resources WHERE guid = ?");
+    query.addBindValue(resourceMetadata.guid().ToQString());
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't find resource to be expunged in local storage database");
+
+    // TODO: generalize this procedure as it's used in multiple places in code
+    int rowId = -1;
+    bool conversionResult = false;
+    while(query.next()) {
+        rowId = query.value(0).toInt(&conversionResult);
+    }
+
+    if (!conversionResult || (rowId < 0)) {
+        errorDescription = QObject::tr("Can't get rowId of resource to be expunged in Resource table");
+        return false;
+    }
+
+    query.clear();
+    query.prepare("DELETE FROM Resources WHERE rowid = ?");
+    query.addBindValue(QVariant(rowId));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't expunge resource from local storage database");
+
+    return true;
+}
+
 #undef CHECK_RESOURCE_ATTRIBUTES
 #undef CHECK_TAG_ATTRIBUTES
 #undef CHECK_NOTE_ATTRIBUTES

@@ -218,7 +218,7 @@ bool ENMLConverter::ENMLToRichText(const QString & ENML, const DatabaseManager &
                     if (!noteHasAttachedResources) {
                         errorMessage = QObject::tr("Internal error: note reported no attached resources "
                                                    "but \"en-media\" tag was found in its ENML. ");
-                        // TODO: print note here
+                        errorMessage.append(pNote->ToQString());
                         return false;
                     }
 

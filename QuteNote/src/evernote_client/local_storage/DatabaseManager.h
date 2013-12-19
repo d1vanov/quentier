@@ -103,6 +103,29 @@ public:
                          const QByteArray & resourceBinaryData,
                          QString & errorDescription);
 
+    /**
+     * @brief DeleteResource - either expunges the local resource (i.e. deletes it from
+     * local storage completely, without the possibility to restore)
+     * if it has not been synchronized with Evernote service yet or marks the resource
+     * as deleted otherwise. Evernote API doesn't allow thirdparty applications
+     * to expunge resources which have ever been synchronized with remote data store
+     * at least once
+     * @param resourceMetadata - metadata of the resource to be deleted
+     * @param errorDescription - error description if resource could not be deleted
+     * @return true if resource was deleted successfully, false otherwise
+     */
+    bool DeleteResource(const ResourceMetadata & resourceMetadata, QString & errorDescription);
+
+    /**
+     * @brief ExpungeResource - permanently deletes local resources i.e. resources which have not yet been
+     * synchronized with Evernote service. This method deletes the resource local storage completely,
+     * without the possibility to restore it
+     * @param resourceMetadata - metadata of the resource to be deleted
+     * @param errorDescription - error description if resource could not be expunged
+     * @return true if resource was expunged successfully, false otherwise
+     */
+    bool ExpungeResource(const ResourceMetadata & resourceMetadata, QString & errorDescription);
+
 private:
     bool CreateTables(QString & errorDescription);
     void NoteAttributesToQuery(const Note & note, QSqlQuery & query);
