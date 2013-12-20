@@ -78,6 +78,20 @@ bool Notebook::isLastUsed() const
     return d->m_isLastUsed;
 }
 
+QTextStream & Notebook::Print(QTextStream & strm) const
+{
+    Q_D(const Notebook);
+    strm << "Notebook: { \n";
+    strm << "name = " << d->m_name << ", \n ";
+    strm << "created timestamp = " << d->m_createdTimestamp << ", \n ";
+    strm << "updated timestamp = " << d->m_updatedTimestamp << ", \n ";
+    strm << "is " << (d->m_isDefault ? " " : "not ") << "default, \n ";
+    strm << "is " << (d->m_isLastUsed ? " " : "not ") << "last used \n";
+    strm << "}; \n";
+
+    return strm;
+}
+
 NotebookPrivate::NotebookPrivate()
 {
     initializeTimestamps();

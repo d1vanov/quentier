@@ -29,6 +29,8 @@ public:
     bool isDefault() const;
     bool isLastUsed() const;
 
+    virtual QTextStream & Print(QTextStream & strm) const;
+
 private:
     const QScopedPointer<NotebookPrivate> d_ptr;
     Q_DECLARE_PRIVATE(Notebook)
