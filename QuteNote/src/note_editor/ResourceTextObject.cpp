@@ -1,22 +1,29 @@
 #include "ResourceTextObject.h"
-#include "../evernote_client/Resource.h"
 #include "../tools/QuteNoteCheckPtr.h"
 #include <QPainter>
 
 using namespace qute_note;
 
-ResourceTextObject::ResourceTextObject(const Resource *pResource) :
-    m_pResource(pResource)
-{}
+ResourceTextObject::ResourceTextObject(const ResourceMetadata & resourceMetadata,
+                                       const QByteArray & resourceBinaryData) :
+    m_resourceMetadata(resourceMetadata),
+    m_resourceImage()
+{
+    if (m_resourceMetadata.mimeType().contains("image")) {
+        m_resourceImage.loadFromData(resourceBinaryData);
+    }
+}
 
 ResourceTextObject::ResourceTextObject(const ResourceTextObject & other) :
-    m_pResource(other.m_pResource)
+    m_resourceMetadata(other.m_resourceMetadata),
+    m_resourceImage(other.m_resourceImage)
 {}
 
 ResourceTextObject & ResourceTextObject::operator =(const ResourceTextObject & other)
 {
     if (this != &other) {
-        m_pResource = other.m_pResource;
+        m_resourceMetadata = other.m_resourceMetadata;
+        m_resourceImage = other.m_resourceImage;
     }
 
     return *this;
@@ -27,8 +34,8 @@ ResourceTextObject::~ResourceTextObject()
 
 bool ResourceTextObject::isValid() const
 {
-    // TODO: check whether I can use any other useful information from the resource
-    if (m_pResource != nullptr) {
+    // TODO: check whether I can obtain any other useful information from the resource
+    if (!m_resourceMetadata.isEmpty()) {
         return true;
     }
     else {
@@ -36,27 +43,19 @@ bool ResourceTextObject::isValid() const
     }
 }
 
-void ResourceTextObject::drawObject(QPainter * /* pPainter */, const QRectF & /* rect */,
+void ResourceTextObject::drawObject(QPainter * pPainter, const QRectF & rect,
                                     QTextDocument * /* pDoc */, int /* positionInDocument */,
                                     const QTextFormat & /* format */)
 {
-    if (m_pResource == nullptr) {
+    if (m_resourceMetadata.isEmpty()) {
         return;
     }
 
-    // FIXME: this approach is really bad since mime data is non-copyable. Will rethink it.
-    /*
-    const QMimeData & mimeData = m_pResource->mimeData();
-    bool hasImage = mimeData.hasImage();
-    if (hasImage)
+    if (!m_resourceImage.isNull())
     {
-        QImage img = qvariant_cast<QImage>(mimeData.imageData());
-
         QUTE_NOTE_CHECK_PTR(pPainter, "Pointer to QPainter is null when trying to draw ResourceTextObject");
-        pPainter->drawImage(rect, img);
-        return;
+        pPainter->drawImage(rect, m_resourceImage);
     }
-    */
 
     // TODO: add some default drawing algorithm for non-image resources: name and type, for example
 }
@@ -64,12 +63,12 @@ void ResourceTextObject::drawObject(QPainter * /* pPainter */, const QRectF & /*
 QSizeF ResourceTextObject::intrinsicSize(QTextDocument * /* pDoc */, int /* positionInDocument */,
                                          const QTextFormat & /* format */)
 {
-    if (m_pResource == nullptr) {
+    if (m_resourceMetadata.isEmpty()) {
         return QSizeF();
     }
 
-    int width  = static_cast<int>(m_pResource->width());
-    int height = static_cast<int>(m_pResource->height());
+    int width  = static_cast<int>(m_resourceMetadata.width());
+    int height = static_cast<int>(m_resourceMetadata.height());
     return QSizeF(QSize(width, height));
 }
 

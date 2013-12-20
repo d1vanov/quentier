@@ -43,7 +43,6 @@ set(${PROJECT_NAME}_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Note.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Resource.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/ResourceMetadata.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/SynchronizedDataElement.h
@@ -55,7 +54,6 @@ set(${PROJECT_NAME}_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/UserStoreImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/UserImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/NoteStoreImpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/ResourceImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Location.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.h
@@ -96,7 +94,6 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Note.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Resource.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/ResourceMetadata.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/SynchronizedDataElement.cpp
@@ -105,7 +102,6 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseOpeningException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseSqlErrorException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/EvernoteServiceManagerImpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/ResourceImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Location.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.cpp
