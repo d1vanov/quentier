@@ -82,10 +82,22 @@ const QString Note::title() const
     return d->m_title;
 }
 
+void Note::setTitle(const QString & title)
+{
+    Q_D(Note);
+    d->m_title = title;
+}
+
 const QString Note::content() const
 {
     Q_D(const Note);
     return d->m_content;
+}
+
+void Note::setContent(const QString & content)
+{
+    Q_D(Note);
+    d->m_content = content;
 }
 
 time_t Note::createdTimestamp() const
