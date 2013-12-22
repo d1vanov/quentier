@@ -11,23 +11,25 @@
 
 namespace qute_note {
 
-class Guid;
-class Resource;
-class ResourceMetadata;
-class Notebook;
-class Tag;
+QT_FORWARD_DECLARE_CLASS(Guid)
+QT_FORWARD_DECLARE_CLASS(ResourceMetadata)
+QT_FORWARD_DECLARE_CLASS(Notebook)
+QT_FORWARD_DECLARE_CLASS(Tag)
+QT_FORWARD_DECLARE_CLASS(INoteStore)
 
-class NotePrivate;
+QT_FORWARD_DECLARE_CLASS(NotePrivate)
 class Note final: public TypeWithError,
                   public SynchronizedDataElement
 {
 public:
-    Note(const Notebook & notebook);
+    // Factory method
+    static Note Create(const Notebook & notebook, INoteStore & noteStore);
+
     Note(const Note & other);
     Note & operator =(const Note & other);
-    virtual ~Note();
+    virtual ~Note() override;
 
-    virtual bool isEmpty() const;
+    virtual bool isEmpty() const override;
 
     const QString title() const;
     void setTitle(const QString & title);
@@ -102,9 +104,10 @@ public:
     const Tag * getTagByIndex(const std::size_t index) const;
     bool addTag(const Tag & tag, QString & errorMessage);
 
-    virtual QTextStream & Print(QTextStream & strm) const;
+    virtual QTextStream & Print(QTextStream & strm) const override;
 
 private:
+    Note(const Notebook & notebook);
     Note() = delete;
 
     const QScopedPointer<NotePrivate> d_ptr;

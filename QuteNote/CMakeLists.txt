@@ -54,7 +54,7 @@ set(${PROJECT_NAME}_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseSqlErrorException.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/EvernoteServiceManagerImpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/UserStoreImpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/UserImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/User_p.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/NoteStore_p.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/ThriftException.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Location.h
@@ -108,6 +108,7 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Location.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/NoteStore_p.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/ThriftException.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/User_p.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/IQuteNoteException.cpp

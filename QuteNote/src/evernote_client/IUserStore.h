@@ -1,9 +1,12 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__I_USER_STORE_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__I_USER_STORE_H
 
+#include <QtGlobal>
 #include <string>
 
 namespace qute_note {
+
+QT_FORWARD_DECLARE_CLASS(User)
 
 class IUserStore
 {
@@ -18,7 +21,7 @@ public:
      * for example, if authentication token has expired, this method attempts to refresh it
      * before returning.
      */
-    virtual bool getAuthenticationToken(std::string & authenticationToken);
+    virtual bool getAuthenticationToken(std::string & authenticationToken) = 0;
 
     /**
      * @brief getNoteStoreUrl - attempts to provide a valid URL for NoteStore
@@ -30,7 +33,9 @@ public:
      * for example, it can attempt to refresh authentication token to receive new pack of
      * authentication result containing the NoteStore URL
      */
-    virtual bool getNoteStoreUrl(std::string & noteStoreUrl);
+    virtual bool getNoteStoreUrl(std::string & noteStoreUrl) = 0;
+
+    virtual User getUser(const std::string & authenticationToken) = 0;
 };
 
 }

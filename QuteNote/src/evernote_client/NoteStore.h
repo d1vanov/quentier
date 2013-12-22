@@ -14,9 +14,7 @@ public:
               const int port, const QString & noteStorePath);
     ~NoteStore();
 
-    virtual Note CreateNote(const QString & title, const QString &content, const Notebook & notebook,
-                            const std::vector<Tag> & tags = std::vector<Tag>(),
-                            const std::vector<ResourceMetadata> & resourcesMetadata = std::vector<ResourceMetadata>());
+    virtual void CreateNote(Note & note);
 
 private:
     NoteStore() = delete;

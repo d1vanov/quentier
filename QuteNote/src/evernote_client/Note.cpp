@@ -2,6 +2,7 @@
 #include "Note.h"
 #include "ResourceMetadata.h"
 #include "Notebook.h"
+#include "INoteStore.h"
 #include "../evernote_client_private/Location.h"
 #include <QTranslator>
 #include <QDateTime>
@@ -38,9 +39,18 @@ private:
     void updateTimestamp();
 };
 
-Note::Note(const Notebook & notebook) :
-    d_ptr(new NotePrivate(notebook))
-{}
+Note Note::Create(const Notebook & notebook, INoteStore & noteStore)
+{
+    Note note(notebook);
+
+    if (notebook.isEmpty()) {
+        note.SetError("Notebook is empty");
+        return std::move(note);
+    }
+
+    noteStore.CreateNote(note);
+    return std::move(note);
+}
 
 Note::Note(const Note & other) :
     d_ptr(new NotePrivate(*(other.d_func())))
@@ -333,6 +343,10 @@ QTextStream & Note::Print(QTextStream & strm) const
 
     return strm;
 }
+
+Note::Note(const Notebook & notebook) :
+    d_ptr(new NotePrivate(notebook))
+{}
 
 NotePrivate::NotePrivate(const Notebook &notebook) :
     m_notebookGuid(notebook.guid())

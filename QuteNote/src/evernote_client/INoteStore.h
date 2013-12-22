@@ -20,9 +20,13 @@ QT_FORWARD_DECLARE_CLASS(ResourceMetadata)
 class INoteStore
 {
 public:
-    virtual Note CreateNote(const QString & title, const QString & content, const Notebook & notebook,
-                            const std::vector<Tag> & tags = std::vector<Tag>(),
-                            const std::vector<ResourceMetadata> & resourcesMetadata = std::vector<ResourceMetadata>()) = 0;
+    /**
+     * @brief CreateNote - attempts to "register" partially filled Note object
+     * in NoteStore. In particular, this method would assign Guid to Note.
+     * @param note - after the call would contain either valid note in case of successful creation
+     * or invalid note otherwise
+     */
+    virtual void CreateNote(Note & note) = 0;
 
     // Will be uncommented when implementation is done, to not break the compilability
     /*
