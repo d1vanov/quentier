@@ -37,6 +37,7 @@ set(${PROJECT_NAME}_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceOAuthHandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/CredentialsModel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/EvernoteServiceManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/IUserStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/UserStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/User.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/INoteStore.h
