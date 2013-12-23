@@ -17,33 +17,75 @@ NoteStore::NoteStore(const QString & authenticationToken, const QString & host,
 NoteStore::~NoteStore()
 {}
 
+#define PROCESS_EDAM_EXCEPTIONS(item) \
+    catch(const evernote::edam::EDAMUserException & userException) \
+    { \
+        QString error = QObject::tr("Caught EDAM user exception: "); \
+        error.append(userException.what()); \
+        item.SetError(error); \
+        return; \
+    } \
+    catch(const evernote::edam::EDAMNotFoundException & notFoundException) \
+    { \
+        QString error = QObject::tr("Caught EDAM not found exception: "); \
+        error.append(notFoundException.what()); \
+        item.SetError(error); \
+        return; \
+    } \
+    catch(const evernote::edam::EDAMSystemException & systemException) \
+    { \
+        QString error = QObject::tr("Caught EDAM system exception: "); \
+        error.append(systemException.what()); \
+        item.SetError(error); \
+        return; \
+    }
+
 void NoteStore::CreateNote(Note & note)
 {
-    if (note.notebookGuid().isEmpty()) {
+    Guid notebookGuid = note.notebookGuid();
+
+    if (notebookGuid.isEmpty()) {
+        note.SetError("Notebook guid is empty");
         return;
     }
 
     evernote::edam::Note edamNote;
+    edamNote.notebookGuid = notebookGuid.ToQString().toStdString();
+    edamNote.__isset.notebookGuid = true;
+
     Q_D(NoteStore);
 
-    try
-    {
+    try {
         d->m_pNoteStoreClient->createNote(edamNote, d->m_authToken, edamNote);
     }
-    catch(const evernote::edam::EDAMUserException & userException)
-    {
-        QString error = "Caught EDAM_UserException: ";
-        error.append(userException.what());
-        note.SetError(error);
-    }
-    catch(const evernote::edam::EDAMNotFoundException & notFoundException)
-    {
-        QString error = "Caught EDAM_NotFoundException: ";
-        error.append(notFoundException.what());
-        note.SetError(error);
-    }
+    PROCESS_EDAM_EXCEPTIONS(note);
 
     note.assignGuid(edamNote.guid);
 }
+
+void NoteStore::CreateNotebook(Notebook & notebook)
+{
+    QString notebookName = notebook.name();
+
+    if (notebookName.isEmpty()) {
+        notebook.SetError("Name is empty");
+        return;
+    }
+
+    evernote::edam::Notebook edamNotebook;
+    edamNotebook.name = notebookName.toStdString();
+    edamNotebook.__isset.name = true;
+
+    Q_D(NoteStore);
+
+    try {
+        d->m_pNoteStoreClient->createNotebook(edamNotebook, d->m_authToken, edamNotebook);
+    }
+    PROCESS_EDAM_EXCEPTIONS(notebook);
+
+    notebook.assignGuid(edamNotebook.guid);
+}
+
+#undef PROCESS_EDAM_EXCEPTIONS
 
 }

@@ -6,7 +6,9 @@
 
 namespace qute_note {
 
-class NoteStorePrivate;
+QT_FORWARD_DECLARE_CLASS(Notebook)
+
+QT_FORWARD_DECLARE_CLASS(NoteStorePrivate)
 class NoteStore final : public INoteStore
 {
 public:
@@ -15,6 +17,8 @@ public:
     ~NoteStore();
 
     virtual void CreateNote(Note & note);
+
+    virtual void CreateNotebook(Notebook & notebook);
 
 private:
     NoteStore() = delete;

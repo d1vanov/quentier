@@ -1,4 +1,5 @@
 #include "Notebook.h"
+#include "INoteStore.h"
 #include <QDateTime>
 
 namespace qute_note {
@@ -6,7 +7,8 @@ namespace qute_note {
 class NotebookPrivate
 {
 public:
-    NotebookPrivate();
+    NotebookPrivate() = delete;
+    NotebookPrivate(const QString & name);
     NotebookPrivate(const NotebookPrivate & other);
     NotebookPrivate & operator=(const NotebookPrivate & other);
 
@@ -21,14 +23,27 @@ private:
     void updateTimestamp();
 };
 
-Notebook::Notebook() :
-    d_ptr(new NotebookPrivate)
-{}
+Notebook Notebook::Create(const QString & name, INoteStore & noteStore)
+{
+    Notebook notebook(name);
+
+    if (name.isEmpty()) {
+        notebook.SetError("Notebook name is empty");
+        return std::move(notebook);
+    }
+
+    noteStore.CreateNotebook(notebook);
+    return std::move(notebook);
+}
 
 Notebook::Notebook(const Notebook & other) :
     d_ptr(((other.d_func() !=nullptr)
            ? new NotebookPrivate(*(other.d_func()))
            : nullptr))
+{}
+
+Notebook::Notebook(const QString & name) :
+    d_ptr(new NotebookPrivate(name))
 {}
 
 Notebook & Notebook::operator=(const Notebook & other)
@@ -41,6 +56,9 @@ Notebook & Notebook::operator=(const Notebook & other)
 
     return *this;
 }
+
+Notebook::~Notebook()
+{}
 
 bool Notebook::isEmpty() const
 {
@@ -92,7 +110,8 @@ QTextStream & Notebook::Print(QTextStream & strm) const
     return strm;
 }
 
-NotebookPrivate::NotebookPrivate()
+NotebookPrivate::NotebookPrivate(const QString & name) :
+    m_name(name)
 {
     initializeTimestamps();
 }

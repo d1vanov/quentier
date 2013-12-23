@@ -6,14 +6,18 @@
 
 namespace qute_note {
 
-class NotebookPrivate;
+QT_FORWARD_DECLARE_CLASS(INoteStore)
+QT_FORWARD_DECLARE_CLASS(NotebookPrivate)
+
 class Notebook: public TypeWithError,
                 public SynchronizedDataElement
 {
 public:
-    Notebook();
+    static Notebook Create(const QString & name, INoteStore & noteStore);
+
     Notebook(const Notebook & other);
     Notebook & operator=(const Notebook & other);
+    virtual ~Notebook();
 
     virtual bool isEmpty() const;
 
@@ -32,6 +36,9 @@ public:
     virtual QTextStream & Print(QTextStream & strm) const;
 
 private:
+    Notebook() = delete;
+    Notebook(const QString & name);
+
     const QScopedPointer<NotebookPrivate> d_ptr;
     Q_DECLARE_PRIVATE(Notebook)
 };

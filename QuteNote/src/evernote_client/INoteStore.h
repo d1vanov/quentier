@@ -23,15 +23,15 @@ public:
     /**
      * @brief CreateNote - attempts to "register" partially filled Note object
      * in NoteStore. In particular, this method would assign Guid to Note.
-     * @param note - after the call would contain either valid note in case of successful creation
-     * or invalid note otherwise
+     * @param note - after the call would contain either valid note in case of
+     * successful creation or invalid note otherwise
      */
     virtual void CreateNote(Note & note) = 0;
 
     // Will be uncommented when implementation is done, to not break the compilability
-    /*
-    virtual Notebook CreateNotebook(const QString & name) = 0;
 
+    virtual void CreateNotebook(Notebook & notebook) = 0;
+    /*
     virtual Tag CreateTag(const String & name, const Guid & parentGuid = Guid()) = 0;
 
     virtual DeleteNote(const Note & note) = 0;

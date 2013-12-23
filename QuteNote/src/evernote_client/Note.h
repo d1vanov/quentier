@@ -22,7 +22,6 @@ class Note final: public TypeWithError,
                   public SynchronizedDataElement
 {
 public:
-    // Factory method
     static Note Create(const Notebook & notebook, INoteStore & noteStore);
 
     Note(const Note & other);
