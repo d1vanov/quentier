@@ -7,15 +7,16 @@
 
 namespace qute_note {
 
-class Guid;
+QT_FORWARD_DECLARE_CLASS(Guid)
+QT_FORWARD_DECLARE_CLASS(INoteStore)
 
-class TagPrivate;
+QT_FORWARD_DECLARE_CLASS(TagPrivate)
 class Tag: public TypeWithError,
            public SynchronizedDataElement
 {
 public:
-    Tag(const QString & name);
-    Tag(const QString & name, const Tag & parent);
+    Tag Create(const QString & name, INoteStore & noteStore, const Tag * parent = nullptr);
+
     Tag(const Tag & other);
     Tag & operator=(const Tag & other);
     bool operator==(const Tag & other) const;
@@ -38,6 +39,7 @@ public:
     void rename(const QString & name);
 
 private:
+    Tag(const QString & name, const Tag * parent = nullptr);
     Tag() = delete;
 
     const QScopedPointer<TagPrivate> d_ptr;

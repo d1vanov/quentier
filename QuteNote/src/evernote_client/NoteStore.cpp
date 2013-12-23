@@ -86,6 +86,35 @@ void NoteStore::CreateNotebook(Notebook & notebook)
     notebook.assignGuid(edamNotebook.guid);
 }
 
+void NoteStore::CreateTag(Tag & tag)
+{
+    QString tagName = tag.name();
+
+    if (tagName.isEmpty()) {
+        tag.SetError("Name is empty");
+        return;
+    }
+
+    evernote::edam::Tag edamTag;
+    edamTag.name = tagName.toStdString();
+    edamTag.__isset.name = true;
+
+    Guid parentGuid = tag.parentGuid();
+    if (!parentGuid.isEmpty()) {
+        edamTag.parentGuid = parentGuid.ToQString().toStdString();
+        edamTag.__isset.parentGuid = true;
+    }
+
+    Q_D(NoteStore);
+
+    try {
+        d->m_pNoteStoreClient->createTag(edamTag, d->m_authToken, edamTag);
+    }
+    PROCESS_EDAM_EXCEPTIONS(tag);
+
+    tag.assignGuid(edamTag.guid);
+}
+
 #undef PROCESS_EDAM_EXCEPTIONS
 
 }

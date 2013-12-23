@@ -20,6 +20,8 @@ public:
 
     virtual void CreateNotebook(Notebook & notebook);
 
+    virtual void CreateTag(Tag & tag);
+
 private:
     NoteStore() = delete;
     NoteStore(const NoteStore & other) = delete;

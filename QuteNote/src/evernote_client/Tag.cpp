@@ -1,5 +1,6 @@
 #include "Tag.h"
 #include "Guid.h"
+#include "INoteStore.h"
 
 namespace qute_note {
 
@@ -19,13 +20,18 @@ private:
     TagPrivate & operator=(const TagPrivate & other) = delete;
 };
 
-Tag::Tag(const QString & name) :
-    d_ptr(new TagPrivate(name))
-{}
+Tag Tag::Create(const QString & name, INoteStore & noteStore, const Tag * parent)
+{
+    Tag tag(name, parent);
 
-Tag::Tag(const QString &name, const Tag & parent) :
-    d_ptr(new TagPrivate(name, parent.guid()))
-{}
+    if (tag.name().isEmpty()) {
+        tag.SetError("Name is empty");
+        return std::move(tag);
+    }
+
+    noteStore.CreateTag(tag);
+    return std::move(tag);
+}
 
 Tag::Tag(const Tag & other) :
     d_ptr(new TagPrivate(other.name(), other.parentGuid()))
@@ -93,6 +99,10 @@ void Tag::setParent(const Tag & parent)
     Q_D(Tag);
     d->m_parentGuid = parent.guid();
 }
+
+Tag::Tag(const QString & name, const Tag * parent) :
+    d_ptr((parent == nullptr ? new TagPrivate(name) : new TagPrivate(name, parent->guid())))
+{}
 
 TagPrivate::TagPrivate(const QString & name) :
     m_name(name)

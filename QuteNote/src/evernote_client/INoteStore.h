@@ -31,9 +31,9 @@ public:
     // Will be uncommented when implementation is done, to not break the compilability
 
     virtual void CreateNotebook(Notebook & notebook) = 0;
-    /*
-    virtual Tag CreateTag(const String & name, const Guid & parentGuid = Guid()) = 0;
 
+    virtual void CreateTag(Tag & tag) = 0;
+    /*
     virtual DeleteNote(const Note & note) = 0;
 
     virtual Note GetNote(const Guid & guid) const = 0;
