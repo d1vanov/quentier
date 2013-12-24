@@ -3,6 +3,7 @@
 
 #include "../tools/TypeWithError.h"
 #include "SynchronizedDataElement.h"
+#include <ctime>
 
 namespace qute_note {
 

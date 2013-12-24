@@ -4,6 +4,12 @@
 #include "INoteStore.h"
 #include <QScopedPointer>
 
+namespace evernote {
+namespace edam {
+QT_FORWARD_DECLARE_CLASS(Note)
+}
+}
+
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Notebook)
@@ -26,6 +32,9 @@ private:
     NoteStore() = delete;
     NoteStore(const NoteStore & other) = delete;
     NoteStore & operator=(const NoteStore & other) = delete;
+
+    bool ConvertFromEdamNote(const evernote::edam::Note & edamNote, Note & note,
+                             QString & error);
 
     const QScopedPointer<NoteStorePrivate> d_ptr;
     Q_DECLARE_PRIVATE(NoteStore)

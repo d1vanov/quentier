@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__EVERNOTE_CLIENT__RESOURCE_METADATA_H
 
 #include "SynchronizedDataElement.h"
+#include <ctime>
 #include <QScopedPointer>
 
 namespace qute_note {
@@ -19,7 +20,7 @@ public:
                      const bool isAttachment = false);
     ResourceMetadata(const ResourceMetadata & other);
     ResourceMetadata & operator=(const ResourceMetadata & other);
-    virtual ~ResourceMetadata();
+    virtual ~ResourceMetadata() override;
 
     /**
      * @brief noteGuid - returns the guid of the note with which the resource is associated

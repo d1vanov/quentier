@@ -32,11 +32,6 @@ public:
     QString  m_source;
     QString  m_sourceUrl;
     QString  m_sourceApplication;
-
-private:
-    void initializeTimestamps();
-
-    void updateTimestamp();
 };
 
 Note Note::Create(const Notebook & notebook, INoteStore & noteStore)
@@ -116,16 +111,34 @@ time_t Note::createdTimestamp() const
     return d->m_createdTimestamp;
 }
 
+void Note::setCreatedTimestamp(const time_t timestamp)
+{
+    Q_D(Note);
+    d->m_createdTimestamp = timestamp;
+}
+
 time_t Note::updatedTimestamp() const
 {
     Q_D(const Note);
     return d->m_updatedTimestamp;
 }
 
+void Note::setUpdatedTimestamp(const time_t timestamp)
+{
+    Q_D(Note);
+    d->m_updatedTimestamp = timestamp;
+}
+
 time_t Note::subjectDateTimestamp() const
 {
     Q_D(const Note);
     return d->m_subjectDateTimestamp;
+}
+
+void Note::setSubjectDateTimestamp(const time_t timestamp)
+{
+    Q_D(Note);
+    d->m_subjectDateTimestamp = timestamp;
 }
 
 double Note::latitude() const
@@ -350,10 +363,7 @@ Note::Note(const Notebook & notebook) :
 
 NotePrivate::NotePrivate(const Notebook &notebook) :
     m_notebookGuid(notebook.guid())
-{
-    initializeTimestamps();
-    m_subjectDateTimestamp = m_createdTimestamp;
-}
+{}
 
 NotePrivate::NotePrivate(const NotePrivate &other) :
     m_notebookGuid(other.m_notebookGuid),
@@ -362,14 +372,14 @@ NotePrivate::NotePrivate(const NotePrivate &other) :
     m_author(other.m_author),
     m_resourcesMetadata(other.m_resourcesMetadata),
     m_tags(other.m_tags),
+    m_createdTimestamp(other.m_createdTimestamp),
+    m_updatedTimestamp(other.m_updatedTimestamp),
     m_subjectDateTimestamp(other.m_subjectDateTimestamp),
     m_location(other.m_location),
     m_source(other.m_source),
     m_sourceUrl(other.m_sourceUrl),
     m_sourceApplication(other.m_sourceApplication)
-{
-    initializeTimestamps();
-}
+{}
 
 NotePrivate & NotePrivate::operator=(const NotePrivate & other)
 {
@@ -381,13 +391,13 @@ NotePrivate & NotePrivate::operator=(const NotePrivate & other)
         m_author  = other.m_author;
         m_resourcesMetadata = other.m_resourcesMetadata;
         m_tags = other.m_tags;
+        m_createdTimestamp = other.m_createdTimestamp;
+        m_updatedTimestamp = other.m_updatedTimestamp;
         m_subjectDateTimestamp = other.m_subjectDateTimestamp;
         m_location = other.m_location;
         m_source = other.m_source;
         m_sourceUrl = other.m_sourceUrl;
         m_sourceApplication = other.m_sourceApplication;
-
-        updateTimestamp();
     }
 
     return *this;
@@ -431,17 +441,6 @@ bool NotePrivate::addTag(const Tag & tag, QString & errorMessage)
 
     m_tags.push_back(tag);
     return true;
-}
-
-void NotePrivate::initializeTimestamps()
-{
-    m_createdTimestamp = static_cast<time_t>(QDateTime::currentMSecsSinceEpoch());
-    m_updatedTimestamp = m_createdTimestamp;
-}
-
-void NotePrivate::updateTimestamp()
-{
-    m_updatedTimestamp = static_cast<time_t>(QDateTime::currentMSecsSinceEpoch());
 }
 
 }

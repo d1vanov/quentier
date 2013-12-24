@@ -40,12 +40,16 @@ public:
     void setContent(const QString & content);
 
     time_t createdTimestamp() const;
+    void setCreatedTimestamp(const time_t timestamp);
+
     time_t updatedTimestamp() const;
+    void setUpdatedTimestamp(const time_t timestamp);
 
     /**
      * @return timestamp of the date to which the note refers to
      */
     time_t subjectDateTimestamp() const;
+    void setSubjectDateTimestamp(const time_t timestamp);
 
     /**
      * @return latitude of the location the note refers to

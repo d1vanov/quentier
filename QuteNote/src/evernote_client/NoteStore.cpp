@@ -14,6 +14,28 @@ NoteStore::NoteStore(const QString & authenticationToken, const QString & host,
     d_ptr(new NoteStorePrivate(authenticationToken, host, port, noteStorePath))
 {}
 
+bool NoteStore::ConvertFromEdamNote(const evernote::edam::Note & edamNote, Note & note,
+                                    QString & error)
+{
+    if (note.notebookGuid().ToQString().toStdString() != edamNote.notebookGuid) {
+        error = QObject::tr("Can't convert from EDAM Note: notebook guids mismatch");
+        return false;
+    }
+
+    note.setUpdateSequenceNumber(edamNote.updateSequenceNum);
+    note.assignGuid(edamNote.guid);
+    note.setTitle(QString::fromStdString(edamNote.title));
+    note.setContent(QString::fromStdString(edamNote.content));
+    note.setCreatedTimestamp(static_cast<time_t>(edamNote.created));
+    note.setUpdatedTimestamp(static_cast<time_t>(edamNote.updated));
+
+    if (edamNote.__isset.tagGuids) {
+        // TODO: continue from here
+    }
+
+    return true;
+}
+
 NoteStore::~NoteStore()
 {}
 

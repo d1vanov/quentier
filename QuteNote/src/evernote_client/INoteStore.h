@@ -22,16 +22,26 @@ class INoteStore
 public:
     /**
      * @brief CreateNote - attempts to "register" partially filled Note object
-     * in NoteStore. In particular, this method would assign Guid to Note.
+     * in NoteStore. This method would assign Guid to Note.
      * @param note - after the call would contain either valid note in case of
      * successful creation or invalid note otherwise
      */
     virtual void CreateNote(Note & note) = 0;
 
-    // Will be uncommented when implementation is done, to not break the compilability
-
+    /**
+     * @brief CreateNotebook - attempts to "register" partially filled Notebook object
+     * in NoteStore. This method would assign Guid to Notebook.
+     * @param notebook - after the call would contain either valid notebook in case of
+     * successful creation or invalid notebook otherwise
+     */
     virtual void CreateNotebook(Notebook & notebook) = 0;
 
+    /**
+     * @brief CreateTag - attempts to "register" partially filled Tag object
+     * in NoteStore. This method would assign Guid to Tag.
+     * @param tag - after the call would contain either valid tag in case of successful
+     * creation or invalid tag otherwise
+     */
     virtual void CreateTag(Tag & tag) = 0;
     /*
     virtual DeleteNote(const Note & note) = 0;

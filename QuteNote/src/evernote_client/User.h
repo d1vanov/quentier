@@ -4,6 +4,7 @@
 #include "../tools/TypeWithError.h"
 #include "../tools/Printable.h"
 #include <QScopedPointer>
+#include <ctime>
 
 namespace qute_note {
 
