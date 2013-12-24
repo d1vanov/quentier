@@ -10076,9 +10076,7 @@ class NoteStoreProcessor : virtual public ::apache::thrift::TProcessor {
     processMap_["findRelated"] = &NoteStoreProcessor::process_findRelated;
   }
 
-  virtual bool process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot,
-                       boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot,
-                       void * connectionContent = nullptr);
+  virtual bool process(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot);
   virtual ~NoteStoreProcessor() {}
 };
 
