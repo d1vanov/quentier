@@ -97,6 +97,11 @@ public:
 
     bool hasAttachedResources() const;
     std::size_t numAttachedResources() const;
+
+    // TODO: implement
+    void getResourceGuids(std::vector<Guid> & resourceGuids) const;
+    void setResourceGuids(const std::vector<Guid> & resourceGuids);
+
     void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
     bool addResourceMetadata(const ResourceMetadata & resourceMetadata,
                              QString & errorMessage);
