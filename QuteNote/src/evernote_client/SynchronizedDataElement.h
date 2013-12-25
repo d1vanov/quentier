@@ -72,7 +72,7 @@ public:
 
     virtual QTextStream & Print(QTextStream & strm) const;
 
-    void assignGuid(const std::string & guid);
+protected:
     void assignGuid(const Guid & guid);
 
 private:

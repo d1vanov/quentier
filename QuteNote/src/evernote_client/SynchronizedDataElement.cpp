@@ -106,11 +106,6 @@ QTextStream & SynchronizedDataElement::Print(QTextStream & strm) const
     return strm;
 }
 
-void SynchronizedDataElement::assignGuid(const std::string & guid)
-{
-    m_guid.setGuidString(guid);
-}
-
 void SynchronizedDataElement::assignGuid(const Guid & guid)
 {
     m_guid = guid;

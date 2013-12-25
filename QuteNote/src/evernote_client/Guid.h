@@ -25,8 +25,6 @@ public:
 
     Guid & operator=(const Guid & other);
 
-    void setGuidString(const std::string & guid);
-
     /**
      * @brief isEmpty - checks whether Guid is empty
      * @return true if Guid is empty, false otherwise

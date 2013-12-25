@@ -22,8 +22,12 @@ bool NoteStore::ConvertFromEdamNote(const evernote::edam::Note & edamNote, Note 
         return false;
     }
 
+    if (note.guid().ToQString().toStdString() != edamNote.guid) {
+        error = QObject::tr("Can't convert from EDAM Note: note guids mismatch");
+        return false;
+    }
+
     note.setUpdateSequenceNumber(edamNote.updateSequenceNum);
-    note.assignGuid(edamNote.guid);
     note.setTitle(QString::fromStdString(edamNote.title));
     note.setContent(QString::fromStdString(edamNote.content));
     note.setCreatedTimestamp(static_cast<time_t>(edamNote.created));

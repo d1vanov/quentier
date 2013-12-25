@@ -23,11 +23,6 @@ Guid & Guid::operator=(const Guid & other)
     return *this;
 }
 
-void Guid::setGuidString(const std::string & guid)
-{
-    m_guid = guid;
-}
-
 bool Guid::isEmpty() const
 {
     return m_guid.empty();
