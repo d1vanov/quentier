@@ -18,7 +18,16 @@ Note Note::Create(const Guid & notebookGuid, INoteStore & noteStore)
         return std::move(note);
     }
 
-    noteStore.CreateNote(note);
+    QString errorDescription;
+    Guid noteGuid = noteStore.CreateNoteGuid(note, errorDescription);
+
+    if (noteGuid.isEmpty()) {
+        note.SetError(errorDescription);
+    }
+    else {
+        note.assignGuid(noteGuid);
+    }
+
     return std::move(note);
 }
 

@@ -22,11 +22,11 @@ public:
               const int port, const QString & noteStorePath);
     ~NoteStore();
 
-    virtual void CreateNote(Note & note);
+    virtual Guid CreateNoteGuid(const Note & note, QString & errorDescription) override;
 
-    virtual void CreateNotebook(Notebook & notebook);
+    virtual Guid CreateNotebookGuid(const Notebook & notebook, QString & errorDescription) override;
 
-    virtual void CreateTag(Tag & tag);
+    virtual Guid CreateTagGuid(const Tag & tag, QString & errorDescription);
 
 private:
     NoteStore() = delete;

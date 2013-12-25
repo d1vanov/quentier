@@ -42,33 +42,31 @@ NoteStore::~NoteStore()
 #define PROCESS_EDAM_EXCEPTIONS(item) \
     catch(const evernote::edam::EDAMUserException & userException) \
     { \
-        QString error = QObject::tr("Caught EDAM user exception: "); \
-        error.append(userException.what()); \
-        item.SetError(error); \
-        return; \
+        errorDescription = QObject::tr("Caught EDAM user exception: "); \
+        errorDescription.append(userException.what()); \
+        return std::move(item); \
     } \
     catch(const evernote::edam::EDAMNotFoundException & notFoundException) \
     { \
-        QString error = QObject::tr("Caught EDAM not found exception: "); \
-        error.append(notFoundException.what()); \
-        item.SetError(error); \
-        return; \
+        errorDescription = QObject::tr("Caught EDAM not found exception: "); \
+        errorDescription.append(notFoundException.what()); \
+        return std::move(item); \
     } \
     catch(const evernote::edam::EDAMSystemException & systemException) \
     { \
-        QString error = QObject::tr("Caught EDAM system exception: "); \
-        error.append(systemException.what()); \
-        item.SetError(error); \
-        return; \
+        errorDescription = QObject::tr("Caught EDAM system exception: "); \
+        errorDescription.append(systemException.what()); \
+        return std::move(item); \
     }
 
-void NoteStore::CreateNote(Note & note)
+Guid NoteStore::CreateNoteGuid(const Note & note, QString & errorDescription)
 {
-    Guid notebookGuid = note.notebookGuid();
+    Guid noteGuid;
 
+    Guid notebookGuid = note.notebookGuid();
     if (notebookGuid.isEmpty()) {
-        note.SetError("Notebook guid is empty");
-        return;
+        errorDescription = QObject::tr("Notebook guid is empty");
+        return std::move(noteGuid);
     }
 
     evernote::edam::Note edamNote;
@@ -76,22 +74,22 @@ void NoteStore::CreateNote(Note & note)
     edamNote.__isset.notebookGuid = true;
 
     Q_D(NoteStore);
-
     try {
         d->m_pNoteStoreClient->createNote(edamNote, d->m_authToken, edamNote);
     }
-    PROCESS_EDAM_EXCEPTIONS(note);
+    PROCESS_EDAM_EXCEPTIONS(noteGuid);
 
-    note.assignGuid(edamNote.guid);
+    return std::move(noteGuid);
 }
 
-void NoteStore::CreateNotebook(Notebook & notebook)
+Guid NoteStore::CreateNotebookGuid(const Notebook &notebook, QString & errorDescription)
 {
-    QString notebookName = notebook.name();
+    Guid notebookGuid;
 
+    QString notebookName = notebook.name();
     if (notebookName.isEmpty()) {
-        notebook.SetError("Name is empty");
-        return;
+        errorDescription = QObject::tr("Notebook name is empty");
+        return std::move(notebookGuid);
     }
 
     evernote::edam::Notebook edamNotebook;
@@ -99,22 +97,22 @@ void NoteStore::CreateNotebook(Notebook & notebook)
     edamNotebook.__isset.name = true;
 
     Q_D(NoteStore);
-
     try {
         d->m_pNoteStoreClient->createNotebook(edamNotebook, d->m_authToken, edamNotebook);
     }
-    PROCESS_EDAM_EXCEPTIONS(notebook);
+    PROCESS_EDAM_EXCEPTIONS(notebookGuid);
 
-    notebook.assignGuid(edamNotebook.guid);
+    return std::move(notebookGuid);
 }
 
-void NoteStore::CreateTag(Tag & tag)
+Guid NoteStore::CreateTagGuid(const Tag & tag, QString & errorDescription)
 {
-    QString tagName = tag.name();
+    Guid tagGuid;
 
+    QString tagName = tag.name();
     if (tagName.isEmpty()) {
-        tag.SetError("Name is empty");
-        return;
+        errorDescription = QObject::tr("Name is empty");
+        return std::move(tagGuid);
     }
 
     evernote::edam::Tag edamTag;
@@ -128,13 +126,12 @@ void NoteStore::CreateTag(Tag & tag)
     }
 
     Q_D(NoteStore);
-
     try {
         d->m_pNoteStoreClient->createTag(edamTag, d->m_authToken, edamTag);
     }
-    PROCESS_EDAM_EXCEPTIONS(tag);
+    PROCESS_EDAM_EXCEPTIONS(tagGuid);
 
-    tag.assignGuid(edamTag.guid);
+    return std::move(tagGuid);
 }
 
 #undef PROCESS_EDAM_EXCEPTIONS

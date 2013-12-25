@@ -23,26 +23,39 @@ public:
     /**
      * @brief CreateNote - attempts to "register" partially filled Note object
      * in NoteStore. This method would assign Guid to Note.
-     * @param note - after the call would contain either valid note in case of
-     * successful creation or invalid note otherwise
+     * @param note - partially filled Note object used as a source of information
+     * for NoteStore to create note
+     * @param errorDescription - contains description of error in case of failure
+     * to create note guid
+     * @return created Note's guid: either empty in case of failure or valid one
+     * in case of successful creation
      */
-    virtual void CreateNote(Note & note) = 0;
+    virtual Guid CreateNoteGuid(const Note & note, QString & errorDescription) = 0;
 
     /**
      * @brief CreateNotebook - attempts to "register" partially filled Notebook object
      * in NoteStore. This method would assign Guid to Notebook.
-     * @param notebook - after the call would contain either valid notebook in case of
-     * successful creation or invalid notebook otherwise
+     * @param notebook - partially filled Notebook object used as a source of information
+     * for NoteStore to create notebook
+     * @param errorDescription - contains description of error in case of failure
+     * to create notebook guid
+     * @return created Notebook's guid: either empty in case of failure or valid one
+     * in case of successful creation
      */
-    virtual void CreateNotebook(Notebook & notebook) = 0;
+    virtual Guid CreateNotebookGuid(const Notebook & notebook, QString & errorDescription) = 0;
 
     /**
      * @brief CreateTag - attempts to "register" partially filled Tag object
      * in NoteStore. This method would assign Guid to Tag.
-     * @param tag - after the call would contain either valid tag in case of successful
-     * creation or invalid tag otherwise
+     * @param tag - partially filled Tag object used as a source of information
+     * for NoteStore to create tag
+     * @param errorDescription - contains description of error in case of failure
+     * to create tag guid
+     * @return created Tag's guid: either empty in case of failure or valid one
+     * in case of successful creation
      */
-    virtual void CreateTag(Tag & tag) = 0;
+    virtual Guid CreateTagGuid(const Tag & tag, QString & errorDescription) = 0;
+
     /*
     virtual DeleteNote(const Note & note) = 0;
 

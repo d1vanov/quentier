@@ -29,7 +29,15 @@ Tag Tag::Create(const QString & name, INoteStore & noteStore, const Tag * parent
         return std::move(tag);
     }
 
-    noteStore.CreateTag(tag);
+    QString errorDescription;
+    Guid tagGuid = noteStore.CreateTagGuid(tag, errorDescription);
+    if (tagGuid.isEmpty()) {
+        tag.SetError(errorDescription);
+    }
+    else {
+        tag.assignGuid(tagGuid);
+    }
+
     return std::move(tag);
 }
 

@@ -59,7 +59,6 @@ public:
     void undelete();
 
     const Guid & guid() const;
-    void assignGuid(const std::string & guid);
 
     virtual bool isEmpty() const;
 
@@ -72,6 +71,9 @@ public:
     bool operator<(const SynchronizedDataElement & other);
 
     virtual QTextStream & Print(QTextStream & strm) const;
+
+    void assignGuid(const std::string & guid);
+    void assignGuid(const Guid & guid);
 
 private:
     unsigned int  m_updateSequenceNumber;

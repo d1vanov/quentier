@@ -85,11 +85,6 @@ const Guid & SynchronizedDataElement::guid() const
     return m_guid;
 }
 
-void SynchronizedDataElement::assignGuid(const std::string & guid)
-{
-    m_guid.setGuidString(guid);
-}
-
 bool SynchronizedDataElement::isEmpty() const
 {
     return m_guid.isEmpty();
@@ -109,6 +104,16 @@ QTextStream & SynchronizedDataElement::Print(QTextStream & strm) const
     strm << "  Guid = " << m_guid << "\n };";
 
     return strm;
+}
+
+void SynchronizedDataElement::assignGuid(const std::string & guid)
+{
+    m_guid.setGuidString(guid);
+}
+
+void SynchronizedDataElement::assignGuid(const Guid & guid)
+{
+    m_guid = guid;
 }
 
 }

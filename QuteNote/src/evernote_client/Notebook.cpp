@@ -32,7 +32,15 @@ Notebook Notebook::Create(const QString & name, INoteStore & noteStore)
         return std::move(notebook);
     }
 
-    noteStore.CreateNotebook(notebook);
+    QString errorDescription;
+    Guid notebookGuid = noteStore.CreateNotebookGuid(notebook, errorDescription);
+    if (notebookGuid.isEmpty()) {
+        notebook.SetError(errorDescription);
+    }
+    else {
+        notebook.assignGuid(notebookGuid);
+    }
+
     return std::move(notebook);
 }
 
