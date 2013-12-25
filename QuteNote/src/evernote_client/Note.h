@@ -22,7 +22,7 @@ class Note final: public TypeWithError,
                   public SynchronizedDataElement
 {
 public:
-    static Note Create(const Notebook & notebook, INoteStore & noteStore);
+    static Note Create(const Guid & notebookGuid, INoteStore & noteStore);
 
     Note(const Note & other);
     Note & operator =(const Note & other);
@@ -30,12 +30,26 @@ public:
 
     virtual bool isEmpty() const override;
 
+    const Guid notebookGuid() const;
+
+    Q_PROPERTY(QString title READ title WRITE setTitle)
+    Q_PROPERTY(QString content READ content WRITE setContent)
+    Q_PROPERTY(time_t createdTimestamp READ createdTimestamp WRITE setCreatedTimestamp)
+    Q_PROPERTY(time_t updatedTimestamp READ updatedTimestamp WRITE setUpdatedTimestamp)
+    Q_PROPERTY(time_t subjectDateTimestamp READ subjectDateTimestamp WRITE setSubjectDateTimestamp)
+    Q_PROPERTY(double latitude READ latitude WRITE setLatitude)
+    Q_PROPERTY(double longitude READ longitude WRITE setLongitude)
+    Q_PROPERTY(double altitude READ altitude WRITE setAltitude)
+    Q_PROPERTY(QString author READ author WRITE setAuthor)
+    Q_PROPERTY(QString source READ source WRITE setSource)
+    Q_PROPERTY(QString sourceUrl READ sourceUrl WRITE setSourceUrl)
+    Q_PROPERTY(QString sourceApplicartion READ sourceApplication WRITE setSourceApplication)
+    Q_PROPERTY(std::vector<Guid> resourceGuids READ resourceGuids WRITE setResourceGuids)
+    Q_PROPERTY(std::vector<Guid> tagGuids READ tagGuids WRITE setTagGuids)
+
     const QString title() const;
     void setTitle(const QString & title);
 
-    /**
-     * @return content of the note in ENML format
-     */
     const QString content() const;
     void setContent(const QString & content);
 
@@ -45,47 +59,21 @@ public:
     time_t updatedTimestamp() const;
     void setUpdatedTimestamp(const time_t timestamp);
 
-    /**
-     * @return timestamp of the date to which the note refers to
-     */
     time_t subjectDateTimestamp() const;
     void setSubjectDateTimestamp(const time_t timestamp);
 
-    /**
-     * @return latitude of the location the note refers to
-     */
     double latitude() const;
     void setLatitude(const double latitude);
 
-    /**
-     * @return longitude of the location the note refers to
-     */
     double longitude() const;
     void setLongitude(const double longitude);
 
-    /**
-     * @return altitude of the location the note refers to
-     */
     double altitude() const;
     void setAltitude(const double altitude);
 
-    /**
-     * @return true if location markers are valid for this note, false otherwise
-     */
-    bool hasValidLocation() const;
-
-    const Guid notebookGuid() const;
-
-    /**
-     * @return name of author of the note
-     */
     const QString author() const;
     void setAuthor(const QString & author);
 
-    /**
-     * @brief As Evernote API reference says, source is "the method that the note was added
-     * to the account, if the note wasn't directly authored in an Evernote desktop client."
-     */
     const QString source() const;
     void setSource(const QString & source);
 
@@ -95,27 +83,30 @@ public:
     const QString sourceApplication() const;
     void setSourceApplication(const QString & sourceApplication);
 
-    bool hasAttachedResources() const;
-    std::size_t numAttachedResources() const;
-
-    // TODO: implement
-    void getResourceGuids(std::vector<Guid> & resourceGuids) const;
+    const std::vector<Guid> & resourceGuids() const;
     void setResourceGuids(const std::vector<Guid> & resourceGuids);
 
-    void getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const;
-    bool addResourceMetadata(const ResourceMetadata & resourceMetadata,
-                             QString & errorMessage);
+    const std::vector<Guid> & tagGuids() const;
+    void setTagGuids(const std::vector<Guid> & tagGuids);
+
+    /**
+     * @return true if location markers are valid for this note, false otherwise
+     */
+    bool hasValidLocation() const;
+
+    bool hasAttachedResources() const;
+    std::size_t numAttachedResources() const;
+    bool attachResource(const ResourceMetadata & resourceMetadata, QString & errorMessage);
 
     bool labeledByTag(const Tag & tag) const;
     bool labeledByAnyTag() const;
     std::size_t numTags() const;
-    const Tag * getTagByIndex(const std::size_t index) const;
-    bool addTag(const Tag & tag, QString & errorMessage);
+    bool labelByTag(const Tag & tag, QString & errorMessage);
 
     virtual QTextStream & Print(QTextStream & strm) const override;
 
 private:
-    Note(const Notebook & notebook);
+    Note(const Guid & notebookGuid);
     Note() = delete;
 
     const QScopedPointer<NotePrivate> d_ptr;

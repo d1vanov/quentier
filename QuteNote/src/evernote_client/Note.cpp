@@ -3,43 +3,18 @@
 #include "ResourceMetadata.h"
 #include "Notebook.h"
 #include "INoteStore.h"
-#include "../evernote_client_private/Location.h"
+#include "../evernote_client_private/Note_p.h"
 #include <QTranslator>
 #include <QDateTime>
 
 namespace qute_note {
 
-class NotePrivate
+Note Note::Create(const Guid & notebookGuid, INoteStore & noteStore)
 {
-public:
-    NotePrivate(const Notebook & notebook);
-    NotePrivate(const NotePrivate & other);
-    NotePrivate & operator=(const NotePrivate & other);
+    Note note(notebookGuid);
 
-    bool addResourceMetadata(const ResourceMetadata & resourceMetadata, QString & errorMessage);
-    bool addTag(const Tag & tag, QString & errorMessage);
-
-    Guid     m_notebookGuid;
-    QString  m_title;
-    QString  m_content;
-    QString  m_author;
-    std::vector<ResourceMetadata>  m_resourcesMetadata;
-    std::vector<Tag>  m_tags;
-    time_t   m_createdTimestamp;
-    time_t   m_updatedTimestamp;
-    time_t   m_subjectDateTimestamp;
-    Location m_location;
-    QString  m_source;
-    QString  m_sourceUrl;
-    QString  m_sourceApplication;
-};
-
-Note Note::Create(const Notebook & notebook, INoteStore & noteStore)
-{
-    Note note(notebook);
-
-    if (notebook.isEmpty()) {
-        note.SetError("Notebook is empty");
+    if (notebookGuid.isEmpty()) {
+        note.SetError("Notebook guid is empty");
         return std::move(note);
     }
 
@@ -54,9 +29,7 @@ Note::Note(const Note & other) :
 Note & Note::operator =(const Note & other)
 {
     if (this != &other) {
-        if (other.d_func() != nullptr) {
-            *(d_func()) = *(other.d_func());
-        }
+        *(d_func()) = *(other.d_func());
     }
 
     return *this;
@@ -79,6 +52,12 @@ bool Note::isEmpty() const
     // NOTE: should not check for emptiness of title or text:
     // notes with these ones empty are completely legal for Evernote service
     return false;
+}
+
+const Guid Note::notebookGuid() const
+{
+    Q_D(const Note);
+    return d->m_notebookGuid;
 }
 
 const QString Note::title() const
@@ -177,18 +156,6 @@ void Note::setAltitude(const double altitude)
     d->m_location.setAltitude(altitude);
 }
 
-bool Note::hasValidLocation() const
-{
-    Q_D(const Note);
-    return d->m_location.isValid();
-}
-
-const Guid Note::notebookGuid() const
-{
-    Q_D(const Note);
-    return d->m_notebookGuid;
-}
-
 const QString Note::author() const
 {
     Q_D(const Note);
@@ -231,10 +198,40 @@ void Note::setSourceApplication(const QString & sourceApplication)
     d->m_sourceApplication = sourceApplication;
 }
 
+const std::vector<Guid> & Note::resourceGuids() const
+{
+    Q_D(const Note);
+    return d->m_resourceGuids;
+}
+
+void Note::setResourceGuids(const std::vector<Guid> & resourceGuids)
+{
+    Q_D(Note);
+    d->m_resourceGuids = resourceGuids;
+}
+
+const std::vector<Guid> & Note::tagGuids() const
+{
+    Q_D(const Note);
+    return d->m_tagGuids;
+}
+
+void Note::setTagGuids(const std::vector<Guid> & tagGuids)
+{
+    Q_D(Note);
+    d->m_tagGuids = tagGuids;
+}
+
+bool Note::hasValidLocation() const
+{
+    Q_D(const Note);
+    return d->m_location.isValid();
+}
+
 bool Note::hasAttachedResources() const
 {
     Q_D(const Note);
-    return !(d->m_resourcesMetadata.empty());
+    return !(d->m_resourceGuids.empty());
 }
 
 std::size_t Note::numAttachedResources() const
@@ -244,26 +241,25 @@ std::size_t Note::numAttachedResources() const
     }
     else {
         Q_D(const Note);
-        return d->m_resourcesMetadata.size();
+        return d->m_resourceGuids.size();
     }
 }
 
-void Note::getResourcesMetadata(std::vector<ResourceMetadata> & resourcesMetadata) const
-{
-    if (!hasAttachedResources()) {
-        return;
-    }
-
-    Q_D(const Note);
-    resourcesMetadata.assign(d->m_resourcesMetadata.cbegin(),
-                             d->m_resourcesMetadata.cend());
-}
-
-bool Note::addResourceMetadata(const ResourceMetadata & resourceMetadata,
-                               QString & errorMessage)
+bool Note::attachResource(const ResourceMetadata & resourceMetadata,
+                          QString & errorMessage)
 {
     Q_D(Note);
-    return d->addResourceMetadata(resourceMetadata, errorMessage);
+    std::vector<Guid> & resourceGuids = d->m_resourceGuids;
+    auto it = std::find_if(resourceGuids.cbegin(), resourceGuids.cend(),
+                           [&resourceMetadata](const Guid & other)
+                           { return (resourceMetadata.guid() == other); });
+    if (it != resourceGuids.cend()) {
+        errorMessage = QObject::tr("This resource has already been attached to the note");
+        return false;
+    }
+
+    resourceGuids.push_back(resourceMetadata.guid());
+    return true;
 }
 
 bool Note::labeledByTag(const Tag & tag) const
@@ -273,7 +269,8 @@ bool Note::labeledByTag(const Tag & tag) const
     }
 
     Q_D(const Note);
-    if (std::find(d->m_tags.begin(), d->m_tags.end(), tag) == d->m_tags.end()) {
+    const std::vector<Guid> & tagGuids = d->m_tagGuids;
+    if (std::find(tagGuids.cbegin(), tagGuids.cend(), tag.guid()) == tagGuids.end()) {
         return false;
     }
     else {
@@ -284,146 +281,23 @@ bool Note::labeledByTag(const Tag & tag) const
 bool Note::labeledByAnyTag() const
 {
     Q_D(const Note);
-    return !(d->m_tags.empty());
+    return !(d->m_tagGuids.empty());
 }
 
 std::size_t Note::numTags() const
 {
     Q_D(const Note);
-    return d->m_tags.size();
+    return d->m_tagGuids.size();
 }
 
-const Tag * Note::getTagByIndex(const std::size_t index) const
-{
-    std::size_t nTags = numTags();
-    if (nTags == 0) {
-        return nullptr;
-    }
-    else if (index >= nTags) {
-        return nullptr;
-    }
-    else {
-        Q_D(const Note);
-        return &(d->m_tags.at(index));
-    }
-}
-
-bool Note::addTag(const Tag & tag, QString & errorMessage)
+bool Note::labelByTag(const Tag & tag, QString & errorMessage)
 {
     Q_D(Note);
-    return d->addTag(tag, errorMessage);
-}
-
-QTextStream & Note::Print(QTextStream & strm) const
-{
-    SynchronizedDataElement::Print(strm);
-
-    if (HasError()) {
-        strm << "Error: " << GetError() << ".\n";
-    }
-
-    strm << "Notebook's guid: " << notebookGuid() << ";\n";
-    strm << "Note title: " << title() << ";\n";
-    strm << "Note's ENML content: {\n";
-    strm << content() << "\n};\n";
-
-    if (hasAttachedResources())
-    {
-        strm << "Metadata of resources attached to note: " << "\n";
-        std::size_t numResources = numAttachedResources();
-        Q_D(const Note);
-        for(std::size_t i = 0; i < numResources; ++i)
-        {
-            const ResourceMetadata & resourceMetadata = d->m_resourcesMetadata.at(i);
-            strm << "Resource metadata #" << i << ": mime type: ";
-            strm << resourceMetadata.mimeType() << ", MD5 hash: ";
-            strm << resourceMetadata.dataHash() << ", number of bytes: ";
-            strm << resourceMetadata.dataSize();
-
-            std::size_t width = resourceMetadata.width();
-            if (width != 0) {
-                strm << ", display width: " << width;
-            }
-
-            std::size_t height = resourceMetadata.height();
-            if (height != 0) {
-                strm << ", display height: " << height;
-            }
-
-            strm << "\n";
-        }
-    }
-
-    return strm;
-}
-
-Note::Note(const Notebook & notebook) :
-    d_ptr(new NotePrivate(notebook))
-{}
-
-NotePrivate::NotePrivate(const Notebook &notebook) :
-    m_notebookGuid(notebook.guid())
-{}
-
-NotePrivate::NotePrivate(const NotePrivate &other) :
-    m_notebookGuid(other.m_notebookGuid),
-    m_title(other.m_title),
-    m_content(other.m_content),
-    m_author(other.m_author),
-    m_resourcesMetadata(other.m_resourcesMetadata),
-    m_tags(other.m_tags),
-    m_createdTimestamp(other.m_createdTimestamp),
-    m_updatedTimestamp(other.m_updatedTimestamp),
-    m_subjectDateTimestamp(other.m_subjectDateTimestamp),
-    m_location(other.m_location),
-    m_source(other.m_source),
-    m_sourceUrl(other.m_sourceUrl),
-    m_sourceApplication(other.m_sourceApplication)
-{}
-
-NotePrivate & NotePrivate::operator=(const NotePrivate & other)
-{
-    if (this != &other)
-    {
-        m_notebookGuid = other.m_notebookGuid;
-        m_title   = other.m_title;
-        m_content = other.m_content;
-        m_author  = other.m_author;
-        m_resourcesMetadata = other.m_resourcesMetadata;
-        m_tags = other.m_tags;
-        m_createdTimestamp = other.m_createdTimestamp;
-        m_updatedTimestamp = other.m_updatedTimestamp;
-        m_subjectDateTimestamp = other.m_subjectDateTimestamp;
-        m_location = other.m_location;
-        m_source = other.m_source;
-        m_sourceUrl = other.m_sourceUrl;
-        m_sourceApplication = other.m_sourceApplication;
-    }
-
-    return *this;
-}
-
-bool NotePrivate::addResourceMetadata(const ResourceMetadata & resourceMetadata,
-                                      QString & errorMessage)
-{
-    auto it = std::find_if(m_resourcesMetadata.cbegin(), m_resourcesMetadata.cend(),
-                           [&resourceMetadata](const ResourceMetadata & other)
-                           { return (resourceMetadata.guid() == other.guid()); });
-    if (it != m_resourcesMetadata.cend()) {
-        errorMessage = QObject::tr("This resource has already been added to the note");
-        return false;
-    }
-
-    m_resourcesMetadata.push_back(resourceMetadata);
-    return true;
-}
-
-bool NotePrivate::addTag(const Tag & tag, QString & errorMessage)
-{
-    auto it = std::find_if(m_tags.cbegin(), m_tags.cend(),
-                           [&tag](const Tag & other)
-                           { return (tag.guid() == other.guid()); });
-    if (it != m_tags.cend()) {
+    std::vector<Guid> & tagGuids = d->m_tagGuids;
+    auto it = std::find_if(tagGuids.cbegin(), tagGuids.cend(),
+                           [&tag](const Guid & other)
+                           { return (tag.guid() == other); });
+    if (it != tagGuids.cend()) {
         errorMessage = QObject::tr("The note has already been labeled by this tag");
         return false;
     }
@@ -439,8 +313,45 @@ bool NotePrivate::addTag(const Tag & tag, QString & errorMessage)
         return false;
     }
 
-    m_tags.push_back(tag);
+    tagGuids.push_back(tag.guid());
     return true;
 }
+
+QTextStream & Note::Print(QTextStream & strm) const
+{
+    SynchronizedDataElement::Print(strm);
+
+    if (HasError()) {
+        strm << "Error: " << GetError() << ".\n";
+    }
+
+    strm << "Notebook's guid: " << notebookGuid() << ";\n";
+    strm << "Note title: " << title() << ";\n";
+    strm << "Note's ENML content: {\n";
+    strm << content() << "\n};\n";
+
+    Q_D(const Note);
+
+    if (hasAttachedResources())
+    {
+        strm << "Guids of resources attached to note: " << "\n";
+        const std::vector<Guid> & resourceGuids = d->m_resourceGuids;
+        std::size_t numResources = resourceGuids.size();
+        for(std::size_t i = 0; i < numResources; ++i)
+        {
+            const Guid & resourceGuid = resourceGuids[i];
+
+            strm << "Resource guid #" << i << ": " << resourceGuid << "\n";
+        }
+    }
+
+    // TODO: print tag guids and other stuff
+
+    return strm;
+}
+
+Note::Note(const Guid & notebookGuid) :
+    d_ptr(new NotePrivate(notebookGuid))
+{}
 
 }

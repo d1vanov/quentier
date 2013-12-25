@@ -54,10 +54,13 @@ bool ENMLConverter::richTextToENML(const QuteNoteTextEdit & noteEditor, QString 
     const Note * pNote = noteEditor.getNotePtr();
     QUTE_NOTE_CHECK_PTR(pNote, QObject::tr("Null pointer to Note received from QuteNoteTextEdit"));
 
+    // FIXME: reimplement
+    /*
     std::vector<ResourceMetadata> resourcesMetadata;
     pNote->getResourcesMetadata(resourcesMetadata);
     std::size_t numAttachedResources = resourcesMetadata.size();
     std::size_t resourceIndex = 0;
+    */
 
     ENML.append("<en-note>");
 
@@ -82,6 +85,8 @@ bool ENMLConverter::richTextToENML(const QuteNoteTextEdit & noteEditor, QString 
             else if (currentFragmentCharFormatObjectType == QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_UNCHECKED) {
                 ENML.append("<en-todo checked=\"false\"/>");
             }
+            // FIXME: reimplement
+            /*
             else if (currentFragmentCharFormatObjectType == QuteNoteTextEdit::MEDIA_RESOURCE_TXT_FORMAT)
             {
                 if (resourceIndex >= numAttachedResources)
@@ -112,6 +117,7 @@ bool ENMLConverter::richTextToENML(const QuteNoteTextEdit & noteEditor, QString 
 
                 ++resourceIndex;
             }
+            */
             else if (currentFragment.isValid())
             {
                 QString encodedCurrentFragment;
@@ -172,11 +178,14 @@ bool ENMLConverter::ENMLToRichText(const QString & ENML, const DatabaseManager &
         return false;
     }
 
+    // FIXME: reimplement
+    /*
     bool noteHasAttachedResources = pNote->hasAttachedResources();
     std::size_t numAttachedResources = pNote->numAttachedResources();
     std::vector<ResourceMetadata> resourcesMetadata;
     pNote->getResourcesMetadata(resourcesMetadata);
     std::size_t resourceIndex = 0;
+    */
 
     QDomNode nextNode = docElem.firstChild();
     while(!nextNode.isNull())
@@ -213,6 +222,7 @@ bool ENMLConverter::ENMLToRichText(const QString & ENML, const DatabaseManager &
                     errorMessage = QObject::tr("Internal error: en-note should be the root node of note\'s ENML");
                     return false;
                 }
+                /*
                 else if (tagName == "en-media")
                 {
                     if (!noteHasAttachedResources) {
@@ -260,19 +270,15 @@ bool ENMLConverter::ENMLToRichText(const QString & ENML, const DatabaseManager &
 
                     ++resourceIndex;
 
-                    /*
                     std::size_t width  = currentResourceMetadata.width();
                     std::size_t height = currentResourceMetadata.height();
-                    */
+
                     QString mimeType = currentResourceMetadata.mimeType();
                     // This should be enough, we don't need the actual binary data just to display the resource
                     // The only exceptions are resources of image type
 
                     if (mimeType.contains("image/"))
                     {
-                        // FIXME: reimplement: obtain resource's binary data from local storage database
-
-                        /*
                         const QMimeData & resourceMimeData = currentResourceMetadata->mimeData();
                         if (!resourceMimeData.hasImage()) {
                             errorMessage = QObject::tr("Internal error: mime type of the resource "
@@ -289,13 +295,13 @@ bool ENMLConverter::ENMLToRichText(const QString & ENML, const DatabaseManager &
 
                         QTextCursor cursor = pFakeNoteEditor->textCursor();
                         cursor.insertImage(resourceImgFormat);
-                        */
                     }
                     else
                     {
                         // TODO: somehow display the metadata of the resource inside the QuteNoteTextEdit object
                     }
                 }
+                */
                 else
                 {
                     errorMessage = QObject::tr("Internal error: found some ENML tag specified as "
