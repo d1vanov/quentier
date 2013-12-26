@@ -26,7 +26,9 @@ public:
 
     Note(const Guid & noteGuid, const Guid & notebookGuid);
     Note(const Note & other);
-    Note & operator =(const Note & other);
+    Note(Note && other);
+    Note & operator=(const Note & other);
+    Note & operator=(Note && other);
     virtual ~Note() override;
 
     virtual void Clear() override;

@@ -17,7 +17,9 @@ public:
     static Notebook Create(const QString & name, INoteStore & noteStore);
 
     Notebook(const Notebook & other);
+    Notebook(Notebook && other);
     Notebook & operator=(const Notebook & other);
+    Notebook & operator=(Notebook && other);
     virtual ~Notebook() override;
 
     virtual void Clear() override;

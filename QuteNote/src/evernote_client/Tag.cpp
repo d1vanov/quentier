@@ -45,6 +45,12 @@ Tag::Tag(const Tag & other) :
     d_ptr(new TagPrivate(other.name(), other.parentGuid()))
 {}
 
+Tag::Tag(Tag && other) :
+    SynchronizedDataElement(other)
+{
+    d_ptr.swap(other.d_ptr);
+}
+
 Tag & Tag::operator=(const Tag & other)
 {
     if (this != &other)
@@ -52,6 +58,16 @@ Tag & Tag::operator=(const Tag & other)
         Q_D(Tag);
         d->m_name = other.name();
         d->m_parentGuid = other.parentGuid();
+    }
+
+    return *this;
+}
+
+Tag & Tag::operator=(Tag && other)
+{
+    if (this != &other) {
+        SynchronizedDataElement::operator =(other);
+        d_ptr.swap(other.d_ptr);
     }
 
     return *this;

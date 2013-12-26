@@ -18,9 +18,12 @@ public:
     Tag Create(const QString & name, INoteStore & noteStore, const Tag * parent = nullptr);
 
     Tag(const Tag & other);
+    Tag(Tag && other);
     Tag & operator=(const Tag & other);
-    bool operator==(const Tag & other) const;
+    Tag & operator=(Tag && other);
     virtual ~Tag() override;
+
+    bool operator==(const Tag & other) const;
 
     virtual void Clear() override;
     virtual bool isEmpty() const override;
@@ -43,10 +46,10 @@ private:
     Tag(const QString & name, const Tag * parent = nullptr);
     Tag() = delete;
 
-    const QScopedPointer<TagPrivate> d_ptr;
+    QScopedPointer<TagPrivate> d_ptr;
     Q_DECLARE_PRIVATE(Tag)
 };
 
-}
+} // namespace qute_note
 
 #endif // __QUTE_NOTE__EVERNOTE_CLIENT__TAG_H

@@ -50,9 +50,11 @@ Notebook::Notebook(const Notebook & other) :
            : nullptr))
 {}
 
-Notebook::Notebook(const QString & name) :
-    d_ptr(new NotebookPrivate(name))
-{}
+Notebook::Notebook(Notebook && other) :
+    SynchronizedDataElement(other)
+{
+    d_ptr.swap(other.d_ptr);
+}
 
 Notebook & Notebook::operator=(const Notebook & other)
 {
@@ -60,6 +62,16 @@ Notebook & Notebook::operator=(const Notebook & other)
         if (other.d_func() != nullptr) {
             *(d_func()) = *(other.d_func());
         }
+    }
+
+    return *this;
+}
+
+Notebook & Notebook::operator=(Notebook && other)
+{
+    if (this != &other) {
+        SynchronizedDataElement::operator =(other);
+        d_ptr.swap(other.d_ptr);
     }
 
     return *this;
@@ -126,6 +138,10 @@ QTextStream & Notebook::Print(QTextStream & strm) const
 
     return strm;
 }
+
+Notebook::Notebook(const QString & name) :
+    d_ptr(new NotebookPrivate(name))
+{}
 
 NotebookPrivate::NotebookPrivate(const QString & name) :
     m_name(name)

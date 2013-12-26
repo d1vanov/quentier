@@ -9,7 +9,7 @@ namespace qute_note {
 class Guid: public Printable
 {
 public:
-    Guid();
+    Guid() = default;
 
     /**
      * @brief Guid - create Guid object from string

@@ -2,10 +2,6 @@
 
 namespace qute_note {
 
-Guid::Guid() :
-    m_guid()
-{}
-
 Guid::Guid(const std::string & guid) :
     m_guid(guid)
 {}

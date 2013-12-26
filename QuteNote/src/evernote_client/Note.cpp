@@ -38,13 +38,31 @@ Note::Note(const Guid & noteGuid, const Guid & notebookGuid) :
 }
 
 Note::Note(const Note & other) :
+    SynchronizedDataElement(other),
     d_ptr(new NotePrivate(*(other.d_func())))
 {}
 
-Note & Note::operator =(const Note & other)
+Note::Note(Note && other) :
+    SynchronizedDataElement(other)
+{
+    d_ptr.swap(other.d_ptr);
+}
+
+Note & Note::operator=(const Note & other)
 {
     if (this != &other) {
+        SynchronizedDataElement::operator=(other);
         *(d_func()) = *(other.d_func());
+    }
+
+    return *this;
+}
+
+Note & Note::operator=(Note && other)
+{
+    if (this != &other) {
+        SynchronizedDataElement::operator=(other);
+        d_ptr.swap(other.d_ptr);
     }
 
     return *this;

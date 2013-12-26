@@ -11,6 +11,8 @@ public:
     SynchronizedDataElement();
     SynchronizedDataElement(const SynchronizedDataElement & other);
     SynchronizedDataElement & operator=(const SynchronizedDataElement & other);
+    SynchronizedDataElement(SynchronizedDataElement && other) = default;
+    SynchronizedDataElement & operator=(SynchronizedDataElement && other) = default;
     virtual ~SynchronizedDataElement();
 
     unsigned int getUpdateSequenceNumber() const;
