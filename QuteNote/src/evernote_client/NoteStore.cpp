@@ -36,25 +36,86 @@ Note NoteStore::CreateNoteFromEdamNote(const evernote::edam::Note & edamNote) co
 
 void NoteStore::ConvertFromEdamNote(const evernote::edam::Note & edamNote, Note & note)
 {
+    QString errorPrefix = QObject::tr("Can't convert from EDAM note: ");
+
+    if (!edamNote.__isset.guid) {
+        errorPrefix.append("EDAM note's guid is not set");
+        note.SetError(errorPrefix);
+        return;
+    }
+
+    if (!edamNote.__isset.notebookGuid) {
+        errorPrefix.append("EDAM note's notebook guid is not set");
+        note.SetError(errorPrefix);
+        return;
+    }
+
     if (note.notebookGuid() != Guid(edamNote.notebookGuid)) {
-        note.SetError("Can't convert from EDAM note: notebook guids mismatch");
+        errorPrefix.append("notebook guids mismatch");
+        note.SetError(errorPrefix);
         return;
     }
 
     if (note.guid() != Guid(edamNote.guid)) {
-        note.SetError("Can't convert from EDAM note: note guids mismatch");
+        errorPrefix.append("note guids mismatch");
+        note.SetError(errorPrefix);
+        return;
+    }
+
+    if (!edamNote.__isset.updateSequenceNum) {
+        errorPrefix.append("EDAM note's update sequence number is not set");
+        note.SetError(errorPrefix);
         return;
     }
 
     note.setUpdateSequenceNumber(edamNote.updateSequenceNum);
-    note.setTitle(QString::fromStdString(edamNote.title));
-    note.setContent(QString::fromStdString(edamNote.content));
-    note.setCreatedTimestamp(static_cast<time_t>(edamNote.created));
-    note.setUpdatedTimestamp(static_cast<time_t>(edamNote.updated));
+    note.setDirty();
 
-    if (edamNote.__isset.tagGuids) {
-        // TODO: continue from here
+    if (edamNote.__isset.deleted) {
+        if (edamNote.deleted) {
+            note.setDeleted();
+        }
+        else {
+            note.undelete();
+        }
     }
+
+    if (edamNote.__isset.title) {
+        note.setTitle(QString::fromStdString(edamNote.title));
+    }
+    else {
+        note.setTitle("");
+    }
+
+    if (edamNote.__isset.content) {
+        note.setContent(QString::fromStdString(edamNote.content));
+    }
+    else {
+        note.setContent("");
+    }
+
+    if (!edamNote.__isset.created) {
+        errorPrefix.append("EDAM note's created timestamp is not set");
+        note.SetError(errorPrefix);
+        return;
+    }
+
+    note.setCreatedTimestamp(static_cast<time_t>(edamNote.created));
+
+    if (edamNote.__isset.updated) {
+        note.setUpdatedTimestamp(static_cast<time_t>(edamNote.updated));
+    }
+    else {
+        note.setUpdatedTimestamp(static_cast<time_t>(0));
+    }
+
+    // TODO: continue from here: convert note attributes, resources and tags
+
+    /*
+    if (edamNote.__isset.tagGuids) {
+
+    }
+    */
 }
 
 NoteStore::~NoteStore()
