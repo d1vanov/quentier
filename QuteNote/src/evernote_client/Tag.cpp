@@ -78,6 +78,16 @@ bool Tag::operator==(const Tag & other) const
 Tag::~Tag()
 {}
 
+void Tag::Clear()
+{
+    ClearError();
+    SynchronizedDataElement::Clear();
+
+    Q_D(Tag);
+    d->m_name.clear();
+    d->m_parentGuid.Clear();
+}
+
 bool Tag::isEmpty() const
 {
     Q_D(const Tag);

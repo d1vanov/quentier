@@ -68,6 +68,15 @@ Notebook & Notebook::operator=(const Notebook & other)
 Notebook::~Notebook()
 {}
 
+void Notebook::Clear()
+{
+    QString notebookName = name();
+
+    ClearError();
+    SynchronizedDataElement::Clear();
+    d_ptr.reset(new NotebookPrivate(notebookName));
+}
+
 bool Notebook::isEmpty() const
 {
     Q_D(const Notebook);

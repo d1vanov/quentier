@@ -31,6 +31,12 @@ Note Note::Create(const Guid & notebookGuid, INoteStore & noteStore)
     return std::move(note);
 }
 
+Note::Note(const Guid & noteGuid, const Guid & notebookGuid) :
+    d_ptr(new NotePrivate(notebookGuid))
+{
+    assignGuid(noteGuid);
+}
+
 Note::Note(const Note & other) :
     d_ptr(new NotePrivate(*(other.d_func())))
 {}
@@ -46,6 +52,15 @@ Note & Note::operator =(const Note & other)
 
 Note::~Note()
 {}
+
+void Note::Clear()
+{
+    Guid notebookGuid = Note::notebookGuid();
+
+    ClearError();
+    SynchronizedDataElement::Clear();
+    d_ptr.reset(new NotePrivate(notebookGuid));
+}
 
 bool Note::isEmpty() const
 {   

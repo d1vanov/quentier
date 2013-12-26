@@ -55,6 +55,11 @@ ResourceMetadata & ResourceMetadata::operator=(const ResourceMetadata & other)
 ResourceMetadata::~ResourceMetadata()
 {}
 
+void ResourceMetadata::Clear()
+{
+    SynchronizedDataElement::Clear();
+}
+
 const Guid ResourceMetadata::noteGuid() const
 {
     Q_D(const ResourceMetadata);

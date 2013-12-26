@@ -24,10 +24,12 @@ class Note final: public TypeWithError,
 public:
     static Note Create(const Guid & notebookGuid, INoteStore & noteStore);
 
+    Note(const Guid & noteGuid, const Guid & notebookGuid);
     Note(const Note & other);
     Note & operator =(const Note & other);
     virtual ~Note() override;
 
+    virtual void Clear() override;
     virtual bool isEmpty() const override;
 
     const Guid notebookGuid() const;
@@ -109,7 +111,7 @@ private:
     Note(const Guid & notebookGuid);
     Note() = delete;
 
-    const QScopedPointer<NotePrivate> d_ptr;
+    QScopedPointer<NotePrivate> d_ptr;
     Q_DECLARE_PRIVATE(Note)
 };
 

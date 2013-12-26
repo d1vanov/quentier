@@ -11,8 +11,8 @@ QT_FORWARD_DECLARE_CLASS(Guid)
 QT_FORWARD_DECLARE_CLASS(INoteStore)
 
 QT_FORWARD_DECLARE_CLASS(TagPrivate)
-class Tag: public TypeWithError,
-           public SynchronizedDataElement
+class Tag final: public TypeWithError,
+                 public SynchronizedDataElement
 {
 public:
     Tag Create(const QString & name, INoteStore & noteStore, const Tag * parent = nullptr);
@@ -20,9 +20,10 @@ public:
     Tag(const Tag & other);
     Tag & operator=(const Tag & other);
     bool operator==(const Tag & other) const;
-    virtual ~Tag();
+    virtual ~Tag() override;
 
-    virtual bool isEmpty() const;
+    virtual void Clear() override;
+    virtual bool isEmpty() const override;
 
     /**
      * @brief parentGuid - guid of parent tag

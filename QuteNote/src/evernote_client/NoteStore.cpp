@@ -14,17 +14,36 @@ NoteStore::NoteStore(const QString & authenticationToken, const QString & host,
     d_ptr(new NoteStorePrivate(authenticationToken, host, port, noteStorePath))
 {}
 
-bool NoteStore::ConvertFromEdamNote(const evernote::edam::Note & edamNote, Note & note,
-                                    QString & error)
+Note NoteStore::CreateNoteFromEdamNote(const evernote::edam::Note & edamNote) const
 {
-    if (note.notebookGuid().ToQString().toStdString() != edamNote.notebookGuid) {
-        error = QObject::tr("Can't convert from EDAM Note: notebook guids mismatch");
-        return false;
+    if (!edamNote.__isset.guid) {
+        Guid emptyGuid;
+        Note note(emptyGuid, emptyGuid);
+        note.SetError("EDAM note's guid is empty");
+        return std::move(note);
     }
 
-    if (note.guid().ToQString().toStdString() != edamNote.guid) {
-        error = QObject::tr("Can't convert from EDAM Note: note guids mismatch");
-        return false;
+    if (!edamNote.__isset.notebookGuid) {
+        Guid emptyGuid;
+        Note note(emptyGuid, emptyGuid);
+        note.SetError("EDAM note's notebook guid is empty");
+        return std::move(note);
+    }
+
+    Note note(Guid(edamNote.guid), Guid(edamNote.notebookGuid));
+    return std::move(note);
+}
+
+void NoteStore::ConvertFromEdamNote(const evernote::edam::Note & edamNote, Note & note)
+{
+    if (note.notebookGuid() != Guid(edamNote.notebookGuid)) {
+        note.SetError("Can't convert from EDAM note: notebook guids mismatch");
+        return;
+    }
+
+    if (note.guid() != Guid(edamNote.guid)) {
+        note.SetError("Can't convert from EDAM note: note guids mismatch");
+        return;
     }
 
     note.setUpdateSequenceNumber(edamNote.updateSequenceNum);
@@ -36,8 +55,6 @@ bool NoteStore::ConvertFromEdamNote(const evernote::edam::Note & edamNote, Note 
     if (edamNote.__isset.tagGuids) {
         // TODO: continue from here
     }
-
-    return true;
 }
 
 NoteStore::~NoteStore()

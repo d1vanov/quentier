@@ -23,6 +23,11 @@ Guid & Guid::operator=(const Guid & other)
     return *this;
 }
 
+void Guid::Clear()
+{
+    m_guid.clear();
+}
+
 bool Guid::isEmpty() const
 {
     return m_guid.empty();

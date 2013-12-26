@@ -26,6 +26,11 @@ public:
     Guid & operator=(const Guid & other);
 
     /**
+     * @brief Clear - resets the Guid string
+     */
+    void Clear();
+
+    /**
      * @brief isEmpty - checks whether Guid is empty
      * @return true if Guid is empty, false otherwise
      */

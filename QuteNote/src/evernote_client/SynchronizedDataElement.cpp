@@ -85,6 +85,11 @@ const Guid & SynchronizedDataElement::guid() const
     return m_guid;
 }
 
+void SynchronizedDataElement::Clear()
+{
+    m_guid.Clear();
+}
+
 bool SynchronizedDataElement::isEmpty() const
 {
     return m_guid.isEmpty();

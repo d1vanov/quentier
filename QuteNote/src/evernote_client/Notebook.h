@@ -18,9 +18,10 @@ public:
 
     Notebook(const Notebook & other);
     Notebook & operator=(const Notebook & other);
-    virtual ~Notebook();
+    virtual ~Notebook() override;
 
-    virtual bool isEmpty() const;
+    virtual void Clear() override;
+    virtual bool isEmpty() const override;
 
     /**
      * @return name of the notebook
@@ -34,13 +35,13 @@ public:
     bool isDefault() const;
     bool isLastUsed() const;
 
-    virtual QTextStream & Print(QTextStream & strm) const;
+    virtual QTextStream & Print(QTextStream & strm) const override;
 
 private:
     Notebook() = delete;
     Notebook(const QString & name);
 
-    const QScopedPointer<NotebookPrivate> d_ptr;
+    QScopedPointer<NotebookPrivate> d_ptr;
     Q_DECLARE_PRIVATE(Notebook)
 };
 

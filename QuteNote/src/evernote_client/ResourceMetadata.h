@@ -22,6 +22,8 @@ public:
     ResourceMetadata & operator=(const ResourceMetadata & other);
     virtual ~ResourceMetadata() override;
 
+    virtual void Clear() override;
+
     /**
      * @brief noteGuid - returns the guid of the note with which the resource is associated
      */
@@ -72,7 +74,7 @@ public:
     const QString filename() const;
     void setFilename(const QString & filename);
 
-    virtual QTextStream & Print(QTextStream & strm) const;
+    virtual QTextStream & Print(QTextStream & strm) const override;
 
 private:
     ResourceMetadata() = delete;

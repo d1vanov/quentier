@@ -60,6 +60,8 @@ public:
 
     const Guid & guid() const;
 
+    virtual void Clear() = 0;
+
     virtual bool isEmpty() const;
 
     /**
