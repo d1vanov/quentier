@@ -49,15 +49,9 @@ bool SynchronizedDataElement::isDirty() const
     return (m_isDirty || m_isLocal);
 }
 
-void SynchronizedDataElement::setDirty()
+void SynchronizedDataElement::setDirty(const bool dirty)
 {
-    m_isDirty = true;
-}
-
-void SynchronizedDataElement::setSynchronized()
-{
-    m_isDirty = false;
-    m_isLocal = false;
+    m_isDirty = dirty;
 }
 
 bool SynchronizedDataElement::isLocal() const
@@ -65,14 +59,9 @@ bool SynchronizedDataElement::isLocal() const
     return m_isLocal;
 }
 
-void SynchronizedDataElement::setLocal()
+void SynchronizedDataElement::setLocal(const bool local)
 {
-    m_isLocal = true;
-}
-
-void SynchronizedDataElement::setNonLocal()
-{
-    m_isLocal = false;
+    m_isLocal = local;
 }
 
 bool SynchronizedDataElement::isDeleted() const
@@ -80,14 +69,9 @@ bool SynchronizedDataElement::isDeleted() const
     return m_isDeleted;
 }
 
-void SynchronizedDataElement::setDeleted()
+void SynchronizedDataElement::setDeleted(const bool deleted)
 {
-    m_isDeleted = true;
-}
-
-void SynchronizedDataElement::undelete()
-{
-    m_isDeleted = false;
+    m_isDeleted = deleted;
 }
 
 const Guid & SynchronizedDataElement::guid() const

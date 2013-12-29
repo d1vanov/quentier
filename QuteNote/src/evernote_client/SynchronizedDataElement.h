@@ -27,34 +27,25 @@ public:
     bool isDirty() const;
 
     /**
-     * @brief setDirty - mark the object as locally modified and needing synchronization
-     * with Evernote online database
+     * @brief setDirty - marks the object either locally modified and needing synchronization
+     * with remote database or completely synchronized with remote database
+     * @param dirty - if true, the object is marked locally modified, otherwise -
+     * as synchronized with remote database.
      */
-    void setDirty();
-
-    /**
-     * @brief setSynchronized - mark the object as synchronized with Evernote online database
-     */
-    void setSynchronized();
+    void setDirty(const bool dirty);
 
     /**
      * @return true if the synchronizable object has never actually been synchronized
      * with remote service.
      */
     bool isLocal() const;
-
     /**
-     * @brief setLocal - marks synchronizable object as a local one i.e. it is present
-     * only in the local storage, not synchronized with remote service.
+     * @brief setDirty - marks the object either local i.e. not yet synchronized
+     * with remote database or remote i.e. synchronized with remote database at least once.
+     * @param local - if true, the object is marked locally modified, otherwise -
+     * as at least once synchronized with remote database.
      */
-    void setLocal();
-
-    /**
-     * @brief setNonLocal - marks synchronizable object as a non-local one i.e.
-     * it had already been synchronized with remote service (but it doesn't mean
-     * it is in synchronized state now i.e. doesn't have local modifications).
-     */
-    void setNonLocal();
+    void setLocal(const bool local);
 
     /**
      * @brief isDeleted - determines whether data element has been marked as deleted
@@ -64,14 +55,12 @@ public:
     bool isDeleted() const;
 
     /**
-     * @brief setDeleted - mark data element as deleted in local storage database
+     * @brief setDeleted - mark data element as either deleted or not deleted
+     * in local storage database
+     * @param deleted - if true, the object would be marked as deleted, otherwise -
+     * as not deleted
      */
-    void setDeleted();
-
-    /**
-     * @brief undelete - mark data element as non-deleted in local storage database
-     */
-    void undelete();
+    void setDeleted(const bool deleted);
 
     const Guid & guid() const;
 

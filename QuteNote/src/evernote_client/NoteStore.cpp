@@ -69,15 +69,10 @@ void NoteStore::ConvertFromEdamNote(const evernote::edam::Note & edamNote, Note 
     }
 
     note.setUpdateSequenceNumber(edamNote.updateSequenceNum);
-    note.setDirty();
+    note.setDirty(true);
 
     if (edamNote.__isset.deleted) {
-        if (edamNote.deleted) {
-            note.setDeleted();
-        }
-        else {
-            note.undelete();
-        }
+        note.setDeleted(edamNote.deleted);
     }
 
     if (edamNote.__isset.title) {

@@ -395,12 +395,7 @@ bool DatabaseManager::FindNote(const Guid & noteGuid, Note & note, QString & err
     note.setUpdateSequenceNumber(usn);
     note.setTitle(title);
 
-    if (isDirty) {
-        note.setDirty();
-    }
-    else {
-        note.setSynchronized();
-    }
+    note.setDirty(isDirty);
 
     note.setContent(body);
     note.setCreatedTimestamp(creationTimestamp);
@@ -416,19 +411,8 @@ bool DatabaseManager::FindNote(const Guid & noteGuid, Note & note, QString & err
     note.setSourceUrl(sourceUrl);
     note.setSourceApplication(sourceApplication);
 
-    if (isDeleted) {
-        note.setDeleted();
-    }
-    else {
-        note.undelete();
-    }
-
-    if (isLocal) {
-        note.setLocal();
-    }
-    else {
-        note.setNonLocal();
-    }
+    note.setDeleted(isDeleted);
+    note.setLocal(isLocal);
 
     // TODO: retrieve tag and resource guids from tags and resources tables
 
