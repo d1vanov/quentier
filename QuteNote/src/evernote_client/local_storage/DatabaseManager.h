@@ -6,6 +6,7 @@
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(Guid)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Tag)
@@ -46,6 +47,8 @@ public:
 
     bool AddNote(const Note & note, QString & errorDescription);
     bool ReplaceNote(const Note & note, QString & errorDescription);
+
+    bool FindNote(const Guid & noteGuid, Note & note, QString & errorDescription) const;
 
     /**
      * @brief DeleteNote - either expunges the local note (i.e. deletes it from

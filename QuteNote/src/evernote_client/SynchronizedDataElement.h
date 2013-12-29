@@ -39,9 +39,22 @@ public:
 
     /**
      * @return true if the synchronizable object has never actually been synchronized
-     * with remote Evernote service.
+     * with remote service.
      */
     bool isLocal() const;
+
+    /**
+     * @brief setLocal - marks synchronizable object as a local one i.e. it is present
+     * only in the local storage, not synchronized with remote service.
+     */
+    void setLocal();
+
+    /**
+     * @brief setNonLocal - marks synchronizable object as a non-local one i.e.
+     * it had already been synchronized with remote service (but it doesn't mean
+     * it is in synchronized state now i.e. doesn't have local modifications).
+     */
+    void setNonLocal();
 
     /**
      * @brief isDeleted - determines whether data element has been marked as deleted

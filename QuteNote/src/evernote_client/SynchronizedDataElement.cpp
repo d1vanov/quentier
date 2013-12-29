@@ -65,6 +65,16 @@ bool SynchronizedDataElement::isLocal() const
     return m_isLocal;
 }
 
+void SynchronizedDataElement::setLocal()
+{
+    m_isLocal = true;
+}
+
+void SynchronizedDataElement::setNonLocal()
+{
+    m_isLocal = false;
+}
+
 bool SynchronizedDataElement::isDeleted() const
 {
     return m_isDeleted;

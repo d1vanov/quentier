@@ -232,13 +232,14 @@ bool DatabaseManager::ExpungeNotebook(const Notebook & notebook, QString & error
     return true;
 }
 
-#define CHECK_NOTE_ATTRIBUTES(note) \
+#define CHECK_NOTE_ATTRIBUTES(note) { \
     const Guid notebookGuid = note.notebookGuid(); \
     if (notebookGuid.isEmpty()) { \
         errorDescription = QObject::tr("Notebook guid is empty"); \
         return false; \
     } \
-    CHECK_GUID(note, "Note")
+    CHECK_GUID(note, "Note") \
+}
 
 bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
 {
@@ -252,6 +253,7 @@ bool DatabaseManager::AddNote(const Note & note, QString & errorDescription)
     errorDescription.clear();
 
     Guid noteGuid = note.guid();
+    Guid notebookGuid = note.notebookGuid();
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT INTO NoteText (guid, title, body, notebook) "
@@ -329,6 +331,108 @@ bool DatabaseManager::ReplaceNote(const Note & note, QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("Can't replace note in Notes table in local "
                                  "storage database: ");
 
+    return true;
+}
+
+bool DatabaseManager::FindNote(const Guid & noteGuid, Note & note, QString & errorDescription) const
+{
+    QSqlQuery query(m_sqlDatabase);
+
+    query.prepare("SELECT usn, title, isDirty, isLocal, body, creationTimestamp, "
+                  "modificationTimestamp, subjectDate, altitude, latitude, "
+                  "longitude, author, source, sourceUrl, sourceApplication "
+                  "isDeleted, notebook FROM Notes WHERE guid = ?");
+    query.addBindValue(noteGuid.ToQString());
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't select note from Notes table in local "
+                                 "storage database: ");
+
+    QSqlRecord rec = query.record();
+
+    uint32_t usn = qvariant_cast<uint32_t>(rec.value("usn"));
+    QString title = qvariant_cast<QString>(rec.value("title"));
+
+    bool isDirty = false;
+    int isDirtyInt = qvariant_cast<int>(rec.value("isDirty"));
+    if (isDirtyInt != 0) {
+        isDirty = true;
+    }
+
+    // TODO: how to deal with this property?
+    bool isLocal = false;
+    int isLocalInt = qvariant_cast<int>(rec.value("isLocal"));
+    if (isLocalInt != 0) {
+        isLocal = true;
+    }
+
+    QString body = qvariant_cast<QString>(rec.value("body"));
+    time_t creationTimestamp = static_cast<time_t>(qvariant_cast<uint32_t>(rec.value("creationTimestamp")));
+    time_t modificationTimestamp = static_cast<time_t>(qvariant_cast<uint32_t>(rec.value("modificationTimestamp")));
+    time_t subjectDate = static_cast<time_t>(qvariant_cast<uint32_t>(rec.value("subjectDate")));
+
+    double altitude = qvariant_cast<double>(rec.value("altitude"));
+    double latitude = qvariant_cast<double>(rec.value("latitude"));
+    double longitude = qvariant_cast<double>(rec.value("longitude"));
+
+    QString author = qvariant_cast<QString>(rec.value("author"));
+    QString source = qvariant_cast<QString>(rec.value("source"));
+    QString sourceUrl = qvariant_cast<QString>(rec.value("sourceUrl"));
+    QString sourceApplication = qvariant_cast<QString>(rec.value("sourceApplication"));
+
+    bool isDeleted = false;
+    int isDeletedInt = qvariant_cast<int>(rec.value("isDeleted"));
+    if (isDeletedInt != 0) {
+        isDeleted = true;
+    }
+
+    QString notebookGuidString = qvariant_cast<QString>(rec.value("notebook"));
+    Guid notebookGuid(notebookGuidString.toStdString());
+
+    Note newNote(noteGuid, notebookGuid);
+    note = std::move(newNote);
+
+    note.setUpdateSequenceNumber(usn);
+    note.setTitle(title);
+
+    if (isDirty) {
+        note.setDirty();
+    }
+    else {
+        note.setSynchronized();
+    }
+
+    note.setContent(body);
+    note.setCreatedTimestamp(creationTimestamp);
+    note.setUpdatedTimestamp(modificationTimestamp);
+    note.setSubjectDateTimestamp(subjectDate);
+
+    note.setAltitude(altitude);
+    note.setLatitude(latitude);
+    note.setLongitude(longitude);
+
+    note.setAuthor(author);
+    note.setSource(source);
+    note.setSourceUrl(sourceUrl);
+    note.setSourceApplication(sourceApplication);
+
+    if (isDeleted) {
+        note.setDeleted();
+    }
+    else {
+        note.undelete();
+    }
+
+    if (isLocal) {
+        note.setLocal();
+    }
+    else {
+        note.setNonLocal();
+    }
+
+    // TODO: retrieve tag and resource guids from tags and resources tables
+
+    CHECK_NOTE_ATTRIBUTES(note);
     return true;
 }
 

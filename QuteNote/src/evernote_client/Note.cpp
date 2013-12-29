@@ -204,6 +204,12 @@ const QString Note::author() const
     return d->m_author;
 }
 
+void Note::setAuthor(const QString & author)
+{
+    Q_D(Note);
+    d->m_author = author;
+}
+
 const QString Note::source() const
 {
     Q_D(const Note);
