@@ -11,6 +11,7 @@ namespace qute_note {
 class NotePrivate
 {
 public:
+    NotePrivate();
     NotePrivate(const Guid & notebookGuid);
     NotePrivate(const NotePrivate & other);
     NotePrivate & operator=(const NotePrivate & other);
@@ -28,9 +29,6 @@ public:
     QString  m_source;
     QString  m_sourceUrl;
     QString  m_sourceApplication;
-
-private:
-    NotePrivate() = delete;
 };
 
 }

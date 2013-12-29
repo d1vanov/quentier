@@ -11,12 +11,13 @@ namespace qute_note {
 
 Note Note::Create(const Guid & notebookGuid, INoteStore & noteStore)
 {
-    Note note(notebookGuid);
+    Note note;
 
     if (notebookGuid.isEmpty()) {
         note.SetError("Notebook guid is empty");
         return std::move(note);
     }
+    note.setNotebookGuid(notebookGuid);
 
     QString errorDescription;
     Guid noteGuid = noteStore.CreateNoteGuid(note, errorDescription);
@@ -30,6 +31,10 @@ Note Note::Create(const Guid & notebookGuid, INoteStore & noteStore)
 
     return std::move(note);
 }
+
+Note::Note() :
+    d_ptr(new NotePrivate())
+{}
 
 Note::Note(const Guid & noteGuid, const Guid & notebookGuid) :
     d_ptr(new NotePrivate(notebookGuid))
@@ -100,6 +105,12 @@ const Guid Note::notebookGuid() const
 {
     Q_D(const Note);
     return d->m_notebookGuid;
+}
+
+void Note::setNotebookGuid(const Guid & notebookGuid)
+{
+    Q_D(Note);
+    d->m_notebookGuid = notebookGuid;
 }
 
 const QString Note::title() const
@@ -397,9 +408,5 @@ QTextStream & Note::Print(QTextStream & strm) const
 
     return strm;
 }
-
-Note::Note(const Guid & notebookGuid) :
-    d_ptr(new NotePrivate(notebookGuid))
-{}
 
 }

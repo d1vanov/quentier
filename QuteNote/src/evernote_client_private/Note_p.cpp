@@ -3,6 +3,9 @@
 
 namespace qute_note {
 
+NotePrivate::NotePrivate()
+{}
+
 NotePrivate::NotePrivate(const Guid & notebookGuid) :
     m_notebookGuid(notebookGuid)
 {}

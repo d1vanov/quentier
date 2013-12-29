@@ -24,6 +24,7 @@ class Note final: public TypeWithError,
 public:
     static Note Create(const Guid & notebookGuid, INoteStore & noteStore);
 
+    Note();
     Note(const Guid & noteGuid, const Guid & notebookGuid);
     Note(const Note & other);
     Note(Note && other);
@@ -34,8 +35,7 @@ public:
     virtual void Clear() override;
     virtual bool isEmpty() const override;
 
-    const Guid notebookGuid() const;
-
+    Q_PROPERTY(Guid notebookGuid READ notebookGuid WRITE setNotebookGuid)
     Q_PROPERTY(QString title READ title WRITE setTitle)
     Q_PROPERTY(QString content READ content WRITE setContent)
     Q_PROPERTY(time_t createdTimestamp READ createdTimestamp WRITE setCreatedTimestamp)
@@ -50,6 +50,9 @@ public:
     Q_PROPERTY(QString sourceApplicartion READ sourceApplication WRITE setSourceApplication)
     Q_PROPERTY(std::vector<Guid> resourceGuids READ resourceGuids WRITE setResourceGuids)
     Q_PROPERTY(std::vector<Guid> tagGuids READ tagGuids WRITE setTagGuids)
+
+    const Guid notebookGuid() const;
+    void setNotebookGuid(const Guid & notebookGuid);
 
     const QString title() const;
     void setTitle(const QString & title);
@@ -110,9 +113,6 @@ public:
     virtual QTextStream & Print(QTextStream & strm) const override;
 
 private:
-    Note(const Guid & notebookGuid);
-    Note() = delete;
-
     QScopedPointer<NotePrivate> d_ptr;
     Q_DECLARE_PRIVATE(Note)
 };
