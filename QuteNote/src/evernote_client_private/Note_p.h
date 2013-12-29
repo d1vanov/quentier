@@ -4,6 +4,7 @@
 #include "Location.h"
 #include "../evernote_client/Guid.h"
 #include <vector>
+#include <ctime>
 
 namespace qute_note {
 
