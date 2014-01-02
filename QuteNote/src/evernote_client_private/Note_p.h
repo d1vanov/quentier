@@ -22,8 +22,8 @@ public:
     QString  m_author;
     std::vector<Guid>  m_resourceGuids;
     std::vector<Guid>  m_tagGuids;
-    time_t   m_createdTimestamp;
-    time_t   m_updatedTimestamp;
+    time_t   m_creationTimestamp;
+    time_t   m_modificationTimestamp;
     time_t   m_subjectDateTimestamp;
     Location m_location;
     QString  m_source;

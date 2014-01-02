@@ -1,27 +1,9 @@
 #include "Notebook.h"
 #include "INoteStore.h"
+#include "../evernote_client_private/Notebook_p.h"
 #include <QDateTime>
 
 namespace qute_note {
-
-class NotebookPrivate
-{
-public:
-    NotebookPrivate() = delete;
-    NotebookPrivate(const QString & name);
-    NotebookPrivate(const NotebookPrivate & other);
-    NotebookPrivate & operator=(const NotebookPrivate & other);
-
-    QString m_name;
-    time_t  m_createdTimestamp;
-    time_t  m_updatedTimestamp;
-    bool    m_isDefault;
-    bool    m_isLastUsed;
-
-private:
-    void initializeTimestamps();
-    void updateTimestamp();
-};
 
 Notebook Notebook::Create(const QString & name, INoteStore & noteStore)
 {
@@ -44,10 +26,18 @@ Notebook Notebook::Create(const QString & name, INoteStore & noteStore)
     return std::move(notebook);
 }
 
+Notebook::Notebook() :
+    d_ptr(new NotebookPrivate)
+{}
+
+Notebook::Notebook(const QString & name) :
+    d_ptr(new NotebookPrivate)
+{
+    d_ptr->m_name = name;
+}
+
 Notebook::Notebook(const Notebook & other) :
-    d_ptr(((other.d_func() !=nullptr)
-           ? new NotebookPrivate(*(other.d_func()))
-           : nullptr))
+    d_ptr(new NotebookPrivate(*(other.d_ptr)))
 {}
 
 Notebook::Notebook(Notebook && other) :
@@ -59,9 +49,8 @@ Notebook::Notebook(Notebook && other) :
 Notebook & Notebook::operator=(const Notebook & other)
 {
     if (this != &other) {
-        if (other.d_func() != nullptr) {
-            *(d_func()) = *(other.d_func());
-        }
+        SynchronizedDataElement::operator =(other);
+        *d_ptr = *(other.d_ptr);
     }
 
     return *this;
@@ -86,7 +75,8 @@ void Notebook::Clear()
 
     ClearError();
     SynchronizedDataElement::Clear();
-    d_ptr.reset(new NotebookPrivate(notebookName));
+    d_ptr.reset(new NotebookPrivate);
+    d_ptr->m_name = notebookName;
 }
 
 bool Notebook::isEmpty() const
@@ -101,16 +91,16 @@ const QString Notebook::name() const
     return d->m_name;
 }
 
-time_t Notebook::createdTimestamp() const
+time_t Notebook::creationTimestamp() const
 {
     Q_D(const Notebook);
-    return d->m_createdTimestamp;
+    return d->m_creationTimestamp;
 }
 
-time_t Notebook::updatedTimestamp() const
+time_t Notebook::modificationTimestamp() const
 {
     Q_D(const Notebook);
-    return d->m_updatedTimestamp;
+    return d->m_modificationTimestamp;
 }
 
 bool Notebook::isDefault() const
@@ -130,56 +120,13 @@ QTextStream & Notebook::Print(QTextStream & strm) const
     Q_D(const Notebook);
     strm << "Notebook: { \n";
     strm << "name = " << d->m_name << ", \n ";
-    strm << "created timestamp = " << d->m_createdTimestamp << ", \n ";
-    strm << "updated timestamp = " << d->m_updatedTimestamp << ", \n ";
+    strm << "created timestamp = " << d->m_creationTimestamp << ", \n ";
+    strm << "updated timestamp = " << d->m_modificationTimestamp << ", \n ";
     strm << "is " << (d->m_isDefault ? " " : "not ") << "default, \n ";
     strm << "is " << (d->m_isLastUsed ? " " : "not ") << "last used \n";
     strm << "}; \n";
 
     return strm;
-}
-
-Notebook::Notebook(const QString & name) :
-    d_ptr(new NotebookPrivate(name))
-{}
-
-NotebookPrivate::NotebookPrivate(const QString & name) :
-    m_name(name)
-{
-    initializeTimestamps();
-}
-
-NotebookPrivate::NotebookPrivate(const NotebookPrivate & other) :
-    m_name(other.m_name),
-    m_createdTimestamp(other.m_createdTimestamp),
-    m_updatedTimestamp(other.m_updatedTimestamp),
-    m_isDefault(other.m_isDefault),
-    m_isLastUsed(other.m_isLastUsed)
-{}
-
-NotebookPrivate & NotebookPrivate::operator=(const NotebookPrivate & other)
-{
-    if (this != &other) {
-        m_name = other.m_name;
-        m_createdTimestamp = other.m_createdTimestamp;
-        m_isDefault = other.m_isDefault;
-        m_isLastUsed = other.m_isLastUsed;
-    }
-
-    updateTimestamp();
-
-    return *this;
-}
-
-void NotebookPrivate::initializeTimestamps()
-{
-    m_createdTimestamp = static_cast<time_t>(QDateTime::currentMSecsSinceEpoch());
-    m_updatedTimestamp = m_createdTimestamp;
-}
-
-void NotebookPrivate::updateTimestamp()
-{
-    m_updatedTimestamp = static_cast<time_t>(QDateTime::currentMSecsSinceEpoch());
 }
 
 }

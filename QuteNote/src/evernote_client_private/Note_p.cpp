@@ -17,8 +17,8 @@ NotePrivate::NotePrivate(const NotePrivate & other) :
     m_author(other.m_author),
     m_resourceGuids(other.m_resourceGuids),
     m_tagGuids(other.m_tagGuids),
-    m_createdTimestamp(other.m_createdTimestamp),
-    m_updatedTimestamp(other.m_updatedTimestamp),
+    m_creationTimestamp(other.m_creationTimestamp),
+    m_modificationTimestamp(other.m_modificationTimestamp),
     m_subjectDateTimestamp(other.m_subjectDateTimestamp),
     m_location(other.m_location),
     m_source(other.m_source),
@@ -36,8 +36,8 @@ NotePrivate & NotePrivate::operator =(const NotePrivate & other)
         m_author = other.m_author;
         m_resourceGuids = other.m_resourceGuids;
         m_tagGuids = other.m_tagGuids;
-        m_createdTimestamp = other.m_createdTimestamp;
-        m_updatedTimestamp = other.m_updatedTimestamp;
+        m_creationTimestamp = other.m_creationTimestamp;
+        m_modificationTimestamp = other.m_modificationTimestamp;
         m_subjectDateTimestamp = other.m_subjectDateTimestamp;
         m_location = other.m_location;
         m_source = other.m_source;

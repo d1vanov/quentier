@@ -95,13 +95,13 @@ void NoteStore::ConvertFromEdamNote(const evernote::edam::Note & edamNote, Note 
         return;
     }
 
-    note.setCreatedTimestamp(static_cast<time_t>(edamNote.created));
+    note.setCreationTimestamp(static_cast<time_t>(edamNote.created));
 
     if (edamNote.__isset.updated) {
-        note.setUpdatedTimestamp(static_cast<time_t>(edamNote.updated));
+        note.setModificationTimestamp(static_cast<time_t>(edamNote.updated));
     }
     else {
-        note.setUpdatedTimestamp(static_cast<time_t>(0));
+        note.setModificationTimestamp(static_cast<time_t>(0));
     }
 
     // TODO: continue from here: convert note attributes, resources and tags

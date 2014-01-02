@@ -38,8 +38,8 @@ public:
     Q_PROPERTY(Guid notebookGuid READ notebookGuid WRITE setNotebookGuid)
     Q_PROPERTY(QString title READ title WRITE setTitle)
     Q_PROPERTY(QString content READ content WRITE setContent)
-    Q_PROPERTY(time_t createdTimestamp READ createdTimestamp WRITE setCreatedTimestamp)
-    Q_PROPERTY(time_t updatedTimestamp READ updatedTimestamp WRITE setUpdatedTimestamp)
+    Q_PROPERTY(time_t creationTimestamp READ creationTimestamp WRITE setCreationTimestamp)
+    Q_PROPERTY(time_t modificationTimestamp READ modificationTimestamp WRITE setModificationTimestamp)
     Q_PROPERTY(time_t subjectDateTimestamp READ subjectDateTimestamp WRITE setSubjectDateTimestamp)
     Q_PROPERTY(double latitude READ latitude WRITE setLatitude)
     Q_PROPERTY(double longitude READ longitude WRITE setLongitude)
@@ -60,11 +60,11 @@ public:
     const QString content() const;
     void setContent(const QString & content);
 
-    time_t createdTimestamp() const;
-    void setCreatedTimestamp(const time_t timestamp);
+    time_t creationTimestamp() const;
+    void setCreationTimestamp(const time_t timestamp);
 
-    time_t updatedTimestamp() const;
-    void setUpdatedTimestamp(const time_t timestamp);
+    time_t modificationTimestamp() const;
+    void setModificationTimestamp(const time_t timestamp);
 
     time_t subjectDateTimestamp() const;
     void setSubjectDateTimestamp(const time_t timestamp);

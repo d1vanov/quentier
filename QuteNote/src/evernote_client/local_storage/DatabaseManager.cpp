@@ -115,8 +115,8 @@ bool DatabaseManager::AddNotebook(const Notebook & notebook, QString & errorDesc
     query.addBindValue(notebook.guid().ToQString());
     query.addBindValue(notebook.getUpdateSequenceNumber());
     query.addBindValue(notebook.name());
-    query.addBindValue(QVariant(static_cast<int>(notebook.createdTimestamp())));
-    query.addBindValue(QVariant(static_cast<int>(notebook.updatedTimestamp())));
+    query.addBindValue(QVariant(static_cast<int>(notebook.creationTimestamp())));
+    query.addBindValue(QVariant(static_cast<int>(notebook.modificationTimestamp())));
     query.addBindValue(notebook.isDirty());
     query.addBindValue(notebook.isLocal());
 
@@ -156,8 +156,8 @@ bool DatabaseManager::ReplaceNotebook(const Notebook & notebook, QString & error
     query.addBindValue(notebook.guid().ToQString());
     query.addBindValue(notebook.getUpdateSequenceNumber());
     query.addBindValue(notebook.name());
-    query.addBindValue(QVariant(static_cast<int>(notebook.createdTimestamp())));
-    query.addBindValue(QVariant(static_cast<int>(notebook.updatedTimestamp())));
+    query.addBindValue(QVariant(static_cast<int>(notebook.creationTimestamp())));
+    query.addBindValue(QVariant(static_cast<int>(notebook.modificationTimestamp())));
     query.addBindValue((notebook.isDirty() ? 1 : 0));
     query.addBindValue((notebook.isLocal() ? 1 : 0));
     query.addBindValue((notebook.isDefault() ? 1 : 0));
@@ -398,8 +398,8 @@ bool DatabaseManager::FindNote(const Guid & noteGuid, Note & note, QString & err
     note.setDirty(isDirty);
 
     note.setContent(body);
-    note.setCreatedTimestamp(creationTimestamp);
-    note.setUpdatedTimestamp(modificationTimestamp);
+    note.setCreationTimestamp(creationTimestamp);
+    note.setModificationTimestamp(modificationTimestamp);
     note.setSubjectDateTimestamp(subjectDate);
 
     note.setAltitude(altitude);
@@ -938,8 +938,8 @@ void DatabaseManager::NoteAttributesToQuery(const Note & note, QSqlQuery & query
     query.addBindValue(QVariant(static_cast<int>(note.isDirty() ? 1 : 0)));
     query.addBindValue(QVariant(static_cast<int>(note.isLocal() ? 1 : 0)));
     query.addBindValue(note.content());
-    query.addBindValue(QVariant(static_cast<int>(note.createdTimestamp())));
-    query.addBindValue(QVariant(static_cast<int>(note.updatedTimestamp())));
+    query.addBindValue(QVariant(static_cast<int>(note.creationTimestamp())));
+    query.addBindValue(QVariant(static_cast<int>(note.modificationTimestamp())));
     query.addBindValue(QVariant(static_cast<int>(note.subjectDateTimestamp())));
 
     if (note.hasValidLocation())

@@ -137,28 +137,28 @@ void Note::setContent(const QString & content)
     d->m_content = content;
 }
 
-time_t Note::createdTimestamp() const
+time_t Note::creationTimestamp() const
 {
     Q_D(const Note);
-    return d->m_createdTimestamp;
+    return d->m_creationTimestamp;
 }
 
-void Note::setCreatedTimestamp(const time_t timestamp)
+void Note::setCreationTimestamp(const time_t timestamp)
 {
     Q_D(Note);
-    d->m_createdTimestamp = timestamp;
+    d->m_creationTimestamp = timestamp;
 }
 
-time_t Note::updatedTimestamp() const
+time_t Note::modificationTimestamp() const
 {
     Q_D(const Note);
-    return d->m_updatedTimestamp;
+    return d->m_modificationTimestamp;
 }
 
-void Note::setUpdatedTimestamp(const time_t timestamp)
+void Note::setModificationTimestamp(const time_t timestamp)
 {
     Q_D(Note);
-    d->m_updatedTimestamp = timestamp;
+    d->m_modificationTimestamp = timestamp;
 }
 
 time_t Note::subjectDateTimestamp() const
