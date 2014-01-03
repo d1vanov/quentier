@@ -36,30 +36,11 @@ set(${PROJECT_NAME}_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceOAuthHandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/CredentialsModel.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/EvernoteServiceManager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/IUserStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/UserStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/User.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/INoteStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteStore.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Note.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/ResourceMetadata.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/SynchronizedDataElement.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml/ENMLConverter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseOpeningException.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseSqlErrorException.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/EvernoteServiceManagerImpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/UserStoreImpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/User_p.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Note_p.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Notebook_p.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/NoteStore_p.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/ThriftException.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Location.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/IQuteNoteException.h
@@ -92,27 +73,10 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceOAuthHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/CredentialsModel.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/EvernoteServiceManager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/UserStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteStore.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/User.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Note.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Guid.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Notebook.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/ResourceMetadata.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/Tag.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/SynchronizedDataElement.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml/ENMLConverter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseOpeningException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseSqlErrorException.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/EvernoteServiceManagerImpl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Location.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/NoteStore_p.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/ThriftException.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/User_p.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Note_p.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client_private/Notebook_p.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/TypeWithError.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/IQuteNoteException.cpp

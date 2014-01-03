@@ -1,8 +1,16 @@
 #ifndef __QUTE_NOTE__NOTE_EDITOR__RESOURCE_TEXT_OBJECT_H
 #define __QUTE_NOTE__NOTE_EDITOR__RESOURCE_TEXT_OBJECT_H
 
-#include "../evernote_client/ResourceMetadata.h"
+#include <QScopedPointer>
 #include <QTextObjectInterface>
+
+namespace evernote {
+namespace edam {
+
+QT_FORWARD_DECLARE_CLASS(Resource)
+
+}
+}
 
 class ResourceTextObject: public QObject, public QTextObjectInterface
 {
@@ -10,8 +18,7 @@ class ResourceTextObject: public QObject, public QTextObjectInterface
     Q_INTERFACES(QTextObjectInterface)
 
 public:
-    explicit ResourceTextObject(const qute_note::ResourceMetadata & resourceMetadata,
-                                const QByteArray & resourceBinaryData);
+    explicit ResourceTextObject(const evernote::edam::Resource & resource);
     ResourceTextObject(const ResourceTextObject & other);
     ResourceTextObject & operator =(const ResourceTextObject & other);
     virtual ~ResourceTextObject() final override;
@@ -28,7 +35,7 @@ public:
 private:
     ResourceTextObject() = delete;
 
-    qute_note::ResourceMetadata m_resourceMetadata;
+    const QScopedPointer<evernote::edam::Resource> m_pResource;
     QImage m_resourceImage;
 };
 

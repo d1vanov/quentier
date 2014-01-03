@@ -7,8 +7,12 @@
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QImage)
 
-namespace qute_note {
+namespace evernote {
+namespace edam {
+
 QT_FORWARD_DECLARE_CLASS(Note)
+
+}
 }
 
 class QuteNoteTextEdit: public QTextEdit
@@ -16,9 +20,8 @@ class QuteNoteTextEdit: public QTextEdit
     Q_OBJECT
 public:
     explicit QuteNoteTextEdit(QWidget * parent = nullptr);
-    virtual ~QuteNoteTextEdit() final override {}
+    virtual ~QuteNoteTextEdit() final override;
 
-public:
     enum ECustomTextObjectTextFormat {
         TODO_CHKBOX_TXT_FMT_UNCHECKED = QTextFormat::UserObject + 1,
         TODO_CHKBOX_TXT_FMT_CHECKED   = QTextFormat::UserObject + 2,
@@ -31,16 +34,13 @@ public:
         MEDIA_RESOURCE_TXT_DATA        = 3
     };
 
-public:
     virtual bool canInsertFromMimeData(const QMimeData * source) const final override;
     virtual void insertFromMimeData(const QMimeData * source) final override;
+
     void changeIndentation(const bool increase);
     void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
 
-    const qute_note::Note * getNotePtr() const;
-    void setNote(const qute_note::Note & note);
-
-    bool noteRichTextToENML(QString & ENML, QString & errorDescription) const;
+    bool noteRichTextToENML(evernote::edam::Note &note, QString & errorDescription) const;
 
     void insertCheckedToDoCheckboxAtCursor(QTextCursor cursor);
     void insertUncheckedToDoCheckboxAtCursor(QTextCursor cursor);
@@ -58,8 +58,7 @@ private:
 
 private:
     mutable size_t    m_droppedImageCounter;
-    const qute_note::Note * m_pNote;
-    qute_note::ENMLConverter m_converter;
+    qute_note::ENMLConverter  m_converter;
     std::pair<QImage, QImage> m_todoCheckboxImgs;
 };
 

@@ -1,15 +1,17 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_H
 
-#include <cstdint>
-#include <cstddef>
-#include <vector>
-#include <ctime>
-#include "../tools/TypeWithError.h"
-#include "SynchronizedDataElement.h"
-#include <QScopedPointer>
+#include "../evernote_sdk/src/NoteStore.h"
 
 namespace qute_note {
+
+struct Note {
+    bool isDirty;
+    bool isLocal;
+    evernote::edam::Note en_note;
+};
+
+
 
 QT_FORWARD_DECLARE_CLASS(Guid)
 QT_FORWARD_DECLARE_CLASS(ResourceMetadata)

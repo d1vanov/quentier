@@ -1,6 +1,6 @@
 #include "QuteNoteTextEdit.h"
 #include "ToDoCheckboxTextObject.h"
-#include "../evernote_client/Note.h"
+#include "../evernote_sdk/src/NoteStore.h"
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QTextCursor>
@@ -14,10 +14,11 @@
 #include <QImage>
 #include <QDebug>
 
+using namespace evernote::edam;
+
 QuteNoteTextEdit::QuteNoteTextEdit(QWidget * parent) :
     QTextEdit(parent),
     m_droppedImageCounter(0),
-    m_pNote(nullptr),
     m_converter(),
     m_todoCheckboxImgs()
 {
@@ -52,6 +53,9 @@ QuteNoteTextEdit::QuteNoteTextEdit(QWidget * parent) :
         return;
     }
 }
+
+QuteNoteTextEdit::~QuteNoteTextEdit()
+{}
 
 bool QuteNoteTextEdit::canInsertFromMimeData(const QMimeData * source) const
 {
@@ -367,19 +371,9 @@ void QuteNoteTextEdit::mergeFormatOnWordOrSelection(const QTextCharFormat & form
     cursor.endEditBlock();
 }
 
-const qute_note::Note * QuteNoteTextEdit::getNotePtr() const
+bool QuteNoteTextEdit::noteRichTextToENML(Note & note, QString & errorDescription) const
 {
-    return m_pNote;
-}
-
-void QuteNoteTextEdit::setNote(const qute_note::Note & note)
-{
-    m_pNote = &note;
-}
-
-bool QuteNoteTextEdit::noteRichTextToENML(QString & ENML, QString & errorDescription) const
-{
-    return m_converter.richTextToENML(*this, ENML, errorDescription);
+    return m_converter.richTextToNote(*this, note, errorDescription);
 }
 
 void QuteNoteTextEdit::insertCheckedToDoCheckboxAtCursor(QTextCursor cursor)

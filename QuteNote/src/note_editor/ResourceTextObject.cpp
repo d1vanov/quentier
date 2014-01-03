@@ -1,28 +1,33 @@
 #include "ResourceTextObject.h"
 #include "../tools/QuteNoteCheckPtr.h"
+#include "../evernote_sdk/src/NoteStore.h"
 #include <QPainter>
+
+using namespace evernote::edam;
 
 using namespace qute_note;
 
-ResourceTextObject::ResourceTextObject(const ResourceMetadata & resourceMetadata,
-                                       const QByteArray & resourceBinaryData) :
-    m_resourceMetadata(resourceMetadata),
+ResourceTextObject::ResourceTextObject(const Resource & resource) :
+    m_pResource(new Resource(resource)),
     m_resourceImage()
 {
-    if (m_resourceMetadata.mimeType().contains("image")) {
-        m_resourceImage.loadFromData(resourceBinaryData);
+    if (resource.__isset.mime && resource.__isset.data) {
+        QString mimeType = QString::fromStdString(resource.mime);
+        if (mimeType.contains("image/") && resource.data.__isset.body) {
+            m_resourceImage.loadFromData(QByteArray(resource.data.body.c_str(), resource.data.body.length()));
+        }
     }
 }
 
 ResourceTextObject::ResourceTextObject(const ResourceTextObject & other) :
-    m_resourceMetadata(other.m_resourceMetadata),
+    m_pResource(new Resource(*(other.m_pResource))),
     m_resourceImage(other.m_resourceImage)
 {}
 
 ResourceTextObject & ResourceTextObject::operator =(const ResourceTextObject & other)
 {
     if (this != &other) {
-        m_resourceMetadata = other.m_resourceMetadata;
+        *m_pResource = *other.m_pResource;
         m_resourceImage = other.m_resourceImage;
     }
 
@@ -35,7 +40,7 @@ ResourceTextObject::~ResourceTextObject()
 bool ResourceTextObject::isValid() const
 {
     // TODO: check whether I can obtain any other useful information from the resource
-    if (!m_resourceMetadata.isEmpty()) {
+    if (m_pResource->data.__isset.body && !m_pResource->data.body.empty()) {
         return true;
     }
     else {
@@ -47,7 +52,7 @@ void ResourceTextObject::drawObject(QPainter * pPainter, const QRectF & rect,
                                     QTextDocument * /* pDoc */, int /* positionInDocument */,
                                     const QTextFormat & /* format */)
 {
-    if (m_resourceMetadata.isEmpty()) {
+    if (!m_pResource->data.__isset.body || m_pResource->data.body.empty()) {
         return;
     }
 
@@ -63,12 +68,12 @@ void ResourceTextObject::drawObject(QPainter * pPainter, const QRectF & rect,
 QSizeF ResourceTextObject::intrinsicSize(QTextDocument * /* pDoc */, int /* positionInDocument */,
                                          const QTextFormat & /* format */)
 {
-    if (m_resourceMetadata.isEmpty()) {
+    if (!m_pResource->data.__isset.body || m_pResource->data.body.empty()) {
         return QSizeF();
     }
 
-    int width  = static_cast<int>(m_resourceMetadata.width());
-    int height = static_cast<int>(m_resourceMetadata.height());
+    int width  = static_cast<int>(m_pResource->width);
+    int height = static_cast<int>(m_pResource->height);
     return QSizeF(QSize(width, height));
 }
 

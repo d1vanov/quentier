@@ -8,10 +8,15 @@ QT_FORWARD_DECLARE_CLASS(QuteNoteTextEdit)
 QT_FORWARD_DECLARE_CLASS(QTextFragment)
 QT_FORWARD_DECLARE_CLASS(QDomElement)
 
-namespace qute_note {
+namespace evernote {
+namespace edam {
 
-QT_FORWARD_DECLARE_CLASS(DatabaseManager)
 QT_FORWARD_DECLARE_CLASS(Note)
+
+}
+}
+
+namespace qute_note {
 
 class ENMLConverter
 {
@@ -20,11 +25,11 @@ public:
     ENMLConverter(const ENMLConverter & other);
     ENMLConverter & operator=(const ENMLConverter & other);
 
-    bool richTextToENML(const QuteNoteTextEdit & noteEditor, QString & ENML,
+    bool richTextToNote(const QuteNoteTextEdit & noteEditor, evernote::edam::Note & note,
                         QString & errorDescription) const;
 
-    bool ENMLToRichText(const QString & ENML, const DatabaseManager & databaseManager,
-                        QuteNoteTextEdit & noteEditor, QString & errorMessage) const;
+    bool NoteToRichText(const evernote::edam::Note & note, QuteNoteTextEdit & noteEditor,
+                        QString & errorMessage) const;
 
 private:
     void fillTagsLists();

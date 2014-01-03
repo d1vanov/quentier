@@ -1,23 +1,30 @@
-#ifndef __QUTE_NOTE__EVERNOTE_CLIENT__LOCAL_STORAGE__DATABASE_MANAGER
-#define __QUTE_NOTE__EVERNOTE_CLIENT__LOCAL_STORAGE__DATABASE_MANAGER
+#ifndef __QUTE_NOTE__EVERNOTE_CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER
+#define __QUTE_NOTE__EVERNOTE_CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER
 
 #include <QString>
 #include <QtSql>
 
+namespace evernote {
+namespace edam {
+
+typedef std::string Guid;
+
+}
+}
+
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(Guid)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Tag)
-QT_FORWARD_DECLARE_CLASS(ResourceMetadata)
+QT_FORWARD_DECLARE_CLASS(Resource)
 
 // TODO: implement all the necessary functionality
-class DatabaseManager
+class LocalStorageManager
 {
 public:
-    DatabaseManager(const QString & username);
-    ~DatabaseManager();
+    LocalStorageManager(const QString & username);
+    ~LocalStorageManager();
 
     bool AddNotebook(const Notebook & notebook, QString & errorDescription);
     bool ReplaceNotebook(const Notebook & notebook, QString & errorDescription);
@@ -48,7 +55,8 @@ public:
     bool AddNote(const Note & note, QString & errorDescription);
     bool ReplaceNote(const Note & note, QString & errorDescription);
 
-    bool FindNote(const Guid & noteGuid, Note & note, QString & errorDescription) const;
+    bool FindNote(const evernote::edam::Guid & noteGuid, Note & note,
+                  QString & errorDescription) const;
 
     /**
      * @brief DeleteNote - either expunges the local note (i.e. deletes it from
@@ -99,12 +107,8 @@ public:
      */
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
-    bool AddResource(const ResourceMetadata & resourceMetadata,
-                     const QByteArray & resourceBinaryData,
-                     QString & errorDescription);
-    bool ReplaceResource(const ResourceMetadata & resourceMetadata,
-                         const QByteArray & resourceBinaryData,
-                         QString & errorDescription);
+    bool AddResource(const Resource & resource, QString & errorDescription);
+    bool ReplaceResource(const Resource & resource, QString & errorDescription);
 
     /**
      * @brief DeleteResource - either expunges the local resource (i.e. deletes it from
@@ -117,7 +121,7 @@ public:
      * @param errorDescription - error description if resource could not be deleted
      * @return true if resource was deleted successfully, false otherwise
      */
-    bool DeleteResource(const ResourceMetadata & resourceMetadata, QString & errorDescription);
+    bool DeleteResource(const Resource & resource, QString & errorDescription);
 
     /**
      * @brief ExpungeResource - permanently deletes local resources i.e. resources which have not yet been
@@ -127,15 +131,15 @@ public:
      * @param errorDescription - error description if resource could not be expunged
      * @return true if resource was expunged successfully, false otherwise
      */
-    bool ExpungeResource(const ResourceMetadata & resourceMetadata, QString & errorDescription);
+    bool ExpungeResource(const Resource & resource, QString & errorDescription);
 
 private:
-    bool CreateTables(QString & errorDescription);
-    void NoteAttributesToQuery(const Note & note, QSqlQuery & query);
+    bool CreateTables(QString & /* errorDescription */) { return true; }
+    void NoteAttributesToQuery(const Note & /* note */, QSqlQuery & /* query */) {}
 
-    DatabaseManager() = delete;
-    DatabaseManager(const DatabaseManager & other) = delete;
-    DatabaseManager & operator=(const DatabaseManager & other) = delete;
+    LocalStorageManager() = delete;
+    LocalStorageManager(const LocalStorageManager & other) = delete;
+    LocalStorageManager & operator=(const LocalStorageManager & other) = delete;
 
     QString m_applicationPersistenceStoragePath;
     QSqlDatabase m_sqlDatabase;
@@ -143,4 +147,4 @@ private:
 
 }
 
-#endif // __QUTE_NOTE__EVERNOTE_CLIENT__LOCAL_STORAGE__DATABASE_MANAGER
+#endif // __QUTE_NOTE__EVERNOTE_CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER
