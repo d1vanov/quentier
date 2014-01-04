@@ -449,11 +449,13 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
                   "reminderOrder, isSetReminderOrder, reminderDoneTime, isSetReminderDoneTime, "
                   "reminderTime, isSetReminderTime, placeName, isSetPlaceName, "
                   "contentClass, isSetContentClass, lastEditedBy, isSetLastEditedBy, "
-                  "creatorId, isSetCreatorId, lastEditorId, isSetLastEditorId WHERE noteGuid=?");
+                  "creatorId, isSetCreatorId, lastEditorId, isSetLastEditorId "
+                  "FROM NoteAttributes WHERE noteGuid=?");
     query.addBindValue(QString::fromStdString(noteGuid));
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't select note attributes from NoteAttributes table: ");
 
+    rec = query.record();
     int isSetSubjectDate = qvariant_cast<int>(rec.value("isSetSubjectDate"));
     if (isSetSubjectDate != 0) {
         Timestamp subjectDate = qvariant_cast<Timestamp>(rec.value("subjectDate"));
@@ -623,6 +625,55 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
     else {
         enNote.attributes.__isset.lastEditorId = false;
     }
+
+    query.clear();
+    query.prepare("SELECT applicationDataKey, applicationDataValue "
+                  "FROM NoteAttributesApplicationData WHERE noteGuid=?");
+    query.addBindValue(QString::fromStdString(noteGuid));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't select application data from "
+                                 "NoteAttributesApplicationData table: ");
+
+    evernote::edam::LazyMap & applicationData = enNote.attributes.applicationData;
+    applicationData.keysOnly.clear();
+    applicationData.fullMap.clear();
+
+    bool foundOne = false;
+    QString applicationDataKey, applicationDataValue;
+    while(query.next())
+    {
+        foundOne = true;
+        applicationDataKey = query.value(0).toString();
+        applicationDataValue = query.value(1).toString();
+
+        applicationData.keysOnly.insert(applicationDataKey.toStdString());
+        applicationData.fullMap[applicationDataKey.toStdString()] = applicationDataValue.toStdString();
+    }
+    enNote.attributes.__isset.applicationData = foundOne;
+
+    query.clear();
+    query.prepare("SELECT classificationKey, classificationValue FROM "
+                  "NoteAttributesClassifications WHERE noteGuid=?");
+    query.addBindValue(QString::fromStdString(noteGuid));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't select classifications from NoteAttributesClassifications table :");
+
+    std::map<std::string, std::string> & classifications = enNote.attributes.classifications;
+    classifications.clear();
+
+    foundOne = false;
+    QString classificationKey, classificationValue;
+    while(query.next())
+    {
+        foundOne = true;
+        classificationKey = query.value(0).toString();
+        classificationValue = query.value(1).toString();
+
+        classifications[classificationKey.toStdString()] = classificationValue.toStdString();
+    }
+    enNote.attributes.__isset.classifications = foundOne;
 
     return note.CheckParameters(errorDescription);
 }
@@ -1084,7 +1135,6 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create Notes table: ");
 
-    // TODO: support applicationData (lazyMap) and classifications (string to string map) in this table
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteAttributes("
                      "  subjectDate             INTEGER              DEFAULT 0, "
                      "  isSetSubjectDate        INTEGER              DEFAULT 0, "
@@ -1123,6 +1173,20 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create NoteAttributes table: ");
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS NoteAttributesApplicationData "
+                     "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  applicationDataKey      TEXT                 NOT NULL, "
+                     "  applicationDataValue    TEXT                 DEFAULT NULL, "
+                     "  UNIQUE(noteGuid, applicationDataKey) ON CONFLICT REPLACE");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create NoteAttributesApplicationData table: ");
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS NoteAttributesClassifications "
+                     "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  classificationKey       TEXT                 NOT NULL, "
+                     "  classificationValue     TEXT                 DEFUALT NULL, "
+                     "  UNIQUE(noteGuid, classificationKey) ON CONFLICT REPLACE");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create NoteAttributesClassifications table: ");
 
     res = query.exec("CREATE INDEX NotesNotebooks ON Notes(notebook)");
     DATABASE_CHECK_AND_SET_ERROR("Can't create index NotesNotebooks: ");
