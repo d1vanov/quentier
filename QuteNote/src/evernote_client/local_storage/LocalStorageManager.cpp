@@ -328,7 +328,24 @@ bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
         }
     }
 
-    // TODO: also add new note's resources if any
+    if (enNote.__isset.resources)
+    {
+        const std::vector<evernote::edam::Resource> & resources = enNote.resources;
+        size_t numResources = resources.size();
+        for(size_t i = 0; i < numResources; ++i)
+        {
+            // const evernote::edam::Resource & resource = resources[i];
+            // TODO: check parameters of this resource
+
+            // TODO: try to find this resource within local storage database,
+            // in case of failure add this resource to local storage database
+        }
+    }
+
+    if (!enNote.__isset.attributes) {
+        return true;
+    }
+
     // TODO: add note's attributes if these are set
 
     return true;
