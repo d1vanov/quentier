@@ -14,10 +14,10 @@ typedef std::string Guid;
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(Notebook)
-QT_FORWARD_DECLARE_CLASS(Note)
-QT_FORWARD_DECLARE_CLASS(Tag)
-QT_FORWARD_DECLARE_CLASS(Resource)
+QT_FORWARD_DECLARE_STRUCT(Notebook)
+QT_FORWARD_DECLARE_STRUCT(Note)
+QT_FORWARD_DECLARE_STRUCT(Tag)
+QT_FORWARD_DECLARE_STRUCT(Resource)
 
 // TODO: implement all the necessary functionality
 class LocalStorageManager
@@ -30,27 +30,14 @@ public:
     bool ReplaceNotebook(const Notebook & notebook, QString & errorDescription);
 
     /**
-     * @brief DeleteNotebook - either expunges the local notebook (i.e. deleted it from
-     * local storage completely, without the possibility to restore)
-     * if it has not been synchronized with Evernote service yet or marks
-     * the note as deleted otherwise. Evernote API doesn't allow thirdparty applications
-     * to expunge notebooks which have ever been synchronized with remote
-     * data store at least once
-     * @param notebook - notebook to be deleted
-     * @param errorDescription - error description if notebook could not be deleted
-     * @return true if notebook was deleted successfully, false otherwise
-     */
-    bool DeleteNotebook(const Notebook & notebook, QString & errorDescription);
-
-    /**
-     * @brief ExpungeNotebook- permanently deletes local notebooks i.e. notebooks which
+     * @brief ExpungeNotebook - permanently deletes only local notebooks i.e. notebooks which
      * have not yet been synchronized with Evernote service. This method deletes
      * the notebook from local storage completely, without the possibility to restore it
      * @param notebook - notebook to be expunged
      * @param errorDescription - error description if notebook could not be expunged
      * @return true if notebook was expunged successfully, false otherwise
      */
-    bool ExpungeNotebook(const Notebook & notebook, QString & errorDescription);
+    bool ExpungeLocalNotebook(const Notebook & notebook, QString & errorDescription);
 
     bool AddNote(const Note & note, QString & errorDescription);
     bool ReplaceNote(const Note & note, QString & errorDescription);

@@ -87,26 +87,21 @@ LocalStorageManager::~LocalStorageManager()
         return false; \
     }
 
-#define CHECK_GUID(object, objectName) \
-    {\
-        const Guid & guid = object.guid; \
-        if (guid.empty()) { \
-            errorDescription = QObject::tr(objectName " guid is empty"); \
-            return false; \
-        } \
-    }
-
 bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & errorDescription)
 {
-    const evernote::edam::Notebook & enNotebook = notebook.en_notebook;
-    CHECK_GUID(enNotebook, "Notebook");
+    bool res = notebook.CheckParameters(errorDescription);
+    if (!res) {
+        return false;
+    }
 
     // Check the existence of the notebook prior to attempting to add it
-    bool res = ReplaceNotebook(notebook, errorDescription);
+    res = ReplaceNotebook(notebook, errorDescription);
     if (res) {
         return true;
     }
     errorDescription.clear();
+
+    const evernote::edam::Notebook & enNotebook = notebook.en_notebook;
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT INTO Notebooks (guid, usn, name, creationTimestamp, "
@@ -128,14 +123,18 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
 
 bool LocalStorageManager::ReplaceNotebook(const Notebook & notebook, QString & errorDescription)
 {
+    bool res = notebook.CheckParameters(errorDescription);
+    if (!res) {
+        return false;
+    }
+
     const evernote::edam::Notebook & enNotebook = notebook.en_notebook;
-    CHECK_GUID(enNotebook, "Notebook");
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT rowid FROM Notebooks WHERE guid = ?");
     query.addBindValue(QString::fromStdString(enNotebook.guid));
 
-    bool res = query.exec();
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't check the existence of notebook "
                                  "in local storage database");
 
@@ -153,7 +152,8 @@ bool LocalStorageManager::ReplaceNotebook(const Notebook & notebook, QString & e
 
     query.clear();
     query.prepare("UPDATE Notebooks SET guid=?, usn=?, name=?, creationTimestamp=?, "
-                  "modificationTimestamp=?, isDirty=?, isLocal=?, isDefault=?, isLastUsed=?");
+                  "modificationTimestamp=?, isDirty=?, isLocal=?, isDefault=?, isLastUsed=? "
+                  "WHERE rowid = ?");
     query.addBindValue(QString::fromStdString(enNotebook.guid));
     query.addBindValue(enNotebook.updateSequenceNum);
     query.addBindValue(QString::fromStdString(enNotebook.name));
@@ -163,6 +163,7 @@ bool LocalStorageManager::ReplaceNotebook(const Notebook & notebook, QString & e
     query.addBindValue((notebook.isLocal ? 1 : 0));
     query.addBindValue((enNotebook.defaultNotebook ? 1 : 0));
     query.addBindValue((notebook.isLastUsed ? 1 : 0));
+    query.addBindValue(rowId);
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't update Notebooks table: ");
@@ -170,39 +171,26 @@ bool LocalStorageManager::ReplaceNotebook(const Notebook & notebook, QString & e
     return true;
 }
 
-bool LocalStorageManager::DeleteNotebook(const Notebook & notebook, QString & errorDescription)
-{
-    if (notebook.isLocal) {
-        return ExpungeNotebook(notebook, errorDescription);
+#define CHECK_GUID(object, objectName) \
+    {\
+        if (!object.__isset.guid) { \
+            errorDescription = QObject::tr(objectName " guid is not set"); \
+            return false; \
+        } \
+        const Guid & guid = object.guid; \
+        if (guid.empty()) { \
+            errorDescription = QObject::tr(objectName " guid is empty"); \
+            return false; \
+        } \
     }
 
-    if (!notebook.isDeleted) {
-        errorDescription = QObject::tr("Notebook to be deleted from local storage "
-                                       "is not marked as deleted one, rejecting "
-                                       "to mark it deleted in local database");
-        return false;
-    }
-
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("UPDATE Notebooks SET isDeleted = 1, isDirty = 1 WHERE guid = ?");
-    query.addBindValue(QString::fromStdString(notebook.en_notebook.guid));
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't delete notebook in local storage database: ");
-
-    return true;
-}
-
-bool LocalStorageManager::ExpungeNotebook(const Notebook & notebook, QString & errorDescription)
+bool LocalStorageManager::ExpungeLocalNotebook(const Notebook & notebook, QString & errorDescription)
 {
+    const evernote::edam::Notebook & enNotebook = notebook.en_notebook;
+    CHECK_GUID(enNotebook, "Notebook");
+
     if (!notebook.isLocal) {
         errorDescription = QObject::tr("Can't expunge non-local notebook");
-        return false;
-    }
-
-    if (!notebook.isDeleted) {
-        errorDescription = QObject::tr("Local notebook to be expunged is not marked as "
-                                       "deleted one, rejecting to delete it from "
-                                       "local database");
         return false;
     }
 
@@ -233,21 +221,15 @@ bool LocalStorageManager::ExpungeNotebook(const Notebook & notebook, QString & e
     return true;
 }
 
-#define CHECK_NOTE(note) { \
-    const std::string & notebookGuid = note.en_note.notebookGuid; \
-    if (notebookGuid.empty()) { \
-        errorDescription = QObject::tr("Notebook guid is empty"); \
-        return false; \
-    } \
-    CHECK_GUID(note.en_note, "Note") \
-}
-
 bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
 {
-    CHECK_NOTE(note);
+    bool res = note.CheckParameters(errorDescription);
+    if (!res) {
+        return false;
+    }
 
     // Check the existence of the note prior to attempting to add it
-    bool res = ReplaceNote(note, errorDescription);
+    res = ReplaceNote(note, errorDescription);
     if (res) {
         return true;
     }
@@ -255,24 +237,34 @@ bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
 
     const evernote::edam::Note & enNote = note.en_note;
 
+    QString guid = QString::fromStdString(enNote.guid);
+    QString title = QString::fromStdString(enNote.title);
+    QString content = QString::fromStdString(enNote.content);
+    QString notebookGuid = QString::fromStdString(enNote.notebookGuid);
+
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT INTO NoteText (guid, title, content, notebookGuid) "
                   "VALUES(?, ?, ?, ?)");
-    query.addBindValue(QString::fromStdString(enNote.guid));
-    query.addBindValue(QString::fromStdString(enNote.title));
-    query.addBindValue(QString::fromStdString(enNote.content));
-    query.addBindValue(QString::fromStdString(enNote.notebookGuid));
+    query.addBindValue(guid);
+    query.addBindValue(title);
+    query.addBindValue(content);
+    query.addBindValue(notebookGuid);
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't add note to NoteText table in local storage database: ");
 
     query.clear();
-    query.prepare("INSERT INTO Notes (guid, usn, title, isDirty, "
-                  "isLocal, content, creationTimestamp, modificationTimestamp, "
-                  "subjectDate, altitude, latitude, longitude, author, source, "
-                  "sourceUrl, sourceApplication, isDeleted, notebookGuid) "
-                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                  "?, ?, ?, ?, ?, ?, ?, ?)");
-    NoteAttributesToQuery(note, query);
+    query.prepare("INSERT INTO Notes (guid, usn, title, isDirty, isLocal, content, "
+                  "creationTimestamp, modificationTimestamp, notebookGuid) "
+                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    query.addBindValue(guid);
+    query.addBindValue(enNote.updateSequenceNum);
+    query.addBindValue(title);
+    query.addBindValue((note.isDirty ? 1 : 0));
+    query.addBindValue((note.isLocal ? 1 : 0));
+    query.addBindValue(content);
+    query.addBindValue(static_cast<qint64>(enNote.created));
+    query.addBindValue(static_cast<qint64>(enNote.updated));
+    query.addBindValue(notebookGuid);
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't add note to Notes table in local storage database: ");
@@ -285,7 +277,10 @@ bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
 
 bool LocalStorageManager::ReplaceNote(const Note & note, QString & errorDescription)
 {
-    CHECK_NOTE(note);
+    bool res = note.CheckParameters(errorDescription);
+    if (!res) {
+        return false;
+    }
 
     const evernote::edam::Note & enNote = note.en_note;
     QString noteGuid = QString::fromStdString(enNote.guid);
@@ -293,7 +288,7 @@ bool LocalStorageManager::ReplaceNote(const Note & note, QString & errorDescript
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT rowid FROM Notes WHERE guid = ?");
     query.addBindValue(noteGuid);
-    bool res = query.exec();
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't check note for existence in local storage database: ");
 
     if (!query.next()) {
@@ -622,8 +617,7 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
         enNote.attributes.__isset.lastEditorId = false;
     }
 
-    CHECK_NOTE(note);
-    return true;
+    return note.CheckParameters(errorDescription);
 }
 
 bool LocalStorageManager::DeleteNote(const Note & note, QString & errorDescription)

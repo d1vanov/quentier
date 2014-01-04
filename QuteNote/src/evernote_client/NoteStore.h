@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_STORE_H
 
 #include "../evernote_sdk/src/NoteStore.h"
+#include <QString>
 
 namespace qute_note {
 
@@ -10,14 +11,17 @@ struct Note {
     bool isLocal;
     bool isDeleted;
     evernote::edam::Note en_note;
+
+    bool CheckParameters(QString & errorDescription) const;
 };
 
 struct Notebook {
     bool isDirty;
     bool isLocal;
     bool isLastUsed;
-    bool isDeleted;
     evernote::edam::Notebook en_notebook;
+
+    bool CheckParameters(QString & errorDescription) const;
 };
 
 struct Resource {

@@ -73,6 +73,7 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceOAuthHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/CredentialsModel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteStore.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml/ENMLConverter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/LocalStorageManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseOpeningException.cpp
