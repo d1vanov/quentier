@@ -1157,15 +1157,13 @@ bool LocalStorageManager::ExpungeResource(const evernote::edam::Resource &resour
 
 */
 
-#undef CHECK_GUID
-
 bool LocalStorageManager::CreateTables(QString & errorDescription)
 {
     QSqlQuery query(m_sqlDatabase);
     bool res;
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
-                     "  guid                  TEXT PRIMARY KEY   NOT NULL, "
+                     "  guid                  TEXT PRIMARY KEY   NOT NULL UNIQUE, "
                      "  updateSequenceNumber  INTEGER            NOT NULL, "
                      "  name                  TEXT               NOT NULL, "
                      "  creationTimestamp     INTEGER            NOT NULL, "
@@ -1192,7 +1190,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("Can't create ReplaceNotebooks trigger: ");
 
     res = query.exec("CREATE VIRTUAL TABLE NoteText USING fts3("
-                     "  guid              TEXT PRIMARY KEY     NOT NULL, "
+                     "  guid              TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  title             TEXT, "
                      "  content           TEXT, "
                      "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE"
@@ -1200,7 +1198,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("Can't create virtual table NoteText: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notes("
-                     "  guid                    TEXT PRIMARY KEY     NOT NULL, "
+                     "  guid                    TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  updateSequenceNumber    INTEGER              NOT NULL, "
                      "  isDirty                 INTEGER              NOT NULL, "
                      "  isLocal                 INTEGER              NOT NULL, "
@@ -1273,7 +1271,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("Can't create index NotesNotebooks: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
-                     "  guid              TEXT PRIMARY KEY     NOT NULL, "
+                     "  guid              TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  hash              TEXT UNIQUE          NOT NULL, "
                      "  data              TEXT,                NOT NULL, "
                      "  mime              TEXT                 NOT NULL, "
@@ -1294,7 +1292,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("Can't create ResourcesNote index: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
-                     "  guid                  TEXT PRIMARY KEY     NOT NULL, "
+                     "  guid                  TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  updateSequenceNumber  INTEGER              NOT NULL, "
                      "  name                  TEXT                 NOT NULL, "
                      "  parentGuid            TEXT                 DEFAULT NULL, "
@@ -1321,6 +1319,177 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     return true;
 }
 
+bool LocalStorageManager::SetNoteAttributes(const evernote::edam::Note & note,
+                                            QString & errorDescription)
+{
+    CHECK_GUID(note, "Note");
+
+    if (!note.__isset.attributes) {
+        return true;
+    }
+
+    const evernote::edam::NoteAttributes & attributes = note.attributes;
+    QString noteGuid = QString::fromStdString(note.guid);
+
+    QSqlQuery query(m_sqlDatabase);
+    bool isSetSubjectDate = attributes.__isset.subjectDate;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetSubjectDate, "
+                  "subjectDate) VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetSubjectDate ? 1 : 0));
+    query.addBindValue((isSetSubjectDate ? static_cast<quint64>(attributes.subjectDate) : 0));
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace subject date into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetLatitude = attributes.__isset.latitude;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetLatitude, latitude) "
+                  "VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetLatitude ? 1 : 0));
+    query.addBindValue((isSetLatitude ? attributes.latitude : 0.0));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace latitude into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetLongitude = attributes.__isset.longitude;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetLongitude, longitude) "
+                  "VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetLongitude ? 1 : 0));
+    query.addBindValue((isSetLongitude ? attributes.longitude : 0.0));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace longitude into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetAltitude = attributes.__isset.altitude;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetAltitude, altitude) "
+                  "VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetAltitude ? 1 : 0));
+    query.addBindValue((isSetAltitude ? attributes.altitude : 0.0));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace altitude into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetAuthor = attributes.__isset.author;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetAuthor, author) "
+                  "VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetAuthor ? 1 : 0));
+    query.addBindValue((isSetAuthor ? QString::fromStdString(attributes.author) : ""));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace author into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetSource = attributes.__isset.source;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetSource, source) "
+                  "VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetSource ? 1 : 0));
+    query.addBindValue((isSetSource ? QString::fromStdString(attributes.source) : ""));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace source into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetSourceUrl = attributes.__isset.sourceURL;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetSourceUrl, sourceUrl) "
+                  "VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetSourceUrl ? 1 : 0));
+    query.addBindValue((isSetSourceUrl ? QString::fromStdString(attributes.sourceURL) : ""));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace sourceUrl into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetSourceApplication = attributes.__isset.sourceApplication;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetSourceApplication, "
+                  "sourceApplication) VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetSourceApplication ? 1 : 0));
+    query.addBindValue((isSetSourceApplication ? QString::fromStdString(attributes.sourceApplication) : ""));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace sourceApplication into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetShareDate = attributes.__isset.shareDate;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetShareDate, shareDate) "
+                  "VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetShareDate ? 1 : 0));
+    query.addBindValue((isSetShareDate ? static_cast<quint64>(attributes.shareDate) : 0));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace shareDate into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetReminderOrder = attributes.__isset.reminderOrder;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetReminderOrder, "
+                  "reminderOrder) VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetReminderOrder ? 1 : 0));
+    query.addBindValue((isSetReminderOrder ? static_cast<quint64>(attributes.reminderOrder) : 0));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace reminderOrder into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetReminderDoneTime = attributes.__isset.reminderDoneTime;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetReminderDoneTime, "
+                  "reminderDoneTime) VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetReminderDoneTime ? 1 : 0));
+    query.addBindValue((isSetReminderDoneTime ? static_cast<quint64>(attributes.reminderDoneTime) : 0));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace reminderDoneTime into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetReminderTime = attributes.__isset.reminderOrder;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetReminderTime, "
+                  "reminderTime) VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetReminderTime ? 1 : 0));
+    query.addBindValue((isSetReminderTime ? static_cast<quint64>(attributes.reminderTime) : 0));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace reminderTime into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetPlaceName = attributes.__isset.placeName;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetPlaceName, "
+                  "placeName) VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetPlaceName ? 1 : 0));
+    query.addBindValue((isSetPlaceName ? QString::fromStdString(attributes.placeName) : ""));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace placeName into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetContentClass = attributes.__isset.contentClass;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetContentClass, "
+                  "contentClass) VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetContentClass ? 1 : 0));
+    query.addBindValue((isSetContentClass ? QString::fromStdString(attributes.contentClass) : ""));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or update contentClass into NoteAttributes table: ");
+
+    // TODO: proceeed with lastEditedBy, creatorId, lastEditorId, applicationData and classifications
+    return true;
+}
+
+#undef CHECK_GUID
 #undef DATABASE_CHECK_AND_SET_ERROR
 
 }
