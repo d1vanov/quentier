@@ -38,7 +38,7 @@ set(${PROJECT_NAME}_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/CredentialsModel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/NoteStore.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml/ENMLConverter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/LocalStorageManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseOpeningException.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseSqlErrorException.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.h
@@ -74,7 +74,7 @@ set(${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/EvernoteServiceOAuthHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/CredentialsModel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml/ENMLConverter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/LocalStorageManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseOpeningException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/local_storage/DatabaseSqlErrorException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tools/Printable.cpp

@@ -1,4 +1,4 @@
-#include "DatabaseManager.h"
+#include "LocalStorageManager.h"
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
 #include "../NoteStore.h"
