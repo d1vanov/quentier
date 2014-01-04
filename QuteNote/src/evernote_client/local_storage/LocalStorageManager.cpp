@@ -1483,9 +1483,42 @@ bool LocalStorageManager::SetNoteAttributes(const evernote::edam::Note & note,
     query.addBindValue((isSetContentClass ? QString::fromStdString(attributes.contentClass) : ""));
 
     res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or update contentClass into NoteAttributes table: ");
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace contentClass into NoteAttributes table: ");
 
-    // TODO: proceeed with lastEditedBy, creatorId, lastEditorId, applicationData and classifications
+    query.clear();
+    bool isSetLastEditedBy = attributes.__isset.lastEditedBy;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetLastEditedBy, "
+                  "lastEditedBy) VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetLastEditedBy ? 1 : 0));
+    query.addBindValue((isSetLastEditedBy ? QString::fromStdString(attributes.lastEditedBy) : 0));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace lastEditedBy into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetCreatorId = attributes.__isset.creatorId;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetCreatorId, "
+                  "creatorId) VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetCreatorId ? 1 : 0));
+    query.addBindValue((isSetCreatorId ? attributes.creatorId : 0));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace creatorId into NoteAttributes table: ");
+
+    query.clear();
+    bool isSetLastEditorId = attributes.__isset.lastEditorId;
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetLastEditorId, "
+                  "lastEditorId) VALUES(?, ?, ?)");
+    query.addBindValue(noteGuid);
+    query.addBindValue((isSetLastEditorId ? 1 : 0));
+    query.addBindValue((isSetLastEditorId ? attributes.lastEditorId : 0));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace lastEditorId into NoteAttributes table: ");
+
+    // TODO: proceeed with applicationData and classifications
     return true;
 }
 
