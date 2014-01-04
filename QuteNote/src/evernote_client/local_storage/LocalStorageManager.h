@@ -3,11 +3,13 @@
 
 #include <QString>
 #include <QtSql>
+#include <QSharedPointer>
 
 namespace evernote {
 namespace edam {
 
 typedef std::string Guid;
+QT_FORWARD_DECLARE_CLASS(NoteStoreClient)
 
 }
 }
@@ -23,8 +25,11 @@ QT_FORWARD_DECLARE_STRUCT(Resource)
 class LocalStorageManager
 {
 public:
-    LocalStorageManager(const QString & username);
+    LocalStorageManager(const QString & username, const QString & authenticationToken,
+                        QSharedPointer<evernote::edam::NoteStoreClient> & pNoteStore);
     ~LocalStorageManager();
+
+    void SetNewAuthenticationToken(const QString & authenticationToken);
 
     bool AddNotebook(const Notebook & notebook, QString & errorDescription);
     bool ReplaceNotebook(const Notebook & notebook, QString & errorDescription);
@@ -70,7 +75,7 @@ public:
      */
     bool ExpungeNote(const Note & note, QString & errorDescription);
 
-    bool AddTag(const Tag & tag, QString & errorDescription);
+    bool AddTag(const Tag & /* tag */, QString & /* errorDescription */) { return true; }
     bool AddTagToNote(const Tag & tag, const Note & note, QString & errorDescription);
     bool ReplaceTag(const Tag & tag, QString & errorDescription);
 
@@ -129,6 +134,8 @@ private:
     LocalStorageManager(const LocalStorageManager & other) = delete;
     LocalStorageManager & operator=(const LocalStorageManager & other) = delete;
 
+    QString m_authenticationToken;
+    QSharedPointer<evernote::edam::NoteStoreClient> m_pNoteStore;
     QString m_applicationPersistenceStoragePath;
     QSqlDatabase m_sqlDatabase;
 };

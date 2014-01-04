@@ -2,6 +2,7 @@
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
 #include "../NoteStore.h"
+#include "../tools/QuteNoteNullPtrException.h"
 
 using namespace evernote::edam;
 
@@ -15,13 +16,21 @@ namespace qute_note {
 
 #define QUTE_NOTE_DATABASE_NAME "qn.storage.sqlite"
 
-LocalStorageManager::LocalStorageManager(const QString & username) :
+LocalStorageManager::LocalStorageManager(const QString & username, const QString & authenticationToken,
+                                         QSharedPointer<evernote::edam::NoteStoreClient> & pNoteStore) :
+    m_authenticationToken(authenticationToken),
+    m_pNoteStore(pNoteStore),
 #ifdef USE_QT5
     m_applicationPersistenceStoragePath(QStandardPaths::writableLocation(QStandardPaths::DataLocation))
 #else
     m_applicationPersistenceStoragePath(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
 #endif
 {
+    if (m_pNoteStore == nullptr) {
+        throw QuteNoteNullPtrException("Found null pointer to NoteStoreClient while "
+                                       "trying to create LocalStorageManager instance");
+    }
+
     bool needsInitializing = false;
 
     m_applicationPersistenceStoragePath.append("/" + username);
@@ -78,6 +87,11 @@ LocalStorageManager::~LocalStorageManager()
     if (m_sqlDatabase.open()) {
         m_sqlDatabase.close();
     }
+}
+
+void LocalStorageManager::SetNewAuthenticationToken(const QString & authenticationToken)
+{
+    m_authenticationToken = authenticationToken;
 }
 
 #define DATABASE_CHECK_AND_SET_ERROR(errorPrefix) \
@@ -264,7 +278,57 @@ bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't add note to Notes table in local storage database: ");
 
-    // TODO: also add or update note's tags and resources if need be
+    bool tagGuidsSet = enNote.__isset.tagGuids;
+    bool tagNamesSet = enNote.__isset.tagNames;
+
+    if (tagGuidsSet && tagNamesSet) {
+        errorDescription = QObject::tr("Both tag guids and names are specified for note");
+        return false;
+    }
+
+    if (tagGuidsSet)
+    {
+        const std::vector<Guid> & tagGuids = enNote.tagGuids;
+        size_t numTagGuids = tagGuids.size();
+
+        for(size_t i = 0; i < numTagGuids; ++i) {
+            // TODO: try to find this tag within local storage database;
+            // in case of failure find this tag via NoreStoreClient and add to local storage
+        }
+    }
+
+    if (tagNamesSet)
+    {
+        const std::vector<std::string> & tagNames = enNote.tagNames;
+        size_t numTagNames = tagNames.size();
+
+        for(size_t i = 0; i < numTagNames; ++i)
+        {
+            // NOTE: don't optimize this out, tag needs to be re-created on each iteration
+            Tag tag;
+            tag.en_tag.__isset.name = true;
+            tag.en_tag.name = tagNames[i];
+
+            // TODO: try to find tag with such name in *local* storage database before
+            // attempting to create it
+
+            m_pNoteStore->createTag(tag.en_tag, m_authenticationToken.toStdString(),
+                                    tag.en_tag);
+            if (!tag.en_tag.__isset.guid) {
+                errorDescription = QObject::tr("Can't create tag from name");
+                return false;
+            }
+            tag.isDirty = true;
+            tag.isLocal = true;
+
+            res = AddTag(tag, errorDescription);
+            if (!res) {
+                return false;
+            }
+        }
+    }
+
+    // TODO: also add new note's resources if any
     // TODO: add note's attributes if these are set
 
     return true;
