@@ -346,9 +346,7 @@ bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
         return true;
     }
 
-    // TODO: add note's attributes if these are set
-
-    return true;
+    return SetNoteAttributes(enNote, errorDescription);
 }
 
 bool LocalStorageManager::ReplaceNote(const Note & note, QString & errorDescription)
@@ -415,9 +413,7 @@ bool LocalStorageManager::ReplaceNote(const Note & note, QString & errorDescript
                                  "storage database: ");
 
     // TODO: replace tags and resources
-    // TODO: replace note attributes
-
-    return true;
+    return SetNoteAttributes(enNote, errorDescription);
 }
 
 bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString & errorDescription) const
@@ -708,7 +704,7 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
     }
 
     query.clear();
-    query.prepare("SELECT applicationDataKey, applicationDataValue "
+    query.prepare("SELECT applicationDataKey, isSetApplicationDataValue, applicationDataValue "
                   "FROM NoteAttributesApplicationData WHERE noteGuid=?");
     query.addBindValue(QString::fromStdString(noteGuid));
 
@@ -721,15 +717,30 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
     applicationData.fullMap.clear();
 
     bool foundOne = false;
-    QString applicationDataKey, applicationDataValue;
+    QString applicationDataKey;
+    int isSetApplicationDataValue = 0;
+    bool conversionResult = false;
     while(query.next())
     {
+        QString applicationDataValue;   // NOTE: don't move it outside of loop
+
         foundOne = true;
         applicationDataKey = query.value(0).toString();
-        applicationDataValue = query.value(1).toString();
-
         applicationData.keysOnly.insert(applicationDataKey.toStdString());
-        applicationData.fullMap[applicationDataKey.toStdString()] = applicationDataValue.toStdString();
+        applicationData.__isset.keysOnly = true;
+
+        isSetApplicationDataValue = query.value(1).toInt(&conversionResult);
+        if (!conversionResult) {
+            errorDescription = QObject::tr("Can't convert isSetApplicationDataValue "
+                                           "from query result to int");
+            return false;
+        }
+
+        if (isSetApplicationDataValue != 0) {
+            applicationDataValue = query.value(2).toString();
+            applicationData.fullMap[applicationDataKey.toStdString()] = applicationDataValue.toStdString();
+            applicationData.__isset.fullMap = true;
+        }
     }
     enNote.attributes.__isset.applicationData = foundOne;
 
@@ -1255,8 +1266,9 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteAttributesApplicationData "
                      "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  applicationDataKey      TEXT                 NOT NULL, "
-                     "  applicationDataValue    TEXT                 DEFAULT NULL, "
+                     "  applicationDataKey          TEXT             NOT NULL, "
+                     "  applicationDataValue        TEXT             DEFAULT NULL, "
+                     "  isSetApplicationDataValue   INTEGER          NOT NULL, "
                      "  UNIQUE(noteGuid, applicationDataKey) ON CONFLICT REPLACE");
     DATABASE_CHECK_AND_SET_ERROR("Can't create NoteAttributesApplicationData table: ");
 
@@ -1518,7 +1530,71 @@ bool LocalStorageManager::SetNoteAttributes(const evernote::edam::Note & note,
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace lastEditorId into NoteAttributes table: ");
 
-    // TODO: proceeed with applicationData and classifications
+    if (attributes.__isset.applicationData)
+    {
+        const auto & applicationData = attributes.applicationData;
+        bool isSetKeysOnly = applicationData.__isset.keysOnly;
+        bool isSetFullMap = applicationData.__isset.fullMap;
+
+        if (isSetKeysOnly && isSetFullMap) {
+            errorDescription = QObject::tr("Both keys only and full map fields are set for "
+                                           "applicationData field of Note while only one should be set");
+            return false;
+        }
+
+        if (isSetKeysOnly)
+        {
+            for(const auto & key : applicationData.keysOnly)
+            {
+                query.clear();
+                query.prepare("INSERT OR REPLACE INTO NoteAttributesApplicationData(noteGuid, "
+                              "applicationDataKey, isSetApplicationDataValue) VALUES(?, ?, ?)");
+                query.addBindValue(noteGuid);
+                query.addBindValue(QString::fromStdString(key));
+                query.addBindValue(0);
+
+                res = query.exec();
+                DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace applicationDataKey into "
+                                             "NoteAttributesApplicationData table: ");
+            }
+        }
+        else if (isSetFullMap)
+        {
+            for(const auto & pair : applicationData.fullMap)
+            {
+                query.clear();
+                query.prepare("INSERT OR REPLACE INTO NoteAttributesApplicationData(noteGuid, "
+                              "applicationDataKey, applicationDataValue, isSetApplicationDataValue) "
+                              "VALUES(?, ?, ?, ?)");
+                query.addBindValue(noteGuid);
+                query.addBindValue(QString::fromStdString(pair.first));
+                query.addBindValue(QString::fromStdString(pair.second));
+                query.addBindValue(1);
+
+                res = query.exec();
+                DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace applicationData into "
+                                             "NoteAttributesApplicationData table: ");
+            }
+        }
+    }
+
+    if (attributes.__isset.classifications)
+    {
+        for(const auto & pair : attributes.classifications)
+        {
+            query.clear();
+            query.prepare("INSERT OR REPLACE INTO NoteAttributesClassifications(noteGuid, "
+                          "classificationKey, classificationValue) VALUES(?, ?, ?)");
+            query.addBindValue(noteGuid);
+            query.addBindValue(QString::fromStdString(pair.first));
+            query.addBindValue(QString::fromStdString(pair.second));
+
+            res = query.exec();
+            DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace classifications into "
+                                         "NoteAttributesClassifications table: ");
+        }
+    }
+
     return true;
 }
 
