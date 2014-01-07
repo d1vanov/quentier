@@ -33,7 +33,10 @@ public:
     void SetNewAuthenticationToken(const QString & authenticationToken);
 
     bool AddNotebook(const Notebook & notebook, QString & errorDescription);
-    bool ReplaceNotebook(const Notebook & notebook, QString & errorDescription);
+    bool UpdateNotebook(const Notebook & notebook, QString & errorDescription);
+
+    bool FindNotebook(const evernote::edam::Guid & notebookGuid, Notebook & notebook,
+                      QString & errorDescription);
 
     /**
      * @brief ExpungeNotebook - deletes specified notebook from local storage.
@@ -48,7 +51,7 @@ public:
     bool ExpungeNotebook(const Notebook & notebook, QString & errorDescription);
 
     bool AddNote(const Note & note, QString & errorDescription);
-    bool ReplaceNote(const Note & note, QString & errorDescription);
+    bool UpdateNote(const Note & note, QString & errorDescription);
 
     bool FindNote(const evernote::edam::Guid & noteGuid, Note & note,
                   QString & errorDescription) const;

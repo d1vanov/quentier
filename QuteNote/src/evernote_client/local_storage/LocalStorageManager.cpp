@@ -109,7 +109,7 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
     }
 
     // Check the existence of the notebook prior to attempting to add it
-    res = ReplaceNotebook(notebook, errorDescription);
+    res = UpdateNotebook(notebook, errorDescription);
     if (res) {
         return true;
     }
@@ -118,6 +118,7 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
     const evernote::edam::Notebook & enNotebook = notebook.en_notebook;
 
     QSqlQuery query(m_sqlDatabase);
+    // TODO: need to support all other information available about objects of notebook class
     query.prepare("INSERT INTO Notebooks (guid, updateSequenceNumber, name, "
                   "creationTimestamp, modificationTimestamp, isDirty, isLocal, "
                   "isDefault, isLastUsed) VALUES(?, ?, ?, ?, ?, ?, ?, 0, 0");
@@ -135,7 +136,7 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
     return true;
 }
 
-bool LocalStorageManager::ReplaceNotebook(const Notebook & notebook, QString & errorDescription)
+bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & errorDescription)
 {
     bool res = notebook.CheckParameters(errorDescription);
     if (!res) {
@@ -165,6 +166,7 @@ bool LocalStorageManager::ReplaceNotebook(const Notebook & notebook, QString & e
     }
 
     query.clear();
+    // TODO: need to support all other information available about objects of notebook class
     query.prepare("UPDATE Notebooks SET guid=?, updateSequenceNumber=?, name=?, "
                   "creationTimestamp=?, modificationTimestamp=?, isDirty=?, isLocal=?, "
                   "isDefault=?, isLastUsed=? WHERE rowid=?");
@@ -181,6 +183,110 @@ bool LocalStorageManager::ReplaceNotebook(const Notebook & notebook, QString & e
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't update Notebooks table: ");
+
+    return true;
+}
+
+bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & notebook,
+                                       QString & errorDescription)
+{
+    if (notebookGuid.empty()) {
+        errorDescription = QObject::tr("Notebook guid is empty");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    // TODO: need to support all other information available about objects of notebook class
+    query.prepare("SELECT updateSequenceNumber, name, creationTimestamp, "
+                  "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed "
+                  "FROM Notebooks WHERE guid=?");
+    query.addBindValue(QString::fromStdString(notebookGuid));
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't find notebook in local storage database: ");
+
+    QSqlRecord rec = query.record();
+
+    if (rec.contains("isDirty")) {
+        notebook.isDirty = (qvariant_cast<int>(rec.value("isDirty")) != 0);
+    }
+    else {
+        errorDescription = QObject::tr("No \"isDirty\" field in the result of SQL query "
+                                       "from local storage database");
+        return false;
+    }
+
+    if (rec.contains("isLocal")) {
+        notebook.isLocal = (qvariant_cast<int>(rec.value("isLocal")) != 0);
+    }
+    else {
+        errorDescription = QObject::tr("No \"isLocal\" field in the result of SQL query "
+                                       "from local storage database");
+        return false;
+    }
+
+    if (rec.contains("isLasyUsed")) {
+        notebook.isLastUsed = (qvariant_cast<int>(rec.value("isLastUsed")) != 0);
+    }
+    else {
+        errorDescription = QObject::tr("No \"isLastUsed\" field in the result of SQL query "
+                                       "from local storage database");
+        return false;
+    }
+
+    evernote::edam::Notebook & enNotebook = notebook.en_notebook;
+
+    enNotebook.guid = notebookGuid;
+    enNotebook.__isset.guid = true;
+
+    if (rec.contains("updateSequenceNumber")) {
+        enNotebook.updateSequenceNum = qvariant_cast<uint32_t>(rec.value("updateSequenceNumber"));
+        enNotebook.__isset.updateSequenceNum = true;
+    }
+    else {
+        errorDescription = QObject::tr("No \"updateSequenceNumber\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
+    }
+
+    if (rec.contains("name")) {
+        enNotebook.name = qvariant_cast<QString>(rec.value("name")).toStdString();
+        enNotebook.__isset.name = true;
+    }
+    else {
+        errorDescription = QObject::tr("No \"name\" field in the result of SQL query "
+                                       "from local storage database");
+        return false;
+    }
+
+    if (rec.contains("isDefault")) {
+        enNotebook.defaultNotebook = (qvariant_cast<int>(rec.value("isDefault")) != 0);
+        enNotebook.__isset.defaultNotebook = true;
+    }
+    else {
+        errorDescription = QObject::tr("No \"isDefault\" field in the result of SQL query "
+                                       "from local storage database");
+        return false;
+    }
+
+    if (rec.contains("creationTimestamp")) {
+        enNotebook.serviceCreated = qvariant_cast<Timestamp>(rec.value("creationTimestamp"));
+        enNotebook.__isset.serviceCreated = true;
+    }
+    else {
+        errorDescription = QObject::tr("No \"creationTimestamp\" field in the result of SQL "
+                                       "query from local storage database");
+        return false;
+    }
+
+    if (rec.contains("modificationTimestamp")) {
+        enNotebook.serviceUpdated = qvariant_cast<Timestamp>(rec.value("modificationTimestamp"));
+        enNotebook.__isset.serviceUpdated = true;
+    }
+    else {
+        errorDescription = QObject::tr("No \"modificationTimestamp\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
+    }
 
     return true;
 }
@@ -204,7 +310,7 @@ bool LocalStorageManager::ExpungeNotebook(const Notebook & notebook, QString & e
     CHECK_GUID(enNotebook, "Notebook");
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT rowid FROM Notebooks WHERE guid = ?");
+    query.prepare("SELECT rowid FROM Notebooks WHERE guid=?");
     query.addBindValue(QString::fromStdString(notebook.en_notebook.guid));
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't find notebook to be expunged in local storage database: ");
@@ -238,7 +344,7 @@ bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
     }
 
     // Check the existence of the note prior to attempting to add it
-    res = ReplaceNote(note, errorDescription);
+    res = UpdateNote(note, errorDescription);
     if (res) {
         return true;
     }
@@ -349,7 +455,7 @@ bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
     return SetNoteAttributes(enNote, errorDescription);
 }
 
-bool LocalStorageManager::ReplaceNote(const Note & note, QString & errorDescription)
+bool LocalStorageManager::UpdateNote(const Note & note, QString & errorDescription)
 {
     bool res = note.CheckParameters(errorDescription);
     if (!res) {
@@ -431,81 +537,56 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
 
     QSqlRecord rec = query.record();
 
-    bool isDirty = false;
-    int isDirtyInt = qvariant_cast<int>(rec.value("isDirty"));
-    if (isDirtyInt != 0) {
-        isDirty = true;
-    }
-    note.isDirty = isDirty;
+    // TODO: check whether field exists in the record prior to attempt to use it
 
-    bool isLocal = false;
-    int isLocalInt = qvariant_cast<int>(rec.value("isLocal"));
-    if (isLocalInt != 0) {
-        isLocal = true;
-    }
-    note.isLocal = isLocal;
-
-    bool isDeleted = false;
-    int isDeletedInt = qvariant_cast<int>(rec.value("isDeleted"));
-    if (isDeletedInt != 0) {
-        isDeleted = true;
-    }
-    note.isDeleted = isDeleted;
+    note.isDirty = (qvariant_cast<int>(rec.value("isDirty")) != 0);
+    note.isLocal = (qvariant_cast<int>(rec.value("isLocal")) != 0);
+    note.isDeleted = (qvariant_cast<int>(rec.value("isDeleted")) != 0);
 
     evernote::edam::Note & enNote = note.en_note;
 
     enNote.guid = noteGuid;
     enNote.__isset.guid = true;
 
-    uint32_t updateSequenceNumber = qvariant_cast<uint32_t>(rec.value("updateSequenceNumber"));
-    enNote.updateSequenceNum = updateSequenceNumber;
+    enNote.updateSequenceNum = qvariant_cast<uint32_t>(rec.value("updateSequenceNumber"));
     enNote.__isset.updateSequenceNum = true;
 
-    QString notebookGuid = qvariant_cast<QString>(rec.value("notebook"));
-    enNote.notebookGuid = notebookGuid.toStdString();
+    enNote.notebookGuid = qvariant_cast<QString>(rec.value("notebook")).toStdString();
     enNote.__isset.notebookGuid = true;
 
-    QString title = qvariant_cast<QString>(rec.value("title"));
-    enNote.title = title.toStdString();
+    enNote.title = qvariant_cast<QString>(rec.value("title")).toStdString();
     enNote.__isset.title = true;
 
-    QString content = qvariant_cast<QString>(rec.value("content"));
-    enNote.content = content.toStdString();
+    enNote.content = qvariant_cast<QString>(rec.value("content")).toStdString();
     enNote.__isset.content = true;
 
 #if QT_VERSION >= 0x050101
-    QByteArray contentBinaryHash = QCryptographicHash::hash(content.toUtf8(), QCryptographicHash::Md5);
+    QByteArray contentBinaryHash = QCryptographicHash::hash(QString::fromStdString(enNote.content).toUtf8(),
+                                                            QCryptographicHash::Md5);
 #else
-    QByteArray contentBinaryHash = QCryptographicHash::hash(content.toAscii(), QCryptographicHash::Md5);
+    QByteArray contentBinaryHash = QCryptographicHash::hash(QString::fromStdString(enNote.content).toAscii(),
+                                                            QCryptographicHash::Md5);
 #endif
     QString contentHash(contentBinaryHash);
     enNote.contentHash = contentHash.toStdString();
     enNote.__isset.contentHash = true;
 
-    enNote.contentLength = content.length();
+    enNote.contentLength = enNote.content.length();
     enNote.__isset.contentLength = true;
 
-    Timestamp creationTimestamp = qvariant_cast<Timestamp>(rec.value("creationTimestamp"));
-    enNote.created = creationTimestamp;
+    enNote.created = qvariant_cast<Timestamp>(rec.value("creationTimestamp"));
     enNote.__isset.created = true;
 
-    Timestamp modificationTimestamp = qvariant_cast<Timestamp>(rec.value("modificationTimestamp"));
-    enNote.updated = modificationTimestamp;
+    enNote.updated = qvariant_cast<Timestamp>(rec.value("modificationTimestamp"));
     enNote.__isset.updated = true;
 
-    if (isDeleted) {
+    if (note.isDeleted) {
         Timestamp deletionTimestamp = qvariant_cast<Timestamp>(rec.value("deletionTimestamp"));
         enNote.deleted = deletionTimestamp;
         enNote.__isset.deleted = true;
     }
 
-    int isActive = qvariant_cast<int>(rec.value("isActive"));
-    if (isActive != 0) {
-        enNote.active = true;
-    }
-    else {
-        enNote.active = false;
-    }
+    enNote.active = (qvariant_cast<int>(rec.value("isActive")) != 0);
     enNote.__isset.active = true;
 
     // TODO: retrieve tag and resource guids from tags and resources tables
