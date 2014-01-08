@@ -659,18 +659,32 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
         }
     }
 
-    // TODO: continue from here
-    enNote.active = (qvariant_cast<int>(rec.value("isActive")) != 0);
-    enNote.__isset.active = true;
+    if (rec.contains("isActive")) {
+        enNote.active = (qvariant_cast<int>(rec.value("isActive")) != 0);
+        enNote.__isset.active = true;
+    }
+    else {
+        errorDescription = QObject::tr("No \"isActive\" field in the result of SQL "
+                                       "query from local storage database");
+        return false;
+    }
 
     // TODO: retrieve tag and resource guids from tags and resources tables
 
-    int hasAttributes = qvariant_cast<int>(rec.value("hasAttributes"));
-    if (hasAttributes == 0) {
-        return true;
+    if (rec.contains("hasAttributes"))
+    {
+        int hasAttributes = qvariant_cast<int>(rec.value("hasAttributes"));
+        if (hasAttributes == 0) {
+            return true;
+        }
+        else {
+            enNote.__isset.attributes = true;
+        }
     }
     else {
-        enNote.__isset.attributes = true;
+        errorDescription = QObject::tr("No \"hasAttributes\" field in the result of SQL "
+                                       "query from local storage database");
+        return false;
     }
 
     query.clear();
@@ -688,174 +702,311 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
     DATABASE_CHECK_AND_SET_ERROR("Can't select note attributes from NoteAttributes table: ");
 
     rec = query.record();
-    int isSetSubjectDate = qvariant_cast<int>(rec.value("isSetSubjectDate"));
-    if (isSetSubjectDate != 0) {
-        Timestamp subjectDate = qvariant_cast<Timestamp>(rec.value("subjectDate"));
-        enNote.attributes.subjectDate = subjectDate;
-        enNote.attributes.__isset.subjectDate = true;
+
+    if (rec.contains("isSetSubjectDate"))
+    {
+        int isSetSubjectDate = qvariant_cast<int>(rec.value("isSetSubjectDate"));
+        if (isSetSubjectDate != 0) {
+            Timestamp subjectDate = qvariant_cast<Timestamp>(rec.value("subjectDate"));
+            enNote.attributes.subjectDate = subjectDate;
+            enNote.attributes.__isset.subjectDate = true;
+        }
+        else {
+            enNote.attributes.__isset.subjectDate = false;
+        }
     }
     else {
-        enNote.attributes.__isset.subjectDate = false;
+        errorDescription = QObject::tr("No \"isSetSubjectDate\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetLatitude = qvariant_cast<int>(rec.value("isSetLatitude"));
-    if (isSetLatitude != 0) {
-        double latitude = qvariant_cast<double>(rec.value("latitude"));
-        enNote.attributes.latitude = latitude;
-        enNote.attributes.__isset.latitude = true;
+    if (rec.contains("isSetLatitude"))
+    {
+        int isSetLatitude = qvariant_cast<int>(rec.value("isSetLatitude"));
+        if (isSetLatitude != 0) {
+            double latitude = qvariant_cast<double>(rec.value("latitude"));
+            enNote.attributes.latitude = latitude;
+            enNote.attributes.__isset.latitude = true;
+        }
+        else {
+            enNote.attributes.__isset.latitude = false;
+        }
     }
     else {
-        enNote.attributes.__isset.latitude = false;
+        errorDescription = QObject::tr("No \"isSetLatitude\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetAltitude = qvariant_cast<int>(rec.value("isSetAltitude"));
-    if (isSetAltitude != 0) {
-        double altitude = qvariant_cast<double>(rec.value("altitude"));
-        enNote.attributes.altitude = altitude;
-        enNote.attributes.__isset.altitude = true;
+    if (rec.contains("isSetAltitude"))
+    {
+        int isSetAltitude = qvariant_cast<int>(rec.value("isSetAltitude"));
+        if (isSetAltitude != 0) {
+            double altitude = qvariant_cast<double>(rec.value("altitude"));
+            enNote.attributes.altitude = altitude;
+            enNote.attributes.__isset.altitude = true;
+        }
+        else {
+            enNote.attributes.__isset.altitude = false;
+        }
     }
     else {
-        enNote.attributes.__isset.altitude = false;
+        errorDescription = QObject::tr("No \"isSetAltitude\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetLongitude = qvariant_cast<int>(rec.value("isSetLongitude"));
-    if (isSetLongitude != 0) {
-        double longitude = qvariant_cast<double>(rec.value("longitude"));
-        enNote.attributes.longitude = longitude;
-        enNote.attributes.__isset.longitude = true;
+    if (rec.contains("isSetLongitude"))
+    {
+        int isSetLongitude = qvariant_cast<int>(rec.value("isSetLongitude"));
+        if (isSetLongitude != 0) {
+            double longitude = qvariant_cast<double>(rec.value("longitude"));
+            enNote.attributes.longitude = longitude;
+            enNote.attributes.__isset.longitude = true;
+        }
+        else {
+            enNote.attributes.__isset.longitude = false;
+        }
     }
     else {
-        enNote.attributes.__isset.longitude = false;
+        errorDescription = QObject::tr("No \"isSetLongitude\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetAuthor = qvariant_cast<int>(rec.value("isSetAuthor"));
-    if (isSetAuthor != 0) {
-        QString author = qvariant_cast<QString>(rec.value("author"));
-        enNote.attributes.author = author.toStdString();
-        enNote.attributes.__isset.author = true;
+    if (rec.contains("isSetAuthor"))
+    {
+        int isSetAuthor = qvariant_cast<int>(rec.value("isSetAuthor"));
+        if (isSetAuthor != 0) {
+            QString author = qvariant_cast<QString>(rec.value("author"));
+            enNote.attributes.author = author.toStdString();
+            enNote.attributes.__isset.author = true;
+        }
+        else {
+            enNote.attributes.__isset.author = false;
+        }
     }
     else {
-        enNote.attributes.__isset.author = false;
+        errorDescription = QObject::tr("No \"isSetAuthor\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetSource = qvariant_cast<int>(rec.value("isSetSource"));
-    if (isSetSource != 0) {
-        QString source = qvariant_cast<QString>(rec.value("source"));
-        enNote.attributes.source = source.toStdString();
-        enNote.attributes.__isset.source = true;
+    if (rec.contains("isSetSource"))
+    {
+        int isSetSource = qvariant_cast<int>(rec.value("isSetSource"));
+        if (isSetSource != 0) {
+            QString source = qvariant_cast<QString>(rec.value("source"));
+            enNote.attributes.source = source.toStdString();
+            enNote.attributes.__isset.source = true;
+        }
+        else {
+            enNote.attributes.__isset.source = false;
+        }
     }
     else {
-        enNote.attributes.__isset.source = false;
+        errorDescription = QObject::tr("No \"isSetSource\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetSourceUrl = qvariant_cast<int>(rec.value("isSetSourceUrl"));
-    if (isSetSourceUrl != 0) {
-        QString sourceUrl = qvariant_cast<QString>(rec.value("sourceUrl"));
-        enNote.attributes.sourceURL = sourceUrl.toStdString();
-        enNote.attributes.__isset.sourceURL = true;
+    if (rec.contains("isSetSourceUrl"))
+    {
+        int isSetSourceUrl = qvariant_cast<int>(rec.value("isSetSourceUrl"));
+        if (isSetSourceUrl != 0) {
+            QString sourceUrl = qvariant_cast<QString>(rec.value("sourceUrl"));
+            enNote.attributes.sourceURL = sourceUrl.toStdString();
+            enNote.attributes.__isset.sourceURL = true;
+        }
+        else {
+            enNote.attributes.__isset.sourceURL = false;
+        }
     }
     else {
-        enNote.attributes.__isset.sourceURL = false;
+        errorDescription = QObject::tr("No \"isSetSourceUrl\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetSourceApplication = qvariant_cast<int>(rec.value("isSetSourceApplication"));
-    if (isSetSourceApplication != 0) {
-        QString sourceApplication = qvariant_cast<QString>(rec.value("sourceApplication"));
-        enNote.attributes.sourceApplication = sourceApplication.toStdString();
-        enNote.attributes.__isset.sourceApplication = true;
+    if (rec.contains("isSetSourceApplication"))
+    {
+        int isSetSourceApplication = qvariant_cast<int>(rec.value("isSetSourceApplication"));
+        if (isSetSourceApplication != 0) {
+            QString sourceApplication = qvariant_cast<QString>(rec.value("sourceApplication"));
+            enNote.attributes.sourceApplication = sourceApplication.toStdString();
+            enNote.attributes.__isset.sourceApplication = true;
+        }
+        else {
+            enNote.attributes.__isset.sourceApplication = false;
+        }
     }
     else {
-        enNote.attributes.__isset.sourceApplication = false;
+        errorDescription = QObject::tr("No \"isSetSourceApplication\" in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetShareDate = qvariant_cast<int>(rec.value("isSetShareDate"));
-    if (isSetShareDate != 0) {
-        Timestamp shareDate = qvariant_cast<Timestamp>(rec.value("shareDate"));
-        enNote.attributes.shareDate = shareDate;
-        enNote.attributes.__isset.shareDate = true;
+    if (rec.contains("isSetShareDate"))
+    {
+        int isSetShareDate = qvariant_cast<int>(rec.value("isSetShareDate"));
+        if (isSetShareDate != 0) {
+            Timestamp shareDate = qvariant_cast<Timestamp>(rec.value("shareDate"));
+            enNote.attributes.shareDate = shareDate;
+            enNote.attributes.__isset.shareDate = true;
+        }
+        else {
+            enNote.attributes.__isset.shareDate = false;
+        }
     }
     else {
-        enNote.attributes.__isset.shareDate = false;
+        errorDescription = QObject::tr("No \"isSetShareDate\" field in the result of SQL "
+                                       "query from local storage database");
+        return false;
     }
 
-    int isSetReminderOrder = qvariant_cast<int>(rec.value("isSetReminderOrder"));
-    if (isSetReminderOrder != 0) {
-        int64_t reminderOrder = qvariant_cast<int64_t>(rec.value("reminderOrder"));
-        enNote.attributes.reminderOrder = reminderOrder;
-        enNote.attributes.__isset.reminderOrder = true;
+    if (rec.contains("isSetReminderOrder"))
+    {
+        int isSetReminderOrder = qvariant_cast<int>(rec.value("isSetReminderOrder"));
+        if (isSetReminderOrder != 0) {
+            int64_t reminderOrder = qvariant_cast<int64_t>(rec.value("reminderOrder"));
+            enNote.attributes.reminderOrder = reminderOrder;
+            enNote.attributes.__isset.reminderOrder = true;
+        }
+        else {
+            enNote.attributes.__isset.reminderOrder = false;
+        }
     }
     else {
-        enNote.attributes.__isset.reminderOrder = false;
+        errorDescription = QObject::tr("No \"isSetReminderOrder\" in field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetReminderDoneTime = qvariant_cast<int>(rec.value("isSetReminderDoneTime"));
-    if (isSetReminderDoneTime != 0) {
-        Timestamp reminderDoneTime = qvariant_cast<Timestamp>(rec.value("reminderDoneTime"));
-        enNote.attributes.reminderDoneTime = reminderDoneTime;
-        enNote.attributes.__isset.reminderDoneTime = true;
+    if (rec.contains("isSetReminderDoneTime"))
+    {
+        int isSetReminderDoneTime = qvariant_cast<int>(rec.value("isSetReminderDoneTime"));
+        if (isSetReminderDoneTime != 0) {
+            Timestamp reminderDoneTime = qvariant_cast<Timestamp>(rec.value("reminderDoneTime"));
+            enNote.attributes.reminderDoneTime = reminderDoneTime;
+            enNote.attributes.__isset.reminderDoneTime = true;
+        }
+        else {
+            enNote.attributes.__isset.reminderDoneTime = false;
+        }
     }
     else {
-        enNote.attributes.__isset.reminderDoneTime = false;
+        errorDescription = QObject::tr("No \"isSetReminderDoneTime\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetReminderTime = qvariant_cast<int>(rec.value("isSetReminderTime"));
-    if (isSetReminderTime != 0) {
-        Timestamp reminderTime = qvariant_cast<Timestamp>(rec.value("reminderTime"));
-        enNote.attributes.reminderTime = reminderTime;
-        enNote.attributes.__isset.reminderTime = true;
+    if (rec.contains("isSetReminderTime"))
+    {
+        int isSetReminderTime = qvariant_cast<int>(rec.value("isSetReminderTime"));
+        if (isSetReminderTime != 0) {
+            Timestamp reminderTime = qvariant_cast<Timestamp>(rec.value("reminderTime"));
+            enNote.attributes.reminderTime = reminderTime;
+            enNote.attributes.__isset.reminderTime = true;
+        }
+        else {
+            enNote.attributes.__isset.reminderTime = false;
+        }
     }
     else {
-        enNote.attributes.__isset.reminderTime = false;
+        errorDescription = QObject::tr("No \"isSetReminderTime\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetPlaceName = qvariant_cast<int>(rec.value("isSetPlaceName"));
-    if (isSetPlaceName != 0) {
-        QString placeName = qvariant_cast<QString>(rec.value("placeName"));
-        enNote.attributes.placeName = placeName.toStdString();
-        enNote.attributes.__isset.placeName = true;
+    if (rec.contains("isSetPlaceName"))
+    {
+        int isSetPlaceName = qvariant_cast<int>(rec.value("isSetPlaceName"));
+        if (isSetPlaceName != 0) {
+            QString placeName = qvariant_cast<QString>(rec.value("placeName"));
+            enNote.attributes.placeName = placeName.toStdString();
+            enNote.attributes.__isset.placeName = true;
+        }
+        else {
+            enNote.attributes.__isset.placeName = false;
+        }
     }
     else {
-        enNote.attributes.__isset.placeName = false;
+        errorDescription = QObject::tr("No \"isSetPlaceName\" in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetContentClass = qvariant_cast<int>(rec.value("isSetContentClass"));
-    if (isSetContentClass != 0) {
-        QString contentClass = qvariant_cast<QString>(rec.value("contentClass"));
-        enNote.attributes.contentClass = contentClass.toStdString();
-        enNote.attributes.__isset.contentClass = true;
+    if (rec.contains("isSetContentClass"))
+    {
+        int isSetContentClass = qvariant_cast<int>(rec.value("isSetContentClass"));
+        if (isSetContentClass != 0) {
+            QString contentClass = qvariant_cast<QString>(rec.value("contentClass"));
+            enNote.attributes.contentClass = contentClass.toStdString();
+            enNote.attributes.__isset.contentClass = true;
+        }
+        else {
+            enNote.attributes.__isset.contentClass = false;
+        }
     }
     else {
-        enNote.attributes.__isset.contentClass = false;
+        errorDescription = QObject::tr("No \"isSetContentClass\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetLastEditedBy = qvariant_cast<int>(rec.value("isSetLastEditedBy"));
-    if (isSetLastEditedBy != 0) {
-        QString lastEditedBy = qvariant_cast<QString>(rec.value("lastEditedBy"));
-        enNote.attributes.lastEditedBy = lastEditedBy.toStdString();
-        enNote.attributes.__isset.lastEditedBy = true;
+    if (rec.contains("isSetLastEditedBy"))
+    {
+        int isSetLastEditedBy = qvariant_cast<int>(rec.value("isSetLastEditedBy"));
+        if (isSetLastEditedBy != 0) {
+            QString lastEditedBy = qvariant_cast<QString>(rec.value("lastEditedBy"));
+            enNote.attributes.lastEditedBy = lastEditedBy.toStdString();
+            enNote.attributes.__isset.lastEditedBy = true;
+        }
+        else {
+            enNote.attributes.__isset.lastEditedBy = false;
+        }
     }
     else {
-        enNote.attributes.__isset.lastEditedBy = false;
+        errorDescription = QObject::tr("No \"isSetLastEditedBy\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetCreatorId = qvariant_cast<int>(rec.value("isSetCreatorId"));
-    if (isSetCreatorId != 0) {
-        UserID creatorId = qvariant_cast<UserID>(rec.value("creatorId"));
-        enNote.attributes.creatorId = creatorId;
-        enNote.attributes.__isset.creatorId = true;
+    if (rec.contains("isSetCreatorId"))
+    {
+        int isSetCreatorId = qvariant_cast<int>(rec.value("isSetCreatorId"));
+        if (isSetCreatorId != 0) {
+            UserID creatorId = qvariant_cast<UserID>(rec.value("creatorId"));
+            enNote.attributes.creatorId = creatorId;
+            enNote.attributes.__isset.creatorId = true;
+        }
+        else {
+            enNote.attributes.__isset.creatorId = false;
+        }
     }
     else {
-        enNote.attributes.__isset.creatorId = false;
+        errorDescription = QObject::tr("No \"isSetCreatorId\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
-    int isSetLastEditorId = qvariant_cast<int>(rec.value("isSetLastEditorId"));
-    if (isSetLastEditorId != 0) {
-        UserID lastEditorId = qvariant_cast<UserID>(rec.value("lastEditorId"));
-        enNote.attributes.lastEditorId = lastEditorId;
-        enNote.attributes.__isset.lastEditorId = true;
+    if (rec.contains("isSetLastEditorId"))
+    {
+        int isSetLastEditorId = qvariant_cast<int>(rec.value("isSetLastEditorId"));
+        if (isSetLastEditorId != 0) {
+            UserID lastEditorId = qvariant_cast<UserID>(rec.value("lastEditorId"));
+            enNote.attributes.lastEditorId = lastEditorId;
+            enNote.attributes.__isset.lastEditorId = true;
+        }
+        else {
+            enNote.attributes.__isset.lastEditorId = false;
+        }
     }
     else {
-        enNote.attributes.__isset.lastEditorId = false;
+        errorDescription = QObject::tr("No \"isSetLastEditorId\" field in the result of "
+                                       "SQL query from local storage database");
+        return false;
     }
 
     query.clear();
