@@ -133,6 +133,16 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't insert new notebook into local storage database: ");
 
+    // bool hasOptionalFields = false;  // TODO: uncomment
+    query.prepare("UPDATE Notebooks SET (:values) WHERE guid = :notebookGuid");
+    query.bindValue("notebookGuid", QVariant(QString::fromStdString(enNotebook.guid)));
+
+    // TODO: examine enNotebook: if it contains any optional fields, these should be added to query
+    // in the form columnName=value. If at least one optional field is present, the resulting
+    // query should be executed but it shouldn't be if no optional fields are present
+    //
+    // Think this should be moved to a separate method since it's reusable from UpdateNotebook too
+
     return true;
 }
 
@@ -1479,32 +1489,73 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     QSqlQuery query(m_sqlDatabase);
     bool res;
 
+    // TODO: create table "Users" (see http://dev.evernote.com/doc/reference/Types.html#Struct_User)
+
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
-                     "  guid                  TEXT PRIMARY KEY   NOT NULL UNIQUE, "
-                     "  updateSequenceNumber  INTEGER            NOT NULL, "
-                     "  name                  TEXT               NOT NULL, "
-                     "  creationTimestamp     INTEGER            NOT NULL, "
-                     "  modificationTimestamp INTEGER            NOT NULL, "
-                     "  isDirty               INTEGER            NOT NULL, "
-                     "  isLocal               INTEGER            NOT NULL, "
-                     "  isDeleted             INTEGER            NOT NULL, "
-                     "  isDefault             INTEGER            DEFAULT 0, "
-                     "  isLastUsed            INTEGER            DEFAULT 0"
+                     "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
+                     "  updateSequenceNumber            INTEGER           NOT NULL, "
+                     "  name                            TEXT              NOT NULL, "
+                     "  creationTimestamp               INTEGER           NOT NULL, "
+                     "  modificationTimestamp           INTEGER           NOT NULL, "
+                     "  isDirty                         INTEGER           NOT NULL, "
+                     "  isLocal                         INTEGER           NOT NULL, "
+                     "  isDeleted                       INTEGER           NOT NULL, "
+                     "  isDefault                       INTEGER           DEFAULT 0, "
+                     "  isLastUsed                      INTEGER           DEFAULT 0, "
+                     "  publishingUri                   TEXT              DEFAULT NULL, "
+                     "  publishingNoteSortOrder         INTEGER           DEFAULT 0, "
+                     "  publishingAscendingSort         INTEGER           DEFAULT 0, "
+                     "  publicDescription               TEXT              DEFAULT NULL, "
+                     "  isPublished                     INTEGER           DEFAULT 0, "
+                     "  stack                           TEXT              DEFAULT NULL, "
+                     "  businessNotebookDescription     TEXT              DEFAULT NULL, "
+                     "  businessNotebookPrivilegeLevel  INTEGER           DEFAULT 0, "
+                     "  businessNotebookIsRecommended   INTEGER           DEFAULT 0, "
+                     "  userId REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create Notebooks table: ");
 
-    res = query.exec("CREATE TRIGGER ReplaceNotebook BEFORE INSERT ON Notebooks"
-                     "  BEGIN"
-                     "  UPDATE Notebooks"
-                     "  SET    updateSequenceNumber = NEW.updateSequenceNumber, "
-                     "         name = NEW.name, isDirty = NEW.isDirty, "
-                     "         isLocal = NEW.isLocal, isDefault = NEW.isDefault, "
-                     "         isDeleted = NEW.isDeleted, isLastUsed = NEW.isLastUsed, "
-                     "         creationTimestamp = NEW.creationTimestamp, "
-                     "         modificationTimestamp = NEW.modificationTimestamp"
-                     "  WHERE  guid = NEW.guid;"
-                     "  END");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create ReplaceNotebooks trigger: ");
+    res = query.exec("CREATE TABLE IF NOT EXISTS NotebookRestrictions("
+                     "  guid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  noReadNotes                 INTEGER     DEFAULT 0, "
+                     "  noCreateNotes               INTEGER     DEFAULT 0, "
+                     "  noUpdateNotes               INTEGER     DEFAULT 0, "
+                     "  noExpungeNotes              INTEGER     DEFAULT 0, "
+                     "  noShareNotes                INTEGER     DEFAULT 0, "
+                     "  noEmailNotes                INTEGER     DEFAULT 0, "
+                     "  noSendMessageToRecipients   INTEGER     DEFAULT 0, "
+                     "  noUpdateNotebook            INTEGER     DEFAULT 0, "
+                     "  noExpungeNotebook           INTEGER     DEFAULT 0, "
+                     "  noSetDefaultNotebook        INTEGER     DEFAULT 0, "
+                     "  noSetNotebookStack          INTEGER     DEFAULT 0, "
+                     "  noPublishToPublic           INTEGER     DEFAULT 0, "
+                     "  noPublishToBusinessLibrary  INTEGER     DEFAULT 0, "
+                     "  noCreateTags                INTEGER     DEFAULT 0, "
+                     "  noUpdateTags                INTEGER     DEFAULT 0, "
+                     "  noExpungeTags               INTEGER     DEFAULT 0, "
+                     "  noSetParentTag              INTEGER     DEFAULT 0, "
+                     "  noCreateSharedNotebooks     INTEGER     DEFAULT 0, "
+                     "  updateWhichSharedNotebookRestrictions    INTEGER     DEFAULT 0, "
+                     "  expungeWhichSharedNotebookRestrictions   INTEGER     DEFAULT 0"
+                     ")");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create NotebookRestrictions table: ");
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS SharedNotebooks("
+                     "  shareId                         INTEGER    NOT NULL, "
+                     "  userId                          INTEGER    NOT NULL, "
+                     "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE"
+                     "  email                           TEXT       NOT NULL, "
+                     "  creationTimestamp               INTEGER    NOT NULL, "
+                     "  modificationTimestamp           INTEGER    NOT NULL, "
+                     "  shareKey                        TEXT       NOT NULL, "
+                     "  username                        TEXT       NOT NULL, "
+                     "  sharedNotebookPrivilegeLevel    INTEGER    NOT NULL, "
+                     "  allowPreview                    INTEGER    DEFAULT 0, "
+                     "  recipientReminderNotifyEmail    INTEGER    DEFAULT 0, "
+                     "  recipientReminderNotifyInApp    INTEGER    DEFAULT 0, "
+                     "  UNIQUE(shareId, notebookGuid) ON CONFLICT REPLACE"
+                     ")");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create SharedNotebooks table: ");
 
     res = query.exec("CREATE VIRTUAL TABLE NoteText USING fts3("
                      "  guid              TEXT PRIMARY KEY     NOT NULL UNIQUE, "
