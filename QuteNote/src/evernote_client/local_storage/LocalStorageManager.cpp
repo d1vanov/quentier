@@ -121,7 +121,8 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
     // TODO: need to support all other information available about objects of notebook class
     query.prepare("INSERT INTO Notebooks (guid, updateSequenceNumber, name, "
                   "creationTimestamp, modificationTimestamp, isDirty, isLocal, "
-                  "isDefault, isLastUsed) VALUES(?, ?, ?, ?, ?, ?, ?, 0, 0");
+                  "isDefault, isLastUsed, isPublished, stack) VALUES(?, ?, ?, ?, "
+                  "?, ?, ?, 0, 0, ?, ?");
     query.addBindValue(QString::fromStdString(enNotebook.guid));
     query.addBindValue(enNotebook.updateSequenceNum);
     query.addBindValue(QString::fromStdString(enNotebook.name));
@@ -129,21 +130,13 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
     query.addBindValue(QVariant(static_cast<int>(enNotebook.serviceUpdated)));
     query.addBindValue(notebook.isDirty);
     query.addBindValue(notebook.isLocal);
+    query.addBindValue(QVariant(enNotebook.published ? 1 : 0));
+    query.addBindValue(QString::fromStdString(enNotebook.stack));
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't insert new notebook into local storage database: ");
 
-    // bool hasOptionalFields = false;  // TODO: uncomment
-    query.prepare("UPDATE Notebooks SET (:values) WHERE guid = :notebookGuid");
-    query.bindValue("notebookGuid", QVariant(QString::fromStdString(enNotebook.guid)));
-
-    // TODO: examine enNotebook: if it contains any optional fields, these should be added to query
-    // in the form columnName=value. If at least one optional field is present, the resulting
-    // query should be executed but it shouldn't be if no optional fields are present
-    //
-    // Think this should be moved to a separate method since it's reusable from UpdateNotebook too
-
-    return true;
+    return SetNotebookAdditionalAttributes(enNotebook, errorDescription);
 }
 
 bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & errorDescription)
@@ -1511,7 +1504,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  businessNotebookDescription     TEXT              DEFAULT NULL, "
                      "  businessNotebookPrivilegeLevel  INTEGER           DEFAULT 0, "
                      "  businessNotebookIsRecommended   INTEGER           DEFAULT 0, "
-                     "  userId REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE"
+                     "  contactId                       INTEGER           DEFAULT 0"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create Notebooks table: ");
 
@@ -1953,6 +1946,194 @@ bool LocalStorageManager::SetNoteAttributes(const evernote::edam::Note & note,
     }
 
     return true;
+}
+
+bool LocalStorageManager::SetNotebookAdditionalAttributes(const evernote::edam::Notebook & notebook,
+                                                          QString & errorDescription)
+{
+    QSqlQuery query(m_sqlDatabase);
+
+    bool hasAdditionalAttributes = false;
+    query.prepare("UPDATE Notebooks SET (:values) WHERE guid = :notebookGuid");
+    query.bindValue("notebookGuid", QVariant(QString::fromStdString(notebook.guid)));
+
+    QString values;
+
+    if (notebook.published && notebook.__isset.published)
+    {
+        hasAdditionalAttributes = true;
+
+        const Publishing & publishing = notebook.publishing;
+
+        if (publishing.__isset.uri) {
+            values.append("publishingUri=");
+            values.append(QString::fromStdString(publishing.uri));
+            values.append(", ");
+        }
+
+        if (publishing.__isset.order) {
+            values.append("publishingNoteSortOrder=");
+            values.append(QString::number(publishing.order));
+            values.append(", ");
+        }
+
+        if (publishing.__isset.ascending) {
+            values.append("publishingAscendingSort=");
+            values.append(QString::number((publishing.ascending ? 1 : 0)));
+            values.append(", ");
+        }
+
+        if (publishing.__isset.publicDescription) {
+            values.append("publicDescription=");
+            values.append(QString::fromStdString(publishing.publicDescription));
+            values.append(", ");
+        }
+    }
+
+    if (notebook.__isset.businessNotebook)
+    {
+        hasAdditionalAttributes = true;
+
+        const BusinessNotebook & businessNotebook = notebook.businessNotebook;
+
+        if (businessNotebook.__isset.notebookDescription) {
+            values.append("businessNotebookDescription=");
+            values.append(QString::fromStdString(businessNotebook.notebookDescription));
+            values.append(", ");
+        }
+
+        if (businessNotebook.__isset.privilege) {
+            values.append("businessNotebookPrivilegeLevel=");
+            values.append(QString::number(businessNotebook.privilege));
+            values.append(", ");
+        }
+
+        if (businessNotebook.__isset.recommended) {
+            values.append("businessNotebookIsRecommended=");
+            values.append(QString::number((businessNotebook.recommended ? 1 : 0)));
+            values.append(", ");
+        }
+    }
+
+    if (notebook.__isset.contact)
+    {
+        hasAdditionalAttributes = true;
+
+        values.append("contactId=");
+        values.append(QString::number(notebook.contact.id));
+
+        // TODO: check whether such id is present in Users table, if not, add it
+    }
+
+    if (hasAdditionalAttributes) {
+        query.bindValue("values", values);
+        bool res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("Can't set additional notebook attributes to "
+                                     "local storage database: ");
+    }
+
+    bool res = SetNotebookRestrictions(notebook, errorDescription);
+    if (!res) {
+        return res;
+    }
+
+    // TODO: set shared notebooks
+
+    return true;
+}
+
+bool LocalStorageManager::SetNotebookRestrictions(const evernote::edam::Notebook & notebook,
+                                                  QString & errorDescription)
+{
+    if (!notebook.__isset.restrictions) {
+        // Nothing to do
+        return true;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("INSERT OR REPLACE INTO NotebookRestrictions (:notebookGuid, :columns) "
+                  "VALUES(:vals)");
+    query.bindValue("notebookGuid", QString::fromStdString(notebook.guid));
+
+    bool hasAnyRestriction = false;
+
+    QString columns, values;
+
+    const evernote::edam::NotebookRestrictions & notebookRestrictions = notebook.restrictions;
+
+#define CHECK_AND_SET_NOTEBOOK_RESTRICTION(restriction) \
+    if (notebookRestrictions.__isset.restriction) \
+    { \
+        hasAnyRestriction = true; \
+        \
+        if (!columns.isEmpty()) { \
+            columns.append(", "); \
+        } \
+        columns.append(#restriction); \
+        if (!values.isEmpty()) { \
+            values.append(", "); \
+        } \
+        values.append(QString::number(notebookRestrictions.restriction ? 1 : 0)); \
+    }
+
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noReadNotes);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noCreateNotes);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noUpdateNotes);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noExpungeNotes);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noShareNotes);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noEmailNotes);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noSendMessageToRecipients);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noUpdateNotebook);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noExpungeNotebook);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noSetDefaultNotebook);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noSetNotebookStack);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noPublishToPublic);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noPublishToBusinessLibrary);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noCreateTags);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noUpdateTags);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noExpungeTags);
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noCreateSharedNotebooks);
+
+    if (notebookRestrictions.__isset.updateWhichSharedNotebookRestrictions)
+    {
+        hasAnyRestriction = true;
+
+        if (!columns.isEmpty()) {
+            columns.append(", ");
+        }
+        columns.append("updateWhichSharedNotebookRestrictions=");
+
+        if (!values.isEmpty()) {
+            values.append(", ");
+        }
+        values.append(QString::number(notebookRestrictions.updateWhichSharedNotebookRestrictions));
+    }
+
+    if (notebookRestrictions.__isset.expungeWhichSharedNotebookRestrictions)
+    {
+        hasAnyRestriction = true;
+
+        if (!columns.isEmpty()) {
+            columns.append(", ");
+        }
+        columns.append("expungeWhichSharedNotebookRestrictions=");
+
+        if (!values.isEmpty()) {
+            values.append(", ");
+        }
+        values.append(QString::number(notebookRestrictions.expungeWhichSharedNotebookRestrictions));
+    }
+
+    if (hasAnyRestriction) {
+        query.bindValue("columns", columns);
+        query.bindValue("vals", values);
+        bool res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("Can't set notebook restrictions to local storage database: ");
+    }
+
+    return true;
+
+#undef CHECK_AND_SET_NOTEBOOK_RESTRICTION
 }
 
 #undef CHECK_GUID

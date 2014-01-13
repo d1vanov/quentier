@@ -11,6 +11,7 @@ namespace edam {
 typedef std::string Guid;
 QT_FORWARD_DECLARE_CLASS(NoteStoreClient)
 QT_FORWARD_DECLARE_CLASS(Note)
+QT_FORWARD_DECLARE_CLASS(Notebook)
 
 }
 }
@@ -134,6 +135,10 @@ public:
 private:
     bool CreateTables(QString & errorDescription);
     bool SetNoteAttributes(const evernote::edam::Note & note, QString & errorDescription);
+    bool SetNotebookAdditionalAttributes(const evernote::edam::Notebook & notebook,
+                                         QString & errorDescription);
+    bool SetNotebookRestrictions(const evernote::edam::Notebook & notebook,
+                                 QString & errorDescription);
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;
