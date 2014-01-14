@@ -497,77 +497,41 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
 
     // TODO: check whether field exists in the record prior to attempt to use it
 
-    if (rec.contains("isDirty")) {
-        note.isDirty = (qvariant_cast<int>(rec.value("isDirty")) != 0);
-    }
-    else {
-        errorDescription = QObject::tr("No \"isDirty\" field in the result of SQL "
-                                       "query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isLocal")) {
-        note.isLocal = (qvariant_cast<int>(rec.value("isLocal")) != 0);
-    }
-    else {
-        errorDescription = QObject::tr("No \"isLocal\" field in the result of SQL "
-                                       "query from local storage database");
-        return false;
+#define CHECK_AND_SET_NOTE_PROPERTY(property) \
+    if (rec.contains(#property)) { \
+        note.property = (qvariant_cast<int>(rec.value(#property)) != 0); \
+    } \
+    else { \
+        errorDescription = QObject::tr("No " #property " field in the result of SQL " \
+                                       "query from local storage database"); \
+        return false; \
     }
 
-    if (rec.contains("isDeleted")) {
-        note.isDeleted = (qvariant_cast<int>(rec.value("isDeleted")) != 0);
-    }
-    else {
-        errorDescription = QObject::tr("No \"isDeleted\" field in the result of SQL "
-                                       "query from local storage database");
-        return false;
-    }
+    CHECK_AND_SET_NOTE_PROPERTY(isDirty);
+    CHECK_AND_SET_NOTE_PROPERTY(isLocal);
+    CHECK_AND_SET_NOTE_PROPERTY(isDeleted);
+
+#undef CHECK_AND_SET_NOTE_PROPERTY
 
     evernote::edam::Note & enNote = note.en_note;
-
     enNote.guid = noteGuid;
     enNote.__isset.guid = true;
 
-    if (rec.contains("updateSequenceNumber")) {
-        enNote.updateSequenceNum = qvariant_cast<uint32_t>(rec.value("updateSequenceNumber"));
-        enNote.__isset.updateSequenceNum = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"updateSequenceNumber\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("notebook")) {
-        enNote.notebookGuid = qvariant_cast<QString>(rec.value("notebook")).toStdString();
-        enNote.__isset.notebookGuid = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"notebook\" field in the result of SQL "
-                                       "query from local storage database");
-        return false;
+#define CHECK_AND_SET_EN_NOTE_PROPERTY(propertyLocalName, propertyEnName, type, ...) \
+    if (rec.contains(#propertyLocalName)) { \
+        enNote.propertyEnName = (qvariant_cast<type>(rec.value(#propertyLocalName)))__VA_ARGS__; \
+        enNote.__isset.propertyEnName = true; \
+    } \
+    else { \
+        errorDescription = QObject::tr("No " #propertyLocalName " field in the result of " \
+                                       "SQL query from local storage database"); \
+        return false; \
     }
 
-    if (rec.contains("title")) {
-        enNote.title = qvariant_cast<QString>(rec.value("title")).toStdString();
-        enNote.__isset.title = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"title\" field in the result of SQL "
-                                       "query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("content")) {
-        enNote.content = qvariant_cast<QString>(rec.value("content")).toStdString();
-        enNote.__isset.content = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"content\" field in the result of SQL "
-                                       "query from local storage database");
-        return false;
-    }
+    CHECK_AND_SET_EN_NOTE_PROPERTY(updateSequenceNumber, updateSequenceNum, uint32_t);
+    CHECK_AND_SET_EN_NOTE_PROPERTY(notebook, notebookGuid, QString, .toStdString());
+    CHECK_AND_SET_EN_NOTE_PROPERTY(title, title, QString, .toStdString());
+    CHECK_AND_SET_EN_NOTE_PROPERTY(content, content, QString, .toStdString());
 
 #if QT_VERSION >= 0x050101
     QByteArray contentBinaryHash = QCryptographicHash::hash(QString::fromStdString(enNote.content).toUtf8(),
@@ -583,49 +547,16 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
     enNote.contentLength = enNote.content.length();
     enNote.__isset.contentLength = true;
 
-    if (rec.contains("creationTimestamp")) {
-        enNote.created = qvariant_cast<Timestamp>(rec.value("creationTimestamp"));
-        enNote.__isset.created = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"creationTimestamp\" field in the result of SQL "
-                                       "query from local storage database");
-        return false;
+    CHECK_AND_SET_EN_NOTE_PROPERTY(creationTimestamp, created, Timestamp);
+    CHECK_AND_SET_EN_NOTE_PROPERTY(modificationTimestamp, updated, Timestamp);
+
+    if (note.isDeleted) {
+        CHECK_AND_SET_EN_NOTE_PROPERTY(deletionTimestamp, deleted, Timestamp);
     }
 
-    if (rec.contains("modificationTimestamp")) {
-        enNote.updated = qvariant_cast<Timestamp>(rec.value("modificationTimestamp"));
-        enNote.__isset.updated = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"modificationTimestamp\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
+    CHECK_AND_SET_EN_NOTE_PROPERTY(isActive, active, int);
 
-    if (note.isDeleted)
-    {
-        if (rec.contains("deletionTimestamp")) {
-            Timestamp deletionTimestamp = qvariant_cast<Timestamp>(rec.value("deletionTimestamp"));
-            enNote.deleted = deletionTimestamp;
-            enNote.__isset.deleted = true;
-        }
-        else {
-            errorDescription = QObject::tr("No \"deletionTimestamp\" field in the result of "
-                                           "SQL query from local storage database");
-            return false;
-        }
-    }
-
-    if (rec.contains("isActive")) {
-        enNote.active = (qvariant_cast<int>(rec.value("isActive")) != 0);
-        enNote.__isset.active = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"isActive\" field in the result of SQL "
-                                       "query from local storage database");
-        return false;
-    }
+#undef CHECK_AND_SET_EN_NOTE_PROPERTY
 
     // TODO: retrieve tag and resource guids from tags and resources tables
 
@@ -648,7 +579,7 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
     query.clear();
     query.prepare("SELECT subjectDate, isSetSubjectDate, latitude, isSetLatitude, "
                   "longitude, isSetLongitude, altitude, isSetAltitude, author, "
-                  "isSetAuthor, source, isSetSource, sourceUrl, isSetSourceUrl, "
+                  "isSetAuthor, source, isSetSource, sourceURL, isSetSourceUrl, "
                   "sourceApplication, isSetSourceApplication, shareDate, isSetShareDate, "
                   "reminderOrder, isSetReminderOrder, reminderDoneTime, isSetReminderDoneTime, "
                   "reminderTime, isSetReminderTime, placeName, isSetPlaceName, "
@@ -661,311 +592,43 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
 
     rec = query.record();
 
-    if (rec.contains("isSetSubjectDate"))
-    {
-        int isSetSubjectDate = qvariant_cast<int>(rec.value("isSetSubjectDate"));
-        if (isSetSubjectDate != 0) {
-            Timestamp subjectDate = qvariant_cast<Timestamp>(rec.value("subjectDate"));
-            enNote.attributes.subjectDate = subjectDate;
-            enNote.attributes.__isset.subjectDate = true;
-        }
-        else {
-            enNote.attributes.__isset.subjectDate = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetSubjectDate\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetLatitude"))
-    {
-        int isSetLatitude = qvariant_cast<int>(rec.value("isSetLatitude"));
-        if (isSetLatitude != 0) {
-            double latitude = qvariant_cast<double>(rec.value("latitude"));
-            enNote.attributes.latitude = latitude;
-            enNote.attributes.__isset.latitude = true;
-        }
-        else {
-            enNote.attributes.__isset.latitude = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetLatitude\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
+#define CHECK_AND_SET_NOTE_ATTRIBUTE(isSetAttribute, attributeName, type, ...) \
+    if (rec.contains(#isSetAttribute)) \
+    { \
+        int isSetAttribute = qvariant_cast<int>(rec.value(#isSetAttribute)); \
+        if (isSetAttribute != 0) { \
+            enNote.attributes.attributeName = (qvariant_cast<type>(rec.value(#attributeName)))__VA_ARGS__; \
+            enNote.attributes.__isset.attributeName = true; \
+        } \
+        else { \
+            enNote.attributes.__isset.attributeName = false; \
+        } \
+    } \
+    else { \
+        errorDescription = QObject::tr("No " #isSetAttribute " field in the result of " \
+                                       "SQL query from local storage database"); \
+        return false; \
     }
 
-    if (rec.contains("isSetAltitude"))
-    {
-        int isSetAltitude = qvariant_cast<int>(rec.value("isSetAltitude"));
-        if (isSetAltitude != 0) {
-            double altitude = qvariant_cast<double>(rec.value("altitude"));
-            enNote.attributes.altitude = altitude;
-            enNote.attributes.__isset.altitude = true;
-        }
-        else {
-            enNote.attributes.__isset.altitude = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetAltitude\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetSubjectDate, subjectDate, Timestamp);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetLatitude, latitude, double);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetAltitude, altitude, double);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetLongitude, longitude, double);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetAuthor, author, QString, .toStdString());
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetSource, source, QString, .toStdString());
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetSourceUrl, sourceURL, QString, .toStdString());
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetSourceApplication, sourceApplication, QString, .toStdString());
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetShareDate, shareDate, Timestamp);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetReminderOrder, reminderOrder, int64_t);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetReminderDoneTime, reminderDoneTime, Timestamp);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetReminderTime, reminderTime, Timestamp);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetPlaceName, placeName, QString, .toStdString());
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetContentClass, contentClass, QString, .toStdString());
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetLastEditedBy, lastEditedBy, QString, .toStdString());
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetCreatorId, creatorId, UserID);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetLastEditorId, lastEditorId, UserID);
 
-    if (rec.contains("isSetLongitude"))
-    {
-        int isSetLongitude = qvariant_cast<int>(rec.value("isSetLongitude"));
-        if (isSetLongitude != 0) {
-            double longitude = qvariant_cast<double>(rec.value("longitude"));
-            enNote.attributes.longitude = longitude;
-            enNote.attributes.__isset.longitude = true;
-        }
-        else {
-            enNote.attributes.__isset.longitude = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetLongitude\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetAuthor"))
-    {
-        int isSetAuthor = qvariant_cast<int>(rec.value("isSetAuthor"));
-        if (isSetAuthor != 0) {
-            QString author = qvariant_cast<QString>(rec.value("author"));
-            enNote.attributes.author = author.toStdString();
-            enNote.attributes.__isset.author = true;
-        }
-        else {
-            enNote.attributes.__isset.author = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetAuthor\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetSource"))
-    {
-        int isSetSource = qvariant_cast<int>(rec.value("isSetSource"));
-        if (isSetSource != 0) {
-            QString source = qvariant_cast<QString>(rec.value("source"));
-            enNote.attributes.source = source.toStdString();
-            enNote.attributes.__isset.source = true;
-        }
-        else {
-            enNote.attributes.__isset.source = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetSource\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetSourceUrl"))
-    {
-        int isSetSourceUrl = qvariant_cast<int>(rec.value("isSetSourceUrl"));
-        if (isSetSourceUrl != 0) {
-            QString sourceUrl = qvariant_cast<QString>(rec.value("sourceUrl"));
-            enNote.attributes.sourceURL = sourceUrl.toStdString();
-            enNote.attributes.__isset.sourceURL = true;
-        }
-        else {
-            enNote.attributes.__isset.sourceURL = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetSourceUrl\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetSourceApplication"))
-    {
-        int isSetSourceApplication = qvariant_cast<int>(rec.value("isSetSourceApplication"));
-        if (isSetSourceApplication != 0) {
-            QString sourceApplication = qvariant_cast<QString>(rec.value("sourceApplication"));
-            enNote.attributes.sourceApplication = sourceApplication.toStdString();
-            enNote.attributes.__isset.sourceApplication = true;
-        }
-        else {
-            enNote.attributes.__isset.sourceApplication = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetSourceApplication\" in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetShareDate"))
-    {
-        int isSetShareDate = qvariant_cast<int>(rec.value("isSetShareDate"));
-        if (isSetShareDate != 0) {
-            Timestamp shareDate = qvariant_cast<Timestamp>(rec.value("shareDate"));
-            enNote.attributes.shareDate = shareDate;
-            enNote.attributes.__isset.shareDate = true;
-        }
-        else {
-            enNote.attributes.__isset.shareDate = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetShareDate\" field in the result of SQL "
-                                       "query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetReminderOrder"))
-    {
-        int isSetReminderOrder = qvariant_cast<int>(rec.value("isSetReminderOrder"));
-        if (isSetReminderOrder != 0) {
-            int64_t reminderOrder = qvariant_cast<int64_t>(rec.value("reminderOrder"));
-            enNote.attributes.reminderOrder = reminderOrder;
-            enNote.attributes.__isset.reminderOrder = true;
-        }
-        else {
-            enNote.attributes.__isset.reminderOrder = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetReminderOrder\" in field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetReminderDoneTime"))
-    {
-        int isSetReminderDoneTime = qvariant_cast<int>(rec.value("isSetReminderDoneTime"));
-        if (isSetReminderDoneTime != 0) {
-            Timestamp reminderDoneTime = qvariant_cast<Timestamp>(rec.value("reminderDoneTime"));
-            enNote.attributes.reminderDoneTime = reminderDoneTime;
-            enNote.attributes.__isset.reminderDoneTime = true;
-        }
-        else {
-            enNote.attributes.__isset.reminderDoneTime = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetReminderDoneTime\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetReminderTime"))
-    {
-        int isSetReminderTime = qvariant_cast<int>(rec.value("isSetReminderTime"));
-        if (isSetReminderTime != 0) {
-            Timestamp reminderTime = qvariant_cast<Timestamp>(rec.value("reminderTime"));
-            enNote.attributes.reminderTime = reminderTime;
-            enNote.attributes.__isset.reminderTime = true;
-        }
-        else {
-            enNote.attributes.__isset.reminderTime = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetReminderTime\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetPlaceName"))
-    {
-        int isSetPlaceName = qvariant_cast<int>(rec.value("isSetPlaceName"));
-        if (isSetPlaceName != 0) {
-            QString placeName = qvariant_cast<QString>(rec.value("placeName"));
-            enNote.attributes.placeName = placeName.toStdString();
-            enNote.attributes.__isset.placeName = true;
-        }
-        else {
-            enNote.attributes.__isset.placeName = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetPlaceName\" in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetContentClass"))
-    {
-        int isSetContentClass = qvariant_cast<int>(rec.value("isSetContentClass"));
-        if (isSetContentClass != 0) {
-            QString contentClass = qvariant_cast<QString>(rec.value("contentClass"));
-            enNote.attributes.contentClass = contentClass.toStdString();
-            enNote.attributes.__isset.contentClass = true;
-        }
-        else {
-            enNote.attributes.__isset.contentClass = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetContentClass\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetLastEditedBy"))
-    {
-        int isSetLastEditedBy = qvariant_cast<int>(rec.value("isSetLastEditedBy"));
-        if (isSetLastEditedBy != 0) {
-            QString lastEditedBy = qvariant_cast<QString>(rec.value("lastEditedBy"));
-            enNote.attributes.lastEditedBy = lastEditedBy.toStdString();
-            enNote.attributes.__isset.lastEditedBy = true;
-        }
-        else {
-            enNote.attributes.__isset.lastEditedBy = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetLastEditedBy\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetCreatorId"))
-    {
-        int isSetCreatorId = qvariant_cast<int>(rec.value("isSetCreatorId"));
-        if (isSetCreatorId != 0) {
-            UserID creatorId = qvariant_cast<UserID>(rec.value("creatorId"));
-            enNote.attributes.creatorId = creatorId;
-            enNote.attributes.__isset.creatorId = true;
-        }
-        else {
-            enNote.attributes.__isset.creatorId = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetCreatorId\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isSetLastEditorId"))
-    {
-        int isSetLastEditorId = qvariant_cast<int>(rec.value("isSetLastEditorId"));
-        if (isSetLastEditorId != 0) {
-            UserID lastEditorId = qvariant_cast<UserID>(rec.value("lastEditorId"));
-            enNote.attributes.lastEditorId = lastEditorId;
-            enNote.attributes.__isset.lastEditorId = true;
-        }
-        else {
-            enNote.attributes.__isset.lastEditorId = false;
-        }
-    }
-    else {
-        errorDescription = QObject::tr("No \"isSetLastEditorId\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
+#undef CHECK_AND_SET_NOTE_ATTRIBUTE
 
     query.clear();
     query.prepare("SELECT applicationDataKey, isSetApplicationDataValue, applicationDataValue "
@@ -1288,7 +951,7 @@ bool LocalStorageManager::AddResource(const evernote::edam::Resource &resource,
     Guid resourceGuid = resource.guid();
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT INTO Resources (guid, hash, data, mime, width, height, "
-                  "sourceUrl, timestamp, altitude, latitude, longitude, fileName, "
+                  "sourceURL, timestamp, altitude, latitude, longitude, fileName, "
                   "isAttachment, noteGuid) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
                   "?, ?, ?)");
     query.addBindValue(resourceGuid.ToQString());
@@ -1297,7 +960,7 @@ bool LocalStorageManager::AddResource(const evernote::edam::Resource &resource,
     query.addBindValue(resource.mimeType());
     query.addBindValue(QVariant(static_cast<int>(resource.width())));
     query.addBindValue(QVariant(static_cast<int>(resource.height())));
-    query.addBindValue(resource.sourceUrl());
+    query.addBindValue(resource.sourceURL());
     query.addBindValue(QVariant(static_cast<int>(resource.timestamp())));
     query.addBindValue(resource.altitude());
     query.addBindValue(resource.latitude());
@@ -1543,7 +1206,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  isSetAuthor             INTEGER              DEFAULT 0, "
                      "  source                  TEXT                 DEFAULT NULL, "
                      "  isSetSource             INTEGER              DEFAULT 0, "
-                     "  sourceUrl               TEXT                 DEFAULT NULL, "
+                     "  sourceURL               TEXT                 DEFAULT NULL, "
                      "  isSetSourceUrl          INTEGER              DEFAULT 0, "
                      "  sourceApplication       TEXT                 DEFAULT NULL, "
                      "  isSetSourceApplication  INTEGER              DEFAULT 0, "
@@ -1594,7 +1257,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  mime              TEXT                 NOT NULL, "
                      "  width             INTEGER              NOT NULL, "
                      "  height            INTEGER              NOT NULL, "
-                     "  sourceUrl         TEXT, "
+                     "  sourceURL         TEXT, "
                      "  timestamp         INTEGER              NOT NULL, "
                      "  altitude          REAL, "
                      "  latitude          REAL, "
@@ -1716,7 +1379,7 @@ bool LocalStorageManager::SetNoteAttributes(const evernote::edam::Note & note,
 
     query.clear();
     bool isSetSourceUrl = attributes.__isset.sourceURL;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetSourceUrl, sourceUrl) "
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetSourceUrl, sourceURL) "
                   "VALUES(?, ?, ?)");
     query.addBindValue(noteGuid);
     query.addBindValue((isSetSourceUrl ? 1 : 0));
