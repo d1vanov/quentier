@@ -12,6 +12,7 @@ typedef std::string Guid;
 QT_FORWARD_DECLARE_CLASS(NoteStoreClient)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Notebook)
+QT_FORWARD_DECLARE_CLASS(SharedNotebook)
 
 }
 }
@@ -139,6 +140,8 @@ private:
                                          QString & errorDescription);
     bool SetNotebookRestrictions(const evernote::edam::Notebook & notebook,
                                  QString & errorDescription);
+    bool SetSharedNotebookAttributes(const evernote::edam::SharedNotebook & sharedNotebook,
+                                     QString & errorDescription);
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;

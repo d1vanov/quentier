@@ -48,6 +48,19 @@ bool Notebook::CheckParameters(QString & errorDescription) const
         return false;
     }
 
+    for(const auto & sharedNotebook: en_notebook.sharedNotebooks)
+    {
+        if (!sharedNotebook.__isset.id) {
+            errorDescription = QObject::tr("Notebook has shared notebook without share id set");
+            return false;
+        }
+
+        if (!sharedNotebook.__isset.notebookGuid) {
+            errorDescription = QObject::tr("Notebook has shared notebook without real notebook's guid set");
+            return false;
+        }
+    }
+
     return true;
 }
 
