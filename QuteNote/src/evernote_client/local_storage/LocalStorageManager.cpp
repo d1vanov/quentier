@@ -207,87 +207,44 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
 
     QSqlRecord rec = query.record();
 
-    if (rec.contains("isDirty")) {
-        notebook.isDirty = (qvariant_cast<int>(rec.value("isDirty")) != 0);
-    }
-    else {
-        errorDescription = QObject::tr("No \"isDirty\" field in the result of SQL query "
-                                       "from local storage database");
-        return false;
-    }
-
-    if (rec.contains("isLocal")) {
-        notebook.isLocal = (qvariant_cast<int>(rec.value("isLocal")) != 0);
-    }
-    else {
-        errorDescription = QObject::tr("No \"isLocal\" field in the result of SQL query "
-                                       "from local storage database");
-        return false;
+#define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute) \
+    if (rec.contains(#attribute)) { \
+        notebook.attribute = (qvariant_cast<int>(rec.value(#attribute)) != 0); \
+    } \
+    else { \
+        errorDescription = QObject::tr("No " #attribute " field in the result of SQL query " \
+                                       "from local storage database"); \
+        return false; \
     }
 
-    if (rec.contains("isLastUsed")) {
-        notebook.isLastUsed = (qvariant_cast<int>(rec.value("isLastUsed")) != 0);
-    }
-    else {
-        errorDescription = QObject::tr("No \"isLastUsed\" field in the result of SQL query "
-                                       "from local storage database");
-        return false;
-    }
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDirty);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLocal);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLastUsed);
+
+#undef CHECK_AND_SET_NOTEBOOK_ATTRIBUTE
 
     evernote::edam::Notebook & enNotebook = notebook.en_notebook;
-
     enNotebook.guid = notebookGuid;
     enNotebook.__isset.guid = true;
 
-    if (rec.contains("updateSequenceNumber")) {
-        enNotebook.updateSequenceNum = qvariant_cast<uint32_t>(rec.value("updateSequenceNumber"));
-        enNotebook.__isset.updateSequenceNum = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"updateSequenceNumber\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("name")) {
-        enNotebook.name = qvariant_cast<QString>(rec.value("name")).toStdString();
-        enNotebook.__isset.name = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"name\" field in the result of SQL query "
-                                       "from local storage database");
-        return false;
+#define CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(attributeLocalName, attributeEnName, type, ...) \
+    if (rec.contains(#attributeLocalName)) { \
+        enNotebook.attributeEnName = (qvariant_cast<type>(rec.value(#attributeLocalName)))__VA_ARGS__; \
+        enNotebook.__isset.attributeEnName = true; \
+    } \
+    else { \
+        errorDescription = QObject::tr("No " #attributeLocalName " field in the result of " \
+                                       "SQL query from local storage database"); \
+        return false; \
     }
 
-    if (rec.contains("isDefault")) {
-        enNotebook.defaultNotebook = (qvariant_cast<int>(rec.value("isDefault")) != 0);
-        enNotebook.__isset.defaultNotebook = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"isDefault\" field in the result of SQL query "
-                                       "from local storage database");
-        return false;
-    }
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(updateSequenceNumber, updateSequenceNum, uint32_t);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(name, name, QString, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(isDefault, defaultNotebook, int);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(creationTimestamp, serviceCreated, Timestamp);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(modificationTimestamp, serviceUpdated, Timestamp);
 
-    if (rec.contains("creationTimestamp")) {
-        enNotebook.serviceCreated = qvariant_cast<Timestamp>(rec.value("creationTimestamp"));
-        enNotebook.__isset.serviceCreated = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"creationTimestamp\" field in the result of SQL "
-                                       "query from local storage database");
-        return false;
-    }
-
-    if (rec.contains("modificationTimestamp")) {
-        enNotebook.serviceUpdated = qvariant_cast<Timestamp>(rec.value("modificationTimestamp"));
-        enNotebook.__isset.serviceUpdated = true;
-    }
-    else {
-        errorDescription = QObject::tr("No \"modificationTimestamp\" field in the result of "
-                                       "SQL query from local storage database");
-        return false;
-    }
+#undef CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE
 
     return true;
 }
