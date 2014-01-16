@@ -199,8 +199,11 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
     QSqlQuery query(m_sqlDatabase);
     // TODO: need to support all other information available about objects of notebook class
     query.prepare("SELECT updateSequenceNumber, name, creationTimestamp, "
-                  "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed "
-                  "FROM Notebooks WHERE guid=?");
+                  "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed, "
+                  "publishingUri, publishingNoteSortOrder, publishingAscendingOrder, "
+                  "publicDescription, isPublished, stack, businessNotebookDescription, "
+                  "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, "
+                  "contactId FROM Notebooks WHERE guid=?");
     query.addBindValue(QString::fromStdString(notebookGuid));
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't find notebook in local storage database: ");
@@ -240,12 +243,159 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
 
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(updateSequenceNumber, updateSequenceNum, uint32_t);
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(name, name, QString, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(isDefault, defaultNotebook, int);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(isDefault, defaultNotebook, int);   // NOTE: int to bool cast
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(creationTimestamp, serviceCreated, Timestamp);
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(modificationTimestamp, serviceUpdated, Timestamp);
 
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(isPublished, published, int);   // NOTE: int to bool cast
+
+#define CHECK_AND_SET_PUBLISHING_ATTRIBUTE(attributeLocalName, attributeEnName, type, ...) \
+    if (rec.contains(#attributeLocalName)) { \
+        enNotebook.publishing.attributeEnName = (qvariant_cast<type>(rec.value(#attributeLocalName)))__VA_ARGS__; \
+        enNotebook.publishing.__isset.attributeEnName = true; \
+    } \
+    else { \
+        errorDescription = QObject::tr("No " #attributeLocalName " field in the result of " \
+                                       "SQL query from local storage database"); \
+        return false; \
+    }
+
+    if (enNotebook.published) {
+        CHECK_AND_SET_PUBLISHING_ATTRIBUTE(publishingUri, uri, QString, .toStdString());
+        // FIXME: fix failing cast
+        // CHECK_AND_SET_PUBLISHING_ATTRIBUTE(publishingNoteSortOrder, order, NoteSortOrder::type);
+    }
+
+#undef CHECK_AND_SET_PUBLISHING_ATTRIBUTE
+
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(stack, stack, QString, .toStdString());
+    if (enNotebook.stack.empty()) {
+        enNotebook.__isset.stack = false;
+    }
+
+#define CHECK_AND_SET_BUSINESS_NOTEBOOK_ATTRIBUTE(attributeLocalName, attributeEnName, type, ...) \
+    if (rec.contains(#attributeLocalName)) { \
+        enNotebook.businessNotebook.attributeEnName = (qvariant_cast<type>(rec.value(#attributeLocalName)))__VA_ARGS__; \
+        enNotebook.businessNotebook.__isset.attributeEnName = true; \
+    } \
+    else { \
+        errorDescription = QObject::tr("No " #attributeLocalName " field in the result of " \
+                                       "SQL query from local storage database"); \
+        return false; \
+    }
+
+    CHECK_AND_SET_BUSINESS_NOTEBOOK_ATTRIBUTE(businessNotebookDescription, notebookDescription,
+                                              QString, .toStdString());
+    // FIXME: fix failing cast
+    // CHECK_AND_SET_BUSINESS_NOTEBOOK_ATTRIBUTE(businessNotebookPrivilegeLevel, privilege, int);
+    CHECK_AND_SET_BUSINESS_NOTEBOOK_ATTRIBUTE(businessNotebookIsRecommended, recommended, int);  // NOTE: int to bool cast
+
+#undef CHECK_AND_SET_BUSINESS_NOTEBOOK_ATTRIBUTE
+
+    BusinessNotebook & businessNotebook = enNotebook.businessNotebook;
+    if (businessNotebook.notebookDescription.empty() &&
+        (businessNotebook.privilege == 0) &&
+        !businessNotebook.recommended)
+    {
+        businessNotebook.__isset.notebookDescription = false;
+        businessNotebook.__isset.privilege = false;
+        businessNotebook.__isset.recommended = false;
+        enNotebook.__isset.businessNotebook = false;
+    }
+
+    if (rec.contains("contactId")) {
+        enNotebook.contact.id = qvariant_cast<int32_t>(rec.value("contactId"));
+        enNotebook.contact.__isset.id = true;
+        enNotebook.__isset.contact = true;
+    }
+    else {
+        errorDescription = QObject::tr("No contactId field in the result of "
+                                       "SQL query from local storage database");
+        return false;
+    }
+
+    if (enNotebook.contact.id == 0) {
+        enNotebook.__isset.contact = false;
+        enNotebook.contact.__isset.id = false;
+    }
+
 #undef CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE
 
+    // TODO: if enNotebook.contact is set, retrieve full User object from respective table
+
+    // TODO: retrieve botebook restrictions
+
+    query.clear();
+    query.prepare("SELECT shareId, userId, email, creationTimestamp, modificationTimestamp, "
+                  "shareKey, username, sharedNotebookPrivilegeLevel, allowPreview, "
+                  "recipientReminderNotifyEmail, recipientReminderNotifyInApp "
+                  "FROM SharedNotebooks WHERE notebookGuid=?");
+    query.addBindValue(QString::fromStdString(notebookGuid));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't select shared notebooks for given notebook guid from "
+                                 "local storage database: ");
+
+    std::vector<SharedNotebook> sharedNotebooks;
+    sharedNotebooks.reserve(std::max(query.size(), 0));
+
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+
+        SharedNotebook sharedNotebook;
+
+#define CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(attributeLocalName, attributeEnName, type, ...) \
+    if (rec.contains(#attributeLocalName)) { \
+        int index = rec.indexOf(#attributeLocalName); \
+        if (index > 0) { \
+            sharedNotebook.attributeEnName = (qvariant_cast<type>(query.value(index)))__VA_ARGS__; \
+            sharedNotebook.__isset.attributeEnName = true; \
+        } \
+    } \
+    else { \
+        errorDescription = QObject::tr("No " #attributeLocalName " field in the result of " \
+                                       "SQL query from local storage database"); \
+        return false; \
+    }
+
+        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(shareId, id, int64_t);
+        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(userId, userId, int32_t);
+        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(email, email, QString, .toStdString());
+        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(creationTimestamp, serviceCreated, Timestamp);
+        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(modificationTimestamp, serviceUpdated, Timestamp);
+        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(shareKey, shareKey, QString, .toStdString());
+        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(username, username, QString, .toStdString());
+        // FIXME: fix failing cast
+        //CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebookPrivilegeLevel, privilege, SharedNotebookPrivilegeLevel::type);
+        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(allowPreview, allowPreview, int);   // NOTE: int to bool cast
+
+#define CHECK_AND_SET_SHARED_NOTEBOOK_RECIPIENT_SETTING(attributeLocalName, attributeEnName, type, ...) \
+    if (rec.contains(#attributeLocalName)) { \
+        int index = rec.indexOf(#attributeLocalName); \
+        if (index > 0) { \
+            sharedNotebook.recipientSettings.attributeEnName = (qvariant_cast<type>(query.value(index)))__VA_ARGS__; \
+            sharedNotebook.recipientSettings.__isset.attributeEnName = true; \
+        } \
+    } \
+    else { \
+        errorDescription = QObject::tr("No " #attributeLocalName " field in the result of " \
+                                       "SQL query from local storage database"); \
+        return false; \
+    }
+
+        CHECK_AND_SET_SHARED_NOTEBOOK_RECIPIENT_SETTING(recipientReminderNotifyEmail,
+                                                        reminderNotifyEmail, int);  // NOTE: int to bool cast
+        CHECK_AND_SET_SHARED_NOTEBOOK_RECIPIENT_SETTING(recipientReminderNotifyInApp,
+                                                        reminderNotifyInApp, int);  // NOTE: int to bool cast
+#undef CHECK_AND_SET_SHARED_NOTEBOOK_RECIPIENT_SETTING
+
+        sharedNotebooks.push_back(sharedNotebook);
+    }
+
+#undef CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE
+
+    enNotebook.sharedNotebooks = sharedNotebooks;
     return true;
 }
 
