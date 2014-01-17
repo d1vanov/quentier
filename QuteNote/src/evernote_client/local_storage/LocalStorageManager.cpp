@@ -231,43 +231,51 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
     enNotebook.__isset.guid = true;
 
 #define CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(holder, attributeLocalName, attributeEnName, \
-                                            type, true_type, ...) \
+                                            type, true_type, is_required, ...) \
     if (rec.contains(#attributeLocalName)) { \
         holder.attributeEnName = static_cast<true_type>((qvariant_cast<type>(rec.value(#attributeLocalName)))__VA_ARGS__); \
         holder.__isset.attributeEnName = true; \
     } \
-    else { \
+    else if (is_required) { \
         errorDescription = QObject::tr("No " #attributeLocalName " field in the result of " \
                                        "SQL query from local storage database"); \
         return false; \
     }
 
+    bool isRequired = true;
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, updateSequenceNumber, updateSequenceNum,
-                                        int, uint32_t);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, name, name, QString, std::string, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, isDefault, defaultNotebook, int, bool);   // NOTE: int to bool cast
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, creationTimestamp, serviceCreated, int, Timestamp);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, modificationTimestamp, serviceUpdated, int, Timestamp);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, isPublished, published, int, bool);   // NOTE: int to bool cast
+                                        int, uint32_t, isRequired);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, name, name, QString, std::string,
+                                        isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, isDefault, defaultNotebook,
+                                        int, bool, isRequired);   // NOTE: int to bool cast
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, creationTimestamp, serviceCreated,
+                                        int, Timestamp, isRequired);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, modificationTimestamp, serviceUpdated,
+                                        int, Timestamp, isRequired);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, isPublished, published, int,
+                                        bool, isRequired);   // NOTE: int to bool cast
 
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, stack, stack, QString, std::string, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, stack, stack, QString, std::string,
+                                        isRequired, .toStdString());
     if (enNotebook.stack.empty()) {
         enNotebook.__isset.stack = false;
     }
 
     if (enNotebook.published) {
         CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publishingUri, uri,
-                                            QString, std::string, .toStdString());
+                                            QString, std::string, isRequired, .toStdString());
         CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publishingNoteSortOrder,
-                                            order, int, NoteSortOrder::type);
+                                            order, int, NoteSortOrder::type, isRequired);
     }
 
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.businessNotebook, businessNotebookDescription,
-                                        notebookDescription, QString, std::string, .toStdString());
+                                        notebookDescription, QString, std::string,
+                                        isRequired, .toStdString());
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.businessNotebook, businessNotebookPrivilegeLevel,
-                                        privilege, int, SharedNotebookPrivilegeLevel::type);
+                                        privilege, int, SharedNotebookPrivilegeLevel::type, isRequired);
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.businessNotebook, businessNotebookIsRecommended,
-                                        recommended, int, bool);  // NOTE: int to bool cast
+                                        recommended, int, bool, isRequired);  // NOTE: int to bool cast
 
     BusinessNotebook & businessNotebook = enNotebook.businessNotebook;
     if (businessNotebook.notebookDescription.empty() &&
@@ -298,7 +306,68 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
 
     // TODO: if enNotebook.contact is set, retrieve full User object from respective table
 
-    // TODO: retrieve botebook restrictions
+    query.clear();
+    query.prepare("SELECT noReadNotes, noCreateNotes, noUpdateNotes, noExpungeNotes, "
+                  "noShareNotes, noEmailNotes, noSendMessageToRecipients, noUpdateNotebook, "
+                  "noExpungeNotebook, noSetDefaultNotebook, noSetNotebookStack, noPublishToPublic, "
+                  "noPublishToBusinessLibrary, noCreateTags, noUpdateTags, noExpungeTags, "
+                  "noSetParentTag, noCreateSharedNotebooks, updateWhichSharedNotebookRestrictions, "
+                  "expungeWhichSharedNotebookRestrictions FROM NotebookRestrictions "
+                  "WHERE guid=?");
+    query.addBindValue(QString::fromStdString(notebookGuid));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't select notebook restrictions for given notebook guid "
+                                 "from local storage database: ");
+
+    if (query.next())
+    {
+        QSqlRecord rec = query.record();
+
+        enNotebook.__isset.restrictions = true;
+        NotebookRestrictions & restrictions = enNotebook.restrictions;
+
+        isRequired = false;
+#define SET_EN_NOTEBOOK_RESTRICTION(notebook_restriction) \
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(restrictions, notebook_restriction, \
+                                        notebook_restriction, int, bool, isRequired);
+
+        SET_EN_NOTEBOOK_RESTRICTION(noReadNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noCreateNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noUpdateNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noExpungeNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noShareNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noEmailNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noSendMessageToRecipients);
+        SET_EN_NOTEBOOK_RESTRICTION(noUpdateNotebook);
+        SET_EN_NOTEBOOK_RESTRICTION(noExpungeNotebook);
+        SET_EN_NOTEBOOK_RESTRICTION(noSetDefaultNotebook);
+        SET_EN_NOTEBOOK_RESTRICTION(noSetNotebookStack);
+        SET_EN_NOTEBOOK_RESTRICTION(noPublishToPublic);
+        SET_EN_NOTEBOOK_RESTRICTION(noPublishToBusinessLibrary);
+        SET_EN_NOTEBOOK_RESTRICTION(noCreateTags);
+        SET_EN_NOTEBOOK_RESTRICTION(noUpdateTags);
+        SET_EN_NOTEBOOK_RESTRICTION(noExpungeTags);
+        SET_EN_NOTEBOOK_RESTRICTION(noSetParentTag);
+        SET_EN_NOTEBOOK_RESTRICTION(noCreateSharedNotebooks);
+
+#undef SET_EN_NOTEBOOK_RESTRICTION
+
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(restrictions, updateWhichSharedNotebookRestrictions,
+                                            updateWhichSharedNotebookRestrictions,
+                                            int, SharedNotebookInstanceRestrictions::type,
+                                            isRequired);
+
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(restrictions, expungeWhichSharedNotebookRestrictions,
+                                            expungeWhichSharedNotebookRestrictions,
+                                            int, SharedNotebookInstanceRestrictions::type,
+                                            isRequired);
+
+    }
+    else {
+        // No restrictions are set
+        enNotebook.__isset.restrictions = false;
+    }
 
     query.clear();
     query.prepare("SELECT shareId, userId, email, creationTimestamp, modificationTimestamp, "
@@ -319,23 +388,30 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
         QSqlRecord rec = query.record();
 
         SharedNotebook sharedNotebook;
+        isRequired = true;
 
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareId, id, int, int64_t);
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, userId, userId, int, int32_t);
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, email, email, QString, std::string, .toStdString());
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, creationTimestamp, serviceCreated, int, Timestamp);
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, modificationTimestamp, serviceUpdated, int, Timestamp);
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareKey, shareKey, QString, std::string, .toStdString());
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, username, username, QString, std::string, .toStdString());
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, sharedNotebookPrivilegeLevel, privilege,
-                                            int, SharedNotebookPrivilegeLevel::type);
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, allowPreview, allowPreview, int, bool);   // NOTE: int to bool cast
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareId, id, int, int64_t, isRequired);
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, userId, userId, int, int32_t, isRequired);
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, email, email, QString,
+                                            std::string, isRequired, .toStdString());
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, creationTimestamp,
+                                            serviceCreated, int, Timestamp, isRequired);
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, modificationTimestamp,
+                                            serviceUpdated, int, Timestamp, isRequired);
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareKey, shareKey,
+                                            QString, std::string, isRequired, .toStdString());
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, username, username,
+                                            QString, std::string, isRequired, .toStdString());
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, sharedNotebookPrivilegeLevel,
+                                            privilege, int, SharedNotebookPrivilegeLevel::type, isRequired);
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, allowPreview, allowPreview,
+                                            int, bool, isRequired);   // NOTE: int to bool cast
         CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook.recipientSettings,
                                             recipientReminderNotifyEmail,
-                                            reminderNotifyEmail, int, bool);  // NOTE: int to bool cast
+                                            reminderNotifyEmail, int, bool, isRequired);  // NOTE: int to bool cast
         CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook.recipientSettings,
                                             recipientReminderNotifyInApp,
-                                            reminderNotifyInApp, int, bool);  // NOTE: int to bool cast
+                                            reminderNotifyInApp, int, bool, isRequired);  // NOTE: int to bool cast
 
 #undef CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE
 
