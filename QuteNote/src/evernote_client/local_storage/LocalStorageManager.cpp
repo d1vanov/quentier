@@ -1936,8 +1936,8 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const evernote::edam::Shar
     QString columns, values;
     bool hasAnyProperty = false;
 
-#define CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(isSetName, columnName, valueName) \
-    if (sharedNotebook.__isset.isSetName) \
+#define CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(holder, isSetName, columnName, valueName) \
+    if (holder.__isset.isSetName) \
     { \
         hasAnyProperty = true; \
         \
@@ -1952,42 +1952,40 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const evernote::edam::Shar
         values.append(valueName); \
     }
 
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(id, shareId, QString::number(sharedNotebook.id));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(userId, userId, QString::number(sharedNotebook.userId));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(notebookGuid, notebookGuid, QString::fromStdString(sharedNotebook.notebookGuid));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(email, email, QString::fromStdString(sharedNotebook.email));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(serviceCreated, creationTimestamp, QString::number(sharedNotebook.serviceCreated));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(serviceUpdated, modificationTimestamp, QString::number(sharedNotebook.serviceUpdated));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(shareKey, shareKey, QString::fromStdString(sharedNotebook.shareKey));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(username, username, QString::fromStdString(sharedNotebook.username));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(privilege, sharedNotebookPrivilegeLevel, QString::number(sharedNotebook.privilege));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(allowPreview, allowPreview, QString::number(sharedNotebook.allowPreview ? 1 : 0));
-
-#undef CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, id, shareId,
+                                            QString::number(sharedNotebook.id));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, userId, userId,
+                                            QString::number(sharedNotebook.userId));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, notebookGuid, notebookGuid,
+                                            QString::fromStdString(sharedNotebook.notebookGuid));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, email, email,
+                                            QString::fromStdString(sharedNotebook.email));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, serviceCreated, creationTimestamp,
+                                            QString::number(sharedNotebook.serviceCreated));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, serviceUpdated, modificationTimestamp,
+                                            QString::number(sharedNotebook.serviceUpdated));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareKey, shareKey,
+                                            QString::fromStdString(sharedNotebook.shareKey));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, username, username,
+                                            QString::fromStdString(sharedNotebook.username));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, privilege, sharedNotebookPrivilegeLevel,
+                                            QString::number(sharedNotebook.privilege));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, allowPreview, allowPreview,
+                                            QString::number(sharedNotebook.allowPreview ? 1 : 0));
 
     if (sharedNotebook.__isset.recipientSettings)
     {
-    #define CHECK_AND_SET_SHARED_NOTEBOOK_RECIPIENT_SETTING(isSetName, columnName, valueName) \
-        if (sharedNotebook.recipientSettings.__isset.isSetName) \
-        { \
-            if (!columns.isEmpty()) { \
-                columns.append(", "); \
-            } \
-            columns.append(#columnName); \
-            \
-            if (!values.isEmpty()) { \
-                values.append(", "); \
-            } \
-            values.append(valueName); \
-        }
+        const auto & recipientSettings = sharedNotebook.recipientSettings;
 
-        CHECK_AND_SET_SHARED_NOTEBOOK_RECIPIENT_SETTING(reminderNotifyEmail, recipientReminderNotifyEmail,
-                                                        QString::number(sharedNotebook.recipientSettings.reminderNotifyEmail ? 1 : 0));
-        CHECK_AND_SET_SHARED_NOTEBOOK_RECIPIENT_SETTING(reminderNotifyInApp, recipientReminderNotifyInApp,
-                                                        QString::number(sharedNotebook.recipientSettings.reminderNotifyInApp ? 1 : 0));
-
-        #undef CHECK_AND_SET_SHARED_NOTEBOOK_RECIPIENT_SETTING
+        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(recipientSettings, reminderNotifyEmail,
+                                                recipientReminderNotifyEmail,
+                                                QString::number(recipientSettings.reminderNotifyEmail ? 1 : 0));
+        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(recipientSettings, reminderNotifyInApp,
+                                                recipientRemindrNotifyInApp,
+                                                QString::number(recipientSettings.reminderNotifyInApp ? 1 : 0));
     }
+
+#undef CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE
 
     if (hasAnyProperty) {
         query.bindValue("columns", columns);
