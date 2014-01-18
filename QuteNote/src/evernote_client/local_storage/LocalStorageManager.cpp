@@ -1,7 +1,7 @@
 #include "LocalStorageManager.h"
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
-#include "../NoteStore.h"
+#include "../EnWrappers.h"
 #include "../tools/QuteNoteNullPtrException.h"
 
 using namespace evernote::edam;
@@ -750,122 +750,20 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
     }
 
     query.clear();
-    query.prepare("SELECT subjectDate, isSetSubjectDate, latitude, isSetLatitude, "
-                  "longitude, isSetLongitude, altitude, isSetAltitude, author, "
-                  "isSetAuthor, source, isSetSource, sourceURL, isSetSourceUrl, "
-                  "sourceApplication, isSetSourceApplication, shareDate, isSetShareDate, "
-                  "reminderOrder, isSetReminderOrder, reminderDoneTime, isSetReminderDoneTime, "
-                  "reminderTime, isSetReminderTime, placeName, isSetPlaceName, "
-                  "contentClass, isSetContentClass, lastEditedBy, isSetLastEditedBy, "
-                  "creatorId, isSetCreatorId, lastEditorId, isSetLastEditorId "
-                  "FROM NoteAttributes WHERE noteGuid=?");
-    query.addBindValue(QString::fromStdString(noteGuid));
+    query.prepare("SELECT data FROM NoteAttributes WHERE noteGuid=?");
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't select note attributes from NoteAttributes table: ");
 
-    rec = query.record();
-
-#define CHECK_AND_SET_NOTE_ATTRIBUTE(isSetAttribute, attributeName, type, ...) \
-    if (rec.contains(#isSetAttribute)) \
-    { \
-        int isSetAttribute = qvariant_cast<int>(rec.value(#isSetAttribute)); \
-        if (isSetAttribute != 0) { \
-            enNote.attributes.attributeName = (qvariant_cast<type>(rec.value(#attributeName)))__VA_ARGS__; \
-            enNote.attributes.__isset.attributeName = true; \
-        } \
-        else { \
-            enNote.attributes.__isset.attributeName = false; \
-        } \
-    } \
-    else { \
-        errorDescription = QObject::tr("No " #isSetAttribute " field in the result of " \
-                                       "SQL query from local storage database"); \
-        return false; \
-    }
-
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetSubjectDate, subjectDate, Timestamp);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetLatitude, latitude, double);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetAltitude, altitude, double);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetLongitude, longitude, double);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetAuthor, author, QString, .toStdString());
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetSource, source, QString, .toStdString());
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetSourceUrl, sourceURL, QString, .toStdString());
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetSourceApplication, sourceApplication, QString, .toStdString());
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetShareDate, shareDate, Timestamp);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetReminderOrder, reminderOrder, int64_t);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetReminderDoneTime, reminderDoneTime, Timestamp);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetReminderTime, reminderTime, Timestamp);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetPlaceName, placeName, QString, .toStdString());
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetContentClass, contentClass, QString, .toStdString());
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetLastEditedBy, lastEditedBy, QString, .toStdString());
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetCreatorId, creatorId, UserID);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(isSetLastEditorId, lastEditorId, UserID);
-
-#undef CHECK_AND_SET_NOTE_ATTRIBUTE
-
-    query.clear();
-    query.prepare("SELECT applicationDataKey, isSetApplicationDataValue, applicationDataValue "
-                  "FROM NoteAttributesApplicationData WHERE noteGuid=?");
-    query.addBindValue(QString::fromStdString(noteGuid));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't select application data from "
-                                 "NoteAttributesApplicationData table: ");
-
-    evernote::edam::LazyMap & applicationData = enNote.attributes.applicationData;
-    applicationData.keysOnly.clear();
-    applicationData.fullMap.clear();
-
-    bool foundOne = false;
-    QString applicationDataKey;
-    int isSetApplicationDataValue = 0;
-    bool conversionResult = false;
-    while(query.next())
+    if (query.next())
     {
-        QString applicationDataValue;   // NOTE: don't move it outside of loop
-
-        foundOne = true;
-        applicationDataKey = query.value(0).toString();
-        applicationData.keysOnly.insert(applicationDataKey.toStdString());
-        applicationData.__isset.keysOnly = true;
-
-        isSetApplicationDataValue = query.value(1).toInt(&conversionResult);
-        if (!conversionResult) {
-            errorDescription = QObject::tr("Can't convert isSetApplicationDataValue "
-                                           "from query result to int");
-            return false;
-        }
-
-        if (isSetApplicationDataValue != 0) {
-            applicationDataValue = query.value(2).toString();
-            applicationData.fullMap[applicationDataKey.toStdString()] = applicationDataValue.toStdString();
-            applicationData.__isset.fullMap = true;
-        }
+        QByteArray data = query.value(0).toByteArray();
+        enNote.attributes = std::move(GetDeserializedNoteAttributes(data));
     }
-    enNote.attributes.__isset.applicationData = foundOne;
-
-    query.clear();
-    query.prepare("SELECT classificationKey, classificationValue FROM "
-                  "NoteAttributesClassifications WHERE noteGuid=?");
-    query.addBindValue(QString::fromStdString(noteGuid));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't select classifications from NoteAttributesClassifications table :");
-
-    std::map<std::string, std::string> & classifications = enNote.attributes.classifications;
-    classifications.clear();
-
-    foundOne = false;
-    QString classificationKey, classificationValue;
-    while(query.next())
-    {
-        foundOne = true;
-        classificationKey = query.value(0).toString();
-        classificationValue = query.value(1).toString();
-
-        classifications[classificationKey.toStdString()] = classificationValue.toStdString();
+    else {
+        errorDescription = QObject::tr("Can't retrieve serialized note attributes from "
+                                       "local storage database: query result is empty");
+        return false;
     }
-    enNote.attributes.__isset.classifications = foundOne;
 
     return note.CheckParameters(errorDescription);
 }
@@ -1275,6 +1173,26 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
     // TODO: create table "Users" (see http://dev.evernote.com/doc/reference/Types.html#Struct_User)
 
+    res = query.exec("CREATE TABLE IF NOT EXISTS Users("
+                     "  id                      INTEGER PRIMARY KEY     NOT NULL UNIQUE, "
+                     "  username                TEXT                    NOT NULL, "
+                     "  email                   TEXT                    NOT NULL, "
+                     "  name                    TEXT                    NOT NULL, "
+                     "  timezone                TEXT                    DEFAULT NULL, "
+                     "  privilege               INTEGER                 NOT NULL, "
+                     "  creationTimestamp       INTEGER                 NOT NULL, "
+                     "  modificationTimestamp   INTEGER                 NOT NULL, "
+                     "  isDeleted               INTEGER                 DEFAULT 0, "
+                     "  deletionTimestamp       INTEGER                 DEFAULT 0, "
+                     "  isActive                INTEGER                 NOT NULL, "
+                     ")");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create Users table: ");
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS UserAttributes("
+                     "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  data                    BLOB                    DEFAULT NULL)");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create UserAttributes table: ");
+
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
                      "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
                      "  updateSequenceNumber            INTEGER           NOT NULL, "
@@ -1367,41 +1285,8 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("Can't create Notes table: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteAttributes("
-                     "  subjectDate             INTEGER              DEFAULT 0, "
-                     "  isSetSubjectDate        INTEGER              DEFAULT 0, "
-                     "  latitude                REAL                 DEFAULT NULL, "
-                     "  isSetLatitude           INTEGER              DEFAULT 0, "
-                     "  longitude               REAL                 DEFAULT NULL, "
-                     "  isSetLongitude          INTEGER              DEFAULT 0, "
-                     "  altitude                REAL                 DEFUALT NULL, "
-                     "  isSetAltitude           INTEGER              DEFAULT 0, "
-                     "  author                  TEXT                 DEFAULT NULL, "
-                     "  isSetAuthor             INTEGER              DEFAULT 0, "
-                     "  source                  TEXT                 DEFAULT NULL, "
-                     "  isSetSource             INTEGER              DEFAULT 0, "
-                     "  sourceURL               TEXT                 DEFAULT NULL, "
-                     "  isSetSourceUrl          INTEGER              DEFAULT 0, "
-                     "  sourceApplication       TEXT                 DEFAULT NULL, "
-                     "  isSetSourceApplication  INTEGER              DEFAULT 0, "
-                     "  shareDate               INTEGER              DEFAULT 0, "
-                     "  isSetShareDate          INTEGER              DEFAULT 0, "
-                     "  reminderOrder           INTEGER              DEFAULT 0, "
-                     "  isSetReminderOrder      INTEGER              DEFAULT 0, "
-                     "  reminderDoneTime        INTEGER              DEFAULT 0, "
-                     "  isSetReminderDoneTime   INTEGER              DEFAULT 0, "
-                     "  reminderTime            INTEGER              DEFAULT 0, "
-                     "  isSetReminderTime       INTEGER              DEFAULT 0, "
-                     "  placeName               TEXT                 DEFAULT NULL, "
-                     "  isSetPlaceName          INTEGER              DEFAULT 0, "
-                     "  contentClass            TEXT                 DEFAULT NULL, "
-                     "  isSetContentClass       INTEGER              DEFAULT 0, "
-                     "  lastEditedBy            TEXT                 DEFAULT NULL, "
-                     "  isSetLastEditedBy       INTEGER              DEFAULT 0, "
-                     "  creatorId               INTEGER              DEFAULT 0, "
-                     "  isSetCreatorId          INTEGER              DEFAULT 0, "
-                     "  lastEditorId            INTEGER              DEFAULT 0, "
-                     "  isSetLastEditorId       INTEGER              DEFAULT 0, "
-                     "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE"
+                     "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  data                    BLOB                DEFAULT NULL"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create NoteAttributes table: ");
 
@@ -1485,256 +1370,13 @@ bool LocalStorageManager::SetNoteAttributes(const evernote::edam::Note & note,
     QString noteGuid = QString::fromStdString(note.guid);
 
     QSqlQuery query(m_sqlDatabase);
-    bool isSetSubjectDate = attributes.__isset.subjectDate;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetSubjectDate, "
-                  "subjectDate) VALUES(?, ?, ?)");
+    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, data) VALUES(?, ?)");
     query.addBindValue(noteGuid);
-    query.addBindValue((isSetSubjectDate ? 1 : 0));
-    query.addBindValue((isSetSubjectDate ? static_cast<quint64>(attributes.subjectDate) : 0));
+    QByteArray data = GetSerializedNoteAttributes(attributes);
+    query.addBindValue(data);
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace subject date into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetLatitude = attributes.__isset.latitude;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetLatitude, latitude) "
-                  "VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetLatitude ? 1 : 0));
-    query.addBindValue((isSetLatitude ? attributes.latitude : 0.0));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace latitude into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetLongitude = attributes.__isset.longitude;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetLongitude, longitude) "
-                  "VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetLongitude ? 1 : 0));
-    query.addBindValue((isSetLongitude ? attributes.longitude : 0.0));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace longitude into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetAltitude = attributes.__isset.altitude;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetAltitude, altitude) "
-                  "VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetAltitude ? 1 : 0));
-    query.addBindValue((isSetAltitude ? attributes.altitude : 0.0));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace altitude into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetAuthor = attributes.__isset.author;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetAuthor, author) "
-                  "VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetAuthor ? 1 : 0));
-    query.addBindValue((isSetAuthor ? QString::fromStdString(attributes.author) : ""));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace author into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetSource = attributes.__isset.source;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetSource, source) "
-                  "VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetSource ? 1 : 0));
-    query.addBindValue((isSetSource ? QString::fromStdString(attributes.source) : ""));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace source into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetSourceUrl = attributes.__isset.sourceURL;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetSourceUrl, sourceURL) "
-                  "VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetSourceUrl ? 1 : 0));
-    query.addBindValue((isSetSourceUrl ? QString::fromStdString(attributes.sourceURL) : ""));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace sourceUrl into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetSourceApplication = attributes.__isset.sourceApplication;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetSourceApplication, "
-                  "sourceApplication) VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetSourceApplication ? 1 : 0));
-    query.addBindValue((isSetSourceApplication ? QString::fromStdString(attributes.sourceApplication) : ""));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace sourceApplication into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetShareDate = attributes.__isset.shareDate;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetShareDate, shareDate) "
-                  "VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetShareDate ? 1 : 0));
-    query.addBindValue((isSetShareDate ? static_cast<quint64>(attributes.shareDate) : 0));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace shareDate into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetReminderOrder = attributes.__isset.reminderOrder;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetReminderOrder, "
-                  "reminderOrder) VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetReminderOrder ? 1 : 0));
-    query.addBindValue((isSetReminderOrder ? static_cast<quint64>(attributes.reminderOrder) : 0));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace reminderOrder into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetReminderDoneTime = attributes.__isset.reminderDoneTime;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetReminderDoneTime, "
-                  "reminderDoneTime) VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetReminderDoneTime ? 1 : 0));
-    query.addBindValue((isSetReminderDoneTime ? static_cast<quint64>(attributes.reminderDoneTime) : 0));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace reminderDoneTime into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetReminderTime = attributes.__isset.reminderOrder;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetReminderTime, "
-                  "reminderTime) VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetReminderTime ? 1 : 0));
-    query.addBindValue((isSetReminderTime ? static_cast<quint64>(attributes.reminderTime) : 0));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace reminderTime into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetPlaceName = attributes.__isset.placeName;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetPlaceName, "
-                  "placeName) VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetPlaceName ? 1 : 0));
-    query.addBindValue((isSetPlaceName ? QString::fromStdString(attributes.placeName) : ""));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace placeName into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetContentClass = attributes.__isset.contentClass;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetContentClass, "
-                  "contentClass) VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetContentClass ? 1 : 0));
-    query.addBindValue((isSetContentClass ? QString::fromStdString(attributes.contentClass) : ""));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace contentClass into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetLastEditedBy = attributes.__isset.lastEditedBy;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetLastEditedBy, "
-                  "lastEditedBy) VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetLastEditedBy ? 1 : 0));
-    query.addBindValue((isSetLastEditedBy ? QString::fromStdString(attributes.lastEditedBy) : 0));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace lastEditedBy into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetCreatorId = attributes.__isset.creatorId;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetCreatorId, "
-                  "creatorId) VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetCreatorId ? 1 : 0));
-    query.addBindValue((isSetCreatorId ? attributes.creatorId : 0));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace creatorId into NoteAttributes table: ");
-
-    query.clear();
-    bool isSetLastEditorId = attributes.__isset.lastEditorId;
-    query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, isSetLastEditorId, "
-                  "lastEditorId) VALUES(?, ?, ?)");
-    query.addBindValue(noteGuid);
-    query.addBindValue((isSetLastEditorId ? 1 : 0));
-    query.addBindValue((isSetLastEditorId ? attributes.lastEditorId : 0));
-
-    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace lastEditorId into NoteAttributes table: ");
-
-    if (attributes.__isset.applicationData)
-    {
-        const auto & applicationData = attributes.applicationData;
-        bool isSetKeysOnly = applicationData.__isset.keysOnly;
-        bool isSetFullMap = applicationData.__isset.fullMap;
-
-        if (isSetKeysOnly && isSetFullMap) {
-            errorDescription = QObject::tr("Both keys only and full map fields are set for "
-                                           "applicationData field of Note while only one should be set");
-            return false;
-        }
-
-        if (isSetKeysOnly)
-        {
-            for(const auto & key : applicationData.keysOnly)
-            {
-                query.clear();
-                query.prepare("INSERT OR REPLACE INTO NoteAttributesApplicationData(noteGuid, "
-                              "applicationDataKey, isSetApplicationDataValue) VALUES(?, ?, ?)");
-                query.addBindValue(noteGuid);
-                query.addBindValue(QString::fromStdString(key));
-                query.addBindValue(0);
-
-                res = query.exec();
-                DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace applicationDataKey into "
-                                             "NoteAttributesApplicationData table: ");
-            }
-        }
-        else if (isSetFullMap)
-        {
-            for(const auto & pair : applicationData.fullMap)
-            {
-                query.clear();
-                query.prepare("INSERT OR REPLACE INTO NoteAttributesApplicationData(noteGuid, "
-                              "applicationDataKey, applicationDataValue, isSetApplicationDataValue) "
-                              "VALUES(?, ?, ?, ?)");
-                query.addBindValue(noteGuid);
-                query.addBindValue(QString::fromStdString(pair.first));
-                query.addBindValue(QString::fromStdString(pair.second));
-                query.addBindValue(1);
-
-                res = query.exec();
-                DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace applicationData into "
-                                             "NoteAttributesApplicationData table: ");
-            }
-        }
-    }
-
-    if (attributes.__isset.classifications)
-    {
-        for(const auto & pair : attributes.classifications)
-        {
-            query.clear();
-            query.prepare("INSERT OR REPLACE INTO NoteAttributesClassifications(noteGuid, "
-                          "classificationKey, classificationValue) VALUES(?, ?, ?)");
-            query.addBindValue(noteGuid);
-            query.addBindValue(QString::fromStdString(pair.first));
-            query.addBindValue(QString::fromStdString(pair.second));
-
-            res = query.exec();
-            DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace classifications into "
-                                         "NoteAttributesClassifications table: ");
-        }
-    }
 
     return true;
 }

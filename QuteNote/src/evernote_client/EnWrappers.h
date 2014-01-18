@@ -1,10 +1,19 @@
-#ifndef __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_STORE_H
-#define __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_STORE_H
+#ifndef __QUTE_NOTE__EVERNOTE_CLIENT__EN_WRAPPERS_H
+#define __QUTE_NOTE__EVERNOTE_CLIENT__EN_WRAPPERS_H
 
 #include "../evernote_sdk/src/NoteStore.h"
 #include <QString>
+#include <QDataStream>
+#include <QByteArray>
 
 namespace qute_note {
+
+// TODO: create test for these both operators working right with each other
+QDataStream & operator<<(QDataStream & out, const evernote::edam::NoteAttributes & noteAttributes);
+QDataStream & operator>>(QDataStream & in, evernote::edam::NoteAttributes & noteAttributes);
+
+const QByteArray GetSerializedNoteAttributes(const evernote::edam::NoteAttributes & noteAttributes);
+const evernote::edam::NoteAttributes GetDeserializedNoteAttributes(const QByteArray & data);
 
 struct Note {
     bool isDirty;
@@ -41,4 +50,4 @@ typedef evernote::edam::UserID UserID;
 
 }
 
-#endif // __QUTE_NOTE__EVERNOTE_CLIENT__NOTE_STORE_H
+#endif // __QUTE_NOTE__EVERNOTE_CLIENT__EN_WRAPPERS_H
