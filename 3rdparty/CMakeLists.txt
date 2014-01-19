@@ -18,8 +18,6 @@ add_subdirectory(evernote)
 get_directory_property(EVERNOTE_SDK_LIB DIRECTORY evernote DEFINITION PROJECT_NAME)
 get_directory_property(EVERNOTE_SDK_INCLUDE_DIRS DIRECTORY evernote DEFINITION ${EVERNOTE_SDK_LIB}_INCLUDE_DIRS)
 
-message(STATUS "3rdparty's SIMPLECRYPT_LIB = ${SIMPLECRYPT_LIB}, EVERNOTE_SDK_LIB = ${EVERNOTE_SDK_LIB}")
-
 set(THIRDPARTY_INCLUDE_DIRS
     thrift/src
     thrift/src/thrift
