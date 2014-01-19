@@ -1,6 +1,6 @@
 #include "ResourceTextObject.h"
 #include "../tools/QuteNoteCheckPtr.h"
-#include "../evernote_sdk/src/NoteStore.h"
+#include <NoteStore.h>
 #include <QPainter>
 
 using namespace evernote::edam;

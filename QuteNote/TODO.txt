@@ -1,7 +1,0 @@
-1. Connect MainWindow actions & buttons with corresponding slots (programmatically)
-2. Make text format & alignment smart: on putting cursor to some place in the edit window,
-set current font, size, color, format, alignment buttons and fields on the panel
-to the respective ones of the text.
-3. Look at "void textStyle(int styleIndex);" slot from TextEdit class from QtRichTextEditor project
-4. Reconnect keyboard shortcuts on widget selection change (table of notes & editor, I suppose)
-5. Change cursor style (from vertical line corresponding to editing text to the arrow) on hovering checkbox object

@@ -1,7 +1,7 @@
 #include "ENMLConverter.h"
-#include "../note_editor/QuteNoteTextEdit.h"
-#include "../evernote_sdk/src/NoteStore.h"
-#include "../tools/QuteNoteCheckPtr.h"
+#include "../../note_editor/QuteNoteTextEdit.h"
+#include "../../tools/QuteNoteCheckPtr.h"
+#include <NoteStore.h>
 #include <QString>
 #include <QTextDocument>
 #include <QTextBlock>

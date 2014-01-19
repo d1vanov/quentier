@@ -2,7 +2,7 @@
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
 #include "../EnWrappers.h"
-#include "../tools/QuteNoteNullPtrException.h"
+#include "../../tools/QuteNoteNullPtrException.h"
 
 using namespace evernote::edam;
 

@@ -1,6 +1,6 @@
 #include "QuteNoteTextEdit.h"
 #include "ToDoCheckboxTextObject.h"
-#include "../evernote_sdk/src/NoteStore.h"
+#include <NoteStore.h>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QTextCursor>

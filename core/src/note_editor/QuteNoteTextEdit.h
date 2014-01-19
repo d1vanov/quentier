@@ -2,7 +2,7 @@
 #define __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H
 
 #include <QTextEdit>
-#include "../evernote_client/enml/ENMLConverter.h"
+#include "../client/enml/ENMLConverter.h"
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QImage)

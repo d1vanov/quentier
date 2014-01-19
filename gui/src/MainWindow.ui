@@ -1737,7 +1737,7 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
      <x>0</x>
      <y>0</y>
      <width>1167</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1765,7 +1765,7 @@ radius: 1.35, stop: 0 #fff, stop: 1 #ddd);
       <string>Метка</string>
      </property>
      <property name="icon">
-      <iconset resource="../../resource/icons.qrc">
+      <iconset resource="../resource/icons.qrc">
        <normaloff>:/label/tag.png</normaloff>:/label/tag.png</iconset>
      </property>
      <addaction name="ActionLabelAdd"/>
@@ -2652,7 +2652,7 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionInsertTable">
    <property name="icon">
-    <iconset resource="../../resource/icons.qrc">
+    <iconset resource="../resource/icons.qrc">
      <normaloff>:/format_text_elements/insert_table.png</normaloff>:/format_text_elements/insert_table.png</iconset>
    </property>
    <property name="text">
@@ -2956,7 +2956,7 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionSynchronizeButton">
    <property name="icon">
-    <iconset resource="../../resource/icons.qrc">
+    <iconset resource="../resource/icons.qrc">
      <normaloff>:/sync_icons/stat_notify_sync.png</normaloff>:/sync_icons/stat_notify_sync.png</iconset>
    </property>
    <property name="text">
@@ -2987,7 +2987,7 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionManageLabelsButton">
    <property name="icon">
-    <iconset resource="../../resource/icons.qrc">
+    <iconset resource="../resource/icons.qrc">
      <normaloff>:/label/tag.png</normaloff>:/label/tag.png</iconset>
    </property>
    <property name="text">
@@ -3012,88 +3012,7 @@ stop: 1 #0EB7FF);
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../resource/icons.qrc"/>
+  <include location="../resource/icons.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>undoPushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>noteEditWidget</receiver>
-   <slot>undo()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>562</x>
-     <y>187</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>558</x>
-     <y>246</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>redoPushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>noteEditWidget</receiver>
-   <slot>redo()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>601</x>
-     <y>180</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>594</x>
-     <y>237</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cutPushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>noteEditWidget</receiver>
-   <slot>cut()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>638</x>
-     <y>181</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>635</x>
-     <y>254</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>copyPushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>noteEditWidget</receiver>
-   <slot>copy()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>683</x>
-     <y>180</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>686</x>
-     <y>259</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pastePushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>noteEditWidget</receiver>
-   <slot>paste()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>722</x>
-     <y>186</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>720</x>
-     <y>269</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

@@ -1,14 +1,15 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
-#include "../note_editor/HorizontalLineExtraData.h"
-#include "../note_editor/ToDoCheckboxTextObject.h"
+#include <HorizontalLineExtraData.h>
+#include <ToDoCheckboxTextObject.h>
 #include "EvernoteOAuthBrowser.h"
 #include "../client/EvernoteServiceManager.h"
 #include "AskConsumerKeyAndSecret.h"
 #include "AskUserNameAndPassword.h"
-#include "../SimpleCrypt/src/Simplecrypt.h"
+#include <Simplecrypt.h>
 #include "../client/CredentialsModel.h"
-#include "../tools/QuteNoteCheckPtr.h"
+#include "../../core/src/tools/QuteNoteCheckPtr.h"
+#include <QuteNoteTextEdit.h>
 #include <cmath>
 #include <QPushButton>
 #include <QLabel>
@@ -19,6 +20,10 @@
 #include <QFile>
 #include <QMessageBox>
 #include <QtDebug>
+
+#define GET_QUTE_NOTE_TEXT_EDIT() \
+    QuteNoteTextEdit * pNoteEditor = m_pUI->noteEditWidget; \
+    Q_CHECK_PTR(pNoteEditor); \
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
@@ -33,10 +38,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 {
     m_pUI->setupUi(this);
 
-    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    Q_CHECK_PTR(pNoteEdit);
+    GET_QUTE_NOTE_TEXT_EDIT();
 
-    QAbstractTextDocumentLayout * pLayout = pNoteEdit->document()->documentLayout();
+    QAbstractTextDocumentLayout * pLayout = pNoteEditor->document()->documentLayout();
     pLayout->registerHandler(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_UNCHECKED, m_pToDoChkboxTxtObjUnchecked);
     pLayout->registerHandler(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_CHECKED, m_pToDoChkboxTxtObjChecked);
 
@@ -289,8 +293,7 @@ void MainWindow::onRequestUsernameAndPassword()
 }
 
 #define FETCH_CURRENT_TEXT_CHAR_FORMAT() \
-    QuteNoteTextEdit * pNoteEditor = m_pUI->noteEditWidget; \
-    Q_CHECK_PTR(pNoteEditor); \
+    GET_QUTE_NOTE_TEXT_EDIT(); \
     QTextCursor cursor = pNoteEditor->textCursor(); \
     QTextCharFormat format(cursor.charFormat());
 
@@ -385,10 +388,9 @@ void MainWindow::noteTextAlignRight()
 
 void MainWindow::noteTextAddHorizontalLine()
 {
-    QuteNoteTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    Q_CHECK_PTR(pNoteEdit);
+    GET_QUTE_NOTE_TEXT_EDIT();
 
-    QTextCursor cursor = pNoteEdit->textCursor();
+    QTextCursor cursor = pNoteEditor->textCursor();
     cursor.beginEditBlock();
 
     QTextBlockFormat format = cursor.blockFormat();
@@ -427,7 +429,7 @@ void MainWindow::noteTextAddHorizontalLine()
     cursor.movePosition(QTextCursor::Down);
 
     cursor.endEditBlock();
-    pNoteEdit->setFocus();
+    pNoteEditor->setFocus();
 }
 
 void MainWindow::noteTextIncreaseIndentation()
@@ -472,11 +474,10 @@ void MainWindow::noteChooseSelectedTextColor()
 
 void MainWindow::noteTextInsertToDoCheckBox()
 {
-    QuteNoteTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    QUTE_NOTE_CHECK_PTR(pNoteEdit, tr("Can't insert ToDo checkbox, note editor is missing"));
+    GET_QUTE_NOTE_TEXT_EDIT();
 
-    QTextCursor cursor = pNoteEdit->textCursor();
-    pNoteEdit->insertUncheckedToDoCheckboxAtCursor(cursor);
+    QTextCursor cursor = pNoteEditor->textCursor();
+    pNoteEditor->insertUncheckedToDoCheckboxAtCursor(cursor);
 }
 
 void MainWindow::noteHtmlContentToStdOut()

@@ -1,19 +1,19 @@
 #include "EvernoteServiceManager.h"
 #include "EvernoteServiceOAuthHandler.h"
-#include "../gui/MainWindow.h"
-#include "../gui/EvernoteOAuthBrowser.h"
-#include "../../SimpleCrypt/src/Simplecrypt.h"
-#include "../thrift/transport/THttpClient.h"
-#ifdef HAVE_NETINET_IN_H
+#include "../src/MainWindow.h"
+#include "../src/EvernoteOAuthBrowser.h"
+#include <Simplecrypt.h>
+#include <thrift/transport/THttpClient.h>
+#ifndef _WIN32
 #include <netinet/in.h>
 #else
 #include <Winsock2.h>
 #endif
-#include "../thrift/transport/TSSLSocket.h"
-#include "../thrift/transport/TBufferTransports.h"
-#include "../thrift/protocol/TBinaryProtocol.h"
-#include "../evernote_sdk/src/UserStore.h"
-#include "../evernote_sdk/src/NoteStore.h"
+#include <thrift/transport/TSSLSocket.h>
+#include <thrift/transport/TBufferTransports.h>
+#include <thrift/protocol/TBinaryProtocol.h>
+#include <UserStore.h>
+#include <NoteStore.h>
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include <string>

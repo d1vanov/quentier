@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__EN_WRAPPERS_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__EN_WRAPPERS_H
 
-#include "../evernote_sdk/src/NoteStore.h"
+#include <NoteStore.h>
 #include <QString>
 #include <QDataStream>
 #include <QByteArray>
