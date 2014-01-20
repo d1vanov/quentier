@@ -1,12 +1,20 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__EN_WRAPPERS_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__EN_WRAPPERS_H
 
+#include <Types_types.h>
 #include <NoteStore.h>
 #include <QString>
 #include <QDataStream>
 #include <QByteArray>
 
 namespace qute_note {
+
+// TODO: create test for these both operators working right with each other
+QDataStream & operator<<(QDataStream & out, const evernote::edam::UserAttributes & userAttributes);
+QDataStream & operator>>(QDataStream & in, evernote::edam::UserAttributes & userAttributes);
+
+const QByteArray GetSerializedUserAttributes(const evernote::edam::UserAttributes & userAttributes);
+const evernote::edam::UserAttributes GetDeserializedUserAttributes(const QByteArray & data);
 
 // TODO: create test for these both operators working right with each other
 QDataStream & operator<<(QDataStream & out, const evernote::edam::NoteAttributes & noteAttributes);
