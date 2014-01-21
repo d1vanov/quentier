@@ -75,7 +75,6 @@ target_link_libraries(${PROJECT_NAME}
                       ${SIMPLECRYPT_LIB}
                       ${OPENSSL_LIBRARIES}
                       ${LIBXML2_LIBRARIES}
-                      ${EVERNOTE_SDK_LIB}
                       ${QUTE_NOTE_CORE_LIB})
 
 if(LIBCPP)

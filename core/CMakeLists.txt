@@ -51,5 +51,7 @@ add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_SOURCES}
             ${${PROJECT_NAME}_QT_HEADERS_MOC})
 
+target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB})
+
 # modifying sources list with absolute paths for cppcheck
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
