@@ -29,13 +29,15 @@ QT_FORWARD_DECLARE_STRUCT(Resource)
 class LocalStorageManager
 {
 public:
-    LocalStorageManager(const QString & username, const QString & authenticationToken,
+    LocalStorageManager(const QString & username, const int32_t userId,
+                        const QString & authenticationToken,
                         QSharedPointer<evernote::edam::NoteStoreClient> & pNoteStore);
     ~LocalStorageManager();
 
     void SetNewAuthenticationToken(const QString & authenticationToken);
 
     bool AddUser(const evernote::edam::User & user, QString & errorDescription);
+    void SwitchUser(const QString & username, const int32_t userId);
 
     bool AddNotebook(const Notebook & notebook, QString & errorDescription);
     bool UpdateNotebook(const Notebook & notebook, QString & errorDescription);
@@ -152,7 +154,10 @@ private:
 
     QString m_authenticationToken;
     QSharedPointer<evernote::edam::NoteStoreClient> m_pNoteStore;
+    QString m_currentUsername;
+    int32_t m_currentUserId;
     QString m_applicationPersistenceStoragePath;
+
     QSqlDatabase m_sqlDatabase;
 };
 

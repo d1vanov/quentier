@@ -16,70 +16,22 @@ namespace qute_note {
 
 #define QUTE_NOTE_DATABASE_NAME "qn.storage.sqlite"
 
-LocalStorageManager::LocalStorageManager(const QString & username, const QString & authenticationToken,
+LocalStorageManager::LocalStorageManager(const QString & username, const int32_t userId,
+                                         const QString & authenticationToken,
                                          QSharedPointer<evernote::edam::NoteStoreClient> & pNoteStore) :
     m_authenticationToken(authenticationToken),
     m_pNoteStore(pNoteStore),
-#ifdef USE_QT5
-    m_applicationPersistenceStoragePath(QStandardPaths::writableLocation(QStandardPaths::DataLocation))
-#else
-    m_applicationPersistenceStoragePath(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
-#endif
+    // NOTE: don't initialize these! Otherwise SwitchUser won't work right
+    m_currentUsername(),
+    m_currentUserId(),
+    m_applicationPersistenceStoragePath()
 {
     if (m_pNoteStore == nullptr) {
         throw QuteNoteNullPtrException("Found null pointer to NoteStoreClient while "
                                        "trying to create LocalStorageManager instance");
     }
 
-    bool needsInitializing = false;
-
-    m_applicationPersistenceStoragePath.append("/" + username);
-    QDir databaseFolder(m_applicationPersistenceStoragePath);
-    if (!databaseFolder.exists())
-    {
-        needsInitializing = true;
-        if (!databaseFolder.mkpath(m_applicationPersistenceStoragePath)) {
-            throw DatabaseOpeningException(QObject::tr("Cannot create folder "
-                                                       "to store local storage  database."));
-        }
-    }
-
-    m_sqlDatabase.addDatabase("QSQLITE");
-    QString databaseFileName = m_applicationPersistenceStoragePath + QString("/") +
-                               QString(QUTE_NOTE_DATABASE_NAME);
-    QFile databaseFile(databaseFileName);
-
-    if (!databaseFile.exists())
-    {
-        needsInitializing = true;
-        if (!databaseFile.open(QIODevice::ReadWrite)) {
-            throw DatabaseOpeningException(QObject::tr("Cannot create local storage database: ") +
-                                           databaseFile.errorString());
-        }
-    }
-
-    m_sqlDatabase.setDatabaseName(databaseFileName);
-    if (!m_sqlDatabase.open())
-    {
-        QString lastErrorText = m_sqlDatabase.lastError().text();
-        throw DatabaseOpeningException(QObject::tr("Cannot open local storage database: ") +
-                                       lastErrorText);
-    }
-
-    QSqlQuery query(m_sqlDatabase);
-    if (!query.exec("PRAGMA foreign_keys = ON")) {
-        throw DatabaseSqlErrorException(QObject::tr("Cannot set foreign_keys = ON pragma "
-                                                    "for Sql local storage database"));
-    }
-
-    if (needsInitializing)
-    {
-        QString errorDescription;
-        if (!CreateTables(errorDescription)) {
-            throw DatabaseSqlErrorException(QObject::tr("Cannot initialize tables in Sql database: ") +
-                                            errorDescription);
-        }
-    }
+    SwitchUser(username, userId);
 }
 
 LocalStorageManager::~LocalStorageManager()
@@ -138,8 +90,92 @@ bool LocalStorageManager::AddUser(const evernote::edam::User & user, QString & e
 
 #undef CHECK_AND_SET_USER_VALUE
 
-    // TODO: process UserAttributes, Accounting, PremiumInfo and BusinessUserInfo
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't add new user to \"Users\" table: ");
+
+    if (user.__isset.attributes)
+    {
+        query.clear();
+        query.prepare("INSERT INTO UserAttributes (id, data) VALUES(?, ?)");
+        query.addBindValue(QString::number(user.id));
+        QByteArray serializedUserAttributes = GetSerializedUserAttributes(user.attributes);
+        query.addBindValue(serializedUserAttributes);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("Can't add user attributes to \"UserAttributes\" table: ");
+    }
+
+    // TODO: process Accounting, PremiumInfo and BusinessUserInfo
     return true;
+}
+
+void LocalStorageManager::SwitchUser(const QString & username, const int32_t userId)
+{
+    if ( (username == m_currentUsername) &&
+         (userId == m_currentUserId) )
+    {
+        return;
+    }
+
+    m_currentUsername = username;
+    m_currentUserId = userId;
+
+#if QT_VERSION >= 0x050000
+    m_applicationPersistenceStoragePath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+#else
+    m_applicationPersistenceStoragePath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+#endif
+
+    m_applicationPersistenceStoragePath.append("/" + m_currentUsername + m_currentUserId);
+
+    bool needsInitializing = false;
+
+    QDir databaseFolder(m_applicationPersistenceStoragePath);
+    if (!databaseFolder.exists())
+    {
+        needsInitializing = true;
+        if (!databaseFolder.mkpath(m_applicationPersistenceStoragePath)) {
+            throw DatabaseOpeningException(QObject::tr("Cannot create folder "
+                                                       "to store local storage  database."));
+        }
+    }
+
+    m_sqlDatabase.addDatabase("QSQLITE");
+    QString databaseFileName = m_applicationPersistenceStoragePath + QString("/") +
+                               QString(QUTE_NOTE_DATABASE_NAME);
+    QFile databaseFile(databaseFileName);
+
+    if (!databaseFile.exists())
+    {
+        needsInitializing = true;
+        if (!databaseFile.open(QIODevice::ReadWrite)) {
+            throw DatabaseOpeningException(QObject::tr("Cannot create local storage database: ") +
+                                           databaseFile.errorString());
+        }
+    }
+
+    m_sqlDatabase.setDatabaseName(databaseFileName);
+    if (!m_sqlDatabase.open())
+    {
+        QString lastErrorText = m_sqlDatabase.lastError().text();
+        throw DatabaseOpeningException(QObject::tr("Cannot open local storage database: ") +
+                                       lastErrorText);
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    if (!query.exec("PRAGMA foreign_keys = ON")) {
+        throw DatabaseSqlErrorException(QObject::tr("Cannot set foreign_keys = ON pragma "
+                                                    "for Sql local storage database"));
+    }
+
+    if (needsInitializing)
+    {
+        QString errorDescription;
+        if (!CreateTables(errorDescription)) {
+            throw DatabaseSqlErrorException(QObject::tr("Cannot initialize tables in Sql database: ") +
+                                            errorDescription);
+        }
+    }
 }
 
 bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & errorDescription)
@@ -1211,8 +1247,6 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 {
     QSqlQuery query(m_sqlDatabase);
     bool res;
-
-    // TODO: create table "Users" (see http://dev.evernote.com/doc/reference/Types.html#Struct_User)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Users("
                      "  id                      INTEGER PRIMARY KEY     NOT NULL UNIQUE, "
