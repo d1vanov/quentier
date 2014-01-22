@@ -101,6 +101,47 @@ void LocalStorageManager::SetNewAuthenticationToken(const QString & authenticati
         return false; \
     }
 
+bool LocalStorageManager::AddUser(const evernote::edam::User & user, QString & errorDescription)
+{
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("INSERT INTO Users (id, username, name, timezone, privilege, "
+                  "  creationTimestamp, modificationTimestamp, isDeleted, "
+                  "  deletionTimestamp, isActive) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+#define CHECK_AND_SET_USER_VALUE(column, error, prep) \
+    if (!user.__isset.column) { \
+        errorDescription = QObject::tr(error); \
+        return false; \
+    } \
+    else { \
+        query.addBindValue(prep(user.column)); \
+    }
+
+    CHECK_AND_SET_USER_VALUE(id, "User ID is not set", QString::number);
+    CHECK_AND_SET_USER_VALUE(username, "Username is not set", QString::fromStdString);
+    CHECK_AND_SET_USER_VALUE(name, "User's name is not set", QString::fromStdString);
+    CHECK_AND_SET_USER_VALUE(timezone, "User's timezone is not set", QString::fromStdString);
+    CHECK_AND_SET_USER_VALUE(created, "User's creation timestamp is not set", QString::number);
+    CHECK_AND_SET_USER_VALUE(updated, "User's modification timestamp is not set", QString::number);
+
+    // Process isDeleted and deletionTimestamp properties specifically
+    if (user.__isset.deleted) {
+        query.addBindValue(QString::number(1));   // isDeleted
+        query.addBindValue(QString::number(user.deleted));   // deletionTimestamp
+    }
+    else {
+        query.addBindValue(QString::number(0));   // isDeleted
+        query.addBindValue(QString::number(0));   // deletionTimestamp
+    }
+
+    CHECK_AND_SET_USER_VALUE(active, "User's active field is not set (should be true)", static_cast<int>);
+
+#undef CHECK_AND_SET_USER_VALUE
+
+    // TODO: process UserAttributes, Accounting, PremiumInfo and BusinessUserInfo
+    return true;
+}
+
 bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & errorDescription)
 {
     bool res = notebook.CheckParameters(errorDescription);
@@ -1176,7 +1217,6 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS Users("
                      "  id                      INTEGER PRIMARY KEY     NOT NULL UNIQUE, "
                      "  username                TEXT                    NOT NULL, "
-                     "  email                   TEXT                    NOT NULL, "
                      "  name                    TEXT                    NOT NULL, "
                      "  timezone                TEXT                    DEFAULT NULL, "
                      "  privilege               INTEGER                 NOT NULL, "

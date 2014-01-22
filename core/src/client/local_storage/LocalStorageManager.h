@@ -9,6 +9,7 @@ namespace evernote {
 namespace edam {
 
 typedef std::string Guid;
+QT_FORWARD_DECLARE_CLASS(User)
 QT_FORWARD_DECLARE_CLASS(NoteStoreClient)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Notebook)
@@ -33,6 +34,8 @@ public:
     ~LocalStorageManager();
 
     void SetNewAuthenticationToken(const QString & authenticationToken);
+
+    bool AddUser(const evernote::edam::User & user, QString & errorDescription);
 
     bool AddNotebook(const Notebook & notebook, QString & errorDescription);
     bool UpdateNotebook(const Notebook & notebook, QString & errorDescription);

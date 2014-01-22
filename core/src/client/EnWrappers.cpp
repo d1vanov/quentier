@@ -106,6 +106,8 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::NoteAttributes & note
     CHECK_AND_SET_ATTRIBUTE(creatorId, qint32, UserID);
     CHECK_AND_SET_ATTRIBUTE(lastEditorId, qint32, UserID);
 
+#undef CHECK_AND_SET_ATTRIBUTE
+
     bool isSetApplicationData = false;
     in >> isSetApplicationData;
     isSet.applicationData = isSetApplicationData;
@@ -292,6 +294,181 @@ const QByteArray GetSerializedNoteAttributes(const evernote::edam::NoteAttribute
 const evernote::edam::NoteAttributes GetDeserializedNoteAttributes(const QByteArray & data)
 {
     evernote::edam::NoteAttributes attributes;
+    QDataStream strm(data);
+    strm >> attributes;
+
+    return std::move(attributes);
+}
+
+QDataStream & operator<<(QDataStream & out, const evernote::edam::UserAttributes & userAttributes)
+{
+    const auto & isSet = userAttributes.__isset;
+
+#define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
+    { \
+        bool isSet##attribute = isSet.attribute; \
+        out << isSet##attribute; \
+        if (isSet##attribute) { \
+            out << __VA_ARGS__(userAttributes.attribute); \
+        } \
+    }
+
+    CHECK_AND_SET_ATTRIBUTE(defaultLocationName, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(defaultLatitude);
+    CHECK_AND_SET_ATTRIBUTE(defaultLongitude);
+    CHECK_AND_SET_ATTRIBUTE(preactivation);
+    CHECK_AND_SET_ATTRIBUTE(incomingEmailAddress, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(comments, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(dateAgreedToTermsOfService, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(maxReferrals);
+    CHECK_AND_SET_ATTRIBUTE(referralCount);
+    CHECK_AND_SET_ATTRIBUTE(refererCode, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(sentEmailDate, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(sentEmailCount);
+    CHECK_AND_SET_ATTRIBUTE(dailyEmailLimit);
+    CHECK_AND_SET_ATTRIBUTE(emailOptOutDate, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(partnerEmailOptInDate, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(preferredLanguage, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(preferredCountry, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(clipFullPage);
+    CHECK_AND_SET_ATTRIBUTE(twitterUserName, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(twitterId, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(groupName, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(recognitionLanguage, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(referralProof, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(educationalDiscount);
+    CHECK_AND_SET_ATTRIBUTE(businessAddress, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(hideSponsorBilling);
+    CHECK_AND_SET_ATTRIBUTE(taxExempt);
+    CHECK_AND_SET_ATTRIBUTE(useEmailAutoFiling);
+    CHECK_AND_SET_ATTRIBUTE(reminderEmailConfig, static_cast<quint8>);
+
+#undef CHECK_AND_SET_ATTRIBUTE
+
+    bool isSetViewedPromotions = isSet.viewedPromotions;
+    out << isSetViewedPromotions;
+    if (isSetViewedPromotions)
+    {
+        const auto & viewedPromotions = userAttributes.viewedPromotions;
+        size_t numViewedPromotions = viewedPromotions.size();
+        out << static_cast<quint32>(numViewedPromotions);
+        for(const auto & viewedPromotion: viewedPromotions) {
+            out << QString::fromStdString(viewedPromotion);
+        }
+    }
+
+    bool isSetRecentMailedAddresses = isSet.recentMailedAddresses;
+    out << isSetRecentMailedAddresses;
+    if (isSetRecentMailedAddresses)
+    {
+        const auto & recentMailedAddresses = userAttributes.recentMailedAddresses;
+        size_t numRecentMailedAddresses = recentMailedAddresses.size();
+        out << static_cast<quint32>(numRecentMailedAddresses);
+        for(const auto & recentMailedAddress: recentMailedAddresses) {
+            out << QString::fromStdString(recentMailedAddress);
+        }
+    }
+
+    return out;
+}
+
+QDataStream & operator>>(QDataStream & in, evernote::edam::UserAttributes & userAttributes)
+{
+    userAttributes = evernote::edam::UserAttributes();
+
+    auto & isSet = userAttributes.__isset;
+
+#define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
+    { \
+        bool isSet##attribute = false; \
+        in >> isSet##attribute; \
+        isSet.attribute = isSet##attribute; \
+        if (isSet##attribute) { \
+            qtype attribute; \
+            in >> attribute; \
+            userAttributes.attribute = static_cast<true_type>(attribute __VA_ARGS__); \
+        } \
+    }
+
+    CHECK_AND_SET_ATTRIBUTE(defaultLocationName, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(defaultLatitude, double, double);
+    CHECK_AND_SET_ATTRIBUTE(defaultLongitude, double, double);
+    CHECK_AND_SET_ATTRIBUTE(preactivation, bool, bool);
+    CHECK_AND_SET_ATTRIBUTE(incomingEmailAddress, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(comments, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(dateAgreedToTermsOfService, qint64, Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(maxReferrals, int32_t, int32_t);
+    CHECK_AND_SET_ATTRIBUTE(referralCount, int32_t, int32_t);
+    CHECK_AND_SET_ATTRIBUTE(refererCode, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(sentEmailDate, qint64, Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(sentEmailCount, int32_t, int32_t);
+    CHECK_AND_SET_ATTRIBUTE(dailyEmailLimit, int32_t, int32_t);
+    CHECK_AND_SET_ATTRIBUTE(emailOptOutDate, qint64, Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(partnerEmailOptInDate, qint64, Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(preferredLanguage, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(preferredCountry, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(clipFullPage, bool, bool);
+    CHECK_AND_SET_ATTRIBUTE(twitterUserName, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(twitterId, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(groupName, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(recognitionLanguage, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(referralProof, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(educationalDiscount, bool, bool);
+    CHECK_AND_SET_ATTRIBUTE(businessAddress, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(hideSponsorBilling, bool, bool);
+    CHECK_AND_SET_ATTRIBUTE(taxExempt, bool, bool);
+    CHECK_AND_SET_ATTRIBUTE(useEmailAutoFiling, bool, bool);
+    CHECK_AND_SET_ATTRIBUTE(reminderEmailConfig, quint8, evernote::edam::ReminderEmailConfig::type);
+
+#undef CHECK_AND_SET_ATTRIBUTE
+
+    bool isSetViewedPromotions = false;
+    in >> isSetViewedPromotions;
+    isSet.viewedPromotions = isSetViewedPromotions;
+    if (isSetViewedPromotions)
+    {
+        quint32 numViewedPromotions = 0;
+        in >> numViewedPromotions;
+        auto & viewedPromotions = userAttributes.viewedPromotions;
+        viewedPromotions.reserve(numViewedPromotions);
+        QString viewedPromotion;
+        for(quint32 i = 0; i < numViewedPromotions; ++i) {
+            in >> viewedPromotion;
+            viewedPromotions.push_back(viewedPromotion.toStdString());
+        }
+    }
+
+    bool isSetRecentMailedAddresses = false;
+    in >> isSetRecentMailedAddresses;
+    isSet.recentMailedAddresses = isSetRecentMailedAddresses;
+    if (isSetRecentMailedAddresses)
+    {
+        quint32 numRecentMailedAddresses = 0;
+        in >> numRecentMailedAddresses;
+        auto & recentMailedAddresses = userAttributes.recentMailedAddresses;
+        recentMailedAddresses.reserve(numRecentMailedAddresses);
+        QString recentMailedAddress;
+        for(quint32 i = 0; i < numRecentMailedAddresses; ++i) {
+            in >> recentMailedAddress;
+            recentMailedAddresses.push_back(recentMailedAddress.toStdString());
+        }
+    }
+
+    return in;
+}
+
+const QByteArray GetSerializedUserAttributes(const evernote::edam::UserAttributes & userAttributes)
+{
+    QByteArray data;
+    QDataStream strm(data);
+    strm << userAttributes;
+
+    return std::move(data);
+}
+
+const evernote::edam::UserAttributes GetDeserializedUserAttributes(const QByteArray & data)
+{
+    evernote::edam::UserAttributes attributes;
     QDataStream strm(data);
     strm >> attributes;
 
