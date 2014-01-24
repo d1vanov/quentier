@@ -102,7 +102,19 @@ bool LocalStorageManager::AddUser(const evernote::edam::User & user, QString & e
         query.addBindValue(serializedUserAttributes);
 
         res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't add user attributes to \"UserAttributes\" table: ");
+        DATABASE_CHECK_AND_SET_ERROR("Can't add user attributes into \"UserAttributes\" table: ");
+    }
+
+    if (user.__isset.accounting)
+    {
+        query.clear();
+        query.prepare("INSERT INTO Accounting (id, data) VALUES(?, ?)");
+        query.addBindValue(QString::number(user.id));
+        QByteArray serializedAccounting = GetSerializedAccounting(user.accounting);
+        query.addBindValue(serializedAccounting);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("Can't add user's accounting info into \"Accounting\" table: ");
     }
 
     // TODO: process Accounting, PremiumInfo and BusinessUserInfo
@@ -1266,6 +1278,11 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  data                    BLOB                    DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("Can't create UserAttributes table: ");
+
+    res = query.exec("CREATE TABLE IF NOT EXITS Accounting("
+                     "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  data                    BLOB                    DEFAULT NULL)");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create Accounting table: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
                      "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "

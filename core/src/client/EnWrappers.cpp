@@ -282,24 +282,6 @@ bool Note::CheckParameters(QString & errorDescription) const
     return true;
 }
 
-const QByteArray GetSerializedNoteAttributes(const evernote::edam::NoteAttributes & noteAttributes)
-{
-    QByteArray data;
-    QDataStream strm(data);
-    strm << noteAttributes;
-
-    return std::move(data);
-}
-
-const evernote::edam::NoteAttributes GetDeserializedNoteAttributes(const QByteArray & data)
-{
-    evernote::edam::NoteAttributes attributes;
-    QDataStream strm(data);
-    strm >> attributes;
-
-    return std::move(attributes);
-}
-
 QDataStream & operator<<(QDataStream & out, const evernote::edam::UserAttributes & userAttributes)
 {
     const auto & isSet = userAttributes.__isset;
@@ -457,22 +439,122 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::UserAttributes & user
     return in;
 }
 
-const QByteArray GetSerializedUserAttributes(const evernote::edam::UserAttributes & userAttributes)
+QDataStream & operator<<(QDataStream & out, const evernote::edam::Accounting & accounting)
 {
-    QByteArray data;
-    QDataStream strm(data);
-    strm << userAttributes;
+    const auto & isSet = accounting.__isset;
 
-    return std::move(data);
+#define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
+    { \
+        bool isSet##attribute = isSet.attribute; \
+        out << isSet##attribute; \
+        if (isSet##attribute) { \
+            out << __VA_ARGS__(accounting.attribute); \
+        } \
+    }
+
+    CHECK_AND_SET_ATTRIBUTE(uploadLimit, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(uploadLimitEnd, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(uploadLimitNextMonth, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(premiumServiceStatus, static_cast<quint8>);
+    CHECK_AND_SET_ATTRIBUTE(premiumOrderNumber, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(premiumCommerceService, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(premiumServiceStart, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(premiumServiceSKU, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(lastSuccessfulCharge, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(lastFailedCharge, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(lastFailedChargeReason, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(nextPaymentDue, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(premiumLockUntil, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(updated, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(premiumSubscriptionNumber, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(lastRequestedCharge, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(currency, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(unitPrice, static_cast<qint32>);
+    CHECK_AND_SET_ATTRIBUTE(businessId, static_cast<qint32>);
+    CHECK_AND_SET_ATTRIBUTE(businessName, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(businessRole, static_cast<quint8>);
+    CHECK_AND_SET_ATTRIBUTE(unitDiscount, static_cast<qint32>);
+    CHECK_AND_SET_ATTRIBUTE(nextChargeDate, static_cast<qint64>);
+
+#undef CHECK_AND_SET_ATTRIBUTE
+
+    return out;
 }
 
-const evernote::edam::UserAttributes GetDeserializedUserAttributes(const QByteArray & data)
+QDataStream & operator>>(QDataStream & in, evernote::edam::Accounting & accounting)
 {
-    evernote::edam::UserAttributes attributes;
-    QDataStream strm(data);
-    strm >> attributes;
+    accounting = evernote::edam::Accounting();
 
-    return std::move(attributes);
+    auto & isSet = accounting.__isset;
+
+#define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
+    { \
+        bool isSet##attribute = false; \
+        in >> isSet##attribute; \
+        isSet.attribute = isSet##attribute; \
+        if (isSet##attribute) { \
+            qtype attribute; \
+            in >> attribute; \
+            accounting.attribute = static_cast<true_type>(attribute __VA_ARGS__); \
+        } \
+    }
+
+    CHECK_AND_SET_ATTRIBUTE(uploadLimit, qint64, int64_t);
+    CHECK_AND_SET_ATTRIBUTE(uploadLimitEnd, qint64, Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(uploadLimitNextMonth, qint64, int64_t);
+    CHECK_AND_SET_ATTRIBUTE(premiumServiceStatus, quint8, evernote::edam::PremiumOrderStatus::type);
+    CHECK_AND_SET_ATTRIBUTE(premiumOrderNumber, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(premiumCommerceService, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(premiumServiceStart, qint64, Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(premiumServiceSKU, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(lastSuccessfulCharge, qint64, int64_t);
+    CHECK_AND_SET_ATTRIBUTE(lastFailedCharge, qint64, int64_t);
+    CHECK_AND_SET_ATTRIBUTE(lastFailedChargeReason, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(nextPaymentDue, qint64, Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(premiumLockUntil, qint64, Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(updated, qint64, Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(premiumSubscriptionNumber, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(lastRequestedCharge, qint64, int64_t);
+    CHECK_AND_SET_ATTRIBUTE(currency, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(unitPrice, qint32, int32_t);
+    CHECK_AND_SET_ATTRIBUTE(businessId, qint32, int32_t);
+    CHECK_AND_SET_ATTRIBUTE(businessName, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(businessRole, quint8, evernote::edam::BusinessUserRole::type);
+    CHECK_AND_SET_ATTRIBUTE(unitDiscount, qint32, int32_t);
+    CHECK_AND_SET_ATTRIBUTE(nextChargeDate, qint64, Timestamp);
+
+#undef CHECK_AND_SET_ATTRIBUTE
+
+    return in;
 }
 
+#define GET_SERIALIZED(type) \
+    const QByteArray GetSerialized##type(const evernote::edam::type & in) \
+    { \
+        QByteArray data; \
+        QDataStream strm(data); \
+        strm << in; \
+        return std::move(data); \
+    }
+
+    GET_SERIALIZED(Accounting)
+    GET_SERIALIZED(UserAttributes)
+    GET_SERIALIZED(NoteAttributes)
+
+#undef GET_SERIALIZED
+
+#define GET_DESERIALIZED(type) \
+    const evernote::edam::type GetDeserialized##type(const QByteArray & data) \
+    { \
+        evernote::edam::type out; \
+        QDataStream strm(data); \
+        strm >> out; \
+        return std::move(out); \
+    }
+
+    GET_DESERIALIZED(Accounting)
+    GET_DESERIALIZED(UserAttributes)
+    GET_DESERIALIZED(NoteAttributes)
+
+#undef GET_DESERIALIZED
 }
