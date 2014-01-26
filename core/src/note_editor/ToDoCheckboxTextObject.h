@@ -8,6 +8,8 @@
 class ToDoCheckboxTextObjectUnchecked: public QObject, public QTextObjectInterface
 {
     Q_OBJECT
+    Q_INTERFACES(QTextObjectInterface)
+
 public:
     explicit ToDoCheckboxTextObjectUnchecked() {}
     virtual ~ToDoCheckboxTextObjectUnchecked() final override {}
@@ -24,6 +26,8 @@ public:
 class ToDoCheckboxTextObjectChecked: public QObject, public QTextObjectInterface
 {
     Q_OBJECT
+    Q_INTERFACES(QTextObjectInterface)
+
 public:
     explicit ToDoCheckboxTextObjectChecked() {}
     virtual ~ToDoCheckboxTextObjectChecked() final override {}

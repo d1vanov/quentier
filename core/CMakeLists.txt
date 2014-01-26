@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 cmake_policy(SET CMP0020 NEW)
-project(qute_note_core)
+project(qutenotecore)
 
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
 
@@ -73,11 +73,8 @@ target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB} ${THRIFT_LIB} ${Boost_
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 
 # install shared library
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  install(TARGETS ${PROJECT_NAME} DESTINATION bin)
-else()
-  install(TARGETS ${PROJECT_NAME} DESTINATION lib)
-endif()
+install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 
 # install headers
 file(GLOB_RECURSE DEPLOY_INCLUDE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.h")

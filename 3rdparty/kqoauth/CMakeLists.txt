@@ -46,11 +46,8 @@ endif()
 set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 # install shared library
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  install(TARGETS ${PROJECT_NAME} DESTINATION bin)
-else()
-  install(TARGETS ${PROJECT_NAME} DESTINATION lib)
-endif()
+install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 
 # install headers
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthmanager.h" DESTINATION include)
