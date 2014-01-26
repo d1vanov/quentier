@@ -71,3 +71,16 @@ target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB} ${THRIFT_LIB} ${Boost_
 
 # modifying sources list with absolute paths for cppcheck
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
+
+# install shared library
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+else()
+  install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+endif()
+
+# install headers
+file(GLOB_RECURSE DEPLOY_INCLUDE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.h")
+foreach(ITEM ${DEPLOY_FILES_AND_DIRS})
+  install(FILES ${ITEM} DESTINATION include)
+endforeach()

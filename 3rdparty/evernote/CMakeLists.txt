@@ -39,3 +39,16 @@ add_library(${PROJECT_NAME} STATIC
 
 # include dirs for cppcheck
 set(${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/sdk/src)
+
+# install shared library
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+else()
+  install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+endif()
+
+# install headers
+file(GLOB_RECURSE DEPLOY_INCLUDE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/sdk/src/*.h")
+foreach(ITEM ${DEPLOY_FILES_AND_DIRS})
+  install(FILES ${ITEM} DESTINATION include)
+endforeach()

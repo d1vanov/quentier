@@ -44,3 +44,15 @@ endif()
 
 # include dirs for cppcheck
 set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+# install shared library
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+else()
+  install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+endif()
+
+# install headers
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthmanager.h" DESTINATION include)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthrequest.h" DESTINATION include)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/kqoauthglobals.h" DESTINATION include)

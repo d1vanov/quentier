@@ -215,3 +215,13 @@ set(${PROJECT_NAME}_INCLUDE_DIRS "src/thrift")
 list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "src/thrift/concurrency")
 list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "src/thrift/protocol")
 list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "src/thrift/transport")
+
+# install shared library
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+else()
+  install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+endif()
+
+# install headers
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/Thrift.h" DESTINATION include)

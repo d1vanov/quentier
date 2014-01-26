@@ -95,3 +95,6 @@ list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/everno
 
 # modify the sources list for cppcheck
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
+
+# install executable
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
