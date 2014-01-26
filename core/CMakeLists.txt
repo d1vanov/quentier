@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0020 NEW)
 project(qute_note_core)
 
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
@@ -51,7 +52,22 @@ add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_SOURCES}
             ${${PROJECT_NAME}_QT_HEADERS_MOC})
 
-target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB})
+if(USE_QT5)
+  qt5_use_modules(${PROJECT_NAME} Core)
+  qt5_use_modules(${PROJECT_NAME} Gui)
+  qt5_use_modules(${PROJECT_NAME} Widgets)
+  qt5_use_modules(${PROJECT_NAME} Network)
+  qt5_use_modules(${PROJECT_NAME} Webkit)
+  qt5_use_modules(${PROJECT_NAME} WebKitWidgets)
+  qt5_use_modules(${PROJECT_NAME} Xml)
+  qt5_use_modules(${PROJECT_NAME} Sql)
+else()
+  target_link_libraries(${PROJECT_NAME}
+                        ${QT_LIBRARIES})
+endif()
+
+target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB} ${THRIFT_LIB} ${Boost_LIBRARIES}
+                      ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES})
 
 # modifying sources list with absolute paths for cppcheck
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})

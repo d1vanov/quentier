@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0020 NEW)
 
 add_subdirectory(thrift)
 get_directory_property(THRIFT_LIB DIRECTORY thrift DEFINITION PROJECT_NAME)

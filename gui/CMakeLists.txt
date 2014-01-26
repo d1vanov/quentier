@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0020 NEW)
 project(QuteNote)
 
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
@@ -70,11 +71,8 @@ else()
 endif()
 
 target_link_libraries(${PROJECT_NAME}
-                      ${THRIFT_LIB}
                       ${KQOAUTH_LIB}
                       ${SIMPLECRYPT_LIB}
-                      ${OPENSSL_LIBRARIES}
-                      ${LIBXML2_LIBRARIES}
                       ${QUTE_NOTE_CORE_LIB})
 
 if(LIBCPP)

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0020 NEW)
 project(evernote_sdk)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../thrift/src"

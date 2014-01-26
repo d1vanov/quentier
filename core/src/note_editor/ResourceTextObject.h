@@ -15,8 +15,6 @@ QT_FORWARD_DECLARE_CLASS(Resource)
 class ResourceTextObject: public QObject, public QTextObjectInterface
 {
     Q_OBJECT
-    Q_INTERFACES(QTextObjectInterface)
-
 public:
     explicit ResourceTextObject(const evernote::edam::Resource & resource);
     ResourceTextObject(const ResourceTextObject & other);
