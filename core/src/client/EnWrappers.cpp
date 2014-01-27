@@ -3,6 +3,80 @@
 
 namespace qute_note {
 
+QDataStream & operator<<(QDataStream & out, const evernote::edam::PremiumInfo & info)
+{
+    out << static_cast<qint64>(info.currentTime);
+    out << info.premium;
+    out << info.premiumRecurring;
+
+    const auto & isSet = info.__isset;
+
+#define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
+    { \
+        bool isSet##attribute = isSet.attribute; \
+        out << isSet##attribute; \
+        if (isSet##attribute) { \
+            out << __VA_ARGS__(info.attribute); \
+        } \
+    }
+
+    CHECK_AND_SET_ATTRIBUTE(premiumExpirationDate, static_cast<qint64>);
+
+    out << info.premiumExtendable;
+    out << info.premiumPending;
+    out << info.premiumCancellationPending;
+    out << info.canPurchaseUploadAllowance;
+
+    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupName, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupRole, static_cast<quint8>);
+    CHECK_AND_SET_ATTRIBUTE(premiumUpgradable);
+
+#undef CHECK_AND_SET_ATTRIBUTE
+
+    return out;
+}
+
+QDataStream & operator>>(QDataStream & in, evernote::edam::PremiumInfo & info)
+{
+    info = evernote::edam::PremiumInfo();
+
+    qint64 currentTime;
+    in >> currentTime;
+    info.currentTime = static_cast<Timestamp>(currentTime);
+
+    in >> info.premium;
+    in >> info.premiumRecurring;
+
+    auto & isSet = info.__isset;
+
+#define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
+    { \
+        bool isSet##attribute = false; \
+        in >> isSet##attribute; \
+        isSet.attribute = isSet##attribute; \
+        if (isSet##attribute) { \
+            qtype attribute; \
+            in >> attribute; \
+            info.attribute = static_cast<true_type>(attribute __VA_ARGS__); \
+        } \
+    }
+
+    CHECK_AND_SET_ATTRIBUTE(premiumExpirationDate, qint64, Timestamp);
+
+    in >> info.premiumExtendable;
+    in >> info.premiumPending;
+    in >> info.premiumCancellationPending;
+    in >> info.canPurchaseUploadAllowance;
+
+    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupName, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupRole, quint8, evernote::edam::SponsoredGroupRole::type);
+    CHECK_AND_SET_ATTRIBUTE(premiumUpgradable, bool, bool);
+
+#undef CHECK_AND_SET_ATTRIBUTE
+
+    return in;
+}
+
 QDataStream & operator<<(QDataStream & out, const evernote::edam::NoteAttributes & noteAttributes)
 {
     const auto & isSet = noteAttributes.__isset;
@@ -537,6 +611,7 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::Accounting & accounti
         return std::move(data); \
     }
 
+    GET_SERIALIZED(PremiumInfo)
     GET_SERIALIZED(Accounting)
     GET_SERIALIZED(UserAttributes)
     GET_SERIALIZED(NoteAttributes)
@@ -552,6 +627,7 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::Accounting & accounti
         return std::move(out); \
     }
 
+    GET_DESERIALIZED(PremiumInfo)
     GET_DESERIALIZED(Accounting)
     GET_DESERIALIZED(UserAttributes)
     GET_DESERIALIZED(NoteAttributes)

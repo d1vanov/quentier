@@ -117,7 +117,19 @@ bool LocalStorageManager::AddUser(const evernote::edam::User & user, QString & e
         DATABASE_CHECK_AND_SET_ERROR("Can't add user's accounting info into \"Accounting\" table: ");
     }
 
-    // TODO: process Accounting, PremiumInfo and BusinessUserInfo
+    if (user.__isset.premiumInfo)
+    {
+        query.clear();
+        query.prepare("INSERT INTO PremiumInfo (id, data) VALUES(?, ?)");
+        query.addBindValue(QString::number(user.id));
+        QByteArray serializedPremiumInfo = GetSerializedPremiumInfo(user.premiumInfo);
+        query.addBindValue(serializedPremiumInfo);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("Can't add user's premium info into \"Premium Info\" table: ");
+    }
+
+    // TODO: process BusinessUserInfo
     return true;
 }
 
@@ -1283,6 +1295,11 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  data                    BLOB                    DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("Can't create Accounting table: ");
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS PremiumInfo("
+                     "  if REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  data                    BLOB                    DEFAULT NULL)");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create PremiumInfo table: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
                      "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
