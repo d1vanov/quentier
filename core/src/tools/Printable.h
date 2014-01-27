@@ -6,6 +6,10 @@
 
 namespace qute_note {
 
+/**
+ * @brief The Printable class is the interface for QuteNote's internal classes
+ * which should be able to write themselves into QTextStream and/or convert to QString
+ */
 class Printable {
 public:
     virtual ~Printable();
@@ -19,5 +23,17 @@ public:
 };
 
 } // namespace qute_note
+
+// QTextStream operators for existing classes not inheriting from Printable
+
+namespace evernote {
+namespace edam {
+
+QT_FORWARD_DECLARE_CLASS(BusinessUserInfo)
+
+}
+}
+
+QTextStream & operator << (QTextStream & strm, const evernote::edam::BusinessUserInfo & info);
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H
