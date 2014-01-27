@@ -217,8 +217,7 @@ list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "src/thrift/protocol")
 list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "src/thrift/transport")
 
 # install shared library
-install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib)
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
 
 # install headers
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/thrift/Thrift.h" DESTINATION include)
