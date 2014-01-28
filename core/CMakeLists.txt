@@ -69,6 +69,26 @@ endif()
 target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB} ${THRIFT_LIB} ${Boost_LIBRARIES}
                       ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES})
 
+set(TEST_HEADERS
+    src/tests/SerializationTests.h
+    src/tests/CoreTester.h)
+
+set(TEST_SOURCES
+    src/tests/SerializationTests.cpp
+    src/tests/CoreTester.cpp
+    src/tests/CoreTestMain.cpp)
+
+add_executable(test_${PROJECT_NAME} ${TEST_HEADERS} ${TEST_SOURCES})
+add_test(test_${PROJECT_NAME} test_${PROJECT_NAME})
+target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
+
+if(USE_QT5)
+  qt5_use_modules(${PROJECT_NAME} Core)
+  qt5_use_modules(${PROJECT_NAME} Test)
+else()
+  target_link_libraries(test_${PROJECT_NAME} ${QT_LIBRARIES})
+endif()
+
 # modifying sources list with absolute paths for cppcheck
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 

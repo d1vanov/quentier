@@ -36,4 +36,12 @@ QT_FORWARD_DECLARE_CLASS(BusinessUserInfo)
 
 QTextStream & operator << (QTextStream & strm, const evernote::edam::BusinessUserInfo & info);
 
+template<class T>
+const QString ToQString(const T & object)
+{
+    QTextStream strm;
+    strm << object;
+    return std::move(strm.readAll());
+}
+
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

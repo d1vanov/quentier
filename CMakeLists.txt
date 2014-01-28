@@ -9,6 +9,8 @@ include("cmake/libxml2.cmake")
 include("cmake/openssl.cmake")
 include("cmake/prepend.cmake")
 
+enable_testing()
+
 add_subdirectory(3rdparty)
 get_directory_property(THRIFT_LIB DIRECTORY 3rdparty DEFINITION THRIFT_LIB)
 get_directory_property(THRIFT_INCLUDE_DIRS DIRECTORY 3rdparty DEFINITION ${THRIFT_LIB}_INCLUDE_DIRS)
