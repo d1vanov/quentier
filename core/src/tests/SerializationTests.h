@@ -9,6 +9,8 @@ namespace test {
 
 bool TestBusinessUserInfoSerialization(QString & errorDescription);
 
+bool TestPremiumInfoSerialization(QString & errorDescription);
+
 }
 }
 

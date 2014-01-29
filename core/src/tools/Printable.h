@@ -30,18 +30,21 @@ namespace evernote {
 namespace edam {
 
 QT_FORWARD_DECLARE_CLASS(BusinessUserInfo)
+QT_FORWARD_DECLARE_CLASS(PremiumInfo)
 
 }
 }
 
 QTextStream & operator << (QTextStream & strm, const evernote::edam::BusinessUserInfo & info);
+QTextStream & operator << (QTextStream & strm, const evernote::edam::PremiumInfo & info);
 
 template<class T>
 const QString ToQString(const T & object)
 {
-    QTextStream strm;
+    QString str;
+    QTextStream strm(&str, QIODevice::WriteOnly);
     strm << object;
-    return std::move(strm.readAll());
+    return std::move(str);
 }
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

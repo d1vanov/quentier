@@ -17,6 +17,9 @@ void CoreTester::serializationTests()
     QString error;
     bool res = TestBusinessUserInfoSerialization(error);
     QVERIFY2(res == true, error.toStdString().c_str());
+
+    res = TestPremiumInfoSerialization(error);
+    QVERIFY2(res == true, error.toStdString().c_str());
 }
 
 }

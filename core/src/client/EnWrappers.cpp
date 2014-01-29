@@ -655,7 +655,7 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::Accounting & accounti
     const QByteArray GetSerialized##type(const evernote::edam::type & in) \
     { \
         QByteArray data; \
-        QDataStream strm(data); \
+        QDataStream strm(&data, QIODevice::WriteOnly); \
         strm << in; \
         return std::move(data); \
     }
