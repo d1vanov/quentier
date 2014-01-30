@@ -98,4 +98,44 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::Accounting &
     return strm;
 }
 
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::UserAttributes & attributes)
+{
+    strm << "UserAttributes: {\n";
+
+    const auto & isSet = attributes.__isset;
+
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, defaultLocationName, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, defaultLatitude);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, defaultLongitude);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, preactivation);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, incomingEmailAddress, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, comments, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, dateAgreedToTermsOfService, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, maxReferrals);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, referralCount);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, refererCode, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, sentEmailDate, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, sentEmailCount);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, dailyEmailLimit);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, emailOptOutDate, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, partnerEmailOptInDate, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, preferredLanguage, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, preferredCountry, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, clipFullPage);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, twitterUserName, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, twitterId, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, groupName, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, recognitionLanguage, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, referralProof, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, educationalDiscount);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, businessAddress, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, hideSponsorBilling);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, taxExempt);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, useEmailAutoFiling);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderEmailConfig, static_cast<quint8>);
+
+    strm << "}; \n";
+    return strm;
+}
+
 #undef CHECK_AND_PRINT_ATTRIBUTE

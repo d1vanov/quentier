@@ -9,21 +9,18 @@
 
 namespace qute_note {
 
-// TODO: create test for these both operators working right with each other
 QDataStream & operator<<(QDataStream & out, const evernote::edam::BusinessUserInfo & info);
 QDataStream & operator>>(QDataStream & in, evernote::edam::BusinessUserInfo & info);
 
 const QByteArray GetSerializedBusinessUserInfo(const evernote::edam::BusinessUserInfo & info);
 const evernote::edam::BusinessUserInfo GetDeserializedBusinessUserInfo(const QByteArray & data);
 
-// TODO: create test for these both operators working right with each other
 QDataStream & operator<<(QDataStream & out, const evernote::edam::PremiumInfo & info);
 QDataStream & operator>>(QDataStream & in, evernote::edam::PremiumInfo & info);
 
 const QByteArray GetSerializedPremiumInfo(const evernote::edam::PremiumInfo & info);
 const evernote::edam::PremiumInfo GetDeserializedPremiumInfo(const QByteArray & data);
 
-// TODO: create test for these both operators working right with each other
 QDataStream & operator<<(QDataStream & out, const evernote::edam::Accounting & accounting);
 QDataStream & operator>>(QDataStream & in, evernote::edam::Accounting & accounting);
 
