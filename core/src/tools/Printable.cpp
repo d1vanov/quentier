@@ -64,4 +64,38 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::PremiumInfo 
     return strm;
 }
 
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::Accounting & accounting)
+{
+    strm << "Accounting: {\n";
+
+    const auto & isSet = accounting.__isset;
+
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, uploadLimit, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, uploadLimitEnd, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, uploadLimitNextMonth, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumServiceStatus, static_cast<quint8>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumOrderNumber, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumCommerceService, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumServiceStart, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumServiceSKU, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastSuccessfulCharge, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastFailedCharge, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastFailedChargeReason, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, nextPaymentDue, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumLockUntil, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, updated, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumSubscriptionNumber, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastRequestedCharge, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, currency, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, unitPrice, static_cast<qint32>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, businessId, static_cast<qint32>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, businessName, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, businessRole, static_cast<quint8>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, unitDiscount, static_cast<qint32>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, nextChargeDate, static_cast<qint64>);
+
+    strm << "}; \n";
+    return strm;
+}
+
 #undef CHECK_AND_PRINT_ATTRIBUTE

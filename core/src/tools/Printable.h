@@ -31,12 +31,14 @@ namespace edam {
 
 QT_FORWARD_DECLARE_CLASS(BusinessUserInfo)
 QT_FORWARD_DECLARE_CLASS(PremiumInfo)
+QT_FORWARD_DECLARE_CLASS(Accounting)
 
 }
 }
 
 QTextStream & operator << (QTextStream & strm, const evernote::edam::BusinessUserInfo & info);
 QTextStream & operator << (QTextStream & strm, const evernote::edam::PremiumInfo & info);
+QTextStream & operator << (QTextStream & strm, const evernote::edam::Accounting & accounting);
 
 template<class T>
 const QString ToQString(const T & object)

@@ -119,5 +119,152 @@ bool TestPremiumInfoSerialization(QString & errorDescription)
     return true;
 }
 
+bool TestAccountingSerialization(QString & errorDescription)
+{
+    evernote::edam::Accounting accounting;
+    auto & isSet = accounting.__isset;
+
+    // number of optional data components in Accounting
+#define ACCOUNTING_NUM_COMPONENTS 23
+    for(int mask = 0; mask != (1 << ACCOUNTING_NUM_COMPONENTS); ++mask)
+    {
+        accounting = evernote::edam::Accounting();
+
+        std::bitset<ACCOUNTING_NUM_COMPONENTS> bits(mask);
+
+        isSet.uploadLimit = bits[0];
+        isSet.uploadLimitEnd = bits[1];
+        isSet.uploadLimitNextMonth = bits[2];
+        isSet.premiumServiceStatus = bits[3];
+        isSet.premiumOrderNumber = bits[4];
+        isSet.premiumCommerceService = bits[5];
+        isSet.premiumServiceStart = bits[6];
+        isSet.premiumServiceSKU = bits[7];
+        isSet.lastSuccessfulCharge = bits[8];
+        isSet.lastFailedCharge = bits[9];
+        isSet.lastFailedChargeReason = bits[10];
+        isSet.nextPaymentDue = bits[11];
+        isSet.premiumLockUntil = bits[12];
+        isSet.updated = bits[13];
+        isSet.premiumSubscriptionNumber = bits[14];
+        isSet.lastRequestedCharge = bits[15];
+        isSet.currency = bits[16];
+        isSet.unitPrice = bits[17];
+        isSet.businessId = bits[18];
+        isSet.businessName = bits[19];
+        isSet.businessRole = bits[20];
+        isSet.unitDiscount = bits[21];
+        isSet.nextChargeDate = bits[22];
+
+        if (isSet.uploadLimit) {
+            accounting.uploadLimit = 512;
+        }
+
+        if (isSet.uploadLimitEnd) {
+            accounting.uploadLimitEnd = 1024;
+        }
+
+        if (isSet.uploadLimitNextMonth) {
+            accounting.uploadLimitNextMonth = 2048;
+        }
+
+        if (isSet.premiumServiceStatus) {
+            accounting.premiumServiceStatus = evernote::edam::PremiumOrderStatus::ACTIVE;
+        }
+
+        if (isSet.premiumOrderNumber) {
+            accounting.premiumOrderNumber = "mycoolpremiumordernumberhah";
+        }
+
+        if (isSet.premiumCommerceService) {
+            accounting.premiumCommerceService = "atyourservice";
+        }
+
+        if (isSet.premiumServiceStart) {
+            accounting.premiumServiceStart = static_cast<Timestamp>(300);
+        }
+
+        if (isSet.premiumServiceSKU) {
+            accounting.premiumServiceSKU = "premiumservicesku";
+        }
+
+        if (isSet.lastSuccessfulCharge) {
+            accounting.lastSuccessfulCharge = static_cast<Timestamp>(305);
+        }
+
+        if (isSet.lastFailedCharge) {
+            accounting.lastFailedCharge = static_cast<Timestamp>(295);
+        }
+
+        if (isSet.lastFailedChargeReason) {
+            accounting.lastFailedChargeReason = "youtriedtotrickme!";
+        }
+
+        if (isSet.nextPaymentDue) {
+            accounting.nextPaymentDue = static_cast<Timestamp>(400);
+        }
+
+        if (isSet.premiumLockUntil) {
+            accounting.premiumLockUntil = static_cast<Timestamp>(310);
+        }
+
+        if (isSet.updated) {
+            accounting.updated = static_cast<Timestamp>(306);
+        }
+
+        if (isSet.premiumSubscriptionNumber) {
+            accounting.premiumSubscriptionNumber = "premiumsubscriptionnumber";
+        }
+
+        if (isSet.lastRequestedCharge) {
+            accounting.lastRequestedCharge = static_cast<Timestamp>(297);
+        }
+
+        if (isSet.currency) {
+            accounting.currency = "USD";
+        }
+
+        if (isSet.unitPrice) {
+            accounting.unitPrice = 25;
+        }
+
+        if (isSet.businessId) {
+            accounting.businessId = 1234558;
+        }
+
+        if (isSet.businessName) {
+            accounting.businessName = "businessname";
+        }
+
+        if (isSet.businessRole) {
+            accounting.businessRole = evernote::edam::BusinessUserRole::NORMAL;
+        }
+
+        if (isSet.unitDiscount) {
+            accounting.unitDiscount = 5;
+        }
+
+        if (isSet.nextChargeDate) {
+            accounting.nextChargeDate = static_cast<Timestamp>(395);
+        }
+
+        QByteArray serializedAccounting = GetSerializedAccounting(accounting);
+        evernote::edam::Accounting deserializedAccounting = GetDeserializedAccounting(serializedAccounting);
+
+        if (accounting != deserializedAccounting)
+        {
+            errorDescription = "Serialization test for Accounting FAILED! ";
+            errorDescription.append("Initial Accounting: ");
+            errorDescription.append(ToQString<evernote::edam::Accounting>(accounting));
+            errorDescription.append("Deserialized Accounting: ");
+            errorDescription.append(ToQString<evernote::edam::Accounting>(deserializedAccounting));
+
+            return false;
+        }
+    }
+
+    return true;
+}
+
 }
 }

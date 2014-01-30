@@ -11,6 +11,8 @@ bool TestBusinessUserInfoSerialization(QString & errorDescription);
 
 bool TestPremiumInfoSerialization(QString & errorDescription);
 
+bool TestAccountingSerialization(QString & errorDescription);
+
 }
 }
 

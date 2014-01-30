@@ -20,6 +20,9 @@ void CoreTester::serializationTests()
 
     res = TestPremiumInfoSerialization(error);
     QVERIFY2(res == true, error.toStdString().c_str());
+
+    res = TestAccountingSerialization(error);
+    QVERIFY2(res == true, error.toStdString().c_str());
 }
 
 }
