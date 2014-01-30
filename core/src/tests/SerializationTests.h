@@ -13,6 +13,9 @@ bool TestPremiumInfoSerialization(QString & errorDescription);
 
 bool TestAccountingSerialization(QString & errorDescription);
 
+// TODO: finish this one
+bool TestUserAttributesSerialization(QString & errorDescription);
+
 }
 }
 

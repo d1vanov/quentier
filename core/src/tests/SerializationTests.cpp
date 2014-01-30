@@ -263,6 +263,41 @@ bool TestAccountingSerialization(QString & errorDescription)
         }
     }
 
+#undef ACCOUNTING_NUM_COMPONENTS
+
+    return true;
+}
+
+bool TestUserAttributesSerialization(QString & /* errorDescription */)
+{
+    evernote::edam::UserAttributes attributes;
+    auto & isSet = attributes.__isset;
+
+    // number of optional data components in UserAttributes
+#define USER_ATTRIBUTES_NUM_COMPONENTS 31
+    for(int mask = 0; mask != (1 << USER_ATTRIBUTES_NUM_COMPONENTS); ++mask)
+    {
+        attributes = evernote::edam::UserAttributes();
+
+        std::bitset<USER_ATTRIBUTES_NUM_COMPONENTS> bits(mask);
+
+        isSet.defaultLocationName = bits[0];
+        isSet.defaultLatitude = bits[1];
+        isSet.defaultLongitude = bits[2];
+        isSet.preactivation = bits[3];
+        isSet.incomingEmailAddress = bits[4];
+        isSet.comments = bits[5];
+        isSet.dateAgreedToTermsOfService = bits[6];
+        isSet.maxReferrals = bits[7];
+        isSet.referralCount = bits[8];
+        isSet.refererCode = bits[9];
+        isSet.sentEmailDate = bits[10];
+
+        // TODO: continue from here, think of minimizing the number of optional params, it's too large now
+    }
+
+#undef USER_ATTRIBUTES_NUM_COMPONENTS
+
     return true;
 }
 
