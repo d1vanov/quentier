@@ -14,7 +14,10 @@ public:
     virtual ~CoreTester();
 
 private slots:
-    void serializationTests();
+    void serializationTestBusinessUserInfo();
+    void serializationTestPremiumInfo();
+    void serializationTestAccounting();
+    void serializationTestUserAttributes();
 
 private:
     CoreTester(const CoreTester & other) = delete;

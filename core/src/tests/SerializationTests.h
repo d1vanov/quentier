@@ -13,7 +13,9 @@ bool TestPremiumInfoSerialization(QString & errorDescription);
 
 bool TestAccountingSerialization(QString & errorDescription);
 
-// TODO: finish this one
+// NOTE: this test is intentionally incomplete because checks for all possible
+// combinations of set/unset parameters would run too long. Some parameters are
+// are considered set/unset only if some other parameters are set/unset too.
 bool TestUserAttributesSerialization(QString & errorDescription);
 
 }

@@ -12,18 +12,20 @@ CoreTester::CoreTester(QObject * parent) :
 CoreTester::~CoreTester()
 {}
 
-void CoreTester::serializationTests()
-{
-    QString error;
-    bool res = TestBusinessUserInfoSerialization(error);
-    QVERIFY2(res == true, error.toStdString().c_str());
+#define TEST(component) \
+    void CoreTester::serializationTest##component() \
+    { \
+        QString error; \
+        bool res = Test##component##Serialization(error); \
+        QVERIFY2(res == true, error.toStdString().c_str()); \
+    }
 
-    res = TestPremiumInfoSerialization(error);
-    QVERIFY2(res == true, error.toStdString().c_str());
+TEST(BusinessUserInfo)
+TEST(PremiumInfo)
+TEST(Accounting)
+TEST(UserAttributes)
 
-    res = TestAccountingSerialization(error);
-    QVERIFY2(res == true, error.toStdString().c_str());
-}
+#undef TEST
 
 }
 }

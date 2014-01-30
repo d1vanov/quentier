@@ -268,13 +268,13 @@ bool TestAccountingSerialization(QString & errorDescription)
     return true;
 }
 
-bool TestUserAttributesSerialization(QString & /* errorDescription */)
+bool TestUserAttributesSerialization(QString & errorDescription)
 {
     evernote::edam::UserAttributes attributes;
     auto & isSet = attributes.__isset;
 
     // number of optional data components in UserAttributes
-#define USER_ATTRIBUTES_NUM_COMPONENTS 31
+#define USER_ATTRIBUTES_NUM_COMPONENTS 20
     for(int mask = 0; mask != (1 << USER_ATTRIBUTES_NUM_COMPONENTS); ++mask)
     {
         attributes = evernote::edam::UserAttributes();
@@ -283,17 +283,159 @@ bool TestUserAttributesSerialization(QString & /* errorDescription */)
 
         isSet.defaultLocationName = bits[0];
         isSet.defaultLatitude = bits[1];
-        isSet.defaultLongitude = bits[2];
-        isSet.preactivation = bits[3];
-        isSet.incomingEmailAddress = bits[4];
-        isSet.comments = bits[5];
-        isSet.dateAgreedToTermsOfService = bits[6];
-        isSet.maxReferrals = bits[7];
-        isSet.referralCount = bits[8];
-        isSet.refererCode = bits[9];
-        isSet.sentEmailDate = bits[10];
+        isSet.defaultLongitude = bits[1];
+        isSet.preactivation = bits[2];
+        isSet.incomingEmailAddress = bits[3];
+        isSet.comments = bits[4];
+        isSet.dateAgreedToTermsOfService = bits[5];
+        isSet.maxReferrals = bits[6];
+        isSet.referralCount = bits[6];
+        isSet.refererCode = bits[6];
+        isSet.sentEmailDate = bits[7];
+        isSet.sentEmailCount = bits[7];
+        isSet.dailyEmailLimit = bits[7];
+        isSet.emailOptOutDate = bits[8];
+        isSet.partnerEmailOptInDate = bits[8];
+        isSet.preferredCountry = bits[9];
+        isSet.preferredLanguage = bits[9];
+        isSet.clipFullPage = bits[10];
+        isSet.twitterUserName = bits[11];
+        isSet.twitterId = bits[11];
+        isSet.groupName = bits[12];
+        isSet.recognitionLanguage = bits[13];
+        isSet.referralProof = bits[14];
+        isSet.educationalDiscount = bits[15];
+        isSet.businessAddress = bits[16];
+        isSet.hideSponsorBilling = bits[17];
+        isSet.taxExempt = bits[18];
+        isSet.useEmailAutoFiling = bits[19];
+        isSet.reminderEmailConfig = bits[20];
 
-        // TODO: continue from here, think of minimizing the number of optional params, it's too large now
+        if (isSet.defaultLocationName) {
+            attributes.defaultLocationName = "Saint-Petersburg";
+        }
+
+        if (isSet.defaultLatitude) {
+            attributes.defaultLatitude = 12.0;
+        }
+
+        if (isSet.defaultLongitude) {
+            attributes.defaultLongitude = 42.0;
+        }
+
+        if (isSet.preactivation) {
+            attributes.preactivation = true;
+        }
+
+        if (isSet.incomingEmailAddress) {
+            attributes.incomingEmailAddress = "hola@amigo.com";
+        }
+
+        if (isSet.comments) {
+            attributes.comments = "I always wondered what people write in comments sections like this?";
+        }
+
+        if (isSet.dateAgreedToTermsOfService) {
+            attributes.dateAgreedToTermsOfService = static_cast<Timestamp>(512);
+        }
+
+        if (isSet.maxReferrals) {
+            attributes.maxReferrals = 42;
+        }
+
+        if (isSet.referralCount) {
+            attributes.referralCount = 41;
+        }
+
+        if (isSet.refererCode) {
+            attributes.refererCode = "err, don't know what to write here";
+        }
+
+        if (isSet.sentEmailDate) {
+            attributes.sentEmailDate = static_cast<Timestamp>(100);
+        }
+
+        if (isSet.sentEmailCount) {
+            attributes.sentEmailCount = 10;
+        }
+
+        if (isSet.dailyEmailLimit) {
+            attributes.dailyEmailLimit = 100;
+        }
+
+        if (isSet.emailOptOutDate) {
+            attributes.emailOptOutDate = static_cast<Timestamp>(90);
+        }
+
+        if (isSet.partnerEmailOptInDate) {
+            attributes.partnerEmailOptInDate = static_cast<Timestamp>(80);
+        }
+
+        if (isSet.preferredCountry) {
+            attributes.preferredCountry = "Russia, Soviet one preferably";
+        }
+
+        if (isSet.preferredLanguage) {
+            attributes.preferredLanguage = "Russian. No, seriously, it's a very nice language";
+        }
+
+        if (isSet.clipFullPage) {
+            attributes.clipFullPage = true;
+        }
+
+        if (isSet.twitterUserName) {
+            attributes.twitterUserName = "140 symbols would always be enough for everyone";
+        }
+
+        if (isSet.twitterId) {
+            attributes.twitterId = "why?";
+        }
+
+        if (isSet.groupName) {
+            attributes.groupName = "In Flames. This band's music is pretty neat for long development evenings";
+        }
+
+        if (isSet.recognitionLanguage) {
+            attributes.recognitionLanguage = "Chinese. Haha, come on, try to recognize it";
+        }
+
+        if (isSet.referralProof) {
+            attributes.referralProof = "Always have all the necessary proofs with you";
+        }
+
+        if (isSet.educationalDiscount) {
+            attributes.educationalDiscount = true;
+        }
+
+        if (isSet.businessAddress) {
+            attributes.businessAddress = "Milky Way galaxy";
+        }
+
+        if (isSet.hideSponsorBilling) {
+            attributes.hideSponsorBilling = true;   // Really, hide this annoying thing!
+        }
+
+        if (isSet.taxExempt) {
+            attributes.taxExempt = false;
+        }
+
+        if (isSet.reminderEmailConfig) {
+            attributes.reminderEmailConfig = evernote::edam::ReminderEmailConfig::SEND_DAILY_EMAIL;
+        }
+
+        QByteArray serializedAttributes = GetSerializedUserAttributes(attributes);
+        evernote::edam::UserAttributes deserializedAttributes = GetDeserializedUserAttributes(serializedAttributes);
+
+        if (attributes != deserializedAttributes)
+        {
+            errorDescription = "Serialization test for UserAttributes FAILED! ";
+            errorDescription.append("Initial UserAttributes: ");
+            errorDescription.append(ToQString<evernote::edam::UserAttributes>(attributes));
+            errorDescription.append("Deserialized UserAttributes: ");
+            errorDescription.append(ToQString<evernote::edam::UserAttributes>(deserializedAttributes));
+
+            return false;
+        }
     }
 
 #undef USER_ATTRIBUTES_NUM_COMPONENTS
