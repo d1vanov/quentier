@@ -162,6 +162,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NoteAttribut
     CHECK_AND_PRINT_ATTRIBUTE(attributes, creatorId, static_cast<qint32>);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, lastEditorId, static_cast<qint32>);
 
+    strm << "applicationData is " << (isSet.applicationData ? "set" : "not set") << "\n";
     if (isSet.applicationData)
     {
         const auto & applicationData = attributes.applicationData;
@@ -182,6 +183,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NoteAttribut
         strm << "\n";
     }
 
+    strm << "classificatiopns are " << (isSet.classifications ? "set" : "not set") << "\n";
     if (isSet.classifications)
     {
         const auto & classifications = attributes.classifications;

@@ -443,13 +443,13 @@ bool TestUserAttributesSerialization(QString & errorDescription)
     return true;
 }
 
-bool TestNoteAttributesSerialization(QString &errorDescription)
+bool TestNoteAttributesSerialization(QString & errorDescription)
 {
     evernote::edam::NoteAttributes attributes;
     auto & isSet = attributes.__isset;
 
     // number of optional data components in NoteAttributes
-#define NOTE_ATTRIBUTES_NUM_COMPONENTS 12
+#define NOTE_ATTRIBUTES_NUM_COMPONENTS 19
     for(int mask = 0; mask != (1 << NOTE_ATTRIBUTES_NUM_COMPONENTS); ++mask)
     {
         attributes = evernote::edam::NoteAttributes();
@@ -458,28 +458,27 @@ bool TestNoteAttributesSerialization(QString &errorDescription)
 
         isSet.subjectDate = bits[0];
         isSet.latitude = bits[1];
-        isSet.longitude = bits[1];
-        isSet.altitude = bits[1];
-        isSet.author = bits[2];
-        isSet.source = bits[3];
-        isSet.sourceURL = bits[4];
-        isSet.sourceApplication = bits[5];
-        isSet.shareDate = bits[6];
-        isSet.reminderOrder = bits[7];
-        isSet.reminderDoneTime = bits[7];
-        isSet.reminderTime = bits[7];
-        isSet.placeName = bits[8];
-        isSet.contentClass = bits[9];
-        isSet.applicationData = bits[10];
-        isSet.lastEditedBy = bits[11];
-        isSet.classifications = true;
-        isSet.creatorId = bits[2];
-        isSet.lastEditorId = bits[11];
+        isSet.longitude = bits[2];
+        isSet.altitude = bits[3];
+        isSet.author = bits[4];
+        isSet.source = bits[5];
+        isSet.sourceURL = bits[6];
+        isSet.sourceApplication = bits[7];
+        isSet.shareDate = bits[8];
+        isSet.reminderOrder = bits[9];
+        isSet.reminderDoneTime = bits[10];
+        isSet.reminderTime = bits[11];
+        isSet.placeName = bits[12];
+        isSet.contentClass = bits[13];
+        isSet.applicationData = bits[14];
+        isSet.lastEditedBy = bits[15];
+        isSet.classifications = bits[16];
+        isSet.creatorId = bits[17];
+        isSet.lastEditorId = bits[18];
 
         if (isSet.subjectDate) {
             attributes.subjectDate = static_cast<Timestamp>(512);
         }
-
 
         if (isSet.latitude) {
             attributes.latitude = 42.0;

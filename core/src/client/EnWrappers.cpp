@@ -158,7 +158,7 @@ QDataStream & operator<<(QDataStream & out, const evernote::edam::NoteAttributes
     CHECK_AND_SET_ATTRIBUTE(lastEditorId, static_cast<qint32>);
 
 #undef CHECK_AND_SET_ATTRIBUTE
-
+    
     bool isSetApplicationData = isSet.applicationData;
     out << isSetApplicationData;
     if (isSetApplicationData)
@@ -236,20 +236,20 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::NoteAttributes & note
     isSet.applicationData = isSetApplicationData;
     if (isSetApplicationData)
     {
-        quint64 numKeys = 0;
+        quint32 numKeys = 0;
         in >> numKeys;
         auto & keys = noteAttributes.applicationData.keysOnly;
         QString key;
-        for(quint64 i = 0; i < numKeys; ++i) {
+        for(quint32 i = 0; i < numKeys; ++i) {
             in >> key;
             keys.insert(key.toStdString());
         }
 
-        quint64 mapSize = 0;
+        quint32 mapSize = 0;
         in >> mapSize;
         auto & map = noteAttributes.applicationData.fullMap;
         QString value;
-        for(quint64 i = 0; i < mapSize; ++i) {
+        for(quint32 i = 0; i < mapSize; ++i) {
             in >> key;
             in >> value;
             map[key.toStdString()] = value.toStdString();
@@ -261,12 +261,12 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::NoteAttributes & note
     isSet.classifications = isSetClassifications;
     if (isSetClassifications)
     {
-        quint64 mapSize = 0;
+        quint32 mapSize;
         in >> mapSize;
         auto & map = noteAttributes.classifications;
         QString key;
         QString value;
-        for(quint64 i = 0; i < mapSize; ++i) {
+        for(quint32 i = 0; i < mapSize; ++i) {
             in >> key;
             in >> value;
             map[key.toStdString()] = value.toStdString();
