@@ -18,6 +18,11 @@ bool TestAccountingSerialization(QString & errorDescription);
 // are considered set/unset only if some other parameters are set/unset too.
 bool TestUserAttributesSerialization(QString & errorDescription);
 
+// NOTE: this test is intentionally incomplete because checks for all possible
+// combinations of set/unset parameters would run too long. Some parameters are
+// are considered set/unset only if some other parameters are set/unset too.
+bool TestNoteAttributesSerialization(QString & errorDescription);
+
 }
 }
 

@@ -33,6 +33,7 @@ QT_FORWARD_DECLARE_CLASS(BusinessUserInfo)
 QT_FORWARD_DECLARE_CLASS(PremiumInfo)
 QT_FORWARD_DECLARE_CLASS(Accounting)
 QT_FORWARD_DECLARE_CLASS(UserAttributes)
+QT_FORWARD_DECLARE_CLASS(NoteAttributes)
 
 }
 }
@@ -41,6 +42,7 @@ QTextStream & operator << (QTextStream & strm, const evernote::edam::BusinessUse
 QTextStream & operator << (QTextStream & strm, const evernote::edam::PremiumInfo & info);
 QTextStream & operator << (QTextStream & strm, const evernote::edam::Accounting & accounting);
 QTextStream & operator << (QTextStream & strm, const evernote::edam::UserAttributes & attributes);
+QTextStream & operator << (QTextStream & strm, const evernote::edam::NoteAttributes & attributes);
 
 template<class T>
 const QString ToQString(const T & object)

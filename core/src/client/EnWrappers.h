@@ -27,14 +27,12 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::Accounting & accounti
 const QByteArray GetSerializedAccounting(const evernote::edam::Accounting & accounting);
 const evernote::edam::Accounting GetDeserializedAccounting(const QByteArray & data);
 
-// TODO: create test for these both operators working right with each other
 QDataStream & operator<<(QDataStream & out, const evernote::edam::UserAttributes & userAttributes);
 QDataStream & operator>>(QDataStream & in, evernote::edam::UserAttributes & userAttributes);
 
 const QByteArray GetSerializedUserAttributes(const evernote::edam::UserAttributes & userAttributes);
 const evernote::edam::UserAttributes GetDeserializedUserAttributes(const QByteArray & data);
 
-// TODO: create test for these both operators working right with each other
 QDataStream & operator<<(QDataStream & out, const evernote::edam::NoteAttributes & noteAttributes);
 QDataStream & operator>>(QDataStream & in, evernote::edam::NoteAttributes & noteAttributes);
 

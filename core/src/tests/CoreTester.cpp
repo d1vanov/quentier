@@ -24,6 +24,7 @@ TEST(BusinessUserInfo)
 TEST(PremiumInfo)
 TEST(Accounting)
 TEST(UserAttributes)
+TEST(NoteAttributes)
 
 #undef TEST
 

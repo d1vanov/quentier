@@ -47,9 +47,9 @@ bool TestBusinessUserInfoSerialization(QString & errorDescription)
         if (info != deserializedInfo)
         {
             errorDescription = "Serialization test for BusinessUserInfo FAILED! ";
-            errorDescription.append("Initial BusinessUserInfo: ");
+            errorDescription.append("Initial BusinessUserInfo: \n");
             errorDescription.append(ToQString<evernote::edam::BusinessUserInfo>(info));
-            errorDescription.append("Deserialized BusinessUserInfo: ");
+            errorDescription.append("Deserialized BusinessUserInfo: \n");
             errorDescription.append(ToQString<evernote::edam::BusinessUserInfo>(deserializedInfo));
 
             return false;
@@ -105,9 +105,9 @@ bool TestPremiumInfoSerialization(QString & errorDescription)
         if (info != deserializedInfo)
         {
             errorDescription = "Serialization test for PremiumInfo FAILED! ";
-            errorDescription.append("Initial PremiumInfo: ");
+            errorDescription.append("Initial PremiumInfo: \n");
             errorDescription.append(ToQString<evernote::edam::PremiumInfo>(info));
-            errorDescription.append("Deserialized PremiumInfo: ");
+            errorDescription.append("Deserialized PremiumInfo: \n");
             errorDescription.append(ToQString<evernote::edam::PremiumInfo>(deserializedInfo));
 
             return false;
@@ -254,9 +254,9 @@ bool TestAccountingSerialization(QString & errorDescription)
         if (accounting != deserializedAccounting)
         {
             errorDescription = "Serialization test for Accounting FAILED! ";
-            errorDescription.append("Initial Accounting: ");
+            errorDescription.append("Initial Accounting: \n");
             errorDescription.append(ToQString<evernote::edam::Accounting>(accounting));
-            errorDescription.append("Deserialized Accounting: ");
+            errorDescription.append("Deserialized Accounting: \n");
             errorDescription.append(ToQString<evernote::edam::Accounting>(deserializedAccounting));
 
             return false;
@@ -429,9 +429,9 @@ bool TestUserAttributesSerialization(QString & errorDescription)
         if (attributes != deserializedAttributes)
         {
             errorDescription = "Serialization test for UserAttributes FAILED! ";
-            errorDescription.append("Initial UserAttributes: ");
+            errorDescription.append("Initial UserAttributes: \n");
             errorDescription.append(ToQString<evernote::edam::UserAttributes>(attributes));
-            errorDescription.append("Deserialized UserAttributes: ");
+            errorDescription.append("Deserialized UserAttributes: \n");
             errorDescription.append(ToQString<evernote::edam::UserAttributes>(deserializedAttributes));
 
             return false;
@@ -439,6 +439,148 @@ bool TestUserAttributesSerialization(QString & errorDescription)
     }
 
 #undef USER_ATTRIBUTES_NUM_COMPONENTS
+
+    return true;
+}
+
+bool TestNoteAttributesSerialization(QString &errorDescription)
+{
+    evernote::edam::NoteAttributes attributes;
+    auto & isSet = attributes.__isset;
+
+    // number of optional data components in NoteAttributes
+#define NOTE_ATTRIBUTES_NUM_COMPONENTS 12
+    for(int mask = 0; mask != (1 << NOTE_ATTRIBUTES_NUM_COMPONENTS); ++mask)
+    {
+        attributes = evernote::edam::NoteAttributes();
+
+        std::bitset<NOTE_ATTRIBUTES_NUM_COMPONENTS> bits(mask);
+
+        isSet.subjectDate = bits[0];
+        isSet.latitude = bits[1];
+        isSet.longitude = bits[1];
+        isSet.altitude = bits[1];
+        isSet.author = bits[2];
+        isSet.source = bits[3];
+        isSet.sourceURL = bits[4];
+        isSet.sourceApplication = bits[5];
+        isSet.shareDate = bits[6];
+        isSet.reminderOrder = bits[7];
+        isSet.reminderDoneTime = bits[7];
+        isSet.reminderTime = bits[7];
+        isSet.placeName = bits[8];
+        isSet.contentClass = bits[9];
+        isSet.applicationData = bits[10];
+        isSet.lastEditedBy = bits[11];
+        isSet.classifications = true;
+        isSet.creatorId = bits[2];
+        isSet.lastEditorId = bits[11];
+
+        if (isSet.subjectDate) {
+            attributes.subjectDate = static_cast<Timestamp>(512);
+        }
+
+
+        if (isSet.latitude) {
+            attributes.latitude = 42.0;
+        }
+
+        if (isSet.longitude) {
+            attributes.longitude = 43.0;
+        }
+
+        if (isSet.altitude) {
+            attributes.altitude = 42.0;
+        }
+
+        if (isSet.author) {
+            attributes.author = "haxpeha";
+        }
+
+        if (isSet.source) {
+            attributes.source = "brain";
+        }
+
+        if (isSet.sourceURL) {
+            attributes.sourceURL = "https://github.com/d1vanov";
+        }
+
+        if (isSet.sourceApplication) {
+            attributes.sourceApplication = "Qt Creator";
+        }
+
+        if (isSet.shareDate) {
+            attributes.shareDate = static_cast<Timestamp>(10);
+        }
+
+        if (isSet.reminderOrder) {
+            attributes.reminderOrder = 2;
+        }
+
+        if (isSet.reminderDoneTime) {
+            attributes.reminderDoneTime = static_cast<Timestamp>(20);
+        }
+
+        if (isSet.reminderTime) {
+            attributes.reminderTime = static_cast<Timestamp>(40);
+        }
+
+        if (isSet.placeName) {
+            attributes.placeName = "My place";
+        }
+
+        if (isSet.contentClass) {
+            attributes.contentClass = "text";
+        }
+
+        if (isSet.applicationData)
+        {
+            auto & applicationData = attributes.applicationData;
+            auto & applicationDataKeys = applicationData.keysOnly;
+            auto & applicationDataMap  = applicationData.fullMap;
+
+            applicationDataKeys.insert("key1");
+            applicationDataKeys.insert("key2");
+            applicationDataKeys.insert("key3");
+
+            applicationDataMap["key1"] = "value1";
+            applicationDataMap["key2"] = "value2";
+            applicationDataMap["key3"] = "value3";
+        }
+
+        if (isSet.lastEditedBy) {
+            attributes.lastEditedBy = "Me";
+        }
+
+        if (isSet.classifications)
+        {
+            auto & classifications = attributes.classifications;
+
+            classifications["classificationKey1"] = "classificationValue1";
+            classifications["classificationKey2"] = "classificationValue2";
+            classifications["classificationKey3"] = "classificationValue3";
+        }
+
+        if (isSet.lastEditorId) {
+            attributes.lastEditorId = static_cast<UserID>(10);
+        }
+
+        QByteArray serializedAttributes = GetSerializedNoteAttributes(attributes);
+        evernote::edam::NoteAttributes deserializedAttributes = GetDeserializedNoteAttributes(serializedAttributes);
+
+        if (attributes != deserializedAttributes)
+        {
+            errorDescription = "Serialization test for NoteAttributes FAILED! ";
+            errorDescription.append("Initial NoteAttributes: \n");
+            errorDescription.append(ToQString<evernote::edam::NoteAttributes>(attributes));
+            errorDescription.append("Deserialized NoteAttributes: \n");
+            errorDescription.append(ToQString<evernote::edam::NoteAttributes>(deserializedAttributes));
+
+            return false;
+        }
+    }
+
+#undef NOTE_ATTRIBUTES_NUM_COMPONENTS
 
     return true;
 }

@@ -138,4 +138,63 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::UserAttribut
     return strm;
 }
 
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::NoteAttributes & attributes)
+{
+    strm << "NoteAttributes: {\n";
+
+    const auto & isSet = attributes.__isset;
+
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, subjectDate, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, latitude);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, longitude);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, altitude);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, author, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, source, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceURL, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceApplication, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, shareDate, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderOrder, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderDoneTime, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderTime, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, placeName, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, contentClass, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, lastEditedBy, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, creatorId, static_cast<qint32>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, lastEditorId, static_cast<qint32>);
+
+    if (isSet.applicationData)
+    {
+        const auto & applicationData = attributes.applicationData;
+        const auto & keysOnly = applicationData.keysOnly;
+        const auto & fullMap = applicationData.fullMap;
+
+        strm << "ApplicationData: keys only: \n";
+        for(const auto & key: keysOnly) {
+            strm << QString::fromStdString(key) << "; ";
+        }
+        strm << "\n";
+
+        strm << "ApplicationData: full map: \n";
+        for(const auto & pair: fullMap) {
+            strm << "(" << QString::fromStdString(pair.first)
+                 << ", " << QString::fromStdString(pair.second) << "); ";
+        }
+        strm << "\n";
+    }
+
+    if (isSet.classifications)
+    {
+        const auto & classifications = attributes.classifications;
+        strm << "Classifications: \n";
+        for(const auto & pair: classifications) {
+            strm << "(" << QString::fromStdString(pair.first)
+                 << ", " << QString::fromStdString(pair.second) << "); ";
+        }
+        strm << "\n";
+    }
+
+    strm << "}; \n";
+    return strm;
+}
+
 #undef CHECK_AND_PRINT_ATTRIBUTE
