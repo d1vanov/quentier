@@ -37,6 +37,8 @@ public:
     void SetNewAuthenticationToken(const QString & authenticationToken);
 
     bool AddUser(const evernote::edam::User & user, QString & errorDescription);
+    bool UpdateUser(const evernote::edam::User & user, QString & errorDescription);
+
     void SwitchUser(const QString & username, const int32_t userId);
 
     bool AddNotebook(const Notebook & notebook, QString & errorDescription);
@@ -147,6 +149,11 @@ private:
                                  QString & errorDescription);
     bool SetSharedNotebookAttributes(const evernote::edam::SharedNotebook & sharedNotebook,
                                      QString & errorDescription);
+
+    int GetRowId(const QString & tableName, const QString & uniqueKeyName,
+                 const QVariant & uniqueKeyValue) const;
+
+    bool InsertOrReplaceUser(const evernote::edam::User & user, QString & errorDescription);
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;

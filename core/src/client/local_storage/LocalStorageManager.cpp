@@ -55,93 +55,25 @@ void LocalStorageManager::SetNewAuthenticationToken(const QString & authenticati
 
 bool LocalStorageManager::AddUser(const evernote::edam::User & user, QString & errorDescription)
 {
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT INTO Users (id, username, name, timezone, privilege, "
-                  "  creationTimestamp, modificationTimestamp, isDeleted, "
-                  "  deletionTimestamp, isActive) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-#define CHECK_AND_SET_USER_VALUE(column, error, prep) \
-    if (!user.__isset.column) { \
-        errorDescription = QObject::tr(error); \
-        return false; \
-    } \
-    else { \
-        query.addBindValue(prep(user.column)); \
+    int rowId = GetRowId("Users", "id", QVariant(QString::number(user.id)));
+    if (rowId >= 0) {
+        errorDescription = QObject::tr("Can't add user into local storage database, "
+                                       "user with the same id already exists");
+        return false;
     }
 
-    CHECK_AND_SET_USER_VALUE(id, "User ID is not set", QString::number);
-    CHECK_AND_SET_USER_VALUE(username, "Username is not set", QString::fromStdString);
-    CHECK_AND_SET_USER_VALUE(name, "User's name is not set", QString::fromStdString);
-    CHECK_AND_SET_USER_VALUE(timezone, "User's timezone is not set", QString::fromStdString);
-    CHECK_AND_SET_USER_VALUE(created, "User's creation timestamp is not set", QString::number);
-    CHECK_AND_SET_USER_VALUE(updated, "User's modification timestamp is not set", QString::number);
+    return InsertOrReplaceUser(user, errorDescription);
+}
 
-    // Process isDeleted and deletionTimestamp properties specifically
-    if (user.__isset.deleted) {
-        query.addBindValue(QString::number(1));   // isDeleted
-        query.addBindValue(QString::number(user.deleted));   // deletionTimestamp
-    }
-    else {
-        query.addBindValue(QString::number(0));   // isDeleted
-        query.addBindValue(QString::number(0));   // deletionTimestamp
+bool LocalStorageManager::UpdateUser(const evernote::edam::User & user, QString & errorDescription)
+{
+    int rowId = GetRowId("Users", "id", QVariant(QString::number(user.id)));
+    if (rowId < 0) {
+        errorDescription = QObject::tr("Can't update user: user id not found in local storage database");
+        return false;
     }
 
-    CHECK_AND_SET_USER_VALUE(active, "User's active field is not set (should be true)", static_cast<int>);
-
-#undef CHECK_AND_SET_USER_VALUE
-
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't add new user to \"Users\" table: ");
-
-    if (user.__isset.attributes)
-    {
-        query.clear();
-        query.prepare("INSERT INTO UserAttributes (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(user.id));
-        QByteArray serializedUserAttributes = GetSerializedUserAttributes(user.attributes);
-        query.addBindValue(serializedUserAttributes);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't add user attributes into \"UserAttributes\" table: ");
-    }
-
-    if (user.__isset.accounting)
-    {
-        query.clear();
-        query.prepare("INSERT INTO Accounting (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(user.id));
-        QByteArray serializedAccounting = GetSerializedAccounting(user.accounting);
-        query.addBindValue(serializedAccounting);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't add user's accounting info into \"Accounting\" table: ");
-    }
-
-    if (user.__isset.premiumInfo)
-    {
-        query.clear();
-        query.prepare("INSERT INTO PremiumInfo (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(user.id));
-        QByteArray serializedPremiumInfo = GetSerializedPremiumInfo(user.premiumInfo);
-        query.addBindValue(serializedPremiumInfo);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't add user's premium info into \"PremiumInfo\" table: ");
-    }
-
-    if (user.__isset.businessUserInfo)
-    {
-        query.clear();
-        query.prepare("INSERT INTO BusinessUserInfo (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(user.id));
-        QByteArray serializedBusinessUserInfo = GetSerializedBusinessUserInfo(user.businessUserInfo);
-        query.addBindValue(serializedBusinessUserInfo);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't add user's business info into \"BusinessUserInfo\" table: ");
-    }
-
-    return true;
+    return InsertOrReplaceUser(user, errorDescription);
 }
 
 void LocalStorageManager::SwitchUser(const QString & username, const int32_t userId)
@@ -1758,6 +1690,117 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const evernote::edam::Shar
         query.bindValue("vals", values);
         bool res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("Can't set shared notebook attributes to local storage database");
+    }
+
+    return true;
+}
+
+int LocalStorageManager::GetRowId(const QString & tableName, const QString & uniqueKeyName,
+                                  const QVariant & uniqueKeyValue) const
+{
+    int rowId = -1;
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT rowid FROM ? WHERE ? = ?");
+    query.addBindValue(tableName);
+    query.addBindValue(uniqueKeyName);
+    query.addBindValue(uniqueKeyValue);
+
+    query.exec();
+
+    while(query.next()) {
+        rowId = query.value(0).toInt();
+    }
+
+    return rowId;
+}
+
+bool LocalStorageManager::InsertOrReplaceUser(const evernote::edam::User & user, QString & errorDescription)
+{
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("INSERT OR REPLACE INTO Users (id, username, name, timezone, privilege, "
+                  "  creationTimestamp, modificationTimestamp, isDeleted, "
+                  "  deletionTimestamp, isActive) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+#define CHECK_AND_SET_USER_VALUE(column, error, prep) \
+    if (!user.__isset.column) { \
+        errorDescription = QObject::tr(error); \
+        return false; \
+    } \
+    else { \
+        query.addBindValue(prep(user.column)); \
+    }
+
+    CHECK_AND_SET_USER_VALUE(id, "User ID is not set", QString::number);
+    CHECK_AND_SET_USER_VALUE(username, "Username is not set", QString::fromStdString);
+    CHECK_AND_SET_USER_VALUE(name, "User's name is not set", QString::fromStdString);
+    CHECK_AND_SET_USER_VALUE(timezone, "User's timezone is not set", QString::fromStdString);
+    CHECK_AND_SET_USER_VALUE(created, "User's creation timestamp is not set", QString::number);
+    CHECK_AND_SET_USER_VALUE(updated, "User's modification timestamp is not set", QString::number);
+
+    // Process isDeleted and deletionTimestamp properties specifically
+    if (user.__isset.deleted) {
+        query.addBindValue(QString::number(1));   // isDeleted
+        query.addBindValue(QString::number(user.deleted));   // deletionTimestamp
+    }
+    else {
+        query.addBindValue(QString::number(0));   // isDeleted
+        query.addBindValue(QString::number(0));   // deletionTimestamp
+    }
+
+    CHECK_AND_SET_USER_VALUE(active, "User's active field is not set (should be true)", static_cast<int>);
+
+#undef CHECK_AND_SET_USER_VALUE
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace user into \"Users\" table: ");
+
+    if (user.__isset.attributes)
+    {
+        query.clear();
+        query.prepare("INSERT OR REPLACE INTO UserAttributes (id, data) VALUES(?, ?)");
+        query.addBindValue(QString::number(user.id));
+        QByteArray serializedUserAttributes = GetSerializedUserAttributes(user.attributes);
+        query.addBindValue(serializedUserAttributes);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("Can't add user attributes into \"UserAttributes\" table: ");
+    }
+
+    if (user.__isset.accounting)
+    {
+        query.clear();
+        query.prepare("INSERT OR REPLACE INTO Accounting (id, data) VALUES(?, ?)");
+        query.addBindValue(QString::number(user.id));
+        QByteArray serializedAccounting = GetSerializedAccounting(user.accounting);
+        query.addBindValue(serializedAccounting);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("Can't add user's accounting info into \"Accounting\" table: ");
+    }
+
+    if (user.__isset.premiumInfo)
+    {
+        query.clear();
+        query.prepare("INSERT OR REPLACE INTO PremiumInfo (id, data) VALUES(?, ?)");
+        query.addBindValue(QString::number(user.id));
+        QByteArray serializedPremiumInfo = GetSerializedPremiumInfo(user.premiumInfo);
+        query.addBindValue(serializedPremiumInfo);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("Can't add user's premium info into \"PremiumInfo\" table: ");
+    }
+
+    if (user.__isset.businessUserInfo)
+    {
+        query.clear();
+        query.prepare("INSERT OR REPLACE INTO BusinessUserInfo (id, data) VALUES(?, ?)");
+        query.addBindValue(QString::number(user.id));
+        QByteArray serializedBusinessUserInfo = GetSerializedBusinessUserInfo(user.businessUserInfo);
+        query.addBindValue(serializedBusinessUserInfo);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("Can't add user's business info into \"BusinessUserInfo\" table: ");
     }
 
     return true;
