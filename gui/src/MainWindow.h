@@ -46,12 +46,13 @@ private:
 
     void checkAndSetupCredentials(ECredentialsToCheck credentials);
 
-public slots:
+public Q_SLOTS:
     void onSetStatusBarText(QString message, const int duration = 0);
     void onShowAuthWebPage(QUrl url);
     void onRequestUsernameAndPassword();
+    void show();
 
-private slots:
+private Q_SLOTS:
     void noteTextBold();
     void noteTextItalic();
     void noteTextUnderline();

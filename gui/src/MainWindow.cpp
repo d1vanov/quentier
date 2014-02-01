@@ -60,23 +60,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
                      SIGNAL(cancelled(QString)),
                      this, SLOT(onSetStatusBarText(QString)));
 
-    const CredentialsModel & credentials = m_pManager->getCredentials();
-
-    if (credentials.GetConsumerKey().isEmpty() ||
-        credentials.GetConsumerSecret().isEmpty())
-    {
-        checkAndSetupConsumerKeyAndSecret();
-        if (!credentials.GetConsumerKey().isEmpty() &&
-            !credentials.GetConsumerSecret().isEmpty())
-        {
-            checkAndSetupUserNameAndPassword();
-        }
-    }
-    else
-    {
-        checkAndSetupUserNameAndPassword();
-    }
-
     m_pManager->connect();
 }
 
@@ -226,15 +209,27 @@ void MainWindow::checkAndSetupCredentials(MainWindow::ECredentialsToCheck creden
 
     if (noStoredCredentials)
     {
+
+#define ASK_FOR_CREDENTIALS(widgetName)  \
+    { \
+        Q_CHECK_PTR(widgetName); \
+        QRect centralWidgetRect = rect(); \
+        double xCenter = centralWidgetRect.left() + 0.5 * centralWidgetRect.width(); \
+        double yCenter = centralWidgetRect.top() + 0.5 * centralWidgetRect.height(); \
+        widgetName->show(); \
+        xCenter -= widgetName->width() * 0.5; \
+        yCenter -= widgetName->height() * 0.5; \
+        widgetName->move(xCenter, yCenter); \
+        widgetName->raise(); \
+    }
+
         switch(credentialsFlag)
         {
         case CHECK_CONSUMER_KEY_AND_SECRET:
-            Q_CHECK_PTR(m_pAskConsumerKeyAndSecretWidget);
-            m_pAskConsumerKeyAndSecretWidget->show();
+            ASK_FOR_CREDENTIALS(m_pAskConsumerKeyAndSecretWidget);
             break;
         case CHECK_USER_NAME_AND_PASSWORD:
-            Q_CHECK_PTR(m_pAskUserNameAndPasswordWidget);
-            m_pAskUserNameAndPasswordWidget->show();
+            ASK_FOR_CREDENTIALS(m_pAskUserNameAndPasswordWidget);
             break;
         case CHECK_OAUTH_TOKEN_AND_SECRET:
         {
@@ -246,6 +241,8 @@ void MainWindow::checkAndSetupCredentials(MainWindow::ECredentialsToCheck creden
                                   tr("Wrong credentials flag in MainWindow::checkAndSetupCredentials."));
             QApplication::quit();
         }
+
+#undef ASK_FOR_CREDENTIALS
     }
 }
 
@@ -290,6 +287,28 @@ void MainWindow::onShowAuthWebPage(QUrl url)
 void MainWindow::onRequestUsernameAndPassword()
 {
     checkAndSetupUserNameAndPassword();
+}
+
+void MainWindow::show()
+{
+    QMainWindow::show();
+
+    const CredentialsModel & credentials = m_pManager->getCredentials();
+
+    if (credentials.GetConsumerKey().isEmpty() ||
+        credentials.GetConsumerSecret().isEmpty())
+    {
+        checkAndSetupConsumerKeyAndSecret();
+        if (!credentials.GetConsumerKey().isEmpty() &&
+            !credentials.GetConsumerSecret().isEmpty())
+        {
+            checkAndSetupUserNameAndPassword();
+        }
+    }
+    else
+    {
+        checkAndSetupUserNameAndPassword();
+    }
 }
 
 #define FETCH_CURRENT_TEXT_CHAR_FORMAT() \
