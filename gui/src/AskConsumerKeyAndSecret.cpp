@@ -1,6 +1,7 @@
 #include "AskConsumerKeyAndSecret.h"
 #include "ui_AskConsumerKeyAndSecret.h"
 #include <QMessageBox>
+#include <QKeyEvent>
 
 AskConsumerKeyAndSecret::AskConsumerKeyAndSecret(QWidget * parent) :
     QWidget(parent),
@@ -54,4 +55,19 @@ void AskConsumerKeyAndSecret::onCancelButtonPressed()
 {
     emit cancelled(QString(tr("User didn't provide consumer key and secret for application")));
     QWidget::close();
+}
+
+void AskConsumerKeyAndSecret::keyPressEvent(QKeyEvent * pEvent)
+{
+    if (!pEvent) {
+        return;
+    }
+
+    int key = pEvent->key();
+    if ((key == Qt::Key_Enter) || (key == Qt::Key_Return)) {
+        onOkButtonPressed();
+    }
+    else if (key == Qt::Key_Escape) {
+        onCancelButtonPressed();
+    }
 }

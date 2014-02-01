@@ -7,13 +7,13 @@ namespace Ui {
 class AskUserNameAndPassword;
 }
 
-class AskUserNameAndPassword : public QWidget
+class AskUserNameAndPassword: public QWidget
 {
     Q_OBJECT
     
 public:
     explicit AskUserNameAndPassword(QWidget * parent = nullptr);
-    ~AskUserNameAndPassword();
+    virtual ~AskUserNameAndPassword();
     
 signals:
     void userNameAndPasswordEntered(QString name, QString password);
@@ -22,6 +22,9 @@ signals:
 public slots:
     void onOkButtonPressed();
     void onCancelButtonPressed();
+
+protected:
+    virtual void keyPressEvent(QKeyEvent * pEvent) final override;
 
 private:
     Ui::AskUserNameAndPassword * m_pUI;

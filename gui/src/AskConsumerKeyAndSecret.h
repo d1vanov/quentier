@@ -8,12 +8,12 @@ namespace Ui {
 class AskConsumerKeyAndSecret;
 }
 
-class AskConsumerKeyAndSecret : public QWidget
+class AskConsumerKeyAndSecret: public QWidget
 {
     Q_OBJECT
 public:
     explicit AskConsumerKeyAndSecret(QWidget * parent = nullptr);
-    ~AskConsumerKeyAndSecret();
+    virtual ~AskConsumerKeyAndSecret();
     
 signals:
     void consumerKeyAndSecretEntered(QString key, QString secret);
@@ -22,6 +22,9 @@ signals:
 public slots:
     void onOkButtonPressed();
     void onCancelButtonPressed();
+
+protected:
+    virtual void keyPressEvent(QKeyEvent * pEvent) final override;
 
 private:
     Ui::AskConsumerKeyAndSecret * m_pUI;

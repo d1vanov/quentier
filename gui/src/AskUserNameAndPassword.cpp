@@ -1,6 +1,7 @@
 #include "AskUserNameAndPassword.h"
 #include "ui_AskUserNameAndPassword.h"
 #include <QMessageBox>
+#include <QKeyEvent>
 
 AskUserNameAndPassword::AskUserNameAndPassword(QWidget * parent) :
     QWidget(parent),
@@ -53,4 +54,19 @@ void AskUserNameAndPassword::onCancelButtonPressed()
 {
     emit cancelled(QString(tr("User didn't provide user name and password for authentication")));
     QWidget::close();
+}
+
+void AskUserNameAndPassword::keyPressEvent(QKeyEvent *pEvent)
+{
+    if (!pEvent) {
+        return;
+    }
+
+    int key = pEvent->key();
+    if ((key == Qt::Key_Enter) || (key == Qt::Key_Return)) {
+        onOkButtonPressed();
+    }
+    else if (key == Qt::Key_Escape) {
+        onCancelButtonPressed();
+    }
 }
