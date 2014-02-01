@@ -16,7 +16,8 @@ AskUserNameAndPassword::AskUserNameAndPassword(QWidget * parent) :
     if (parent == nullptr) {
         QWidget::setAttribute(Qt::WA_DeleteOnClose);
     }
-    QWidget::setWindowFlags(Qt::Window);
+
+    QWidget::setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
 }
 
 AskUserNameAndPassword::~AskUserNameAndPassword()
