@@ -486,16 +486,25 @@ bool ENMLConverter::encodeFragment(const QTextFragment & fragment,
 
 const QString ENMLConverter::domElementToRawXML(const QDomElement & elem) const
 {
-    QString head = "<" + elem.tagName();
+    QString xml = "<";
+
+    QString elemTagName = elem.tagName();
+    xml += elemTagName;
+
     QDomNamedNodeMap attributes = elem.attributes();
     size_t numAttributes = attributes.size();
     for(size_t i = 0; i < numAttributes; ++i)
     {
         QDomAttr attribute = attributes.item(i).toAttr();
-        head += QString::fromLatin1(" %0=\"%1\"").arg(attribute.name()).arg(attribute.value());
+        xml += QString::fromLatin1(" %0=\"%1\"").arg(attribute.name()).arg(attribute.value());
     }
-    head += ">";
-    return head + elem.text() + "</" + elem.tagName() + ">";
+    xml += ">";
+    xml += elem.text();
+    xml += "</";
+    xml += elemTagName;
+    xml += ">";
+
+    return xml;
 }
 
 bool ENMLConverter::isForbiddenXhtmlTag(const QString & tagName) const
