@@ -10,10 +10,15 @@ namespace edam {
 
 typedef std::string Guid;
 QT_FORWARD_DECLARE_CLASS(User)
+QT_FORWARD_DECLARE_CLASS(UserAttributes)
+QT_FORWARD_DECLARE_CLASS(Accounting)
+QT_FORWARD_DECLARE_CLASS(PremiumInfo)
+QT_FORWARD_DECLARE_CLASS(BusinessUserInfo)
 QT_FORWARD_DECLARE_CLASS(NoteStoreClient)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(SharedNotebook)
+typedef int32_t UserID;
 
 }
 }
@@ -24,22 +29,33 @@ QT_FORWARD_DECLARE_STRUCT(Notebook)
 QT_FORWARD_DECLARE_STRUCT(Note)
 QT_FORWARD_DECLARE_STRUCT(Tag)
 QT_FORWARD_DECLARE_STRUCT(Resource)
+QT_FORWARD_DECLARE_STRUCT(User)
+typedef evernote::edam::UserID UserID;
 
 // TODO: implement all the necessary functionality
 class LocalStorageManager
 {
 public:
-    LocalStorageManager(const QString & username, const int32_t userId,
+    LocalStorageManager(const QString & username, const UserID userId,
                         const QString & authenticationToken,
                         QSharedPointer<evernote::edam::NoteStoreClient> & pNoteStore);
     ~LocalStorageManager();
 
     void SetNewAuthenticationToken(const QString & authenticationToken);
 
-    bool AddUser(const evernote::edam::User & user, QString & errorDescription);
-    bool UpdateUser(const evernote::edam::User & user, QString & errorDescription);
+    void SwitchUser(const QString & username, const UserID userId);
 
-    void SwitchUser(const QString & username, const int32_t userId);
+    bool AddUser(const User & user, QString & errorDescription);
+    bool UpdateUser(const User & user, QString & errorDescription);
+    bool FindUser(const UserID id, User & user, QString & errorDescription) const;
+    bool FindUserAttributes(const UserID id, evernote::edam::UserAttributes & attributes,
+                            QString & errorDescription) const;
+    bool FindAccounting(const UserID id, evernote::edam::Accounting & accounting,
+                        QString & errorDescription) const;
+    bool FindPremiumInfo(const UserID id, evernote::edam::PremiumInfo & info,
+                         QString & errorDescription) const;
+    bool FindBusinessUserInfo(const UserID id, evernote::edam::BusinessUserInfo & info,
+                              QString & errorDescription) const;
 
     bool AddNotebook(const Notebook & notebook, QString & errorDescription);
     bool UpdateNotebook(const Notebook & notebook, QString & errorDescription);
@@ -153,7 +169,7 @@ private:
     int GetRowId(const QString & tableName, const QString & uniqueKeyName,
                  const QVariant & uniqueKeyValue) const;
 
-    bool InsertOrReplaceUser(const evernote::edam::User & user, QString & errorDescription);
+    bool InsertOrReplaceUser(const User & user, QString & errorDescription);
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;
@@ -162,7 +178,7 @@ private:
     QString m_authenticationToken;
     QSharedPointer<evernote::edam::NoteStoreClient> m_pNoteStore;
     QString m_currentUsername;
-    int32_t m_currentUserId;
+    UserID m_currentUserId;
     QString m_applicationPersistenceStoragePath;
 
     QSqlDatabase m_sqlDatabase;

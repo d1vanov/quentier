@@ -39,7 +39,10 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::NoteAttributes & note
 const QByteArray GetSerializedNoteAttributes(const evernote::edam::NoteAttributes & noteAttributes);
 const evernote::edam::NoteAttributes GetDeserializedNoteAttributes(const QByteArray & data);
 
-struct Note {
+struct Note
+{
+    Note() : isDirty(true), isLocal(true), isDeleted(false), en_note() {}
+
     bool isDirty;
     bool isLocal;
     bool isDeleted;
@@ -48,7 +51,10 @@ struct Note {
     bool CheckParameters(QString & errorDescription) const;
 };
 
-struct Notebook {
+struct Notebook
+{
+    Notebook() : isDirty(true), isLocal(true), isLastUsed(false), en_notebook() {}
+
     bool isDirty;
     bool isLocal;
     bool isLastUsed;
@@ -57,16 +63,31 @@ struct Notebook {
     bool CheckParameters(QString & errorDescription) const;
 };
 
-struct Resource {
+struct Resource
+{
+    Resource() : isDirty(true), isLocal(true), en_resource() {}
+
     bool isDirty;
     bool isLocal;
     evernote::edam::Resource en_resource;
 };
 
-struct Tag {
+struct Tag
+{
+    Tag() : isDirty(true), isLocal(true), en_tag() {}
+
     bool isDirty;
     bool isLocal;
     evernote::edam::Tag en_tag;
+};
+
+struct User
+{
+    User() : isDirty(true), isLocal(true), en_user() {}
+
+    bool isDirty;
+    bool isLocal;
+    evernote::edam::User en_user;
 };
 
 typedef evernote::edam::Timestamp Timestamp;
