@@ -57,6 +57,29 @@ public:
     bool FindBusinessUserInfo(const UserID id, evernote::edam::BusinessUserInfo & info,
                               QString & errorDescription) const;
 
+    /**
+     * @brief DeleteUser - either expunges the local user (i.e. deletes it from
+     * local storage completely, without the possibility to restore)
+     * if it has not been synchronized with Evernote service yet or marks
+     * user as deleted otherwise. Evernote API doesn't allow thirdparty
+     * applications to expunge users which have ever been synchronized
+     * with remote data store at least once
+     * @param user - user to be deleted
+     * @param errorDescription - error description if user could not be deleted
+     * @return true if user was deleted successfully, false otherwise
+     */
+    bool DeleteUser(const User & user, QString & errorDescription);
+
+    /**
+     * @brief ExpungeUser - permanently deletes local user i.e. user which
+     * has not yet been synchronized with Evernote service. This method deletes
+     * user from local storage completely, without the possibility to restore
+     * @param user - user to be expunged
+     * @param errorDescription - error description if user could not be expunged
+     * @return true if user was expunged successfully, false otherwise
+     */
+    bool ExpungeUser(const User & user, QString & errorDescription);
+
     bool AddNotebook(const Notebook & notebook, QString & errorDescription);
     bool UpdateNotebook(const Notebook & notebook, QString & errorDescription);
 
@@ -170,6 +193,8 @@ private:
                  const QVariant & uniqueKeyValue) const;
 
     bool InsertOrReplaceUser(const User & user, QString & errorDescription);
+    bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
+    bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;
