@@ -127,9 +127,9 @@ public:
      */
     bool ExpungeNote(const Note & note, QString & errorDescription);
 
-    bool AddTag(const Tag & /* tag */, QString & /* errorDescription */) { return true; }
+    bool AddTag(const Tag & tag, QString & errorDescription);
     bool AddTagToNote(const Tag & tag, const Note & note, QString & errorDescription);
-    bool ReplaceTag(const Tag & tag, QString & errorDescription);
+    bool UpdateTag(const Tag & tag, QString & errorDescription);
 
     /**
      * @brief DeleteTag - either expunges the local tag (i.e. deletes it from
@@ -195,6 +195,7 @@ private:
     bool InsertOrReplaceUser(const User & user, QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
+    bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;

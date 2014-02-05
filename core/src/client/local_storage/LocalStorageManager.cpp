@@ -856,6 +856,60 @@ bool LocalStorageManager::ExpungeNote(const Note & note, QString & errorDescript
     return true;
 }
 
+bool LocalStorageManager::AddTag(const Tag & tag, QString & errorDescription)
+{
+    bool res = tag.CheckParameters(errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    QString guid = QString::fromStdString(tag.en_tag.guid);
+    int rowId = GetRowId("Tags", "guid", QVariant(guid));
+    if (rowId >= 0) {
+        errorDescription = QObject::tr("Can't add tag to local storage database: "
+                                       "tag with the same guid already exists");
+        return false;
+    }
+
+    QString nameUpper = QString::fromStdString(tag.en_tag.name).toUpper();
+    rowId = GetRowId("Tags", "nameUpper", QVariant(nameUpper));
+    if (rowId >= 0) {
+        errorDescription = QObject::tr("Can't add tag to local storage database: "
+                                       "tag with similar name (case insensitive) "
+                                       "already exists");
+        return false;
+    }
+
+    return InsertOrReplaceTag(tag, errorDescription);
+}
+
+bool LocalStorageManager::UpdateTag(const Tag &tag, QString &errorDescription)
+{
+    bool res = tag.CheckParameters(errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    QString guid = QString::fromStdString(tag.en_tag.guid);
+    int rowId = GetRowId("Tags", "guid", QVariant(guid));
+    if (rowId < 0) {
+        errorDescription = QObject::tr("Can't update tag in local storage database: "
+                                       "tag not found");
+        return false;
+    }
+
+    QString nameUpper = QString::fromStdString(tag.en_tag.name).toUpper();
+    rowId = GetRowId("Tags", "nameUpper", QVariant(nameUpper));
+    if (rowId < 0) {
+        errorDescription = QObject::tr("Can't update tag to local storage database: "
+                                       "tag with similar name (case insensitive) "
+                                       "not found");
+        return false;
+    }
+
+    return InsertOrReplaceTag(tag, errorDescription);
+}
+
 // FIXME: reimplement all methods below to comply with new Evernote objects' signature
 
 /*
@@ -1365,15 +1419,15 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  guid                  TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  updateSequenceNumber  INTEGER              NOT NULL, "
                      "  name                  TEXT                 NOT NULL, "
+                     "  nameUpper             TEXT                 NOT NULL, "
                      "  parentGuid            TEXT                 DEFAULT NULL, "
-                     "  searchName            TEXT UNIQUE          NOT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
                      "  isDeleted             INTEGER              DEFAULT 0, "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create Tags table: ");
 
-    res = query.exec("CREATE INDEX TagsSearchName ON Tags(searchName)");
+    res = query.exec("CREATE INDEX TagsSearchName ON Tags(nameUpper)");
     DATABASE_CHECK_AND_SET_ERROR("Can't create TagsSearchName index: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteTags("
@@ -1949,6 +2003,39 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
     }
 
     return SetNoteAttributes(enNote, errorDescription);
+}
+
+bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDescription)
+{
+    // NOTE: this method expects to be called after tag is already checked
+    // for sanity of its parameters!
+
+    const evernote::edam::Tag & enTag = tag.en_tag;
+
+    QString guid = QString::fromStdString(enTag.guid);
+    QString name = QString::fromStdString(enTag.name);
+    QString nameUpper = name.toUpper();
+
+    QString parentGuid = (enTag.__isset.parentGuid ? QString::fromStdString(enTag.parentGuid) : QString());
+
+    QSqlQuery query(m_sqlDatabase);
+
+    query.prepare("INSERT OR REPLACE INTO Tags (guid, updateSequenceNumber, name, "
+                  "nameUpper, parentGuid, isDirty, isLocal, isDeleted) "
+                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?");
+    query.addBindValue(guid);
+    query.addBindValue(enTag.updateSequenceNum);
+    query.addBindValue(name);
+    query.addBindValue(nameUpper);
+    query.addBindValue(parentGuid);
+    query.addBindValue(tag.isDirty ? 1 : 0);
+    query.addBindValue(tag.isLocal ? 1 : 0);
+    query.addBindValue(tag.isDeleted ? 1 : 0);
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace into \"Tags\" table: ");
+
+    return true;
 }
 
 #undef CHECK_GUID

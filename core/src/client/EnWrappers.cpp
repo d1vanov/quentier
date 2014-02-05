@@ -1,5 +1,6 @@
 #include "EnWrappers.h"
 #include <QObject>
+#include <Limits_constants.h>
 
 namespace qute_note {
 
@@ -405,6 +406,72 @@ bool Note::CheckParameters(QString & errorDescription) const
     return true;
 }
 
+bool Tag::CheckParameters(QString & errorDescription) const
+{
+    if (!en_tag.__isset.guid) {
+        errorDescription = QObject::tr("Tag's guid is not set");
+        return false;
+    }
+    else if (!en_wrappers_private::CheckGuid(en_tag.guid)) {
+        errorDescription = QObject::tr("Tag's guid is invalid: ");
+        errorDescription.append(QString::fromStdString(en_tag.guid));
+        return false;
+    }
+
+    if (!en_tag.__isset.name) {
+        errorDescription = QObject::tr("Tag's name is not set");
+        return false;
+    }
+    else {
+        size_t size = en_tag.name.size();
+
+        evernote::limits::LimitsConstants limitConstants;
+
+        if ( (size < limitConstants.EDAM_TAG_NAME_LEN_MIN) ||
+             (size > limitConstants.EDAM_TAG_NAME_LEN_MAX) )
+        {
+            errorDescription = QObject::tr("Tag's name exceeds allowed size: ");
+            errorDescription.append(QString::fromStdString(en_tag.name));
+            return false;
+        }
+
+        if (en_tag.name.at(0) == ' ') {
+            errorDescription = QObject::tr("Tag's name can't begin from space: ");
+            errorDescription.append(QString::fromStdString(en_tag.name));
+            return false;
+        }
+        else if (en_tag.name.at(en_tag.name.length() - 1) == ' ') {
+            errorDescription = QObject::tr("Tag's name can't end with space: ");
+            errorDescription.append(QString::fromStdString(en_tag.name));
+            return false;
+        }
+
+        if (en_tag.name.find(',') != en_tag.name.npos) {
+            errorDescription = QObject::tr("Tag's name can't contain comma: ");
+            errorDescription.append(QString::fromStdString(en_tag.name));
+            return false;
+        }
+    }
+
+    if (!en_tag.updateSequenceNum) {
+        errorDescription = QObject::tr("Tag's update sequence number is not set");
+        return false;
+    }
+    else if (!en_wrappers_private::CheckUpdateSequenceNumber(en_tag.updateSequenceNum)) {
+        errorDescription = QObject::tr("Tag's update sequence number is invalid: ");
+        errorDescription.append(en_tag.updateSequenceNum);
+        return false;
+    }
+
+    if (en_tag.__isset.parentGuid && !en_wrappers_private::CheckGuid(en_tag.parentGuid)) {
+        errorDescription = QObject::tr("Tag's parent guid is invalid: ");
+        errorDescription.append(QString::fromStdString(en_tag.parentGuid));
+        return false;
+    }
+
+    return true;
+}
+
 QDataStream & operator<<(QDataStream & out, const evernote::edam::UserAttributes & userAttributes)
 {
     const auto & isSet = userAttributes.__isset;
@@ -684,4 +751,33 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::Accounting & accounti
     GET_DESERIALIZED(NoteAttributes)
 
 #undef GET_DESERIALIZED
+
+namespace en_wrappers_private {
+
+bool CheckGuid(const Guid & guid)
+{
+    size_t size = guid.size();
+
+    evernote::limits::LimitsConstants limitConstants;
+
+    if (size < limitConstants.EDAM_GUID_LEN_MIN) {
+        return false;
+    }
+
+    if (size > limitConstants.EDAM_GUID_LEN_MAX) {
+        return false;
+    }
+
+    return true;
+}
+
+bool CheckUpdateSequenceNumber(const int32_t updateSequenceNumber)
+{
+    return ( (updateSequenceNumber < 0) ||
+             (updateSequenceNumber == std::numeric_limits<int32_t>::min()) ||
+             (updateSequenceNumber == std::numeric_limits<int32_t>::max()) );
+}
+
+}
+
 }

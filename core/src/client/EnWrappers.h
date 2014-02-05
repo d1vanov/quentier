@@ -74,11 +74,14 @@ struct Resource
 
 struct Tag
 {
-    Tag() : isDirty(true), isLocal(true), en_tag() {}
+    Tag() : isDirty(true), isLocal(true), isDeleted(false), en_tag() {}
 
     bool isDirty;
     bool isLocal;
+    bool isDeleted;
     evernote::edam::Tag en_tag;
+
+    bool CheckParameters(QString & errorDescription) const;
 };
 
 struct User
@@ -92,6 +95,15 @@ struct User
 
 typedef evernote::edam::Timestamp Timestamp;
 typedef evernote::edam::UserID UserID;
+typedef evernote::edam::Guid Guid;
+
+namespace en_wrappers_private {
+
+bool CheckGuid(const Guid & guid);
+
+bool CheckUpdateSequenceNumber(const int32_t updateSequenceNumber);
+
+}
 
 }
 
