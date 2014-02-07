@@ -128,8 +128,11 @@ public:
     bool ExpungeNote(const Note & note, QString & errorDescription);
 
     bool AddTag(const Tag & tag, QString & errorDescription);
-    bool AddTagToNote(const Tag & tag, const Note & note, QString & errorDescription);
     bool UpdateTag(const Tag & tag, QString & errorDescription);
+
+    bool LinkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
+
+    bool FindTag(const evernote::edam::Guid & tagGuid, Tag & tag, QString & errorDescription) const;
 
     /**
      * @brief DeleteTag - either expunges the local tag (i.e. deletes it from
