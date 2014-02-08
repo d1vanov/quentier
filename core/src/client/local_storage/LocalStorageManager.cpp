@@ -1410,44 +1410,32 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create NoteAttributes table: ");
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS NoteAttributesApplicationData "
-                     "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  applicationDataKey          TEXT             NOT NULL, "
-                     "  applicationDataValue        TEXT             DEFAULT NULL, "
-                     "  isSetApplicationDataValue   INTEGER          NOT NULL, "
-                     "  UNIQUE(noteGuid, applicationDataKey) ON CONFLICT REPLACE");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create NoteAttributesApplicationData table: ");
-
-    res = query.exec("CREATE TABLE IF NOT EXISTS NoteAttributesClassifications "
-                     "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  classificationKey       TEXT                 NOT NULL, "
-                     "  classificationValue     TEXT                 DEFUALT NULL, "
-                     "  UNIQUE(noteGuid, classificationKey) ON CONFLICT REPLACE");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create NoteAttributesClassifications table: ");
-
     res = query.exec("CREATE INDEX NotesNotebooks ON Notes(notebook)");
     DATABASE_CHECK_AND_SET_ERROR("Can't create index NotesNotebooks: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
-                     "  guid              TEXT PRIMARY KEY     NOT NULL UNIQUE, "
-                     "  hash              TEXT UNIQUE          NOT NULL, "
-                     "  data              TEXT,                NOT NULL, "
-                     "  mime              TEXT                 NOT NULL, "
-                     "  width             INTEGER              NOT NULL, "
-                     "  height            INTEGER              NOT NULL, "
-                     "  sourceURL         TEXT, "
-                     "  timestamp         INTEGER              NOT NULL, "
-                     "  altitude          REAL, "
-                     "  latitude          REAL, "
-                     "  longitude         REAL, "
-                     "  fileName          TEXT, "
-                     "  isAttachment      INTEGER              NOT NULL, "
-                     "  note REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE"
+                     "  guid                    TEXT PRIMARY KEY     NOT NULL UNIQUE, "
+                     "  updateSequenceNumber    INTEGER              NOT NULL, "
+                     "  dataBody                TEXT,                NOT NULL, "
+                     "  dataSize                INTEGER              NOT NULL, "
+                     "  dataHash                TEXT                 NOT NULL, "
+                     "  mime                    TEXT                 NOT NULL, "
+                     "  width                   INTEGER              DEFAULT 0, "
+                     "  height                  INTEGER              DEFAULT 0, "
+                     "  recognitionBody         TEXT                 DEFAULT NULL, "
+                     "  recognitionSize         INTEGER              DEFAULT 0, "
+                     "  recognitionHash         TEXT                 DEFAULT NULL, "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create Resources table: ");
 
-    res = query.exec("CREATE INDEX ResourcesNote ON Resources(note)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create ResourcesNote index: ");
+    res = query.exec("CREATE TABLE IF NOT EXISTS NoteResources("
+                     "  note     REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  resource REFERENCES Resource(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  UNIQUE(note, resource) ON CONFLICT REPLACE");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create NoteResources table: ");
+
+    res = query.exec("CREATE INDEX NoteResourcesNote ON NoteResources(note)");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create NoteResourcesNote index: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
                      "  guid                  TEXT PRIMARY KEY     NOT NULL UNIQUE, "
