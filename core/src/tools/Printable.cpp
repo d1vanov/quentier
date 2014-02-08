@@ -199,4 +199,47 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NoteAttribut
     return strm;
 }
 
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::ResourceAttributes & attributes)
+{
+    strm << "ResourceAttributes: {\n";
+
+    const auto & isSet = attributes.__isset;
+
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceURL, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, timestamp, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, latitude);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, longitude);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, altitude);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, cameraMake, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, cameraModel, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, clientWillIndex);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, recoType, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, fileName, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, attachment);
+
+    strm << "applicationData is " << (isSet.applicationData ? "set" : "not set") << "\n";
+    if (isSet.applicationData)
+    {
+        const auto & applicationData = attributes.applicationData;
+        const auto & keysOnly = applicationData.keysOnly;
+        const auto & fullMap = applicationData.fullMap;
+
+        strm << "ApplicationData: keys only: \n";
+        for(const auto & key: keysOnly) {
+            strm << QString::fromStdString(key) << "; ";
+        }
+        strm << "\n";
+
+        strm << "ApplicationData: full map: \n";
+        for(const auto & pair: fullMap) {
+            strm << "(" << QString::fromStdString(pair.first)
+                 << ", " << QString::fromStdString(pair.second) << "); ";
+        }
+        strm << "\n";
+    }
+
+    strm << "}; \n";
+    return strm;
+}
+
 #undef CHECK_AND_PRINT_ATTRIBUTE
