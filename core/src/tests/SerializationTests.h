@@ -20,6 +20,8 @@ bool TestUserAttributesSerialization(QString & errorDescription);
 
 bool TestNoteAttributesSerialization(QString & errorDescription);
 
+bool TestResourceAttributesSerialization(QString & errorDescription);
+
 }
 }
 

@@ -913,6 +913,66 @@ QDataStream & operator<<(QDataStream & out, const evernote::edam::ResourceAttrib
     return out;
 }
 
+QDataStream & operator>>(QDataStream & in, evernote::edam::ResourceAttributes & resourceAttributes)
+{
+    resourceAttributes = evernote::edam::ResourceAttributes();
+
+    auto & isSet = resourceAttributes.__isset;
+
+#define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
+    { \
+        bool isSet##attribute = false; \
+        in >> isSet##attribute; \
+        isSet.attribute = isSet##attribute; \
+        if (isSet##attribute) { \
+            qtype attribute; \
+            in >> attribute; \
+            resourceAttributes.attribute = static_cast<true_type>(attribute __VA_ARGS__); \
+        } \
+    }
+
+    CHECK_AND_SET_ATTRIBUTE(sourceURL, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(timestamp, qint64, Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(latitude, double, double);
+    CHECK_AND_SET_ATTRIBUTE(longitude, double, double);
+    CHECK_AND_SET_ATTRIBUTE(altitude, double, double);
+    CHECK_AND_SET_ATTRIBUTE(cameraMake, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(cameraModel, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(clientWillIndex, bool, bool);
+    CHECK_AND_SET_ATTRIBUTE(recoType, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(fileName, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(attachment, bool, bool);
+
+#undef CHECK_AND_SET_ATTRIBUTE
+
+    bool isSetApplicationData = false;
+    in >> isSetApplicationData;
+    isSet.applicationData = isSetApplicationData;
+    if (isSetApplicationData)
+    {
+        quint32 numKeys = 0;
+        in >> numKeys;
+        auto & keys = resourceAttributes.applicationData.keysOnly;
+        QString key;
+        for(quint32 i = 0; i < numKeys; ++i) {
+            in >> key;
+            keys.insert(key.toStdString());
+        }
+
+        quint32 mapSize = 0;
+        in >> mapSize;
+        auto & map = resourceAttributes.applicationData.fullMap;
+        QString value;
+        for(quint32 i = 0; i < mapSize; ++i) {
+            in >> key;
+            in >> value;
+            map[key.toStdString()] = value.toStdString();
+        }
+    }
+
+    return in;
+}
+
 #define GET_SERIALIZED(type) \
     const QByteArray GetSerialized##type(const evernote::edam::type & in) \
     { \
@@ -927,6 +987,7 @@ QDataStream & operator<<(QDataStream & out, const evernote::edam::ResourceAttrib
     GET_SERIALIZED(Accounting)
     GET_SERIALIZED(UserAttributes)
     GET_SERIALIZED(NoteAttributes)
+    GET_SERIALIZED(ResourceAttributes)
 
 #undef GET_SERIALIZED
 
@@ -944,6 +1005,7 @@ QDataStream & operator<<(QDataStream & out, const evernote::edam::ResourceAttrib
     GET_DESERIALIZED(Accounting)
     GET_DESERIALIZED(UserAttributes)
     GET_DESERIALIZED(NoteAttributes)
+    GET_DESERIALIZED(ResourceAttributes)
 
 #undef GET_DESERIALIZED
 

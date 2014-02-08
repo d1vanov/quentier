@@ -19,6 +19,7 @@ private slots:
     void serializationTestAccounting();
     void serializationTestUserAttributes();
     void serializationTestNoteAttributes();
+    void serializationTestResourceAttributes();
 
 private:
     CoreTester(const CoreTester & other) = delete;

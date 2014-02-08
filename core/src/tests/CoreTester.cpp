@@ -25,6 +25,7 @@ TEST(PremiumInfo)
 TEST(Accounting)
 TEST(UserAttributes)
 TEST(NoteAttributes)
+TEST(ResourceAttributes)
 
 #undef TEST
 

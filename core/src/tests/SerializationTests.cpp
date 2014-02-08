@@ -584,5 +584,110 @@ bool TestNoteAttributesSerialization(QString & errorDescription)
     return true;
 }
 
+bool TestResourceAttributesSerialization(QString & errorDescription)
+{
+    evernote::edam::ResourceAttributes attributes;
+    auto & isSet = attributes.__isset;
+
+    // number of optional data components in ResourceAttributes
+#define RESOURCE_ATTRIBUTES_NUM_COMPONENTS 14
+    for(int mask = 0; mask != (1 << RESOURCE_ATTRIBUTES_NUM_COMPONENTS); ++mask)
+    {
+        attributes = evernote::edam::ResourceAttributes();
+
+        std::bitset<RESOURCE_ATTRIBUTES_NUM_COMPONENTS> bits(mask);
+
+        isSet.sourceURL = bits[0];
+        isSet.timestamp = bits[1];
+        isSet.latitude = bits[2];
+        isSet.longitude = bits[3];
+        isSet.altitude = bits[4];
+        isSet.cameraMake = bits[5];
+        isSet.cameraModel = bits[6];
+        isSet.clientWillIndex = bits[7];
+        isSet.recoType = bits[8];
+        isSet.fileName = bits[9];
+        isSet.attachment = bits[10];
+        isSet.applicationData = bits[11];
+
+        if (isSet.sourceURL) {
+            attributes.sourceURL = "https://github.com/d1vanov";
+        }
+
+        if (isSet.timestamp) {
+            attributes.timestamp = static_cast<Timestamp>(10);
+        }
+
+        if (isSet.latitude) {
+            attributes.latitude = 20.0;
+        }
+
+        if (isSet.longitude) {
+            attributes.longitude = 30.0;
+        }
+
+        if (isSet.altitude) {
+            attributes.altitude = 40.0;
+        }
+
+        if (isSet.cameraMake) {
+            attributes.cameraMake = "Something...";
+        }
+
+        if (isSet.cameraModel) {
+            attributes.cameraModel = "Canon or Nikon?";
+        }
+
+        if (isSet.clientWillIndex) {
+            attributes.clientWillIndex = bits[12];
+        }
+
+        if (isSet.recoType) {
+            attributes.recoType = "text";
+        }
+
+        if (isSet.fileName) {
+            attributes.fileName = "some file";
+        }
+
+        if (isSet.attachment) {
+            attributes.attachment = bits[13];
+        }
+
+        if (isSet.applicationData)
+        {
+            auto & applicationData = attributes.applicationData;
+            auto & applicationDataKeys = applicationData.keysOnly;
+            auto & applicationDataMap  = applicationData.fullMap;
+
+            applicationDataKeys.insert("key1");
+            applicationDataKeys.insert("key2");
+            applicationDataKeys.insert("key3");
+
+            applicationDataMap["key1"] = "value1";
+            applicationDataMap["key2"] = "value2";
+            applicationDataMap["key3"] = "value3";
+        }
+
+        QByteArray serializedAttributes = GetSerializedResourceAttributes(attributes);
+        evernote::edam::ResourceAttributes deserializedAttributes = GetDeserializedResourceAttributes(serializedAttributes);
+
+        if (attributes != deserializedAttributes)
+        {
+            errorDescription = "Serialization test for ResourceAttributes FAILED! ";
+            errorDescription.append("Initial ResourceAttributes: \n");
+            errorDescription.append(ToQString<evernote::edam::ResourceAttributes>(attributes));
+            errorDescription.append("Deserialized ResourceAttributes: \n");
+            errorDescription.append(ToQString<evernote::edam::ResourceAttributes>(deserializedAttributes));
+
+            return false;
+        }
+    }
+
+#undef RESOURCE_ATTRIBUTES_NUM_COMPONENTS
+
+    return true;
+}
+
 }
 }

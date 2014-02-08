@@ -40,6 +40,10 @@ const QByteArray GetSerializedNoteAttributes(const evernote::edam::NoteAttribute
 const evernote::edam::NoteAttributes GetDeserializedNoteAttributes(const QByteArray & data);
 
 QDataStream & operator<<(QDataStream & out, const evernote::edam::ResourceAttributes & resourceAttributes);
+QDataStream & operator>>(QDataStream & in, evernote::edam::ResourceAttributes & resourceAttributes);
+
+const QByteArray GetSerializedResourceAttributes(const evernote::edam::ResourceAttributes & resourceAttributes);
+const evernote::edam::ResourceAttributes GetDeserializedResourceAttributes(const QByteArray & data);
 
 struct Note
 {
