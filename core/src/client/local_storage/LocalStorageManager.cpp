@@ -1956,55 +1956,33 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't add note to NoteText table in local storage database: ");
 
-    bool tagGuidsSet = enNote.__isset.tagGuids;
-    bool tagNamesSet = enNote.__isset.tagNames;
-
-    if (tagGuidsSet && tagNamesSet) {
-        errorDescription = QObject::tr("Both tag guids and names are specified for note");
-        return false;
-    }
-
-    if (tagGuidsSet)
+    if (enNote.__isset.tagGuids)
     {
-        const std::vector<Guid> & tagGuids = enNote.tagGuids;
-        size_t numTagGuids = tagGuids.size();
-
-        for(size_t i = 0; i < numTagGuids; ++i) {
-            // TODO: try to find this tag within local storage database;
-            // in case of failure find this tag via NoreStoreClient and add to local storage
-        }
-    }
-
-    if (tagNamesSet)
-    {
-        const std::vector<std::string> & tagNames = enNote.tagNames;
-        size_t numTagNames = tagNames.size();
-
-        for(size_t i = 0; i < numTagNames; ++i)
+        const auto & tagGuids = enNote.tagGuids;
+        for(const auto & tagGuid: tagGuids)
         {
-            // NOTE: don't optimize this out, tag needs to be re-created on each iteration
+            // NOTE: the behavior expressed here is valid since tags are synchronized before notes
+            // so they must exist within local storage database; if they don't then something went really wrong
+
             Tag tag;
-            tag.en_tag.__isset.name = true;
-            tag.en_tag.name = tagNames[i];
-
-            // TODO: try to find tag with such name in *local* storage database before
-            // attempting to create it
-
-            m_pNoteStore->createTag(tag.en_tag, m_authenticationToken.toStdString(),
-                                    tag.en_tag);
-            if (!tag.en_tag.__isset.guid) {
-                errorDescription = QObject::tr("Can't create tag from name");
-                return false;
-            }
-            tag.isDirty = true;
-            tag.isLocal = true;
-
-            res = AddTag(tag, errorDescription);
+            bool res = FindTag(tagGuid, tag, errorDescription);
             if (!res) {
+                errorDescription = QObject::tr("Found tag guid which does not correspond "
+                                               "to any tag within local storage database");
                 return false;
             }
+
+            query.prepare("INSERT OR REPLACE INTO NoteTags(note, tag) VALUES(?, ?)");
+            query.addBindValue(guid);
+            query.addBindValue(QString::fromStdString(tagGuid));
+
+            res = query.exec();
+            DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace information into NoteTags table");
         }
     }
+
+    // NOTE: don't even attempt fo find tags by their names because evernote::edam::Note.tagNames
+    // has the only purpose to provide tag names alternatively to guids to NoteStore::createNote method
 
     if (enNote.__isset.resources)
     {
@@ -2016,7 +1994,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
             // TODO: check parameters of this resource
 
             // TODO: try to find this resource within local storage database,
-            // in case of failure add this resource to local storage database
+            // in case of failure report error
         }
     }
 
