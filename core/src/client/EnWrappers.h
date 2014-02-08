@@ -39,6 +39,8 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::NoteAttributes & note
 const QByteArray GetSerializedNoteAttributes(const evernote::edam::NoteAttributes & noteAttributes);
 const evernote::edam::NoteAttributes GetDeserializedNoteAttributes(const QByteArray & data);
 
+QDataStream & operator<<(QDataStream & out, const evernote::edam::ResourceAttributes & resourceAttributes);
+
 struct Note
 {
     Note() : isDirty(true), isLocal(true), isDeleted(false), en_note() {}

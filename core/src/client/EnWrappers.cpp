@@ -862,6 +862,57 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::Accounting & accounti
     return in;
 }
 
+QDataStream & operator<<(QDataStream & out, const evernote::edam::ResourceAttributes & resourceAttributes)
+{
+    const auto & isSet = resourceAttributes.__isset;
+
+#define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
+    { \
+        bool isSet##attribute = isSet.attribute; \
+        out << isSet##attribute; \
+        if (isSet##attribute) { \
+            out << __VA_ARGS__(resourceAttributes.attribute); \
+        } \
+    }
+
+    CHECK_AND_SET_ATTRIBUTE(sourceURL, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(timestamp, static_cast<qint64>);
+    CHECK_AND_SET_ATTRIBUTE(latitude);
+    CHECK_AND_SET_ATTRIBUTE(longitude);
+    CHECK_AND_SET_ATTRIBUTE(altitude);
+    CHECK_AND_SET_ATTRIBUTE(cameraMake, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(cameraModel, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(clientWillIndex);
+    CHECK_AND_SET_ATTRIBUTE(recoType, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(fileName, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(attachment);
+
+#undef CHECK_AND_SET_ATTRIBUTE
+
+    bool isSetApplicationData = isSet.applicationData;
+    out << isSetApplicationData;
+    if (isSetApplicationData)
+    {
+        const auto & applicationData = resourceAttributes.applicationData;
+
+        const auto & keys = applicationData.keysOnly;
+        size_t numKeys = keys.size();
+        out << static_cast<quint32>(numKeys);
+        for(const auto & key: keys) {
+            out << QString::fromStdString(key);
+        }
+
+        const auto & map = applicationData.fullMap;
+        size_t mapSize = map.size();
+        out << static_cast<quint32>(mapSize);   // NOTE: the reasonable constraint is numKeys == mapSize but it's better to ensure
+        for(const auto & items: map) {
+            out << QString::fromStdString(items.first) << QString::fromStdString(items.second);
+        }
+    }
+
+    return out;
+}
+
 #define GET_SERIALIZED(type) \
     const QByteArray GetSerialized##type(const evernote::edam::type & in) \
     { \
