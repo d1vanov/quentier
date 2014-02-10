@@ -71,10 +71,9 @@ struct Notebook
 
 struct Resource
 {
-    Resource() : isDirty(true), isLocal(true), en_resource() {}
+    Resource() : isDirty(true), en_resource() {}
 
     bool isDirty;
-    bool isLocal;
     evernote::edam::Resource en_resource;
 
     bool CheckParameters(QString & errorDescription, const bool isFreeAccount = true) const;

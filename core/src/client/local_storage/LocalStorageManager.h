@@ -159,28 +159,21 @@ public:
     bool AddResource(const Resource & resource, QString & errorDescription);
     bool UpdateResource(const Resource & resource, QString & errorDescription);
 
-    /**
-     * @brief DeleteResource - either expunges the local resource (i.e. deletes it from
-     * local storage completely, without the possibility to restore)
-     * if it has not been synchronized with Evernote service yet or marks the resource
-     * as deleted otherwise. Evernote API doesn't allow thirdparty applications
-     * to expunge resources which have ever been synchronized with remote data store
-     * at least once
-     * @param resourceMetadata - metadata of the resource to be deleted
-     * @param errorDescription - error description if resource could not be deleted
-     * @return true if resource was deleted successfully, false otherwise
-     */
-    bool DeleteResource(const Resource & resource, QString & errorDescription);
+    // TODO: implement
+    bool FindResource(const evernote::edam::Guid & resourceGuid, Resource & resource,
+                      QString & errorDescription, const bool withBinaryData = true) const;
+
+    // NOTE: there is no 'DeleteResource' method for a reason: resources are deleted automatically
+    // in remote storage so there's no need to mark some resource as deleted for synchronization procedure.
 
     /**
-     * @brief ExpungeResource - permanently deletes local resources i.e. resources which have not yet been
-     * synchronized with Evernote service. This method deletes the resource local storage completely,
+     * @brief ExpungeResource - permanently deletes resource from local storage completely,
      * without the possibility to restore it
-     * @param resourceMetadata - metadata of the resource to be deleted
+     * @param resource - resource to be deleted
      * @param errorDescription - error description if resource could not be expunged
      * @return true if resource was expunged successfully, false otherwise
      */
-    bool ExpungeResource(const Resource & resource, QString & errorDescription);
+    bool ExpungeResource(const Resource & resource, QString & errorDescription);    // TODO: implement
 
 private:
     bool CreateTables(QString & errorDescription);

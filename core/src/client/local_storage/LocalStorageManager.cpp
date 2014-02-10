@@ -1099,107 +1099,55 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
     return true;
 }
 
+#define SET_IS_FREE_ACCOUNT_FLAG \
+    User currentUser; \
+    bool res = FindUser(m_currentUserId, currentUser, errorDescription); \
+    if (!res) { \
+        errorDescription = QObject::tr("Can't add resource: can't find current user to " \
+                                       "determine max allowed size of the resource: ") + errorDescription; \
+        return false; \
+    } \
+    bool isFreeAccount = (currentUser.en_user.privilege == evernote::edam::PrivilegeLevel::NORMAL);
+
+bool LocalStorageManager::AddResource(const Resource & resource, QString & errorDescription)
+{
+    SET_IS_FREE_ACCOUNT_FLAG
+
+    if (!resource.CheckParameters(errorDescription, isFreeAccount)) {
+        return false;
+    }
+
+    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.en_resource.guid)));
+    if (rowId >= 0) {
+        errorDescription = QObject::tr("Can't add resource to local storage database: "
+                                       "resource with the same guid already exists");
+        return false;
+    }
+
+    return InsertOrReplaceResource(resource, errorDescription);
+}
+
+bool LocalStorageManager::UpdateResource(const Resource & resource, QString & errorDescription)
+{
+    SET_IS_FREE_ACCOUNT_FLAG
+
+    if (!resource.CheckParameters(errorDescription)) {
+        return false;
+    }
+
+    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.en_resource.guid)));
+    if (rowId < 0) {
+        errorDescription = QObject::tr("Can't update resource: resource with specified guid "
+                                       "was not found in local storage database");
+        return false;
+    }
+
+    return InsertOrReplaceResource(resource, errorDescription);
+}
+
 // FIXME: reimplement all methods below to comply with new Evernote objects' signature
 
 /*
-
-#define CHECK_RESOURCE_ATTRIBUTES(resourceMetadata, resourceBinaryData) \
-    CHECK_GUID(resourceMetadata, "ResourceMetadata"); \
-    if (resourceMetadata.isEmpty()) { \
-        errorDescription = QObject::tr("Resource metadata is empty"); \
-        return false; \
-    } \
-    if (resourceBinaryData.isEmpty()) { \
-        errorDescription = QObject::tr("Resource binary data is empty"); \
-        return false; \
-    }
-
-bool LocalStorageManager::AddResource(const evernote::edam::Resource &resource,
-                                  QString & errorDescription)
-{
-    CHECK_RESOURCE_ATTRIBUTES(resource, resourceBinaryData);
-
-    // Check the existence of the resource prior to attempting to add it
-    bool res = ReplaceResource(resource, resourceBinaryData, errorDescription);
-    if (res) {
-        return true;
-    }
-    errorDescription.clear();
-
-    Guid resourceGuid = resource.guid();
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT INTO Resources (guid, hash, data, mime, width, height, "
-                  "sourceURL, timestamp, altitude, latitude, longitude, fileName, "
-                  "isAttachment, noteGuid) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                  "?, ?, ?)");
-    query.addBindValue(resourceGuid.ToQString());
-    query.addBindValue(resource.dataHash());
-    query.addBindValue(resourceBinaryData);
-    query.addBindValue(resource.mimeType());
-    query.addBindValue(QVariant(static_cast<int>(resource.width())));
-    query.addBindValue(QVariant(static_cast<int>(resource.height())));
-    query.addBindValue(resource.sourceURL());
-    query.addBindValue(QVariant(static_cast<int>(resource.timestamp())));
-    query.addBindValue(resource.altitude());
-    query.addBindValue(resource.latitude());
-    query.addBindValue(resource.longitude());
-    query.addBindValue(resource.filename());
-    query.addBindValue(QVariant((resource.isAttachment() ? 1 : 0)));
-    query.addBindValue(resource.noteGuid().ToQString());
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't add resource to local storage database: ");
-
-    return true;
-}
-
-bool LocalStorageManager::ReplaceResource(const evernote::edam::Resource &resource,
-                                      QString & errorDescription)
-{
-    CHECK_RESOURCE_ATTRIBUTES(resource, resourceBinaryData);
-
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT rowid FROM Resources WHERE guid = ?");
-    query.addBindValue(resource.guid().ToQString());
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't check resource for existence in local storage database: ");
-
-    if (!query.next()) {
-        errorDescription = QObject::tr("Can't replace resource: can't find resource in local storage database");
-        return false;
-    }
-
-    int rowId = query.value(0).toInt(&res);
-    if (!res || (rowId < 0)) {
-        errorDescription = QObject::tr("Can't replace resource: can't get row id from SQL query result");
-        return false;
-    }
-
-    query.clear();
-    query.prepare("INSERT OR REPLACE INTO Resources(guid, hash, data, mime, width, height, "
-                  "sourceUrl, timestamp, altitude, latitude, longitude, fileName, "
-                  "isAttachment, noteGuid) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                  "?, ?, ?)");
-    query.addBindValue(resource.guid().ToQString());
-    query.addBindValue(resource.dataHash());
-    query.addBindValue(resourceBinaryData);
-    query.addBindValue(resource.mimeType());
-    query.addBindValue(QVariant(static_cast<int>(resource.width())));
-    query.addBindValue(QVariant(static_cast<int>(resource.height())));
-    query.addBindValue(resource.sourceUrl());
-    query.addBindValue(QVariant(static_cast<int>(resource.timestamp())));
-    query.addBindValue(resource.altitude());
-    query.addBindValue(resource.latitude());
-    query.addBindValue(resource.longitude());
-    query.addBindValue(resource.filename());
-    query.addBindValue(QVariant((resource.isAttachment() ? 1 : 0)));
-    query.addBindValue(resource.noteGuid().ToQString());
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't replace resource in local storage database: ");
-
-    return true;
-}
 
 bool LocalStorageManager::DeleteResource(const evernote::edam::Resource &resource,
                                      QString & errorDescription)
@@ -1418,6 +1366,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  noteGuid                TEXT                 NOT NULL, "
                      "  updateSequenceNumber    INTEGER              NOT NULL, "
                      "  dataBody                TEXT,                NOT NULL, "
+                     "  isDirty                 INTEGER              NOT NULL, "
                      "  dataSize                INTEGER              NOT NULL, "
                      "  dataHash                TEXT                 NOT NULL, "
                      "  mime                    TEXT                 NOT NULL, "
@@ -1428,6 +1377,11 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  recognitionHash         TEXT                 DEFAULT NULL, "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create Resources table: ");
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributes("
+                     "  guid REFERENCES Resource(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  data                  BLOB                 DEFAULT NULL");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create ResourceAttributes table: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
                      "  guid                  TEXT PRIMARY KEY     NOT NULL UNIQUE, "
@@ -2041,13 +1995,10 @@ bool LocalStorageManager::InsertOrReplaceResource(const Resource & resource, QSt
     query.prepare("INSERT OR REPLACE INTO Resources (:columns) VALUES(:vals)");
 
     QString columns, values;
-    bool hasAnyProperty = false;
 
 #define CHECK_AND_SET_RESOURCE_PROPERTY(holder, isSetName, columnName, valueName) \
     if (holder.__isset.isSetName) \
     { \
-        hasAnyProperty = true; \
-        \
         if (!columns.isEmpty()) { \
             columns.append(", "); \
         } \
@@ -2087,13 +2038,32 @@ bool LocalStorageManager::InsertOrReplaceResource(const Resource & resource, QSt
 
 #undef CHECK_AND_SET_RESOURCE_PROPERTY
 
+    if (!columns.isEmpty()) {
+        columns.append(", ");
+    }
+    columns.append("isDirty");
+
+    if (!values.isEmpty()) {
+        values.append(", ");
+    }
+    values.append(QString::number(resource.isDirty ? 1 : 0));
+
     query.bindValue("columns", columns);
     query.bindValue("vals", values);
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace data into \"Resources\" table: ");
 
-    // TODO: insert or replace serialized ResourceAttributes
+    if (enResource.__isset.attributes)
+    {
+        QByteArray serializedResourceAttributes = GetSerializedResourceAttributes(enResource.attributes);
+        query.prepare("INSERT OR REPLACE INTO ResourceAttributes (guid, data) VALUES(?, ?)");
+        query.addBindValue(QString::fromStdString(enResource.guid));
+        query.addBindValue(serializedResourceAttributes);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace data into \"ResourceAttributes\" table: ");
+    }
 
     return true;
 }
