@@ -157,7 +157,7 @@ public:
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
     bool AddResource(const Resource & resource, QString & errorDescription);
-    bool ReplaceResource(const Resource & resource, QString & errorDescription);
+    bool UpdateResource(const Resource & resource, QString & errorDescription);
 
     /**
      * @brief DeleteResource - either expunges the local resource (i.e. deletes it from
@@ -199,6 +199,7 @@ private:
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
+    bool InsertOrReplaceResource(const Resource & resource, QString & errorDescription);
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;

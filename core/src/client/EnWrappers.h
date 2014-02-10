@@ -76,6 +76,8 @@ struct Resource
     bool isDirty;
     bool isLocal;
     evernote::edam::Resource en_resource;
+
+    bool CheckParameters(QString & errorDescription, const bool isFreeAccount = true) const;
 };
 
 struct Tag

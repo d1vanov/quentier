@@ -363,6 +363,96 @@ bool Notebook::CheckParameters(QString & errorDescription) const
     return true;
 }
 
+bool Resource::CheckParameters(QString & errorDescription, const bool isFreeAccount) const
+{
+    if (!en_resource.__isset.guid) {
+        errorDescription = QObject::tr("Resource's guid is not set");
+        return false;
+    }
+    else if (!en_wrappers_private::CheckGuid(en_resource.guid)) {
+        errorDescription = QObject::tr("Resource's guid is invalid");
+        return false;
+    }
+
+    if (!en_resource.__isset.updateSequenceNum) {
+        errorDescription = QObject::tr("Resource's update sequence number is not set");
+        return false;
+    }
+    else if (!en_wrappers_private::CheckUpdateSequenceNumber(en_resource.updateSequenceNum)) {
+        errorDescription = QObject::tr("Resource's update sequence number is invalid");
+        return false;
+    }
+
+    if (en_resource.__isset.noteGuid && !en_wrappers_private::CheckGuid(en_resource.noteGuid)) {
+        errorDescription = QObject::tr("Resource's note guid is invalid");
+        return false;
+    }
+
+#define CHECK_RESOURCE_DATA(name) \
+    if (en_resource.__isset.name) \
+    { \
+        if (!en_resource.name.__isset.body) { \
+            errorDescription = QObject::tr("Resource's " #name " body is not set"); \
+            return false; \
+        } \
+        \
+        int32_t dataSize = static_cast<int32_t>(en_resource.name.body.size()); \
+        int32_t allowedSize = (isFreeAccount \
+                               ? evernote::limits::g_Limits_constants.EDAM_RESOURCE_SIZE_MAX_FREE \
+                               : evernote::limits::g_Limits_constants.EDAM_RESOURCE_SIZE_MAX_PREMIUM); \
+        if (dataSize > allowedSize) { \
+            errorDescription = QObject::tr("Resource's " #name " body size is too large"); \
+            return false; \
+        } \
+        \
+        if (!en_resource.name.__isset.size) { \
+            errorDescription = QObject::tr("Resource's " #name " size is not set"); \
+            return false; \
+        } \
+        \
+        if (!en_resource.name.__isset.bodyHash) { \
+            errorDescription = QObject::tr("Resource's " #name " hash is not set"); \
+            return false; \
+        } \
+        else { \
+            int32_t hashSize = static_cast<int32_t>(en_resource.name.bodyHash.size()); \
+            if (hashSize != evernote::limits::g_Limits_constants.EDAM_HASH_LEN) { \
+                errorDescription = QObject::tr("Invalid " #name " hash size"); \
+                return false; \
+            } \
+        } \
+    }
+
+    CHECK_RESOURCE_DATA(data);
+    CHECK_RESOURCE_DATA(recognition);
+    CHECK_RESOURCE_DATA(alternateData);
+
+#undef CHECK_RESOURCE_DATA
+
+    if (!en_resource.__isset.data && en_resource.__isset.alternateData) {
+        errorDescription = QObject::tr("Resource has no data set but alternate data is present");
+        return false;
+    }
+
+    if (!en_resource.__isset.mime)
+    {
+        errorDescription = QObject::tr("Resource's mime type is not set");
+        return false;
+    }
+    else
+    {
+        int32_t mimeSize = static_cast<int32_t>(en_resource.mime.size());
+        if ( (mimeSize < evernote::limits::g_Limits_constants.EDAM_MIME_LEN_MIN) ||
+             (mimeSize > evernote::limits::g_Limits_constants.EDAM_MIME_LEN_MAX) )
+        {
+            errorDescription = QObject::tr("Resource's mime type has invalid length");
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool Note::CheckParameters(QString & errorDescription) const
 {
     if (!en_note.__isset.guid) {
@@ -374,7 +464,7 @@ bool Note::CheckParameters(QString & errorDescription) const
         return false;
     }
 
-    if (en_note.__isset.updateSequenceNum) {
+    if (!en_note.__isset.updateSequenceNum) {
         errorDescription = QObject::tr("Note's update sequence number is not set");
         return false;
     }

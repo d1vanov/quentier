@@ -1415,6 +1415,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
                      "  guid                    TEXT PRIMARY KEY     NOT NULL UNIQUE, "
+                     "  noteGuid                TEXT                 NOT NULL, "
                      "  updateSequenceNumber    INTEGER              NOT NULL, "
                      "  dataBody                TEXT,                NOT NULL, "
                      "  dataSize                INTEGER              NOT NULL, "
@@ -1427,15 +1428,6 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  recognitionHash         TEXT                 DEFAULT NULL, "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("Can't create Resources table: ");
-
-    res = query.exec("CREATE TABLE IF NOT EXISTS NoteResources("
-                     "  note     REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  resource REFERENCES Resource(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  UNIQUE(note, resource) ON CONFLICT REPLACE");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create NoteResources table: ");
-
-    res = query.exec("CREATE INDEX NoteResourcesNote ON NoteResources(note)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create NoteResourcesNote index: ");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
                      "  guid                  TEXT PRIMARY KEY     NOT NULL UNIQUE, "
@@ -2034,6 +2026,74 @@ bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDes
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace into \"Tags\" table: ");
+
+    return true;
+}
+
+bool LocalStorageManager::InsertOrReplaceResource(const Resource & resource, QString & errorDescription)
+{
+    // NOTE: this method expects to be called after resource is already checked
+    // for sanity of its parameters!
+
+    const evernote::edam::Resource & enResource = resource.en_resource;
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("INSERT OR REPLACE INTO Resources (:columns) VALUES(:vals)");
+
+    QString columns, values;
+    bool hasAnyProperty = false;
+
+#define CHECK_AND_SET_RESOURCE_PROPERTY(holder, isSetName, columnName, valueName) \
+    if (holder.__isset.isSetName) \
+    { \
+        hasAnyProperty = true; \
+        \
+        if (!columns.isEmpty()) { \
+            columns.append(", "); \
+        } \
+        columns.append(#columnName); \
+        \
+        if (!values.isEmpty()) { \
+            values.append(", "); \
+        } \
+        values.append(valueName); \
+    }
+
+    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, guid, guid, QString::fromStdString(enResource.guid));
+    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, noteGuid, noteGuid, QString::fromStdString(enResource.noteGuid));
+
+    bool hasAnyData = enResource.__isset.data || enResource.__isset.alternateData;
+    if (hasAnyData)
+    {
+        const evernote::edam::Data & data = (enResource.__isset.alternateData
+                                             ? enResource.alternateData
+                                             : enResource.data);
+        CHECK_AND_SET_RESOURCE_PROPERTY(data, body, dataBody, QString::fromStdString(data.body));
+        CHECK_AND_SET_RESOURCE_PROPERTY(data, size, dataSize, QString::number(data.size));
+        CHECK_AND_SET_RESOURCE_PROPERTY(data, bodyHash, dataHash, QString::fromStdString(data.bodyHash));
+    }
+
+    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, mime, mime, QString::fromStdString(enResource.mime));
+    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, width, width, QString::number(enResource.width));
+    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, height, height, QString::number(enResource.height));
+
+    if (enResource.__isset.recognition) {
+        CHECK_AND_SET_RESOURCE_PROPERTY(enResource.recognition, body, recognitionBody, QString::fromStdString(enResource.recognition.body));
+        CHECK_AND_SET_RESOURCE_PROPERTY(enResource.recognition, size, recognitionSize, QString::number(enResource.recognition.size));
+        CHECK_AND_SET_RESOURCE_PROPERTY(enResource.recognition, bodyHash, recognitionHash, QString::fromStdString(enResource.recognition.bodyHash));
+    }
+
+    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, updateSequenceNum, updateSequenceNumber, QString::number(enResource.updateSequenceNum));
+
+#undef CHECK_AND_SET_RESOURCE_PROPERTY
+
+    query.bindValue("columns", columns);
+    query.bindValue("vals", values);
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace data into \"Resources\" table: ");
+
+    // TODO: insert or replace serialized ResourceAttributes
 
     return true;
 }
