@@ -89,7 +89,7 @@ public:
     /**
      * @brief ExpungeNotebook - deletes specified notebook from local storage.
      * Evernote API doesn't allow to delete notebooks from remote storage, it can
-     * only be done by official desktop client or wed GUI. So this method should be called
+     * only be done by official desktop client or web GUI. So this method should be called
      * only during synchronization with remote database, when some notebook is found to be
      * deleted via either official desktop client or web GUI
      * @param notebook - notebook to be expunged

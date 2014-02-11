@@ -674,7 +674,7 @@ bool Tag::CheckParameters(QString & errorDescription) const
             errorDescription.append(QString::fromStdString(en_tag.name));
             return false;
         }
-        else if (en_tag.name.at(en_tag.name.length() - 1) == ' ') {
+        else if (en_tag.name.at(nameSize - 1) == ' ') {
             errorDescription = QObject::tr("Tag's name can't end with space: ");
             errorDescription.append(QString::fromStdString(en_tag.name));
             return false;
@@ -687,7 +687,7 @@ bool Tag::CheckParameters(QString & errorDescription) const
         }
     }
 
-    if (!en_tag.updateSequenceNum) {
+    if (!en_tag.__isset.updateSequenceNum) {
         errorDescription = QObject::tr("Tag's update sequence number is not set");
         return false;
     }
@@ -701,6 +701,74 @@ bool Tag::CheckParameters(QString & errorDescription) const
         errorDescription = QObject::tr("Tag's parent guid is invalid: ");
         errorDescription.append(QString::fromStdString(en_tag.parentGuid));
         return false;
+    }
+
+    return true;
+}
+
+bool SavedSearch::CheckParameters(QString &errorDescription) const
+{
+    if (!en_search.__isset.guid) {
+        errorDescription = QObject::tr("Saved search's guid is not set");
+        return false;
+    }
+    else if (!en_wrappers_private::CheckGuid(en_search.guid)) {
+        errorDescription = QObject::tr("Saved search's guid is invalid: ");
+        errorDescription.append(QString::fromStdString(en_search.guid));
+        return false;
+    }
+
+    if (!en_search.__isset.name) {
+        errorDescription = QObject::tr("Saved search's name is not set");
+        return false;
+    }
+    else {
+        size_t nameSize = en_search.name.size();
+
+        if ( (nameSize < evernote::limits::g_Limits_constants.EDAM_SAVED_SEARCH_NAME_LEN_MIN) ||
+             (nameSize > evernote::limits::g_Limits_constants.EDAM_SAVED_SEARCH_NAME_LEN_MAX) )
+        {
+            errorDescription = QObject::tr("Saved search's name exceeds allowed size: ");
+            errorDescription.append(QString::fromStdString(en_search.name));
+            return false;
+        }
+
+        if (en_search.name.at(0) == ' ') {
+            errorDescription = QObject::tr("Saved search's name can't begin from space: ");
+            errorDescription.append(QString::fromStdString(en_search.name));
+            return false;
+        }
+        else if (en_search.name.at(nameSize - 1) == ' ') {
+            errorDescription = QObject::tr("Saved search's name can't end with space: ");
+            errorDescription.append(QString::fromStdString(en_search.name));
+            return false;
+        }
+    }
+
+    if (!en_search.__isset.updateSequenceNum) {
+        errorDescription = QObject::tr("Saved search's update sequence number is not set");
+        return false;
+    }
+    else if (!en_wrappers_private::CheckUpdateSequenceNumber(en_search.updateSequenceNum)) {
+        errorDescription = QObject::tr("Saved search's update sequence number is invalid: ");
+        errorDescription.append(en_search.updateSequenceNum);
+        return false;
+    }
+
+    if (!en_search.__isset.query) {
+        errorDescription = QObject::tr("Saved search's query is not set");
+        return false;
+    }
+    else {
+        size_t querySize = en_search.query.size();
+
+        if ( (querySize < evernote::limits::g_Limits_constants.EDAM_SEARCH_QUERY_LEN_MIN) ||
+             (querySize > evernote::limits::g_Limits_constants.EDAM_SEARCH_QUERY_LEN_MAX) )
+        {
+            errorDescription = QObject::tr("Saved search's query exceeds allowed size: ");
+            errorDescription.append(QString::fromStdString(en_search.query));
+            return false;
+        }
     }
 
     return true;
