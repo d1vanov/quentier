@@ -159,7 +159,6 @@ public:
     bool AddResource(const Resource & resource, QString & errorDescription);
     bool UpdateResource(const Resource & resource, QString & errorDescription);
 
-    // TODO: implement
     bool FindResource(const evernote::edam::Guid & resourceGuid, Resource & resource,
                       QString & errorDescription, const bool withBinaryData = true) const;
 
@@ -173,7 +172,7 @@ public:
      * @param errorDescription - error description if resource could not be expunged
      * @return true if resource was expunged successfully, false otherwise
      */
-    bool ExpungeResource(const Resource & resource, QString & errorDescription);    // TODO: implement
+    bool ExpungeResource(const Resource & resource, QString & errorDescription);
 
 private:
     bool CreateTables(QString & errorDescription);

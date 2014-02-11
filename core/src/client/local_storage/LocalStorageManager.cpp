@@ -86,6 +86,8 @@ bool LocalStorageManager::FindUser(const UserID id, User & user, QString & error
         return false;
     }
 
+    user = User();
+
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT id, username, name, timezone, privilege, creationTimestamp, "
                   "modificationTimestamp, isDirty, isLocal, isDeleted, deletionTimestamp, "
@@ -166,6 +168,7 @@ bool LocalStorageManager::FindUser(const UserID id, User & user, QString & error
     bool LocalStorageManager::Find##which(const UserID id, evernote::edam::which & prop, \
                                           QString & errorDescription) const \
     { \
+        prop = evernote::edam::which(); \
         QString idStr = QString::number(id); \
         int rowId = GetRowId(#which, "id", QVariant(idStr)); \
         if (rowId < 0) { \
@@ -365,6 +368,8 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
         return false;
     }
 
+    notebook = Notebook();
+
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT updateSequenceNumber, name, creationTimestamp, "
                   "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed, "
@@ -412,7 +417,7 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
 
     bool isRequired = true;
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, updateSequenceNumber, updateSequenceNum,
-                                        int, uint32_t, isRequired);
+                                        int, int32_t, isRequired);
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, name, name, QString, std::string,
                                         isRequired, .toStdString());
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, isDefault, defaultNotebook,
@@ -684,6 +689,8 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
         return false;
     }
 
+    note = Note();
+
     QSqlQuery query(m_sqlDatabase);
 
     query.prepare("SELECT updateSequenceNumber, title, isDirty, isLocal, content, "
@@ -694,6 +701,12 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't select note from Notes table in local "
                                  "storage database: ");
+
+    if (!query.next()) {
+        errorDescription = QObject::tr("Can't find Note in local storage database: "
+                                       "query result is empty");
+        return false;
+    }
 
     QSqlRecord rec = query.record();
 
@@ -966,6 +979,8 @@ bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & err
         return false;
     }
 
+    tag = Tag();
+
     QSqlQuery query(m_sqlDatabase);
 
     query.prepare("SELECT updateSequenceNumber, name, parentGuid, isDirty, isLocal, "
@@ -1085,7 +1100,8 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
 
     int rowId = GetRowId("Tags", "guid", QVariant(QString::fromStdString(tag.en_tag.guid)));
     if (rowId < 0) {
-        errorDescription = QObject::tr("Can't get rowId of tag to be expunged in Tags table");
+        errorDescription = QObject::tr("Can't expunge tag from local storage database: "
+                                       "tag to be expunged was not found");
         return false;
     }
 
@@ -1095,6 +1111,163 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't expunge tag from local storage database: ");
+
+    return true;
+}
+
+bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & resource,
+                                       QString & errorDescription, const bool withBinaryData) const
+{
+    if (!en_wrappers_private::CheckGuid(resourceGuid)) {
+        errorDescription = QObject::tr("Can't find resource in local storage database: "
+                                       "requested guid is invalid");
+        return false;
+    }
+
+    resource = Resource();
+
+    resource.en_resource.guid = resourceGuid;
+    resource.en_resource.__isset.guid = true;
+
+    QSqlQuery query(m_sqlDatabase);
+
+    query.prepare("SELECT noteGuid, updateSequenceNumber, isDirty, dataSize, dataHash, "
+                  "mime, width, height, recognitionSize, recognitionHash :binaryColumns "
+                  "FROM Resources WHERE guid = ?");
+    if (withBinaryData) {
+        query.bindValue("binaryColumns", ", dataBody, recognitionBody");
+    }
+    else {
+        query.bindValue("binaryColumns", "");
+    }
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't select resource from Resources table in local "
+                                 "storage database: ");
+
+    if (!query.next()) {
+        errorDescription = QObject::tr("Can't find resource in local storage database: "
+                                       "query result is empty");
+        return false;
+    }
+
+    QSqlRecord rec = query.record();
+
+    if (rec.contains("isDirty")) {
+        resource.isDirty = (qvariant_cast<int>(rec.value("isDirty")) != 0);
+    }
+    else {
+        errorDescription = QObject::tr("Can't find resource: no \"isDirty\" field "
+                                       "in the result of SQL query from local storage database");
+        return false;
+    }
+
+#define CHECK_AND_SET_EN_RESOURCE_PROPERTY(holder, localPropertyName, enPropertyName, \
+                                           localType, trueType, isRequired, ...) \
+    if (rec.contains(#localPropertyName)) { \
+        holder.enPropertyName = static_cast<trueType>((qvariant_cast<localType>(rec.value(#localPropertyName)))__VA_ARGS__); \
+        holder.__isset.enPropertyName = true; \
+    } \
+    else if (isRequired) { \
+        errorDescription = QObject::tr("Can't find resource: no " #localPropertyName \
+                                       " field in the result of SQL query from local storage database"); \
+        return false; \
+    }
+
+    auto & enResource = resource.en_resource;
+    bool isRequired = true;
+    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, noteGuid, noteGuid, QString, std::string, isRequired, .toStdString());
+    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, updateSequenceNumber, updateSequenceNum,
+                                       int, int32_t, isRequired);
+    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.data, dataSize, size, int, int32_t, isRequired);
+    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.data, dataHash, bodyHash, QString,
+                                       std::string, isRequired, .toStdString());
+    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, mime, mime, QString, std::string,
+                                       isRequired, .toStdString());
+
+    isRequired = false;
+    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, width, width, int, int32_t, isRequired);
+    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, height, height, int, int32_t, isRequired);
+    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.recognition, dataSize, size, int, int32_t, isRequired);
+    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.recognition, dataHash, bodyHash,
+                                       QString, std::string, isRequired, .toStdString());
+
+    if (withBinaryData) {
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.recognition, dataBody, body, QString,
+                                           std::string, isRequired, .toStdString());
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.data, dataBody, body, QString,
+                                           std::string, isRequired, .toStdString());
+    }
+
+#undef CHECK_AND_SET_EN_RESOURCE_PROPERTY
+
+    if (enResource.data.__isset.size && enResource.data.__isset.bodyHash)
+    {
+        if (withBinaryData && enResource.data.__isset.body) {
+            enResource.__isset.data = true;
+        }
+        else if (!withBinaryData) {
+            enResource.__isset.data = true;
+        }
+        else {
+            enResource.__isset.data = false;
+        }
+    }
+    else
+    {
+        enResource.__isset.data = false;
+    }
+
+    if (enResource.recognition.__isset.size && enResource.recognition.__isset.bodyHash)
+    {
+        if (withBinaryData && enResource.recognition.__isset.body) {
+            enResource.__isset.recognition = true;
+        }
+        else if (!withBinaryData) {
+            enResource.__isset.recognition = true;
+        }
+        else {
+            enResource.__isset.recognition = false;
+        }
+    }
+    else
+    {
+        enResource.__isset.recognition = false;
+    }
+
+    query.prepare("SELECT data FROM ResourceAttributes WHERE guid = ?");
+    query.addBindValue(QString::fromStdString(resourceGuid));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't select data from \"ResourceAttributes\" table: ");
+
+    if (!query.next()) {
+        enResource.__isset.attributes = false;
+        return true;
+    }
+
+    QByteArray serializedResourceAttributes = query.value(0).toByteArray();
+    enResource.attributes = GetDeserializedResourceAttributes(serializedResourceAttributes);
+    enResource.__isset.attributes = true;
+
+    return true;
+}
+
+bool LocalStorageManager::ExpungeResource(const Resource & resource, QString & errorDescription)
+{
+    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.en_resource.guid)));
+    if (rowId < 0) {
+        errorDescription = QObject::tr("Can't expunge resource from local storage database: "
+                                       "resource to be expunged was not found");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("DELETE FROM Resources WHERE rowid = ?");
+    query.addBindValue(rowId);
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't expunge resource from local storage database: ");
 
     return true;
 }
@@ -1144,6 +1317,8 @@ bool LocalStorageManager::UpdateResource(const Resource & resource, QString & er
 
     return InsertOrReplaceResource(resource, errorDescription);
 }
+
+#undef SET_IS_FREE_ACCOUNT_FLAG
 
 // FIXME: reimplement all methods below to comply with new Evernote objects' signature
 
@@ -1365,8 +1540,8 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  guid                    TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  noteGuid                TEXT                 NOT NULL, "
                      "  updateSequenceNumber    INTEGER              NOT NULL, "
-                     "  dataBody                TEXT,                NOT NULL, "
                      "  isDirty                 INTEGER              NOT NULL, "
+                     "  dataBody                TEXT,                NOT NULL, "
                      "  dataSize                INTEGER              NOT NULL, "
                      "  dataHash                TEXT                 NOT NULL, "
                      "  mime                    TEXT                 NOT NULL, "
