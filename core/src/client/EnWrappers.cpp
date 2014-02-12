@@ -771,6 +771,38 @@ bool SavedSearch::CheckParameters(QString &errorDescription) const
         }
     }
 
+    if (!en_search.__isset.format) {
+        errorDescription = QObject::tr("Saved search's format is not set");
+        return false;
+    }
+    else if (en_search.format != evernote::edam::QueryFormat::USER) {
+        errorDescription = QObject::tr("Saved search has unsupported query format");
+        return false;
+    }
+
+    if (!en_search.__isset.scope) {
+        errorDescription = QObject::tr("Saved search's scope is not set");
+        return false;
+    }
+    else {
+        const auto & scopeIsSet = en_search.scope.__isset;
+
+        if (!scopeIsSet.includeAccount) {
+            errorDescription = QObject::tr("Include account option in saved search's scope is not set");
+            return false;
+        }
+
+        if (!scopeIsSet.includePersonalLinkedNotebooks) {
+            errorDescription = QObject::tr("Include personal linked notebooks option in saved search's scope is not set");
+            return false;
+        }
+
+        if (!scopeIsSet.includeBusinessLinkedNotebooks) {
+            errorDescription = QObject::tr("Include business linked notebooks option in saved search's scope is not set");
+            return false;
+        }
+    }
+
     return true;
 }
 

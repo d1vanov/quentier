@@ -29,6 +29,7 @@ QT_FORWARD_DECLARE_STRUCT(Notebook)
 QT_FORWARD_DECLARE_STRUCT(Note)
 QT_FORWARD_DECLARE_STRUCT(Tag)
 QT_FORWARD_DECLARE_STRUCT(Resource)
+QT_FORWARD_DECLARE_STRUCT(SavedSearch)
 QT_FORWARD_DECLARE_STRUCT(User)
 typedef evernote::edam::UserID UserID;
 
@@ -192,6 +193,7 @@ private:
     bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
     bool InsertOrReplaceResource(const Resource & resource, QString & errorDescription);
+    bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;

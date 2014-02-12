@@ -1583,6 +1583,17 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     res = query.exec("CREATE INDEX NoteTagsNote ON NoteTags(note)");
     DATABASE_CHECK_AND_SET_ERROR("Can't create NoteTagsNote index: ");
 
+    res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
+                     "  guid                            TEXT PRIMARY KEY    NOT NULL UNIQUE, "
+                     "  name                            TEXT                NOT NULL, "
+                     "  query                           TEXT                NOT NULL, "
+                     "  format                          INTEGER             NOT NULL, "
+                     "  updateSequenceNumber            INTEGER             NOT NULL, "
+                     "  includeAccount                  INTEGER             NOT NULL, "
+                     "  includePersonalLinkedNotebooks  INTEGER             NOT NULL, "
+                     "  includeBusinessLinkedNotebooks  INTEGER             NOT NULL)");
+    DATABASE_CHECK_AND_SET_ERROR("Can't create SavedSearches table: ");
+
     return true;
 }
 
@@ -2239,6 +2250,35 @@ bool LocalStorageManager::InsertOrReplaceResource(const Resource & resource, QSt
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace data into \"ResourceAttributes\" table: ");
     }
+
+    return true;
+}
+
+bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
+                                                     QString & errorDescription)
+{
+    // NOTE: this method expects to be called after the search is already checked
+    // for sanity of its parameters!
+
+    const evernote::edam::SavedSearch & enSearch = search.en_search;
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("INSERT OR REPLACE INTO SavedSearches (guid, name, query, format, "
+                  "updateSequenceNumber, includeAccount, includePersonalLinkedNotebooks, "
+                  "includeBusinessLinkedNotebooks) VALUES(:guid, :name, :query, "
+                  ":format, :updateSequenceNumber, :includeAccount, :includePersonalLinkedNotebooks, "
+                  ":includeBusinessLinkedNotebooks)");
+    query.bindValue("guid", QString::fromStdString(enSearch.guid));
+    query.bindValue("name", QString::fromStdString(enSearch.name));
+    query.bindValue("query", QString::fromStdString(enSearch.query));
+    query.bindValue("format", static_cast<int>(enSearch.format));
+    query.bindValue("updateSequenceNumber", static_cast<qint32>(enSearch.updateSequenceNum));
+    query.bindValue("includeAccount", (enSearch.scope.includeAccount ? 1 : 0));
+    query.bindValue("includePersonalLinkedNotebooks", (enSearch.scope.includePersonalLinkedNotebooks ? 1 : 0));
+    query.bindValue("includeBusinessLinkedNotebooks", (enSearch.scope.includeBusinessLinkedNotebooks ? 1 : 0));
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace into \"SavedSearches\" table: ");
 
     return true;
 }

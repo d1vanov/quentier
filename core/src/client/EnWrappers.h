@@ -93,10 +93,9 @@ struct Tag
 
 struct SavedSearch
 {
-    SavedSearch() : isDirty(true), isLocal(true), en_search() {}
+    SavedSearch() : isDirty(true), en_search() {}
 
     bool isDirty;
-    bool isLocal;
     evernote::edam::SavedSearch en_search;
 
     bool CheckParameters(QString & errorDescription) const;
