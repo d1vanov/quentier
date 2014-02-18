@@ -97,6 +97,12 @@ bool LocalStorageManager::FindUser(const UserID id, User & user, QString & error
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't select user from \"Users\" table in local storage database: ");
 
+    if (!query.next()) {
+        errorDescription = QObject::tr("Can't retrieve user from local storage database: "
+                                       "query result is empty");
+        return false;
+    }
+
     QSqlRecord rec = query.record();
 
 #define CHECK_AND_SET_USER_PROPERTY(property) \
@@ -380,6 +386,12 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
     query.addBindValue(QString::fromStdString(notebookGuid));
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't find notebook in local storage database: ");
+
+    if (!query.next()) {
+        errorDescription = QObject::tr("Can't retrieve notebook from local storage database: "
+                                       "query result is empty");
+        return false;
+    }
 
     QSqlRecord rec = query.record();
 
@@ -987,17 +999,15 @@ bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & err
                   "isDeleted FROM Tags WHERE guid = ?");
     query.addBindValue(QString::fromStdString(tagGuid));
 
-    evernote::edam::Tag & enTag = tag.en_tag;
-
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't select tag from Tags table in local storage database: ");
 
-    if (!query.next())
-    {
+    if (!query.next()) {
         errorDescription = QObject::tr("Can't retrieve tag from local storage database: query result is empty");
         return false;
     }
 
+    evernote::edam::Tag & enTag = tag.en_tag;
     enTag.guid = tagGuid;
     enTag.__isset.guid = true;
 
@@ -1095,6 +1105,15 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
         errorDescription = QObject::tr("Local tag to be expunged is not marked as "
                                        "deleted one, rejecting to delete it from "
                                        "local database");
+        return false;
+    }
+
+    if (!tag.en_tag.__isset.guid) {
+        errorDescription = QObject::tr("Can't expunge tag: tag's guid is not set");
+        return false;
+    }
+    else if (!en_wrappers_private::CheckGuid(tag.en_tag.guid)) {
+        errorDescription = QObject::tr("Can't expunge tag: tag's guid is invalid");
         return false;
     }
 
@@ -1268,6 +1287,141 @@ bool LocalStorageManager::ExpungeResource(const Resource & resource, QString & e
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("Can't expunge resource from local storage database: ");
+
+    return true;
+}
+
+bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, QString & errorDescription)
+{
+    bool res = search.CheckParameters(errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    QString guid = QString::fromStdString(search.en_search.guid);
+    int rowId = GetRowId("SavedSearches", "guid", QVariant(guid));
+    if (rowId >= 0) {
+        errorDescription = QObject::tr("Can't add saved search to local storage database: "
+                                       "saved search with the same guid already exists");
+        return false;
+    }
+
+    return InsertOrReplaceSavedSearch(search, errorDescription);
+}
+
+bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, QString & errorDescription)
+{
+    bool res = search.CheckParameters(errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    QString guid = QString::fromStdString(search.en_search.guid);
+    int rowId = GetRowId("SavedSearches", "guid", QVariant(guid));
+    if (rowId < 0) {
+        errorDescription = QObject::tr("Can't update saved search in local storage database: "
+                                       "saved search with specified guid was not found");
+        return false;
+    }
+
+    return InsertOrReplaceSavedSearch(search, errorDescription);
+}
+
+bool LocalStorageManager::FindSavedSearch(const Guid & searchGuid, SavedSearch & search,
+                                          QString & errorDescription) const
+{
+    if (!en_wrappers_private::CheckGuid(searchGuid)) {
+        errorDescription = QObject::tr("Can't find saved search in local storage database: "
+                                       "invalid requested guid");
+        return false;
+    }
+
+    search = SavedSearch();
+
+    QSqlQuery query(m_sqlDatabase);
+
+    query.prepare("SELECT name, query, format, updateSequenceNumber, includeAccount, "
+                  "includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks "
+                  "FROM SavedSearches WHERE guid = ?");
+    query.addBindValue(QString::fromStdString(searchGuid));
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't select saved search from SavedSearches table in local storage database: ");
+
+    if (!query.next()) {
+        errorDescription = QObject::tr("Can't retrieve saved search from local storage database: "
+                                       "query result is empty");
+        return false;
+    }
+
+    evernote::edam::SavedSearch & enSearch = search.en_search;
+    enSearch.guid = searchGuid;
+    enSearch.__isset.guid = true;
+
+    QSqlRecord rec = query.record();
+
+#define CHECK_AND_SET_EN_SEARCH_PROPERTY(holder, localPropertyName, enPropertyName, \
+                                         localType, trueType, isRequired, ...) \
+    if (rec.contains(#localPropertyName)) { \
+        holder.enPropertyName = static_cast<trueType>((qvariant_cast<localType>(rec.value(#localPropertyName)))__VA_ARGS__); \
+        holder.__isset.enPropertyName = true; \
+    } \
+    else if (isRequired) { \
+        errorDescription = QObject::tr("Can't find saved search: no " #localPropertyName \
+                                       " field in the result of SQL query from local storage database"); \
+        return false; \
+    }
+
+    bool isRequired = true;
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, name, name, QString, std::string,
+                                     isRequired, .toStdString());
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, query, query, QString, std::string,
+                                     isRequired, .toStdString());
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, format, format, int,
+                                     evernote::edam::QueryFormat::type, isRequired);
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, updateSequenceNumber, updateSequenceNum,
+                                     int, int32_t, isRequired);
+
+    auto & scope = enSearch.scope;
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includeAccount, includeAccount,
+                                     int, bool, isRequired, ? true : false);
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includePersonalLinkedNotebooks,
+                                     includePersonalLinkedNotebooks, int, bool,
+                                     isRequired, ? true : false);
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includeBusinessLinkedNotebooks,
+                                     includeBusinessLinkedNotebooks, int, bool,
+                                     isRequired, ? true : false);
+
+#undef CHECK_AND_SET_EN_SEARCH_PROPERTY
+
+    return true;
+}
+
+bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,
+                                             QString & errorDescription)
+{
+    if (!search.en_search.__isset.guid) {
+        errorDescription = QObject::tr("Can't expunge saved search: search's guid is not set");
+        return false;
+    }
+    else if (!en_wrappers_private::CheckGuid(search.en_search.guid)) {
+        errorDescription = QObject::tr("Can't expunge saved search: search's guid is invalid");
+        return false;
+    }
+
+    int rowId = GetRowId("SavedSearches", "guid", QVariant(QString::fromStdString(search.en_search.guid)));
+    if (rowId < 0) {
+        errorDescription = QObject::tr("Can't expunge saved search from local storage database: "
+                                       "search to be expunged was not found");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("DELETE FROM SavedSearches WHERE rowid = ?");
+    query.addBindValue(rowId);
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("Can't expunge saved search from local storage database: ");
 
     return true;
 }

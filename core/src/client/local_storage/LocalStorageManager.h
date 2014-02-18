@@ -169,11 +169,29 @@ public:
     /**
      * @brief ExpungeResource - permanently deletes resource from local storage completely,
      * without the possibility to restore it
-     * @param resource - resource to be deleted
+     * @param resource - resource to be expunged
      * @param errorDescription - error description if resource could not be expunged
      * @return true if resource was expunged successfully, false otherwise
      */
     bool ExpungeResource(const Resource & resource, QString & errorDescription);
+
+    bool AddSavedSearch(const SavedSearch & search, QString & errorDescription);
+    bool UpdateSavedSearch(const SavedSearch & search, QString & errorDescription);
+
+    bool FindSavedSearch(const evernote::edam::Guid & searchGuid, SavedSearch & search,
+                         QString & errorDescription) const;
+
+    // NOTE: there is no 'DeleteSearch' method for a reason: saved searches are deleted automatically
+    // in remote storage so there's no need to mark some saved search as deleted for synchronization procedure.
+
+    /**
+     * @brief ExpungeSavedSearch - permanently deletes saved search from local storage completely,
+     * without the possibility to restore it
+     * @param search - saved search to be expunged
+     * @param errorDescription - error description if saved search could not be expunged
+     * @return true if saved search was expunged succesfully, false otherwise
+     */
+    bool ExpungeSavedSearch(const SavedSearch & search, QString & errorDescription);
 
 private:
     bool CreateTables(QString & errorDescription);
