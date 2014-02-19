@@ -105,6 +105,9 @@ public:
     bool FindNote(const evernote::edam::Guid & noteGuid, Note & note,
                   QString & errorDescription) const;
 
+    bool FindAllNotesPerNotebook(const evernote::edam::Guid & notebookGuid,
+                                 std::vector<Note> & notes, QString & errorDescription) const;
+
     /**
      * @brief DeleteNote - either expunges the local note (i.e. deletes it from
      * local storage completely, without the possibility to restore)
@@ -212,6 +215,11 @@ private:
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
     bool InsertOrReplaceResource(const Resource & resource, QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
+
+    bool FindAndSetTagGuidsPerNote(evernote::edam::Note & enNote, QString & errorDescription) const;
+    bool FindAndSetResourcesPerNote(evernote::edam::Note & enNote, QString & errorDescription,
+                                    const bool withBinaryData = true) const;
+    bool FindAndSetNoteAttributesPerNote(evernote::edam::Note & enNote, QString & errorDescription) const;
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;
