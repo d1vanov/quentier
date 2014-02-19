@@ -87,6 +87,15 @@ public:
     bool FindNotebook(const evernote::edam::Guid & notebookGuid, Notebook & notebook,
                       QString & errorDescription);
 
+    // TODO: implement
+    bool ListAllNotebooks(std::vector<Notebook> & notebooks, QString & errorDescription) const;
+
+    // TODO: implement
+    bool ListAllSharedNotebooks(std::vector<Notebook> & notebooks, QString & errorDescription) const;
+
+    // TODO: implement
+    bool LIstAllLinkedNotebooks(std::vector<Notebook> & notebooks, QString & errorDescription) const;
+
     /**
      * @brief ExpungeNotebook - deletes specified notebook from local storage.
      * Evernote API doesn't allow to delete notebooks from remote storage, it can
@@ -107,6 +116,7 @@ public:
 
     bool FindAllNotesPerNotebook(const evernote::edam::Guid & notebookGuid,
                                  std::vector<Note> & notes, QString & errorDescription) const;
+
 
     /**
      * @brief DeleteNote - either expunges the local note (i.e. deletes it from
@@ -137,6 +147,13 @@ public:
     bool LinkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
 
     bool FindTag(const evernote::edam::Guid & tagGuid, Tag & tag, QString & errorDescription) const;
+
+    // TODO: implement
+    bool FindAllTagsPerNotebook(const evernote::edam::Guid & notebook, std::vector<Tag> & tags,
+                                QString & errorDescription) const;
+
+    // TODO: implement
+    bool ListAllTags(std::vector<Tag> & tags, QString & errorDescription) const;
 
     /**
      * @brief DeleteTag - either expunges the local tag (i.e. deletes it from
@@ -183,6 +200,9 @@ public:
 
     bool FindSavedSearch(const evernote::edam::Guid & searchGuid, SavedSearch & search,
                          QString & errorDescription) const;
+
+    // TODO: implement
+    bool ListAllSavedSearches(std::vector<SavedSearch> & searches, QString & errorDescription) const;
 
     // NOTE: there is no 'DeleteSearch' method for a reason: saved searches are deleted automatically
     // in remote storage so there's no need to mark some saved search as deleted for synchronization procedure.
