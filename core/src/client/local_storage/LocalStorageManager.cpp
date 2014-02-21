@@ -49,40 +49,60 @@ void LocalStorageManager::SetNewAuthenticationToken(const QString & authenticati
 
 #define DATABASE_CHECK_AND_SET_ERROR(errorPrefix) \
     if (!res) { \
-        errorDescription = QObject::tr(errorPrefix); \
+        errorDescription += QObject::tr("Internal error: "); \
+        errorDescription += QObject::tr(errorPrefix); \
         errorDescription.append(m_sqlDatabase.lastError().text()); \
         return false; \
     }
 
 bool LocalStorageManager::AddUser(const User & user, QString & errorDescription)
 {
+    errorDescription = QObject::tr("Can't add user into local storage database: ");
+
     int rowId = GetRowId("Users", "id", QVariant(QString::number(user.en_user.id)));
     if (rowId >= 0) {
-        errorDescription = QObject::tr("Can't add user into local storage database, "
-                                       "user with the same id already exists");
+        errorDescription += QObject::tr("user with the same id already exists");
         return false;
     }
 
-    return InsertOrReplaceUser(user, errorDescription);
+    QString error;
+    bool res = InsertOrReplaceUser(user, error);
+    if (!res) {
+        errorDescription += error;
+        return false;
+    }
+
+    return true;
 }
 
 bool LocalStorageManager::UpdateUser(const User & user, QString & errorDescription)
 {
+    errorDescription = QObject::tr("Can't update user in local storage database: ");
+
     int rowId = GetRowId("Users", "id", QVariant(QString::number(user.en_user.id)));
     if (rowId < 0) {
-        errorDescription = QObject::tr("Can't update user: user id not found in local storage database");
+        errorDescription = QObject::tr("user id was not found");
         return false;
     }
 
-    return InsertOrReplaceUser(user, errorDescription);
+    QString error;
+    bool res = InsertOrReplaceUser(user, error);
+    if (!res) {
+        errorDescription += error;
+        return false;
+    }
+
+    return true;
 }
 
 bool LocalStorageManager::FindUser(const UserID id, User & user, QString & errorDescription) const
 {
+    errorDescription = QObject::tr("Can't find user in local storage database: ");
+
     QString idStr = QString::number(id);
     int rowId = GetRowId("Users", "id", QVariant(idStr));
     if (rowId < 0) {
-        errorDescription = QObject::tr("User with specified id was not found in local storage database");
+        errorDescription = QObject::tr("user id was not found");
         return false;
     }
 
@@ -95,11 +115,10 @@ bool LocalStorageManager::FindUser(const UserID id, User & user, QString & error
     query.addBindValue(idStr);
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't select user from \"Users\" table in local storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't select user from \"Users\" table in SQL database: ");
 
     if (!query.next()) {
-        errorDescription = QObject::tr("Can't retrieve user from local storage database: "
-                                       "query result is empty");
+        errorDescription += QObject::tr("Internal error: SQL query result is empty");
         return false;
     }
 
@@ -110,8 +129,9 @@ bool LocalStorageManager::FindUser(const UserID id, User & user, QString & error
         user.property = (qvariant_cast<int>(rec.value(#property)) != 0); \
     } \
     else { \
-        errorDescription = QObject::tr("No " #property " field in the result of SQL query " \
-                                       "from local storage database"); \
+        errorDescription += QObject::tr("Internal error: no " #property \
+                                        " field in the result of SQL query " \
+                                        "from local storage database"); \
         return false; \
     }
 
@@ -131,8 +151,9 @@ bool LocalStorageManager::FindUser(const UserID id, User & user, QString & error
         holder.__isset.propertyEnName = true; \
     } \
     else if (is_required) { \
-        errorDescription = QObject::tr("No " #propertyLocalName " field in the result of " \
-                                       "SQL query from local storage database"); \
+        errorDescription += QObject::tr("Internal error: no " #propertyLocalName \
+                                        " field in the result of SQL query from " \
+                                        "local storage database"); \
         return false; \
     }
 
@@ -155,17 +176,35 @@ bool LocalStorageManager::FindUser(const UserID id, User & user, QString & error
 
 #undef CHECK_AND_SET_EN_USER_PROPERTY
 
-    res = FindUserAttributes(id, enUser.attributes, errorDescription);
-    enUser.__isset.attributes = res;
+    QString error;
 
-    res = FindAccounting(id, enUser.accounting, errorDescription);
+#define CHECK_SQL_DATABASE_STATE_AND_SET_ERROR \
+    if (!res) \
+    { \
+        QString sqlError = m_sqlDatabase.lastError().text(); \
+        if (!sqlError.isEmpty()) { \
+            errorDescription += error; \
+            return false; \
+        } \
+    }
+
+    res = FindUserAttributes(id, enUser.attributes, error);
+    enUser.__isset.attributes = res;
+    CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
+
+    res = FindAccounting(id, enUser.accounting, error);
     enUser.__isset.accounting = res;
+    CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
 
     res = FindPremiumInfo(id, enUser.premiumInfo, errorDescription);
     enUser.__isset.premiumInfo = res;
+    CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
 
     res = FindBusinessUserInfo(id, enUser.businessUserInfo, errorDescription);
     enUser.__isset.businessUserInfo = res;
+    CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
+
+#undef CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
 
     return true;
 }
@@ -174,12 +213,13 @@ bool LocalStorageManager::FindUser(const UserID id, User & user, QString & error
     bool LocalStorageManager::Find##which(const UserID id, evernote::edam::which & prop, \
                                           QString & errorDescription) const \
     { \
+        errorDescription = QObject::tr("Can't find " #which " in local storage database: "); \
+        \
         prop = evernote::edam::which(); \
         QString idStr = QString::number(id); \
         int rowId = GetRowId(#which, "id", QVariant(idStr)); \
         if (rowId < 0) { \
-            errorDescription = QObject::tr(#which " for specified user id was not found " \
-                                           "in local storage database"); \
+            errorDescription += QObject::tr(#which " for specified user id was not found"); \
             return false; \
         } \
         \
@@ -188,19 +228,18 @@ bool LocalStorageManager::FindUser(const UserID id, User & user, QString & error
         query.addBindValue(idStr); \
         \
         bool res = query.exec(); \
-        DATABASE_CHECK_AND_SET_ERROR("Can't select data from \"BusinessUserInfo\" table: "); \
+        DATABASE_CHECK_AND_SET_ERROR("can't select data from \"BusinessUserInfo\" table: "); \
         \
         if (!query.next()) { \
-            errorDescription = QObject::tr("SQL query is empty after attempt to select from " \
-                                           #which " table"); \
-        return false; \
-    } \
-    \
-    QByteArray data = qvariant_cast<QByteArray>(query.value(0)); \
-    prop = GetDeserialized##which(data); \
-    \
-    return true; \
-}
+            errorDescription += QObject::tr("Internal error: SQL query result is empty"); \
+            return false; \
+        } \
+        \
+        QByteArray data = qvariant_cast<QByteArray>(query.value(0)); \
+        prop = GetDeserialized##which(data); \
+        \
+        return true; \
+    }
 
 FIND_OPTIONAL_USER_PROPERTIES(UserAttributes)
 FIND_OPTIONAL_USER_PROPERTIES(Accounting)
