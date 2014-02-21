@@ -368,7 +368,7 @@ bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & er
 bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & notebook,
                                        QString & errorDescription)
 {
-    if (!en_wrappers_private::CheckGuid(notebookGuid)) {
+    if (!CheckGuid(notebookGuid)) {
         errorDescription = QObject::tr("Can't find notebook in local storage database: "
                                        "requested guid is invalid");
         return false;
@@ -614,23 +614,13 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
     return true;
 }
 
-#define CHECK_GUID(object, objectName) \
-    {\
-        if (!object.__isset.guid) { \
-            errorDescription = QObject::tr(objectName " guid is not set"); \
-            return false; \
-        } \
-        const Guid & guid = object.guid; \
-        if (guid.empty()) { \
-            errorDescription = QObject::tr(objectName " guid is empty"); \
-            return false; \
-        } \
-    }
-
 bool LocalStorageManager::ExpungeNotebook(const Notebook & notebook, QString & errorDescription)
 {
     const evernote::edam::Notebook & enNotebook = notebook.en_notebook;
-    CHECK_GUID(enNotebook, "Notebook");
+    if (!CheckGuid(enNotebook.guid)) {
+        errorDescription = QObject::tr("Can't expunge notebook: notebook's guid is invalid");
+        return false;
+    }
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT rowid FROM Notebooks WHERE guid=?");
@@ -695,7 +685,7 @@ bool LocalStorageManager::UpdateNote(const Note & note, QString & errorDescripti
 
 bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString & errorDescription) const
 {
-    if (!en_wrappers_private::CheckGuid(noteGuid)) {
+    if (!CheckGuid(noteGuid)) {
         errorDescription = QObject::tr("Can't find note in local storage database: "
                                        "requested guid is invalid");
         return false;
@@ -803,7 +793,7 @@ bool LocalStorageManager::FindAllNotesPerNotebook(const Guid & notebookGuid, std
 {
     notes.clear();
 
-    if (!en_wrappers_private::CheckGuid(notebookGuid)) {
+    if (!CheckGuid(notebookGuid)) {
         errorDescription = QObject::tr("Can't find notes per notebook: specified notebook guid is invalid");
         return false;
     }
@@ -876,7 +866,7 @@ bool LocalStorageManager::FindAllNotesPerNotebook(const Guid & notebookGuid, std
         evernote::edam::Note & enNote = note.en_note;
 
         const Guid & guid = enNote.guid;
-        if (!en_wrappers_private::CheckGuid(guid)) {
+        if (!CheckGuid(guid)) {
             errorDescription = QObject::tr("Found note with invalid guid");
             return false;
         }
@@ -902,7 +892,10 @@ bool LocalStorageManager::FindAllNotesPerNotebook(const Guid & notebookGuid, std
 bool LocalStorageManager::DeleteNote(const Note & note, QString & errorDescription)
 {
     const evernote::edam::Note & enNote = note.en_note;
-    CHECK_GUID(enNote, "Note");
+    if (!CheckGuid(enNote.guid)) {
+        errorDescription = QObject::tr("Can't delete note, note's guid is invalid");
+        return false;
+    }
 
     if (note.isLocal) {
         return ExpungeNote(note, errorDescription);
@@ -927,7 +920,10 @@ bool LocalStorageManager::DeleteNote(const Note & note, QString & errorDescripti
 bool LocalStorageManager::ExpungeNote(const Note & note, QString & errorDescription)
 {
     const evernote::edam::Note & enNote = note.en_note;
-    CHECK_GUID(enNote, "Note");
+    if (!CheckGuid(enNote.guid)) {
+        errorDescription = QObject::tr("Can't expunge note, note's guid is invalid");
+        return false;
+    }
 
     if (!note.isLocal) {
         errorDescription = QObject::tr("Can't expunge non-local note");
@@ -1051,7 +1047,7 @@ bool LocalStorageManager::LinkTagWithNote(const Tag & tag, const Note & note,
 
 bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & errorDescription) const
 {
-    if (!en_wrappers_private::CheckGuid(tagGuid)) {
+    if (!CheckGuid(tagGuid)) {
         errorDescription = QObject::tr("Can't find tag in local storage database: "
                                        "invalid requested tag guid");
         return false;
@@ -1101,7 +1097,7 @@ bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & err
     if (enTag.parentGuid.empty()) {
         enTag.__isset.parentGuid = false;
     }
-    else if (!en_wrappers_private::CheckGuid(enTag.parentGuid)) {
+    else if (!CheckGuid(enTag.parentGuid)) {
         errorDescription = QObject::tr("Received tag with invalid parent guid from "
                                        "local storage database");
         return false;
@@ -1178,7 +1174,7 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
         errorDescription = QObject::tr("Can't expunge tag: tag's guid is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckGuid(tag.en_tag.guid)) {
+    else if (!CheckGuid(tag.en_tag.guid)) {
         errorDescription = QObject::tr("Can't expunge tag: tag's guid is invalid");
         return false;
     }
@@ -1203,7 +1199,7 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
 bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & resource,
                                        QString & errorDescription, const bool withBinaryData) const
 {
-    if (!en_wrappers_private::CheckGuid(resourceGuid)) {
+    if (!CheckGuid(resourceGuid)) {
         errorDescription = QObject::tr("Can't find resource in local storage database: "
                                        "requested guid is invalid");
         return false;
@@ -1396,7 +1392,7 @@ bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, QString 
 bool LocalStorageManager::FindSavedSearch(const Guid & searchGuid, SavedSearch & search,
                                           QString & errorDescription) const
 {
-    if (!en_wrappers_private::CheckGuid(searchGuid)) {
+    if (!CheckGuid(searchGuid)) {
         errorDescription = QObject::tr("Can't find saved search in local storage database: "
                                        "invalid requested guid");
         return false;
@@ -1470,7 +1466,7 @@ bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,
         errorDescription = QObject::tr("Can't expunge saved search: search's guid is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckGuid(search.en_search.guid)) {
+    else if (!CheckGuid(search.en_search.guid)) {
         errorDescription = QObject::tr("Can't expunge saved search: search's guid is invalid");
         return false;
     }
@@ -1823,7 +1819,10 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 bool LocalStorageManager::SetNoteAttributes(const evernote::edam::Note & note,
                                             QString & errorDescription)
 {
-    CHECK_GUID(note, "Note");
+    if (!CheckGuid(note.guid)) {
+        errorDescription = QObject::tr("Can't set note attributes: note's guid is invalid");
+        return false;
+    }
 
     if (!note.__isset.attributes) {
         return true;
@@ -2510,7 +2509,7 @@ bool LocalStorageManager::FindAndSetTagGuidsPerNote(evernote::edam::Note & enNot
                                                     QString & errorDescription) const
 {
     const Guid & guid = enNote.guid;
-    if (!en_wrappers_private::CheckGuid(guid)) {
+    if (!CheckGuid(guid)) {
         errorDescription = QObject::tr("Can't find tag guids per note: note's guid is invalid");
         return false;
     }
@@ -2531,7 +2530,7 @@ bool LocalStorageManager::FindAndSetTagGuidsPerNote(evernote::edam::Note & enNot
     while (query.next())
     {
         Guid tagGuid = query.value(0).toString().toStdString();
-        if (!en_wrappers_private::CheckGuid(tagGuid)) {
+        if (!CheckGuid(tagGuid)) {
             errorDescription = QObject::tr("Found invalid tag guid for requested note");
             return false;
         }
@@ -2547,7 +2546,7 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
                                                      const bool withBinaryData) const
 {
     const Guid & guid = enNote.guid;
-    if (!en_wrappers_private::CheckGuid(guid)) {
+    if (!CheckGuid(guid)) {
         errorDescription = QObject::tr("Can't find note attributes: note's guid is invalid");
         return false;
     }
@@ -2580,7 +2579,7 @@ bool LocalStorageManager::FindAndSetNoteAttributesPerNote(evernote::edam::Note &
     }
 
     const Guid & guid = enNote.guid;
-    if (!en_wrappers_private::CheckGuid(guid)) {
+    if (!CheckGuid(guid)) {
         errorDescription = QObject::tr("Can't find note attributes: note's guid is invalid");
         return false;
     }
@@ -2607,7 +2606,6 @@ bool LocalStorageManager::FindAndSetNoteAttributesPerNote(evernote::edam::Note &
 
 #undef CHECK_AND_SET_NOTE_PROPERTY
 #undef CHECK_AND_SET_EN_NOTE_PROPERTY
-#undef CHECK_GUID
 #undef DATABASE_CHECK_AND_SET_ERROR
 
 }

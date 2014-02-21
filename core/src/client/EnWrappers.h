@@ -114,13 +114,9 @@ typedef evernote::edam::Timestamp Timestamp;
 typedef evernote::edam::UserID UserID;
 typedef evernote::edam::Guid Guid;
 
-namespace en_wrappers_private {
-
 bool CheckGuid(const Guid & guid);
 
 bool CheckUpdateSequenceNumber(const int32_t updateSequenceNumber);
-
-}
 
 }
 

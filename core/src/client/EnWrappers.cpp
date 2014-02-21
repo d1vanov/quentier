@@ -283,7 +283,7 @@ bool Notebook::CheckParameters(QString & errorDescription) const
         errorDescription = QObject::tr("Notebook's guid is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckGuid(en_notebook.guid)) {
+    else if (!CheckGuid(en_notebook.guid)) {
         errorDescription = QObject::tr("Notebook's guid is invalid");
         return false;
     }
@@ -292,7 +292,7 @@ bool Notebook::CheckParameters(QString & errorDescription) const
         errorDescription = QObject::tr("Notebook's update sequence number is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckUpdateSequenceNumber(en_notebook.updateSequenceNum)) {
+    else if (!CheckUpdateSequenceNumber(en_notebook.updateSequenceNum)) {
         errorDescription = QObject::tr("Notebook's update sequence number is invalid");
         return false;
     }
@@ -335,7 +335,7 @@ bool Notebook::CheckParameters(QString & errorDescription) const
                 errorDescription = QObject::tr("Notebook has shared notebook without real notebook's guid set");
                 return false;
             }
-            else if (!en_wrappers_private::CheckGuid(sharedNotebook.notebookGuid)) {
+            else if (!CheckGuid(sharedNotebook.notebookGuid)) {
                 errorDescription = QObject::tr("Notebook has shared notebook with invalid guid");
                 return false;
             }
@@ -369,7 +369,7 @@ bool Resource::CheckParameters(QString & errorDescription, const bool isFreeAcco
         errorDescription = QObject::tr("Resource's guid is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckGuid(en_resource.guid)) {
+    else if (!CheckGuid(en_resource.guid)) {
         errorDescription = QObject::tr("Resource's guid is invalid");
         return false;
     }
@@ -378,12 +378,12 @@ bool Resource::CheckParameters(QString & errorDescription, const bool isFreeAcco
         errorDescription = QObject::tr("Resource's update sequence number is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckUpdateSequenceNumber(en_resource.updateSequenceNum)) {
+    else if (!CheckUpdateSequenceNumber(en_resource.updateSequenceNum)) {
         errorDescription = QObject::tr("Resource's update sequence number is invalid");
         return false;
     }
 
-    if (en_resource.__isset.noteGuid && !en_wrappers_private::CheckGuid(en_resource.noteGuid)) {
+    if (en_resource.__isset.noteGuid && !CheckGuid(en_resource.noteGuid)) {
         errorDescription = QObject::tr("Resource's note guid is invalid");
         return false;
     }
@@ -459,7 +459,7 @@ bool Note::CheckParameters(QString & errorDescription) const
         errorDescription = QObject::tr("Note's guid is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckGuid(en_note.guid)) {
+    else if (!CheckGuid(en_note.guid)) {
         errorDescription = QObject::tr("Note's guid is invalid");
         return false;
     }
@@ -468,7 +468,7 @@ bool Note::CheckParameters(QString & errorDescription) const
         errorDescription = QObject::tr("Note's update sequence number is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckUpdateSequenceNumber(en_note.updateSequenceNum)) {
+    else if (!CheckUpdateSequenceNumber(en_note.updateSequenceNum)) {
         errorDescription = QObject::tr("Note's update sequence number is invalid");
         return false;
     }
@@ -516,7 +516,7 @@ bool Note::CheckParameters(QString & errorDescription) const
         errorDescription = QObject::tr("Note's notebook Guid is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckGuid(en_note.notebookGuid)) {
+    else if (!CheckGuid(en_note.notebookGuid)) {
         errorDescription = QObject::tr("Note's notebook guid is invalid");
         return false;
     }
@@ -648,7 +648,7 @@ bool Tag::CheckParameters(QString & errorDescription) const
         errorDescription = QObject::tr("Tag's guid is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckGuid(en_tag.guid)) {
+    else if (!CheckGuid(en_tag.guid)) {
         errorDescription = QObject::tr("Tag's guid is invalid: ");
         errorDescription.append(QString::fromStdString(en_tag.guid));
         return false;
@@ -691,13 +691,13 @@ bool Tag::CheckParameters(QString & errorDescription) const
         errorDescription = QObject::tr("Tag's update sequence number is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckUpdateSequenceNumber(en_tag.updateSequenceNum)) {
+    else if (!CheckUpdateSequenceNumber(en_tag.updateSequenceNum)) {
         errorDescription = QObject::tr("Tag's update sequence number is invalid: ");
         errorDescription.append(en_tag.updateSequenceNum);
         return false;
     }
 
-    if (en_tag.__isset.parentGuid && !en_wrappers_private::CheckGuid(en_tag.parentGuid)) {
+    if (en_tag.__isset.parentGuid && !CheckGuid(en_tag.parentGuid)) {
         errorDescription = QObject::tr("Tag's parent guid is invalid: ");
         errorDescription.append(QString::fromStdString(en_tag.parentGuid));
         return false;
@@ -712,7 +712,7 @@ bool SavedSearch::CheckParameters(QString &errorDescription) const
         errorDescription = QObject::tr("Saved search's guid is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckGuid(en_search.guid)) {
+    else if (!CheckGuid(en_search.guid)) {
         errorDescription = QObject::tr("Saved search's guid is invalid: ");
         errorDescription.append(QString::fromStdString(en_search.guid));
         return false;
@@ -749,7 +749,7 @@ bool SavedSearch::CheckParameters(QString &errorDescription) const
         errorDescription = QObject::tr("Saved search's update sequence number is not set");
         return false;
     }
-    else if (!en_wrappers_private::CheckUpdateSequenceNumber(en_search.updateSequenceNum)) {
+    else if (!CheckUpdateSequenceNumber(en_search.updateSequenceNum)) {
         errorDescription = QObject::tr("Saved search's update sequence number is invalid: ");
         errorDescription.append(en_search.updateSequenceNum);
         return false;
@@ -1199,8 +1199,6 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::ResourceAttributes & 
 
 #undef GET_DESERIALIZED
 
-namespace en_wrappers_private {
-
 bool CheckGuid(const Guid & guid)
 {
     size_t guidSize = guid.size();
@@ -1221,8 +1219,6 @@ bool CheckUpdateSequenceNumber(const int32_t updateSequenceNumber)
     return ( (updateSequenceNumber < 0) ||
              (updateSequenceNumber == std::numeric_limits<int32_t>::min()) ||
              (updateSequenceNumber == std::numeric_limits<int32_t>::max()) );
-}
-
 }
 
 }
