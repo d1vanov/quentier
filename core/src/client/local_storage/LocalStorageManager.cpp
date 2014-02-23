@@ -1045,24 +1045,26 @@ bool LocalStorageManager::ExpungeNote(const Note & note, QString & errorDescript
 
 bool LocalStorageManager::AddTag(const Tag & tag, QString & errorDescription)
 {
-    bool res = tag.CheckParameters(errorDescription);
+    errorDescription = QObject::tr("Can't add tag to local storage database: ");
+    QString error;
+
+    bool res = tag.CheckParameters(error);
     if (!res) {
+        errorDescription += error;
         return false;
     }
 
     QString guid = QString::fromStdString(tag.en_tag.guid);
     int rowId = GetRowId("Tags", "guid", QVariant(guid));
     if (rowId >= 0) {
-        errorDescription = QObject::tr("Can't add tag to local storage database: "
-                                       "tag with the same guid already exists");
+        errorDescription += QObject::tr("tag with the same guid already exists");
         return false;
     }
 
     QString nameUpper = QString::fromStdString(tag.en_tag.name).toUpper();
     rowId = GetRowId("Tags", "nameUpper", QVariant(nameUpper));
     if (rowId >= 0) {
-        errorDescription = QObject::tr("Can't add tag to local storage database: "
-                                       "tag with similar name (case insensitive) "
+        errorDescription += QObject::tr("tag with similar name (case insensitive) "
                                        "already exists");
         return false;
     }
@@ -1072,25 +1074,27 @@ bool LocalStorageManager::AddTag(const Tag & tag, QString & errorDescription)
 
 bool LocalStorageManager::UpdateTag(const Tag &tag, QString &errorDescription)
 {
-    bool res = tag.CheckParameters(errorDescription);
+    errorDescription = QObject::tr("Can't update tag in local storage database: ");
+    QString error;
+
+    bool res = tag.CheckParameters(error);
     if (!res) {
+        errorDescription += error;
         return false;
     }
 
     QString guid = QString::fromStdString(tag.en_tag.guid);
     int rowId = GetRowId("Tags", "guid", QVariant(guid));
     if (rowId < 0) {
-        errorDescription = QObject::tr("Can't update tag in local storage database: "
-                                       "tag not found");
+        errorDescription += QObject::tr("tag with specified guid was not found");
         return false;
     }
 
     QString nameUpper = QString::fromStdString(tag.en_tag.name).toUpper();
     rowId = GetRowId("Tags", "nameUpper", QVariant(nameUpper));
     if (rowId < 0) {
-        errorDescription = QObject::tr("Can't update tag to local storage database: "
-                                       "tag with similar name (case insensitive) "
-                                       "not found");
+        errorDescription += QObject::tr("tag with similar name (case insensitive) "
+                                        "was not found");
         return false;
     }
 
@@ -1100,15 +1104,18 @@ bool LocalStorageManager::UpdateTag(const Tag &tag, QString &errorDescription)
 bool LocalStorageManager::LinkTagWithNote(const Tag & tag, const Note & note,
                                           QString & errorDescription)
 {
-    if (!tag.CheckParameters(errorDescription)) {
-        errorDescription = QObject::tr("Can't link tag with note: tag is invalid: ") +
-                           errorDescription;
+    errorDescription = QObject::tr("Can't link tag with note: ");
+    QString error;
+
+    if (!tag.CheckParameters(error)) {
+        errorDescription += QObject::tr("tag is invalid: ");
+        errorDescription += error;
         return false;
     }
 
     if (!note.CheckParameters(errorDescription)) {
-        errorDescription = QObject::tr("Can't link tag with note: note is invalid: ") +
-                           errorDescription;
+        errorDescription += QObject::tr("note is invalid: ");
+        errorDescription += error;
         return false;
     }
 
@@ -1118,17 +1125,18 @@ bool LocalStorageManager::LinkTagWithNote(const Tag & tag, const Note & note,
     query.addBindValue(QString::fromStdString(tag.en_tag.guid));
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace note guid + tag guid in "
-                                 "\"NoteTags\" table in local storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note guid + tag guid in "
+                                 "\"NoteTags\" table in SQL storage database");
 
     return true;
 }
 
 bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & errorDescription) const
 {
+    errorDescription = QObject::tr("Can't find tag in local storage database: ");
+
     if (!CheckGuid(tagGuid)) {
-        errorDescription = QObject::tr("Can't find tag in local storage database: "
-                                       "invalid requested tag guid");
+        errorDescription += QObject::tr("requested tag guid is invalid");
         return false;
     }
 
@@ -1141,10 +1149,10 @@ bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & err
     query.addBindValue(QString::fromStdString(tagGuid));
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't select tag from Tags table in local storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't select tag from \"Tags\" table in SQL database: ");
 
     if (!query.next()) {
-        errorDescription = QObject::tr("Can't retrieve tag from local storage database: query result is empty");
+        errorDescription += QObject::tr("Internal error: SQL query result is empty");
         return false;
     }
 
@@ -1155,8 +1163,7 @@ bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & err
     bool conversionResult = false;
     enTag.updateSequenceNum = static_cast<int32_t>(query.value(0).toInt(&conversionResult));
     if (enTag.updateSequenceNum < 0 || !conversionResult) {
-        errorDescription = QObject::tr("Can't retrieve tag's update sequence number from "
-                                       "local storage database");
+        errorDescription += QObject::tr("No tag's update sequence number was found in SQL query result");
         return false;
     }
     enTag.__isset.updateSequenceNum = true;
@@ -1166,8 +1173,8 @@ bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & err
     if ( (nameSize < evernote::limits::g_Limits_constants.EDAM_TAG_NAME_LEN_MIN) ||
          (nameSize > evernote::limits::g_Limits_constants.EDAM_TAG_NAME_LEN_MAX) )
     {
-        errorDescription = QObject::tr("Received tag with invalid name size from "
-                                       "local storage database");
+        errorDescription += QObject::tr("Internal error: found tag with invalid "
+                                        "name size from SQL query result");
         return false;
     }
     enTag.__isset.name = true;
@@ -1177,8 +1184,8 @@ bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & err
         enTag.__isset.parentGuid = false;
     }
     else if (!CheckGuid(enTag.parentGuid)) {
-        errorDescription = QObject::tr("Received tag with invalid parent guid from "
-                                       "local storage database");
+        errorDescription += QObject::tr("Internal error: found tag with invalid parent guid "
+                                        "in SQL query result");
         return false;
     }
     enTag.__isset.parentGuid = true;
@@ -1186,8 +1193,7 @@ bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & err
     conversionResult = false;
     int isDirtyInt = query.value(3).toInt(&conversionResult);
     if (isDirtyInt < 0 || !conversionResult) {
-        errorDescription = QObject::tr("Can't retrieve tag's isDirty flag from "
-                                       "local storage database");
+        errorDescription += QObject::tr("No tag's \"isDirty\" flag was found in SQL result");
         return false;
     }
     tag.isDirty = static_cast<bool>(isDirtyInt);
@@ -1195,8 +1201,7 @@ bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & err
     conversionResult = false;
     int isLocalInt = query.value(4).toInt(&conversionResult);
     if (isLocalInt < 0 || !conversionResult) {
-        errorDescription = QObject::tr("Can't retrieve tag's isLocal flag from "
-                                       "local storage database");
+        errorDescription += QObject::tr("No tag's \"isLocal\" flag was found in SQL result");
         return false;
     }
     tag.isLocal = static_cast<bool>(isLocalInt);
@@ -1204,8 +1209,7 @@ bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & err
     conversionResult = false;
     int isDeletedInt = query.value(5).toInt(&conversionResult);
     if (isDeletedInt < 0 || !conversionResult) {
-        errorDescription = QObject::tr("Can't retrieve tag's isDeleted flag from "
-                                       "local storage database");
+        errorDescription += QObject::tr("No tag's \"isDeleted\" flag was found in SQL result");
         return false;
     }
     tag.isDeleted = static_cast<bool>(isDeletedInt);
@@ -1614,82 +1618,6 @@ bool LocalStorageManager::UpdateResource(const Resource & resource, QString & er
 }
 
 #undef SET_IS_FREE_ACCOUNT_FLAG
-
-// FIXME: reimplement all methods below to comply with new Evernote objects' signature
-
-/*
-
-bool LocalStorageManager::DeleteResource(const evernote::edam::Resource &resource,
-                                     QString & errorDescription)
-{
-    if (resource.isLocal()) {
-        return ExpungeResource(resource, errorDescription);
-    }
-
-    if (!resource.isDeleted()) {
-        errorDescription = QObject::tr("Metadata of the resource to be deleted from local storage "
-                                       "is not marked deleted, rejecting to mark it deleted "
-                                       "in local database");
-        return false;
-    }
-
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("UPDATE Resources SET isDeleted = 1, isDirty = 1 WHERE guid = ?");
-    query.addBindValue(resource.guid().ToQString());
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't delete resource in local storage database: ");
-
-    return true;
-}
-
-bool LocalStorageManager::ExpungeResource(const evernote::edam::Resource &resource,
-                                      QString & errorDescription)
-{
-    if (!resource.isLocal()) {
-        errorDescription = QObject::tr("Can't expunge non-local resource");
-        return false;
-    }
-
-    if (!resource.isDeleted()) {
-        errorDescription = QObject::tr("Metadata of local resource to be deleted "
-                                       "is not marked deleted, rejecting to delete it from "
-                                       "local database");
-        return false;
-    }
-
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT rowid FROM Resources WHERE guid = ?");
-    query.addBindValue(resource.guid().ToQString());
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't find resource to be expunged in local storage database");
-
-    // TODO: generalize this procedure as it's used in multiple places in code
-    int rowId = -1;
-    bool conversionResult = false;
-    while(query.next()) {
-        rowId = query.value(0).toInt(&conversionResult);
-    }
-
-    if (!conversionResult || (rowId < 0)) {
-        errorDescription = QObject::tr("Can't get rowId of resource to be expunged in Resource table");
-        return false;
-    }
-
-    query.clear();
-    query.prepare("DELETE FROM Resources WHERE rowid = ?");
-    query.addBindValue(QVariant(rowId));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't expunge resource from local storage database");
-
-    return true;
-}
-
-#undef CHECK_RESOURCE_ATTRIBUTES
-#undef CHECK_TAG_ATTRIBUTES
-#undef CHECK_NOTE_ATTRIBUTES
-
-*/
 
 bool LocalStorageManager::CreateTables(QString & errorDescription)
 {
