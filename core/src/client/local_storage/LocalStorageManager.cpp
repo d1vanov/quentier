@@ -1978,7 +1978,7 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const evernote::edam::
         query.bindValue("values", values);
         bool res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace additional notebook attributes "
-                                     "into SQL database");
+                                     "into \"Notebooks\" table in SQL database");
     }
 
     QString error;
@@ -2182,7 +2182,7 @@ int LocalStorageManager::GetRowId(const QString & tableName, const QString & uni
 
 bool LocalStorageManager::InsertOrReplaceUser(const User & user, QString & errorDescription)
 {
-    errorDescription += QObject::tr("Can't insert or replace User in local storage database: ");
+    errorDescription += QObject::tr("Can't insert or replace User into local storage database: ");
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO Users (id, username, name, timezone, privilege, "
@@ -2282,6 +2282,8 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
     // NOTE: this method expects to be called after notebook is already checked
     // for sanity of its parameters!
 
+    errorDescription = QObject::tr("Can't insert or replace notebook into local storage database: ");
+
     const evernote::edam::Notebook & enNotebook = notebook.en_notebook;
 
     QSqlQuery query(m_sqlDatabase);
@@ -2302,7 +2304,7 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
     query.addBindValue(QString::fromStdString(enNotebook.stack));
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert new notebook into local storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook into \"Notebooks\" table in SQL database");
 
     return SetNotebookAdditionalAttributes(enNotebook, errorDescription);
 }
@@ -2311,6 +2313,8 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
 {
     // NOTE: this method expects to be called after note is already checked
     // for sanity of its parameters!
+
+    errorDescription = QObject::tr("Can't insert or replace note into local storage database: ");
 
     const evernote::edam::Note & enNote = note.en_note;
 
@@ -2335,7 +2339,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
     query.addBindValue(notebookGuid);
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't add note to Notes table in local storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"Notes\" table in SQL database");
 
     query.prepare("INSERT OR REPLACE INTO NoteText (guid, title, content, notebookGuid) "
                   "VALUES(?, ?, ?, ?)");
@@ -2344,10 +2348,12 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
     query.addBindValue(content);
     query.addBindValue(notebookGuid);
     res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't add note to NoteText table in local storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"NoteText\" table in SQL database");
 
     if (enNote.__isset.tagGuids)
     {
+        QString error;
+
         const auto & tagGuids = enNote.tagGuids;
         for(const auto & tagGuid: tagGuids)
         {
@@ -2355,10 +2361,10 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
             // so they must exist within local storage database; if they don't then something went really wrong
 
             Tag tag;
-            bool res = FindTag(tagGuid, tag, errorDescription);
+            bool res = FindTag(tagGuid, tag, error);
             if (!res) {
-                errorDescription = QObject::tr("Found tag guid which does not correspond "
-                                               "to any tag within local storage database");
+                errorDescription += QObject::tr("failed to find one of note tags by guid: ");
+                errorDescription += error;
                 return false;
             }
 
@@ -2367,7 +2373,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
             query.addBindValue(QString::fromStdString(tagGuid));
 
             res = query.exec();
-            DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace information into NoteTags table");
+            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace information into \"NoteTags\" table in SQL database");
         }
     }
 
@@ -2400,6 +2406,8 @@ bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDes
     // NOTE: this method expects to be called after tag is already checked
     // for sanity of its parameters!
 
+    errorDescription = QObject::tr("Can't insert or replace tag into local storage database: ");
+
     const evernote::edam::Tag & enTag = tag.en_tag;
 
     QString guid = QString::fromStdString(enTag.guid);
@@ -2423,7 +2431,7 @@ bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDes
     query.addBindValue(tag.isDeleted ? 1 : 0);
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace into \"Tags\" table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace tag into \"Tags\" table in SQL database");
 
     return true;
 }
@@ -2432,6 +2440,8 @@ bool LocalStorageManager::InsertOrReplaceResource(const Resource & resource, QSt
 {
     // NOTE: this method expects to be called after resource is already checked
     // for sanity of its parameters!
+
+    errorDescription = QObject::tr("Can't insert or replace resource into local storage database: ");
 
     const evernote::edam::Resource & enResource = resource.en_resource;
 
@@ -2460,9 +2470,9 @@ bool LocalStorageManager::InsertOrReplaceResource(const Resource & resource, QSt
     bool hasAnyData = enResource.__isset.data || enResource.__isset.alternateData;
     if (hasAnyData)
     {
-        const evernote::edam::Data & data = (enResource.__isset.alternateData
-                                             ? enResource.alternateData
-                                             : enResource.data);
+        const auto & data = (enResource.__isset.alternateData
+                             ? enResource.alternateData
+                             : enResource.data);
         CHECK_AND_SET_RESOURCE_PROPERTY(data, body, dataBody, QString::fromStdString(data.body));
         CHECK_AND_SET_RESOURCE_PROPERTY(data, size, dataSize, QString::number(data.size));
         CHECK_AND_SET_RESOURCE_PROPERTY(data, bodyHash, dataHash, QString::fromStdString(data.bodyHash));
@@ -2496,7 +2506,7 @@ bool LocalStorageManager::InsertOrReplaceResource(const Resource & resource, QSt
     query.bindValue("vals", values);
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace data into \"Resources\" table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database");
 
     if (enResource.__isset.attributes)
     {
@@ -2506,7 +2516,7 @@ bool LocalStorageManager::InsertOrReplaceResource(const Resource & resource, QSt
         query.addBindValue(serializedResourceAttributes);
 
         res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace data into \"ResourceAttributes\" table: ");
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
     }
 
     return true;
@@ -2517,6 +2527,8 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
 {
     // NOTE: this method expects to be called after the search is already checked
     // for sanity of its parameters!
+
+    errorDescription = QObject::tr("Can't insert or replace saved search into local storage database: ");
 
     const evernote::edam::SavedSearch & enSearch = search.en_search;
 
@@ -2536,7 +2548,7 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
     query.bindValue("includeBusinessLinkedNotebooks", (enSearch.scope.includeBusinessLinkedNotebooks ? 1 : 0));
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace into \"SavedSearches\" table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace saved search into \"SavedSearches\" table in SQL database");
 
     return true;
 }
@@ -2582,7 +2594,7 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
                                                      QString & errorDescription,
                                                      const bool withBinaryData) const
 {
-    errorDescription += QObject::tr("Can't find resources for note: ");
+    errorDescription += QObject::tr("can't find resources for note: ");
 
     const Guid & guid = enNote.guid;
     if (!CheckGuid(guid)) {
