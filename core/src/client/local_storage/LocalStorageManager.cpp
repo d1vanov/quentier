@@ -1360,8 +1360,6 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & res
                                            std::string, isRequired, .toStdString());
     }
 
-#undef CHECK_AND_SET_EN_RESOURCE_PROPERTY
-
     if (enResource.data.__isset.size && enResource.data.__isset.bodyHash)
     {
         if (withBinaryData && enResource.data.__isset.body) {
@@ -2598,7 +2596,7 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
 
     const Guid & guid = enNote.guid;
     if (!CheckGuid(guid)) {
-        errorDescription = QObject::tr("note's guid is invalid");
+        errorDescription += QObject::tr("note's guid is invalid");
         return false;
     }
 
@@ -2617,7 +2615,57 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select resources' guids per note's guid");
 
-    // TODO: continue from here
+    int numResources = query.size();
+    auto & resources = enNote.resources;
+    resources.resize(numResources);
+
+    if (numResources < 0) {
+        // No resources were found
+        return true;
+    }
+
+    size_t k = 0;
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+
+        evernote::edam::Resource & resource = resources[k++];
+
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(resource, guid, guid, QString, std::string,
+                                           /* is required = */ true, .toStdString());
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(resource, updateSequenceNumber, updateSequenceNum,
+                                           int, int32_t, /* is required = */ true);
+        auto & data = resource.data;
+
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(data, dataSize, size, int, int32_t,
+                                           /* is required = */ true);
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(data, dataHash, bodyHash, QString, std::string,
+                                           /* is required = */ true, .toStdString());
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(resource, mime, mime, QString, std::string,
+                                           /* is required = */ true, .toStdString());
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(resource, width, width, int, int32_t,
+                                           /* is required = */ false);
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(resource, height, height, int, int32_t,
+                                           /* is required = */ false);
+
+        auto & recognition = resource.recognition;
+
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(recognition, recognitionBody, body,
+                                           QString, std::string, /* is required = */ false,
+                                           .toStdString());
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(recognition, recognitionSize, size,
+                                           int, int32_t, /* is required = */ false);
+        CHECK_AND_SET_EN_RESOURCE_PROPERTY(recognition, recognitionHash, bodyHash,
+                                           QString, std::string, /* is required = */ false,
+                                           .toStdString());
+
+        if (withBinaryData) {
+            CHECK_AND_SET_EN_RESOURCE_PROPERTY(data, dataBody, body, QString, std::string,
+                                               /* is required = */ true, .toStdString());
+        }
+
+        // TODO: find and set optional resource attributes for each resource
+    }
 
     return true;
 }
@@ -2656,6 +2704,7 @@ bool LocalStorageManager::FindAndSetNoteAttributesPerNote(evernote::edam::Note &
     return true;
 }
 
+#undef CHECK_AND_SET_EN_RESOURCE_PROPERTY
 #undef CHECK_AND_SET_NOTE_PROPERTY
 #undef CHECK_AND_SET_EN_NOTE_PROPERTY
 #undef DATABASE_CHECK_AND_SET_ERROR
