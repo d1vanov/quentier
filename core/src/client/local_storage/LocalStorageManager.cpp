@@ -1006,7 +1006,7 @@ bool LocalStorageManager::ExpungeNote(const Note & note, QString & errorDescript
     }
 
     if (!note.isLocal) {
-        errorDescription += QObject::tr("note to be expunged is non-local, it's disallowed to be expunged");
+        errorDescription += QObject::tr("note to be expunged is not local");
         return false;
     }
 
@@ -1223,10 +1223,10 @@ bool LocalStorageManager::DeleteTag(const Tag & tag, QString & errorDescription)
         return ExpungeTag(tag, errorDescription);
     }
 
+    errorDescription = QObject::tr("Can't delete tag from local storage database: ");
+
     if (!tag.isDeleted) {
-        errorDescription = QObject::tr("Tag to be deleted from local storage "
-                                       "is not marked as deleted one, rejecting "
-                                       "to mark it deleted in local database");
+        errorDescription += QObject::tr("tag to be deleted is not marked as deleted one");
         return false;
     }
 
@@ -1234,38 +1234,37 @@ bool LocalStorageManager::DeleteTag(const Tag & tag, QString & errorDescription)
     query.prepare("UPDATE Tags SET isDeleted = 1, isDirty = 1 WHERE guid = ?");
     query.addBindValue(QString::fromStdString(tag.en_tag.guid));
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't delete tag in local storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't mark tag deleted in \"Tags\" table in SQL database");
 
     return true;
 }
 
 bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription)
 {
+    errorDescription = QObject::tr("Can't expunge tag from local storage database: ");
+
     if (!tag.isLocal) {
-        errorDescription = QObject::tr("Can't expunge non-local tag");
+        errorDescription += QObject::tr("tag to be expunged is not local");
         return false;
     }
 
     if (!tag.isDeleted) {
-        errorDescription = QObject::tr("Local tag to be expunged is not marked as "
-                                       "deleted one, rejecting to delete it from "
-                                       "local database");
+        errorDescription += QObject::tr("tag to be expunged is not marked as deleted one");
         return false;
     }
 
     if (!tag.en_tag.__isset.guid) {
-        errorDescription = QObject::tr("Can't expunge tag: tag's guid is not set");
+        errorDescription += QObject::tr("tag's guid is not set");
         return false;
     }
     else if (!CheckGuid(tag.en_tag.guid)) {
-        errorDescription = QObject::tr("Can't expunge tag: tag's guid is invalid");
+        errorDescription += QObject::tr("tag's guid is invalid");
         return false;
     }
 
     int rowId = GetRowId("Tags", "guid", QVariant(QString::fromStdString(tag.en_tag.guid)));
     if (rowId < 0) {
-        errorDescription = QObject::tr("Can't expunge tag from local storage database: "
-                                       "tag to be expunged was not found");
+        errorDescription += QObject::tr("tag to be expunged was not found by guid");
         return false;
     }
 
@@ -1274,7 +1273,7 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
     query.addBindValue(rowId);
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't expunge tag from local storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't delete tag from \"Tags\" table in SQL database");
 
     return true;
 }
@@ -1282,9 +1281,10 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
 bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & resource,
                                        QString & errorDescription, const bool withBinaryData) const
 {
+    errorDescription = QObject::tr("Can't find resource in local storage database: ");
+
     if (!CheckGuid(resourceGuid)) {
-        errorDescription = QObject::tr("Can't find resource in local storage database: "
-                                       "requested guid is invalid");
+        errorDescription += QObject::tr("requested resource guid is invalid");
         return false;
     }
 
@@ -1306,12 +1306,10 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & res
     }
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't select resource from Resources table in local "
-                                 "storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't find resource in \"Resources\" table in SQL database");
 
     if (!query.next()) {
-        errorDescription = QObject::tr("Can't find resource in local storage database: "
-                                       "query result is empty");
+        errorDescription += QObject::tr("Internal error: SQL query result is empty");
         return false;
     }
 
@@ -1321,8 +1319,7 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & res
         resource.isDirty = (qvariant_cast<int>(rec.value("isDirty")) != 0);
     }
     else {
-        errorDescription = QObject::tr("Can't find resource: no \"isDirty\" field "
-                                       "in the result of SQL query from local storage database");
+        errorDescription += QObject::tr("no \"isDirty\" field in the result of SQL query");
         return false;
     }
 
@@ -1333,8 +1330,8 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & res
         holder.__isset.enPropertyName = true; \
     } \
     else if (isRequired) { \
-        errorDescription = QObject::tr("Can't find resource: no " #localPropertyName \
-                                       " field in the result of SQL query from local storage database"); \
+        errorDescription += QObject::tr("no " #localPropertyName \
+                                        " field in the result of SQL query"); \
         return false; \
     }
 
@@ -1403,7 +1400,7 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & res
     query.addBindValue(QString::fromStdString(resourceGuid));
 
     res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't select data from \"ResourceAttributes\" table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributes\" table in SQL database");
 
     if (!query.next()) {
         enResource.__isset.attributes = false;
@@ -1419,10 +1416,11 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & res
 
 bool LocalStorageManager::ExpungeResource(const Resource & resource, QString & errorDescription)
 {
+    errorDescription = QObject::tr("Can't expunge resource from local storage database: ");
+
     int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.en_resource.guid)));
     if (rowId < 0) {
-        errorDescription = QObject::tr("Can't expunge resource from local storage database: "
-                                       "resource to be expunged was not found");
+        errorDescription += QObject::tr("resource to be expunged was not found by guid");
         return false;
     }
 
@@ -1431,23 +1429,26 @@ bool LocalStorageManager::ExpungeResource(const Resource & resource, QString & e
     query.addBindValue(rowId);
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't expunge resource from local storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't delete resource from \"Resources\" table in SQL database");
 
     return true;
 }
 
 bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, QString & errorDescription)
 {
-    bool res = search.CheckParameters(errorDescription);
+    errorDescription = QObject::tr("Can't add saved search to local storage database: ");
+    QString error;
+
+    bool res = search.CheckParameters(error);
     if (!res) {
+        errorDescription += error;
         return false;
     }
 
     QString guid = QString::fromStdString(search.en_search.guid);
     int rowId = GetRowId("SavedSearches", "guid", QVariant(guid));
     if (rowId >= 0) {
-        errorDescription = QObject::tr("Can't add saved search to local storage database: "
-                                       "saved search with the same guid already exists");
+        errorDescription += QObject::tr("saved search with the same guid already exists");
         return false;
     }
 
@@ -1456,16 +1457,19 @@ bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, QString & e
 
 bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, QString & errorDescription)
 {
-    bool res = search.CheckParameters(errorDescription);
+    errorDescription = QObject::tr("Can't update saved search in local storage database: ");
+    QString error;
+
+    bool res = search.CheckParameters(error);
     if (!res) {
+        errorDescription += error;
         return false;
     }
 
     QString guid = QString::fromStdString(search.en_search.guid);
     int rowId = GetRowId("SavedSearches", "guid", QVariant(guid));
     if (rowId < 0) {
-        errorDescription = QObject::tr("Can't update saved search in local storage database: "
-                                       "saved search with specified guid was not found");
+        errorDescription += QObject::tr("saved search with specified guid was not found");
         return false;
     }
 
@@ -1475,9 +1479,10 @@ bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, QString 
 bool LocalStorageManager::FindSavedSearch(const Guid & searchGuid, SavedSearch & search,
                                           QString & errorDescription) const
 {
+    errorDescription = QObject::tr("Can't find saved search in local storage database: ");
+
     if (!CheckGuid(searchGuid)) {
-        errorDescription = QObject::tr("Can't find saved search in local storage database: "
-                                       "invalid requested guid");
+        errorDescription += QObject::tr("requested saved search guid is invalid");
         return false;
     }
 
@@ -1491,11 +1496,10 @@ bool LocalStorageManager::FindSavedSearch(const Guid & searchGuid, SavedSearch &
     query.addBindValue(QString::fromStdString(searchGuid));
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't select saved search from SavedSearches table in local storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't find saved search in \"SavedSearches\" table in SQL database: ");
 
     if (!query.next()) {
-        errorDescription = QObject::tr("Can't retrieve saved search from local storage database: "
-                                       "query result is empty");
+        errorDescription += QObject::tr("Internal error: SQL query result is empty");
         return false;
     }
 
@@ -1512,8 +1516,8 @@ bool LocalStorageManager::FindSavedSearch(const Guid & searchGuid, SavedSearch &
         holder.__isset.enPropertyName = true; \
     } \
     else if (isRequired) { \
-        errorDescription = QObject::tr("Can't find saved search: no " #localPropertyName \
-                                       " field in the result of SQL query from local storage database"); \
+        errorDescription += QObject::tr("no " #localPropertyName " field" \
+                                        "in the result of SQL query"); \
         return false; \
     }
 
@@ -1545,19 +1549,20 @@ bool LocalStorageManager::FindSavedSearch(const Guid & searchGuid, SavedSearch &
 bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,
                                              QString & errorDescription)
 {
+    errorDescription = QObject::tr("Can't expunge saved search from local storage database: ");
+
     if (!search.en_search.__isset.guid) {
-        errorDescription = QObject::tr("Can't expunge saved search: search's guid is not set");
+        errorDescription += QObject::tr("saved search's guid is not set");
         return false;
     }
     else if (!CheckGuid(search.en_search.guid)) {
-        errorDescription = QObject::tr("Can't expunge saved search: search's guid is invalid");
+        errorDescription += QObject::tr("saved search's guid is invalid");
         return false;
     }
 
     int rowId = GetRowId("SavedSearches", "guid", QVariant(QString::fromStdString(search.en_search.guid)));
     if (rowId < 0) {
-        errorDescription = QObject::tr("Can't expunge saved search from local storage database: "
-                                       "search to be expunged was not found");
+        errorDescription += QObject::tr("saved search to be expunged was not found");
         return false;
     }
 
@@ -1566,33 +1571,37 @@ bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,
     query.addBindValue(rowId);
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't expunge saved search from local storage database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't delete saved search from \"SavedSearches\" table in SQL database");
 
     return true;
 }
 
 #define SET_IS_FREE_ACCOUNT_FLAG \
     User currentUser; \
-    bool res = FindUser(m_currentUserId, currentUser, errorDescription); \
+    QString error; \
+    bool res = FindUser(m_currentUserId, currentUser, error); \
     if (!res) { \
-        errorDescription = QObject::tr("Can't add resource: can't find current user to " \
-                                       "determine max allowed size of the resource: ") + errorDescription; \
+        errorDescription += QObject::tr("can't find current user to " \
+                                        "determine max allowed size of the resource: "); \
+        errorDescription += error; \
         return false; \
     } \
     bool isFreeAccount = (currentUser.en_user.privilege == evernote::edam::PrivilegeLevel::NORMAL);
 
 bool LocalStorageManager::AddResource(const Resource & resource, QString & errorDescription)
 {
+    errorDescription = QObject::tr("Can't add resource to local storage database: ");
+
     SET_IS_FREE_ACCOUNT_FLAG
 
-    if (!resource.CheckParameters(errorDescription, isFreeAccount)) {
+    if (!resource.CheckParameters(error, isFreeAccount)) {
+        errorDescription += error;
         return false;
     }
 
     int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.en_resource.guid)));
     if (rowId >= 0) {
-        errorDescription = QObject::tr("Can't add resource to local storage database: "
-                                       "resource with the same guid already exists");
+        errorDescription += QObject::tr("resource with the same guid already exists");
         return false;
     }
 
@@ -1601,16 +1610,18 @@ bool LocalStorageManager::AddResource(const Resource & resource, QString & error
 
 bool LocalStorageManager::UpdateResource(const Resource & resource, QString & errorDescription)
 {
+    errorDescription = QObject::tr("Can't update resource in local storage database: ");
+
     SET_IS_FREE_ACCOUNT_FLAG
 
-    if (!resource.CheckParameters(errorDescription)) {
+    if (!resource.CheckParameters(error)) {
+        errorDescription += error;
         return false;
     }
 
     int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.en_resource.guid)));
     if (rowId < 0) {
-        errorDescription = QObject::tr("Can't update resource: resource with specified guid "
-                                       "was not found in local storage database");
+        errorDescription += QObject::tr("resource to be updated was not found by guid");
         return false;
     }
 
@@ -1826,8 +1837,10 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 bool LocalStorageManager::SetNoteAttributes(const evernote::edam::Note & note,
                                             QString & errorDescription)
 {
+    errorDescription += QObject::tr("can't set note attributes: ");
+
     if (!CheckGuid(note.guid)) {
-        errorDescription = QObject::tr("Can't set note attributes: note's guid is invalid");
+        errorDescription += QObject::tr("note guid is invalid");
         return false;
     }
 
@@ -1845,7 +1858,7 @@ bool LocalStorageManager::SetNoteAttributes(const evernote::edam::Note & note,
     query.addBindValue(data);
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace lastEditorId into NoteAttributes table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace lastEditorId into \"NoteAttributes\" table in SQL database");
 
     return true;
 }
@@ -1964,20 +1977,24 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const evernote::edam::
         query.bindValue("columns", columns);
         query.bindValue("values", values);
         bool res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't set additional notebook attributes to "
-                                     "local storage database: ");
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace additional notebook attributes "
+                                     "into SQL database");
     }
 
-    bool res = SetNotebookRestrictions(notebook, errorDescription);
+    QString error;
+    bool res = SetNotebookRestrictions(notebook, error);
     if (!res) {
+        errorDescription += error;
         return res;
     }
 
     const auto & sharedNotebooks = notebook.sharedNotebooks;
     for(const auto & sharedNotebook: sharedNotebooks)
     {
-        res = SetSharedNotebookAttributes(sharedNotebook, errorDescription);
+        error.clear();
+        res = SetSharedNotebookAttributes(sharedNotebook, error);
         if (!res) {
+            errorDescription += error;
             return res;
         }
     }
@@ -1992,6 +2009,8 @@ bool LocalStorageManager::SetNotebookRestrictions(const evernote::edam::Notebook
         // Nothing to do
         return true;
     }
+
+    errorDescription = QObject::tr("Can't set notebook restrictions: ");
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO NotebookRestrictions (:notebookGuid, :columns) "
@@ -2047,7 +2066,8 @@ bool LocalStorageManager::SetNotebookRestrictions(const evernote::edam::Notebook
         query.bindValue("columns", columns);
         query.bindValue("vals", values);
         bool res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't set notebook restrictions to local storage database: ");
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook restrictions "
+                                     "into SQL database");
     }
 
     return true;
@@ -2056,13 +2076,19 @@ bool LocalStorageManager::SetNotebookRestrictions(const evernote::edam::Notebook
 bool LocalStorageManager::SetSharedNotebookAttributes(const evernote::edam::SharedNotebook & sharedNotebook,
                                                       QString & errorDescription)
 {
+    errorDescription = QObject::tr("Can't set shared notebook attributes: ");
+
     if (!sharedNotebook.__isset.id) {
-        errorDescription = QObject::tr("Shared notebook's share id is not set");
+        errorDescription += QObject::tr("shared notebook's share id is not set");
         return false;
     }
 
     if (!sharedNotebook.__isset.notebookGuid) {
-        errorDescription = QObject::tr("Shared notebook's notebook guid is not set");
+        errorDescription += QObject::tr("shared notebook's notebook guid is not set");
+        return false;
+    }
+    else if (!CheckGuid(sharedNotebook.notebookGuid)) {
+        errorDescription += QObject::tr("shared notebook's notebook guid is invalid");
         return false;
     }
 
@@ -2127,7 +2153,8 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const evernote::edam::Shar
         query.bindValue("columns", columns);
         query.bindValue("vals", values);
         bool res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't set shared notebook attributes to local storage database");
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace shared notebook attributes "
+                                     "into SQL database");
     }
 
     return true;
@@ -2155,6 +2182,8 @@ int LocalStorageManager::GetRowId(const QString & tableName, const QString & uni
 
 bool LocalStorageManager::InsertOrReplaceUser(const User & user, QString & errorDescription)
 {
+    errorDescription += QObject::tr("Can't insert or replace User in local storage database: ");
+
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO Users (id, username, name, timezone, privilege, "
                   "  creationTimestamp, modificationTimestamp, isDirty, isLocal, "
@@ -2164,7 +2193,7 @@ bool LocalStorageManager::InsertOrReplaceUser(const User & user, QString & error
 
 #define CHECK_AND_SET_USER_VALUE(column, error, prep) \
     if (!en_user.__isset.column) { \
-        errorDescription = QObject::tr(error); \
+        errorDescription += QObject::tr(error); \
         return false; \
     } \
     else { \
@@ -2194,7 +2223,7 @@ bool LocalStorageManager::InsertOrReplaceUser(const User & user, QString & error
 #undef CHECK_AND_SET_USER_VALUE
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("Can't insert or replace user into \"Users\" table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace user into \"Users\" table in SQL database");
 
     if (en_user.__isset.attributes)
     {
@@ -2205,7 +2234,7 @@ bool LocalStorageManager::InsertOrReplaceUser(const User & user, QString & error
         query.addBindValue(serializedUserAttributes);
 
         res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't add user attributes into \"UserAttributes\" table: ");
+        DATABASE_CHECK_AND_SET_ERROR("can't add user attributes into \"UserAttributes\" table in SQL database");
     }
 
     if (en_user.__isset.accounting)
@@ -2217,7 +2246,7 @@ bool LocalStorageManager::InsertOrReplaceUser(const User & user, QString & error
         query.addBindValue(serializedAccounting);
 
         res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't add user's accounting info into \"Accounting\" table: ");
+        DATABASE_CHECK_AND_SET_ERROR("can't add user's accounting info into \"Accounting\" table in SQL database");
     }
 
     if (en_user.__isset.premiumInfo)
@@ -2229,7 +2258,7 @@ bool LocalStorageManager::InsertOrReplaceUser(const User & user, QString & error
         query.addBindValue(serializedPremiumInfo);
 
         res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't add user's premium info into \"PremiumInfo\" table: ");
+        DATABASE_CHECK_AND_SET_ERROR("can't add user's premium info into \"PremiumInfo\" table in SQL database");
     }
 
     if (en_user.__isset.businessUserInfo)
@@ -2241,7 +2270,7 @@ bool LocalStorageManager::InsertOrReplaceUser(const User & user, QString & error
         query.addBindValue(serializedBusinessUserInfo);
 
         res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("Can't add user's business info into \"BusinessUserInfo\" table: ");
+        DATABASE_CHECK_AND_SET_ERROR("can't add user's business info into \"BusinessUserInfo\" table in SQL database");
     }
 
     return true;
