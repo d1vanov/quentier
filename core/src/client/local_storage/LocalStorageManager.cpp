@@ -2664,7 +2664,23 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
                                                /* is required = */ true, .toStdString());
         }
 
-        // TODO: find and set optional resource attributes for each resource
+        // Retrieve optional resource attributes for each resource
+        QSqlQuery resourceAttributeQuery(m_sqlDatabase);
+        resourceAttributeQuery.prepare("SELECT data FROM ResourceAttributes WHERE guid = ?");
+        resourceAttributeQuery.addBindValue(QString::fromStdString(guid));
+
+        res = resourceAttributeQuery.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't select serialized resource attributes from "
+                                     "\"ResourceAttributes\" table in SQL database");
+
+        if (!resourceAttributeQuery.next()) {
+            // No attributes for this resource
+            continue;
+        }
+
+        QByteArray serializedResourceAttributes = query.value(0).toByteArray();
+        resource.attributes = GetDeserializedResourceAttributes(serializedResourceAttributes);
+        resource.__isset.attributes = true;
     }
 
     return true;
