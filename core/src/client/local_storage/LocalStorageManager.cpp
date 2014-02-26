@@ -1626,8 +1626,6 @@ bool LocalStorageManager::UpdateResource(const Resource & resource, QString & er
     return InsertOrReplaceResource(resource, errorDescription);
 }
 
-#undef SET_IS_FREE_ACCOUNT_FLAG
-
 bool LocalStorageManager::CreateTables(QString & errorDescription)
 {
     QSqlQuery query(m_sqlDatabase);
@@ -2380,15 +2378,25 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
 
     if (enNote.__isset.resources)
     {
-        const std::vector<evernote::edam::Resource> & resources = enNote.resources;
+        SET_IS_FREE_ACCOUNT_FLAG;
+
+        const auto & resources = enNote.resources;
         size_t numResources = resources.size();
         for(size_t i = 0; i < numResources; ++i)
         {
-            // const evernote::edam::Resource & resource = resources[i];
-            // TODO: check parameters of this resource
+            const evernote::edam::Resource & resource = resources[i];
 
-            // TODO: try to find this resource within local storage database,
-            // in case of failure report error
+            error.clear();
+            res = Resource::CheckParameters(resource, error, isFreeAccount);
+            if (!res) {
+                errorDescription += QObject::tr("found invalid resource linked with note: ");
+                errorDescription += error;
+                return false;
+            }
+
+            // TODO: if resource with this guid already exists within local storage,
+            // need to update only those fields which are __isset;
+            // Otherwise, just add what's available from this resource
         }
     }
 
@@ -2720,6 +2728,7 @@ bool LocalStorageManager::FindAndSetNoteAttributesPerNote(evernote::edam::Note &
     return true;
 }
 
+#undef SET_IS_FREE_ACCOUNT_FLAG
 #undef CHECK_AND_SET_EN_RESOURCE_PROPERTY
 #undef CHECK_AND_SET_NOTE_PROPERTY
 #undef CHECK_AND_SET_EN_NOTE_PROPERTY

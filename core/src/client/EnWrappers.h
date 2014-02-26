@@ -77,6 +77,8 @@ struct Resource
     evernote::edam::Resource en_resource;
 
     bool CheckParameters(QString & errorDescription, const bool isFreeAccount = true) const;
+    static bool CheckParameters(const evernote::edam::Resource & enResource,
+                                QString & errorDescription, const bool isFreeAccount);
 };
 
 struct Tag

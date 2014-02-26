@@ -365,38 +365,44 @@ bool Notebook::CheckParameters(QString & errorDescription) const
 
 bool Resource::CheckParameters(QString & errorDescription, const bool isFreeAccount) const
 {
-    if (!en_resource.__isset.guid) {
+    return CheckParameters(en_resource, errorDescription, isFreeAccount);
+}
+
+bool Resource::CheckParameters(const evernote::edam::Resource & enResource,
+                               QString & errorDescription, const bool isFreeAccount)
+{
+    if (!enResource.__isset.guid) {
         errorDescription = QObject::tr("Resource's guid is not set");
         return false;
     }
-    else if (!CheckGuid(en_resource.guid)) {
+    else if (!CheckGuid(enResource.guid)) {
         errorDescription = QObject::tr("Resource's guid is invalid");
         return false;
     }
 
-    if (!en_resource.__isset.updateSequenceNum) {
+    if (!enResource.__isset.updateSequenceNum) {
         errorDescription = QObject::tr("Resource's update sequence number is not set");
         return false;
     }
-    else if (!CheckUpdateSequenceNumber(en_resource.updateSequenceNum)) {
+    else if (!CheckUpdateSequenceNumber(enResource.updateSequenceNum)) {
         errorDescription = QObject::tr("Resource's update sequence number is invalid");
         return false;
     }
 
-    if (en_resource.__isset.noteGuid && !CheckGuid(en_resource.noteGuid)) {
+    if (enResource.__isset.noteGuid && !CheckGuid(enResource.noteGuid)) {
         errorDescription = QObject::tr("Resource's note guid is invalid");
         return false;
     }
 
 #define CHECK_RESOURCE_DATA(name) \
-    if (en_resource.__isset.name) \
+    if (enResource.__isset.name) \
     { \
-        if (!en_resource.name.__isset.body) { \
+        if (!enResource.name.__isset.body) { \
             errorDescription = QObject::tr("Resource's " #name " body is not set"); \
             return false; \
         } \
         \
-        int32_t dataSize = static_cast<int32_t>(en_resource.name.body.size()); \
+        int32_t dataSize = static_cast<int32_t>(enResource.name.body.size()); \
         int32_t allowedSize = (isFreeAccount \
                                ? evernote::limits::g_Limits_constants.EDAM_RESOURCE_SIZE_MAX_FREE \
                                : evernote::limits::g_Limits_constants.EDAM_RESOURCE_SIZE_MAX_PREMIUM); \
@@ -405,17 +411,17 @@ bool Resource::CheckParameters(QString & errorDescription, const bool isFreeAcco
             return false; \
         } \
         \
-        if (!en_resource.name.__isset.size) { \
+        if (!enResource.name.__isset.size) { \
             errorDescription = QObject::tr("Resource's " #name " size is not set"); \
             return false; \
         } \
         \
-        if (!en_resource.name.__isset.bodyHash) { \
+        if (!enResource.name.__isset.bodyHash) { \
             errorDescription = QObject::tr("Resource's " #name " hash is not set"); \
             return false; \
         } \
         else { \
-            int32_t hashSize = static_cast<int32_t>(en_resource.name.bodyHash.size()); \
+            int32_t hashSize = static_cast<int32_t>(enResource.name.bodyHash.size()); \
             if (hashSize != evernote::limits::g_Limits_constants.EDAM_HASH_LEN) { \
                 errorDescription = QObject::tr("Invalid " #name " hash size"); \
                 return false; \
@@ -429,19 +435,19 @@ bool Resource::CheckParameters(QString & errorDescription, const bool isFreeAcco
 
 #undef CHECK_RESOURCE_DATA
 
-    if (!en_resource.__isset.data && en_resource.__isset.alternateData) {
+    if (!enResource.__isset.data && enResource.__isset.alternateData) {
         errorDescription = QObject::tr("Resource has no data set but alternate data is present");
         return false;
     }
 
-    if (!en_resource.__isset.mime)
+    if (!enResource.__isset.mime)
     {
         errorDescription = QObject::tr("Resource's mime type is not set");
         return false;
     }
     else
     {
-        int32_t mimeSize = static_cast<int32_t>(en_resource.mime.size());
+        int32_t mimeSize = static_cast<int32_t>(enResource.mime.size());
         if ( (mimeSize < evernote::limits::g_Limits_constants.EDAM_MIME_LEN_MIN) ||
              (mimeSize > evernote::limits::g_Limits_constants.EDAM_MIME_LEN_MAX) )
         {
