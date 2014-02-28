@@ -28,7 +28,7 @@ namespace qute_note {
 QT_FORWARD_DECLARE_STRUCT(Notebook)
 QT_FORWARD_DECLARE_STRUCT(Note)
 QT_FORWARD_DECLARE_STRUCT(Tag)
-QT_FORWARD_DECLARE_STRUCT(Resource)
+QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_STRUCT(SavedSearch)
 QT_FORWARD_DECLARE_STRUCT(User)
 typedef evernote::edam::UserID UserID;
@@ -177,10 +177,10 @@ public:
      */
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
-    bool AddResource(const Resource & resource, QString & errorDescription);
-    bool UpdateResource(const Resource & resource, QString & errorDescription);
+    bool AddResource(const IResource & resource, QString & errorDescription);
+    bool UpdateResource(const IResource & resource, QString & errorDescription);
 
-    bool FindResource(const evernote::edam::Guid & resourceGuid, Resource & resource,
+    bool FindResource(const evernote::edam::Guid & resourceGuid, IResource & resource,
                       QString & errorDescription, const bool withBinaryData = true) const;
 
     // NOTE: there is no 'DeleteResource' method for a reason: resources are deleted automatically
@@ -193,7 +193,7 @@ public:
      * @param errorDescription - error description if resource could not be expunged
      * @return true if resource was expunged successfully, false otherwise
      */
-    bool ExpungeResource(const Resource & resource, QString & errorDescription);
+    bool ExpungeResource(const IResource & resource, QString & errorDescription);
 
     bool AddSavedSearch(const SavedSearch & search, QString & errorDescription);
     bool UpdateSavedSearch(const SavedSearch & search, QString & errorDescription);
@@ -233,7 +233,7 @@ private:
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
-    bool InsertOrReplaceResource(const Resource & resource, QString & errorDescription);
+    bool InsertOrReplaceResource(const IResource & resource, QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
 
     bool FindAndSetTagGuidsPerNote(evernote::edam::Note & enNote, QString & errorDescription) const;

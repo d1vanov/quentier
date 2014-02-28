@@ -1,0 +1,45 @@
+#include "ResourceWrapper.h"
+
+namespace qute_note {
+
+ResourceWrapper::ResourceWrapper() :
+    IResource(),
+    m_en_resource()
+{}
+
+ResourceWrapper::ResourceWrapper(const ResourceWrapper & other) :
+    IResource(other),
+    m_en_resource(other.m_en_resource)
+{}
+
+ResourceWrapper & ResourceWrapper::operator=(const ResourceWrapper & other)
+{
+    if (this != &other)
+    {
+        if (other.IsDirty()) {
+            SetDirty();
+        }
+        else {
+            SetClean();
+        }
+
+        m_en_resource = other.m_en_resource;
+    }
+
+    return *this;
+}
+
+ResourceWrapper::~ResourceWrapper()
+{}
+
+const evernote::edam::Resource & ResourceWrapper::GetEnResource() const
+{
+    return m_en_resource;
+}
+
+evernote::edam::Resource & ResourceWrapper::GetEnResource()
+{
+    return m_en_resource;
+}
+
+} // namespace qute_note

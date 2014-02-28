@@ -2,6 +2,9 @@
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
 #include "../EnWrappers.h"
+#include "../Utility.h"
+#include "../types/IResource.h"
+#include "../types/ResourceAdapter.h"
 #include "../../tools/QuteNoteNullPtrException.h"
 #include <Limits_constants.h>
 
@@ -1278,7 +1281,7 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
     return true;
 }
 
-bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & resource,
+bool LocalStorageManager::FindResource(const Guid & resourceGuid, IResource & resource,
                                        QString & errorDescription, const bool withBinaryData) const
 {
     errorDescription = QObject::tr("Can't find resource in local storage database: ");
@@ -1288,10 +1291,12 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & res
         return false;
     }
 
-    resource = Resource();
+    resource.Clear();
 
-    resource.en_resource.guid = resourceGuid;
-    resource.en_resource.__isset.guid = true;
+    auto & enResource = resource.GetEnResource();
+
+    enResource.guid = resourceGuid;
+    enResource.__isset.guid = true;
 
     QSqlQuery query(m_sqlDatabase);
 
@@ -1315,10 +1320,18 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & res
 
     QSqlRecord rec = query.record();
 
-    if (rec.contains("isDirty")) {
-        resource.isDirty = (qvariant_cast<int>(rec.value("isDirty")) != 0);
+    if (rec.contains("isDirty"))
+    {
+        bool isDirty = (qvariant_cast<int>(rec.value("isDirty")) != 0);
+        if (isDirty) {
+            resource.SetDirty();
+        }
+        else {
+            resource.SetClean();
+        }
     }
-    else {
+    else
+    {
         errorDescription += QObject::tr("no \"isDirty\" field in the result of SQL query");
         return false;
     }
@@ -1335,7 +1348,7 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & res
         return false; \
     }
 
-    auto & enResource = resource.en_resource;
+
     bool isRequired = true;
     CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, noteGuid, noteGuid, QString, std::string, isRequired, .toStdString());
     CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, updateSequenceNumber, updateSequenceNum,
@@ -1412,11 +1425,11 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, Resource & res
     return true;
 }
 
-bool LocalStorageManager::ExpungeResource(const Resource & resource, QString & errorDescription)
+bool LocalStorageManager::ExpungeResource(const IResource & resource, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't expunge resource from local storage database: ");
 
-    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.en_resource.guid)));
+    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.GetEnResource().guid)));
     if (rowId < 0) {
         errorDescription += QObject::tr("resource to be expunged was not found by guid");
         return false;
@@ -1586,7 +1599,7 @@ bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,
     } \
     bool isFreeAccount = (currentUser.en_user.privilege == evernote::edam::PrivilegeLevel::NORMAL);
 
-bool LocalStorageManager::AddResource(const Resource & resource, QString & errorDescription)
+bool LocalStorageManager::AddResource(const IResource & resource, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't add resource to local storage database: ");
 
@@ -1597,7 +1610,7 @@ bool LocalStorageManager::AddResource(const Resource & resource, QString & error
         return false;
     }
 
-    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.en_resource.guid)));
+    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.GetEnResource().guid)));
     if (rowId >= 0) {
         errorDescription += QObject::tr("resource with the same guid already exists");
         return false;
@@ -1606,7 +1619,7 @@ bool LocalStorageManager::AddResource(const Resource & resource, QString & error
     return InsertOrReplaceResource(resource, errorDescription);
 }
 
-bool LocalStorageManager::UpdateResource(const Resource & resource, QString & errorDescription)
+bool LocalStorageManager::UpdateResource(const IResource & resource, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't update resource in local storage database: ");
 
@@ -1617,7 +1630,7 @@ bool LocalStorageManager::UpdateResource(const Resource & resource, QString & er
         return false;
     }
 
-    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.en_resource.guid)));
+    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.GetEnResource().guid)));
     if (rowId < 0) {
         errorDescription += QObject::tr("resource to be updated was not found by guid");
         return false;
@@ -2384,10 +2397,10 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
         size_t numResources = resources.size();
         for(size_t i = 0; i < numResources; ++i)
         {
-            const evernote::edam::Resource & resource = resources[i];
+            ResourceAdapter resourceAdapter(resources[i]);
 
             error.clear();
-            res = Resource::CheckParameters(resource, error, isFreeAccount);
+            res = resourceAdapter.CheckParameters(error, isFreeAccount);
             if (!res) {
                 errorDescription += QObject::tr("found invalid resource linked with note: ");
                 errorDescription += error;
@@ -2442,14 +2455,15 @@ bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDes
     return true;
 }
 
-bool LocalStorageManager::InsertOrReplaceResource(const Resource & resource, QString & errorDescription)
+bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
+                                                  QString & errorDescription)
 {
     // NOTE: this method expects to be called after resource is already checked
     // for sanity of its parameters!
 
     errorDescription = QObject::tr("Can't insert or replace resource into local storage database: ");
 
-    const evernote::edam::Resource & enResource = resource.en_resource;
+    const evernote::edam::Resource & enResource = resource.GetEnResource();
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO Resources (:columns) VALUES(:vals)");
@@ -2506,7 +2520,7 @@ bool LocalStorageManager::InsertOrReplaceResource(const Resource & resource, QSt
     if (!values.isEmpty()) {
         values.append(", ");
     }
-    values.append(QString::number(resource.isDirty ? 1 : 0));
+    values.append(QString::number(resource.IsDirty() ? 1 : 0));
 
     query.bindValue("columns", columns);
     query.bindValue("vals", values);

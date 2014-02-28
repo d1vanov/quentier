@@ -17,6 +17,11 @@ set(${PROJECT_NAME}_QT_HEADERS
 
 set(${PROJECT_NAME}_HEADERS
     src/client/EnWrappers.h
+    src/client/Utility.h
+    src/client/types/IResource.h
+    src/client/types/ResourceWrapper.h
+    src/client/types/ResourceAdapter.h
+    src/client/types/ResourceAdapterAccessException.h
     src/client/enml/ENMLConverter.h
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
@@ -39,6 +44,11 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ResourceTextObject.cpp
     src/note_editor/ToDoCheckboxTextObject.cpp
     src/client/EnWrappers.cpp
+    src/client/Utility.cpp
+    src/client/types/IResource.cpp
+    src/client/types/ResourceWrapper.cpp
+    src/client/types/ResourceAdapter.cpp
+    src/client/types/ResourceAdapterAccessException.cpp
     src/client/enml/ENMLConverter.cpp
     src/client/local_storage/DatabaseOpeningException.cpp
     src/client/local_storage/DatabaseSqlErrorException.cpp

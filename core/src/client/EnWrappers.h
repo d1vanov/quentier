@@ -69,74 +69,6 @@ struct Notebook
     bool CheckParameters(QString & errorDescription) const;
 };
 
-class IResource
-{
-public:
-    IResource();
-    IResource(const IResource & other);
-    virtual ~IResource();
-
-    bool isDirty() const;
-    void SetDirty();
-    void SetClean();
-
-    virtual const evernote::edam::Resource & GetEnResource() const = 0;
-    virtual evernote::edam::Resource & GetEnResource() = 0;
-
-private:
-    IResource & operator=(const IResource & other);
-    bool m_isDirty;
-};
-
-/**
- * @brief The ResourceWrapper class creates and manages its own evernote::edam::Resource object
- */
-class ResourceWrapper : public IResource
-{
-public:
-    ResourceWrapper();
-    ResourceWrapper(const ResourceWrapper & other);
-    ResourceWrapper & operator=(const ResourceWrapper & other);
-    virtual ~ResourceWrapper();
-
-    virtual const evernote::edam::Resource & GetEnResource() const;
-    virtual evernote::edam::Resource & GetEnResource();
-
-private:
-    evernote::edam::Resource m_en_resource;
-};
-
-/**
- * @brief The ResourceAdapter class uses reference to external evernote::edam::Resource
- * and adapts its interface to that of IResource
- */
-class ResourceAdapter: public IResource
-{
-public:
-    ResourceAdapter(const evernote::edam::Resource & externalEnResource);
-    ResourceAdapter(const ResourceAdapter & other);
-    ResourceAdapter & operator=(const ResourceAdapter & other);
-    virtual ~ResourceAdapter();
-
-    virtual const evernote::edam::Resource & GetEnResource() const;
-    virtual evernote::edam::Resource & GetEnResource();
-
-private:
-    evernote::edam::Resource & m_en_resource_ref;
-};
-
-struct Resource
-{
-    Resource() : isDirty(true), en_resource() {}
-
-    bool isDirty;
-    evernote::edam::Resource en_resource;
-
-    bool CheckParameters(QString & errorDescription, const bool isFreeAccount = true) const;
-    static bool CheckParameters(const evernote::edam::Resource & enResource,
-                                QString & errorDescription, const bool isFreeAccount);
-};
-
 struct Tag
 {
     Tag() : isDirty(true), isLocal(true), isDeleted(false), en_tag() {}
@@ -171,10 +103,6 @@ struct User
 typedef evernote::edam::Timestamp Timestamp;
 typedef evernote::edam::UserID UserID;
 typedef evernote::edam::Guid Guid;
-
-bool CheckGuid(const Guid & guid);
-
-bool CheckUpdateSequenceNumber(const int32_t updateSequenceNumber);
 
 }
 
