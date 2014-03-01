@@ -10,6 +10,7 @@ include("cmake/boost.cmake")
 include("cmake/libxml2.cmake")
 include("cmake/openssl.cmake")
 include("cmake/prepend.cmake")
+include("cmake/log4cplus.cmake")
 
 enable_testing()
 
