@@ -13,12 +13,6 @@
 
 using namespace evernote::edam;
 
-#ifdef USE_QT5
-#include <QStandardPaths>
-#else
-#include <QDesktopServices>
-#endif
-
 namespace qute_note {
 
 #define QUTE_NOTE_DATABASE_NAME "qn.storage.sqlite"
@@ -330,12 +324,7 @@ void LocalStorageManager::SwitchUser(const QString & username, const UserID user
     m_currentUsername = username;
     m_currentUserId = userId;
 
-#if QT_VERSION >= 0x050000
-    m_applicationPersistenceStoragePath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
-#else
-    m_applicationPersistenceStoragePath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
-#endif
-
+    m_applicationPersistenceStoragePath = GetApplicationPersistentStoragePath();
     m_applicationPersistenceStoragePath.append("/" + m_currentUsername + m_currentUserId);
 
     bool needsInitializing = false;

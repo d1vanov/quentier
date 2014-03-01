@@ -30,8 +30,10 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
     src/client/local_storage/LocalStorageManager.h
+    src/logging/IQuteNoteLogger.h
     src/tools/EmptyDataElementException.h
     src/tools/IQuteNoteException.h
+    src/tools/Linkage.h
     src/tools/Printable.h
     src/tools/QuteNoteCheckPtr.h
     src/tools/QuteNoteNullPtrException.h
@@ -61,6 +63,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/DatabaseOpeningException.cpp
     src/client/local_storage/DatabaseSqlErrorException.cpp
     src/client/local_storage/LocalStorageManager.cpp
+    src/logging/IQuteNoteLogger.cpp
     src/tools/EmptyDataElementException.cpp
     src/tools/IQuteNoteException.cpp
     src/tools/Printable.cpp
@@ -87,7 +90,7 @@ else()
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB} ${THRIFT_LIB} ${Boost_LIBRARIES}
-                      ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES})
+                      ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES} ${LOG4CPLUS_LIBRARIES})
 
 set(TEST_HEADERS
     src/tests/SerializationTests.h
