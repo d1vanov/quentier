@@ -91,15 +91,6 @@ struct SavedSearch
     bool CheckParameters(QString & errorDescription) const;
 };
 
-struct User
-{
-    User() : isDirty(true), isLocal(true), en_user() {}
-
-    bool isDirty;
-    bool isLocal;
-    evernote::edam::User en_user;
-};
-
 typedef evernote::edam::Timestamp Timestamp;
 typedef evernote::edam::UserID UserID;
 typedef evernote::edam::Guid Guid;

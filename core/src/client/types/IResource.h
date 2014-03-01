@@ -9,8 +9,6 @@ QT_FORWARD_DECLARE_CLASS(Resource)
 }
 }
 
-QT_FORWARD_DECLARE_CLASS(QString)
-
 namespace qute_note {
 
 class IResource

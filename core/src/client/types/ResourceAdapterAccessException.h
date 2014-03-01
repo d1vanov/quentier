@@ -10,7 +10,7 @@ class ResourceAdapterAccessException : public IQuteNoteException
 public:
     explicit ResourceAdapterAccessException(const QString & message);
 
-protected:
+private:
     virtual const QString exceptionDisplayName() const;
 };
 

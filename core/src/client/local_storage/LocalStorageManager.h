@@ -31,6 +31,7 @@ QT_FORWARD_DECLARE_STRUCT(Tag)
 QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_STRUCT(SavedSearch)
 QT_FORWARD_DECLARE_STRUCT(User)
+QT_FORWARD_DECLARE_CLASS(IUser)
 typedef evernote::edam::UserID UserID;
 
 // TODO: implement all the necessary functionality
@@ -46,9 +47,9 @@ public:
 
     void SwitchUser(const QString & username, const UserID userId);
 
-    bool AddUser(const User & user, QString & errorDescription);
-    bool UpdateUser(const User & user, QString & errorDescription);
-    bool FindUser(const UserID id, User & user, QString & errorDescription) const;
+    bool AddUser(const IUser & user, QString & errorDescription);
+    bool UpdateUser(const IUser & user, QString & errorDescription);
+    bool FindUser(const UserID id, IUser & user, QString & errorDescription) const;
     bool FindUserAttributes(const UserID id, evernote::edam::UserAttributes & attributes,
                             QString & errorDescription) const;
     bool FindAccounting(const UserID id, evernote::edam::Accounting & accounting,
@@ -69,7 +70,7 @@ public:
      * @param errorDescription - error description if user could not be deleted
      * @return true if user was deleted successfully, false otherwise
      */
-    bool DeleteUser(const User & user, QString & errorDescription);
+    bool DeleteUser(const IUser & user, QString & errorDescription);
 
     /**
      * @brief ExpungeUser - permanently deletes local user i.e. user which
@@ -79,7 +80,7 @@ public:
      * @param errorDescription - error description if user could not be expunged
      * @return true if user was expunged successfully, false otherwise
      */
-    bool ExpungeUser(const User & user, QString & errorDescription);
+    bool ExpungeUser(const IUser & user, QString & errorDescription);
 
     bool AddNotebook(const Notebook & notebook, QString & errorDescription);
     bool UpdateNotebook(const Notebook & notebook, QString & errorDescription);
@@ -229,7 +230,7 @@ private:
     int GetRowId(const QString & tableName, const QString & uniqueKeyName,
                  const QVariant & uniqueKeyValue) const;
 
-    bool InsertOrReplaceUser(const User & user, QString & errorDescription);
+    bool InsertOrReplaceUser(const IUser & user, QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
