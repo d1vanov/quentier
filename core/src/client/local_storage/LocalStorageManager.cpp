@@ -9,6 +9,7 @@
 #include "../types/UserAdapter.h"
 #include "../types/UserWrapper.h"
 #include "../../tools/QuteNoteNullPtrException.h"
+#include "../../tools/ApplicationStoragePersistencePath.h"
 #include <Limits_constants.h>
 
 using namespace evernote::edam;
