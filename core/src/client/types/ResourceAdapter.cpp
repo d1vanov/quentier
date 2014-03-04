@@ -1,6 +1,6 @@
 #include "ResourceAdapter.h"
 #include "ResourceAdapterAccessException.h"
-#include "../../tools/QuteNoteCheckPtr.h"
+#include <tools/QuteNoteCheckPtr.h>
 
 namespace qute_note {
 

@@ -1,5 +1,5 @@
 #include "IResource.h"
-#include "../Utility.h"
+#include <client/Utility.h>
 #include <Limits_constants.h>
 #include <QObject>
 

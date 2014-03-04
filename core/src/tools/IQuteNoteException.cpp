@@ -15,7 +15,7 @@ const QString IQuteNoteException::errorMessage() const
     return m_message;
 }
 
-QTextStream &IQuteNoteException::Print(QTextStream & strm) const
+QTextStream & IQuteNoteException::Print(QTextStream & strm) const
 {
     strm << "\n" << " " << "<" << exceptionDisplayName() << ">";
     strm << "\n" << " " << " message: " << m_message;

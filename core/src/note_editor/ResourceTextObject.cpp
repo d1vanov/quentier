@@ -1,5 +1,5 @@
 #include "ResourceTextObject.h"
-#include "../tools/QuteNoteCheckPtr.h"
+#include <tools/QuteNoteCheckPtr.h>
 #include <NoteStore.h>
 #include <QPainter>
 

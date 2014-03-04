@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__RESOURCE_ADAPTER_ACCESS_EXCEPTION_H
 #define __QUTE_NOTE__CLIENT__TYPES__RESOURCE_ADAPTER_ACCESS_EXCEPTION_H
 
-#include "../../tools/IQuteNoteException.h"
+#include <tools/IQuteNoteException.h>
 
 namespace qute_note {
 

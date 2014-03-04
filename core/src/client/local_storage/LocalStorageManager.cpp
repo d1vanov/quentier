@@ -1,15 +1,15 @@
 #include "LocalStorageManager.h"
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
-#include "../EnWrappers.h"
-#include "../Utility.h"
-#include "../types/IResource.h"
-#include "../types/ResourceAdapter.h"
-#include "../types/IUser.h"
-#include "../types/UserAdapter.h"
-#include "../types/UserWrapper.h"
-#include "../../tools/QuteNoteNullPtrException.h"
-#include "../../tools/ApplicationStoragePersistencePath.h"
+#include <client/EnWrappers.h>
+#include <client/Utility.h>
+#include <client/types/IResource.h>
+#include <client/types/ResourceAdapter.h>
+#include <client/types/IUser.h>
+#include <client/types/UserAdapter.h>
+#include <client/types/UserWrapper.h>
+#include <tools/QuteNoteNullPtrException.h>
+#include <tools/ApplicationStoragePersistencePath.h>
 #include <Limits_constants.h>
 
 using namespace evernote::edam;

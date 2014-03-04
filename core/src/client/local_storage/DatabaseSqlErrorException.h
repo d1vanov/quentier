@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__LOCAL_STORAGE__DATABASE_SQL_ERROR_EXCEPTION
 #define __QUTE_NOTE__EVERNOTE_CLIENT__LOCAL_STORAGE__DATABASE_SQL_ERROR_EXCEPTION
 
-#include "../../tools/IQuteNoteException.h"
+#include <tools/IQuteNoteException.h>
 
 namespace qute_note {
 

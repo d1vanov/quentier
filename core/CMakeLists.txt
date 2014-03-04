@@ -4,7 +4,7 @@ if(POLICY CMP0020)
 endif()
 project(qutenotecore)
 
-include_directories(${THIRDPARTY_INCLUDE_DIRS})
+include_directories(${THIRDPARTY_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set(CMAKE_AUTOMOC ON)
 

@@ -1,6 +1,6 @@
 #include "SerializationTests.h"
-#include "../client/EnWrappers.h"
-#include "../tools/Printable.h"
+#include <client/EnWrappers.h>
+#include <tools/Printable.h>
 #include <Types_types.h>
 #include <bitset>
 
