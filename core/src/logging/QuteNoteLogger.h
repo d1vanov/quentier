@@ -7,8 +7,6 @@
 #include <QFile>
 #include <QApplication>
 
-// TODO: add some macro for qInstallMessageHandler
-
 namespace qute_note {
 
 class QUTE_NOTE_EXPORT QuteNoteLogger
@@ -65,6 +63,9 @@ void messageHandler(QtMsgType type, const QMessageLogContext & context, const QS
 #define QNFATAL(message) \
     qFatal() << message;
 
+#define QUTE_NOTE_INITIALIZE_LOGGING() \
+    qInstallMessageHandler(qute_note_private::messageHandler);
+
 #else
 
 namespace qute_note_private {
@@ -78,16 +79,19 @@ void messageHandler(QtMsgType type, const char * msg);
 #endif
 
 #define QNDEBUG(message) \
-    qDebug() << __FILE__ << ": " << __LINE__ << ": " __func__ ": " << message;
+    qDebug() << ", file: "<< __FILE__ << ", line: " << __LINE__ << ", message: " << message;
 
 #define QNWARNING(message) \
-    qWarning() << __FILE__ << ": " << __LINE__ << ": " __func__ ": " << message;
+    qWarning() << ", file: "<< __FILE__ << ", line: " << __LINE__ << ", message: " << message;
 
 #define QNCRITICAL(message) \
-    qCritical() << __FILE__ << ": " << __LINE__ << ": " __func__ ": " << message;
+    qCritical() << ", file: "<< __FILE__ << ", line: " << __LINE__ << ", message: " << message;
 
 #define QNFATAL(message) \
-    qFatal() << __FILE__ << ": " << __LINE__ << ": " __func__ ": " << message;
+    qFatal() << ", file: "<< __FILE__ << ", line: " << __LINE__ << ", message: " << message;
+
+#define QUTE_NOTE_INITIALIZE_LOGGING() \
+    qInstallMsgHandler(qute_note_private::messageHandler);
 
 #endif
 

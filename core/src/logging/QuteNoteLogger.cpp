@@ -2,6 +2,7 @@
 #include "LoggerInitializationException.h"
 #include "../tools/ApplicationStoragePersistencePath.h"
 #include <QDateTime>
+#include <QtCore>
 
 namespace qute_note {
 
@@ -10,8 +11,16 @@ QuteNoteLogger::QuteNoteLogger(const QString & name, const Level level) :
     m_logFile(),
     m_logLevel(level)
 {
-    QString appPersistentStoragePath = GetApplicationPersistentStoragePath();
-    QString logFileName = appPersistentStoragePath + QString("/") + m_loggerName + QString("-qn.log");
+    QString appPersistentStoragePathString = GetApplicationPersistentStoragePath();
+    QDir appPersistentStoragePathFolder(appPersistentStoragePathString);
+    if (!appPersistentStoragePathFolder.exists()) {
+        if (!appPersistentStoragePathFolder.mkdir(appPersistentStoragePathString)) {
+            throw LoggerInitializationException("Can't create folder for log file");
+        }
+    }
+
+    QString logFileName = appPersistentStoragePathString + QString("/") + m_loggerName +
+                          QString("-qn.log");
     m_logFile.setFileName(logFileName);
 
     m_logFile.open(QFile::ReadWrite);
@@ -72,7 +81,7 @@ void QuteNoteLogger::logMessage(const QString & message,
         strm << " Logger: " << m_loggerName;
         strm << ", timestamp: " << QDateTime::currentDateTime().toString(Qt::ISODate);
         strm << ", level: " << level;
-        strm << ", message: " << message;
+        strm << message;
         strm << "\n";
 
         m_logFile.flush();
@@ -91,12 +100,11 @@ void messageHandler(QtMsgType type, const QMessageLogContext & context, const QS
 
     QuteNoteLogger & logger = QuteNoteLogger::instance("main");
 
-    QString contextMessage = context.file;
-    contextMessage += ": ";
+    QString contextMessage = ", file: ";
+    contextMessage += context.file;
+    contextMessage += ", line: ";
     contextMessage += context.line;
-    contextMessage += ": ";
-    contextMessage += context.function;
-    contextMessage += ": ";
+    contextMessage += ", message: ";
     contextMessage += message;
 
     switch (type) {

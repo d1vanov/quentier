@@ -9,6 +9,7 @@
 #include <Simplecrypt.h>
 #include "../client/CredentialsModel.h"
 #include "../../core/src/tools/QuteNoteCheckPtr.h"
+#include "../../core/src/logging/QuteNoteLogger.h"
 #include <QuteNoteTextEdit.h>
 #include <cmath>
 #include <QPushButton>
