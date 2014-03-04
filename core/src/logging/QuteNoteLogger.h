@@ -78,17 +78,20 @@ void messageHandler(QtMsgType type, const char * msg);
 #define __func__ __FUNCTION__
 #endif
 
+#define __QNMESSAGE(message) \
+    ", file: "<< __FILE__ << ", line: " << __LINE__ << ", function: " << __func__ << ", message: " << message;
+
 #define QNDEBUG(message) \
-    qDebug() << ", file: "<< __FILE__ << ", line: " << __LINE__ << ", message: " << message;
+    qDebug() << __QNMESSAGE(message)
 
 #define QNWARNING(message) \
-    qWarning() << ", file: "<< __FILE__ << ", line: " << __LINE__ << ", message: " << message;
+    qWarning() << __QNMESSAGE(message)
 
 #define QNCRITICAL(message) \
-    qCritical() << ", file: "<< __FILE__ << ", line: " << __LINE__ << ", message: " << message;
+    qCritical() << __QNMESSAGE(message)
 
 #define QNFATAL(message) \
-    qFatal() << ", file: "<< __FILE__ << ", line: " << __LINE__ << ", message: " << message;
+    qFatal() << __QNMESSAGE(message)
 
 #define QUTE_NOTE_INITIALIZE_LOGGING() \
     qInstallMsgHandler(qute_note_private::messageHandler);
