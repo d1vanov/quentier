@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__IUSER_H
 #define __QUTE_NOTE__CLIENT__TYPES__IUSER_H
 
+#include <tools/Printable.h>
 #include <QtGlobal>
 
 namespace evernote {
@@ -11,7 +12,7 @@ QT_FORWARD_DECLARE_CLASS(User)
 
 namespace qute_note {
 
-class IUser
+class IUser: public Printable
 {
 public:
     IUser();
@@ -38,6 +39,8 @@ protected:
 private:
     // prevent slicing:
     IUser & operator=(const IUser & other) = delete;
+
+    virtual QTextStream & Print(QTextStream & strm) const;
 
     bool m_isDirty;
     bool m_isLocal;

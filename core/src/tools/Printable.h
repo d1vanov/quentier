@@ -18,6 +18,7 @@ public:
 
     virtual const QString ToQString() const;
 
+    // TODO: also implement printing to QDebug, QWarning and other stuff
     friend QTextStream & operator << (QTextStream & strm,
                                       const Printable & printable);
 };

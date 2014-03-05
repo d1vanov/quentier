@@ -3,6 +3,7 @@
 #include <Limits_constants.h>
 #include <QObject>
 #include <QRegExp>
+#include <QDateTime>
 
 namespace qute_note {
 
@@ -247,5 +248,62 @@ IUser::IUser(const IUser & other) :
     m_isDirty(other.m_isDirty),
     m_isLocal(other.m_isLocal)
 {}
+
+QTextStream & IUser::Print(QTextStream & strm) const
+{
+    strm << "IUser { \n";
+    strm << "isDirty = " << (m_isDirty ? "true" : "false") << "; \n";
+    strm << "isLocal = " << (m_isLocal ? "true" : "false") << "; \n";
+
+    const auto & enUser = GetEnUser();
+    const auto & isSet = enUser.__isset;
+
+    if (isSet.id) {
+        strm << "User ID = " << QString::number(enUser.id) << "; \n";
+    }
+    else {
+        strm << "User ID is not set" << "; \n";
+    }
+
+    if (isSet.username) {
+        strm << "username = " << QString::fromStdString(enUser.username) << "; \n";
+    }
+    else {
+        strm << "username is not set" << "; \n";
+    }
+
+    if (isSet.name) {
+        strm << "name = " << QString::fromStdString(enUser.name) << "; \n";
+    }
+    else {
+        strm << "name is not set" << "; \n";
+    }
+
+    if (isSet.timezone) {
+        strm << "timezone = " << QString::fromStdString(enUser.timezone) << "; \n";
+    }
+    else {
+        strm << "timezone is not set" << "; \n";
+    }
+
+    if (isSet.privilege) {
+        // TODO: print this better
+        strm << "privilege = " << QString::number(enUser.privilege) << "; \n";
+    }
+    else {
+        strm << "privilege is not set" << "; \n";
+    }
+
+    if (isSet.created) {
+        strm << "created = " << QDateTime::fromMSecsSinceEpoch(enUser.created).toString(Qt::ISODate);
+    }
+    else {
+        strm << "created is not set" << "; \n";
+    }
+
+    // TODO: continue from here
+
+    return strm;
+}
 
 } // namespace qute_note

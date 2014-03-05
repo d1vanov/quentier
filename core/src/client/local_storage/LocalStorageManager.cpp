@@ -4,6 +4,7 @@
 #include "Serialization.h"
 #include <client/EnWrappers.h>
 #include <client/Utility.h>
+#include <logging/QuteNoteLogger.h>
 #include <client/types/IResource.h>
 #include <client/types/ResourceAdapter.h>
 #include <client/types/IUser.h>
@@ -46,6 +47,8 @@ LocalStorageManager::~LocalStorageManager()
 
 void LocalStorageManager::SetNewAuthenticationToken(const QString & authenticationToken)
 {
+    QNDEBUG("LocalStorageManager::SetNewAuthenticationToken");
+
     m_authenticationToken = authenticationToken;
 }
 
@@ -60,6 +63,8 @@ void LocalStorageManager::SetNewAuthenticationToken(const QString & authenticati
 
 bool LocalStorageManager::AddUser(const IUser & user, QString & errorDescription)
 {
+    QNDEBUG("LocalStorageManager::AddUser: " << user.ToQString());
+
     errorDescription = QObject::tr("Can't add user into local storage database: ");
 
     int rowId = GetRowId("Users", "id", QVariant(QString::number(user.GetEnUser().id)));
