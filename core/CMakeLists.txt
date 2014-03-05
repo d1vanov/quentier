@@ -75,6 +75,7 @@ set(${PROJECT_NAME}_SOURCES
     src/tools/TypeWithError.cpp)
 
 add_library(${PROJECT_NAME} SHARED
+            ${${PROJECT_NAME}_QT_HEADERS}
             ${${PROJECT_NAME}_HEADERS}
             ${${PROJECT_NAME}_SOURCES}
             ${${PROJECT_NAME}_QT_HEADERS_MOC})

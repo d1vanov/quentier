@@ -1,5 +1,5 @@
 #include "MainWindow.h"
-#include "../../core/src/logging/QuteNoteLogger.h"
+#include <logging/QuteNoteLogger.h>
 #include <QApplication>
 
 // TODO: install exception handler

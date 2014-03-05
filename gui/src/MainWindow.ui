@@ -3008,7 +3008,7 @@ stop: 1 #0EB7FF);
   <customwidget>
    <class>QuteNoteTextEdit</class>
    <extends>QTextEdit</extends>
-   <header>QuteNoteTextEdit.h</header>
+   <header location="global">note_editor/QuteNoteTextEdit.h</header>
   </customwidget>
  </customwidgets>
  <resources>

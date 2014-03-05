@@ -6,7 +6,7 @@ project(QuteNote)
 
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../core/src/note_editor)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../core/src)
 
 set(CMAKE_AUTOMOC ON)
 
