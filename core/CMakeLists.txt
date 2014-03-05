@@ -30,6 +30,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
     src/client/local_storage/LocalStorageManager.h
+    src/client/local_storage/Serialization.h
     src/logging/QuteNoteLogger.h
     src/logging/LoggerInitializationException.h
     src/tools/ApplicationStoragePersistencePath.h
@@ -65,6 +66,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/DatabaseOpeningException.cpp
     src/client/local_storage/DatabaseSqlErrorException.cpp
     src/client/local_storage/LocalStorageManager.cpp
+    src/client/local_storage/Serialization.cpp
     src/logging/QuteNoteLogger.cpp
     src/logging/LoggerInitializationException.cpp
     src/tools/ApplicationStoragePersistencePath.cpp

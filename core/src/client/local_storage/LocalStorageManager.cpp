@@ -1,6 +1,7 @@
 #include "LocalStorageManager.h"
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
+#include "Serialization.h"
 #include <client/EnWrappers.h>
 #include <client/Utility.h>
 #include <client/types/IResource.h>

@@ -1,5 +1,5 @@
 #include "SerializationTests.h"
-#include <client/EnWrappers.h>
+#include <client/local_storage/Serialization.h>
 #include <tools/Printable.h>
 #include <Types_types.h>
 #include <bitset>
@@ -84,7 +84,7 @@ bool TestPremiumInfoSerialization(QString & errorDescription)
         isSet.premiumUpgradable = bits[7];
 
         if (isSet.premiumExpirationDate) {
-            info.premiumExpirationDate = static_cast<Timestamp>(757688758765);
+            info.premiumExpirationDate = static_cast<evernote::edam::Timestamp>(757688758765);
         }
 
         if (isSet.sponsoredGroupName) {
@@ -181,7 +181,7 @@ bool TestAccountingSerialization(QString & errorDescription)
         }
 
         if (isSet.premiumServiceStart) {
-            accounting.premiumServiceStart = static_cast<Timestamp>(300);
+            accounting.premiumServiceStart = static_cast<evernote::edam::Timestamp>(300);
         }
 
         if (isSet.premiumServiceSKU) {
@@ -189,11 +189,11 @@ bool TestAccountingSerialization(QString & errorDescription)
         }
 
         if (isSet.lastSuccessfulCharge) {
-            accounting.lastSuccessfulCharge = static_cast<Timestamp>(305);
+            accounting.lastSuccessfulCharge = static_cast<evernote::edam::Timestamp>(305);
         }
 
         if (isSet.lastFailedCharge) {
-            accounting.lastFailedCharge = static_cast<Timestamp>(295);
+            accounting.lastFailedCharge = static_cast<evernote::edam::Timestamp>(295);
         }
 
         if (isSet.lastFailedChargeReason) {
@@ -201,15 +201,15 @@ bool TestAccountingSerialization(QString & errorDescription)
         }
 
         if (isSet.nextPaymentDue) {
-            accounting.nextPaymentDue = static_cast<Timestamp>(400);
+            accounting.nextPaymentDue = static_cast<evernote::edam::Timestamp>(400);
         }
 
         if (isSet.premiumLockUntil) {
-            accounting.premiumLockUntil = static_cast<Timestamp>(310);
+            accounting.premiumLockUntil = static_cast<evernote::edam::Timestamp>(310);
         }
 
         if (isSet.updated) {
-            accounting.updated = static_cast<Timestamp>(306);
+            accounting.updated = static_cast<evernote::edam::Timestamp>(306);
         }
 
         if (isSet.premiumSubscriptionNumber) {
@@ -217,7 +217,7 @@ bool TestAccountingSerialization(QString & errorDescription)
         }
 
         if (isSet.lastRequestedCharge) {
-            accounting.lastRequestedCharge = static_cast<Timestamp>(297);
+            accounting.lastRequestedCharge = static_cast<evernote::edam::Timestamp>(297);
         }
 
         if (isSet.currency) {
@@ -245,7 +245,7 @@ bool TestAccountingSerialization(QString & errorDescription)
         }
 
         if (isSet.nextChargeDate) {
-            accounting.nextChargeDate = static_cast<Timestamp>(395);
+            accounting.nextChargeDate = static_cast<evernote::edam::Timestamp>(395);
         }
 
         QByteArray serializedAccounting = GetSerializedAccounting(accounting);
@@ -336,7 +336,7 @@ bool TestUserAttributesSerialization(QString & errorDescription)
         }
 
         if (isSet.dateAgreedToTermsOfService) {
-            attributes.dateAgreedToTermsOfService = static_cast<Timestamp>(512);
+            attributes.dateAgreedToTermsOfService = static_cast<evernote::edam::Timestamp>(512);
         }
 
         if (isSet.maxReferrals) {
@@ -352,7 +352,7 @@ bool TestUserAttributesSerialization(QString & errorDescription)
         }
 
         if (isSet.sentEmailDate) {
-            attributes.sentEmailDate = static_cast<Timestamp>(100);
+            attributes.sentEmailDate = static_cast<evernote::edam::Timestamp>(100);
         }
 
         if (isSet.sentEmailCount) {
@@ -364,11 +364,11 @@ bool TestUserAttributesSerialization(QString & errorDescription)
         }
 
         if (isSet.emailOptOutDate) {
-            attributes.emailOptOutDate = static_cast<Timestamp>(90);
+            attributes.emailOptOutDate = static_cast<evernote::edam::Timestamp>(90);
         }
 
         if (isSet.partnerEmailOptInDate) {
-            attributes.partnerEmailOptInDate = static_cast<Timestamp>(80);
+            attributes.partnerEmailOptInDate = static_cast<evernote::edam::Timestamp>(80);
         }
 
         if (isSet.preferredCountry) {
@@ -477,7 +477,7 @@ bool TestNoteAttributesSerialization(QString & errorDescription)
         isSet.lastEditorId = bits[18];
 
         if (isSet.subjectDate) {
-            attributes.subjectDate = static_cast<Timestamp>(512);
+            attributes.subjectDate = static_cast<evernote::edam::Timestamp>(512);
         }
 
         if (isSet.latitude) {
@@ -509,7 +509,7 @@ bool TestNoteAttributesSerialization(QString & errorDescription)
         }
 
         if (isSet.shareDate) {
-            attributes.shareDate = static_cast<Timestamp>(10);
+            attributes.shareDate = static_cast<evernote::edam::Timestamp>(10);
         }
 
         if (isSet.reminderOrder) {
@@ -517,11 +517,11 @@ bool TestNoteAttributesSerialization(QString & errorDescription)
         }
 
         if (isSet.reminderDoneTime) {
-            attributes.reminderDoneTime = static_cast<Timestamp>(20);
+            attributes.reminderDoneTime = static_cast<evernote::edam::Timestamp>(20);
         }
 
         if (isSet.reminderTime) {
-            attributes.reminderTime = static_cast<Timestamp>(40);
+            attributes.reminderTime = static_cast<evernote::edam::Timestamp>(40);
         }
 
         if (isSet.placeName) {
@@ -561,7 +561,7 @@ bool TestNoteAttributesSerialization(QString & errorDescription)
         }
 
         if (isSet.lastEditorId) {
-            attributes.lastEditorId = static_cast<UserID>(10);
+            attributes.lastEditorId = static_cast<evernote::edam::UserID>(10);
         }
 
         QByteArray serializedAttributes = GetSerializedNoteAttributes(attributes);
@@ -615,7 +615,7 @@ bool TestResourceAttributesSerialization(QString & errorDescription)
         }
 
         if (isSet.timestamp) {
-            attributes.timestamp = static_cast<Timestamp>(10);
+            attributes.timestamp = static_cast<evernote::edam::Timestamp>(10);
         }
 
         if (isSet.latitude) {

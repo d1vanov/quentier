@@ -9,42 +9,6 @@
 
 namespace qute_note {
 
-QDataStream & operator<<(QDataStream & out, const evernote::edam::BusinessUserInfo & info);
-QDataStream & operator>>(QDataStream & in, evernote::edam::BusinessUserInfo & info);
-
-const QByteArray GetSerializedBusinessUserInfo(const evernote::edam::BusinessUserInfo & info);
-const evernote::edam::BusinessUserInfo GetDeserializedBusinessUserInfo(const QByteArray & data);
-
-QDataStream & operator<<(QDataStream & out, const evernote::edam::PremiumInfo & info);
-QDataStream & operator>>(QDataStream & in, evernote::edam::PremiumInfo & info);
-
-const QByteArray GetSerializedPremiumInfo(const evernote::edam::PremiumInfo & info);
-const evernote::edam::PremiumInfo GetDeserializedPremiumInfo(const QByteArray & data);
-
-QDataStream & operator<<(QDataStream & out, const evernote::edam::Accounting & accounting);
-QDataStream & operator>>(QDataStream & in, evernote::edam::Accounting & accounting);
-
-const QByteArray GetSerializedAccounting(const evernote::edam::Accounting & accounting);
-const evernote::edam::Accounting GetDeserializedAccounting(const QByteArray & data);
-
-QDataStream & operator<<(QDataStream & out, const evernote::edam::UserAttributes & userAttributes);
-QDataStream & operator>>(QDataStream & in, evernote::edam::UserAttributes & userAttributes);
-
-const QByteArray GetSerializedUserAttributes(const evernote::edam::UserAttributes & userAttributes);
-const evernote::edam::UserAttributes GetDeserializedUserAttributes(const QByteArray & data);
-
-QDataStream & operator<<(QDataStream & out, const evernote::edam::NoteAttributes & noteAttributes);
-QDataStream & operator>>(QDataStream & in, evernote::edam::NoteAttributes & noteAttributes);
-
-const QByteArray GetSerializedNoteAttributes(const evernote::edam::NoteAttributes & noteAttributes);
-const evernote::edam::NoteAttributes GetDeserializedNoteAttributes(const QByteArray & data);
-
-QDataStream & operator<<(QDataStream & out, const evernote::edam::ResourceAttributes & resourceAttributes);
-QDataStream & operator>>(QDataStream & in, evernote::edam::ResourceAttributes & resourceAttributes);
-
-const QByteArray GetSerializedResourceAttributes(const evernote::edam::ResourceAttributes & resourceAttributes);
-const evernote::edam::ResourceAttributes GetDeserializedResourceAttributes(const QByteArray & data);
-
 struct Note
 {
     Note() : isDirty(true), isLocal(true), isDeleted(false), en_note() {}
