@@ -1,5 +1,4 @@
 #include "Printable.h"
-#include <Types_types.h>
 
 namespace qute_note {
 
@@ -12,6 +11,12 @@ const QString Printable::ToQString() const
     QTextStream strm(&str, QIODevice::WriteOnly);
     strm << *this;
     return str;
+}
+
+QDebug & operator <<(QDebug & debug, const Printable & printable)
+{
+    debug << printable.ToQString();
+    return debug;
 }
 
 QTextStream & operator <<(QTextStream & strm,
@@ -243,3 +248,37 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::ResourceAttr
 }
 
 #undef CHECK_AND_PRINT_ATTRIBUTE
+
+
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::PrivilegeLevel::type level)
+{
+    strm << "PrivilegeLevel: ";
+
+    switch (level)
+    {
+    case evernote::edam::PrivilegeLevel::NORMAL:
+        strm << "NORMAL";
+        break;
+    case evernote::edam::PrivilegeLevel::PREMIUM:
+        strm << "PREMIUM";
+        break;
+    case evernote::edam::PrivilegeLevel::VIP:
+        strm << "VIP";
+        break;
+    case evernote::edam::PrivilegeLevel::MANAGER:
+        strm << "MANAGER";
+        break;
+    case evernote::edam::PrivilegeLevel::SUPPORT:
+        strm << "SUPPORT";
+        break;
+    case evernote::edam::PrivilegeLevel::ADMIN:
+        strm << "ADMIN";
+        break;
+    default:
+        strm << "UNKNOWN";
+        break;
+    }
+
+    strm << "; ";
+    return strm;
+}

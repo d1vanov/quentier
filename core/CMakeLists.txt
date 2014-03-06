@@ -119,6 +119,10 @@ else()
   target_link_libraries(test_${PROJECT_NAME} ${QT_LIBRARIES})
 endif()
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  add_definitions("-DBUILDING_QUTE_NOTE_DLL")
+endif()
+
 # modifying sources list with absolute paths for cppcheck
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 

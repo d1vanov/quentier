@@ -63,7 +63,7 @@ void LocalStorageManager::SetNewAuthenticationToken(const QString & authenticati
 
 bool LocalStorageManager::AddUser(const IUser & user, QString & errorDescription)
 {
-    QNDEBUG("LocalStorageManager::AddUser: " << user.ToQString());
+    QNDEBUG("LocalStorageManager::AddUser: " << user);
 
     errorDescription = QObject::tr("Can't add user into local storage database: ");
 
@@ -85,6 +85,8 @@ bool LocalStorageManager::AddUser(const IUser & user, QString & errorDescription
 
 bool LocalStorageManager::UpdateUser(const IUser & user, QString & errorDescription)
 {
+    QNDEBUG("LocalStorageManager::UpdateUser: " << user);
+
     errorDescription = QObject::tr("Can't update user in local storage database: ");
 
     int rowId = GetRowId("Users", "id", QVariant(QString::number(user.GetEnUser().id)));
@@ -105,6 +107,8 @@ bool LocalStorageManager::UpdateUser(const IUser & user, QString & errorDescript
 
 bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & errorDescription) const
 {
+    QNDEBUG("LocalStorageManager::FindUser: id = " << id);
+
     errorDescription = QObject::tr("Can't find user in local storage database: ");
 
     QString idStr = QString::number(id);
@@ -437,7 +441,7 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
     notebook = Notebook();
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT updateSequenceNumber, name, creationTimestamp, "
+    query.prepare("SELECT guid, updateSequenceNumber, name, creationTimestamp, "
                   "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed, "
                   "publishingUri, publishingNoteSortOrder, publishingAscendingOrder, "
                   "publicDescription, isPublished, stack, businessNotebookDescription, "
@@ -454,6 +458,8 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
 
     QSqlRecord rec = query.record();
 
+    // TODO: move all the following details to a separate method to be reused
+
 #define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute) \
     if (rec.contains(#attribute)) { \
         notebook.attribute = (qvariant_cast<int>(rec.value(#attribute)) != 0); \
@@ -468,11 +474,7 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLocal);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLastUsed);
 
-#undef CHECK_AND_SET_NOTEBOOK_ATTRIBUTE
-
     evernote::edam::Notebook & enNotebook = notebook.en_notebook;
-    enNotebook.guid = notebookGuid;
-    enNotebook.__isset.guid = true;
 
 #define CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(holder, attributeLocalName, attributeEnName, \
                                             type, true_type, is_required, ...) \
@@ -487,6 +489,8 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
     }
 
     bool isRequired = true;
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, guid, guid, QString, std::string,
+                                        isRequired, .toStdString());
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, updateSequenceNumber, updateSequenceNum,
                                         int, int32_t, isRequired);
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, name, name, QString, std::string,
@@ -664,12 +668,35 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
                                             recipientReminderNotifyInApp,
                                             reminderNotifyInApp, int, bool, isRequired);  // NOTE: int to bool cast
 
-#undef CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE
-
         sharedNotebooks.push_back(sharedNotebook);
     }
 
     enNotebook.sharedNotebooks = sharedNotebooks;
+    return true;
+}
+
+bool LocalStorageManager::ListAllNotebooks(std::vector<Notebook> & notebooks,
+                                           QString & errorDescription) const
+{
+    notebooks.clear();
+    errorDescription = QObject::tr("Can't list all notebooks in local storage database: ");
+
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec("SELECT * FROM Notebooks");
+    DATABASE_CHECK_AND_SET_ERROR("can't select notebooks from SQL database");
+
+    while(query.next())
+    {
+        /*
+        QSqlRecord rec = query.record();
+
+        Notebook notebook;
+        auto & enNotebook = notebook.en_notebook;
+        */
+
+        // TODO: continue from here
+    }
+
     return true;
 }
 
@@ -2768,6 +2795,8 @@ bool LocalStorageManager::FindAndSetNoteAttributesPerNote(evernote::edam::Note &
     return true;
 }
 
+#undef CHECK_AND_SET_NOTEBOOK_ATTRIBUTE
+#undef CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE
 #undef SET_IS_FREE_ACCOUNT_FLAG
 #undef CHECK_AND_SET_EN_RESOURCE_PROPERTY
 #undef CHECK_AND_SET_NOTE_PROPERTY

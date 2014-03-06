@@ -12,7 +12,7 @@ QT_FORWARD_DECLARE_CLASS(User)
 
 namespace qute_note {
 
-class IUser: public Printable
+class QUTE_NOTE_EXPORT IUser: public Printable
 {
 public:
     IUser();

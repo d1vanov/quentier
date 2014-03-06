@@ -1,9 +1,9 @@
 #include "IUser.h"
+#include "../Utility.h"
 #include <Types_types.h>
 #include <Limits_constants.h>
 #include <QObject>
 #include <QRegExp>
-#include <QDateTime>
 
 namespace qute_note {
 
@@ -287,21 +287,67 @@ QTextStream & IUser::Print(QTextStream & strm) const
     }
 
     if (isSet.privilege) {
-        // TODO: print this better
-        strm << "privilege = " << QString::number(enUser.privilege) << "; \n";
+        strm << "privilege = " << enUser.privilege << "; \n";
     }
     else {
         strm << "privilege is not set" << "; \n";
     }
 
     if (isSet.created) {
-        strm << "created = " << QDateTime::fromMSecsSinceEpoch(enUser.created).toString(Qt::ISODate);
+        strm << "created = " << PrintableDateTimeFromTimestamp(enUser.created) << "; \n";
     }
     else {
         strm << "created is not set" << "; \n";
     }
 
-    // TODO: continue from here
+    if (isSet.updated) {
+        strm << "updated = " << PrintableDateTimeFromTimestamp(enUser.updated) << "; \n";
+    }
+    else {
+        strm << "updated is not set" << "; \n";
+    }
+
+    if (isSet.deleted) {
+        strm << "deleted = " << PrintableDateTimeFromTimestamp(enUser.deleted) << "; \n";
+    }
+    else {
+        strm << "deleted is not set" << "; \n";
+    }
+
+    if (isSet.active) {
+        strm << "active = " << (enUser.active ? "true" : "false") << "; \n";
+    }
+    else {
+        strm << "active is not set" << "; \n";
+    }
+
+    if (isSet.attributes) {
+        strm << enUser.attributes;
+    }
+    else {
+        strm << "attributes are not set" << "; \n";
+    }
+
+    if (isSet.accounting) {
+        strm << enUser.accounting;
+    }
+    else {
+        strm << "accounting is not set" << "; \n";
+    }
+
+    if (isSet.premiumInfo) {
+        strm << enUser.premiumInfo;
+    }
+    else {
+        strm << "premium info is not set" << "; \n";
+    }
+
+    if (isSet.businessUserInfo) {
+        strm << enUser.businessUserInfo;
+    }
+    else {
+        strm << "business user info is not set" << "; \n";
+    }
 
     return strm;
 }
