@@ -236,6 +236,8 @@ private:
     bool InsertOrReplaceResource(const IResource & resource, QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
 
+    bool FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QString & errorDescription) const;
+
     bool FindAndSetTagGuidsPerNote(evernote::edam::Note & enNote, QString & errorDescription) const;
     bool FindAndSetResourcesPerNote(evernote::edam::Note & enNote, QString & errorDescription,
                                     const bool withBinaryData = true) const;
