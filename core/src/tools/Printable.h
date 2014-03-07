@@ -38,6 +38,7 @@ QTextStream & operator << (QTextStream & strm, const evernote::edam::UserAttribu
 QTextStream & operator << (QTextStream & strm, const evernote::edam::NoteAttributes & attributes);
 QTextStream & operator << (QTextStream & strm, const evernote::edam::ResourceAttributes & attributes);
 QTextStream & operator << (QTextStream & strm, const evernote::edam::PrivilegeLevel::type level);
+QTextStream & operator << (QTextStream & strm, const evernote::edam::Guid & guid);
 
 template<class T>
 const QString ToQString(const T & object)

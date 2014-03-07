@@ -282,3 +282,9 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::PrivilegeLev
     strm << "; ";
     return strm;
 }
+
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::Guid & guid)
+{
+    strm << QString::fromStdString(guid);
+    return strm;
+}

@@ -25,6 +25,7 @@ typedef int32_t UserID;
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_STRUCT(LinkedNotebook)
 QT_FORWARD_DECLARE_STRUCT(Notebook)
 QT_FORWARD_DECLARE_STRUCT(Note)
 QT_FORWARD_DECLARE_STRUCT(Tag)
@@ -87,14 +88,14 @@ public:
     bool FindNotebook(const evernote::edam::Guid & notebookGuid, Notebook & notebook,
                       QString & errorDescription);
 
-    // TODO: implement
     bool ListAllNotebooks(std::vector<Notebook> & notebooks, QString & errorDescription) const;
 
-    // TODO: implement
-    bool ListAllSharedNotebooks(std::vector<Notebook> & notebooks, QString & errorDescription) const;
+    bool ListAllSharedNotebooks(std::vector<evernote::edam::SharedNotebook> & sharedNotebooks,
+                                QString & errorDescription) const;
 
-    // TODO: implement
-    bool LIstAllLinkedNotebooks(std::vector<Notebook> & notebooks, QString & errorDescription) const;
+    bool ListSharedNotebooksPerNotebookGuid(const evernote::edam::Guid & notebookGuid,
+                                            std::vector<evernote::edam::SharedNotebook> & sharedNotebooks,
+                                            QString & errorDescription) const;
 
     /**
      * @brief ExpungeNotebook - deletes specified notebook from local storage.
@@ -107,6 +108,20 @@ public:
      * @return true if notebook was expunged successfully, false otherwise
      */
     bool ExpungeNotebook(const Notebook & notebook, QString & errorDescription);
+
+    // TODO: implement
+    bool AddLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
+    // TODO: implement
+    bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
+    // TODO: implement
+    bool FindLinkedNotebook(const evernote::edam::Guid & notebookGuid,
+                            LinkedNotebook & linkedNotebook, QString & errorDescription) const;
+
+    // TODO: implement
+    bool ListAllLinkedNotebooks(std::vector<LinkedNotebook> & notebooks, QString & errorDescription) const;
+    // TODO: implement
+    bool ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
+                               QString & errorDescription);
 
     bool AddNote(const Note & note, QString & errorDescription);
     bool UpdateNote(const Note & note, QString & errorDescription);
@@ -237,6 +252,9 @@ private:
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
 
     bool FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QString & errorDescription) const;
+    bool FillSharedNotebookFromSqlRecord(const QSqlRecord & record,
+                                         evernote::edam::SharedNotebook & sharedNotebook,
+                                         QString & errorDescription) const;
 
     bool FindAndSetTagGuidsPerNote(evernote::edam::Note & enNote, QString & errorDescription) const;
     bool FindAndSetResourcesPerNote(evernote::edam::Note & enNote, QString & errorDescription,

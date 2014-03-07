@@ -494,6 +494,84 @@ bool LocalStorageManager::ListAllNotebooks(std::vector<Notebook> & notebooks,
     return true;
 }
 
+bool LocalStorageManager::ListAllSharedNotebooks(std::vector<evernote::edam::SharedNotebook> & sharedNotebooks,
+                                                 QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManager::ListAllSharedNotebooks");
+
+    sharedNotebooks.clear();
+    errorDescription = QObject::tr("Can't list all shared notebooks: ");
+
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec("SELECT * FROM SharedNotebooks");
+    DATABASE_CHECK_AND_SET_ERROR("Can't select shared notebooks from SQL database");
+
+    sharedNotebooks.reserve(std::max(query.size(), 0));
+
+    while(query.next())
+    {
+        QSqlRecord record = query.record();
+
+        sharedNotebooks.push_back(SharedNotebook());
+        SharedNotebook & sharedNotebook = sharedNotebooks.back();
+
+        res = FillSharedNotebookFromSqlRecord(record, sharedNotebook, errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    QNDEBUG("found " << sharedNotebooks.size() << " shared notebooks");
+
+    return true;
+}
+
+bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const Guid & notebookGuid,
+                                                             std::vector<SharedNotebook> & sharedNotebooks,
+                                                             QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManager::ListSharedNotebooksPerNotebookGuid: guid = "
+            << ToQString(notebookGuid));
+
+    sharedNotebooks.clear();
+    errorDescription = QObject::tr("Can't list shared notebooks per notebook guid: ");
+
+    if (!CheckGuid(notebookGuid)) {
+        errorDescription += QObject::tr("notebook guid is invalid");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT shareId, userId, email, creationTimestamp, modificationTimestamp, "
+                  "shareKey, username, sharedNotebookPrivilegeLevel, allowPreview, "
+                  "recipientReminderNotifyEmail, recipientReminderNotifyInApp "
+                  "FROM SharedNotebooks WHERE notebookGuid=?");
+    query.addBindValue(QString::fromStdString(notebookGuid));
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't select shared notebooks for given "
+                                 "notebook guid from SQL database");
+
+    sharedNotebooks.reserve(std::max(query.size(), 0));
+
+    while(query.next())
+    {
+        QSqlRecord record = query.record();
+
+        sharedNotebooks.push_back(SharedNotebook());
+        SharedNotebook & sharedNotebook = sharedNotebooks.back();
+
+        res = FillSharedNotebookFromSqlRecord(record, sharedNotebook, errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    QNDEBUG("found " << sharedNotebooks.size() << " shared notebooks");
+
+    return true;
+}
+
 bool LocalStorageManager::ExpungeNotebook(const Notebook & notebook, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't expunge notebook from local storage database: ");
@@ -1515,7 +1593,6 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  modificationTimestamp           INTEGER           NOT NULL, "
                      "  isDirty                         INTEGER           NOT NULL, "
                      "  isLocal                         INTEGER           NOT NULL, "
-                     "  isDeleted                       INTEGER           NOT NULL, "
                      "  isDefault                       INTEGER           DEFAULT 0, "
                      "  isLastUsed                      INTEGER           DEFAULT 0, "
                      "  publishingUri                   TEXT              DEFAULT NULL, "
@@ -2478,6 +2555,11 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
                                             QString, std::string, isRequired, .toStdString());
         CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publishingNoteSortOrder,
                                             order, int, NoteSortOrder::type, isRequired);
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publishingAscendingSort,
+                                            ascending, int, bool, isRequired);  // NOTE: cast int to bool
+        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publicDescription,
+                                            publicDescription, QString, std::string,
+                                            isRequired, .toStdString());
     }
 
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.businessNotebook, businessNotebookDescription,
@@ -2587,54 +2669,45 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
         enNotebook.__isset.restrictions = false;
     }
 
-    query.clear();
-    query.prepare("SELECT shareId, userId, email, creationTimestamp, modificationTimestamp, "
-                  "shareKey, username, sharedNotebookPrivilegeLevel, allowPreview, "
-                  "recipientReminderNotifyEmail, recipientReminderNotifyInApp "
-                  "FROM SharedNotebooks WHERE notebookGuid=?");
-    query.addBindValue(QString::fromStdString(enNotebook.guid));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select shared notebooks for given "
-                                 "notebook guid from SQL database");
-
-    std::vector<SharedNotebook> sharedNotebooks;
-    sharedNotebooks.reserve(std::max(query.size(), 0));
-
-    while(query.next())
-    {
-        QSqlRecord record = query.record();    // NOTE: intentionally hide the method parameter in this scope to reuse macro
-
-        SharedNotebook sharedNotebook;
-        isRequired = true;
-
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareId, id, int, int64_t, isRequired);
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, userId, userId, int, int32_t, isRequired);
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, email, email, QString,
-                                            std::string, isRequired, .toStdString());
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, creationTimestamp,
-                                            serviceCreated, int, Timestamp, isRequired);
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, modificationTimestamp,
-                                            serviceUpdated, int, Timestamp, isRequired);
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareKey, shareKey,
-                                            QString, std::string, isRequired, .toStdString());
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, username, username,
-                                            QString, std::string, isRequired, .toStdString());
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, sharedNotebookPrivilegeLevel,
-                                            privilege, int, SharedNotebookPrivilegeLevel::type, isRequired);
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, allowPreview, allowPreview,
-                                            int, bool, isRequired);   // NOTE: int to bool cast
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook.recipientSettings,
-                                            recipientReminderNotifyEmail,
-                                            reminderNotifyEmail, int, bool, isRequired);  // NOTE: int to bool cast
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook.recipientSettings,
-                                            recipientReminderNotifyInApp,
-                                            reminderNotifyInApp, int, bool, isRequired);  // NOTE: int to bool cast
-
-        sharedNotebooks.push_back(sharedNotebook);
+    QString error;
+    res = ListSharedNotebooksPerNotebookGuid(notebook.en_notebook.guid,
+                                             enNotebook.sharedNotebooks, error);
+    if (!res) {
+        errorDescription += error;
+        return false;
     }
 
-    enNotebook.sharedNotebooks = std::move(sharedNotebooks);
+    return true;
+}
+
+bool LocalStorageManager::FillSharedNotebookFromSqlRecord(const QSqlRecord & record,
+                                                          evernote::edam::SharedNotebook & sharedNotebook,
+                                                          QString & errorDescription) const
+{
+    bool isRequired = true;
+
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareId, id, int, int64_t, isRequired);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, userId, userId, int, int32_t, isRequired);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, email, email, QString,
+                                        std::string, isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, creationTimestamp,
+                                        serviceCreated, int, Timestamp, isRequired);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, modificationTimestamp,
+                                        serviceUpdated, int, Timestamp, isRequired);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareKey, shareKey,
+                                        QString, std::string, isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, username, username,
+                                        QString, std::string, isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, sharedNotebookPrivilegeLevel,
+                                        privilege, int, SharedNotebookPrivilegeLevel::type, isRequired);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, allowPreview, allowPreview,
+                                        int, bool, isRequired);   // NOTE: int to bool cast
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook.recipientSettings,
+                                        recipientReminderNotifyEmail,
+                                        reminderNotifyEmail, int, bool, isRequired);  // NOTE: int to bool cast
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook.recipientSettings,
+                                        recipientReminderNotifyInApp,
+                                        reminderNotifyInApp, int, bool, isRequired);  // NOTE: int to bool cast
 
     return true;
 }
