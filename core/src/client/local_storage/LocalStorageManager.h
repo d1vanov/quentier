@@ -109,9 +109,8 @@ public:
      */
     bool ExpungeNotebook(const Notebook & notebook, QString & errorDescription);
 
-    // TODO: implement
     bool AddLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
-    // TODO: implement
+
     bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     // TODO: implement
     bool FindLinkedNotebook(const evernote::edam::Guid & notebookGuid,
@@ -246,6 +245,7 @@ private:
 
     bool InsertOrReplaceUser(const IUser & user, QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
+    bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, QString & errorDescription);

@@ -611,6 +611,50 @@ bool LocalStorageManager::ExpungeNotebook(const Notebook & notebook, QString & e
     return true;
 }
 
+bool LocalStorageManager::AddLinkedNotebook(const LinkedNotebook & linkedNotebook,
+                                            QString & errorDescription)
+{
+    errorDescription = QObject::tr("Can't add linked notebook to local storage database: ");
+    QString error;
+
+    bool res = linkedNotebook.CheckParameters(error);
+    if (!res) {
+        errorDescription += error;
+        return false;
+    }
+
+    int rowId = GetRowId("LinkedNotebooks", "guid",
+                         QVariant(QString::fromStdString(linkedNotebook.en_linked_notebook.guid)));
+    if (rowId >= 0) {
+        errorDescription += QObject::tr("linked notebook with specified guid already exists");
+        return false;
+    }
+
+    return InsertOrReplaceLinkedNotebook(linkedNotebook, errorDescription);
+}
+
+bool LocalStorageManager::UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString &errorDescription)
+{
+    errorDescription = QObject::tr("Can't update linked notebook in local storage database: ");
+    QString error;
+
+    bool res = linkedNotebook.CheckParameters(error);
+    if (!res) {
+        errorDescription += error;
+        return false;
+    }
+
+    int rowId = GetRowId("LinkedNotebooks", "guid",
+                         QVariant(QString::fromStdString(linkedNotebook.en_linked_notebook.guid)));
+    if (rowId < 0) {
+        errorDescription += QObject::tr("linked notebook with specified guid "
+                                        "was not found in local storage database");
+        return false;
+    }
+
+    return InsertOrReplaceLinkedNotebook(linkedNotebook, errorDescription);
+}
+
 bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't add note to local storage database: ");
@@ -1563,27 +1607,27 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  deletionTimestamp       INTEGER                 DEFAULT 0, "
                      "  isActive                INTEGER                 NOT NULL, "
                      ")");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create Users table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create Users table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS UserAttributes("
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  data                    BLOB                    DEFAULT NULL)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create UserAttributes table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create UserAttributes table");
 
     res = query.exec("CREATE TABLE IF NOT EXITS Accounting("
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  data                    BLOB                    DEFAULT NULL)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create Accounting table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create Accounting table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS PremiumInfo("
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  data                    BLOB                    DEFAULT NULL)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create PremiumInfo table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create PremiumInfo table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS BusinessUserInfo("
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  data                    BLOB                    DEFAULT NULL)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create BusinessUserInfo table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create BusinessUserInfo table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
                      "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
@@ -1606,7 +1650,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  businessNotebookIsRecommended   INTEGER           DEFAULT 0, "
                      "  contactId                       INTEGER           DEFAULT 0"
                      ")");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create Notebooks table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create Notebooks table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NotebookRestrictions("
                      "  guid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
@@ -1631,7 +1675,22 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  updateWhichSharedNotebookRestrictions    INTEGER     DEFAULT 0, "
                      "  expungeWhichSharedNotebookRestrictions   INTEGER     DEFAULT 0"
                      ")");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create NotebookRestrictions table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create NotebookRestrictions table");
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS LinkedNotebooks("
+                     "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
+                     "  updateSequenceNumber            INTEGER           NOT NULL, "
+                     "  shareName                       TEXT              NOT NULL, "
+                     "  username                        TEXT              NOT NULL, "
+                     "  shardId                         TEXT              NOT NULL, "
+                     "  shareKey                        TEXT              NOT NULL, "
+                     "  uri                             TEXT              NOT NULL, "
+                     "  noteStoreUrl                    TEXT              NOT NULL, "
+                     "  webApiUrlPrefix                 TEXT              NOT NULL, "
+                     "  stack                           TEXT              DEFAULT NULL, "
+                     "  businessId                      INTEGER           DEFAULT 0"
+                     ")");
+    DATABASE_CHECK_AND_SET_ERROR("can't create LinkedNotebooks table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS SharedNotebooks("
                      "  shareId                         INTEGER    NOT NULL, "
@@ -1648,7 +1707,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  recipientReminderNotifyInApp    INTEGER    DEFAULT 0, "
                      "  UNIQUE(shareId, notebookGuid) ON CONFLICT REPLACE"
                      ")");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create SharedNotebooks table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create SharedNotebooks table");
 
     res = query.exec("CREATE VIRTUAL TABLE NoteText USING fts3("
                      "  guid              TEXT PRIMARY KEY     NOT NULL UNIQUE, "
@@ -1656,7 +1715,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  content           TEXT, "
                      "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE"
                      ")");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create virtual table NoteText: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create virtual table NoteText");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notes("
                      "  guid                    TEXT PRIMARY KEY     NOT NULL UNIQUE, "
@@ -1673,16 +1732,16 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  hasAttributes           INTEGER              DEFAULT 0, "
                      "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE"
                      ")");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create Notes table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create Notes table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteAttributes("
                      "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  data                    BLOB                DEFAULT NULL"
                      ")");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create NoteAttributes table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create NoteAttributes table");
 
     res = query.exec("CREATE INDEX NotesNotebooks ON Notes(notebookGuid)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create index NotesNotebooks: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create index NotesNotebooks");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
                      "  guid                    TEXT PRIMARY KEY     NOT NULL UNIQUE, "
@@ -1699,15 +1758,15 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  recognitionSize         INTEGER              DEFAULT 0, "
                      "  recognitionHash         TEXT                 DEFAULT NULL, "
                      ")");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create Resources table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create Resources table");
 
     res = query.exec("CREATE INDEX ResourceNote ON Resources(noteGuid)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create ResourceNote index: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create ResourceNote index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributes("
                      "  guid REFERENCES Resource(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  data                  BLOB                 DEFAULT NULL");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create ResourceAttributes table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributes table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
                      "  guid                  TEXT PRIMARY KEY     NOT NULL UNIQUE, "
@@ -1719,20 +1778,20 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  isLocal               INTEGER              NOT NULL, "
                      "  isDeleted             INTEGER              DEFAULT 0, "
                      ")");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create Tags table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create Tags table");
 
     res = query.exec("CREATE INDEX TagsSearchName ON Tags(nameUpper)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create TagsSearchName index: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create TagsSearchName index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteTags("
                      "  note REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  tag  REFERENCES Tags(guid)  ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  UNIQUE(note, tag) ON CONFLICT REPLACE"
                      ")");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create NoteTags table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create NoteTags table");
 
     res = query.exec("CREATE INDEX NoteTagsNote ON NoteTags(note)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create NoteTagsNote index: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create NoteTagsNote index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
                      "  guid                            TEXT PRIMARY KEY    NOT NULL UNIQUE, "
@@ -1743,7 +1802,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  includeAccount                  INTEGER             NOT NULL, "
                      "  includePersonalLinkedNotebooks  INTEGER             NOT NULL, "
                      "  includeBusinessLinkedNotebooks  INTEGER             NOT NULL)");
-    DATABASE_CHECK_AND_SET_ERROR("Can't create SavedSearches table: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't create SavedSearches table");
 
     return true;
 }
@@ -2219,7 +2278,7 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
     query.prepare("INSERT OR REPLACE INTO Notebooks (guid, updateSequenceNumber, name, "
                   "creationTimestamp, modificationTimestamp, isDirty, isLocal, "
                   "isDefault, isLastUsed, isPublished, stack) VALUES(?, ?, ?, ?, "
-                  "?, ?, ?, ?, ?, ?, ?");
+                  "?, ?, ?, ?, ?, ?, ?)");
     query.addBindValue(QString::fromStdString(enNotebook.guid));
     query.addBindValue(enNotebook.updateSequenceNum);
     query.addBindValue(QString::fromStdString(enNotebook.name));
@@ -2238,12 +2297,82 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
     return SetNotebookAdditionalAttributes(enNotebook, errorDescription);
 }
 
+bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook,
+                                                        QString & errorDescription)
+{
+    // NOTE: this method expects to be called after the linked notebook
+    // is already checked for sanity ot its parameters
+
+    errorDescription += QObject::tr("can't insert or replace linked notebook into "
+                                    "local storage database");
+
+    const evernote::edam::LinkedNotebook & enLinkedNotebook = linkedNotebook.en_linked_notebook;
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("INSERT OR REPLACE INTO LinkedNotebooks(:columns) VALUES(:values)");
+
+    QString columns, values;
+    bool hasAnyProperty = false;
+
+#define CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(holder, isSetName, columnName, valueName) \
+    if (holder.__isset.isSetName) \
+    { \
+        hasAnyProperty = true; \
+        \
+        if (!columns.isEmpty()) { \
+            columns.append(", "); \
+        } \
+        columns.append(#columnName); \
+        \
+        if (!values.isEmpty()) { \
+            values.append(", "); \
+        } \
+        values.append(valueName); \
+    }
+
+    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, guid, guid,
+                                            QString::fromStdString(enLinkedNotebook.guid));
+    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, updateSequenceNum,
+                                            updateSequenceNumber,
+                                            QString::number(enLinkedNotebook.updateSequenceNum));
+    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shareName, shareName,
+                                            QString::fromStdString(enLinkedNotebook.shareName));
+    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, username, username,
+                                            QString::fromStdString(enLinkedNotebook.username));
+    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shardId, shardId,
+                                            QString::fromStdString(enLinkedNotebook.shardId));
+    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shareKey, shareKey,
+                                            QString::fromStdString(enLinkedNotebook.shareKey));
+    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, uri, uri,
+                                            QString::fromStdString(enLinkedNotebook.uri));
+    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, noteStoreUrl, noteStoreUrl,
+                                            QString::fromStdString(enLinkedNotebook.noteStoreUrl));
+    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, webApiUrlPrefix,
+                                            webApiUrlPrefix,
+                                            QString::fromStdString(enLinkedNotebook.webApiUrlPrefix));
+    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, stack, stack,
+                                            QString::fromStdString(enLinkedNotebook.stack));
+    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, businessId, businessId,
+                                            QString::number(enLinkedNotebook.businessId));
+
+    if (hasAnyProperty)
+    {
+        query.bindValue("columns", columns);
+        query.bindValue("values", values);
+
+        bool res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook into \"LinkedNotebooks\" table in SQL database");
+    }
+
+    return true;
+}
+
 bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & errorDescription)
 {
-    // NOTE: this method expects to be called after note is already checked
+    // NOTE: this method expects to be called after the note is already checked
     // for sanity of its parameters!
 
-    errorDescription = QObject::tr("Can't insert or replace note into local storage database: ");
+    errorDescription += QObject::tr("can't insert or replace note into local storage database: ");
 
     const evernote::edam::Note & enNote = note.en_note;
 

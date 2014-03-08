@@ -446,6 +446,37 @@ bool SavedSearch::CheckParameters(QString &errorDescription) const
     return true;
 }
 
+bool LinkedNotebook::CheckParameters(QString & errorDescription) const
+{
+    if (!en_linked_notebook.__isset.guid) {
+        errorDescription = QObject::tr("Linked notebook's guid is not set");
+        return false;
+    }
+    else if (!CheckGuid(en_linked_notebook.guid)) {
+        errorDescription = QObject::tr("Linked notebook's guid is invalid");
+        return false;
+    }
+
+    if (!en_linked_notebook.__isset.shareName) {
+        errorDescription = QObject::tr("Linked notebook's custom name is not set");
+        return false;
+    }
+    else if (en_linked_notebook.shareName.empty()) {
+        errorDescription = QObject::tr("Linked notebook's custom name is empty");
+        return false;
+    }
+    else
+    {
+        QString simplifiedShareName = QString::fromStdString(en_linked_notebook.shareName).replace(" ", "");
+        if (simplifiedShareName.isEmpty()) {
+            errorDescription = QObject::tr("Linked notebook's custom must contain non-space characters");
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 
 }

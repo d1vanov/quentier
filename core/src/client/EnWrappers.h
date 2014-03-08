@@ -33,6 +33,16 @@ struct Notebook
     bool CheckParameters(QString & errorDescription) const;
 };
 
+struct LinkedNotebook
+{
+    LinkedNotebook(): isDirty(true), en_linked_notebook() {}
+
+    bool isDirty;
+    evernote::edam::LinkedNotebook en_linked_notebook;
+
+    bool CheckParameters(QString & errorDescription) const;
+};
+
 struct Tag
 {
     Tag() : isDirty(true), isLocal(true), isDeleted(false), en_tag() {}
