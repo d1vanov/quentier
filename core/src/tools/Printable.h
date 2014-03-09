@@ -29,16 +29,7 @@ public:
 
 } // namespace qute_note
 
-// QTextStream operators for existing classes not inheriting from Printable
-
-QTextStream & operator << (QTextStream & strm, const evernote::edam::BusinessUserInfo & info);
-QTextStream & operator << (QTextStream & strm, const evernote::edam::PremiumInfo & info);
-QTextStream & operator << (QTextStream & strm, const evernote::edam::Accounting & accounting);
-QTextStream & operator << (QTextStream & strm, const evernote::edam::UserAttributes & attributes);
-QTextStream & operator << (QTextStream & strm, const evernote::edam::NoteAttributes & attributes);
-QTextStream & operator << (QTextStream & strm, const evernote::edam::ResourceAttributes & attributes);
-QTextStream & operator << (QTextStream & strm, const evernote::edam::PrivilegeLevel::type level);
-QTextStream & operator << (QTextStream & strm, const evernote::edam::Guid & guid);
+// printing operators for existing classes not inheriting from Printable
 
 template<class T>
 const QString ToQString(const T & object)
@@ -48,5 +39,22 @@ const QString ToQString(const T & object)
     strm << object;
     return std::move(str);
 }
+
+#define __QUTE_NOTE_DECLARE_PRINTABLE(type) \
+    QTextStream & operator << (QTextStream & strm, const type & obj); \
+    inline QDebug & operator << (QDebug & debug, const type & obj) \
+    { \
+        debug << ToQString<type>(obj); \
+        return debug; \
+    }
+
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::BusinessUserInfo)
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::Guid)
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::PremiumInfo)
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::Accounting)
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::UserAttributes)
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::NoteAttributes)
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::ResourceAttributes)
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::PrivilegeLevel::type)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

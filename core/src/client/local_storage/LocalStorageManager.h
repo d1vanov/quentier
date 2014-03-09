@@ -112,13 +112,12 @@ public:
     bool AddLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
-    // TODO: implement
+
     bool FindLinkedNotebook(const evernote::edam::Guid & notebookGuid,
                             LinkedNotebook & linkedNotebook, QString & errorDescription) const;
 
-    // TODO: implement
     bool ListAllLinkedNotebooks(std::vector<LinkedNotebook> & notebooks, QString & errorDescription) const;
-    // TODO: implement
+
     bool ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
                                QString & errorDescription);
 
@@ -254,6 +253,8 @@ private:
     bool FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QString & errorDescription) const;
     bool FillSharedNotebookFromSqlRecord(const QSqlRecord & record,
                                          evernote::edam::SharedNotebook & sharedNotebook,
+                                         QString & errorDescription) const;
+    bool FillLinkedNotebookFromSqlRecord(const QSqlRecord & record, LinkedNotebook & linkedNotebook,
                                          QString & errorDescription) const;
 
     bool FindAndSetTagGuidsPerNote(evernote::edam::Note & enNote, QString & errorDescription) const;

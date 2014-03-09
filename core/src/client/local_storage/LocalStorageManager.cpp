@@ -448,6 +448,7 @@ bool LocalStorageManager::FindNotebook(const Guid & notebookGuid, Notebook & not
                   "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, "
                   "contactId FROM Notebooks WHERE guid=?");
     query.addBindValue(QString::fromStdString(notebookGuid));
+
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't find notebook in SQL database by guid");
 
@@ -471,7 +472,7 @@ bool LocalStorageManager::ListAllNotebooks(std::vector<Notebook> & notebooks,
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec("SELECT * FROM Notebooks");
-    DATABASE_CHECK_AND_SET_ERROR("can't select notebooks from SQL database");
+    DATABASE_CHECK_AND_SET_ERROR("can't select all notebooks from SQL database");
 
     size_t numRows = query.size();
     notebooks.reserve(numRows);
@@ -530,8 +531,7 @@ bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const Guid & notebo
                                                              std::vector<SharedNotebook> & sharedNotebooks,
                                                              QString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManager::ListSharedNotebooksPerNotebookGuid: guid = "
-            << ToQString(notebookGuid));
+    QNDEBUG("LocalStorageManager::ListSharedNotebooksPerNotebookGuid: guid = " << notebookGuid);
 
     sharedNotebooks.clear();
     errorDescription = QObject::tr("Can't list shared notebooks per notebook guid: ");
@@ -578,34 +578,27 @@ bool LocalStorageManager::ExpungeNotebook(const Notebook & notebook, QString & e
 
     const evernote::edam::Notebook & enNotebook = notebook.en_notebook;
 
-    if (!CheckGuid(enNotebook.guid)) {
+    if (!enNotebook.__isset.guid) {
+        errorDescription += QObject::tr("notebook's guid is not set");
+        return false;
+    }
+    else if (!CheckGuid(enNotebook.guid)) {
         errorDescription += QObject::tr("notebook's guid is invalid");
         return false;
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT rowid FROM Notebooks WHERE guid=?");
-    query.addBindValue(QString::fromStdString(notebook.en_notebook.guid));
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't find notebook to be expunged by guid in SQL database");
-
-    int rowId = -1;
-    bool conversionResult = false;
-    while(query.next()) {
-        rowId = query.value(0).toInt(&conversionResult);
-    }
-
-    if (!conversionResult || (rowId < 0)) {
+    int rowId = GetRowId("Notebooks", "guid", QVariant(QString::fromStdString(enNotebook.guid)));
+    if (rowId < 0) {
         errorDescription += QObject::tr("can't determine row id of notebook "
                                         "to be expunged in \"Notebooks\" table in SQL database");
         return false;
     }
 
-    query.clear();
+    QSqlQuery query(m_sqlDatabase);
     query.prepare("DELETE FROM Notebooks WHERE rowid=?");
     query.addBindValue(QVariant(rowId));
 
-    res = query.exec();
+    bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notebooks\" table in SQL database");
 
     return true;
@@ -653,6 +646,107 @@ bool LocalStorageManager::UpdateLinkedNotebook(const LinkedNotebook & linkedNote
     }
 
     return InsertOrReplaceLinkedNotebook(linkedNotebook, errorDescription);
+}
+
+bool LocalStorageManager::FindLinkedNotebook(const Guid & notebookGuid,
+                                             LinkedNotebook & linkedNotebook,
+                                             QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManager::FindLinkedNotebook: notebookGuid: " << notebookGuid);
+
+    errorDescription = QObject::tr("Can't find linked notebook in local storage database: ");
+
+    if (!CheckGuid(notebookGuid)) {
+        errorDescription += QObject::tr("requested guid is invalid");
+        return false;
+    }
+
+    linkedNotebook = LinkedNotebook();
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT guid, updateSequenceNumber, isDirty, shareName, username, shardId, "
+                  "shareKey, uri, noteStoreUrl, webApiUrlPrefix, stack, businessId WHERE guid=?");
+    query.addBindValue(QString::fromStdString(notebookGuid));
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't find linked notebook in Sql database by guid");
+
+    if (!query.next()) {
+        errorDescription += QObject::tr("Internal error: SQL query result is empty");
+        return false;
+    }
+
+    QSqlRecord rec = query.record();
+
+    return FillLinkedNotebookFromSqlRecord(rec, linkedNotebook, errorDescription);
+}
+
+bool LocalStorageManager::ListAllLinkedNotebooks(std::vector<LinkedNotebook> & notebooks,
+                                                 QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManager::ListAllLinkedNotebooks");
+
+    notebooks.clear();
+    errorDescription = QObject::tr("Can't list all linked notebooks in local storage database: ");
+
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec("SELECT * FROM LinkedNotebooks");
+    DATABASE_CHECK_AND_SET_ERROR("can't select all linked notebooks from SQL database");
+
+    size_t numRows = query.size();
+    notebooks.reserve(numRows);
+
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+
+        notebooks.push_back(LinkedNotebook());
+        auto & notebook = notebooks.back();
+
+        res = FillLinkedNotebookFromSqlRecord(rec, notebook, errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    QNDEBUG("found " << notebooks.size() << " notebooks");
+
+    return true;
+}
+
+bool LocalStorageManager::ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
+                                                QString & errorDescription)
+{
+    QNDEBUG("LocalStorageManager::ExpungeLinkedNotebook: " << linkedNotebook);
+
+    errorDescription = QObject::tr("Can't expunge linked notebook from local storage database: ");
+
+    const auto & enLinkedNotebook = linkedNotebook.en_linked_notebook;
+
+    if (!enLinkedNotebook.__isset.guid) {
+        errorDescription += QObject::tr("linked notebook's guid is not set");
+        return false;
+    }
+    else if (!CheckGuid(enLinkedNotebook.guid)) {
+        errorDescription += QObject::tr("linked notebook's guid is invalid");
+        return false;
+    }
+
+    int rowId = GetRowId("LinkedNotebooks", "guid", QVariant(QString::fromStdString(enLinkedNotebook.guid)));
+    if (rowId < 0) {
+        errorDescription += QObject::tr("can't determine row id of linked notebook "
+                                        "to be expunged in \"LinkedNotebooks\" table in SQL database");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("DELETE FROM LinkedNotebooks WHERE rowid=?");
+    query.addBindValue(QVariant(rowId));
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"LinkedNotebooks\" table in SQL database");
+
+    return true;
 }
 
 bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
@@ -1680,6 +1774,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS LinkedNotebooks("
                      "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
                      "  updateSequenceNumber            INTEGER           NOT NULL, "
+                     "  isDirty                         INTEGER           NOT NULL, "
                      "  shareName                       TEXT              NOT NULL, "
                      "  username                        TEXT              NOT NULL, "
                      "  shardId                         TEXT              NOT NULL, "
@@ -2355,8 +2450,13 @@ bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & l
     CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, businessId, businessId,
                                             QString::number(enLinkedNotebook.businessId));
 
+#undef CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE
+
     if (hasAnyProperty)
     {
+        columns.append(", isDirty");
+        values.append(QString::number(linkedNotebook.isDirty ? 1 : 0));
+
         query.bindValue("columns", columns);
         query.bindValue("values", values);
 
@@ -2629,9 +2729,9 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
 bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, 
                                                     QString & errorDescription) const
 {
-#define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute) \
+#define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(holder, attribute) \
     if (record.contains(#attribute)) { \
-        notebook.attribute = (qvariant_cast<int>(record.value(#attribute)) != 0); \
+        holder.attribute = (qvariant_cast<int>(record.value(#attribute)) != 0); \
     } \
     else { \
         errorDescription += QObject::tr("Internal error: No " #attribute " field " \
@@ -2639,9 +2739,9 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
         return false; \
     }
 
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDirty);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLocal);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLastUsed);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(notebook, isDirty);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(notebook, isLocal);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(notebook, isLastUsed);
 
     auto & enNotebook = notebook.en_notebook;
 
@@ -2837,6 +2937,44 @@ bool LocalStorageManager::FillSharedNotebookFromSqlRecord(const QSqlRecord & rec
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook.recipientSettings,
                                         recipientReminderNotifyInApp,
                                         reminderNotifyInApp, int, bool, isRequired);  // NOTE: int to bool cast
+
+    return true;
+}
+
+bool LocalStorageManager::FillLinkedNotebookFromSqlRecord(const QSqlRecord & record,
+                                                          LinkedNotebook & linkedNotebook,
+                                                          QString & errorDescription) const
+{
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(linkedNotebook, isDirty);
+
+    auto & enLinkedNotebook = linkedNotebook.en_linked_notebook;
+    bool isRequired = true;
+
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, guid, guid, QString, std::string,
+                                        isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, updateSequenceNumber,
+                                        updateSequenceNum, int, int32_t, isRequired);
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shareName, shareName,
+                                        QString, std::string, isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, username, username,
+                                        QString, std::string, isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shardId, shardId, QString,
+                                        std::string, isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shareKey, shareKey, QString,
+                                        std::string, isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, uri, uri, QString, std::string,
+                                        isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, noteStoreUrl, noteStoreUrl,
+                                        QString, std::string, isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, webApiUrlPrefix, webApiUrlPrefix,
+                                        QString, std::string, isRequired, .toStdString());
+
+    isRequired = false;
+
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, stack, stack, QString, std::string,
+                                        isRequired, .toStdString());
+    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, businessId, businessId,
+                                        int, int32_t, isRequired);
 
     return true;
 }

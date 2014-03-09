@@ -250,7 +250,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::ResourceAttr
 #undef CHECK_AND_PRINT_ATTRIBUTE
 
 
-QTextStream & operator <<(QTextStream & strm, const evernote::edam::PrivilegeLevel::type level)
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::PrivilegeLevel::type & level)
 {
     strm << "PrivilegeLevel: ";
 

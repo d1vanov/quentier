@@ -477,6 +477,86 @@ bool LinkedNotebook::CheckParameters(QString & errorDescription) const
     return true;
 }
 
+QTextStream & LinkedNotebook::Print(QTextStream & strm) const
+{
+    strm << "LinkedNotebook: { \n";
+    strm << "isDirty = " << (isDirty ? "true" : "false") << "\n";
+
+    const auto & isSet = en_linked_notebook.__isset;
+
+    if (isSet.guid) {
+        strm << "guid = " << en_linked_notebook.guid << "\n";
+    }
+    else {
+        strm << "guid is not set" << "\n";
+    }
+
+    if (isSet.updateSequenceNum) {
+        strm << "updateSequenceNum = " << en_linked_notebook.updateSequenceNum << "\n";
+    }
+    else {
+        strm << "updateSequenceNum is not set" << "\n";
+    }
+
+    if (isSet.shareName) {
+        strm << "shareName = " << en_linked_notebook.shareName << "\n";
+    }
+    else {
+        strm << "shareName is not set" << "\n";
+    }
+
+    if (isSet.shardId) {
+        strm << "shardId = " << en_linked_notebook.shardId << "\n";
+    }
+    else {
+        strm << "shardId is not set" << "\n";
+    }
+
+    if (isSet.shareKey) {
+        strm << "shareKey = " << en_linked_notebook.shareKey << "\n";
+    }
+    else {
+        strm << "shareKey is not set" << "\n";
+    }
+
+    if (isSet.uri) {
+        strm << "uri = " << en_linked_notebook.uri << "\n";
+    }
+    else {
+        strm << "uri is not set" << "\n";
+    }
+
+    if (isSet.noteStoreUrl) {
+        strm << "noteStoreUrl = " << en_linked_notebook.noteStoreUrl << "\n";
+    }
+    else {
+        strm << "noteStoreUrl is not set" << "\n";
+    }
+
+    if (isSet.webApiUrlPrefix) {
+        strm << "webApiUrlPrefix = " << en_linked_notebook.webApiUrlPrefix << "\n";
+    }
+    else {
+        strm << "webApiUrlPrefix is not set" << "\n";
+    }
+
+    if (isSet.stack) {
+        strm << "stack = " << en_linked_notebook.stack << "\n";
+    }
+    else {
+        strm << "stack is not set" << "\n";
+    }
+
+    if (isSet.businessId) {
+        strm << "businessId = " << en_linked_notebook.businessId << "\n";
+    }
+    else {
+        strm << "businessId is not set" << "\n";
+    }
+
+    return strm;
+}
+
 
 
 }

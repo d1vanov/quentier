@@ -3,6 +3,7 @@
 
 #include <Types_types.h>
 #include <NoteStore.h>
+#include <tools/Printable.h>
 #include <QString>
 #include <QDataStream>
 #include <QByteArray>
@@ -33,7 +34,7 @@ struct Notebook
     bool CheckParameters(QString & errorDescription) const;
 };
 
-struct LinkedNotebook
+struct LinkedNotebook: public Printable
 {
     LinkedNotebook(): isDirty(true), en_linked_notebook() {}
 
@@ -41,6 +42,8 @@ struct LinkedNotebook
     evernote::edam::LinkedNotebook en_linked_notebook;
 
     bool CheckParameters(QString & errorDescription) const;
+
+    virtual QTextStream & Print(QTextStream & strm) const;
 };
 
 struct Tag
