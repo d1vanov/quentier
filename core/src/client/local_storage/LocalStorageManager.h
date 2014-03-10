@@ -34,7 +34,6 @@ QT_FORWARD_DECLARE_STRUCT(SavedSearch)
 QT_FORWARD_DECLARE_CLASS(IUser)
 typedef evernote::edam::UserID UserID;
 
-// TODO: implement all the necessary functionality
 class LocalStorageManager
 {
 public:
@@ -212,7 +211,6 @@ public:
     bool FindSavedSearch(const evernote::edam::Guid & searchGuid, SavedSearch & search,
                          QString & errorDescription) const;
 
-    // TODO: implement
     bool ListAllSavedSearches(std::vector<SavedSearch> & searches, QString & errorDescription) const;
 
     // NOTE: there is no 'DeleteSearch' method for a reason: saved searches are deleted automatically
@@ -254,6 +252,8 @@ private:
                                          QString & errorDescription) const;
     bool FillLinkedNotebookFromSqlRecord(const QSqlRecord & record, LinkedNotebook & linkedNotebook,
                                          QString & errorDescription) const;
+    bool FillSavedSearchFromSqlRecord(const QSqlRecord & record, SavedSearch & search,
+                                      QString & errorDescription) const;
     bool FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Tag> & tags,
                               QString & errorDescription) const;
 

@@ -1597,58 +1597,59 @@ bool LocalStorageManager::FindSavedSearch(const Guid & searchGuid, SavedSearch &
 
     QSqlQuery query(m_sqlDatabase);
 
-    query.prepare("SELECT name, query, format, updateSequenceNumber, includeAccount, "
+    query.prepare("SELECT guid, name, query, format, updateSequenceNumber, includeAccount, "
                   "includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks "
                   "FROM SavedSearches WHERE guid = ?");
     query.addBindValue(QString::fromStdString(searchGuid));
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't find saved search in \"SavedSearches\" table in SQL database: ");
+    DATABASE_CHECK_AND_SET_ERROR("can't find saved search in \"SavedSearches\" table in SQL database");
 
     if (!query.next()) {
         errorDescription += QObject::tr("Internal error: SQL query result is empty");
         return false;
     }
 
-    evernote::edam::SavedSearch & enSearch = search.en_search;
-    enSearch.guid = searchGuid;
-    enSearch.__isset.guid = true;
-
     QSqlRecord rec = query.record();
+    return FillSavedSearchFromSqlRecord(rec, search, errorDescription);
+}
 
-#define CHECK_AND_SET_EN_SEARCH_PROPERTY(holder, localPropertyName, enPropertyName, \
-                                         localType, trueType, isRequired, ...) \
-    if (rec.contains(#localPropertyName)) { \
-        holder.enPropertyName = static_cast<trueType>((qvariant_cast<localType>(rec.value(#localPropertyName)))__VA_ARGS__); \
-        holder.__isset.enPropertyName = true; \
-    } \
-    else if (isRequired) { \
-        errorDescription += QObject::tr("no " #localPropertyName " field" \
-                                        "in the result of SQL query"); \
-        return false; \
+bool LocalStorageManager::ListAllSavedSearches(std::vector<SavedSearch> & searches,
+                                               QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManager::ListAllSavedSearches");
+
+    searches.clear();
+
+    errorDescription = QObject::tr("Can't find all saved searches in local storage database");
+
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec("SELECT * FROM SavedSearches");
+    DATABASE_CHECK_AND_SET_ERROR("can't select all saved searches from \"SavedSearches\" "
+                                 "table in SQL database");
+
+    size_t numRows = query.size();
+    if (numRows == 0) {
+        QNDEBUG("No saved searches were found");
+        return true;
     }
 
-    bool isRequired = true;
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, name, name, QString, std::string,
-                                     isRequired, .toStdString());
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, query, query, QString, std::string,
-                                     isRequired, .toStdString());
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, format, format, int,
-                                     evernote::edam::QueryFormat::type, isRequired);
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, updateSequenceNumber, updateSequenceNum,
-                                     int, int32_t, isRequired);
+    searches.reserve(numRows);
 
-    auto & scope = enSearch.scope;
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includeAccount, includeAccount,
-                                     int, bool, isRequired, ? true : false);
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includePersonalLinkedNotebooks,
-                                     includePersonalLinkedNotebooks, int, bool,
-                                     isRequired, ? true : false);
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includeBusinessLinkedNotebooks,
-                                     includeBusinessLinkedNotebooks, int, bool,
-                                     isRequired, ? true : false);
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
 
-#undef CHECK_AND_SET_EN_SEARCH_PROPERTY
+        searches.push_back(SavedSearch());
+        auto & search = searches.back();
+
+        res = FillSavedSearchFromSqlRecord(rec, search, errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    QNDEBUG("found " << searches.size() << " saved searches");
 
     return true;
 }
@@ -2837,7 +2838,7 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
         CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publishingNoteSortOrder,
                                             order, int, NoteSortOrder::type, isRequired);
         CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publishingAscendingSort,
-                                            ascending, int, bool, isRequired);  // NOTE: cast int to bool
+                                            ascending, int, bool, isRequired);  // NOTE: int to bool cast
         CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publicDescription,
                                             publicDescription, QString, std::string,
                                             isRequired, .toStdString());
@@ -3027,6 +3028,51 @@ bool LocalStorageManager::FillLinkedNotebookFromSqlRecord(const QSqlRecord & rec
                                         isRequired, .toStdString());
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, businessId, businessId,
                                         int, int32_t, isRequired);
+
+    return true;
+}
+
+bool LocalStorageManager::FillSavedSearchFromSqlRecord(const QSqlRecord & record,
+                                                       SavedSearch & search,
+                                                       QString & errorDescription) const
+{
+#define CHECK_AND_SET_EN_SEARCH_PROPERTY(holder, localPropertyName, enPropertyName, \
+                                         localType, trueType, isRequired, ...) \
+    if (rec.contains(#localPropertyName)) { \
+        holder.enPropertyName = static_cast<trueType>((qvariant_cast<localType>(rec.value(#localPropertyName)))__VA_ARGS__); \
+        holder.__isset.enPropertyName = true; \
+    } \
+    else if (isRequired) { \
+        errorDescription += QObject::tr("no " #localPropertyName " field" \
+                                        "in the result of SQL query"); \
+        return false; \
+    }
+
+    auto & enSearch = search.en_search;
+
+    bool isRequired = true;
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, guid, guid, QString, std::string,
+                                     isRequired, .toStdString());
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, name, name, QString, std::string,
+                                     isRequired, .toStdString());
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, query, query, QString, std::string,
+                                     isRequired, .toStdString());
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, format, format, int,
+                                     evernote::edam::QueryFormat::type, isRequired);
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, updateSequenceNumber, updateSequenceNum,
+                                     int, int32_t, isRequired);
+
+    auto & scope = enSearch.scope;
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includeAccount, includeAccount,
+                                     int, bool, isRequired, ? true : false);
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includePersonalLinkedNotebooks,
+                                     includePersonalLinkedNotebooks, int, bool,
+                                     isRequired, ? true : false);
+    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includeBusinessLinkedNotebooks,
+                                     includeBusinessLinkedNotebooks, int, bool,
+                                     isRequired, ? true : false);
+
+#undef CHECK_AND_SET_EN_SEARCH_PROPERTY
 
     return true;
 }
