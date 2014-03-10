@@ -13,10 +13,9 @@ namespace qute_note {
  * @brief The Printable class is the interface for QuteNote's internal classes
  * which should be able to write themselves into QTextStream and/or convert to QString
  */
-class QUTE_NOTE_EXPORT Printable {
+class QUTE_NOTE_EXPORT Printable
+{
 public:
-    virtual ~Printable();
-
     virtual QTextStream & Print(QTextStream & strm) const = 0;
 
     virtual const QString ToQString() const;
@@ -25,6 +24,13 @@ public:
                                                        const Printable & printable);
     friend QUTE_NOTE_EXPORT QDebug & operator << (QDebug & debug,
                                                   const Printable & printable);
+protected:
+    Printable() = default;
+    virtual ~Printable() = default;
+
+private:
+    Printable(const Printable & other) = delete;
+    Printable & operator=(const Printable & other) = delete;
 };
 
 } // namespace qute_note

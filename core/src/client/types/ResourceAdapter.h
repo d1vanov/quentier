@@ -17,10 +17,10 @@ public:
     ResourceAdapter(const ResourceAdapter & other);
     virtual ~ResourceAdapter() final override;
 
+private:
     virtual const evernote::edam::Resource & GetEnResource() const final override;
     virtual evernote::edam::Resource & GetEnResource() final override;
 
-private:
     ResourceAdapter() = delete;
     ResourceAdapter & operator=(const ResourceAdapter & other) = delete;
 

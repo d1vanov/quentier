@@ -252,7 +252,7 @@ private:
                                          QString & errorDescription) const;
     bool FillLinkedNotebookFromSqlRecord(const QSqlRecord & record, LinkedNotebook & linkedNotebook,
                                          QString & errorDescription) const;
-    bool FillSavedSearchFromSqlRecord(const QSqlRecord & record, SavedSearch & search,
+    bool FillSavedSearchFromSqlRecord(const QSqlRecord & rec, SavedSearch & search,
                                       QString & errorDescription) const;
     bool FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Tag> & tags,
                               QString & errorDescription) const;

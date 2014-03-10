@@ -16,13 +16,7 @@ ResourceWrapper & ResourceWrapper::operator=(const ResourceWrapper & other)
 {
     if (this != &other)
     {
-        if (other.IsDirty()) {
-            SetDirty();
-        }
-        else {
-            SetClean();
-        }
-
+        IResource::operator =(other);
         m_en_resource = other.m_en_resource;
     }
 

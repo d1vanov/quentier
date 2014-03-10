@@ -2,9 +2,6 @@
 
 namespace qute_note {
 
-Printable::~Printable()
-{}
-
 const QString Printable::ToQString() const
 {
     QString str;

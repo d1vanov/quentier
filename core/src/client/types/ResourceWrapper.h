@@ -18,10 +18,10 @@ public:
     ResourceWrapper & operator=(const ResourceWrapper & other);
     virtual ~ResourceWrapper() final override;
 
+private:
     virtual const evernote::edam::Resource & GetEnResource() const final override;
     virtual evernote::edam::Resource & GetEnResource() final override;
 
-private:
     evernote::edam::Resource m_en_resource;
 };
 

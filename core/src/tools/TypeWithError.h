@@ -12,13 +12,11 @@ namespace qute_note {
 class TypeWithError
 {
 public:
-    void SetError(const QString & error);
+    const QString error() const;
+    void setError(const QString & error);
 
-    const QString GetError() const;
-
-    bool HasError() const;
-
-    void ClearError();
+    bool hasError() const;
+    void clearError();
 
 protected:
     TypeWithError();

@@ -446,6 +446,22 @@ bool SavedSearch::CheckParameters(QString &errorDescription) const
     return true;
 }
 
+LinkedNotebook::LinkedNotebook(const LinkedNotebook & other) :
+    isDirty(other.isDirty),
+    en_linked_notebook(other.en_linked_notebook)
+{}
+
+LinkedNotebook & LinkedNotebook::operator=(const LinkedNotebook & other)
+{
+    if (this != &other)
+    {
+        isDirty = other.isDirty;
+        en_linked_notebook = other.en_linked_notebook;
+    }
+
+    return *this;
+}
+
 bool LinkedNotebook::CheckParameters(QString & errorDescription) const
 {
     if (!en_linked_notebook.__isset.guid) {

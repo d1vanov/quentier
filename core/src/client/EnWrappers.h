@@ -37,6 +37,8 @@ struct Notebook
 struct LinkedNotebook: public Printable
 {
     LinkedNotebook(): isDirty(true), en_linked_notebook() {}
+    LinkedNotebook(const LinkedNotebook & other);
+    LinkedNotebook & operator=(const LinkedNotebook & other);
 
     bool isDirty;
     evernote::edam::LinkedNotebook en_linked_notebook;

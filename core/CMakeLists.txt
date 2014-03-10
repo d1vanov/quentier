@@ -20,6 +20,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/Utility.h
     src/client/types/IResource.h
     src/client/types/IUser.h
+    src/client/types/NoteStoreDataElement.h
     src/client/types/ResourceWrapper.h
     src/client/types/ResourceAdapter.h
     src/client/types/ResourceAdapterAccessException.h
@@ -56,6 +57,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/Utility.cpp
     src/client/types/IResource.cpp
     src/client/types/IUser.cpp
+    src/client/types/NoteStoreDataElement.cpp
     src/client/types/ResourceWrapper.cpp
     src/client/types/ResourceAdapter.cpp
     src/client/types/ResourceAdapterAccessException.cpp

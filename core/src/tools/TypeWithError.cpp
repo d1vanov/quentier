@@ -3,22 +3,22 @@
 
 namespace qute_note {
 
-void TypeWithError::SetError(const QString & error)
+const QString TypeWithError::error() const
+{
+    return std::move(m_error);
+}
+
+void TypeWithError::setError(const QString & error)
 {
     m_error = error;
 }
 
-const QString TypeWithError::GetError() const
-{
-    return m_error;
-}
-
-bool TypeWithError::HasError() const
+bool TypeWithError::hasError() const
 {
     return !(m_error.isEmpty());
 }
 
-void TypeWithError::ClearError()
+void TypeWithError::clearError()
 {
     m_error.clear();
 }
@@ -42,7 +42,7 @@ TypeWithError & TypeWithError::operator =(const TypeWithError & other)
 
 TypeWithError::~TypeWithError()
 {
-    ClearError();
+    clearError();
 }
 
 }

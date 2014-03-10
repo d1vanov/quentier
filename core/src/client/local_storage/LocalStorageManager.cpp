@@ -1387,15 +1387,10 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, IResource & re
         return false;
     }
 
-    resource.Clear();
-
-    auto & enResource = resource.GetEnResource();
-
-    enResource.guid = resourceGuid;
-    enResource.__isset.guid = true;
+    resource.clear();
+    resource.setGuid(QString::fromStdString(resourceGuid));
 
     QSqlQuery query(m_sqlDatabase);
-
     query.prepare("SELECT noteGuid, updateSequenceNumber, isDirty, dataSize, dataHash, "
                   "mime, width, height, recognitionSize, recognitionHash :binaryColumns "
                   "FROM Resources WHERE guid = ?");
@@ -1416,92 +1411,36 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, IResource & re
 
     QSqlRecord rec = query.record();
 
-    if (rec.contains("isDirty"))
-    {
-        bool isDirty = (qvariant_cast<int>(rec.value("isDirty")) != 0);
-        if (isDirty) {
-            resource.SetDirty();
-        }
-        else {
-            resource.SetClean();
-        }
-    }
-    else
-    {
-        errorDescription += QObject::tr("no \"isDirty\" field in the result of SQL query");
-        return false;
-    }
-
-#define CHECK_AND_SET_EN_RESOURCE_PROPERTY(holder, localPropertyName, enPropertyName, \
-                                           localType, trueType, isRequired, ...) \
-    if (rec.contains(#localPropertyName)) { \
-        holder.enPropertyName = static_cast<trueType>((qvariant_cast<localType>(rec.value(#localPropertyName)))__VA_ARGS__); \
-        holder.__isset.enPropertyName = true; \
+#define CHECK_AND_SET_RESOURCE_PROPERTY(property, type, localType, setter, isRequired) \
+    if (rec.contains(#property)) { \
+        resource.setter(static_cast<localType>(qvariant_cast<type>(rec.value(#property)))); \
     } \
     else if (isRequired) { \
-        errorDescription += QObject::tr("no " #localPropertyName \
-                                        " field in the result of SQL query"); \
+        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
         return false; \
     }
 
-
     bool isRequired = true;
-    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, noteGuid, noteGuid, QString, std::string, isRequired, .toStdString());
-    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, updateSequenceNumber, updateSequenceNum,
-                                       int, int32_t, isRequired);
-    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.data, dataSize, size, int, int32_t, isRequired);
-    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.data, dataHash, bodyHash, QString,
-                                       std::string, isRequired, .toStdString());
-    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, mime, mime, QString, std::string,
-                                       isRequired, .toStdString());
+    CHECK_AND_SET_RESOURCE_PROPERTY(isDirty, int, bool, setDirty, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(noteGuid, QString, QString, setNoteGuid, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(updateSequenceNumber, int, qint32, setUpdateSequenceNumber, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, int, qint32, setDataSize, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QString, QString, setDataHash, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(mime, QString, QString, setMime, isRequired);
 
     isRequired = false;
-    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, width, width, int, int32_t, isRequired);
-    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource, height, height, int, int32_t, isRequired);
-    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.recognition, dataSize, size, int, int32_t, isRequired);
-    CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.recognition, dataHash, bodyHash,
-                                       QString, std::string, isRequired, .toStdString());
+
+    CHECK_AND_SET_RESOURCE_PROPERTY(width, int, qint32, setWidth, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint32, setHeight, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32, setRecognitionDataSize, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QString, QString, setRecognitionDataHash, isRequired);
 
     if (withBinaryData) {
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.recognition, dataBody, body, QString,
-                                           std::string, isRequired, .toStdString());
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(enResource.data, dataBody, body, QString,
-                                           std::string, isRequired, .toStdString());
+        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QString, QString, setRecognitionDataBody, isRequired);
+        CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QString, QString, setDataBody, isRequired);
     }
 
-    if (enResource.data.__isset.size && enResource.data.__isset.bodyHash)
-    {
-        if (withBinaryData && enResource.data.__isset.body) {
-            enResource.__isset.data = true;
-        }
-        else if (!withBinaryData) {
-            enResource.__isset.data = true;
-        }
-        else {
-            enResource.__isset.data = false;
-        }
-    }
-    else
-    {
-        enResource.__isset.data = false;
-    }
-
-    if (enResource.recognition.__isset.size && enResource.recognition.__isset.bodyHash)
-    {
-        if (withBinaryData && enResource.recognition.__isset.body) {
-            enResource.__isset.recognition = true;
-        }
-        else if (!withBinaryData) {
-            enResource.__isset.recognition = true;
-        }
-        else {
-            enResource.__isset.recognition = false;
-        }
-    }
-    else
-    {
-        enResource.__isset.recognition = false;
-    }
+#undef CHECK_AND_SET_RESOURCE_PROPERTY
 
     query.prepare("SELECT data FROM ResourceAttributes WHERE guid = ?");
     query.addBindValue(QString::fromStdString(resourceGuid));
@@ -1510,13 +1449,11 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, IResource & re
     DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributes\" table in SQL database");
 
     if (!query.next()) {
-        enResource.__isset.attributes = false;
         return true;
     }
 
     QByteArray serializedResourceAttributes = query.value(0).toByteArray();
-    enResource.attributes = GetDeserializedResourceAttributes(serializedResourceAttributes);
-    enResource.__isset.attributes = true;
+    resource.setResourceAttributes(serializedResourceAttributes);
 
     return true;
 }
@@ -1525,7 +1462,7 @@ bool LocalStorageManager::ExpungeResource(const IResource & resource, QString & 
 {
     errorDescription = QObject::tr("Can't expunge resource from local storage database: ");
 
-    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.GetEnResource().guid)));
+    int rowId = GetRowId("Resources", "guid", QVariant(resource.guid()));
     if (rowId < 0) {
         errorDescription += QObject::tr("resource to be expunged was not found by guid");
         return false;
@@ -1684,30 +1621,17 @@ bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,
     return true;
 }
 
-#define SET_IS_FREE_ACCOUNT_FLAG \
-    UserWrapper currentUser; \
-    QString error; \
-    bool res = FindUser(m_currentUserId, currentUser, error); \
-    if (!res) { \
-        errorDescription += QObject::tr("can't find current user to " \
-                                        "determine max allowed size of the resource: "); \
-        errorDescription += error; \
-        return false; \
-    } \
-    bool isFreeAccount = (currentUser.GetEnUser().privilege == evernote::edam::PrivilegeLevel::NORMAL);
-
 bool LocalStorageManager::AddResource(const IResource & resource, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't add resource to local storage database: ");
 
-    SET_IS_FREE_ACCOUNT_FLAG
-
-    if (!resource.CheckParameters(error, isFreeAccount)) {
+    QString error;
+    if (!resource.checkParameters(error)) {
         errorDescription += error;
         return false;
     }
 
-    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.GetEnResource().guid)));
+    int rowId = GetRowId("Resources", "guid", QVariant(resource.guid()));
     if (rowId >= 0) {
         errorDescription += QObject::tr("resource with the same guid already exists");
         return false;
@@ -1720,14 +1644,13 @@ bool LocalStorageManager::UpdateResource(const IResource & resource, QString & e
 {
     errorDescription = QObject::tr("Can't update resource in local storage database: ");
 
-    SET_IS_FREE_ACCOUNT_FLAG
-
-    if (!resource.CheckParameters(error)) {
+    QString error;
+    if (!resource.checkParameters(error)) {
         errorDescription += error;
         return false;
     }
 
-    int rowId = GetRowId("Resources", "guid", QVariant(QString::fromStdString(resource.GetEnResource().guid)));
+    int rowId = GetRowId("Resources", "guid", QVariant(resource.guid()));
     if (rowId < 0) {
         errorDescription += QObject::tr("resource to be updated was not found by guid");
         return false;
@@ -2593,22 +2516,21 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
 
     if (enNote.__isset.resources)
     {
-        SET_IS_FREE_ACCOUNT_FLAG;
-
         const auto & resources = enNote.resources;
         size_t numResources = resources.size();
         for(size_t i = 0; i < numResources; ++i)
         {
             ResourceAdapter resourceAdapter(resources[i]);
 
-            error.clear();
-            res = resourceAdapter.CheckParameters(error, isFreeAccount);
+            QString error;
+            res = resourceAdapter.checkParameters(error);
             if (!res) {
                 errorDescription += QObject::tr("found invalid resource linked with note: ");
                 errorDescription += error;
                 return false;
             }
 
+            error.clear();
             res = InsertOrReplaceResource(resourceAdapter, error);
             if (!res) {
                 errorDescription += QObject::tr("can't add or update one of note's "
@@ -2669,52 +2591,54 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
 
     errorDescription = QObject::tr("Can't insert or replace resource into local storage database: ");
 
-    const evernote::edam::Resource & enResource = resource.GetEnResource();
-
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO Resources (:columns) VALUES(:vals)");
 
     QString columns, values;
 
-#define CHECK_AND_SET_RESOURCE_PROPERTY(holder, isSetName, columnName, valueName) \
-    if (holder.__isset.isSetName) \
+#define CHECK_AND_SET_RESOURCE_PROPERTY(property, checker, getter) \
+    if (resource.checker()) \
     { \
         if (!columns.isEmpty()) { \
             columns.append(", "); \
         } \
-        columns.append(#columnName); \
+        columns.append(#property); \
         \
         if (!values.isEmpty()) { \
             values.append(", "); \
         } \
-        values.append(valueName); \
+        values.append(resource.property()); \
     }
 
-    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, guid, guid, QString::fromStdString(enResource.guid));
-    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, noteGuid, noteGuid, QString::fromStdString(enResource.noteGuid));
+    CHECK_AND_SET_RESOURCE_PROPERTY(guid, hasGuid, guid);
+    CHECK_AND_SET_RESOURCE_PROPERTY(noteGuid, hasNoteGuid, noteGuid);
 
-    bool hasAnyData = enResource.__isset.data || enResource.__isset.alternateData;
+    bool hasData = resource.hasData();
+    bool hasAnyData = (hasData || resource.hasAlternateData());
     if (hasAnyData)
     {
-        const auto & data = (enResource.__isset.alternateData
-                             ? enResource.alternateData
-                             : enResource.data);
-        CHECK_AND_SET_RESOURCE_PROPERTY(data, body, dataBody, QString::fromStdString(data.body));
-        CHECK_AND_SET_RESOURCE_PROPERTY(data, size, dataSize, QString::number(data.size));
-        CHECK_AND_SET_RESOURCE_PROPERTY(data, bodyHash, dataHash, QString::fromStdString(data.bodyHash));
+        const auto & dataBody = (hasData ? resource.dataBody() : resource.alternateDataBody());
+        CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, hasDataBody, dataBody);
+
+        const auto & dataSize = (hasData ? resource.dataSize() : resource.alternateDataSize());
+        CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, hasDataSize, dataBody);
+
+        const auto & dataHash = (hasData ? resource.dataHash() : resource.alternateDataHash());
+        CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, hasDataHash, dataBody);
     }
 
-    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, mime, mime, QString::fromStdString(enResource.mime));
-    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, width, width, QString::number(enResource.width));
-    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, height, height, QString::number(enResource.height));
+    CHECK_AND_SET_RESOURCE_PROPERTY(mime, hasMime, mime);
+    CHECK_AND_SET_RESOURCE_PROPERTY(width, hasWidth, width);
+    CHECK_AND_SET_RESOURCE_PROPERTY(height, hasHeight, width);
 
-    if (enResource.__isset.recognition) {
-        CHECK_AND_SET_RESOURCE_PROPERTY(enResource.recognition, body, recognitionBody, QString::fromStdString(enResource.recognition.body));
-        CHECK_AND_SET_RESOURCE_PROPERTY(enResource.recognition, size, recognitionSize, QString::number(enResource.recognition.size));
-        CHECK_AND_SET_RESOURCE_PROPERTY(enResource.recognition, bodyHash, recognitionHash, QString::fromStdString(enResource.recognition.bodyHash));
+    if (resource.hasRecognitionData()) {
+        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, hasRecognitionDataBody, recognitionDataBody);
+        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, hasRecognitionDataSize, recognitionDataSize);
+        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, hasRecognitionDataHash, recognitionDataHash);
     }
 
-    CHECK_AND_SET_RESOURCE_PROPERTY(enResource, updateSequenceNum, updateSequenceNumber, QString::number(enResource.updateSequenceNum));
+    CHECK_AND_SET_RESOURCE_PROPERTY(updateSequenceNumber, hasUpdateSequenceNumber,
+                                    updateSequenceNumber);
 
 #undef CHECK_AND_SET_RESOURCE_PROPERTY
 
@@ -2726,7 +2650,7 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
     if (!values.isEmpty()) {
         values.append(", ");
     }
-    values.append(QString::number(resource.IsDirty() ? 1 : 0));
+    values.append(QString::number(resource.isDirty() ? 1 : 0));
 
     query.bindValue("columns", columns);
     query.bindValue("vals", values);
@@ -2734,12 +2658,11 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database");
 
-    if (enResource.__isset.attributes)
+    if (resource.hasResourceAttributes())
     {
-        QByteArray serializedResourceAttributes = GetSerializedResourceAttributes(enResource.attributes);
         query.prepare("INSERT OR REPLACE INTO ResourceAttributes (guid, data) VALUES(?, ?)");
-        query.addBindValue(QString::fromStdString(enResource.guid));
-        query.addBindValue(serializedResourceAttributes);
+        query.addBindValue(resource.guid());
+        query.addBindValue(resource.resourceAttributes());
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
@@ -3032,7 +2955,7 @@ bool LocalStorageManager::FillLinkedNotebookFromSqlRecord(const QSqlRecord & rec
     return true;
 }
 
-bool LocalStorageManager::FillSavedSearchFromSqlRecord(const QSqlRecord & record,
+bool LocalStorageManager::FillSavedSearchFromSqlRecord(const QSqlRecord & rec,
                                                        SavedSearch & search,
                                                        QString & errorDescription) const
 {
@@ -3184,45 +3107,44 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
         return true;
     }
 
+#define CHECK_AND_SET_RESOURCE_PROPERTY(property, type, localType, setter, isRequired) \
+    if (rec.contains(#property)) { \
+        resource.setter(static_cast<localType>(qvariant_cast<type>(rec.value(#property)))); \
+    } \
+    else if (isRequired) { \
+        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
+        return false; \
+    }
+
     size_t k = 0;
     while(query.next())
     {
         QSqlRecord rec = query.record();
 
-        evernote::edam::Resource & resource = resources[k++];
+        evernote::edam::Resource & enResource = resources[k++];
+        ResourceAdapter resource(enResource);
 
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(resource, guid, guid, QString, std::string,
-                                           /* is required = */ true, .toStdString());
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(resource, updateSequenceNumber, updateSequenceNum,
-                                           int, int32_t, /* is required = */ true);
-        auto & data = resource.data;
-
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(data, dataSize, size, int, int32_t,
-                                           /* is required = */ true);
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(data, dataHash, bodyHash, QString, std::string,
-                                           /* is required = */ true, .toStdString());
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(resource, mime, mime, QString, std::string,
-                                           /* is required = */ true, .toStdString());
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(resource, width, width, int, int32_t,
-                                           /* is required = */ false);
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(resource, height, height, int, int32_t,
-                                           /* is required = */ false);
-
-        auto & recognition = resource.recognition;
-
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(recognition, recognitionBody, body,
-                                           QString, std::string, /* is required = */ false,
-                                           .toStdString());
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(recognition, recognitionSize, size,
-                                           int, int32_t, /* is required = */ false);
-        CHECK_AND_SET_EN_RESOURCE_PROPERTY(recognition, recognitionHash, bodyHash,
-                                           QString, std::string, /* is required = */ false,
-                                           .toStdString());
+        CHECK_AND_SET_RESOURCE_PROPERTY(guid, QString, QString, setGuid, /* is required = */ true);
+        CHECK_AND_SET_RESOURCE_PROPERTY(updateSequenceNumber, int, qint32, setUpdateSequenceNumber,
+                                        /* is required = */ true);
+        CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, int, qint32, setDataSize, /* is required = */ true);
+        CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QString, QString, setDataHash, /* is required = */ true);
 
         if (withBinaryData) {
-            CHECK_AND_SET_EN_RESOURCE_PROPERTY(data, dataBody, body, QString, std::string,
-                                               /* is required = */ true, .toStdString());
+            CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QString, QString, setDataBody,
+                                            /* is required = */ true);
         }
+
+        CHECK_AND_SET_RESOURCE_PROPERTY(mime, QString, QString, setMime, /* is required = */ true);
+        CHECK_AND_SET_RESOURCE_PROPERTY(width, int, qint32, setWidth, /* is required = */ true);
+        CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint32, setHeight, /* is required = */ true);
+
+        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QString, QString,
+                                        setRecognitionDataBody, /* is required = */ false);
+        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32,
+                                        setRecognitionDataSize, /* is required = */ false);
+        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QString, QString,
+                                        setRecognitionDataHash, /* is required = */ false);
 
         // Retrieve optional resource attributes for each resource
         QSqlQuery resourceAttributeQuery(m_sqlDatabase);
@@ -3239,9 +3161,11 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
         }
 
         QByteArray serializedResourceAttributes = query.value(0).toByteArray();
-        resource.attributes = GetDeserializedResourceAttributes(serializedResourceAttributes);
-        resource.__isset.attributes = true;
+        enResource.attributes = GetDeserializedResourceAttributes(serializedResourceAttributes);
+        enResource.__isset.attributes = true;
     }
+
+#undef CHECK_AND_SET_RESOURCE_PROPERTY
 
     return true;
 }
