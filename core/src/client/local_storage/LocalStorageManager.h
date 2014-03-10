@@ -161,11 +161,9 @@ public:
 
     bool FindTag(const evernote::edam::Guid & tagGuid, Tag & tag, QString & errorDescription) const;
 
-    // TODO: implement
-    bool FindAllTagsPerNotebook(const evernote::edam::Guid & notebook, std::vector<Tag> & tags,
-                                QString & errorDescription) const;
+    bool FindAllTagsPerNote(const evernote::edam::Guid & noteGuid, std::vector<Tag> & tags,
+                            QString & errorDescription) const;
 
-    // TODO: implement
     bool ListAllTags(std::vector<Tag> & tags, QString & errorDescription) const;
 
     /**
@@ -256,6 +254,8 @@ private:
                                          QString & errorDescription) const;
     bool FillLinkedNotebookFromSqlRecord(const QSqlRecord & record, LinkedNotebook & linkedNotebook,
                                          QString & errorDescription) const;
+    bool FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Tag> & tags,
+                              QString & errorDescription) const;
 
     bool FindAndSetTagGuidsPerNote(evernote::edam::Note & enNote, QString & errorDescription) const;
     bool FindAndSetResourcesPerNote(evernote::edam::Note & enNote, QString & errorDescription,

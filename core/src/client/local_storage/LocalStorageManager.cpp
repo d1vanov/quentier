@@ -1264,6 +1264,58 @@ bool LocalStorageManager::FindTag(const Guid & tagGuid, Tag & tag, QString & err
     return tag.CheckParameters(errorDescription);
 }
 
+bool LocalStorageManager::FindAllTagsPerNote(const Guid & noteGuid, std::vector<Tag> & tags,
+                                             QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManager::FindAllTagsPerNote: note guid = " << noteGuid);
+
+    tags.clear();
+    errorDescription = QObject::tr("Can't find all tags per note in local storage database: ");
+
+    if (!CheckGuid(noteGuid)) {
+        errorDescription += QObject::tr("note's guid is invalid");
+        return false;
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT tag FROM NoteTags WHERE note=?");
+    query.addBindValue(QString::fromStdString(noteGuid));
+
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't select tag guid from \"NoteTags\" table in SQL database");
+
+    res = FillTagsFromSqlQuery(query, tags, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    QNDEBUG("found " << tags.size() << " tags");
+
+    return true;
+}
+
+bool LocalStorageManager::ListAllTags(std::vector<Tag> & tags, QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManager::ListAllTags");
+
+    tags.clear();
+
+    errorDescription = QObject::tr("Can't list all tags in local storage database: ");
+
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec("SELECT guid FROM Tags");
+    DATABASE_CHECK_AND_SET_ERROR("can't select tag guids from SQL database");
+
+    res = FillTagsFromSqlQuery(query, tags, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    QNDEBUG("found " << tags.size() << " tags");
+
+    return true;
+}
+
 bool LocalStorageManager::DeleteTag(const Tag & tag, QString & errorDescription)
 {
     if (tag.isLocal) {
@@ -2975,6 +3027,40 @@ bool LocalStorageManager::FillLinkedNotebookFromSqlRecord(const QSqlRecord & rec
                                         isRequired, .toStdString());
     CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, businessId, businessId,
                                         int, int32_t, isRequired);
+
+    return true;
+}
+
+bool LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Tag> & tags,
+                                               QString & errorDescription) const
+{
+    tags.clear();
+
+    size_t numRows = query.size();
+    if (numRows == 0) {
+        QNDEBUG("No tags were found in SQL query");
+        return true;
+    }
+
+    tags.reserve(numRows);
+
+    while(query.next())
+    {
+        QString tagGuid = query.value(0).toString();
+        if (!CheckGuid(tagGuid.toStdString())) {
+            errorDescription += QObject::tr("Internal error: found invalid tag guid in \"NoteTags\" table");
+            return false;
+        }
+
+        tags.push_back(Tag());
+
+        QString error;
+        bool res = FindTag(tagGuid.toStdString(), tags.back(), error);
+        if (!res) {
+            errorDescription += error;
+            return false;
+        }
+    }
 
     return true;
 }
