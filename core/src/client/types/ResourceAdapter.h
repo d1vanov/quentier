@@ -21,6 +21,8 @@ private:
     virtual const evernote::edam::Resource & GetEnResource() const final override;
     virtual evernote::edam::Resource & GetEnResource() final override;
 
+    virtual QTextStream & Print(QTextStream & strm) const;
+
     ResourceAdapter() = delete;
     ResourceAdapter & operator=(const ResourceAdapter & other) = delete;
 

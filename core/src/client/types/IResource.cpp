@@ -148,6 +148,42 @@ bool IResource::checkParameters(QString & errorDescription) const
         }
     }
 
+    if (enResource.__isset.attributes)
+    {
+        if (enResource.attributes.__isset.sourceURL)
+        {
+            int32_t sourceURLSize = static_cast<int32_t>(enResource.attributes.sourceURL.size());
+            if ( (sourceURLSize < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) ||
+                 (sourceURLSize > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) )
+            {
+                errorDescription = QObject::tr("Resource's sourceURL attribute has invalid length");
+                return false;
+            }
+        }
+
+        if (enResource.attributes.__isset.cameraMake)
+        {
+            int32_t cameraMakeSize = static_cast<int32_t>(enResource.attributes.cameraMake.size());
+            if ( (cameraMakeSize < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) ||
+                 (cameraMakeSize > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) )
+            {
+                errorDescription = QObject::tr("Resource's cameraMake attribute has invalid length");
+                return false;
+            }
+        }
+
+        if (enResource.attributes.__isset.cameraModel)
+        {
+            int32_t cameraModelSize = static_cast<int32_t>(enResource.attributes.cameraModel.size());
+            if ( (cameraModelSize < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) ||
+                 (cameraModelSize > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) )
+            {
+                errorDescription = QObject::tr("Resource's cameraModel attribute has invalid length");
+                return false;
+            }
+        }
+    }
+
     return true;
 }
 
@@ -503,11 +539,220 @@ IResource & IResource::operator=(const IResource & other)
 
 QTextStream & IResource::Print(QTextStream & strm) const
 {
-    strm << "isFreeAccount = " << (m_isFreeAccount ? "true" : "false") << "\n";
-    return strm;
+    const auto & enResource = GetEnResource();
+    const auto & isSet = enResource.__isset;
 
-    // TODO: fill in all resource properties worth printing, then declare this method as pure virtual
-    // so that subclasses would be forced to insert their names in front and call this implementation
+    if (isSet.guid) {
+        strm << "guid = " << QString::fromStdString(enResource.guid) << "; \n";
+    }
+    else {
+        strm << "guid is not set" << "; \n";
+    }
+
+    if (isSet.updateSequenceNum) {
+        strm << "updateSequenceNumber = " << enResource.updateSequenceNum << "; \n";
+    }
+    else {
+        strm << "updateSequenceNumber is not set";
+    }
+
+    if (isSet.noteGuid) {
+        strm << "noteGuid = " << QString::fromStdString(enResource.noteGuid) << "; \n";
+    }
+    else {
+        strm << "noteGuid is not set" << "; \n";
+    }
+
+    if (isSet.data)
+    {
+        if (enResource.data.__isset.size) {
+            strm << "dataSize = " << enResource.data.size << "; \n";
+        }
+        else {
+            strm << "dataSize is not set" << "; \n";
+        }
+
+        if (enResource.data.__isset.bodyHash) {
+            strm << "dataHash = " << QString::fromStdString(enResource.data.bodyHash) << "; \n";
+        }
+        else {
+            strm << "dataHash is not set" << "; \n";
+        }
+
+        if (enResource.data.__isset.body) {
+            strm << "dataBody is set" << "; \n";
+        }
+        else {
+            strm << "dataBody is not set" << "; \n";
+        }
+    }
+
+    if (isSet.mime) {
+        strm << "mime = " << QString::fromStdString(enResource.mime) << "; \n";
+    }
+    else {
+        strm << "mime is not set" << "; \n";
+    }
+
+    if (isSet.width) {
+        strm << "width = " << enResource.width << "; \n";
+    }
+    else {
+        strm << "width is not set" << "; \n";
+    }
+
+    if (isSet.height) {
+        strm << "height = " << enResource.height << "; \n";
+    }
+    else {
+        strm << "height is not set" << "; \n";
+    }
+
+    if (isSet.recognition)
+    {
+        if (enResource.recognition.__isset.size) {
+            strm << "recognitionDataSize = " << enResource.recognition.size << "; \n";
+        }
+        else {
+            strm << "recognitionDataSize is not set" << "; \n";
+        }
+
+        if (enResource.recognition.__isset.bodyHash) {
+            strm << "recognitionDataHash = " << QString::fromStdString(enResource.recognition.bodyHash) << "; \n";
+        }
+        else {
+            strm << "recognitionDataHash is not set" << "; \n";
+        }
+
+        if (enResource.recognition.__isset.body) {
+            strm << "recognitionDataBody is set" << "; \n";
+        }
+        else {
+            strm << "recognitionDataBody is not set" << "; \n";
+        }
+    }
+
+    if (isSet.alternateData)
+    {
+        if (enResource.alternateData.__isset.size) {
+            strm << "alternateDataSize = " << enResource.alternateData.size << "; \n";
+        }
+        else {
+            strm << "alternateDataSize is not set" << "; \n";
+        }
+
+        if (enResource.alternateData.__isset.bodyHash) {
+            strm << "alternateDataHash = " << QString::fromStdString(enResource.alternateData.bodyHash) << "; \n";
+        }
+        else {
+            strm << "alternateDataHash is not set" << "; \n";
+        }
+
+        if (enResource.alternateData.__isset.body) {
+            strm << "alternateDataBody is set" << "; \n";
+        }
+        else {
+            strm << "alternateDataBody is not set" << "; \n";
+        }
+    }
+
+    strm << "isDirty = " << (isDirty() ? "true" : "false") << "; \n";
+
+    strm << "isFreeAccount = " << (m_isFreeAccount ? "true" : "false") << "; \n";
+
+    if (isSet.attributes)
+    {
+        const auto & attributes = enResource.attributes;
+        const auto & attributesIsSet = attributes.__isset;
+
+        if (attributesIsSet.sourceURL) {
+            strm << "sourceURL = " << QString::fromStdString(attributes.sourceURL) << "; \n";
+        }
+        else {
+            strm << "sourceURL is not set" << "; \n";
+        }
+
+        if (attributesIsSet.timestamp) {
+            strm << "timestamp = " << attributes.timestamp << "; \n";
+        }
+        else {
+            strm << "timestamp is not set" << "; \n";
+        }
+
+        if (attributesIsSet.latitude) {
+            strm << "latitude = " << attributes.latitude << "; \n";
+        }
+        else {
+            strm << "latitude is not set" << "; \n";
+        }
+
+        if (attributesIsSet.longitude) {
+            strm << "longitude = " << attributes.longitude << "; \n";
+        }
+        else {
+            strm << "longitude is not set" << "; \n";
+        }
+
+        if (attributesIsSet.altitude) {
+            strm << "altitude = " << attributes.altitude << "; \n";
+        }
+        else {
+            strm << "altitude is not set" << "; \n";
+        }
+
+        if (attributesIsSet.cameraMake) {
+            strm << "cameraMake = " << attributes.cameraMake << "; \n";
+        }
+        else {
+            strm << "cameraMake is not set" << "; \n";
+        }
+
+        if (attributesIsSet.cameraModel) {
+            strm << "cameraModel = " << QString::fromStdString(attributes.cameraModel) << "; \n";
+        }
+        else {
+            strm << "cameraModel is not set" << "; \n";
+        }
+
+        if (attributesIsSet.clientWillIndex) {
+            strm << "clientWillIndex = " << (attributes.clientWillIndex ? "true" : "false") << "; \n";
+        }
+        else {
+            strm << "clientWillIndex is not set" << "; \n";
+        }
+
+        if (attributesIsSet.fileName) {
+            strm << "fileName = " << QString::fromStdString(attributes.fileName) << "; \n";
+        }
+        else {
+            strm << "fileName is not set" << "; \n";
+        }
+
+        if (attributesIsSet.attachment) {
+            strm << "attachment = " << (attributes.attachment ? "true" : "false") << "; \n";
+        }
+        else {
+            strm << "attachment is not set" << "; \n";
+        }
+
+        if (attributesIsSet.applicationData)
+        {
+            const auto & applicationData = attributes.applicationData;
+
+            const auto & keysOnly = applicationData.keysOnly;
+            for(const auto & item: keysOnly) {
+                strm << "applicationData key: " << QString::fromStdString(item) << "; \n";
+            }
+
+            const auto & fullMap = applicationData.fullMap;
+            for(const auto & pair: fullMap) {
+                strm << "applicationData[" << QString::fromStdString(pair.first)
+                     << "] = " << QString::fromStdString(pair.second) << "; \n";
+            }
+        }
+    }
+
+    return strm;
 }
 
 }

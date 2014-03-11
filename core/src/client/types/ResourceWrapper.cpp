@@ -36,4 +36,13 @@ evernote::edam::Resource & ResourceWrapper::GetEnResource()
     return m_en_resource;
 }
 
+QTextStream & ResourceWrapper::Print(QTextStream & strm) const
+{
+    strm << "ResourceWrapper { \n";
+    strm << IResource::ToQString();
+    strm << "} \n";
+
+    return strm;
+}
+
 } // namespace qute_note

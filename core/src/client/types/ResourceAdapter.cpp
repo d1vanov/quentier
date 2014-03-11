@@ -42,4 +42,13 @@ evernote::edam::Resource & ResourceAdapter::GetEnResource()
     return static_cast<evernote::edam::Resource&>(*m_pEnResource);
 }
 
+QTextStream & ResourceAdapter::Print(QTextStream & strm) const
+{
+    strm << "ResourceAdapter { \n";
+    strm << IResource::ToQString();
+    strm << "} \n";
+
+    return strm;
+}
+
 } // namespace qute_note

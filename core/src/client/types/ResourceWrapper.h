@@ -22,6 +22,8 @@ private:
     virtual const evernote::edam::Resource & GetEnResource() const final override;
     virtual evernote::edam::Resource & GetEnResource() final override;
 
+    virtual QTextStream & Print(QTextStream & strm) const;
+
     evernote::edam::Resource m_en_resource;
 };
 
