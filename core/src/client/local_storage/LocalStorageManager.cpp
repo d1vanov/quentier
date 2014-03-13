@@ -10,6 +10,7 @@
 #include <client/types/IUser.h>
 #include <client/types/UserAdapter.h>
 #include <client/types/UserWrapper.h>
+#include <client/types/LinkedNotebook.h>
 #include <tools/QuteNoteNullPtrException.h>
 #include <tools/ApplicationStoragePersistencePath.h>
 #include <Limits_constants.h>
@@ -610,14 +611,14 @@ bool LocalStorageManager::AddLinkedNotebook(const LinkedNotebook & linkedNoteboo
     errorDescription = QObject::tr("Can't add linked notebook to local storage database: ");
     QString error;
 
-    bool res = linkedNotebook.CheckParameters(error);
+    bool res = linkedNotebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
         return false;
     }
 
     int rowId = GetRowId("LinkedNotebooks", "guid",
-                         QVariant(QString::fromStdString(linkedNotebook.en_linked_notebook.guid)));
+                         QVariant(linkedNotebook.guid()));
     if (rowId >= 0) {
         errorDescription += QObject::tr("linked notebook with specified guid already exists");
         return false;
@@ -631,14 +632,14 @@ bool LocalStorageManager::UpdateLinkedNotebook(const LinkedNotebook & linkedNote
     errorDescription = QObject::tr("Can't update linked notebook in local storage database: ");
     QString error;
 
-    bool res = linkedNotebook.CheckParameters(error);
+    bool res = linkedNotebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
         return false;
     }
 
     int rowId = GetRowId("LinkedNotebooks", "guid",
-                         QVariant(QString::fromStdString(linkedNotebook.en_linked_notebook.guid)));
+                         QVariant(linkedNotebook.guid()));
     if (rowId < 0) {
         errorDescription += QObject::tr("linked notebook with specified guid "
                                         "was not found in local storage database");
@@ -661,7 +662,7 @@ bool LocalStorageManager::FindLinkedNotebook(const Guid & notebookGuid,
         return false;
     }
 
-    linkedNotebook = LinkedNotebook();
+    linkedNotebook.clear();
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT guid, updateSequenceNumber, isDirty, shareName, username, shardId, "
@@ -721,18 +722,19 @@ bool LocalStorageManager::ExpungeLinkedNotebook(const LinkedNotebook & linkedNot
 
     errorDescription = QObject::tr("Can't expunge linked notebook from local storage database: ");
 
-    const auto & enLinkedNotebook = linkedNotebook.en_linked_notebook;
-
-    if (!enLinkedNotebook.__isset.guid) {
+    if (!linkedNotebook.hasGuid()) {
         errorDescription += QObject::tr("linked notebook's guid is not set");
         return false;
     }
-    else if (!CheckGuid(enLinkedNotebook.guid)) {
+
+    const QString linkedNotebookGuid = linkedNotebook.guid();
+
+    if (!CheckGuid(linkedNotebookGuid.toStdString())) {
         errorDescription += QObject::tr("linked notebook's guid is invalid");
         return false;
     }
 
-    int rowId = GetRowId("LinkedNotebooks", "guid", QVariant(QString::fromStdString(enLinkedNotebook.guid)));
+    int rowId = GetRowId("LinkedNotebooks", "guid", QVariant(linkedNotebookGuid));
     if (rowId < 0) {
         errorDescription += QObject::tr("can't determine row id of linked notebook "
                                         "to be expunged in \"LinkedNotebooks\" table in SQL database");
@@ -2375,61 +2377,44 @@ bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & l
     errorDescription += QObject::tr("can't insert or replace linked notebook into "
                                     "local storage database");
 
-    const evernote::edam::LinkedNotebook & enLinkedNotebook = linkedNotebook.en_linked_notebook;
-
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO LinkedNotebooks(:columns) VALUES(:values)");
 
     QString columns, values;
     bool hasAnyProperty = false;
 
-#define CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(holder, isSetName, columnName, valueName) \
-    if (holder.__isset.isSetName) \
+#define CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(property, checker) \
+    if (linkedNotebook.checker()) \
     { \
-        hasAnyProperty = true; \
-        \
         if (!columns.isEmpty()) { \
             columns.append(", "); \
         } \
-        columns.append(#columnName); \
+        columns.append(#property); \
         \
         if (!values.isEmpty()) { \
             values.append(", "); \
         } \
-        values.append(valueName); \
+        values.append(linkedNotebook.property()); \
     }
 
-    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, guid, guid,
-                                            QString::fromStdString(enLinkedNotebook.guid));
-    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, updateSequenceNum,
-                                            updateSequenceNumber,
-                                            QString::number(enLinkedNotebook.updateSequenceNum));
-    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shareName, shareName,
-                                            QString::fromStdString(enLinkedNotebook.shareName));
-    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, username, username,
-                                            QString::fromStdString(enLinkedNotebook.username));
-    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shardId, shardId,
-                                            QString::fromStdString(enLinkedNotebook.shardId));
-    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shareKey, shareKey,
-                                            QString::fromStdString(enLinkedNotebook.shareKey));
-    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, uri, uri,
-                                            QString::fromStdString(enLinkedNotebook.uri));
-    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, noteStoreUrl, noteStoreUrl,
-                                            QString::fromStdString(enLinkedNotebook.noteStoreUrl));
-    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, webApiUrlPrefix,
-                                            webApiUrlPrefix,
-                                            QString::fromStdString(enLinkedNotebook.webApiUrlPrefix));
-    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, stack, stack,
-                                            QString::fromStdString(enLinkedNotebook.stack));
-    CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, businessId, businessId,
-                                            QString::number(enLinkedNotebook.businessId));
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(guid, hasGuid);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(updateSequenceNumber, hasUpdateSequenceNumber);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(shareName, hasShareName);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(username, hasUsername);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(shardId, hasShardId);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(shareKey, hasShareKey);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(uri, hasUri);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(noteStoreUrl, hasNoteStoreUrl);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(webApiUrlPrefix, hasWebApiUrlPrefix);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(stack, hasStack);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(businessId, hasBusinessId);
 
-#undef CHECK_AND_SET_LINKED_NOTEBOOK_ATTRIBUTE
+#undef CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY
 
     if (hasAnyProperty)
     {
         columns.append(", isDirty");
-        values.append(QString::number(linkedNotebook.isDirty ? 1 : 0));
+        values.append(QString::number(linkedNotebook.isDirty() ? 1 : 0));
 
         query.bindValue("columns", columns);
         query.bindValue("values", values);
@@ -2594,7 +2579,7 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
 
     QString columns, values;
 
-#define CHECK_AND_INSERT_RESOURCE_PROPERTY(property, checker, getter) \
+#define CHECK_AND_INSERT_RESOURCE_PROPERTY(property, checker) \
     if (resource.checker()) \
     { \
         if (!columns.isEmpty()) { \
@@ -2608,35 +2593,34 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
         values.append(resource.property()); \
     }
 
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(guid, hasGuid, guid);
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(noteGuid, hasNoteGuid, noteGuid);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(guid, hasGuid);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(noteGuid, hasNoteGuid);
 
     bool hasData = resource.hasData();
     bool hasAnyData = (hasData || resource.hasAlternateData());
     if (hasAnyData)
     {
         const auto & dataBody = (hasData ? resource.dataBody() : resource.alternateDataBody());
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataBody, hasDataBody, dataBody);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataBody, hasDataBody);
 
         const auto & dataSize = (hasData ? resource.dataSize() : resource.alternateDataSize());
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataSize, hasDataSize, dataBody);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataSize, hasDataSize);
 
         const auto & dataHash = (hasData ? resource.dataHash() : resource.alternateDataHash());
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataHash, hasDataHash, dataBody);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataHash, hasDataHash);
     }
 
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(mime, hasMime, mime);
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(width, hasWidth, width);
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(height, hasHeight, width);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(mime, hasMime);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(width, hasWidth);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(height, hasHeight);
 
     if (resource.hasRecognitionData()) {
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataBody, hasRecognitionDataBody, recognitionDataBody);
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataSize, hasRecognitionDataSize, recognitionDataSize);
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataHash, hasRecognitionDataHash, recognitionDataHash);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataBody, hasRecognitionDataBody);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataSize, hasRecognitionDataSize);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataHash, hasRecognitionDataHash);
     }
 
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(updateSequenceNumber, hasUpdateSequenceNumber,
-                                    updateSequenceNumber);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(updateSequenceNumber, hasUpdateSequenceNumber);
 
 #undef CHECK_AND_INSERT_RESOURCE_PROPERTY
 
@@ -2915,40 +2899,39 @@ bool LocalStorageManager::FillSharedNotebookFromSqlRecord(const QSqlRecord & rec
     return true;
 }
 
-bool LocalStorageManager::FillLinkedNotebookFromSqlRecord(const QSqlRecord & record,
+bool LocalStorageManager::FillLinkedNotebookFromSqlRecord(const QSqlRecord & rec,
                                                           LinkedNotebook & linkedNotebook,
                                                           QString & errorDescription) const
 {
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(linkedNotebook, isDirty);
+#define CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(property, type, localType, setter, isRequired) \
+    if (rec.contains(#property)) { \
+        linkedNotebook.setter(static_cast<localType>(qvariant_cast<type>(rec.value(#property)))); \
+    } \
+    else if (isRequired) { \
+        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
+        return false; \
+    }
 
-    auto & enLinkedNotebook = linkedNotebook.en_linked_notebook;
     bool isRequired = true;
-
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, guid, guid, QString, std::string,
-                                        isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, updateSequenceNumber,
-                                        updateSequenceNum, int, int32_t, isRequired);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shareName, shareName,
-                                        QString, std::string, isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, username, username,
-                                        QString, std::string, isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shardId, shardId, QString,
-                                        std::string, isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, shareKey, shareKey, QString,
-                                        std::string, isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, uri, uri, QString, std::string,
-                                        isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, noteStoreUrl, noteStoreUrl,
-                                        QString, std::string, isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, webApiUrlPrefix, webApiUrlPrefix,
-                                        QString, std::string, isRequired, .toStdString());
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(isDirty, int, bool, setDirty, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(guid, QString, QString, setGuid, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(updateSequenceNumber, int, qint32,
+                                           setUpdateSequenceNumber, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(shareName, QString, QString, setShareName, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(username, QString, QString, setUsername, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(shardId, QString, QString, setShardId, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(shareKey, QString, QString, setShareKey, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(uri, QString, QString, setUri, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(noteStoreUrl, QString, QString,
+                                           setNoteStoreUrl, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(webApiUrlPrefix, QString, QString,
+                                           setWebApiUrlPrefix, isRequired);
 
     isRequired = false;
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(stack, QString, QString, setStack, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(businessId, int, qint32, setBusinessId, isRequired);
 
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, stack, stack, QString, std::string,
-                                        isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enLinkedNotebook, businessId, businessId,
-                                        int, int32_t, isRequired);
+#undef CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY
 
     return true;
 }

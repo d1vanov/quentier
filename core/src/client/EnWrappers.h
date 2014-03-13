@@ -34,20 +34,6 @@ struct Notebook
     bool CheckParameters(QString & errorDescription) const;
 };
 
-struct LinkedNotebook: public Printable
-{
-    LinkedNotebook(): isDirty(true), en_linked_notebook() {}
-    LinkedNotebook(const LinkedNotebook & other);
-    LinkedNotebook & operator=(const LinkedNotebook & other);
-
-    bool isDirty;
-    evernote::edam::LinkedNotebook en_linked_notebook;
-
-    bool CheckParameters(QString & errorDescription) const;
-
-    virtual QTextStream & Print(QTextStream & strm) const;
-};
-
 struct Tag
 {
     Tag() : isDirty(true), isLocal(true), isDeleted(false), en_tag() {}

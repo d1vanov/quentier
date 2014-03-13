@@ -25,7 +25,7 @@ typedef int32_t UserID;
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_STRUCT(LinkedNotebook)
+QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 QT_FORWARD_DECLARE_STRUCT(Notebook)
 QT_FORWARD_DECLARE_STRUCT(Note)
 QT_FORWARD_DECLARE_STRUCT(Tag)
