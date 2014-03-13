@@ -1440,8 +1440,6 @@ bool LocalStorageManager::FindResource(const Guid & resourceGuid, IResource & re
         CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QString, QString, setDataBody, isRequired);
     }
 
-#undef CHECK_AND_SET_RESOURCE_PROPERTY
-
     query.prepare("SELECT data FROM ResourceAttributes WHERE guid = ?");
     query.addBindValue(QString::fromStdString(resourceGuid));
 
@@ -2596,7 +2594,7 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
 
     QString columns, values;
 
-#define CHECK_AND_SET_RESOURCE_PROPERTY(property, checker, getter) \
+#define CHECK_AND_INSERT_RESOURCE_PROPERTY(property, checker, getter) \
     if (resource.checker()) \
     { \
         if (!columns.isEmpty()) { \
@@ -2610,37 +2608,37 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
         values.append(resource.property()); \
     }
 
-    CHECK_AND_SET_RESOURCE_PROPERTY(guid, hasGuid, guid);
-    CHECK_AND_SET_RESOURCE_PROPERTY(noteGuid, hasNoteGuid, noteGuid);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(guid, hasGuid, guid);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(noteGuid, hasNoteGuid, noteGuid);
 
     bool hasData = resource.hasData();
     bool hasAnyData = (hasData || resource.hasAlternateData());
     if (hasAnyData)
     {
         const auto & dataBody = (hasData ? resource.dataBody() : resource.alternateDataBody());
-        CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, hasDataBody, dataBody);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataBody, hasDataBody, dataBody);
 
         const auto & dataSize = (hasData ? resource.dataSize() : resource.alternateDataSize());
-        CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, hasDataSize, dataBody);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataSize, hasDataSize, dataBody);
 
         const auto & dataHash = (hasData ? resource.dataHash() : resource.alternateDataHash());
-        CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, hasDataHash, dataBody);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataHash, hasDataHash, dataBody);
     }
 
-    CHECK_AND_SET_RESOURCE_PROPERTY(mime, hasMime, mime);
-    CHECK_AND_SET_RESOURCE_PROPERTY(width, hasWidth, width);
-    CHECK_AND_SET_RESOURCE_PROPERTY(height, hasHeight, width);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(mime, hasMime, mime);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(width, hasWidth, width);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(height, hasHeight, width);
 
     if (resource.hasRecognitionData()) {
-        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, hasRecognitionDataBody, recognitionDataBody);
-        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, hasRecognitionDataSize, recognitionDataSize);
-        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, hasRecognitionDataHash, recognitionDataHash);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataBody, hasRecognitionDataBody, recognitionDataBody);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataSize, hasRecognitionDataSize, recognitionDataSize);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataHash, hasRecognitionDataHash, recognitionDataHash);
     }
 
-    CHECK_AND_SET_RESOURCE_PROPERTY(updateSequenceNumber, hasUpdateSequenceNumber,
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(updateSequenceNumber, hasUpdateSequenceNumber,
                                     updateSequenceNumber);
 
-#undef CHECK_AND_SET_RESOURCE_PROPERTY
+#undef CHECK_AND_INSERT_RESOURCE_PROPERTY
 
     if (!columns.isEmpty()) {
         columns.append(", ");
@@ -3107,15 +3105,6 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
         return true;
     }
 
-#define CHECK_AND_SET_RESOURCE_PROPERTY(property, type, localType, setter, isRequired) \
-    if (rec.contains(#property)) { \
-        resource.setter(static_cast<localType>(qvariant_cast<type>(rec.value(#property)))); \
-    } \
-    else if (isRequired) { \
-        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
-        return false; \
-    }
-
     size_t k = 0;
     while(query.next())
     {
@@ -3165,8 +3154,6 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
         enResource.__isset.attributes = true;
     }
 
-#undef CHECK_AND_SET_RESOURCE_PROPERTY
-
     return true;
 }
 
@@ -3204,6 +3191,7 @@ bool LocalStorageManager::FindAndSetNoteAttributesPerNote(evernote::edam::Note &
     return true;
 }
 
+#undef CHECK_AND_SET_RESOURCE_PROPERTY
 #undef CHECK_AND_SET_NOTEBOOK_ATTRIBUTE
 #undef CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE
 #undef SET_IS_FREE_ACCOUNT_FLAG
