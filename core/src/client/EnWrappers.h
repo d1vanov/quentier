@@ -34,18 +34,6 @@ struct Notebook
     bool CheckParameters(QString & errorDescription) const;
 };
 
-struct Tag
-{
-    Tag() : isDirty(true), isLocal(true), isDeleted(false), en_tag() {}
-
-    bool isDirty;
-    bool isLocal;
-    bool isDeleted;
-    evernote::edam::Tag en_tag;
-
-    bool CheckParameters(QString & errorDescription) const;
-};
-
 struct SavedSearch
 {
     SavedSearch() : isDirty(true), en_search() {}

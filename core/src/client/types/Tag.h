@@ -1,0 +1,54 @@
+#ifndef __QUTE_NOTE__CLIENT__TYPES__TAG_H
+#define __QUTE_NOTE__CLIENT__TYPES__TAG_H
+
+#include "NoteStoreDataElement.h"
+#include <Types_types.h>
+
+namespace qute_note {
+
+class Tag final: public NoteStoreDataElement
+{
+public:
+    Tag();
+    Tag(const Tag & other);
+    Tag & operator=(const Tag & other);
+    virtual ~Tag() final override;
+
+    virtual void clear() final override;
+
+    virtual bool hasGuid() const final override;
+    virtual const QString guid() const final override;
+    virtual void setGuid(const QString & guid) final override;
+
+    virtual bool hasUpdateSequenceNumber() const final override;
+    virtual qint32 updateSequenceNumber() const final override;
+    virtual void setUpdateSequenceNumber(const qint32 usn) final override;
+
+    virtual bool checkParameters(QString & errorDescription) const final override;
+
+    bool isLocal() const;
+    void setLocal(const bool local);
+
+    bool isDeleted() const;
+    void setDeleted(const bool deleted);
+
+    bool hasName() const;
+    const QString name() const;
+    void setName(const QString & name);
+
+    bool hasParentGuid() const;
+    const QString parentGuid() const;
+    void setParentGuid(const QString & parentGuid);
+
+private:
+    virtual QTextStream & Print(QTextStream & strm) const final override;
+
+private:
+    evernote::edam::Tag m_enTag;
+    bool m_isLocal;
+    bool m_isDeleted;
+};
+
+} // namespace qute_note
+
+#endif // __QUTE_NOTE__CLIENT__TYPES__TAG_H

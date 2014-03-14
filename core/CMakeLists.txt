@@ -25,6 +25,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/ResourceWrapper.h
     src/client/types/ResourceAdapter.h
     src/client/types/ResourceAdapterAccessException.h
+    src/client/types/Tag.h
     src/client/types/UserAdapter.h
     src/client/types/UserAdapterAccessException.h
     src/client/types/UserWrapper.h
@@ -63,6 +64,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/ResourceWrapper.cpp
     src/client/types/ResourceAdapter.cpp
     src/client/types/ResourceAdapterAccessException.cpp
+    src/client/types/Tag.cpp
     src/client/types/UserAdapter.cpp
     src/client/types/UserAdapterAccessException.cpp
     src/client/types/UserWrapper.cpp
