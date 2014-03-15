@@ -24,18 +24,18 @@
 #include "Util.h"
 
 #include <cassert>
-#include <boost/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <thread>
+#include <mutex>
+#include <ctime>
 
 namespace apache { namespace thrift { namespace concurrency {
 
 /**
- * Implementation of Mutex class using boost interprocess mutex
+ * Implementation of Mutex class using std interprocess mutex
  *
  * @version $Id:$
  */
-class Mutex::impl : public boost::timed_mutex {
+class Mutex::impl : public std::timed_mutex {
 };
 
 Mutex::Mutex(Initializer) : impl_(new Mutex::impl()) {}
@@ -46,7 +46,10 @@ void Mutex::lock() const { impl_->lock(); }
 
 bool Mutex::trylock() const { return impl_->try_lock(); }
 
-bool Mutex::timedlock(int64_t ms) const { return impl_->timed_lock(boost::get_system_time()+boost::posix_time::milliseconds(ms)); }
+bool Mutex::timedlock(int64_t ms) const
+{
+    return impl_->try_lock_until(std::chrono::system_clock::now() + std::chrono::milliseconds(ms));
+}
 
 void Mutex::unlock() const { impl_->unlock(); }
 
@@ -54,4 +57,5 @@ void Mutex::DEFAULT_INITIALIZER(void*) {
 }
 
 }}} // apache::thrift::concurrency
+
 

@@ -157,9 +157,7 @@ set(HEADERS
     src/thrift/concurrency/Mutex.h
     src/thrift/concurrency/Monitor.h
     src/thrift/concurrency/Util.h
-    src/thrift/concurrency/Thread.h
-    src/thrift/concurrency/Exception.h
-    src/thrift/concurrency/BoostThreadFactory.h)
+    src/thrift/concurrency/Exception.h)
 
 set(${PROJECT_NAME}_SOURCES
     src/thrift/Thrift.cpp
@@ -175,8 +173,7 @@ set(${PROJECT_NAME}_SOURCES
     src/thrift/protocol/TBinaryProtocol.tcc
     src/thrift/protocol/TVirtualProtocol.cpp
     src/thrift/concurrency/Util.cpp
-    src/thrift/concurrency/BoostThreadFactory.cpp
-    src/thrift/concurrency/BoostMutex.cpp
+    src/thrift/concurrency/StdMutex.cpp
     src/thrift/concurrency/BoostMonitor.cpp)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
