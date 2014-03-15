@@ -11,6 +11,7 @@
 #include <client/types/UserAdapter.h>
 #include <client/types/UserWrapper.h>
 #include <client/types/LinkedNotebook.h>
+#include <client/types/SavedSearch.h>
 #include <client/types/Tag.h>
 #include <tools/QuteNoteNullPtrException.h>
 #include <tools/ApplicationStoragePersistencePath.h>
@@ -1481,13 +1482,13 @@ bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, QString & e
     errorDescription = QObject::tr("Can't add saved search to local storage database: ");
     QString error;
 
-    bool res = search.CheckParameters(error);
+    bool res = search.checkParameters(error);
     if (!res) {
         errorDescription += error;
         return false;
     }
 
-    QString guid = QString::fromStdString(search.en_search.guid);
+    QString guid = search.guid();
     int rowId = GetRowId("SavedSearches", "guid", QVariant(guid));
     if (rowId >= 0) {
         errorDescription += QObject::tr("saved search with the same guid already exists");
@@ -1502,13 +1503,13 @@ bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, QString 
     errorDescription = QObject::tr("Can't update saved search in local storage database: ");
     QString error;
 
-    bool res = search.CheckParameters(error);
+    bool res = search.checkParameters(error);
     if (!res) {
         errorDescription += error;
         return false;
     }
 
-    QString guid = QString::fromStdString(search.en_search.guid);
+    QString guid = search.guid();
     int rowId = GetRowId("SavedSearches", "guid", QVariant(guid));
     if (rowId < 0) {
         errorDescription += QObject::tr("saved search with specified guid was not found");
@@ -1528,7 +1529,7 @@ bool LocalStorageManager::FindSavedSearch(const Guid & searchGuid, SavedSearch &
         return false;
     }
 
-    search = SavedSearch();
+    search.clear();
 
     QSqlQuery query(m_sqlDatabase);
 
@@ -1594,16 +1595,16 @@ bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,
 {
     errorDescription = QObject::tr("Can't expunge saved search from local storage database: ");
 
-    if (!search.en_search.__isset.guid) {
+    if (!search.hasGuid()) {
         errorDescription += QObject::tr("saved search's guid is not set");
         return false;
     }
-    else if (!CheckGuid(search.en_search.guid)) {
+    else if (!CheckGuid(search.guid().toStdString())) {
         errorDescription += QObject::tr("saved search's guid is invalid");
         return false;
     }
 
-    int rowId = GetRowId("SavedSearches", "guid", QVariant(QString::fromStdString(search.en_search.guid)));
+    int rowId = GetRowId("SavedSearches", "guid", QVariant(search.guid()));
     if (rowId < 0) {
         errorDescription += QObject::tr("saved search to be expunged was not found");
         return false;
@@ -2657,22 +2658,20 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
 
     errorDescription = QObject::tr("Can't insert or replace saved search into local storage database: ");
 
-    const evernote::edam::SavedSearch & enSearch = search.en_search;
-
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO SavedSearches (guid, name, query, format, "
                   "updateSequenceNumber, includeAccount, includePersonalLinkedNotebooks, "
                   "includeBusinessLinkedNotebooks) VALUES(:guid, :name, :query, "
                   ":format, :updateSequenceNumber, :includeAccount, :includePersonalLinkedNotebooks, "
                   ":includeBusinessLinkedNotebooks)");
-    query.bindValue("guid", QString::fromStdString(enSearch.guid));
-    query.bindValue("name", QString::fromStdString(enSearch.name));
-    query.bindValue("query", QString::fromStdString(enSearch.query));
-    query.bindValue("format", static_cast<int>(enSearch.format));
-    query.bindValue("updateSequenceNumber", static_cast<qint32>(enSearch.updateSequenceNum));
-    query.bindValue("includeAccount", (enSearch.scope.includeAccount ? 1 : 0));
-    query.bindValue("includePersonalLinkedNotebooks", (enSearch.scope.includePersonalLinkedNotebooks ? 1 : 0));
-    query.bindValue("includeBusinessLinkedNotebooks", (enSearch.scope.includeBusinessLinkedNotebooks ? 1 : 0));
+    query.bindValue("guid", search.guid());
+    query.bindValue("name", search.name());
+    query.bindValue("query", search.query());
+    query.bindValue("format", search.queryFormat());
+    query.bindValue("updateSequenceNumber", search.updateSequenceNumber());
+    query.bindValue("includeAccount", (search.includeAccount() ? 1 : 0));
+    query.bindValue("includePersonalLinkedNotebooks", (search.includePersonalLinkedNotebooks() ? 1 : 0));
+    query.bindValue("includeBusinessLinkedNotebooks", (search.includeBusinessLinkedNotebooks() ? 1 : 0));
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace saved search into \"SavedSearches\" table in SQL database");
@@ -2936,43 +2935,31 @@ bool LocalStorageManager::FillSavedSearchFromSqlRecord(const QSqlRecord & rec,
                                                        SavedSearch & search,
                                                        QString & errorDescription) const
 {
-#define CHECK_AND_SET_EN_SEARCH_PROPERTY(holder, localPropertyName, enPropertyName, \
-                                         localType, trueType, isRequired, ...) \
-    if (rec.contains(#localPropertyName)) { \
-        holder.enPropertyName = static_cast<trueType>((qvariant_cast<localType>(rec.value(#localPropertyName)))__VA_ARGS__); \
-        holder.__isset.enPropertyName = true; \
+#define CHECK_AND_SET_SAVED_SEARCH_PROPERTY(property, type, localType, setter, isRequired) \
+    if (rec.contains(#property)) { \
+        search.setter(static_cast<localType>(qvariant_cast<type>(rec.value(#property)))); \
     } \
     else if (isRequired) { \
-        errorDescription += QObject::tr("no " #localPropertyName " field" \
-                                        "in the result of SQL query"); \
+        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
         return false; \
     }
 
-    auto & enSearch = search.en_search;
-
     bool isRequired = true;
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, guid, guid, QString, std::string,
-                                     isRequired, .toStdString());
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, name, name, QString, std::string,
-                                     isRequired, .toStdString());
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, query, query, QString, std::string,
-                                     isRequired, .toStdString());
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, format, format, int,
-                                     evernote::edam::QueryFormat::type, isRequired);
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(enSearch, updateSequenceNumber, updateSequenceNum,
-                                     int, int32_t, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(guid, QString, QString, setGuid, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(name, QString, QString, setName, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(query, QString, QString, setQuery, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(queryFormat, int, qint8, setQueryFormat, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(updateSequenceNumber, int, int32_t,
+                                        setUpdateSequenceNumber, isRequired);
 
-    auto & scope = enSearch.scope;
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includeAccount, includeAccount,
-                                     int, bool, isRequired, ? true : false);
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includePersonalLinkedNotebooks,
-                                     includePersonalLinkedNotebooks, int, bool,
-                                     isRequired, ? true : false);
-    CHECK_AND_SET_EN_SEARCH_PROPERTY(scope, includeBusinessLinkedNotebooks,
-                                     includeBusinessLinkedNotebooks, int, bool,
-                                     isRequired, ? true : false);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(includeAccount, int, bool, setIncludeAccount,
+                                        isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(includePersonalLinkedNotebooks, int, bool,
+                                        setIncludePersonalLinkedNotebooks, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(includeBusinessBusinessLinkedNotebooks, int, bool,
+                                        setIncludeBusinessLinkedNotebooks, isRequired);
 
-#undef CHECK_AND_SET_EN_SEARCH_PROPERTY
+#undef CHECK_AND_SET_SAVED_SEARCH_PROPERTY
 
     return true;
 }

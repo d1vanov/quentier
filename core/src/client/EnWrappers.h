@@ -34,16 +34,6 @@ struct Notebook
     bool CheckParameters(QString & errorDescription) const;
 };
 
-struct SavedSearch
-{
-    SavedSearch() : isDirty(true), en_search() {}
-
-    bool isDirty;
-    evernote::edam::SavedSearch en_search;
-
-    bool CheckParameters(QString & errorDescription) const;
-};
-
 typedef evernote::edam::Timestamp Timestamp;
 typedef evernote::edam::UserID UserID;
 typedef evernote::edam::Guid Guid;
