@@ -47,15 +47,14 @@
 
 #include <ctime>
 
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/is_convertible.hpp>
+#include <type_traits>
 
 #include "Linkage.h"
 #include "TLogging.h"
 
 /**
  * Helper macros to allow function overloading even when using
- * boost::shared_ptr.
+ * std::shared_ptr.
  *
  * shared_ptr makes overloading really annoying, since shared_ptr defines
  * constructor methods to allow one shared_ptr type to be constructed from any
@@ -69,7 +68,7 @@
  * defined separately from where it is declared.
  */
 #define THRIFT_OVERLOAD_IF_DEFN(T, Y) \
-  typename ::boost::enable_if<typename ::boost::is_convertible<T*, Y*>::type, \
+  typename std::enable_if<typename std::is_convertible<T*, Y*>::type, \
                               void*>::type
 
 #define THRIFT_OVERLOAD_IF(T, Y) \

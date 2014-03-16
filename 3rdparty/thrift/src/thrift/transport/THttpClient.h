@@ -26,7 +26,7 @@ namespace apache { namespace thrift { namespace transport {
 
 class THRIFT_EXPORT THttpClient : public THttpTransport {
  public:
-  THttpClient(boost::shared_ptr<TTransport> transport, std::string host, std::string path="");
+  THttpClient(std::shared_ptr<TTransport> transport, std::string host, std::string path="");
 
   THttpClient(std::string host, int port, std::string path="");
 

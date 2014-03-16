@@ -21,7 +21,7 @@
 #define _THRIFT_TRANSPORT_TSERVERSOCKET_H_ 1
 
 #include "TServerTransport.h"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #ifndef _WIN32
    typedef int SOCKET;
 #endif
@@ -60,8 +60,8 @@ class THRIFT_EXPORT TServerSocket : public TServerTransport {
   void interrupt();
 
  protected:
-  boost::shared_ptr<TTransport> acceptImpl();
-  virtual boost::shared_ptr<TSocket> createSocket(SOCKET client);
+  std::shared_ptr<TTransport> acceptImpl();
+  virtual std::shared_ptr<TSocket> createSocket(SOCKET client);
 
  private:
   int port_;

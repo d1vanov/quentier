@@ -29,8 +29,6 @@
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
-#include <boost/lexical_cast.hpp>
-#include <boost/shared_array.hpp>
 #include <openssl/err.h>
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
@@ -41,7 +39,6 @@
 #define OPENSSL_VERSION_NO_THREAD_ID 0x10000000L
 
 using namespace std;
-using namespace boost;
 using namespace apache::thrift::concurrency;
 
 struct CRYPTO_dynlock_value {
@@ -84,15 +81,15 @@ SSL* SSLContext::createSSL() {
 }
 
 // TSSLSocket implementation
-TSSLSocket::TSSLSocket(boost::shared_ptr<SSLContext> ctx):
+TSSLSocket::TSSLSocket(std::shared_ptr<SSLContext> ctx):
   TSocket(), server_(false), ssl_(NULL), ctx_(ctx) {
 }
 
-TSSLSocket::TSSLSocket(boost::shared_ptr<SSLContext> ctx, int socket):
+TSSLSocket::TSSLSocket(std::shared_ptr<SSLContext> ctx, int socket):
   TSocket(socket), server_(false), ssl_(NULL), ctx_(ctx) {
 }
 
-TSSLSocket::TSSLSocket(boost::shared_ptr<SSLContext> ctx, string host, int port):
+TSSLSocket::TSSLSocket(std::shared_ptr<SSLContext> ctx, string host, int port):
   TSocket(host, port), server_(false), ssl_(NULL), ctx_(ctx) {
 }
 
@@ -357,7 +354,7 @@ TSSLSocketFactory::TSSLSocketFactory(): server_(false) {
     randomize();
   }
   count_++;
-  ctx_ = boost::shared_ptr<SSLContext>(new SSLContext);
+  ctx_ = std::shared_ptr<SSLContext>(new SSLContext);
 }
 
 TSSLSocketFactory::~TSSLSocketFactory() {
@@ -368,29 +365,29 @@ TSSLSocketFactory::~TSSLSocketFactory() {
   }
 }
 
-boost::shared_ptr<TSSLSocket> TSSLSocketFactory::createSocket() {
-  boost::shared_ptr<TSSLSocket> ssl(new TSSLSocket(ctx_));
+std::shared_ptr<TSSLSocket> TSSLSocketFactory::createSocket() {
+  std::shared_ptr<TSSLSocket> ssl(new TSSLSocket(ctx_));
   setup(ssl);
   return ssl;
 }
 
-boost::shared_ptr<TSSLSocket> TSSLSocketFactory::createSocket(int socket) {
-  boost::shared_ptr<TSSLSocket> ssl(new TSSLSocket(ctx_, socket));
+std::shared_ptr<TSSLSocket> TSSLSocketFactory::createSocket(int socket) {
+  std::shared_ptr<TSSLSocket> ssl(new TSSLSocket(ctx_, socket));
   setup(ssl);
   return ssl;
 }
 
-boost::shared_ptr<TSSLSocket> TSSLSocketFactory::createSocket(const string& host,
-                                                       int port) {
-  boost::shared_ptr<TSSLSocket> ssl(new TSSLSocket(ctx_, host, port));
+std::shared_ptr<TSSLSocket> TSSLSocketFactory::createSocket(const string& host,
+                                                            int port) {
+  std::shared_ptr<TSSLSocket> ssl(new TSSLSocket(ctx_, host, port));
   setup(ssl);
   return ssl;
 }
 
-void TSSLSocketFactory::setup(boost::shared_ptr<TSSLSocket> ssl) {
+void TSSLSocketFactory::setup(std::shared_ptr<TSSLSocket> ssl) {
   ssl->server(server());
   if (access_ == NULL && !server()) {
-    access_ = boost::shared_ptr<AccessManager>(new DefaultClientAccessManager);
+    access_ = std::shared_ptr<AccessManager>(new DefaultClientAccessManager);
   }
   if (access_ != NULL) {
     ssl->access(access_);
@@ -489,13 +486,13 @@ int TSSLSocketFactory::passwordCallback(char* password,
   return length;
 }
 
-static shared_array<Mutex> mutexes;
+static std::shared_ptr<Mutex*> mutexes;
 
 static void callbackLocking(int mode, int n, const char*, int) {
   if (mode & CRYPTO_LOCK) {
-    mutexes[n].lock();
+    (*mutexes.get())[n].lock();
   } else {
-    mutexes[n].unlock();
+    (*mutexes.get())[n].unlock();
   }
 }
 
@@ -533,8 +530,8 @@ void TSSLSocketFactory::initializeOpenSSL() {
   SSL_library_init();
   SSL_load_error_strings();
   // static locking
-  mutexes = shared_array<Mutex>(new Mutex[::CRYPTO_num_locks()]);
-  if (mutexes == NULL) {
+  mutexes.reset((Mutex**)new Mutex[::CRYPTO_num_locks()]);
+  if (mutexes.get() == NULL) {
     throw TTransportException(TTransportException::INTERNAL_ERROR,
           "initializeOpenSSL() failed, "
           "out of memory while creating mutex array");
@@ -591,7 +588,7 @@ void buildErrors(string& errors, int errno_copy) {
     }
   }
   if (errors.empty()) {
-    errors = "error code: " + lexical_cast<string>(errno_copy);
+    errors = "error code: " + std::to_string(errno_copy);
   }
 }
 

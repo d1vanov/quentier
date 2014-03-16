@@ -23,9 +23,6 @@
 #include "Exception.h"
 #include "Mutex.h"
 
-#include <boost/utility.hpp>
-
-
 namespace apache { namespace thrift { namespace concurrency {
 
 /**
@@ -46,7 +43,7 @@ namespace apache { namespace thrift { namespace concurrency {
  *
  * @version $Id:$
  */
-class THRIFT_EXPORT Monitor : boost::noncopyable {
+class THRIFT_EXPORT Monitor {
  public:
   /** Creates a new mutex, and takes ownership of it. */
   Monitor();
@@ -103,6 +100,9 @@ class THRIFT_EXPORT Monitor : boost::noncopyable {
   virtual void notifyAll() const;
 
  private:
+
+  Monitor(const Monitor & other) = delete;
+  Monitor & operator=(const Monitor & other) = delete;
 
   class Impl;
 

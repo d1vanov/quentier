@@ -21,7 +21,7 @@
 #define _THRIFT_TRANSPORT_TBUFFERTRANSPORTS_H_ 1
 
 #include <cstring>
-#include "boost/scoped_array.hpp"
+#include <memory>
 
 #include "TTransport.h"
 #include "TVirtualTransport.h"
@@ -105,7 +105,7 @@ class THRIFT_EXPORT TBufferBase : public TVirtualTransport<TBufferBase> {
    * Fast-path borrow.  A lot like the fast-path read.
    */
   const uint8_t* borrow(uint8_t* buf, uint32_t* len) {
-    if (TDB_LIKELY(static_cast<ptrdiff_t>(*len) <= rBound_ - rBase_)) {
+    if (TDB_LIKELY(static_cast<std::ptrdiff_t>(*len) <= rBound_ - rBase_)) {
       // With strict aliasing, writing to len shouldn't force us to
       // refetch rBase_ from memory.  TODO(dreiss): Verify this.
       *len = static_cast<uint32_t>(rBound_ - rBase_);
@@ -118,7 +118,7 @@ class THRIFT_EXPORT TBufferBase : public TVirtualTransport<TBufferBase> {
    * Consume doesn't require a slow path.
    */
   void consume(uint32_t len) {
-    if (TDB_LIKELY(static_cast<ptrdiff_t>(len) <= rBound_ - rBase_)) {
+    if (TDB_LIKELY(static_cast<std::ptrdiff_t>(len) <= rBound_ - rBase_)) {
       rBase_ += len;
     } else {
       throw TTransportException(TTransportException::BAD_ARGS,
@@ -195,7 +195,7 @@ class THRIFT_EXPORT TBufferedTransport
   static const int DEFAULT_BUFFER_SIZE = 512;
 
   /// Use default buffer sizes.
-  TBufferedTransport(boost::shared_ptr<TTransport> transport)
+  TBufferedTransport(std::shared_ptr<TTransport> transport)
     : transport_(transport)
     , rBufSize_(DEFAULT_BUFFER_SIZE)
     , wBufSize_(DEFAULT_BUFFER_SIZE)
@@ -206,7 +206,7 @@ class THRIFT_EXPORT TBufferedTransport
   }
 
   /// Use specified buffer sizes.
-  TBufferedTransport(boost::shared_ptr<TTransport> transport, uint32_t sz)
+  TBufferedTransport(std::shared_ptr<TTransport> transport, uint32_t sz)
     : transport_(transport)
     , rBufSize_(sz)
     , wBufSize_(sz)
@@ -217,7 +217,7 @@ class THRIFT_EXPORT TBufferedTransport
   }
 
   /// Use specified read and write buffer sizes.
-  TBufferedTransport(boost::shared_ptr<TTransport> transport, uint32_t rsz, uint32_t wsz)
+  TBufferedTransport(std::shared_ptr<TTransport> transport, uint32_t rsz, uint32_t wsz)
     : transport_(transport)
     , rBufSize_(rsz)
     , wBufSize_(wsz)
@@ -267,7 +267,7 @@ class THRIFT_EXPORT TBufferedTransport
    */
   virtual const uint8_t* borrowSlow(uint8_t* buf, uint32_t* len);
 
-  boost::shared_ptr<TTransport> getUnderlyingTransport() {
+  std::shared_ptr<TTransport> getUnderlyingTransport() {
     return transport_;
   }
 
@@ -286,12 +286,12 @@ class THRIFT_EXPORT TBufferedTransport
     // Write size never changes.
   }
 
-  boost::shared_ptr<TTransport> transport_;
+  std::shared_ptr<TTransport> transport_;
 
   uint32_t rBufSize_;
   uint32_t wBufSize_;
-  boost::scoped_array<uint8_t> rBuf_;
-  boost::scoped_array<uint8_t> wBuf_;
+  std::unique_ptr<uint8_t[]> rBuf_;
+  std::unique_ptr<uint8_t[]> wBuf_;
 };
 
 
@@ -308,8 +308,8 @@ class THRIFT_EXPORT TBufferedTransportFactory : public TTransportFactory {
   /**
    * Wraps the transport into a buffered one.
    */
-  virtual boost::shared_ptr<TTransport> getTransport(boost::shared_ptr<TTransport> trans) {
-    return boost::shared_ptr<TTransport>(new TBufferedTransport(trans));
+  virtual std::shared_ptr<TTransport> getTransport(std::shared_ptr<TTransport> trans) {
+    return std::shared_ptr<TTransport>(new TBufferedTransport(trans));
   }
 
 };
@@ -329,7 +329,7 @@ class THRIFT_EXPORT TFramedTransport
   static const int DEFAULT_BUFFER_SIZE = 512;
 
   /// Use default buffer sizes.
-  TFramedTransport(boost::shared_ptr<TTransport> transport)
+  TFramedTransport(std::shared_ptr<TTransport> transport)
     : transport_(transport)
     , rBufSize_(0)
     , wBufSize_(DEFAULT_BUFFER_SIZE)
@@ -339,7 +339,7 @@ class THRIFT_EXPORT TFramedTransport
     initPointers();
   }
 
-  TFramedTransport(boost::shared_ptr<TTransport> transport, uint32_t sz)
+  TFramedTransport(std::shared_ptr<TTransport> transport, uint32_t sz)
     : transport_(transport)
     , rBufSize_(0)
     , wBufSize_(sz)
@@ -378,7 +378,7 @@ class THRIFT_EXPORT TFramedTransport
 
   const uint8_t* borrowSlow(uint8_t* buf, uint32_t* len);
 
-  boost::shared_ptr<TTransport> getUnderlyingTransport() {
+  std::shared_ptr<TTransport> getUnderlyingTransport() {
     return transport_;
   }
 
@@ -408,12 +408,12 @@ class THRIFT_EXPORT TFramedTransport
     this->write((uint8_t*)&pad, sizeof(pad));
   }
 
-  boost::shared_ptr<TTransport> transport_;
+  std::shared_ptr<TTransport> transport_;
 
   uint32_t rBufSize_;
   uint32_t wBufSize_;
-  boost::scoped_array<uint8_t> rBuf_;
-  boost::scoped_array<uint8_t> wBuf_;
+  std::unique_ptr<uint8_t[]> rBuf_;
+  std::unique_ptr<uint8_t[]> wBuf_;
 };
 
 /**
@@ -429,8 +429,8 @@ class THRIFT_EXPORT TFramedTransportFactory : public TTransportFactory {
   /**
    * Wraps the transport into a framed one.
    */
-  virtual boost::shared_ptr<TTransport> getTransport(boost::shared_ptr<TTransport> trans) {
-    return boost::shared_ptr<TTransport>(new TFramedTransport(trans));
+  virtual std::shared_ptr<TTransport> getTransport(std::shared_ptr<TTransport> trans) {
+    return std::shared_ptr<TTransport>(new TFramedTransport(trans));
   }
 
 };

@@ -273,6 +273,7 @@ void SavedSearch::setIncludeBusinessLinkedNotebooks(const bool includeBusinessLi
 QTextStream & SavedSearch::Print(QTextStream & strm) const
 {
     // TODO: implement
+    return strm;
 }
 
 #undef CHECK_AND_SET_SCOPE

@@ -26,7 +26,6 @@
 #endif
 
 using std::string;
-using boost::lexical_cast;
 
 namespace apache { namespace thrift { namespace transport {
 

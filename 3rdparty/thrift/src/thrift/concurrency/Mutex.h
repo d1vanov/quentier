@@ -20,9 +20,8 @@
 #ifndef _THRIFT_CONCURRENCY_MUTEX_H_
 #define _THRIFT_CONCURRENCY_MUTEX_H_ 1
 
-#include <boost/shared_ptr.hpp>
-#include <boost/noncopyable.hpp>
 #include "../Linkage.h"
+#include <memory>
 
 namespace apache { namespace thrift { namespace concurrency {
 
@@ -77,7 +76,7 @@ class THRIFT_EXPORT Mutex {
  private:
 
   class impl;
-  boost::shared_ptr<impl> impl_;
+  std::shared_ptr<impl> impl_;
 };
 
 class THRIFT_EXPORT ReadWriteMutex {
@@ -99,7 +98,7 @@ public:
 private:
 
   class impl;
-  boost::shared_ptr<impl> impl_;
+  std::shared_ptr<impl> impl_;
 };
 
 /**
@@ -121,7 +120,7 @@ private:
   mutable volatile bool writerWaiting_;
 };
 
-class THRIFT_EXPORT Guard : boost::noncopyable {
+class THRIFT_EXPORT Guard {
  public:
   Guard(const Mutex& value, int64_t timeout = 0) : mutex_(&value) {
     if (timeout == 0) {
@@ -147,6 +146,9 @@ class THRIFT_EXPORT Guard : boost::noncopyable {
   }
 
  private:
+  Guard(const Guard & other) = delete;
+  Guard & operator=(const Guard & other) = delete;
+
   const Mutex* mutex_;
 };
 
@@ -158,7 +160,7 @@ enum RWGuardType {
 };
 
 
-class THRIFT_EXPORT RWGuard : boost::noncopyable {
+class THRIFT_EXPORT RWGuard {
   public:
     RWGuard(const ReadWriteMutex& value, bool write = false)
          : rw_mutex_(value) {
@@ -181,6 +183,9 @@ class THRIFT_EXPORT RWGuard : boost::noncopyable {
       rw_mutex_.release();
     }
   private:
+    RWGuard(const RWGuard & other) = delete;
+    RWGuard & operator=(const RWGuard & other) = delete;
+
     const ReadWriteMutex& rw_mutex_;
 };
 

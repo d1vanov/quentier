@@ -64,7 +64,7 @@ void TBufferedTransport::writeSlow(const uint8_t* buf, uint32_t len) {
   uint32_t space = static_cast<uint32_t>(wBound_ - wBase_);
   // We should only take the slow path if we can't accomodate the write
   // with the free space already in the buffer.
-  assert(wBound_ - wBase_ < static_cast<ptrdiff_t>(len));
+  assert(wBound_ - wBase_ < static_cast<std::ptrdiff_t>(len));
 
   // Now here's the tricky question: should we copy data from buf into our
   // internal buffer and write it from there, or should we just write out
@@ -350,7 +350,7 @@ void TMemoryBuffer::ensureCanWrite(uint32_t len) {
   }
   bufferSize_ = new_size;
 
-  ptrdiff_t offset = (uint8_t*)new_buffer - buffer_;
+  std::ptrdiff_t offset = (uint8_t*)new_buffer - buffer_;
   buffer_ += offset;
   rBase_ += offset;
   rBound_ += offset;

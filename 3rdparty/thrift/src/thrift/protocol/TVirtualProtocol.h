@@ -310,7 +310,7 @@ class THRIFT_EXPORT TProtocolDefaults : public TProtocol {
   }
 
  protected:
-  TProtocolDefaults(boost::shared_ptr<TTransport> ptrans);
+  TProtocolDefaults(std::shared_ptr<TTransport> ptrans);
 };
 
 /**
@@ -552,7 +552,7 @@ class TVirtualProtocol : public Super_ {
   using Super_::readBool; // so we don't hide readBool(bool&)
 
  protected:
-  TVirtualProtocol(boost::shared_ptr<TTransport> ptrans)
+  TVirtualProtocol(std::shared_ptr<TTransport> ptrans)
     : Super_(ptrans)
   {}
 };

@@ -6,7 +6,6 @@ project(QuteNote)
 
 include("cmake/compiler.cmake")
 include("cmake/qt.cmake")
-include("cmake/boost.cmake")
 include("cmake/libxml2.cmake")
 include("cmake/openssl.cmake")
 include("cmake/prepend.cmake")

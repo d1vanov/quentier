@@ -132,9 +132,10 @@ endif()
 include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/src ${SYSTEM}")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${QT_INCLUDES})
-add_definitions("-DUSE_BOOST_THREAD -DVERSION=0.9")
+add_definitions("-DVERSION=0.9")
 
 set(HEADERS
+    src/boost/shared_ptr.hpp
     src/thrift/Linkage.h
     src/thrift/TProcessor.h
     src/thrift/TLogging.h
@@ -163,7 +164,6 @@ set(${PROJECT_NAME}_SOURCES
     src/thrift/Thrift.cpp
     src/thrift/TProcessor.cpp
     src/thrift/TApplicationException.cpp
-    src/thrift/transport/TTransportException.cpp
     src/thrift/transport/TSocket.cpp
     src/thrift/transport/TSSLSocket.cpp
     src/thrift/transport/TServerSocket.cpp
@@ -174,7 +174,7 @@ set(${PROJECT_NAME}_SOURCES
     src/thrift/protocol/TVirtualProtocol.cpp
     src/thrift/concurrency/Util.cpp
     src/thrift/concurrency/StdMutex.cpp
-    src/thrift/concurrency/BoostMonitor.cpp)
+    src/thrift/concurrency/StdMonitor.cpp)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND ${PROJECT_NAME}_SOURCES "src/thrift/windows/config.h")
@@ -198,7 +198,7 @@ endif()
 
 add_library(${PROJECT_NAME} SHARED ${HEADERS} ${${PROJECT_NAME}_SOURCES})
 
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES})
 
 # winsock2
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

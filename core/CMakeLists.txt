@@ -104,7 +104,7 @@ else()
                         ${QT_LIBRARIES})
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB} ${THRIFT_LIB} ${Boost_LIBRARIES}
+target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB} ${THRIFT_LIB}
                       ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES})
 
 set(TEST_HEADERS

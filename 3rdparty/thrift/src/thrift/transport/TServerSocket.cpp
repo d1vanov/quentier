@@ -46,7 +46,7 @@
 
 #include "TSocket.h"
 #include "TServerSocket.h"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #ifndef AF_LOCAL
 #define AF_LOCAL AF_UNIX
@@ -73,7 +73,7 @@ inline SOCKOPT_CAST_T* cast_sockopt(T* v) {
 namespace apache { namespace thrift { namespace transport {
 
 using namespace std;
-using boost::shared_ptr;
+using std::shared_ptr;
 
 TServerSocket::TServerSocket(int port) :
   port_(port),

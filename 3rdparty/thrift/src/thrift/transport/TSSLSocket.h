@@ -21,7 +21,7 @@
 #define _THRIFT_TRANSPORT_TSSLSOCKET_H_ 1
 
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <openssl/ssl.h>
 #include "../concurrency/Mutex.h"
 #include "TSocket.h"
@@ -62,29 +62,28 @@ class THRIFT_EXPORT TSSLSocket: public TSocket {
    *
    * @param manager  Instance of AccessManager
    */
-  virtual void access(boost::shared_ptr<AccessManager> manager) {
+  virtual void access(std::shared_ptr<AccessManager> manager) {
     access_ = manager;
   }
 protected:
   /**
    * Constructor.
    */
-  TSSLSocket(boost::shared_ptr<SSLContext> ctx);
+  TSSLSocket(std::shared_ptr<SSLContext> ctx);
   /**
    * Constructor, create an instance of TSSLSocket given an existing socket.
    *
    * @param socket An existing socket
    */
-  TSSLSocket(boost::shared_ptr<SSLContext> ctx, int socket);
+  TSSLSocket(std::shared_ptr<SSLContext> ctx, int socket);
   /**
    * Constructor.
    *
    * @param host  Remote host name
    * @param port  Remote port number
    */
-  TSSLSocket(boost::shared_ptr<SSLContext> ctx,
-                               std::string host,
-                                       int port);
+  TSSLSocket(std::shared_ptr<SSLContext> ctx,
+             std::string host, int port);
   /**
    * Authorize peer access after SSL handshake completes.
    */
@@ -96,8 +95,8 @@ protected:
 
   bool server_;
   SSL* ssl_;
-  boost::shared_ptr<SSLContext> ctx_;
-  boost::shared_ptr<AccessManager> access_;
+  std::shared_ptr<SSLContext> ctx_;
+  std::shared_ptr<AccessManager> access_;
   friend class TSSLSocketFactory;
 };
 
@@ -114,21 +113,21 @@ class THRIFT_EXPORT TSSLSocketFactory {
   /**
    * Create an instance of TSSLSocket with a fresh new socket.
    */
-  virtual boost::shared_ptr<TSSLSocket> createSocket();
+  virtual std::shared_ptr<TSSLSocket> createSocket();
   /**
    * Create an instance of TSSLSocket with the given socket.
    *
    * @param socket An existing socket.
    */
-  virtual boost::shared_ptr<TSSLSocket> createSocket(int socket);
+  virtual std::shared_ptr<TSSLSocket> createSocket(int socket);
    /**
    * Create an instance of TSSLSocket.
    *
    * @param host  Remote host to be connected to
    * @param port  Remote port to be connected to
    */
-  virtual boost::shared_ptr<TSSLSocket> createSocket(const std::string& host,
-                                                     int port);
+  virtual std::shared_ptr<TSSLSocket> createSocket(const std::string& host,
+                                                   int port);
   /**
    * Set ciphers to be used in SSL handshake process.
    *
@@ -186,11 +185,11 @@ class THRIFT_EXPORT TSSLSocketFactory {
    *
    * @param manager  The AccessManager instance
    */
-  virtual void access(boost::shared_ptr<AccessManager> manager) {
+  virtual void access(std::shared_ptr<AccessManager> manager) {
     access_ = manager;
   }
  protected:
-  boost::shared_ptr<SSLContext> ctx_;
+  std::shared_ptr<SSLContext> ctx_;
 
   static void initializeOpenSSL();
   static void cleanupOpenSSL();
@@ -204,11 +203,11 @@ class THRIFT_EXPORT TSSLSocketFactory {
   virtual void getPassword(std::string& /* password */, int /* size */) {}
  private:
   bool server_;
-  boost::shared_ptr<AccessManager> access_;
+  std::shared_ptr<AccessManager> access_;
   static bool initialized;
   static concurrency::Mutex mutex_;
   static uint64_t count_;
-  void setup(boost::shared_ptr<TSSLSocket> ssl);
+  void setup(std::shared_ptr<TSSLSocket> ssl);
   static int passwordCallback(char* password, int size, int, void* data);
 };
 

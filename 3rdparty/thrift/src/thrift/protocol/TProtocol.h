@@ -23,8 +23,7 @@
 #include "../transport/TTransport.h"
 #include "TProtocolException.h"
 
-#include <boost/shared_ptr.hpp>
-#include <boost/static_assert.hpp>
+#include <memory>
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -44,7 +43,7 @@
 // understanding_strict_aliasing.html
 template <typename To, typename From>
 static inline To bitwise_cast(From from) {
-  BOOST_STATIC_ASSERT(sizeof(From) == sizeof(To));
+  static_assert(sizeof(From) == sizeof(To), "bitwise_cast: From does not match to");
 
   // BAD!!!  These are all broken with -O2.
   //return *reinterpret_cast<To*>(&from);  // BAD!!!
@@ -647,16 +646,16 @@ class THRIFT_EXPORT TProtocol {
     return ::apache::thrift::protocol::skip(*this, type);
   }
 
-  inline boost::shared_ptr<TTransport> getTransport() {
+  inline std::shared_ptr<TTransport> getTransport() {
     return ptrans_;
   }
 
  protected:
-  TProtocol(boost::shared_ptr<TTransport> ptrans):
+  TProtocol(std::shared_ptr<TTransport> ptrans):
     ptrans_(ptrans) {
   }
 
-  boost::shared_ptr<TTransport> ptrans_;
+  std::shared_ptr<TTransport> ptrans_;
 
  private:
   TProtocol() {}
@@ -671,7 +670,7 @@ class THRIFT_EXPORT TProtocolFactory {
 
   virtual ~TProtocolFactory() {}
 
-  virtual boost::shared_ptr<TProtocol> getProtocol(boost::shared_ptr<TTransport> trans) = 0;
+  virtual std::shared_ptr<TProtocol> getProtocol(std::shared_ptr<TTransport> trans) = 0;
 };
 
 /**

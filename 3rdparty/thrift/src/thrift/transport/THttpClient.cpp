@@ -19,7 +19,8 @@
 
 #include <cstdlib>
 #include <sstream>
-#include <boost/algorithm/string.hpp>
+#include <memory>
+#include <limits>
 
 #include "THttpClient.h"
 #include "TSocket.h"
@@ -28,12 +29,12 @@ namespace apache { namespace thrift { namespace transport {
 
 using namespace std;
 
-THttpClient::THttpClient(boost::shared_ptr<TTransport> transport, std::string host, std::string path) :
+THttpClient::THttpClient(std::shared_ptr<TTransport> transport, std::string host, std::string path) :
   THttpTransport(transport), host_(host), path_(path) {
 }
 
 THttpClient::THttpClient(string host, int port, string path) :
-  THttpTransport(boost::shared_ptr<TTransport>(new TSocket(host, port))), host_(host), path_(path) {
+  THttpTransport(std::shared_ptr<TTransport>(new TSocket(host, port))), host_(host), path_(path) {
 }
 
 THttpClient::~THttpClient() {}
@@ -45,13 +46,21 @@ void THttpClient::parseHeader(char* header) {
   }
   char* value = colon+1;
 
-  if (boost::istarts_with(header, "Transfer-Encoding")) {
-    if (boost::iends_with(value, "chunked")) {
+  std::string header_str(header);
+  size_t index = header_str.find("Transfer-Encoding");
+  if ((index != std::string::npos) && (index == 0)) {
+    std::string value_str(value);
+    index = value_str.find("chunked");
+    if ((index != std::string::npos) && (index == (value_str.size() - 7))) {
       chunked_ = true;
     }
-  } else if (boost::istarts_with(header, "Content-Length")) {
-    chunked_ = false;
-    contentLength_ = atoi(value);
+  }
+  else {
+    index = header_str.find("Content-Length");
+    if ((index != std::string::npos) && (index == 0)) {
+      chunked_ = false;
+      contentLength_ = atoi(value);
+    }
   }
 }
 

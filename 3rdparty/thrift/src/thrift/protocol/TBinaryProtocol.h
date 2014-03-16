@@ -23,7 +23,7 @@
 #include "TProtocol.h"
 #include "TVirtualProtocol.h"
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace apache { namespace thrift { namespace protocol {
 
@@ -41,7 +41,7 @@ class TBinaryProtocolT
   // VERSION_2 (0x80020000)  is taken by TDenseProtocol.
 
  public:
-  TBinaryProtocolT(boost::shared_ptr<Transport_> trans) :
+  TBinaryProtocolT(std::shared_ptr<Transport_> trans) :
     TVirtualProtocol< TBinaryProtocolT<Transport_> >(trans),
     trans_(trans.get()),
     string_limit_(0),
@@ -51,7 +51,7 @@ class TBinaryProtocolT
     string_buf_(NULL),
     string_buf_size_(0) {}
 
-  TBinaryProtocolT(boost::shared_ptr<Transport_> trans,
+  TBinaryProtocolT(std::shared_ptr<Transport_> trans,
                    int32_t string_limit,
                    int32_t container_limit,
                    bool strict_read,
@@ -249,9 +249,9 @@ class TBinaryProtocolFactoryT : public TProtocolFactory {
     strict_write_ = strict_write;
   }
 
-  boost::shared_ptr<TProtocol> getProtocol(boost::shared_ptr<TTransport> trans) {
-    boost::shared_ptr<Transport_> specific_trans =
-      boost::dynamic_pointer_cast<Transport_>(trans);
+  std::shared_ptr<TProtocol> getProtocol(std::shared_ptr<TTransport> trans) {
+    std::shared_ptr<Transport_> specific_trans =
+      std::dynamic_pointer_cast<Transport_>(trans);
     TProtocol* prot;
     if (specific_trans) {
       prot = new TBinaryProtocolT<Transport_>(specific_trans, string_limit_,
@@ -262,7 +262,7 @@ class TBinaryProtocolFactoryT : public TProtocolFactory {
                                  strict_read_, strict_write_);
     }
 
-    return boost::shared_ptr<TProtocol>(prot);
+    return std::shared_ptr<TProtocol>(prot);
   }
 
  private:
