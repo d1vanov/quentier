@@ -276,7 +276,24 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::PrivilegeLev
         break;
     }
 
-    strm << "; ";
+    return strm;
+}
+
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::QueryFormat::type & format)
+{
+    switch (format)
+    {
+    case evernote::edam::QueryFormat::USER:
+        strm << "USER";
+        break;
+    case evernote::edam::QueryFormat::SEXP:
+        strm << "SEXP";
+        break;
+    default:
+        strm << "UNKNOWN";
+        break;
+    }
+
     return strm;
 }
 

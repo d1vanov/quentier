@@ -272,7 +272,73 @@ void SavedSearch::setIncludeBusinessLinkedNotebooks(const bool includeBusinessLi
 
 QTextStream & SavedSearch::Print(QTextStream & strm) const
 {
-    // TODO: implement
+    strm << "Saved search: { \n" ;
+
+    if (m_enSearch.__isset.guid) {
+        strm << "guid: " << QString::fromStdString(m_enSearch.guid) << "; \n";
+    }
+    else {
+        strm << "guid is not set; \n";
+    }
+
+    if (m_enSearch.__isset.updateSequenceNum) {
+        strm << "updateSequenceNumber: " << QString::number(m_enSearch.updateSequenceNum) << "; \n";
+    }
+    else {
+        strm << "updateSequenceNumber is not set; \n";
+    }
+
+    if (m_enSearch.__isset.name) {
+        strm << "name: " << QString::fromStdString(m_enSearch.name) << "; \n";
+    }
+    else {
+        strm << "name is not set; \n";
+    }
+
+    if (m_enSearch.__isset.query) {
+        strm << "query: " << QString::fromStdString(m_enSearch.query) << "; \n";
+    }
+    else {
+        strm << "query is not set; \n";
+    }
+
+    if (m_enSearch.__isset.format) {
+        strm << "queryFormat: " << m_enSearch.format << "; \n";
+    }
+    else {
+        strm << "queryFormat is not set; \n";
+    }
+
+    const auto & scope = m_enSearch.scope;
+
+    if (scope.__isset.includeAccount) {
+        strm << "includeAccount: " << (scope.includeAccount ? "true" : "false") << "; \n";
+    }
+    else {
+        strm << "includeAccount is not set; \n";
+    }
+
+    if (scope.__isset.includePersonalLinkedNotebooks) {
+        strm << "includePersonalLinkedNotebooks: " << (scope.includePersonalLinkedNotebooks ? "true" : "false") << "; \n";
+    }
+    else {
+        strm << "includePersonalLinkedNotebooks is not set; \n";
+    }
+
+    if (scope.__isset.includeBusinessLinkedNotebooks) {
+        strm << "includeBusinessLinkedNotebooks: " << (scope.includeBusinessLinkedNotebooks ? "true" : "false") << "; \n";
+    }
+    else {
+        strm << "includeBusinessLinkedNotebooks is not set; \n";
+    }
+
+    if (m_enSearch.__isset.scope) {
+        strm << "scope is set; \n";
+    }
+    else {
+        strm << "scope is not set; \n";
+    }
+
     return strm;
 }
 

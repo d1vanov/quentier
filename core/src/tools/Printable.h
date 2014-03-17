@@ -62,5 +62,6 @@ __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::UserAttributes)
 __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::NoteAttributes)
 __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::ResourceAttributes)
 __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::PrivilegeLevel::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::QueryFormat::type)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

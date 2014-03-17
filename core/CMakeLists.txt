@@ -21,6 +21,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/IResource.h
     src/client/types/IUser.h
     src/client/types/LinkedNotebook.h
+    src/client/types/Note.h
     src/client/types/NoteStoreDataElement.h
     src/client/types/ResourceWrapper.h
     src/client/types/ResourceAdapter.h
