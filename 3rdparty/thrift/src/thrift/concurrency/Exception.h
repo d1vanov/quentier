@@ -25,38 +25,11 @@
 
 namespace apache { namespace thrift { namespace concurrency {
 
-class THRIFT_EXPORT NoSuchTaskException : public apache::thrift::TException {};
-
-class THRIFT_EXPORT UncancellableTaskException : public apache::thrift::TException {};
-
-class THRIFT_EXPORT InvalidArgumentException : public apache::thrift::TException {};
-
-class THRIFT_EXPORT IllegalStateException : public apache::thrift::TException {
-public:
-  IllegalStateException() {}
-  IllegalStateException(const std::string& message) : TException(message) {}
-};
-
 class THRIFT_EXPORT TimedOutException : public apache::thrift::TException {
 public:
   TimedOutException():TException("TimedOutException"){}
   TimedOutException(const std::string& message ) :
     TException(message) {}
-};
-
-class THRIFT_EXPORT TooManyPendingTasksException : public apache::thrift::TException {
-public:
-  TooManyPendingTasksException():TException("TooManyPendingTasksException"){}
-  TooManyPendingTasksException(const std::string& message ) :
-    TException(message) {}
-};
-
-class THRIFT_EXPORT SystemResourceException : public apache::thrift::TException {
-public:
-    SystemResourceException() {}
-
-    SystemResourceException(const std::string& message) :
-        TException(message) {}
 };
 
 }}} // apache::thrift::concurrency

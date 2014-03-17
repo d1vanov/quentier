@@ -109,16 +109,6 @@ class THRIFT_EXPORT Monitor {
   Impl* impl_;
 };
 
-class THRIFT_EXPORT Synchronized {
- public:
- Synchronized(const Monitor* monitor) : g(monitor->mutex()) { }
- Synchronized(const Monitor& monitor) : g(monitor.mutex()) { }
-
- private:
-  Guard g;
-};
-
-
 }}} // apache::thrift::concurrency
 
 #endif // #ifndef _THRIFT_CONCURRENCY_MONITOR_H_
