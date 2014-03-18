@@ -22,6 +22,7 @@
 
 #include <cstring>
 #include <memory>
+#include <cstdlib>
 
 #include "TTransport.h"
 #include "TVirtualTransport.h"
