@@ -62,6 +62,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/IResource.cpp
     src/client/types/IUser.cpp
     src/client/types/LinkedNotebook.cpp
+    src/client/types/Note.cpp
     src/client/types/NoteStoreDataElement.cpp
     src/client/types/ResourceWrapper.cpp
     src/client/types/ResourceAdapter.cpp

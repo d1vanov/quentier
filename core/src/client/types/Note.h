@@ -63,11 +63,15 @@ public:
     const QString notebookGuid() const;
     void setNotebookGuid(const QString & guid);
 
-    // TODO: what to do with tag guids? Convert them to QStrings?
+    bool hasTagGuids() const;
+    void tagGuids(std::vector<QString> & guids) const;
+    void setTagGuids(const std::vector<QString> & guids);
+    void addTagGuid(const QString & guid);
+    void removeTagGuid(const QString & guid);
 
     bool hasResources() const;
     void resources(std::vector<ResourceAdapter> & resources) const;
-    void setResources(std::vector<IResource> & resources);
+    void setResources(const std::vector<IResource> & resources);
     void addResource(const IResource & resource);
     void removeResource(const IResource & resource);
 
@@ -75,10 +79,18 @@ public:
     const QByteArray noteAttributes() const;
     void setNoteAttributes(const QByteArray & noteAttributes);
 
+    bool isLocal() const;
+    void setLocal(const bool local);
+
+    bool isDeleted() const;
+    void setDeleted(const bool deleted);
+
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
     evernote::edam::Note m_enNote;
+    bool m_isLocal;
+    bool m_isDeleted;
 };
 
 } // namespace qute_note
