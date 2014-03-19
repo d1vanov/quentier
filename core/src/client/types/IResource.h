@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CLIENT__TYPES__IRESOURCE_H
 
 #include "NoteStoreDataElement.h"
+#include "Note.h"
 
 namespace qute_note {
 
@@ -88,6 +89,8 @@ public:
     bool hasResourceAttributes() const;
     const QByteArray resourceAttributes() const;
     void setResourceAttributes(const QByteArray & resourceAttributes);
+
+    friend class Note;
 
 protected:
     IResource(const IResource & other);

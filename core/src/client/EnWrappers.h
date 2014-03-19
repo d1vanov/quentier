@@ -10,18 +10,6 @@
 
 namespace qute_note {
 
-struct Note
-{
-    Note() : isDirty(true), isLocal(true), isDeleted(false), en_note() {}
-
-    bool isDirty;
-    bool isLocal;
-    bool isDeleted;
-    evernote::edam::Note en_note;
-
-    bool CheckParameters(QString & errorDescription) const;
-};
-
 struct Notebook
 {
     Notebook() : isDirty(true), isLocal(true), isLastUsed(false), en_notebook() {}

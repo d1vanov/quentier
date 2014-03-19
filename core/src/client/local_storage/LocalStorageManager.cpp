@@ -7,6 +7,7 @@
 #include <logging/QuteNoteLogger.h>
 #include <client/types/IResource.h>
 #include <client/types/ResourceAdapter.h>
+#include <client/types/ResourceWrapper.h>
 #include <client/types/IUser.h>
 #include <client/types/UserAdapter.h>
 #include <client/types/UserWrapper.h>
@@ -758,13 +759,13 @@ bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
     errorDescription = QObject::tr("Can't add note to local storage database: ");
     QString error;
 
-    bool res = note.CheckParameters(error);
+    bool res = note.checkParameters(error);
     if (!res) {
         errorDescription += error;
         return false;
     }
 
-    int rowId = GetRowId("Notes", "guid", QVariant(QString::fromStdString(note.en_note.guid)));
+    int rowId = GetRowId("Notes", "guid", QVariant(note.guid()));
     if (rowId >= 0) {
         errorDescription += QObject::tr("note with specified guid already exists");
         return false;
@@ -778,13 +779,13 @@ bool LocalStorageManager::UpdateNote(const Note & note, QString & errorDescripti
     errorDescription = QObject::tr("Can't update note in local storage database: ");
     QString error;
 
-    bool res = note.CheckParameters(error);
+    bool res = note.checkParameters(error);
     if (!res) {
         errorDescription += error;
         return false;
     }
 
-    int rowId = GetRowId("Notes", "guid", QVariant(QString::fromStdString(note.en_note.guid)));
+    int rowId = GetRowId("Notes", "guid", QVariant(note.guid()));
     if (rowId < 0) {
         errorDescription += QObject::tr("note with specified guid was not found");
         return false;
@@ -805,7 +806,7 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
     note = Note();
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT updateSequenceNumber, title, isDirty, isLocal, content, "
+    query.prepare("SELECT guid, updateSequenceNumber, title, isDirty, isLocal, content, "
                   "creationTimestamp, modificationTimestamp, isDeleted, deletionTimestap, "
                   "notebook FROM Notes WHERE guid=?");
     query.addBindValue(QString::fromStdString(noteGuid));
@@ -820,28 +821,9 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
 
     QSqlRecord rec = query.record();
 
-#define CHECK_AND_SET_NOTE_PROPERTY(property) \
-    if (rec.contains(#property)) { \
-        note.property = (qvariant_cast<int>(rec.value(#property)) != 0); \
-    } \
-    else { \
-        errorDescription += QObject::tr("Internal error: no " #property " field " \
-                                        "in the result of SQL query"); \
-        return false; \
-    }
-
-    CHECK_AND_SET_NOTE_PROPERTY(isDirty);
-    CHECK_AND_SET_NOTE_PROPERTY(isLocal);
-    CHECK_AND_SET_NOTE_PROPERTY(isDeleted);
-
-    evernote::edam::Note & enNote = note.en_note;
-    enNote.guid = noteGuid;
-    enNote.__isset.guid = true;
-
-#define CHECK_AND_SET_EN_NOTE_PROPERTY(propertyLocalName, propertyEnName, type, ...) \
+#define CHECK_AND_SET_NOTE_PROPERTY(propertyLocalName, setter, type) \
     if (rec.contains(#propertyLocalName)) { \
-        enNote.propertyEnName = (qvariant_cast<type>(rec.value(#propertyLocalName)))__VA_ARGS__; \
-        enNote.__isset.propertyEnName = true; \
+        note.setter(qvariant_cast<type>(rec.value(#propertyLocalName))); \
     } \
     else { \
         errorDescription += QObject::tr("Internal error: no " #propertyLocalName " field " \
@@ -849,30 +831,47 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
         return false; \
     }
 
-    CHECK_AND_SET_EN_NOTE_PROPERTY(updateSequenceNumber, updateSequenceNum, uint32_t);
-    CHECK_AND_SET_EN_NOTE_PROPERTY(notebookGuid, notebookGuid, QString, .toStdString());
-    CHECK_AND_SET_EN_NOTE_PROPERTY(title, title, QString, .toStdString());
-    CHECK_AND_SET_EN_NOTE_PROPERTY(content, content, QString, .toStdString());
+    CHECK_AND_SET_NOTE_PROPERTY(isDirty, setDirty, bool);
+    CHECK_AND_SET_NOTE_PROPERTY(isLocal, setLocal, bool);
+    CHECK_AND_SET_NOTE_PROPERTY(isDeleted, setDeleted, bool);
+
+    CHECK_AND_SET_NOTE_PROPERTY(guid, setGuid, QString);
+    CHECK_AND_SET_NOTE_PROPERTY(updateSequenceNumber, setUpdateSequenceNumber, qint32);
+
+    CHECK_AND_SET_NOTE_PROPERTY(notebookGuid, setNotebookGuid, QString);
+    CHECK_AND_SET_NOTE_PROPERTY(title, setTitle, QString);
+    CHECK_AND_SET_NOTE_PROPERTY(content, setContent, QString);
 
     // NOTE: omitting content hash and content length as it will be set by the service
 
-    CHECK_AND_SET_EN_NOTE_PROPERTY(creationTimestamp, created, Timestamp);
-    CHECK_AND_SET_EN_NOTE_PROPERTY(modificationTimestamp, updated, Timestamp);
+    CHECK_AND_SET_NOTE_PROPERTY(creationTimestamp, setCreationTimestamp, qint32);
+    CHECK_AND_SET_NOTE_PROPERTY(modificationTimestamp, setModificationTimestamp, qint32);
 
-    if (note.isDeleted) {
-        CHECK_AND_SET_EN_NOTE_PROPERTY(deletionTimestamp, deleted, Timestamp);
+    if (note.isDeleted()) {
+        CHECK_AND_SET_NOTE_PROPERTY(deletionTimestamp, setDeletionTimestamp, qint32);
     }
 
-    CHECK_AND_SET_EN_NOTE_PROPERTY(isActive, active, int);
+    CHECK_AND_SET_NOTE_PROPERTY(isActive, setActive, bool);
+
+    QString error;
+    res = FindAndSetTagGuidsPerNote(note, error);
+    if (!res) {
+        errorDescription += error;
+        return false;
+    }
+
+    error.clear();
+    res = FindAndSetResourcesPerNote(note, error);
+    if (!res) {
+        errorDescription += error;
+        return false;
+    }
 
     if (rec.contains("hasAttributes"))
     {
         int hasAttributes = qvariant_cast<int>(rec.value("hasAttributes"));
         if (hasAttributes == 0) {
             return true;
-        }
-        else {
-            enNote.__isset.attributes = true;
         }
     }
     else {
@@ -881,22 +880,8 @@ bool LocalStorageManager::FindNote(const Guid & noteGuid, Note & note, QString &
         return false;
     }
 
-    QString error;
-    res = FindAndSetTagGuidsPerNote(enNote, error);
-    if (!res) {
-        errorDescription += error;
-        return false;
-    }
-
     error.clear();
-    res = FindAndSetResourcesPerNote(enNote, error);
-    if (!res) {
-        errorDescription += error;
-        return false;
-    }
-
-    error.clear();
-    res = FindAndSetNoteAttributesPerNote(enNote, error);
+    res = FindAndSetNoteAttributesPerNote(note, error);
     if (!res) {
         errorDescription += error;
         return false;
@@ -934,45 +919,27 @@ bool LocalStorageManager::FindAllNotesPerNotebook(const Guid & notebookGuid, std
         QSqlRecord rec = query.record();
         Note note;
 
-        CHECK_AND_SET_NOTE_PROPERTY(isDirty);
-        CHECK_AND_SET_NOTE_PROPERTY(isLocal);
-        CHECK_AND_SET_NOTE_PROPERTY(isDeleted);
+        CHECK_AND_SET_NOTE_PROPERTY(isDirty, setDirty, bool);
+        CHECK_AND_SET_NOTE_PROPERTY(isLocal, setLocal, bool);
+        CHECK_AND_SET_NOTE_PROPERTY(isDeleted, setDeleted, bool);
 
-        evernote::edam::Note & enNote = note.en_note;
-        enNote.notebookGuid = notebookGuid;
-        enNote.__isset.notebookGuid = true;
+        note.setNotebookGuid(QString::fromStdString(notebookGuid));
 
-        CHECK_AND_SET_EN_NOTE_PROPERTY(updateSequenceNumber, updateSequenceNum, uint32_t);
-        CHECK_AND_SET_EN_NOTE_PROPERTY(guid, guid, QString, .toStdString());
-        CHECK_AND_SET_EN_NOTE_PROPERTY(title, title, QString, .toStdString());
-        CHECK_AND_SET_EN_NOTE_PROPERTY(content, content, QString, .toStdString());
+        CHECK_AND_SET_NOTE_PROPERTY(updateSequenceNumber, setUpdateSequenceNumber, qint32);
+        CHECK_AND_SET_NOTE_PROPERTY(guid, setGuid, QString);
+        CHECK_AND_SET_NOTE_PROPERTY(title, setTitle, QString);
+        CHECK_AND_SET_NOTE_PROPERTY(content, setContent, QString);
 
         // NOTE: omitting content hash and content length as it will be set by the service
 
-        CHECK_AND_SET_EN_NOTE_PROPERTY(creationTimestamp, created, Timestamp);
-        CHECK_AND_SET_EN_NOTE_PROPERTY(modificationTimestamp, updated, Timestamp);
+        CHECK_AND_SET_NOTE_PROPERTY(creationTimestamp, setCreationTimestamp, qint32);
+        CHECK_AND_SET_NOTE_PROPERTY(modificationTimestamp, setModificationTimestamp, qint32);
 
-        if (note.isDeleted) {
-            CHECK_AND_SET_EN_NOTE_PROPERTY(deletionTimestamp, deleted, Timestamp);
+        if (note.isDeleted()) {
+            CHECK_AND_SET_NOTE_PROPERTY(deletionTimestamp, setDeletionTimestamp, qint32);
         }
 
-        CHECK_AND_SET_EN_NOTE_PROPERTY(isActive, active, int);
-
-        if (rec.contains("hasAttributes"))
-        {
-            int hasAttributes = qvariant_cast<int>(rec.value("hasAttributes"));
-            if (hasAttributes == 0) {
-                return true;
-            }
-            else {
-                enNote.__isset.attributes = true;
-            }
-        }
-        else {
-            errorDescription += QObject::tr("Internal error: no \"hasAttributes\" field "
-                                            "in the result of SQL query");
-            return false;
-        }
+        CHECK_AND_SET_NOTE_PROPERTY(isActive, setActive, bool);
 
         notes.push_back(note);
     }
@@ -984,30 +951,28 @@ bool LocalStorageManager::FindAllNotesPerNotebook(const Guid & notebookGuid, std
 
     for(Note & note: notes)
     {
-        evernote::edam::Note & enNote = note.en_note;
-
-        const Guid & guid = enNote.guid;
-        if (!CheckGuid(guid)) {
+        const QString guid = note.guid();
+        if (!CheckGuid(guid.toStdString())) {
             errorDescription += QObject::tr("found note with invalid guid");
             return false;
         }
 
         QString error;
-        res = FindAndSetTagGuidsPerNote(enNote, error);
+        res = FindAndSetTagGuidsPerNote(note, error);
         if (!res) {
             errorDescription += error;
             return false;
         }
 
         error.clear();
-        res = FindAndSetResourcesPerNote(enNote, error);
+        res = FindAndSetResourcesPerNote(note, error);
         if (!res) {
             errorDescription += error;
             return false;
         }
 
         error.clear();
-        res = FindAndSetNoteAttributesPerNote(enNote, error);
+        res = FindAndSetNoteAttributesPerNote(note, error);
         if (!res) {
             errorDescription += error;
             return false;
@@ -1019,19 +984,19 @@ bool LocalStorageManager::FindAllNotesPerNotebook(const Guid & notebookGuid, std
 
 bool LocalStorageManager::DeleteNote(const Note & note, QString & errorDescription)
 {
-    if (note.isLocal) {
+    if (note.isLocal()) {
         return ExpungeNote(note, errorDescription);
     }
 
     errorDescription = QObject::tr("Can't delete note from local storage database: ");
 
-    const evernote::edam::Note & enNote = note.en_note;
-    if (!CheckGuid(enNote.guid)) {
+    const QString guid = note.guid();
+    if (!CheckGuid(guid.toStdString())) {
         errorDescription += QObject::tr("note guid is invalid");
         return false;
     }
 
-    if (!note.isDeleted) {
+    if (!note.isDeleted()) {
         errorDescription += QObject::tr("note to be deleted is not marked as "
                                         "deleted one, rejecting to delete it");
         return false;
@@ -1039,7 +1004,7 @@ bool LocalStorageManager::DeleteNote(const Note & note, QString & errorDescripti
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("UPDATE Notes SET isDeleted=1, isDirty=1 WHERE guid=?");
-    query.addBindValue(QString::fromStdString(enNote.guid));
+    query.addBindValue(guid);
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notes\" table in SQL database");
 
@@ -1050,18 +1015,18 @@ bool LocalStorageManager::ExpungeNote(const Note & note, QString & errorDescript
 {
     errorDescription = QObject::tr("Can't expunge note from local storage database: ");
 
-    const evernote::edam::Note & enNote = note.en_note;
-    if (!CheckGuid(enNote.guid)) {
+    const QString guid = note.guid();
+    if (!CheckGuid(guid.toStdString())) {
         errorDescription += QObject::tr("note guid is invalid");
         return false;
     }
 
-    if (!note.isLocal) {
+    if (!note.isLocal()) {
         errorDescription += QObject::tr("note to be expunged is not local");
         return false;
     }
 
-    if (!note.isDeleted) {
+    if (!note.isDeleted()) {
         errorDescription += QObject::tr("note to be expunged is not marked as "
                                         "deleted one, rejecting to expunge it");
         return false;
@@ -1069,7 +1034,7 @@ bool LocalStorageManager::ExpungeNote(const Note & note, QString & errorDescript
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT rowid FROM Notes WHERE guid=?");
-    query.addBindValue(QString::fromStdString(note.en_note.guid));
+    query.addBindValue(guid);
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't find note to be expunged SQL database");
 
@@ -1164,7 +1129,7 @@ bool LocalStorageManager::LinkTagWithNote(const Tag & tag, const Note & note,
         return false;
     }
 
-    if (!note.CheckParameters(errorDescription)) {
+    if (!note.checkParameters(errorDescription)) {
         errorDescription += QObject::tr("note is invalid: ");
         errorDescription += error;
         return false;
@@ -1172,7 +1137,7 @@ bool LocalStorageManager::LinkTagWithNote(const Tag & tag, const Note & note,
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO NoteTags (note, tag) VALUES(?, ?)");
-    query.addBindValue(QString::fromStdString(note.en_note.guid));
+    query.addBindValue(note.guid());
     query.addBindValue(tag.guid());
 
     bool res = query.exec();
@@ -1877,28 +1842,24 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     return true;
 }
 
-bool LocalStorageManager::SetNoteAttributes(const evernote::edam::Note & note,
-                                            QString & errorDescription)
+bool LocalStorageManager::SetNoteAttributes(const Note & note, QString & errorDescription)
 {
     errorDescription += QObject::tr("can't set note attributes: ");
 
-    if (!CheckGuid(note.guid)) {
+    const QString guid = note.guid();
+    if (!CheckGuid(guid.toStdString())) {
         errorDescription += QObject::tr("note guid is invalid");
         return false;
     }
 
-    if (!note.__isset.attributes) {
+    if (!note.hasNoteAttributes()) {
         return true;
     }
 
-    const evernote::edam::NoteAttributes & attributes = note.attributes;
-    QString noteGuid = QString::fromStdString(note.guid);
-
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, data) VALUES(?, ?)");
-    query.addBindValue(noteGuid);
-    QByteArray data = GetSerializedNoteAttributes(attributes);
-    query.addBindValue(data);
+    query.addBindValue(guid);
+    query.addBindValue(note.noteAttributes());
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace lastEditorId into \"NoteAttributes\" table in SQL database");
@@ -2432,12 +2393,10 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
 
     errorDescription += QObject::tr("can't insert or replace note into local storage database: ");
 
-    const evernote::edam::Note & enNote = note.en_note;
-
-    QString guid = QString::fromStdString(enNote.guid);
-    QString title = QString::fromStdString(enNote.title);
-    QString content = QString::fromStdString(enNote.content);
-    QString notebookGuid = QString::fromStdString(enNote.notebookGuid);
+    const QString guid = note.guid();
+    const QString content = note.content();
+    const QString title = note.title();
+    const QString notebookGuid = note.notebookGuid();
 
     QSqlQuery query(m_sqlDatabase);
 
@@ -2445,13 +2404,13 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
                   "isLocal, content, creationTimestamp, modificationTimestamp, "
                   "notebookGuid) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
     query.addBindValue(guid);
-    query.addBindValue(enNote.updateSequenceNum);
+    query.addBindValue(note.updateSequenceNumber());
     query.addBindValue(title);
-    query.addBindValue((note.isDirty ? 1 : 0));
-    query.addBindValue((note.isLocal ? 1 : 0));
+    query.addBindValue((note.isDirty() ? 1 : 0));
+    query.addBindValue((note.isLocal() ? 1 : 0));
     query.addBindValue(content);
-    query.addBindValue(static_cast<qint64>(enNote.created));
-    query.addBindValue(static_cast<qint64>(enNote.updated));
+    query.addBindValue(note.creationTimestamp());
+    query.addBindValue(note.modificationTimestamp());
     query.addBindValue(notebookGuid);
 
     bool res = query.exec();
@@ -2466,18 +2425,20 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"NoteText\" table in SQL database");
 
-    if (enNote.__isset.tagGuids)
+    if (note.hasTagGuids())
     {
         QString error;
 
-        const auto & tagGuids = enNote.tagGuids;
+        std::vector<QString> tagGuids;
+        note.tagGuids(tagGuids);
+
         for(const auto & tagGuid: tagGuids)
         {
             // NOTE: the behavior expressed here is valid since tags are synchronized before notes
             // so they must exist within local storage database; if they don't then something went really wrong
 
             Tag tag;
-            bool res = FindTag(tagGuid, tag, error);
+            bool res = FindTag(tagGuid.toStdString(), tag, error);
             if (!res) {
                 errorDescription += QObject::tr("failed to find one of note tags by guid: ");
                 errorDescription += error;
@@ -2486,7 +2447,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
 
             query.prepare("INSERT OR REPLACE INTO NoteTags(note, tag) VALUES(?, ?)");
             query.addBindValue(guid);
-            query.addBindValue(QString::fromStdString(tagGuid));
+            query.addBindValue(tagGuid);
 
             res = query.exec();
             DATABASE_CHECK_AND_SET_ERROR("can't insert or replace information into \"NoteTags\" table in SQL database");
@@ -2496,16 +2457,17 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
     // NOTE: don't even attempt fo find tags by their names because evernote::edam::Note.tagNames
     // has the only purpose to provide tag names alternatively to guids to NoteStore::createNote method
 
-    if (enNote.__isset.resources)
+    if (note.hasResources())
     {
-        const auto & resources = enNote.resources;
+        std::vector<ResourceAdapter> resources;
+        note.resources(resources);
         size_t numResources = resources.size();
         for(size_t i = 0; i < numResources; ++i)
         {
-            ResourceAdapter resourceAdapter(resources[i]);
+            const ResourceAdapter & resource = resources[i];
 
             QString error;
-            res = resourceAdapter.checkParameters(error);
+            res = resource.checkParameters(error);
             if (!res) {
                 errorDescription += QObject::tr("found invalid resource linked with note: ");
                 errorDescription += error;
@@ -2513,7 +2475,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
             }
 
             error.clear();
-            res = InsertOrReplaceResource(resourceAdapter, error);
+            res = InsertOrReplaceResource(resource, error);
             if (!res) {
                 errorDescription += QObject::tr("can't add or update one of note's "
                                                 "attached resources: ");
@@ -2523,11 +2485,11 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
         }
     }
 
-    if (!enNote.__isset.attributes) {
+    if (!note.hasNoteAttributes()) {
         return true;
     }
 
-    return SetNoteAttributes(enNote, errorDescription);
+    return SetNoteAttributes(note, errorDescription);
 }
 
 bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDescription)
@@ -2998,51 +2960,43 @@ bool LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Ta
     return true;
 }
 
-bool LocalStorageManager::FindAndSetTagGuidsPerNote(evernote::edam::Note & enNote,
-                                                    QString & errorDescription) const
+bool LocalStorageManager::FindAndSetTagGuidsPerNote(Note & note, QString & errorDescription) const
 {
     errorDescription += QObject::tr("can't find tag guids per note: ");
 
-    const Guid & guid = enNote.guid;
-    if (!CheckGuid(guid)) {
+    if (!CheckGuid(note.guid().toStdString())) {
         errorDescription += QObject::tr("note's guid is invalid");
         return false;
     }
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT tag FROM NoteTags WHERE note = ?");
-    query.addBindValue(QString::fromStdString(guid));
+    query.addBindValue(note.guid());
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select note tags from \"NoteTags\" table in SQL database");
 
-    auto & tagGuids = enNote.tagGuids;
-    tagGuids.clear();
-    size_t numRows = query.size();
-    tagGuids.reserve(numRows);
-
     while (query.next())
     {
-        Guid tagGuid = query.value(0).toString().toStdString();
-        if (!CheckGuid(tagGuid)) {
+        QString tagGuid = query.value(0).toString();
+        if (!CheckGuid(tagGuid.toStdString())) {
             errorDescription += QObject::tr("found invalid tag guid for requested note");
             return false;
         }
 
-        tagGuids.push_back(tagGuid);
+        note.addTagGuid(tagGuid);
     }
 
     return true;
 }
 
-bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNote,
-                                                     QString & errorDescription,
+bool LocalStorageManager::FindAndSetResourcesPerNote(Note & note, QString & errorDescription,
                                                      const bool withBinaryData) const
 {
     errorDescription += QObject::tr("can't find resources for note: ");
 
-    const Guid & guid = enNote.guid;
-    if (!CheckGuid(guid)) {
+    const QString guid = note.guid();
+    if (!CheckGuid(guid.toStdString())) {
         errorDescription += QObject::tr("note's guid is invalid");
         return false;
     }
@@ -3057,15 +3011,12 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
     }
 
     query.bindValue("columns", columns);
-    query.bindValue("noteGuid", QString::fromStdString(guid));
+    query.bindValue("noteGuid", guid);
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select resources' guids per note's guid");
 
     int numResources = query.size();
-    auto & resources = enNote.resources;
-    resources.resize(numResources);
-
     if (numResources < 0) {
         // No resources were found
         return true;
@@ -3076,8 +3027,7 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
     {
         QSqlRecord rec = query.record();
 
-        evernote::edam::Resource & enResource = resources[k++];
-        ResourceAdapter resource(enResource);
+        ResourceWrapper resource;
 
         CHECK_AND_SET_RESOURCE_PROPERTY(guid, QString, QString, setGuid, /* is required = */ true);
         CHECK_AND_SET_RESOURCE_PROPERTY(updateSequenceNumber, int, qint32, setUpdateSequenceNumber,
@@ -3104,7 +3054,7 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
         // Retrieve optional resource attributes for each resource
         QSqlQuery resourceAttributeQuery(m_sqlDatabase);
         resourceAttributeQuery.prepare("SELECT data FROM ResourceAttributes WHERE guid = ?");
-        resourceAttributeQuery.addBindValue(QString::fromStdString(guid));
+        resourceAttributeQuery.addBindValue(guid);
 
         res = resourceAttributeQuery.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't select serialized resource attributes from "
@@ -3115,39 +3065,37 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(evernote::edam::Note & enNo
             continue;
         }
 
-        QByteArray serializedResourceAttributes = query.value(0).toByteArray();
-        enResource.attributes = GetDeserializedResourceAttributes(serializedResourceAttributes);
-        enResource.__isset.attributes = true;
+        resource.setResourceAttributes(query.value(0).toByteArray());
+
+        note.addResource(resource);
     }
 
     return true;
 }
 
-bool LocalStorageManager::FindAndSetNoteAttributesPerNote(evernote::edam::Note & enNote,
-                                                          QString & errorDescription) const
+bool LocalStorageManager::FindAndSetNoteAttributesPerNote(Note & note, QString & errorDescription) const
 {
     errorDescription += QObject::tr("can't find note attributes: ");
 
-    if (!enNote.__isset.attributes) {
+    if (!note.hasNoteAttributes()) {
         return true;
     }
 
-    const Guid & guid = enNote.guid;
-    if (!CheckGuid(guid)) {
+    const QString guid = note.guid();
+    if (!CheckGuid(guid.toStdString())) {
         errorDescription += QObject::tr("note's guid is invalid");
         return false;
     }
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT data FROM NoteAttributes WHERE noteGuid=?");
-    query.addBindValue(QString::fromStdString(guid));
+    query.addBindValue(guid);
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select note's attributes from \"NoteAttributes\" table in SQL database");
 
     if (query.next()) {
-        QByteArray data = query.value(0).toByteArray();
-        enNote.attributes = std::move(GetDeserializedNoteAttributes(data));
+        note.setNoteAttributes(query.value(0).toByteArray());
     }
     else {
         errorDescription += QObject::tr("Internal error: SQL query result is empty");
@@ -3163,7 +3111,6 @@ bool LocalStorageManager::FindAndSetNoteAttributesPerNote(evernote::edam::Note &
 #undef SET_IS_FREE_ACCOUNT_FLAG
 #undef CHECK_AND_SET_EN_RESOURCE_PROPERTY
 #undef CHECK_AND_SET_NOTE_PROPERTY
-#undef CHECK_AND_SET_EN_NOTE_PROPERTY
 #undef DATABASE_CHECK_AND_SET_ERROR
 
 }

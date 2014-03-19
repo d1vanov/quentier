@@ -27,7 +27,7 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 QT_FORWARD_DECLARE_STRUCT(Notebook)
-QT_FORWARD_DECLARE_STRUCT(Note)
+QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Tag)
 QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(SavedSearch)
@@ -227,7 +227,7 @@ public:
 
 private:
     bool CreateTables(QString & errorDescription);
-    bool SetNoteAttributes(const evernote::edam::Note & note, QString & errorDescription);
+    bool SetNoteAttributes(const Note & note, QString & errorDescription);
     bool SetNotebookAdditionalAttributes(const evernote::edam::Notebook & notebook,
                                          QString & errorDescription);
     bool SetNotebookRestrictions(const evernote::edam::Notebook & notebook,
@@ -257,10 +257,10 @@ private:
     bool FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Tag> & tags,
                               QString & errorDescription) const;
 
-    bool FindAndSetTagGuidsPerNote(evernote::edam::Note & enNote, QString & errorDescription) const;
-    bool FindAndSetResourcesPerNote(evernote::edam::Note & enNote, QString & errorDescription,
+    bool FindAndSetTagGuidsPerNote(Note & note, QString & errorDescription) const;
+    bool FindAndSetResourcesPerNote(Note & note, QString & errorDescription,
                                     const bool withBinaryData = true) const;
-    bool FindAndSetNoteAttributesPerNote(evernote::edam::Note & enNote, QString & errorDescription) const;
+    bool FindAndSetNoteAttributesPerNote(Note & note, QString & errorDescription) const;
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;

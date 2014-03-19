@@ -1,18 +1,25 @@
 #include "Note.h"
+#include "ResourceAdapter.h"
 #include "../Utility.h"
+#include "../local_storage/Serialization.h"
 #include <logging/QuteNoteLogger.h>
 #include <Limits_constants.h>
+#include <QDateTime>
 
 namespace qute_note {
 
 Note::Note() :
     NoteStoreDataElement(),
-    m_enNote()
+    m_enNote(),
+    m_isLocal(true),
+    m_isDeleted(false)
 {}
 
 Note::Note(const Note & other) :
     NoteStoreDataElement(other),
-    m_enNote(other.m_enNote)
+    m_enNote(other.m_enNote),
+    m_isLocal(other.m_isLocal),
+    m_isDeleted(other.m_isDeleted)
 {}
 
 Note & Note::operator=(const Note & other)
@@ -20,6 +27,8 @@ Note & Note::operator=(const Note & other)
     if (this != &other) {
         NoteStoreDataElement::operator =(other);
         m_enNote = other.m_enNote;
+        m_isLocal = other.m_isLocal;
+        m_isDeleted = other.m_isDeleted;
     }
 
     return *this;
@@ -506,9 +515,17 @@ void Note::addTagGuid(const QString & guid)
     const auto localGuid = guid.toStdString();
     auto & localGuids = m_enNote.tagGuids;
 
-    if (std::find(localGuids.cbegin(), localGuids.cend(), localGuid) != localGuids.cend()) {
-        QNDEBUG("Note::addTagGuid: already has tag with guid " << guid);
-        return;
+    if (m_enNote.__isset.tagGuids)
+    {
+        if (std::find(localGuids.cbegin(), localGuids.cend(), localGuid) != localGuids.cend()) {
+            QNDEBUG("Note::addTagGuid: already has tag with guid " << guid);
+            return;
+        }
+    }
+    else
+    {
+        localGuids.clear();
+        m_enNote.__isset.tagGuids = true;
     }
 
     localGuids.push_back(localGuid);
@@ -520,15 +537,24 @@ void Note::removeTagGuid(const QString & guid)
     const auto localGuid = guid.toStdString();
     auto & localGuids = m_enNote.tagGuids;
 
-    auto it = std::find(localGuids.begin(), localGuids.end(), localGuid);
-    if (it == localGuids.end()) {
-        QNDEBUG("Note::removeTagGuid: has no tag with guid " << guid);
-        return;
-    }
+    if (m_enNote.__isset.tagGuids)
+    {
+        auto it = std::find(localGuids.begin(), localGuids.end(), localGuid);
+        if (it == localGuids.end()) {
+            QNDEBUG("Note::removeTagGuid: note has no tag with guid " << guid);
+            return;
+        }
 
-    localGuids.erase(it);
-    QNDEBUG("Removed tag with guid " << guid << " to note");
+        localGuids.erase(it);
+        QNDEBUG("Removed tag with guid " << guid << " from note");
+    }
+    else
+    {
+        QNDEBUG("Note::removeTagGuid: note has no tags set, nothing to remove");
+    }
 }
+
+
 
 bool Note::hasResources() const
 {
@@ -552,22 +578,183 @@ void Note::resources(std::vector<ResourceAdapter> & resources) const
     }
 }
 
-void Note::setResources(const std::vector<IResource> & /* resources */)
+void Note::setResources(const std::vector<IResource> & resources)
 {
-    /*
     auto & localResources = m_enNote.resources;
-    resources.clear();
+    localResources.clear();
 
     size_t numResources = resources.size();
-    */
+    if (numResources == 0) {
+        m_enNote.__isset.resources = false;
+        QNDEBUG("Note::setResources: no resources");
+        return;
+    }
 
-    // TODO: need to somehow get access to underlying evernote::edam::Resource
-    // from IResource. Maybe make Note a friend of IResource?
+    localResources.reserve(numResources);
+    for(size_t i = 0; i < numResources; ++i) {
+        localResources.push_back(resources[i].GetEnResource());
+    }
+
+    m_enNote.__isset.resources = true;
+    QNDEBUG("Added " << numResources << " resources to note");
+}
+
+void Note::addResource(const IResource & resource)
+{
+    auto & localResources = m_enNote.resources;
+
+    if (m_enNote.__isset.resources)
+    {
+        if (std::find(localResources.cbegin(), localResources.cend(), resource.GetEnResource()) != localResources.cend()) {
+            QNDEBUG("Note::addResource: already has resource with guid " << resource.guid());
+            return;
+        }
+    }
+    else
+    {
+        localResources.clear();
+        m_enNote.__isset.resources = true;
+    }
+
+    localResources.push_back(resource.GetEnResource());
+    QNDEBUG("Added resource with guid " << resource.guid() << " to note");
+}
+
+void Note::removeResource(const IResource & resource)
+{
+    auto & localResources = m_enNote.resources;
+
+    if (m_enNote.__isset.resources)
+    {
+        auto it = std::find(localResources.begin(), localResources.end(), resource.GetEnResource());
+        if (it == localResources.end()) {
+            QNDEBUG("Note::removeResource: note has no resource with guid " << resource.guid());
+            return;
+        }
+
+        localResources.erase(it);
+        QNDEBUG("Removed resource with guid " << resource.guid() << " from note");
+    }
+    else
+    {
+        QNDEBUG("Note::removeResource: note has no resources set, nothing to remove");
+    }
+}
+
+bool Note::hasNoteAttributes() const
+{
+    return m_enNote.__isset.attributes;
+}
+
+const QByteArray Note::noteAttributes() const
+{
+    return std::move(GetSerializedNoteAttributes(m_enNote.attributes));
+}
+
+void Note::setNoteAttributes(const QByteArray & noteAttributes)
+{
+    m_enNote.attributes = GetDeserializedNoteAttributes(noteAttributes);
+
+    if (!noteAttributes.isEmpty()) {
+        m_enNote.__isset.attributes = true;
+    }
+    else {
+        m_enNote.__isset.attributes = false;
+    }
+}
+
+bool Note::isLocal() const
+{
+    return m_isLocal;
+}
+
+void Note::setLocal(const bool local)
+{
+    m_isLocal = local;
+}
+
+bool Note::isDeleted() const
+{
+    return m_isDeleted;
+}
+
+void Note::setDeleted(const bool deleted)
+{
+    m_isDeleted = deleted;
 }
 
 QTextStream & Note::Print(QTextStream & strm) const
 {
-    // TODO: implement
+    strm << "Note: { \n";
+
+    const auto & isSet = m_enNote.__isset;
+
+#define INSERT_DELIMITER \
+    strm << "; \n";
+
+    if (isSet.guid) {
+        strm << "guid: " << QString::fromStdString(m_enNote.guid);
+    }
+    else {
+        strm << "guid is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.updateSequenceNum) {
+        strm << "updateSequenceNumber: " << QString::number(m_enNote.updateSequenceNum);
+    }
+    else {
+        strm << "updateSequenceNumber is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.title) {
+        strm << "title: " << QString::fromStdString(m_enNote.title);
+    }
+    else {
+        strm << "title is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.content) {
+        strm << "content: " << QString::fromStdString(m_enNote.content);
+    }
+    else {
+        strm << "content is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.contentHash) {
+        strm << "contentHash: " << QString::fromStdString(m_enNote.contentHash);
+    }
+    else {
+        strm << "contentHash is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.contentLength) {
+        strm << "contentLength: " << QString::number(m_enNote.contentLength);
+    }
+    else {
+        strm << "contentLength is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.created) {
+        QDateTime createdDatetime;
+        createdDatetime.setTime_t(m_enNote.created);
+        strm << "creationTimestamp: " << m_enNote.created << ", datetime: "
+             << createdDatetime.toString();
+    }
+    else {
+        strm << "creationTimestamp is not set";
+    }
+    INSERT_DELIMITER;
+
+    // TODO: finish
+
+#undef INSERT_DELIMITER
+
     return strm;
 }
 

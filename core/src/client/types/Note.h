@@ -2,10 +2,12 @@
 #define __QUTE_NOTE__CLIENT__TYPES__NOTE_H
 
 #include "NoteStoreDataElement.h"
-#include "ResourceAdapter.h"
 #include <Types_types.h>
 
 namespace qute_note {
+
+QT_FORWARD_DECLARE_CLASS(IResource)
+QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
 
 class Note final: public NoteStoreDataElement
 {
