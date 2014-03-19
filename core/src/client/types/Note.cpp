@@ -744,20 +744,97 @@ QTextStream & Note::Print(QTextStream & strm) const
         QDateTime createdDatetime;
         createdDatetime.setTime_t(m_enNote.created);
         strm << "creationTimestamp: " << m_enNote.created << ", datetime: "
-             << createdDatetime.toString();
+             << createdDatetime.toString(Qt::ISODate);
     }
     else {
         strm << "creationTimestamp is not set";
     }
     INSERT_DELIMITER;
 
-    // TODO: finish
+    if (isSet.updated) {
+        QDateTime updatedDatetime;
+        updatedDatetime.setTime_t(m_enNote.updated);
+        strm << "modificationTimestamp: " << m_enNote.updated << ", datetime: "
+             << updatedDatetime.toString(Qt::ISODate);
+    }
+    else {
+        strm << "modificationTimestamp is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.deleted) {
+        QDateTime deletedDatetime;
+        deletedDatetime.setTime_t(m_enNote.deleted);
+        strm << "deletionTimestamp: " << m_enNote.deleted << ", datetime: "
+             << deletedDatetime.toString(Qt::ISODate);
+    }
+    else {
+        strm << "deletionTimestamp is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.active) {
+        strm << "active: " << (m_enNote.active ? "true" : "false");
+    }
+    else {
+        strm << "active is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.notebookGuid) {
+        strm << "notebookGuid: " << QString::fromStdString(m_enNote.notebookGuid);
+    }
+    else {
+        strm << "notebookGuid is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.tagGuids)
+    {
+        strm << "tagGuids: {";
+        for(const auto & tagGuid: m_enNote.tagGuids) {
+            strm << QString::fromStdString(tagGuid) << "; ";
+        }
+        strm << "}";
+    }
+    else {
+        strm << "tagGuids are not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.resources)
+    {
+        strm << "resources: { \n";
+        for(const auto & resource: m_enNote.resources) {
+            strm << ResourceAdapter(resource) << "; \n";
+        }
+        strm << "}";
+    }
+    else {
+        strm << "resources are not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.attributes) {
+        strm << "attributes: " << m_enNote.attributes;
+    }
+    else {
+        strm << "attributes are not set";
+    }
+    INSERT_DELIMITER;
+
+    strm << "isDirty: " << (isDirty() ? "true" : "false");
+    INSERT_DELIMITER;
+
+    strm << "isLocal: " << (m_isLocal ? "true" : "false");
+    INSERT_DELIMITER;
+
+    strm << "isDeleted: " << (m_isDeleted ? "true" : "false");
+    INSERT_DELIMITER;
 
 #undef INSERT_DELIMITER
 
     return strm;
 }
-
-
 
 } // namespace qute_note
