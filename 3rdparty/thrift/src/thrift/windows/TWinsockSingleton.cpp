@@ -19,14 +19,12 @@
 
 #include "StdAfx.h"
 #include "TWinsockSingleton.h"
-
-// boost
-#include <boost/assert.hpp>
+#include <assert.h>
 
 namespace apache { namespace thrift { namespace transport {
 
-TWinsockSingleton::instance_ptr TWinsockSingleton::instance_ptr_(NULL);
-boost::once_flag                TWinsockSingleton::flags_ = BOOST_ONCE_INIT;
+TWinsockSingleton::instance_ptr TWinsockSingleton::instance_ptr_(nullptr);
+std::once_flag TWinsockSingleton::flags_;
 
 //------------------------------------------------------------------------------
 TWinsockSingleton::TWinsockSingleton(void)
@@ -37,7 +35,7 @@ TWinsockSingleton::TWinsockSingleton(void)
     int error(WSAStartup(version, &data));
     if (error != 0)
     {
-        BOOST_ASSERT(false);
+        assert(false);
         throw std::runtime_error("Failed to initialise Winsock.");
     }
 }
@@ -51,7 +49,7 @@ TWinsockSingleton::~TWinsockSingleton(void)
 //------------------------------------------------------------------------------
 void TWinsockSingleton::create(void)
 {
-    boost::call_once(init, flags_);
+    std::call_once(flags_, init);
 }
 
 //------------------------------------------------------------------------------

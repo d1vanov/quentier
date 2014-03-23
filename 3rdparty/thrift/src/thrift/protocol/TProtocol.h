@@ -88,16 +88,9 @@ using apache::thrift::transport::TTransport;
 #  define __THRIFT_LITTLE_ENDIAN LITTLE_ENDIAN
 #  define __THRIFT_BIG_ENDIAN BIG_ENDIAN
 # else
-#  include <boost/config.hpp>
-#  include <boost/detail/endian.hpp>
-#  define __THRIFT_BYTE_ORDER BOOST_BYTE_ORDER
-#  ifdef BOOST_LITTLE_ENDIAN
-#   define __THRIFT_LITTLE_ENDIAN __THRIFT_BYTE_ORDER
-#   define __THRIFT_BIG_ENDIAN 0
-#  else
-#   define __THRIFT_LITTLE_ENDIAN 0
-#   define __THRIFT_BIG_ENDIAN __THRIFT_BYTE_ORDER
-#  endif
+#  define __THRIFT_BYTE_ORDER 1234
+#  define __THRIFT_LITTLE_ENDIAN __THRIFT_BYTE_ORDER
+#  define __THRIFT_BIG_ENDIAN 0
 # endif
 #endif
 

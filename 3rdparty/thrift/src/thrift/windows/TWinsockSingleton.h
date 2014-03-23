@@ -28,10 +28,8 @@
 #error This is a MSVC header only.
 #endif
 
-// boost
-#include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/thread/once.hpp>
+#include <memory>
+#include <mutex>
 
 namespace apache { namespace thrift { namespace transport {
 
@@ -39,16 +37,18 @@ namespace apache { namespace thrift { namespace transport {
  * Winsock2 must be intialised once only in order to create sockets. This class
  * performs a one time initialisation when create is called.
  */
-class TWinsockSingleton : private boost::noncopyable
+class TWinsockSingleton
 {
 
 public:
 
-    typedef boost::scoped_ptr<TWinsockSingleton> instance_ptr;
+    typedef std::unique_ptr<TWinsockSingleton> instance_ptr;
 
 private:
 
     TWinsockSingleton(void);
+    TWinsockSingleton(const TWinsockSingleton & other) = delete;
+    TWinsockSingleton & operator=(const TWinsockSingleton & other) = delete;
 
 public:
 
@@ -65,7 +65,7 @@ private:
 private:
 
     static instance_ptr     instance_ptr_;
-    static boost::once_flag flags_;
+    static std::once_flag   flags_;
 };
 
 }}} // apache::thrift::transport
