@@ -302,3 +302,33 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::Guid & guid)
     strm << QString::fromStdString(guid);
     return strm;
 }
+
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::SharedNotebookPrivilegeLevel::type & privilege)
+{
+    switch(privilege)
+    {
+    case evernote::edam::SharedNotebookPrivilegeLevel::READ_NOTEBOOK:
+        strm << "READ_NOTEBOOK";
+        break;
+    case evernote::edam::SharedNotebookPrivilegeLevel::MODIFY_NOTEBOOK_PLUS_ACTIVITY:
+        strm << "MODIFY_NOTEBOOK_PLUS_ACTIVITY";
+        break;
+    case evernote::edam::SharedNotebookPrivilegeLevel::READ_NOTEBOOK_PLUS_ACTIVITY:
+        strm << "READ_NOTEBOOK_PLUS_ACTIVITY";
+        break;
+    case evernote::edam::SharedNotebookPrivilegeLevel::GROUP:
+        strm << "GROUP";
+        break;
+    case evernote::edam::SharedNotebookPrivilegeLevel::FULL_ACCESS:
+        strm << "FULL_ACCESS";
+        break;
+    case evernote::edam::SharedNotebookPrivilegeLevel::BUSINESS_FULL_ACCESS:
+        strm << "BUSINESS_FULL_ACCESS";
+        break;
+    default:
+        strm << "UNKNOWN";
+        break;
+    }
+
+    return strm;
+}
