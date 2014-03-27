@@ -28,6 +28,9 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/ResourceAdapter.h
     src/client/types/ResourceAdapterAccessException.h
     src/client/types/SavedSearch.h
+    src/client/types/SharedNotebookAdapter.h
+    src/client/types/SharedNotebookAdapterAccessException.h
+    src/client/types/SharedNotebookWrapper.h
     src/client/types/Tag.h
     src/client/types/UserAdapter.h
     src/client/types/UserAdapterAccessException.h
@@ -70,6 +73,9 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/ResourceAdapter.cpp
     src/client/types/ResourceAdapterAccessException.cpp
     src/client/types/SavedSearch.cpp
+    src/client/types/SharedNotebookAdapter.cpp
+    src/client/types/SharedNotebookAdapterAccessException.cpp
+    src/client/types/SharedNotebookWrapper.cpp
     src/client/types/Tag.cpp
     src/client/types/UserAdapter.cpp
     src/client/types/UserAdapterAccessException.cpp

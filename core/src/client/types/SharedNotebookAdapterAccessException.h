@@ -1,0 +1,19 @@
+#ifndef __QUTE_NOTE__CLIENT__TYPES__SHARED_NOTEBOOK_ADAPTER_ACCESS_EXCEPTION_H
+#define __QUTE_NOTE__CLIENT__TYPES__SHARED_NOTEBOOK_ADAPTER_ACCESS_EXCEPTION_H
+
+#include <tools/IQuteNoteException.h>
+
+namespace qute_note {
+
+class SharedNotebookAdapterAccessException : public IQuteNoteException
+{
+public:
+    explicit SharedNotebookAdapterAccessException(const QString & message);
+
+private:
+    virtual const QString exceptionDisplayName() const;
+};
+
+} // namespace qute_note
+
+#endif // __QUTE_NOTE__CLIENT__TYPES__SHARED_NOTEBOOK_ADAPTER_ACCESS_EXCEPTION_H

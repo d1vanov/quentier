@@ -74,7 +74,6 @@ protected:
     virtual evernote::edam::SharedNotebook & GetEnSharedNotebook() = 0;
     virtual const evernote::edam::SharedNotebook & GetEnSharedNotebook() const = 0;
 
-private:
     virtual QTextStream & Print(QTextStream & strm) const override;
 };
 
