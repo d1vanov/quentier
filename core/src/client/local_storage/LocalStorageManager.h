@@ -25,6 +25,7 @@ typedef int32_t UserID;
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(ISharedNotebook)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 QT_FORWARD_DECLARE_STRUCT(Notebook)
 QT_FORWARD_DECLARE_CLASS(Note)
@@ -247,8 +248,7 @@ private:
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
 
     bool FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QString & errorDescription) const;
-    bool FillSharedNotebookFromSqlRecord(const QSqlRecord & record,
-                                         evernote::edam::SharedNotebook & sharedNotebook,
+    bool FillSharedNotebookFromSqlRecord(const QSqlRecord & record, ISharedNotebook & sharedNotebook,
                                          QString & errorDescription) const;
     bool FillLinkedNotebookFromSqlRecord(const QSqlRecord & record, LinkedNotebook & linkedNotebook,
                                          QString & errorDescription) const;

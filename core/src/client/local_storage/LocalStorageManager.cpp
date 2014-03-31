@@ -12,6 +12,8 @@
 #include <client/types/UserAdapter.h>
 #include <client/types/UserWrapper.h>
 #include <client/types/LinkedNotebook.h>
+#include <client/types/ISharedNotebook.h>
+#include <client/types/SharedNotebookAdapter.h>
 #include <client/types/SavedSearch.h>
 #include <client/types/Tag.h>
 #include <tools/QuteNoteNullPtrException.h>
@@ -519,8 +521,9 @@ bool LocalStorageManager::ListAllSharedNotebooks(std::vector<evernote::edam::Sha
 
         sharedNotebooks.push_back(SharedNotebook());
         SharedNotebook & sharedNotebook = sharedNotebooks.back();
+        SharedNotebookAdapter sharedNotebookAdapter(sharedNotebook);
 
-        res = FillSharedNotebookFromSqlRecord(record, sharedNotebook, errorDescription);
+        res = FillSharedNotebookFromSqlRecord(record, sharedNotebookAdapter, errorDescription);
         if (!res) {
             return false;
         }
@@ -564,8 +567,9 @@ bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const Guid & notebo
 
         sharedNotebooks.push_back(SharedNotebook());
         SharedNotebook & sharedNotebook = sharedNotebooks.back();
+        SharedNotebookAdapter sharedNotebookAdapter(sharedNotebook);
 
-        res = FillSharedNotebookFromSqlRecord(record, sharedNotebook, errorDescription);
+        res = FillSharedNotebookFromSqlRecord(record, sharedNotebookAdapter, errorDescription);
         if (!res) {
             return false;
         }
@@ -2824,34 +2828,40 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
     return true;
 }
 
-bool LocalStorageManager::FillSharedNotebookFromSqlRecord(const QSqlRecord & record,
-                                                          evernote::edam::SharedNotebook & sharedNotebook,
+bool LocalStorageManager::FillSharedNotebookFromSqlRecord(const QSqlRecord & rec,
+                                                          ISharedNotebook & sharedNotebook,
                                                           QString & errorDescription) const
 {
+#define CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(property, type, localType, setter, isRequired) \
+    if (rec.contains(#property)) { \
+        sharedNotebook.setter(static_cast<localType>(qvariant_cast<type>(rec.value(#property)))); \
+    } \
+    else if (isRequired) { \
+        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
+        return false; \
+    }
+
     bool isRequired = true;
 
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareId, id, int, int64_t, isRequired);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, userId, userId, int, int32_t, isRequired);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, email, email, QString,
-                                        std::string, isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, creationTimestamp,
-                                        serviceCreated, int, Timestamp, isRequired);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, modificationTimestamp,
-                                        serviceUpdated, int, Timestamp, isRequired);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareKey, shareKey,
-                                        QString, std::string, isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, username, username,
-                                        QString, std::string, isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, sharedNotebookPrivilegeLevel,
-                                        privilege, int, SharedNotebookPrivilegeLevel::type, isRequired);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook, allowPreview, allowPreview,
-                                        int, bool, isRequired);   // NOTE: int to bool cast
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook.recipientSettings,
-                                        recipientReminderNotifyEmail,
-                                        reminderNotifyEmail, int, bool, isRequired);  // NOTE: int to bool cast
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(sharedNotebook.recipientSettings,
-                                        recipientReminderNotifyInApp,
-                                        reminderNotifyInApp, int, bool, isRequired);  // NOTE: int to bool cast
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareId, int, qint64, setId, isRequired);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(userId, int, qint32, setUserId, isRequired);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(email, QString, QString, setEmail, isRequired);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(creationTimestamp, int, qint64,
+                                           setCreationTimestamp, isRequired);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(modificationTimestamp, int, qint64,
+                                           setModificationTimestamp, isRequired);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareKey, QString, QString, setShareKey, isRequired);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(username, QString, QString, setUsername, isRequired);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookPrivilegeLevel, int, qint8,
+                                           setPrivilegeLevel, isRequired);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(allowPreview, int, bool, setAllowPreview,
+                                           isRequired);   // NOTE: int to bool cast
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyEmail, int, bool,
+                                           setReminderNotifyEmail, isRequired);  // NOTE: int to bool cast
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyInApp, int, bool,
+                                           setReminderNotifyApp, isRequired);  // NOTE: int to bool cast
+
+#undef CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY
 
     return true;
 }
