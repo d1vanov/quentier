@@ -332,3 +332,222 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::SharedNotebo
 
     return strm;
 }
+
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::NoteSortOrder::type & order)
+{
+    switch(order)
+    {
+    case evernote::edam::NoteSortOrder::CREATED:
+        strm << "CREATED";
+        break;
+    case evernote::edam::NoteSortOrder::RELEVANCE:
+        strm << "RELEVANCE";
+        break;
+    case evernote::edam::NoteSortOrder::TITLE:
+        strm << "TITLE";
+        break;
+    case evernote::edam::NoteSortOrder::UPDATED:
+        strm << "UPDATED";
+        break;
+    case evernote::edam::NoteSortOrder::UPDATE_SEQUENCE_NUMBER:
+        strm << "UPDATE_SEQUENCE_NUMBER";
+        break;
+    default:
+        strm << "UNKNOWN";
+        break;
+    }
+
+    return strm;
+}
+
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRestrictions & restrictions)
+{
+    const auto & isSet = restrictions.__isset;
+
+    strm << "{ \n";
+
+#define INSERT_DELIMITER \
+    strm << "; \n"
+
+    if (isSet.noReadNotes) {
+        strm << "noReadNotes: " << (restrictions.noReadNotes ? "true" : "false");
+    }
+    else {
+        strm << "noReadNotes is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noCreateNotes) {
+        strm << "noCreateNotes: " << (restrictions.noCreateNotes ? "true" : "false");
+    }
+    else {
+        strm << "noCreateNotes is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noUpdateNotes) {
+        strm << "noUpdateNotes: " << (restrictions.noUpdateNotes ? "true" : "false");
+    }
+    else {
+        strm << "noUpdateNotes is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noExpungeNotes) {
+        strm << "noExpungeNotes: " << (restrictions.noExpungeNotes ? "true" : "false");
+    }
+    else {
+        strm << "noExpungeNotes is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noShareNotes) {
+        strm << "noShareNotes: " << (restrictions.noShareNotes ? "true" : "false");
+    }
+    else {
+        strm << "noShareNotes is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noEmailNotes) {
+        strm << "noEmailNotes: " << (restrictions.noEmailNotes ? "true" : "false");
+    }
+    else {
+        strm << "noEmailNotes is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noSendMessageToRecipients) {
+        strm << "noSendMessageToRecipients: " << (restrictions.noSendMessageToRecipients ? "true" : "false");
+    }
+    else {
+        strm << "noSendMessageToRecipients is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noUpdateNotebook) {
+        strm << "noUpdateNotebook: " << (restrictions.noUpdateNotebook ? "true" : "false");
+    }
+    else {
+        strm << "noUpdateNotebook is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noExpungeNotebook) {
+        strm << "noExpungeNotebook: " << (restrictions.noExpungeNotebook ? "true" : "false");
+    }
+    else {
+        strm << "noExpungeNotebook is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noSetDefaultNotebook) {
+        strm << "noSetDefaultNotebook: " << (restrictions.noSetDefaultNotebook ? "true" : "false");
+    }
+    else {
+        strm << "noSetDefaultNotebook is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noSetNotebookStack) {
+        strm << "noSetNotebookStack: " << (restrictions.noSetNotebookStack ? "true" : "false");
+    }
+    else {
+        strm << "noSetNotebookStack is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noPublishToPublic) {
+        strm << "noPublishToPublic: " << (restrictions.noPublishToPublic ? "true" : "false");
+    }
+    else {
+        strm << "noPublishToPublic is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noPublishToBusinessLibrary) {
+        strm << "noPublishToBusinessLibrary: " << (restrictions.noPublishToBusinessLibrary ? "true" : "false");
+    }
+    else {
+        strm << "noPublishToBusinessLibrary is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noCreateTags) {
+        strm << "noCreateTags: " << (restrictions.noCreateTags ? "true" : "false");
+    }
+    else {
+        strm << "noCreateTags is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noUpdateTags) {
+        strm << "noUpdateTags: " << (restrictions.noUpdateTags ? "true" : "false");
+    }
+    else {
+        strm << "noUpdateTags is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noExpungeTags) {
+        strm << "noExpungeTags: " << (restrictions.noExpungeTags ? "true" : "false");
+    }
+    else {
+        strm << "noExpungeTags is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noSetParentTag) {
+        strm << "noSetParentTag: " << (restrictions.noSetParentTag ? "true" : "false");
+    }
+    else {
+        strm << "noSetParentTag is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.noCreateSharedNotebooks) {
+        strm << "noCreateSharedNotebooks: " << (restrictions.noCreateSharedNotebooks ? "true" : "false");
+    }
+    else {
+        strm << "noCreateSharedNotebooks is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.updateWhichSharedNotebookRestrictions) {
+        strm << "updateWhichSharedNotebookRestrictions: " << restrictions.updateWhichSharedNotebookRestrictions;
+    }
+    else {
+        strm << "updateWhichSharedNotebookRestrictions is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isSet.expungeWhichSharedNotebookRestrictions) {
+        strm << "expungeWhichSharedNotebookRestrictions: " << restrictions.expungeWhichSharedNotebookRestrictions;
+    }
+    else {
+        strm << "expungeWhichSharedNotebookRestrictions is not set";
+    }
+    INSERT_DELIMITER;
+
+    strm << "}; \n";
+
+    return strm;
+}
+
+QTextStream & operator <<(QTextStream & strm, const evernote::edam::SharedNotebookInstanceRestrictions::type & restrictions)
+{
+    switch(restrictions)
+    {
+    case evernote::edam::SharedNotebookInstanceRestrictions::NO_SHARED_NOTEBOOKS:
+        strm << "NO_SHARED_NOTEBOOKS";
+        break;
+    case evernote::edam::SharedNotebookInstanceRestrictions::ONLY_JOINED_OR_PREVIEW:
+        strm << "ONLY_JOINED_OR_PREVIEW";
+        break;
+    default:
+        strm << "UNKNOWN";
+        break;
+    }
+
+    return strm;
+}

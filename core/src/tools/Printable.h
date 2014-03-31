@@ -64,5 +64,8 @@ __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::ResourceAttributes)
 __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::PrivilegeLevel::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::QueryFormat::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::SharedNotebookPrivilegeLevel::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::NoteSortOrder::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::NotebookRestrictions)
+__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::SharedNotebookInstanceRestrictions::type)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H
