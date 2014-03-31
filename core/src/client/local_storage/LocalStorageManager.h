@@ -26,6 +26,7 @@ typedef int32_t UserID;
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(ISharedNotebook)
+QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 QT_FORWARD_DECLARE_STRUCT(Notebook)
 QT_FORWARD_DECLARE_CLASS(Note)
@@ -90,11 +91,11 @@ public:
 
     bool ListAllNotebooks(std::vector<Notebook> & notebooks, QString & errorDescription) const;
 
-    bool ListAllSharedNotebooks(std::vector<evernote::edam::SharedNotebook> & sharedNotebooks,
+    bool ListAllSharedNotebooks(std::vector<SharedNotebookWrapper> & sharedNotebooks,
                                 QString & errorDescription) const;
 
     bool ListSharedNotebooksPerNotebookGuid(const evernote::edam::Guid & notebookGuid,
-                                            std::vector<evernote::edam::SharedNotebook> & sharedNotebooks,
+                                            std::vector<SharedNotebookWrapper> & sharedNotebooks,
                                             QString & errorDescription) const;
 
     /**
@@ -261,6 +262,10 @@ private:
     bool FindAndSetResourcesPerNote(Note & note, QString & errorDescription,
                                     const bool withBinaryData = true) const;
     bool FindAndSetNoteAttributesPerNote(Note & note, QString & errorDescription) const;
+
+    bool ListSharedNotebooksPerNotebookGuid(const evernote::edam::Guid & notebookGuid,
+                                            std::vector<evernote::edam::SharedNotebook> & sharedNotebooks,
+                                            QString & errorDescription) const;
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;

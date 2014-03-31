@@ -3,7 +3,13 @@
 namespace qute_note {
 
 SharedNotebookWrapper::SharedNotebookWrapper() :
+    ISharedNotebook(),
     m_enSharedNotebook()
+{}
+
+SharedNotebookWrapper::SharedNotebookWrapper(const evernote::edam::SharedNotebook & sharedNotebook) :
+    ISharedNotebook(),
+    m_enSharedNotebook(sharedNotebook)
 {}
 
 SharedNotebookWrapper::SharedNotebookWrapper(const SharedNotebookWrapper & other) :

@@ -14,6 +14,7 @@
 #include <client/types/LinkedNotebook.h>
 #include <client/types/ISharedNotebook.h>
 #include <client/types/SharedNotebookAdapter.h>
+#include <client/types/SharedNotebookWrapper.h>
 #include <client/types/SavedSearch.h>
 #include <client/types/Tag.h>
 #include <tools/QuteNoteNullPtrException.h>
@@ -501,7 +502,7 @@ bool LocalStorageManager::ListAllNotebooks(std::vector<Notebook> & notebooks,
     return true;
 }
 
-bool LocalStorageManager::ListAllSharedNotebooks(std::vector<evernote::edam::SharedNotebook> & sharedNotebooks,
+bool LocalStorageManager::ListAllSharedNotebooks(std::vector<SharedNotebookWrapper> & sharedNotebooks,
                                                  QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManager::ListAllSharedNotebooks");
@@ -519,17 +520,38 @@ bool LocalStorageManager::ListAllSharedNotebooks(std::vector<evernote::edam::Sha
     {
         QSqlRecord record = query.record();
 
-        sharedNotebooks.push_back(SharedNotebook());
-        SharedNotebook & sharedNotebook = sharedNotebooks.back();
-        SharedNotebookAdapter sharedNotebookAdapter(sharedNotebook);
+        sharedNotebooks.push_back(SharedNotebookWrapper());
+        SharedNotebookWrapper & sharedNotebook = sharedNotebooks.back();
 
-        res = FillSharedNotebookFromSqlRecord(record, sharedNotebookAdapter, errorDescription);
+        res = FillSharedNotebookFromSqlRecord(record, sharedNotebook, errorDescription);
         if (!res) {
             return false;
         }
     }
 
     QNDEBUG("found " << sharedNotebooks.size() << " shared notebooks");
+
+    return true;
+}
+
+bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const Guid & notebookGuid,
+                                                             std::vector<SharedNotebookWrapper> & sharedNotebooks,
+                                                             QString & errorDescription) const
+{
+    std::vector<SharedNotebook> enSharedNotebooks;
+    bool res = ListSharedNotebooksPerNotebookGuid(notebookGuid, enSharedNotebooks,
+                                                  errorDescription);
+    if (!res) {
+        return res;
+    }
+
+    size_t numFoundSharedNotebooks = enSharedNotebooks.size();
+    sharedNotebooks.clear();
+    sharedNotebooks.reserve(numFoundSharedNotebooks);
+
+    for(size_t i = 0; i < numFoundSharedNotebooks; ++i) {
+        sharedNotebooks.push_back(SharedNotebookWrapper(enSharedNotebooks[i]));
+    }
 
     return true;
 }

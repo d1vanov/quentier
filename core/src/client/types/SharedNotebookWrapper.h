@@ -14,6 +14,7 @@ class SharedNotebookWrapper final: public ISharedNotebook
 {
 public:
     SharedNotebookWrapper();
+    SharedNotebookWrapper(const evernote::edam::SharedNotebook & sharedNotebook);
     SharedNotebookWrapper(const SharedNotebookWrapper & other);
     SharedNotebookWrapper & operator=(const SharedNotebookWrapper & other);
     virtual ~SharedNotebookWrapper() final override;
