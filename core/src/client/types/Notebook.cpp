@@ -166,6 +166,11 @@ const QString Notebook::name() const
 
 void Notebook::setName(const QString & name)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't set name for notebook: updating is forbidden");
+        return;
+    }
+
     m_enNotebook.name = name.toStdString();
     m_enNotebook.__isset.name = !name.isEmpty();
 }
@@ -177,6 +182,11 @@ bool Notebook::isDefaultNotebook() const
 
 void Notebook::setDefaultNotebookFlag(const bool defaultNotebook)
 {
+    if (!canSetDefaultNotebook()) {
+        QNDEBUG("Can't set defaut notebook flag: setting default notebook is forbidden");
+        return;
+    }
+
     m_enNotebook.defaultNotebook = defaultNotebook;
     m_enNotebook.__isset.defaultNotebook = true;
 }
@@ -209,6 +219,11 @@ qint64 Notebook::modificationTimestamp() const
 
 void Notebook::setModificationTimestamp(const qint64 timestamp)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't set modification timestamp for notebook: updating is forbidden");
+        return;
+    }
+
     m_enNotebook.serviceUpdated = timestamp;
     m_enNotebook.__isset.serviceUpdated = true;
 }
@@ -232,6 +247,11 @@ const QString Notebook::publishingUri() const
 
 void Notebook::setPublishingUri(const QString & uri)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't set publishing uri for notebook: update is forbidden");
+        return;
+    }
+
     m_enNotebook.publishing.uri = uri.toStdString();
     m_enNotebook.publishing.__isset.uri = !uri.isEmpty();
     CHECK_AND_SET_PUBLISHING;
@@ -249,6 +269,11 @@ qint8 Notebook::publishingOrder() const
 
 void Notebook::setPublishingOrder(const qint8 order)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't set publishing order for notebook: update is forbidden");
+        return;
+    }
+
     m_enNotebook.publishing.order = static_cast<evernote::edam::NoteSortOrder::type>(order);
     m_enNotebook.publishing.__isset.order = true;
     CHECK_AND_SET_PUBLISHING;
@@ -266,6 +291,11 @@ bool Notebook::isPublishingAscending() const
 
 void Notebook::setPublisingAscending(const bool ascending)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't set publishing ascending for notebook: update is forbidden");
+        return;
+    }
+
     m_enNotebook.publishing.ascending = ascending;
     m_enNotebook.publishing.__isset.ascending = true;
     CHECK_AND_SET_PUBLISHING;
@@ -283,6 +313,11 @@ const QString Notebook::publicDescription() const
 
 void Notebook::setPublicDescription(const QString & publicDescription)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't set publishing public description for notebook: update is forbidden");
+        return;
+    }
+
     m_enNotebook.publishing.publicDescription = publicDescription.toStdString();
     m_enNotebook.publishing.__isset.publicDescription = !publicDescription.isEmpty();
     CHECK_AND_SET_PUBLISHING;
@@ -297,6 +332,11 @@ bool Notebook::isPublished() const
 
 void Notebook::setPublishedFlag(const bool published)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't set published flag for notebook: update is forbidden");
+        return;
+    }
+
     m_enNotebook.published = published;
     m_enNotebook.__isset.published = true;
 }
@@ -313,14 +353,9 @@ const QString Notebook::stack() const
 
 void Notebook::setStack(const QString & stack)
 {
-    if (m_enNotebook.__isset.restrictions)
-    {
-        if (m_enNotebook.restrictions.__isset.noSetNotebookStack &&
-            m_enNotebook.restrictions.noSetDefaultNotebook)
-        {
-            QNDEBUG("Can't set stack for Notebook due to specified restrictions");
-            return;
-        }
+    if (!canSetNotebookStack()) {
+        QNDEBUG("Can't set stack for notebook: setting stack is forbidden");
+        return;
     }
 
     m_enNotebook.stack = stack.toStdString();
@@ -344,6 +379,11 @@ void Notebook::sharedNotebooks(std::vector<SharedNotebookAdapter> & notebooks) c
 
 void Notebook::setSharedNotebooks(std::vector<ISharedNotebook> & notebooks)
 {
+    if (!canCreateSharedNotebooks() || !canUpdateNotebook()) {
+        QNDEBUG("Can't set shared notebooks for notebook: restrictions apply");
+        return;
+    }
+
     size_t numNotebooks = notebooks.size();
 
     auto & sharedNotebooks = m_enNotebook.sharedNotebooks;
@@ -355,6 +395,11 @@ void Notebook::setSharedNotebooks(std::vector<ISharedNotebook> & notebooks)
 
 void Notebook::addSharedNotebook(const ISharedNotebook & sharedNotebook)
 {
+    if (!canCreateSharedNotebooks() || !canUpdateNotebook()) {
+        QNDEBUG("Can't add shared notebook for notebook: restrictions apply");
+        return;
+    }
+
     auto & sharedNotebooks = m_enNotebook.sharedNotebooks;
     auto it = std::find(sharedNotebooks.cbegin(), sharedNotebooks.cend(), sharedNotebook.GetEnSharedNotebook());
     if (it != sharedNotebooks.cend()) {
@@ -367,6 +412,11 @@ void Notebook::addSharedNotebook(const ISharedNotebook & sharedNotebook)
 
 void Notebook::removeSharedNotebook(const ISharedNotebook & sharedNotebook)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't remove shared notebook from notebook: updating is forbidden");
+        return;
+    }
+
     auto & sharedNotebooks = m_enNotebook.sharedNotebooks;
     auto it = std::find(sharedNotebooks.begin(), sharedNotebooks.end(), sharedNotebook.GetEnSharedNotebook());
     if (it == sharedNotebooks.end()) {
@@ -397,6 +447,11 @@ const QString Notebook::businessNotebookDescription() const
 
 void Notebook::setBusinessNotebookDescription(const QString & businessNotebookDescription)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't set business notebook description for notebook: updating is forbidden");
+        return;
+    }
+
     m_enNotebook.businessNotebook.notebookDescription = businessNotebookDescription.toStdString();
     m_enNotebook.businessNotebook.__isset.notebookDescription = !businessNotebookDescription.isEmpty();
     CHECK_AND_SET_BUSINESS_NOTEBOOK;
@@ -414,6 +469,11 @@ qint8 Notebook::businessNotebookPrivilegeLevel() const
 
 void Notebook::setBusinessNotebookPrivilegeLevel(const qint8 privilegeLevel)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't set business notebook privilege level for notebook: updating is forbidden");
+        return;
+    }
+
     m_enNotebook.businessNotebook.privilege = static_cast<evernote::edam::SharedNotebookPrivilegeLevel::type>(privilegeLevel);
     m_enNotebook.businessNotebook.__isset.privilege = true;
     CHECK_AND_SET_BUSINESS_NOTEBOOK;
@@ -431,6 +491,11 @@ bool Notebook::isBusinessNotebookRecommended() const
 
 void Notebook::setBusinessNotebookRecommendedFlag(const bool recommended)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't set business notebook recommended flag for notebook: updating is forbidden");
+        return;
+    }
+
     m_enNotebook.businessNotebook.recommended = recommended;
     m_enNotebook.businessNotebook.__isset.recommended = true;
     CHECK_AND_SET_BUSINESS_NOTEBOOK;
@@ -450,6 +515,11 @@ const UserAdapter Notebook::contact() const
 
 void Notebook::setContact(const IUser & contact)
 {
+    if (!canUpdateNotebook()) {
+        QNDEBUG("Can't set contact for notebook: updating if forbidden");
+        return;
+    }
+
     m_enNotebook.contact = contact.GetEnUser();
     m_enNotebook.__isset.contact = true;
 }
