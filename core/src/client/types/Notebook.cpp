@@ -454,23 +454,119 @@ void Notebook::setContact(const IUser & contact)
     m_enNotebook.__isset.contact = true;
 }
 
-bool Notebook::hasRestrictions() const
+bool Notebook::canReadNotes() const
 {
-    return m_enNotebook.__isset.restrictions;
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noReadNotes &&
+             m_enNotebook.restrictions.noReadNotes);
 }
 
-const QByteArray Notebook::restrictions() const
+bool Notebook::canCreateNotes() const
 {
-    // FIXME: implement serialization for NotebookRestrictions
-    return QByteArray();
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noCreateNotes &&
+             m_enNotebook.restrictions.noCreateNotes);
 }
 
-void Notebook::setRestrictions(const QByteArray &restrictions)
+bool Notebook::canUpdateNotes() const
 {
-    // FIXME: implement
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noUpdateNotes &&
+             m_enNotebook.restrictions.noUpdateNotes);
 }
 
+bool Notebook::canExpungeNotes() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noExpungeNotes &&
+             m_enNotebook.restrictions.noExpungeNotes);
+}
 
+bool Notebook::canShareNotes() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noShareNotes &&
+             m_enNotebook.restrictions.noShareNotes);
+}
+
+bool Notebook::canEmailNotes() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noEmailNotes &&
+             m_enNotebook.restrictions.noEmailNotes);
+}
+
+bool Notebook::canSendMessageToRecipients() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noSendMessageToRecipients &&
+             m_enNotebook.restrictions.noSendMessageToRecipients);
+}
+
+bool Notebook::canUpdateNotebook() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noUpdateNotebook &&
+             m_enNotebook.restrictions.noUpdateNotebook);
+}
+
+bool Notebook::canExpungeNotebook() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noExpungeNotebook &&
+             m_enNotebook.restrictions.noExpungeNotebook);
+}
+
+bool Notebook::canSetDefaultNotebook() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noSetDefaultNotebook &&
+             m_enNotebook.restrictions.noSetDefaultNotebook);
+}
+
+bool Notebook::canSetNotebookStack() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noSetNotebookStack &&
+             m_enNotebook.restrictions.noSetNotebookStack);
+}
+
+bool Notebook::canPublishToPublic() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noPublishToPublic &&
+             m_enNotebook.restrictions.noPublishToPublic);
+}
+
+bool Notebook::canPublishToBusinessLibrary() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noPublishToBusinessLibrary &&
+             m_enNotebook.restrictions.noPublishToBusinessLibrary);
+}
+
+bool Notebook::canCreateTags() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noCreateTags &&
+             m_enNotebook.restrictions.noCreateTags);
+}
+
+bool Notebook::canUpdateTags() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noUpdateTags &&
+             m_enNotebook.restrictions.noUpdateTags);
+}
+
+bool Notebook::canExpungeTags() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noExpungeTags &&
+             m_enNotebook.restrictions.noExpungeTags);
+}
+
+bool Notebook::canSetParentTag() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noSetParentTag &&
+             m_enNotebook.restrictions.noSetParentTag);
+}
+
+bool Notebook::canCreateSharedNotebooks() const
+{
+    return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noCreateSharedNotebooks &&
+             m_enNotebook.restrictions.noCreateSharedNotebooks);
+}
+
+void Notebook::setRestrictions(const evernote::edam::NotebookRestrictions & restrictions)
+{
+    m_enNotebook.restrictions = restrictions;
+    m_enNotebook.__isset.restrictions = true;
+}
 
 QTextStream & Notebook::Print(QTextStream & strm) const
 {
@@ -651,6 +747,14 @@ QTextStream & Notebook::Print(QTextStream & strm) const
     }
     else {
         strm << "restrictions are not set";
+    }
+    INSERT_DELIMITER;
+
+    if (isDirty()) {
+        strm << "notebook is dirty";
+    }
+    else {
+        strm << "notebook is synchronized";
     }
     INSERT_DELIMITER;
 

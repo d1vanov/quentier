@@ -91,9 +91,32 @@ public:
     const UserAdapter contact() const;
     void setContact(const IUser & contact);
 
-    bool hasRestrictions() const;
-    const QByteArray restrictions() const;
-    void setRestrictions(const QByteArray & restrictions);
+    // Restrictions
+    bool canReadNotes() const;
+    bool canCreateNotes() const;
+    bool canUpdateNotes() const;
+    bool canExpungeNotes() const;
+    bool canShareNotes() const;
+    bool canEmailNotes() const;
+
+    bool canSendMessageToRecipients() const;
+
+    bool canUpdateNotebook() const;
+    bool canExpungeNotebook() const;
+    bool canSetDefaultNotebook() const;
+    bool canSetNotebookStack() const;
+
+    bool canPublishToPublic() const;
+    bool canPublishToBusinessLibrary() const;
+
+    bool canCreateTags() const;
+    bool canUpdateTags() const;
+    bool canExpungeTags() const;
+    bool canSetParentTag() const;
+
+    bool canCreateSharedNotebooks() const;
+
+    void setRestrictions(const evernote::edam::NotebookRestrictions & restrictions);
 
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
