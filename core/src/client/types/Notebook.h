@@ -54,6 +54,7 @@ public:
     qint8 publishingOrder() const;
     void setPublishingOrder(const qint8 order);
 
+    bool hasPublishingAscending() const;
     bool isPublishingAscending() const;
     void setPublisingAscending(const bool ascending);
 
@@ -82,6 +83,7 @@ public:
     qint8 businessNotebookPrivilegeLevel() const;
     void setBusinessNotebookPrivilegeLevel(const qint8 privilegeLevel);
 
+    bool hasBusinessNotebookRecommended() const;
     bool isBusinessNotebookRecommended() const;
     void setBusinessNotebookRecommendedFlag(const bool recommended);
 

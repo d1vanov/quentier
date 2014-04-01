@@ -529,6 +529,8 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
+#undef INSERT_DELIMITER
+
     strm << "}; \n";
 
     return strm;

@@ -10,8 +10,9 @@
 
 namespace qute_note {
 
-struct Notebook
+class Notebook
 {
+public:
     Notebook() : isDirty(true), isLocal(true), isLastUsed(false), en_notebook() {}
 
     bool isDirty;

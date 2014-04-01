@@ -67,6 +67,8 @@ public:
     bool reminderNotifyApp() const;
     void setReminderNotifyApp(const bool notifyApp);
 
+    friend class Notebook;
+
 protected:
     ISharedNotebook(const ISharedNotebook & other);
     ISharedNotebook & operator=(const ISharedNotebook & other);
