@@ -10,12 +10,17 @@
 namespace qute_note {
 
 Notebook::Notebook() :
-    NoteStoreDataElement()
+    NoteStoreDataElement(),
+    m_enNotebook(),
+    m_isLocal(true),
+    m_isLastUsed(false)
 {}
 
 Notebook::Notebook(const Notebook &other) :
     NoteStoreDataElement(other),
-    m_enNotebook(other.m_enNotebook)
+    m_enNotebook(other.m_enNotebook),
+    m_isLocal(other.m_isLocal),
+    m_isLastUsed(other.m_isLastUsed)
 {}
 
 Notebook & Notebook::operator=(const Notebook & other)
@@ -23,6 +28,8 @@ Notebook & Notebook::operator=(const Notebook & other)
     if (this != &other) {
         NoteStoreDataElement::operator=(other);
         m_enNotebook = other.m_enNotebook;
+        m_isLocal = other.m_isLocal;
+        m_isLastUsed = other.m_isLastUsed;
     }
 
     return *this;
@@ -180,7 +187,7 @@ bool Notebook::isDefaultNotebook() const
     return (m_enNotebook.__isset.defaultNotebook && m_enNotebook.defaultNotebook);
 }
 
-void Notebook::setDefaultNotebookFlag(const bool defaultNotebook)
+void Notebook::setDefaultNotebook(const bool defaultNotebook)
 {
     if (!canSetDefaultNotebook()) {
         QNDEBUG("Can't set defaut notebook flag: setting default notebook is forbidden");
@@ -289,7 +296,7 @@ bool Notebook::isPublishingAscending() const
     return m_enNotebook.publishing.ascending;
 }
 
-void Notebook::setPublisingAscending(const bool ascending)
+void Notebook::setPublishingAscending(const bool ascending)
 {
     if (!canUpdateNotebook()) {
         QNDEBUG("Can't set publishing ascending for notebook: update is forbidden");
@@ -301,17 +308,17 @@ void Notebook::setPublisingAscending(const bool ascending)
     CHECK_AND_SET_PUBLISHING;
 }
 
-bool Notebook::hasPublicDescription() const
+bool Notebook::hasPublishingPublicDescription() const
 {
     return m_enNotebook.__isset.publishing && m_enNotebook.publishing.__isset.publicDescription;
 }
 
-const QString Notebook::publicDescription() const
+const QString Notebook::publishingPublicDescription() const
 {
     return std::move(QString::fromStdString(m_enNotebook.publishing.publicDescription));
 }
 
-void Notebook::setPublicDescription(const QString & publicDescription)
+void Notebook::setPublishingPublicDescription(const QString & publicDescription)
 {
     if (!canUpdateNotebook()) {
         QNDEBUG("Can't set publishing public description for notebook: update is forbidden");
@@ -323,6 +330,11 @@ void Notebook::setPublicDescription(const QString & publicDescription)
     CHECK_AND_SET_PUBLISHING;
 }
 
+bool Notebook::hasPublished() const
+{
+    return m_enNotebook.__isset.published;
+}
+
 #undef CHECK_AND_SET_PUBLISHING
 
 bool Notebook::isPublished() const
@@ -330,7 +342,7 @@ bool Notebook::isPublished() const
     return m_enNotebook.__isset.published && m_enNotebook.published;
 }
 
-void Notebook::setPublishedFlag(const bool published)
+void Notebook::setPublished(const bool published)
 {
     if (!canUpdateNotebook()) {
         QNDEBUG("Can't set published flag for notebook: update is forbidden");
@@ -489,7 +501,7 @@ bool Notebook::isBusinessNotebookRecommended() const
     return m_enNotebook.businessNotebook.recommended;
 }
 
-void Notebook::setBusinessNotebookRecommendedFlag(const bool recommended)
+void Notebook::setBusinessNotebookRecommended(const bool recommended)
 {
     if (!canUpdateNotebook()) {
         QNDEBUG("Can't set business notebook recommended flag for notebook: updating is forbidden");
@@ -521,7 +533,27 @@ void Notebook::setContact(const IUser & contact)
     }
 
     m_enNotebook.contact = contact.GetEnUser();
-    m_enNotebook.__isset.contact = true;
+    m_enNotebook.__isset.contact = (m_enNotebook.contact.id != 0);
+}
+
+bool Notebook::isLocal() const
+{
+    return m_isLocal;
+}
+
+void Notebook::setLocal(const bool local)
+{
+    m_isLocal = local;
+}
+
+bool Notebook::isLastUsed() const
+{
+    return m_isLastUsed;
+}
+
+void Notebook::setLastUsed(const bool lastUsed)
+{
+    m_isLastUsed = lastUsed;
 }
 
 bool Notebook::canReadNotes() const
@@ -630,6 +662,16 @@ bool Notebook::canCreateSharedNotebooks() const
 {
     return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noCreateSharedNotebooks &&
              m_enNotebook.restrictions.noCreateSharedNotebooks);
+}
+
+bool Notebook::hasRestrictions() const
+{
+    return m_enNotebook.__isset.restrictions;
+}
+
+const evernote::edam::NotebookRestrictions & Notebook::restrictions() const
+{
+    return m_enNotebook.restrictions;
 }
 
 void Notebook::setRestrictions(const evernote::edam::NotebookRestrictions & restrictions)
@@ -825,6 +867,22 @@ QTextStream & Notebook::Print(QTextStream & strm) const
     }
     else {
         strm << "notebook is synchronized";
+    }
+    INSERT_DELIMITER;
+
+    if (isLocal()) {
+        strm << "notebook is local";
+    }
+    else {
+        strm << "notebook is not local";
+    }
+    INSERT_DELIMITER;
+
+    if (isLastUsed()) {
+        strm << "notebook is last used";
+    }
+    else {
+        strm << "notebook is not last used";
     }
     INSERT_DELIMITER;
 

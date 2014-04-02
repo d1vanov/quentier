@@ -23,7 +23,7 @@ public:
     qint64 id() const;
     void setId(const qint64 id);
 
-    bool hasUsedId() const;
+    bool hasUserId() const;
     qint32 userId() const;
     void setUserId(const qint32 userId);
 

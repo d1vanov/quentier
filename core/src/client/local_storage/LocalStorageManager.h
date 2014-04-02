@@ -17,6 +17,7 @@ QT_FORWARD_DECLARE_CLASS(BusinessUserInfo)
 QT_FORWARD_DECLARE_CLASS(NoteStoreClient)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Notebook)
+QT_FORWARD_DECLARE_CLASS(NotebookRestrictions)
 QT_FORWARD_DECLARE_CLASS(SharedNotebook)
 typedef int32_t UserID;
 
@@ -27,6 +28,7 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(ISharedNotebook)
 QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
+QT_FORWARD_DECLARE_CLASS(SharedNotebookAdapter)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(Note)
@@ -96,6 +98,9 @@ public:
 
     bool ListSharedNotebooksPerNotebookGuid(const evernote::edam::Guid & notebookGuid,
                                             std::vector<SharedNotebookWrapper> & sharedNotebooks,
+                                            QString & errorDescription) const;
+    bool ListSharedNotebooksPerNotebookGuid(const evernote::edam::Guid & notebookGuid,
+                                            std::vector<SharedNotebookAdapter> & sharedNotebooks,
                                             QString & errorDescription) const;
 
     /**
@@ -230,11 +235,10 @@ public:
 private:
     bool CreateTables(QString & errorDescription);
     bool SetNoteAttributes(const Note & note, QString & errorDescription);
-    bool SetNotebookAdditionalAttributes(const evernote::edam::Notebook & notebook,
-                                         QString & errorDescription);
-    bool SetNotebookRestrictions(const evernote::edam::Notebook & notebook,
-                                 QString & errorDescription);
-    bool SetSharedNotebookAttributes(const evernote::edam::SharedNotebook & sharedNotebook,
+    bool SetNotebookAdditionalAttributes(const Notebook & notebook, QString & errorDescription);
+    bool SetNotebookRestrictions(const evernote::edam::NotebookRestrictions & notebookRestrictions,
+                                 const QString & notebookGuid, QString & errorDescription);
+    bool SetSharedNotebookAttributes(const ISharedNotebook &sharedNotebook,
                                      QString & errorDescription);
 
     int GetRowId(const QString & tableName, const QString & uniqueKeyName,

@@ -2,7 +2,6 @@
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
 #include "Serialization.h"
-#include <client/EnWrappers.h>
 #include <client/Utility.h>
 #include <logging/QuteNoteLogger.h>
 #include <client/types/IResource.h>
@@ -11,6 +10,7 @@
 #include <client/types/IUser.h>
 #include <client/types/UserAdapter.h>
 #include <client/types/UserWrapper.h>
+#include <client/types/Notebook.h>
 #include <client/types/LinkedNotebook.h>
 #include <client/types/ISharedNotebook.h>
 #include <client/types/SharedNotebookAdapter.h>
@@ -400,13 +400,13 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
     errorDescription = QObject::tr("Can't add notebook to local storage database: ");
     QString error;
 
-    bool res = notebook.CheckParameters(error);
+    bool res = notebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
         return false;
     }
 
-    int rowId = GetRowId("Notebooks", "guid", QVariant(QString::fromStdString(notebook.en_notebook.guid)));
+    int rowId = GetRowId("Notebooks", "guid", QVariant(notebook.guid()));
     if (rowId >= 0) {
         errorDescription += QObject::tr("notebook with specified guid already exists");
         return false;
@@ -420,13 +420,13 @@ bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & er
     errorDescription = QObject::tr("Can't update notebook in local storage database: ");
     QString error;
 
-    bool res = notebook.CheckParameters(error);
+    bool res = notebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
         return false;
     }
 
-    int rowId = GetRowId("Notebooks", "guid", QVariant(QString::fromStdString(notebook.en_notebook.guid)));
+    int rowId = GetRowId("Notebooks", "guid", QVariant(notebook.guid()));
     if (rowId < 0) {
         errorDescription += QObject::tr("notebook was not found by guid");
         return false;
@@ -557,6 +557,28 @@ bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const Guid & notebo
 }
 
 bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const Guid & notebookGuid,
+                                                             std::vector<SharedNotebookAdapter> & sharedNotebooks,
+                                                             QString & errorDescription) const
+{
+    std::vector<SharedNotebook> enSharedNotebooks;
+    bool res = ListSharedNotebooksPerNotebookGuid(notebookGuid, enSharedNotebooks,
+                                                  errorDescription);
+    if (!res) {
+        return res;
+    }
+
+    size_t numFoundSharedNotebooks = enSharedNotebooks.size();
+    sharedNotebooks.clear();
+    sharedNotebooks.reserve(numFoundSharedNotebooks);
+
+    for(size_t i = 0; i < numFoundSharedNotebooks; ++i) {
+        sharedNotebooks.push_back(SharedNotebookAdapter(enSharedNotebooks[i]));
+    }
+
+    return true;
+}
+
+bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const Guid & notebookGuid,
                                                              std::vector<SharedNotebook> & sharedNotebooks,
                                                              QString & errorDescription) const
 {
@@ -606,18 +628,19 @@ bool LocalStorageManager::ExpungeNotebook(const Notebook & notebook, QString & e
 {
     errorDescription = QObject::tr("Can't expunge notebook from local storage database: ");
 
-    const evernote::edam::Notebook & enNotebook = notebook.en_notebook;
-
-    if (!enNotebook.__isset.guid) {
+    if (!notebook.hasGuid()) {
         errorDescription += QObject::tr("notebook's guid is not set");
         return false;
     }
-    else if (!CheckGuid(enNotebook.guid)) {
+
+    const QString notebookGuid = notebook.guid();
+
+    if (!CheckGuid(notebookGuid.toStdString())) {
         errorDescription += QObject::tr("notebook's guid is invalid");
         return false;
     }
 
-    int rowId = GetRowId("Notebooks", "guid", QVariant(QString::fromStdString(enNotebook.guid)));
+    int rowId = GetRowId("Notebooks", "guid", QVariant(notebookGuid));
     if (rowId < 0) {
         errorDescription += QObject::tr("can't determine row id of notebook "
                                         "to be expunged in \"Notebooks\" table in SQL database");
@@ -1893,114 +1916,89 @@ bool LocalStorageManager::SetNoteAttributes(const Note & note, QString & errorDe
     return true;
 }
 
-bool LocalStorageManager::SetNotebookAdditionalAttributes(const evernote::edam::Notebook & notebook,
+bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & notebook,
                                                           QString & errorDescription)
 {
     QSqlQuery query(m_sqlDatabase);
 
     bool hasAdditionalAttributes = false;
     query.prepare("INSERT OR REPLACE INTO Notebooks (:notebookGuid, :columns) VALUES(:values)");
-    query.bindValue("notebookGuid", QVariant(QString::fromStdString(notebook.guid)));
+    query.bindValue("notebookGuid", QVariant(notebook.guid()));
 
     QString columns;
     QString values;
 
-    if (notebook.__isset.published)
+    if (notebook.hasPublished())
     {
         hasAdditionalAttributes = true;
+
+        bool notebookIsPublished = notebook.isPublished();
 
         columns.append("isPublished");
-        values.append(QString::number(notebook.published ? 1 : 0));
-    }
+        values.append(QString::number(notebookIsPublished ? 1 : 0));
 
-    if (notebook.published && notebook.__isset.published)
-    {
-        hasAdditionalAttributes = true;
-
-        const Publishing & publishing = notebook.publishing;
-
-        if (publishing.__isset.uri)
+        if (notebookIsPublished)
         {
-            if (!columns.isEmpty()) { columns.append(", "); }
-            if (!values.isEmpty()) { values.append(", "); }
 
-            columns.append("publishingUri");
-            values.append(QString::fromStdString(publishing.uri));
-        }
+#define APPEND_SEPARATORS \
+    if (!columns.isEmpty()) { columns.append(", "); } \
+    if (!values.isEmpty()) { values.append(", "); }
 
-        if (publishing.__isset.order)
-        {
-            if (!columns.isEmpty()) { columns.append(", "); }
-            if (!values.isEmpty()) { values.append(", "); }
+            if (notebook.hasPublishingUri()) {
+                APPEND_SEPARATORS;
+                columns.append("publishingUri");
+                values.append(notebook.publishingUri());
+            }
 
-            columns.append("publishingNoteSortOrder");
-            values.append(QString::number(publishing.order));
-        }
+            if (notebook.hasPublishingOrder()) {
+                APPEND_SEPARATORS;
+                columns.append("publishingNoteSortOrder");
+                values.append(notebook.publishingOrder());
+            }
 
-        if (publishing.__isset.ascending)
-        {
-            if (!columns.isEmpty()) { columns.append(", "); }
-            if (!values.isEmpty()) { values.append(", "); }
+            if (notebook.hasPublishingAscending()) {
+                APPEND_SEPARATORS;
+                columns.append("publishingAscendingSort");
+                values.append(notebook.isPublishingAscending() ? 1 : 0);
+            }
 
-            columns.append("publishingAscendingSort");
-            values.append(QString::number((publishing.ascending ? 1 : 0)));
-        }
-
-        if (publishing.__isset.publicDescription)
-        {
-            if (!columns.isEmpty()) { columns.append(", "); }
-            if (!values.isEmpty()) { values.append(", "); }
-
-            columns.append("publicDescription");
-            values.append(QString::fromStdString(publishing.publicDescription));
+            if (notebook.hasPublishingPublicDescription()) {
+                APPEND_SEPARATORS;
+                columns.append("publicDescription");
+                values.append(notebook.publishingPublicDescription());
+            }
         }
     }
 
-    if (notebook.__isset.businessNotebook)
-    {
+    if (notebook.hasBusinessNotebookDescription()) {
         hasAdditionalAttributes = true;
-
-        const BusinessNotebook & businessNotebook = notebook.businessNotebook;
-
-        if (businessNotebook.__isset.notebookDescription)
-        {
-            if (!columns.isEmpty()) { columns.append(", "); }
-            if (!values.isEmpty()) { values.append(", "); }
-
-            columns.append("businessNotebookDescription");
-            values.append(QString::fromStdString(businessNotebook.notebookDescription));
-        }
-
-        if (businessNotebook.__isset.privilege)
-        {
-            if (!columns.isEmpty()) { columns.append(", "); }
-            if (!values.isEmpty()) { values.append(", "); }
-
-            columns.append("businessNotebookPrivilegeLevel");
-            values.append(QString::number(businessNotebook.privilege));
-        }
-
-        if (businessNotebook.__isset.recommended)
-        {
-            if (!columns.isEmpty()) { columns.append(", "); }
-            if (!values.isEmpty()) { values.append(", "); }
-
-            columns.append("businessNotebookIsRecommended");
-            values.append(QString::number((businessNotebook.recommended ? 1 : 0)));
-        }
+        APPEND_SEPARATORS;
+        columns.append("businessNotebookDescription");
+        values.append(notebook.businessNotebookDescription());
     }
 
-    if (notebook.__isset.contact)
+    if (notebook.hasBusinessNotebookPrivilegeLevel()) {
+        hasAdditionalAttributes = true;
+        APPEND_SEPARATORS;
+        columns.append("businessNotebookPrivilegeLevel");
+        values.append(notebook.businessNotebookPrivilegeLevel());
+    }
+
+    if (notebook.hasBusinessNotebookRecommended()) {
+        hasAdditionalAttributes = true;
+        APPEND_SEPARATORS;
+        columns.append("businessNotebookIsRecommended");
+        values.append(notebook.isBusinessNotebookRecommended() ? 1 : 0);
+    }
+
+    if (notebook.hasContact())
     {
         hasAdditionalAttributes = true;
-
-        if (!columns.isEmpty()) { columns.append(", "); }
-        if (!values.isEmpty()) { values.append(", "); }
-
+        APPEND_SEPARATORS;
         columns.append("contactId");
-        values.append(QString::number(notebook.contact.id));
+        const UserAdapter user = notebook.contact();
+        values.append(user.GetEnUser().id);
 
-        UserAdapter user(notebook.contact);
         QString error;
         bool res = user.CheckParameters(error);
         if (!res) {
@@ -2026,18 +2024,23 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const evernote::edam::
                                      "into \"Notebooks\" table in SQL database");
     }
 
-    QString error;
-    bool res = SetNotebookRestrictions(notebook, error);
-    if (!res) {
-        errorDescription += error;
-        return res;
+    if (notebook.hasRestrictions())
+    {
+        QString error;
+        bool res = SetNotebookRestrictions(notebook.restrictions(), notebook.guid(), error);
+        if (!res) {
+            errorDescription += error;
+            return res;
+        }
     }
 
-    const auto & sharedNotebooks = notebook.sharedNotebooks;
+    std::vector<SharedNotebookAdapter> sharedNotebooks;
+    notebook.sharedNotebooks(sharedNotebooks);
+
     for(const auto & sharedNotebook: sharedNotebooks)
     {
-        error.clear();
-        res = SetSharedNotebookAttributes(sharedNotebook, error);
+        QString error;
+        bool res = SetSharedNotebookAttributes(sharedNotebook, error);
         if (!res) {
             errorDescription += error;
             return res;
@@ -2047,26 +2050,19 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const evernote::edam::
     return true;
 }
 
-bool LocalStorageManager::SetNotebookRestrictions(const evernote::edam::Notebook & notebook,
-                                                  QString & errorDescription)
+bool LocalStorageManager::SetNotebookRestrictions(const evernote::edam::NotebookRestrictions & notebookRestrictions,
+                                                  const QString & notebookGuid, QString & errorDescription)
 {
-    if (!notebook.__isset.restrictions) {
-        // Nothing to do
-        return true;
-    }
-
     errorDescription = QObject::tr("Can't set notebook restrictions: ");
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO NotebookRestrictions (:notebookGuid, :columns) "
                   "VALUES(:vals)");
-    query.bindValue("notebookGuid", QString::fromStdString(notebook.guid));
+    query.bindValue("notebookGuid", notebookGuid);
 
     bool hasAnyRestriction = false;
 
     QString columns, values;
-
-    const evernote::edam::NotebookRestrictions & notebookRestrictions = notebook.restrictions;
 
 #define CHECK_AND_SET_NOTEBOOK_RESTRICTION(restriction, value) \
     if (notebookRestrictions.__isset.restriction) \
@@ -2118,21 +2114,21 @@ bool LocalStorageManager::SetNotebookRestrictions(const evernote::edam::Notebook
     return true;
 }
 
-bool LocalStorageManager::SetSharedNotebookAttributes(const evernote::edam::SharedNotebook & sharedNotebook,
+bool LocalStorageManager::SetSharedNotebookAttributes(const ISharedNotebook & sharedNotebook,
                                                       QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't set shared notebook attributes: ");
 
-    if (!sharedNotebook.__isset.id) {
+    if (!sharedNotebook.hasId()) {
         errorDescription += QObject::tr("shared notebook's share id is not set");
         return false;
     }
 
-    if (!sharedNotebook.__isset.notebookGuid) {
+    if (!sharedNotebook.hasNotebookGuid()) {
         errorDescription += QObject::tr("shared notebook's notebook guid is not set");
         return false;
     }
-    else if (!CheckGuid(sharedNotebook.notebookGuid)) {
+    else if (!CheckGuid(sharedNotebook.notebookGuid().toStdString())) {
         errorDescription += QObject::tr("shared notebook's notebook guid is invalid");
         return false;
     }
@@ -2143,8 +2139,8 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const evernote::edam::Shar
     QString columns, values;
     bool hasAnyProperty = false;
 
-#define CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(holder, isSetName, columnName, valueName) \
-    if (holder.__isset.isSetName) \
+#define CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(checker, columnName, valueName) \
+    if (sharedNotebook.checker()) \
     { \
         hasAnyProperty = true; \
         \
@@ -2159,38 +2155,26 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const evernote::edam::Shar
         values.append(valueName); \
     }
 
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, id, shareId,
-                                            QString::number(sharedNotebook.id));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, userId, userId,
-                                            QString::number(sharedNotebook.userId));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, notebookGuid, notebookGuid,
-                                            QString::fromStdString(sharedNotebook.notebookGuid));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, email, email,
-                                            QString::fromStdString(sharedNotebook.email));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, serviceCreated, creationTimestamp,
-                                            QString::number(sharedNotebook.serviceCreated));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, serviceUpdated, modificationTimestamp,
-                                            QString::number(sharedNotebook.serviceUpdated));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, shareKey, shareKey,
-                                            QString::fromStdString(sharedNotebook.shareKey));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, username, username,
-                                            QString::fromStdString(sharedNotebook.username));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, privilege, sharedNotebookPrivilegeLevel,
-                                            QString::number(sharedNotebook.privilege));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(sharedNotebook, allowPreview, allowPreview,
-                                            QString::number(sharedNotebook.allowPreview ? 1 : 0));
-
-    if (sharedNotebook.__isset.recipientSettings)
-    {
-        const auto & recipientSettings = sharedNotebook.recipientSettings;
-
-        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(recipientSettings, reminderNotifyEmail,
-                                                recipientReminderNotifyEmail,
-                                                QString::number(recipientSettings.reminderNotifyEmail ? 1 : 0));
-        CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(recipientSettings, reminderNotifyInApp,
-                                                recipientRemindrNotifyInApp,
-                                                QString::number(recipientSettings.reminderNotifyInApp ? 1 : 0));
-    }
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasId, shareId,
+                                            QString::number(sharedNotebook.id()));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasUserId, userId,
+                                            QString::number(sharedNotebook.userId()));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasNotebookGuid, notebookGuid, sharedNotebook.notebookGuid());
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasEmail, email, sharedNotebook.email());
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasCreationTimestamp,creationTimestamp,
+                                            QString::number(sharedNotebook.creationTimestamp()));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasModificationTimestamp, modificationTimestamp,
+                                            QString::number(sharedNotebook.modificationTimestamp()));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasShareKey, shareKey, sharedNotebook.shareKey());
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasUsername, username, sharedNotebook.username());
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasPrivilegeLevel, sharedNotebookPrivilegeLevel,
+                                            QString::number(sharedNotebook.privilegeLevel()));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasAllowPreview, allowPreview,
+                                            QString::number(sharedNotebook.allowPreview() ? 1 : 0));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasReminderNotifyEmail, recipientReminderNotifyEmail,
+                                            QString::number(sharedNotebook.reminderNotifyEmail() ? 1 : 0));
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasReminderNotifyApp, recipientRemindrNotifyInApp,
+                                            QString::number(sharedNotebook.reminderNotifyApp() ? 1 : 0));
 
 #undef CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE
 
@@ -2329,29 +2313,27 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
 
     errorDescription = QObject::tr("Can't insert or replace notebook into local storage database: ");
 
-    const evernote::edam::Notebook & enNotebook = notebook.en_notebook;
-
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO Notebooks (guid, updateSequenceNumber, name, "
                   "creationTimestamp, modificationTimestamp, isDirty, isLocal, "
                   "isDefault, isLastUsed, isPublished, stack) VALUES(?, ?, ?, ?, "
                   "?, ?, ?, ?, ?, ?, ?)");
-    query.addBindValue(QString::fromStdString(enNotebook.guid));
-    query.addBindValue(enNotebook.updateSequenceNum);
-    query.addBindValue(QString::fromStdString(enNotebook.name));
-    query.addBindValue(QVariant(static_cast<int>(enNotebook.serviceCreated)));
-    query.addBindValue(QVariant(static_cast<int>(enNotebook.serviceUpdated)));
-    query.addBindValue(notebook.isDirty);
-    query.addBindValue(notebook.isLocal);
-    query.addBindValue(enNotebook.defaultNotebook);
-    query.addBindValue(notebook.isLastUsed);
-    query.addBindValue(QVariant(enNotebook.published ? 1 : 0));
-    query.addBindValue(QString::fromStdString(enNotebook.stack));
+    query.addBindValue(notebook.guid());
+    query.addBindValue(notebook.updateSequenceNumber());
+    query.addBindValue(notebook.name());
+    query.addBindValue(notebook.creationTimestamp());
+    query.addBindValue(notebook.modificationTimestamp());
+    query.addBindValue((notebook.isDirty() ? 1 : 0));
+    query.addBindValue((notebook.isLocal() ? 1 : 0));
+    query.addBindValue((notebook.isDefaultNotebook() ? 1 : 0));
+    query.addBindValue((notebook.isLastUsed() ? 1 : 0));
+    query.addBindValue((notebook.isPublished() ? 1 : 0));
+    query.addBindValue(notebook.stack());
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook into \"Notebooks\" table in SQL database");
 
-    return SetNotebookAdditionalAttributes(enNotebook, errorDescription);
+    return SetNotebookAdditionalAttributes(notebook, errorDescription);
 }
 
 bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook,
@@ -2670,110 +2652,75 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
 bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, 
                                                     QString & errorDescription) const
 {
-#define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(holder, attribute) \
+#define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute, setter, dbType, trueType, isRequired) \
     if (record.contains(#attribute)) { \
-        holder.attribute = (qvariant_cast<int>(record.value(#attribute)) != 0); \
+        notebook.setter(static_cast<trueType>((qvariant_cast<dbType>(record.value(#attribute))))); \
     } \
-    else { \
+    else if (isRequired) { \
         errorDescription += QObject::tr("Internal error: No " #attribute " field " \
                                         "in the result of SQL query"); \
         return false; \
     }
 
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(notebook, isDirty);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(notebook, isLocal);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(notebook, isLastUsed);
-
-    auto & enNotebook = notebook.en_notebook;
-
-#define CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(holder, attributeLocalName, attributeEnName, \
-                                            type, true_type, is_required, ...) \
-    if (record.contains(#attributeLocalName)) { \
-        holder.attributeEnName = static_cast<true_type>((qvariant_cast<type>(record.value(#attributeLocalName)))__VA_ARGS__); \
-        holder.__isset.attributeEnName = true; \
-    } \
-    else if (is_required) { \
-        errorDescription += QObject::tr("Internal error: no " #attributeLocalName " field " \
-                                        "in the result of SQL query"); \
-        return false; \
-    }
-
     bool isRequired = true;
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, guid, guid, QString, std::string,
-                                        isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, updateSequenceNumber, updateSequenceNum,
-                                        int, int32_t, isRequired);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, name, name, QString, std::string,
-                                        isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, isDefault, defaultNotebook,
-                                        int, bool, isRequired);   // NOTE: int to bool cast
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, creationTimestamp, serviceCreated,
-                                        int, Timestamp, isRequired);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, modificationTimestamp, serviceUpdated,
-                                        int, Timestamp, isRequired);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, isPublished, published, int,
-                                        bool, isRequired);   // NOTE: int to bool cast
 
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook, stack, stack, QString, std::string,
-                                        isRequired, .toStdString());
-    if (enNotebook.stack.empty()) {
-        enNotebook.__isset.stack = false;
-    }
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDirty, setDirty, int, bool, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLocal, setLocal, int, bool, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLastUsed, setLastUsed, int, bool, isRequired);
 
-    if (enNotebook.published) {
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publishingUri, uri,
-                                            QString, std::string, isRequired, .toStdString());
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publishingNoteSortOrder,
-                                            order, int, NoteSortOrder::type, isRequired);
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publishingAscendingSort,
-                                            ascending, int, bool, isRequired);  // NOTE: int to bool cast
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.publishing, publicDescription,
-                                            publicDescription, QString, std::string,
-                                            isRequired, .toStdString());
-    }
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(guid, setGuid, QString, QString, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(updateSequenceNumber, setUpdateSequenceNumber,
+                                     int, qint32, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(name, setName, QString, QString, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDefault, setDefaultNotebook, int, bool, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(creationTimestamp, setCreationTimestamp,
+                                     int, qint64, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(modificationTimestamp, setModificationTimestamp,
+                                     int, qint64, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isPublished, setPublished, int, bool, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(stack, setStack, QString, QString, isRequired);
 
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.businessNotebook, businessNotebookDescription,
-                                        notebookDescription, QString, std::string,
-                                        isRequired, .toStdString());
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.businessNotebook, businessNotebookPrivilegeLevel,
-                                        privilege, int, SharedNotebookPrivilegeLevel::type, isRequired);
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(enNotebook.businessNotebook, businessNotebookIsRecommended,
-                                        recommended, int, bool, isRequired);  // NOTE: int to bool cast
-
-    BusinessNotebook & businessNotebook = enNotebook.businessNotebook;
-    if (businessNotebook.notebookDescription.empty() &&
-        (businessNotebook.privilege == 0) &&
-        !businessNotebook.recommended)
+    if (notebook.hasPublished() && notebook.isPublished())
     {
-        businessNotebook.__isset.notebookDescription = false;
-        businessNotebook.__isset.privilege = false;
-        businessNotebook.__isset.recommended = false;
-        enNotebook.__isset.businessNotebook = false;
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasPublishingUri, setPublishingUri,
+                                         QString, QString, isRequired);
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasPublishingOrder, setPublishingOrder,
+                                         int, qint8, isRequired);
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasPublishingAscending, setPublishingAscending,
+                                         int, bool, isRequired);
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasPublishingPublicDescription,
+                                         setPublishingPublicDescription,
+                                         QString, QString, isRequired);
     }
+
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasBusinessNotebookDescription, setBusinessNotebookDescription,
+                                     QString, QString, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasBusinessNotebookPrivilegeLevel, setBusinessNotebookPrivilegeLevel,
+                                     int, qint8, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasBusinessNotebookRecommended, setBusinessNotebookRecommended,
+                                     int, bool, isRequired);
 
     if (record.contains("contactId")) {
-        enNotebook.contact.id = qvariant_cast<int32_t>(record.value("contactId"));
-        enNotebook.contact.__isset.id = true;
-        enNotebook.__isset.contact = true;
+        UserAdapter user = notebook.contact();
+        auto & enUser = user.GetEnUser();
+        enUser.id = qvariant_cast<int32_t>(record.value("contactId"));
+        enUser.__isset.id = true;
+        notebook.setContact(user);
+
+        if (notebook.hasContact())
+        {
+            QString error;
+            bool res = FindUser(enUser.id, user, error);
+            if (!res) {
+                errorDescription += error;
+                return false;
+            }
+        }
     }
     else {
         errorDescription += QObject::tr("Internal error: No contactId field "
                                         "in the result of SQL query");
         return false;
-    }
-
-    if (enNotebook.contact.id == 0) {
-        enNotebook.__isset.contact = false;
-        enNotebook.contact.__isset.id = false;
-    }
-    else {
-        UserAdapter user(enNotebook.contact);
-        QString error;
-        bool res = FindUser(enNotebook.contact.id, user, error);
-        if (!res) {
-            errorDescription += error;
-            return false;
-        }
     }
 
     QSqlQuery query(m_sqlDatabase);
@@ -2784,12 +2731,14 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
                   "noSetParentTag, noCreateSharedNotebooks, updateWhichSharedNotebookRestrictions, "
                   "expungeWhichSharedNotebookRestrictions FROM NotebookRestrictions "
                   "WHERE guid=?");
-    query.addBindValue(QString::fromStdString(enNotebook.guid));
+    query.addBindValue(notebook.guid());
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't find notebook restrictions for specified "
                                  "notebook guid from SQL database");
 
+    // FIXME: fix this piece of code, adopt new infrastructure
+    /*
     if (query.next())
     {
         QSqlRecord record = query.record();   // NOTE: intentionally hide the method parameter in this scope to reuse macro
@@ -2798,8 +2747,9 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
         NotebookRestrictions & restrictions = enNotebook.restrictions;
 
         isRequired = false;
+
 #define SET_EN_NOTEBOOK_RESTRICTION(notebook_restriction) \
-    CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(restrictions, notebook_restriction, \
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasRestrictions, notebook_restriction, \
                                         notebook_restriction, int, bool, isRequired);
 
         SET_EN_NOTEBOOK_RESTRICTION(noReadNotes);
@@ -2838,10 +2788,14 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
         // No restrictions are set
         enNotebook.__isset.restrictions = false;
     }
+    */
 
     QString error;
-    res = ListSharedNotebooksPerNotebookGuid(notebook.en_notebook.guid,
-                                             enNotebook.sharedNotebooks, error);
+    std::vector<SharedNotebookAdapter> sharedNotebooks;
+    notebook.sharedNotebooks(sharedNotebooks);
+
+    res = ListSharedNotebooksPerNotebookGuid(notebook.guid().toStdString(),
+                                             sharedNotebooks, error);
     if (!res) {
         errorDescription += error;
         return false;

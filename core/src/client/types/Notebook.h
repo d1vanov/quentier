@@ -36,7 +36,7 @@ public:
     void setName(const QString & name);
 
     bool isDefaultNotebook() const;
-    void setDefaultNotebookFlag(const bool defaultNotebook);
+    void setDefaultNotebook(const bool defaultNotebook);
 
     bool hasCreationTimestamp() const;
     qint64 creationTimestamp() const;
@@ -56,14 +56,15 @@ public:
 
     bool hasPublishingAscending() const;
     bool isPublishingAscending() const;
-    void setPublisingAscending(const bool ascending);
+    void setPublishingAscending(const bool ascending);
 
-    bool hasPublicDescription() const;
-    const QString publicDescription() const;
-    void setPublicDescription(const QString & publicDescription);
+    bool hasPublishingPublicDescription() const;
+    const QString publishingPublicDescription() const;
+    void setPublishingPublicDescription(const QString & publishingPublicDescription);
 
+    bool hasPublished() const;
     bool isPublished() const;
-    void setPublishedFlag(const bool published);
+    void setPublished(const bool published);
 
     bool hasStack() const;
     const QString stack() const;
@@ -85,11 +86,17 @@ public:
 
     bool hasBusinessNotebookRecommended() const;
     bool isBusinessNotebookRecommended() const;
-    void setBusinessNotebookRecommendedFlag(const bool recommended);
+    void setBusinessNotebookRecommended(const bool recommended);
 
     bool hasContact() const;
     const UserAdapter contact() const;
     void setContact(const IUser & contact);
+
+    bool isLocal() const;
+    void setLocal(const bool local);
+
+    bool isLastUsed() const;
+    void setLastUsed(const bool lastUsed);
 
     // Restrictions
     bool canReadNotes() const;
@@ -116,12 +123,16 @@ public:
 
     bool canCreateSharedNotebooks() const;
 
+    bool hasRestrictions() const;
+    const evernote::edam::NotebookRestrictions & restrictions() const;
     void setRestrictions(const evernote::edam::NotebookRestrictions & restrictions);
 
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
     evernote::edam::Notebook m_enNotebook;
+    bool   m_isLocal;
+    bool   m_isLastUsed;
 };
 
 } // namespace qute_note

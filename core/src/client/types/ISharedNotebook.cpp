@@ -28,7 +28,7 @@ void ISharedNotebook::setId(const qint64 id)
     enSharedNotebook.__isset.id = true;
 }
 
-bool ISharedNotebook::hasUsedId() const
+bool ISharedNotebook::hasUserId() const
 {
     const auto & enSharedNotebook = GetEnSharedNotebook();
     return enSharedNotebook.__isset.userId;
