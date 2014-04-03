@@ -100,32 +100,69 @@ public:
 
     // Restrictions
     bool canReadNotes() const;
+    void setCanReadNotes(const bool canReadNotes);
+
     bool canCreateNotes() const;
+    void setCanCreateNotes(const bool canCreateNotes);
+
     bool canUpdateNotes() const;
+    void setCanUpdateNotes(const bool canUpdateNotes);
+
     bool canExpungeNotes() const;
+    void setCanExpungeNotes(const bool canExpungeNotes);
+
     bool canShareNotes() const;
+    void setCanShareNotes(const bool canShareNotes);
+
     bool canEmailNotes() const;
+    void setCanEmailNotes(const bool canEmailNotes);
 
     bool canSendMessageToRecipients() const;
+    void setCanSendMessageToRecipients(const bool canSendMessageToRecipients);
 
     bool canUpdateNotebook() const;
+    void setCanUpdateNotebook(const bool canUpdateNotebook);
+
     bool canExpungeNotebook() const;
+    void setCanExpungeNotebook(const bool canExpungeNotebook);
+
     bool canSetDefaultNotebook() const;
+    void setCanSetDefaultNotebook(const bool canSetDefaultNotebook);
+
     bool canSetNotebookStack() const;
+    void setCanSetNotebookStack(const bool canSetNotebookStack);
 
     bool canPublishToPublic() const;
+    void setCanPublishToPublic(const bool canPublishToPublic);
+
     bool canPublishToBusinessLibrary() const;
+    void setCanPublishToBusinessLibrary(const bool canPublishToBusinessLibrary);
 
     bool canCreateTags() const;
+    void setCanCreateTags(const bool canCreateTags);
+
     bool canUpdateTags() const;
+    void setCanUpdateTags(const bool canUpdateTags);
+
     bool canExpungeTags() const;
+    void setCanExpungeTags(const bool canExpungeTags);
+
     bool canSetParentTag() const;
+    void setCanSetParentTag(const bool canSetParentTag);
 
     bool canCreateSharedNotebooks() const;
+    void setCanCreateSharedNotebooks(const bool canCreateSharedNotebooks);
+
+    bool hasUpdateWhichSharedNotebookRestrictions() const;
+    qint8 updateWhichSharedNotebookRestrictions() const;
+    void setUpdateWhichSharedNotebookRestrictions(const qint8 which);
+
+    bool hasExpungeWhichSharedNotebookRestrictions() const;
+    qint8 expungeWhichSharedNotebookRestrictions() const;
+    void setExpungeWhichSharedNotebookRestrictions(const qint8 which);
 
     bool hasRestrictions() const;
     const evernote::edam::NotebookRestrictions & restrictions() const;
-    void setRestrictions(const evernote::edam::NotebookRestrictions & restrictions);
 
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;

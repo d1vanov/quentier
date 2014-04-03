@@ -562,10 +562,24 @@ bool Notebook::canReadNotes() const
              m_enNotebook.restrictions.noReadNotes);
 }
 
+void Notebook::setCanReadNotes(const bool canReadNotes)
+{
+    m_enNotebook.restrictions.noReadNotes = !canReadNotes;
+    m_enNotebook.restrictions.__isset.noReadNotes = true;
+    m_enNotebook.__isset.restrictions = true;
+}
+
 bool Notebook::canCreateNotes() const
 {
     return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noCreateNotes &&
              m_enNotebook.restrictions.noCreateNotes);
+}
+
+void Notebook::setCanCreateNotes(const bool canCreateNotes)
+{
+    m_enNotebook.restrictions.noCreateNotes = !canCreateNotes;
+    m_enNotebook.restrictions.__isset.noCreateNotes = true;
+    m_enNotebook.__isset.restrictions = true;
 }
 
 bool Notebook::canUpdateNotes() const
@@ -574,10 +588,24 @@ bool Notebook::canUpdateNotes() const
              m_enNotebook.restrictions.noUpdateNotes);
 }
 
+void Notebook::setCanUpdateNotes(const bool canUpdateNotes)
+{
+    m_enNotebook.restrictions.noUpdateNotes = !canUpdateNotes;
+    m_enNotebook.restrictions.__isset.noUpdateNotes = true;
+    m_enNotebook.__isset.restrictions = true;
+}
+
 bool Notebook::canExpungeNotes() const
 {
     return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noExpungeNotes &&
              m_enNotebook.restrictions.noExpungeNotes);
+}
+
+void Notebook::setCanExpungeNotes(const bool canExpungeNotes)
+{
+    m_enNotebook.restrictions.noExpungeNotes = !canExpungeNotes;
+    m_enNotebook.restrictions.__isset.noExpungeNotes = true;
+    m_enNotebook.__isset.restrictions = true;
 }
 
 bool Notebook::canShareNotes() const
@@ -586,10 +614,24 @@ bool Notebook::canShareNotes() const
              m_enNotebook.restrictions.noShareNotes);
 }
 
+void Notebook::setCanShareNotes(const bool canShareNotes)
+{
+    m_enNotebook.restrictions.noShareNotes = !canShareNotes;
+    m_enNotebook.restrictions.__isset.noShareNotes = true;
+    m_enNotebook.__isset.restrictions = true;
+}
+
 bool Notebook::canEmailNotes() const
 {
     return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noEmailNotes &&
              m_enNotebook.restrictions.noEmailNotes);
+}
+
+void Notebook::setCanEmailNotes(const bool canEmailNotes)
+{
+    m_enNotebook.restrictions.noEmailNotes = !canEmailNotes;
+    m_enNotebook.restrictions.__isset.noEmailNotes = true;
+    m_enNotebook.__isset.restrictions = true;
 }
 
 bool Notebook::canSendMessageToRecipients() const
@@ -598,10 +640,24 @@ bool Notebook::canSendMessageToRecipients() const
              m_enNotebook.restrictions.noSendMessageToRecipients);
 }
 
+void Notebook::setCanSendMessageToRecipients(const bool canSendMessageToRecipients)
+{
+    m_enNotebook.restrictions.noSendMessageToRecipients = !canSendMessageToRecipients;
+    m_enNotebook.restrictions.__isset.noSendMessageToRecipients = true;
+    m_enNotebook.__isset.restrictions = true;
+}
+
 bool Notebook::canUpdateNotebook() const
 {
     return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noUpdateNotebook &&
              m_enNotebook.restrictions.noUpdateNotebook);
+}
+
+void Notebook::setCanUpdateNotebook(const bool canUpdateNotebook)
+{
+    m_enNotebook.restrictions.noUpdateNotebook = !canUpdateNotebook;
+    m_enNotebook.restrictions.__isset.noUpdateNotebook = true;
+    m_enNotebook.__isset.restrictions = true;
 }
 
 bool Notebook::canExpungeNotebook() const
@@ -610,10 +666,24 @@ bool Notebook::canExpungeNotebook() const
              m_enNotebook.restrictions.noExpungeNotebook);
 }
 
+void Notebook::setCanExpungeNotebook(const bool canExpungeNotebook)
+{
+    m_enNotebook.restrictions.noExpungeNotebook = !canExpungeNotebook;
+    m_enNotebook.restrictions.__isset.noExpungeNotebook = true;
+    m_enNotebook.__isset.restrictions = true;
+}
+
 bool Notebook::canSetDefaultNotebook() const
 {
     return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noSetDefaultNotebook &&
              m_enNotebook.restrictions.noSetDefaultNotebook);
+}
+
+void Notebook::setCanSetDefaultNotebook(const bool canSetDefaultNotebook)
+{
+    m_enNotebook.restrictions.noSetDefaultNotebook = !canSetDefaultNotebook;
+    m_enNotebook.restrictions.__isset.noSetDefaultNotebook = true;
+    m_enNotebook.__isset.restrictions = true;
 }
 
 bool Notebook::canSetNotebookStack() const
@@ -622,10 +692,24 @@ bool Notebook::canSetNotebookStack() const
              m_enNotebook.restrictions.noSetNotebookStack);
 }
 
+void Notebook::setCanSetNotebookStack(const bool canSetNotebookStack)
+{
+    m_enNotebook.restrictions.noSetNotebookStack = !canSetNotebookStack;
+    m_enNotebook.restrictions.__isset.noSetNotebookStack = true;
+    m_enNotebook.__isset.restrictions = true;
+}
+
 bool Notebook::canPublishToPublic() const
 {
     return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noPublishToPublic &&
              m_enNotebook.restrictions.noPublishToPublic);
+}
+
+void Notebook::setCanPublishToPublic(const bool canPublishToPublic)
+{
+    m_enNotebook.restrictions.noPublishToPublic = !canPublishToPublic;
+    m_enNotebook.restrictions.__isset.noPublishToPublic = true;
+    m_enNotebook.__isset.restrictions = true;
 }
 
 bool Notebook::canPublishToBusinessLibrary() const
@@ -634,10 +718,24 @@ bool Notebook::canPublishToBusinessLibrary() const
              m_enNotebook.restrictions.noPublishToBusinessLibrary);
 }
 
+void Notebook::setCanPublishToBusinessLibrary(const bool canPublishToBusinessLibrary)
+{
+    m_enNotebook.restrictions.noPublishToBusinessLibrary = !canPublishToBusinessLibrary;
+    m_enNotebook.restrictions.__isset.noPublishToBusinessLibrary = true;
+    m_enNotebook.__isset.restrictions = true;
+}
+
 bool Notebook::canCreateTags() const
 {
     return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noCreateTags &&
              m_enNotebook.restrictions.noCreateTags);
+}
+
+void Notebook::setCanCreateTags(const bool canCreateTags)
+{
+    m_enNotebook.restrictions.noCreateTags = !canCreateTags;
+    m_enNotebook.restrictions.__isset.noCreateTags = true;
+    m_enNotebook.__isset.restrictions = true;
 }
 
 bool Notebook::canUpdateTags() const
@@ -646,10 +744,24 @@ bool Notebook::canUpdateTags() const
              m_enNotebook.restrictions.noUpdateTags);
 }
 
+void Notebook::setCanUpdateTags(const bool canUpdateTags)
+{
+    m_enNotebook.restrictions.noUpdateTags = !canUpdateTags;
+    m_enNotebook.restrictions.__isset.noUpdateTags = true;
+    m_enNotebook.__isset.restrictions = true;
+}
+
 bool Notebook::canExpungeTags() const
 {
     return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noExpungeTags &&
              m_enNotebook.restrictions.noExpungeTags);
+}
+
+void Notebook::setCanExpungeTags(const bool canExpungeTags)
+{
+    m_enNotebook.restrictions.noExpungeTags = !canExpungeTags;
+    m_enNotebook.restrictions.__isset.noExpungeTags = true;
+    m_enNotebook.__isset.restrictions = true;
 }
 
 bool Notebook::canSetParentTag() const
@@ -658,10 +770,58 @@ bool Notebook::canSetParentTag() const
              m_enNotebook.restrictions.noSetParentTag);
 }
 
+void Notebook::setCanSetParentTag(const bool canSetParentTag)
+{
+    m_enNotebook.restrictions.noSetParentTag = !canSetParentTag;
+    m_enNotebook.restrictions.__isset.noSetParentTag = true;
+    m_enNotebook.__isset.restrictions = true;
+}
+
 bool Notebook::canCreateSharedNotebooks() const
 {
     return !(m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.noCreateSharedNotebooks &&
              m_enNotebook.restrictions.noCreateSharedNotebooks);
+}
+
+void Notebook::setCanCreateSharedNotebooks(const bool canCreateSharedNotebooks)
+{
+    m_enNotebook.restrictions.noCreateSharedNotebooks = !canCreateSharedNotebooks;
+    m_enNotebook.restrictions.__isset.noCreateSharedNotebooks = true;
+    m_enNotebook.__isset.restrictions = true;
+}
+
+bool Notebook::hasUpdateWhichSharedNotebookRestrictions() const
+{
+    return m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.updateWhichSharedNotebookRestrictions;
+}
+
+qint8 Notebook::updateWhichSharedNotebookRestrictions() const
+{
+    return static_cast<qint8>(m_enNotebook.restrictions.updateWhichSharedNotebookRestrictions);
+}
+
+void Notebook::setUpdateWhichSharedNotebookRestrictions(const qint8 which)
+{
+    m_enNotebook.restrictions.updateWhichSharedNotebookRestrictions = static_cast<evernote::edam::SharedNotebookInstanceRestrictions::type>(which);
+    m_enNotebook.restrictions.__isset.updateWhichSharedNotebookRestrictions = true;
+    m_enNotebook.__isset.restrictions = true;
+}
+
+bool Notebook::hasExpungeWhichSharedNotebookRestrictions() const
+{
+    return m_enNotebook.__isset.restrictions && m_enNotebook.restrictions.__isset.expungeWhichSharedNotebookRestrictions;
+}
+
+qint8 Notebook::expungeWhichSharedNotebookRestrictions() const
+{
+    return static_cast<qint8>(m_enNotebook.restrictions.expungeWhichSharedNotebookRestrictions);
+}
+
+void Notebook::setExpungeWhichSharedNotebookRestrictions(const qint8 which)
+{
+    m_enNotebook.restrictions.expungeWhichSharedNotebookRestrictions = static_cast<evernote::edam::SharedNotebookInstanceRestrictions::type>(which);
+    m_enNotebook.restrictions.__isset.expungeWhichSharedNotebookRestrictions = true;
+    m_enNotebook.__isset.restrictions = true;
 }
 
 bool Notebook::hasRestrictions() const
@@ -672,12 +832,6 @@ bool Notebook::hasRestrictions() const
 const evernote::edam::NotebookRestrictions & Notebook::restrictions() const
 {
     return m_enNotebook.restrictions;
-}
-
-void Notebook::setRestrictions(const evernote::edam::NotebookRestrictions & restrictions)
-{
-    m_enNotebook.restrictions = restrictions;
-    m_enNotebook.__isset.restrictions = true;
 }
 
 QTextStream & Notebook::Print(QTextStream & strm) const

@@ -2682,22 +2682,22 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
 
     if (notebook.hasPublished() && notebook.isPublished())
     {
-        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasPublishingUri, setPublishingUri,
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingUri, setPublishingUri,
                                          QString, QString, isRequired);
-        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasPublishingOrder, setPublishingOrder,
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingOrder, setPublishingOrder,
                                          int, qint8, isRequired);
-        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasPublishingAscending, setPublishingAscending,
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingAscending, setPublishingAscending,
                                          int, bool, isRequired);
-        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasPublishingPublicDescription,
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publicDescription,
                                          setPublishingPublicDescription,
                                          QString, QString, isRequired);
     }
 
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasBusinessNotebookDescription, setBusinessNotebookDescription,
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(businessNotebookDescription, setBusinessNotebookDescription,
                                      QString, QString, isRequired);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasBusinessNotebookPrivilegeLevel, setBusinessNotebookPrivilegeLevel,
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(businessNotebookPrivilegeLevel, setBusinessNotebookPrivilegeLevel,
                                      int, qint8, isRequired);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasBusinessNotebookRecommended, setBusinessNotebookRecommended,
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(businessNotebookIsRecommended, setBusinessNotebookRecommended,
                                      int, bool, isRequired);
 
     if (record.contains("contactId")) {
@@ -2737,58 +2737,47 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
     DATABASE_CHECK_AND_SET_ERROR("can't find notebook restrictions for specified "
                                  "notebook guid from SQL database");
 
-    // FIXME: fix this piece of code, adopt new infrastructure
-    /*
     if (query.next())
     {
         QSqlRecord record = query.record();   // NOTE: intentionally hide the method parameter in this scope to reuse macro
 
-        enNotebook.__isset.restrictions = true;
-        NotebookRestrictions & restrictions = enNotebook.restrictions;
+#define SET_EN_NOTEBOOK_RESTRICTION(notebook_restriction, setter) \
+    if (record.contains(#notebook_restriction)) { \
+        notebook.setter(!(static_cast<bool>((qvariant_cast<int>(record.value(#notebook_restriction)))))); \
+    } \
 
-        isRequired = false;
-
-#define SET_EN_NOTEBOOK_RESTRICTION(notebook_restriction) \
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasRestrictions, notebook_restriction, \
-                                        notebook_restriction, int, bool, isRequired);
-
-        SET_EN_NOTEBOOK_RESTRICTION(noReadNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noCreateNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noUpdateNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noExpungeNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noShareNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noEmailNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noSendMessageToRecipients);
-        SET_EN_NOTEBOOK_RESTRICTION(noUpdateNotebook);
-        SET_EN_NOTEBOOK_RESTRICTION(noExpungeNotebook);
-        SET_EN_NOTEBOOK_RESTRICTION(noSetDefaultNotebook);
-        SET_EN_NOTEBOOK_RESTRICTION(noSetNotebookStack);
-        SET_EN_NOTEBOOK_RESTRICTION(noPublishToPublic);
-        SET_EN_NOTEBOOK_RESTRICTION(noPublishToBusinessLibrary);
-        SET_EN_NOTEBOOK_RESTRICTION(noCreateTags);
-        SET_EN_NOTEBOOK_RESTRICTION(noUpdateTags);
-        SET_EN_NOTEBOOK_RESTRICTION(noExpungeTags);
-        SET_EN_NOTEBOOK_RESTRICTION(noSetParentTag);
-        SET_EN_NOTEBOOK_RESTRICTION(noCreateSharedNotebooks);
+        SET_EN_NOTEBOOK_RESTRICTION(noReadNotes, setCanReadNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noCreateNotes, setCanCreateNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noUpdateNotes, setCanUpdateNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noExpungeNotes, setCanExpungeNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noShareNotes, setCanShareNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noEmailNotes, setCanEmailNotes);
+        SET_EN_NOTEBOOK_RESTRICTION(noSendMessageToRecipients, setCanSendMessageToRecipients);
+        SET_EN_NOTEBOOK_RESTRICTION(noUpdateNotebook, setCanUpdateNotebook);
+        SET_EN_NOTEBOOK_RESTRICTION(noExpungeNotebook, setCanExpungeNotebook);
+        SET_EN_NOTEBOOK_RESTRICTION(noSetDefaultNotebook, setCanSetDefaultNotebook);
+        SET_EN_NOTEBOOK_RESTRICTION(noSetNotebookStack, setCanSetNotebookStack);
+        SET_EN_NOTEBOOK_RESTRICTION(noPublishToPublic, setCanPublishToPublic);
+        SET_EN_NOTEBOOK_RESTRICTION(noPublishToBusinessLibrary, setCanPublishToBusinessLibrary);
+        SET_EN_NOTEBOOK_RESTRICTION(noCreateTags, setCanCreateTags);
+        SET_EN_NOTEBOOK_RESTRICTION(noUpdateTags, setCanUpdateTags);
+        SET_EN_NOTEBOOK_RESTRICTION(noExpungeTags, setCanExpungeTags);
+        SET_EN_NOTEBOOK_RESTRICTION(noSetParentTag, setCanSetParentTag);
+        SET_EN_NOTEBOOK_RESTRICTION(noCreateSharedNotebooks, setCanCreateSharedNotebooks);
 
 #undef SET_EN_NOTEBOOK_RESTRICTION
 
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(restrictions, updateWhichSharedNotebookRestrictions,
-                                            updateWhichSharedNotebookRestrictions,
-                                            int, SharedNotebookInstanceRestrictions::type,
-                                            isRequired);
+        isRequired = false;
 
-        CHECK_AND_SET_EN_NOTEBOOK_ATTRIBUTE(restrictions, expungeWhichSharedNotebookRestrictions,
-                                            expungeWhichSharedNotebookRestrictions,
-                                            int, SharedNotebookInstanceRestrictions::type,
-                                            isRequired);
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(updateWhichSharedNotebookRestrictions,
+                                         setUpdateWhichSharedNotebookRestrictions,
+                                         int, qint8, isRequired);
+
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(expungeWhichSharedNotebookRestrictions,
+                                         setExpungeWhichSharedNotebookRestrictions,
+                                         int, qint8, isRequired);
 
     }
-    else {
-        // No restrictions are set
-        enNotebook.__isset.restrictions = false;
-    }
-    */
 
     QString error;
     std::vector<SharedNotebookAdapter> sharedNotebooks;
