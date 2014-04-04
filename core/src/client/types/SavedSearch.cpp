@@ -27,6 +27,16 @@ SavedSearch & SavedSearch::operator=(const SavedSearch & other)
 SavedSearch::~SavedSearch()
 {}
 
+bool SavedSearch::operator==(const SavedSearch & other) const
+{
+    return (m_enSearch == other.m_enSearch);
+}
+
+bool SavedSearch::operator!=(const SavedSearch & other) const
+{
+    return !operator==(other);
+}
+
 void SavedSearch::clear()
 {
     m_enSearch = evernote::edam::SavedSearch();

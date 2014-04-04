@@ -118,10 +118,12 @@ target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB} ${THRIFT_LIB}
                       ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES})
 
 set(TEST_HEADERS
+    src/tests/LocalStorageManagerTests.h
     src/tests/SerializationTests.h
     src/tests/CoreTester.h)
 
 set(TEST_SOURCES
+    src/tests/LocalStorageManagerTests.cpp
     src/tests/SerializationTests.cpp
     src/tests/CoreTester.cpp
     src/tests/CoreTestMain.cpp)

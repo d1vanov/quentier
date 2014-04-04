@@ -14,6 +14,9 @@ public:
     SavedSearch & operator=(const SavedSearch & other);
     virtual ~SavedSearch() final override;
 
+    bool operator==(const SavedSearch & other) const;
+    bool operator!=(const SavedSearch & other) const;
+
     virtual void clear() final override;
 
     virtual bool hasGuid() const final override;
