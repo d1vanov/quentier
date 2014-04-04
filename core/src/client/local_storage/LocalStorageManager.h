@@ -41,12 +41,8 @@ typedef evernote::edam::UserID UserID;
 class LocalStorageManager
 {
 public:
-    LocalStorageManager(const QString & username, const UserID userId,
-                        const QString & authenticationToken,
-                        QSharedPointer<evernote::edam::NoteStoreClient> & pNoteStore);
+    LocalStorageManager(const QString & username, const UserID userId);
     ~LocalStorageManager();
-
-    void SetNewAuthenticationToken(const QString & authenticationToken);
 
     void SwitchUser(const QString & username, const UserID userId);
 
@@ -88,7 +84,7 @@ public:
     bool AddNotebook(const Notebook & notebook, QString & errorDescription);
     bool UpdateNotebook(const Notebook & notebook, QString & errorDescription);
 
-    bool FindNotebook(const evernote::edam::Guid & notebookGuid, Notebook & notebook,
+    bool FindNotebook(const QString & notebookGuid, Notebook & notebook,
                       QString & errorDescription);
 
     bool ListAllNotebooks(std::vector<Notebook> & notebooks, QString & errorDescription) const;
@@ -96,10 +92,10 @@ public:
     bool ListAllSharedNotebooks(std::vector<SharedNotebookWrapper> & sharedNotebooks,
                                 QString & errorDescription) const;
 
-    bool ListSharedNotebooksPerNotebookGuid(const evernote::edam::Guid & notebookGuid,
+    bool ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                             std::vector<SharedNotebookWrapper> & sharedNotebooks,
                                             QString & errorDescription) const;
-    bool ListSharedNotebooksPerNotebookGuid(const evernote::edam::Guid & notebookGuid,
+    bool ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                             std::vector<SharedNotebookAdapter> & sharedNotebooks,
                                             QString & errorDescription) const;
 
@@ -119,8 +115,8 @@ public:
 
     bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
-    bool FindLinkedNotebook(const evernote::edam::Guid & notebookGuid,
-                            LinkedNotebook & linkedNotebook, QString & errorDescription) const;
+    bool FindLinkedNotebook(const QString & notebookGuid, LinkedNotebook & linkedNotebook,
+                            QString & errorDescription) const;
 
     bool ListAllLinkedNotebooks(std::vector<LinkedNotebook> & notebooks, QString & errorDescription) const;
 
@@ -130,11 +126,10 @@ public:
     bool AddNote(const Note & note, QString & errorDescription);
     bool UpdateNote(const Note & note, QString & errorDescription);
 
-    bool FindNote(const evernote::edam::Guid & noteGuid, Note & note,
-                  QString & errorDescription) const;
+    bool FindNote(const QString & noteGuid, Note & note, QString & errorDescription) const;
 
-    bool FindAllNotesPerNotebook(const evernote::edam::Guid & notebookGuid,
-                                 std::vector<Note> & notes, QString & errorDescription) const;
+    bool FindAllNotesPerNotebook(const QString & notebookGuid, std::vector<Note> & notes,
+                                 QString & errorDescription) const;
 
 
     /**
@@ -165,9 +160,9 @@ public:
 
     bool LinkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
 
-    bool FindTag(const evernote::edam::Guid & tagGuid, Tag & tag, QString & errorDescription) const;
+    bool FindTag(const QString & tagGuid, Tag & tag, QString & errorDescription) const;
 
-    bool FindAllTagsPerNote(const evernote::edam::Guid & noteGuid, std::vector<Tag> & tags,
+    bool FindAllTagsPerNote(const QString & noteGuid, std::vector<Tag> & tags,
                             QString & errorDescription) const;
 
     bool ListAllTags(std::vector<Tag> & tags, QString & errorDescription) const;
@@ -197,7 +192,7 @@ public:
     bool AddResource(const IResource & resource, QString & errorDescription);
     bool UpdateResource(const IResource & resource, QString & errorDescription);
 
-    bool FindResource(const evernote::edam::Guid & resourceGuid, IResource & resource,
+    bool FindResource(const QString & resourceGuid, IResource & resource,
                       QString & errorDescription, const bool withBinaryData = true) const;
 
     // NOTE: there is no 'DeleteResource' method for a reason: resources are deleted automatically
@@ -215,7 +210,7 @@ public:
     bool AddSavedSearch(const SavedSearch & search, QString & errorDescription);
     bool UpdateSavedSearch(const SavedSearch & search, QString & errorDescription);
 
-    bool FindSavedSearch(const evernote::edam::Guid & searchGuid, SavedSearch & search,
+    bool FindSavedSearch(const QString & searchGuid, SavedSearch & search,
                          QString & errorDescription) const;
 
     bool ListAllSavedSearches(std::vector<SavedSearch> & searches, QString & errorDescription) const;
@@ -267,7 +262,7 @@ private:
                                     const bool withBinaryData = true) const;
     bool FindAndSetNoteAttributesPerNote(Note & note, QString & errorDescription) const;
 
-    bool ListSharedNotebooksPerNotebookGuid(const evernote::edam::Guid & notebookGuid,
+    bool ListSharedNotebooksPerNotebookGuid(const QString &notebookGuid,
                                             std::vector<evernote::edam::SharedNotebook> & sharedNotebooks,
                                             QString & errorDescription) const;
 
@@ -275,8 +270,6 @@ private:
     LocalStorageManager(const LocalStorageManager & other) = delete;
     LocalStorageManager & operator=(const LocalStorageManager & other) = delete;
 
-    QString m_authenticationToken;
-    QSharedPointer<evernote::edam::NoteStoreClient> m_pNoteStore;
     QString m_currentUsername;
     UserID m_currentUserId;
     QString m_applicationPersistenceStoragePath;

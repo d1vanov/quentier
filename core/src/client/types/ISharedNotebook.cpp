@@ -1,5 +1,5 @@
 #include "ISharedNotebook.h"
-#include <QDateTime>
+#include "../Utility.h"
 
 namespace qute_note {
 
@@ -300,10 +300,8 @@ QTextStream & ISharedNotebook::Print(QTextStream & strm) const
     strm << "; \n";
 
     if (isSet.serviceCreated) {
-        QDateTime createdDatetime;
-        createdDatetime.setTime_t(enSharedNotebook.serviceCreated);
         strm << "creationTimestamp: " << enSharedNotebook.serviceCreated
-             << ", datetime: " << createdDatetime.toString(Qt::ISODate);
+             << ", datetime: " << PrintableDateTimeFromTimestamp(enSharedNotebook.serviceCreated);
     }
     else {
         strm << "creationTimestamp is not set";
@@ -311,10 +309,8 @@ QTextStream & ISharedNotebook::Print(QTextStream & strm) const
     strm << "; \n";
 
     if (isSet.serviceUpdated) {
-        QDateTime updatedDatetime;
-        updatedDatetime.setTime_t(enSharedNotebook.serviceUpdated);
         strm << "modificationTimestamp: " << enSharedNotebook.serviceUpdated
-             << ", datetime: " << updatedDatetime.toString(Qt::ISODate);
+             << ", datetime: " << PrintableDateTimeFromTimestamp(enSharedNotebook.serviceUpdated);
     }
     else {
         strm << "modificationTimestamp is not set";

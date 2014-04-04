@@ -1,5 +1,5 @@
 #include "IResource.h"
-#include "../local_storage/Serialization.h"
+#include "../Serialization.h"
 #include <client/Utility.h>
 #include <Limits_constants.h>
 #include <QObject>

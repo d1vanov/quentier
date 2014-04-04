@@ -2,10 +2,9 @@
 #include "SharedNotebookAdapter.h"
 #include "UserAdapter.h"
 #include "../Utility.h"
-#include "../local_storage/Serialization.h"
+#include "../Serialization.h"
 #include <logging/QuteNoteLogger.h>
 #include <Limits_constants.h>
-#include <QDateTime>
 
 namespace qute_note {
 
@@ -876,10 +875,8 @@ QTextStream & Notebook::Print(QTextStream & strm) const
     INSERT_DELIMITER;
 
     if (isSet.serviceCreated) {
-        QDateTime createdDatetime;
-        createdDatetime.setTime_t(m_enNotebook.serviceCreated);
         strm << "creationTimestamp: " << m_enNotebook.serviceCreated << ", datetime: "
-             << createdDatetime.toString(Qt::ISODate);
+             << PrintableDateTimeFromTimestamp(m_enNotebook.serviceCreated);
     }
     else {
         strm << "creationTimestamp is not set";
@@ -887,10 +884,8 @@ QTextStream & Notebook::Print(QTextStream & strm) const
     INSERT_DELIMITER;
 
     if (isSet.serviceUpdated) {
-        QDateTime updatedDatetime;
-        updatedDatetime.setTime_t(m_enNotebook.serviceUpdated);
         strm << "modificationTimestamp: " << m_enNotebook.serviceUpdated << ", datetime: "
-             << updatedDatetime.toString(Qt::ISODate);
+             << PrintableDateTimeFromTimestamp(m_enNotebook.serviceUpdated);
     }
     else {
         strm << "modificationTimestamp is not set";

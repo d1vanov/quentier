@@ -1,10 +1,9 @@
 #include "Note.h"
 #include "ResourceAdapter.h"
 #include "../Utility.h"
-#include "../local_storage/Serialization.h"
+#include "../Serialization.h"
 #include <logging/QuteNoteLogger.h>
 #include <Limits_constants.h>
-#include <QDateTime>
 
 namespace qute_note {
 
@@ -741,10 +740,8 @@ QTextStream & Note::Print(QTextStream & strm) const
     INSERT_DELIMITER;
 
     if (isSet.created) {
-        QDateTime createdDatetime;
-        createdDatetime.setTime_t(m_enNote.created);
         strm << "creationTimestamp: " << m_enNote.created << ", datetime: "
-             << createdDatetime.toString(Qt::ISODate);
+             << PrintableDateTimeFromTimestamp(m_enNote.created);
     }
     else {
         strm << "creationTimestamp is not set";
@@ -752,10 +749,8 @@ QTextStream & Note::Print(QTextStream & strm) const
     INSERT_DELIMITER;
 
     if (isSet.updated) {
-        QDateTime updatedDatetime;
-        updatedDatetime.setTime_t(m_enNote.updated);
         strm << "modificationTimestamp: " << m_enNote.updated << ", datetime: "
-             << updatedDatetime.toString(Qt::ISODate);
+             << PrintableDateTimeFromTimestamp(m_enNote.updated);
     }
     else {
         strm << "modificationTimestamp is not set";
@@ -763,10 +758,8 @@ QTextStream & Note::Print(QTextStream & strm) const
     INSERT_DELIMITER;
 
     if (isSet.deleted) {
-        QDateTime deletedDatetime;
-        deletedDatetime.setTime_t(m_enNote.deleted);
         strm << "deletionTimestamp: " << m_enNote.deleted << ", datetime: "
-             << deletedDatetime.toString(Qt::ISODate);
+             << PrintableDateTimeFromTimestamp(m_enNote.deleted);
     }
     else {
         strm << "deletionTimestamp is not set";

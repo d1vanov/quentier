@@ -1,5 +1,5 @@
 #include "SerializationTests.h"
-#include <client/local_storage/Serialization.h>
+#include <client/Serialization.h>
 #include <tools/Printable.h>
 #include <Types_types.h>
 #include <bitset>

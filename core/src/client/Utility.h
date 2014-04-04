@@ -2,11 +2,26 @@
 #define __QUTE_NOTE__CLIENT__UTILITY_H
 
 #include <Types_types.h>
+#include <Limits_constants.h>
 #include <QString>
 
 namespace qute_note {
 
-bool CheckGuid(const evernote::edam::Guid & guid);
+template <class T>
+bool CheckGuid(const T & guid)
+{
+    size_t guidSize = guid.size();
+
+    if (guidSize < evernote::limits::g_Limits_constants.EDAM_GUID_LEN_MIN) {
+        return false;
+    }
+
+    if (guidSize > evernote::limits::g_Limits_constants.EDAM_GUID_LEN_MAX) {
+        return false;
+    }
+
+    return true;
+}
 
 bool CheckUpdateSequenceNumber(const int32_t updateSequenceNumber);
 

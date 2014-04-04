@@ -16,6 +16,7 @@ set(${PROJECT_NAME}_QT_HEADERS
     src/note_editor/ToDoCheckboxTextObject.h)
 
 set(${PROJECT_NAME}_HEADERS
+    src/client/Serialization.h
     src/client/Utility.h
     src/client/types/ISharedNotebook.h
     src/client/types/IResource.h
@@ -39,7 +40,6 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
     src/client/local_storage/LocalStorageManager.h
-    src/client/local_storage/Serialization.h
     src/logging/QuteNoteLogger.h
     src/logging/LoggerInitializationException.h
     src/tools/ApplicationStoragePersistencePath.h
@@ -61,6 +61,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/QuteNoteTextEdit.cpp
     src/note_editor/ResourceTextObject.cpp
     src/note_editor/ToDoCheckboxTextObject.cpp
+    src/client/Serialization.cpp
     src/client/Utility.cpp
     src/client/types/ISharedNotebook.cpp
     src/client/types/IResource.cpp
@@ -84,7 +85,6 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/DatabaseOpeningException.cpp
     src/client/local_storage/DatabaseSqlErrorException.cpp
     src/client/local_storage/LocalStorageManager.cpp
-    src/client/local_storage/Serialization.cpp
     src/logging/QuteNoteLogger.cpp
     src/logging/LoggerInitializationException.cpp
     src/tools/ApplicationStoragePersistencePath.cpp
