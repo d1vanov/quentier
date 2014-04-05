@@ -59,9 +59,11 @@ bool LocalStorageManager::AddUser(const IUser & user, QString & errorDescription
 
     errorDescription = QObject::tr("Can't add user into local storage database: ");
 
-    int rowId = GetRowId("Users", "id", QVariant(QString::number(user.GetEnUser().id)));
-    if (rowId >= 0) {
+    QString userId = QString::number(user.GetEnUser().id);
+    bool exists = RowExists("Users", "id", QVariant(userId));
+    if (exists) {
         errorDescription += QObject::tr("user with the same id already exists");
+        QNWARNING(errorDescription << ", id: " << userId);
         return false;
     }
 
@@ -81,9 +83,11 @@ bool LocalStorageManager::UpdateUser(const IUser & user, QString & errorDescript
 
     errorDescription = QObject::tr("Can't update user in local storage database: ");
 
-    int rowId = GetRowId("Users", "id", QVariant(QString::number(user.GetEnUser().id)));
-    if (rowId < 0) {
+    QString userId = QString::number(user.GetEnUser().id);
+    bool exists = RowExists("Users", "id", QVariant(userId));
+    if (!exists) {
         errorDescription += QObject::tr("user id was not found");
+        QNWARNING(errorDescription << ", id: " << userId);
         return false;
     }
 
@@ -103,10 +107,11 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
 
     errorDescription = QObject::tr("Can't find user in local storage database: ");
 
-    QString idStr = QString::number(id);
-    int rowId = GetRowId("Users", "id", QVariant(idStr));
-    if (rowId < 0) {
+    QString userId = QString::number(id);
+    bool exists = RowExists("Users", "id", QVariant(userId));
+    if (!exists) {
         errorDescription += QObject::tr("user id was not found");
+        QNWARNING(errorDescription << ", id: " << userId);
         return false;
     }
 
@@ -116,7 +121,7 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
     query.prepare("SELECT id, username, name, timezone, privilege, creationTimestamp, "
                   "modificationTimestamp, isDirty, isLocal, isDeleted, deletionTimestamp, "
                   "isActive FROM Users WHERE rowid = ?");
-    query.addBindValue(idStr);
+    query.addBindValue(userId);
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select user from \"Users\" table in SQL database");
@@ -228,14 +233,15 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
         \
         prop = evernote::edam::which(); \
         QString idStr = QString::number(id); \
-        int rowId = GetRowId(#which, "id", QVariant(idStr)); \
-        if (rowId < 0) { \
+        bool exists = RowExists(#which, "id", QVariant(idStr)); \
+        if (!exists) { \
             errorDescription += QObject::tr(#which " for specified user id was not found"); \
+            QNWARNING(errorDescription << ", id: " << idStr); \
             return false; \
         } \
         \
         QSqlQuery query(m_sqlDatabase); \
-        query.prepare("SELECT data FROM " #which " WHERE rowid = ?"); \
+        query.prepare("SELECT data FROM " #which " WHERE id = ?"); \
         query.addBindValue(idStr); \
         \
         bool res = query.exec(); \
@@ -409,12 +415,14 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
     bool res = notebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
+        QNWARNING("Found invalid notebook: " << notebook << "\nError: " << error);
         return false;
     }
 
-    int rowId = GetRowId("Notebooks", "guid", QVariant(notebook.guid()));
-    if (rowId >= 0) {
+    bool exists = RowExists("Notebooks", "guid", QVariant(notebook.guid()));
+    if (exists) {
         errorDescription += QObject::tr("notebook with specified guid already exists");
+        QNWARNING(errorDescription << ", guid: " << notebook.guid());
         return false;
     }
 
@@ -429,12 +437,14 @@ bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & er
     bool res = notebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
+        QNWARNING("Found invalid notebook: " << notebook << "\nError: " << error);
         return false;
     }
 
-    int rowId = GetRowId("Notebooks", "guid", QVariant(notebook.guid()));
-    if (rowId < 0) {
-        errorDescription += QObject::tr("notebook was not found by guid");
+    bool exists = RowExists("Notebooks", "guid", QVariant(notebook.guid()));
+    if (exists) {
+        errorDescription += QObject::tr("notebook with specified guid was not found");
+        QNWARNING(errorDescription << ", guid: " << notebook.guid());
         return false;
     }
 
@@ -645,16 +655,17 @@ bool LocalStorageManager::ExpungeNotebook(const Notebook & notebook, QString & e
         return false;
     }
 
-    int rowId = GetRowId("Notebooks", "guid", QVariant(notebookGuid));
-    if (rowId < 0) {
+    bool exists = RowExists("Notebooks", "guid", QVariant(notebookGuid));
+    if (!exists) {
         errorDescription += QObject::tr("can't determine row id of notebook "
                                         "to be expunged in \"Notebooks\" table in SQL database");
+        QNWARNING(errorDescription << ", guid: " << notebookGuid);
         return false;
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("DELETE FROM Notebooks WHERE rowid=?");
-    query.addBindValue(QVariant(rowId));
+    query.prepare("DELETE FROM Notebooks WHERE guid = ?");
+    query.addBindValue(QVariant(notebookGuid));
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notebooks\" table in SQL database");
@@ -671,20 +682,22 @@ bool LocalStorageManager::AddLinkedNotebook(const LinkedNotebook & linkedNoteboo
     bool res = linkedNotebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
+        QNWARNING("Found invalid LinkedNotebook: " << linkedNotebook << "\nError: " << error);
         return false;
     }
 
-    int rowId = GetRowId("LinkedNotebooks", "guid",
-                         QVariant(linkedNotebook.guid()));
-    if (rowId >= 0) {
+    bool exists = RowExists("LinkedNotebooks", "guid", QVariant(linkedNotebook.guid()));
+    if (exists) {
         errorDescription += QObject::tr("linked notebook with specified guid already exists");
+        QNWARNING(errorDescription << ", guid: " << linkedNotebook.guid());
         return false;
     }
 
     return InsertOrReplaceLinkedNotebook(linkedNotebook, errorDescription);
 }
 
-bool LocalStorageManager::UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString &errorDescription)
+bool LocalStorageManager::UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook,
+                                               QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't update linked notebook in local storage database: ");
     QString error;
@@ -692,14 +705,15 @@ bool LocalStorageManager::UpdateLinkedNotebook(const LinkedNotebook & linkedNote
     bool res = linkedNotebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
+        QNWARNING("Found invalid LinkedNotebook: " << linkedNotebook << "\nError: " << error);
         return false;
     }
 
-    int rowId = GetRowId("LinkedNotebooks", "guid",
-                         QVariant(linkedNotebook.guid()));
-    if (rowId < 0) {
+    bool exists = RowExists("LinkedNotebooks", "guid", QVariant(linkedNotebook.guid()));
+    if (!exists) {
         errorDescription += QObject::tr("linked notebook with specified guid "
                                         "was not found in local storage database");
+        QNWARNING(errorDescription << ", guid: " << linkedNotebook.guid());
         return false;
     }
 
@@ -791,16 +805,17 @@ bool LocalStorageManager::ExpungeLinkedNotebook(const LinkedNotebook & linkedNot
         return false;
     }
 
-    int rowId = GetRowId("LinkedNotebooks", "guid", QVariant(linkedNotebookGuid));
-    if (rowId < 0) {
+    bool exists = RowExists("LinkedNotebooks", "guid", QVariant(linkedNotebookGuid));
+    if (!exists) {
         errorDescription += QObject::tr("can't determine row id of linked notebook "
                                         "to be expunged in \"LinkedNotebooks\" table in SQL database");
+        QNWARNING(errorDescription << ", guid: " << linkedNotebookGuid);
         return false;
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("DELETE FROM LinkedNotebooks WHERE rowid=?");
-    query.addBindValue(QVariant(rowId));
+    query.prepare("DELETE FROM LinkedNotebooks WHERE guid = ?");
+    query.addBindValue(QVariant(linkedNotebookGuid));
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"LinkedNotebooks\" table in SQL database");
@@ -816,12 +831,14 @@ bool LocalStorageManager::AddNote(const Note & note, QString & errorDescription)
     bool res = note.checkParameters(error);
     if (!res) {
         errorDescription += error;
+        QNWARNING("Found invalid note: " << note);
         return false;
     }
 
-    int rowId = GetRowId("Notes", "guid", QVariant(note.guid()));
-    if (rowId >= 0) {
+    bool exists = RowExists("Notes", "guid", QVariant(note.guid()));
+    if (exists) {
         errorDescription += QObject::tr("note with specified guid already exists");
+        QNWARNING(errorDescription << ", guid: " << note.guid());
         return false;
     }
 
@@ -836,12 +853,14 @@ bool LocalStorageManager::UpdateNote(const Note & note, QString & errorDescripti
     bool res = note.checkParameters(error);
     if (!res) {
         errorDescription += error;
+        QNWARNING("Found invalid note: " << note);
         return false;
     }
 
-    int rowId = GetRowId("Notes", "guid", QVariant(note.guid()));
-    if (rowId < 0) {
+    bool exists = RowExists("Notes", "guid", QVariant(note.guid()));
+    if (!exists) {
         errorDescription += QObject::tr("note with specified guid was not found");
+        QNWARNING(errorDescription << ", guid: " << note.guid());
         return false;
     }
 
@@ -1122,21 +1141,24 @@ bool LocalStorageManager::AddTag(const Tag & tag, QString & errorDescription)
     bool res = tag.checkParameters(error);
     if (!res) {
         errorDescription += error;
+        QNWARNING("Found invalid tag: " << tag);
         return false;
     }
 
     QString guid = tag.guid();
-    int rowId = GetRowId("Tags", "guid", QVariant(guid));
-    if (rowId >= 0) {
+    bool exists = RowExists("Tags", "guid", QVariant(guid));
+    if (exists) {
         errorDescription += QObject::tr("tag with the same guid already exists");
+        QNWARNING(errorDescription << ", guid: " << guid);
         return false;
     }
 
     QString nameUpper = tag.name().toUpper();
-    rowId = GetRowId("Tags", "nameUpper", QVariant(nameUpper));
-    if (rowId >= 0) {
+    exists = RowExists("Tags", "nameUpper", QVariant(nameUpper));
+    if (exists) {
         errorDescription += QObject::tr("tag with similar name (case insensitive) "
                                        "already exists");
+        QNWARNING(errorDescription << ", nameUpper: " << nameUpper);
         return false;
     }
 
@@ -1151,21 +1173,24 @@ bool LocalStorageManager::UpdateTag(const Tag &tag, QString &errorDescription)
     bool res = tag.checkParameters(error);
     if (!res) {
         errorDescription += error;
+        QNWARNING("Found invalid tag: " << tag);
         return false;
     }
 
     QString guid = tag.guid();
-    int rowId = GetRowId("Tags", "guid", QVariant(guid));
-    if (rowId < 0) {
+    bool exists = RowExists("Tags", "guid", QVariant(guid));
+    if (!exists) {
         errorDescription += QObject::tr("tag with specified guid was not found");
+        QNWARNING(errorDescription << ", guid: " << guid);
         return false;
     }
 
     QString nameUpper = tag.name().toUpper();
-    rowId = GetRowId("Tags", "nameUpper", QVariant(nameUpper));
-    if (rowId < 0) {
+    exists = RowExists("Tags", "nameUpper", QVariant(nameUpper));
+    if (!exists) {
         errorDescription += QObject::tr("tag with similar name (case insensitive) "
                                         "was not found");
+        QNWARNING(errorDescription << ", nameUpper: " << nameUpper);
         return false;
     }
 
@@ -1382,15 +1407,16 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
         return false;
     }
 
-    int rowId = GetRowId("Tags", "guid", QVariant(tag.guid()));
-    if (rowId < 0) {
+    bool exists = RowExists("Tags", "guid", QVariant(tag.guid()));
+    if (!exists) {
         errorDescription += QObject::tr("tag to be expunged was not found by guid");
+        QNWARNING(errorDescription << ", guid: " << tag.guid());
         return false;
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("DELETE FROM Tags WHERE rowid = ?");
-    query.addBindValue(rowId);
+    query.prepare("DELETE FROM Tags WHERE guid = ?");
+    query.addBindValue(tag.guid());
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete tag from \"Tags\" table in SQL database");
@@ -1481,15 +1507,16 @@ bool LocalStorageManager::ExpungeResource(const IResource & resource, QString & 
 {
     errorDescription = QObject::tr("Can't expunge resource from local storage database: ");
 
-    int rowId = GetRowId("Resources", "guid", QVariant(resource.guid()));
-    if (rowId < 0) {
+    bool exists = RowExists("Resources", "guid", QVariant(resource.guid()));
+    if (!exists) {
         errorDescription += QObject::tr("resource to be expunged was not found by guid");
+        QNWARNING(errorDescription << ", guid: " << resource.guid());
         return false;
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("DELETE FROM Resources WHERE rowid = ?");
-    query.addBindValue(rowId);
+    query.prepare("DELETE FROM Resources WHERE guid = ?");
+    query.addBindValue(resource.guid());
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete resource from \"Resources\" table in SQL database");
@@ -1505,6 +1532,7 @@ bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, QString & e
     bool res = search.checkParameters(error);
     if (!res) {
         errorDescription += error;
+        QNWARNING("Found invalid SavedSearch: " << search << "\nError: " << error);
         return false;
     }
 
@@ -1527,6 +1555,7 @@ bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, QString 
     bool res = search.checkParameters(error);
     if (!res) {
         errorDescription += error;
+        QNWARNING("Found invalid SavedSearch: " << search << "\nError: " << error);
         return false;
     }
 
@@ -1651,12 +1680,14 @@ bool LocalStorageManager::AddResource(const IResource & resource, QString & erro
     QString error;
     if (!resource.checkParameters(error)) {
         errorDescription += error;
+        QNWARNING("Found invalid resource: " << resource);
         return false;
     }
 
-    int rowId = GetRowId("Resources", "guid", QVariant(resource.guid()));
-    if (rowId >= 0) {
+    bool exists = RowExists("Resources", "guid", QVariant(resource.guid()));
+    if (exists) {
         errorDescription += QObject::tr("resource with the same guid already exists");
+        QNWARNING(errorDescription << ", guid: " << resource.guid());
         return false;
     }
 
@@ -1670,12 +1701,14 @@ bool LocalStorageManager::UpdateResource(const IResource & resource, QString & e
     QString error;
     if (!resource.checkParameters(error)) {
         errorDescription += error;
+        QNWARNING("Found invalid resource: " << resource);
         return false;
     }
 
-    int rowId = GetRowId("Resources", "guid", QVariant(resource.guid()));
-    if (rowId < 0) {
+    bool exists = RowExists("Resources", "guid", QVariant(resource.guid()));
+    if (exists) {
         errorDescription += QObject::tr("resource to be updated was not found by guid");
+        QNWARNING(errorDescription << ", guid: " << resource.guid());
         return false;
     }
 
@@ -2229,27 +2262,6 @@ bool LocalStorageManager::RowExists(const QString & tableName, const QString & u
     }
 
     return false;
-}
-
-int LocalStorageManager::GetRowId(const QString & tableName, const QString & uniqueKeyName,
-                                  const QVariant & uniqueKeyValue) const
-{
-    int rowId = -1;
-
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT rowid FROM ? WHERE ?=?");
-    query.addBindValue(tableName);
-    query.addBindValue(uniqueKeyName);
-    query.addBindValue(uniqueKeyValue);
-    query.exec();
-
-    while(query.next()) {
-        rowId = query.value(0).toInt();
-        QNDEBUG("Found some row id: " << QString::number(rowId));
-        return rowId;
-    }
-
-    return rowId;
 }
 
 bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & errorDescription)
@@ -3074,8 +3086,13 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(Note & note, QString & erro
         resourceAttributeQuery.addBindValue(guid);
 
         res = resourceAttributeQuery.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't select serialized resource attributes from "
-                                     "\"ResourceAttributes\" table in SQL database");
+        if (!res) {
+            errorDescription += QObject::tr("Internal error: can't select serialized "
+                                            "resource attributes from \"ResourceAttributes\" "
+                                            "table in SQL database: ");
+            errorDescription += resourceAttributeQuery.lastError().text();
+            return false;
+        }
 
         if (!resourceAttributeQuery.next()) {
             // No attributes for this resource

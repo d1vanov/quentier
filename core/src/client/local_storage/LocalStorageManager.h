@@ -238,8 +238,6 @@ private:
 
     bool RowExists(const QString & tableName, const QString & uniqueKeyName,
                    const QVariant & uniqueKeyValue) const;
-    int GetRowId(const QString & tableName, const QString & uniqueKeyName,
-                 const QVariant & uniqueKeyValue) const;
 
     bool InsertOrReplaceUser(const IUser & user, QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
