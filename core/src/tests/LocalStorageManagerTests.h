@@ -10,9 +10,9 @@ QT_FORWARD_DECLARE_CLASS(SavedSearch)
 
 namespace test {
 
-bool TestSavedSearchAddFindInLocalStorage(const SavedSearch & search,
-                                          LocalStorageManager & localStorageManager,
-                                          QString & errorDescription);
+bool TestSavedSearchAddFindUpdateDeleteInLocalStorage(const SavedSearch & search,
+                                                      LocalStorageManager & localStorageManager,
+                                                      QString & errorDescription);
 
 }
 }

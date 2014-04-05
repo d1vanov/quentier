@@ -27,13 +27,14 @@ namespace qute_note {
 
 #define QUTE_NOTE_DATABASE_NAME "qn.storage.sqlite"
 
-LocalStorageManager::LocalStorageManager(const QString & username, const UserID userId) :
+LocalStorageManager::LocalStorageManager(const QString & username, const UserID userId,
+                                         const bool startFromScratch) :
     // NOTE: don't initialize these! Otherwise SwitchUser won't work right
     m_currentUsername(),
     m_currentUserId(),
     m_applicationPersistenceStoragePath()
 {
-    SwitchUser(username, userId);
+    SwitchUser(username, userId, startFromScratch);
 }
 
 LocalStorageManager::~LocalStorageManager()
@@ -315,7 +316,8 @@ bool LocalStorageManager::ExpungeUser(const IUser & user, QString & errorDescrip
     return true;
 }
 
-void LocalStorageManager::SwitchUser(const QString & username, const UserID userId)
+void LocalStorageManager::SwitchUser(const QString & username, const UserID userId,
+                                     const bool startFromScratch)
 {
     if ( (username == m_currentUsername) &&
          (userId == m_currentUserId) )
@@ -364,6 +366,12 @@ void LocalStorageManager::SwitchUser(const QString & username, const UserID user
             throw DatabaseOpeningException(QObject::tr("Cannot create local storage database: ") +
                                            databaseFile.errorString());
         }
+    }
+    else if (startFromScratch) {
+        QNDEBUG("Cleaning up the whole database for user with name " << m_currentUsername
+                << " and id " << QString::number(m_currentUserId));
+        databaseFile.resize(0);
+        databaseFile.flush();
     }
 
     m_sqlDatabase.setHostName("localhost");
@@ -1501,9 +1509,10 @@ bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, QString & e
     }
 
     QString guid = search.guid();
-    int rowId = GetRowId("SavedSearches", "guid", QVariant(guid));
-    if (rowId >= 0) {
+    bool exists = RowExists("SavedSearches", "guid", QVariant(guid));
+    if (exists) {
         errorDescription += QObject::tr("saved search with the same guid already exists");
+        QNWARNING(errorDescription << ", guid: " << guid);
         return false;
     }
 
@@ -1522,9 +1531,10 @@ bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, QString 
     }
 
     QString guid = search.guid();
-    int rowId = GetRowId("SavedSearches", "guid", QVariant(guid));
-    if (rowId < 0) {
+    bool exists = RowExists("SavedSearches", "guid", QVariant(guid));
+    if (!exists) {
         errorDescription += QObject::tr("saved search with specified guid was not found");
+        QNWARNING(errorDescription << ", guid: " << guid);
         return false;
     }
 
@@ -1611,20 +1621,22 @@ bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,
         errorDescription += QObject::tr("saved search's guid is not set");
         return false;
     }
-    else if (!CheckGuid(search.guid())) {
+
+    const QString searchGuid = search.guid();
+    if (!CheckGuid(searchGuid)) {
         errorDescription += QObject::tr("saved search's guid is invalid");
         return false;
     }
 
-    int rowId = GetRowId("SavedSearches", "guid", QVariant(search.guid()));
-    if (rowId < 0) {
+    bool exists = RowExists("SavedSearches", "guid", QVariant(searchGuid));
+    if (!exists) {
         errorDescription += QObject::tr("saved search to be expunged was not found");
         return false;
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("DELETE FROM SavedSearches WHERE rowid = ?");
-    query.addBindValue(rowId);
+    query.prepare("DELETE FROM SavedSearches WHERE guid = ?");
+    query.addBindValue(searchGuid);
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete saved search from \"SavedSearches\" table in SQL database");
@@ -2187,21 +2199,54 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const ISharedNotebook & sh
     return true;
 }
 
+bool LocalStorageManager::RowExists(const QString & tableName, const QString & uniqueKeyName,
+                                    const QVariant & uniqueKeyValue) const
+{
+    QSqlQuery query(m_sqlDatabase);
+    const QString & queryString = QString("SELECT count(*) FROM %1 WHERE %2=\'%3\'")
+                                  .arg(tableName)
+                                  .arg(uniqueKeyName)
+                                  .arg(uniqueKeyValue.toString());
+    /*
+    query.prepare();
+    query.bindValue(":table", tableName);
+    query.bindValue(":key", uniqueKeyName);
+    query.bindValue(":value", uniqueKeyValue);
+    */
+
+    bool res = query.exec(queryString);
+    if (!res) {
+        QNWARNING("Unable to check the existence of row with key name " << uniqueKeyName
+                  << ", value = " << uniqueKeyValue << " in table " << tableName
+                  << ": unalble to execute SQL statement: " << query.lastError().text()
+                  << "; assuming no such row exists");
+        return false;
+    }
+
+    while(query.next() && query.isValid()) {
+        int count = query.value(0).toInt();
+        return (count != 0);
+    }
+
+    return false;
+}
+
 int LocalStorageManager::GetRowId(const QString & tableName, const QString & uniqueKeyName,
                                   const QVariant & uniqueKeyValue) const
 {
     int rowId = -1;
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT rowid FROM ? WHERE ? = ?");
+    query.prepare("SELECT rowid FROM ? WHERE ?=?");
     query.addBindValue(tableName);
     query.addBindValue(uniqueKeyName);
     query.addBindValue(uniqueKeyValue);
-
     query.exec();
 
     while(query.next()) {
         rowId = query.value(0).toInt();
+        QNDEBUG("Found some row id: " << QString::number(rowId));
+        return rowId;
     }
 
     return rowId;

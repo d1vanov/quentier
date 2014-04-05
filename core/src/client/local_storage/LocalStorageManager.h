@@ -41,10 +41,10 @@ typedef evernote::edam::UserID UserID;
 class LocalStorageManager
 {
 public:
-    LocalStorageManager(const QString & username, const UserID userId);
+    LocalStorageManager(const QString & username, const UserID userId, const bool startFromScratch);
     ~LocalStorageManager();
 
-    void SwitchUser(const QString & username, const UserID userId);
+    void SwitchUser(const QString & username, const UserID userId, const bool startFromScratch = false);
 
     bool AddUser(const IUser & user, QString & errorDescription);
     bool UpdateUser(const IUser & user, QString & errorDescription);
@@ -236,6 +236,8 @@ private:
     bool SetSharedNotebookAttributes(const ISharedNotebook &sharedNotebook,
                                      QString & errorDescription);
 
+    bool RowExists(const QString & tableName, const QString & uniqueKeyName,
+                   const QVariant & uniqueKeyValue) const;
     int GetRowId(const QString & tableName, const QString & uniqueKeyName,
                  const QVariant & uniqueKeyValue) const;
 

@@ -37,7 +37,8 @@ void CoreTester::localStorageManagerIndividualSavedSearchAddFindTest()
 {
     try
     {
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0);
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
 
         SavedSearch search;
         search.setGuid("00000000-0000-0000-c000-000000000046");
@@ -50,7 +51,7 @@ void CoreTester::localStorageManagerIndividualSavedSearchAddFindTest()
         search.setIncludePersonalLinkedNotebooks(true);
 
         QString error;
-        bool res = TestSavedSearchAddFindInLocalStorage(search, localStorageManager, error);
+        bool res = TestSavedSearchAddFindUpdateDeleteInLocalStorage(search, localStorageManager, error);
         QVERIFY2(res == true, error.toStdString().c_str());
     }
     catch(IQuteNoteException & exception) {
