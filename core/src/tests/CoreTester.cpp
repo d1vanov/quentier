@@ -44,7 +44,7 @@ void CoreTester::localStorageManagerIndividualSavedSearchAddFindTest()
         search.setUpdateSequenceNumber(1);
         search.setName("Fake saved search name");
         search.setQuery("Fake saved search query");
-        search.setQueryFormat(0);
+        search.setQueryFormat(1);
         search.setIncludeAccount(true);
         search.setIncludeBusinessLinkedNotebooks(false);
         search.setIncludePersonalLinkedNotebooks(true);

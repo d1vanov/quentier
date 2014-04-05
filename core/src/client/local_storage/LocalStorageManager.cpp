@@ -48,7 +48,7 @@ LocalStorageManager::~LocalStorageManager()
         errorDescription += QObject::tr("Internal error: "); \
         errorDescription += QObject::tr(errorPrefix); \
         errorDescription += ": "; \
-        errorDescription.append(m_sqlDatabase.lastError().text()); \
+        errorDescription += query.lastError().text(); \
         return false; \
     }
 
@@ -327,37 +327,54 @@ void LocalStorageManager::SwitchUser(const QString & username, const UserID user
     m_currentUserId = userId;
 
     m_applicationPersistenceStoragePath = GetApplicationPersistentStoragePath();
-    m_applicationPersistenceStoragePath.append("/" + m_currentUsername + m_currentUserId);
-
-    bool needsInitializing = false;
+    m_applicationPersistenceStoragePath.append("/" + m_currentUsername + QString::number(m_currentUserId));
 
     QDir databaseFolder(m_applicationPersistenceStoragePath);
     if (!databaseFolder.exists())
     {
-        needsInitializing = true;
         if (!databaseFolder.mkpath(m_applicationPersistenceStoragePath)) {
             throw DatabaseOpeningException(QObject::tr("Cannot create folder "
                                                        "to store local storage  database."));
         }
     }
 
-    m_sqlDatabase.addDatabase("QSQLITE");
+    QString sqlDriverName = "QSQLITE";
+    bool isSqlDriverAvailable = QSqlDatabase::isDriverAvailable(sqlDriverName);
+    if (!isSqlDriverAvailable)
+    {
+        QString error = "SQL driver " + sqlDriverName + " is not available. Available drivers: ";
+        const QStringList drivers = QSqlDatabase::drivers();
+        for(const QString & driver: drivers) {
+            error += "{" + driver + "} ";
+        }
+        throw DatabaseSqlErrorException(error);
+    }
+
+    m_sqlDatabase = QSqlDatabase::addDatabase(sqlDriverName);
+
     QString databaseFileName = m_applicationPersistenceStoragePath + QString("/") +
                                QString(QUTE_NOTE_DATABASE_NAME);
+    QNDEBUG("Attempting to open or create database file: " + databaseFileName);
+
     QFile databaseFile(databaseFileName);
 
     if (!databaseFile.exists())
     {
-        needsInitializing = true;
         if (!databaseFile.open(QIODevice::ReadWrite)) {
             throw DatabaseOpeningException(QObject::tr("Cannot create local storage database: ") +
                                            databaseFile.errorString());
         }
     }
 
+    m_sqlDatabase.setHostName("localhost");
+    m_sqlDatabase.setUserName(username);
+    m_sqlDatabase.setPassword(username);
     m_sqlDatabase.setDatabaseName(databaseFileName);
+
     if (!m_sqlDatabase.open())
     {
+        QNDEBUG("Unable to open QSqlDatabase corresponding to file " + databaseFileName);
+
         QString lastErrorText = m_sqlDatabase.lastError().text();
         throw DatabaseOpeningException(QObject::tr("Cannot open local storage database: ") +
                                        lastErrorText);
@@ -369,13 +386,10 @@ void LocalStorageManager::SwitchUser(const QString & username, const UserID user
                                                     "for SQL local storage database"));
     }
 
-    if (needsInitializing)
-    {
-        QString errorDescription;
-        if (!CreateTables(errorDescription)) {
-            throw DatabaseSqlErrorException(QObject::tr("Cannot initialize tables in SQL database: ") +
-                                            errorDescription);
-        }
+    QString errorDescription;
+    if (!CreateTables(errorDescription)) {
+        throw DatabaseSqlErrorException(QObject::tr("Cannot initialize tables in SQL database: ") +
+                                        errorDescription);
     }
 }
 
@@ -1672,7 +1686,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  isDirty                 INTEGER                 NOT NULL, "
                      "  isLocal                 INTEGER                 NOT NULL, "
                      "  deletionTimestamp       INTEGER                 DEFAULT 0, "
-                     "  isActive                INTEGER                 NOT NULL, "
+                     "  isActive                INTEGER                 NOT NULL"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Users table");
 
@@ -1681,7 +1695,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  data                    BLOB                    DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create UserAttributes table");
 
-    res = query.exec("CREATE TABLE IF NOT EXITS Accounting("
+    res = query.exec("CREATE TABLE IF NOT EXISTS Accounting("
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  data                    BLOB                    DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create Accounting table");
@@ -1763,7 +1777,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS SharedNotebooks("
                      "  shareId                         INTEGER    NOT NULL, "
                      "  userId                          INTEGER    NOT NULL, "
-                     "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE"
+                     "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  email                           TEXT       NOT NULL, "
                      "  creationTimestamp               INTEGER    NOT NULL, "
                      "  modificationTimestamp           INTEGER    NOT NULL, "
@@ -1777,7 +1791,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create SharedNotebooks table");
 
-    res = query.exec("CREATE VIRTUAL TABLE NoteText USING fts3("
+    res = query.exec("CREATE VIRTUAL TABLE IF NOT EXISTS NoteText USING fts3("
                      "  guid              TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  title             TEXT, "
                      "  content           TEXT, "
@@ -1791,8 +1805,8 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  isDirty                 INTEGER              NOT NULL, "
                      "  isLocal                 INTEGER              NOT NULL, "
                      "  isDeleted               INTEGER              DEFAULT 0, "
-                     "  title                   TEXT,                NOT NULL, "
-                     "  content                 TEXT,                NOT NULL, "
+                     "  title                   TEXT                 NOT NULL, "
+                     "  content                 TEXT                 NOT NULL, "
                      "  creationTimestamp       INTEGER              NOT NULL, "
                      "  modificationTimestamp   INTEGER              NOT NULL, "
                      "  deletionTimestamp       INTEGER              DEFAULT 0, "
@@ -1808,7 +1822,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteAttributes table");
 
-    res = query.exec("CREATE INDEX NotesNotebooks ON Notes(notebookGuid)");
+    res = query.exec("CREATE INDEX IF NOT EXISTS NotesNotebooks ON Notes(notebookGuid)");
     DATABASE_CHECK_AND_SET_ERROR("can't create index NotesNotebooks");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
@@ -1816,7 +1830,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  noteGuid                TEXT                 NOT NULL, "
                      "  updateSequenceNumber    INTEGER              NOT NULL, "
                      "  isDirty                 INTEGER              NOT NULL, "
-                     "  dataBody                TEXT,                NOT NULL, "
+                     "  dataBody                TEXT                 NOT NULL, "
                      "  dataSize                INTEGER              NOT NULL, "
                      "  dataHash                TEXT                 NOT NULL, "
                      "  mime                    TEXT                 NOT NULL, "
@@ -1824,16 +1838,16 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  height                  INTEGER              DEFAULT 0, "
                      "  recognitionBody         TEXT                 DEFAULT NULL, "
                      "  recognitionSize         INTEGER              DEFAULT 0, "
-                     "  recognitionHash         TEXT                 DEFAULT NULL, "
+                     "  recognitionHash         TEXT                 DEFAULT NULL"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Resources table");
 
-    res = query.exec("CREATE INDEX ResourceNote ON Resources(noteGuid)");
+    res = query.exec("CREATE INDEX IF NOT EXISTS ResourceNote ON Resources(noteGuid)");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceNote index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributes("
                      "  guid REFERENCES Resource(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  data                  BLOB                 DEFAULT NULL");
+                     "  data                  BLOB                 DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributes table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
@@ -1844,11 +1858,11 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  parentGuid            TEXT                 DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
-                     "  isDeleted             INTEGER              DEFAULT 0, "
+                     "  isDeleted             INTEGER              DEFAULT 0"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Tags table");
 
-    res = query.exec("CREATE INDEX TagsSearchName ON Tags(nameUpper)");
+    res = query.exec("CREATE INDEX IF NOT EXISTS TagsSearchName ON Tags(nameUpper)");
     DATABASE_CHECK_AND_SET_ERROR("can't create TagsSearchName index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteTags("
@@ -1858,7 +1872,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteTags table");
 
-    res = query.exec("CREATE INDEX NoteTagsNote ON NoteTags(note)");
+    res = query.exec("CREATE INDEX IF NOT EXISTS NoteTagsNote ON NoteTags(note)");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteTagsNote index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
@@ -2868,7 +2882,7 @@ bool LocalStorageManager::FillSavedSearchFromSqlRecord(const QSqlRecord & rec,
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(guid, QString, QString, setGuid, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(name, QString, QString, setName, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(query, QString, QString, setQuery, isRequired);
-    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(queryFormat, int, qint8, setQueryFormat, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(format, int, qint8, setQueryFormat, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(updateSequenceNumber, int, int32_t,
                                         setUpdateSequenceNumber, isRequired);
 
@@ -2876,7 +2890,7 @@ bool LocalStorageManager::FillSavedSearchFromSqlRecord(const QSqlRecord & rec,
                                         isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(includePersonalLinkedNotebooks, int, bool,
                                         setIncludePersonalLinkedNotebooks, isRequired);
-    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(includeBusinessBusinessLinkedNotebooks, int, bool,
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(includeBusinessLinkedNotebooks, int, bool,
                                         setIncludeBusinessLinkedNotebooks, isRequired);
 
 #undef CHECK_AND_SET_SAVED_SEARCH_PROPERTY
