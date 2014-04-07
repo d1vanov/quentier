@@ -3,6 +3,7 @@
 #include <client/local_storage/LocalStorageManager.h>
 #include <client/types/SavedSearch.h>
 #include <client/types/LinkedNotebook.h>
+#include <client/types/Tag.h>
 #include <client/Utility.h>
 
 namespace qute_note {
@@ -131,7 +132,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
 
     if (modifiedLinkedNotebook != foundLinkedNotebook) {
         errorDescription = QObject::tr("Updated and found in local storage manager linked notebooks don't match");
-        QNWARNING(errorDescription <<": LinkedNotebook updated in LocalStorageManager: " << modifiedLinkedNotebook
+        QNWARNING(errorDescription << ": LinkedNotebook updated in LocalStorageManager: " << modifiedLinkedNotebook
                   << "\nLinkedNotebook found in LocalStorageManager: " << foundLinkedNotebook);
         return false;
     }
@@ -147,6 +148,97 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
         errorDescription = "Error: found LinkedNotebook which should have been expunged from LocalStorageManager";
         QNWARNING(errorDescription << ": LinkedNotebook expunged from LocalStorageManager: " << modifiedLinkedNotebook
                   << "\nLinkedNotebook found in LocalStorageManager: " << foundLinkedNotebook);
+        return false;
+    }
+
+    return true;
+}
+
+bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
+                                               LocalStorageManager & localStorageManager,
+                                               QString & errorDescription)
+{
+    if (!tag.checkParameters(errorDescription)) {
+        QNWARNING("Found invalid Tag: " << tag << ", error: " << errorDescription);
+        return false;
+    }
+
+    // ========== Check Add + Find ==========
+    bool res = localStorageManager.AddTag(tag, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    const QString tagGuid = tag.guid();
+    Tag foundTag;
+    res = localStorageManager.FindTag(tagGuid, foundTag, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (tag != foundTag) {
+        errorDescription = QObject::tr("Added and found in local storage manager tags don't match");
+        QNWARNING(errorDescription << ": Tag added to LocalStorageManager: " << tag
+                  << "\nTag found in LocalStorageManager: " << foundTag);
+        return false;
+    }
+
+    // ========== Check Update + Find ==========
+    Tag modifiedTag(tag);
+    modifiedTag.setUpdateSequenceNumber(tag.updateSequenceNumber() + 1);
+    modifiedTag.setName(tag.name() + "_modified");
+
+    res = localStorageManager.UpdateTag(modifiedTag, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    res = localStorageManager.FindTag(tagGuid, foundTag, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (modifiedTag != foundTag) {
+        errorDescription = QObject::tr("Updated and found in local storage manager tags don't match");
+        QNWARNING(errorDescription << ": Tag updated in LocalStorageManaged: " << modifiedTag
+                  << "\nTag found in LocalStorageManager: " << foundTag);
+        return false;
+    }
+
+    // ========== Check Delete + Find ==========
+    modifiedTag.setDeleted(true);
+    modifiedTag.setLocal(false);
+    res = localStorageManager.DeleteTag(modifiedTag, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    res = localStorageManager.FindTag(tagGuid, foundTag, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (!foundTag.isDeleted()) {
+        errorDescription = QObject::tr("Tag which should have been marked as deleted one "
+                                       "is not marked so in the result of FindTag");
+        QNWARNING(errorDescription << ": deleted Tag which should have been found in LocalStorageManager: "
+                  << modifiedTag << "\nTag which should have actually been found: "
+                  << foundTag);
+        return false;
+    }
+
+    // ========== Check Expunge + Find (failure expected) ==========
+    modifiedTag.setLocal(true);
+    res = localStorageManager.ExpungeTag(modifiedTag, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    res = localStorageManager.FindTag(tagGuid, foundTag, errorDescription);
+    if (res) {
+        errorDescription = "Error: found Tag which should have been exounged from LocalStorageManager";
+        QNWARNING(errorDescription << ": Tag expunged from LocalStorageManager: " << modifiedTag
+                  << "\nTag found in LocalStorageManager: " << foundTag);
         return false;
     }
 

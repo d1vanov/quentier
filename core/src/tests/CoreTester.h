@@ -23,6 +23,7 @@ private slots:
 
     void localStorageManagerIndividualSavedSearchTest();
     void localStorageManagerIndividualLinkedNotebookTest();
+    void localStorageManagerIndividualTagTest();
 
 private:
     CoreTester(const CoreTester & other) = delete;

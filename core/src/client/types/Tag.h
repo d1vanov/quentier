@@ -14,6 +14,9 @@ public:
     Tag & operator=(const Tag & other);
     virtual ~Tag() final override;
 
+    bool operator==(const Tag & other) const;
+    bool operator!=(const Tag & other) const;
+
     virtual void clear() final override;
 
     virtual bool hasGuid() const final override;

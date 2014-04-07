@@ -5,6 +5,7 @@
 #include <client/local_storage/LocalStorageManager.h>
 #include <client/types/SavedSearch.h>
 #include <client/types/LinkedNotebook.h>
+#include <client/types/Tag.h>
 #include <QtTest/QTest>
 
 namespace qute_note {
@@ -82,6 +83,27 @@ void CoreTester::localStorageManagerIndividualLinkedNotebookTest()
 
         QString error;
         bool res = TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(linkedNotebook, localStorageManager, error);
+        QVERIFY2(res == true, error.toStdString().c_str());
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
+    }
+}
+
+void CoreTester::localStorageManagerIndividualTagTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        Tag tag;
+        tag.setGuid("00000000-0000-0000-c000-000000000046");
+        tag.setUpdateSequenceNumber(1);
+        tag.setName("Fake tag name");
+
+        QString error;
+        bool res = TestTagAddFindUpdateExpungeInLocalStorage(tag, localStorageManager, error);
         QVERIFY2(res == true, error.toStdString().c_str());
     }
     catch(IQuteNoteException & exception) {

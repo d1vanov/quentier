@@ -33,6 +33,16 @@ Tag & Tag::operator=(const Tag & other)
 Tag::~Tag()
 {}
 
+bool Tag::operator==(const Tag & other) const
+{
+    return ((m_enTag == other.m_enTag) && (isDirty() == other.isDirty()));
+}
+
+bool Tag::operator!=(const Tag & other) const
+{
+    return !(*this == other);
+}
+
 void Tag::clear()
 {
     m_enTag = evernote::edam::Tag();

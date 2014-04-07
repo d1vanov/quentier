@@ -358,7 +358,12 @@ void LocalStorageManager::SwitchUser(const QString & username, const UserID user
         throw DatabaseSqlErrorException(error);
     }
 
-    m_sqlDatabase = QSqlDatabase::addDatabase(sqlDriverName);
+    if (!QSqlDatabase::contains(sqlDriverName)) {
+        m_sqlDatabase = QSqlDatabase::addDatabase(sqlDriverName);
+    }
+    else {
+        m_sqlDatabase = QSqlDatabase::database(sqlDriverName);
+    }
 
     QString databaseFileName = m_applicationPersistenceStoragePath + QString("/") +
                                QString(QUTE_NOTE_DATABASE_NAME);
@@ -1156,7 +1161,7 @@ bool LocalStorageManager::AddTag(const Tag & tag, QString & errorDescription)
     exists = RowExists("Tags", "nameUpper", QVariant(nameUpper));
     if (exists) {
         errorDescription += QObject::tr("tag with similar name (case insensitive) "
-                                       "already exists");
+                                        "already exists");
         QNWARNING(errorDescription << ", nameUpper: " << nameUpper);
         return false;
     }
@@ -1181,15 +1186,6 @@ bool LocalStorageManager::UpdateTag(const Tag &tag, QString &errorDescription)
     if (!exists) {
         errorDescription += QObject::tr("tag with specified guid was not found");
         QNWARNING(errorDescription << ", guid: " << guid);
-        return false;
-    }
-
-    QString nameUpper = tag.name().toUpper();
-    exists = RowExists("Tags", "nameUpper", QVariant(nameUpper));
-    if (!exists) {
-        errorDescription += QObject::tr("tag with similar name (case insensitive) "
-                                        "was not found");
-        QNWARNING(errorDescription << ", nameUpper: " << nameUpper);
         return false;
     }
 
@@ -1228,6 +1224,8 @@ bool LocalStorageManager::LinkTagWithNote(const Tag & tag, const Note & note,
 
 bool LocalStorageManager::FindTag(const QString & tagGuid, Tag & tag, QString & errorDescription) const
 {
+    QNDEBUG("LocalStorageManager::FindTag: guid = " << tagGuid);
+
     errorDescription = QObject::tr("Can't find tag in local storage database: ");
 
     if (!CheckGuid(tagGuid)) {
@@ -1572,6 +1570,8 @@ bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, QString 
 bool LocalStorageManager::FindSavedSearch(const QString & searchGuid, SavedSearch & search,
                                           QString & errorDescription) const
 {
+    QNDEBUG("LocalStorageManager::FindSavedSearch: guid = " << searchGuid);
+
     errorDescription = QObject::tr("Can't find saved search in local storage database: ");
 
     if (!CheckGuid(searchGuid)) {
@@ -2570,15 +2570,16 @@ bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDes
 
     query.prepare("INSERT OR REPLACE INTO Tags (guid, updateSequenceNumber, name, "
                   "nameUpper, parentGuid, isDirty, isLocal, isDeleted) "
-                  "VALUES(?, ?, ?, ?, ?, ?, ?, ?");
-    query.addBindValue(guid);
-    query.addBindValue(tag.updateSequenceNumber());
-    query.addBindValue(name);
-    query.addBindValue(nameUpper);
-    query.addBindValue(parentGuid);
-    query.addBindValue(tag.isDirty() ? 1 : 0);
-    query.addBindValue(tag.isLocal() ? 1 : 0);
-    query.addBindValue(tag.isDeleted() ? 1 : 0);
+                  "VALUES(:guid, :updateSequenceNumber, :name, :nameUpper, :parentGuid, "
+                  ":isDirty, :isLocal, :isDeleted)");
+    query.bindValue("guid", guid);
+    query.bindValue("updateSequenceNumber", tag.updateSequenceNumber());
+    query.bindValue("name", name);
+    query.bindValue("nameUpper", nameUpper);
+    query.bindValue("parentGuid", parentGuid);
+    query.bindValue("isDirty", tag.isDirty() ? 1 : 0);
+    query.bindValue("isLocal", tag.isLocal() ? 1 : 0);
+    query.bindValue("isDeleted", tag.isDeleted() ? 1 : 0);
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace tag into \"Tags\" table in SQL database");

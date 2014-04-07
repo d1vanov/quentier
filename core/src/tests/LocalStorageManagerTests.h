@@ -8,6 +8,7 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(LocalStorageManager)
 QT_FORWARD_DECLARE_CLASS(SavedSearch)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
+QT_FORWARD_DECLARE_CLASS(Tag)
 
 namespace test {
 
@@ -18,6 +19,9 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
 bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook & linkedNotebook,
                                                           LocalStorageManager & localStorageManager,
                                                           QString & errorDescription);
+
+bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag, LocalStorageManager & localStorageManager,
+                                               QString & errorDescription);
 
 }
 }
