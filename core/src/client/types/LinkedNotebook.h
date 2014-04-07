@@ -14,6 +14,9 @@ public:
     LinkedNotebook & operator=(const LinkedNotebook & other);
     virtual ~LinkedNotebook() final override;
 
+    bool operator==(const LinkedNotebook & other) const;
+    bool operator!=(const LinkedNotebook & other) const;
+
     virtual void clear();
 
     virtual bool hasGuid() const final override;

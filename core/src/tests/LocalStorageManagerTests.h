@@ -7,12 +7,17 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManager)
 QT_FORWARD_DECLARE_CLASS(SavedSearch)
+QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 
 namespace test {
 
-bool TestSavedSearchAddFindUpdateDeleteInLocalStorage(const SavedSearch & search,
-                                                      LocalStorageManager & localStorageManager,
-                                                      QString & errorDescription);
+bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & search,
+                                                       LocalStorageManager & localStorageManager,
+                                                       QString & errorDescription);
+
+bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook & linkedNotebook,
+                                                          LocalStorageManager & localStorageManager,
+                                                          QString & errorDescription);
 
 }
 }

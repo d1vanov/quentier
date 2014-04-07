@@ -21,7 +21,8 @@ private slots:
     void serializationTestNoteAttributes();
     void serializationTestResourceAttributes();
 
-    void localStorageManagerIndividualSavedSearchAddFindTest();
+    void localStorageManagerIndividualSavedSearchTest();
+    void localStorageManagerIndividualLinkedNotebookTest();
 
 private:
     CoreTester(const CoreTester & other) = delete;

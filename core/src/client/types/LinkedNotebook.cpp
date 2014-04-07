@@ -26,6 +26,16 @@ LinkedNotebook & LinkedNotebook::operator =(const LinkedNotebook & other)
 LinkedNotebook::~LinkedNotebook()
 {}
 
+bool LinkedNotebook::operator==(const LinkedNotebook & other) const
+{
+    return ((m_enLinkedNotebook == other.m_enLinkedNotebook) && (isDirty() == other.isDirty()));
+}
+
+bool LinkedNotebook::operator!=(const LinkedNotebook & other) const
+{
+    return !(*this == other);
+}
+
 void LinkedNotebook::clear()
 {
     m_enLinkedNotebook = evernote::edam::LinkedNotebook();
@@ -219,6 +229,7 @@ const QString LinkedNotebook::stack() const
 void LinkedNotebook::setStack(const QString & stack)
 {
     m_enLinkedNotebook.stack = stack.toStdString();
+    m_enLinkedNotebook.__isset.stack = !(stack.isEmpty());
 }
 
 bool LinkedNotebook::hasBusinessId() const

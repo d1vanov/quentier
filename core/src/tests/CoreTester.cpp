@@ -4,6 +4,7 @@
 #include <tools/IQuteNoteException.h>
 #include <client/local_storage/LocalStorageManager.h>
 #include <client/types/SavedSearch.h>
+#include <client/types/LinkedNotebook.h>
 #include <QtTest/QTest>
 
 namespace qute_note {
@@ -33,7 +34,7 @@ TEST(ResourceAttributes)
 
 #undef TEST
 
-void CoreTester::localStorageManagerIndividualSavedSearchAddFindTest()
+void CoreTester::localStorageManagerIndividualSavedSearchTest()
 {
     try
     {
@@ -51,7 +52,36 @@ void CoreTester::localStorageManagerIndividualSavedSearchAddFindTest()
         search.setIncludePersonalLinkedNotebooks(true);
 
         QString error;
-        bool res = TestSavedSearchAddFindUpdateDeleteInLocalStorage(search, localStorageManager, error);
+        bool res = TestSavedSearchAddFindUpdateExpungeInLocalStorage(search, localStorageManager, error);
+        QVERIFY2(res == true, error.toStdString().c_str());
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
+    }
+}
+
+void CoreTester::localStorageManagerIndividualLinkedNotebookTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        LinkedNotebook linkedNotebook;
+        linkedNotebook.setGuid("00000000-0000-0000-c000-000000000046");
+        linkedNotebook.setUpdateSequenceNumber(1);
+        linkedNotebook.setShareName("Fake linked notebook share name");
+        linkedNotebook.setUsername("Fake linked notebook username");
+        linkedNotebook.setShardId("Fake linked notebook shard id");
+        linkedNotebook.setShareKey("Fake linked notebook share key");
+        linkedNotebook.setUri("Fake linked notebook uri");
+        linkedNotebook.setNoteStoreUrl("Fake linked notebook note store url");
+        linkedNotebook.setWebApiUrlPrefix("Fake linked notebook web api url prefix");
+        linkedNotebook.setStack("Fake linked notebook stack");
+        linkedNotebook.setBusinessId(1);
+
+        QString error;
+        bool res = TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(linkedNotebook, localStorageManager, error);
         QVERIFY2(res == true, error.toStdString().c_str());
     }
     catch(IQuteNoteException & exception) {

@@ -29,12 +29,12 @@ SavedSearch::~SavedSearch()
 
 bool SavedSearch::operator==(const SavedSearch & other) const
 {
-    return (m_enSearch == other.m_enSearch);
+    return ((m_enSearch == other.m_enSearch) && (isDirty() == other.isDirty()));
 }
 
 bool SavedSearch::operator!=(const SavedSearch & other) const
 {
-    return !operator==(other);
+    return !(*this == other);
 }
 
 void SavedSearch::clear()

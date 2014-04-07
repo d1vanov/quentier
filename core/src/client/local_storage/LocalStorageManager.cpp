@@ -737,7 +737,8 @@ bool LocalStorageManager::FindLinkedNotebook(const QString & notebookGuid,
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT guid, updateSequenceNumber, isDirty, shareName, username, shardId, "
-                  "shareKey, uri, noteStoreUrl, webApiUrlPrefix, stack, businessId WHERE guid=?");
+                  "shareKey, uri, noteStoreUrl, webApiUrlPrefix, stack, businessId "
+                  "FROM LinkedNotebooks WHERE guid = ?");
     query.addBindValue(notebookGuid);
 
     bool res = query.exec();
@@ -789,8 +790,6 @@ bool LocalStorageManager::ListAllLinkedNotebooks(std::vector<LinkedNotebook> & n
 bool LocalStorageManager::ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
                                                 QString & errorDescription)
 {
-    QNDEBUG("LocalStorageManager::ExpungeLinkedNotebook: " << linkedNotebook);
-
     errorDescription = QObject::tr("Can't expunge linked notebook from local storage database: ");
 
     if (!linkedNotebook.hasGuid()) {
@@ -2400,15 +2399,14 @@ bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & l
     errorDescription += QObject::tr("can't insert or replace linked notebook into "
                                     "local storage database");
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT OR REPLACE INTO LinkedNotebooks(:columns) VALUES(:values)");
-
     QString columns, values;
     bool hasAnyProperty = false;
 
-#define CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(property, checker) \
+#define CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(property, checker, ...) \
     if (linkedNotebook.checker()) \
     { \
+        hasAnyProperty = true; \
+        \
         if (!columns.isEmpty()) { \
             columns.append(", "); \
         } \
@@ -2417,11 +2415,11 @@ bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & l
         if (!values.isEmpty()) { \
             values.append(", "); \
         } \
-        values.append(linkedNotebook.property()); \
+        values.append("\"" + __VA_ARGS__ (linkedNotebook.property()) + "\""); \
     }
 
-    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(guid, hasGuid);
-    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(updateSequenceNumber, hasUpdateSequenceNumber);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(guid, hasGuid, QString);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(updateSequenceNumber, hasUpdateSequenceNumber, QString::number);
     CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(shareName, hasShareName);
     CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(username, hasUsername);
     CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(shardId, hasShardId);
@@ -2430,19 +2428,19 @@ bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & l
     CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(noteStoreUrl, hasNoteStoreUrl);
     CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(webApiUrlPrefix, hasWebApiUrlPrefix);
     CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(stack, hasStack);
-    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(businessId, hasBusinessId);
+    CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY(businessId, hasBusinessId, QString::number);
 
 #undef CHECK_AND_INSERT_LINKED_NOTEBOOK_PROPERTY
 
     if (hasAnyProperty)
     {
         columns.append(", isDirty");
-        values.append(QString::number(linkedNotebook.isDirty() ? 1 : 0));
+        values.append(", " + QString::number(linkedNotebook.isDirty() ? 1 : 0));
 
-        query.bindValue("columns", columns);
-        query.bindValue("values", values);
+        QString queryString = QString("INSERT OR REPLACE INTO LinkedNotebooks (%1) VALUES(%2)").arg(columns).arg(values);
+        QSqlQuery query(m_sqlDatabase);
 
-        bool res = query.exec();
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook into \"LinkedNotebooks\" table in SQL database");
     }
 
