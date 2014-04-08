@@ -1434,18 +1434,14 @@ bool LocalStorageManager::FindResource(const QString & resourceGuid, IResource &
     resource.clear();
     resource.setGuid(resourceGuid);
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT noteGuid, updateSequenceNumber, isDirty, dataSize, dataHash, "
-                  "mime, width, height, recognitionSize, recognitionHash :binaryColumns "
-                  "FROM Resources WHERE guid = ?");
-    if (withBinaryData) {
-        query.bindValue("binaryColumns", ", dataBody, recognitionBody");
-    }
-    else {
-        query.bindValue("binaryColumns", "");
-    }
+    QString queryString = QString("SELECT noteGuid, updateSequenceNumber, isDirty, dataSize, dataHash, "
+                                  "mime, width, height, recognitionDataSize, recognitionDataHash %1 "
+                                  "FROM Resources WHERE guid = %2")
+                                 .arg(withBinaryData ? ", dataBody, recognitionDataBody" : " ")
+                                 .arg("\"" + resourceGuid + "\"");
 
-    bool res = query.exec();
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find resource in \"Resources\" table in SQL database");
 
     if (!query.next()) {
@@ -1484,10 +1480,9 @@ bool LocalStorageManager::FindResource(const QString & resourceGuid, IResource &
         CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QString, QString, setDataBody, isRequired);
     }
 
-    query.prepare("SELECT data FROM ResourceAttributes WHERE guid = ?");
-    query.addBindValue(resourceGuid);
-
-    res = query.exec();
+    queryString = QString("SELECT data FROM ResourceAttributes WHERE guid = %1")
+                         .arg("\"" + resourceGuid + "\"");
+    res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributes\" table in SQL database");
 
     if (!query.next()) {
@@ -1705,7 +1700,7 @@ bool LocalStorageManager::UpdateResource(const IResource & resource, QString & e
     }
 
     bool exists = RowExists("Resources", "guid", QVariant(resource.guid()));
-    if (exists) {
+    if (!exists) {
         errorDescription += QObject::tr("resource to be updated was not found by guid");
         QNWARNING(errorDescription << ", guid: " << resource.guid());
         return false;
@@ -1890,7 +1885,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceNote index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributes("
-                     "  guid REFERENCES Resource(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  guid REFERENCES Resources(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  data                  BLOB                 DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributes table");
 
@@ -2659,15 +2654,14 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
 
     if (resource.hasResourceAttributes())
     {
-        QString resourceGuid = "\"" + resource.guid() + "\"";
-        QString resourceAttributes = "\"" + QString(resource.resourceAttributes()) + "\"";
+        QString resourceGuid = resource.guid();
 
-        queryString = QString("INSERT OR REPLACE INTO ResourceAttributes (guid, data) VALUES(%1, %2)")
-                .arg(resourceGuid).arg(resourceAttributes);
+        query.clear();
+        res = query.prepare("INSERT OR REPLACE INTO ResourceAttributes (guid, data) VALUES(?, ?)");
+        query.addBindValue(QVariant(resourceGuid));
+        query.addBindValue(QVariant(resource.resourceAttributes()), QSql::In | QSql::Binary);
 
-        QNDEBUG("InsertOrReplaceResource: query string for attributes: " << queryString);
-
-        res = query.exec(queryString);
+        res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
     }
 

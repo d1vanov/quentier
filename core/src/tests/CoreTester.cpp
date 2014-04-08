@@ -19,7 +19,7 @@ CoreTester::CoreTester(QObject * parent) :
 
 CoreTester::~CoreTester()
 {}
-/*
+
 #define TEST(component) \
     void CoreTester::serializationTest##component() \
     { \
@@ -112,7 +112,7 @@ void CoreTester::localStorageManagerIndividualTagTest()
         QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
     }
 }
-*/
+
 void CoreTester::localStorageManagerIndividualResourceTest()
 {
     try

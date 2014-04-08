@@ -14,7 +14,6 @@ public:
     virtual ~CoreTester();
 
 private slots:
-    /*
     void serializationTestBusinessUserInfo();
     void serializationTestPremiumInfo();
     void serializationTestAccounting();
@@ -25,7 +24,6 @@ private slots:
     void localStorageManagerIndividualSavedSearchTest();
     void localStorageManagerIndividualLinkedNotebookTest();
     void localStorageManagerIndividualTagTest();
-    */
     void localStorageManagerIndividualResourceTest();
 
 private:
