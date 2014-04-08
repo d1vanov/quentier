@@ -14,8 +14,8 @@ class ResourceWrapper final: public IResource
 {
 public:
     ResourceWrapper();
-    ResourceWrapper(const ResourceWrapper & other);
-    ResourceWrapper & operator=(const ResourceWrapper & other);
+    ResourceWrapper(const IResource & other);
+    ResourceWrapper & operator=(const IResource & other);
     virtual ~ResourceWrapper() final override;
 
 private:

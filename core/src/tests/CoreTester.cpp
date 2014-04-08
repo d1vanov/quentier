@@ -6,6 +6,8 @@
 #include <client/types/SavedSearch.h>
 #include <client/types/LinkedNotebook.h>
 #include <client/types/Tag.h>
+#include <client/types/ResourceWrapper.h>
+#include <client/Serialization.h>
 #include <QtTest/QTest>
 
 namespace qute_note {
@@ -17,7 +19,7 @@ CoreTester::CoreTester(QObject * parent) :
 
 CoreTester::~CoreTester()
 {}
-
+/*
 #define TEST(component) \
     void CoreTester::serializationTest##component() \
     { \
@@ -104,6 +106,65 @@ void CoreTester::localStorageManagerIndividualTagTest()
 
         QString error;
         bool res = TestTagAddFindUpdateExpungeInLocalStorage(tag, localStorageManager, error);
+        QVERIFY2(res == true, error.toStdString().c_str());
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
+    }
+}
+*/
+void CoreTester::localStorageManagerIndividualResourceTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        ResourceWrapper resource;
+        resource.setGuid("00000000-0000-0000-c000-000000000046");
+        resource.setUpdateSequenceNumber(1);
+        resource.setNoteGuid("00000000-0000-0000-c000-000000000047");
+        resource.setDataBody("Fake resource data body");
+        resource.setDataSize(resource.dataBody().size());
+        resource.setDataHash("Fake hash      1");
+
+        resource.setRecognitionDataBody("Fake resource recognition data body");
+        resource.setRecognitionDataSize(resource.recognitionDataBody().size());
+        resource.setRecognitionDataHash("Fake hash      2");
+
+        resource.setMime("text/plain");
+        resource.setWidth(1);
+        resource.setHeight(1);
+
+        evernote::edam::ResourceAttributes resourceAttributes;
+
+        resourceAttributes.sourceURL = "Fake resource source URL";
+        resourceAttributes.__isset.sourceURL = true;
+
+        resourceAttributes.timestamp = 1;
+        resourceAttributes.__isset.timestamp = true;
+
+        resourceAttributes.latitude = 0.0;
+        resourceAttributes.__isset.latitude = true;
+
+        resourceAttributes.longitude = 0.0;
+        resourceAttributes.__isset.longitude = true;
+
+        resourceAttributes.altitude = 0.0;
+        resourceAttributes.__isset.altitude = true;
+
+        resourceAttributes.cameraMake = "Fake resource camera make";
+        resourceAttributes.__isset.cameraMake = true;
+
+        resourceAttributes.cameraModel = "Fake resource camera model";
+        resourceAttributes.__isset.cameraModel = true;
+
+        QByteArray serializedResourceAttributes = GetSerializedResourceAttributes(resourceAttributes);
+
+        resource.setResourceAttributes(serializedResourceAttributes);
+
+        QString error;
+        bool res = TestResourceAddFindUpdateExpungeInLocalStorage(resource, localStorageManager, error);
         QVERIFY2(res == true, error.toStdString().c_str());
     }
     catch(IQuteNoteException & exception) {

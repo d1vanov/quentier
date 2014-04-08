@@ -13,6 +13,9 @@ public:
     IResource(const bool isFreeAccount);
     virtual ~IResource();
 
+    bool operator==(const IResource & other) const;
+    bool operator!=(const IResource & other) const;
+
     virtual void clear() final override;
 
     virtual bool hasGuid() const final override;
@@ -91,6 +94,7 @@ public:
     void setResourceAttributes(const QByteArray & resourceAttributes);
 
     friend class Note;
+    friend class ResourceWrapper;
 
 protected:
     IResource(const IResource & other);

@@ -9,6 +9,7 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManager)
 QT_FORWARD_DECLARE_CLASS(SavedSearch)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 QT_FORWARD_DECLARE_CLASS(Tag)
+QT_FORWARD_DECLARE_CLASS(IResource)
 
 namespace test {
 
@@ -22,6 +23,10 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
 
 bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag, LocalStorageManager & localStorageManager,
                                                QString & errorDescription);
+
+bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
+                                                    LocalStorageManager & localStorageManager,
+                                                    QString & errorDescription);
 
 }
 }

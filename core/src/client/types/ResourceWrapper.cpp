@@ -7,17 +7,17 @@ ResourceWrapper::ResourceWrapper() :
     m_en_resource()
 {}
 
-ResourceWrapper::ResourceWrapper(const ResourceWrapper & other) :
+ResourceWrapper::ResourceWrapper(const IResource & other) :
     IResource(other),
-    m_en_resource(other.m_en_resource)
+    m_en_resource(other.GetEnResource())
 {}
 
-ResourceWrapper & ResourceWrapper::operator=(const ResourceWrapper & other)
+ResourceWrapper & ResourceWrapper::operator=(const IResource & other)
 {
     if (this != &other)
     {
         IResource::operator =(other);
-        m_en_resource = other.m_en_resource;
+        m_en_resource = other.GetEnResource();
     }
 
     return *this;
@@ -39,7 +39,7 @@ evernote::edam::Resource & ResourceWrapper::GetEnResource()
 QTextStream & ResourceWrapper::Print(QTextStream & strm) const
 {
     strm << "ResourceWrapper { \n";
-    strm << IResource::ToQString();
+    IResource::Print(strm);
     strm << "} \n";
 
     return strm;

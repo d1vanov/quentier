@@ -4,7 +4,9 @@
 #include <client/types/SavedSearch.h>
 #include <client/types/LinkedNotebook.h>
 #include <client/types/Tag.h>
+#include <client/types/ResourceWrapper.h>
 #include <client/Utility.h>
+#include <client/Serialization.h>
 
 namespace qute_note {
 namespace test {
@@ -239,6 +241,98 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         errorDescription = "Error: found Tag which should have been exounged from LocalStorageManager";
         QNWARNING(errorDescription << ": Tag expunged from LocalStorageManager: " << modifiedTag
                   << "\nTag found in LocalStorageManager: " << foundTag);
+        return false;
+    }
+
+    return true;
+}
+
+bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
+                                                    LocalStorageManager & localStorageManager,
+                                                    QString & errorDescription)
+{
+    if (!resource.checkParameters(errorDescription)) {
+        QNWARNING("Found invalid IResource: " << resource);
+        return false;
+    }
+
+    // ========== Check Add + Find ==========
+    bool res = localStorageManager.AddResource(resource, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    const QString resourceGuid = resource.guid();
+    ResourceWrapper foundResource;
+    res = localStorageManager.FindResource(resourceGuid, foundResource, errorDescription,
+                                           /* withBinaryData = */ true);
+    if (!res) {
+        return false;
+    }
+
+    if (resource != foundResource) {
+        errorDescription = QObject::tr("Added and found in local storage manager resources don't match");
+        QNWARNING(errorDescription << ": IResource added to LocalStorageManager: " << resource
+                  << "\nIResource found in LocalStorageManager: " << foundResource);
+        return false;
+    }
+
+    // ========== Check Update + Find ==========
+    ResourceWrapper modifiedResource(resource);
+    modifiedResource.setUpdateSequenceNumber(resource.updateSequenceNumber() + 1);
+    modifiedResource.setDataBody(resource.dataBody() + "_modified");
+    modifiedResource.setDataSize(modifiedResource.dataBody().size());
+    modifiedResource.setDataHash("Fake hash      3");
+
+    modifiedResource.setWidth(resource.width() + 1);
+    modifiedResource.setHeight(resource.height() + 1);
+    modifiedResource.setRecognitionDataBody(resource.recognitionDataBody() + "_modified");
+    modifiedResource.setRecognitionDataSize(modifiedResource.recognitionDataBody().size());
+    modifiedResource.setRecognitionDataHash("Fake hash      4");
+
+    evernote::edam::ResourceAttributes resourceAttributes = GetDeserializedResourceAttributes(modifiedResource.resourceAttributes());
+
+    resourceAttributes.sourceURL = "Modified source URL";
+    resourceAttributes.timestamp += 1;
+    resourceAttributes.latitude = 2.0;
+    resourceAttributes.longitude = 2.0;
+    resourceAttributes.altitude = 2.0;
+    resourceAttributes.cameraMake = "Modified camera make";
+    resourceAttributes.cameraModel = "Modified camera model";
+
+    QByteArray serializedResourceAttributes = GetSerializedResourceAttributes(resourceAttributes);
+
+    modifiedResource.setResourceAttributes(serializedResourceAttributes);
+
+    res = localStorageManager.UpdateResource(modifiedResource, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    res = localStorageManager.FindResource(resourceGuid, foundResource, errorDescription,
+                                           /* withBinaryData = */ true);
+    if (!res) {
+        return false;
+    }
+
+    if (modifiedResource != foundResource) {
+        errorDescription = QObject::tr("Updated and foun din local storage manager resources don't match");
+        QNWARNING(errorDescription << ": IResource updated in LocalStorageManager: " << modifiedResource
+                  << "\nIResource found in LocalStorageManager: " << foundResource);
+        return false;
+    }
+
+    // ========== Check Expunge + Find (falure expected) ==========
+    res = localStorageManager.ExpungeResource(modifiedResource, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    res = localStorageManager.FindResource(resourceGuid, foundResource, errorDescription);
+    if (res) {
+        errorDescription = "Error: found IResource which should have been expunged from LocalStorageManager";
+        QNWARNING(errorDescription << ": IResource expunged from LocalStorageManager: " << modifiedResource
+                  << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
     }
 

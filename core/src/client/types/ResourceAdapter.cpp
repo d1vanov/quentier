@@ -45,7 +45,7 @@ evernote::edam::Resource & ResourceAdapter::GetEnResource()
 QTextStream & ResourceAdapter::Print(QTextStream & strm) const
 {
     strm << "ResourceAdapter { \n";
-    strm << IResource::ToQString();
+    IResource::Print(strm);
     strm << "} \n";
 
     return strm;

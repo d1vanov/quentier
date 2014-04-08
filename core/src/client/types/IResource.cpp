@@ -19,6 +19,16 @@ IResource::IResource(const bool isFreeAccount) :
 IResource::~IResource()
 {}
 
+bool IResource::operator==(const IResource & other) const
+{
+    return (GetEnResource() == other.GetEnResource()) && (isDirty() == other.isDirty());
+}
+
+bool IResource::operator!=(const IResource & other) const
+{
+    return !(*this == other);
+}
+
 void IResource::clear()
 {
     setDirty(true);
@@ -122,10 +132,46 @@ bool IResource::checkParameters(QString & errorDescription) const
     }
 
     CHECK_RESOURCE_DATA(data);
-    CHECK_RESOURCE_DATA(recognition);
+    // CHECK_RESOURCE_DATA(recognition);
     CHECK_RESOURCE_DATA(alternateData);
 
 #undef CHECK_RESOURCE_DATA
+
+
+    if (enResource.__isset.recognition)
+    {
+        if (!enResource.recognition.__isset.body) {
+            errorDescription = QObject::tr("Resource's recognition data body is not set");
+            return false;
+        }
+
+        int32_t dataSize = static_cast<int32_t>(enResource.recognition.body.size());
+        int32_t allowedSize = (m_isFreeAccount
+                               ? evernote::limits::g_Limits_constants.EDAM_RESOURCE_SIZE_MAX_FREE
+                               : evernote::limits::g_Limits_constants.EDAM_RESOURCE_SIZE_MAX_PREMIUM);
+        if (dataSize > allowedSize) {
+            errorDescription = QObject::tr("Resource's recognition body size is too large");
+            return false;
+        }
+
+        if (!enResource.recognition.__isset.size) {
+            errorDescription = QObject::tr("Resource's recognition size is not set");
+            return false;
+        }
+
+        if (!enResource.recognition.__isset.bodyHash) {
+            errorDescription = QObject::tr("Resource's recognition hash is not set");
+            return false;
+        }
+        else {
+            int32_t hashSize = static_cast<int32_t>(enResource.recognition.bodyHash.size());
+            if (hashSize != evernote::limits::g_Limits_constants.EDAM_HASH_LEN) {
+                errorDescription = QObject::tr("Invalid recognition hash size");
+                return false;
+            }
+        }
+    }
+
 
     if (!enResource.__isset.data && enResource.__isset.alternateData) {
         errorDescription = QObject::tr("Resource has no data set but alternate data is present");
@@ -210,8 +256,8 @@ const QString IResource::noteGuid() const
 void IResource::setNoteGuid(const QString & guid)
 {
     auto & enResource = GetEnResource();
-    enResource.guid = guid.toStdString();
-    enResource.__isset.guid = true;
+    enResource.noteGuid = guid.toStdString();
+    enResource.__isset.noteGuid = true;
 }
 
 bool IResource::hasData() const

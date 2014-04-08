@@ -1880,9 +1880,9 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  mime                    TEXT                 NOT NULL, "
                      "  width                   INTEGER              DEFAULT 0, "
                      "  height                  INTEGER              DEFAULT 0, "
-                     "  recognitionBody         TEXT                 DEFAULT NULL, "
-                     "  recognitionSize         INTEGER              DEFAULT 0, "
-                     "  recognitionHash         TEXT                 DEFAULT NULL"
+                     "  recognitionDataBody     TEXT                 DEFAULT NULL, "
+                     "  recognitionDataSize     INTEGER              DEFAULT 0, "
+                     "  recognitionDataHash     TEXT                 DEFAULT NULL"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Resources table");
 
@@ -2595,12 +2595,9 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
 
     errorDescription = QObject::tr("Can't insert or replace resource into local storage database: ");
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT OR REPLACE INTO Resources (:columns) VALUES(:vals)");
-
     QString columns, values;
 
-#define CHECK_AND_INSERT_RESOURCE_PROPERTY(property, checker) \
+#define CHECK_AND_INSERT_RESOURCE_PROPERTY(property, checker, ...) \
     if (resource.checker()) \
     { \
         if (!columns.isEmpty()) { \
@@ -2611,7 +2608,7 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
         if (!values.isEmpty()) { \
             values.append(", "); \
         } \
-        values.append(resource.property()); \
+        values.append("\"" + __VA_ARGS__ (resource.property()) + "\""); \
     }
 
     CHECK_AND_INSERT_RESOURCE_PROPERTY(guid, hasGuid);
@@ -2625,23 +2622,23 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
         CHECK_AND_INSERT_RESOURCE_PROPERTY(dataBody, hasDataBody);
 
         const auto & dataSize = (hasData ? resource.dataSize() : resource.alternateDataSize());
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataSize, hasDataSize);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataSize, hasDataSize, QString::number);
 
         const auto & dataHash = (hasData ? resource.dataHash() : resource.alternateDataHash());
         CHECK_AND_INSERT_RESOURCE_PROPERTY(dataHash, hasDataHash);
     }
 
     CHECK_AND_INSERT_RESOURCE_PROPERTY(mime, hasMime);
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(width, hasWidth);
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(height, hasHeight);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(width, hasWidth, QString::number);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(height, hasHeight, QString::number);
 
     if (resource.hasRecognitionData()) {
         CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataBody, hasRecognitionDataBody);
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataSize, hasRecognitionDataSize);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataSize, hasRecognitionDataSize, QString::number);
         CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataHash, hasRecognitionDataHash);
     }
 
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(updateSequenceNumber, hasUpdateSequenceNumber);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(updateSequenceNumber, hasUpdateSequenceNumber, QString::number);
 
 #undef CHECK_AND_INSERT_RESOURCE_PROPERTY
 
@@ -2655,19 +2652,22 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
     }
     values.append(QString::number(resource.isDirty() ? 1 : 0));
 
-    query.bindValue("columns", columns);
-    query.bindValue("vals", values);
-
-    bool res = query.exec();
+    QSqlQuery query(m_sqlDatabase);
+    QString queryString = QString("INSERT OR REPLACE INTO Resources (%1) VALUES(%2)").arg(columns).arg(values);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database");
 
     if (resource.hasResourceAttributes())
     {
-        query.prepare("INSERT OR REPLACE INTO ResourceAttributes (guid, data) VALUES(?, ?)");
-        query.addBindValue(resource.guid());
-        query.addBindValue(resource.resourceAttributes());
+        QString resourceGuid = "\"" + resource.guid() + "\"";
+        QString resourceAttributes = "\"" + QString(resource.resourceAttributes()) + "\"";
 
-        res = query.exec();
+        queryString = QString("INSERT OR REPLACE INTO ResourceAttributes (guid, data) VALUES(%1, %2)")
+                .arg(resourceGuid).arg(resourceAttributes);
+
+        QNDEBUG("InsertOrReplaceResource: query string for attributes: " << queryString);
+
+        res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
     }
 
