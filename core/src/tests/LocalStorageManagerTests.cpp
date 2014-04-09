@@ -5,6 +5,7 @@
 #include <client/types/LinkedNotebook.h>
 #include <client/types/Tag.h>
 #include <client/types/ResourceWrapper.h>
+#include <client/types/Note.h>
 #include <client/Utility.h>
 #include <client/Serialization.h>
 
@@ -34,7 +35,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     }
 
     if (search != foundSearch) {
-        errorDescription = QObject::tr("Added and found in local storage manager saved searches don't match");
+        errorDescription = QObject::tr("Added and found saved searches in local storage don't match");
         QNWARNING(errorDescription << ": SavedSearch added to LocalStorageManager: " << search
                   << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
         return false;
@@ -57,7 +58,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     }
 
     if (modifiedSearch != foundSearch) {
-        errorDescription = QObject::tr("Updated and found in local storage manager saved searches don't match");
+        errorDescription = QObject::tr("Updated and found saved searches in local storage don't match");
         QNWARNING(errorDescription << ": SavedSearch updated in LocalStorageManager: " << modifiedSearch
                   << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
         return false;
@@ -71,7 +72,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
 
     res = localStorageManager.FindSavedSearch(searchGuid, foundSearch, errorDescription);
     if (res) {
-        errorDescription = "Error: found SavedSearch which should have been expunged from LocalStorageManager";
+        errorDescription = "Error: found saved search which should have been expunged from local storage";
         QNWARNING(errorDescription << ": SavedSearch expunged from LocalStorageManager: " << modifiedSearch
                   << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
         return false;
@@ -103,7 +104,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     }
 
     if (linkedNotebook != foundLinkedNotebook) {
-        errorDescription = QObject::tr("Added and found in local storage manager linked notebooks don't match");
+        errorDescription = QObject::tr("Added and found linked noteboks in local storage don't match");
         QNWARNING(errorDescription << ": LinkedNotebook added to LocalStorageManager: " << linkedNotebook
                   << "\nLinkedNotebook found in LocalStorageManager: " << foundLinkedNotebook);
         return false;
@@ -133,7 +134,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     }
 
     if (modifiedLinkedNotebook != foundLinkedNotebook) {
-        errorDescription = QObject::tr("Updated and found in local storage manager linked notebooks don't match");
+        errorDescription = QObject::tr("Updated and found linked notebooks in local storage don't match");
         QNWARNING(errorDescription << ": LinkedNotebook updated in LocalStorageManager: " << modifiedLinkedNotebook
                   << "\nLinkedNotebook found in LocalStorageManager: " << foundLinkedNotebook);
         return false;
@@ -147,7 +148,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
 
     res = localStorageManager.FindLinkedNotebook(linkedNotebookGuid, foundLinkedNotebook, errorDescription);
     if (res) {
-        errorDescription = "Error: found LinkedNotebook which should have been expunged from LocalStorageManager";
+        errorDescription = "Error: found linked notebook which should have been expunged from local storage";
         QNWARNING(errorDescription << ": LinkedNotebook expunged from LocalStorageManager: " << modifiedLinkedNotebook
                   << "\nLinkedNotebook found in LocalStorageManager: " << foundLinkedNotebook);
         return false;
@@ -179,7 +180,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     if (tag != foundTag) {
-        errorDescription = QObject::tr("Added and found in local storage manager tags don't match");
+        errorDescription = QObject::tr("Added and found tags in local storage tags don't match");
         QNWARNING(errorDescription << ": Tag added to LocalStorageManager: " << tag
                   << "\nTag found in LocalStorageManager: " << foundTag);
         return false;
@@ -201,7 +202,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     if (modifiedTag != foundTag) {
-        errorDescription = QObject::tr("Updated and found in local storage manager tags don't match");
+        errorDescription = QObject::tr("Updated and found tags in local storage don't match");
         QNWARNING(errorDescription << ": Tag updated in LocalStorageManaged: " << modifiedTag
                   << "\nTag found in LocalStorageManager: " << foundTag);
         return false;
@@ -238,7 +239,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
 
     res = localStorageManager.FindTag(tagGuid, foundTag, errorDescription);
     if (res) {
-        errorDescription = "Error: found Tag which should have been exounged from LocalStorageManager";
+        errorDescription = "Error: found tag which should have been exounged from local storage";
         QNWARNING(errorDescription << ": Tag expunged from LocalStorageManager: " << modifiedTag
                   << "\nTag found in LocalStorageManager: " << foundTag);
         return false;
@@ -271,7 +272,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
     }
 
     if (resource != foundResource) {
-        errorDescription = QObject::tr("Added and found in local storage manager resources don't match");
+        errorDescription = QObject::tr("Added and found in local storage resources don't match");
         QNWARNING(errorDescription << ": IResource added to LocalStorageManager: " << resource
                   << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
@@ -316,7 +317,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
     }
 
     if (modifiedResource != foundResource) {
-        errorDescription = QObject::tr("Updated and foun din local storage manager resources don't match");
+        errorDescription = QObject::tr("Updated and found in local storage resources don't match");
         QNWARNING(errorDescription << ": IResource updated in LocalStorageManager: " << modifiedResource
                   << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
@@ -335,6 +336,43 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
                   << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
     }
+
+    return true;
+}
+
+bool TestNoteAddFindUpdateDeleteExpungeInLocalStorage(const Note & note,
+                                                      LocalStorageManager & localStorageManager,
+                                                      QString & errorDescription)
+{
+    if (!note.checkParameters(errorDescription)) {
+        QNWARNING("Found invalid Note: " << note);
+        return false;
+    }
+
+    // ========== Check Add + Find ==========
+    bool res = localStorageManager.AddNote(note, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    const QString noteGuid = note.guid();
+    const bool withResourceBinaryData = true;
+    Note foundNote;
+    res = localStorageManager.FindNote(noteGuid, foundNote, errorDescription,
+                                       withResourceBinaryData);
+    if (!res) {
+        return false;
+    }
+
+    if (note != foundNote) {
+        errorDescription = QObject::tr("Added and found notes in local storage don't match");
+        QNWARNING(errorDescription << ": Note added to LocalStorageManager: " << note
+                  << "\nNote found in LocalStorageManager: " << foundNote);
+        return false;
+    }
+
+    // ========== Check Update + Find ==========
+    // TODO: continue from here
 
     return true;
 }

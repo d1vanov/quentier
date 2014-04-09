@@ -36,6 +36,17 @@ Note & Note::operator=(const Note & other)
 Note::~Note()
 {}
 
+bool Note::operator==(const Note & other) const
+{
+    return ((m_enNote == other.m_enNote) && (isDirty() == other.isDirty()) &&
+            (isDeleted() == other.isDeleted()));
+}
+
+bool Note::operator!=(const Note & other) const
+{
+    return !(*this == other);
+}
+
 bool Note::hasGuid() const
 {
     return m_enNote.__isset.guid;

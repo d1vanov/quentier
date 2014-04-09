@@ -126,10 +126,11 @@ public:
     bool AddNote(const Note & note, QString & errorDescription);
     bool UpdateNote(const Note & note, QString & errorDescription);
 
-    bool FindNote(const QString & noteGuid, Note & note, QString & errorDescription) const;
+    bool FindNote(const QString & noteGuid, Note & note, QString & errorDescription,
+                  const bool withResourceBinaryData = true) const;
 
     bool FindAllNotesPerNotebook(const QString & notebookGuid, std::vector<Note> & notes,
-                                 QString & errorDescription) const;
+                                 QString & errorDescription, const bool withResourceBinaryData = true) const;
 
 
     /**
@@ -247,6 +248,8 @@ private:
     bool InsertOrReplaceResource(const IResource & resource, QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
 
+    bool FillNoteFromSqlRecord(const QSqlRecord & record, Note & note, QString & errorDescription,
+                               const bool withResourceBinaryData) const;
     bool FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QString & errorDescription) const;
     bool FillSharedNotebookFromSqlRecord(const QSqlRecord & record, ISharedNotebook & sharedNotebook,
                                          QString & errorDescription) const;

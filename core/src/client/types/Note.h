@@ -17,6 +17,9 @@ public:
     Note & operator=(const Note & other);
     virtual ~Note() final override;
 
+    bool operator==(const Note & other) const;
+    bool operator!=(const Note & other) const;
+
     virtual bool hasGuid() const final override;
     virtual const QString guid() const final override;
     virtual void setGuid(const QString & guid) final override;
