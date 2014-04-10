@@ -7,6 +7,7 @@
 #include <client/types/LinkedNotebook.h>
 #include <client/types/Tag.h>
 #include <client/types/ResourceWrapper.h>
+#include <client/types/Notebook.h>
 #include <client/Serialization.h>
 #include <QtTest/QTest>
 
@@ -120,10 +121,35 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         const bool startFromScratch = true;
         LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
 
+        Notebook notebook;
+        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setUpdateSequenceNumber(1);
+        notebook.setName("Fake notebook name");
+        notebook.setCreationTimestamp(1);
+        notebook.setModificationTimestamp(1);
+
+        QString error;
+        bool res = localStorageManager.AddNotebook(notebook, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        Note note;
+        note.setGuid("00000000-0000-0000-c000-000000000046");
+        note.setUpdateSequenceNumber(1);
+        note.setTitle("Fake note title");
+        note.setContent("Fake note content");
+        note.setCreationTimestamp(1);
+        note.setModificationTimestamp(1);
+        note.setActive(true);
+        note.setNotebookGuid(notebook.guid());
+
+        error.clear();
+        res = localStorageManager.AddNote(note, error);
+        QVERIFY2(res == true, qPrintable(error));
+
         ResourceWrapper resource;
         resource.setGuid("00000000-0000-0000-c000-000000000046");
         resource.setUpdateSequenceNumber(1);
-        resource.setNoteGuid("00000000-0000-0000-c000-000000000047");
+        resource.setNoteGuid(note.guid());
         resource.setDataBody("Fake resource data body");
         resource.setDataSize(resource.dataBody().size());
         resource.setDataHash("Fake hash      1");
@@ -163,9 +189,72 @@ void CoreTester::localStorageManagerIndividualResourceTest()
 
         resource.setResourceAttributes(serializedResourceAttributes);
 
-        QString error;
-        bool res = TestResourceAddFindUpdateExpungeInLocalStorage(resource, localStorageManager, error);
+        error.clear();
+        res = TestResourceAddFindUpdateExpungeInLocalStorage(resource, localStorageManager, error);
         QVERIFY2(res == true, error.toStdString().c_str());
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
+    }
+}
+
+void CoreTester::localStorageManagedIndividualNoteTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        Notebook notebook;
+        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setUpdateSequenceNumber(1);
+        notebook.setName("Fake notebook name");
+        notebook.setCreationTimestamp(1);
+        notebook.setModificationTimestamp(1);
+
+        QString error;
+        bool res = localStorageManager.AddNotebook(notebook, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        Note note;
+        note.setGuid("00000000-0000-0000-c000-000000000046");
+        note.setUpdateSequenceNumber(1);
+        note.setTitle("Fake note title");
+        note.setContent("Fake note content");
+        note.setCreationTimestamp(1);
+        note.setModificationTimestamp(1);
+        note.setActive(true);
+        note.setNotebookGuid(notebook.guid());
+
+        Tag tag;
+        tag.setGuid("00000000-0000-0000-c000-000000000048");
+        tag.setUpdateSequenceNumber(1);
+        tag.setName("Fake tag name");
+
+        res = localStorageManager.AddTag(tag, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        note.addTagGuid(tag.guid());
+
+        ResourceWrapper resource;
+        resource.setGuid("00000000-0000-0000-c000-000000000049");
+        resource.setUpdateSequenceNumber(1);
+        resource.setFreeAccount(true);
+        resource.setNoteGuid(note.guid());
+        resource.setDataBody("Fake resource data body");
+        resource.setDataSize(resource.dataBody().size());
+        resource.setDataHash("Fake hash      1");
+        resource.setMime("text/plain");
+        resource.setWidth(1);
+        resource.setHeight(1);
+        resource.setRecognitionDataBody("Fake resource recognition data body");
+        resource.setRecognitionDataSize(resource.recognitionDataBody().size());
+        resource.setRecognitionDataHash("Fake hash      2");
+
+        note.addResource(resource);
+
+        res = TestNoteAddFindUpdateDeleteExpungeInLocalStorage(note, localStorageManager, error);
+        QVERIFY2(res == true, qPrintable(error));
     }
     catch(IQuteNoteException & exception) {
         QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());

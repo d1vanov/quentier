@@ -889,12 +889,16 @@ bool LocalStorageManager::FindNote(const QString & noteGuid, Note & note,
     note = Note();
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT guid, updateSequenceNumber, title, isDirty, isLocal, content, "
-                  "creationTimestamp, modificationTimestamp, isDeleted, deletionTimestap, "
-                  "notebook FROM Notes WHERE guid = ?");
+    bool res = query.prepare("SELECT guid, updateSequenceNumber, title, isDirty, isLocal, content, "
+                             "creationTimestamp, modificationTimestamp, isActive, isDeleted, deletionTimestamp, "
+                             "hasAttributes, notebookGuid FROM Notes WHERE guid = ?");
+    if (!res) {
+        errorDescription += QObject::tr("failed to prepare SQL query");
+        return false;
+    }
     query.addBindValue(noteGuid);
 
-    bool res = query.exec();
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select note from \"Notes\" table in SQL database");
 
     if (!query.next()) {
@@ -909,6 +913,20 @@ bool LocalStorageManager::FindNote(const QString & noteGuid, Note & note,
     }
 
     QString error;
+    res = FindAndSetTagGuidsPerNote(note, error);
+    if (!res) {
+        errorDescription += error;
+        return false;
+    }
+
+    error.clear();
+    res = FindAndSetResourcesPerNote(note, error, withResourceBinaryData);
+    if (!res) {
+        errorDescription += error;
+        return false;
+    }
+
+    error.clear();
     res = note.checkParameters(error);
     if (!res) {
         errorDescription = QObject::tr("Found note is invalid: ");
@@ -1030,30 +1048,6 @@ bool LocalStorageManager::ExpungeNote(const Note & note, QString & errorDescript
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notes\" table in SQL database");
-
-    // Expunge resources associated with the note
-    std::vector<ResourceAdapter> resources;
-    note.resources(resources);
-
-    for(const auto & resource: resources)
-    {
-        if (!resource.hasNoteGuid()) {
-            QNWARNING("Found resource without note guid set: " << resource);
-        }
-        else if (resource.noteGuid() == guid)
-        {
-            res = ExpungeResource(resource, errorDescription);
-            if (!res) {
-                QNWARNING(errorDescription);
-                return false;
-            }
-        }
-        else
-        {
-            QNWARNING("Found resource within note with guid " << guid
-                      << " which is not linked to this note");
-        }
-    }
 
     return true;
 }
@@ -1797,7 +1791,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
                      "  guid                    TEXT PRIMARY KEY     NOT NULL UNIQUE, "
-                     "  noteGuid                TEXT                 NOT NULL, "
+                     "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  updateSequenceNumber    INTEGER              NOT NULL, "
                      "  isDirty                 INTEGER              NOT NULL, "
                      "  dataBody                TEXT                 NOT NULL, "
@@ -1844,6 +1838,15 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE INDEX IF NOT EXISTS NoteTagsNote ON NoteTags(note)");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteTagsNote index");
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS NoteResources("
+                     "  note     REFERENCES Notes(guid)     ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  resource REFERENCES Resources(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  UNIQUE(note, resource) ON CONFLICT REPLACE)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create NoteResources table");
+
+    res = query.exec("CREATE INDEX IF NOT EXISTS NoteResourcesNote ON NoteResources(note)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create NoteResourcesNote index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
                      "  guid                            TEXT PRIMARY KEY    NOT NULL UNIQUE, "
@@ -2583,6 +2586,11 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database");
 
+    queryString = QString("INSERT OR REPLACE INTO NoteResources (note, resource) VALUES('%1', '%2')")
+                          .arg(resource.noteGuid()).arg(resource.guid());
+    res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database");
+
     if (resource.hasResourceAttributes())
     {
         QString resourceGuid = resource.guid();
@@ -2665,20 +2673,6 @@ bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & n
 
 #undef CHECK_AND_SET_NOTE_PROPERTY
 
-    QString error;
-    bool res = FindAndSetTagGuidsPerNote(note, error);
-    if (!res) {
-        errorDescription += error;
-        return false;
-    }
-
-    error.clear();
-    res = FindAndSetResourcesPerNote(note, error, withResourceBinaryData);
-    if (!res) {
-        errorDescription += error;
-        return false;
-    }
-
     if (rec.contains("hasAttributes"))
     {
         int hasAttributes = qvariant_cast<int>(rec.value("hasAttributes"));
@@ -2692,8 +2686,8 @@ bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & n
         return false;
     }
 
-    error.clear();
-    res = FindAndSetNoteAttributesPerNote(note, error);
+    QString error;
+    bool res = FindAndSetNoteAttributesPerNote(note, error);
     if (!res) {
         errorDescription += error;
         return false;
@@ -3011,6 +3005,7 @@ bool LocalStorageManager::FindAndSetTagGuidsPerNote(Note & note, QString & error
             return false;
         }
 
+        QNDEBUG("Found tag guid " << tagGuid << " for note with guid " << note.guid());
         note.addTagGuid(tagGuid);
     }
 
@@ -3022,83 +3017,105 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(Note & note, QString & erro
 {
     errorDescription += QObject::tr("can't find resources for note: ");
 
-    const QString guid = note.guid();
-    if (!CheckGuid(guid)) {
+    const QString noteGuid = note.guid();
+    if (!CheckGuid(noteGuid)) {
         errorDescription += QObject::tr("note's guid is invalid");
         return false;
     }
 
+    // NOTE: it's weird but I can only get this query work as intended,
+    // any more specific ones trying to pick the resource for note guid fail miserably.
+    // I've just spent some hours of my life trying to figure out what the hell is going on here
+    // but the best I was able to do is this. Please be very careful if you think you can do better here...
+    QString queryString = QString("SELECT * FROM NoteResources");
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT :columns FROM Resources WHERE noteGuid = :noteGuid");
+    bool res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't select resources' guids per note's guid");
 
-    QString columns = "guid, updateSequenceNumber, dataSize, dataHash, mime, width, height, "
+    std::vector<QString> resourceGuids;
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+        if (rec.contains("note"))
+        {
+            QString foundNoteGuid = rec.value("note").toString();
+            if ((foundNoteGuid == noteGuid) && (rec.contains("resource"))) {
+                QString resourceGuid = rec.value("resource").toString();
+                resourceGuids.push_back(resourceGuid);
+                QNDEBUG("Found resource guid " << resourceGuid);
+            }
+        }
+    }
+
+    QString columns = "guid, noteGuid, updateSequenceNumber, dataSize, dataHash, mime, width, height, "
                       "recognitionDataSize, recognitionDataHash";
     if (withBinaryData) {
         columns.append(", dataBody, recognitionDataBody");
     }
 
-    query.bindValue(":columns", columns);
-    query.bindValue(":noteGuid", guid);
+    int numResources = resourceGuids.size();
+    QNDEBUG("Found " << numResources << " resources");
 
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select resources' guids per note's guid");
-
-    int numResources = query.size();
-    if (numResources < 0) {
-        QNDEBUG("No resources were found for note with guid " << guid);
-        return true;
-    }
-
-    while(query.next())
+    for(size_t i = 0; i < numResources; ++i)
     {
-        QSqlRecord rec = query.record();
+        const QString & resourceGuid = resourceGuids[i];
 
-        ResourceWrapper resource;
+        QString queryString = QString("SELECT %1 FROM Resources WHERE guid = %2")
+                                     .arg(columns).arg("\"" + resourceGuid + "\"");
 
-        CHECK_AND_SET_RESOURCE_PROPERTY(guid, QString, QString, setGuid, /* is required = */ true);
-        CHECK_AND_SET_RESOURCE_PROPERTY(updateSequenceNumber, int, qint32, setUpdateSequenceNumber,
-                                        /* is required = */ true);
-        CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, int, qint32, setDataSize, /* is required = */ true);
-        CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QString, QString, setDataHash, /* is required = */ true);
+        bool res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't select resources per guid");
 
-        if (withBinaryData) {
-            CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QString, QString, setDataBody,
+        while(query.next())
+        {
+            QSqlRecord rec = query.record();
+
+            ResourceWrapper resource;
+            resource.setGuid(resourceGuid);
+
+            CHECK_AND_SET_RESOURCE_PROPERTY(noteGuid, QString, QString, setNoteGuid, /* is required = */ true);
+            CHECK_AND_SET_RESOURCE_PROPERTY(updateSequenceNumber, int, qint32, setUpdateSequenceNumber,
                                             /* is required = */ true);
+            CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, int, qint32, setDataSize, /* is required = */ true);
+            CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QString, QString, setDataHash, /* is required = */ true);
+
+            if (withBinaryData) {
+                CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QString, QString, setDataBody,
+                                                /* is required = */ true);
+            }
+
+            CHECK_AND_SET_RESOURCE_PROPERTY(mime, QString, QString, setMime, /* is required = */ true);
+            CHECK_AND_SET_RESOURCE_PROPERTY(width, int, qint32, setWidth, /* is required = */ true);
+            CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint32, setHeight, /* is required = */ true);
+
+            CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QString, QString,
+                                            setRecognitionDataBody, /* is required = */ false);
+            CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32,
+                                            setRecognitionDataSize, /* is required = */ false);
+            CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QString, QString,
+                                            setRecognitionDataHash, /* is required = */ false);
+
+            // Retrieve optional resource attributes for each resource
+            QSqlQuery resourceAttributeQuery(m_sqlDatabase);
+            resourceAttributeQuery.prepare("SELECT data FROM ResourceAttributes WHERE guid = ?");
+            resourceAttributeQuery.addBindValue(resourceGuid);
+
+            res = resourceAttributeQuery.exec();
+            if (!res) {
+                errorDescription += QObject::tr("Internal error: can't select serialized "
+                                                "resource attributes from \"ResourceAttributes\" "
+                                                "table in SQL database: ");
+                errorDescription += resourceAttributeQuery.lastError().text();
+                return false;
+            }
+
+            if (resourceAttributeQuery.next()) {
+                resource.setResourceAttributes(resourceAttributeQuery.value(0).toByteArray());
+            }
+
+            QNDEBUG("Adding resource with guid " << resource.guid() << " to note with guid " << note.guid());
+            note.addResource(resource);
         }
-
-        CHECK_AND_SET_RESOURCE_PROPERTY(mime, QString, QString, setMime, /* is required = */ true);
-        CHECK_AND_SET_RESOURCE_PROPERTY(width, int, qint32, setWidth, /* is required = */ true);
-        CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint32, setHeight, /* is required = */ true);
-
-        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QString, QString,
-                                        setRecognitionDataBody, /* is required = */ false);
-        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32,
-                                        setRecognitionDataSize, /* is required = */ false);
-        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QString, QString,
-                                        setRecognitionDataHash, /* is required = */ false);
-
-        // Retrieve optional resource attributes for each resource
-        QSqlQuery resourceAttributeQuery(m_sqlDatabase);
-        resourceAttributeQuery.prepare("SELECT data FROM ResourceAttributes WHERE guid = ?");
-        resourceAttributeQuery.addBindValue(guid);
-
-        res = resourceAttributeQuery.exec();
-        if (!res) {
-            errorDescription += QObject::tr("Internal error: can't select serialized "
-                                            "resource attributes from \"ResourceAttributes\" "
-                                            "table in SQL database: ");
-            errorDescription += resourceAttributeQuery.lastError().text();
-            return false;
-        }
-
-        if (!resourceAttributeQuery.next()) {
-            // No attributes for this resource
-            continue;
-        }
-
-        resource.setResourceAttributes(query.value(0).toByteArray());
-
-        note.addResource(resource);
     }
 
     return true;

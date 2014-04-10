@@ -331,7 +331,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
 
     res = localStorageManager.FindResource(resourceGuid, foundResource, errorDescription);
     if (res) {
-        errorDescription = "Error: found IResource which should have been expunged from LocalStorageManager";
+        errorDescription = QObject::tr("Error: found IResource which should have been expunged from LocalStorageManager");
         QNWARNING(errorDescription << ": IResource expunged from LocalStorageManager: " << modifiedResource
                   << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
@@ -355,6 +355,14 @@ bool TestNoteAddFindUpdateDeleteExpungeInLocalStorage(const Note & note,
         return false;
     }
 
+    const QString initialResourceGuid = "00000000-0000-0000-c000-000000000049";
+    ResourceWrapper foundResource;
+    res = localStorageManager.FindResource(initialResourceGuid, foundResource,
+                                           errorDescription, /* withBinaryData = */ true);
+    if (!res) {
+        return false;
+    }
+
     const QString noteGuid = note.guid();
     const bool withResourceBinaryData = true;
     Note foundNote;
@@ -372,7 +380,131 @@ bool TestNoteAddFindUpdateDeleteExpungeInLocalStorage(const Note & note,
     }
 
     // ========== Check Update + Find ==========
-    // TODO: continue from here
+    Note modifiedNote(note);
+    modifiedNote.setUpdateSequenceNumber(note.updateSequenceNumber() + 1);
+    modifiedNote.setTitle(note.title() + "_modified");
+    modifiedNote.setContent(note.content() + "_modified");
+    modifiedNote.setCreationTimestamp(note.creationTimestamp() + 1);
+    modifiedNote.setModificationTimestamp(note.modificationTimestamp() + 1);
+
+    Tag newTag;
+    newTag.setGuid("00000000-0000-0000-c000-000000000050");
+    newTag.setUpdateSequenceNumber(1);
+    newTag.setName("Fake new tag name");
+
+    res = localStorageManager.AddTag(newTag, errorDescription);
+    if (!res) {
+        QNWARNING("Can't add new tag to local storage manager: "
+                  << errorDescription);
+        return false;
+    }
+
+    modifiedNote.addTagGuid(newTag.guid());
+
+    ResourceWrapper newResource;
+    newResource.setGuid("00000000-0000-0000-c000-000000000051");
+    newResource.setUpdateSequenceNumber(2);
+    newResource.setFreeAccount(true);
+    newResource.setNoteGuid(note.guid());
+    newResource.setDataBody("Fake new resource data body");
+    newResource.setDataSize(newResource.dataBody().size());
+    newResource.setDataHash("Fake hash      3");
+    newResource.setMime("text/plain");
+    newResource.setWidth(2);
+    newResource.setHeight(2);
+    newResource.setRecognitionDataBody("Fake new resource recognition data body");
+    newResource.setRecognitionDataSize(newResource.recognitionDataBody().size());
+    newResource.setRecognitionDataHash("Fake hash      4");
+
+    modifiedNote.addResource(newResource);
+
+    res = localStorageManager.UpdateNote(modifiedNote, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    foundResource = ResourceWrapper();
+    res = localStorageManager.FindResource(newResource.guid(), foundResource, errorDescription,
+                                           /* withBinaryData = */ true);
+    if (!res) {
+        return false;
+    }
+
+    if (foundResource != newResource)
+    {
+        errorDescription = QObject::tr("Something is wrong with the new resource "
+                                       "which should have been added to local storage "
+                                       "along with note update: it is not equal to original resource");
+        QNWARNING(errorDescription << ": original resource: " << newResource
+                  << "\nfound resource: " << foundResource);
+        return false;
+    }
+
+    res = localStorageManager.FindNote(noteGuid, foundNote, errorDescription,
+                                       /* withResourceBinaryData = */ true);
+    if (!res) {
+        return false;
+    }
+
+    if (modifiedNote != foundNote) {
+        errorDescription = QObject::tr("Updated and found in local storage notes don't match");
+        QNWARNING(errorDescription << ": Note updated in LocalStorageManager: " << modifiedNote
+                  << "\nNote found in LocalStorageManager: " << foundNote);
+        return false;
+    }
+
+    // ========== Check Delete + Find and check deleted flag ============
+    modifiedNote.setLocal(false);
+    modifiedNote.setDeleted(true);
+    foundNote.setDeleted(false);
+    res = localStorageManager.DeleteNote(modifiedNote, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    res = localStorageManager.FindNote(noteGuid, foundNote, errorDescription,
+                                       /* withResourceBinaryData = */ true);
+    if (!res) {
+        return false;
+    }
+
+    if (!foundNote.isDeleted()) {
+        errorDescription = QObject::tr("Note which should have been marked deleted "
+                                       "is not marked so after LocalStorageManager::FindNote");
+        QNWARNING(errorDescription << ": Note found in LocalStorageManager: " << foundNote);
+        return false;
+    }
+
+    // ========== Check Expunge + Find (failure expected) ==========
+    modifiedNote.setLocal(true);
+    res = localStorageManager.ExpungeNote(modifiedNote, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    res = localStorageManager.FindNote(noteGuid, foundNote, errorDescription,
+                                       /* withResourceBinaryData = */ true);
+    if (res) {
+        errorDescription = QObject::tr("Error: found Note which should have been expunged "
+                                       "from LocalStorageManager");
+        QNWARNING(errorDescription << ": Note expunged from LocalStorageManager: " << modifiedNote
+                  << "\nNote found in LocalStorageManager: " << foundNote);
+        return false;
+    }
+
+    // ========== Try to find resource belonging to expunged note (failure expected) ==========
+    foundResource = ResourceWrapper();
+    res = localStorageManager.FindResource(newResource.guid(), foundResource, errorDescription,
+                                           /* withBinaryData = */ true);
+    if (res) {
+        errorDescription = QObject::tr("Error: found Resource which should have been expunged "
+                                       "from LocalStorageManager along with Note owning it");
+        QNWARNING(errorDescription << ": Note expunged from LocalStorageManager: " << modifiedNote
+                  << "\nResource found in LocalStorageManager: " << foundResource);
+        return false;
+    }
+
+    // TODO: implement some smart auto-expunge for Tags on ExpungeNote and add corresponding test
 
     return true;
 }
