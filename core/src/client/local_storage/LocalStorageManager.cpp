@@ -2501,14 +2501,14 @@ bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDes
                   "nameUpper, parentGuid, isDirty, isLocal, isDeleted) "
                   "VALUES(:guid, :updateSequenceNumber, :name, :nameUpper, :parentGuid, "
                   ":isDirty, :isLocal, :isDeleted)");
-    query.bindValue("guid", guid);
-    query.bindValue("updateSequenceNumber", tag.updateSequenceNumber());
-    query.bindValue("name", name);
-    query.bindValue("nameUpper", nameUpper);
-    query.bindValue("parentGuid", parentGuid);
-    query.bindValue("isDirty", tag.isDirty() ? 1 : 0);
-    query.bindValue("isLocal", tag.isLocal() ? 1 : 0);
-    query.bindValue("isDeleted", tag.isDeleted() ? 1 : 0);
+    query.bindValue(":guid", guid);
+    query.bindValue(":updateSequenceNumber", tag.updateSequenceNumber());
+    query.bindValue(":name", name);
+    query.bindValue(":nameUpper", nameUpper);
+    query.bindValue(":parentGuid", parentGuid);
+    query.bindValue(":isDirty", tag.isDirty() ? 1 : 0);
+    query.bindValue(":isLocal", tag.isLocal() ? 1 : 0);
+    query.bindValue(":isDeleted", tag.isDeleted() ? 1 : 0);
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace tag into \"Tags\" table in SQL database");
@@ -2621,14 +2621,14 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
                   "includeBusinessLinkedNotebooks) VALUES(:guid, :name, :query, "
                   ":format, :updateSequenceNumber, :includeAccount, :includePersonalLinkedNotebooks, "
                   ":includeBusinessLinkedNotebooks)");
-    query.bindValue("guid", search.guid());
-    query.bindValue("name", search.name());
-    query.bindValue("query", search.query());
-    query.bindValue("format", search.queryFormat());
-    query.bindValue("updateSequenceNumber", search.updateSequenceNumber());
-    query.bindValue("includeAccount", (search.includeAccount() ? 1 : 0));
-    query.bindValue("includePersonalLinkedNotebooks", (search.includePersonalLinkedNotebooks() ? 1 : 0));
-    query.bindValue("includeBusinessLinkedNotebooks", (search.includeBusinessLinkedNotebooks() ? 1 : 0));
+    query.bindValue(":guid", search.guid());
+    query.bindValue(":name", search.name());
+    query.bindValue(":query", search.query());
+    query.bindValue(":format", search.queryFormat());
+    query.bindValue(":updateSequenceNumber", search.updateSequenceNumber());
+    query.bindValue(":includeAccount", (search.includeAccount() ? 1 : 0));
+    query.bindValue(":includePersonalLinkedNotebooks", (search.includePersonalLinkedNotebooks() ? 1 : 0));
+    query.bindValue(":includeBusinessLinkedNotebooks", (search.includeBusinessLinkedNotebooks() ? 1 : 0));
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace saved search into \"SavedSearches\" table in SQL database");
