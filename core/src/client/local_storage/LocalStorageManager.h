@@ -190,13 +190,13 @@ public:
      */
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
-    bool AddResource(const IResource & resource, QString & errorDescription);
-    bool UpdateResource(const IResource & resource, QString & errorDescription);
+    bool AddEnResource(const IResource & resource, QString & errorDescription);
+    bool UpdateEnResource(const IResource & resource, QString & errorDescription);
 
-    bool FindResource(const QString & resourceGuid, IResource & resource,
-                      QString & errorDescription, const bool withBinaryData = true) const;
+    bool FindEnResource(const QString & resourceGuid, IResource & resource,
+                        QString & errorDescription, const bool withBinaryData = true) const;
 
-    // NOTE: there is no 'DeleteResource' method for a reason: resources are deleted automatically
+    // NOTE: there is no 'DeleteEnResource' method for a reason: resources are deleted automatically
     // in remote storage so there's no need to mark some resource as deleted for synchronization procedure.
 
     /**
@@ -206,7 +206,7 @@ public:
      * @param errorDescription - error description if resource could not be expunged
      * @return true if resource was expunged successfully, false otherwise
      */
-    bool ExpungeResource(const IResource & resource, QString & errorDescription);
+    bool ExpungeEnResource(const IResource & resource, QString & errorDescription);
 
     bool AddSavedSearch(const SavedSearch & search, QString & errorDescription);
     bool UpdateSavedSearch(const SavedSearch & search, QString & errorDescription);

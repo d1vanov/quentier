@@ -1344,8 +1344,8 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
     return true;
 }
 
-bool LocalStorageManager::FindResource(const QString & resourceGuid, IResource & resource,
-                                       QString & errorDescription, const bool withBinaryData) const
+bool LocalStorageManager::FindEnResource(const QString & resourceGuid, IResource & resource,
+                                         QString & errorDescription, const bool withBinaryData) const
 {
     QNDEBUG("LocalStorageManager::FindResource: guid = " << resourceGuid);
 
@@ -1420,7 +1420,7 @@ bool LocalStorageManager::FindResource(const QString & resourceGuid, IResource &
     return true;
 }
 
-bool LocalStorageManager::ExpungeResource(const IResource & resource, QString & errorDescription)
+bool LocalStorageManager::ExpungeEnResource(const IResource & resource, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't expunge resource from local storage database: ");
 
@@ -1592,7 +1592,7 @@ bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,
     return true;
 }
 
-bool LocalStorageManager::AddResource(const IResource & resource, QString & errorDescription)
+bool LocalStorageManager::AddEnResource(const IResource & resource, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't add resource to local storage database: ");
 
@@ -1613,7 +1613,7 @@ bool LocalStorageManager::AddResource(const IResource & resource, QString & erro
     return InsertOrReplaceResource(resource, errorDescription);
 }
 
-bool LocalStorageManager::UpdateResource(const IResource & resource, QString & errorDescription)
+bool LocalStorageManager::UpdateEnResource(const IResource & resource, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't update resource in local storage database: ");
 
