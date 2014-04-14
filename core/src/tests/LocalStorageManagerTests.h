@@ -11,6 +11,7 @@ QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 QT_FORWARD_DECLARE_CLASS(Tag)
 QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(Note)
+QT_FORWARD_DECLARE_CLASS(Notebook)
 
 namespace test {
 
@@ -32,6 +33,10 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
 bool TestNoteAddFindUpdateDeleteExpungeInLocalStorage(const Note & note,
                                                       LocalStorageManager & localStorageManager,
                                                       QString & errorDescription);
+
+bool TestNotebookAddFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook,
+                                                          LocalStorageManager & localStorageManager,
+                                                          QString & errorDescription);
 
 }
 }

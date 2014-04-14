@@ -19,6 +19,9 @@ public:
     Notebook & operator =(const Notebook & other);
     virtual ~Notebook() final override;
 
+    bool operator==(const Notebook & other) const;
+    bool operator!=(const Notebook & other) const;
+
     virtual void clear() final override;
 
     virtual bool hasGuid() const final override;

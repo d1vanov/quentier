@@ -37,6 +37,19 @@ Notebook & Notebook::operator=(const Notebook & other)
 Notebook::~Notebook()
 {}
 
+bool Notebook::operator==(const Notebook & other) const
+{
+    return ( (isDirty() == other.isDirty()) &&
+             (m_enNotebook == other.m_enNotebook) &&
+             (m_isLocal == other.m_isLocal) &&
+             (m_isLastUsed == other.m_isLastUsed) );
+}
+
+bool Notebook::operator!=(const Notebook & other) const
+{
+    return !(*this == other);
+}
+
 void Notebook::clear()
 {
     m_enNotebook = evernote::edam::Notebook();

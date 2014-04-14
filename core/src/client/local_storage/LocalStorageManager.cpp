@@ -1892,14 +1892,12 @@ bool LocalStorageManager::SetNoteAttributes(const Note & note, QString & errorDe
 bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & notebook,
                                                           QString & errorDescription)
 {
-    QSqlQuery query(m_sqlDatabase);
-
     bool hasAdditionalAttributes = false;
-    query.prepare("INSERT OR REPLACE INTO Notebooks (:notebookGuid, :columns) VALUES(:values)");
-    query.bindValue("notebookGuid", QVariant(notebook.guid()));
 
-    QString columns;
-    QString values;
+    QString columns = "guid, updateSequenceNumber, ";
+    QString values = "\"" + notebook.guid() + "\", ";
+    values.append(QString::number(notebook.updateSequenceNumber()));
+    values.append(", ");
 
     if (notebook.hasPublished())
     {
@@ -1920,25 +1918,25 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
             if (notebook.hasPublishingUri()) {
                 APPEND_SEPARATORS;
                 columns.append("publishingUri");
-                values.append(notebook.publishingUri());
+                values.append("\"" + notebook.publishingUri() + "\"");
             }
 
             if (notebook.hasPublishingOrder()) {
                 APPEND_SEPARATORS;
                 columns.append("publishingNoteSortOrder");
-                values.append(notebook.publishingOrder());
+                values.append(QString::number(notebook.publishingOrder()));
             }
 
             if (notebook.hasPublishingAscending()) {
                 APPEND_SEPARATORS;
                 columns.append("publishingAscendingSort");
-                values.append(notebook.isPublishingAscending() ? 1 : 0);
+                values.append(QString::number(notebook.isPublishingAscending() ? 1 : 0));
             }
 
             if (notebook.hasPublishingPublicDescription()) {
                 APPEND_SEPARATORS;
                 columns.append("publicDescription");
-                values.append(notebook.publishingPublicDescription());
+                values.append("\"" + notebook.publishingPublicDescription() + "\"");
             }
         }
     }
@@ -1947,21 +1945,21 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
         hasAdditionalAttributes = true;
         APPEND_SEPARATORS;
         columns.append("businessNotebookDescription");
-        values.append(notebook.businessNotebookDescription());
+        values.append("\"" + notebook.businessNotebookDescription() + "\"");
     }
 
     if (notebook.hasBusinessNotebookPrivilegeLevel()) {
         hasAdditionalAttributes = true;
         APPEND_SEPARATORS;
         columns.append("businessNotebookPrivilegeLevel");
-        values.append(notebook.businessNotebookPrivilegeLevel());
+        values.append(QString::number(notebook.businessNotebookPrivilegeLevel()));
     }
 
     if (notebook.hasBusinessNotebookRecommended()) {
         hasAdditionalAttributes = true;
         APPEND_SEPARATORS;
         columns.append("businessNotebookIsRecommended");
-        values.append(notebook.isBusinessNotebookRecommended() ? 1 : 0);
+        values.append(QString::number(notebook.isBusinessNotebookRecommended() ? 1 : 0));
     }
 
     if (notebook.hasContact())
@@ -1970,7 +1968,7 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
         APPEND_SEPARATORS;
         columns.append("contactId");
         const UserAdapter user = notebook.contact();
-        values.append(user.GetEnUser().id);
+        values.append(QString::number(user.GetEnUser().id));
 
         QString error;
         bool res = user.CheckParameters(error);
@@ -1990,9 +1988,13 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
     }
 
     if (hasAdditionalAttributes) {
-        query.bindValue("columns", columns);
-        query.bindValue("values", values);
-        bool res = query.exec();
+        // FIXME: reimplement with UPDATE ... WHERE
+        QString queryString = QString("INSERT OR REPLACE INTO Notebooks (%1) VALUES(%2)")
+                                      .arg(columns).arg(values);
+        QNDEBUG("LocalStorageManager::SetNotebookAdditionalAttributes: query string = " << queryString);
+
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace additional notebook attributes "
                                      "into \"Notebooks\" table in SQL database");
     }
@@ -2301,19 +2303,20 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO Notebooks (guid, updateSequenceNumber, name, "
                   "creationTimestamp, modificationTimestamp, isDirty, isLocal, "
-                  "isDefault, isLastUsed, isPublished, stack) VALUES(?, ?, ?, ?, "
-                  "?, ?, ?, ?, ?, ?, ?)");
-    query.addBindValue(notebook.guid());
-    query.addBindValue(notebook.updateSequenceNumber());
-    query.addBindValue(notebook.name());
-    query.addBindValue(notebook.creationTimestamp());
-    query.addBindValue(notebook.modificationTimestamp());
-    query.addBindValue((notebook.isDirty() ? 1 : 0));
-    query.addBindValue((notebook.isLocal() ? 1 : 0));
-    query.addBindValue((notebook.isDefaultNotebook() ? 1 : 0));
-    query.addBindValue((notebook.isLastUsed() ? 1 : 0));
-    query.addBindValue((notebook.isPublished() ? 1 : 0));
-    query.addBindValue(notebook.stack());
+                  "isDefault, isLastUsed, isPublished, stack) VALUES(:guid, "
+                  ":updateSequenceNumber, :name, :creationTimestamp, :modificationTimestamp, "
+                  ":isDirty, :isLocal, :isDefault, :isLastUsed, :isPublished, :stack)");
+    query.bindValue(":guid", notebook.guid());
+    query.bindValue(":updateSequenceNumber", notebook.updateSequenceNumber());
+    query.bindValue(":name", notebook.name());
+    query.bindValue(":creationTimestamp", notebook.creationTimestamp());
+    query.bindValue(":modificationTimestamp", notebook.modificationTimestamp());
+    query.bindValue(":isDirty", (notebook.isDirty() ? 1 : 0));
+    query.bindValue(":isLocal", (notebook.isLocal() ? 1 : 0));
+    query.bindValue(":isDefault", (notebook.isDefaultNotebook() ? 1 : 0));
+    query.bindValue(":isLastUsed", (notebook.isLastUsed() ? 1 : 0));
+    query.bindValue(":isPublished", (notebook.isPublished() ? 1 : 0));
+    query.bindValue(":stack", notebook.stack());
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook into \"Notebooks\" table in SQL database");

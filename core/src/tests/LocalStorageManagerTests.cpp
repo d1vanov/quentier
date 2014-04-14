@@ -6,6 +6,7 @@
 #include <client/types/Tag.h>
 #include <client/types/ResourceWrapper.h>
 #include <client/types/Note.h>
+#include <client/types/Notebook.h>
 #include <client/Utility.h>
 #include <client/Serialization.h>
 
@@ -349,16 +350,11 @@ bool TestNoteAddFindUpdateDeleteExpungeInLocalStorage(const Note & note,
         return false;
     }
 
-    // ========== Check Add + Find ==========
-    bool res = localStorageManager.AddNote(note, errorDescription);
-    if (!res) {
-        return false;
-    }
-
+    // ========== Check Find ==========
     const QString initialResourceGuid = "00000000-0000-0000-c000-000000000049";
     ResourceWrapper foundResource;
-    res = localStorageManager.FindEnResource(initialResourceGuid, foundResource,
-                                             errorDescription, /* withBinaryData = */ true);
+    bool res = localStorageManager.FindEnResource(initialResourceGuid, foundResource,
+                                                  errorDescription, /* withBinaryData = */ true);
     if (!res) {
         return false;
     }
@@ -535,6 +531,47 @@ bool TestNoteAddFindUpdateDeleteExpungeInLocalStorage(const Note & note,
 
     // TODO: implement some smart auto-expunge for Tags on ExpungeNote and add corresponding test
 
+    return true;
+}
+
+bool TestNotebookAddFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook,
+                                                          LocalStorageManager & localStorageManager,
+                                                          QString & errorDescription)
+{
+    if (!notebook.checkParameters(errorDescription)) {
+        QNWARNING("Found invalid Notebook: " << notebook);
+        return false;
+    }
+
+    // =========== Check Add + Find ============
+    bool res = localStorageManager.AddNotebook(notebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    const QString initialNoteGuid = "00000000-0000-0000-c000-000000000049";
+    Note foundNote;
+    res = localStorageManager.FindNote(initialNoteGuid, foundNote, errorDescription,
+                                       /* withResourceBinaryData = */ true);
+    if (!res) {
+        return false;
+    }
+
+    const QString notebookGuid = notebook.guid();
+    Notebook foundNotebook;
+    res = localStorageManager.FindNotebook(notebookGuid, foundNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (notebook != foundNotebook) {
+        errorDescription = QObject::tr("Added and found notebooks in local storage don't match");
+        QNWARNING(errorDescription << ": Notebook added to LocalStorageManager: " << notebook
+                  << "\nNotebook found in LocalStorageManager: " << foundNotebook);
+        return false;
+    }
+
+    // TODO: continue from here
     return true;
 }
 

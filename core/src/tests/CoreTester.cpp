@@ -249,12 +249,18 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         QByteArray serializedNoteAttributes = GetSerializedNoteAttributes(noteAttributes);
         note.setNoteAttributes(serializedNoteAttributes);
 
+        res = localStorageManager.AddNote(note, error);
+        QVERIFY2(res == true, qPrintable(error));
+
         Tag tag;
         tag.setGuid("00000000-0000-0000-c000-000000000048");
         tag.setUpdateSequenceNumber(1);
         tag.setName("Fake tag name");
 
         res = localStorageManager.AddTag(tag, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        res = localStorageManager.LinkTagWithNote(tag, note, error);
         QVERIFY2(res == true, qPrintable(error));
 
         note.addTagGuid(tag.guid());
@@ -276,6 +282,9 @@ void CoreTester::localStorageManagedIndividualNoteTest()
 
         note.addResource(resource);
 
+        res = localStorageManager.UpdateNote(note, error);
+        QVERIFY2(res == true, qPrintable(error));
+
         res = TestNoteAddFindUpdateDeleteExpungeInLocalStorage(note, localStorageManager, error);
         QVERIFY2(res == true, qPrintable(error));
     }
@@ -284,5 +293,86 @@ void CoreTester::localStorageManagedIndividualNoteTest()
     }
 }
 
+/*
+void CoreTester::localStorageManagerIndividualNotebookTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        Notebook notebook;
+        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setUpdateSequenceNumber(1);
+        notebook.setName("Fake notebook name");
+        notebook.setCreationTimestamp(1);
+        notebook.setModificationTimestamp(1);
+        notebook.setDefaultNotebook(true);
+        notebook.setPublishingUri("Fake publishing uri");
+        notebook.setPublishingOrder(1);
+        notebook.setPublishingAscending(true);
+        notebook.setPublishingPublicDescription("Fake public description");
+        notebook.setPublished(true);
+        notebook.setStack("Fake notebook stack");
+        notebook.setBusinessNotebookDescription("Fake business notebook description");
+        notebook.setBusinessNotebookPrivilegeLevel(1);
+        notebook.setBusinessNotebookRecommended(true);
+        // NotebookRestrictions
+        notebook.setCanReadNotes(true);
+        notebook.setCanCreateNotes(true);
+        notebook.setCanUpdateNotes(true);
+        notebook.setCanExpungeNotes(false);
+        notebook.setCanShareNotes(true);
+        notebook.setCanEmailNotes(true);
+        notebook.setCanSendMessageToRecipients(true);
+        notebook.setCanUpdateNotebook(true);
+        notebook.setCanExpungeNotebook(false);
+        notebook.setCanSetDefaultNotebook(true);
+        notebook.setCanSetNotebookStack(true);
+        notebook.setCanPublishToPublic(true);
+        notebook.setCanPublishToBusinessLibrary(false);
+        notebook.setCanCreateTags(true);
+        notebook.setCanUpdateTags(true);
+        notebook.setCanExpungeTags(false);
+        notebook.setCanSetParentTag(true);
+        notebook.setCanCreateSharedNotebooks(true);
+        notebook.setUpdateWhichSharedNotebookRestrictions(1);
+        notebook.setExpungeWhichSharedNotebookRestrictions(1);
+
+        QString error;
+        bool res = localStorageManager.AddNotebook(notebook, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        Note note;
+        note.setGuid("00000000-0000-0000-c000-000000000049");
+        note.setUpdateSequenceNumber(1);
+        note.setTitle("Fake note title");
+        note.setContent("Fake note content");
+        note.setCreationTimestamp(1);
+        note.setModificationTimestamp(1);
+        note.setActive(true);
+        note.setNotebookGuid(notebook.guid());
+
+        Tag tag;
+        tag.setGuid("00000000-0000-0000-c000-000000000048");
+        tag.setUpdateSequenceNumber(1);
+        tag.setName("Fake tag name");
+
+        res = localStorageManager.AddTag(tag, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        res = localStorageManager.LinkTagWithNote(tag, note, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        note.addTagGuid(tag.guid());
+
+        res = TestNotebookAddFindUpdateDeleteExpungeInLocalStorage(notebook, localStorageManager, error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
+    }
+}
+*/
 }
 }
