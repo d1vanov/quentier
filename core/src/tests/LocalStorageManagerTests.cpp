@@ -387,6 +387,35 @@ bool TestNoteAddFindUpdateDeleteExpungeInLocalStorage(const Note & note,
     modifiedNote.setCreationTimestamp(note.creationTimestamp() + 1);
     modifiedNote.setModificationTimestamp(note.modificationTimestamp() + 1);
 
+    evernote::edam::NoteAttributes noteAttributes;
+
+    if (modifiedNote.hasNoteAttributes()) {
+        QByteArray serializedNoteAttributes = modifiedNote.noteAttributes();
+        noteAttributes = GetDeserializedNoteAttributes(serializedNoteAttributes);
+    }
+
+    noteAttributes.subjectDate = 2;
+    noteAttributes.__isset.subjectDate = true;
+    noteAttributes.latitude = 2.0;
+    noteAttributes.__isset.latitude = true;
+    noteAttributes.longitude = 2.0;
+    noteAttributes.__isset.longitude = true;
+    noteAttributes.altitude = 2.0;
+    noteAttributes.__isset.altitude = true;
+    noteAttributes.author = "modified author";
+    noteAttributes.__isset.author = true;
+    noteAttributes.source = "modified source";
+    noteAttributes.__isset.source = true;
+    noteAttributes.sourceURL = "modified source URL";
+    noteAttributes.__isset.sourceURL = true;
+    noteAttributes.sourceApplication = "modified source application";
+    noteAttributes.__isset.sourceApplication = true;
+    noteAttributes.shareDate = 2;
+    noteAttributes.__isset.shareDate = true;
+
+    QByteArray serializedNoteAttributes = GetSerializedNoteAttributes(noteAttributes);
+    modifiedNote.setNoteAttributes(serializedNoteAttributes);
+
     Tag newTag;
     newTag.setGuid("00000000-0000-0000-c000-000000000050");
     newTag.setUpdateSequenceNumber(1);

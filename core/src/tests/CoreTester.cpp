@@ -226,6 +226,29 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
 
+        evernote::edam::NoteAttributes noteAttributes;
+        noteAttributes.subjectDate = 1;
+        noteAttributes.__isset.subjectDate = true;
+        noteAttributes.latitude = 1.0;
+        noteAttributes.__isset.latitude = true;
+        noteAttributes.longitude = 1.0;
+        noteAttributes.__isset.longitude = true;
+        noteAttributes.altitude = 1.0;
+        noteAttributes.__isset.altitude = true;
+        noteAttributes.author = "author";
+        noteAttributes.__isset.author = true;
+        noteAttributes.source = "source";
+        noteAttributes.__isset.source = true;
+        noteAttributes.sourceURL = "source URL";
+        noteAttributes.__isset.sourceURL = true;
+        noteAttributes.sourceApplication = "source application";
+        noteAttributes.__isset.sourceApplication = true;
+        noteAttributes.shareDate = 2;
+        noteAttributes.__isset.shareDate = true;
+
+        QByteArray serializedNoteAttributes = GetSerializedNoteAttributes(noteAttributes);
+        note.setNoteAttributes(serializedNoteAttributes);
+
         Tag tag;
         tag.setGuid("00000000-0000-0000-c000-000000000048");
         tag.setUpdateSequenceNumber(1);

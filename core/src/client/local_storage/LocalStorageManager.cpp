@@ -1347,7 +1347,7 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
 bool LocalStorageManager::FindEnResource(const QString & resourceGuid, IResource & resource,
                                          QString & errorDescription, const bool withBinaryData) const
 {
-    QNDEBUG("LocalStorageManager::FindResource: guid = " << resourceGuid);
+    QNDEBUG("LocalStorageManager::FindEnResource: guid = " << resourceGuid);
 
     errorDescription = QObject::tr("Can't find resource in local storage database: ");
 
@@ -1864,6 +1864,8 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
 bool LocalStorageManager::SetNoteAttributes(const Note & note, QString & errorDescription)
 {
+    QNDEBUG("LocalStorageManager::SetNoteAttributes: note guid = " << note.guid());
+
     errorDescription += QObject::tr("can't set note attributes: ");
 
     const QString guid = note.guid();
@@ -2392,7 +2394,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
 
     query.prepare("INSERT OR REPLACE INTO Notes (guid, updateSequenceNumber, title, isDirty, "
                   "isLocal, content, creationTimestamp, modificationTimestamp, "
-                  "notebookGuid) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                  "notebookGuid, hasAttributes) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     query.addBindValue(guid);
     query.addBindValue(note.updateSequenceNumber());
     query.addBindValue(title);
@@ -2402,6 +2404,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
     query.addBindValue(note.creationTimestamp());
     query.addBindValue(note.modificationTimestamp());
     query.addBindValue(notebookGuid);
+    query.addBindValue((note.hasNoteAttributes() ? 1 : 0));
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"Notes\" table in SQL database");
@@ -2677,6 +2680,7 @@ bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & n
     {
         int hasAttributes = qvariant_cast<int>(rec.value("hasAttributes"));
         if (hasAttributes == 0) {
+            QNDEBUG("Note has no optional attributes");
             return true;
         }
     }
@@ -3123,11 +3127,9 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(Note & note, QString & erro
 
 bool LocalStorageManager::FindAndSetNoteAttributesPerNote(Note & note, QString & errorDescription) const
 {
-    errorDescription += QObject::tr("can't find note attributes: ");
+    QNDEBUG("LocalStorageManager::FindAndSetNoteAttributesPerNote: note guid = " << note.guid());
 
-    if (!note.hasNoteAttributes()) {
-        return true;
-    }
+    errorDescription += QObject::tr("can't find note attributes: ");
 
     const QString guid = note.guid();
     if (!CheckGuid(guid)) {
