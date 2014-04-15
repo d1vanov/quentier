@@ -93,6 +93,7 @@ public:
 
     bool hasContact() const;
     const UserAdapter contact() const;
+    UserAdapter contact();
     void setContact(const IUser & contact);
 
     bool isLocal() const;

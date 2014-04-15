@@ -537,6 +537,11 @@ const UserAdapter Notebook::contact() const
     return std::move(UserAdapter(m_enNotebook.contact));
 }
 
+UserAdapter Notebook::contact()
+{
+    return std::move(UserAdapter(m_enNotebook.contact));
+}
+
 void Notebook::setContact(const IUser & contact)
 {
     if (!canUpdateNotebook()) {

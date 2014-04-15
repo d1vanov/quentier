@@ -285,7 +285,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         res = localStorageManager.UpdateNote(note, error);
         QVERIFY2(res == true, qPrintable(error));
 
-        res = TestNoteAddFindUpdateDeleteExpungeInLocalStorage(note, localStorageManager, error);
+        res = TestNoteFindUpdateDeleteExpungeInLocalStorage(note, localStorageManager, error);
         QVERIFY2(res == true, qPrintable(error));
     }
     catch(IQuteNoteException & exception) {
@@ -293,7 +293,6 @@ void CoreTester::localStorageManagedIndividualNoteTest()
     }
 }
 
-/*
 void CoreTester::localStorageManagerIndividualNotebookTest()
 {
     try
@@ -339,6 +338,8 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         notebook.setUpdateWhichSharedNotebookRestrictions(1);
         notebook.setExpungeWhichSharedNotebookRestrictions(1);
 
+        // TODO: add a couple of shared notebooks
+
         QString error;
         bool res = localStorageManager.AddNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));
@@ -353,6 +354,9 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
 
+        res = localStorageManager.AddNote(note, error);
+        QVERIFY2(res == true, qPrintable(error));
+
         Tag tag;
         tag.setGuid("00000000-0000-0000-c000-000000000048");
         tag.setUpdateSequenceNumber(1);
@@ -366,13 +370,15 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
 
         note.addTagGuid(tag.guid());
 
-        res = TestNotebookAddFindUpdateDeleteExpungeInLocalStorage(notebook, localStorageManager, error);
+        res = TestNotebookFindUpdateDeleteExpungeInLocalStorage(notebook, localStorageManager, error);
         QVERIFY2(res == true, qPrintable(error));
+
+        // TODO: test finding of all shared notebooks per notebook guid
     }
     catch(IQuteNoteException & exception) {
         QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
     }
 }
-*/
+
 }
 }

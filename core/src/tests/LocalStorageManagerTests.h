@@ -30,13 +30,13 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
                                                     LocalStorageManager & localStorageManager,
                                                     QString & errorDescription);
 
-bool TestNoteAddFindUpdateDeleteExpungeInLocalStorage(const Note & note,
-                                                      LocalStorageManager & localStorageManager,
-                                                      QString & errorDescription);
+bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
+                                                   LocalStorageManager & localStorageManager,
+                                                   QString & errorDescription);
 
-bool TestNotebookAddFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook,
-                                                          LocalStorageManager & localStorageManager,
-                                                          QString & errorDescription);
+bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook,
+                                                       LocalStorageManager & localStorageManager,
+                                                       QString & errorDescription);
 
 }
 }

@@ -447,7 +447,7 @@ bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & er
     }
 
     bool exists = RowExists("Notebooks", "guid", QVariant(notebook.guid()));
-    if (exists) {
+    if (!exists) {
         errorDescription += QObject::tr("notebook with specified guid was not found");
         QNWARNING(errorDescription << ", guid: " << notebook.guid());
         return false;
@@ -468,16 +468,14 @@ bool LocalStorageManager::FindNotebook(const QString & notebookGuid, Notebook & 
 
     notebook = Notebook();
 
+    QString queryString = QString("SELECT guid, updateSequenceNumber, name, creationTimestamp, "
+                                  "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed, "
+                                  "publishingUri, publishingNoteSortOrder, publishingAscendingSort, "
+                                  "publicDescription, isPublished, stack, businessNotebookDescription, "
+                                  "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, "
+                                  "contactId FROM Notebooks WHERE guid = %1").arg("\"" + notebookGuid + "\"");
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT guid, updateSequenceNumber, name, creationTimestamp, "
-                  "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed, "
-                  "publishingUri, publishingNoteSortOrder, publishingAscendingOrder, "
-                  "publicDescription, isPublished, stack, businessNotebookDescription, "
-                  "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, "
-                  "contactId FROM Notebooks WHERE guid=?");
-    query.addBindValue(notebookGuid);
-
-    bool res = query.exec();
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find notebook in SQL database by guid");
 
     if (!query.next()) {
@@ -1893,11 +1891,7 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
                                                           QString & errorDescription)
 {
     bool hasAdditionalAttributes = false;
-
-    QString columns = "guid, updateSequenceNumber, ";
-    QString values = "\"" + notebook.guid() + "\", ";
-    values.append(QString::number(notebook.updateSequenceNumber()));
-    values.append(", ");
+    QString queryString;
 
     if (notebook.hasPublished())
     {
@@ -1905,70 +1899,68 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
 
         bool notebookIsPublished = notebook.isPublished();
 
-        columns.append("isPublished");
-        values.append(QString::number(notebookIsPublished ? 1 : 0));
+#define APPEND_SEPARATOR \
+    if (!queryString.isEmpty()) { queryString.append(", "); }
+
+        queryString.append("isPublished = ");
+        queryString.append(QString::number(notebookIsPublished ? 1 : 0));
 
         if (notebookIsPublished)
         {
-
-#define APPEND_SEPARATORS \
-    if (!columns.isEmpty()) { columns.append(", "); } \
-    if (!values.isEmpty()) { values.append(", "); }
-
             if (notebook.hasPublishingUri()) {
-                APPEND_SEPARATORS;
-                columns.append("publishingUri");
-                values.append("\"" + notebook.publishingUri() + "\"");
+                APPEND_SEPARATOR;
+                queryString.append("publishingUri = ");
+                queryString.append("\"" + notebook.publishingUri() + "\"");
             }
 
             if (notebook.hasPublishingOrder()) {
-                APPEND_SEPARATORS;
-                columns.append("publishingNoteSortOrder");
-                values.append(QString::number(notebook.publishingOrder()));
+                APPEND_SEPARATOR;
+                queryString.append("publishingNoteSortOrder = ");
+                queryString.append(QString::number(notebook.publishingOrder()));
             }
 
             if (notebook.hasPublishingAscending()) {
-                APPEND_SEPARATORS;
-                columns.append("publishingAscendingSort");
-                values.append(QString::number(notebook.isPublishingAscending() ? 1 : 0));
+                APPEND_SEPARATOR;
+                queryString.append("publishingAscendingSort = ");
+                queryString.append(QString::number(notebook.isPublishingAscending() ? 1 : 0));
             }
 
             if (notebook.hasPublishingPublicDescription()) {
-                APPEND_SEPARATORS;
-                columns.append("publicDescription");
-                values.append("\"" + notebook.publishingPublicDescription() + "\"");
+                APPEND_SEPARATOR;
+                queryString.append("publicDescription = ");
+                queryString.append("\"" + notebook.publishingPublicDescription() + "\"");
             }
         }
     }
 
     if (notebook.hasBusinessNotebookDescription()) {
         hasAdditionalAttributes = true;
-        APPEND_SEPARATORS;
-        columns.append("businessNotebookDescription");
-        values.append("\"" + notebook.businessNotebookDescription() + "\"");
+        APPEND_SEPARATOR;
+        queryString.append("businessNotebookDescription = ");
+        queryString.append("\"" + notebook.businessNotebookDescription() + "\"");
     }
 
     if (notebook.hasBusinessNotebookPrivilegeLevel()) {
         hasAdditionalAttributes = true;
-        APPEND_SEPARATORS;
-        columns.append("businessNotebookPrivilegeLevel");
-        values.append(QString::number(notebook.businessNotebookPrivilegeLevel()));
+        APPEND_SEPARATOR;
+        queryString.append("businessNotebookPrivilegeLevel = ");
+        queryString.append(QString::number(notebook.businessNotebookPrivilegeLevel()));
     }
 
     if (notebook.hasBusinessNotebookRecommended()) {
         hasAdditionalAttributes = true;
-        APPEND_SEPARATORS;
-        columns.append("businessNotebookIsRecommended");
-        values.append(QString::number(notebook.isBusinessNotebookRecommended() ? 1 : 0));
+        APPEND_SEPARATOR;
+        queryString.append("businessNotebookIsRecommended = ");
+        queryString.append(QString::number(notebook.isBusinessNotebookRecommended() ? 1 : 0));
     }
 
     if (notebook.hasContact())
     {
         hasAdditionalAttributes = true;
-        APPEND_SEPARATORS;
-        columns.append("contactId");
+        APPEND_SEPARATOR;
+        queryString.append("contactId");
         const UserAdapter user = notebook.contact();
-        values.append(QString::number(user.GetEnUser().id));
+        queryString.append(QString::number(user.GetEnUser().id));
 
         QString error;
         bool res = user.CheckParameters(error);
@@ -1987,11 +1979,13 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
         }
     }
 
-    if (hasAdditionalAttributes) {
-        // FIXME: reimplement with UPDATE ... WHERE
-        QString queryString = QString("INSERT OR REPLACE INTO Notebooks (%1) VALUES(%2)")
-                                      .arg(columns).arg(values);
-        QNDEBUG("LocalStorageManager::SetNotebookAdditionalAttributes: query string = " << queryString);
+#undef APPEND_SEPARATOR
+
+    if (hasAdditionalAttributes)
+    {
+        queryString.prepend("UPDATE Notebooks SET ");
+        queryString.append(" WHERE guid = ");
+        queryString.append("\"" + notebook.guid() + "\"");
 
         QSqlQuery query(m_sqlDatabase);
         bool res = query.exec(queryString);
@@ -2030,27 +2024,20 @@ bool LocalStorageManager::SetNotebookRestrictions(const evernote::edam::Notebook
 {
     errorDescription = QObject::tr("Can't set notebook restrictions: ");
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT OR REPLACE INTO NotebookRestrictions (:notebookGuid, :columns) "
-                  "VALUES(:vals)");
-    query.bindValue("notebookGuid", notebookGuid);
-
     bool hasAnyRestriction = false;
 
-    QString columns, values;
+    QString columns = "guid";
+    QString values = QString("\"%1\"").arg(notebookGuid);
 
 #define CHECK_AND_SET_NOTEBOOK_RESTRICTION(restriction, value) \
     if (notebookRestrictions.__isset.restriction) \
     { \
         hasAnyRestriction = true; \
         \
-        if (!columns.isEmpty()) { \
-            columns.append(", "); \
-        } \
+        columns.append(", "); \
         columns.append(#restriction); \
-        if (!values.isEmpty()) { \
-            values.append(", "); \
-        } \
+        \
+        values.append(", "); \
         values.append(value); \
     }
 
@@ -2079,9 +2066,10 @@ bool LocalStorageManager::SetNotebookRestrictions(const evernote::edam::Notebook
 #undef CHECK_AND_SET_NOTEBOOK_RESTRICTION
 
     if (hasAnyRestriction) {
-        query.bindValue("columns", columns);
-        query.bindValue("vals", values);
-        bool res = query.exec();
+        QString queryString = QString("INSERT OR REPLACE INTO NotebookRestrictions (%1) VALUES(%2)")
+                                     .arg(columns).arg(values);
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook restrictions "
                                      "into SQL database");
     }
@@ -2738,9 +2726,9 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
     {
         CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingUri, setPublishingUri,
                                          QString, QString, isRequired);
-        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingOrder, setPublishingOrder,
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingNoteSortOrder, setPublishingOrder,
                                          int, qint8, isRequired);
-        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingAscending, setPublishingAscending,
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingAscendingSort, setPublishingAscending,
                                          int, bool, isRequired);
         CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publicDescription,
                                          setPublishingPublicDescription,

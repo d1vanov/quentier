@@ -341,9 +341,9 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
     return true;
 }
 
-bool TestNoteAddFindUpdateDeleteExpungeInLocalStorage(const Note & note,
-                                                      LocalStorageManager & localStorageManager,
-                                                      QString & errorDescription)
+bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
+                                                   LocalStorageManager & localStorageManager,
+                                                   QString & errorDescription)
 {
     if (!note.checkParameters(errorDescription)) {
         QNWARNING("Found invalid Note: " << note);
@@ -534,25 +534,20 @@ bool TestNoteAddFindUpdateDeleteExpungeInLocalStorage(const Note & note,
     return true;
 }
 
-bool TestNotebookAddFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook,
-                                                          LocalStorageManager & localStorageManager,
-                                                          QString & errorDescription)
+bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook,
+                                                       LocalStorageManager & localStorageManager,
+                                                       QString & errorDescription)
 {
     if (!notebook.checkParameters(errorDescription)) {
         QNWARNING("Found invalid Notebook: " << notebook);
         return false;
     }
 
-    // =========== Check Add + Find ============
-    bool res = localStorageManager.AddNotebook(notebook, errorDescription);
-    if (!res) {
-        return false;
-    }
-
+    // =========== Check Find ============
     const QString initialNoteGuid = "00000000-0000-0000-c000-000000000049";
     Note foundNote;
-    res = localStorageManager.FindNote(initialNoteGuid, foundNote, errorDescription,
-                                       /* withResourceBinaryData = */ true);
+    bool res = localStorageManager.FindNote(initialNoteGuid, foundNote, errorDescription,
+                                            /* withResourceBinaryData = */ true);
     if (!res) {
         return false;
     }
@@ -571,7 +566,56 @@ bool TestNotebookAddFindUpdateDeleteExpungeInLocalStorage(const Notebook & noteb
         return false;
     }
 
-    // TODO: continue from here
+    // ========== Check Update + Find ==========
+    Notebook modifiedNotebook(notebook);
+    modifiedNotebook.setUpdateSequenceNumber(notebook.updateSequenceNumber() + 1);
+    modifiedNotebook.setName(notebook.name() + "_modified");
+    modifiedNotebook.setDefaultNotebook(!notebook.isDefaultNotebook());
+    modifiedNotebook.setModificationTimestamp(notebook.modificationTimestamp() + 1);
+    modifiedNotebook.setPublishingUri(notebook.publishingUri() + "_modified");
+    modifiedNotebook.setPublishingAscending(!notebook.isPublishingAscending());
+    modifiedNotebook.setPublishingPublicDescription(notebook.publishingPublicDescription() + "_modified");
+    modifiedNotebook.setStack(notebook.stack() + "_modified");
+    modifiedNotebook.setBusinessNotebookDescription(notebook.businessNotebookDescription() + "_modified");
+    modifiedNotebook.setBusinessNotebookRecommended(!notebook.isBusinessNotebookRecommended());
+    modifiedNotebook.setCanExpungeNotes(false);
+    modifiedNotebook.setCanEmailNotes(false);
+    modifiedNotebook.setCanPublishToPublic(false);
+
+    res = localStorageManager.UpdateNotebook(modifiedNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    foundNotebook = Notebook();
+    res = localStorageManager.FindNotebook(modifiedNotebook.guid(), foundNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (modifiedNotebook != foundNotebook) {
+        errorDescription = QObject::tr("Updated and found notebooks in local storage don't match");
+        QNWARNING(errorDescription << ": Notebook updated in LocalStorageManager: " << modifiedNotebook
+                  << "\nNotebook found in LocalStorageManager: " << foundNotebook);
+        return false;
+    }
+
+    // ========== Check Expunge + Find (failure expected) ==========
+    modifiedNotebook.setLocal(true);
+    res = localStorageManager.ExpungeNotebook(modifiedNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    res = localStorageManager.FindNotebook(modifiedNotebook.guid(), foundNotebook, errorDescription);
+    if (res) {
+        errorDescription = QObject::tr("Error: found Notebook which should have been expunged "
+                                       "from LocalStorageManager");
+        QNWARNING(errorDescription << ": Notebook expunged from LocalStorageManager: " << modifiedNotebook
+                  << "\nNotebook found in LocalStorageManager: " << foundNotebook);
+        return false;
+    }
+
     return true;
 }
 
