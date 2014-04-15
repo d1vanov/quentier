@@ -100,3 +100,26 @@ prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURREN
 
 # install executable
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  # install dependencies
+  install(FILES wsock32 
+                ws2_32
+                ${OPENSSL_LIBRARIES}
+                ${LIBXML2_LIBRARIES}
+          DESTINATION bin)
+  if(USE_QT5)
+    install(FILES ${Qt5Core_LIBRARIES} 
+                  ${Qt5Gui_LIBRARIES}
+                  ${Qt5Widgets_LIBRARIES}
+                  ${Qt5Network_LIBRARIES}
+                  ${Qt5Webkit_LIBRARIES}
+                  ${Qt5WebKitWidgets_LIBRARIES}
+                  ${Qt5Xml_LIBRARIES}
+                  ${Qt5Sql_LIBRARIES}
+            DESTINATION bin)
+  else()
+    install(FILES ${QT_LIBRARIES} DESTINATION bin)
+  endif()
+endif()
+
