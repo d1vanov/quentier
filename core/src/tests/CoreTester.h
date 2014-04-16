@@ -28,6 +28,26 @@ private slots:
     void localStorageManagedIndividualNoteTest();
     void localStorageManagerIndividualNotebookTest();
 
+    void localStorageManagerListAllSavedSearchesTest();
+    void localStorageManagerListAllTagsTest();
+
+    // TODO: add test for LocalStorageManager::FindAllTagsPerNote
+    // TODO: add test for LocalStorageManager::FindAllNotesPerNotebook
+    // TODO: add test for LocalStorageManager::ListAllLinkedNotebooks
+    // TODO: add test for LocalStorageManager::ListSharedNotebooksPerNotebookGuid
+    // TODO: add test for LocalStorageManager::ListAllSharedNotebooks
+    // TODO: add test for LocalStorageManager::ListAllNotebooks
+    // TODO: add test for LocalStorageManager::ExpungeUser
+    // TODO: add test for LocalStorageManager::DeleteUser
+    // TODO: add test for LocalStorageManager::FindBusinessUserInfo
+    // TODO: add test for LocalStorageManager::FindPremiumInfo
+    // TODO: add test for LocalStorageManager::FindAccounting
+    // TODO: add test for LocalStorageManager::FindUserAttributes
+    // TODO: add test for LocalStorageManager::FindUser
+    // TODO: add test for LocalStorageManager::UpdateUser
+    // TODO: add test for LocalStorageManager::AddUser
+    // TODO: add test for LocalStorageManager::SwitchUser
+
 private:
     CoreTester(const CoreTester & other) = delete;
     CoreTester & operator=(const CoreTester & other) = delete;

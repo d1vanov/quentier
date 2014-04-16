@@ -177,7 +177,7 @@ void ISharedNotebook::setPrivilegeLevel(const qint8 privilegeLevel)
 {
     auto & enSharedNotebook = GetEnSharedNotebook();
 
-    if (privilegeLevel <= static_cast<qint8>(enSharedNotebook.privilege)) {
+    if (privilegeLevel <= static_cast<qint8>(evernote::edam::SharedNotebookPrivilegeLevel::BUSINESS_FULL_ACCESS)) {
         enSharedNotebook.privilege = static_cast<evernote::edam::SharedNotebookPrivilegeLevel::type>(privilegeLevel);
         enSharedNotebook.__isset.privilege = true;
     }

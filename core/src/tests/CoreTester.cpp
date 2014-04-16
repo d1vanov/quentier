@@ -8,6 +8,7 @@
 #include <client/types/Tag.h>
 #include <client/types/ResourceWrapper.h>
 #include <client/types/Notebook.h>
+#include <client/types/SharedNotebookWrapper.h>
 #include <client/Serialization.h>
 #include <QtTest/QTest>
 
@@ -60,7 +61,7 @@ void CoreTester::localStorageManagerIndividualSavedSearchTest()
         QVERIFY2(res == true, error.toStdString().c_str());
     }
     catch(IQuteNoteException & exception) {
-        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
+        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
     }
 }
 
@@ -338,11 +339,25 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         notebook.setUpdateWhichSharedNotebookRestrictions(1);
         notebook.setExpungeWhichSharedNotebookRestrictions(1);
 
-        // TODO: add a couple of shared notebooks
-
         QString error;
         bool res = localStorageManager.AddNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));
+
+        SharedNotebookWrapper sharedNotebook;
+        sharedNotebook.setId(1);
+        sharedNotebook.setUserId(1);
+        sharedNotebook.setNotebookGuid(notebook.guid());
+        sharedNotebook.setEmail("Fake shared notebook email");
+        sharedNotebook.setCreationTimestamp(1);
+        sharedNotebook.setModificationTimestamp(1);
+        sharedNotebook.setShareKey("Fake shared notebook share key");
+        sharedNotebook.setUsername("Fake shared notebook username");
+        sharedNotebook.setPrivilegeLevel(1);
+        sharedNotebook.setAllowPreview(true);
+        sharedNotebook.setReminderNotifyEmail(true);
+        sharedNotebook.setReminderNotifyApp(false);
+
+        notebook.addSharedNotebook(sharedNotebook);
 
         Note note;
         note.setGuid("00000000-0000-0000-c000-000000000049");
@@ -372,11 +387,122 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
 
         res = TestNotebookFindUpdateDeleteExpungeInLocalStorage(notebook, localStorageManager, error);
         QVERIFY2(res == true, qPrintable(error));
-
-        // TODO: test finding of all shared notebooks per notebook guid
     }
     catch(IQuteNoteException & exception) {
         QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
+    }
+}
+
+void CoreTester::localStorageManagerListAllSavedSearchesTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        QString error;
+
+        size_t nSearches = 5;
+        std::vector<SavedSearch> searches;
+        searches.reserve(nSearches);
+        for(size_t i = 0; i < nSearches; ++i)
+        {
+            searches.push_back(SavedSearch());
+            SavedSearch & search = searches.back();
+
+            search.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            search.setUpdateSequenceNumber(i);
+            search.setName("SavedSearch #" + QString::number(i));
+            search.setQuery("Fake saved search query #" + QString::number(i));
+            search.setQueryFormat(1);
+            search.setIncludeAccount(true);
+            search.setIncludeBusinessLinkedNotebooks(true);
+            search.setIncludePersonalLinkedNotebooks(true);
+
+            bool res = localStorageManager.AddSavedSearch(search, error);
+            QVERIFY2(res == true, qPrintable(error));
+        }
+
+        std::vector<SavedSearch> foundSearches;
+
+        bool res = localStorageManager.ListAllSavedSearches(foundSearches, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        size_t numFoundSearches = foundSearches.size();
+        if (numFoundSearches != nSearches) {
+            QFAIL(qPrintable("Error: number of saved searches in the result of LocalStorageManager::ListAllSavedSearches (" +
+                             QString::number(numFoundSearches) + ") does not match the original number of added saved searches (" +
+                             QString::number(nSearches) + ")"));
+        }
+
+        for(size_t i = 0; i < numFoundSearches; ++i)
+        {
+            const SavedSearch & foundSearch = foundSearches.at(i);
+            const auto it = std::find(searches.cbegin(), searches.cend(), foundSearch);
+            if (it == searches.cend()) {
+                QFAIL("One of saved searches from the result of LocalStorageManager::ListAllSavedSearches "
+                      "was not found in the list of original searches");
+            }
+        }
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
+    }
+}
+
+void CoreTester::localStorageManagerListAllTagsTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        QString error;
+
+        size_t nTags = 5;
+        std::vector<Tag> tags;
+        tags.reserve(nTags);
+        for(size_t i = 0; i < nTags; ++i)
+        {
+            tags.push_back(Tag());
+            Tag & tag = tags.back();
+
+            tag.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            tag.setUpdateSequenceNumber(i);
+            tag.setName("Tag name #" + QString::number(i));
+
+            if (i != 0) {
+                tag.setParentGuid(tags.at(i-1).guid());
+            }
+
+            bool res = localStorageManager.AddTag(tag, error);
+            QVERIFY2(res == true, qPrintable(error));
+        }
+
+        std::vector<Tag> foundTags;
+
+        bool res = localStorageManager.ListAllTags(foundTags, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        size_t numFoundTags = foundTags.size();
+        if (numFoundTags != nTags) {
+            QFAIL(qPrintable("Error: number of tags in the result of LocalStorageManager::ListAllTags (" +
+                             QString::number(numFoundTags) + ") does not match the original number of added tags (" +
+                             QString::number(nTags) + ")"));
+        }
+
+        for(size_t i = 0; i < numFoundTags; ++i)
+        {
+            const Tag & foundTag = foundTags.at(i);
+            const auto it = std::find(tags.cbegin(), tags.cend(), foundTag);
+            if (it == tags.cend()) {
+                QFAIL("One if tags from the result of LocalStorageManager::ListAllTags "
+                      "was not found in the list of original tags");
+            }
+        }
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
     }
 }
 

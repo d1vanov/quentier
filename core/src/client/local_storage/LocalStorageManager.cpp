@@ -1532,13 +1532,15 @@ bool LocalStorageManager::ListAllSavedSearches(std::vector<SavedSearch> & search
     DATABASE_CHECK_AND_SET_ERROR("can't select all saved searches from \"SavedSearches\" "
                                  "table in SQL database");
 
-    size_t numRows = query.size();
+    int numRows = query.size();
     if (numRows == 0) {
         QNDEBUG("No saved searches were found");
         return true;
     }
 
-    searches.reserve(numRows);
+    if (numRows > 0) {
+        searches.reserve(numRows);
+    }
 
     while(query.next())
     {
@@ -2096,9 +2098,6 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const ISharedNotebook & sh
         return false;
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT OR REPLACE INTO SharedNotebooks(:columns) VALUES(:vals)");
-
     QString columns, values;
     bool hasAnyProperty = false;
 
@@ -2122,29 +2121,30 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const ISharedNotebook & sh
                                             QString::number(sharedNotebook.id()));
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasUserId, userId,
                                             QString::number(sharedNotebook.userId()));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasNotebookGuid, notebookGuid, sharedNotebook.notebookGuid());
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasEmail, email, sharedNotebook.email());
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasNotebookGuid, notebookGuid, "\"" + sharedNotebook.notebookGuid() + "\"");
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasEmail, email, "\"" + sharedNotebook.email() + "\"");
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasCreationTimestamp,creationTimestamp,
                                             QString::number(sharedNotebook.creationTimestamp()));
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasModificationTimestamp, modificationTimestamp,
                                             QString::number(sharedNotebook.modificationTimestamp()));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasShareKey, shareKey, sharedNotebook.shareKey());
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasUsername, username, sharedNotebook.username());
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasShareKey, shareKey, "\"" + sharedNotebook.shareKey() + "\"");
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasUsername, username, "\"" + sharedNotebook.username() + "\"");
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasPrivilegeLevel, sharedNotebookPrivilegeLevel,
                                             QString::number(sharedNotebook.privilegeLevel()));
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasAllowPreview, allowPreview,
                                             QString::number(sharedNotebook.allowPreview() ? 1 : 0));
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasReminderNotifyEmail, recipientReminderNotifyEmail,
                                             QString::number(sharedNotebook.reminderNotifyEmail() ? 1 : 0));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasReminderNotifyApp, recipientRemindrNotifyInApp,
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasReminderNotifyApp, recipientReminderNotifyInApp,
                                             QString::number(sharedNotebook.reminderNotifyApp() ? 1 : 0));
 
 #undef CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE
 
     if (hasAnyProperty) {
-        query.bindValue("columns", columns);
-        query.bindValue("vals", values);
-        bool res = query.exec();
+        QString queryString = QString("INSERT OR REPLACE INTO SharedNotebooks(%1) VALUES(%2)")
+                                     .arg(columns).arg(values);
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace shared notebook attributes "
                                      "into SQL database");
     }
@@ -2947,13 +2947,15 @@ bool LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Ta
 {
     tags.clear();
 
-    size_t numRows = query.size();
+    int numRows = query.size();
     if (numRows == 0) {
         QNDEBUG("No tags were found in SQL query");
         return true;
     }
 
-    tags.reserve(numRows);
+    if (numRows > 0) {
+        tags.reserve(numRows);
+    }
 
     while(query.next())
     {
