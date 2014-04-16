@@ -30,10 +30,10 @@ private slots:
 
     void localStorageManagerListAllSavedSearchesTest();
     void localStorageManagerListAllTagsTest();
+    void localStorageManagerListAllLinkedNotebooks();
 
     // TODO: add test for LocalStorageManager::FindAllTagsPerNote
     // TODO: add test for LocalStorageManager::FindAllNotesPerNotebook
-    // TODO: add test for LocalStorageManager::ListAllLinkedNotebooks
     // TODO: add test for LocalStorageManager::ListSharedNotebooksPerNotebookGuid
     // TODO: add test for LocalStorageManager::ListAllSharedNotebooks
     // TODO: add test for LocalStorageManager::ListAllNotebooks

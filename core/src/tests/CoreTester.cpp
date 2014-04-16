@@ -496,8 +496,68 @@ void CoreTester::localStorageManagerListAllTagsTest()
             const Tag & foundTag = foundTags.at(i);
             const auto it = std::find(tags.cbegin(), tags.cend(), foundTag);
             if (it == tags.cend()) {
-                QFAIL("One if tags from the result of LocalStorageManager::ListAllTags "
+                QFAIL("One of tags from the result of LocalStorageManager::ListAllTags "
                       "was not found in the list of original tags");
+            }
+        }
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
+    }
+}
+
+void CoreTester::localStorageManagerListAllLinkedNotebooks()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        QString error;
+
+        size_t nLinkedNotebooks = 5;
+        std::vector<LinkedNotebook> linkedNotebooks;
+        linkedNotebooks.reserve(nLinkedNotebooks);
+        for(size_t i = 0; i < nLinkedNotebooks; ++i)
+        {
+            linkedNotebooks.push_back(LinkedNotebook());
+            LinkedNotebook & linkedNotebook = linkedNotebooks.back();
+
+            linkedNotebook.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            linkedNotebook.setUpdateSequenceNumber(i);
+            linkedNotebook.setShareName("Linked notebook share name #" + QString::number(i));
+            linkedNotebook.setUsername("Linked notebook username #" + QString::number(i));
+            linkedNotebook.setShardId("Linked notebook shard id #" + QString::number(i));
+            linkedNotebook.setShareKey("Linked notebook share key #" + QString::number(i));
+            linkedNotebook.setUri("Linked notebook uri #" + QString::number(i));
+            linkedNotebook.setNoteStoreUrl("Linked notebook note store url #" + QString::number(i));
+            linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix #" + QString::number(i));
+            linkedNotebook.setStack("Linked notebook stack #" + QString::number(i));
+            linkedNotebook.setBusinessId(1);
+
+            bool res = localStorageManager.AddLinkedNotebook(linkedNotebook, error);
+            QVERIFY2(res == true, qPrintable(error));
+        }
+
+        std::vector<LinkedNotebook> foundLinkedNotebooks;
+
+        bool res = localStorageManager.ListAllLinkedNotebooks(foundLinkedNotebooks, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        size_t numFoundLinkedNotebooks = foundLinkedNotebooks.size();
+        if (numFoundLinkedNotebooks != nLinkedNotebooks) {
+            QFAIL(qPrintable("Error: number of linked notebooks in the result of LocalStorageManager::ListAllLinkedNotebooks (" +
+                             QString::number(numFoundLinkedNotebooks) + ") does not match the original number of added linked notebooks (" +
+                             QString::number(nLinkedNotebooks) + ")"));
+        }
+
+        for(size_t i = 0; i < numFoundLinkedNotebooks; ++i)
+        {
+            const LinkedNotebook & foundLinkedNotebook = foundLinkedNotebooks.at(i);
+            const auto it = std::find(foundLinkedNotebooks.cbegin(), foundLinkedNotebooks.cend(), foundLinkedNotebook);
+            if (it == linkedNotebooks.cend()) {
+                QFAIL("One of linked notebooks from the result of LocalStorageManager::ListAllLinkedNotebooks "
+                      "was not found in the list of original linked notebooks");
             }
         }
     }

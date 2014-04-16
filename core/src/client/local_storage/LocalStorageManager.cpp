@@ -769,8 +769,15 @@ bool LocalStorageManager::ListAllLinkedNotebooks(std::vector<LinkedNotebook> & n
     bool res = query.exec("SELECT * FROM LinkedNotebooks");
     DATABASE_CHECK_AND_SET_ERROR("can't select all linked notebooks from SQL database");
 
-    size_t numRows = query.size();
-    notebooks.reserve(numRows);
+    int numRows = query.size();
+    if (numRows == 0) {
+        QNDEBUG("Found no linked notebooks");
+        return true;
+    }
+
+    if (numRows > 0) {
+        notebooks.reserve(numRows);
+    }
 
     while(query.next())
     {
