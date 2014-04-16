@@ -9,6 +9,16 @@ ISharedNotebook::ISharedNotebook()
 ISharedNotebook::~ISharedNotebook()
 {}
 
+bool ISharedNotebook::operator==(const ISharedNotebook & other) const
+{
+    return (GetEnSharedNotebook() == other.GetEnSharedNotebook());
+}
+
+bool ISharedNotebook::operator!=(const ISharedNotebook & other) const
+{
+    return !(*this == other);
+}
+
 bool ISharedNotebook::hasId() const
 {
     const auto & enSharedNotebook = GetEnSharedNotebook();

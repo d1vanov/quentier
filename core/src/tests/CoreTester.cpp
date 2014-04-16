@@ -554,10 +554,83 @@ void CoreTester::localStorageManagerListAllLinkedNotebooks()
         for(size_t i = 0; i < numFoundLinkedNotebooks; ++i)
         {
             const LinkedNotebook & foundLinkedNotebook = foundLinkedNotebooks.at(i);
-            const auto it = std::find(foundLinkedNotebooks.cbegin(), foundLinkedNotebooks.cend(), foundLinkedNotebook);
+            const auto it = std::find(linkedNotebooks.cbegin(), linkedNotebooks.cend(), foundLinkedNotebook);
             if (it == linkedNotebooks.cend()) {
                 QFAIL("One of linked notebooks from the result of LocalStorageManager::ListAllLinkedNotebooks "
                       "was not found in the list of original linked notebooks");
+            }
+        }
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
+    }
+}
+
+void CoreTester::localStorageManagerListAllSharedNotebooks()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        Notebook notebook;
+        notebook.setGuid("00000000-0000-0000-c000-000000000000");
+        notebook.setUpdateSequenceNumber(1);
+        notebook.setName("Fake notebook name");
+        notebook.setCreationTimestamp(1);
+        notebook.setModificationTimestamp(1);
+        notebook.setDefaultNotebook(true);
+        notebook.setPublished(false);
+        notebook.setStack("Fake notebook stack");
+
+
+        size_t numSharedNotebooks = 5;
+        std::vector<SharedNotebookWrapper> sharedNotebooks;
+        sharedNotebooks.reserve(numSharedNotebooks);
+        for(size_t i = 0; i < numSharedNotebooks; ++i)
+        {
+            sharedNotebooks.push_back(SharedNotebookWrapper());
+            SharedNotebookWrapper & sharedNotebook = sharedNotebooks.back();
+
+            sharedNotebook.setId(i);
+            sharedNotebook.setUserId(i);
+            sharedNotebook.setNotebookGuid(notebook.guid());
+            sharedNotebook.setEmail("Fake shared notebook email #" + QString::number(i));
+            sharedNotebook.setCreationTimestamp(i+1);
+            sharedNotebook.setModificationTimestamp(i+1);
+            sharedNotebook.setShareKey("Fake shared notebook share key #" + QString::number(i));
+            sharedNotebook.setUsername("Fake shared notebook username #" + QString::number(i));
+            sharedNotebook.setPrivilegeLevel(1);
+            sharedNotebook.setAllowPreview(true);
+            sharedNotebook.setReminderNotifyEmail(true);
+            sharedNotebook.setReminderNotifyApp(false);
+
+            notebook.addSharedNotebook(sharedNotebook);
+        }
+
+        QString error;
+        bool res = localStorageManager.AddNotebook(notebook, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        std::vector<SharedNotebookWrapper> foundSharedNotebooks;
+
+        res = localStorageManager.ListAllSharedNotebooks(foundSharedNotebooks, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        size_t numFoundSharedNotebooks = foundSharedNotebooks.size();
+        if (numFoundSharedNotebooks != numSharedNotebooks) {
+            QFAIL(qPrintable("Error: number of shared notebooks in the result of LocalStorageManager::ListAllSharedNotebooks (" +
+                             QString::number(numFoundSharedNotebooks) + ") does not match the original number of added shared notebooks (" +
+                             QString::number(numSharedNotebooks) + ")"));
+        }
+
+        for(size_t i = 0; i < numFoundSharedNotebooks; ++i)
+        {
+            const SharedNotebookWrapper & foundSharedNotebook = foundSharedNotebooks.at(i);
+            const auto it = std::find(sharedNotebooks.cbegin(), sharedNotebooks.cend(), foundSharedNotebook);
+            if (it == sharedNotebooks.cend()) {
+                QFAIL("One of shared notebooks from the result of LocalStorageManager::ListAllSharedNotebooks "
+                      "was not found in the list of original shared notebooks");
             }
         }
     }

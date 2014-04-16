@@ -19,6 +19,9 @@ public:
     ISharedNotebook();
     virtual ~ISharedNotebook();
 
+    bool operator==(const ISharedNotebook & other) const;
+    bool operator!=(const ISharedNotebook & other) const;
+
     bool hasId() const;
     qint64 id() const;
     void setId(const qint64 id);

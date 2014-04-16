@@ -533,7 +533,15 @@ bool LocalStorageManager::ListAllSharedNotebooks(std::vector<SharedNotebookWrapp
     bool res = query.exec("SELECT * FROM SharedNotebooks");
     DATABASE_CHECK_AND_SET_ERROR("Can't select shared notebooks from SQL database");
 
-    sharedNotebooks.reserve(std::max(query.size(), 0));
+    int numRows = query.size();
+    if (numRows == 0) {
+        QNDEBUG("Found no shared notebooks");
+        return true;
+    }
+
+    if (numRows > 0) {
+        sharedNotebooks.reserve(std::max(numRows, 0));
+    }
 
     while(query.next())
     {
@@ -614,7 +622,7 @@ bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & not
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT shareId, userId, email, creationTimestamp, modificationTimestamp, "
                   "shareKey, username, sharedNotebookPrivilegeLevel, allowPreview, "
-                  "recipientReminderNotifyEmail, recipientReminderNotifyInApp "
+                  "recipientReminderNotifyEmail, recipientReminderNotifyInApp, notebookGuid "
                   "FROM SharedNotebooks WHERE notebookGuid=?");
     query.addBindValue(notebookGuid);
 
@@ -2873,6 +2881,7 @@ bool LocalStorageManager::FillSharedNotebookFromSqlRecord(const QSqlRecord & rec
                                            setReminderNotifyEmail, isRequired);  // NOTE: int to bool cast
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyInApp, int, bool,
                                            setReminderNotifyApp, isRequired);  // NOTE: int to bool cast
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(notebookGuid, QString, QString, setNotebookGuid, isRequired);
 
 #undef CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY
 
