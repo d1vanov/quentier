@@ -815,5 +815,105 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
     }
 }
 
+void CoreTester::localStorageManagerListAllNotebooksTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        QString error;
+
+        size_t numNotebooks = 5;
+        std::vector<Notebook> notebooks;
+        for(size_t i = 0; i < numNotebooks; ++i)
+        {
+            notebooks.push_back(Notebook());
+            Notebook & notebook = notebooks.back();
+
+            notebook.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            notebook.setUpdateSequenceNumber(i+1);
+            notebook.setName("Fake notebook name #" + QString::number(i+1));
+            notebook.setCreationTimestamp(i+1);
+            notebook.setModificationTimestamp(i+1);
+
+            notebook.setDefaultNotebook(true);
+            notebook.setPublishingUri("Fake publishing uri #" + QString::number(i+1));
+            notebook.setPublishingOrder(1);
+            notebook.setPublishingAscending(true);
+            notebook.setPublishingPublicDescription("Fake public description");
+            notebook.setPublished(true);
+            notebook.setStack("Fake notebook stack");
+            notebook.setBusinessNotebookDescription("Fake business notebook description");
+            notebook.setBusinessNotebookPrivilegeLevel(1);
+            notebook.setBusinessNotebookRecommended(true);
+            // NotebookRestrictions
+            notebook.setCanReadNotes(true);
+            notebook.setCanCreateNotes(true);
+            notebook.setCanUpdateNotes(true);
+            notebook.setCanExpungeNotes(false);
+            notebook.setCanShareNotes(true);
+            notebook.setCanEmailNotes(true);
+            notebook.setCanSendMessageToRecipients(true);
+            notebook.setCanUpdateNotebook(true);
+            notebook.setCanExpungeNotebook(false);
+            notebook.setCanSetDefaultNotebook(true);
+            notebook.setCanSetNotebookStack(true);
+            notebook.setCanPublishToPublic(true);
+            notebook.setCanPublishToBusinessLibrary(false);
+            notebook.setCanCreateTags(true);
+            notebook.setCanUpdateTags(true);
+            notebook.setCanExpungeTags(false);
+            notebook.setCanSetParentTag(true);
+            notebook.setCanCreateSharedNotebooks(true);
+            notebook.setUpdateWhichSharedNotebookRestrictions(1);
+            notebook.setExpungeWhichSharedNotebookRestrictions(1);
+
+            SharedNotebookWrapper sharedNotebook;
+            sharedNotebook.setId(i+1);
+            sharedNotebook.setUserId(i+1);
+            sharedNotebook.setNotebookGuid(notebook.guid());
+            sharedNotebook.setEmail("Fake shared notebook email #" + QString::number(i+1));
+            sharedNotebook.setCreationTimestamp(i+1);
+            sharedNotebook.setModificationTimestamp(i+1);
+            sharedNotebook.setShareKey("Fake shared notebook share key #" + QString::number(i+1));
+            sharedNotebook.setUsername("Fake shared notebook username #" + QString::number(i+1));
+            sharedNotebook.setPrivilegeLevel(1);
+            sharedNotebook.setAllowPreview(true);
+            sharedNotebook.setReminderNotifyEmail(true);
+            sharedNotebook.setReminderNotifyApp(false);
+
+            notebook.addSharedNotebook(sharedNotebook);
+
+            bool res = localStorageManager.AddNotebook(notebook, error);
+            QVERIFY2(res == true, qPrintable(error));
+        }
+
+        std::vector<Notebook> foundNotebooks;
+        bool res = localStorageManager.ListAllNotebooks(foundNotebooks, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        size_t numFoundNotebooks = foundNotebooks.size();
+        if (numFoundNotebooks != numNotebooks) {
+            QFAIL(qPrintable("Error: number of notebooks in the result of LocalStorageManager::ListAllNotebooks (" +
+                             QString::number(numFoundNotebooks) + ") does not match the original number of added notebooks (" +
+                             QString::number(numNotebooks) + ")"));
+        }
+
+        for(size_t i = 0; i < numFoundNotebooks; ++i)
+        {
+            const Notebook & foundNotebook = foundNotebooks.at(i);
+            const auto it = std::find(notebooks.cbegin(), notebooks.cend(), foundNotebook);
+            if (it == notebooks.cend()) {
+                QFAIL("One of notebooks from the result of LocalStorageManager::ListAllNotebooks "
+                      "was not found in the list of original notebooks");
+            }
+        }
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
+    }
+}
+
 }
 }

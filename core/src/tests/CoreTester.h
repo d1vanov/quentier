@@ -34,8 +34,8 @@ private slots:
     void localStorageManagerListAllSharedNotebooksTest();
     void localStorageManagerListAllTagsPerNoteTest();
     void localStorageManagerListAllNotesPerNotebookTest();
+    void localStorageManagerListAllNotebooksTest();
 
-    // TODO: add test for LocalStorageManager::ListAllNotebooks
     // TODO: add test for LocalStorageManager::ExpungeUser
     // TODO: add test for LocalStorageManager::DeleteUser
     // TODO: add test for LocalStorageManager::FindBusinessUserInfo
