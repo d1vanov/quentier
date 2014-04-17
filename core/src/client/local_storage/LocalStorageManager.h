@@ -163,7 +163,7 @@ public:
 
     bool FindTag(const QString & tagGuid, Tag & tag, QString & errorDescription) const;
 
-    bool FindAllTagsPerNote(const QString & noteGuid, std::vector<Tag> & tags,
+    bool ListAllTagsPerNote(const QString & noteGuid, std::vector<Tag> & tags,
                             QString & errorDescription) const;
 
     bool ListAllTags(std::vector<Tag> & tags, QString & errorDescription) const;

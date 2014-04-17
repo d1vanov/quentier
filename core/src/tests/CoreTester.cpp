@@ -506,7 +506,7 @@ void CoreTester::localStorageManagerListAllTagsTest()
     }
 }
 
-void CoreTester::localStorageManagerListAllLinkedNotebooks()
+void CoreTester::localStorageManagerListAllLinkedNotebooksTest()
 {
     try
     {
@@ -566,7 +566,7 @@ void CoreTester::localStorageManagerListAllLinkedNotebooks()
     }
 }
 
-void CoreTester::localStorageManagerListAllSharedNotebooks()
+void CoreTester::localStorageManagerListAllSharedNotebooksTest()
 {
     try
     {
@@ -632,6 +632,96 @@ void CoreTester::localStorageManagerListAllSharedNotebooks()
                 QFAIL("One of shared notebooks from the result of LocalStorageManager::ListAllSharedNotebooks "
                       "was not found in the list of original shared notebooks");
             }
+        }
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
+    }
+}
+
+void CoreTester::localStorageManagerListAllTagsPerNoteTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        Notebook notebook;
+        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setUpdateSequenceNumber(1);
+        notebook.setName("Fake notebook name");
+        notebook.setCreationTimestamp(1);
+        notebook.setModificationTimestamp(1);
+
+        QString error;
+        bool res = localStorageManager.AddNotebook(notebook, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        Note note;
+        note.setGuid("00000000-0000-0000-c000-000000000046");
+        note.setUpdateSequenceNumber(1);
+        note.setTitle("Fake note title");
+        note.setContent("Fake note content");
+        note.setCreationTimestamp(1);
+        note.setModificationTimestamp(1);
+        note.setActive(true);
+        note.setNotebookGuid(notebook.guid());
+
+        res = localStorageManager.AddNote(note, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        size_t numTags = 5;
+        std::vector<Tag> tags;
+        tags.reserve(numTags);
+        for(size_t i = 0; i < numTags; ++i)
+        {
+            tags.push_back(Tag());
+            Tag & tag = tags.back();
+
+            tag.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            tag.setUpdateSequenceNumber(i);
+            tag.setName("Tag name #" + QString::number(i));
+
+            res = localStorageManager.AddTag(tag, error);
+            QVERIFY2(res == true, qPrintable(error));
+
+            res = localStorageManager.LinkTagWithNote(tag, note, error);
+            QVERIFY2(res == true, qPrintable(error));
+        }
+
+        Tag tagNotLinkedWithNote;
+        tagNotLinkedWithNote.setGuid("00000000-0000-0000-c000-000000000045");
+        tagNotLinkedWithNote.setUpdateSequenceNumber(9);
+        tagNotLinkedWithNote.setName("Tag not linked with note");
+
+        res = localStorageManager.AddTag(tagNotLinkedWithNote, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        std::vector<Tag> foundTags;
+
+        res = localStorageManager.ListAllTagsPerNote(note.guid(), foundTags, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        size_t numFoundTags = foundTags.size();
+        if (numFoundTags != numTags) {
+            QFAIL(qPrintable("Error: number of tags in the result of LocalStorageManager::ListAllTagsPerNote (" +
+                             QString::number(numFoundTags) + ") does not match the original number of added tags (" +
+                             QString::number(numTags) + ")"));
+        }
+
+        for(size_t i = 0; i < numFoundTags; ++i)
+        {
+            const Tag & foundTag = foundTags.at(i);
+            const auto it = std::find(tags.cbegin(), tags.cend(), foundTag);
+            if (it == tags.cend()) {
+                QFAIL("One of tags from the result of LocalStorageManager::ListAllTagsPerNote "
+                      "was not found in the list of original tags");
+            }
+        }
+
+        const auto it = std::find(foundTags.cbegin(), foundTags.cend(), tagNotLinkedWithNote);
+        if (it != foundTags.cend()) {
+            QFAIL("Found tag not linked with testing note in the result of LocalStorageManager::ListAllTagsPerNote");
         }
     }
     catch(IQuteNoteException & exception) {

@@ -1243,10 +1243,10 @@ bool LocalStorageManager::FindTag(const QString & tagGuid, Tag & tag, QString & 
     return true;
 }
 
-bool LocalStorageManager::FindAllTagsPerNote(const QString & noteGuid, std::vector<Tag> & tags,
+bool LocalStorageManager::ListAllTagsPerNote(const QString & noteGuid, std::vector<Tag> & tags,
                                              QString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManager::FindAllTagsPerNote: note guid = " << noteGuid);
+    QNDEBUG("LocalStorageManager::ListAllTagsPerNote: note guid = " << noteGuid);
 
     tags.clear();
     errorDescription = QObject::tr("Can't find all tags per note in local storage database: ");
