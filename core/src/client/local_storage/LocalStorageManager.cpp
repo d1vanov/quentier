@@ -950,10 +950,10 @@ bool LocalStorageManager::FindNote(const QString & noteGuid, Note & note,
     return true;
 }
 
-bool LocalStorageManager::FindAllNotesPerNotebook(const QString & notebookGuid, std::vector<Note> & notes,
+bool LocalStorageManager::ListAllNotesPerNotebook(const QString & notebookGuid, std::vector<Note> & notes,
                                                   QString & errorDescription, const bool withResourceBinaryData) const
 {
-    QNDEBUG("LocalStorageManager::FindAllNotesPerNotebook: notebookGuid = " << notebookGuid);
+    QNDEBUG("LocalStorageManager::ListAllNotesPerNotebook: notebookGuid = " << notebookGuid);
 
     errorDescription = QObject::tr("Can't find all notes per notebook: ");
 
@@ -971,8 +971,15 @@ bool LocalStorageManager::FindAllNotesPerNotebook(const QString & notebookGuid, 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select notes per notebook guid from SQL database");
 
-    size_t numRows = query.size();
-    notes.reserve(numRows);
+    int numRows = query.size();
+    if (numRows == 0) {
+        QNDEBUG("Found no notes per notebook");
+        return true;
+    }
+
+    if (numRows > 0) {
+        notes.reserve(numRows);
+    }
 
     while(query.next())
     {

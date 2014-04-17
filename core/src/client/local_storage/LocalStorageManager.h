@@ -129,7 +129,7 @@ public:
     bool FindNote(const QString & noteGuid, Note & note, QString & errorDescription,
                   const bool withResourceBinaryData = true) const;
 
-    bool FindAllNotesPerNotebook(const QString & notebookGuid, std::vector<Note> & notes,
+    bool ListAllNotesPerNotebook(const QString & notebookGuid, std::vector<Note> & notes,
                                  QString & errorDescription, const bool withResourceBinaryData = true) const;
 
 

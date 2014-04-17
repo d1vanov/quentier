@@ -729,5 +729,91 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
     }
 }
 
+void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        Notebook notebook;
+        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setUpdateSequenceNumber(1);
+        notebook.setName("Fake notebook name");
+        notebook.setCreationTimestamp(1);
+        notebook.setModificationTimestamp(1);
+
+        QString error;
+        bool res = localStorageManager.AddNotebook(notebook, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        Notebook notebookNotLinkedWithNotes;
+        notebookNotLinkedWithNotes.setGuid("00000000-0000-0000-c000-000000000048");
+        notebookNotLinkedWithNotes.setUpdateSequenceNumber(1);
+        notebookNotLinkedWithNotes.setName("Fake notebook not linked with notes name name");
+        notebookNotLinkedWithNotes.setCreationTimestamp(1);
+        notebookNotLinkedWithNotes.setModificationTimestamp(1);
+
+        res = localStorageManager.AddNotebook(notebookNotLinkedWithNotes, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        size_t numNotes = 5;
+        std::vector<Note> notes;
+        notes.reserve(numNotes);
+        for(size_t i = 0; i < numNotes; ++i)
+        {
+            notes.push_back(Note());
+            Note & note = notes.back();
+
+            note.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            note.setUpdateSequenceNumber(i+1);
+            note.setTitle("Fake note title #" + QString::number(i));
+            note.setContent("Fake note content #" + QString::number(i));
+            note.setCreationTimestamp(i+1);
+            note.setModificationTimestamp(i+1);
+            note.setActive(true);
+            note.setNotebookGuid(notebook.guid());
+
+            res = localStorageManager.AddNote(note, error);
+            QVERIFY2(res == true, qPrintable(error));
+        }
+
+        std::vector<Note> foundNotes;
+        res = localStorageManager.ListAllNotesPerNotebook(notebook.guid(), foundNotes, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        size_t numFoundNotes = foundNotes.size();
+        if (numFoundNotes != numNotes) {
+            QFAIL(qPrintable("Error: number of notes in the result of LocalStorageManager::ListAllNotesPerNotebook (" +
+                             QString::number(numFoundNotes) + ") does not match the original number of added notes (" +
+                             QString::number(numNotes) + ")"));
+        }
+
+        for(size_t i = 0; i < numFoundNotes; ++i)
+        {
+            const Note & foundNote = foundNotes.at(i);
+            const auto it = std::find(notes.cbegin(), notes.cend(), foundNote);
+            if (it == notes.cend()) {
+                QFAIL("One of notes from the result of LocalStorageManager::ListAllNotesPerNotebook "
+                      "was not found in the list of original notes");
+            }
+        }
+
+        foundNotes.clear();
+        res = localStorageManager.ListAllNotesPerNotebook(notebookNotLinkedWithNotes.guid(),
+                                                          foundNotes, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        if (foundNotes.size() != 0) {
+            QFAIL(qPrintable("Found non-zero number of notes in the result of LocalStorageManager::ListAllNotesPerNotebook "
+                             "called with guid of notebook not containing any notes (found " +
+                             QString::number(foundNotes.size()) + " notes)"));
+        }
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
+    }
+}
+
 }
 }
