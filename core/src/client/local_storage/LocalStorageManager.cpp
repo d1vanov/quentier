@@ -55,11 +55,17 @@ LocalStorageManager::~LocalStorageManager()
 
 bool LocalStorageManager::AddUser(const IUser & user, QString & errorDescription)
 {
-    QNDEBUG("LocalStorageManager::AddUser: " << user);
-
     errorDescription = QObject::tr("Can't add user into local storage database: ");
+    QString error;
 
-    QString userId = QString::number(user.GetEnUser().id);
+    bool res = user.checkParameters(error);
+    if (!res) {
+        errorDescription += error;
+        QNWARNING("Found invalid user: " << user << "\nError: " << error);
+        return false;
+    }
+
+    QString userId = QString::number(user.id());
     bool exists = RowExists("Users", "id", QVariant(userId));
     if (exists) {
         errorDescription += QObject::tr("user with the same id already exists");
@@ -67,8 +73,8 @@ bool LocalStorageManager::AddUser(const IUser & user, QString & errorDescription
         return false;
     }
 
-    QString error;
-    bool res = InsertOrReplaceUser(user, error);
+    error.clear();
+    res = InsertOrReplaceUser(user, error);
     if (!res) {
         errorDescription += error;
         return false;
@@ -79,11 +85,17 @@ bool LocalStorageManager::AddUser(const IUser & user, QString & errorDescription
 
 bool LocalStorageManager::UpdateUser(const IUser & user, QString & errorDescription)
 {
-    QNDEBUG("LocalStorageManager::UpdateUser: " << user);
+    errorDescription = QObject::tr("Can't add user into local storage database: ");
+    QString error;
 
-    errorDescription = QObject::tr("Can't update user in local storage database: ");
+    bool res = user.checkParameters(error);
+    if (!res) {
+        errorDescription += error;
+        QNWARNING("Found invalid user: " << user << "\nError: " << error);
+        return false;
+    }
 
-    QString userId = QString::number(user.GetEnUser().id);
+    QString userId = QString::number(user.id());
     bool exists = RowExists("Users", "id", QVariant(userId));
     if (!exists) {
         errorDescription += QObject::tr("user id was not found");
@@ -91,8 +103,8 @@ bool LocalStorageManager::UpdateUser(const IUser & user, QString & errorDescript
         return false;
     }
 
-    QString error;
-    bool res = InsertOrReplaceUser(user, error);
+    error.clear();
+    res = InsertOrReplaceUser(user, error);
     if (!res) {
         errorDescription += error;
         return false;
@@ -115,7 +127,7 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
         return false;
     }
 
-    user.Clear();
+    user.clear();
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT id, username, name, timezone, privilege, creationTimestamp, "
@@ -133,15 +145,10 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
 
     QSqlRecord rec = query.record();
 
-#define CHECK_AND_SET_USER_PROPERTY(property, counterProperty) \
+#define CHECK_AND_SET_USER_PROPERTY(property) \
     if (rec.contains("is " #property)) { \
         int property = (qvariant_cast<int>(rec.value(#property)) != 0); \
-        if (property > 0) { \
-            user.Set##property(); \
-        } \
-        else { \
-            user.Set##counterProperty(); \
-        } \
+        user.set##property(static_cast<bool>(property)); \
     } \
     else { \
         errorDescription += QObject::tr("Internal error: no " #property \
@@ -149,43 +156,37 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
         return false; \
     }
 
-    CHECK_AND_SET_USER_PROPERTY(Dirty, Clean);
-    CHECK_AND_SET_USER_PROPERTY(Local, NonLocal);
+    CHECK_AND_SET_USER_PROPERTY(Dirty);
+    CHECK_AND_SET_USER_PROPERTY(Local);
 
 #undef CHECK_AND_SET_USER_PROPERTY
 
-    evernote::edam::User & enUser = user.GetEnUser();
-    enUser.id = id;
-    enUser.__isset.id = true;
+    user.setId(id);
 
-#define CHECK_AND_SET_EN_USER_PROPERTY(holder, propertyLocalName, propertyEnName, \
-                                       type, true_type, is_required, ...) \
+#define CHECK_AND_SET_EN_USER_PROPERTY(propertyLocalName, setter, \
+                                       type, true_type, isRequired) \
     if (rec.contains(#propertyLocalName)) { \
-        holder.propertyEnName = static_cast<true_type>((qvariant_cast<type>(rec.value(#propertyLocalName)))__VA_ARGS__); \
-        holder.__isset.propertyEnName = true; \
+        user.setter(static_cast<true_type>((qvariant_cast<type>(rec.value(#propertyLocalName))))); \
     } \
-    else if (is_required) { \
+    else if (isRequired) { \
         errorDescription += QObject::tr("Internal error: no " #propertyLocalName \
                                         " field in the result of SQL query"); \
         return false; \
     }
 
     bool isRequired = true;
-    CHECK_AND_SET_EN_USER_PROPERTY(enUser, username, username, QString, std::string,
-                                   isRequired, .toStdString());
-    CHECK_AND_SET_EN_USER_PROPERTY(enUser, name, name, QString, std::string,
-                                   isRequired, .toStdString());
-    CHECK_AND_SET_EN_USER_PROPERTY(enUser, timezone, timezone, QString, std::string,
-                                   /* isRequired = */ false, .toStdString());
-    CHECK_AND_SET_EN_USER_PROPERTY(enUser, privilege, privilege, int,
-                                   evernote::edam::PrivilegeLevel::type, isRequired);
-    CHECK_AND_SET_EN_USER_PROPERTY(enUser, creationTimestamp, created, int,
-                                   evernote::edam::Timestamp, isRequired);
-    CHECK_AND_SET_EN_USER_PROPERTY(enUser, modificationTimestamp, updated, int,
-                                   evernote::edam::Timestamp, isRequired);
-    CHECK_AND_SET_EN_USER_PROPERTY(enUser, deletionTimestamp, deleted, int,
-                                   evernote::edam::Timestamp, /* isRequired = */ false);
-    CHECK_AND_SET_EN_USER_PROPERTY(enUser, isActive, active, int, bool, isRequired);   // NOTE: int to bool cast
+    CHECK_AND_SET_EN_USER_PROPERTY(username, setUsername, QString, QString, isRequired);
+    CHECK_AND_SET_EN_USER_PROPERTY(name, setName, QString, QString, isRequired);
+    CHECK_AND_SET_EN_USER_PROPERTY(timezone, setTimezone, QString, QString,
+                                   /* isRequired = */ false);
+    CHECK_AND_SET_EN_USER_PROPERTY(privilege, setPrivilegeLevel, int, qint8, isRequired);
+    CHECK_AND_SET_EN_USER_PROPERTY(creationTimestamp, setCreationTimestamp,
+                                   int, qint64, isRequired);
+    CHECK_AND_SET_EN_USER_PROPERTY(modificationTimestamp, setModificationTimestamp,
+                                   int, qint64, isRequired);
+    CHECK_AND_SET_EN_USER_PROPERTY(deletionTimestamp, setDeletionTimestamp,
+                                   int, qint64, /* isRequired = */ false);
+    CHECK_AND_SET_EN_USER_PROPERTY(isActive, setActive, int, bool, isRequired);   // NOTE: int to bool cast
 
 #undef CHECK_AND_SET_EN_USER_PROPERTY
 
@@ -201,23 +202,23 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
     }
 
     QString error;
-    res = FindUserAttributes(id, enUser.attributes, error);
-    enUser.__isset.attributes = res;
+    res = FindUserAttributes(id, user.userAttributes(), error);
+    user.setHasAttributes(res);
     CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
 
     error.clear();
-    res = FindAccounting(id, enUser.accounting, error);
-    enUser.__isset.accounting = res;
+    res = FindAccounting(id, user.accounting(), error);
+    user.setHasAccounting(res);
     CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
 
     error.clear();
-    res = FindPremiumInfo(id, enUser.premiumInfo, error);
-    enUser.__isset.premiumInfo = res;
+    res = FindPremiumInfo(id, user.premiumInfo(), error);
+    user.setHasPremiumInfo(res);
     CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
 
     error.clear();
-    res = FindBusinessUserInfo(id, enUser.businessUserInfo, error);
-    enUser.__isset.businessUserInfo = res;
+    res = FindBusinessUserInfo(id, user.businessUserInfo(), error);
+    user.setHasBusinessUserInfo(res);
     CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
 
 #undef CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
@@ -267,28 +268,26 @@ FIND_OPTIONAL_USER_PROPERTIES(BusinessUserInfo)
 
 bool LocalStorageManager::DeleteUser(const IUser & user, QString & errorDescription)
 {
-    if (user.IsLocal()) {
+    if (user.isLocal()) {
         return ExpungeUser(user, errorDescription);
     }
 
     errorDescription = QObject::tr("Can't delete user from local storage database: ");
 
-    const auto & enUser = user.GetEnUser();
-
-    if (!enUser.deleted) {
+    if (!user.hasDeletionTimestamp()) {
         errorDescription += QObject::tr("deletion timestamp is not set");
         return false;
     }
 
-    if (!enUser.__isset.id) {
+    if (!user.hasId()) {
         errorDescription += QObject::tr("user id is not set");
         return false;
     }
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("UPDATE Users SET deletionTimestamp = ? WHERE id = ?");
-    query.addBindValue(static_cast<qint64>(enUser.deleted));
-    query.addBindValue(QString::number(enUser.id));
+    query.addBindValue(user.deletionTimestamp());
+    query.addBindValue(user.id());
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't update deletion timestamp in \"Users\" table in SQL database");
@@ -300,21 +299,19 @@ bool LocalStorageManager::ExpungeUser(const IUser & user, QString & errorDescrip
 {
     errorDescription = QObject::tr("Can't expunge user from local storage database: ");
 
-    if (!user.IsLocal()) {
+    if (!user.isLocal()) {
         errorDescription += QObject::tr("user is not local, expunge is disallowed");
         return false;
     }
 
-    const auto & enUser = user.GetEnUser();
-
-    if (!enUser.__isset.id) {
+    if (!user.hasId()) {
         errorDescription += QObject::tr("user id is not set");
         return false;
     }
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("DELETE FROM Users WHERE id = ?");
-    query.addBindValue(QString::number(enUser.id));
+    query.addBindValue(QString::number(user.id()));
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Users\" table in SQL database");
@@ -1991,10 +1988,10 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
         APPEND_SEPARATOR;
         queryString.append("contactId");
         const UserAdapter user = notebook.contact();
-        queryString.append(QString::number(user.GetEnUser().id));
+        queryString.append(QString::number(user.id()));
 
         QString error;
-        bool res = user.CheckParameters(error);
+        bool res = user.checkParameters(error);
         if (!res) {
             errorDescription += QObject::tr("notebook's contact is invalid: ");
             errorDescription += error;
@@ -2222,84 +2219,82 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
                   "  creationTimestamp, modificationTimestamp, isDirty, isLocal, "
                   "  deletionTimestamp, isActive) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-    const evernote::edam::User & enUser = user.GetEnUser();
-
-#define CHECK_AND_SET_USER_VALUE(column, error, prep) \
-    if (!enUser.__isset.column) { \
+#define CHECK_AND_SET_USER_VALUE(checker, property, error) \
+    if (!user.checker()) { \
         errorDescription += QObject::tr(error); \
         return false; \
     } \
     else { \
-        query.addBindValue(prep(enUser.column)); \
+        query.addBindValue(user.property()); \
     }
 
-    CHECK_AND_SET_USER_VALUE(id, "User ID is not set", QString::number);
-    CHECK_AND_SET_USER_VALUE(username, "Username is not set", QString::fromStdString);
-    CHECK_AND_SET_USER_VALUE(name, "User's name is not set", QString::fromStdString);
-    CHECK_AND_SET_USER_VALUE(timezone, "User's timezone is not set", QString::fromStdString);
-    CHECK_AND_SET_USER_VALUE(created, "User's creation timestamp is not set", QString::number);
-    CHECK_AND_SET_USER_VALUE(updated, "User's modification timestamp is not set", QString::number);
+    CHECK_AND_SET_USER_VALUE(hasId, id, "User ID is not set");
+    CHECK_AND_SET_USER_VALUE(hasUsername, username, "Username is not set");
+    CHECK_AND_SET_USER_VALUE(hasName, name, "User's name is not set");
+    CHECK_AND_SET_USER_VALUE(hasTimezone, timezone, "User's timezone is not set");
+    CHECK_AND_SET_USER_VALUE(hasCreationTimestamp, creationTimestamp, "User's creation timestamp is not set");
+    CHECK_AND_SET_USER_VALUE(hasModificationTimestamp, modificationTimestamp, "User's modification timestamp is not set");
 
-    query.addBindValue(QString::number((user.IsDirty() ? 1 : 0)));
-    query.addBindValue(QString::number((user.IsLocal() ? 1 : 0)));
+    query.addBindValue(QString::number((user.isDirty() ? 1 : 0)));
+    query.addBindValue(QString::number((user.isLocal() ? 1 : 0)));
 
     // Process deletionTimestamp properties specifically
-    if (enUser.__isset.deleted) {
-        query.addBindValue(QString::number(enUser.deleted));
+    if (user.hasDeletionTimestamp()) {
+        query.addBindValue(user.deletionTimestamp());
     }
     else {
         query.addBindValue(QString::number(0));
     }
 
-    CHECK_AND_SET_USER_VALUE(active, "User's active field is not set (should be true)", static_cast<int>);
+    CHECK_AND_SET_USER_VALUE(hasActive, active, "User's active field is not set (should be true)");
 
 #undef CHECK_AND_SET_USER_VALUE
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace user into \"Users\" table in SQL database");
 
-    if (enUser.__isset.attributes)
+    if (user.hasUserAttributes())
     {
         query.clear();
         query.prepare("INSERT OR REPLACE INTO UserAttributes (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(enUser.id));
-        QByteArray serializedUserAttributes = GetSerializedUserAttributes(enUser.attributes);
+        query.addBindValue(user.id());
+        QByteArray serializedUserAttributes = GetSerializedUserAttributes(user.userAttributes());
         query.addBindValue(serializedUserAttributes);
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't add user attributes into \"UserAttributes\" table in SQL database");
     }
 
-    if (enUser.__isset.accounting)
+    if (user.hasAccounting())
     {
         query.clear();
         query.prepare("INSERT OR REPLACE INTO Accounting (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(enUser.id));
-        QByteArray serializedAccounting = GetSerializedAccounting(enUser.accounting);
+        query.addBindValue(user.id());
+        QByteArray serializedAccounting = GetSerializedAccounting(user.accounting());
         query.addBindValue(serializedAccounting);
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't add user's accounting info into \"Accounting\" table in SQL database");
     }
 
-    if (enUser.__isset.premiumInfo)
+    if (user.hasPremiumInfo())
     {
         query.clear();
         query.prepare("INSERT OR REPLACE INTO PremiumInfo (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(enUser.id));
-        QByteArray serializedPremiumInfo = GetSerializedPremiumInfo(enUser.premiumInfo);
+        query.addBindValue(user.id());
+        QByteArray serializedPremiumInfo = GetSerializedPremiumInfo(user.premiumInfo());
         query.addBindValue(serializedPremiumInfo);
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't add user's premium info into \"PremiumInfo\" table in SQL database");
     }
 
-    if (enUser.__isset.businessUserInfo)
+    if (user.hasBusinessUserInfo())
     {
         query.clear();
         query.prepare("INSERT OR REPLACE INTO BusinessUserInfo (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(enUser.id));
-        QByteArray serializedBusinessUserInfo = GetSerializedBusinessUserInfo(enUser.businessUserInfo);
+        query.addBindValue(user.id());
+        QByteArray serializedBusinessUserInfo = GetSerializedBusinessUserInfo(user.businessUserInfo());
         query.addBindValue(serializedBusinessUserInfo);
 
         res = query.exec();
@@ -2773,15 +2768,13 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
 
     if (record.contains("contactId")) {
         UserAdapter user = notebook.contact();
-        auto & enUser = user.GetEnUser();
-        enUser.id = qvariant_cast<int32_t>(record.value("contactId"));
-        enUser.__isset.id = true;
+        user.setId(qvariant_cast<qint32>(record.value("contactId")));
         notebook.setContact(user);
 
         if (notebook.hasContact())
         {
             QString error;
-            bool res = FindUser(enUser.id, user, error);
+            bool res = FindUser(user.id(), user, error);
             if (!res) {
                 errorDescription += error;
                 return false;

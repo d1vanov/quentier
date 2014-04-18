@@ -17,10 +17,10 @@ public:
     UserAdapter(const UserAdapter & other);
     virtual ~UserAdapter() final override;
 
+private:
     virtual const evernote::edam::User & GetEnUser() const final override;
     virtual evernote::edam::User & GetEnUser() final override;
 
-private:
     UserAdapter() = delete;
     UserAdapter & operator=(const UserAdapter & other) = delete;
 

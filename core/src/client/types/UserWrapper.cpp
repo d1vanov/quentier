@@ -15,19 +15,8 @@ UserWrapper & UserWrapper::operator=(const UserWrapper & other)
 {
     if (this != &other)
     {
-        if (other.IsDirty()) {
-            SetDirty();
-        }
-        else {
-            SetClean();
-        }
-
-        if (other.IsLocal()) {
-            SetLocal();
-        }
-        else {
-            SetNonLocal();
-        }
+        setDirty(other.isDirty());
+        setLocal(other.isLocal());
 
         m_enUser = other.m_enUser;
     }

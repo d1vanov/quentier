@@ -18,10 +18,10 @@ public:
     UserWrapper & operator=(const UserWrapper & other);
     virtual ~UserWrapper() final override;
 
+private:
     virtual const evernote::edam::User & GetEnUser() const final override;
     virtual evernote::edam::User & GetEnUser() final override;
 
-private:
     evernote::edam::User m_enUser;
 };
 

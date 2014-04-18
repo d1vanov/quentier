@@ -15,44 +15,45 @@ IUser::IUser() :
 IUser::~IUser()
 {}
 
-void IUser::Clear()
+bool IUser::operator==(const IUser & other) const
 {
-    SetDirty();
-    SetLocal();
+    return ( (m_isDirty == other.m_isDirty) && (m_isLocal == other.m_isLocal) &&
+             (GetEnUser() == other.GetEnUser()) );
+}
+
+bool IUser::operator!=(const IUser & other) const
+{
+    return !(*this == other);
+}
+
+void IUser::clear()
+{
+    setDirty(true);
+    setLocal(true);
     GetEnUser() = evernote::edam::User();
 }
 
-bool IUser::IsDirty() const
+bool IUser::isDirty() const
 {
     return m_isDirty;
 }
 
-void IUser::SetDirty()
+void IUser::setDirty(const bool dirty)
 {
-    m_isDirty = true;
+    m_isDirty = dirty;
 }
 
-void IUser::SetClean()
-{
-    m_isDirty = false;
-}
-
-bool IUser::IsLocal() const
+bool IUser::isLocal() const
 {
     return m_isLocal;
 }
 
-void IUser::SetLocal()
+void IUser::setLocal(const bool local)
 {
-    m_isLocal = true;
+    m_isLocal = local;
 }
 
-void IUser::SetNonLocal()
-{
-    m_isLocal = false;
-}
-
-bool IUser::CheckParameters(QString & errorDescription) const
+bool IUser::checkParameters(QString & errorDescription) const
 {
     const auto & enUser = GetEnUser();
     const auto & isSet = enUser.__isset;
@@ -243,6 +244,263 @@ bool IUser::CheckParameters(QString & errorDescription) const
 
     return true;
 }
+
+bool IUser::hasId() const
+{
+    return GetEnUser().__isset.id;
+}
+
+qint32 IUser::id() const
+{
+    return GetEnUser().id;
+}
+
+void IUser::setId(const qint32 id)
+{
+    auto & enUser = GetEnUser();
+    enUser.id = id;
+    enUser.__isset.id = true;
+}
+
+bool IUser::hasUsername() const
+{
+    return GetEnUser().__isset.username;
+}
+
+const QString IUser::username() const
+{
+    return std::move(QString::fromStdString(GetEnUser().username));
+}
+
+void IUser::setUsername(const QString & username)
+{
+    auto & enUser = GetEnUser();
+    enUser.username = username.toStdString();
+    enUser.__isset.username = !username.isEmpty();
+}
+
+bool IUser::hasEmail() const
+{
+    return GetEnUser().__isset.email;
+}
+
+const QString IUser::email() const
+{
+    return std::move(QString::fromStdString(GetEnUser().email));
+}
+
+void IUser::setEmail(const QString & email)
+{
+    auto & enUser = GetEnUser();
+    enUser.email = email.toStdString();
+    enUser.__isset.email = !email.isEmpty();
+}
+
+bool IUser::hasName() const
+{
+    return GetEnUser().__isset.name;
+}
+
+const QString IUser::name() const
+{
+    return std::move(QString::fromStdString(GetEnUser().name));
+}
+
+void IUser::setName(const QString & name)
+{
+    auto & enUser = GetEnUser();
+    enUser.name = name.toStdString();
+    enUser.__isset.name = !name.isEmpty();
+}
+
+bool IUser::hasTimezone() const
+{
+    return GetEnUser().__isset.timezone;
+}
+
+const QString IUser::timezone() const
+{
+    return std::move(QString::fromStdString(GetEnUser().timezone));
+}
+
+void IUser::setTimezone(const QString & timezone)
+{
+    auto & enUser = GetEnUser();
+    enUser.timezone = timezone.toStdString();
+    enUser.__isset.timezone = !timezone.isEmpty();
+}
+
+bool IUser::hasPrivilegeLevel() const
+{
+    return GetEnUser().__isset.privilege;
+}
+
+const qint8 IUser::privilegeLevel() const
+{
+    return GetEnUser().privilege;
+}
+
+void IUser::setPrivilegeLevel(const qint8 level)
+{
+    auto & enUser = GetEnUser();
+    if (level <= static_cast<qint8>(evernote::edam::PrivilegeLevel::ADMIN)) {
+        enUser.privilege = static_cast<evernote::edam::PrivilegeLevel::type>(level);
+        enUser.__isset.privilege = true;
+    }
+    else {
+        enUser.__isset.privilege = false;
+    }
+}
+
+bool IUser::hasCreationTimestamp() const
+{
+    return GetEnUser().__isset.created;
+}
+
+qint64 IUser::creationTimestamp() const
+{
+    return GetEnUser().created;
+}
+
+void IUser::setCreationTimestamp(const qint64 timestamp)
+{
+    auto & enUser = GetEnUser();
+    enUser.created = timestamp;
+    enUser.__isset.created = (timestamp >= 0);
+}
+
+bool IUser::hasModificationTimestamp() const
+{
+    return GetEnUser().__isset.updated;
+}
+
+qint64 IUser::modificationTimestamp() const
+{
+    return GetEnUser().updated;
+}
+
+void IUser::setModificationTimestamp(const qint64 timestamp)
+{
+    auto & enUser = GetEnUser();
+    enUser.updated = timestamp;
+    enUser.__isset.updated = (timestamp >= 0);
+}
+
+bool IUser::hasDeletionTimestamp() const
+{
+    return GetEnUser().__isset.deleted;
+}
+
+qint64 IUser::deletionTimestamp() const
+{
+    return GetEnUser().deleted;
+}
+
+void IUser::setDeletionTimestamp(const qint64 timestamp)
+{
+    auto & enUser = GetEnUser();
+    enUser.deleted = timestamp;
+    enUser.__isset.deleted = (timestamp >= 0);
+}
+
+bool IUser::hasActive() const
+{
+    return GetEnUser().__isset.active;
+}
+
+bool IUser::active() const
+{
+    return GetEnUser().active;
+}
+
+void IUser::setActive(const bool active)
+{
+    auto & enUser = GetEnUser();
+    enUser.active = active;
+    enUser.__isset.active = true;
+}
+
+bool IUser::hasUserAttributes() const
+{
+    return GetEnUser().__isset.attributes;
+}
+
+const evernote::edam::UserAttributes & IUser::userAttributes() const
+{
+    return GetEnUser().attributes;
+}
+
+evernote::edam::UserAttributes & IUser::userAttributes()
+{
+    return GetEnUser().attributes;
+}
+
+void IUser::setHasAttributes(const bool hasAttributes)
+{
+    GetEnUser().__isset.attributes = hasAttributes;
+}
+
+bool IUser::hasAccounting() const
+{
+    return GetEnUser().__isset.accounting;
+}
+
+const evernote::edam::Accounting & IUser::accounting() const
+{
+    return GetEnUser().accounting;
+}
+
+evernote::edam::Accounting & IUser::accounting()
+{
+    return GetEnUser().accounting;
+}
+
+void IUser::setHasAccounting(const bool hasAccounting)
+{
+    GetEnUser().__isset.accounting = hasAccounting;
+}
+
+bool IUser::hasPremiumInfo() const
+{
+    return GetEnUser().__isset.premiumInfo;
+}
+
+const evernote::edam::PremiumInfo & IUser::premiumInfo() const
+{
+    return GetEnUser().premiumInfo;
+}
+
+evernote::edam::PremiumInfo & IUser::premiumInfo()
+{
+    return GetEnUser().premiumInfo;
+}
+
+void IUser::setHasPremiumInfo(const bool hasPremiumInfo)
+{
+    GetEnUser().__isset.premiumInfo = hasPremiumInfo;
+}
+
+bool IUser::hasBusinessUserInfo() const
+{
+    return GetEnUser().__isset.businessUserInfo;
+}
+
+const evernote::edam::BusinessUserInfo & IUser::businessUserInfo() const
+{
+    return GetEnUser().businessUserInfo;
+}
+
+evernote::edam::BusinessUserInfo & IUser::businessUserInfo()
+{
+    return GetEnUser().businessUserInfo;
+}
+
+void IUser::setHasBusinessUserInfo(const bool hasBusinessUserInfo)
+{
+    GetEnUser().__isset.businessUserInfo = hasBusinessUserInfo;
+}
+
+
 
 IUser::IUser(const IUser & other) :
     m_isDirty(other.m_isDirty),
