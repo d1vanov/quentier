@@ -130,9 +130,9 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
     user.clear();
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT id, username, name, timezone, privilege, creationTimestamp, "
-                  "modificationTimestamp, isDirty, isLocal, isDeleted, deletionTimestamp, "
-                  "isActive FROM Users WHERE rowid = ?");
+    query.prepare("SELECT id, username, email, name, timezone, privilege, creationTimestamp, "
+                  "modificationTimestamp, isDirty, isLocal, deletionTimestamp, isActive "
+                  "FROM Users WHERE id=?");
     query.addBindValue(userId);
 
     bool res = query.exec();
@@ -146,8 +146,8 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
     QSqlRecord rec = query.record();
 
 #define CHECK_AND_SET_USER_PROPERTY(property) \
-    if (rec.contains("is " #property)) { \
-        int property = (qvariant_cast<int>(rec.value(#property)) != 0); \
+    if (rec.contains("is"#property)) { \
+        int property = (qvariant_cast<int>(rec.value("is"#property)) != 0); \
         user.set##property(static_cast<bool>(property)); \
     } \
     else { \
@@ -176,6 +176,7 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
 
     bool isRequired = true;
     CHECK_AND_SET_EN_USER_PROPERTY(username, setUsername, QString, QString, isRequired);
+    CHECK_AND_SET_EN_USER_PROPERTY(email, setEmail, QString, QString, isRequired);
     CHECK_AND_SET_EN_USER_PROPERTY(name, setName, QString, QString, isRequired);
     CHECK_AND_SET_EN_USER_PROPERTY(timezone, setTimezone, QString, QString,
                                    /* isRequired = */ false);
@@ -190,38 +191,21 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
 
 #undef CHECK_AND_SET_EN_USER_PROPERTY
 
-#define CHECK_SQL_DATABASE_STATE_AND_SET_ERROR \
-    if (!res) \
-    { \
-        QString sqlError = m_sqlDatabase.lastError().text(); \
-        if (!sqlError.isEmpty()) { \
-            errorDescription += QObject::tr("Internal error: "); \
-            errorDescription += error; \
-            return false; \
-        } \
-    }
-
     QString error;
     res = FindUserAttributes(id, user.userAttributes(), error);
     user.setHasAttributes(res);
-    CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
 
     error.clear();
     res = FindAccounting(id, user.accounting(), error);
     user.setHasAccounting(res);
-    CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
 
     error.clear();
     res = FindPremiumInfo(id, user.premiumInfo(), error);
     user.setHasPremiumInfo(res);
-    CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
 
     error.clear();
     res = FindBusinessUserInfo(id, user.businessUserInfo(), error);
     user.setHasBusinessUserInfo(res);
-    CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
-
-#undef CHECK_SQL_DATABASE_STATE_AND_SET_ERROR
 
     return true;
 }
@@ -1668,6 +1652,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS Users("
                      "  id                      INTEGER PRIMARY KEY     NOT NULL UNIQUE, "
                      "  username                TEXT                    NOT NULL, "
+                     "  email                   TEXT                    NOT NULL, "
                      "  name                    TEXT                    NOT NULL, "
                      "  timezone                TEXT                    DEFAULT NULL, "
                      "  privilege               INTEGER                 NOT NULL, "
@@ -2214,10 +2199,12 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
 {
     errorDescription += QObject::tr("Can't insert or replace User into local storage database: ");
 
+    // FIXME: reimplement for keeping some props such as deletionTimestamp optional and not mandatory
+
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT OR REPLACE INTO Users (id, username, name, timezone, privilege, "
+    query.prepare("INSERT OR REPLACE INTO Users (id, username, email, name, timezone, privilege, "
                   "  creationTimestamp, modificationTimestamp, isDirty, isLocal, "
-                  "  deletionTimestamp, isActive) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                  "  deletionTimestamp, isActive) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 #define CHECK_AND_SET_USER_VALUE(checker, property, error) \
     if (!user.checker()) { \
@@ -2230,8 +2217,10 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
 
     CHECK_AND_SET_USER_VALUE(hasId, id, "User ID is not set");
     CHECK_AND_SET_USER_VALUE(hasUsername, username, "Username is not set");
+    CHECK_AND_SET_USER_VALUE(hasEmail, email, "User's email is not set");
     CHECK_AND_SET_USER_VALUE(hasName, name, "User's name is not set");
     CHECK_AND_SET_USER_VALUE(hasTimezone, timezone, "User's timezone is not set");
+    CHECK_AND_SET_USER_VALUE(hasPrivilegeLevel, privilegeLevel, "User's privilege level is not set");
     CHECK_AND_SET_USER_VALUE(hasCreationTimestamp, creationTimestamp, "User's creation timestamp is not set");
     CHECK_AND_SET_USER_VALUE(hasModificationTimestamp, modificationTimestamp, "User's modification timestamp is not set");
 

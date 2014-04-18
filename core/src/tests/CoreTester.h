@@ -27,6 +27,7 @@ private slots:
     void localStorageManagerIndividualResourceTest();
     void localStorageManagedIndividualNoteTest();
     void localStorageManagerIndividualNotebookTest();
+    void localStorageManagedIndividualUserTest();
 
     void localStorageManagerListAllSavedSearchesTest();
     void localStorageManagerListAllTagsTest();
@@ -42,9 +43,6 @@ private slots:
     // TODO: add test for LocalStorageManager::FindPremiumInfo
     // TODO: add test for LocalStorageManager::FindAccounting
     // TODO: add test for LocalStorageManager::FindUserAttributes
-    // TODO: add test for LocalStorageManager::FindUser
-    // TODO: add test for LocalStorageManager::UpdateUser
-    // TODO: add test for LocalStorageManager::AddUser
     // TODO: add test for LocalStorageManager::SwitchUser
 
 private:

@@ -7,6 +7,7 @@
 #include <client/types/ResourceWrapper.h>
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
+#include <client/types/UserWrapper.h>
 #include <client/Utility.h>
 #include <client/Serialization.h>
 
@@ -615,6 +616,79 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
                   << "\nNotebook found in LocalStorageManager: " << foundNotebook);
         return false;
     }
+
+    return true;
+}
+
+bool TestUserAddFindUpdatedeleteExpungeInLocalStorage(const IUser & user, LocalStorageManager & localStorageManager,
+                                                      QString & errorDescription)
+{
+    if (!user.checkParameters(errorDescription)) {
+        QNWARNING("Found invalid IUser: " << user);
+        return false;
+    }
+
+    // ========== Check Add + Find ==========
+    bool res = localStorageManager.AddUser(user, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    const qint32 initialUserId = user.id();
+    UserWrapper foundUser;
+    res = localStorageManager.FindUser(initialUserId, foundUser, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (user != foundUser) {
+        errorDescription = QObject::tr("Added and found users in local storage don't match");
+        QNWARNING(errorDescription << ": IUser added to LocalStorageManager: " << user
+                  << "\nIUser found in LocalStorageManager: " << foundUser);
+        return false;
+    }
+
+    // ========== Check Update + Find ==========
+    UserWrapper modifiedUser;
+    modifiedUser.setId(user.id());
+    modifiedUser.setUsername(user.username() + "_modified");
+    modifiedUser.setEmail(user.email() + "_modified");
+    modifiedUser.setName(user.name() + "_modified");
+    modifiedUser.setTimezone(user.timezone() + "_modified");
+    modifiedUser.setPrivilegeLevel(user.privilegeLevel());
+    modifiedUser.setCreationTimestamp(user.creationTimestamp());
+    modifiedUser.setModificationTimestamp(user.modificationTimestamp() + 1);
+    // FIXME: doesn't seem to work with active = true
+    modifiedUser.setActive(false);
+    // FIXME: cut it from update test
+    modifiedUser.setDeletionTimestamp(user.deletionTimestamp());
+
+    // TODO: modify UserAttributes, Accounting, PremiumInfo, BusinessUserInfo
+
+    res = localStorageManager.UpdateUser(modifiedUser, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    foundUser.clear();
+    res = localStorageManager.FindUser(modifiedUser.id(), foundUser, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (modifiedUser != foundUser) {
+        errorDescription = QObject::tr("Updated and found users in local storage don't match");
+        QNWARNING(errorDescription << ": IUser updated in LocalStorageManager: " << modifiedUser
+                  << "\nIUser found in LocalStorageManager: " << foundUser);
+        return false;
+    }
+
+    // TODO: check Delete + Find
+    // TODO: check Expunge + Find (failure expected)
+    // TODO: check FindUserAttributes for expunged user (failure expected)
+    // TODO: check FindAccounting for expunged user (failure expected)
+    // TODO: check FindPremiumInfo for expunged user (failure expected)
+    // TODO: check FindBusinessUserInfo for expunged user (failure expected)
 
     return true;
 }

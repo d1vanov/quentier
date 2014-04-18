@@ -530,6 +530,13 @@ QTextStream & IUser::Print(QTextStream & strm) const
         strm << "username is not set" << "; \n";
     }
 
+    if (isSet.email) {
+        strm << "email = " << QString::fromStdString(enUser.email) << "; \n";
+    }
+    else {
+        strm << "email is not set" << "; \n";
+    }
+
     if (isSet.name) {
         strm << "name = " << QString::fromStdString(enUser.name) << "; \n";
     }

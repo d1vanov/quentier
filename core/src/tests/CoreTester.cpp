@@ -9,6 +9,7 @@
 #include <client/types/ResourceWrapper.h>
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
+#include <client/types/UserWrapper.h>
 #include <client/Serialization.h>
 #include <QtTest/QTest>
 
@@ -58,7 +59,7 @@ void CoreTester::localStorageManagerIndividualSavedSearchTest()
 
         QString error;
         bool res = TestSavedSearchAddFindUpdateExpungeInLocalStorage(search, localStorageManager, error);
-        QVERIFY2(res == true, error.toStdString().c_str());
+        QVERIFY2(res == true, qPrintable(error));
     }
     catch(IQuteNoteException & exception) {
         QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
@@ -290,7 +291,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         QVERIFY2(res == true, qPrintable(error));
     }
     catch(IQuteNoteException & exception) {
-        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
+        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
     }
 }
 
@@ -390,6 +391,38 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
     }
     catch(IQuteNoteException & exception) {
         QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
+    }
+}
+
+void CoreTester::localStorageManagedIndividualUserTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        UserWrapper user;
+        user.setId(1);
+        user.setUsername("fake_user_username");
+        user.setEmail("fake_user _mail");
+        user.setName("fake_user_name");
+        user.setTimezone("fake_user_timezone");
+        user.setPrivilegeLevel(1);
+        user.setCreationTimestamp(2);
+        user.setModificationTimestamp(3);
+        // FIXME: doesn't seem to work with active = true
+        user.setActive(false);
+        // FIXME: should work even without deletion timestamp
+        user.setDeletionTimestamp(4);
+
+        // TODO: add UserAttributes, Accounting, PremiumInfo, BusinessUserInfo
+
+        QString error;
+        bool res = TestUserAddFindUpdatedeleteExpungeInLocalStorage(user, localStorageManager, error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    catch(IQuteNoteException & exception) {
+        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
     }
 }
 
