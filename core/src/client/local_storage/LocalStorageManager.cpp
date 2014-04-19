@@ -2224,6 +2224,8 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
     CHECK_AND_SET_USER_VALUE(hasCreationTimestamp, creationTimestamp, "User's creation timestamp is not set");
     CHECK_AND_SET_USER_VALUE(hasModificationTimestamp, modificationTimestamp, "User's modification timestamp is not set");
 
+#undef CHECK_AND_SET_USER_VALUE
+
     query.addBindValue(QString::number((user.isDirty() ? 1 : 0)));
     query.addBindValue(QString::number((user.isLocal() ? 1 : 0)));
 
@@ -2235,9 +2237,12 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
         query.addBindValue(QString::number(0));
     }
 
-    CHECK_AND_SET_USER_VALUE(hasActive, active, "User's active field is not set (should be true)");
-
-#undef CHECK_AND_SET_USER_VALUE
+    if (user.hasActive()) {
+        query.addBindValue(user.active() ? 1 : 0);
+    }
+    else {
+        errorDescription += QObject::tr("User's active field is not set (should be true)");
+    }
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace user into \"Users\" table in SQL database");

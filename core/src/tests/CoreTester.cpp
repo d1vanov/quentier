@@ -410,8 +410,7 @@ void CoreTester::localStorageManagedIndividualUserTest()
         user.setPrivilegeLevel(1);
         user.setCreationTimestamp(2);
         user.setModificationTimestamp(3);
-        // FIXME: doesn't seem to work with active = true
-        user.setActive(false);
+        user.setActive(true);
         // FIXME: should work even without deletion timestamp
         user.setDeletionTimestamp(4);
 

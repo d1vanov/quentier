@@ -658,8 +658,7 @@ bool TestUserAddFindUpdatedeleteExpungeInLocalStorage(const IUser & user, LocalS
     modifiedUser.setPrivilegeLevel(user.privilegeLevel());
     modifiedUser.setCreationTimestamp(user.creationTimestamp());
     modifiedUser.setModificationTimestamp(user.modificationTimestamp() + 1);
-    // FIXME: doesn't seem to work with active = true
-    modifiedUser.setActive(false);
+    modifiedUser.setActive(true);
     // FIXME: cut it from update test
     modifiedUser.setDeletionTimestamp(user.deletionTimestamp());
 
