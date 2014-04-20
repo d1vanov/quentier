@@ -2199,52 +2199,44 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
 {
     errorDescription += QObject::tr("Can't insert or replace User into local storage database: ");
 
-    // FIXME: reimplement for keeping some props such as deletionTimestamp optional and not mandatory
+    QString columns = "id, username, email, name, timezone, privilege, creationTimestamp, "
+                      "modificationTimestamp, isDirty, isLocal, isActive";
+    QString values;
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT OR REPLACE INTO Users (id, username, email, name, timezone, privilege, "
-                  "  creationTimestamp, modificationTimestamp, isDirty, isLocal, "
-                  "  deletionTimestamp, isActive) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-#define CHECK_AND_SET_USER_VALUE(checker, property, error) \
+#define CHECK_AND_SET_USER_VALUE(checker, property, error, ...) \
     if (!user.checker()) { \
         errorDescription += QObject::tr(error); \
         return false; \
     } \
     else { \
-        query.addBindValue(user.property()); \
+        if (!values.isEmpty()) { values.append(", "); } \
+        values.append("\"" + __VA_ARGS__(user.property()) + "\""); \
     }
 
-    CHECK_AND_SET_USER_VALUE(hasId, id, "User ID is not set");
+    CHECK_AND_SET_USER_VALUE(hasId, id, "User ID is not set", QString::number);
     CHECK_AND_SET_USER_VALUE(hasUsername, username, "Username is not set");
     CHECK_AND_SET_USER_VALUE(hasEmail, email, "User's email is not set");
     CHECK_AND_SET_USER_VALUE(hasName, name, "User's name is not set");
     CHECK_AND_SET_USER_VALUE(hasTimezone, timezone, "User's timezone is not set");
-    CHECK_AND_SET_USER_VALUE(hasPrivilegeLevel, privilegeLevel, "User's privilege level is not set");
-    CHECK_AND_SET_USER_VALUE(hasCreationTimestamp, creationTimestamp, "User's creation timestamp is not set");
-    CHECK_AND_SET_USER_VALUE(hasModificationTimestamp, modificationTimestamp, "User's modification timestamp is not set");
+    CHECK_AND_SET_USER_VALUE(hasPrivilegeLevel, privilegeLevel, "User's privilege level is not set", QString::number);
+    CHECK_AND_SET_USER_VALUE(hasCreationTimestamp, creationTimestamp, "User's creation timestamp is not set", QString::number);
+    CHECK_AND_SET_USER_VALUE(hasModificationTimestamp, modificationTimestamp, "User's modification timestamp is not set", QString::number);
+    CHECK_AND_SET_USER_VALUE(hasActive, active, "User's active field is not set", QString::number);
 
 #undef CHECK_AND_SET_USER_VALUE
 
-    query.addBindValue(QString::number((user.isDirty() ? 1 : 0)));
-    query.addBindValue(QString::number((user.isLocal() ? 1 : 0)));
+    values.append(", \"" + QString::number((user.isDirty() ? 1 : 0)) + "\"");
+    values.append(", \"" + QString::number((user.isLocal() ? 1 : 0)) + "\"");
 
     // Process deletionTimestamp properties specifically
     if (user.hasDeletionTimestamp()) {
-        query.addBindValue(user.deletionTimestamp());
-    }
-    else {
-        query.addBindValue(QString::number(0));
+        columns.append(", deletionTimestamp");
+        values.append(", \"" + QString::number(user.deletionTimestamp()) + "\"");
     }
 
-    if (user.hasActive()) {
-        query.addBindValue(user.active() ? 1 : 0);
-    }
-    else {
-        errorDescription += QObject::tr("User's active field is not set (should be true)");
-    }
-
-    bool res = query.exec();
+    QString queryString = QString("INSERT OR REPLACE INTO Users (%1) VALUES(%2)").arg(columns).arg(values);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace user into \"Users\" table in SQL database");
 
     if (user.hasUserAttributes())
