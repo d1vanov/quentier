@@ -661,6 +661,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     modifiedUser.setActive(true);
 
     auto & modifiedUserAttributes = modifiedUser.userAttributes();
+    modifiedUserAttributes = user.userAttributes();
     modifiedUserAttributes.defaultLocationName.append("_modified");
     modifiedUserAttributes.comments.append("_modified");
     modifiedUserAttributes.preferredCountry.append("_modified");
@@ -668,7 +669,14 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
 
     modifiedUser.setHasAttributes(true);
 
-    // TODO: modify Accounting, PremiumInfo, BusinessUserInfo
+    auto & modifiedBusinessUserInfo = modifiedUser.businessUserInfo();
+    modifiedBusinessUserInfo = user.businessUserInfo();
+    modifiedBusinessUserInfo.businessName.append("_modified");
+    modifiedBusinessUserInfo.email.append("_modified");
+
+    modifiedUser.setHasBusinessUserInfo(true);
+
+    // TODO: modify Accounting, PremiumInfo
 
     res = localStorageManager.UpdateUser(modifiedUser, errorDescription);
     if (!res) {
@@ -701,9 +709,21 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
 
+    evernote::edam::BusinessUserInfo foundBusinessUserInfo;
+    res = localStorageManager.FindBusinessUserInfo(modifiedUser.id(), foundBusinessUserInfo, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (foundBusinessUserInfo != modifiedBusinessUserInfo) {
+        errorDescription = QObject::tr("Updated and found business user info in local storage don't match");
+        QNWARNING(errorDescription << ": BusinessUserInfo updated in LocalStorageManager: " << modifiedBusinessUserInfo
+                  << "\nBusinessUserInfo found in LocalStorageManager: " << foundBusinessUserInfo);
+        return false;
+    }
+
     // TODO: check FindAccounting and its result's equality of found with updated
     // TODO: check FindPremiumInfo and its result's equality of found with updated
-    // TODO: check FindBusinessUserInfo and its result's equality of found with updated
 
     // ========== Check Delete + Find ==========
     modifiedUser.setDeletionTimestamp(5);

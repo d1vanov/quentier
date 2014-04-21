@@ -2254,7 +2254,7 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
     {
         query.clear();
         query.prepare("INSERT OR REPLACE INTO Accounting (id, data) VALUES(?, ?)");
-        query.addBindValue(user.id());
+        query.addBindValue(QString::number(user.id()));
         QByteArray serializedAccounting = GetSerializedAccounting(user.accounting());
         query.addBindValue(serializedAccounting);
 
@@ -2266,7 +2266,7 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
     {
         query.clear();
         query.prepare("INSERT OR REPLACE INTO PremiumInfo (id, data) VALUES(?, ?)");
-        query.addBindValue(user.id());
+        query.addBindValue(QString::number(user.id()));
         QByteArray serializedPremiumInfo = GetSerializedPremiumInfo(user.premiumInfo());
         query.addBindValue(serializedPremiumInfo);
 
@@ -2278,7 +2278,7 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
     {
         query.clear();
         query.prepare("INSERT OR REPLACE INTO BusinessUserInfo (id, data) VALUES(?, ?)");
-        query.addBindValue(user.id());
+        query.addBindValue(QString::number(user.id()));
         QByteArray serializedBusinessUserInfo = GetSerializedBusinessUserInfo(user.businessUserInfo());
         query.addBindValue(serializedBusinessUserInfo);
 

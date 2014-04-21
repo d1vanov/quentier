@@ -483,7 +483,19 @@ void CoreTester::localStorageManagedIndividualUserTest()
 
         user.setHasAttributes(true);
 
-        // TODO: add Accounting, PremiumInfo, BusinessUserInfo
+        auto & businessUserInfo = user.businessUserInfo();
+        businessUserInfo.businessId = 1;
+        businessUserInfo.__isset.businessId = true;
+        businessUserInfo.businessName = "Fake business name";
+        businessUserInfo.__isset.businessName = true;
+        businessUserInfo.role = evernote::edam::BusinessUserRole::NORMAL;
+        businessUserInfo.__isset.role = true;
+        businessUserInfo.email = "Fake business email";
+        businessUserInfo.__isset.email = true;
+
+        user.setHasBusinessUserInfo(true);
+
+        // TODO: add Accounting, PremiumInfo
 
         QString error;
         bool res = TestUserAddFindUpdateDeleteExpungeInLocalStorage(user, localStorageManager, error);
