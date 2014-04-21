@@ -23,6 +23,7 @@ CoreTester::CoreTester(QObject * parent) :
 CoreTester::~CoreTester()
 {}
 
+/*
 #define TEST(component) \
     void CoreTester::serializationTest##component() \
     { \
@@ -393,7 +394,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
     }
 }
-
+*/
 void CoreTester::localStorageManagedIndividualUserTest()
 {
     try
@@ -411,20 +412,89 @@ void CoreTester::localStorageManagedIndividualUserTest()
         user.setCreationTimestamp(2);
         user.setModificationTimestamp(3);
         user.setActive(true);
-        // FIXME: should work even without deletion timestamp
-        user.setDeletionTimestamp(4);
 
-        // TODO: add UserAttributes, Accounting, PremiumInfo, BusinessUserInfo
+        auto & userAttributes = user.userAttributes();
+        userAttributes.defaultLocationName = "fake_default_location_name";
+        userAttributes.__isset.defaultLocationName = true;
+        userAttributes.defaultLatitude = 1.0;
+        userAttributes.__isset.defaultLatitude = true;
+        userAttributes.defaultLongitude = 2.0;
+        userAttributes.__isset.defaultLongitude = true;
+        userAttributes.preactivation = false;
+        userAttributes.__isset.preactivation = true;
+        std::vector<std::string> viewedPromotions;
+        viewedPromotions.push_back("Viewed promotion 1");
+        viewedPromotions.push_back("Viewed promotion 2");
+        viewedPromotions.push_back("Viewed promotion 3");
+        userAttributes.viewedPromotions = viewedPromotions;
+        userAttributes.__isset.viewedPromotions = true;
+        userAttributes.incomingEmailAddress = "fake_incoming_email_address";
+        userAttributes.__isset.incomingEmailAddress = true;
+        std::vector<std::string> recentEmailAddresses;
+        recentEmailAddresses.push_back("recent_email_address_1");
+        recentEmailAddresses.push_back("recent_email_address_2");
+        userAttributes.recentMailedAddresses = recentEmailAddresses;
+        userAttributes.__isset.recentMailedAddresses = true;
+        userAttributes.comments = "Fake comments";
+        userAttributes.__isset.comments = true;
+        userAttributes.dateAgreedToTermsOfService = 1;
+        userAttributes.__isset.dateAgreedToTermsOfService = true;
+        userAttributes.maxReferrals = 3;
+        userAttributes.__isset.maxReferrals = true;
+        userAttributes.refererCode = "fake_referer_code";
+        userAttributes.__isset.refererCode = true;
+        userAttributes.sentEmailDate = 5;
+        userAttributes.__isset.sentEmailDate = true;
+        userAttributes.sentEmailCount = 4;
+        userAttributes.__isset.sentEmailCount = true;
+        userAttributes.dailyEmailLimit = 2;
+        userAttributes.__isset.dailyEmailLimit = true;
+        userAttributes.emailOptOutDate = 6;
+        userAttributes.__isset.emailOptOutDate = true;
+        userAttributes.partnerEmailOptInDate = 7;
+        userAttributes.__isset.partnerEmailOptInDate = true;
+        userAttributes.preferredLanguage = "ru";
+        userAttributes.__isset.preferredLanguage = true;
+        userAttributes.preferredCountry = "Russia";
+        userAttributes.__isset.preferredCountry = true;
+        userAttributes.clipFullPage = true;
+        userAttributes.__isset.clipFullPage = true;
+        userAttributes.twitterUserName = "fake_twitter_username";
+        userAttributes.__isset.twitterUserName = true;
+        userAttributes.twitterId = "fake_twitter_id";
+        userAttributes.__isset.twitterId = true;
+        userAttributes.groupName = "fake_group_name";
+        userAttributes.__isset.groupName = true;
+        userAttributes.recognitionLanguage = "ru";
+        userAttributes.__isset.recognitionLanguage = true;
+        userAttributes.referralProof = "I_have_no_idea_what_this_means";
+        userAttributes.__isset.referralProof = true;
+        userAttributes.educationalDiscount = false;
+        userAttributes.__isset.educationalDiscount = true;
+        userAttributes.businessAddress = "fake_business_address";
+        userAttributes.__isset.businessAddress = true;
+        userAttributes.hideSponsorBilling = true;
+        userAttributes.__isset.hideSponsorBilling = true;
+        userAttributes.taxExempt = true;
+        userAttributes.__isset.taxExempt = true;
+        userAttributes.useEmailAutoFiling = true;
+        userAttributes.__isset.useEmailAutoFiling = true;
+        userAttributes.reminderEmailConfig = evernote::edam::ReminderEmailConfig::DO_NOT_SEND;
+        userAttributes.__isset.reminderEmailConfig = true;
+
+        user.setHasAttributes(true);
+
+        // TODO: add Accounting, PremiumInfo, BusinessUserInfo
 
         QString error;
-        bool res = TestUserAddFindUpdatedeleteExpungeInLocalStorage(user, localStorageManager, error);
+        bool res = TestUserAddFindUpdateDeleteExpungeInLocalStorage(user, localStorageManager, error);
         QVERIFY2(res == true, qPrintable(error));
     }
     catch(IQuteNoteException & exception) {
         QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
     }
 }
-
+/*
 void CoreTester::localStorageManagerListAllSavedSearchesTest()
 {
     try
@@ -946,6 +1016,6 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
         QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
     }
 }
-
+*/
 }
 }

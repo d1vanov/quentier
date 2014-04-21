@@ -620,7 +620,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     return true;
 }
 
-bool TestUserAddFindUpdatedeleteExpungeInLocalStorage(const IUser & user, LocalStorageManager & localStorageManager,
+bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalStorageManager & localStorageManager,
                                                       QString & errorDescription)
 {
     if (!user.checkParameters(errorDescription)) {
@@ -659,10 +659,13 @@ bool TestUserAddFindUpdatedeleteExpungeInLocalStorage(const IUser & user, LocalS
     modifiedUser.setCreationTimestamp(user.creationTimestamp());
     modifiedUser.setModificationTimestamp(user.modificationTimestamp() + 1);
     modifiedUser.setActive(true);
-    // FIXME: cut it from update test
-    modifiedUser.setDeletionTimestamp(user.deletionTimestamp());
 
     // TODO: modify UserAttributes, Accounting, PremiumInfo, BusinessUserInfo
+    auto & modifiedUserAttributes = modifiedUser.userAttributes();
+    modifiedUserAttributes.defaultLocationName.append("_modified");
+    modifiedUserAttributes.comments.append("_modified");
+    modifiedUserAttributes.preferredCountry.append("_modified");
+    modifiedUserAttributes.businessAddress.append("_modified");
 
     res = localStorageManager.UpdateUser(modifiedUser, errorDescription);
     if (!res) {
@@ -682,12 +685,110 @@ bool TestUserAddFindUpdatedeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
 
-    // TODO: check Delete + Find
-    // TODO: check Expunge + Find (failure expected)
-    // TODO: check FindUserAttributes for expunged user (failure expected)
-    // TODO: check FindAccounting for expunged user (failure expected)
-    // TODO: check FindPremiumInfo for expunged user (failure expected)
-    // TODO: check FindBusinessUserInfo for expunged user (failure expected)
+    evernote::edam::UserAttributes foundAttributes;
+    res = localStorageManager.FindUserAttributes(modifiedUser.id(), foundAttributes, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (foundAttributes != modifiedUserAttributes) {
+        errorDescription = QObject::tr("Updated and found user attributes in local storage don't match");
+        QNWARNING(errorDescription << ": UserAttributes updated in LocalStorageManager: " << modifiedUserAttributes
+                  << "\nUserAttributes found in LocalStorageManager: " << foundAttributes);
+        return false;
+    }
+
+    // TODO: check FindAccounting and its result's equality of found with updated
+    // TODO: check FindPremiumInfo and its result's equality of found with updated
+    // TODO: check FindBusinessUserInfo and its result's equality of found with updated
+
+    // ========== Check Delete + Find ==========
+    modifiedUser.setDeletionTimestamp(5);
+    modifiedUser.setLocal(false);
+
+    res = localStorageManager.DeleteUser(modifiedUser, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    foundUser.clear();
+    res = localStorageManager.FindUser(modifiedUser.id(), foundUser, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (modifiedUser != foundUser) {
+        errorDescription = QObject::tr("Deleted and found users in local storage manager don't match");
+        QNWARNING(errorDescription << ": IUser marked deleted in LocalStorageManager: " << modifiedUser
+                  << "\nIUser found in LocalStorageManager: " << foundUser);
+        return false;
+    }
+
+    // ========== Check Expunge + Find (failure expected) ==========
+    modifiedUser.setLocal(true);
+
+    res = localStorageManager.ExpungeUser(modifiedUser, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    foundUser.clear();
+    res = localStorageManager.FindUser(modifiedUser.id(), foundUser, errorDescription);
+    if (res) {
+        errorDescription = QObject::tr("Error: found IUser which should have been expunged "
+                                       "from LocalStorageManager");
+        QNWARNING(errorDescription << ": IUser expunged from LocalStorageManager: " << modifiedUser
+                  << "\nIUser found in LocalStorageManager: " << foundUser);
+        return false;
+    }
+
+    // ========== Check FindUserAttributes for expunged user (failure expected) ==========
+    auto & userAttributes = foundUser.userAttributes();
+    res = localStorageManager.FindUserAttributes(modifiedUser.id(), userAttributes, errorDescription);
+    if (res) {
+        errorDescription = QObject::tr("Error: found UserAttributes for user which "
+                                       "should have been expunged from LocalStorageManager");
+        QNWARNING(errorDescription << ": UserAttributes for user expunged from LocalStorageManager: "
+                  << modifiedUser.userAttributes() << "\nUserAttributes found in LocalStorageManager: "
+                  << userAttributes);
+        return false;
+    }
+
+    // ========== Check FindAccounting for expunged user (failure expected) ==========
+    auto & accounting = foundUser.accounting();
+    res = localStorageManager.FindAccounting(modifiedUser.id(), accounting, errorDescription);
+    if (res) {
+        errorDescription = QObject::tr("Error: found Accounting for user which "
+                                       "should have been expunged from LocalStorageManager");
+        QNWARNING(errorDescription << ": Accounting for user expunged from LocalStorageManager: "
+                  << modifiedUser.accounting() << "\nAccounting found in LocalStorageManager: "
+                  << accounting);
+        return false;
+    }
+
+    // =========== Check FindPremiumInfo for expunged user (failure expected) ==========
+    auto & premiumInfo = foundUser.premiumInfo();
+    res = localStorageManager.FindPremiumInfo(modifiedUser.id(), premiumInfo, errorDescription);
+    if (res) {
+        errorDescription = QObject::tr("Error: found PremiumInfo for user which "
+                                       "should have been expunged from LocalStorageManager");
+        QNWARNING(errorDescription << ": PremiumInfo for user expunged from LocalStorageManager: "
+                  << modifiedUser.premiumInfo() << "\nPremiumInfo found in LocalStorageManager: "
+                  << premiumInfo);
+        return false;
+    }
+
+    // ========== Check FindBusinessUserInfo for expunged user (failure expected) ==========
+    auto & businessUserInfo = foundUser.businessUserInfo();
+    res = localStorageManager.FindBusinessUserInfo(modifiedUser.id(), businessUserInfo, errorDescription);
+    if (res) {
+        errorDescription = QObject::tr("Error: found BusinessUserInfo for user which "
+                                       "should have been expunged from LocalStorageManager");
+        QNWARNING(errorDescription << ": BusinessUserInfo for user expunged from LocalStorageManager: "
+                  << modifiedUser.businessUserInfo() << "\nBusinessUserInfo found in LocalStorageManager: "
+                  << businessUserInfo);
+        return false;
+    }
 
     return true;
 }

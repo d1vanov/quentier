@@ -217,17 +217,17 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
         errorDescription = QObject::tr("Can't find " #which " in local storage database: "); \
         \
         prop = evernote::edam::which(); \
-        QString idStr = QString::number(id); \
-        bool exists = RowExists(#which, "id", QVariant(idStr)); \
+        QString idStd = QString::number(id); \
+        bool exists = RowExists(#which, "id", QVariant(idStd)); \
         if (!exists) { \
             errorDescription += QObject::tr(#which " for specified user id was not found"); \
-            QNWARNING(errorDescription << ", id: " << idStr); \
+            QNDEBUG(errorDescription << ", id: " << idStd); \
             return false; \
         } \
         \
         QSqlQuery query(m_sqlDatabase); \
         query.prepare("SELECT data FROM " #which " WHERE id = ?"); \
-        query.addBindValue(idStr); \
+        query.addBindValue(id); \
         \
         bool res = query.exec(); \
         DATABASE_CHECK_AND_SET_ERROR("can't select data from \"BusinessUserInfo\" table in SQL database"); \
@@ -269,8 +269,9 @@ bool LocalStorageManager::DeleteUser(const IUser & user, QString & errorDescript
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("UPDATE Users SET deletionTimestamp = ? WHERE id = ?");
+    query.prepare("UPDATE Users SET deletionTimestamp = ?, isLocal = ? WHERE id = ?");
     query.addBindValue(user.deletionTimestamp());
+    query.addBindValue(user.isLocal() ? 1 : 0);
     query.addBindValue(user.id());
 
     bool res = query.exec();
@@ -1660,7 +1661,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  modificationTimestamp   INTEGER                 NOT NULL, "
                      "  isDirty                 INTEGER                 NOT NULL, "
                      "  isLocal                 INTEGER                 NOT NULL, "
-                     "  deletionTimestamp       INTEGER                 DEFAULT 0, "
+                     "  deletionTimestamp       INTEGER                 DEFAULT -1, "
                      "  isActive                INTEGER                 NOT NULL"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Users table");
@@ -2167,16 +2168,10 @@ bool LocalStorageManager::RowExists(const QString & tableName, const QString & u
                                     const QVariant & uniqueKeyValue) const
 {
     QSqlQuery query(m_sqlDatabase);
-    const QString & queryString = QString("SELECT count(*) FROM %1 WHERE %2=\'%3\'")
+    const QString & queryString = QString("SELECT count(*) FROM %1 WHERE %2=\"%3\"")
                                   .arg(tableName)
                                   .arg(uniqueKeyName)
                                   .arg(uniqueKeyValue.toString());
-    /*
-    query.prepare();
-    query.bindValue(":table", tableName);
-    query.bindValue(":key", uniqueKeyName);
-    query.bindValue(":value", uniqueKeyValue);
-    */
 
     bool res = query.exec(queryString);
     if (!res) {
@@ -2241,6 +2236,8 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
 
     if (user.hasUserAttributes())
     {
+        QNDEBUG("Inserting or replacing UserAttributes for user id = " << QString::number(user.id()));
+
         query.clear();
         query.prepare("INSERT OR REPLACE INTO UserAttributes (id, data) VALUES(?, ?)");
         query.addBindValue(user.id());
