@@ -218,7 +218,7 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
         \
         prop = evernote::edam::which(); \
         QString idStd = QString::number(id); \
-        bool exists = RowExists(#which, "id", QVariant(idStd)); \
+        bool exists = RowExists(#which, "id", QVariant(id)); \
         if (!exists) { \
             errorDescription += QObject::tr(#which " for specified user id was not found"); \
             QNDEBUG(errorDescription << ", id: " << idStd); \
@@ -230,7 +230,7 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
         query.addBindValue(id); \
         \
         bool res = query.exec(); \
-        DATABASE_CHECK_AND_SET_ERROR("can't select data from \"BusinessUserInfo\" table in SQL database"); \
+        DATABASE_CHECK_AND_SET_ERROR("can't select data from " #which " table in SQL database"); \
         \
         if (!query.next()) { \
             errorDescription += QObject::tr("Internal error: SQL query result is empty"); \
@@ -2168,7 +2168,7 @@ bool LocalStorageManager::RowExists(const QString & tableName, const QString & u
                                     const QVariant & uniqueKeyValue) const
 {
     QSqlQuery query(m_sqlDatabase);
-    const QString & queryString = QString("SELECT count(*) FROM %1 WHERE %2=\"%3\"")
+    const QString & queryString = QString("SELECT count(*) FROM %1 WHERE %2=%3")
                                   .arg(tableName)
                                   .arg(uniqueKeyName)
                                   .arg(uniqueKeyValue.toString());
@@ -2181,6 +2181,8 @@ bool LocalStorageManager::RowExists(const QString & tableName, const QString & u
                   << "; assuming no such row exists");
         return false;
     }
+
+    QNDEBUG("Last executed query = " << query.lastQuery());
 
     while(query.next() && query.isValid()) {
         int count = query.value(0).toInt();
@@ -2198,25 +2200,30 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
                       "modificationTimestamp, isDirty, isLocal, isActive";
     QString values;
 
-#define CHECK_AND_SET_USER_VALUE(checker, property, error, ...) \
+#define CHECK_AND_SET_USER_VALUE(checker, property, error, use_quotation, ...) \
     if (!user.checker()) { \
         errorDescription += QObject::tr(error); \
         return false; \
     } \
     else { \
         if (!values.isEmpty()) { values.append(", "); } \
-        values.append("\"" + __VA_ARGS__(user.property()) + "\""); \
+        if (use_quotation) { \
+            values.append("\"" + __VA_ARGS__(user.property()) + "\""); \
+        } \
+        else { \
+            values.append(__VA_ARGS__(user.property())); \
+        } \
     }
 
-    CHECK_AND_SET_USER_VALUE(hasId, id, "User ID is not set", QString::number);
-    CHECK_AND_SET_USER_VALUE(hasUsername, username, "Username is not set");
-    CHECK_AND_SET_USER_VALUE(hasEmail, email, "User's email is not set");
-    CHECK_AND_SET_USER_VALUE(hasName, name, "User's name is not set");
-    CHECK_AND_SET_USER_VALUE(hasTimezone, timezone, "User's timezone is not set");
-    CHECK_AND_SET_USER_VALUE(hasPrivilegeLevel, privilegeLevel, "User's privilege level is not set", QString::number);
-    CHECK_AND_SET_USER_VALUE(hasCreationTimestamp, creationTimestamp, "User's creation timestamp is not set", QString::number);
-    CHECK_AND_SET_USER_VALUE(hasModificationTimestamp, modificationTimestamp, "User's modification timestamp is not set", QString::number);
-    CHECK_AND_SET_USER_VALUE(hasActive, active, "User's active field is not set", QString::number);
+    CHECK_AND_SET_USER_VALUE(hasId, id, "User ID is not set", false, QString::number);
+    CHECK_AND_SET_USER_VALUE(hasUsername, username, "Username is not set", true);
+    CHECK_AND_SET_USER_VALUE(hasEmail, email, "User's email is not set", true);
+    CHECK_AND_SET_USER_VALUE(hasName, name, "User's name is not set", true);
+    CHECK_AND_SET_USER_VALUE(hasTimezone, timezone, "User's timezone is not set", true);
+    CHECK_AND_SET_USER_VALUE(hasPrivilegeLevel, privilegeLevel, "User's privilege level is not set", false, QString::number);
+    CHECK_AND_SET_USER_VALUE(hasCreationTimestamp, creationTimestamp, "User's creation timestamp is not set", false, QString::number);
+    CHECK_AND_SET_USER_VALUE(hasModificationTimestamp, modificationTimestamp, "User's modification timestamp is not set", false, QString::number);
+    CHECK_AND_SET_USER_VALUE(hasActive, active, "User's active field is not set", false, QString::number);
 
 #undef CHECK_AND_SET_USER_VALUE
 
@@ -2236,8 +2243,6 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
 
     if (user.hasUserAttributes())
     {
-        QNDEBUG("Inserting or replacing UserAttributes for user id = " << QString::number(user.id()));
-
         query.clear();
         query.prepare("INSERT OR REPLACE INTO UserAttributes (id, data) VALUES(?, ?)");
         query.addBindValue(user.id());
