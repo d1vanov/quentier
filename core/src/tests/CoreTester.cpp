@@ -23,7 +23,6 @@ CoreTester::CoreTester(QObject * parent) :
 CoreTester::~CoreTester()
 {}
 
-/*
 #define TEST(component) \
     void CoreTester::serializationTest##component() \
     { \
@@ -394,7 +393,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
     }
 }
-*/
+
 void CoreTester::localStorageManagedIndividualUserTest()
 {
     try
@@ -494,7 +493,7 @@ void CoreTester::localStorageManagedIndividualUserTest()
         QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
     }
 }
-/*
+
 void CoreTester::localStorageManagerListAllSavedSearchesTest()
 {
     try
@@ -1016,6 +1015,6 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
         QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
     }
 }
-*/
+
 }
 }

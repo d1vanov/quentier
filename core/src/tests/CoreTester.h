@@ -14,7 +14,6 @@ public:
     virtual ~CoreTester();
 
 private slots:
-    /*
     void serializationTestBusinessUserInfo();
     void serializationTestPremiumInfo();
     void serializationTestAccounting();
@@ -28,10 +27,8 @@ private slots:
     void localStorageManagerIndividualResourceTest();
     void localStorageManagedIndividualNoteTest();
     void localStorageManagerIndividualNotebookTest();
-    */
     void localStorageManagedIndividualUserTest();
 
-    /*
     void localStorageManagerListAllSavedSearchesTest();
     void localStorageManagerListAllTagsTest();
     void localStorageManagerListAllLinkedNotebooksTest();
@@ -39,14 +36,10 @@ private slots:
     void localStorageManagerListAllTagsPerNoteTest();
     void localStorageManagerListAllNotesPerNotebookTest();
     void localStorageManagerListAllNotebooksTest();
-    */
 
-    // TODO: add test for LocalStorageManager::ExpungeUser
-    // TODO: add test for LocalStorageManager::DeleteUser
     // TODO: add test for LocalStorageManager::FindBusinessUserInfo
     // TODO: add test for LocalStorageManager::FindPremiumInfo
     // TODO: add test for LocalStorageManager::FindAccounting
-    // TODO: add test for LocalStorageManager::FindUserAttributes
     // TODO: add test for LocalStorageManager::SwitchUser
 
 private:

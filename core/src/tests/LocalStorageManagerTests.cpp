@@ -660,12 +660,15 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     modifiedUser.setModificationTimestamp(user.modificationTimestamp() + 1);
     modifiedUser.setActive(true);
 
-    // TODO: modify UserAttributes, Accounting, PremiumInfo, BusinessUserInfo
     auto & modifiedUserAttributes = modifiedUser.userAttributes();
     modifiedUserAttributes.defaultLocationName.append("_modified");
     modifiedUserAttributes.comments.append("_modified");
     modifiedUserAttributes.preferredCountry.append("_modified");
     modifiedUserAttributes.businessAddress.append("_modified");
+
+    modifiedUser.setHasAttributes(true);
+
+    // TODO: modify Accounting, PremiumInfo, BusinessUserInfo
 
     res = localStorageManager.UpdateUser(modifiedUser, errorDescription);
     if (!res) {

@@ -123,7 +123,7 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
     bool exists = RowExists("Users", "id", QVariant(userId));
     if (!exists) {
         errorDescription += QObject::tr("user id was not found");
-        QNWARNING(errorDescription << ", id: " << userId);
+        QNDEBUG(errorDescription << ", id: " << userId);
         return false;
     }
 
@@ -217,27 +217,26 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
         errorDescription = QObject::tr("Can't find " #which " in local storage database: "); \
         \
         prop = evernote::edam::which(); \
-        QString idStd = QString::number(id); \
-        bool exists = RowExists(#which, "id", QVariant(id)); \
+        QString idStr = QString::number(id); \
+        bool exists = RowExists(#which, "id", QVariant(idStr)); \
         if (!exists) { \
             errorDescription += QObject::tr(#which " for specified user id was not found"); \
-            QNDEBUG(errorDescription << ", id: " << idStd); \
+            QNDEBUG(errorDescription << ", id: " << idStr); \
             return false; \
         } \
         \
+        QString queryString = QString("SELECT data FROM " #which " WHERE id=\'%1\'").arg(idStr); \
         QSqlQuery query(m_sqlDatabase); \
-        query.prepare("SELECT data FROM " #which " WHERE id = ?"); \
-        query.addBindValue(id); \
-        \
-        bool res = query.exec(); \
+        bool res = query.exec(queryString); \
         DATABASE_CHECK_AND_SET_ERROR("can't select data from " #which " table in SQL database"); \
         \
         if (!query.next()) { \
             errorDescription += QObject::tr("Internal error: SQL query result is empty"); \
+            QNDEBUG(errorDescription); \
             return false; \
         } \
         \
-        QByteArray data = qvariant_cast<QByteArray>(query.value(0)); \
+        QByteArray data = query.value(0).toByteArray(); \
         prop = GetDeserialized##which(data); \
         \
         return true; \
@@ -2168,7 +2167,7 @@ bool LocalStorageManager::RowExists(const QString & tableName, const QString & u
                                     const QVariant & uniqueKeyValue) const
 {
     QSqlQuery query(m_sqlDatabase);
-    const QString & queryString = QString("SELECT count(*) FROM %1 WHERE %2=%3")
+    const QString & queryString = QString("SELECT count(*) FROM %1 WHERE %2=\'%3\'")
                                   .arg(tableName)
                                   .arg(uniqueKeyName)
                                   .arg(uniqueKeyValue.toString());
@@ -2181,8 +2180,6 @@ bool LocalStorageManager::RowExists(const QString & tableName, const QString & u
                   << "; assuming no such row exists");
         return false;
     }
-
-    QNDEBUG("Last executed query = " << query.lastQuery());
 
     while(query.next() && query.isValid()) {
         int count = query.value(0).toInt();
@@ -2208,7 +2205,7 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
     else { \
         if (!values.isEmpty()) { values.append(", "); } \
         if (use_quotation) { \
-            values.append("\"" + __VA_ARGS__(user.property()) + "\""); \
+            values.append("\'" + __VA_ARGS__(user.property()) + "\'"); \
         } \
         else { \
             values.append(__VA_ARGS__(user.property())); \
@@ -2242,10 +2239,10 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace user into \"Users\" table in SQL database");
 
     if (user.hasUserAttributes())
-    {
+    {        
         query.clear();
         query.prepare("INSERT OR REPLACE INTO UserAttributes (id, data) VALUES(?, ?)");
-        query.addBindValue(user.id());
+        query.addBindValue(QString::number(user.id()));
         QByteArray serializedUserAttributes = GetSerializedUserAttributes(user.userAttributes());
         query.addBindValue(serializedUserAttributes);
 
