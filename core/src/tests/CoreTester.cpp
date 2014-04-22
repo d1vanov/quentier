@@ -539,7 +539,22 @@ void CoreTester::localStorageManagedIndividualUserTest()
 
         user.setHasAccounting(true);
 
-        // TODO: add PremiumInfo
+        auto & premiumInfo = user.premiumInfo();
+        premiumInfo.currentTime = 1;
+        premiumInfo.premium = false;
+        premiumInfo.premiumRecurring = false;
+        premiumInfo.premiumExpirationDate = 11;
+        premiumInfo.__isset.premiumExpirationDate = true;
+        premiumInfo.premiumExtendable = true;
+        premiumInfo.premiumPending = true;
+        premiumInfo.premiumCancellationPending = false;
+        premiumInfo.canPurchaseUploadAllowance = true;
+        premiumInfo.sponsoredGroupName = "Fake sponsored group name";
+        premiumInfo.__isset.sponsoredGroupName = true;
+        premiumInfo.premiumUpgradable = true;
+        premiumInfo.__isset.premiumUpgradable = true;
+
+        user.setHasPremiumInfo(true);
 
         QString error;
         bool res = TestUserAddFindUpdateDeleteExpungeInLocalStorage(user, localStorageManager, error);

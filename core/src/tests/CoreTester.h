@@ -37,9 +37,6 @@ private slots:
     void localStorageManagerListAllNotesPerNotebookTest();
     void localStorageManagerListAllNotebooksTest();
 
-    // TODO: add test for LocalStorageManager::FindPremiumInfo
-    // TODO: add test for LocalStorageManager::SwitchUser
-
 private:
     CoreTester(const CoreTester & other) = delete;
     CoreTester & operator=(const CoreTester & other) = delete;

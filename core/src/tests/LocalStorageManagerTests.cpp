@@ -684,7 +684,12 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
 
     modifiedUser.setHasAccounting(true);
 
-    // TODO: modify PremiumInfo
+    auto & modifiedPremiumInfo = modifiedUser.premiumInfo();
+    modifiedPremiumInfo.sponsoredGroupName.append("_modified");
+    modifiedPremiumInfo.canPurchaseUploadAllowance = !modifiedPremiumInfo.canPurchaseUploadAllowance;
+    modifiedPremiumInfo.premiumExtendable = !modifiedPremiumInfo.premiumExtendable;
+
+    modifiedUser.setHasPremiumInfo(true);
 
     res = localStorageManager.UpdateUser(modifiedUser, errorDescription);
     if (!res) {
@@ -743,7 +748,18 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
 
-    // TODO: check FindPremiumInfo and its result's equality of found with updated
+    evernote::edam::PremiumInfo foundPremiumInfo;
+    res = localStorageManager.FindPremiumInfo(modifiedUser.id(), foundPremiumInfo, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (foundPremiumInfo != modifiedPremiumInfo) {
+        errorDescription = QObject::tr("Updated and found premium info in local storage don't match");
+        QNWARNING(errorDescription << ": PremiumInfo updated in LocalStorageManager: " << modifiedPremiumInfo
+                  << "\nPremiumInfo found in LocalStorageManager: " << foundPremiumInfo);
+        return false;
+    }
 
     // ========== Check Delete + Find ==========
     modifiedUser.setDeletionTimestamp(5);
