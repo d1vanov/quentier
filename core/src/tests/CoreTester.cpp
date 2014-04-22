@@ -495,7 +495,51 @@ void CoreTester::localStorageManagedIndividualUserTest()
 
         user.setHasBusinessUserInfo(true);
 
-        // TODO: add Accounting, PremiumInfo
+        auto & accounting = user.accounting();
+        accounting.uploadLimit = 1000;
+        accounting.__isset.uploadLimit = true;
+        accounting.uploadLimitEnd = 9;
+        accounting.__isset.uploadLimitEnd = true;
+        accounting.uploadLimitNextMonth = 1200;
+        accounting.__isset.uploadLimitNextMonth = true;
+        accounting.premiumServiceStatus = evernote::edam::PremiumOrderStatus::PENDING;
+        accounting.__isset.premiumServiceStatus = true;
+        accounting.premiumOrderNumber = "Fake premium order number";
+        accounting.__isset.premiumOrderNumber = true;
+        accounting.premiumCommerceService = "Fake premium commerce service";
+        accounting.__isset.premiumCommerceService = true;
+        accounting.premiumServiceStart = 8;
+        accounting.__isset.premiumServiceStart = true;
+        accounting.premiumServiceSKU = "Fake code associated with the purchase";
+        accounting.__isset.premiumServiceSKU = true;
+        accounting.lastSuccessfulCharge = 7;
+        accounting.__isset.lastSuccessfulCharge = true;
+        accounting.lastFailedCharge = 5;
+        accounting.__isset.lastFailedCharge = true;
+        accounting.lastFailedChargeReason = "No money, no honey";
+        accounting.__isset.lastFailedChargeReason = true;
+        accounting.nextPaymentDue = 12;
+        accounting.__isset.nextPaymentDue = true;
+        accounting.premiumLockUntil = 11;
+        accounting.__isset.premiumLockUntil = true;
+        accounting.updated = 10;
+        accounting.__isset.updated = true;
+        accounting.premiumSubscriptionNumber = "Fake premium subscription number";
+        accounting.__isset.premiumSubscriptionNumber = true;
+        accounting.lastRequestedCharge = 9;
+        accounting.__isset.lastRequestedCharge = true;
+        accounting.currency = "USD";
+        accounting.__isset.currency = true;
+        accounting.unitPrice = 100;
+        accounting.__isset.unitPrice = true;
+        accounting.unitDiscount = 2;
+        accounting.__isset.unitDiscount = true;
+        accounting.nextChargeDate = 12;
+        accounting.__isset.nextChargeDate = true;
+
+        user.setHasAccounting(true);
+
+        // TODO: add PremiumInfo
 
         QString error;
         bool res = TestUserAddFindUpdateDeleteExpungeInLocalStorage(user, localStorageManager, error);

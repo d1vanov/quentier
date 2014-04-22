@@ -38,7 +38,6 @@ private slots:
     void localStorageManagerListAllNotebooksTest();
 
     // TODO: add test for LocalStorageManager::FindPremiumInfo
-    // TODO: add test for LocalStorageManager::FindAccounting
     // TODO: add test for LocalStorageManager::SwitchUser
 
 private:

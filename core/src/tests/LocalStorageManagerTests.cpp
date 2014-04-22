@@ -676,7 +676,15 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
 
     modifiedUser.setHasBusinessUserInfo(true);
 
-    // TODO: modify Accounting, PremiumInfo
+    auto & modifiedAccounting = modifiedUser.accounting();
+    modifiedAccounting = user.accounting();
+    modifiedAccounting.premiumOrderNumber.append("_modified");
+    modifiedAccounting.premiumSubscriptionNumber.append("_modified");
+    modifiedAccounting.updated += 1;
+
+    modifiedUser.setHasAccounting(true);
+
+    // TODO: modify PremiumInfo
 
     res = localStorageManager.UpdateUser(modifiedUser, errorDescription);
     if (!res) {
@@ -722,7 +730,19 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
 
-    // TODO: check FindAccounting and its result's equality of found with updated
+    evernote::edam::Accounting foundAccounting;
+    res = localStorageManager.FindAccounting(modifiedUser.id(), foundAccounting, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (foundAccounting != modifiedAccounting) {
+        errorDescription = QObject::tr("Updated and found accounting in local storage don't match");
+        QNWARNING(errorDescription << ": Accounting updated in LocalStorageManager: " << modifiedAccounting
+                  << "\nAccounting found in LocalStorageManager: " << foundAccounting);
+        return false;
+    }
+
     // TODO: check FindPremiumInfo and its result's equality of found with updated
 
     // ========== Check Delete + Find ==========
