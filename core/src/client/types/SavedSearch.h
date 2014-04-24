@@ -3,6 +3,7 @@
 
 #include "NoteStoreDataElement.h"
 #include <Types_types.h>
+#include <QEverCloud.h>
 
 namespace qute_note {
 

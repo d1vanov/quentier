@@ -114,6 +114,9 @@ else()
                         ${QT_LIBRARIES})
 endif()
 
+message(STATUS "EVERNOTE_SDK_LIB = ${EVERNOTE_SDK_LIB}")
+message(STATUS "QEVERCLOUD_LIB = ${QEVERCLOUD_LIB}")
+
 target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB} ${THRIFT_LIB}
                       ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES} ${QEVERCLOUD_LIB})
 
@@ -130,7 +133,7 @@ set(TEST_SOURCES
 
 add_executable(test_${PROJECT_NAME} ${TEST_HEADERS} ${TEST_SOURCES})
 add_test(test_${PROJECT_NAME} test_${PROJECT_NAME})
-target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
+target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} ${QEVERCLOUD_LIB})
 
 if(USE_QT5)
   qt5_use_modules(test_${PROJECT_NAME} Core)

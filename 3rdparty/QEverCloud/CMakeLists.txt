@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
+if(POLICY CMP0020)
+  cmake_policy(SET CMP0020 NEW)
+endif()
 project(QEverCloud)
 
 set(CMAKE_AUTOMOC ON)
@@ -38,10 +41,13 @@ add_library(${PROJECT_NAME} STATIC
             ${${PROJECT_NAME}_SOURCES})
 
 # include dirs for cppcheck
-set(${PROJECT_NAME}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/generated)
+set(${PROJECT_NAME}_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/generated)
 
 # install headers
-file(GLOB_RECURSE DEPLOY_INCLUDE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h ${CMAKE_CURRENT_SOURCE_DIR}/include/generated/*.h")
+file(GLOB_RECURSE DEPLOY_INCLUDE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h ${CMAKE_CURRENT_SOURCE_DIR}/generated/*.h")
 foreach(ITEM ${DEPLOY_FILES_AND_DIRS})
   install(FILES ${ITEM} DESTINATION include)
 endforeach()
