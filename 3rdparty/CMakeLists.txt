@@ -25,9 +25,6 @@ add_subdirectory(QEverCloud)
 get_directory_property(QEVERCLOUD_LIB DIRECTORY QEverCloud DEFINITION PROJECT_NAME)
 get_directory_property(QEVERCLOUD_INCLUDE_DIRS DIRECTORY QEverCloud DEFINITION ${QEVERCLOUD_LIB}_INCLUDE_DIRS)
 
-message(STATUS "EVERNOTE_SDK_LIB = ${EVERNOTE_SDK_LIB}")
-message(STATUS "QEVERCLOUD_LIB = ${QEVERCLOUD_LIB}")
-
 set(THIRDPARTY_INCLUDE_DIRS
     thrift/src
     thrift/src/thrift
