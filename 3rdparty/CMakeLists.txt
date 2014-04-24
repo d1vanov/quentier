@@ -21,11 +21,16 @@ add_subdirectory(evernote)
 get_directory_property(EVERNOTE_SDK_LIB DIRECTORY evernote DEFINITION PROJECT_NAME)
 get_directory_property(EVERNOTE_SDK_INCLUDE_DIRS DIRECTORY evernote DEFINITION ${EVERNOTE_SDK_LIB}_INCLUDE_DIRS)
 
+add_subdirectory(QEverCloud)
+get_directory_property(QEVERCLOUD_LIB DIRECTORY QEverCloud DEFINITION PROJECT_NAME)
+get_directory_property(QEVERCLOUD_INCLUDE_DIRS DIRECTORY QEverCloud DEFINITION ${QEVERCLOUD_LIB}_INCLUDE_DIRS)
+
 set(THIRDPARTY_INCLUDE_DIRS
     thrift/src
     thrift/src/thrift
     kqoauth/src
     simplecrypt/src
-    evernote/sdk/src)
+    evernote/sdk/src
+    QEverCloud)
    
 prepend_path(THIRDPARTY_INCLUDE_DIRS "${THIRDPARTY_INCLUDE_DIRS}" ${CMAKE_CURRENT_SOURCE_DIR})

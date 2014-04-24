@@ -115,7 +115,7 @@ else()
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB} ${THRIFT_LIB}
-                      ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES})
+                      ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES} ${QEVERCLOUD_LIB})
 
 set(TEST_HEADERS
     src/tests/LocalStorageManagerTests.h
