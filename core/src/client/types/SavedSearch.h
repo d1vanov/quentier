@@ -2,7 +2,6 @@
 #define __QUTE_NOTE__CLIENT__TYPES__SAVED_SEARCH_H
 
 #include "NoteStoreDataElement.h"
-#include <Types_types.h>
 #include <QEverCloud.h>
 
 namespace qute_note {
@@ -10,10 +9,18 @@ namespace qute_note {
 class SavedSearch final: public NoteStoreDataElement
 {
 public:
+    typedef qevercloud::QueryFormat::type QueryFormat;
+    typedef qevercloud::SavedSearchScope  SavedSearchScope;
+
+public:
     SavedSearch();
+    SavedSearch(const qevercloud::SavedSearch & search);
+    SavedSearch(qevercloud::SavedSearch && search);
     SavedSearch(const SavedSearch & other);
     SavedSearch & operator=(const SavedSearch & other);
     virtual ~SavedSearch() final override;
+
+    // TODO: add operator qevercloud::SavedSearch()
 
     bool operator==(const SavedSearch & other) const;
     bool operator!=(const SavedSearch & other) const;
@@ -30,6 +37,8 @@ public:
 
     virtual bool checkParameters(QString & errorDescription) const final override;
 
+    // TODO: see whether I can switch to using const QString &
+
     bool hasName() const;
     const QString name() const;
     void setName(const QString & name);
@@ -39,7 +48,7 @@ public:
     void setQuery(const QString & query);
 
     bool hasQueryFormat() const;
-    qint8 queryFormat() const;
+    QueryFormat queryFormat() const;
     void setQueryFormat(const qint8 queryFormat);
 
     bool hasIncludeAccount() const;
@@ -58,7 +67,7 @@ private:
     virtual QTextStream & Print(QTextStream & strm) const;
 
 private:
-    evernote::edam::SavedSearch m_enSearch;
+    qevercloud::SavedSearch m_qecSearch;
 };
 
 } // namespace qute_note

@@ -27,6 +27,12 @@ NoteStoreDataElement::NoteStoreDataElement(const NoteStoreDataElement & other) :
     m_isDirty(other.m_isDirty)
 {}
 
+NoteStoreDataElement::NoteStoreDataElement(NoteStoreDataElement && other) :
+    Printable(),
+    TypeWithError(other),
+    m_isDirty(std::move(other.m_isDirty))
+{}
+
 NoteStoreDataElement & NoteStoreDataElement::operator=(const NoteStoreDataElement & other)
 {
     if (this != &other)

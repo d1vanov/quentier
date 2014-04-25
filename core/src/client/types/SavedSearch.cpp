@@ -6,19 +6,29 @@ namespace qute_note {
 
 SavedSearch::SavedSearch() :
     NoteStoreDataElement(),
-    m_enSearch()
+    m_qecSearch()
+{}
+
+SavedSearch::SavedSearch(const qevercloud::SavedSearch & search) :
+    NoteStoreDataElement(),
+    m_qecSearch(search)
+{}
+
+SavedSearch::SavedSearch(qevercloud::SavedSearch && search) :
+    NoteStoreDataElement(),
+    m_qecSearch(std::move(search))
 {}
 
 SavedSearch::SavedSearch(const SavedSearch & other) :
     NoteStoreDataElement(other),
-    m_enSearch(other.m_enSearch)
+    m_qecSearch(other.m_qecSearch)
 {}
 
 SavedSearch & SavedSearch::operator=(const SavedSearch & other)
 {
     if (this != &other) {
         NoteStoreDataElement::operator=(other);
-        m_enSearch = other.m_enSearch;
+        m_qecSearch = other.m_qecSearch;
     }
 
     return *this;
@@ -29,7 +39,50 @@ SavedSearch::~SavedSearch()
 
 bool SavedSearch::operator==(const SavedSearch & other) const
 {
-    return ((m_enSearch == other.m_enSearch) && (isDirty() == other.isDirty()));
+    const qevercloud::SavedSearch & otherSearch = other.m_qecSearch;
+
+    if (isDirty() != other.isDirty()) {
+        return false;
+    }
+    else if (m_qecSearch.guid != otherSearch.guid) {
+        return false;
+    }
+    else if (m_qecSearch.name != otherSearch.name) {
+        return false;
+    }
+    else if (m_qecSearch.query != otherSearch.query) {
+        return false;
+    }
+    else if (m_qecSearch.format != otherSearch.format) {
+        return false;
+    }
+    else if (m_qecSearch.updateSequenceNum != otherSearch.updateSequenceNum) {
+        return false;
+    }
+    else if (m_qecSearch.scope.isSet() && !otherSearch.scope.isSet()) {
+        return false;
+    }
+    else if (!m_qecSearch.scope.isSet() && otherSearch.scope.isSet()) {
+        return false;
+    }
+    else if (!m_qecSearch.scope.isSet() && !otherSearch.scope.isSet()) {
+        return true;
+    }
+
+    const SavedSearchScope & scope = m_qecSearch.scope;
+    const SavedSearchScope & otherScope = otherSearch.scope;
+
+    if (scope.includeAccount != otherScope.includeAccount) {
+        return false;
+    }
+    else if (scope.includeBusinessLinkedNotebooks != otherScope.includeBusinessLinkedNotebooks) {
+        return false;
+    }
+    else if (scope.includePersonalLinkedNotebooks != otherScope.includePersonalLinkedNotebooks) {
+        return false;
+    }
+
+    return true;
 }
 
 bool SavedSearch::operator!=(const SavedSearch & other) const
@@ -39,136 +92,128 @@ bool SavedSearch::operator!=(const SavedSearch & other) const
 
 void SavedSearch::clear()
 {
-    m_enSearch = evernote::edam::SavedSearch();
+    m_qecSearch = qevercloud::SavedSearch();
 }
 
 bool SavedSearch::hasGuid() const
 {
-    return m_enSearch.__isset.guid;
+    return m_qecSearch.guid.isSet();
 }
 
 const QString SavedSearch::guid() const
 {
-    return std::move(QString::fromStdString(m_enSearch.guid));
+    return m_qecSearch.guid;
 }
 
 void SavedSearch::setGuid(const QString & guid)
 {
-    m_enSearch.guid = guid.toStdString();
-    m_enSearch.__isset.guid = true;
+    m_qecSearch.guid = guid;
 }
 
 bool SavedSearch::hasUpdateSequenceNumber() const
 {
-    return m_enSearch.__isset.updateSequenceNum;
+    return m_qecSearch.updateSequenceNum.isSet();
 }
 
 qint32 SavedSearch::updateSequenceNumber() const
 {
-    return m_enSearch.updateSequenceNum;
+    return m_qecSearch.updateSequenceNum;
 }
 
 void SavedSearch::setUpdateSequenceNumber(const qint32 usn)
 {
-    m_enSearch.updateSequenceNum = usn;
-    m_enSearch.__isset.updateSequenceNum = true;
+    m_qecSearch.updateSequenceNum = usn;
 }
 
 bool SavedSearch::checkParameters(QString & errorDescription) const
 {
-    if (!m_enSearch.__isset.guid) {
+    if (!m_qecSearch.guid.isSet()) {
         errorDescription = QObject::tr("Saved search's guid is not set");
         return false;
     }
-    else if (!CheckGuid(m_enSearch.guid)) {
-        errorDescription = QObject::tr("Saved search's guid is invalid: ");
-        errorDescription.append(QString::fromStdString(m_enSearch.guid));
+    else if (!CheckGuid(m_qecSearch.guid.ref())) {
+        errorDescription = QObject::tr("Saved search's guid is invalid: ") + m_qecSearch.guid;
         return false;
     }
 
-    if (!m_enSearch.__isset.name) {
+    if (!m_qecSearch.name.isSet()) {
         errorDescription = QObject::tr("Saved search's name is not set");
         return false;
     }
-    else {
-        size_t nameSize = m_enSearch.name.size();
 
-        if ( (nameSize < evernote::limits::g_Limits_constants.EDAM_SAVED_SEARCH_NAME_LEN_MIN) ||
-             (nameSize > evernote::limits::g_Limits_constants.EDAM_SAVED_SEARCH_NAME_LEN_MAX) )
-        {
-            errorDescription = QObject::tr("Saved search's name exceeds allowed size: ");
-            errorDescription.append(QString::fromStdString(m_enSearch.name));
-            return false;
-        }
+    const QString & name = m_qecSearch.name;
+    size_t nameSize = name.size();
 
-        if (m_enSearch.name.at(0) == ' ') {
-            errorDescription = QObject::tr("Saved search's name can't begin from space: ");
-            errorDescription.append(QString::fromStdString(m_enSearch.name));
-            return false;
-        }
-        else if (m_enSearch.name.at(nameSize - 1) == ' ') {
-            errorDescription = QObject::tr("Saved search's name can't end with space: ");
-            errorDescription.append(QString::fromStdString(m_enSearch.name));
-            return false;
-        }
+    if ( (nameSize < evernote::limits::g_Limits_constants.EDAM_SAVED_SEARCH_NAME_LEN_MIN) ||
+         (nameSize > evernote::limits::g_Limits_constants.EDAM_SAVED_SEARCH_NAME_LEN_MAX) )
+    {
+        errorDescription = QObject::tr("Saved search's name exceeds allowed size: ") + name;
+        return false;
     }
 
-    if (!m_enSearch.__isset.updateSequenceNum) {
+    if (name.at(0) == ' ') {
+        errorDescription = QObject::tr("Saved search's name can't begin from space: ") + name;
+        return false;
+    }
+    else if (name.at(nameSize - 1) == ' ') {
+        errorDescription = QObject::tr("Saved search's name can't end with space: ") + name;
+        return false;
+    }
+
+    if (!m_qecSearch.updateSequenceNum.isSet()) {
         errorDescription = QObject::tr("Saved search's update sequence number is not set");
         return false;
     }
-    else if (!CheckUpdateSequenceNumber(m_enSearch.updateSequenceNum)) {
+    else if (!CheckUpdateSequenceNumber(m_qecSearch.updateSequenceNum)) {
         errorDescription = QObject::tr("Saved search's update sequence number is invalid: ");
-        errorDescription.append(m_enSearch.updateSequenceNum);
+        errorDescription.append(QString::number(m_qecSearch.updateSequenceNum));
         return false;
     }
 
-    if (!m_enSearch.__isset.query) {
+    if (!m_qecSearch.query.isSet()) {
         errorDescription = QObject::tr("Saved search's query is not set");
         return false;
     }
-    else {
-        size_t querySize = m_enSearch.query.size();
 
-        if ( (querySize < evernote::limits::g_Limits_constants.EDAM_SEARCH_QUERY_LEN_MIN) ||
-             (querySize > evernote::limits::g_Limits_constants.EDAM_SEARCH_QUERY_LEN_MAX) )
-        {
-            errorDescription = QObject::tr("Saved search's query exceeds allowed size: ");
-            errorDescription.append(QString::fromStdString(m_enSearch.query));
-            return false;
-        }
+    const QString & query = m_qecSearch.query;
+    size_t querySize = query.size();
+
+    if ( (querySize < evernote::limits::g_Limits_constants.EDAM_SEARCH_QUERY_LEN_MIN) ||
+         (querySize > evernote::limits::g_Limits_constants.EDAM_SEARCH_QUERY_LEN_MAX) )
+    {
+        errorDescription = QObject::tr("Saved search's query exceeds allowed size: ") + query;
+        return false;
     }
 
-    if (!m_enSearch.__isset.format) {
+    if (!m_qecSearch.format.isSet()) {
         errorDescription = QObject::tr("Saved search's format is not set");
         return false;
     }
-    else if (m_enSearch.format != evernote::edam::QueryFormat::USER) {
+    else if (static_cast<QueryFormat>(m_qecSearch.format) != qevercloud::QueryFormat::USER) {
         errorDescription = QObject::tr("Saved search has unsupported query format");
         return false;
     }
 
-    if (!m_enSearch.__isset.scope) {
+    if (!m_qecSearch.scope.isSet()) {
         errorDescription = QObject::tr("Saved search's scope is not set");
         return false;
     }
-    else {
-        const auto & scopeIsSet = m_enSearch.scope.__isset;
 
-        if (!scopeIsSet.includeAccount) {
-            errorDescription = QObject::tr("Include account option in saved search's scope is not set");
-            return false;
-        }
+    const SavedSearchScope & scope = m_qecSearch.scope;
 
-        if (!scopeIsSet.includePersonalLinkedNotebooks) {
-            errorDescription = QObject::tr("Include personal linked notebooks option in saved search's scope is not set");
-            return false;
-        }
+    if (!scope.includeAccount.isSet()) {
+        errorDescription = QObject::tr("Include account option in saved search's scope is not set");
+        return false;
+    }
 
-        if (!scopeIsSet.includeBusinessLinkedNotebooks) {
-            errorDescription = QObject::tr("Include business linked notebooks option in saved search's scope is not set");
-            return false;
-        }
+    if (!scope.includePersonalLinkedNotebooks.isSet()) {
+        errorDescription = QObject::tr("Include personal linked notebooks option in saved search's scope is not set");
+        return false;
+    }
+
+    if (!scope.includeBusinessLinkedNotebooks.isSet()) {
+        errorDescription = QObject::tr("Include business linked notebooks option in saved search's scope is not set");
+        return false;
     }
 
     return true;
@@ -177,176 +222,176 @@ bool SavedSearch::checkParameters(QString & errorDescription) const
 
 bool SavedSearch::hasName() const
 {
-    return m_enSearch.__isset.name;
+    return m_qecSearch.name.isSet();
 }
 
 const QString SavedSearch::name() const
 {
-    return std::move(QString::fromStdString(m_enSearch.name));
+    return m_qecSearch.name;
 }
 
 void SavedSearch::setName(const QString & name)
 {
-    m_enSearch.name = name.toStdString();
-    m_enSearch.__isset.name = true;
+    m_qecSearch.name = name;
 }
 
 bool SavedSearch::hasQuery() const
 {
-    return m_enSearch.__isset.query;
+    return m_qecSearch.query.isSet();
 }
 
 const QString SavedSearch::query() const
 {
-    return std::move(QString::fromStdString(m_enSearch.query));
+    return m_qecSearch.query;
 }
 
 void SavedSearch::setQuery(const QString & query)
 {
-    m_enSearch.query = query.toStdString();
-    m_enSearch.__isset.query = true;
+    m_qecSearch.query = query;
 }
 
 bool SavedSearch::hasQueryFormat() const
 {
-    return m_enSearch.__isset.format;
+    return m_qecSearch.format.isSet();
 }
 
-qint8 SavedSearch::queryFormat() const
+SavedSearch::QueryFormat SavedSearch::queryFormat() const
 {
-    return m_enSearch.format;
+    return m_qecSearch.format;
 }
 
 void SavedSearch::setQueryFormat(const qint8 queryFormat)
 {
-    m_enSearch.format = static_cast<evernote::edam::QueryFormat::type>(queryFormat);
-    m_enSearch.__isset.format = true;
+    if (queryFormat <= QueryFormat::SEXP) {
+        m_qecSearch.format = static_cast<QueryFormat>(queryFormat);
+    }
+    else {
+        m_qecSearch.format.clear();
+    }
 }
 
-#define CHECK_AND_SET_SCOPE \
-    const auto & isSet = m_enSearch.scope.__isset; \
-    if (isSet.includeAccount && isSet.includePersonalLinkedNotebooks && isSet.includeBusinessLinkedNotebooks) { \
-        m_enSearch.__isset.scope = true; \
+#define CHECK_AND_SET_SCOPE() \
+    if (!m_qecSearch.scope.isSet()) { \
+        m_qecSearch.scope = SavedSearchScope(); \
     }
 
 bool SavedSearch::hasIncludeAccount() const
 {
-    return m_enSearch.__isset.scope && m_enSearch.scope.__isset.includeAccount;
+    return m_qecSearch.scope.isSet() && m_qecSearch.scope->includeAccount.isSet();
 }
 
 bool SavedSearch::includeAccount() const
 {
-    return m_enSearch.scope.includeAccount;
+    return m_qecSearch.scope->includeAccount;
 }
 
 void SavedSearch::setIncludeAccount(const bool includeAccount)
 {
-    m_enSearch.scope.includeAccount = includeAccount;
-    m_enSearch.scope.__isset.includeAccount = true;
-    CHECK_AND_SET_SCOPE
+    CHECK_AND_SET_SCOPE();
+    m_qecSearch.scope->includeAccount = includeAccount;
 }
 
 bool SavedSearch::hasIncludePersonalLinkedNotebooks() const
 {
-    return m_enSearch.__isset.scope && m_enSearch.scope.__isset.includePersonalLinkedNotebooks;
+    return m_qecSearch.scope.isSet() && m_qecSearch.scope->includePersonalLinkedNotebooks.isSet();
 }
 
 bool SavedSearch::includePersonalLinkedNotebooks() const
 {
-    return m_enSearch.scope.includePersonalLinkedNotebooks;
+    return m_qecSearch.scope->includePersonalLinkedNotebooks;
 }
 
 void SavedSearch::setIncludePersonalLinkedNotebooks(const bool includePersonalLinkedNotebooks)
 {
-    m_enSearch.scope.includePersonalLinkedNotebooks = includePersonalLinkedNotebooks;
-    m_enSearch.scope.__isset.includePersonalLinkedNotebooks = true;
-    CHECK_AND_SET_SCOPE
+    CHECK_AND_SET_SCOPE();
+    m_qecSearch.scope->includePersonalLinkedNotebooks = includePersonalLinkedNotebooks;
 }
 
 bool SavedSearch::hasIncludeBusinessLinkedNotebooks() const
 {
-    return m_enSearch.__isset.scope && m_enSearch.scope.__isset.includeBusinessLinkedNotebooks;
+    return m_qecSearch.scope.isSet() && m_qecSearch.scope->includeBusinessLinkedNotebooks.isSet();
 }
 
 bool SavedSearch::includeBusinessLinkedNotebooks() const
-{
-    return m_enSearch.scope.includeBusinessLinkedNotebooks;
+{    
+    return m_qecSearch.scope->includeBusinessLinkedNotebooks;
 }
 
 void SavedSearch::setIncludeBusinessLinkedNotebooks(const bool includeBusinessLinkedNotebooks)
 {
-    m_enSearch.scope.includeBusinessLinkedNotebooks = includeBusinessLinkedNotebooks;
-    m_enSearch.scope.__isset.includeBusinessLinkedNotebooks = true;
-    CHECK_AND_SET_SCOPE
+    CHECK_AND_SET_SCOPE();
+    m_qecSearch.scope->includeBusinessLinkedNotebooks = includeBusinessLinkedNotebooks;
 }
 
 QTextStream & SavedSearch::Print(QTextStream & strm) const
 {
     strm << "Saved search: { \n" ;
 
-    if (m_enSearch.__isset.guid) {
-        strm << "guid: " << QString::fromStdString(m_enSearch.guid) << "; \n";
+    if (m_qecSearch.guid.isSet()) {
+        strm << "guid: " << m_qecSearch.guid << "; \n";
     }
     else {
         strm << "guid is not set; \n";
     }
 
-    if (m_enSearch.__isset.updateSequenceNum) {
-        strm << "updateSequenceNumber: " << QString::number(m_enSearch.updateSequenceNum) << "; \n";
+    if (m_qecSearch.updateSequenceNum.isSet()) {
+        strm << "updateSequenceNumber: " << QString::number(m_qecSearch.updateSequenceNum) << "; \n";
     }
     else {
         strm << "updateSequenceNumber is not set; \n";
     }
 
-    if (m_enSearch.__isset.name) {
-        strm << "name: " << QString::fromStdString(m_enSearch.name) << "; \n";
+    if (m_qecSearch.name.isSet()) {
+        strm << "name: " << m_qecSearch.name << "; \n";
     }
     else {
         strm << "name is not set; \n";
     }
 
-    if (m_enSearch.__isset.query) {
-        strm << "query: " << QString::fromStdString(m_enSearch.query) << "; \n";
+    if (m_qecSearch.query.isSet()) {
+        strm << "query: " << m_qecSearch.query << "; \n";
     }
     else {
         strm << "query is not set; \n";
     }
 
-    if (m_enSearch.__isset.format) {
-        strm << "queryFormat: " << m_enSearch.format << "; \n";
+    if (m_qecSearch.format.isSet()) {
+        // TODO: (re)write print for QueryFormat
+        strm << "queryFormat: " << QString::number(m_qecSearch.format) << "; \n";
     }
     else {
         strm << "queryFormat is not set; \n";
     }
 
-    const auto & scope = m_enSearch.scope;
+    if (m_qecSearch.scope.isSet()) {
+        strm << "scope is set; \n";
+    }
+    else {
+        strm << "scope is not set; \n";
+        return strm;
+    }
 
-    if (scope.__isset.includeAccount) {
+    const SavedSearchScope & scope = m_qecSearch.scope;
+
+    if (scope.includeAccount.isSet()) {
         strm << "includeAccount: " << (scope.includeAccount ? "true" : "false") << "; \n";
     }
     else {
         strm << "includeAccount is not set; \n";
     }
 
-    if (scope.__isset.includePersonalLinkedNotebooks) {
+    if (scope.includePersonalLinkedNotebooks.isSet()) {
         strm << "includePersonalLinkedNotebooks: " << (scope.includePersonalLinkedNotebooks ? "true" : "false") << "; \n";
     }
     else {
         strm << "includePersonalLinkedNotebooks is not set; \n";
     }
 
-    if (scope.__isset.includeBusinessLinkedNotebooks) {
+    if (scope.includeBusinessLinkedNotebooks.isSet()) {
         strm << "includeBusinessLinkedNotebooks: " << (scope.includeBusinessLinkedNotebooks ? "true" : "false") << "; \n";
     }
     else {
         strm << "includeBusinessLinkedNotebooks is not set; \n";
-    }
-
-    if (m_enSearch.__isset.scope) {
-        strm << "scope is set; \n";
-    }
-    else {
-        strm << "scope is not set; \n";
     }
 
     return strm;

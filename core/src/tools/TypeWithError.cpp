@@ -31,6 +31,10 @@ TypeWithError::TypeWithError(const TypeWithError & other) :
     m_error(other.m_error)
 {}
 
+TypeWithError::TypeWithError(TypeWithError && other) :
+    m_error(std::move(other.m_error))
+{}
+
 TypeWithError & TypeWithError::operator =(const TypeWithError & other)
 {
     if (this != &other) {
