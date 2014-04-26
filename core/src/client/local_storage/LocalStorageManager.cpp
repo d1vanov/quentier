@@ -2496,8 +2496,6 @@ bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDes
     QString name = tag.name();
     QString nameUpper = name.toUpper();
 
-    QString parentGuid = tag.parentGuid();
-
     QSqlQuery query(m_sqlDatabase);
 
     query.prepare("INSERT OR REPLACE INTO Tags (guid, updateSequenceNumber, name, "
@@ -2508,7 +2506,7 @@ bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDes
     query.bindValue(":updateSequenceNumber", tag.updateSequenceNumber());
     query.bindValue(":name", name);
     query.bindValue(":nameUpper", nameUpper);
-    query.bindValue(":parentGuid", parentGuid);
+    query.bindValue(":parentGuid", tag.hasParentGuid() ? tag.parentGuid() : QString());
     query.bindValue(":isDirty", tag.isDirty() ? 1 : 0);
     query.bindValue(":isLocal", tag.isLocal() ? 1 : 0);
     query.bindValue(":isDeleted", tag.isDeleted() ? 1 : 0);

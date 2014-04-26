@@ -40,6 +40,11 @@ TEST(ResourceAttributes)
 
 #undef TEST
 
+#define CATCH_EXCEPTION() \
+    catch(const std::exception & exception) { \
+        QFAIL(qPrintable(QString("Caught exception: ") + QString(exception.what()))); \
+    }
+
 void CoreTester::localStorageManagerIndividualSavedSearchTest()
 {
     try
@@ -61,9 +66,7 @@ void CoreTester::localStorageManagerIndividualSavedSearchTest()
         bool res = TestSavedSearchAddFindUpdateExpungeInLocalStorage(search, localStorageManager, error);
         QVERIFY2(res == true, qPrintable(error));
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
-    }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagerIndividualLinkedNotebookTest()
@@ -90,9 +93,7 @@ void CoreTester::localStorageManagerIndividualLinkedNotebookTest()
         bool res = TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(linkedNotebook, localStorageManager, error);
         QVERIFY2(res == true, error.toStdString().c_str());
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
-    }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagerIndividualTagTest()
@@ -111,9 +112,7 @@ void CoreTester::localStorageManagerIndividualTagTest()
         bool res = TestTagAddFindUpdateExpungeInLocalStorage(tag, localStorageManager, error);
         QVERIFY2(res == true, error.toStdString().c_str());
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
-    }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagerIndividualResourceTest()
@@ -195,9 +194,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         res = TestResourceAddFindUpdateExpungeInLocalStorage(resource, localStorageManager, error);
         QVERIFY2(res == true, error.toStdString().c_str());
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
-    }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagedIndividualNoteTest()
@@ -290,9 +287,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         res = TestNoteFindUpdateDeleteExpungeInLocalStorage(note, localStorageManager, error);
         QVERIFY2(res == true, qPrintable(error));
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
-    }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagerIndividualNotebookTest()
@@ -389,9 +384,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         res = TestNotebookFindUpdateDeleteExpungeInLocalStorage(notebook, localStorageManager, error);
         QVERIFY2(res == true, qPrintable(error));
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
-    }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagedIndividualUserTest()
@@ -560,9 +553,7 @@ void CoreTester::localStorageManagedIndividualUserTest()
         bool res = TestUserAddFindUpdateDeleteExpungeInLocalStorage(user, localStorageManager, error);
         QVERIFY2(res == true, qPrintable(error));
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
-    }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagerListAllSavedSearchesTest()
@@ -617,65 +608,7 @@ void CoreTester::localStorageManagerListAllSavedSearchesTest()
             }
         }
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
-    }
-}
-
-void CoreTester::localStorageManagerListAllTagsTest()
-{
-    try
-    {
-        const bool startFromScratch = true;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
-
-        QString error;
-
-        size_t nTags = 5;
-        std::vector<Tag> tags;
-        tags.reserve(nTags);
-        for(size_t i = 0; i < nTags; ++i)
-        {
-            tags.push_back(Tag());
-            Tag & tag = tags.back();
-
-            tag.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
-            tag.setUpdateSequenceNumber(i);
-            tag.setName("Tag name #" + QString::number(i));
-
-            if (i != 0) {
-                tag.setParentGuid(tags.at(i-1).guid());
-            }
-
-            bool res = localStorageManager.AddTag(tag, error);
-            QVERIFY2(res == true, qPrintable(error));
-        }
-
-        std::vector<Tag> foundTags;
-
-        bool res = localStorageManager.ListAllTags(foundTags, error);
-        QVERIFY2(res == true, qPrintable(error));
-
-        size_t numFoundTags = foundTags.size();
-        if (numFoundTags != nTags) {
-            QFAIL(qPrintable("Error: number of tags in the result of LocalStorageManager::ListAllTags (" +
-                             QString::number(numFoundTags) + ") does not match the original number of added tags (" +
-                             QString::number(nTags) + ")"));
-        }
-
-        for(size_t i = 0; i < numFoundTags; ++i)
-        {
-            const Tag & foundTag = foundTags.at(i);
-            const auto it = std::find(tags.cbegin(), tags.cend(), foundTag);
-            if (it == tags.cend()) {
-                QFAIL("One of tags from the result of LocalStorageManager::ListAllTags "
-                      "was not found in the list of original tags");
-            }
-        }
-    }
-    catch(IQuteNoteException & exception) {
-        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
-    }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagerListAllLinkedNotebooksTest()
@@ -733,9 +666,61 @@ void CoreTester::localStorageManagerListAllLinkedNotebooksTest()
             }
         }
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
+    CATCH_EXCEPTION();
+}
+
+void CoreTester::localStorageManagerListAllTagsTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        QString error;
+
+        size_t nTags = 5;
+        std::vector<Tag> tags;
+        tags.reserve(nTags);
+        for(size_t i = 0; i < nTags; ++i)
+        {
+            tags.push_back(Tag());
+            Tag & tag = tags.back();
+
+            tag.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            tag.setUpdateSequenceNumber(i);
+            tag.setName("Tag name #" + QString::number(i));
+
+            if (i != 0) {
+                tag.setParentGuid(tags.at(i-1).guid());
+            }
+
+            bool res = localStorageManager.AddTag(tag, error);
+            QVERIFY2(res == true, qPrintable(error));
+        }
+
+        std::vector<Tag> foundTags;
+
+        bool res = localStorageManager.ListAllTags(foundTags, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        size_t numFoundTags = foundTags.size();
+        if (numFoundTags != nTags) {
+            QFAIL(qPrintable("Error: number of tags in the result of LocalStorageManager::ListAllTags (" +
+                             QString::number(numFoundTags) + ") does not match the original number of added tags (" +
+                             QString::number(nTags) + ")"));
+        }
+
+        for(size_t i = 0; i < numFoundTags; ++i)
+        {
+            const Tag & foundTag = foundTags.at(i);
+            const auto it = std::find(tags.cbegin(), tags.cend(), foundTag);
+            if (it == tags.cend()) {
+                QFAIL("One of tags from the result of LocalStorageManager::ListAllTags "
+                      "was not found in the list of original tags");
+            }
+        }
     }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagerListAllSharedNotebooksTest()
@@ -806,9 +791,7 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
             }
         }
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
-    }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagerListAllTagsPerNoteTest()
@@ -896,9 +879,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
             QFAIL("Found tag not linked with testing note in the result of LocalStorageManager::ListAllTagsPerNote");
         }
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
-    }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
@@ -982,9 +963,7 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
                              QString::number(foundNotes.size()) + " notes)"));
         }
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(qPrintable("Caught exception: " + exception.errorMessage()));
-    }
+    CATCH_EXCEPTION();
 }
 
 void CoreTester::localStorageManagerListAllNotebooksTest()
@@ -1082,10 +1061,10 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
             }
         }
     }
-    catch(IQuteNoteException & exception) {
-        QFAIL(QString("Caught exception: " + exception.errorMessage()).toStdString().c_str());
-    }
+    CATCH_EXCEPTION();
 }
+
+#undef CATCH_EXCEPTION
 
 }
 }

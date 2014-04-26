@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__CLIENT__TYPES__TAG_H
 
 #include "NoteStoreDataElement.h"
-#include <Types_types.h>
+#include <QEverCloud.h>
 
 namespace qute_note {
 
@@ -10,8 +10,14 @@ class Tag final: public NoteStoreDataElement
 {
 public:
     Tag();
-    Tag(const Tag & other);
-    Tag & operator=(const Tag & other);
+    Tag(const Tag & other) = default;
+    Tag(Tag && other) = default;
+    Tag & operator=(const Tag & other) = default;
+    Tag & operator=(Tag && other) = default;
+
+    Tag(const qevercloud::Tag & other);
+    Tag(qevercloud::Tag && other);
+
     virtual ~Tag() final override;
 
     bool operator==(const Tag & other) const;
@@ -36,18 +42,18 @@ public:
     void setDeleted(const bool deleted);
 
     bool hasName() const;
-    const QString name() const;
+    const QString & name() const;
     void setName(const QString & name);
 
     bool hasParentGuid() const;
-    const QString parentGuid() const;
+    const QString & parentGuid() const;
     void setParentGuid(const QString & parentGuid);
 
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
 private:
-    evernote::edam::Tag m_enTag;
+    qevercloud::Tag m_qecTag;
     bool m_isLocal;
     bool m_isDeleted;
 };

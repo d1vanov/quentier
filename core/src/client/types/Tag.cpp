@@ -1,41 +1,62 @@
 #include "Tag.h"
+#include "QEverCloudOptionalQString.hpp"
 #include "../Utility.h"
-#include <Limits_constants.h>
 
 namespace qute_note {
 
 Tag::Tag() :
     NoteStoreDataElement(),
-    m_enTag(),
+    m_qecTag(),
     m_isLocal(true),
     m_isDeleted(false)
 {}
 
-Tag::Tag(const Tag & other) :
-    NoteStoreDataElement(other),
-    m_enTag(other.m_enTag),
-    m_isLocal(other.m_isLocal),
-    m_isDeleted(other.m_isDeleted)
+Tag::Tag(const qevercloud::Tag & other) :
+    NoteStoreDataElement(),
+    m_qecTag(other),
+    m_isLocal(true),
+    m_isDeleted(false)
 {}
 
-Tag & Tag::operator=(const Tag & other)
-{
-    if (this != &other) {
-        NoteStoreDataElement::operator=(other);
-        m_enTag = other.m_enTag;
-        m_isLocal = other.m_isLocal;
-        m_isDeleted = other.m_isDeleted;
-    }
-
-    return *this;
-}
+Tag::Tag(qevercloud::Tag && other) :
+    NoteStoreDataElement(),
+    m_qecTag(std::move(other)),
+    m_isLocal(true),
+    m_isDeleted(false)
+{}
 
 Tag::~Tag()
 {}
 
 bool Tag::operator==(const Tag & other) const
 {
-    return ((m_enTag == other.m_enTag) && (isDirty() == other.isDirty()));
+    if (isDirty() != other.isDirty()) {
+        return false;
+    }
+    else if (m_isLocal != other.m_isLocal) {
+        return false;
+    }
+    else if (m_isDeleted != other.m_isDeleted) {
+        return false;
+    }
+
+    const qevercloud::Tag & otherTag = other.m_qecTag;
+
+    if (m_qecTag.guid != otherTag.guid) {
+        return false;
+    }
+    else if (m_qecTag.name != otherTag.name) {
+        return false;
+    }
+    else if (m_qecTag.parentGuid != otherTag.parentGuid) {
+        return false;
+    }
+    else if (m_qecTag.updateSequenceNum != otherTag.updateSequenceNum) {
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 bool Tag::operator!=(const Tag & other) const
@@ -45,105 +66,90 @@ bool Tag::operator!=(const Tag & other) const
 
 void Tag::clear()
 {
-    m_enTag = evernote::edam::Tag();
+    m_qecTag = qevercloud::Tag();
 }
 
 bool Tag::hasGuid() const
 {
-    return m_enTag.__isset.guid;
+    return m_qecTag.guid.isSet();
 }
 
 const QString Tag::guid() const
 {
-    return std::move(QString::fromStdString(m_enTag.guid));
+    return m_qecTag.guid;
 }
 
 void Tag::setGuid(const QString & guid)
 {
-    m_enTag.guid = guid.toStdString();
-
-    if (guid.isEmpty()) {
-        m_enTag.__isset.guid = false;
-    }
-    else {
-        m_enTag.__isset.guid = true;
-    }
+    m_qecTag.guid = guid;
 }
 
 bool Tag::hasUpdateSequenceNumber() const
 {
-    return m_enTag.__isset.updateSequenceNum;
+    return m_qecTag.updateSequenceNum.isSet();
 }
 
 qint32 Tag::updateSequenceNumber() const
 {
-    return m_enTag.updateSequenceNum;
+    return m_qecTag.updateSequenceNum;
 }
 
 void Tag::setUpdateSequenceNumber(const qint32 usn)
 {
-    m_enTag.updateSequenceNum = usn;
-    m_enTag.__isset.updateSequenceNum = true;
+    m_qecTag.updateSequenceNum = usn;
 }
 
 bool Tag::checkParameters(QString & errorDescription) const
 {
-    if (!m_enTag.__isset.guid) {
+    if (!m_qecTag.guid.isSet()) {
         errorDescription = QObject::tr("Tag's guid is not set");
         return false;
     }
-    else if (!CheckGuid(m_enTag.guid)) {
-        errorDescription = QObject::tr("Tag's guid is invalid: ");
-        errorDescription.append(QString::fromStdString(m_enTag.guid));
+    else if (!CheckGuid(m_qecTag.guid.ref())) {
+        errorDescription = QObject::tr("Tag's guid is invalid: ") + m_qecTag.guid;
         return false;
     }
 
-    if (!m_enTag.__isset.name) {
+    if (!m_qecTag.name.isSet()) {
         errorDescription = QObject::tr("Tag's name is not set");
         return false;
     }
-    else {
-        size_t nameSize = m_enTag.name.size();
 
-        if ( (nameSize < evernote::limits::g_Limits_constants.EDAM_TAG_NAME_LEN_MIN) ||
-             (nameSize > evernote::limits::g_Limits_constants.EDAM_TAG_NAME_LEN_MAX) )
-        {
-            errorDescription = QObject::tr("Tag's name exceeds allowed size: ");
-            errorDescription.append(QString::fromStdString(m_enTag.name));
-            return false;
-        }
+    size_t nameSize = m_qecTag.name->size();
 
-        if (m_enTag.name.at(0) == ' ') {
-            errorDescription = QObject::tr("Tag's name can't begin from space: ");
-            errorDescription.append(QString::fromStdString(m_enTag.name));
-            return false;
-        }
-        else if (m_enTag.name.at(nameSize - 1) == ' ') {
-            errorDescription = QObject::tr("Tag's name can't end with space: ");
-            errorDescription.append(QString::fromStdString(m_enTag.name));
-            return false;
-        }
-
-        if (m_enTag.name.find(',') != m_enTag.name.npos) {
-            errorDescription = QObject::tr("Tag's name can't contain comma: ");
-            errorDescription.append(QString::fromStdString(m_enTag.name));
-            return false;
-        }
+    if ( (nameSize < qevercloud::EDAM_TAG_NAME_LEN_MIN) ||
+         (nameSize > qevercloud::EDAM_TAG_NAME_LEN_MAX) )
+    {
+        errorDescription = QObject::tr("Tag's name exceeds allowed size: ") + m_qecTag.name;
+        return false;
     }
 
-    if (!m_enTag.__isset.updateSequenceNum) {
+    if (m_qecTag.name->startsWith(' ')) {
+        errorDescription = QObject::tr("Tag's name can't begin from space: ") + m_qecTag.name;
+        return false;
+    }
+    else if (m_qecTag.name->endsWith(' ')) {
+        errorDescription = QObject::tr("Tag's name can't end with space: ") + m_qecTag.name;
+        return false;
+    }
+
+    if (m_qecTag.name->contains(',')) {
+        errorDescription = QObject::tr("Tag's name can't contain comma: ") + m_qecTag.name;
+        return false;
+    }
+
+    if (!m_qecTag.updateSequenceNum.isSet()) {
         errorDescription = QObject::tr("Tag's update sequence number is not set");
         return false;
     }
-    else if (!CheckUpdateSequenceNumber(m_enTag.updateSequenceNum)) {
+    else if (!CheckUpdateSequenceNumber(m_qecTag.updateSequenceNum)) {
         errorDescription = QObject::tr("Tag's update sequence number is invalid: ");
-        errorDescription.append(m_enTag.updateSequenceNum);
+        errorDescription += QString::number(m_qecTag.updateSequenceNum);
         return false;
     }
 
-    if (m_enTag.__isset.parentGuid && !CheckGuid(m_enTag.parentGuid)) {
-        errorDescription = QObject::tr("Tag's parent guid is invalid: ");
-        errorDescription.append(QString::fromStdString(m_enTag.parentGuid));
+    if (m_qecTag.parentGuid.isSet() && !CheckGuid(m_qecTag.parentGuid.ref())) {
+        errorDescription = QObject::tr("Tag's parent guid is invalid: ") + m_qecTag.parentGuid;
         return false;
     }
 
@@ -172,69 +178,61 @@ void Tag::setDeleted(const bool deleted)
 
 bool Tag::hasName() const
 {
-    return m_enTag.__isset.name;
+    return m_qecTag.name.isSet();
 }
 
-const QString Tag::name() const
+const QString & Tag::name() const
 {
-    return std::move(QString::fromStdString(m_enTag.name));
+    return m_qecTag.name;
 }
 
 void Tag::setName(const QString & name)
 {
-    m_enTag.name = name.toStdString();
-    m_enTag.__isset.name = true;
+    m_qecTag.name = name;
 }
 
 bool Tag::hasParentGuid() const
 {
-    return m_enTag.__isset.parentGuid;
+    return m_qecTag.parentGuid.isSet();
 }
 
-const QString Tag::parentGuid() const
+const QString & Tag::parentGuid() const
 {
-    return std::move(QString::fromStdString(m_enTag.parentGuid));
+    return m_qecTag.parentGuid;
 }
 
 void Tag::setParentGuid(const QString & parentGuid)
-{
-    m_enTag.parentGuid = parentGuid.toStdString();
-
-    if (parentGuid.isEmpty()) {
-        m_enTag.__isset.parentGuid = false;
-    }
-    else {
-        m_enTag.__isset.parentGuid = true;
-    }
+{    
+    m_qecTag.parentGuid = parentGuid;
 }
 
 QTextStream & Tag::Print(QTextStream & strm) const
 {
     strm << "Tag { \n";
 
-    if (m_enTag.__isset.guid) {
-        strm << "guid: " << QString::fromStdString(m_enTag.guid) << "; \n";
+    if (m_qecTag.guid.isSet()) {
+        strm << "guid: " << m_qecTag.guid << "; \n";
     }
     else {
         strm << "guid is not set; \n";
     }
 
-    if (m_enTag.__isset.name) {
-        strm << "name: " << QString::fromStdString(m_enTag.name) << "; \n";
+    if (m_qecTag.name.isSet()) {
+        strm << "name: " << m_qecTag.name << "; \n";
     }
     else {
         strm << "name is not set; \n";
     }
 
-    if (m_enTag.__isset.parentGuid) {
-        strm << "parentGuid: " << QString::fromStdString(m_enTag.parentGuid) << "; \n";
+    if (m_qecTag.parentGuid.isSet()) {
+        strm << "parentGuid: " << m_qecTag.parentGuid << "; \n";
     }
     else {
         strm << "parentGuid is not set; \n";
     }
 
-    if (m_enTag.__isset.updateSequenceNum) {
-        strm << "updateSequenceNumber: " << QString::number(m_enTag.updateSequenceNum) << "; \n";
+    if (m_qecTag.updateSequenceNum.isSet()) {
+        strm << "updateSequenceNumber: " << QString::number(m_qecTag.updateSequenceNum) << "; \n";
     }
     else {
         strm << "updateSequenceNumber is not set; \n";

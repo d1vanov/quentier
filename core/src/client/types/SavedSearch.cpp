@@ -1,6 +1,6 @@
 #include "SavedSearch.h"
+#include "QEverCloudOptionalQString.hpp"
 #include "../Utility.h"
-#include <Limits_constants.h>
 
 namespace qute_note {
 

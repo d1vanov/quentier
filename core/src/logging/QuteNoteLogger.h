@@ -96,6 +96,12 @@ void messageHandler(QtMsgType type, const char * msg);
 #define QUTE_NOTE_INITIALIZE_LOGGING() \
     qInstallMsgHandler(qute_note_private::messageHandler);
 
+#define __QNMAINLOGGER \
+    qute_note::QuteNoteLogger::instance("main")
+
+#define QUTE_NOTE_SET_MIN_LOG_LEVEL(level) \
+    __QNMAINLOGGER.setLogLevel(level);
+
 #endif
 
 #endif // __QUTE_NOTE__CORE__LOGGING__QUTE_NOTE_LOGGER_H

@@ -1,4 +1,5 @@
 #include "LinkedNotebook.h"
+#include "QEverCloudOptionalQString.hpp"
 #include "../Utility.h"
 
 namespace qute_note {

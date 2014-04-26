@@ -129,7 +129,7 @@ void messageHandler(QtMsgType type, const char * msg)
 {
     using namespace qute_note;
 
-    QuteNoteLogger & logger = QuteNoteLogger::instance("main");
+    QuteNoteLogger & logger = __QNMAINLOGGER;
 
     switch (type) {
     case QtDebugMsg:

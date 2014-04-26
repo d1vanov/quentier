@@ -15,6 +15,11 @@ const QString IQuteNoteException::errorMessage() const
     return m_message;
 }
 
+const char * IQuteNoteException::what() const noexcept
+{
+    return qPrintable(m_message);
+}
+
 QTextStream & IQuteNoteException::Print(QTextStream & strm) const
 {
     strm << "\n" << " " << "<" << exceptionDisplayName() << ">";

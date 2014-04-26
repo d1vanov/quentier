@@ -2,16 +2,19 @@
 #define __QUTE_NOTE__TOOLS_IQUTE_NOTE_EXCEPTION_H
 
 #include "Printable.h"
+#include <exception>
 
 namespace qute_note {
 
-class IQuteNoteException: public Printable
+class IQuteNoteException: public Printable,
+                          public std::exception
 {
 public:
     explicit IQuteNoteException(const QString & message);
     virtual ~IQuteNoteException();
 
     const QString errorMessage() const;
+    virtual const char * what() const noexcept override;
 
     virtual QTextStream & Print(QTextStream & strm) const;
 

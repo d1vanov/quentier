@@ -25,6 +25,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/Note.h
     src/client/types/Notebook.h
     src/client/types/NoteStoreDataElement.h
+    src/client/types/QEverCloudOptionalQString.hpp
     src/client/types/ResourceWrapper.h
     src/client/types/ResourceAdapter.h
     src/client/types/ResourceAdapterAccessException.h
