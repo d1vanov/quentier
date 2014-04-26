@@ -4,11 +4,6 @@
 
 namespace qute_note {
 
-SavedSearch::SavedSearch() :
-    NoteStoreDataElement(),
-    m_qecSearch()
-{}
-
 SavedSearch::SavedSearch(const qevercloud::SavedSearch & search) :
     NoteStoreDataElement(),
     m_qecSearch(search)
@@ -19,23 +14,18 @@ SavedSearch::SavedSearch(qevercloud::SavedSearch && search) :
     m_qecSearch(std::move(search))
 {}
 
-SavedSearch::SavedSearch(const SavedSearch & other) :
-    NoteStoreDataElement(other),
-    m_qecSearch(other.m_qecSearch)
-{}
-
-SavedSearch & SavedSearch::operator=(const SavedSearch & other)
-{
-    if (this != &other) {
-        NoteStoreDataElement::operator=(other);
-        m_qecSearch = other.m_qecSearch;
-    }
-
-    return *this;
-}
-
 SavedSearch::~SavedSearch()
 {}
+
+SavedSearch::operator const qevercloud::SavedSearch & () const
+{
+    return m_qecSearch;
+}
+
+SavedSearch::operator qevercloud::SavedSearch & ()
+{
+    return m_qecSearch;
+}
 
 bool SavedSearch::operator==(const SavedSearch & other) const
 {
@@ -144,8 +134,9 @@ bool SavedSearch::checkParameters(QString & errorDescription) const
     const QString & name = m_qecSearch.name;
     size_t nameSize = name.size();
 
-    if ( (nameSize < evernote::limits::g_Limits_constants.EDAM_SAVED_SEARCH_NAME_LEN_MIN) ||
-         (nameSize > evernote::limits::g_Limits_constants.EDAM_SAVED_SEARCH_NAME_LEN_MAX) )
+
+    if ( (nameSize < qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN) ||
+         (nameSize > qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX) )
     {
         errorDescription = QObject::tr("Saved search's name exceeds allowed size: ") + name;
         return false;
@@ -178,8 +169,8 @@ bool SavedSearch::checkParameters(QString & errorDescription) const
     const QString & query = m_qecSearch.query;
     size_t querySize = query.size();
 
-    if ( (querySize < evernote::limits::g_Limits_constants.EDAM_SEARCH_QUERY_LEN_MIN) ||
-         (querySize > evernote::limits::g_Limits_constants.EDAM_SEARCH_QUERY_LEN_MAX) )
+    if ( (querySize < qevercloud::EDAM_SEARCH_QUERY_LEN_MIN) ||
+         (querySize > qevercloud::EDAM_SEARCH_QUERY_LEN_MAX) )
     {
         errorDescription = QObject::tr("Saved search's query exceeds allowed size: ") + query;
         return false;
@@ -225,7 +216,7 @@ bool SavedSearch::hasName() const
     return m_qecSearch.name.isSet();
 }
 
-const QString SavedSearch::name() const
+const QString & SavedSearch::name() const
 {
     return m_qecSearch.name;
 }
@@ -240,7 +231,7 @@ bool SavedSearch::hasQuery() const
     return m_qecSearch.query.isSet();
 }
 
-const QString SavedSearch::query() const
+const QString & SavedSearch::query() const
 {
     return m_qecSearch.query;
 }

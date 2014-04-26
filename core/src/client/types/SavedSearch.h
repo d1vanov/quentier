@@ -13,14 +13,19 @@ public:
     typedef qevercloud::SavedSearchScope  SavedSearchScope;
 
 public:
-    SavedSearch();
+    SavedSearch() = default;
+    SavedSearch(const SavedSearch & other) = default;
+    SavedSearch(SavedSearch && other) = default;
+    SavedSearch & operator=(const SavedSearch & other) = default;
+    SavedSearch & operator=(SavedSearch && other) = default;
+
     SavedSearch(const qevercloud::SavedSearch & search);
     SavedSearch(qevercloud::SavedSearch && search);
-    SavedSearch(const SavedSearch & other);
-    SavedSearch & operator=(const SavedSearch & other);
+
     virtual ~SavedSearch() final override;
 
-    // TODO: add operator qevercloud::SavedSearch()
+    operator qevercloud::SavedSearch & ();
+    operator const qevercloud::SavedSearch & () const;
 
     bool operator==(const SavedSearch & other) const;
     bool operator!=(const SavedSearch & other) const;
@@ -40,11 +45,11 @@ public:
     // TODO: see whether I can switch to using const QString &
 
     bool hasName() const;
-    const QString name() const;
+    const QString & name() const;
     void setName(const QString & name);
 
     bool hasQuery() const;
-    const QString query() const;
+    const QString & query() const;
     void setQuery(const QString & query);
 
     bool hasQueryFormat() const;

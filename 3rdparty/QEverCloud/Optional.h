@@ -253,18 +253,8 @@ public:
      * or if both left and right values are unset.
      */
     bool operator==(const Optional<T> & other) const {
-        if (!isSet_ && !other.isSet_) {
-            return true;
-        }
-        else if (isSet_ && !other.isSet_) {
-            return false;
-        }
-        else if (!isSet_ && other.isSet_) {
-            return false;
-        }
-        else {
-            return value_ == other.value_;
-        }
+        if(isSet_ != other.isSet_) return false;
+        return !isSet_ || (value_ == other.value_);
     }
 
     /**
