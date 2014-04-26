@@ -3,17 +3,15 @@
 
 #include <tools/Printable.h>
 #include <QtGlobal>
-
-namespace evernote {
-namespace edam {
-QT_FORWARD_DECLARE_CLASS(User)
-}
-}
+#include <QEverCloud.h>
 
 namespace qute_note {
 
 class QUTE_NOTE_EXPORT IUser: public Printable
 {
+public:
+    typedef qevercloud::PrivilegeLevel::type  PrivilegeLevel;
+
 public:
     IUser();
     virtual ~IUser();
@@ -36,23 +34,23 @@ public:
     void setId(const qint32 id);
 
     bool hasUsername() const;
-    const QString username() const;
+    const QString & username() const;
     void setUsername(const QString & username);
 
     bool hasEmail() const;
-    const QString email() const;
+    const QString & email() const;
     void setEmail(const QString & email);
 
     bool hasName() const;
-    const QString name() const;
+    const QString & name() const;
     void setName(const QString & name);
 
     bool hasTimezone() const;
-    const QString timezone() const;
+    const QString & timezone() const;
     void setTimezone(const QString & timezone);
 
     bool hasPrivilegeLevel() const;
-    const qint8 privilegeLevel() const;
+    const PrivilegeLevel privilegeLevel() const;
     void setPrivilegeLevel(const qint8 level);
 
     bool hasCreationTimestamp() const;
@@ -72,32 +70,28 @@ public:
     void setActive(const bool active);
 
     bool hasUserAttributes() const;
-    const evernote::edam::UserAttributes & userAttributes() const;
-    evernote::edam::UserAttributes & userAttributes();
-    void setHasAttributes(const bool hasAttributes);
+    const qevercloud::UserAttributes & userAttributes() const;
+    void setUserAttributes(qevercloud::UserAttributes && attributes);
 
     bool hasAccounting() const;
-    const evernote::edam::Accounting & accounting() const;
-    evernote::edam::Accounting & accounting();
-    void setHasAccounting(const bool hasAccounting);
+    const qevercloud::Accounting & accounting() const;
+    void setAccounting(qevercloud::Accounting && accounting);
 
     bool hasPremiumInfo() const;
-    const evernote::edam::PremiumInfo & premiumInfo() const;
-    evernote::edam::PremiumInfo & premiumInfo();
-    void setHasPremiumInfo(const bool hasPremiumInfo);
+    const qevercloud::PremiumInfo & premiumInfo() const;
+    void setPremiumInfo(qevercloud::PremiumInfo && premiumInfo);
 
     bool hasBusinessUserInfo() const;
-    const evernote::edam::BusinessUserInfo & businessUserInfo() const;
-    evernote::edam::BusinessUserInfo & businessUserInfo();
-    void setHasBusinessUserInfo(const bool hasBusinessUserInfo);
+    const qevercloud::BusinessUserInfo & businessUserInfo() const;
+    void setBusinessUserInfo(qevercloud::BusinessUserInfo && info);
 
     friend class Notebook;
 
 protected:
     IUser(const IUser & other);
 
-    virtual const evernote::edam::User & GetEnUser() const = 0;
-    virtual evernote::edam::User & GetEnUser() = 0;
+    virtual const qevercloud::User & GetEnUser() const = 0;
+    virtual qevercloud::User & GetEnUser() = 0;
 
 private:
     // prevent slicing:

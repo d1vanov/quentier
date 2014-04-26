@@ -1,8 +1,7 @@
 #include "IUser.h"
 #include "../Utility.h"
-#include <Types_types.h>
-#include <Limits_constants.h>
-#include <QObject>
+#include "QEverCloudOptionalQString.hpp"
+#include <QEverCloud.h>
 #include <QRegExp>
 
 namespace qute_note {
@@ -17,8 +16,292 @@ IUser::~IUser()
 
 bool IUser::operator==(const IUser & other) const
 {
-    return ( (m_isDirty == other.m_isDirty) && (m_isLocal == other.m_isLocal) &&
-             (GetEnUser() == other.GetEnUser()) );
+    if (m_isDirty != other.m_isDirty) {
+        return false;
+    }
+    else if (m_isLocal != other.m_isLocal) {
+        return false;
+    }
+
+    const qevercloud::User & user = GetEnUser();
+    const qevercloud::User & otherUser = other.GetEnUser();
+
+    if (user.id != otherUser.id) {
+        return false;
+    }
+    else if (user.username != otherUser.username) {
+        return false;
+    }
+    else if (user.email != otherUser.email) {
+        return false;
+    }
+    else if (user.name != otherUser.name) {
+        return false;
+    }
+    else if (user.timezone != otherUser.timezone) {
+        return false;
+    }
+    else if (user.privilege != otherUser.privilege) {
+        return false;
+    }
+    else if (user.created != otherUser.created) {
+        return false;
+    }
+    else if (user.updated != otherUser.updated) {
+        return false;
+    }
+    else if (user.deleted != otherUser.deleted) {
+        return false;
+    }
+    else if (user.active != otherUser.active) {
+        return false;
+    }
+    else if (user.attributes.isSet() != otherUser.attributes.isSet()) {
+        return false;
+    }
+    else if (user.accounting.isSet() != otherUser.accounting.isSet()) {
+        return false;
+    }
+    else if (user.premiumInfo.isSet() != otherUser.premiumInfo.isSet()) {
+        return false;
+    }
+    else if (user.businessUserInfo.isSet() != otherUser.businessUserInfo.isSet()) {
+        return false;
+    }
+
+    if (user.attributes.isSet() && otherUser.attributes.isSet())
+    {
+        const qevercloud::UserAttributes & attributes = user.attributes;
+        const qevercloud::UserAttributes & otherAttributes = otherUser.attributes;
+
+        if (attributes.defaultLocationName != otherAttributes.defaultLocationName) {
+            return false;
+        }
+        else if (attributes.defaultLatitude != otherAttributes.defaultLatitude) {
+            return false;
+        }
+        else if (attributes.defaultLongitude != otherAttributes.defaultLongitude) {
+            return false;
+        }
+        else if (attributes.preactivation != otherAttributes.preactivation) {
+            return false;
+        }
+        else if (attributes.viewedPromotions != otherAttributes.viewedPromotions) {
+            return false;
+        }
+        else if (attributes.incomingEmailAddress != otherAttributes.incomingEmailAddress) {
+            return false;
+        }
+        else if (attributes.recentMailedAddresses != otherAttributes.recentMailedAddresses) {
+            return false;
+        }
+        else if (attributes.comments != otherAttributes.comments) {
+            return false;
+        }
+        else if (attributes.dateAgreedToTermsOfService != otherAttributes.dateAgreedToTermsOfService) {
+            return false;
+        }
+        else if (attributes.maxReferrals != otherAttributes.maxReferrals) {
+            return false;
+        }
+        else if (attributes.referralCount != otherAttributes.referralCount) {
+            return false;
+        }
+        else if (attributes.sentEmailDate != otherAttributes.sentEmailDate) {
+            return false;
+        }
+        else if (attributes.sentEmailCount != otherAttributes.sentEmailCount) {
+            return false;
+        }
+        else if (attributes.dailyEmailLimit != otherAttributes.dailyEmailLimit) {
+            return false;
+        }
+        else if (attributes.emailOptOutDate != otherAttributes.emailOptOutDate) {
+            return false;
+        }
+        else if (attributes.partnerEmailOptInDate != otherAttributes.partnerEmailOptInDate) {
+            return false;
+        }
+        else if (attributes.preferredLanguage != otherAttributes.preferredLanguage) {
+            return false;
+        }
+        else if (attributes.preferredCountry != otherAttributes.preferredCountry) {
+            return false;
+        }
+        else if (attributes.clipFullPage != otherAttributes.clipFullPage) {
+            return false;
+        }
+        else if (attributes.twitterUserName != otherAttributes.twitterUserName) {
+            return false;
+        }
+        else if (attributes.twitterId != otherAttributes.twitterId) {
+            return false;
+        }
+        else if (attributes.groupName != otherAttributes.groupName) {
+            return false;
+        }
+        else if (attributes.recognitionLanguage != otherAttributes.recognitionLanguage) {
+            return false;
+        }
+        else if (attributes.referralProof != otherAttributes.referralProof) {
+            return false;
+        }
+        else if (attributes.educationalDiscount != otherAttributes.educationalDiscount) {
+            return false;
+        }
+        else if (attributes.businessAddress != otherAttributes.businessAddress) {
+            return false;
+        }
+        else if (attributes.hideSponsorBilling != otherAttributes.hideSponsorBilling) {
+            return false;
+        }
+        else if (attributes.taxExempt != otherAttributes.taxExempt) {
+            return false;
+        }
+        else if (attributes.useEmailAutoFiling != otherAttributes.useEmailAutoFiling) {
+            return false;
+        }
+        else if (attributes.reminderEmailConfig != otherAttributes.reminderEmailConfig) {
+            return false;
+        }
+    }
+
+    if (user.accounting.isSet() && otherUser.accounting.isSet())
+    {
+        const qevercloud::Accounting & accounting = user.accounting;
+        const qevercloud::Accounting & otherAccounting = otherUser.accounting;
+
+        if (accounting.uploadLimit != otherAccounting.uploadLimit) {
+            return false;
+        }
+        else if (accounting.uploadLimitEnd != otherAccounting.uploadLimitEnd) {
+            return false;
+        }
+        else if (accounting.uploadLimitNextMonth != otherAccounting.uploadLimitNextMonth) {
+            return false;
+        }
+        else if (accounting.premiumServiceStatus != otherAccounting.premiumServiceStatus) {
+            return false;
+        }
+        else if (accounting.premiumOrderNumber != otherAccounting.premiumOrderNumber) {
+            return false;
+        }
+        else if (accounting.premiumCommerceService != otherAccounting.premiumCommerceService) {
+            return false;
+        }
+        else if (accounting.premiumServiceStart != otherAccounting.premiumServiceStart) {
+            return false;
+        }
+        else if (accounting.premiumServiceSKU != otherAccounting.premiumServiceSKU) {
+            return false;
+        }
+        else if (accounting.lastSuccessfulCharge != otherAccounting.lastSuccessfulCharge) {
+            return false;
+        }
+        else if (accounting.lastFailedCharge != otherAccounting.lastFailedCharge) {
+            return false;
+        }
+        else if (accounting.lastFailedChargeReason != otherAccounting.lastFailedChargeReason) {
+            return false;
+        }
+        else if (accounting.nextPaymentDue != otherAccounting.nextPaymentDue) {
+            return false;
+        }
+        else if (accounting.premiumLockUntil != otherAccounting.premiumLockUntil) {
+            return false;
+        }
+        else if (accounting.updated != otherAccounting.updated) {
+            return false;
+        }
+        else if (accounting.premiumSubscriptionNumber != otherAccounting.premiumSubscriptionNumber) {
+            return false;
+        }
+        else if (accounting.lastRequestedCharge != otherAccounting.lastRequestedCharge) {
+            return false;
+        }
+        else if (accounting.currency != otherAccounting.currency) {
+            return false;
+        }
+        else if (accounting.unitPrice != otherAccounting.unitPrice) {
+            return false;
+        }
+        else if (accounting.businessId != otherAccounting.businessId) {
+            return false;
+        }
+        else if (accounting.businessName != otherAccounting.businessName) {
+            return false;
+        }
+        else if (accounting.businessRole != otherAccounting.businessRole) {
+            return false;
+        }
+        else if (accounting.unitDiscount != otherAccounting.unitDiscount) {
+            return false;
+        }
+        else if (accounting.nextChargeDate != otherAccounting.nextChargeDate) {
+            return false;
+        }
+    }
+
+    if (user.premiumInfo.isSet() && otherUser.premiumInfo.isSet())
+    {
+        const qevercloud::PremiumInfo & premiumInfo = user.premiumInfo;
+        const qevercloud::PremiumInfo & otherPremiumInfo = otherUser.premiumInfo;
+
+        if (premiumInfo.currentTime != otherPremiumInfo.currentTime) {
+            return false;
+        }
+        else if (premiumInfo.premium != otherPremiumInfo.premium) {
+            return false;
+        }
+        else if (premiumInfo.premiumRecurring != otherPremiumInfo.premiumRecurring) {
+            return false;
+        }
+        else if (premiumInfo.premiumExpirationDate != otherPremiumInfo.premiumExpirationDate) {
+            return false;
+        }
+        else if (premiumInfo.premiumExtendable != otherPremiumInfo.premiumExtendable) {
+            return false;
+        }
+        else if (premiumInfo.premiumPending != otherPremiumInfo.premiumPending) {
+            return false;
+        }
+        else if (premiumInfo.premiumCancellationPending != otherPremiumInfo.premiumCancellationPending) {
+            return false;
+        }
+        else if (premiumInfo.canPurchaseUploadAllowance != otherPremiumInfo.canPurchaseUploadAllowance) {
+            return false;
+        }
+        else if (premiumInfo.sponsoredGroupName != otherPremiumInfo.sponsoredGroupName) {
+            return false;
+        }
+        else if (premiumInfo.sponsoredGroupRole != otherPremiumInfo.sponsoredGroupRole) {
+            return false;
+        }
+        else if (premiumInfo.premiumUpgradable != otherPremiumInfo.premiumUpgradable) {
+            return false;
+        }
+    }
+
+    if (user.businessUserInfo.isSet() && otherUser.businessUserInfo.isSet())
+    {
+        const qevercloud::BusinessUserInfo & info = user.businessUserInfo;
+        const qevercloud::BusinessUserInfo & otherInfo = otherUser.businessUserInfo;
+
+        if (info.businessId != otherInfo.businessId) {
+            return false;
+        }
+        else if (info.businessName != otherInfo.businessName) {
+            return false;
+        }
+        else if (info.email != otherInfo.email) {
+            return false;
+        }
+        else if (info.role != otherInfo.role) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool IUser::operator!=(const IUser & other) const
@@ -30,7 +313,7 @@ void IUser::clear()
 {
     setDirty(true);
     setLocal(true);
-    GetEnUser() = evernote::edam::User();
+    GetEnUser() = qevercloud::User();
 }
 
 bool IUser::isDirty() const
@@ -56,32 +339,31 @@ void IUser::setLocal(const bool local)
 bool IUser::checkParameters(QString & errorDescription) const
 {
     const auto & enUser = GetEnUser();
-    const auto & isSet = enUser.__isset;
 
-    if (!isSet.id) {
+    if (!enUser.id.isSet()) {
         errorDescription = QObject::tr("User id is not set");
         return false;
     }
 
-    if (!isSet.username) {
+    if (!enUser.username.isSet()) {
         errorDescription = QObject::tr("User name is not set");
         return false;
     }
 
-    QString username = QString::fromStdString(enUser.username);
+    const QString & username = enUser.username;
     size_t usernameSize = username.size();
-    if ( (usernameSize > evernote::limits::g_Limits_constants.EDAM_USER_USERNAME_LEN_MAX) ||
-         (usernameSize < evernote::limits::g_Limits_constants.EDAM_USER_USERNAME_LEN_MIN) )
+    if ( (usernameSize > qevercloud::EDAM_USER_USERNAME_LEN_MAX) ||
+         (usernameSize < qevercloud::EDAM_USER_USERNAME_LEN_MIN) )
     {
         errorDescription = QObject::tr("User name should have length from ");
-        errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_USER_USERNAME_LEN_MIN);
+        errorDescription += QString::number(qevercloud::EDAM_USER_USERNAME_LEN_MIN);
         errorDescription += QObject::tr(" to ");
-        errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_USER_USERNAME_LEN_MAX);
+        errorDescription += QString::number(qevercloud::EDAM_USER_USERNAME_LEN_MAX);
 
         return false;
     }
 
-    QRegExp usernameRegExp(QString::fromStdString(evernote::limits::g_Limits_constants.EDAM_USER_USERNAME_REGEX));
+    QRegExp usernameRegExp = qevercloud::EDAM_USER_USERNAME_REGEX;
     if (usernameRegExp.indexIn(username) < 0) {
         errorDescription = QObject::tr("User name can contain only \"a-z\" or \"0-9\""
                                        "or \"-\" but should not start or end with \"-\"");
@@ -91,47 +373,47 @@ bool IUser::checkParameters(QString & errorDescription) const
     // NOTE: ignore everything about email because "Third party applications that
     // authenticate using OAuth do not have access to this field"
 
-    if (!isSet.name) {
+    if (!enUser.name.isSet()) {
         errorDescription = QObject::tr("User's displayed name is not set");
         return false;
     }
 
-    QString name = QString::fromStdString(enUser.name);
+    const QString & name = enUser.name;
     size_t nameSize = name.size();
-    if ( (nameSize > evernote::limits::g_Limits_constants.EDAM_USER_NAME_LEN_MAX) ||
-         (nameSize < evernote::limits::g_Limits_constants.EDAM_USER_NAME_LEN_MIN) )
+    if ( (nameSize > qevercloud::EDAM_USER_NAME_LEN_MAX) ||
+         (nameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) )
     {
         errorDescription = QObject::tr("User displayed name must have length from ");
-        errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_USER_NAME_LEN_MIN);
+        errorDescription += QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
         errorDescription += QObject::tr(" to ");
-        errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_USER_NAME_LEN_MAX);
+        errorDescription += QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
 
         return false;
     }
 
-    QRegExp nameRegExp(QString::fromStdString(evernote::limits::g_Limits_constants.EDAM_USER_NAME_REGEX));
+    QRegExp nameRegExp(qevercloud::EDAM_USER_NAME_REGEX);
     if (nameRegExp.indexIn(name) < 0) {
         errorDescription = QObject::tr("User displayed name doesn't match its regular expression. "
                                        "Consider removing any special characters");
         return false;
     }
 
-    if (isSet.timezone)
+    if (enUser.timezone.isSet())
     {
-        QString timezone = QString::fromStdString(enUser.timezone);
+        const QString & timezone = enUser.timezone;
         size_t timezoneSize = timezone.size();
-        if ( (timezoneSize > evernote::limits::g_Limits_constants.EDAM_TIMEZONE_LEN_MAX) ||
-             (timezoneSize < evernote::limits::g_Limits_constants.EDAM_TIMEZONE_LEN_MIN) )
+        if ( (timezoneSize > qevercloud::EDAM_TIMEZONE_LEN_MAX) ||
+             (timezoneSize < qevercloud::EDAM_TIMEZONE_LEN_MIN) )
         {
             errorDescription = QObject::tr("User timezone should have length from ");
-            errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_TIMEZONE_LEN_MIN);
+            errorDescription += QString::number(qevercloud::EDAM_TIMEZONE_LEN_MIN);
             errorDescription += QObject::tr(" to ");
-            errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_TIMEZONE_LEN_MAX);
+            errorDescription += QString::number(qevercloud::EDAM_TIMEZONE_LEN_MAX);
 
             return false;
         }
 
-        QRegExp timezoneRegExp(QString::fromStdString(evernote::limits::g_Limits_constants.EDAM_TIMEZONE_REGEX));
+        QRegExp timezoneRegExp(qevercloud::EDAM_TIMEZONE_REGEX);
         if (timezoneRegExp.indexIn(timezone) < 0) {
             errorDescription = QObject::tr("User timezone doesn't match its regular expression. "
                                            "It must be encoded as a standard zone ID such as \"America/Los_Angeles\" "
@@ -140,102 +422,100 @@ bool IUser::checkParameters(QString & errorDescription) const
         }
     }
 
-    if (isSet.attributes)
+    if (enUser.attributes.isSet())
     {
-        const auto & attributes = enUser.attributes;
+        const qevercloud::UserAttributes & attributes = enUser.attributes;
 
-        if (attributes.__isset.defaultLocationName)
+        if (attributes.defaultLocationName.isSet())
         {
-            QString defaultLocationName = QString::fromStdString(attributes.defaultLocationName);
+            const QString & defaultLocationName = attributes.defaultLocationName;
             size_t defaultLocationNameSize = defaultLocationName.size();
-            if ( (defaultLocationNameSize > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) ||
-                 (defaultLocationNameSize < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) )
+            if ( (defaultLocationNameSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
+                 (defaultLocationNameSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
             {
                 errorDescription = QObject::tr("User default location name must have length from ");
-                errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN);
+                errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN);
                 errorDescription += QObject::tr(" to ");
-                errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX);
+                errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX);
 
                 return false;
             }
         }
 
-        if (attributes.__isset.viewedPromotions)
+        if (attributes.viewedPromotions.isSet())
         {
-            const auto & viewedPromotions = attributes.viewedPromotions;
-            for(const auto & item: viewedPromotions)
+            const QStringList & viewedPromotions = attributes.viewedPromotions;
+            foreach(const QString & viewedPromotion, viewedPromotions)
             {
-                QString viewedPromotion = QString::fromStdString(item);
                 size_t viewedPromotionSize = viewedPromotion.size();
-                if ( (viewedPromotionSize > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) ||
-                     (viewedPromotionSize < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) )
+                if ( (viewedPromotionSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
+                     (viewedPromotionSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
                 {
                     errorDescription = QObject::tr("Each User's viewed promotion must have length from ");
-                    errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN);
+                    errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN);
                     errorDescription += QObject::tr(" to ");
-                    errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX);
+                    errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX);
 
                     return false;
                 }
             }
         }
 
-        if (attributes.__isset.incomingEmailAddress)
+        if (attributes.incomingEmailAddress.isSet())
         {
-            QString incomingEmailAddress = QString::fromStdString(attributes.incomingEmailAddress);
+            const QString & incomingEmailAddress = attributes.incomingEmailAddress;
             size_t incomingEmailAddressSize = incomingEmailAddress.size();
-            if ( (incomingEmailAddressSize > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) ||
-                 (incomingEmailAddressSize < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) )
+            if ( (incomingEmailAddressSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
+                 (incomingEmailAddressSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
             {
                 errorDescription = QObject::tr("User's incoming email address must have length from ");
-                errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN);
+                errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN);
                 errorDescription += QObject::tr(" to ");
-                errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX);
+                errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX);
 
                 return false;
             }
         }
 
-        if (attributes.__isset.recentMailedAddresses)
+        if (attributes.recentMailedAddresses.isSet())
         {
-            const auto & recentMailedAddresses = attributes.recentMailedAddresses;
+            const QStringList & recentMailedAddresses = attributes.recentMailedAddresses;
             size_t numRecentMailedAddresses = recentMailedAddresses.size();
-            if (numRecentMailedAddresses > evernote::limits::g_Limits_constants.EDAM_USER_RECENT_MAILED_ADDRESSES_MAX)
+            if (numRecentMailedAddresses > qevercloud::EDAM_USER_RECENT_MAILED_ADDRESSES_MAX)
             {
                 errorDescription = QObject::tr("User must have no more recent mailed addresses than ");
-                errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_USER_RECENT_MAILED_ADDRESSES_MAX);
+                errorDescription += QString::number(qevercloud::EDAM_USER_RECENT_MAILED_ADDRESSES_MAX);
 
                 return false;
             }
 
-            for(const auto & item: recentMailedAddresses)
+            foreach(const QString & recentMailedAddress, recentMailedAddresses)
             {
-                QString recentMailedAddress = QString::fromStdString(item);
                 size_t recentMailedAddressSize = recentMailedAddress.size();
-                if ( (recentMailedAddressSize > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) ||
-                     (recentMailedAddressSize < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) )
+                if ( (recentMailedAddressSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
+                     (recentMailedAddressSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
                 {
                     errorDescription = QObject::tr("Each user's recent emailed address must have length from ");
-                    errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN);
+                    errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN);
                     errorDescription += QObject::tr(" to ");
-                    errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX);
+                    errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX);
 
                     return false;
                 }
             }
         }
 
-        if (attributes.__isset.comments)
+        if (attributes.comments.isSet())
         {
-            QString comments = QString::fromStdString(attributes.comments);
+            const QString & comments = attributes.comments;
             size_t commentsSize = comments.size();
-            if ( (commentsSize > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) ||
-                 (commentsSize < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) )
+            if ( (commentsSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
+                 (commentsSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
             {
                 errorDescription = QObject::tr("User's comments must have length from ");
-                errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN);
+                errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN);
                 errorDescription += QObject::tr(" to ");
-                errorDescription += QString::number(evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX);
+                errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX);
 
                 return false;
             }
@@ -247,7 +527,7 @@ bool IUser::checkParameters(QString & errorDescription) const
 
 bool IUser::hasId() const
 {
-    return GetEnUser().__isset.id;
+    return GetEnUser().id.isSet();
 }
 
 qint32 IUser::id() const
@@ -257,104 +537,93 @@ qint32 IUser::id() const
 
 void IUser::setId(const qint32 id)
 {
-    auto & enUser = GetEnUser();
-    enUser.id = id;
-    enUser.__isset.id = true;
+    GetEnUser().id = id;
 }
 
 bool IUser::hasUsername() const
 {
-    return GetEnUser().__isset.username;
+    return GetEnUser().username.isSet();
 }
 
-const QString IUser::username() const
+const QString & IUser::username() const
 {
-    return std::move(QString::fromStdString(GetEnUser().username));
+    return GetEnUser().username;
 }
 
 void IUser::setUsername(const QString & username)
 {
-    auto & enUser = GetEnUser();
-    enUser.username = username.toStdString();
-    enUser.__isset.username = !username.isEmpty();
+    GetEnUser().username = username;
 }
 
 bool IUser::hasEmail() const
 {
-    return GetEnUser().__isset.email;
+    return GetEnUser().email.isSet();
 }
 
-const QString IUser::email() const
+const QString & IUser::email() const
 {
     return std::move(QString::fromStdString(GetEnUser().email));
 }
 
 void IUser::setEmail(const QString & email)
 {
-    auto & enUser = GetEnUser();
-    enUser.email = email.toStdString();
-    enUser.__isset.email = !email.isEmpty();
+    GetEnUser().email = email;
 }
 
 bool IUser::hasName() const
 {
-    return GetEnUser().__isset.name;
+    return GetEnUser().name.isSet();
 }
 
-const QString IUser::name() const
+const QString & IUser::name() const
 {
-    return std::move(QString::fromStdString(GetEnUser().name));
+    return GetEnUser().name;
 }
 
 void IUser::setName(const QString & name)
 {
-    auto & enUser = GetEnUser();
-    enUser.name = name.toStdString();
-    enUser.__isset.name = !name.isEmpty();
+    GetEnUser().name = name;
 }
 
 bool IUser::hasTimezone() const
 {
-    return GetEnUser().__isset.timezone;
+    return GetEnUser().timezone.isSet();
 }
 
-const QString IUser::timezone() const
+const QString & IUser::timezone() const
 {
-    return std::move(QString::fromStdString(GetEnUser().timezone));
+    return GetEnUser().timezone.isSet();
 }
 
 void IUser::setTimezone(const QString & timezone)
 {
-    auto & enUser = GetEnUser();
-    enUser.timezone = timezone.toStdString();
-    enUser.__isset.timezone = !timezone.isEmpty();
+    GetEnUser().timezone = timezone;
 }
 
 bool IUser::hasPrivilegeLevel() const
 {
-    return GetEnUser().__isset.privilege;
+    return GetEnUser().privilege.isSet();
 }
 
-const qint8 IUser::privilegeLevel() const
+const IUser::PrivilegeLevel IUser::privilegeLevel() const
 {
     return GetEnUser().privilege;
 }
 
 void IUser::setPrivilegeLevel(const qint8 level)
 {
-    auto & enUser = GetEnUser();
-    if (level <= static_cast<qint8>(evernote::edam::PrivilegeLevel::ADMIN)) {
-        enUser.privilege = static_cast<evernote::edam::PrivilegeLevel::type>(level);
-        enUser.__isset.privilege = true;
+    qevercloud::User & enUser = GetEnUser();
+    if (level <= static_cast<qint8>(qevercloud::PrivilegeLevel::ADMIN)) {
+        enUser.privilege = static_cast<PrivilegeLevel>(level);
     }
     else {
-        enUser.__isset.privilege = false;
+        enUser.privilege.clear();
     }
 }
 
 bool IUser::hasCreationTimestamp() const
 {
-    return GetEnUser().__isset.created;
+    return GetEnUser().created.isSet();
 }
 
 qint64 IUser::creationTimestamp() const
@@ -364,14 +633,18 @@ qint64 IUser::creationTimestamp() const
 
 void IUser::setCreationTimestamp(const qint64 timestamp)
 {
-    auto & enUser = GetEnUser();
-    enUser.created = timestamp;
-    enUser.__isset.created = (timestamp >= 0);
+    // TODO: verify whether it really matters
+    if (timestamp >= 0) {
+        GetEnUser().created = timestamp;
+    }
+    else {
+        GetEnUser().created.clear();
+    }
 }
 
 bool IUser::hasModificationTimestamp() const
 {
-    return GetEnUser().__isset.updated;
+    return GetEnUser().updated.isSet();
 }
 
 qint64 IUser::modificationTimestamp() const
@@ -381,14 +654,18 @@ qint64 IUser::modificationTimestamp() const
 
 void IUser::setModificationTimestamp(const qint64 timestamp)
 {
-    auto & enUser = GetEnUser();
-    enUser.updated = timestamp;
-    enUser.__isset.updated = (timestamp >= 0);
+    // TODO: verify whether it really matters
+    if (timestamp >= 0) {
+        GetEnUser().updated = timestamp;
+    }
+    else {
+        GetEnUser().updated.clear();
+    }
 }
 
 bool IUser::hasDeletionTimestamp() const
 {
-    return GetEnUser().__isset.deleted;
+    return GetEnUser().deleted.isSet();
 }
 
 qint64 IUser::deletionTimestamp() const
@@ -398,14 +675,18 @@ qint64 IUser::deletionTimestamp() const
 
 void IUser::setDeletionTimestamp(const qint64 timestamp)
 {
-    auto & enUser = GetEnUser();
-    enUser.deleted = timestamp;
-    enUser.__isset.deleted = (timestamp >= 0);
+    // TODO: verify whether it really matters
+    if (timestamp >= 0) {
+        GetEnUser().deleted = timestamp;
+    }
+    else {
+        GetEnUser().deleted.clear();
+    }
 }
 
 bool IUser::hasActive() const
 {
-    return GetEnUser().__isset.active;
+    return GetEnUser().active.isSet();
 }
 
 bool IUser::active() const
@@ -415,54 +696,42 @@ bool IUser::active() const
 
 void IUser::setActive(const bool active)
 {
-    auto & enUser = GetEnUser();
-    enUser.active = active;
-    enUser.__isset.active = true;
+    GetEnUser().active = active;
 }
 
 bool IUser::hasUserAttributes() const
 {
-    return GetEnUser().__isset.attributes;
+    return GetEnUser().attributes.isSet();
 }
 
-const evernote::edam::UserAttributes & IUser::userAttributes() const
+const qevercloud::UserAttributes & IUser::userAttributes() const
 {
     return GetEnUser().attributes;
 }
 
-evernote::edam::UserAttributes & IUser::userAttributes()
+void IUser::setUserAttributes(qevercloud::UserAttributes && attributes)
 {
-    return GetEnUser().attributes;
-}
-
-void IUser::setHasAttributes(const bool hasAttributes)
-{
-    GetEnUser().__isset.attributes = hasAttributes;
+    GetEnUser().attributes = std::move(attributes);
 }
 
 bool IUser::hasAccounting() const
 {
-    return GetEnUser().__isset.accounting;
+    return GetEnUser().accounting.isSet();
 }
 
-const evernote::edam::Accounting & IUser::accounting() const
+const qevercloud::Accounting & IUser::accounting() const
 {
     return GetEnUser().accounting;
 }
 
-evernote::edam::Accounting & IUser::accounting()
+void IUser::setAccounting(qevercloud::Accounting && accounting)
 {
-    return GetEnUser().accounting;
-}
-
-void IUser::setHasAccounting(const bool hasAccounting)
-{
-    GetEnUser().__isset.accounting = hasAccounting;
+    GetEnUser().accounting = std::move(accounting);
 }
 
 bool IUser::hasPremiumInfo() const
 {
-    return GetEnUser().__isset.premiumInfo;
+    return GetEnUser().premiumInfo.isSet();
 }
 
 const evernote::edam::PremiumInfo & IUser::premiumInfo() const
@@ -470,19 +739,14 @@ const evernote::edam::PremiumInfo & IUser::premiumInfo() const
     return GetEnUser().premiumInfo;
 }
 
-evernote::edam::PremiumInfo & IUser::premiumInfo()
+void IUser::setPremiumInfo(qevercloud::PremiumInfo && premiumInfo)
 {
-    return GetEnUser().premiumInfo;
-}
-
-void IUser::setHasPremiumInfo(const bool hasPremiumInfo)
-{
-    GetEnUser().__isset.premiumInfo = hasPremiumInfo;
+    GetEnUser().premiumInfo = std::move(premiumInfo);
 }
 
 bool IUser::hasBusinessUserInfo() const
 {
-    return GetEnUser().__isset.businessUserInfo;
+    return GetEnUser().businessUserInfo.isSet();
 }
 
 const evernote::edam::BusinessUserInfo & IUser::businessUserInfo() const
@@ -490,17 +754,10 @@ const evernote::edam::BusinessUserInfo & IUser::businessUserInfo() const
     return GetEnUser().businessUserInfo;
 }
 
-evernote::edam::BusinessUserInfo & IUser::businessUserInfo()
+void IUser::setBusinessUserInfo(qevercloud::BusinessUserInfo && info)
 {
-    return GetEnUser().businessUserInfo;
+    GetEnUser().businessUserInfo = std::move(info);
 }
-
-void IUser::setHasBusinessUserInfo(const bool hasBusinessUserInfo)
-{
-    GetEnUser().__isset.businessUserInfo = hasBusinessUserInfo;
-}
-
-
 
 IUser::IUser(const IUser & other) :
     m_isDirty(other.m_isDirty),
@@ -514,101 +771,105 @@ QTextStream & IUser::Print(QTextStream & strm) const
     strm << "isLocal = " << (m_isLocal ? "true" : "false") << "; \n";
 
     const auto & enUser = GetEnUser();
-    const auto & isSet = enUser.__isset;
 
-    if (isSet.id) {
+    if (enUser.id.isSet()) {
         strm << "User ID = " << QString::number(enUser.id) << "; \n";
     }
     else {
         strm << "User ID is not set" << "; \n";
     }
 
-    if (isSet.username) {
-        strm << "username = " << QString::fromStdString(enUser.username) << "; \n";
+    if (enUser.username.isSet()) {
+        strm << "username = " << enUser.username << "; \n";
     }
     else {
         strm << "username is not set" << "; \n";
     }
 
-    if (isSet.email) {
-        strm << "email = " << QString::fromStdString(enUser.email) << "; \n";
+    if (enUser.email.isSet()) {
+        strm << "email = " << enUser.email << "; \n";
     }
     else {
         strm << "email is not set" << "; \n";
     }
 
-    if (isSet.name) {
-        strm << "name = " << QString::fromStdString(enUser.name) << "; \n";
+    if (enUser.name.isSet()) {
+        strm << "name = " << enUser.name << "; \n";
     }
     else {
         strm << "name is not set" << "; \n";
     }
 
-    if (isSet.timezone) {
-        strm << "timezone = " << QString::fromStdString(enUser.timezone) << "; \n";
+    if (enUser.timezone.isSet()) {
+        strm << "timezone = " << enUser.timezone << "; \n";
     }
     else {
         strm << "timezone is not set" << "; \n";
     }
 
-    if (isSet.privilege) {
-        strm << "privilege = " << enUser.privilege << "; \n";
+    if (enUser.privilege.isSet()) {
+        // TODO: (re)implement printing of PrivilegeLevel
+        strm << "privilege = " << QString::number(enUser.privilege) << "; \n";
     }
     else {
         strm << "privilege is not set" << "; \n";
     }
 
-    if (isSet.created) {
+    if (enUser.created.isSet()) {
         strm << "created = " << PrintableDateTimeFromTimestamp(enUser.created) << "; \n";
     }
     else {
         strm << "created is not set" << "; \n";
     }
 
-    if (isSet.updated) {
+    if (enUser.updated.isSet()) {
         strm << "updated = " << PrintableDateTimeFromTimestamp(enUser.updated) << "; \n";
     }
     else {
         strm << "updated is not set" << "; \n";
     }
 
-    if (isSet.deleted) {
+    if (enUser.deleted.isSet()) {
         strm << "deleted = " << PrintableDateTimeFromTimestamp(enUser.deleted) << "; \n";
     }
     else {
         strm << "deleted is not set" << "; \n";
     }
 
-    if (isSet.active) {
+    if (enUser.active.isSet()) {
         strm << "active = " << (enUser.active ? "true" : "false") << "; \n";
     }
     else {
         strm << "active is not set" << "; \n";
     }
 
-    if (isSet.attributes) {
-        strm << enUser.attributes;
+    if (enUser.attributes.isSet()) {
+        // TODO: (re)implement printing of UserAttributes
+        // strm << enUser.attributes;
     }
     else {
         strm << "attributes are not set" << "; \n";
     }
 
-    if (isSet.accounting) {
-        strm << enUser.accounting;
+    if (enUser.accounting.isSet()) {
+        // TODO: (re)implement printing of Accounting
+        // strm << enUser.accounting;
     }
     else {
         strm << "accounting is not set" << "; \n";
     }
 
-    if (isSet.premiumInfo) {
-        strm << enUser.premiumInfo;
+    if (enUser.premiumInfo.isSet()) {
+        // TODO: (re)implement printing of PremiumInfo
+        // strm << enUser.premiumInfo;
     }
     else {
         strm << "premium info is not set" << "; \n";
     }
 
-    if (isSet.businessUserInfo) {
-        strm << enUser.businessUserInfo;
+    if (enUser.businessUserInfo.isSet()) {
+        // TODO: (re)implement printing of BusinessUserInfo
+        // strm << enUser.businessUserInfo;
     }
     else {
         strm << "business user info is not set" << "; \n";

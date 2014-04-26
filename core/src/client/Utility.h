@@ -25,7 +25,7 @@ bool CheckGuid(const T & guid)
 
 bool CheckUpdateSequenceNumber(const int32_t updateSequenceNumber);
 
-const QString PrintableDateTimeFromTimestamp(const evernote::edam::Timestamp timestamp);
+const QString PrintableDateTimeFromTimestamp(const quint64 timestamp);
 
 } // namespace qute_note
 
