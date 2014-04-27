@@ -69,7 +69,7 @@ bool IUser::operator==(const IUser & other) const
         return false;
     }
 
-    if (user.attributes.isSet() && otherUser.attributes.isSet())
+    if (user.attributes.isSet())
     {
         const qevercloud::UserAttributes & attributes = user.attributes;
         const qevercloud::UserAttributes & otherAttributes = otherUser.attributes;
@@ -166,7 +166,7 @@ bool IUser::operator==(const IUser & other) const
         }
     }
 
-    if (user.accounting.isSet() && otherUser.accounting.isSet())
+    if (user.accounting.isSet())
     {
         const qevercloud::Accounting & accounting = user.accounting;
         const qevercloud::Accounting & otherAccounting = otherUser.accounting;
@@ -242,7 +242,7 @@ bool IUser::operator==(const IUser & other) const
         }
     }
 
-    if (user.premiumInfo.isSet() && otherUser.premiumInfo.isSet())
+    if (user.premiumInfo.isSet())
     {
         const qevercloud::PremiumInfo & premiumInfo = user.premiumInfo;
         const qevercloud::PremiumInfo & otherPremiumInfo = otherUser.premiumInfo;
@@ -282,7 +282,7 @@ bool IUser::operator==(const IUser & other) const
         }
     }
 
-    if (user.businessUserInfo.isSet() && otherUser.businessUserInfo.isSet())
+    if (user.businessUserInfo.isSet())
     {
         const qevercloud::BusinessUserInfo & info = user.businessUserInfo;
         const qevercloud::BusinessUserInfo & otherInfo = otherUser.businessUserInfo;

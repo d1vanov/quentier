@@ -3,6 +3,7 @@
 
 #include "NoteStoreDataElement.h"
 #include <Types_types.h>
+#include <QEverCloud.h>
 
 namespace qute_note {
 
@@ -15,8 +16,16 @@ class Notebook final: public NoteStoreDataElement
 {
 public:
     Notebook();
-    Notebook(const Notebook & other);
-    Notebook & operator =(const Notebook & other);
+    Notebook(const Notebook & other) = default;
+    Notebook(Notebook && other) = default;
+    Notebook & operator=(const Notebook & other) = default;
+    Notebook & operator=(Notebook && other) = default;
+
+    Notebook(const qevercloud::Notebook & other);
+    Notebook(qevercloud::Notebook && other);
+    Notebook & operator=(const qevercloud::Notebook & other);
+    Notebook & operator=(qevercloud::Notebook && other);
+
     virtual ~Notebook() final override;
 
     bool operator==(const Notebook & other) const;
@@ -35,7 +44,7 @@ public:
     virtual bool checkParameters(QString & errorDescription) const final override;
 
     bool hasName() const;
-    const QString name() const;
+    const QString & name() const;
     void setName(const QString & name);
 
     bool isDefaultNotebook() const;
@@ -50,7 +59,7 @@ public:
     void setModificationTimestamp(const qint64 timestamp);
 
     bool hasPublishingUri() const;
-    const QString publishingUri() const;
+    const QString & publishingUri() const;
     void setPublishingUri(const QString & uri);
 
     bool hasPublishingOrder() const;
@@ -171,6 +180,7 @@ public:
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
+    qevercloud::Notebook m_qecNotebook;
     evernote::edam::Notebook m_enNotebook;
     bool   m_isLocal;
     bool   m_isLastUsed;

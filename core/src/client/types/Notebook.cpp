@@ -1,36 +1,43 @@
 #include "Notebook.h"
 #include "SharedNotebookAdapter.h"
 #include "UserAdapter.h"
+#include "QEverCloudOptionalQString.hpp"
 #include "../Utility.h"
 #include "../Serialization.h"
 #include <logging/QuteNoteLogger.h>
-#include <Limits_constants.h>
 
 namespace qute_note {
 
 Notebook::Notebook() :
     NoteStoreDataElement(),
-    m_enNotebook(),
+    m_qecNotebook(),
     m_isLocal(true),
     m_isLastUsed(false)
 {}
 
-Notebook::Notebook(const Notebook &other) :
-    NoteStoreDataElement(other),
-    m_enNotebook(other.m_enNotebook),
-    m_isLocal(other.m_isLocal),
-    m_isLastUsed(other.m_isLastUsed)
+Notebook::Notebook(const qevercloud::Notebook & other) :
+    NoteStoreDataElement(),
+    m_qecNotebook(other),
+    m_isLocal(true),
+    m_isLastUsed(false)
 {}
 
-Notebook & Notebook::operator=(const Notebook & other)
-{
-    if (this != &other) {
-        NoteStoreDataElement::operator=(other);
-        m_enNotebook = other.m_enNotebook;
-        m_isLocal = other.m_isLocal;
-        m_isLastUsed = other.m_isLastUsed;
-    }
+Notebook::Notebook(qevercloud::Notebook && other) :
+    NoteStoreDataElement(),
+    m_qecNotebook(std::move(other)),
+    m_isLocal(true),
+    m_isLastUsed(false)
+{}
 
+Notebook & Notebook::operator=(const qevercloud::Notebook & other)
+{
+    m_qecNotebook = other;
+    return *this;
+}
+
+Notebook & Notebook::operator=(qevercloud::Notebook && other)
+{
+    m_qecNotebook = std::move(other);
     return *this;
 }
 
@@ -39,10 +46,171 @@ Notebook::~Notebook()
 
 bool Notebook::operator==(const Notebook & other) const
 {
-    return ( (isDirty() == other.isDirty()) &&
-             (m_enNotebook == other.m_enNotebook) &&
-             (m_isLocal == other.m_isLocal) &&
-             (m_isLastUsed == other.m_isLastUsed) );
+    if (isDirty() != other.isDirty()) {
+        return false;
+    }
+    else if (m_isLocal != other.m_isLocal) {
+        return false;
+    }
+    else if (m_isLastUsed != other.m_isLastUsed) {
+        return false;
+    }
+
+    const qevercloud::Notebook & otherNotebook = other.m_qecNotebook;
+
+    if (m_qecNotebook.guid != otherNotebook.guid) {
+        return false;
+    }
+    else if (m_qecNotebook.name != otherNotebook.name) {
+        return false;
+    }
+    else if (m_qecNotebook.updateSequenceNum != otherNotebook.updateSequenceNum) {
+        return false;
+    }
+    else if (m_qecNotebook.defaultNotebook != otherNotebook.defaultNotebook) {
+        return false;
+    }
+    else if (m_qecNotebook.serviceCreated != otherNotebook.serviceCreated) {
+        return false;
+    }
+    else if (m_qecNotebook.serviceUpdated != otherNotebook.serviceUpdated) {
+        return false;
+    }
+    else if (m_qecNotebook.published != otherNotebook.published) {
+        return false;
+    }
+    else if (m_qecNotebook.stack != otherNotebook.stack) {
+        return false;
+    }
+    else if (m_qecNotebook.sharedNotebooks != otherNotebook.sharedNotebooks) {
+        return false;
+    }
+    else if (m_qecNotebook.publishing.isSet() != otherNotebook.publishing.isSet()) {
+        return false;
+    }
+    else if (m_qecNotebook.businessNotebook.isSet() != otherNotebook.businessNotebook.isSet()) {
+        return false;
+    }
+    else if (m_qecNotebook.contact.isSet() != otherNotebook.contact.isSet()) {
+        return false;
+    }
+    else if (m_qecNotebook.restrictions.isSet() != otherNotebook.restrictions.isSet()) {
+        return false;
+    }
+
+    if (m_qecNotebook.publishing.isSet())
+    {
+        const qevercloud::Publishing & publishing = m_qecNotebook.publishing;
+        const qevercloud::Publishing & otherPublishing = otherNotebook.publishing;
+
+        if (publishing.uri != otherPublishing.uri) {
+            return false;
+        }
+        else if (publishing.order != otherPublishing.order) {
+            return false;
+        }
+        else if (publishing.ascending != otherPublishing.ascending) {
+            return false;
+        }
+        else if (publishing.publicDescription != otherPublishing.publicDescription) {
+            return false;
+        }
+    }
+
+    if (m_qecNotebook.businessNotebook.isSet())
+    {
+        const qevercloud::BusinessNotebook & businessNotebook = m_qecNotebook.businessNotebook;
+        const qevercloud::BusinessNotebook & otherBusinessNotebook = otherNotebook.businessNotebook;
+
+        if (businessNotebook.notebookDescription != otherBusinessNotebook.notebookDescription) {
+            return false;
+        }
+        else if (businessNotebook.privilege != otherBusinessNotebook.privilege) {
+            return false;
+        }
+        else if (businessNotebook.recommended != otherBusinessNotebook.recommended) {
+            return false;
+        }
+    }
+
+    if (m_qecNotebook.contact.isSet())
+    {
+        UserAdapter contact(m_qecNotebook.contact);
+        UserAdapter otherContact(otherNotebook.contact);
+
+        if (contact != otherContact) {
+            return false;
+        }
+    }
+
+    if (m_qecNotebook.restrictions.isSet())
+    {
+        const qevercloud::NotebookRestrictions & restrictions = m_qecNotebook.restrictions;
+        const qevercloud::NotebookRestrictions & otherRestrictions = otherNotebook.restrictions;
+
+        if (restrictions.noReadNotes != otherRestrictions.noReadNotes) {
+            return false;
+        }
+        else if (restrictions.noCreateNotes != otherRestrictions.noCreateNotes) {
+            return false;
+        }
+        else if (restrictions.noUpdateNotes != otherRestrictions.noUpdateNotes) {
+            return false;
+        }
+        else if (restrictions.noExpungeNotes != otherRestrictions.noExpungeNotes) {
+            return false;
+        }
+        else if (restrictions.noShareNotes != otherRestrictions.noShareNotes) {
+            return false;
+        }
+        else if (restrictions.noEmailNotes != otherRestrictions.noEmailNotes) {
+            return false;
+        }
+        else if (restrictions.noSendMessageToRecipients != otherRestrictions.noSendMessageToRecipients) {
+            return false;
+        }
+        else if (restrictions.noUpdateNotebook != otherRestrictions.noUpdateNotebook) {
+            return false;
+        }
+        else if (restrictions.noExpungeNotebook != otherRestrictions.noExpungeNotebook) {
+            return false;
+        }
+        else if (restrictions.noSetDefaultNotebook != otherRestrictions.noSetDefaultNotebook) {
+            return false;
+        }
+        else if (restrictions.noSetNotebookStack != otherRestrictions.noSetNotebookStack) {
+            return false;
+        }
+        else if (restrictions.noPublishToPublic != otherRestrictions.noPublishToPublic) {
+            return false;
+        }
+        else if (restrictions.noPublishToBusinessLibrary != otherRestrictions.noPublishToBusinessLibrary) {
+            return false;
+        }
+        else if (restrictions.noCreateTags != otherRestrictions.noCreateTags) {
+            return false;
+        }
+        else if (restrictions.noUpdateTags != otherRestrictions.noUpdateTags) {
+            return false;
+        }
+        else if (restrictions.noExpungeTags != otherRestrictions.noExpungeTags) {
+            return false;
+        }
+        else if (restrictions.noSetParentTag != otherRestrictions.noSetParentTag) {
+            return false;
+        }
+        else if (restrictions.noCreateSharedNotebooks != otherRestrictions.noCreateSharedNotebooks) {
+            return false;
+        }
+        else if (restrictions.updateWhichSharedNotebookRestrictions != otherRestrictions.updateWhichSharedNotebookRestrictions) {
+            return false;
+        }
+        else if (restrictions.expungeWhichSharedNotebookRestrictions != otherRestrictions.expungeWhichSharedNotebookRestrictions) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool Notebook::operator!=(const Notebook & other) const
@@ -52,121 +220,117 @@ bool Notebook::operator!=(const Notebook & other) const
 
 void Notebook::clear()
 {
-    m_enNotebook = evernote::edam::Notebook();
+    m_qecNotebook = qevercloud::Notebook();
 }
 
 bool Notebook::hasGuid() const
 {
-    return m_enNotebook.__isset.guid;
+    return m_qecNotebook.guid.isSet();
 }
 
 const QString Notebook::guid() const
 {
-    return std::move(QString::fromStdString(m_enNotebook.guid));
+    return m_qecNotebook.guid;
 }
 
 void Notebook::setGuid(const QString & guid)
 {
-    m_enNotebook.guid = guid.toStdString();
-    m_enNotebook.__isset.guid = !guid.isEmpty();
+    m_qecNotebook.guid = guid;
 }
 
 bool Notebook::hasUpdateSequenceNumber() const
 {
-    return m_enNotebook.__isset.updateSequenceNum;
+    return m_qecNotebook.updateSequenceNum.isSet();
 }
 
 qint32 Notebook::updateSequenceNumber() const
 {
-    return static_cast<qint32>(m_enNotebook.updateSequenceNum);
+    return m_qecNotebook.updateSequenceNum;
 }
 
 void Notebook::setUpdateSequenceNumber(const qint32 usn)
 {
-    m_enNotebook.updateSequenceNum = static_cast<int32_t>(usn);
-    m_enNotebook.__isset.updateSequenceNum = true;
+    m_qecNotebook.updateSequenceNum = usn;
 }
 
 bool Notebook::checkParameters(QString & errorDescription) const
 {
-    if (!m_enNotebook.__isset.guid) {
+    if (!m_qecNotebook.guid.isSet()) {
         errorDescription = QObject::tr("Notebook's guid is not set");
         return false;
     }
-    else if (!CheckGuid(m_enNotebook.guid)) {
+    else if (!CheckGuid(m_qecNotebook.guid.ref())) {
         errorDescription = QObject::tr("Notebook's guid is invalid");
         return false;
     }
 
-    if (!m_enNotebook.__isset.updateSequenceNum) {
+    if (!m_qecNotebook.updateSequenceNum.isSet()) {
         errorDescription = QObject::tr("Notebook's update sequence number is not set");
         return false;
     }
-    else if (!CheckUpdateSequenceNumber(m_enNotebook.updateSequenceNum)) {
+    else if (!CheckUpdateSequenceNumber(m_qecNotebook.updateSequenceNum)) {
         errorDescription = QObject::tr("Notebook's update sequence number is invalid");
         return false;
     }
 
-    if (!m_enNotebook.__isset.name) {
+    if (!m_qecNotebook.name.isSet()) {
         errorDescription = QObject::tr("Notebook's name is not set");
         return false;
     }
-    else {
-        size_t nameSize = m_enNotebook.name.size();
 
-        if ( (nameSize < evernote::limits::g_Limits_constants.EDAM_NOTEBOOK_NAME_LEN_MIN) ||
-             (nameSize > evernote::limits::g_Limits_constants.EDAM_NOTEBOOK_NAME_LEN_MAX) )
-        {
-            errorDescription = QObject::tr("Notebook's name has invalid size");
-            return false;
-        }
+    size_t nameSize = m_qecNotebook.name->size();
+
+    if ( (nameSize < qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN) ||
+         (nameSize > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX) )
+    {
+        errorDescription = QObject::tr("Notebook's name has invalid size");
+        return false;
     }
 
-    if (!m_enNotebook.__isset.serviceCreated) {
+    if (!m_qecNotebook.serviceCreated.isSet()) {
         errorDescription = QObject::tr("Notebook's creation timestamp is not set");
         return false;
     }
 
-    if (!m_enNotebook.__isset.serviceUpdated) {
+    if (!m_qecNotebook.serviceUpdated.isSet()) {
         errorDescription = QObject::tr("Notebook's modification timestamp is not set");
         return false;
     }
 
-    if (m_enNotebook.__isset.sharedNotebooks)
+    if (m_qecNotebook.sharedNotebooks.isSet())
     {
-        for(const auto & sharedNotebook: m_enNotebook.sharedNotebooks)
+        foreach(const qevercloud::SharedNotebook & sharedNotebook, m_qecNotebook.sharedNotebooks.ref())
         {
-            if (!sharedNotebook.__isset.id) {
+            if (!sharedNotebook.id.isSet()) {
                 errorDescription = QObject::tr("Notebook has shared notebook without share id set");
                 return false;
             }
 
-            if (!sharedNotebook.__isset.notebookGuid) {
+            if (!sharedNotebook.notebookGuid.isSet()) {
                 errorDescription = QObject::tr("Notebook has shared notebook without real notebook's guid set");
                 return false;
             }
-            else if (!CheckGuid(sharedNotebook.notebookGuid)) {
+            else if (!CheckGuid(sharedNotebook.notebookGuid.ref())) {
                 errorDescription = QObject::tr("Notebook has shared notebook with invalid guid");
                 return false;
             }
         }
     }
 
-    if (m_enNotebook.__isset.businessNotebook)
+    if (m_qecNotebook.businessNotebook.isSet())
     {
-        if (!m_enNotebook.businessNotebook.__isset.notebookDescription) {
+        if (!m_qecNotebook.businessNotebook->notebookDescription.isSet()) {
             errorDescription = QObject::tr("Description for business notebook is not set");
             return false;
         }
-        else {
-            size_t businessNotebookDescriptionSize = m_enNotebook.businessNotebook.notebookDescription.size();
 
-            if ( (businessNotebookDescriptionSize < evernote::limits::g_Limits_constants.EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MIN) ||
-                 (businessNotebookDescriptionSize > evernote::limits::g_Limits_constants.EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MAX) )
-            {
-                errorDescription = QObject::tr("Description for business notebook has invalid size");
-                return false;
-            }
+        size_t businessNotebookDescriptionSize = m_qecNotebook.businessNotebook->notebookDescription->size();
+
+        if ( (businessNotebookDescriptionSize < qevercloud::EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MIN) ||
+             (businessNotebookDescriptionSize > qevercloud::EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MAX) )
+        {
+            errorDescription = QObject::tr("Description for business notebook has invalid size");
+            return false;
         }
     }
 
@@ -175,12 +339,12 @@ bool Notebook::checkParameters(QString & errorDescription) const
 
 bool Notebook::hasName() const
 {
-    return m_enNotebook.__isset.name;
+    return m_qecNotebook.name.isSet();
 }
 
-const QString Notebook::name() const
+const QString & Notebook::name() const
 {
-    return std::move(QString::fromStdString(m_enNotebook.name));
+    return m_qecNotebook.name;
 }
 
 void Notebook::setName(const QString & name)
@@ -190,13 +354,12 @@ void Notebook::setName(const QString & name)
         return;
     }
 
-    m_enNotebook.name = name.toStdString();
-    m_enNotebook.__isset.name = !name.isEmpty();
+    m_qecNotebook.name = name;
 }
 
 bool Notebook::isDefaultNotebook() const
 {
-    return (m_enNotebook.__isset.defaultNotebook && m_enNotebook.defaultNotebook);
+    return m_qecNotebook.defaultNotebook.isSet() && m_qecNotebook.defaultNotebook;
 }
 
 void Notebook::setDefaultNotebook(const bool defaultNotebook)
@@ -206,34 +369,32 @@ void Notebook::setDefaultNotebook(const bool defaultNotebook)
         return;
     }
 
-    m_enNotebook.defaultNotebook = defaultNotebook;
-    m_enNotebook.__isset.defaultNotebook = true;
+    m_qecNotebook.defaultNotebook = defaultNotebook;
 }
 
 bool Notebook::hasCreationTimestamp() const
 {
-    return m_enNotebook.__isset.serviceCreated;
+    return m_qecNotebook.serviceCreated.isSet();
 }
 
 qint64 Notebook::creationTimestamp() const
 {
-    return m_enNotebook.serviceCreated;
+    return m_qecNotebook.serviceCreated;
 }
 
 void Notebook::setCreationTimestamp(const qint64 timestamp)
 {
-    m_enNotebook.serviceCreated = timestamp;
-    m_enNotebook.__isset.serviceCreated = true;
+    m_qecNotebook.serviceCreated = timestamp;
 }
 
 bool Notebook::hasModificationTimestamp() const
 {
-    return m_enNotebook.__isset.serviceUpdated;
+    return m_qecNotebook.serviceUpdated.isSet();
 }
 
 qint64 Notebook::modificationTimestamp() const
 {
-    return m_enNotebook.serviceUpdated;
+    return m_qecNotebook.serviceUpdated;
 }
 
 void Notebook::setModificationTimestamp(const qint64 timestamp)
@@ -243,25 +404,22 @@ void Notebook::setModificationTimestamp(const qint64 timestamp)
         return;
     }
 
-    m_enNotebook.serviceUpdated = timestamp;
-    m_enNotebook.__isset.serviceUpdated = true;
+    m_qecNotebook.serviceUpdated = timestamp;
 }
 
 bool Notebook::hasPublishingUri() const
 {
-    return m_enNotebook.__isset.publishing && m_enNotebook.publishing.__isset.uri;
+    return m_qecNotebook.publishing.isSet() && m_qecNotebook.publishing->uri.isSet();
 }
 
-const QString Notebook::publishingUri() const
+const QString & Notebook::publishingUri() const
 {
-    return std::move(QString::fromStdString(m_enNotebook.publishing.uri));
+    return m_qecNotebook.publishing->uri;
 }
 
 #define CHECK_AND_SET_PUBLISHING \
-    if (m_enNotebook.publishing.__isset.uri || m_enNotebook.publishing.__isset.order || \
-        m_enNotebook.publishing.__isset.ascending || m_enNotebook.publishing.__isset.publicDescription)  \
-    { \
-        m_enNotebook.__isset.publishing = true; \
+    if (!m_qecNotebook.publishing.isSet()) { \
+        m_qecNotebook.publishing = qevercloud::Publishing(); \
     }
 
 void Notebook::setPublishingUri(const QString & uri)
@@ -271,19 +429,21 @@ void Notebook::setPublishingUri(const QString & uri)
         return;
     }
 
-    m_enNotebook.publishing.uri = uri.toStdString();
-    m_enNotebook.publishing.__isset.uri = !uri.isEmpty();
-    CHECK_AND_SET_PUBLISHING;
+    if (!uri.isEmpty()) {
+        CHECK_AND_SET_PUBLISHING;
+    }
+
+    m_qecNotebook.publishing->uri = uri;
 }
 
 bool Notebook::hasPublishingOrder() const
 {
-    return m_enNotebook.__isset.publishing && m_enNotebook.publishing.__isset.order;
+    return m_qecNotebook.publishing.isSet() && m_qecNotebook.publishing->order.isSet();
 }
 
 qint8 Notebook::publishingOrder() const
 {
-    return static_cast<qint8>(m_enNotebook.publishing.order);
+    return static_cast<qint8>(m_qecNotebook.publishing->order);
 }
 
 void Notebook::setPublishingOrder(const qint8 order)
@@ -293,10 +453,16 @@ void Notebook::setPublishingOrder(const qint8 order)
         return;
     }
 
-    m_enNotebook.publishing.order = static_cast<evernote::edam::NoteSortOrder::type>(order);
-    m_enNotebook.publishing.__isset.order = true;
-    CHECK_AND_SET_PUBLISHING;
+    if (order <= static_cast<qint8>(qevercloud::NoteSortOrder::TITLE)) {
+        CHECK_AND_SET_PUBLISHING;
+        m_qecNotebook.publishing->order = static_cast<qevercloud::NoteSortOrder::type>(order);
+    }
+    else if (m_qecNotebook.publishing.isSet()) {
+        m_qecNotebook.publishing->order.clear();
+    }
 }
+
+// TODO: continue from here
 
 bool Notebook::hasPublishingAscending() const
 {
