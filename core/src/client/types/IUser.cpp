@@ -764,6 +764,11 @@ IUser::IUser(const IUser & other) :
     m_isLocal(other.m_isLocal)
 {}
 
+IUser::IUser(IUser && other) :
+    m_isDirty(std::move(other.m_isDirty)),
+    m_isLocal(std::move(other.m_isLocal))
+{}
+
 QTextStream & IUser::Print(QTextStream & strm) const
 {
     strm << "IUser { \n";

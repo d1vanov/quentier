@@ -89,6 +89,7 @@ public:
 
 protected:
     IUser(const IUser & other);
+    IUser(IUser && other);
 
     virtual const qevercloud::User & GetEnUser() const = 0;
     virtual qevercloud::User & GetEnUser() = 0;

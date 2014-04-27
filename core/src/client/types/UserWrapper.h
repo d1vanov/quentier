@@ -2,27 +2,30 @@
 #define __QUTE_NOTE__CLIENT__TYPES__USER_WRAPPER_H
 
 #include "IUser.h"
-#include <Types_types.h>
+#include <QEverCloud.h>
 
 namespace qute_note {
 
 /**
  * @brief The UserWrapper class creates and manages its own instance of
- * evernote::edam::User object
+ * qevercloud::User object
  */
 class UserWrapper final: public IUser
 {
 public:
-    UserWrapper();
-    UserWrapper(const UserWrapper & other);
-    UserWrapper & operator=(const UserWrapper & other);
+    UserWrapper() = default;
+    UserWrapper(const UserWrapper & other) = default;
+    UserWrapper(UserWrapper && other) = default;
+    UserWrapper & operator=(const UserWrapper & other) = default;
+    UserWrapper & operator=(UserWrapper && other) = default;
+
     virtual ~UserWrapper() final override;
 
 private:
-    virtual const evernote::edam::User & GetEnUser() const final override;
-    virtual evernote::edam::User & GetEnUser() final override;
+    virtual const qevercloud::User & GetEnUser() const final override;
+    virtual qevercloud::User & GetEnUser() final override;
 
-    evernote::edam::User m_enUser;
+    qevercloud::User m_qecUser;
 };
 
 } // namespace qute_note

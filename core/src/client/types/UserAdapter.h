@@ -6,25 +6,34 @@
 namespace qute_note {
 
 /**
- * @brief The UserAdapter class uses reference to external evernote::edam::User
- * and adapts its interface to that of IUser
+ * @brief The UserAdapter class uses reference to external qevercloud::User
+ * and adapts its interface to that of IUser. The instances of this class
+ * should be used only within the same scope as the referenced external
+ * qevercloud::User object, otherwise it is possible to run into undefined behaviour.
+ * UserAdapter class is aware of constness of external object it references,
+ * it would throw UserAdapterAccessException exception in attempts to use
+ * referenced const object in non-const context
+ *
+ * @see UserAdapterAccessException
  */
 class UserAdapter : public IUser
 {
 public:
-    UserAdapter(evernote::edam::User & externalEnUser);
-    UserAdapter(const evernote::edam::User & externalEnUser);
+    UserAdapter(qevercloud::User & externalEnUser);
+    UserAdapter(const qevercloud::User & externalEnUser);
     UserAdapter(const UserAdapter & other);
+    UserAdapter(UserAdapter && other);
     virtual ~UserAdapter() final override;
 
 private:
-    virtual const evernote::edam::User & GetEnUser() const final override;
-    virtual evernote::edam::User & GetEnUser() final override;
+    virtual const qevercloud::User & GetEnUser() const final override;
+    virtual qevercloud::User & GetEnUser() final override;
 
     UserAdapter() = delete;
     UserAdapter & operator=(const UserAdapter & other) = delete;
+    UserAdapter & operator=(UserAdapter && other) = delete;
 
-    evernote::edam::User * m_pEnUser;
+    qevercloud::User * m_pEnUser;
     bool m_isConst;
 };
 
