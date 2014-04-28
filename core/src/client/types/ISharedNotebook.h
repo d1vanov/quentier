@@ -3,18 +3,16 @@
 
 #include <tools/Printable.h>
 #include <tools/TypeWithError.h>
-
-namespace evernote {
-namespace edam {
-QT_FORWARD_DECLARE_CLASS(SharedNotebook)
-}
-}
+#include <QEverCloud.h>
 
 namespace qute_note {
 
 class ISharedNotebook: public Printable,
                        public TypeWithError
 {
+public:
+    typedef qevercloud::SharedNotebookPrivilegeLevel::type SharedNotebookPrivilegeLevel;
+
 public:
     ISharedNotebook();
     virtual ~ISharedNotebook();
@@ -31,11 +29,11 @@ public:
     void setUserId(const qint32 userId);
 
     const bool hasNotebookGuid() const;
-    const QString notebookGuid() const;
+    const QString & notebookGuid() const;
     void setNotebookGuid(const QString & notebookGuid);
 
     const bool hasEmail() const;
-    const QString email() const;
+    const QString & email() const;
     void setEmail(const QString & email);
 
     bool hasCreationTimestamp() const;
@@ -47,15 +45,16 @@ public:
     void setModificationTimestamp(const qint64 timestamp);
 
     bool hasShareKey() const;
-    const QString shareKey() const;
+    const QString & shareKey() const;
     void setShareKey(const QString & shareKey);
 
     bool hasUsername() const;
-    const QString username() const;
+    const QString & username() const;
     void setUsername(const QString & username);
 
     bool hasPrivilegeLevel() const;
-    qint8 privilegeLevel() const;
+    SharedNotebookPrivilegeLevel privilegeLevel() const;
+    void setPrivilegeLevel(const SharedNotebookPrivilegeLevel privilegeLevel);
     void setPrivilegeLevel(const qint8 privilegeLevel);
 
     bool hasAllowPreview() const;
@@ -76,8 +75,8 @@ protected:
     ISharedNotebook(const ISharedNotebook & other);
     ISharedNotebook & operator=(const ISharedNotebook & other);
 
-    virtual evernote::edam::SharedNotebook & GetEnSharedNotebook() = 0;
-    virtual const evernote::edam::SharedNotebook & GetEnSharedNotebook() const = 0;
+    virtual qevercloud::SharedNotebook & GetEnSharedNotebook() = 0;
+    virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const = 0;
 
     virtual QTextStream & Print(QTextStream & strm) const override;
 };

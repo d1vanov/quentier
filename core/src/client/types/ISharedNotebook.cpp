@@ -11,13 +11,57 @@ ISharedNotebook::~ISharedNotebook()
 
 bool ISharedNotebook::operator==(const ISharedNotebook & other) const
 {
-    return (GetEnSharedNotebook() == other.GetEnSharedNotebook());
+    const qevercloud::SharedNotebook & sharedNotebook = GetEnSharedNotebook();
+    const qevercloud::SharedNotebook & otherSharedNotebook = other.GetEnSharedNotebook();
+
+    if (sharedNotebook.id != otherSharedNotebook.id) {
+        return false;
+    }
+    else if (sharedNotebook.userId != otherSharedNotebook.userId) {
+        return false;
+    }
+    else if (sharedNotebook.notebookGuid != otherSharedNotebook.notebookGuid) {
+        return false;
+    }
+    else if (sharedNotebook.email != otherSharedNotebook.email) {
+        return false;
+    }
+    else if (sharedNotebook.notebookModifiable != otherSharedNotebook.notebookModifiable) {
+        return false;
+    }
+    else if (sharedNotebook.requireLogin != otherSharedNotebook.requireLogin) {
+        return false;
+    }
+    else if (sharedNotebook.serviceCreated != otherSharedNotebook.serviceCreated) {
+        return false;
+    }
+    else if (sharedNotebook.serviceUpdated != otherSharedNotebook.serviceUpdated) {
+        return false;
+    }
+    else if (sharedNotebook.shareKey != otherSharedNotebook.shareKey) {
+        return false;
+    }
+    else if (sharedNotebook.username != otherSharedNotebook.username) {
+        return false;
+    }
+    else if (sharedNotebook.privilege != otherSharedNotebook.privilege) {
+        return false;
+    }
+    else if (sharedNotebook.allowPreview != otherSharedNotebook) {
+        return false;
+    }
+
+    // TODO: process reminder settings
+
+    return true;
 }
 
 bool ISharedNotebook::operator!=(const ISharedNotebook & other) const
 {
     return !(*this == other);
 }
+
+// TODO: continue from here
 
 bool ISharedNotebook::hasId() const
 {
@@ -63,7 +107,7 @@ const bool ISharedNotebook::hasNotebookGuid() const
     return enSharedNotebook.__isset.notebookGuid;
 }
 
-const QString ISharedNotebook::notebookGuid() const
+const QString &ISharedNotebook::notebookGuid() const
 {
     const auto & enSharedNotebook = GetEnSharedNotebook();
     return std::move(QString::fromStdString(enSharedNotebook.notebookGuid));
@@ -82,7 +126,7 @@ const bool ISharedNotebook::hasEmail() const
     return enSharedNotebook.__isset.email;
 }
 
-const QString ISharedNotebook::email() const
+const QString &ISharedNotebook::email() const
 {
     const auto & enSharedNotebook = GetEnSharedNotebook();
     return std::move(QString::fromStdString(enSharedNotebook.email));
@@ -139,7 +183,7 @@ bool ISharedNotebook::hasShareKey() const
     return enSharedNotebook.__isset.shareKey;
 }
 
-const QString ISharedNotebook::shareKey() const
+const QString &ISharedNotebook::shareKey() const
 {
     const auto & enSharedNotebook = GetEnSharedNotebook();
     return std::move(QString::fromStdString(enSharedNotebook.shareKey));
@@ -158,7 +202,7 @@ bool ISharedNotebook::hasUsername() const
     return enSharedNotebook.__isset.username;
 }
 
-const QString ISharedNotebook::username() const
+const QString &ISharedNotebook::username() const
 {
     const auto & enSharedNotebook = GetEnSharedNotebook();
     return std::move(QString::fromStdString(enSharedNotebook.username));
@@ -177,7 +221,7 @@ bool ISharedNotebook::hasPrivilegeLevel() const
     return enSharedNotebook.__isset.privilege;
 }
 
-qint8 ISharedNotebook::privilegeLevel() const
+ISharedNotebook::SharedNotebookPrivilegeLevel ISharedNotebook::privilegeLevel() const
 {
     const auto & enSharedNotebook = GetEnSharedNotebook();
     return static_cast<qint8>(enSharedNotebook.privilege);
