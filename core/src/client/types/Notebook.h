@@ -2,7 +2,6 @@
 #define __QUTE_NOTE__CLIENT__TYPES__NOTEBOOK_H
 
 #include "NoteStoreDataElement.h"
-#include <Types_types.h>
 #include <QEverCloud.h>
 
 namespace qute_note {
@@ -71,7 +70,7 @@ public:
     void setPublishingAscending(const bool ascending);
 
     bool hasPublishingPublicDescription() const;
-    const QString publishingPublicDescription() const;
+    const QString & publishingPublicDescription() const;
     void setPublishingPublicDescription(const QString & publishingPublicDescription);
 
     bool hasPublished() const;
@@ -79,17 +78,17 @@ public:
     void setPublished(const bool published);
 
     bool hasStack() const;
-    const QString stack() const;
+    const QString & stack() const;
     void setStack(const QString & stack);
 
     bool hasSharedNotebooks();
-    void sharedNotebooks(std::vector<SharedNotebookAdapter> & notebooks) const;
-    void setSharedNotebooks(std::vector<ISharedNotebook> & notebooks);
+    void sharedNotebooks(QList<SharedNotebookAdapter> & notebooks) const;
+    void setSharedNotebooks(QList<ISharedNotebook> & notebooks);
     void addSharedNotebook(const ISharedNotebook & sharedNotebook);
     void removeSharedNotebook(const ISharedNotebook & sharedNotebook);
 
     bool hasBusinessNotebookDescription() const;
-    const QString businessNotebookDescription() const;
+    const QString & businessNotebookDescription() const;
     void setBusinessNotebookDescription(const QString & businessNotebookDescription);
 
     bool hasBusinessNotebookPrivilegeLevel() const;
@@ -175,13 +174,12 @@ public:
     void setExpungeWhichSharedNotebookRestrictions(const qint8 which);
 
     bool hasRestrictions() const;
-    const evernote::edam::NotebookRestrictions & restrictions() const;
+    const qevercloud::NotebookRestrictions & restrictions() const;
 
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
     qevercloud::Notebook m_qecNotebook;
-    evernote::edam::Notebook m_enNotebook;
     bool   m_isLocal;
     bool   m_isLastUsed;
 };
