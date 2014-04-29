@@ -1,4 +1,5 @@
 #include "ISharedNotebook.h"
+#include "QEverCloudOptionalQString.hpp"
 #include "../Utility.h"
 
 namespace qute_note {
@@ -14,46 +15,7 @@ bool ISharedNotebook::operator==(const ISharedNotebook & other) const
     const qevercloud::SharedNotebook & sharedNotebook = GetEnSharedNotebook();
     const qevercloud::SharedNotebook & otherSharedNotebook = other.GetEnSharedNotebook();
 
-    if (sharedNotebook.id != otherSharedNotebook.id) {
-        return false;
-    }
-    else if (sharedNotebook.userId != otherSharedNotebook.userId) {
-        return false;
-    }
-    else if (sharedNotebook.notebookGuid != otherSharedNotebook.notebookGuid) {
-        return false;
-    }
-    else if (sharedNotebook.email != otherSharedNotebook.email) {
-        return false;
-    }
-    else if (sharedNotebook.notebookModifiable != otherSharedNotebook.notebookModifiable) {
-        return false;
-    }
-    else if (sharedNotebook.requireLogin != otherSharedNotebook.requireLogin) {
-        return false;
-    }
-    else if (sharedNotebook.serviceCreated != otherSharedNotebook.serviceCreated) {
-        return false;
-    }
-    else if (sharedNotebook.serviceUpdated != otherSharedNotebook.serviceUpdated) {
-        return false;
-    }
-    else if (sharedNotebook.shareKey != otherSharedNotebook.shareKey) {
-        return false;
-    }
-    else if (sharedNotebook.username != otherSharedNotebook.username) {
-        return false;
-    }
-    else if (sharedNotebook.privilege != otherSharedNotebook.privilege) {
-        return false;
-    }
-    else if (sharedNotebook.allowPreview != otherSharedNotebook) {
-        return false;
-    }
-
-    // TODO: process reminder settings
-
-    return true;
+    return (sharedNotebook == otherSharedNotebook);
 }
 
 bool ISharedNotebook::operator!=(const ISharedNotebook & other) const
@@ -61,245 +23,219 @@ bool ISharedNotebook::operator!=(const ISharedNotebook & other) const
     return !(*this == other);
 }
 
-// TODO: continue from here
-
 bool ISharedNotebook::hasId() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.id;
+    return GetEnSharedNotebook().id.isSet();
 }
 
 qint64 ISharedNotebook::id() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.id;
+    return GetEnSharedNotebook().id;
 }
 
 void ISharedNotebook::setId(const qint64 id)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-    enSharedNotebook.id = id;
-    enSharedNotebook.__isset.id = true;
+    GetEnSharedNotebook().id = id;
 }
 
 bool ISharedNotebook::hasUserId() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.userId;
+    return GetEnSharedNotebook().userId.isSet();
 }
 
 qint32 ISharedNotebook::userId() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.userId;
+    return GetEnSharedNotebook().userId;
 }
 
 void ISharedNotebook::setUserId(const qint32 userId)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-    enSharedNotebook.userId = userId;
-    enSharedNotebook.__isset.userId = true;
+    GetEnSharedNotebook().userId = userId;
 }
 
 const bool ISharedNotebook::hasNotebookGuid() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.notebookGuid;
+    return GetEnSharedNotebook().notebookGuid.isSet();
 }
 
-const QString &ISharedNotebook::notebookGuid() const
+const QString & ISharedNotebook::notebookGuid() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return std::move(QString::fromStdString(enSharedNotebook.notebookGuid));
+    return GetEnSharedNotebook().notebookGuid;
 }
 
 void ISharedNotebook::setNotebookGuid(const QString & notebookGuid)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-    enSharedNotebook.notebookGuid = notebookGuid.toStdString();
-    enSharedNotebook.__isset.notebookGuid = !notebookGuid.isEmpty();
+    GetEnSharedNotebook().notebookGuid = notebookGuid;
 }
 
 const bool ISharedNotebook::hasEmail() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.email;
+    return GetEnSharedNotebook().email.isSet();
 }
 
-const QString &ISharedNotebook::email() const
+const QString & ISharedNotebook::email() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return std::move(QString::fromStdString(enSharedNotebook.email));
+    return GetEnSharedNotebook().email;
 }
 
 void ISharedNotebook::setEmail(const QString & email)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-    enSharedNotebook.email = email.toStdString();
-    enSharedNotebook.__isset.email = !email.isEmpty();
+    GetEnSharedNotebook().email = email;
 }
 
 bool ISharedNotebook::hasCreationTimestamp() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.serviceCreated;
+    return GetEnSharedNotebook().serviceCreated.isSet();
 }
 
 qint64 ISharedNotebook::creationTimestamp() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.serviceCreated;
+    return GetEnSharedNotebook().serviceCreated;
 }
 
 void ISharedNotebook::setCreationTimestamp(const qint64 timestamp)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-    enSharedNotebook.serviceCreated = timestamp;
-    enSharedNotebook.__isset.serviceCreated = (timestamp > 0);
+    // TODO: verify whether it really matters
+    if (timestamp >= 0) {
+        GetEnSharedNotebook().serviceCreated = timestamp;
+    }
+    else {
+        GetEnSharedNotebook().serviceCreated.clear();
+    }
 }
 
 bool ISharedNotebook::hasModificationTimestamp() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.serviceUpdated;
+    return GetEnSharedNotebook().serviceUpdated.isSet();
 }
 
 qint64 ISharedNotebook::modificationTimestamp() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.serviceUpdated;
+    return GetEnSharedNotebook().serviceUpdated;
 }
 
 void ISharedNotebook::setModificationTimestamp(const qint64 timestamp)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-    enSharedNotebook.serviceUpdated = timestamp;
-    enSharedNotebook.__isset.serviceUpdated = (timestamp > 0);
+    // TODO: verify whether it really matters
+    if (timestamp >= 0) {
+        GetEnSharedNotebook().serviceUpdated = timestamp;
+    }
+    else {
+        GetEnSharedNotebook().serviceUpdated.clear();
+    }
 }
 
 bool ISharedNotebook::hasShareKey() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.shareKey;
+    return GetEnSharedNotebook().shareKey.isSet();
 }
 
-const QString &ISharedNotebook::shareKey() const
+const QString & ISharedNotebook::shareKey() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return std::move(QString::fromStdString(enSharedNotebook.shareKey));
+    return GetEnSharedNotebook().shareKey;
 }
 
 void ISharedNotebook::setShareKey(const QString & shareKey)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-    enSharedNotebook.shareKey = shareKey.toStdString();
-    enSharedNotebook.__isset.shareKey = !shareKey.isEmpty();
+    GetEnSharedNotebook().shareKey = shareKey;
 }
 
 bool ISharedNotebook::hasUsername() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.username;
+    return GetEnSharedNotebook().username.isSet();
 }
 
-const QString &ISharedNotebook::username() const
+const QString & ISharedNotebook::username() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return std::move(QString::fromStdString(enSharedNotebook.username));
+    return GetEnSharedNotebook().username;
 }
 
 void ISharedNotebook::setUsername(const QString & username)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-    enSharedNotebook.username = username.toStdString();
-    enSharedNotebook.__isset.username = !username.isEmpty();
+    GetEnSharedNotebook().username = username;
 }
 
 bool ISharedNotebook::hasPrivilegeLevel() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.privilege;
+    return GetEnSharedNotebook().privilege.isSet();
 }
 
 ISharedNotebook::SharedNotebookPrivilegeLevel ISharedNotebook::privilegeLevel() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return static_cast<qint8>(enSharedNotebook.privilege);
+    return GetEnSharedNotebook().privilege;
+}
+
+void ISharedNotebook::setPrivilegeLevel(const SharedNotebookPrivilegeLevel privilegeLevel)
+{
+    GetEnSharedNotebook().privilege = privilegeLevel;
 }
 
 void ISharedNotebook::setPrivilegeLevel(const qint8 privilegeLevel)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-
-    if (privilegeLevel <= static_cast<qint8>(evernote::edam::SharedNotebookPrivilegeLevel::BUSINESS_FULL_ACCESS)) {
-        enSharedNotebook.privilege = static_cast<evernote::edam::SharedNotebookPrivilegeLevel::type>(privilegeLevel);
-        enSharedNotebook.__isset.privilege = true;
+    if (privilegeLevel <= static_cast<qint8>(qevercloud::SharedNotebookPrivilegeLevel::BUSINESS_FULL_ACCESS)) {
+        GetEnSharedNotebook().privilege = static_cast<qevercloud::SharedNotebookPrivilegeLevel::type>(privilegeLevel);
     }
     else {
-        enSharedNotebook.__isset.privilege = false;
+        GetEnSharedNotebook().privilege.clear();
     }
 }
 
 bool ISharedNotebook::hasAllowPreview() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.allowPreview;
+    return GetEnSharedNotebook().allowPreview.isSet();
 }
 
 bool ISharedNotebook::allowPreview() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.allowPreview;
+    return GetEnSharedNotebook().allowPreview;
 }
 
 void ISharedNotebook::setAllowPreview(const bool allowPreview)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-    enSharedNotebook.allowPreview = allowPreview;
-    enSharedNotebook.__isset.allowPreview = true;
+    GetEnSharedNotebook().allowPreview = allowPreview;
 }
 
 bool ISharedNotebook::hasReminderNotifyEmail() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.recipientSettings &&
-            enSharedNotebook.recipientSettings.__isset.reminderNotifyEmail;
+    const qevercloud::SharedNotebook & sharedNotebook = GetEnSharedNotebook();
+    return sharedNotebook.recipientSettings.isSet() && sharedNotebook.recipientSettings->reminderNotifyEmail.isSet();
 }
 
 bool ISharedNotebook::reminderNotifyEmail() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.recipientSettings.reminderNotifyEmail;
+    return GetEnSharedNotebook().recipientSettings->reminderNotifyEmail;
 }
+
+#define CHECK_AND_SET_RECIPIENT_SETTINGS \
+    qevercloud::SharedNotebook & sharedNotebook = GetEnSharedNotebook(); \
+    if (!sharedNotebook.recipientSettings.isSet()) { \
+        sharedNotebook.recipientSettings = qevercloud::SharedNotebookRecipientSettings(); \
+    }
 
 void ISharedNotebook::setReminderNotifyEmail(const bool notifyEmail)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-    enSharedNotebook.recipientSettings.reminderNotifyEmail = notifyEmail;
-    enSharedNotebook.__isset.recipientSettings = true;
-    enSharedNotebook.recipientSettings.__isset.reminderNotifyEmail = true;
+    CHECK_AND_SET_RECIPIENT_SETTINGS
+    sharedNotebook.recipientSettings->reminderNotifyEmail = notifyEmail;
 }
 
 bool ISharedNotebook::hasReminderNotifyApp() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.__isset.recipientSettings &&
-            enSharedNotebook.recipientSettings.__isset.reminderNotifyInApp;
+    const qevercloud::SharedNotebook & sharedNotebook = GetEnSharedNotebook();
+    return sharedNotebook.recipientSettings.isSet() && sharedNotebook.recipientSettings->reminderNotifyInApp.isSet();
 }
 
 bool ISharedNotebook::reminderNotifyApp() const
 {
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    return enSharedNotebook.recipientSettings.reminderNotifyInApp;
+    return GetEnSharedNotebook().recipientSettings->reminderNotifyInApp;
 }
 
 void ISharedNotebook::setReminderNotifyApp(const bool notifyApp)
 {
-    auto & enSharedNotebook = GetEnSharedNotebook();
-    enSharedNotebook.recipientSettings.reminderNotifyInApp = notifyApp;
-    enSharedNotebook.__isset.recipientSettings = true;
-    enSharedNotebook.recipientSettings.__isset.reminderNotifyInApp = true;
+    CHECK_AND_SET_RECIPIENT_SETTINGS
+    sharedNotebook.recipientSettings->reminderNotifyInApp = notifyApp;
 }
+
+#undef CHECK_AND_SET_RECIPIENT_SETTINGS
 
 ISharedNotebook::ISharedNotebook(const ISharedNotebook & other) :
     TypeWithError(other)
@@ -318,117 +254,182 @@ QTextStream & ISharedNotebook::Print(QTextStream & strm) const
 {
     strm << "SharedNotebook { \n";
 
-    const auto & enSharedNotebook = GetEnSharedNotebook();
-    const auto & isSet = enSharedNotebook.__isset;
+    const qevercloud::SharedNotebook & sharedNotebook = GetEnSharedNotebook();
 
-    if (isSet.id) {
-        strm << "id: " << enSharedNotebook.id;
+#define INSERT_DELIMITER \
+    strm << "; \n";
+
+    if (sharedNotebook.id.isSet()) {
+        strm << "id: " << QString::number(sharedNotebook.id);
     }
     else {
         strm << "id is not set";
     }
-    strm << "; \n";
+    INSERT_DELIMITER
 
-    if (isSet.userId) {
-        strm << "userId: " << enSharedNotebook.userId;
+    if (sharedNotebook.userId.isSet()) {
+        strm << "userId: " << QString::number(sharedNotebook.userId);
     }
     else {
         strm << "userId is not set";
     }
-    strm << "; \n";
+    INSERT_DELIMITER
 
-    if (isSet.notebookGuid) {
-        strm << "notebookGuid: " << QString::fromStdString(enSharedNotebook.notebookGuid);
+    if (sharedNotebook.notebookGuid.isSet()) {
+        strm << "notebookGuid: " << sharedNotebook.notebookGuid;
     }
     else {
         strm << "notebookGuid is not set";
     }
-    strm << "; \n";
+    INSERT_DELIMITER
 
-    if (isSet.email) {
-        strm << "email: " << QString::fromStdString(enSharedNotebook.email);
+    if (sharedNotebook.email.isSet()) {
+        strm << "email: " << sharedNotebook.email;
     }
     else {
         strm << "email is not set";
     }
-    strm << "; \n";
+    INSERT_DELIMITER
 
-    if (isSet.serviceCreated) {
-        strm << "creationTimestamp: " << enSharedNotebook.serviceCreated
-             << ", datetime: " << PrintableDateTimeFromTimestamp(enSharedNotebook.serviceCreated);
+    if (sharedNotebook.serviceCreated.isSet()) {
+        strm << "creationTimestamp: " << QString::number(sharedNotebook.serviceCreated)
+             << ", datetime: " << PrintableDateTimeFromTimestamp(sharedNotebook.serviceCreated);
     }
     else {
         strm << "creationTimestamp is not set";
     }
-    strm << "; \n";
+    INSERT_DELIMITER
 
-    if (isSet.serviceUpdated) {
-        strm << "modificationTimestamp: " << enSharedNotebook.serviceUpdated
-             << ", datetime: " << PrintableDateTimeFromTimestamp(enSharedNotebook.serviceUpdated);
+    if (sharedNotebook.serviceUpdated.isSet()) {
+        strm << "modificationTimestamp: " << QString::number(sharedNotebook.serviceUpdated)
+             << ", datetime: " << PrintableDateTimeFromTimestamp(sharedNotebook.serviceUpdated);
     }
     else {
         strm << "modificationTimestamp is not set";
     }
-    strm << "; \n";
+    INSERT_DELIMITER
 
-    if (isSet.shareKey) {
-        strm << "shareKey: " << QString::fromStdString(enSharedNotebook.shareKey);
+    if (sharedNotebook.shareKey.isSet()) {
+        strm << "shareKey: " << sharedNotebook.shareKey;
     }
     else {
         strm << "shareKey is not set";
     }
-    strm << "; \n";
+    INSERT_DELIMITER
 
-    if (isSet.username) {
-        strm << "username: " << QString::fromStdString(enSharedNotebook.username);
+    if (sharedNotebook.username.isSet()) {
+        strm << "username: " << sharedNotebook.username;
     }
     else {
         strm << "username is not set";
     }
-    strm << "; \n";
+    INSERT_DELIMITER
 
-    if (isSet.privilege) {
-        strm << "privilegeLevel: " << enSharedNotebook.privilege;
+    if (sharedNotebook.privilege.isSet()) {
+        // TODO: (re)implement printing of SharedNotebookPrivilegeLevel
+        strm << "privilegeLevel: " << QString::number(sharedNotebook.privilege);
     }
     else {
         strm << "privilegeLevel is not set";
     }
     strm << "; \n";
 
-    if (isSet.allowPreview) {
-        strm << "allowPreview: " << (enSharedNotebook.allowPreview ? "true" : "false");
+    if (sharedNotebook.allowPreview.isSet()) {
+        strm << "allowPreview: " << (sharedNotebook.allowPreview ? "true" : "false");
     }
     else {
         strm << "allowPreview is not set";
     }
-    strm << "; \n";
+    INSERT_DELIMITER
 
-    if (isSet.recipientSettings)
+    if (sharedNotebook.recipientSettings.isSet())
     {
-        const auto & recipientSettings = enSharedNotebook.recipientSettings;
-        const auto & isSetRecipientSettings = recipientSettings.__isset;
+        const qevercloud::SharedNotebookRecipientSettings & recipientSettings = sharedNotebook.recipientSettings;
 
-        if (isSetRecipientSettings.reminderNotifyEmail) {
+        if (recipientSettings.reminderNotifyEmail.isSet()) {
             strm << "reminderNotifyEmail: " << (recipientSettings.reminderNotifyEmail ? "true" : "false");
         }
         else {
             strm << "reminderNotifyEmail is not set";
         }
-        strm << "; \n";
+        INSERT_DELIMITER
 
-        if (isSetRecipientSettings.reminderNotifyInApp) {
+        if (recipientSettings.reminderNotifyInApp.isSet()) {
             strm << "reminderNotifyApp: " << (recipientSettings.reminderNotifyInApp ? "true" : "false");
         }
         else {
             strm << "reminderNotifyApp is not set";
         }
-        strm << "; \n";
+        INSERT_DELIMITER
     }
     else {
         strm << "recipientSettings are not set; \n";
     }
 
+#undef INSERT_DELIMITER
+
     return strm;
 }
 
 } // namespace qute_note
+
+namespace qevercloud {
+
+bool operator==(const SharedNotebook & lhs, const SharedNotebook & rhs)
+{
+    if (lhs.id != rhs.id) {
+        return false;
+    }
+    else if (lhs.userId != rhs.userId) {
+        return false;
+    }
+    else if (lhs.notebookGuid != rhs.notebookGuid) {
+        return false;
+    }
+    else if (lhs.email != rhs.email) {
+        return false;
+    }
+    else if (lhs.serviceCreated != rhs.serviceCreated) {
+        return false;
+    }
+    else if (lhs.serviceUpdated != rhs.serviceUpdated) {
+        return false;
+    }
+    else if (lhs.shareKey != rhs.shareKey) {
+        return false;
+    }
+    else if (lhs.username != rhs.username) {
+        return false;
+    }
+    else if (lhs.privilege != rhs.privilege) {
+        return false;
+    }
+    else if (lhs.allowPreview != rhs.allowPreview) {
+        return false;
+    }
+    else if (lhs.recipientSettings.isSet() != rhs.recipientSettings.isSet()) {
+        return false;
+    }
+
+    if (lhs.recipientSettings.isSet())
+    {
+        const SharedNotebookRecipientSettings & recipientSettings = lhs.recipientSettings;
+        const SharedNotebookRecipientSettings & otherRecipientSettings = rhs.recipientSettings;
+
+        if (recipientSettings.reminderNotifyEmail != otherRecipientSettings.reminderNotifyEmail) {
+            return false;
+        }
+        else if (recipientSettings.reminderNotifyInApp != otherRecipientSettings.reminderNotifyInApp) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool operator!=(const SharedNotebook & lhs, const SharedNotebook & rhs)
+{
+    return !(lhs == rhs);
+}
+
+} // namespace qevercloud

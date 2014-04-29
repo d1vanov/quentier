@@ -2,42 +2,27 @@
 
 namespace qute_note {
 
-SharedNotebookWrapper::SharedNotebookWrapper() :
+SharedNotebookWrapper::SharedNotebookWrapper(const qevercloud::SharedNotebook & other) :
     ISharedNotebook(),
-    m_enSharedNotebook()
+    m_qecSharedNotebook(other)
 {}
 
-SharedNotebookWrapper::SharedNotebookWrapper(const evernote::edam::SharedNotebook & sharedNotebook) :
+SharedNotebookWrapper::SharedNotebookWrapper(qevercloud::SharedNotebook && other) :
     ISharedNotebook(),
-    m_enSharedNotebook(sharedNotebook)
+    m_qecSharedNotebook(std::move(other))
 {}
-
-SharedNotebookWrapper::SharedNotebookWrapper(const SharedNotebookWrapper & other) :
-    ISharedNotebook(other),
-    m_enSharedNotebook(other.m_enSharedNotebook)
-{}
-
-SharedNotebookWrapper & SharedNotebookWrapper::operator=(const SharedNotebookWrapper & other)
-{
-    if (this != &other) {
-        ISharedNotebook::operator=(other);
-        m_enSharedNotebook = other.m_enSharedNotebook;
-    }
-
-    return *this;
-}
 
 SharedNotebookWrapper::~SharedNotebookWrapper()
 {}
 
-const evernote::edam::SharedNotebook & SharedNotebookWrapper::GetEnSharedNotebook() const
+const qevercloud::SharedNotebook & SharedNotebookWrapper::GetEnSharedNotebook() const
 {
-    return m_enSharedNotebook;
+    return m_qecSharedNotebook;
 }
 
-evernote::edam::SharedNotebook & SharedNotebookWrapper::GetEnSharedNotebook()
+qevercloud::SharedNotebook & SharedNotebookWrapper::GetEnSharedNotebook()
 {
-    return m_enSharedNotebook;
+    return m_qecSharedNotebook;
 }
 
 QTextStream & SharedNotebookWrapper::Print(QTextStream &strm) const

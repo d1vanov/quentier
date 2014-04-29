@@ -192,31 +192,43 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
 #undef CHECK_AND_SET_EN_USER_PROPERTY
 
     QString error;
-    res = FindUserAttributes(id, user.userAttributes(), error);
-    user.setHasAttributes(res);
+    qevercloud::UserAttributes userAttributes;
+    res = FindUserAttributes(id, userAttributes(), error);
+    if (res) {
+        user.setUserAttributes(userAttributes);
+    }
 
     error.clear();
-    res = FindAccounting(id, user.accounting(), error);
-    user.setHasAccounting(res);
+    qevercloud::Accounting accounting;
+    res = FindAccounting(id, accounting(), error);
+    if (res) {
+        user.setAccounting(accounting);
+    }
 
     error.clear();
-    res = FindPremiumInfo(id, user.premiumInfo(), error);
-    user.setHasPremiumInfo(res);
+    qevercloud::PremiumInfo premiumInfo;
+    res = FindPremiumInfo(id, premiumInfo(), error);
+    if (res) {
+        user.setPremiumInfo(premiumInfo);
+    }
 
     error.clear();
-    res = FindBusinessUserInfo(id, user.businessUserInfo(), error);
-    user.setHasBusinessUserInfo(res);
+    qevercloud::BusinessUserInfo businessUserInfo;
+    res = FindBusinessUserInfo(id, businessUserInfo(), error);
+    if (res) {
+        user.setBusinessUserInfo(businessUserInfo);
+    }
 
     return true;
 }
 
 #define FIND_OPTIONAL_USER_PROPERTIES(which) \
-    bool LocalStorageManager::Find##which(const UserID id, evernote::edam::which & prop, \
+    bool LocalStorageManager::Find##which(const UserID id, qevercloud::which & prop, \
                                           QString & errorDescription) const \
     { \
         errorDescription = QObject::tr("Can't find " #which " in local storage database: "); \
         \
-        prop = evernote::edam::which(); \
+        prop = qevercloud::which(); \
         QString idStr = QString::number(id); \
         bool exists = RowExists(#which, "id", QVariant(idStr)); \
         if (!exists) { \

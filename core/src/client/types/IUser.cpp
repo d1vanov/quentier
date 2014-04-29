@@ -363,7 +363,7 @@ bool IUser::checkParameters(QString & errorDescription) const
         return false;
     }
 
-    QRegExp usernameRegExp = qevercloud::EDAM_USER_USERNAME_REGEX;
+    QRegExp usernameRegExp(qevercloud::EDAM_USER_USERNAME_REGEX);
     if (usernameRegExp.indexIn(username) < 0) {
         errorDescription = QObject::tr("User name can contain only \"a-z\" or \"0-9\""
                                        "or \"-\" but should not start or end with \"-\"");
@@ -562,7 +562,7 @@ bool IUser::hasEmail() const
 
 const QString & IUser::email() const
 {
-    return std::move(QString::fromStdString(GetEnUser().email));
+    return GetEnUser().email;
 }
 
 void IUser::setEmail(const QString & email)
@@ -592,7 +592,7 @@ bool IUser::hasTimezone() const
 
 const QString & IUser::timezone() const
 {
-    return GetEnUser().timezone.isSet();
+    return GetEnUser().timezone;
 }
 
 void IUser::setTimezone(const QString & timezone)
@@ -734,7 +734,7 @@ bool IUser::hasPremiumInfo() const
     return GetEnUser().premiumInfo.isSet();
 }
 
-const evernote::edam::PremiumInfo & IUser::premiumInfo() const
+const qevercloud::PremiumInfo & IUser::premiumInfo() const
 {
     return GetEnUser().premiumInfo;
 }
@@ -749,7 +749,7 @@ bool IUser::hasBusinessUserInfo() const
     return GetEnUser().businessUserInfo.isSet();
 }
 
-const evernote::edam::BusinessUserInfo & IUser::businessUserInfo() const
+const qevercloud::BusinessUserInfo & IUser::businessUserInfo() const
 {
     return GetEnUser().businessUserInfo;
 }

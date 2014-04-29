@@ -82,7 +82,7 @@ bool Notebook::operator==(const Notebook & other) const
     else if (m_qecNotebook.stack != otherNotebook.stack) {
         return false;
     }
-    else if (m_qecNotebook.sharedNotebooks != otherNotebook.sharedNotebooks) {
+    else if (m_qecNotebook.sharedNotebooks.isSet() != otherNotebook.sharedNotebooks.isSet()) {
         return false;
     }
     else if (m_qecNotebook.publishing.isSet() != otherNotebook.publishing.isSet()) {
@@ -96,6 +96,15 @@ bool Notebook::operator==(const Notebook & other) const
     }
     else if (m_qecNotebook.restrictions.isSet() != otherNotebook.restrictions.isSet()) {
         return false;
+    }
+
+    if (m_qecNotebook.sharedNotebooks.isSet()) {
+        const QList<qevercloud::SharedNotebook> & sharedNotebooks = m_qecNotebook.sharedNotebooks;
+        const QList<qevercloud::SharedNotebook> & otherSharedNotebooks = otherNotebook.sharedNotebooks;
+
+        if (sharedNotebooks != otherSharedNotebooks) {
+            return false;
+        }
     }
 
     if (m_qecNotebook.publishing.isSet())
@@ -558,20 +567,28 @@ void Notebook::sharedNotebooks(QList<SharedNotebookAdapter> & notebooks) const
 {
     notebooks.clear();
 
-    foreach(const qevercloud::SharedNotebook & sharedNotebook, m_qecNotebook.sharedNotebooks) {
+    if (!m_qecNotebook.sharedNotebooks.isSet()) {
+        return;
+    }
+
+    const QList<qevercloud::SharedNotebook> & sharedNotebooks = m_qecNotebook.sharedNotebooks;
+    foreach(const qevercloud::SharedNotebook & sharedNotebook, sharedNotebooks) {
         SharedNotebookAdapter sharedNotebookadapter(sharedNotebook);
-        notebooks.push_back(sharedNotebookadapter);
+        notebooks << sharedNotebookadapter;
     }
 }
 
-void Notebook::setSharedNotebooks(QList<ISharedNotebook> & notebooks)
+// FIXME: fit this method
+void Notebook::setSharedNotebooks(QList<ISharedNotebook> && notebooks)
 {
     if (!canCreateSharedNotebooks() || !canUpdateNotebook()) {
         QNDEBUG("Can't set shared notebooks for notebook: restrictions apply");
         return;
     }
 
-    auto & sharedNotebooks = m_qecNotebook.sharedNotebooks;
+    m_qecNotebook.sharedNotebooks = std::move(notebooks);
+
+    QList<qevercloud::SharedNotebook> & sharedNotebooks = m_qecNotebook.sharedNotebooks;
     sharedNotebooks.clear();
 
     foreach(const ISharedNotebook & sharedNotebook, notebooks) {
@@ -586,10 +603,14 @@ void Notebook::addSharedNotebook(const ISharedNotebook & sharedNotebook)
         return;
     }
 
-    auto & sharedNotebooks = m_qecNotebook.sharedNotebooks;
+    if (!m_qecNotebook.sharedNotebooks.isSet()) {
+        m_qecNotebook.sharedNotebooks = QList<qevercloud::SharedNotebook>();
+    }
+
+    QList<qevercloud::SharedNotebook> & sharedNotebooks = m_qecNotebook.sharedNotebooks;
     const auto & enSharedNotebook = sharedNotebook.GetEnSharedNotebook();
 
-    if (sharedNotebooks->indexOf(enSharedNotebook) != -1) {
+    if (sharedNotebooks.indexOf(enSharedNotebook) != -1) {
         QNDEBUG("Can't add shared notebook: this shared notebook already exists within the notebook");
         return;
     }
@@ -1084,7 +1105,7 @@ QTextStream & Notebook::Print(QTextStream & strm) const
 
         if (publishing.order.isSet()) {
             // TODO: (re)implement printing of NoteSortOrder::type
-            strm << "publishingOrder: " << QString(publishing.order);
+            strm << "publishingOrder: " << QString::number(publishing.order);
         }
         else {
             strm << "publishingOrder is not set";
@@ -1130,7 +1151,7 @@ QTextStream & Notebook::Print(QTextStream & strm) const
 
     if (m_qecNotebook.sharedNotebooks.isSet()) {
         strm << "sharedNotebooks: \n";
-        foreach(const qevercloud::SharedNotebook & sharedNotebook, m_qecNotebook.sharedNotebooks) {
+        foreach(const qevercloud::SharedNotebook & sharedNotebook, m_qecNotebook.sharedNotebooks.ref()) {
             strm << SharedNotebookAdapter(sharedNotebook);
         }
     }

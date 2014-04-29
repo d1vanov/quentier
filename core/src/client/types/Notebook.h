@@ -83,7 +83,7 @@ public:
 
     bool hasSharedNotebooks();
     void sharedNotebooks(QList<SharedNotebookAdapter> & notebooks) const;
-    void setSharedNotebooks(QList<ISharedNotebook> & notebooks);
+    void setSharedNotebooks(QList<ISharedNotebook> && notebooks);
     void addSharedNotebook(const ISharedNotebook & sharedNotebook);
     void removeSharedNotebook(const ISharedNotebook & sharedNotebook);
 

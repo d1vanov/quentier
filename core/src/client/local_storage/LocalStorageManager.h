@@ -24,6 +24,13 @@ typedef int32_t UserID;
 }
 }
 
+namespace qevercloud {
+QT_FORWARD_DECLARE_STRUCT(UserAttributes)
+QT_FORWARD_DECLARE_STRUCT(Accounting)
+QT_FORWARD_DECLARE_STRUCT(PremiumInfo)
+QT_FORWARD_DECLARE_STRUCT(BusinessUserInfo)
+}
+
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(ISharedNotebook)
@@ -49,13 +56,13 @@ public:
     bool AddUser(const IUser & user, QString & errorDescription);
     bool UpdateUser(const IUser & user, QString & errorDescription);
     bool FindUser(const UserID id, IUser & user, QString & errorDescription) const;
-    bool FindUserAttributes(const UserID id, evernote::edam::UserAttributes & attributes,
+    bool FindUserAttributes(const UserID id, qevercloud::UserAttributes & attributes,
                             QString & errorDescription) const;
-    bool FindAccounting(const UserID id, evernote::edam::Accounting & accounting,
+    bool FindAccounting(const UserID id, qevercloud::Accounting & accounting,
                         QString & errorDescription) const;
-    bool FindPremiumInfo(const UserID id, evernote::edam::PremiumInfo & info,
+    bool FindPremiumInfo(const UserID id, qevercloud::PremiumInfo & info,
                          QString & errorDescription) const;
-    bool FindBusinessUserInfo(const UserID id, evernote::edam::BusinessUserInfo & info,
+    bool FindBusinessUserInfo(const UserID id, qevercloud::BusinessUserInfo & info,
                               QString & errorDescription) const;
 
     /**

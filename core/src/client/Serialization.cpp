@@ -1,42 +1,45 @@
 #include "Serialization.h"
+#include <QEverCloud.h>
+#include "types/QEverCloudOptionalQString.hpp"
 #include <Types_types.h>
 #include <QDataStream>
 #include <QByteArray>
 
+// FIXME: switch all this to QEverCloud
+
 namespace qute_note {
 
-QDataStream & operator<<(QDataStream & out, const evernote::edam::BusinessUserInfo & info)
-{
-    const auto & isSet = info.__isset;
+// TODO: consider setting some fixed version to each QDataStream
 
+QDataStream & operator<<(QDataStream & out, const qevercloud::BusinessUserInfo & info)
+{
 #define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
     { \
-        bool isSet##attribute = isSet.attribute; \
+        bool isSet##attribute = info.attribute.isSet(); \
         out << isSet##attribute; \
         if (isSet##attribute) { \
-            out << __VA_ARGS__(info.attribute); \
+            out << __VA_ARGS__(info.attribute.ref()); \
         } \
     }
 
     CHECK_AND_SET_ATTRIBUTE(businessId, static_cast<qint32>);
-    CHECK_AND_SET_ATTRIBUTE(businessName, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(businessName);
     CHECK_AND_SET_ATTRIBUTE(role, static_cast<quint8>);
-    CHECK_AND_SET_ATTRIBUTE(email, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(email);
 
 #undef CHECK_AND_SET_ATTRIBUTE
 
     return out;
 }
 
-QDataStream & operator>>(QDataStream & in, evernote::edam::BusinessUserInfo & info)
+QDataStream & operator>>(QDataStream & in, qevercloud::BusinessUserInfo & info)
 {
-    auto & isSet = info.__isset;
+    info = qevercloud::BusinessUserInfo();
 
 #define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
     { \
         bool isSet##attribute = false; \
         in >> isSet##attribute; \
-        isSet.attribute = isSet##attribute; \
         if (isSet##attribute) { \
             qtype attribute; \
             in >> attribute; \
@@ -45,26 +48,24 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::BusinessUserInfo & in
     }
 
     CHECK_AND_SET_ATTRIBUTE(businessId, qint32, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(businessName, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(role, quint8, evernote::edam::BusinessUserRole::type);
-    CHECK_AND_SET_ATTRIBUTE(email, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(businessName, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(role, quint8, qevercloud::BusinessUserRole::type);
+    CHECK_AND_SET_ATTRIBUTE(email, QString, QString);
 
 #undef CHECK_AND_SET_ATTRIBUTE
 
     return in;
 }
 
-QDataStream & operator<<(QDataStream & out, const evernote::edam::PremiumInfo & info)
+QDataStream & operator<<(QDataStream & out, const qevercloud::PremiumInfo & info)
 {
     out << static_cast<qint64>(info.currentTime);
     out << info.premium;
     out << info.premiumRecurring;
 
-    const auto & isSet = info.__isset;
-
 #define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
     { \
-        bool isSet##attribute = isSet.attribute; \
+        bool isSet##attribute = info.attribute.isSet(); \
         out << isSet##attribute; \
         if (isSet##attribute) { \
             out << __VA_ARGS__(info.attribute); \
@@ -78,7 +79,7 @@ QDataStream & operator<<(QDataStream & out, const evernote::edam::PremiumInfo & 
     out << info.premiumCancellationPending;
     out << info.canPurchaseUploadAllowance;
 
-    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupName, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupName);
     CHECK_AND_SET_ATTRIBUTE(sponsoredGroupRole, static_cast<quint8>);
     CHECK_AND_SET_ATTRIBUTE(premiumUpgradable);
 
@@ -87,24 +88,21 @@ QDataStream & operator<<(QDataStream & out, const evernote::edam::PremiumInfo & 
     return out;
 }
 
-QDataStream & operator>>(QDataStream & in, evernote::edam::PremiumInfo & info)
+QDataStream & operator>>(QDataStream & in, qevercloud::PremiumInfo & info)
 {
-    info = evernote::edam::PremiumInfo();
+    info = qevercloud::PremiumInfo();
 
     qint64 currentTime;
     in >> currentTime;
-    info.currentTime = static_cast<evernote::edam::Timestamp>(currentTime);
+    info.currentTime = static_cast<qevercloud::Timestamp>(currentTime);
 
     in >> info.premium;
     in >> info.premiumRecurring;
-
-    auto & isSet = info.__isset;
 
 #define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
     { \
         bool isSet##attribute = false; \
         in >> isSet##attribute; \
-        isSet.attribute = isSet##attribute; \
         if (isSet##attribute) { \
             qtype attribute; \
             in >> attribute; \
@@ -112,15 +110,15 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::PremiumInfo & info)
         } \
     }
 
-    CHECK_AND_SET_ATTRIBUTE(premiumExpirationDate, qint64, evernote::edam::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(premiumExpirationDate, qint64, qevercloud::Timestamp);
 
     in >> info.premiumExtendable;
     in >> info.premiumPending;
     in >> info.premiumCancellationPending;
     in >> info.canPurchaseUploadAllowance;
 
-    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupName, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupRole, quint8, evernote::edam::SponsoredGroupRole::type);
+    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupName, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupRole, quint8, qevercloud::SponsoredGroupRole::type);
     CHECK_AND_SET_ATTRIBUTE(premiumUpgradable, bool, bool);
 
 #undef CHECK_AND_SET_ATTRIBUTE
@@ -278,44 +276,42 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::NoteAttributes & note
     return in;
 }
 
-QDataStream & operator<<(QDataStream & out, const evernote::edam::UserAttributes & userAttributes)
+QDataStream & operator<<(QDataStream & out, const qevercloud::UserAttributes & userAttributes)
 {
-    const auto & isSet = userAttributes.__isset;
-
 #define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
     { \
-        bool isSet##attribute = isSet.attribute; \
+        bool isSet##attribute = userAttributes.attribute.isSet(); \
         out << isSet##attribute; \
         if (isSet##attribute) { \
             out << __VA_ARGS__(userAttributes.attribute); \
         } \
     }
 
-    CHECK_AND_SET_ATTRIBUTE(defaultLocationName, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(defaultLocationName);
     CHECK_AND_SET_ATTRIBUTE(defaultLatitude);
     CHECK_AND_SET_ATTRIBUTE(defaultLongitude);
     CHECK_AND_SET_ATTRIBUTE(preactivation);
-    CHECK_AND_SET_ATTRIBUTE(incomingEmailAddress, QString::fromStdString);
-    CHECK_AND_SET_ATTRIBUTE(comments, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(incomingEmailAddress);
+    CHECK_AND_SET_ATTRIBUTE(comments);
     CHECK_AND_SET_ATTRIBUTE(dateAgreedToTermsOfService, static_cast<qint64>);
     CHECK_AND_SET_ATTRIBUTE(maxReferrals);
     CHECK_AND_SET_ATTRIBUTE(referralCount);
-    CHECK_AND_SET_ATTRIBUTE(refererCode, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(refererCode);
     CHECK_AND_SET_ATTRIBUTE(sentEmailDate, static_cast<qint64>);
     CHECK_AND_SET_ATTRIBUTE(sentEmailCount);
     CHECK_AND_SET_ATTRIBUTE(dailyEmailLimit);
     CHECK_AND_SET_ATTRIBUTE(emailOptOutDate, static_cast<qint64>);
     CHECK_AND_SET_ATTRIBUTE(partnerEmailOptInDate, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(preferredLanguage, QString::fromStdString);
-    CHECK_AND_SET_ATTRIBUTE(preferredCountry, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(preferredLanguage);
+    CHECK_AND_SET_ATTRIBUTE(preferredCountry);
     CHECK_AND_SET_ATTRIBUTE(clipFullPage);
-    CHECK_AND_SET_ATTRIBUTE(twitterUserName, QString::fromStdString);
-    CHECK_AND_SET_ATTRIBUTE(twitterId, QString::fromStdString);
-    CHECK_AND_SET_ATTRIBUTE(groupName, QString::fromStdString);
-    CHECK_AND_SET_ATTRIBUTE(recognitionLanguage, QString::fromStdString);
-    CHECK_AND_SET_ATTRIBUTE(referralProof, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(twitterUserName);
+    CHECK_AND_SET_ATTRIBUTE(twitterId);
+    CHECK_AND_SET_ATTRIBUTE(groupName);
+    CHECK_AND_SET_ATTRIBUTE(recognitionLanguage);
+    CHECK_AND_SET_ATTRIBUTE(referralProof);
     CHECK_AND_SET_ATTRIBUTE(educationalDiscount);
-    CHECK_AND_SET_ATTRIBUTE(businessAddress, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(businessAddress);
     CHECK_AND_SET_ATTRIBUTE(hideSponsorBilling);
     CHECK_AND_SET_ATTRIBUTE(taxExempt);
     CHECK_AND_SET_ATTRIBUTE(useEmailAutoFiling);
@@ -323,44 +319,41 @@ QDataStream & operator<<(QDataStream & out, const evernote::edam::UserAttributes
 
 #undef CHECK_AND_SET_ATTRIBUTE
 
-    bool isSetViewedPromotions = isSet.viewedPromotions;
+    bool isSetViewedPromotions = userAttributes.viewedPromotions.isSet();
     out << isSetViewedPromotions;
     if (isSetViewedPromotions)
     {
-        const auto & viewedPromotions = userAttributes.viewedPromotions;
+        const QStringList & viewedPromotions = userAttributes.viewedPromotions;
         size_t numViewedPromotions = viewedPromotions.size();
         out << static_cast<quint32>(numViewedPromotions);
-        for(const auto & viewedPromotion: viewedPromotions) {
-            out << QString::fromStdString(viewedPromotion);
+        foreach(const QString & viewedPromotion, viewedPromotions) {
+            out << viewedPromotion;
         }
     }
 
-    bool isSetRecentMailedAddresses = isSet.recentMailedAddresses;
+    bool isSetRecentMailedAddresses = userAttributes.recentMailedAddresses.isSet();
     out << isSetRecentMailedAddresses;
     if (isSetRecentMailedAddresses)
     {
-        const auto & recentMailedAddresses = userAttributes.recentMailedAddresses;
+        const QStringList & recentMailedAddresses = userAttributes.recentMailedAddresses;
         size_t numRecentMailedAddresses = recentMailedAddresses.size();
         out << static_cast<quint32>(numRecentMailedAddresses);
-        for(const auto & recentMailedAddress: recentMailedAddresses) {
-            out << QString::fromStdString(recentMailedAddress);
+        foreach(const QString & recentMailedAddress, recentMailedAddresses) {
+            out << recentMailedAddress;
         }
     }
 
     return out;
 }
 
-QDataStream & operator>>(QDataStream & in, evernote::edam::UserAttributes & userAttributes)
+QDataStream & operator>>(QDataStream & in, qevercloud::UserAttributes & userAttributes)
 {
-    userAttributes = evernote::edam::UserAttributes();
-
-    auto & isSet = userAttributes.__isset;
+    userAttributes = qevercloud::UserAttributes();
 
 #define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
     { \
         bool isSet##attribute = false; \
         in >> isSet##attribute; \
-        isSet.attribute = isSet##attribute; \
         if (isSet##attribute) { \
             qtype attribute; \
             in >> attribute; \
@@ -368,80 +361,78 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::UserAttributes & user
         } \
     }
 
-    CHECK_AND_SET_ATTRIBUTE(defaultLocationName, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(defaultLocationName, QString, QString);
     CHECK_AND_SET_ATTRIBUTE(defaultLatitude, double, double);
     CHECK_AND_SET_ATTRIBUTE(defaultLongitude, double, double);
     CHECK_AND_SET_ATTRIBUTE(preactivation, bool, bool);
-    CHECK_AND_SET_ATTRIBUTE(incomingEmailAddress, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(comments, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(dateAgreedToTermsOfService, qint64, evernote::edam::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(incomingEmailAddress, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(comments, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(dateAgreedToTermsOfService, qint64, qevercloud::Timestamp);
     CHECK_AND_SET_ATTRIBUTE(maxReferrals, int32_t, int32_t);
     CHECK_AND_SET_ATTRIBUTE(referralCount, int32_t, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(refererCode, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(sentEmailDate, qint64, evernote::edam::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(refererCode, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(sentEmailDate, qint64, qevercloud::Timestamp);
     CHECK_AND_SET_ATTRIBUTE(sentEmailCount, int32_t, int32_t);
     CHECK_AND_SET_ATTRIBUTE(dailyEmailLimit, int32_t, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(emailOptOutDate, qint64, evernote::edam::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(partnerEmailOptInDate, qint64, evernote::edam::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(preferredLanguage, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(preferredCountry, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(emailOptOutDate, qint64, qevercloud::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(partnerEmailOptInDate, qint64, qevercloud::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(preferredLanguage, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(preferredCountry, QString, QString);
     CHECK_AND_SET_ATTRIBUTE(clipFullPage, bool, bool);
-    CHECK_AND_SET_ATTRIBUTE(twitterUserName, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(twitterId, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(groupName, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(recognitionLanguage, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(referralProof, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(twitterUserName, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(twitterId, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(groupName, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(recognitionLanguage, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(referralProof, QString, QString);
     CHECK_AND_SET_ATTRIBUTE(educationalDiscount, bool, bool);
-    CHECK_AND_SET_ATTRIBUTE(businessAddress, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(businessAddress, QString, QString);
     CHECK_AND_SET_ATTRIBUTE(hideSponsorBilling, bool, bool);
     CHECK_AND_SET_ATTRIBUTE(taxExempt, bool, bool);
     CHECK_AND_SET_ATTRIBUTE(useEmailAutoFiling, bool, bool);
-    CHECK_AND_SET_ATTRIBUTE(reminderEmailConfig, quint8, evernote::edam::ReminderEmailConfig::type);
+    CHECK_AND_SET_ATTRIBUTE(reminderEmailConfig, quint8, qevercloud::ReminderEmailConfig::type);
 
 #undef CHECK_AND_SET_ATTRIBUTE
 
     bool isSetViewedPromotions = false;
     in >> isSetViewedPromotions;
-    isSet.viewedPromotions = isSetViewedPromotions;
     if (isSetViewedPromotions)
     {
         quint32 numViewedPromotions = 0;
         in >> numViewedPromotions;
-        auto & viewedPromotions = userAttributes.viewedPromotions;
+        userAttributes.viewedPromotions = QStringList();
+        QStringList & viewedPromotions = userAttributes.viewedPromotions;
         viewedPromotions.reserve(numViewedPromotions);
         QString viewedPromotion;
         for(quint32 i = 0; i < numViewedPromotions; ++i) {
             in >> viewedPromotion;
-            viewedPromotions.push_back(viewedPromotion.toStdString());
+            viewedPromotions << viewedPromotion;
         }
     }
 
     bool isSetRecentMailedAddresses = false;
     in >> isSetRecentMailedAddresses;
-    isSet.recentMailedAddresses = isSetRecentMailedAddresses;
     if (isSetRecentMailedAddresses)
     {
         quint32 numRecentMailedAddresses = 0;
         in >> numRecentMailedAddresses;
-        auto & recentMailedAddresses = userAttributes.recentMailedAddresses;
+        userAttributes.recentMailedAddresses = QStringList();
+        QStringList & recentMailedAddresses = userAttributes.recentMailedAddresses;
         recentMailedAddresses.reserve(numRecentMailedAddresses);
         QString recentMailedAddress;
         for(quint32 i = 0; i < numRecentMailedAddresses; ++i) {
             in >> recentMailedAddress;
-            recentMailedAddresses.push_back(recentMailedAddress.toStdString());
+            recentMailedAddresses << recentMailedAddress;
         }
     }
 
     return in;
 }
 
-QDataStream & operator<<(QDataStream & out, const evernote::edam::Accounting & accounting)
+QDataStream & operator<<(QDataStream & out, const qevercloud::Accounting & accounting)
 {
-    const auto & isSet = accounting.__isset;
-
 #define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
     { \
-        bool isSet##attribute = isSet.attribute; \
+        bool isSet##attribute = accounting.attribute.isSet(); \
         out << isSet##attribute; \
         if (isSet##attribute) { \
             out << __VA_ARGS__(accounting.attribute); \
@@ -452,22 +443,22 @@ QDataStream & operator<<(QDataStream & out, const evernote::edam::Accounting & a
     CHECK_AND_SET_ATTRIBUTE(uploadLimitEnd, static_cast<qint64>);
     CHECK_AND_SET_ATTRIBUTE(uploadLimitNextMonth, static_cast<qint64>);
     CHECK_AND_SET_ATTRIBUTE(premiumServiceStatus, static_cast<quint8>);
-    CHECK_AND_SET_ATTRIBUTE(premiumOrderNumber, QString::fromStdString);
-    CHECK_AND_SET_ATTRIBUTE(premiumCommerceService, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(premiumOrderNumber);
+    CHECK_AND_SET_ATTRIBUTE(premiumCommerceService);
     CHECK_AND_SET_ATTRIBUTE(premiumServiceStart, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(premiumServiceSKU, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(premiumServiceSKU);
     CHECK_AND_SET_ATTRIBUTE(lastSuccessfulCharge, static_cast<qint64>);
     CHECK_AND_SET_ATTRIBUTE(lastFailedCharge, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(lastFailedChargeReason, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(lastFailedChargeReason);
     CHECK_AND_SET_ATTRIBUTE(nextPaymentDue, static_cast<qint64>);
     CHECK_AND_SET_ATTRIBUTE(premiumLockUntil, static_cast<qint64>);
     CHECK_AND_SET_ATTRIBUTE(updated, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(premiumSubscriptionNumber, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(premiumSubscriptionNumber);
     CHECK_AND_SET_ATTRIBUTE(lastRequestedCharge, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(currency, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(currency);
     CHECK_AND_SET_ATTRIBUTE(unitPrice, static_cast<qint32>);
     CHECK_AND_SET_ATTRIBUTE(businessId, static_cast<qint32>);
-    CHECK_AND_SET_ATTRIBUTE(businessName, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(businessName);
     CHECK_AND_SET_ATTRIBUTE(businessRole, static_cast<quint8>);
     CHECK_AND_SET_ATTRIBUTE(unitDiscount, static_cast<qint32>);
     CHECK_AND_SET_ATTRIBUTE(nextChargeDate, static_cast<qint64>);
@@ -477,17 +468,14 @@ QDataStream & operator<<(QDataStream & out, const evernote::edam::Accounting & a
     return out;
 }
 
-QDataStream & operator>>(QDataStream & in, evernote::edam::Accounting & accounting)
+QDataStream & operator>>(QDataStream & in, qevercloud::Accounting & accounting)
 {
-    accounting = evernote::edam::Accounting();
-
-    auto & isSet = accounting.__isset;
+    accounting = qevercloud::Accounting();
 
 #define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
     { \
         bool isSet##attribute = false; \
         in >> isSet##attribute; \
-        isSet.attribute = isSet##attribute; \
         if (isSet##attribute) { \
             qtype attribute; \
             in >> attribute; \
@@ -496,28 +484,28 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::Accounting & accounti
     }
 
     CHECK_AND_SET_ATTRIBUTE(uploadLimit, qint64, int64_t);
-    CHECK_AND_SET_ATTRIBUTE(uploadLimitEnd, qint64, evernote::edam::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(uploadLimitEnd, qint64, qevercloud::Timestamp);
     CHECK_AND_SET_ATTRIBUTE(uploadLimitNextMonth, qint64, int64_t);
-    CHECK_AND_SET_ATTRIBUTE(premiumServiceStatus, quint8, evernote::edam::PremiumOrderStatus::type);
-    CHECK_AND_SET_ATTRIBUTE(premiumOrderNumber, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(premiumCommerceService, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(premiumServiceStart, qint64, evernote::edam::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(premiumServiceSKU, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(premiumServiceStatus, quint8, qevercloud::PremiumOrderStatus::type);
+    CHECK_AND_SET_ATTRIBUTE(premiumOrderNumber, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(premiumCommerceService, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(premiumServiceStart, qint64, qevercloud::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(premiumServiceSKU, QString, QString);
     CHECK_AND_SET_ATTRIBUTE(lastSuccessfulCharge, qint64, int64_t);
     CHECK_AND_SET_ATTRIBUTE(lastFailedCharge, qint64, int64_t);
-    CHECK_AND_SET_ATTRIBUTE(lastFailedChargeReason, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(nextPaymentDue, qint64, evernote::edam::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(premiumLockUntil, qint64, evernote::edam::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(updated, qint64, evernote::edam::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(premiumSubscriptionNumber, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(lastFailedChargeReason, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(nextPaymentDue, qint64, qevercloud::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(premiumLockUntil, qint64, qevercloud::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(updated, qint64, qevercloud::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(premiumSubscriptionNumber, QString, QString);
     CHECK_AND_SET_ATTRIBUTE(lastRequestedCharge, qint64, int64_t);
-    CHECK_AND_SET_ATTRIBUTE(currency, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(currency, QString, QString);
     CHECK_AND_SET_ATTRIBUTE(unitPrice, qint32, int32_t);
     CHECK_AND_SET_ATTRIBUTE(businessId, qint32, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(businessName, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(businessRole, quint8, evernote::edam::BusinessUserRole::type);
+    CHECK_AND_SET_ATTRIBUTE(businessName, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(businessRole, quint8, qevercloud::BusinessUserRole::type);
     CHECK_AND_SET_ATTRIBUTE(unitDiscount, qint32, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(nextChargeDate, qint64, evernote::edam::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(nextChargeDate, qint64, qevercloud::Timestamp);
 
 #undef CHECK_AND_SET_ATTRIBUTE
 
@@ -636,7 +624,7 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::ResourceAttributes & 
 }
 
 #define GET_SERIALIZED(type) \
-    const QByteArray GetSerialized##type(const evernote::edam::type & in) \
+    const QByteArray GetSerialized##type(const qevercloud::type & in) \
     { \
         QByteArray data; \
         QDataStream strm(&data, QIODevice::WriteOnly); \
@@ -648,10 +636,38 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::ResourceAttributes & 
     GET_SERIALIZED(PremiumInfo)
     GET_SERIALIZED(Accounting)
     GET_SERIALIZED(UserAttributes)
+
+#undef GET_SERIALIZED
+
+#define GET_SERIALIZED(type) \
+    const QByteArray GetSerialized##type(const evernote::edam::type & in) \
+    { \
+        QByteArray data; \
+        QDataStream strm(&data, QIODevice::WriteOnly); \
+        strm << in; \
+        return std::move(data); \
+    }
+
     GET_SERIALIZED(NoteAttributes)
     GET_SERIALIZED(ResourceAttributes)
 
 #undef GET_SERIALIZED
+
+#define GET_DESERIALIZED(type) \
+    const qevercloud::type GetDeserialized##type(const QByteArray & data) \
+    { \
+        qevercloud::type out; \
+        QDataStream strm(data); \
+        strm >> out; \
+        return std::move(out); \
+    }
+
+    GET_DESERIALIZED(BusinessUserInfo)
+    GET_DESERIALIZED(PremiumInfo)
+    GET_DESERIALIZED(Accounting)
+    GET_DESERIALIZED(UserAttributes)
+
+#undef GET_DESERIALIZED
 
 #define GET_DESERIALIZED(type) \
     const evernote::edam::type GetDeserialized##type(const QByteArray & data) \
@@ -662,10 +678,6 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::ResourceAttributes & 
         return std::move(out); \
     }
 
-    GET_DESERIALIZED(BusinessUserInfo)
-    GET_DESERIALIZED(PremiumInfo)
-    GET_DESERIALIZED(Accounting)
-    GET_DESERIALIZED(UserAttributes)
     GET_DESERIALIZED(NoteAttributes)
     GET_DESERIALIZED(ResourceAttributes)
 

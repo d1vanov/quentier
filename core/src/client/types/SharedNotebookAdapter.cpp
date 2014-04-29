@@ -4,15 +4,32 @@
 
 namespace qute_note {
 
-SharedNotebookAdapter::SharedNotebookAdapter(evernote::edam::SharedNotebook & enSharedNotebook) :
+SharedNotebookAdapter::SharedNotebookAdapter(qevercloud::SharedNotebook & sharedNotebook) :
     ISharedNotebook(),
-    m_pEnSharedNotebook(&enSharedNotebook),
+    m_pEnSharedNotebook(&sharedNotebook),
     m_isConst(false)
 {}
 
-SharedNotebookAdapter::SharedNotebookAdapter(const evernote::edam::SharedNotebook & enSharedNotebook) :
+SharedNotebookAdapter & SharedNotebookAdapter::operator=(const SharedNotebookAdapter & other)
+{
+    if (this != &other) {
+        m_pEnSharedNotebook = other.m_pEnSharedNotebook;
+        m_isConst = other.m_isConst;
+    }
+
+    return *this;
+}
+
+SharedNotebookAdapter & SharedNotebookAdapter::operator=(SharedNotebookAdapter && other)
+{
+    m_pEnSharedNotebook = std::move(other.m_pEnSharedNotebook);
+    m_isConst = std::move(other.m_isConst);
+    return *this;
+}
+
+SharedNotebookAdapter::SharedNotebookAdapter(const qevercloud::SharedNotebook & sharedNotebook) :
     ISharedNotebook(),
-    m_pEnSharedNotebook(const_cast<evernote::edam::SharedNotebook*>(&enSharedNotebook)),
+    m_pEnSharedNotebook(const_cast<qevercloud::SharedNotebook*>(&sharedNotebook)),
     m_isConst(true)
 {}
 
@@ -25,13 +42,13 @@ SharedNotebookAdapter::SharedNotebookAdapter(const SharedNotebookAdapter & other
 SharedNotebookAdapter::~SharedNotebookAdapter()
 {}
 
-const evernote::edam::SharedNotebook & SharedNotebookAdapter::GetEnSharedNotebook() const
+const qevercloud::SharedNotebook & SharedNotebookAdapter::GetEnSharedNotebook() const
 {
     QUTE_NOTE_CHECK_PTR(m_pEnSharedNotebook, "Null pointer to external SharedNotebook in SharedNotebookAdapter");
     return *m_pEnSharedNotebook;
 }
 
-evernote::edam::SharedNotebook & SharedNotebookAdapter::GetEnSharedNotebook()
+qevercloud::SharedNotebook & SharedNotebookAdapter::GetEnSharedNotebook()
 {
     if (m_isConst) {
         throw SharedNotebookAdapterAccessException("Attempt to access non-const reference "

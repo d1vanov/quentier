@@ -2,30 +2,35 @@
 #define __QUTE_NOTE__CLIENT__TYPES__SHARED_NOTEBOOK_WRAPPER_H
 
 #include "ISharedNotebook.h"
-#include <Types_types.h>
+#include <QEverCloud.h>
 
 namespace qute_note {
 
 /**
  * @brief The SharedNotebookWrapper class creates and manages its own instance of
- * evernote::edam::SharedNotebook object
+ * qevercloud::SharedNotebook object
  */
 class SharedNotebookWrapper final: public ISharedNotebook
 {
 public:
-    SharedNotebookWrapper();
-    SharedNotebookWrapper(const evernote::edam::SharedNotebook & sharedNotebook);
-    SharedNotebookWrapper(const SharedNotebookWrapper & other);
-    SharedNotebookWrapper & operator=(const SharedNotebookWrapper & other);
+    SharedNotebookWrapper() = default;
+    SharedNotebookWrapper(const SharedNotebookWrapper & other) = default;
+    SharedNotebookWrapper(SharedNotebookWrapper && other) = default;
+    SharedNotebookWrapper & operator=(const SharedNotebookWrapper & other) = default;
+    SharedNotebookWrapper & operator=(SharedNotebookWrapper && other) = default;
+
+    SharedNotebookWrapper(const qevercloud::SharedNotebook & other);
+    SharedNotebookWrapper(qevercloud::SharedNotebook && other);
+
     virtual ~SharedNotebookWrapper() final override;
 
 private:
-    virtual const evernote::edam::SharedNotebook & GetEnSharedNotebook() const final override;
-    virtual evernote::edam::SharedNotebook & GetEnSharedNotebook() final override;
+    virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const final override;
+    virtual qevercloud::SharedNotebook & GetEnSharedNotebook() final override;
 
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
-    evernote::edam::SharedNotebook m_enSharedNotebook;
+    qevercloud::SharedNotebook m_qecSharedNotebook;
 };
 
 } // namespace qute_note
