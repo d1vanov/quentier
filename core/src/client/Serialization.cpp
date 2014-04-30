@@ -1,6 +1,6 @@
 #include "Serialization.h"
 #include <QEverCloud.h>
-#include "types/QEverCloudOptionalQString.hpp"
+#include "types/QEverCloudHelpers.h"
 #include <Types_types.h>
 #include <QDataStream>
 #include <QByteArray>

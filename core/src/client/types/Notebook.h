@@ -8,6 +8,7 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(ISharedNotebook)
 QT_FORWARD_DECLARE_CLASS(SharedNotebookAdapter)
+QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
 QT_FORWARD_DECLARE_CLASS(IUser)
 QT_FORWARD_DECLARE_CLASS(UserAdapter)
 
@@ -83,7 +84,8 @@ public:
 
     bool hasSharedNotebooks();
     void sharedNotebooks(QList<SharedNotebookAdapter> & notebooks) const;
-    void setSharedNotebooks(QList<ISharedNotebook> && notebooks);
+    void setSharedNotebooks(QList<SharedNotebookAdapter> && notebooks);
+    void setSharedNotebooks(QList<SharedNotebookWrapper> && notebooks);
     void addSharedNotebook(const ISharedNotebook & sharedNotebook);
     void removeSharedNotebook(const ISharedNotebook & sharedNotebook);
 

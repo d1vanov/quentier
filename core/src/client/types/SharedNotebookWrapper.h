@@ -24,10 +24,10 @@ public:
 
     virtual ~SharedNotebookWrapper() final override;
 
-private:
     virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const final override;
     virtual qevercloud::SharedNotebook & GetEnSharedNotebook() final override;
 
+private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
     qevercloud::SharedNotebook m_qecSharedNotebook;

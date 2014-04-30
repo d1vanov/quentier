@@ -193,30 +193,30 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
 
     QString error;
     qevercloud::UserAttributes userAttributes;
-    res = FindUserAttributes(id, userAttributes(), error);
+    res = FindUserAttributes(id, userAttributes, error);
     if (res) {
-        user.setUserAttributes(userAttributes);
+        user.setUserAttributes(std::move(userAttributes));
     }
 
     error.clear();
     qevercloud::Accounting accounting;
-    res = FindAccounting(id, accounting(), error);
+    res = FindAccounting(id, accounting, error);
     if (res) {
-        user.setAccounting(accounting);
+        user.setAccounting(std::move(accounting));
     }
 
     error.clear();
     qevercloud::PremiumInfo premiumInfo;
-    res = FindPremiumInfo(id, premiumInfo(), error);
+    res = FindPremiumInfo(id, premiumInfo, error);
     if (res) {
-        user.setPremiumInfo(premiumInfo);
+        user.setPremiumInfo(std::move(premiumInfo));
     }
 
     error.clear();
     qevercloud::BusinessUserInfo businessUserInfo;
-    res = FindBusinessUserInfo(id, businessUserInfo(), error);
+    res = FindBusinessUserInfo(id, businessUserInfo, error);
     if (res) {
-        user.setBusinessUserInfo(businessUserInfo);
+        user.setBusinessUserInfo(std::move(businessUserInfo));
     }
 
     return true;
@@ -562,10 +562,10 @@ bool LocalStorageManager::ListAllSharedNotebooks(std::vector<SharedNotebookWrapp
 }
 
 bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                             std::vector<SharedNotebookWrapper> & sharedNotebooks,
+                                                             QList<SharedNotebookWrapper> & sharedNotebooks,
                                                              QString & errorDescription) const
 {
-    std::vector<SharedNotebook> enSharedNotebooks;
+    QList<qevercloud::SharedNotebook> enSharedNotebooks;
     bool res = ListSharedNotebooksPerNotebookGuid(notebookGuid, enSharedNotebooks,
                                                   errorDescription);
     if (!res) {
@@ -584,10 +584,10 @@ bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & not
 }
 
 bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                             std::vector<SharedNotebookAdapter> & sharedNotebooks,
+                                                             QList<SharedNotebookAdapter> & sharedNotebooks,
                                                              QString & errorDescription) const
 {
-    std::vector<SharedNotebook> enSharedNotebooks;
+    QList<qevercloud::SharedNotebook> enSharedNotebooks;
     bool res = ListSharedNotebooksPerNotebookGuid(notebookGuid, enSharedNotebooks,
                                                   errorDescription);
     if (!res) {
@@ -606,7 +606,7 @@ bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & not
 }
 
 bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                             std::vector<SharedNotebook> & sharedNotebooks,
+                                                             QList<qevercloud::SharedNotebook> & sharedNotebooks,
                                                              QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManager::ListSharedNotebooksPerNotebookGuid: guid = " << notebookGuid);
@@ -636,8 +636,8 @@ bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & not
     {
         QSqlRecord record = query.record();
 
-        sharedNotebooks.push_back(SharedNotebook());
-        SharedNotebook & sharedNotebook = sharedNotebooks.back();
+        sharedNotebooks.push_back(qevercloud::SharedNotebook());
+        qevercloud::SharedNotebook & sharedNotebook = sharedNotebooks.back();
         SharedNotebookAdapter sharedNotebookAdapter(sharedNotebook);
 
         res = FillSharedNotebookFromSqlRecord(record, sharedNotebookAdapter, errorDescription);
@@ -2028,7 +2028,7 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
         }
     }
 
-    std::vector<SharedNotebookAdapter> sharedNotebooks;
+    QList<SharedNotebookAdapter> sharedNotebooks;
     notebook.sharedNotebooks(sharedNotebooks);
 
     for(const auto & sharedNotebook: sharedNotebooks)
@@ -2044,7 +2044,7 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
     return true;
 }
 
-bool LocalStorageManager::SetNotebookRestrictions(const evernote::edam::NotebookRestrictions & notebookRestrictions,
+bool LocalStorageManager::SetNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
                                                   const QString & notebookGuid, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't set notebook restrictions: ");
@@ -2055,7 +2055,7 @@ bool LocalStorageManager::SetNotebookRestrictions(const evernote::edam::Notebook
     QString values = QString("\"%1\"").arg(notebookGuid);
 
 #define CHECK_AND_SET_NOTEBOOK_RESTRICTION(restriction, value) \
-    if (notebookRestrictions.__isset.restriction) \
+    if (notebookRestrictions.restriction.isSet()) \
     { \
         hasAnyRestriction = true; \
         \
@@ -2839,7 +2839,7 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
     }
 
     QString error;
-    std::vector<SharedNotebookAdapter> sharedNotebooks;
+    QList<SharedNotebookAdapter> sharedNotebooks;
     notebook.sharedNotebooks(sharedNotebooks);
 
     res = ListSharedNotebooksPerNotebookGuid(notebook.guid(), sharedNotebooks, error);

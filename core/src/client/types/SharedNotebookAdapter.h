@@ -29,10 +29,10 @@ public:
 
     virtual ~SharedNotebookAdapter() final override;
 
-private:
     virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const final override;
     virtual qevercloud::SharedNotebook & GetEnSharedNotebook() final override;
 
+private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
     SharedNotebookAdapter() = delete;

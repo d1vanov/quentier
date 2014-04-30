@@ -1,6 +1,6 @@
 #include "IUser.h"
 #include "../Utility.h"
-#include "QEverCloudOptionalQString.hpp"
+#include "QEverCloudHelpers.h"
 #include <QEverCloud.h>
 #include <QRegExp>
 
@@ -74,94 +74,7 @@ bool IUser::operator==(const IUser & other) const
         const qevercloud::UserAttributes & attributes = user.attributes;
         const qevercloud::UserAttributes & otherAttributes = otherUser.attributes;
 
-        if (attributes.defaultLocationName != otherAttributes.defaultLocationName) {
-            return false;
-        }
-        else if (attributes.defaultLatitude != otherAttributes.defaultLatitude) {
-            return false;
-        }
-        else if (attributes.defaultLongitude != otherAttributes.defaultLongitude) {
-            return false;
-        }
-        else if (attributes.preactivation != otherAttributes.preactivation) {
-            return false;
-        }
-        else if (attributes.viewedPromotions != otherAttributes.viewedPromotions) {
-            return false;
-        }
-        else if (attributes.incomingEmailAddress != otherAttributes.incomingEmailAddress) {
-            return false;
-        }
-        else if (attributes.recentMailedAddresses != otherAttributes.recentMailedAddresses) {
-            return false;
-        }
-        else if (attributes.comments != otherAttributes.comments) {
-            return false;
-        }
-        else if (attributes.dateAgreedToTermsOfService != otherAttributes.dateAgreedToTermsOfService) {
-            return false;
-        }
-        else if (attributes.maxReferrals != otherAttributes.maxReferrals) {
-            return false;
-        }
-        else if (attributes.referralCount != otherAttributes.referralCount) {
-            return false;
-        }
-        else if (attributes.sentEmailDate != otherAttributes.sentEmailDate) {
-            return false;
-        }
-        else if (attributes.sentEmailCount != otherAttributes.sentEmailCount) {
-            return false;
-        }
-        else if (attributes.dailyEmailLimit != otherAttributes.dailyEmailLimit) {
-            return false;
-        }
-        else if (attributes.emailOptOutDate != otherAttributes.emailOptOutDate) {
-            return false;
-        }
-        else if (attributes.partnerEmailOptInDate != otherAttributes.partnerEmailOptInDate) {
-            return false;
-        }
-        else if (attributes.preferredLanguage != otherAttributes.preferredLanguage) {
-            return false;
-        }
-        else if (attributes.preferredCountry != otherAttributes.preferredCountry) {
-            return false;
-        }
-        else if (attributes.clipFullPage != otherAttributes.clipFullPage) {
-            return false;
-        }
-        else if (attributes.twitterUserName != otherAttributes.twitterUserName) {
-            return false;
-        }
-        else if (attributes.twitterId != otherAttributes.twitterId) {
-            return false;
-        }
-        else if (attributes.groupName != otherAttributes.groupName) {
-            return false;
-        }
-        else if (attributes.recognitionLanguage != otherAttributes.recognitionLanguage) {
-            return false;
-        }
-        else if (attributes.referralProof != otherAttributes.referralProof) {
-            return false;
-        }
-        else if (attributes.educationalDiscount != otherAttributes.educationalDiscount) {
-            return false;
-        }
-        else if (attributes.businessAddress != otherAttributes.businessAddress) {
-            return false;
-        }
-        else if (attributes.hideSponsorBilling != otherAttributes.hideSponsorBilling) {
-            return false;
-        }
-        else if (attributes.taxExempt != otherAttributes.taxExempt) {
-            return false;
-        }
-        else if (attributes.useEmailAutoFiling != otherAttributes.useEmailAutoFiling) {
-            return false;
-        }
-        else if (attributes.reminderEmailConfig != otherAttributes.reminderEmailConfig) {
+        if (attributes != otherAttributes) {
             return false;
         }
     }
@@ -171,73 +84,7 @@ bool IUser::operator==(const IUser & other) const
         const qevercloud::Accounting & accounting = user.accounting;
         const qevercloud::Accounting & otherAccounting = otherUser.accounting;
 
-        if (accounting.uploadLimit != otherAccounting.uploadLimit) {
-            return false;
-        }
-        else if (accounting.uploadLimitEnd != otherAccounting.uploadLimitEnd) {
-            return false;
-        }
-        else if (accounting.uploadLimitNextMonth != otherAccounting.uploadLimitNextMonth) {
-            return false;
-        }
-        else if (accounting.premiumServiceStatus != otherAccounting.premiumServiceStatus) {
-            return false;
-        }
-        else if (accounting.premiumOrderNumber != otherAccounting.premiumOrderNumber) {
-            return false;
-        }
-        else if (accounting.premiumCommerceService != otherAccounting.premiumCommerceService) {
-            return false;
-        }
-        else if (accounting.premiumServiceStart != otherAccounting.premiumServiceStart) {
-            return false;
-        }
-        else if (accounting.premiumServiceSKU != otherAccounting.premiumServiceSKU) {
-            return false;
-        }
-        else if (accounting.lastSuccessfulCharge != otherAccounting.lastSuccessfulCharge) {
-            return false;
-        }
-        else if (accounting.lastFailedCharge != otherAccounting.lastFailedCharge) {
-            return false;
-        }
-        else if (accounting.lastFailedChargeReason != otherAccounting.lastFailedChargeReason) {
-            return false;
-        }
-        else if (accounting.nextPaymentDue != otherAccounting.nextPaymentDue) {
-            return false;
-        }
-        else if (accounting.premiumLockUntil != otherAccounting.premiumLockUntil) {
-            return false;
-        }
-        else if (accounting.updated != otherAccounting.updated) {
-            return false;
-        }
-        else if (accounting.premiumSubscriptionNumber != otherAccounting.premiumSubscriptionNumber) {
-            return false;
-        }
-        else if (accounting.lastRequestedCharge != otherAccounting.lastRequestedCharge) {
-            return false;
-        }
-        else if (accounting.currency != otherAccounting.currency) {
-            return false;
-        }
-        else if (accounting.unitPrice != otherAccounting.unitPrice) {
-            return false;
-        }
-        else if (accounting.businessId != otherAccounting.businessId) {
-            return false;
-        }
-        else if (accounting.businessName != otherAccounting.businessName) {
-            return false;
-        }
-        else if (accounting.businessRole != otherAccounting.businessRole) {
-            return false;
-        }
-        else if (accounting.unitDiscount != otherAccounting.unitDiscount) {
-            return false;
-        }
-        else if (accounting.nextChargeDate != otherAccounting.nextChargeDate) {
+        if (accounting != otherAccounting) {
             return false;
         }
     }
@@ -247,37 +94,7 @@ bool IUser::operator==(const IUser & other) const
         const qevercloud::PremiumInfo & premiumInfo = user.premiumInfo;
         const qevercloud::PremiumInfo & otherPremiumInfo = otherUser.premiumInfo;
 
-        if (premiumInfo.currentTime != otherPremiumInfo.currentTime) {
-            return false;
-        }
-        else if (premiumInfo.premium != otherPremiumInfo.premium) {
-            return false;
-        }
-        else if (premiumInfo.premiumRecurring != otherPremiumInfo.premiumRecurring) {
-            return false;
-        }
-        else if (premiumInfo.premiumExpirationDate != otherPremiumInfo.premiumExpirationDate) {
-            return false;
-        }
-        else if (premiumInfo.premiumExtendable != otherPremiumInfo.premiumExtendable) {
-            return false;
-        }
-        else if (premiumInfo.premiumPending != otherPremiumInfo.premiumPending) {
-            return false;
-        }
-        else if (premiumInfo.premiumCancellationPending != otherPremiumInfo.premiumCancellationPending) {
-            return false;
-        }
-        else if (premiumInfo.canPurchaseUploadAllowance != otherPremiumInfo.canPurchaseUploadAllowance) {
-            return false;
-        }
-        else if (premiumInfo.sponsoredGroupName != otherPremiumInfo.sponsoredGroupName) {
-            return false;
-        }
-        else if (premiumInfo.sponsoredGroupRole != otherPremiumInfo.sponsoredGroupRole) {
-            return false;
-        }
-        else if (premiumInfo.premiumUpgradable != otherPremiumInfo.premiumUpgradable) {
+        if (premiumInfo != otherPremiumInfo) {
             return false;
         }
     }
@@ -287,16 +104,7 @@ bool IUser::operator==(const IUser & other) const
         const qevercloud::BusinessUserInfo & info = user.businessUserInfo;
         const qevercloud::BusinessUserInfo & otherInfo = otherUser.businessUserInfo;
 
-        if (info.businessId != otherInfo.businessId) {
-            return false;
-        }
-        else if (info.businessName != otherInfo.businessName) {
-            return false;
-        }
-        else if (info.email != otherInfo.email) {
-            return false;
-        }
-        else if (info.role != otherInfo.role) {
+        if (info != otherInfo) {
             return false;
         }
     }

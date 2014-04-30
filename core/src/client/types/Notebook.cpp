@@ -1,7 +1,8 @@
 #include "Notebook.h"
 #include "SharedNotebookAdapter.h"
+#include "SharedNotebookWrapper.h"
 #include "UserAdapter.h"
-#include "QEverCloudOptionalQString.hpp"
+#include "QEverCloudHelpers.h"
 #include "../Utility.h"
 #include "../Serialization.h"
 #include <logging/QuteNoteLogger.h>
@@ -578,23 +579,28 @@ void Notebook::sharedNotebooks(QList<SharedNotebookAdapter> & notebooks) const
     }
 }
 
-// FIXME: fit this method
-void Notebook::setSharedNotebooks(QList<ISharedNotebook> && notebooks)
-{
-    if (!canCreateSharedNotebooks() || !canUpdateNotebook()) {
-        QNDEBUG("Can't set shared notebooks for notebook: restrictions apply");
-        return;
+#define SHARED_NOTEBOOKS_SETTER(type) \
+    void Notebook::setSharedNotebooks(QList<type> && notebooks) \
+    { \
+        if (!canCreateSharedNotebooks() || !canUpdateNotebook()) { \
+            QNDEBUG("Can't set shared notebooks for notebook: restrictions apply"); \
+            return; \
+        } \
+        \
+        if (!m_qecNotebook.sharedNotebooks.isSet()) { \
+            m_qecNotebook.sharedNotebooks = QList<qevercloud::SharedNotebook>(); \
+        } \
+        \
+        m_qecNotebook.sharedNotebooks->clear(); \
+        foreach(const type & sharedNotebook, notebooks) { \
+            m_qecNotebook.sharedNotebooks.ref() << sharedNotebook.GetEnSharedNotebook(); \
+        } \
     }
 
-    m_qecNotebook.sharedNotebooks = std::move(notebooks);
+SHARED_NOTEBOOKS_SETTER(SharedNotebookAdapter)
+SHARED_NOTEBOOKS_SETTER(SharedNotebookWrapper)
 
-    QList<qevercloud::SharedNotebook> & sharedNotebooks = m_qecNotebook.sharedNotebooks;
-    sharedNotebooks.clear();
-
-    foreach(const ISharedNotebook & sharedNotebook, notebooks) {
-        sharedNotebooks << sharedNotebook.GetEnSharedNotebook();
-    }
-}
+#undef SHARED_NOTEBOOKS_SETTER
 
 void Notebook::addSharedNotebook(const ISharedNotebook & sharedNotebook)
 {

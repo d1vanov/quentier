@@ -1,5 +1,6 @@
 #include "SerializationTests.h"
 #include <client/Serialization.h>
+#include <client/types/QEverCloudHelpers.h>
 #include <tools/Printable.h>
 #include <Types_types.h>
 #include <bitset>
@@ -9,8 +10,7 @@ namespace test {
 
 bool TestBusinessUserInfoSerialization(QString & errorDescription)
 {
-    evernote::edam::BusinessUserInfo info;
-    auto & isSet = info.__isset;
+    qevercloud::BusinessUserInfo info;
 
     // number of optional data components of BusinessUserInfo
 #define BUSINESS_USER_INFO_NUM_COMPONENTS 4
@@ -18,39 +18,39 @@ bool TestBusinessUserInfoSerialization(QString & errorDescription)
     for(int mask = 0; mask != (1 << BUSINESS_USER_INFO_NUM_COMPONENTS); ++mask)
     {
         std::bitset<BUSINESS_USER_INFO_NUM_COMPONENTS> bits(mask);
-        info = evernote::edam::BusinessUserInfo();
+        info = qevercloud::BusinessUserInfo();
 
-        isSet.businessId   = bits[0];
-        isSet.businessName = bits[1];
-        isSet.email = bits[2];
-        isSet.role  = bits[3];
+        bool isSetBusinessId   = bits[0];
+        bool isSetBusinessName = bits[1];
+        bool isSetEmail = bits[2];
+        bool isSetRole  = bits[3];
 
-        if (isSet.businessId) {
+        if (isSetBusinessId) {
             info.businessId = mask;
         }
 
-        if (isSet.businessName) {
+        if (isSetBusinessName) {
             info.businessName = "Charlie";
         }
 
-        if (isSet.email) {
+        if (isSetEmail) {
             info.email = "nevertrustaliens@frustration.com";
         }
 
-        if (isSet.role) {
-            info.role = evernote::edam::BusinessUserRole::NORMAL;
+        if (isSetRole) {
+            info.role = qevercloud::BusinessUserRole::NORMAL;
         }
 
         QByteArray serializedInfo = GetSerializedBusinessUserInfo(info);
-        evernote::edam::BusinessUserInfo deserializedInfo = GetDeserializedBusinessUserInfo(serializedInfo);
+        qevercloud::BusinessUserInfo deserializedInfo = GetDeserializedBusinessUserInfo(serializedInfo);
 
         if (info != deserializedInfo)
         {
             errorDescription = "Serialization test for BusinessUserInfo FAILED! ";
             errorDescription.append("Initial BusinessUserInfo: \n");
-            errorDescription.append(ToQString<evernote::edam::BusinessUserInfo>(info));
+            errorDescription.append(ToQString<qevercloud::BusinessUserInfo>(info));
             errorDescription.append("Deserialized BusinessUserInfo: \n");
-            errorDescription.append(ToQString<evernote::edam::BusinessUserInfo>(deserializedInfo));
+            errorDescription.append(ToQString<qevercloud::BusinessUserInfo>(deserializedInfo));
 
             return false;
         }
@@ -63,52 +63,53 @@ bool TestBusinessUserInfoSerialization(QString & errorDescription)
 
 bool TestPremiumInfoSerialization(QString & errorDescription)
 {
-    evernote::edam::PremiumInfo info;
-    auto & isSet = info.__isset;
+    qevercloud::PremiumInfo info;
 
     // number of optional data components in PremiumInfo
 #define PREMIUM_INFO_NUM_COMPONENTS 9
 
     for(int mask = 0; mask != (1 << PREMIUM_INFO_NUM_COMPONENTS); ++mask)
     {
-        info = evernote::edam::PremiumInfo();
+        info = qevercloud::PremiumInfo();
         std::bitset<PREMIUM_INFO_NUM_COMPONENTS> bits(mask);
 
-        isSet.premiumExpirationDate = bits[0];
+        bool isSetPremiumExpirationDate = bits[0];
+
         info.premiumExtendable = bits[1];
         info.premiumPending = bits[2];
         info.premiumCancellationPending = bits[3];
         info.canPurchaseUploadAllowance = bits[4];
-        isSet.sponsoredGroupName = bits[5];
-        isSet.sponsoredGroupRole = bits[6];
-        isSet.premiumUpgradable = bits[7];
 
-        if (isSet.premiumExpirationDate) {
-            info.premiumExpirationDate = static_cast<evernote::edam::Timestamp>(757688758765);
+        bool isSetSponsoredGroupName = bits[5];
+        bool isSetSponsoredGroupRole = bits[6];
+        bool isSetPremiumUpgradable = bits[7];
+
+        if (isSetPremiumExpirationDate) {
+            info.premiumExpirationDate = static_cast<qevercloud::Timestamp>(757688758765);
         }
 
-        if (isSet.sponsoredGroupName) {
+        if (isSetSponsoredGroupName) {
             info.sponsoredGroupName = "Chicago";
         }
 
-        if (isSet.sponsoredGroupRole) {
-            info.sponsoredGroupRole = evernote::edam::SponsoredGroupRole::GROUP_MEMBER;
+        if (isSetSponsoredGroupRole) {
+            info.sponsoredGroupRole = qevercloud::SponsoredGroupRole::GROUP_MEMBER;
         }
 
-        if (isSet.premiumUpgradable) {
+        if (isSetPremiumUpgradable) {
             info.premiumUpgradable = bits[8];
         }
 
         QByteArray serializedInfo = GetSerializedPremiumInfo(info);
-        evernote::edam::PremiumInfo deserializedInfo = GetDeserializedPremiumInfo(serializedInfo);
+        qevercloud::PremiumInfo deserializedInfo = GetDeserializedPremiumInfo(serializedInfo);
 
         if (info != deserializedInfo)
         {
             errorDescription = "Serialization test for PremiumInfo FAILED! ";
             errorDescription.append("Initial PremiumInfo: \n");
-            errorDescription.append(ToQString<evernote::edam::PremiumInfo>(info));
+            errorDescription.append(ToQString<qevercloud::PremiumInfo>(info));
             errorDescription.append("Deserialized PremiumInfo: \n");
-            errorDescription.append(ToQString<evernote::edam::PremiumInfo>(deserializedInfo));
+            errorDescription.append(ToQString<qevercloud::PremiumInfo>(deserializedInfo));
 
             return false;
         }
@@ -121,143 +122,142 @@ bool TestPremiumInfoSerialization(QString & errorDescription)
 
 bool TestAccountingSerialization(QString & errorDescription)
 {
-    evernote::edam::Accounting accounting;
-    auto & isSet = accounting.__isset;
+    qevercloud::Accounting accounting;
 
     // number of optional data components in Accounting
 #define ACCOUNTING_NUM_COMPONENTS 23
     for(int mask = 0; mask != (1 << ACCOUNTING_NUM_COMPONENTS); ++mask)
     {
-        accounting = evernote::edam::Accounting();
+        accounting = qevercloud::Accounting();
 
         std::bitset<ACCOUNTING_NUM_COMPONENTS> bits(mask);
 
-        isSet.uploadLimit = bits[0];
-        isSet.uploadLimitEnd = bits[1];
-        isSet.uploadLimitNextMonth = bits[2];
-        isSet.premiumServiceStatus = bits[3];
-        isSet.premiumOrderNumber = bits[4];
-        isSet.premiumCommerceService = bits[5];
-        isSet.premiumServiceStart = bits[6];
-        isSet.premiumServiceSKU = bits[7];
-        isSet.lastSuccessfulCharge = bits[8];
-        isSet.lastFailedCharge = bits[9];
-        isSet.lastFailedChargeReason = bits[10];
-        isSet.nextPaymentDue = bits[11];
-        isSet.premiumLockUntil = bits[12];
-        isSet.updated = bits[13];
-        isSet.premiumSubscriptionNumber = bits[14];
-        isSet.lastRequestedCharge = bits[15];
-        isSet.currency = bits[16];
-        isSet.unitPrice = bits[17];
-        isSet.businessId = bits[18];
-        isSet.businessName = bits[19];
-        isSet.businessRole = bits[20];
-        isSet.unitDiscount = bits[21];
-        isSet.nextChargeDate = bits[22];
+        bool isSetUploadLimit = bits[0];
+        bool isSetUploadLimitEnd = bits[1];
+        bool isSetUploadLimitNextMonth = bits[2];
+        bool isSetPremiumServiceStatus = bits[3];
+        bool isSetPremiumOrderNumber = bits[4];
+        bool isSetPremiumCommerceService = bits[5];
+        bool isSetPremiumServiceStart = bits[6];
+        bool isSetPremiumServiceSKU = bits[7];
+        bool isSetLastSuccessfulCharge = bits[8];
+        bool isSetLastFailedCharge = bits[9];
+        bool isSetLastFailedChargeReason = bits[10];
+        bool isSetNextPaymentDue = bits[11];
+        bool isSetPremiumLockUntil = bits[12];
+        bool isSetUpdated = bits[13];
+        bool isSetPremiumSubscriptionNumber = bits[14];
+        bool isSetLastRequestedCharge = bits[15];
+        bool isSetCurrency = bits[16];
+        bool isSetUnitPrice = bits[17];
+        bool isSetBusinessId = bits[18];
+        bool isSetBusinessName = bits[19];
+        bool isSetBusinessRole = bits[20];
+        bool isSetUnitDiscount = bits[21];
+        bool isSetNextChargeDate = bits[22];
 
-        if (isSet.uploadLimit) {
+        if (isSetUploadLimit) {
             accounting.uploadLimit = 512;
         }
 
-        if (isSet.uploadLimitEnd) {
+        if (isSetUploadLimitEnd) {
             accounting.uploadLimitEnd = 1024;
         }
 
-        if (isSet.uploadLimitNextMonth) {
+        if (isSetUploadLimitNextMonth) {
             accounting.uploadLimitNextMonth = 2048;
         }
 
-        if (isSet.premiumServiceStatus) {
-            accounting.premiumServiceStatus = evernote::edam::PremiumOrderStatus::ACTIVE;
+        if (isSetPremiumServiceStatus) {
+            accounting.premiumServiceStatus = qevercloud::PremiumOrderStatus::ACTIVE;
         }
 
-        if (isSet.premiumOrderNumber) {
+        if (isSetPremiumOrderNumber) {
             accounting.premiumOrderNumber = "mycoolpremiumordernumberhah";
         }
 
-        if (isSet.premiumCommerceService) {
+        if (isSetPremiumCommerceService) {
             accounting.premiumCommerceService = "atyourservice";
         }
 
-        if (isSet.premiumServiceStart) {
-            accounting.premiumServiceStart = static_cast<evernote::edam::Timestamp>(300);
+        if (isSetPremiumServiceStart) {
+            accounting.premiumServiceStart = static_cast<qevercloud::Timestamp>(300);
         }
 
-        if (isSet.premiumServiceSKU) {
+        if (isSetPremiumServiceSKU) {
             accounting.premiumServiceSKU = "premiumservicesku";
         }
 
-        if (isSet.lastSuccessfulCharge) {
-            accounting.lastSuccessfulCharge = static_cast<evernote::edam::Timestamp>(305);
+        if (isSetLastSuccessfulCharge) {
+            accounting.lastSuccessfulCharge = static_cast<qevercloud::Timestamp>(305);
         }
 
-        if (isSet.lastFailedCharge) {
-            accounting.lastFailedCharge = static_cast<evernote::edam::Timestamp>(295);
+        if (isSetLastFailedCharge) {
+            accounting.lastFailedCharge = static_cast<qevercloud::Timestamp>(295);
         }
 
-        if (isSet.lastFailedChargeReason) {
+        if (isSetLastFailedChargeReason) {
             accounting.lastFailedChargeReason = "youtriedtotrickme!";
         }
 
-        if (isSet.nextPaymentDue) {
-            accounting.nextPaymentDue = static_cast<evernote::edam::Timestamp>(400);
+        if (isSetNextPaymentDue) {
+            accounting.nextPaymentDue = static_cast<qevercloud::Timestamp>(400);
         }
 
-        if (isSet.premiumLockUntil) {
-            accounting.premiumLockUntil = static_cast<evernote::edam::Timestamp>(310);
+        if (isSetPremiumLockUntil) {
+            accounting.premiumLockUntil = static_cast<qevercloud::Timestamp>(310);
         }
 
-        if (isSet.updated) {
-            accounting.updated = static_cast<evernote::edam::Timestamp>(306);
+        if (isSetUpdated) {
+            accounting.updated = static_cast<qevercloud::Timestamp>(306);
         }
 
-        if (isSet.premiumSubscriptionNumber) {
+        if (isSetPremiumSubscriptionNumber) {
             accounting.premiumSubscriptionNumber = "premiumsubscriptionnumber";
         }
 
-        if (isSet.lastRequestedCharge) {
-            accounting.lastRequestedCharge = static_cast<evernote::edam::Timestamp>(297);
+        if (isSetLastRequestedCharge) {
+            accounting.lastRequestedCharge = static_cast<qevercloud::Timestamp>(297);
         }
 
-        if (isSet.currency) {
+        if (isSetCurrency) {
             accounting.currency = "USD";
         }
 
-        if (isSet.unitPrice) {
+        if (isSetUnitPrice) {
             accounting.unitPrice = 25;
         }
 
-        if (isSet.businessId) {
+        if (isSetBusinessId) {
             accounting.businessId = 1234558;
         }
 
-        if (isSet.businessName) {
+        if (isSetBusinessName) {
             accounting.businessName = "businessname";
         }
 
-        if (isSet.businessRole) {
-            accounting.businessRole = evernote::edam::BusinessUserRole::NORMAL;
+        if (isSetBusinessRole) {
+            accounting.businessRole = qevercloud::BusinessUserRole::NORMAL;
         }
 
-        if (isSet.unitDiscount) {
+        if (isSetUnitDiscount) {
             accounting.unitDiscount = 5;
         }
 
-        if (isSet.nextChargeDate) {
-            accounting.nextChargeDate = static_cast<evernote::edam::Timestamp>(395);
+        if (isSetNextChargeDate) {
+            accounting.nextChargeDate = static_cast<qevercloud::Timestamp>(395);
         }
 
         QByteArray serializedAccounting = GetSerializedAccounting(accounting);
-        evernote::edam::Accounting deserializedAccounting = GetDeserializedAccounting(serializedAccounting);
+        qevercloud::Accounting deserializedAccounting = GetDeserializedAccounting(serializedAccounting);
 
         if (accounting != deserializedAccounting)
         {
             errorDescription = "Serialization test for Accounting FAILED! ";
             errorDescription.append("Initial Accounting: \n");
-            errorDescription.append(ToQString<evernote::edam::Accounting>(accounting));
+            errorDescription.append(ToQString<qevercloud::Accounting>(accounting));
             errorDescription.append("Deserialized Accounting: \n");
-            errorDescription.append(ToQString<evernote::edam::Accounting>(deserializedAccounting));
+            errorDescription.append(ToQString<qevercloud::Accounting>(deserializedAccounting));
 
             return false;
         }
@@ -270,169 +270,168 @@ bool TestAccountingSerialization(QString & errorDescription)
 
 bool TestUserAttributesSerialization(QString & errorDescription)
 {
-    evernote::edam::UserAttributes attributes;
-    auto & isSet = attributes.__isset;
+    qevercloud::UserAttributes attributes;
 
     // number of optional data components in UserAttributes
 #define USER_ATTRIBUTES_NUM_COMPONENTS 20
     for(int mask = 0; mask != (1 << USER_ATTRIBUTES_NUM_COMPONENTS); ++mask)
     {
-        attributes = evernote::edam::UserAttributes();
+        attributes = qevercloud::UserAttributes();
 
         std::bitset<USER_ATTRIBUTES_NUM_COMPONENTS> bits(mask);
 
-        isSet.defaultLocationName = bits[0];
-        isSet.defaultLatitude = bits[1];
-        isSet.defaultLongitude = bits[1];
-        isSet.preactivation = bits[2];
-        isSet.incomingEmailAddress = bits[3];
-        isSet.comments = bits[4];
-        isSet.dateAgreedToTermsOfService = bits[5];
-        isSet.maxReferrals = bits[6];
-        isSet.referralCount = bits[6];
-        isSet.refererCode = bits[6];
-        isSet.sentEmailDate = bits[7];
-        isSet.sentEmailCount = bits[7];
-        isSet.dailyEmailLimit = bits[7];
-        isSet.emailOptOutDate = bits[8];
-        isSet.partnerEmailOptInDate = bits[8];
-        isSet.preferredCountry = bits[9];
-        isSet.preferredLanguage = bits[9];
-        isSet.clipFullPage = bits[10];
-        isSet.twitterUserName = bits[11];
-        isSet.twitterId = bits[11];
-        isSet.groupName = bits[12];
-        isSet.recognitionLanguage = bits[13];
-        isSet.referralProof = bits[14];
-        isSet.educationalDiscount = bits[15];
-        isSet.businessAddress = bits[16];
-        isSet.hideSponsorBilling = bits[17];
-        isSet.taxExempt = bits[18];
-        isSet.useEmailAutoFiling = bits[19];
-        isSet.reminderEmailConfig = bits[20];
+        bool isSetDefaultLocationName = bits[0];
+        bool isSetDefaultLatitude = bits[1];
+        bool isSetDefaultLongitude = bits[1];
+        bool isSetPreactivation = bits[2];
+        bool isSetIncomingEmailAddress = bits[3];
+        bool isSetComments = bits[4];
+        bool isSetDateAgreedToTermsOfService = bits[5];
+        bool isSetMaxReferrals = bits[6];
+        bool isSetReferralCount = bits[6];
+        bool isSetRefererCode = bits[6];
+        bool isSetSentEmailDate = bits[7];
+        bool isSetSentEmailCount = bits[7];
+        bool isSetDailyEmailLimit = bits[7];
+        bool isSetEmailOptOutDate = bits[8];
+        bool isSetPartnerEmailOptInDate = bits[8];
+        bool isSetPreferredCountry = bits[9];
+        bool isSetPreferredLanguage = bits[9];
+        bool isSetClipFullPage = bits[10];
+        bool isSetTwitterUserName = bits[11];
+        bool isSetTwitterId = bits[11];
+        bool isSetGroupName = bits[12];
+        bool isSetRecognitionLanguage = bits[13];
+        bool isSetReferralProof = bits[14];
+        bool isSetEducationalDiscount = bits[15];
+        bool isSetBusinessAddress = bits[16];
+        bool isSetHideSponsorBilling = bits[17];
+        bool isSetTaxExempt = bits[18];
+        bool isSetUseEmailAutoFiling = bits[19];
+        bool isSetReminderEmailConfig = bits[20];
 
-        if (isSet.defaultLocationName) {
+        if (isSetDefaultLocationName) {
             attributes.defaultLocationName = "Saint-Petersburg";
         }
 
-        if (isSet.defaultLatitude) {
+        if (isSetDefaultLatitude) {
             attributes.defaultLatitude = 12.0;
         }
 
-        if (isSet.defaultLongitude) {
+        if (isSetDefaultLongitude) {
             attributes.defaultLongitude = 42.0;
         }
 
-        if (isSet.preactivation) {
+        if (isSetPreactivation) {
             attributes.preactivation = true;
         }
 
-        if (isSet.incomingEmailAddress) {
+        if (isSetIncomingEmailAddress) {
             attributes.incomingEmailAddress = "hola@amigo.com";
         }
 
-        if (isSet.comments) {
+        if (isSetComments) {
             attributes.comments = "I always wondered what people write in comments sections like this?";
         }
 
-        if (isSet.dateAgreedToTermsOfService) {
-            attributes.dateAgreedToTermsOfService = static_cast<evernote::edam::Timestamp>(512);
+        if (isSetDateAgreedToTermsOfService) {
+            attributes.dateAgreedToTermsOfService = static_cast<qevercloud::Timestamp>(512);
         }
 
-        if (isSet.maxReferrals) {
+        if (isSetMaxReferrals) {
             attributes.maxReferrals = 42;
         }
 
-        if (isSet.referralCount) {
+        if (isSetReferralCount) {
             attributes.referralCount = 41;
         }
 
-        if (isSet.refererCode) {
+        if (isSetRefererCode) {
             attributes.refererCode = "err, don't know what to write here";
         }
 
-        if (isSet.sentEmailDate) {
-            attributes.sentEmailDate = static_cast<evernote::edam::Timestamp>(100);
+        if (isSetSentEmailDate) {
+            attributes.sentEmailDate = static_cast<qevercloud::Timestamp>(100);
         }
 
-        if (isSet.sentEmailCount) {
+        if (isSetSentEmailCount) {
             attributes.sentEmailCount = 10;
         }
 
-        if (isSet.dailyEmailLimit) {
+        if (isSetDailyEmailLimit) {
             attributes.dailyEmailLimit = 100;
         }
 
-        if (isSet.emailOptOutDate) {
-            attributes.emailOptOutDate = static_cast<evernote::edam::Timestamp>(90);
+        if (isSetEmailOptOutDate) {
+            attributes.emailOptOutDate = static_cast<qevercloud::Timestamp>(90);
         }
 
-        if (isSet.partnerEmailOptInDate) {
-            attributes.partnerEmailOptInDate = static_cast<evernote::edam::Timestamp>(80);
+        if (isSetPartnerEmailOptInDate) {
+            attributes.partnerEmailOptInDate = static_cast<qevercloud::Timestamp>(80);
         }
 
-        if (isSet.preferredCountry) {
+        if (isSetPreferredCountry) {
             attributes.preferredCountry = "Russia, Soviet one preferably";
         }
 
-        if (isSet.preferredLanguage) {
+        if (isSetPreferredLanguage) {
             attributes.preferredLanguage = "Russian. No, seriously, it's a very nice language";
         }
 
-        if (isSet.clipFullPage) {
+        if (isSetClipFullPage) {
             attributes.clipFullPage = true;
         }
 
-        if (isSet.twitterUserName) {
+        if (isSetTwitterUserName) {
             attributes.twitterUserName = "140 symbols would always be enough for everyone";
         }
 
-        if (isSet.twitterId) {
+        if (isSetTwitterId) {
             attributes.twitterId = "why?";
         }
 
-        if (isSet.groupName) {
+        if (isSetGroupName) {
             attributes.groupName = "In Flames. This band's music is pretty neat for long development evenings";
         }
 
-        if (isSet.recognitionLanguage) {
+        if (isSetRecognitionLanguage) {
             attributes.recognitionLanguage = "Chinese. Haha, come on, try to recognize it";
         }
 
-        if (isSet.referralProof) {
+        if (isSetReferralProof) {
             attributes.referralProof = "Always have all the necessary proofs with you";
         }
 
-        if (isSet.educationalDiscount) {
+        if (isSetEducationalDiscount) {
             attributes.educationalDiscount = true;
         }
 
-        if (isSet.businessAddress) {
+        if (isSetBusinessAddress) {
             attributes.businessAddress = "Milky Way galaxy";
         }
 
-        if (isSet.hideSponsorBilling) {
+        if (isSetHideSponsorBilling) {
             attributes.hideSponsorBilling = true;   // Really, hide this annoying thing!
         }
 
-        if (isSet.taxExempt) {
+        if (isSetTaxExempt) {
             attributes.taxExempt = false;
         }
 
-        if (isSet.reminderEmailConfig) {
-            attributes.reminderEmailConfig = evernote::edam::ReminderEmailConfig::SEND_DAILY_EMAIL;
+        if (isSetReminderEmailConfig) {
+            attributes.reminderEmailConfig = qevercloud::ReminderEmailConfig::SEND_DAILY_EMAIL;
         }
 
         QByteArray serializedAttributes = GetSerializedUserAttributes(attributes);
-        evernote::edam::UserAttributes deserializedAttributes = GetDeserializedUserAttributes(serializedAttributes);
+        qevercloud::UserAttributes deserializedAttributes = GetDeserializedUserAttributes(serializedAttributes);
 
         if (attributes != deserializedAttributes)
         {
             errorDescription = "Serialization test for UserAttributes FAILED! ";
             errorDescription.append("Initial UserAttributes: \n");
-            errorDescription.append(ToQString<evernote::edam::UserAttributes>(attributes));
+            errorDescription.append(ToQString<qevercloud::UserAttributes>(attributes));
             errorDescription.append("Deserialized UserAttributes: \n");
-            errorDescription.append(ToQString<evernote::edam::UserAttributes>(deserializedAttributes));
+            errorDescription.append(ToQString<qevercloud::UserAttributes>(deserializedAttributes));
 
             return false;
         }

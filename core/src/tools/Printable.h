@@ -6,6 +6,7 @@
 #include <QTextStream>
 #include <QDebug>
 #include <Types_types.h>
+#include <QEverCloud.h>
 
 namespace qute_note {
 
@@ -54,11 +55,11 @@ const QString ToQString(const T & object)
         return debug; \
     }
 
-__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::BusinessUserInfo)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessUserInfo)
 __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::Guid)
-__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::PremiumInfo)
-__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::Accounting)
-__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::UserAttributes)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PremiumInfo)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Accounting)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::UserAttributes)
 __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::NoteAttributes)
 __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::ResourceAttributes)
 __QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::PrivilegeLevel::type)

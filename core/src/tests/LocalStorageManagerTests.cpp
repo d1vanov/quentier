@@ -8,6 +8,7 @@
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
 #include <client/types/UserWrapper.h>
+#include <client/types/QEverCloudHelpers.h>
 #include <client/Utility.h>
 #include <client/Serialization.h>
 
@@ -660,36 +661,37 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     modifiedUser.setModificationTimestamp(user.modificationTimestamp() + 1);
     modifiedUser.setActive(true);
 
-    auto & modifiedUserAttributes = modifiedUser.userAttributes();
+    qevercloud::UserAttributes modifiedUserAttributes;
     modifiedUserAttributes = user.userAttributes();
-    modifiedUserAttributes.defaultLocationName.append("_modified");
-    modifiedUserAttributes.comments.append("_modified");
-    modifiedUserAttributes.preferredCountry.append("_modified");
-    modifiedUserAttributes.businessAddress.append("_modified");
+    modifiedUserAttributes.defaultLocationName->append("_modified");
+    modifiedUserAttributes.comments->append("_modified");
+    modifiedUserAttributes.preferredCountry->append("_modified");
+    modifiedUserAttributes.businessAddress->append("_modified");
 
-    modifiedUser.setHasAttributes(true);
+    modifiedUser.setUserAttributes(std::move(modifiedUserAttributes));
 
-    auto & modifiedBusinessUserInfo = modifiedUser.businessUserInfo();
+    qevercloud::BusinessUserInfo modifiedBusinessUserInfo;
     modifiedBusinessUserInfo = user.businessUserInfo();
-    modifiedBusinessUserInfo.businessName.append("_modified");
-    modifiedBusinessUserInfo.email.append("_modified");
+    modifiedBusinessUserInfo.businessName->append("_modified");
+    modifiedBusinessUserInfo.email->append("_modified");
 
-    modifiedUser.setHasBusinessUserInfo(true);
+    modifiedUser.setBusinessUserInfo(std::move(modifiedBusinessUserInfo));
 
-    auto & modifiedAccounting = modifiedUser.accounting();
+    qevercloud::Accounting modifiedAccounting;
     modifiedAccounting = user.accounting();
-    modifiedAccounting.premiumOrderNumber.append("_modified");
-    modifiedAccounting.premiumSubscriptionNumber.append("_modified");
+    modifiedAccounting.premiumOrderNumber->append("_modified");
+    modifiedAccounting.premiumSubscriptionNumber->append("_modified");
     modifiedAccounting.updated += 1;
 
-    modifiedUser.setHasAccounting(true);
+    modifiedUser.setAccounting(std::move(modifiedAccounting));
 
-    auto & modifiedPremiumInfo = modifiedUser.premiumInfo();
-    modifiedPremiumInfo.sponsoredGroupName.append("_modified");
+    qevercloud::PremiumInfo modifiedPremiumInfo;
+    modifiedPremiumInfo = user.premiumInfo();
+    modifiedPremiumInfo.sponsoredGroupName->append("_modified");
     modifiedPremiumInfo.canPurchaseUploadAllowance = !modifiedPremiumInfo.canPurchaseUploadAllowance;
     modifiedPremiumInfo.premiumExtendable = !modifiedPremiumInfo.premiumExtendable;
 
-    modifiedUser.setHasPremiumInfo(true);
+    modifiedUser.setPremiumInfo(std::move(modifiedPremiumInfo));
 
     res = localStorageManager.UpdateUser(modifiedUser, errorDescription);
     if (!res) {
@@ -709,7 +711,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
 
-    evernote::edam::UserAttributes foundAttributes;
+    qevercloud::UserAttributes foundAttributes;
     res = localStorageManager.FindUserAttributes(modifiedUser.id(), foundAttributes, errorDescription);
     if (!res) {
         return false;
@@ -722,7 +724,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
 
-    evernote::edam::BusinessUserInfo foundBusinessUserInfo;
+    qevercloud::BusinessUserInfo foundBusinessUserInfo;
     res = localStorageManager.FindBusinessUserInfo(modifiedUser.id(), foundBusinessUserInfo, errorDescription);
     if (!res) {
         return false;
@@ -735,7 +737,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
 
-    evernote::edam::Accounting foundAccounting;
+    qevercloud::Accounting foundAccounting;
     res = localStorageManager.FindAccounting(modifiedUser.id(), foundAccounting, errorDescription);
     if (!res) {
         return false;
@@ -748,7 +750,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
 
-    evernote::edam::PremiumInfo foundPremiumInfo;
+    qevercloud::PremiumInfo foundPremiumInfo;
     res = localStorageManager.FindPremiumInfo(modifiedUser.id(), foundPremiumInfo, errorDescription);
     if (!res) {
         return false;
@@ -802,50 +804,50 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     // ========== Check FindUserAttributes for expunged user (failure expected) ==========
-    auto & userAttributes = foundUser.userAttributes();
-    res = localStorageManager.FindUserAttributes(modifiedUser.id(), userAttributes, errorDescription);
+    qevercloud::UserAttributes foundUserAttributes;
+    res = localStorageManager.FindUserAttributes(modifiedUser.id(), foundUserAttributes, errorDescription);
     if (res) {
         errorDescription = QObject::tr("Error: found UserAttributes for user which "
                                        "should have been expunged from LocalStorageManager");
         QNWARNING(errorDescription << ": UserAttributes for user expunged from LocalStorageManager: "
                   << modifiedUser.userAttributes() << "\nUserAttributes found in LocalStorageManager: "
-                  << userAttributes);
+                  << foundUserAttributes);
         return false;
     }
 
     // ========== Check FindAccounting for expunged user (failure expected) ==========
-    auto & accounting = foundUser.accounting();
-    res = localStorageManager.FindAccounting(modifiedUser.id(), accounting, errorDescription);
+    foundAccounting = qevercloud::Accounting();
+    res = localStorageManager.FindAccounting(modifiedUser.id(), foundAccounting, errorDescription);
     if (res) {
         errorDescription = QObject::tr("Error: found Accounting for user which "
                                        "should have been expunged from LocalStorageManager");
         QNWARNING(errorDescription << ": Accounting for user expunged from LocalStorageManager: "
                   << modifiedUser.accounting() << "\nAccounting found in LocalStorageManager: "
-                  << accounting);
+                  << foundAccounting);
         return false;
     }
 
     // =========== Check FindPremiumInfo for expunged user (failure expected) ==========
-    auto & premiumInfo = foundUser.premiumInfo();
-    res = localStorageManager.FindPremiumInfo(modifiedUser.id(), premiumInfo, errorDescription);
+    foundPremiumInfo = qevercloud::PremiumInfo();
+    res = localStorageManager.FindPremiumInfo(modifiedUser.id(), foundPremiumInfo, errorDescription);
     if (res) {
         errorDescription = QObject::tr("Error: found PremiumInfo for user which "
                                        "should have been expunged from LocalStorageManager");
         QNWARNING(errorDescription << ": PremiumInfo for user expunged from LocalStorageManager: "
                   << modifiedUser.premiumInfo() << "\nPremiumInfo found in LocalStorageManager: "
-                  << premiumInfo);
+                  << foundPremiumInfo);
         return false;
     }
 
     // ========== Check FindBusinessUserInfo for expunged user (failure expected) ==========
-    auto & businessUserInfo = foundUser.businessUserInfo();
-    res = localStorageManager.FindBusinessUserInfo(modifiedUser.id(), businessUserInfo, errorDescription);
+    foundBusinessUserInfo = qevercloud::BusinessUserInfo();
+    res = localStorageManager.FindBusinessUserInfo(modifiedUser.id(), foundBusinessUserInfo, errorDescription);
     if (res) {
         errorDescription = QObject::tr("Error: found BusinessUserInfo for user which "
                                        "should have been expunged from LocalStorageManager");
         QNWARNING(errorDescription << ": BusinessUserInfo for user expunged from LocalStorageManager: "
                   << modifiedUser.businessUserInfo() << "\nBusinessUserInfo found in LocalStorageManager: "
-                  << businessUserInfo);
+                  << foundBusinessUserInfo);
         return false;
     }
 

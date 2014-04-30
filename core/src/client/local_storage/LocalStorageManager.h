@@ -29,6 +29,8 @@ QT_FORWARD_DECLARE_STRUCT(UserAttributes)
 QT_FORWARD_DECLARE_STRUCT(Accounting)
 QT_FORWARD_DECLARE_STRUCT(PremiumInfo)
 QT_FORWARD_DECLARE_STRUCT(BusinessUserInfo)
+QT_FORWARD_DECLARE_STRUCT(SharedNotebook)
+QT_FORWARD_DECLARE_STRUCT(NotebookRestrictions)
 }
 
 namespace qute_note {
@@ -100,10 +102,10 @@ public:
                                 QString & errorDescription) const;
 
     bool ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                            std::vector<SharedNotebookWrapper> & sharedNotebooks,
+                                            QList<SharedNotebookWrapper> & sharedNotebooks,
                                             QString & errorDescription) const;
     bool ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                            std::vector<SharedNotebookAdapter> & sharedNotebooks,
+                                            QList<SharedNotebookAdapter> & sharedNotebooks,
                                             QString & errorDescription) const;
 
     /**
@@ -239,7 +241,7 @@ private:
     bool CreateTables(QString & errorDescription);
     bool SetNoteAttributes(const Note & note, QString & errorDescription);
     bool SetNotebookAdditionalAttributes(const Notebook & notebook, QString & errorDescription);
-    bool SetNotebookRestrictions(const evernote::edam::NotebookRestrictions & notebookRestrictions,
+    bool SetNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
                                  const QString & notebookGuid, QString & errorDescription);
     bool SetSharedNotebookAttributes(const ISharedNotebook &sharedNotebook,
                                      QString & errorDescription);
@@ -272,8 +274,8 @@ private:
                                     const bool withBinaryData = true) const;
     bool FindAndSetNoteAttributesPerNote(Note & note, QString & errorDescription) const;
 
-    bool ListSharedNotebooksPerNotebookGuid(const QString &notebookGuid,
-                                            std::vector<evernote::edam::SharedNotebook> & sharedNotebooks,
+    bool ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
+                                            QList<qevercloud::SharedNotebook> & sharedNotebooks,
                                             QString & errorDescription) const;
 
     LocalStorageManager() = delete;
