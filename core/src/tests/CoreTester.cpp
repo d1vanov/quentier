@@ -1,3 +1,4 @@
+#include <backward.hpp>
 #include "CoreTester.h"
 #include "SerializationTests.h"
 #include "LocalStorageManagerTests.h"
@@ -40,9 +41,34 @@ TEST(ResourceAttributes)
 
 #undef TEST
 
+#define PRINT_BACKTRACE() \
+    QString backtrace; \
+    using namespace backward; \
+    StackTrace st; st.load_here(32); \
+    TraceResolver tr; \
+    tr.load_stacktrace(st); \
+    for(size_t i = 0; i < st.size(); ++i) { \
+        ResolvedTrace trace = tr.resolve(st[i]); \
+        backtrace += QString("#"); \
+        backtrace += QString::number(i); \
+        backtrace += QString(" "); \
+        backtrace += QString::fromStdString(trace.object_filename); \
+        backtrace += QString::fromStdString(trace.object_function); \
+        backtrace += QString(" line: "); \
+        backtrace += QString::number(trace.source.line); \
+        backtrace += QString(" column: "); \
+        backtrace += QString::number(trace.source.col); \
+        backtrace += QString(" ["); \
+        QString addr; \
+        addr.sprintf("%08p", trace.addr); \
+        backtrace += addr; \
+        backtrace += QString("] \n"); \
+    }
+
 #define CATCH_EXCEPTION() \
     catch(const std::exception & exception) { \
-        QFAIL(qPrintable(QString("Caught exception: ") + QString(exception.what()))); \
+        PRINT_BACKTRACE(); \
+        QFAIL(qPrintable(QString("Caught exception: ") + QString(exception.what()) + backtrace)); \
     }
 
 void CoreTester::localStorageManagerIndividualSavedSearchTest()

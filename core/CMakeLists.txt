@@ -117,7 +117,14 @@ else()
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${EVERNOTE_SDK_LIB} ${THRIFT_LIB}
-                      ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES} ${QEVERCLOUD_LIB})
+                      ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES} ${QEVERCLOUD_LIB} 
+                      ${BACKWARDCPP_LIB})
+
+if(LIBBFD AND LIBDL)
+  target_link_libraries(${PROJECT_NAME} ${LIBBFD} ${LIBDL})
+elseif(LIBWD)
+  target_link_libraries(${PROJECT_NAME} ${LIBWD})
+endif()
 
 set(TEST_HEADERS
     src/tests/LocalStorageManagerTests.h
@@ -133,6 +140,12 @@ set(TEST_SOURCES
 add_executable(test_${PROJECT_NAME} ${TEST_HEADERS} ${TEST_SOURCES})
 add_test(test_${PROJECT_NAME} test_${PROJECT_NAME})
 target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
+
+if(LIBBFD AND LIBDL)
+  target_link_libraries(test_${PROJECT_NAME} ${LIBBFD} ${LIBDL})
+elseif(LIBWD)
+  target_link_libraries(test_${PROJECT_NAME} ${LIBWD})
+endif()
 
 if(USE_QT5)
   qt5_use_modules(test_${PROJECT_NAME} Core)
