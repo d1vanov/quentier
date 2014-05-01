@@ -1716,7 +1716,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  businessNotebookDescription     TEXT              DEFAULT NULL, "
                      "  businessNotebookPrivilegeLevel  INTEGER           DEFAULT 0, "
                      "  businessNotebookIsRecommended   INTEGER           DEFAULT 0, "
-                     "  contactId                       INTEGER           DEFAULT 0"
+                     "  contactId                       INTEGER           DEFAULT NULL"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Notebooks table");
 
@@ -2309,25 +2309,53 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
 
     errorDescription = QObject::tr("Can't insert or replace notebook into local storage database: ");
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT OR REPLACE INTO Notebooks (guid, updateSequenceNumber, name, "
-                  "creationTimestamp, modificationTimestamp, isDirty, isLocal, "
-                  "isDefault, isLastUsed, isPublished, stack) VALUES(:guid, "
-                  ":updateSequenceNumber, :name, :creationTimestamp, :modificationTimestamp, "
-                  ":isDirty, :isLocal, :isDefault, :isLastUsed, :isPublished, :stack)");
-    query.bindValue(":guid", notebook.guid());
-    query.bindValue(":updateSequenceNumber", notebook.updateSequenceNumber());
-    query.bindValue(":name", notebook.name());
-    query.bindValue(":creationTimestamp", notebook.creationTimestamp());
-    query.bindValue(":modificationTimestamp", notebook.modificationTimestamp());
-    query.bindValue(":isDirty", (notebook.isDirty() ? 1 : 0));
-    query.bindValue(":isLocal", (notebook.isLocal() ? 1 : 0));
-    query.bindValue(":isDefault", (notebook.isDefaultNotebook() ? 1 : 0));
-    query.bindValue(":isLastUsed", (notebook.isLastUsed() ? 1 : 0));
-    query.bindValue(":isPublished", (notebook.isPublished() ? 1 : 0));
-    query.bindValue(":stack", notebook.stack());
+    QString columns, values;
 
-    bool res = query.exec();
+#define APPEND_COLUMN_VALUE(checker, name, ...) \
+    if (notebook.checker()) { \
+        if (!columns.isEmpty()) { \
+            columns += ", "; \
+        } \
+        columns += #name; \
+        if (!values.isEmpty()) { \
+            values += ", "; \
+        } \
+        values += "\"" + __VA_ARGS__ (notebook.name()) + "\""; \
+    }
+
+    APPEND_COLUMN_VALUE(hasGuid, guid);
+    APPEND_COLUMN_VALUE(hasUpdateSequenceNumber, updateSequenceNumber, QString::number);
+    APPEND_COLUMN_VALUE(hasName, name);
+    APPEND_COLUMN_VALUE(hasCreationTimestamp, creationTimestamp, QString::number);
+    APPEND_COLUMN_VALUE(hasModificationTimestamp, modificationTimestamp, QString::number);
+    APPEND_COLUMN_VALUE(hasPublished, isPublished, QString::number);
+    APPEND_COLUMN_VALUE(hasStack, stack);
+
+#undef APPEND_COLUMN_VALUE
+
+    if (notebook.hasContact()) {
+        UserAdapter contact = notebook.contact();
+        if (!columns.isEmpty()) {
+            columns += ", ";
+        }
+        columns += "contact";
+        if (!values.isEmpty()) {
+            values += ", ";
+        }
+        values += QString::number(contact.id());
+    }
+
+    QString isDirty = QString::number(notebook.isDirty() ? 1 : 0);
+    QString isLocal = QString::number(notebook.isLocal() ? 1 : 0);
+    QString isDefault = QString::number(notebook.isDefaultNotebook() ? 1 : 0);
+    QString isLastUsed = QString::number(notebook.isLastUsed() ? 1 : 0);
+
+    QString queryString = QString("INSERT OR REPLACE INTO Notebooks (%1, isDirty, isLocal, isDefault, "
+                                  "isLastUsed) VALUES(%2, %3, %4, %5, %6)")
+                                  .arg(columns).arg(values).arg(isDirty).arg(isLocal).arg(isDefault).arg(isLastUsed);
+
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook into \"Notebooks\" table in SQL database");
 
     return SetNotebookAdditionalAttributes(notebook, errorDescription);
@@ -2761,25 +2789,26 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(businessNotebookIsRecommended, setBusinessNotebookRecommended,
                                      int, bool, isRequired);
 
-    if (record.contains("contactId")) {
-        UserAdapter user = notebook.contact();
-        user.setId(qvariant_cast<qint32>(record.value("contactId")));
-        notebook.setContact(user);
-
-        if (notebook.hasContact())
-        {
-            QString error;
-            bool res = FindUser(user.id(), user, error);
-            if (!res) {
-                errorDescription += error;
-                return false;
-            }
+    if (record.contains("contactId") && !record.isNull("contactId"))
+    {
+        if (notebook.hasContact()) {
+            UserAdapter contact = notebook.contact();
+            contact.setId(qvariant_cast<qint32>(record.value("contactId")));
+            notebook.setContact(contact);
         }
-    }
-    else {
-        errorDescription += QObject::tr("Internal error: No contactId field "
-                                        "in the result of SQL query");
-        return false;
+        else {
+            UserWrapper contact;
+            contact.setId(qvariant_cast<qint32>(record.value("contactId")));
+            notebook.setContact(contact);
+        }
+
+        UserAdapter user = notebook.contact();
+        QString error;
+        bool res = FindUser(user.id(), user, error);
+        if (!res) {
+            errorDescription += error;
+            return false;
+        }
     }
 
     QSqlQuery query(m_sqlDatabase);
@@ -2838,14 +2867,19 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
 
     }
 
+    // TODO: try to optimize it, get rid of unnecessary copying
+
     QString error;
-    QList<SharedNotebookAdapter> sharedNotebooks;
-    notebook.sharedNotebooks(sharedNotebooks);
+    QList<SharedNotebookWrapper> sharedNotebooks;
 
     res = ListSharedNotebooksPerNotebookGuid(notebook.guid(), sharedNotebooks, error);
     if (!res) {
         errorDescription += error;
         return false;
+    }
+
+    foreach(const SharedNotebookWrapper & sharedNotebook, sharedNotebooks) {
+        notebook.addSharedNotebook(sharedNotebook);
     }
 
     return true;

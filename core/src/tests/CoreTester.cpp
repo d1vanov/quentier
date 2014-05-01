@@ -1,4 +1,3 @@
-#include <backward.hpp>
 #include "CoreTester.h"
 #include "SerializationTests.h"
 #include "LocalStorageManagerTests.h"
@@ -41,34 +40,9 @@ TEST(ResourceAttributes)
 
 #undef TEST
 
-#define PRINT_BACKTRACE() \
-    QString backtrace; \
-    using namespace backward; \
-    StackTrace st; st.load_here(32); \
-    TraceResolver tr; \
-    tr.load_stacktrace(st); \
-    for(size_t i = 0; i < st.size(); ++i) { \
-        ResolvedTrace trace = tr.resolve(st[i]); \
-        backtrace += QString("#"); \
-        backtrace += QString::number(i); \
-        backtrace += QString(" "); \
-        backtrace += QString::fromStdString(trace.object_filename); \
-        backtrace += QString::fromStdString(trace.object_function); \
-        backtrace += QString(" line: "); \
-        backtrace += QString::number(trace.source.line); \
-        backtrace += QString(" column: "); \
-        backtrace += QString::number(trace.source.col); \
-        backtrace += QString(" ["); \
-        QString addr; \
-        addr.sprintf("%08p", trace.addr); \
-        backtrace += addr; \
-        backtrace += QString("] \n"); \
-    }
-
 #define CATCH_EXCEPTION() \
     catch(const std::exception & exception) { \
-        PRINT_BACKTRACE(); \
-        QFAIL(qPrintable(QString("Caught exception: ") + QString(exception.what()) + backtrace)); \
+        QFAIL(qPrintable(QString("Caught exception: ") + QString(exception.what()))); \
     }
 
 void CoreTester::localStorageManagerIndividualSavedSearchTest()
@@ -358,12 +332,10 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         notebook.setCanExpungeTags(false);
         notebook.setCanSetParentTag(true);
         notebook.setCanCreateSharedNotebooks(true);
+        notebook.setCanCreateSharedNotebooks(true);
+        notebook.setCanUpdateNotebook(true);
         notebook.setUpdateWhichSharedNotebookRestrictions(1);
         notebook.setExpungeWhichSharedNotebookRestrictions(1);
-
-        QString error;
-        bool res = localStorageManager.AddNotebook(notebook, error);
-        QVERIFY2(res == true, qPrintable(error));
 
         SharedNotebookWrapper sharedNotebook;
         sharedNotebook.setId(1);
@@ -380,6 +352,10 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         sharedNotebook.setReminderNotifyApp(false);
 
         notebook.addSharedNotebook(sharedNotebook);
+
+        QString error;
+        bool res = localStorageManager.AddNotebook(notebook, error);
+        QVERIFY2(res == true, qPrintable(error));
 
         Note note;
         note.setGuid("00000000-0000-0000-c000-000000000049");
