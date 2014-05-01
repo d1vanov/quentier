@@ -250,4 +250,250 @@ bool operator!=(const BusinessUserInfo & lhs, const BusinessUserInfo & rhs)
     return !(operator==(lhs, rhs));
 }
 
+bool operator==(const Data & lhs, const Data & rhs)
+{
+    if (lhs.bodyHash != rhs.bodyHash) {
+        return false;
+    }
+    else if (lhs.size != rhs.size) {
+        return false;
+    }
+    else if (lhs.body != rhs.body) {
+        return false;
+    }
+
+    return true;
+}
+
+bool operator!=(const Data & lhs, const Data & rhs)
+{
+    return !operator==(lhs, rhs);
+}
+
+bool operator==(const LazyMap & lhs, const LazyMap & rhs)
+{
+    if (lhs.keysOnly != rhs.keysOnly) {
+        return false;
+    }
+    else if (lhs.fullMap != rhs.fullMap) {
+        return false;
+    }
+
+    return true;
+}
+
+bool operator!=(const LazyMap & lhs, const LazyMap & rhs)
+{
+    return !operator==(lhs, rhs);
+}
+
+bool operator==(const ResourceAttributes & lhs, const ResourceAttributes & rhs)
+{
+    if (lhs.sourceURL != rhs.sourceURL) {
+        return false;
+    }
+    else if (lhs.timestamp != rhs.timestamp) {
+        return false;
+    }
+    else if (lhs.latitude != rhs.latitude) {
+        return false;
+    }
+    else if (lhs.longitude != rhs.longitude) {
+        return false;
+    }
+    else if (lhs.altitude != rhs.altitude) {
+        return false;
+    }
+    else if (lhs.cameraMake != rhs.cameraMake) {
+        return false;
+    }
+    else if (lhs.cameraModel != rhs.cameraModel) {
+        return false;
+    }
+    else if (lhs.clientWillIndex != rhs.clientWillIndex) {
+        return false;
+    }
+    else if (lhs.recoType != rhs.recoType) {
+        return false;
+    }
+    else if (lhs.fileName != rhs.fileName) {
+        return false;
+    }
+    else if (lhs.attachment != rhs.attachment) {
+        return false;
+    }
+    else if (lhs.applicationData != rhs.applicationData) {
+        return false;
+    }
+
+    return true;
+}
+
+bool operator!=(const ResourceAttributes & lhs, const ResourceAttributes & rhs)
+{
+    return !operator==(lhs, rhs);
+}
+
+bool operator==(const Resource & lhs, const Resource & rhs)
+{
+    if (lhs.guid != rhs.guid) {
+        return false;
+    }
+    else if (lhs.noteGuid != rhs.noteGuid) {
+        return false;
+    }
+    else if (lhs.data != rhs.data) {
+        return false;
+    }
+    else if (lhs.mime != rhs.mime) {
+        return false;
+    }
+    else if (lhs.width != rhs.width) {
+        return false;
+    }
+    else if (lhs.height != rhs.height) {
+        return false;
+    }
+    else if (lhs.recognition != rhs.recognition) {
+        return false;
+    }
+    else if (lhs.attributes != rhs.attributes) {
+        return false;
+    }
+    else if (lhs.updateSequenceNum != rhs.updateSequenceNum) {
+        return false;
+    }
+    else if (lhs.alternateData != rhs.alternateData) {
+        return false;
+    }
+
+    return true;
+}
+
+bool operator!=(const Resource & lhs, const Resource & rhs)
+{
+    return !operator==(lhs, rhs);
+}
+
+bool operator==(const NoteAttributes & lhs, const NoteAttributes & rhs)
+{
+    if (lhs.subjectDate != rhs.subjectDate) {
+        return false;
+    }
+    else if (lhs.latitude != rhs.latitude) {
+        return false;
+    }
+    else if (lhs.longitude != rhs.longitude) {
+        return false;
+    }
+    else if (lhs.altitude != rhs.altitude) {
+        return false;
+    }
+    else if (lhs.author != rhs.author) {
+        return false;
+    }
+    else if (lhs.source != rhs.source) {
+        return false;
+    }
+    else if (lhs.sourceURL != rhs.sourceURL) {
+        return false;
+    }
+    else if (lhs.sourceApplication != rhs.sourceApplication) {
+        return false;
+    }
+    else if (lhs.shareDate != rhs.shareDate) {
+        return false;
+    }
+    else if (lhs.reminderOrder != rhs.reminderOrder) {
+        return false;
+    }
+    else if (lhs.reminderDoneTime != rhs.reminderDoneTime) {
+        return false;
+    }
+    else if (lhs.reminderTime != rhs.reminderTime) {
+        return false;
+    }
+    else if (lhs.placeName != rhs.placeName) {
+        return false;
+    }
+    else if (lhs.contentClass != rhs.contentClass) {
+        return false;
+    }
+    else if (lhs.applicationData != rhs.applicationData) {
+        return false;
+    }
+    else if (lhs.lastEditedBy != rhs.lastEditedBy) {
+        return false;
+    }
+    else if (lhs.classifications != rhs.classifications) {
+        return false;
+    }
+    else if (lhs.creatorId != rhs.creatorId) {
+        return false;
+    }
+    else if (lhs.lastEditorId != rhs.lastEditorId) {
+        return false;
+    }
+
+    return true;
+}
+
+bool operator!=(const NoteAttributes & lhs, const NoteAttributes & rhs)
+{
+    return !(operator==(lhs, rhs));
+}
+
+bool operator==(const Note & lhs, const Note & rhs)
+{
+    if (lhs.guid != rhs.guid) {
+        return false;
+    }
+    else if (lhs.title != rhs.title) {
+        return false;
+    }
+    else if (lhs.content != rhs.content) {
+        return false;
+    }
+    else if (lhs.contentHash != rhs.contentHash) {
+        return false;
+    }
+    else if (lhs.contentLength != rhs.contentLength) {
+        return false;
+    }
+    else if (lhs.created != rhs.created) {
+        return false;
+    }
+    else if (lhs.updated != rhs.updated) {
+        return false;
+    }
+    else if (lhs.deleted != rhs.deleted) {
+        return false;
+    }
+    else if (lhs.active != rhs.active) {
+        return false;
+    }
+    else if (lhs.updateSequenceNum != rhs.updateSequenceNum) {
+        return false;
+    }
+    else if (lhs.notebookGuid != rhs.notebookGuid) {
+        return false;
+    }
+    else if (lhs.tagGuids != rhs.tagGuids) {
+        return false;
+    }
+    else if (lhs.resources != rhs.resources) {
+        return false;
+    }
+    else if (lhs.attributes != rhs.attributes) {
+        return false;
+    }
+
+    return true;
+}
+
+bool operator!=(const Note & lhs, const Note & rhs)
+{
+    return !operator==(lhs, rhs);
+}
+
 }

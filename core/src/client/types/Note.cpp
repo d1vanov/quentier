@@ -1,36 +1,36 @@
 #include "Note.h"
 #include "ResourceAdapter.h"
+#include "QEverCloudHelpers.h"
 #include "../Utility.h"
 #include "../Serialization.h"
 #include <logging/QuteNoteLogger.h>
+#include <functional>
 #include <Limits_constants.h>
 
 namespace qute_note {
 
-Note::Note() :
+Note::Note(const qevercloud::Note & other) :
     NoteStoreDataElement(),
-    m_enNote(),
-    m_isLocal(true),
+    m_qecNote(other),
+    m_isLocal(false),
     m_isDeleted(false)
 {}
 
-Note::Note(const Note & other) :
-    NoteStoreDataElement(other),
-    m_enNote(other.m_enNote),
-    m_isLocal(other.m_isLocal),
-    m_isDeleted(other.m_isDeleted)
+Note::Note(qevercloud::Note && other) :
+    NoteStoreDataElement(),
+    m_qecNote(std::move(other)),
+    m_isLocal(false),
+    m_isDeleted(false)
 {}
 
-Note & Note::operator=(const Note & other)
+Note & Note::operator=(const qevercloud::Note & other)
 {
-    if (this != &other) {
-        NoteStoreDataElement::operator =(other);
-        m_enNote = other.m_enNote;
-        m_isLocal = other.m_isLocal;
-        m_isDeleted = other.m_isDeleted;
-    }
+    m_qecNote = other;
+}
 
-    return *this;
+Note & Note::operator=(qevercloud::Note && other)
+{
+    m_qecNote = std::move(other);
 }
 
 Note::~Note()
@@ -38,7 +38,7 @@ Note::~Note()
 
 bool Note::operator==(const Note & other) const
 {
-    return ((m_enNote == other.m_enNote) && (isDirty() == other.isDirty()) &&
+    return ((m_qecNote == other.m_qecNote) && (isDirty() == other.isDirty()) &&
             (isDeleted() == other.isDeleted()));
 }
 
@@ -49,163 +49,153 @@ bool Note::operator!=(const Note & other) const
 
 bool Note::hasGuid() const
 {
-    return m_enNote.__isset.guid;
+    return m_qecNote.guid.isSet();
 }
 
 const QString Note::guid() const
 {
-    return std::move(QString::fromStdString(m_enNote.guid));
+    return m_qecNote.guid;
 }
 
 void Note::setGuid(const QString & guid)
 {
-    m_enNote.guid = guid.toStdString();
-
-    if (!guid.isEmpty()) {
-        m_enNote.__isset.guid = true;
-    }
-    else {
-        m_enNote.__isset.guid = false;
-    }
+    m_qecNote.guid = guid;
 }
 
 bool Note::hasUpdateSequenceNumber() const
 {
-    return m_enNote.__isset.updateSequenceNum;
+    return m_qecNote.updateSequenceNum.isSet();
 }
 
 qint32 Note::updateSequenceNumber() const
 {
-    return m_enNote.updateSequenceNum;
+    return m_qecNote.updateSequenceNum;
 }
 
 void Note::setUpdateSequenceNumber(const qint32 usn)
 {
-    m_enNote.updateSequenceNum = usn;
-
+    // TODO: set whether it's really necessary
     if (usn >= 0) {
-        m_enNote.__isset.updateSequenceNum = true;
+        m_qecNote.updateSequenceNum = usn;
     }
     else {
-        m_enNote.__isset.updateSequenceNum = false;
+        m_qecNote.updateSequenceNum.clear();
     }
 }
 
 void Note::clear()
 {
-    m_enNote = evernote::edam::Note();
+    m_qecNote = qevercloud::Note();
 }
 
 bool Note::checkParameters(QString & errorDescription) const
 {
-    if (!m_enNote.__isset.guid) {
+    if (!m_qecNote.guid.isSet()) {
         errorDescription = QObject::tr("Note's guid is not set");
         return false;
     }
-    else if (!CheckGuid(m_enNote.guid)) {
+    else if (!CheckGuid(m_qecNote.guid)) {
         errorDescription = QObject::tr("Note's guid is invalid");
         return false;
     }
 
-    if (!m_enNote.__isset.updateSequenceNum) {
+    if (!m_qecNote.updateSequenceNum.isSet()) {
         errorDescription = QObject::tr("Note's update sequence number is not set");
         return false;
     }
-    else if (!CheckUpdateSequenceNumber(m_enNote.updateSequenceNum)) {
+    else if (!CheckUpdateSequenceNumber(m_qecNote.updateSequenceNum)) {
         errorDescription = QObject::tr("Note's update sequence number is invalid");
         return false;
     }
 
-    if (!m_enNote.__isset.title) {
+    if (!m_qecNote.title.isSet()) {
         errorDescription = QObject::tr("Note's title is not set");
         return false;
     }
-    else {
-        size_t titleSize = m_enNote.title.size();
 
-        if ( (titleSize < evernote::limits::g_Limits_constants.EDAM_NOTE_TITLE_LEN_MIN) ||
-             (titleSize > evernote::limits::g_Limits_constants.EDAM_NOTE_TITLE_LEN_MAX) )
-        {
-            errorDescription = QObject::tr("Note's title length is invalid");
-            return false;
-        }
+    size_t titleSize = m_qecNote.title->size();
+
+    if ( (titleSize < qevercloud::EDAM_NOTE_TITLE_LEN_MIN) ||
+         (titleSize > qevercloud::EDAM_NOTE_TITLE_LEN_MAX) )
+    {
+        errorDescription = QObject::tr("Note's title length is invalid");
+        return false;
     }
 
-    if (!m_enNote.__isset.content) {
+    if (!m_qecNote.content.isSet()) {
         errorDescription = QObject::tr("Note's content is not set");
         return false;
     }
-    else {
-        size_t contentSize = m_enNote.content.size();
 
-        if ( (contentSize < evernote::limits::g_Limits_constants.EDAM_NOTE_CONTENT_LEN_MIN) ||
-             (contentSize > evernote::limits::g_Limits_constants.EDAM_NOTE_CONTENT_LEN_MAX) )
-        {
-            errorDescription = QObject::tr("Note's content length is invalid");
-            return false;
-        }
+    size_t contentSize = m_qecNote.content->size();
+
+    if ( (contentSize < qevercloud::EDAM_NOTE_CONTENT_LEN_MIN) ||
+         (contentSize > qevercloud::EDAM_NOTE_CONTENT_LEN_MAX) )
+    {
+        errorDescription = QObject::tr("Note's content length is invalid");
+        return false;
     }
 
-    if (m_enNote.__isset.contentHash) {
-        size_t contentHashSize = m_enNote.contentHash.size();
+    if (m_qecNote.contentHash.isSet()) {
+        size_t contentHashSize = m_qecNote.contentHash->size();
 
-        if (contentHashSize != evernote::limits::g_Limits_constants.EDAM_HASH_LEN) {
+        if (contentHashSize != qevercloud::EDAM_HASH_LEN) {
             errorDescription = QObject::tr("Note's content hash size is invalid");
             return false;
         }
     }
 
-    if (!m_enNote.__isset.notebookGuid) {
+    if (!m_qecNote.notebookGuid.isSet()) {
         errorDescription = QObject::tr("Note's notebook Guid is not set");
         return false;
     }
-    else if (!CheckGuid(m_enNote.notebookGuid)) {
+    else if (!CheckGuid(m_qecNote.notebookGuid)) {
         errorDescription = QObject::tr("Note's notebook guid is invalid");
         return false;
     }
 
-    if (m_enNote.__isset.tagGuids) {
-        size_t numTagGuids = m_enNote.tagGuids.size();
+    if (m_qecNote.tagGuids.isSet()) {
+        size_t numTagGuids = m_qecNote.tagGuids->size();
 
-        if (numTagGuids > evernote::limits::g_Limits_constants.EDAM_NOTE_TAGS_MAX) {
+        if (numTagGuids > qevercloud::EDAM_NOTE_TAGS_MAX) {
             errorDescription = QObject::tr("Note has too many tags, max allowed ");
-            errorDescription.append(QString::number(evernote::limits::g_Limits_constants.EDAM_NOTE_TAGS_MAX));
+            errorDescription.append(QString::number(qevercloud::EDAM_NOTE_TAGS_MAX));
             return false;
         }
     }
 
-    if (m_enNote.__isset.resources) {
-        size_t numResources = m_enNote.resources.size();
+    if (m_qecNote.resources.isSet()) {
+        size_t numResources = m_qecNote.resources->size();
 
-        if (numResources > evernote::limits::g_Limits_constants.EDAM_NOTE_RESOURCES_MAX) {
+        if (numResources > qevercloud::EDAM_NOTE_RESOURCES_MAX) {
             errorDescription = QObject::tr("Note has too many resources, max allowed ");
-            errorDescription.append(QString::number(evernote::limits::g_Limits_constants.EDAM_NOTE_RESOURCES_MAX));
+            errorDescription.append(QString::number(qevercloud::EDAM_NOTE_RESOURCES_MAX));
             return false;
         }
     }
 
-    if (!m_enNote.__isset.created) {
+    if (!m_qecNote.created.isSet()) {
         errorDescription = QObject::tr("Note's creation timestamp is not set");
         return false;
     }
 
-    if (!m_enNote.__isset.updated) {
+    if (!m_qecNote.updated.isSet()) {
         errorDescription = QObject::tr("Note's modification timestamp is not set");
         return false;
     }
 
-    if (!m_enNote.__isset.attributes) {
+    if (!m_qecNote.attributes.isSet()) {
         return true;
     }
 
-    const auto & attributes = m_enNote.attributes;
+    const qevercloud::NoteAttributes & attributes = m_qecNote.attributes;
 
 #define CHECK_NOTE_ATTRIBUTE(name) \
-    if (attributes.__isset.name) { \
-        size_t name##Size = attributes.name.size(); \
+    if (attributes.name.isSet()) { \
+        size_t name##Size = attributes.name->size(); \
         \
-        if ( (name##Size < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) || \
-             (name##Size > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) ) \
+        if ( (name##Size < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) || \
+             (name##Size > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ) \
         { \
             errorDescription = QObject::tr("Note attributes' " #name " field has invalid size"); \
             return false; \
@@ -219,63 +209,64 @@ bool Note::checkParameters(QString & errorDescription) const
 
 #undef CHECK_NOTE_ATTRIBUTE
 
-    if (attributes.__isset.contentClass) {
-        size_t contentClassSize = attributes.contentClass.size();
+    if (attributes.contentClass.isSet()) {
+        int contentClassSize = attributes.contentClass->size();
 
-        if ( (contentClassSize < evernote::limits::g_Limits_constants.EDAM_NOTE_CONTENT_CLASS_LEN_MIN) ||
-             (contentClassSize > evernote::limits::g_Limits_constants.EDAM_NOTE_CONTENT_CLASS_LEN_MAX) )
+        if ( (contentClassSize < qevercloud::EDAM_NOTE_CONTENT_CLASS_LEN_MIN) ||
+             (contentClassSize > qevercloud::EDAM_NOTE_CONTENT_CLASS_LEN_MAX) )
         {
             errorDescription = QObject::tr("Note attributes' content class has invalid size");
             return false;
         }
     }
 
-    if (attributes.__isset.applicationData) {
-        const auto & applicationData = attributes.applicationData;
-        const auto & keysOnly = applicationData.keysOnly;
-        const auto & fullMap = applicationData.fullMap;
+    if (attributes.applicationData.isSet()) {
+        const qevercloud::LazyMap & applicationData = attributes.applicationData;
+        const QSet<QString> & keysOnly = applicationData.keysOnly;
+        const QMap<QString, QString> & fullMap = applicationData.fullMap;
 
-        for(const auto & key: keysOnly) {
-            size_t keySize = key.size();
-            if ( (keySize < evernote::limits::g_Limits_constants.EDAM_APPLICATIONDATA_NAME_LEN_MIN) ||
-                 (keySize > evernote::limits::g_Limits_constants.EDAM_APPLICATIONDATA_NAME_LEN_MAX) )
+        foreach(const QString & key, keysOnly) {
+            int keySize = key.size();
+            if ( (keySize < qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MIN) ||
+                 (keySize > qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MAX) )
             {
                 errorDescription = QObject::tr("Note's attributes application data has invalid key (in keysOnly part)");
                 return false;
             }
         }
 
-        for(const auto & pair: fullMap) {
-            size_t keySize = pair.first.size();
-            if ( (keySize < evernote::limits::g_Limits_constants.EDAM_APPLICATIONDATA_NAME_LEN_MIN) ||
-                 (keySize > evernote::limits::g_Limits_constants.EDAM_APPLICATIONDATA_NAME_LEN_MAX) )
+        for(QMap<QString, QString>::const_iterator it = fullMap.constBegin(); it != fullMap.constEnd(); ++it) {
+            int keySize = it.value().size();
+            if ( (keySize < qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MIN) ||
+                 (keySize > qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MAX) )
             {
                 errorDescription = QObject::tr("Note's attributes application data has invalid key (in fullMap part)");
                 return false;
             }
 
-            size_t valueSize = pair.second.size();
-            if ( (valueSize < evernote::limits::g_Limits_constants.EDAM_APPLICATIONDATA_VALUE_LEN_MIN) ||
-                 (valueSize > evernote::limits::g_Limits_constants.EDAM_APPLICATIONDATA_VALUE_LEN_MAX) )
+            int valueSize = it.value().size();
+            if ( (valueSize < qevercloud::EDAM_APPLICATIONDATA_VALUE_LEN_MIN) ||
+                 (valueSize > qevercloud::EDAM_APPLICATIONDATA_VALUE_LEN_MAX) )
             {
                 errorDescription = QObject::tr("Note's attributes application data has invalid value");
                 return false;
             }
 
-            size_t sumSize = keySize + valueSize;
-            if (sumSize > evernote::limits::g_Limits_constants.EDAM_APPLICATIONDATA_ENTRY_LEN_MAX) {
+            int sumSize = keySize + valueSize;
+            if (sumSize > qevercloud::EDAM_APPLICATIONDATA_ENTRY_LEN_MAX) {
                 errorDescription = QObject::tr("Note's attributes application data has invalid entry size");
                 return false;
             }
         }
     }
 
-    if (attributes.__isset.classifications) {
-        const auto & classifications = attributes.classifications;
-        for(const auto & pair: classifications) {
-            const auto & value = pair.second;
-            size_t pos = value.find("CLASSIFICATION_");
-            if (pos == std::string::npos || pos != 0) {
+    if (attributes.classifications.isSet()) {
+        const QMap<QString, QString> & classifications = attributes.classifications;
+        for(QMap<QString, QString>::const_iterator it = classifications.constBegin();
+            it != classifications.constEnd(); ++it)
+        {
+            const QString & value = it.value();
+            if (!value.startsWith("CLASSIFICATION_")) {
                 errorDescription = QObject::tr("Note's attributes classifications has invalid classification value");
                 return false;
             }
@@ -287,206 +278,174 @@ bool Note::checkParameters(QString & errorDescription) const
 
 bool Note::hasTitle() const
 {
-    return m_enNote.__isset.title;
+    return m_qecNote.title.isSet();
 }
 
-const QString Note::title() const
+const QString & Note::title() const
 {
-    return std::move(QString::fromStdString(m_enNote.title));
+    return m_qecNote.title;
 }
 
 void Note::setTitle(const QString & title)
 {
-    m_enNote.title = title.toStdString();
-
-    if (!title.isEmpty()) {
-        m_enNote.__isset.title = true;
-    }
-    else {
-        m_enNote.__isset.title = false;
-    }
+    m_qecNote.title = title;
 }
 
 bool Note::hasContent() const
 {
-    return m_enNote.__isset.content;
+    return m_qecNote.content.isSet();
 }
 
-const QString Note::content() const
+const QString & Note::content() const
 {
-    return std::move(QString::fromStdString(m_enNote.content));
+    return m_qecNote.content;
 }
 
-void Note::setContent(const QString &content)
+void Note::setContent(const QString & content)
 {
-    m_enNote.content = content.toStdString();
-
-    if (!content.isEmpty()) {
-        m_enNote.__isset.content = true;
-    }
-    else {
-        m_enNote.__isset.content = false;
-    }
+    m_qecNote.content = content;
 }
 
 bool Note::hasContentHash() const
 {
-    return m_enNote.__isset.contentHash;
+    return m_qecNote.contentHash.isSet();
 }
 
-const QString Note::contentHash() const
+const QString & Note::contentHash() const
 {
-    return std::move(QString::fromStdString(m_enNote.contentHash));
+    return m_qecNote.contentHash;
 }
 
-void Note::setContentHash(const QString &contentHash)
+void Note::setContentHash(const QString & contentHash)
 {
-    m_enNote.contentHash = contentHash.toStdString();
-
-    if (!contentHash.isEmpty()) {
-        m_enNote.__isset.contentHash = true;
-    }
-    else {
-        m_enNote.__isset.contentHash = false;
-    }
+    m_qecNote.contentHash = contentHash;
 }
 
 bool Note::hasContentLength() const
 {
-    return m_enNote.__isset.contentLength;
+    return m_qecNote.contentLength.isSet();
 }
 
 qint32 Note::contentLength() const
 {
-    return m_enNote.contentLength;
+    return m_qecNote.contentLength;
 }
 
 void Note::setContentLength(const qint32 length)
 {
-    m_enNote.contentLength = length;
-
     if (length >= 0) {
-        m_enNote.__isset.contentLength = true;
+        m_qecNote.contentLength = length;
     }
     else {
-        m_enNote.__isset.contentLength = false;
+        m_qecNote.contentLength.clear();
     }
 }
 
 bool Note::hasCreationTimestamp() const
 {
-    return m_enNote.__isset.created;
+    return m_qecNote.created.isSet();
 }
 
 qint64 Note::creationTimestamp() const
 {
-    return m_enNote.created;
+    return m_qecNote.created;
 }
 
 void Note::setCreationTimestamp(const qint64 timestamp)
 {
-    m_enNote.created = timestamp;
-
     if (timestamp >= 0) {
-        m_enNote.__isset.created = true;
+        m_qecNote.created = timestamp;
     }
     else {
-        m_enNote.__isset.created = false;
+        m_qecNote.created.clear();
     }
 }
 
 bool Note::hasModificationTimestamp() const
 {
-    return m_enNote.__isset.updated;
+    return m_qecNote.updated.isSet();
 }
 
 qint64 Note::modificationTimestamp() const
 {
-    return m_enNote.updated;
+    return m_qecNote.updated;
 }
 
 void Note::setModificationTimestamp(const qint64 timestamp)
 {
-    m_enNote.updated = timestamp;
-
     if (timestamp >= 0) {
-        m_enNote.__isset.updated = true;
+        m_qecNote.updated = timestamp;
     }
     else {
-        m_enNote.__isset.updated = false;
+        m_qecNote.updated.clear();
     }
 }
 
 bool Note::hasDeletionTimestamp() const
 {
-    return m_enNote.__isset.deleted;
+    return m_qecNote.deleted.isSet();
 }
 
 qint64 Note::deletionTimestamp() const
 {
-    return m_enNote.deleted;
+    return m_qecNote.deleted;
 }
 
 void Note::setDeletionTimestamp(const qint64 timestamp)
 {
-    m_enNote.deleted = timestamp;
-
     if (timestamp >= 0) {
-        m_enNote.__isset.deleted = true;
+        m_qecNote.deleted = timestamp;
     }
     else {
-        m_enNote.__isset.deleted = false;
+        m_qecNote.deleted.clear();
     }
 }
 
 bool Note::hasActive() const
 {
-    return m_enNote.__isset.active;
+    return m_qecNote.active.isSet();
 }
 
 bool Note::active() const
 {
-    return m_enNote.active;
+    return m_qecNote.active;
 }
 
 void Note::setActive(const bool active)
 {
-    m_enNote.active = active;
-    m_enNote.__isset.active = true;
+    m_qecNote.active = active;
 }
 
 bool Note::hasNotebookGuid() const
 {
-    return m_enNote.__isset.notebookGuid;
+    return m_qecNote.notebookGuid.isSet();
 }
 
-const QString Note::notebookGuid() const
+const QString & Note::notebookGuid() const
 {
-    return std::move(QString::fromStdString(m_enNote.notebookGuid));
+    return m_qecNote.notebookGuid;
 }
 
 void Note::setNotebookGuid(const QString & guid)
 {
-    m_enNote.notebookGuid = guid.toStdString();
-
-    if (!guid.isEmpty()) {
-        m_enNote.__isset.notebookGuid = true;
-    }
-    else {
-        m_enNote.__isset.notebookGuid = false;
-    }
+    m_qecNote.notebookGuid = guid;
 }
 
 bool Note::hasTagGuids() const
 {
-    return m_enNote.__isset.tagGuids;
+    return m_qecNote.tagGuids.isSet();
 }
 
-void Note::tagGuids(std::vector<QString> & guids) const
+void Note::tagGuids(QStringList & guids) const
 {
     guids.clear();
 
-    const auto & localTagGuids = m_enNote.tagGuids;
+    if (!m_qecNote.tagGuids.isSet()) {
+        QNDEBUG("Note::tagGuids:: no tag guids set");
+        return;
+    }
+
+    const QList<QString> & localTagGuids = m_qecNote.tagGuids;
     size_t numTagGuids = localTagGuids.size();
     if (numTagGuids == 0) {
         QNDEBUG("Note::tagGuids: no tags");
@@ -494,101 +453,95 @@ void Note::tagGuids(std::vector<QString> & guids) const
     }
 
     guids.reserve(numTagGuids);
-    for(size_t i = 0; i < numTagGuids; ++i) {
-        guids.push_back(QString::fromStdString(localTagGuids[i]));
+    foreach(const QString & guid, localTagGuids) {
+        guids << guid;
     }
 }
 
-void Note::setTagGuids(const std::vector<QString> & guids)
+void Note::setTagGuids(const QStringList & guids)
 {
-    auto & localTagGuids = m_enNote.tagGuids;
-    localTagGuids.clear();
-
-    size_t numTagGuids = guids.size();
-    if (numTagGuids == 0) {
-        m_enNote.__isset.tagGuids = false;
-        QNDEBUG("Note::setTagGuids: no tags");
+    if (guids.isEmpty()) {
+        m_qecNote.tagGuids.clear();
         return;
     }
 
-    localTagGuids.reserve(numTagGuids);
-    for(size_t i = 0; i < numTagGuids; ++i) {
-        localTagGuids.push_back(guids[i].toStdString());
+    int numTagGuids = guids.size();
+
+    if (!m_qecNote.tagGuids.isSet()) {
+        m_qecNote.tagGuids = QList<QString>();
     }
 
-    m_enNote.__isset.tagGuids = true;
+    QList<QString> & localTagGuids = m_qecNote.tagGuids;
+    localTagGuids.clear();
+
+    localTagGuids.reserve(numTagGuids);
+    foreach(const QString & guid, guids) {
+        localTagGuids << guid;
+    }
+
     QNDEBUG("Added " << numTagGuids << " tag guids to note");
 }
 
 void Note::addTagGuid(const QString & guid)
 {
-    const auto localGuid = guid.toStdString();
-    auto & localGuids = m_enNote.tagGuids;
-
-    if (m_enNote.__isset.tagGuids)
-    {
-        if (std::find(localGuids.cbegin(), localGuids.cend(), localGuid) != localGuids.cend()) {
-            QNDEBUG("Note::addTagGuid: already has tag with guid " << guid);
-            return;
-        }
-    }
-    else
-    {
-        localGuids.clear();
-        m_enNote.__isset.tagGuids = true;
+    if (guid.isEmpty()) {
+        return;
     }
 
-    localGuids.push_back(localGuid);
-    QNDEBUG("Added tag with guid " << guid << " to note");
+    if (!m_qecNote.tagGuids.isSet()) {
+        m_qecNote.tagGuids = QList<QString>();
+    }
+
+    if (!m_qecNote.tagGuids->contains(guid)) {
+        m_qecNote.tagGuids << guid;
+        QNDEBUG("Added tag with guid " << guid << " to note");
+    }
 }
 
 void Note::removeTagGuid(const QString & guid)
 {
-    const auto localGuid = guid.toStdString();
-    auto & localGuids = m_enNote.tagGuids;
-
-    if (m_enNote.__isset.tagGuids)
-    {
-        auto it = std::find(localGuids.begin(), localGuids.end(), localGuid);
-        if (it == localGuids.end()) {
-            QNDEBUG("Note::removeTagGuid: note has no tag with guid " << guid);
-            return;
-        }
-
-        localGuids.erase(it);
-        QNDEBUG("Removed tag with guid " << guid << " from note");
-    }
-    else
-    {
-        QNDEBUG("Note::removeTagGuid: note has no tags set, nothing to remove");
-    }
-}
-
-
-
-bool Note::hasResources() const
-{
-    return m_enNote.__isset.resources;
-}
-
-void Note::resources(std::vector<ResourceAdapter> & resources) const
-{
-    resources.clear();
-
-    const auto & localResources = m_enNote.resources;
-    size_t numResources = localResources.size();
-    if (numResources == 0) {
-        QNDEBUG("Note::resources: no resources");
+    if (guid.isEmpty()) {
+        QNDEBUG("Cannot remove empty tag guid");
         return;
     }
 
-    resources.reserve(numResources);
-    for(size_t i = 0; i < numResources; ++i) {
-        resources.push_back(ResourceAdapter(localResources[i]));
+    if (!m_qecNote.tagGuids.isSet()) {
+        QNDEBUG("No tag guids are set, cannot remove one");
+        return;
+    }
+
+    int removed = m_qecNote.tagGuids->removeAll(guid);
+    if (removed > 0) {
+        QNDEBUG("Removed tag guid " << guid << " (" << removed << ") occurences");
+    }
+    else {
+        QNDEBUG("Haven't removed tag guid " << guid << " because there was no such guid within note's tag guids");
     }
 }
 
-void Note::setResources(const std::vector<IResource> & resources)
+bool Note::hasResources() const
+{
+    return m_qecNote.resources.isSet();
+}
+
+void Note::resources(QList<ResourceAdapter> & resources) const
+{
+    resources.clear();
+
+    if (!m_qecNote.resources.isSet()) {
+        return;
+    }
+
+    int numResources = m_qecNote.resources->size();
+    resources.reserve(std::max(numResources, 0));
+    foreach(const qevercloud::Resource & resource, m_qecNote.resources) {
+        resources << ResourceAdapter(resource);
+    }
+}
+
+// TODO: continue from here
+
+void Note::setResources(const QList<IResource> &resources)
 {
     auto & localResources = m_enNote.resources;
     localResources.clear();

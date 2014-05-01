@@ -3,6 +3,7 @@
 
 #include "NoteStoreDataElement.h"
 #include <Types_types.h>
+#include <QEverCloud.h>
 
 namespace qute_note {
 
@@ -12,9 +13,17 @@ QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
 class Note final: public NoteStoreDataElement
 {
 public:
-    Note();
-    Note(const Note & other);
-    Note & operator=(const Note & other);
+    Note() = default;
+    Note(const Note & other) = default;
+    Note(Note && other) = default;
+    Note & operator=(const Note & other) = default;
+    Note & operator=(Note && other) = default;
+
+    Note(const qevercloud::Note & other);
+    Note(qevercloud::Note && other);
+    Note & operator=(const qevercloud::Note & other);
+    Note & operator=(qevercloud::Note && other);
+
     virtual ~Note() final override;
 
     bool operator==(const Note & other) const;
@@ -33,11 +42,11 @@ public:
     virtual bool checkParameters(QString &errorDescription) const final override;
 
     bool hasTitle() const;
-    const QString title() const;
+    const QString &title() const;
     void setTitle(const QString & title);
 
     bool hasContent() const;
-    const QString content() const;
+    const QString &content() const;
     void setContent(const QString & content);
 
     bool hasContentHash() const;
@@ -65,18 +74,20 @@ public:
     void setActive(const bool active);
 
     bool hasNotebookGuid() const;
-    const QString notebookGuid() const;
+    const QString &notebookGuid() const;
     void setNotebookGuid(const QString & guid);
 
     bool hasTagGuids() const;
-    void tagGuids(std::vector<QString> & guids) const;
-    void setTagGuids(const std::vector<QString> & guids);
+    void tagGuids(QStringList & guids) const;
+    void setTagGuids(const QStringList & guids);
     void addTagGuid(const QString & guid);
     void removeTagGuid(const QString & guid);
 
     bool hasResources() const;
-    void resources(std::vector<ResourceAdapter> & resources) const;
-    void setResources(const std::vector<IResource> & resources);
+    void resources(QList<ResourceAdapter> & resources) const;
+    void resources(QList<ResourceWrapper> & resources) const;
+    void setResources(const QList<IResource> & resources);
+    void setResources(QList<ResourceWrapper> && resources);
     void addResource(const IResource & resource);
     void removeResource(const IResource & resource);
 
@@ -93,6 +104,7 @@ public:
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
+    qevercloud::Note m_qecNote;
     evernote::edam::Note m_enNote;
     bool m_isLocal;
     bool m_isDeleted;
