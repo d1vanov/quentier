@@ -2,13 +2,14 @@
 #include "generated/types.h"
 #include "generated/types_impl.h"
 #include "impl.h"
+#include "Optional.h"
 
 /** @cond HIDDEN_SYMBOLS  */
 
 namespace qevercloud {
 
 
-std::string strEDAMErrorCode(EDAMErrorCode::type errorCode)
+QByteArray strEDAMErrorCode(EDAMErrorCode::type errorCode)
 {
     switch(errorCode)  {
     case EDAMErrorCode::UNKNOWN: return "UNKNOWN";
@@ -36,10 +37,10 @@ std::string strEDAMErrorCode(EDAMErrorCode::type errorCode)
 
 const char *EDAMUserException::what() const throw()
 {
-    if(err_.empty()) {
+    if(err_.isEmpty()) {
         err_ = "EDAMUserException: " + strEDAMErrorCode(errorCode);
         if(parameter.isSet()) {
-            err_ += " parameter=" + parameter->toStdString();
+            err_ += " parameter=" + parameter->toUtf8();
         }
     }
     return EvernoteException::what();
@@ -47,13 +48,13 @@ const char *EDAMUserException::what() const throw()
 
 const char *EDAMSystemException::what() const throw()
 {
-    if(err_.empty()) {
+    if(err_.isEmpty()) {
         err_ = "EDAMSystemException: " + strEDAMErrorCode(errorCode);
         if(message.isSet()) {
-            err_ += " " + message->toStdString();
+            err_ += " " + message->toUtf8();
         }
         if(rateLimitDuration.isSet()) {
-            err_ += QStringLiteral(" rateLimitDuration= %1 sec.").arg(rateLimitDuration).toStdString();
+            err_ += QStringLiteral(" rateLimitDuration= %1 sec.").arg(rateLimitDuration).toUtf8();
         }
     }
     return EvernoteException::what();
@@ -61,13 +62,13 @@ const char *EDAMSystemException::what() const throw()
 
 const char * EDAMNotFoundException::what() const throw()
 {
-    if(err_.empty()) {
+    if(err_.isEmpty()) {
         err_ = "EDAMNotFoundException: ";
         if(identifier.isSet()) {
-            err_ += " identifier=" + identifier->toStdString();
+            err_ += " identifier=" + identifier->toUtf8();
         }
         if(key.isSet()) {
-            err_ += " key=" + key->toStdString();
+            err_ += " key=" + key->toUtf8();
         }
     }
     return EvernoteException::what();
@@ -281,7 +282,7 @@ void EDAMNotFoundExceptionData::throwException() const
 
 const char *ThriftException::what() const throw()
 {
-    if (err_.empty()) {
+    if (err_.isEmpty()) {
       switch (type_) {
         case Type::UNKNOWN              : return "ThriftException: Unknown application exception";
         case Type::UNKNOWN_METHOD       : return "ThriftException: Unknown method";
@@ -293,10 +294,56 @@ const char *ThriftException::what() const throw()
         default                   : return "ThriftException: (Invalid exception type)";
       };
     } else {
-      return err_.c_str();
+      return err_.constData();
     }
 }
 
+void throwEDAMSystemException(const EDAMSystemException& e)
+{
+    if(e.errorCode == EDAMErrorCode::AUTH_EXPIRED) {
+        EDAMSystemExceptionAuthExpired ee;
+        ee.errorCode = e.errorCode;
+        ee.message = e.message;
+        ee.rateLimitDuration = e.rateLimitDuration;
+        throw ee;
+    }
+    if(e.errorCode == EDAMErrorCode::RATE_LIMIT_REACHED) {
+        EDAMSystemExceptionRateLimitReached ee;
+        ee.errorCode = e.errorCode;
+        ee.message = e.message;
+        ee.rateLimitDuration = e.rateLimitDuration;
+        throw ee;
+    }
+    throw e;
+}
+
+QSharedPointer<EverCloudExceptionData> EDAMSystemExceptionRateLimitReached::exceptionData() const
+{
+    return QSharedPointer<EverCloudExceptionData>(new EDAMSystemExceptionRateLimitReachedData(what(), errorCode, message, rateLimitDuration));
+}
+
+void EDAMSystemExceptionRateLimitReachedData::throwException() const
+{
+    EDAMSystemExceptionRateLimitReached e;
+    e.errorCode = errorCode;
+    e.message = message;
+    e.rateLimitDuration = rateLimitDuration;
+    throw e;
+}
+
+QSharedPointer<EverCloudExceptionData> EDAMSystemExceptionAuthExpired::exceptionData() const
+{
+    return QSharedPointer<EverCloudExceptionData>(new EDAMSystemExceptionAuthExpiredData(what(), errorCode, message, rateLimitDuration));
+}
+
+void EDAMSystemExceptionAuthExpiredData::throwException() const
+{
+    EDAMSystemExceptionAuthExpired e;
+    e.errorCode = errorCode;
+    e.message = message;
+    e.rateLimitDuration = rateLimitDuration;
+    throw e;
+}
 
 
 

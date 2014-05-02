@@ -1,10 +1,7 @@
 #ifndef QEVERCLOUD_GLOBALS_H
 #define QEVERCLOUD_GLOBALS_H
 
-#include <QDateTime>
 #include <QNetworkAccessManager>
-#include "exceptions.h"
-#include "Optional.h"
 
 /**
  * All the library lives in this namespace.
@@ -22,7 +19,7 @@ QNetworkAccessManager* evernoteNetworkAccessManager();
 /**
  * qevercloud library version.
  */
-const int libraryVersion = 2*10000 + 0;
+extern const int libraryVersion;
 
 
 

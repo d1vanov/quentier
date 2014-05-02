@@ -29,46 +29,10 @@ SavedSearch::operator qevercloud::SavedSearch & ()
 
 bool SavedSearch::operator==(const SavedSearch & other) const
 {
-    const qevercloud::SavedSearch & otherSearch = other.m_qecSearch;
-
     if (isDirty() != other.isDirty()) {
         return false;
     }
-    else if (m_qecSearch.guid != otherSearch.guid) {
-        return false;
-    }
-    else if (m_qecSearch.name != otherSearch.name) {
-        return false;
-    }
-    else if (m_qecSearch.query != otherSearch.query) {
-        return false;
-    }
-    else if (m_qecSearch.format != otherSearch.format) {
-        return false;
-    }
-    else if (m_qecSearch.updateSequenceNum != otherSearch.updateSequenceNum) {
-        return false;
-    }
-    else if (m_qecSearch.scope.isSet() && !otherSearch.scope.isSet()) {
-        return false;
-    }
-    else if (!m_qecSearch.scope.isSet() && otherSearch.scope.isSet()) {
-        return false;
-    }
-    else if (!m_qecSearch.scope.isSet() && !otherSearch.scope.isSet()) {
-        return true;
-    }
-
-    const SavedSearchScope & scope = m_qecSearch.scope;
-    const SavedSearchScope & otherScope = otherSearch.scope;
-
-    if (scope.includeAccount != otherScope.includeAccount) {
-        return false;
-    }
-    else if (scope.includeBusinessLinkedNotebooks != otherScope.includeBusinessLinkedNotebooks) {
-        return false;
-    }
-    else if (scope.includePersonalLinkedNotebooks != otherScope.includePersonalLinkedNotebooks) {
+    else if (m_qecSearch != other.m_qecSearch) {
         return false;
     }
 

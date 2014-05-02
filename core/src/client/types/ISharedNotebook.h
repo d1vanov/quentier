@@ -83,9 +83,4 @@ protected:
 
 } // namespace qute_note
 
-namespace qevercloud {
-bool operator==(const SharedNotebook & lhs, const SharedNotebook & rhs);
-bool operator!=(const SharedNotebook & lhs, const SharedNotebook & rhs);
-}
-
 #endif // __QUTE_NOTE__CLIENT__TYPES__I_SHARED_NOTEBOOK_H

@@ -4,12 +4,22 @@ namespace qute_note {
 
 ResourceWrapper::ResourceWrapper() :
     IResource(),
-    m_en_resource()
+    m_enResource()
 {}
 
 ResourceWrapper::ResourceWrapper(const IResource & other) :
     IResource(other),
-    m_en_resource(other.GetEnResource())
+    m_enResource(other.GetEnResource())
+{}
+
+ResourceWrapper::ResourceWrapper(const qevercloud::Resource & other) :
+    IResource(),
+    m_enResource(other)
+{}
+
+ResourceWrapper::ResourceWrapper(qevercloud::Resource && other) :
+    IResource(),
+    m_enResource(std::move(other))
 {}
 
 ResourceWrapper & ResourceWrapper::operator=(const IResource & other)
@@ -17,7 +27,7 @@ ResourceWrapper & ResourceWrapper::operator=(const IResource & other)
     if (this != &other)
     {
         IResource::operator =(other);
-        m_en_resource = other.GetEnResource();
+        m_enResource = other.GetEnResource();
     }
 
     return *this;
@@ -26,14 +36,14 @@ ResourceWrapper & ResourceWrapper::operator=(const IResource & other)
 ResourceWrapper::~ResourceWrapper()
 {}
 
-const evernote::edam::Resource & ResourceWrapper::GetEnResource() const
+const qevercloud::Resource & ResourceWrapper::GetEnResource() const
 {
-    return m_en_resource;
+    return m_enResource;
 }
 
-evernote::edam::Resource & ResourceWrapper::GetEnResource()
+qevercloud::Resource & ResourceWrapper::GetEnResource()
 {
-    return m_en_resource;
+    return m_enResource;
 }
 
 QTextStream & ResourceWrapper::Print(QTextStream & strm) const

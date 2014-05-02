@@ -31,12 +31,26 @@ QObject::connect(ns->createNoteAsync(note), &AsyncResult::finished, [ns](QVarian
 class AsyncResult: public QObject {
     Q_OBJECT
     Q_DISABLE_COPY(AsyncResult)
+
+private:
+    static QVariant asIs(QByteArray replyData);
+
+
 public:
     /** @cond HIDDEN_SYMBOLS  */
     typedef QVariant (*ReadFunctionType)(QByteArray replyData);
 
-    AsyncResult(QString url, QByteArray postData, ReadFunctionType readFunction, bool autoDelete = true, QObject *parent = 0);
+    AsyncResult(QString url, QByteArray postData, ReadFunctionType readFunction = AsyncResult::asIs, bool autoDelete = true, QObject *parent = 0);
+    AsyncResult(QNetworkRequest request, QByteArray postData, ReadFunctionType readFunction = AsyncResult::asIs, bool autoDelete = true, QObject *parent = 0);
     /** @endcond  */
+
+    /**
+     * @brief Wait for asyncronous operation to complete.
+     * @param timeout
+     * Maximum time to wait in milliseconds. Forever if < 0.
+     * @return true if finished succesfully, flase in case of the timeout
+     */
+    bool waitForFinished(int timeout = -1);
 signals:
     /**
      * @brief Emitted upon asyncronous call completition.
@@ -55,10 +69,10 @@ private slots:
     void start();
 
 private:
-    bool autoDelete_;
-    QString url_;
+    QNetworkRequest request_;
     QByteArray postData_;
     ReadFunctionType readFunction_;
+    bool autoDelete_;
 
     /** @endcond  */
 };

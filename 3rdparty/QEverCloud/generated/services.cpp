@@ -75,7 +75,7 @@ SyncState NoteStore_getSyncState_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -183,7 +183,7 @@ SyncState NoteStore_getSyncStateWithMetrics_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -297,7 +297,7 @@ SyncChunk NoteStore_getSyncChunk_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -411,7 +411,7 @@ SyncChunk NoteStore_getFilteredSyncChunk_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -519,7 +519,7 @@ SyncState NoteStore_getLinkedNotebookSyncState_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -645,7 +645,7 @@ SyncChunk NoteStore_getLinkedNotebookSyncChunk_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -769,7 +769,7 @@ QList< Notebook > NoteStore_listNotebooks_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -877,7 +877,7 @@ Notebook NoteStore_getNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -991,7 +991,7 @@ Notebook NoteStore_getDefaultNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -1099,7 +1099,7 @@ Notebook NoteStore_createNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -1207,7 +1207,7 @@ qint32 NoteStore_updateNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -1324,7 +1324,7 @@ qint32 NoteStore_expungeNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -1448,7 +1448,7 @@ QList< Tag > NoteStore_listTags_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -1566,7 +1566,7 @@ QList< Tag > NoteStore_listTagsByNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -1683,7 +1683,7 @@ Tag NoteStore_getTag_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -1800,7 +1800,7 @@ Tag NoteStore_createTag_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -1917,7 +1917,7 @@ qint32 NoteStore_updateTag_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -2022,7 +2022,7 @@ void NoteStore_untagAll_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -2138,7 +2138,7 @@ qint32 NoteStore_expungeTag_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -2262,7 +2262,7 @@ QList< SavedSearch > NoteStore_listSearches_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -2370,7 +2370,7 @@ SavedSearch NoteStore_getSearch_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -2487,7 +2487,7 @@ SavedSearch NoteStore_createSearch_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -2595,7 +2595,7 @@ qint32 NoteStore_updateSearch_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -2712,7 +2712,7 @@ qint32 NoteStore_expungeSearch_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -2835,7 +2835,7 @@ NoteList NoteStore_findNotes_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -2955,7 +2955,7 @@ qint32 NoteStore_findNoteOffset_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -3081,7 +3081,7 @@ NotesMetadataList NoteStore_findNotesMetadata_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -3201,7 +3201,7 @@ NoteCollectionCounts NoteStore_findNoteCounts_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -3330,7 +3330,7 @@ Note NoteStore_getNote_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -3447,7 +3447,7 @@ LazyMap NoteStore_getNoteApplicationData_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -3567,7 +3567,7 @@ QString NoteStore_getNoteApplicationDataEntry_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -3690,7 +3690,7 @@ qint32 NoteStore_setNoteApplicationDataEntry_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -3810,7 +3810,7 @@ qint32 NoteStore_unsetNoteApplicationDataEntry_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -3927,7 +3927,7 @@ QString NoteStore_getNoteContent_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -4050,7 +4050,7 @@ QString NoteStore_getNoteSearchText_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -4167,7 +4167,7 @@ QString NoteStore_getResourceSearchText_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -4294,7 +4294,7 @@ QStringList NoteStore_getNoteTagNames_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -4411,7 +4411,7 @@ Note NoteStore_createNote_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -4528,7 +4528,7 @@ Note NoteStore_updateNote_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -4645,7 +4645,7 @@ qint32 NoteStore_deleteNote_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -4762,7 +4762,7 @@ qint32 NoteStore_expungeNote_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -4883,7 +4883,7 @@ qint32 NoteStore_expungeNotes_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -4997,7 +4997,7 @@ qint32 NoteStore_expungeInactiveNotes_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -5108,7 +5108,7 @@ Note NoteStore_copyNote_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -5235,7 +5235,7 @@ QList< NoteVersionId > NoteStore_listNoteVersions_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -5364,7 +5364,7 @@ Note NoteStore_getNoteVersion_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -5493,7 +5493,7 @@ Resource NoteStore_getResource_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -5610,7 +5610,7 @@ LazyMap NoteStore_getResourceApplicationData_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -5730,7 +5730,7 @@ QString NoteStore_getResourceApplicationDataEntry_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -5853,7 +5853,7 @@ qint32 NoteStore_setResourceApplicationDataEntry_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -5973,7 +5973,7 @@ qint32 NoteStore_unsetResourceApplicationDataEntry_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -6090,7 +6090,7 @@ qint32 NoteStore_updateResource_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -6207,7 +6207,7 @@ QByteArray NoteStore_getResourceData_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -6336,7 +6336,7 @@ Resource NoteStore_getResourceByHash_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -6453,7 +6453,7 @@ QByteArray NoteStore_getResourceRecognition_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -6570,7 +6570,7 @@ QByteArray NoteStore_getResourceAlternateData_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -6687,7 +6687,7 @@ ResourceAttributes NoteStore_getResourceAttributes_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -6795,7 +6795,7 @@ Notebook NoteStore_getPublicNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -6919,7 +6919,7 @@ SharedNotebook NoteStore_createSharedNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -7036,7 +7036,7 @@ qint32 NoteStore_updateSharedNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -7156,7 +7156,7 @@ qint32 NoteStore_setSharedNotebookRecipientSettings_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -7283,7 +7283,7 @@ qint32 NoteStore_sendMessageToSharedNotebookMembers_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -7407,7 +7407,7 @@ QList< SharedNotebook > NoteStore_listSharedNotebooks_readReply(QByteArray reply
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -7528,7 +7528,7 @@ qint32 NoteStore_expungeSharedNotebooks_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -7645,7 +7645,7 @@ LinkedNotebook NoteStore_createLinkedNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -7762,7 +7762,7 @@ qint32 NoteStore_updateLinkedNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -7886,7 +7886,7 @@ QList< LinkedNotebook > NoteStore_listLinkedNotebooks_readReply(QByteArray reply
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -8003,7 +8003,7 @@ qint32 NoteStore_expungeLinkedNotebook_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -8120,7 +8120,7 @@ AuthenticationResult NoteStore_authenticateToSharedNotebook_readReply(QByteArray
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -8234,7 +8234,7 @@ SharedNotebook NoteStore_getSharedNotebookByAuth_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -8339,7 +8339,7 @@ void NoteStore_emailNote_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -8455,7 +8455,7 @@ QString NoteStore_shareNote_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -8560,7 +8560,7 @@ void NoteStore_stopSharingNote_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -8679,7 +8679,7 @@ AuthenticationResult NoteStore_authenticateToSharedNote_readReply(QByteArray rep
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -8790,7 +8790,7 @@ RelatedResult NoteStore_findRelated_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -9092,7 +9092,7 @@ AuthenticationResult UserStore_authenticate_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -9213,7 +9213,7 @@ AuthenticationResult UserStore_authenticateLongSession_readReply(QByteArray repl
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -9325,7 +9325,7 @@ AuthenticationResult UserStore_completeTwoFactorAuthentication_readReply(QByteAr
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -9418,7 +9418,7 @@ void UserStore_revokeLongSession_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -9522,7 +9522,7 @@ AuthenticationResult UserStore_authenticateToBusiness_readReply(QByteArray reply
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -9627,7 +9627,7 @@ AuthenticationResult UserStore_refreshAuthentication_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -9732,7 +9732,7 @@ User UserStore_getUser_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -9837,7 +9837,7 @@ PublicUserInfo UserStore_getPublicUserInfo_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -9949,7 +9949,7 @@ PremiumInfo UserStore_getPremiumInfo_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }
@@ -10054,7 +10054,7 @@ QString UserStore_getNoteStoreUrl_readReply(QByteArray reply)
             if(fieldType == ThriftFieldType::T_STRUCT) {
                 EDAMSystemException e;
                 readEDAMSystemException(r, e);
-                throw e;
+                throwEDAMSystemException(e);
             } else {
                 r.skip(fieldType);
             }

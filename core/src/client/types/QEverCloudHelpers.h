@@ -11,6 +11,7 @@ template<> inline Optional<QString> & Optional<QString>::operator=(const QString
     return *this;
 }
 
+/*
 bool operator==(const UserAttributes & lhs, const UserAttributes & rhs);
 bool operator!=(const UserAttributes & lhs, const UserAttributes & rhs);
 
@@ -40,7 +41,7 @@ bool operator!=(const NoteAttributes & lhs, const NoteAttributes & rhs);
 
 bool operator==(const Note & lhs, const Note & rhs);
 bool operator!=(const Note & lhs, const Note & rhs);
-
+*/
 }
 
 #endif // __QUTE_NOTE__CLIENT__TYPES__QEVERCLOUD_OPTIONAL_QSTRING_H

@@ -1,45 +1,15 @@
 #ifndef QEVERCLOUD_EXCEPTIONS_H
 #define QEVERCLOUD_EXCEPTIONS_H
 
-#include <exception>
-#include <string>
 #include <QString>
 #include <QObject>
 #include <QSharedPointer>
 #include "Optional.h"
 #include "./generated/EDAMErrorCode.h"
 #include "EverCloudException.h"
+#include "./generated/types.h"
 
 namespace qevercloud {
-
-/**
- * All exception sent by Evernote servers (as opposed to other error conditions, for example http errors) are
- * descendants of this class.
- */
-class EvernoteException: public EverCloudException {
-public:
-    explicit EvernoteException(): EverCloudException() {}
-    explicit EvernoteException(QString err): EverCloudException(err) {}
-    explicit EvernoteException(const std::string& err): EverCloudException(err) {}
-    explicit EvernoteException(const char* err): EverCloudException(err) {}
-
-    virtual QSharedPointer<EverCloudExceptionData> exceptionData() const Q_DECL_OVERRIDE;
-};
-
-/** Asynchronous API conterpart of EvernoteException. See EverCloudExceptionData for more details.*/
-class EvernoteExceptionData: public EverCloudExceptionData {
-    Q_OBJECT
-    Q_DISABLE_COPY(EvernoteExceptionData)
-public:
-    explicit EvernoteExceptionData(QString err) : EverCloudExceptionData(err) {}
-    virtual void throwException() const Q_DECL_OVERRIDE {throw EvernoteException(errorMessage);}
-};
-
-inline QSharedPointer<EverCloudExceptionData> EvernoteException::exceptionData() const
-{
-    return QSharedPointer<EverCloudExceptionData>(new EvernoteExceptionData(what()));
-}
-
 
 
 /**
@@ -127,6 +97,41 @@ public:
     explicit EDAMNotFoundExceptionData(QString err, Optional<QString> identifier, Optional<QString> key) : EvernoteExceptionData(err), identifier(identifier), key(key) {}
     virtual void throwException() const Q_DECL_OVERRIDE;
 };
+
+/**
+ *  EDAMSystemException for `errorCode = RATE_LIMIT_REACHED`
+ */
+class EDAMSystemExceptionRateLimitReached: public EDAMSystemException {
+public:
+    virtual QSharedPointer<EverCloudExceptionData> exceptionData() const Q_DECL_OVERRIDE;
+};
+
+/** Asynchronous API conterpart of EDAMSystemExceptionRateLimitReached. See EverCloudExceptionData for more details.*/
+class EDAMSystemExceptionRateLimitReachedData: public EDAMSystemExceptionData {
+    Q_OBJECT
+    Q_DISABLE_COPY(EDAMSystemExceptionRateLimitReachedData)
+public:
+    explicit EDAMSystemExceptionRateLimitReachedData(QString err, EDAMErrorCode::type errorCode, Optional<QString> message, Optional<qint32> rateLimitDuration) : EDAMSystemExceptionData(err, errorCode, message, rateLimitDuration) {}
+    virtual void throwException() const Q_DECL_OVERRIDE;
+};
+
+/**
+ *  EDAMSystemException for `errorCode = AUTH_EXPIRED`
+ */
+class EDAMSystemExceptionAuthExpired: public EDAMSystemException {
+public:
+    virtual QSharedPointer<EverCloudExceptionData> exceptionData() const Q_DECL_OVERRIDE;
+};
+
+/** Asynchronous API conterpart of EDAMSystemExceptionAuthExpired. See EverCloudExceptionData for more details.*/
+class EDAMSystemExceptionAuthExpiredData: public EDAMSystemExceptionData {
+    Q_OBJECT
+    Q_DISABLE_COPY(EDAMSystemExceptionAuthExpiredData)
+public:
+    explicit EDAMSystemExceptionAuthExpiredData(QString err, EDAMErrorCode::type errorCode, Optional<QString> message, Optional<qint32> rateLimitDuration) : EDAMSystemExceptionData(err, errorCode, message, rateLimitDuration) {}
+    virtual void throwException() const Q_DECL_OVERRIDE;
+};
+
 
 
 }

@@ -39,24 +39,11 @@ bool Tag::operator==(const Tag & other) const
     else if (m_isDeleted != other.m_isDeleted) {
         return false;
     }
+    else if (m_qecTag != other.m_qecTag) {
+        return false;
+    }
 
-    const qevercloud::Tag & otherTag = other.m_qecTag;
-
-    if (m_qecTag.guid != otherTag.guid) {
-        return false;
-    }
-    else if (m_qecTag.name != otherTag.name) {
-        return false;
-    }
-    else if (m_qecTag.parentGuid != otherTag.parentGuid) {
-        return false;
-    }
-    else if (m_qecTag.updateSequenceNum != otherTag.updateSequenceNum) {
-        return false;
-    }
-    else {
-        return true;
-    }
+    return true;
 }
 
 bool Tag::operator!=(const Tag & other) const

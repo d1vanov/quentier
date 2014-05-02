@@ -249,25 +249,20 @@ public:
     }
 
     /**
-     * operator ==. Returns true if both left and right values are set and equal to each other
-     * or if both left and right values are unset.
+     * Two optionals are equal if they are both not set or have
+     * equal values.
+     *
+     * I do not define `operator==` due to not easily resolvable conflicts with `operator T&`.
+     *
+     * Note that `optional == other_optional` may throw but `optional.isEqual(other_optional)` will not.
      */
-    bool operator==(const Optional<T> & other) const {
+    bool isEqual(const Optional<T> & other) const {
         if(isSet_ != other.isSet_) return false;
         return !isSet_ || (value_ == other.value_);
     }
 
-    /**
-     * operator !=. Returns the inverse of operator ==
-     */
-    bool operator!=(const Optional<T> & other) const {
-        return !operator==(other);
-    }
-
     template<typename X> friend class Optional;
 };
-
-
 
 
 }

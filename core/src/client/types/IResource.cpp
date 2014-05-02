@@ -1,8 +1,6 @@
 #include "IResource.h"
-#include "../Serialization.h"
+#include "QEverCloudHelpers.h"
 #include <client/Utility.h>
-#include <Limits_constants.h>
-#include <QObject>
 
 namespace qute_note {
 
@@ -20,7 +18,7 @@ IResource::~IResource()
 {}
 
 bool IResource::operator==(const IResource & other) const
-{
+{   
     return (GetEnResource() == other.GetEnResource()) && (isDirty() == other.isDirty());
 }
 
@@ -32,29 +30,27 @@ bool IResource::operator!=(const IResource & other) const
 void IResource::clear()
 {
     setDirty(true);
-    GetEnResource() = evernote::edam::Resource();
+    GetEnResource() = qevercloud::Resource();
 }
 
 bool IResource::hasGuid() const
 {
-    return GetEnResource().__isset.guid;
+    return GetEnResource().guid.isSet();
 }
 
 const QString IResource::guid() const
 {
-    return std::move(QString::fromStdString(GetEnResource().guid));
+    return GetEnResource().guid;
 }
 
 void IResource::setGuid(const QString & guid)
 {
-    auto & enResource = GetEnResource();
-    enResource.guid = guid.toStdString();
-    enResource.__isset.guid = true;
+    GetEnResource().guid = guid;
 }
 
 bool IResource::hasUpdateSequenceNumber() const
 {
-    return GetEnResource().__isset.updateSequenceNum;
+    return GetEnResource().updateSequenceNum.isSet();
 }
 
 qint32 IResource::updateSequenceNumber() const
@@ -64,25 +60,23 @@ qint32 IResource::updateSequenceNumber() const
 
 void IResource::setUpdateSequenceNumber(const qint32 updateSequenceNumber)
 {
-    auto & enResource = GetEnResource();
-    enResource.updateSequenceNum = updateSequenceNumber;
-    enResource.__isset.updateSequenceNum = true;
+    GetEnResource().updateSequenceNum = updateSequenceNumber;
 }
 
 bool IResource::checkParameters(QString & errorDescription) const
 {
-    const auto & enResource = GetEnResource();
+    const qevercloud::Resource & enResource = GetEnResource();
 
-    if (!enResource.__isset.guid) {
+    if (!enResource.guid.isSet()) {
         errorDescription = QObject::tr("Resource's guid is not set");
         return false;
     }
-    else if (!CheckGuid(enResource.guid)) {
+    else if (!CheckGuid(enResource.guid.ref())) {
         errorDescription = QObject::tr("Resource's guid is invalid");
         return false;
     }
 
-    if (!enResource.__isset.updateSequenceNum) {
+    if (!enResource.updateSequenceNum.isSet()) {
         errorDescription = QObject::tr("Resource's update sequence number is not set");
         return false;
     }
@@ -91,40 +85,40 @@ bool IResource::checkParameters(QString & errorDescription) const
         return false;
     }
 
-    if (enResource.__isset.noteGuid && !CheckGuid(enResource.noteGuid)) {
+    if (enResource.noteGuid.isSet() && !CheckGuid(enResource.noteGuid.ref())) {
         errorDescription = QObject::tr("Resource's note guid is invalid");
         return false;
     }
 
 #define CHECK_RESOURCE_DATA(name) \
-    if (enResource.__isset.name) \
+    if (enResource.name.isSet()) \
     { \
-        if (!enResource.name.__isset.body) { \
+        if (!enResource.name->body.isSet()) { \
             errorDescription = QObject::tr("Resource's " #name " body is not set"); \
             return false; \
         } \
         \
-        int32_t dataSize = static_cast<int32_t>(enResource.name.body.size()); \
+        int32_t dataSize = static_cast<int32_t>(enResource.name->body->size()); \
         int32_t allowedSize = (m_isFreeAccount \
-                               ? evernote::limits::g_Limits_constants.EDAM_RESOURCE_SIZE_MAX_FREE \
-                               : evernote::limits::g_Limits_constants.EDAM_RESOURCE_SIZE_MAX_PREMIUM); \
+                               ? qevercloud::EDAM_RESOURCE_SIZE_MAX_FREE \
+                               : qevercloud::EDAM_RESOURCE_SIZE_MAX_PREMIUM); \
         if (dataSize > allowedSize) { \
             errorDescription = QObject::tr("Resource's " #name " body size is too large"); \
             return false; \
         } \
         \
-        if (!enResource.name.__isset.size) { \
+        if (!enResource.name->size.isSet()) { \
             errorDescription = QObject::tr("Resource's " #name " size is not set"); \
             return false; \
         } \
         \
-        if (!enResource.name.__isset.bodyHash) { \
+        if (!enResource.name->bodyHash.isSet()) { \
             errorDescription = QObject::tr("Resource's " #name " hash is not set"); \
             return false; \
         } \
         else { \
-            int32_t hashSize = static_cast<int32_t>(enResource.name.bodyHash.size()); \
-            if (hashSize != evernote::limits::g_Limits_constants.EDAM_HASH_LEN) { \
+            int32_t hashSize = static_cast<int32_t>(enResource.name->bodyHash->size()); \
+            if (hashSize != qevercloud::EDAM_HASH_LEN) { \
                 errorDescription = QObject::tr("Invalid " #name " hash size"); \
                 return false; \
             } \
@@ -132,97 +126,61 @@ bool IResource::checkParameters(QString & errorDescription) const
     }
 
     CHECK_RESOURCE_DATA(data);
-    // CHECK_RESOURCE_DATA(recognition);
+    CHECK_RESOURCE_DATA(recognition);
     CHECK_RESOURCE_DATA(alternateData);
 
 #undef CHECK_RESOURCE_DATA
 
-
-    if (enResource.__isset.recognition)
-    {
-        if (!enResource.recognition.__isset.body) {
-            errorDescription = QObject::tr("Resource's recognition data body is not set");
-            return false;
-        }
-
-        int32_t dataSize = static_cast<int32_t>(enResource.recognition.body.size());
-        int32_t allowedSize = (m_isFreeAccount
-                               ? evernote::limits::g_Limits_constants.EDAM_RESOURCE_SIZE_MAX_FREE
-                               : evernote::limits::g_Limits_constants.EDAM_RESOURCE_SIZE_MAX_PREMIUM);
-        if (dataSize > allowedSize) {
-            errorDescription = QObject::tr("Resource's recognition body size is too large");
-            return false;
-        }
-
-        if (!enResource.recognition.__isset.size) {
-            errorDescription = QObject::tr("Resource's recognition size is not set");
-            return false;
-        }
-
-        if (!enResource.recognition.__isset.bodyHash) {
-            errorDescription = QObject::tr("Resource's recognition hash is not set");
-            return false;
-        }
-        else {
-            int32_t hashSize = static_cast<int32_t>(enResource.recognition.bodyHash.size());
-            if (hashSize != evernote::limits::g_Limits_constants.EDAM_HASH_LEN) {
-                errorDescription = QObject::tr("Invalid recognition hash size");
-                return false;
-            }
-        }
-    }
-
-
-    if (!enResource.__isset.data && enResource.__isset.alternateData) {
+    if (!enResource.data.isSet() && enResource.alternateData.isSet()) {
         errorDescription = QObject::tr("Resource has no data set but alternate data is present");
         return false;
     }
 
-    if (!enResource.__isset.mime)
+    if (!enResource.mime.isSet())
     {
         errorDescription = QObject::tr("Resource's mime type is not set");
         return false;
     }
     else
     {
-        int32_t mimeSize = static_cast<int32_t>(enResource.mime.size());
-        if ( (mimeSize < evernote::limits::g_Limits_constants.EDAM_MIME_LEN_MIN) ||
-             (mimeSize > evernote::limits::g_Limits_constants.EDAM_MIME_LEN_MAX) )
+        int32_t mimeSize = static_cast<int32_t>(enResource.mime->size());
+        if ( (mimeSize < qevercloud::EDAM_MIME_LEN_MIN) ||
+             (mimeSize > qevercloud::EDAM_MIME_LEN_MAX) )
         {
             errorDescription = QObject::tr("Resource's mime type has invalid length");
             return false;
         }
     }
 
-    if (enResource.__isset.attributes)
+    if (enResource.attributes.isSet())
     {
-        if (enResource.attributes.__isset.sourceURL)
+        if (enResource.attributes->sourceURL.isSet())
         {
-            int32_t sourceURLSize = static_cast<int32_t>(enResource.attributes.sourceURL.size());
-            if ( (sourceURLSize < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) ||
-                 (sourceURLSize > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) )
+            int32_t sourceURLSize = static_cast<int32_t>(enResource.attributes->sourceURL->size());
+            if ( (sourceURLSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) ||
+                 (sourceURLSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) )
             {
                 errorDescription = QObject::tr("Resource's sourceURL attribute has invalid length");
                 return false;
             }
         }
 
-        if (enResource.attributes.__isset.cameraMake)
+        if (enResource.attributes->cameraMake.isSet())
         {
-            int32_t cameraMakeSize = static_cast<int32_t>(enResource.attributes.cameraMake.size());
-            if ( (cameraMakeSize < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) ||
-                 (cameraMakeSize > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) )
+            int32_t cameraMakeSize = static_cast<int32_t>(enResource.attributes->cameraMake->size());
+            if ( (cameraMakeSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) ||
+                 (cameraMakeSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) )
             {
                 errorDescription = QObject::tr("Resource's cameraMake attribute has invalid length");
                 return false;
             }
         }
 
-        if (enResource.attributes.__isset.cameraModel)
+        if (enResource.attributes->cameraModel.isSet())
         {
-            int32_t cameraModelSize = static_cast<int32_t>(enResource.attributes.cameraModel.size());
-            if ( (cameraModelSize < evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MIN) ||
-                 (cameraModelSize > evernote::limits::g_Limits_constants.EDAM_ATTRIBUTE_LEN_MAX) )
+            int32_t cameraModelSize = static_cast<int32_t>(enResource.attributes->cameraModel->size());
+            if ( (cameraModelSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) ||
+                 (cameraModelSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) )
             {
                 errorDescription = QObject::tr("Resource's cameraModel attribute has invalid length");
                 return false;
@@ -245,24 +203,22 @@ void IResource::setFreeAccount(const bool isFreeAccount)
 
 bool IResource::hasNoteGuid() const
 {
-    return GetEnResource().__isset.noteGuid;
+    return GetEnResource().noteGuid.isSet();
 }
 
-const QString IResource::noteGuid() const
+const QString & IResource::noteGuid() const
 {
-    return std::move(QString::fromStdString(GetEnResource().noteGuid));
+    return GetEnResource().noteGuid;
 }
 
 void IResource::setNoteGuid(const QString & guid)
 {
-    auto & enResource = GetEnResource();
-    enResource.noteGuid = guid.toStdString();
-    enResource.__isset.noteGuid = true;
+    GetEnResource().noteGuid = guid;
 }
 
 bool IResource::hasData() const
 {
-    return GetEnResource().__isset.data;
+    return GetEnResource().data.isSet();
 }
 
 bool IResource::hasDataHash() const
@@ -271,26 +227,35 @@ bool IResource::hasDataHash() const
         return false;
     }
 
-    return GetEnResource().data.__isset.bodyHash;
+    return GetEnResource().data->bodyHash.isSet();
 }
 
-const QString IResource::dataHash() const
+const QByteArray & IResource::dataHash() const
 {
-    return std::move(QString::fromStdString(GetEnResource().data.bodyHash));
+    return GetEnResource().data->bodyHash;
 }
 
-#define CHECK_AND_SET_DATA \
-    const auto & isSet = enResource.data.__isset; \
-    if (isSet.bodyHash && isSet.size && isSet.body) { \
-        enResource.__isset.data = true; \
+#define CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(empty_condition, data_field, field, \
+                                              other_field1, other_field2) \
+    if (empty_condition && enResource.data_field.isSet() && enResource.data_field->field.isSet()) \
+    { \
+        qevercloud::Optional<qevercloud::Data> & data_field = enResource.data_field; \
+        data_field->field.clear(); \
+        if (!data_field->other_field1.isSet() && !data_field->other_field2.isSet()) { \
+            data_field.clear(); \
+        } \
+        return; \
+    } \
+    \
+    if (!enResource.data_field.isSet()) { \
+        enResource.data_field = qevercloud::Data(); \
     }
 
-void IResource::setDataHash(const QString & hash)
+void IResource::setDataHash(const QByteArray & hash)
 {
-    auto & enResource = GetEnResource();
-    enResource.data.bodyHash = hash.toStdString();
-    enResource.data.__isset.bodyHash = true;
-    CHECK_AND_SET_DATA
+    qevercloud::Resource & enResource = GetEnResource();
+    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), data, bodyHash, body, size);
+    enResource.data->bodyHash = hash;
 }
 
 bool IResource::hasDataSize() const
@@ -299,20 +264,19 @@ bool IResource::hasDataSize() const
         return false;
     }
 
-    return GetEnResource().data.__isset.size;
+    return GetEnResource().data->size.isSet();
 }
 
 qint32 IResource::dataSize() const
 {
-    return GetEnResource().data.size;
+    return GetEnResource().data->size;
 }
 
 void IResource::setDataSize(const qint32 size)
 {
-    auto & enResource = GetEnResource();
-    enResource.data.size = size;
-    enResource.data.__isset.size = true;
-    CHECK_AND_SET_DATA
+    qevercloud::Resource & enResource = GetEnResource();
+    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD((size <= 0), data, size, body, bodyHash);
+    enResource.data->size = size;
 }
 
 bool IResource::hasDataBody() const
@@ -321,42 +285,39 @@ bool IResource::hasDataBody() const
         return false;
     }
 
-    return GetEnResource().data.__isset.body;
+    return GetEnResource().data->body.isSet();
 }
 
-const QString IResource::dataBody() const
+const QByteArray & IResource::dataBody() const
 {
-    return std::move(QString::fromStdString(GetEnResource().data.body));
+    return GetEnResource().data->body;
 }
 
-void IResource::setDataBody(const QString & body)
+void IResource::setDataBody(const QByteArray & body)
 {
-    auto & enResource = GetEnResource();
-    enResource.data.body = body.toStdString();
-    enResource.data.__isset.body = true;
-    CHECK_AND_SET_DATA
+    qevercloud::Resource & enResource = GetEnResource();
+    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(body.isEmpty(), data, body, size, bodyHash);
+    enResource.data->body = body;
 }
 
 bool IResource::hasMime() const
 {
-    return GetEnResource().__isset.mime;
+    return GetEnResource().mime.isSet();
 }
 
-const QString IResource::mime() const
+const QString & IResource::mime() const
 {
-    return std::move(QString::fromStdString(GetEnResource().mime));
+    return GetEnResource().mime;
 }
 
 void IResource::setMime(const QString & mime)
 {
-    auto & enResource = GetEnResource();
-    enResource.mime = mime.toStdString();
-    enResource.__isset.mime = true;
+    GetEnResource().mime = mime;
 }
 
 bool IResource::hasWidth() const
 {
-    return GetEnResource().__isset.width;
+    return GetEnResource().width.isSet();
 }
 
 qint16 IResource::width() const
@@ -366,14 +327,17 @@ qint16 IResource::width() const
 
 void IResource::setWidth(const qint16 width)
 {
-    auto & enResource = GetEnResource();
-    enResource.width = width;
-    enResource.__isset.width = true;
+    if (width < 0) {
+        GetEnResource().width.clear();
+    }
+    else {
+        GetEnResource().width = width;
+    }
 }
 
 bool IResource::hasHeight() const
 {
-    return GetEnResource().__isset.height;
+    return GetEnResource().height.isSet();
 }
 
 qint16 IResource::height() const
@@ -383,16 +347,17 @@ qint16 IResource::height() const
 
 void IResource::setHeight(const qint16 height)
 {
-    auto & enResource = GetEnResource();
-    enResource.height = height;
-    enResource.__isset.height = true;
+    if (height < 0) {
+        GetEnResource().height.clear();
+    }
+    else {
+        GetEnResource().height = height;
+    }
 }
-
-#undef CHECK_AND_SET_DATA
 
 bool IResource::hasRecognitionData() const
 {
-    return GetEnResource().__isset.recognition;
+    return GetEnResource().recognition.isSet();
 }
 
 bool IResource::hasRecognitionDataHash() const
@@ -401,26 +366,19 @@ bool IResource::hasRecognitionDataHash() const
         return false;
     }
 
-    return GetEnResource().recognition.__isset.bodyHash;
+    return GetEnResource().recognition->bodyHash.isSet();
 }
 
-const QString IResource::recognitionDataHash() const
+const QByteArray & IResource::recognitionDataHash() const
 {
-    return std::move(QString::fromStdString(GetEnResource().recognition.bodyHash));
+    return GetEnResource().recognition->bodyHash;
 }
-
-#define CHECK_AND_SET_RECOGNITION \
-    const auto & isSet = enResource.recognition.__isset; \
-    if (isSet.bodyHash && isSet.size && isSet.body) { \
-        enResource.__isset.recognition = true; \
-    }
 
 void IResource::setRecognitionDataHash(const QString & hash)
 {
-    auto & enResource = GetEnResource();
-    enResource.recognition.bodyHash = hash.toStdString();
-    enResource.recognition.__isset.bodyHash = true;
-    CHECK_AND_SET_RECOGNITION
+    qevercloud::Resource & enResource = GetEnResource();
+    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), recognition, bodyHash, body, size);
+    enResource.recognition->bodyHash = hash;
 }
 
 bool IResource::hasRecognitionDataSize() const
@@ -429,20 +387,19 @@ bool IResource::hasRecognitionDataSize() const
         return false;
     }
 
-    return GetEnResource().recognition.__isset.size;
+    return GetEnResource().recognition->size.isSet();
 }
 
 qint32 IResource::recognitionDataSize() const
 {
-    return GetEnResource().recognition.size;
+    return GetEnResource().recognition->size;
 }
 
 void IResource::setRecognitionDataSize(const qint32 size)
 {
-    auto & enResource = GetEnResource();
-    enResource.recognition.size = size;
-    enResource.recognition.__isset.size = true;
-    CHECK_AND_SET_RECOGNITION
+    qevercloud::Resource & enResource = GetEnResource();
+    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD((size <= 0), recognition, size, body, bodyHash);
+    enResource.recognition->size = size;
 }
 
 bool IResource::hasRecognitionDataBody() const
@@ -451,27 +408,26 @@ bool IResource::hasRecognitionDataBody() const
         return false;
     }
 
-    return GetEnResource().recognition.__isset.body;
+    return GetEnResource().recognition->body.isSet();
 }
 
-const QString IResource::recognitionDataBody() const
+// TODO: continue from here
+
+const QByteArray & IResource::recognitionDataBody() const
 {
-    return std::move(QString::fromStdString(GetEnResource().recognition.body));
+    return GetEnResource().recognition->body;
 }
 
-void IResource::setRecognitionDataBody(const QString & body)
+void IResource::setRecognitionDataBody(const QByteArray & body)
 {
-    auto & enResource = GetEnResource();
-    enResource.recognition.body = body.toStdString();
-    enResource.recognition.__isset.body = true;
-    CHECK_AND_SET_RECOGNITION
+    qevercloud::Resource & enResource = GetEnResource();
+    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(body.isEmpty(), recognition, body, size, bodyHash);
+    enResource.recognition->body = body;
 }
-
-#undef CHECK_AND_SET_RECOGNITION
 
 bool IResource::hasAlternateData() const
 {
-    return GetEnResource().__isset.alternateData;
+    return GetEnResource().alternateData.isSet();
 }
 
 bool IResource::hasAlternateDataHash() const
@@ -480,26 +436,19 @@ bool IResource::hasAlternateDataHash() const
         return false;
     }
 
-    return GetEnResource().alternateData.__isset.bodyHash;
+    return GetEnResource().alternateData->bodyHash.isSet();
 }
 
-const QString IResource::alternateDataHash() const
+const QByteArray & IResource::alternateDataHash() const
 {
-    return std::move(QString::fromStdString(GetEnResource().alternateData.bodyHash));
+    return GetEnResource().alternateData->bodyHash;
 }
-
-#define CHECK_AND_SET_ALTERNATE_DATA \
-    const auto & isSet = enResource.alternateData.__isset; \
-    if (isSet.bodyHash && isSet.size && isSet.body) { \
-        enResource.__isset.alternateData = true; \
-    }
 
 void IResource::setAlternateDataHash(const QString & hash)
 {
-    auto & enResource = GetEnResource();
-    enResource.alternateData.body = hash.toStdString();
-    enResource.alternateData.__isset.body = true;
-    CHECK_AND_SET_ALTERNATE_DATA
+    qevercloud::Resource & enResource = GetEnResource();
+    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), alternateData, bodyHash, size, body);
+    enResource.alternateData->bodyHash = hash;
 }
 
 bool IResource::hasAlternateDataSize() const
@@ -508,20 +457,19 @@ bool IResource::hasAlternateDataSize() const
         return false;
     }
 
-    return GetEnResource().alternateData.__isset.size;
+    return GetEnResource().alternateData->size.isSet();
 }
 
 qint32 IResource::alternateDataSize() const
 {
-    return GetEnResource().alternateData.size;
+    return GetEnResource().alternateData->size;
 }
 
 void IResource::setAlternateDataSize(const qint32 size)
 {
-    auto & enResource = GetEnResource();
-    enResource.alternateData.size = size;
-    enResource.alternateData.__isset.size = true;
-    CHECK_AND_SET_ALTERNATE_DATA
+    qevercloud::Resource & enResource = GetEnResource();
+    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD((size <= 0), alternateData, size, body, bodyHash);
+    enResource.alternateData->size = size;
 }
 
 bool IResource::hasAlternateDataBody() const
@@ -530,42 +478,37 @@ bool IResource::hasAlternateDataBody() const
         return false;
     }
 
-    return GetEnResource().alternateData.__isset.body;
+    return GetEnResource().alternateData->body.isSet();
 }
 
-const QString IResource::alternateDataBody() const
+const QByteArray & IResource::alternateDataBody() const
 {
-    return std::move(QString::fromStdString(GetEnResource().alternateData.body));
+    return GetEnResource().alternateData->body;
 }
 
-void IResource::setAlternateDataBody(const QString &body)
+void IResource::setAlternateDataBody(const QByteArray & body)
 {
-    auto & enResource = GetEnResource();
-    enResource.alternateData.body = body.toStdString();
-    enResource.alternateData.__isset.body = true;
-    CHECK_AND_SET_ALTERNATE_DATA
+    qevercloud::Resource & enResource = GetEnResource();
+    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(body.isEmpty(), alternateData, body, size, bodyHash);
+    enResource.alternateData->body = body;
 }
 
-#undef CHECK_AND_SET_ALTERNATE_DATA
+#undef CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD
 
 bool IResource::hasResourceAttributes() const
 {
-    return GetEnResource().__isset.attributes;
+    return GetEnResource().attributes.isSet();
 }
 
-const QByteArray IResource::resourceAttributes() const
+const qevercloud::ResourceAttributes & IResource::resourceAttributes() const
 {
-    return std::move(GetSerializedResourceAttributes(GetEnResource().attributes));
+    return GetEnResource().attributes;
 }
 
-void IResource::setResourceAttributes(const QByteArray & resourceAttributes)
+qevercloud::ResourceAttributes & IResource::resourceAttributes()
 {
-    auto & enResource = GetEnResource();
-    enResource.attributes = GetDeserializedResourceAttributes(resourceAttributes);
-    enResource.__isset.attributes = true;
+    return GetEnResource().attributes;
 }
-
-#undef CHECK_AND_SET_RECOGNITION
 
 IResource::IResource(const IResource & other) :
     NoteStoreDataElement(other),
@@ -585,47 +528,46 @@ IResource & IResource::operator=(const IResource & other)
 
 QTextStream & IResource::Print(QTextStream & strm) const
 {
-    const auto & enResource = GetEnResource();
-    const auto & isSet = enResource.__isset;
+    const qevercloud::Resource & enResource = GetEnResource();
 
-    if (isSet.guid) {
-        strm << "guid = " << QString::fromStdString(enResource.guid) << "; \n";
+    if (enResource.guid.isSet()) {
+        strm << "guid = " << enResource.guid << "; \n";
     }
     else {
         strm << "guid is not set" << "; \n";
     }
 
-    if (isSet.updateSequenceNum) {
-        strm << "updateSequenceNumber = " << enResource.updateSequenceNum << "; \n";
+    if (enResource.updateSequenceNum.isSet()) {
+        strm << "updateSequenceNumber = " << QString::number(enResource.updateSequenceNum) << "; \n";
     }
     else {
         strm << "updateSequenceNumber is not set";
     }
 
-    if (isSet.noteGuid) {
-        strm << "noteGuid = " << QString::fromStdString(enResource.noteGuid) << "; \n";
+    if (enResource.noteGuid.isSet()) {
+        strm << "noteGuid = " << enResource.noteGuid << "; \n";
     }
     else {
         strm << "noteGuid is not set" << "; \n";
     }
 
-    if (isSet.data)
+    if (enResource.data.isSet())
     {
-        if (enResource.data.__isset.size) {
-            strm << "dataSize = " << enResource.data.size << "; \n";
+        if (enResource.data->size.isSet()) {
+            strm << "dataSize = " << QString::number(enResource.data->size) << "; \n";
         }
         else {
             strm << "dataSize is not set" << "; \n";
         }
 
-        if (enResource.data.__isset.bodyHash) {
-            strm << "dataHash = " << QString::fromStdString(enResource.data.bodyHash) << "; \n";
+        if (enResource.data->bodyHash.isSet()) {
+            strm << "dataHash = " << enResource.data->bodyHash << "; \n";
         }
         else {
             strm << "dataHash is not set" << "; \n";
         }
 
-        if (enResource.data.__isset.body) {
+        if (enResource.data->body.isSet()) {
             strm << "dataBody is set" << "; \n";
         }
         else {
@@ -633,44 +575,44 @@ QTextStream & IResource::Print(QTextStream & strm) const
         }
     }
 
-    if (isSet.mime) {
-        strm << "mime = " << QString::fromStdString(enResource.mime) << "; \n";
+    if (enResource.mime.isSet()) {
+        strm << "mime = " << enResource.mime << "; \n";
     }
     else {
         strm << "mime is not set" << "; \n";
     }
 
-    if (isSet.width) {
-        strm << "width = " << enResource.width << "; \n";
+    if (enResource.width.isSet()) {
+        strm << "width = " << QString::number(enResource.width) << "; \n";
     }
     else {
         strm << "width is not set" << "; \n";
     }
 
-    if (isSet.height) {
-        strm << "height = " << enResource.height << "; \n";
+    if (enResource.height.isSet()) {
+        strm << "height = " << QString::number(enResource.height) << "; \n";
     }
     else {
         strm << "height is not set" << "; \n";
     }
 
-    if (isSet.recognition)
+    if (enResource.recognition.isSet())
     {
-        if (enResource.recognition.__isset.size) {
-            strm << "recognitionDataSize = " << enResource.recognition.size << "; \n";
+        if (enResource.recognition->size.isSet()) {
+            strm << "recognitionDataSize = " << QString::number(enResource.recognition->size) << "; \n";
         }
         else {
             strm << "recognitionDataSize is not set" << "; \n";
         }
 
-        if (enResource.recognition.__isset.bodyHash) {
-            strm << "recognitionDataHash = " << QString::fromStdString(enResource.recognition.bodyHash) << "; \n";
+        if (enResource.recognition->bodyHash.isSet()) {
+            strm << "recognitionDataHash = " << enResource.recognition->bodyHash << "; \n";
         }
         else {
             strm << "recognitionDataHash is not set" << "; \n";
         }
 
-        if (enResource.recognition.__isset.body) {
+        if (enResource.recognition->body.isSet()) {
             strm << "recognitionDataBody is set" << "; \n";
         }
         else {
@@ -678,23 +620,23 @@ QTextStream & IResource::Print(QTextStream & strm) const
         }
     }
 
-    if (isSet.alternateData)
+    if (enResource.alternateData.isSet())
     {
-        if (enResource.alternateData.__isset.size) {
-            strm << "alternateDataSize = " << enResource.alternateData.size << "; \n";
+        if (enResource.alternateData->size.isSet()) {
+            strm << "alternateDataSize = " << QString::number(enResource.alternateData->size) << "; \n";
         }
         else {
             strm << "alternateDataSize is not set" << "; \n";
         }
 
-        if (enResource.alternateData.__isset.bodyHash) {
-            strm << "alternateDataHash = " << QString::fromStdString(enResource.alternateData.bodyHash) << "; \n";
+        if (enResource.alternateData->bodyHash.isSet()) {
+            strm << "alternateDataHash = " << enResource.alternateData->bodyHash << "; \n";
         }
         else {
             strm << "alternateDataHash is not set" << "; \n";
         }
 
-        if (enResource.alternateData.__isset.body) {
+        if (enResource.alternateData->body.isSet()) {
             strm << "alternateDataBody is set" << "; \n";
         }
         else {
@@ -706,94 +648,96 @@ QTextStream & IResource::Print(QTextStream & strm) const
 
     strm << "isFreeAccount = " << (m_isFreeAccount ? "true" : "false") << "; \n";
 
-    if (isSet.attributes)
+    if (enResource.attributes.isSet())
     {
-        const auto & attributes = enResource.attributes;
-        const auto & attributesIsSet = attributes.__isset;
+        const qevercloud::ResourceAttributes & attributes = enResource.attributes;
 
-        if (attributesIsSet.sourceURL) {
-            strm << "sourceURL = " << QString::fromStdString(attributes.sourceURL) << "; \n";
+        if (attributes.sourceURL.isSet()) {
+            strm << "sourceURL = " << attributes.sourceURL << "; \n";
         }
         else {
             strm << "sourceURL is not set" << "; \n";
         }
 
-        if (attributesIsSet.timestamp) {
+        if (attributes.timestamp.isSet()) {
             strm << "timestamp = " << attributes.timestamp << "; \n";
         }
         else {
             strm << "timestamp is not set" << "; \n";
         }
 
-        if (attributesIsSet.latitude) {
+        if (attributes.latitude.isSet()) {
             strm << "latitude = " << attributes.latitude << "; \n";
         }
         else {
             strm << "latitude is not set" << "; \n";
         }
 
-        if (attributesIsSet.longitude) {
+        if (attributes.longitude.isSet()) {
             strm << "longitude = " << attributes.longitude << "; \n";
         }
         else {
             strm << "longitude is not set" << "; \n";
         }
 
-        if (attributesIsSet.altitude) {
+        if (attributes.altitude.isSet()) {
             strm << "altitude = " << attributes.altitude << "; \n";
         }
         else {
             strm << "altitude is not set" << "; \n";
         }
 
-        if (attributesIsSet.cameraMake) {
+        if (attributes.cameraMake.isSet()) {
             strm << "cameraMake = " << attributes.cameraMake << "; \n";
         }
         else {
             strm << "cameraMake is not set" << "; \n";
         }
 
-        if (attributesIsSet.cameraModel) {
-            strm << "cameraModel = " << QString::fromStdString(attributes.cameraModel) << "; \n";
+        if (attributes.cameraModel.isSet()) {
+            strm << "cameraModel = " << attributes.cameraModel << "; \n";
         }
         else {
             strm << "cameraModel is not set" << "; \n";
         }
 
-        if (attributesIsSet.clientWillIndex) {
+        if (attributes.clientWillIndex.isSet()) {
             strm << "clientWillIndex = " << (attributes.clientWillIndex ? "true" : "false") << "; \n";
         }
         else {
             strm << "clientWillIndex is not set" << "; \n";
         }
 
-        if (attributesIsSet.fileName) {
-            strm << "fileName = " << QString::fromStdString(attributes.fileName) << "; \n";
+        if (attributes.fileName.isSet()) {
+            strm << "fileName = " << attributes.fileName << "; \n";
         }
         else {
             strm << "fileName is not set" << "; \n";
         }
 
-        if (attributesIsSet.attachment) {
+        if (attributes.attachment.isSet()) {
             strm << "attachment = " << (attributes.attachment ? "true" : "false") << "; \n";
         }
         else {
             strm << "attachment is not set" << "; \n";
         }
 
-        if (attributesIsSet.applicationData)
+        if (attributes.applicationData.isSet())
         {
-            const auto & applicationData = attributes.applicationData;
+            const qevercloud::LazyMap & applicationData = attributes.applicationData;
 
-            const auto & keysOnly = applicationData.keysOnly;
-            for(const auto & item: keysOnly) {
-                strm << "applicationData key: " << QString::fromStdString(item) << "; \n";
+            if (applicationData.keysOnly.isSet()) {
+                const QSet<QString> & keysOnly = applicationData.keysOnly;
+                foreach(const QString & item, keysOnly) {
+                    strm << "applicationData key: " << item << "; \n";
+                }
             }
 
-            const auto & fullMap = applicationData.fullMap;
-            for(const auto & pair: fullMap) {
-                strm << "applicationData[" << QString::fromStdString(pair.first)
-                     << "] = " << QString::fromStdString(pair.second) << "; \n";
+            if (applicationData.fullMap.isSet()) {
+                const QMap<QString, QString> & fullMap = applicationData.fullMap;
+                foreach(const QString & key, fullMap) {
+                    strm << "applicationData[" << key << "] = " << fullMap.value(key) << "; \n";
+                }
             }
         }
     }

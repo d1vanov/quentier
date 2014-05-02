@@ -6,27 +6,35 @@
 namespace qute_note {
 
 /**
- * @brief The ResourceAdapter class uses reference to external evernote::edam::Resource
- * and adapts its interface to that of IResource
+ * @brief The ResourceAdapter class uses reference to external qevercloud::Resource
+ * and adapts its interface to that of IResource. The instances of this class
+ * should be used only within the same scope as the referenced external
+ * qevercloud::Resource object, otherwise it is possible to run into undefined behaviour.
+ * ResourceAdapter class is aware of constness of external object it references,
+ * it would throw ResourceAdapterAccessException exception in attempts to use
+ * referenced const object in non-const context
+ *
+ * @see ResourceAdapterAccessException
  */
 class ResourceAdapter final: public IResource
 {
 public:
-    ResourceAdapter(evernote::edam::Resource & externalEnResource);
-    ResourceAdapter(const evernote::edam::Resource & externalEnResource);
+    ResourceAdapter(qevercloud::Resource & externalEnResource);
+    ResourceAdapter(const qevercloud::Resource & externalEnResource);
     ResourceAdapter(const ResourceAdapter & other);
+    ResourceAdapter(ResourceAdapter && other);
     virtual ~ResourceAdapter() final override;
 
 private:
-    virtual const evernote::edam::Resource & GetEnResource() const final override;
-    virtual evernote::edam::Resource & GetEnResource() final override;
+    virtual const qevercloud::Resource & GetEnResource() const final override;
+    virtual qevercloud::Resource & GetEnResource() final override;
 
     virtual QTextStream & Print(QTextStream & strm) const;
 
     ResourceAdapter() = delete;
     ResourceAdapter & operator=(const ResourceAdapter & other) = delete;
 
-    evernote::edam::Resource * m_pEnResource;
+    qevercloud::Resource * m_pEnResource;
     bool m_isConst;
 };
 

@@ -35,8 +35,8 @@ const qevercloud::Accounting GetDeserializedAccounting(const QByteArray & data);
 const QByteArray GetSerializedUserAttributes(const qevercloud::UserAttributes & userAttributes);
 const qevercloud::UserAttributes GetDeserializedUserAttributes(const QByteArray & data);
 
-const QByteArray GetSerializedNoteAttributes(const evernote::edam::NoteAttributes & noteAttributes);
-const evernote::edam::NoteAttributes GetDeserializedNoteAttributes(const QByteArray & data);
+const QByteArray GetSerializedNoteAttributes(const qevercloud::NoteAttributes & noteAttributes);
+const qevercloud::NoteAttributes GetDeserializedNoteAttributes(const QByteArray & data);
 
 const QByteArray GetSerializedResourceAttributes(const evernote::edam::ResourceAttributes & resourceAttributes);
 const evernote::edam::ResourceAttributes GetDeserializedResourceAttributes(const QByteArray & data);

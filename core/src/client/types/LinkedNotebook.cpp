@@ -29,48 +29,7 @@ LinkedNotebook::operator const qevercloud::LinkedNotebook & () const
 
 bool LinkedNotebook::operator==(const LinkedNotebook & other) const
 {
-    if (isDirty() != other.isDirty()) {
-        return false;
-    }
-
-    const qevercloud::LinkedNotebook & otherLinkedNotebook = other.m_qecLinkedNotebook;
-
-    if (m_qecLinkedNotebook.shareName != otherLinkedNotebook.shareName) {
-        return false;
-    }
-    else if (m_qecLinkedNotebook.username != otherLinkedNotebook.username) {
-        return false;
-    }
-    else if (m_qecLinkedNotebook.shardId != otherLinkedNotebook.shardId) {
-        return false;
-    }
-    else if (m_qecLinkedNotebook.shareKey != otherLinkedNotebook.shareKey) {
-        return false;
-    }
-    else if (m_qecLinkedNotebook.uri != otherLinkedNotebook.uri) {
-        return false;
-    }
-    else if (m_qecLinkedNotebook.guid != otherLinkedNotebook.guid) {
-        return false;
-    }
-    else if (m_qecLinkedNotebook.updateSequenceNum != otherLinkedNotebook.updateSequenceNum) {
-        return false;
-    }
-    else if (m_qecLinkedNotebook.noteStoreUrl != otherLinkedNotebook.noteStoreUrl) {
-        return false;
-    }
-    else if (m_qecLinkedNotebook.webApiUrlPrefix != otherLinkedNotebook.webApiUrlPrefix) {
-        return false;
-    }
-    else if (m_qecLinkedNotebook.stack != otherLinkedNotebook.stack) {
-        return false;
-    }
-    else if (m_qecLinkedNotebook.businessId != otherLinkedNotebook.businessId) {
-        return false;
-    }
-    else {
-        return true;
-    }
+    return ((isDirty() == other.isDirty()) && (m_qecLinkedNotebook == other.m_qecLinkedNotebook));
 }
 
 bool LinkedNotebook::operator!=(const LinkedNotebook & other) const

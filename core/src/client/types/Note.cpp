@@ -1,8 +1,8 @@
 #include "Note.h"
 #include "ResourceAdapter.h"
+#include "ResourceWrapper.h"
 #include "QEverCloudHelpers.h"
 #include "../Utility.h"
-#include "../Serialization.h"
 #include <logging/QuteNoteLogger.h>
 
 namespace qute_note {
@@ -582,7 +582,7 @@ void Note::removeResource(const IResource & resource)
         return;
     }
 
-    int removed = m_qecNote.resources->removeAll(resource);
+    int removed = m_qecNote.resources->removeAll(resource.GetEnResource());
     if (removed > 0) {
         QNDEBUG("Removed resource " << resource << " from note (" << removed << ") occurences");
     }
@@ -741,7 +741,7 @@ QTextStream & Note::Print(QTextStream & strm) const
     {
         strm << "resources: { \n";
         foreach(const qevercloud::Resource & resource, m_qecNote.resources.ref()) {
-            strm << resource << "; \n";
+            strm << ResourceAdapter(resource) << "; \n";
         }
         strm << "}";
     }

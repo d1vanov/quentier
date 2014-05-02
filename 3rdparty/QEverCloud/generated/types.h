@@ -9,7 +9,8 @@
 #include <QString>
 #include <QStringList>
 #include <QByteArray>
-#include "../globals.h"
+#include <QDateTime>
+#include "../Optional.h"
 #include "EDAMErrorCode.h"
 #include <QSharedPointer>
 #include <QMetaType>
@@ -273,6 +274,21 @@ struct SyncState {
        a caller that only has read access to the account.
     */
     Optional< qint64 > uploaded;
+
+    bool operator==(const SyncState& other) const
+    {
+        return (currentTime == other.currentTime)
+            && (fullSyncBefore == other.fullSyncBefore)
+            && (updateCount == other.updateCount)
+            && uploaded.isEqual(other.uploaded)
+        ;
+    }
+
+    bool operator!=(const SyncState& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -356,6 +372,30 @@ struct SyncChunkFilter {
        asterisk, a prefix match.
     */
     Optional< QString > requireNoteContentClass;
+
+    bool operator==(const SyncChunkFilter& other) const
+    {
+        return includeNotes.isEqual(other.includeNotes)
+            && includeNoteResources.isEqual(other.includeNoteResources)
+            && includeNoteAttributes.isEqual(other.includeNoteAttributes)
+            && includeNotebooks.isEqual(other.includeNotebooks)
+            && includeTags.isEqual(other.includeTags)
+            && includeSearches.isEqual(other.includeSearches)
+            && includeResources.isEqual(other.includeResources)
+            && includeLinkedNotebooks.isEqual(other.includeLinkedNotebooks)
+            && includeExpunged.isEqual(other.includeExpunged)
+            && includeNoteApplicationDataFullMap.isEqual(other.includeNoteApplicationDataFullMap)
+            && includeResourceApplicationDataFullMap.isEqual(other.includeResourceApplicationDataFullMap)
+            && includeNoteResourceApplicationDataFullMap.isEqual(other.includeNoteResourceApplicationDataFullMap)
+            && requireNoteContentClass.isEqual(other.requireNoteContentClass)
+        ;
+    }
+
+    bool operator!=(const SyncChunkFilter& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -413,6 +453,25 @@ struct NoteFilter {
        Accepts the full search grammar documented in the Evernote API Overview.
     */
     Optional< QString > emphasized;
+
+    bool operator==(const NoteFilter& other) const
+    {
+        return order.isEqual(other.order)
+            && ascending.isEqual(other.ascending)
+            && words.isEqual(other.words)
+            && notebookGuid.isEqual(other.notebookGuid)
+            && tagGuids.isEqual(other.tagGuids)
+            && timeZone.isEqual(other.timeZone)
+            && inactive.isEqual(other.inactive)
+            && emphasized.isEqual(other.emphasized)
+        ;
+    }
+
+    bool operator!=(const NoteFilter& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -451,6 +510,28 @@ struct NotesMetadataResultSpec {
     Optional< bool > includeLargestResourceMime;
     /** NOT DOCUMENTED */
     Optional< bool > includeLargestResourceSize;
+
+    bool operator==(const NotesMetadataResultSpec& other) const
+    {
+        return includeTitle.isEqual(other.includeTitle)
+            && includeContentLength.isEqual(other.includeContentLength)
+            && includeCreated.isEqual(other.includeCreated)
+            && includeUpdated.isEqual(other.includeUpdated)
+            && includeDeleted.isEqual(other.includeDeleted)
+            && includeUpdateSequenceNum.isEqual(other.includeUpdateSequenceNum)
+            && includeNotebookGuid.isEqual(other.includeNotebookGuid)
+            && includeTagGuids.isEqual(other.includeTagGuids)
+            && includeAttributes.isEqual(other.includeAttributes)
+            && includeLargestResourceMime.isEqual(other.includeLargestResourceMime)
+            && includeLargestResourceSize.isEqual(other.includeLargestResourceSize)
+        ;
+    }
+
+    bool operator!=(const NotesMetadataResultSpec& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -476,6 +557,20 @@ struct NoteCollectionCounts {
        to 0.)
     */
     Optional< qint32 > trashCount;
+
+    bool operator==(const NoteCollectionCounts& other) const
+    {
+        return notebookCounts.isEqual(other.notebookCounts)
+            && tagCounts.isEqual(other.tagCounts)
+            && trashCount.isEqual(other.trashCount)
+        ;
+    }
+
+    bool operator!=(const NoteCollectionCounts& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -509,6 +604,21 @@ struct NoteVersionId {
         current title of the note may differ from this value.)
     */
     QString title;
+
+    bool operator==(const NoteVersionId& other) const
+    {
+        return (updateSequenceNum == other.updateSequenceNum)
+            && (updated == other.updated)
+            && (saved == other.saved)
+            && (title == other.title)
+        ;
+    }
+
+    bool operator!=(const NoteVersionId& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -533,6 +643,18 @@ struct ClientUsageMetrics {
         already been reported.
     */
     Optional< qint32 > sessions;
+
+    bool operator==(const ClientUsageMetrics& other) const
+    {
+        return sessions.isEqual(other.sessions)
+        ;
+    }
+
+    bool operator!=(const ClientUsageMetrics& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -567,6 +689,21 @@ struct RelatedQuery {
          should be based. This can be an URL pointing to a web page, for example.
     */
     Optional< QString > referenceUri;
+
+    bool operator==(const RelatedQuery& other) const
+    {
+        return noteGuid.isEqual(other.noteGuid)
+            && plainText.isEqual(other.plainText)
+            && filter.isEqual(other.filter)
+            && referenceUri.isEqual(other.referenceUri)
+        ;
+    }
+
+    bool operator!=(const RelatedQuery& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -611,6 +748,22 @@ struct RelatedResultSpec {
          to which the returned related notes belong.
     */
     Optional< bool > includeContainingNotebooks;
+
+    bool operator==(const RelatedResultSpec& other) const
+    {
+        return maxNotes.isEqual(other.maxNotes)
+            && maxNotebooks.isEqual(other.maxNotebooks)
+            && maxTags.isEqual(other.maxTags)
+            && writableNotebooksOnly.isEqual(other.writableNotebooksOnly)
+            && includeContainingNotebooks.isEqual(other.includeContainingNotebooks)
+        ;
+    }
+
+    bool operator!=(const RelatedResultSpec& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -641,6 +794,20 @@ struct Data {
        without transmitting the binary resource contents.
     */
     Optional< QByteArray > body;
+
+    bool operator==(const Data& other) const
+    {
+        return bodyHash.isEqual(other.bodyHash)
+            && size.isEqual(other.size)
+            && body.isEqual(other.body)
+        ;
+    }
+
+    bool operator!=(const Data& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -826,6 +993,48 @@ struct UserAttributes {
            e-mail notifications.
     */
     Optional< ReminderEmailConfig::type > reminderEmailConfig;
+
+    bool operator==(const UserAttributes& other) const
+    {
+        return defaultLocationName.isEqual(other.defaultLocationName)
+            && defaultLatitude.isEqual(other.defaultLatitude)
+            && defaultLongitude.isEqual(other.defaultLongitude)
+            && preactivation.isEqual(other.preactivation)
+            && viewedPromotions.isEqual(other.viewedPromotions)
+            && incomingEmailAddress.isEqual(other.incomingEmailAddress)
+            && recentMailedAddresses.isEqual(other.recentMailedAddresses)
+            && comments.isEqual(other.comments)
+            && dateAgreedToTermsOfService.isEqual(other.dateAgreedToTermsOfService)
+            && maxReferrals.isEqual(other.maxReferrals)
+            && referralCount.isEqual(other.referralCount)
+            && refererCode.isEqual(other.refererCode)
+            && sentEmailDate.isEqual(other.sentEmailDate)
+            && sentEmailCount.isEqual(other.sentEmailCount)
+            && dailyEmailLimit.isEqual(other.dailyEmailLimit)
+            && emailOptOutDate.isEqual(other.emailOptOutDate)
+            && partnerEmailOptInDate.isEqual(other.partnerEmailOptInDate)
+            && preferredLanguage.isEqual(other.preferredLanguage)
+            && preferredCountry.isEqual(other.preferredCountry)
+            && clipFullPage.isEqual(other.clipFullPage)
+            && twitterUserName.isEqual(other.twitterUserName)
+            && twitterId.isEqual(other.twitterId)
+            && groupName.isEqual(other.groupName)
+            && recognitionLanguage.isEqual(other.recognitionLanguage)
+            && referralProof.isEqual(other.referralProof)
+            && educationalDiscount.isEqual(other.educationalDiscount)
+            && businessAddress.isEqual(other.businessAddress)
+            && hideSponsorBilling.isEqual(other.hideSponsorBilling)
+            && taxExempt.isEqual(other.taxExempt)
+            && useEmailAutoFiling.isEqual(other.useEmailAutoFiling)
+            && reminderEmailConfig.isEqual(other.reminderEmailConfig)
+        ;
+    }
+
+    bool operator!=(const UserAttributes& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -946,6 +1155,40 @@ struct Accounting {
     The next time the user will be charged, may or may not be the same as nextPaymentDue
     */
     Optional< Timestamp > nextChargeDate;
+
+    bool operator==(const Accounting& other) const
+    {
+        return uploadLimit.isEqual(other.uploadLimit)
+            && uploadLimitEnd.isEqual(other.uploadLimitEnd)
+            && uploadLimitNextMonth.isEqual(other.uploadLimitNextMonth)
+            && premiumServiceStatus.isEqual(other.premiumServiceStatus)
+            && premiumOrderNumber.isEqual(other.premiumOrderNumber)
+            && premiumCommerceService.isEqual(other.premiumCommerceService)
+            && premiumServiceStart.isEqual(other.premiumServiceStart)
+            && premiumServiceSKU.isEqual(other.premiumServiceSKU)
+            && lastSuccessfulCharge.isEqual(other.lastSuccessfulCharge)
+            && lastFailedCharge.isEqual(other.lastFailedCharge)
+            && lastFailedChargeReason.isEqual(other.lastFailedChargeReason)
+            && nextPaymentDue.isEqual(other.nextPaymentDue)
+            && premiumLockUntil.isEqual(other.premiumLockUntil)
+            && updated.isEqual(other.updated)
+            && premiumSubscriptionNumber.isEqual(other.premiumSubscriptionNumber)
+            && lastRequestedCharge.isEqual(other.lastRequestedCharge)
+            && currency.isEqual(other.currency)
+            && unitPrice.isEqual(other.unitPrice)
+            && businessId.isEqual(other.businessId)
+            && businessName.isEqual(other.businessName)
+            && businessRole.isEqual(other.businessRole)
+            && unitDiscount.isEqual(other.unitDiscount)
+            && nextChargeDate.isEqual(other.nextChargeDate)
+        ;
+    }
+
+    bool operator!=(const Accounting& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -976,6 +1219,21 @@ struct BusinessUserInfo {
            purposes such as for logging into the service.
     */
     Optional< QString > email;
+
+    bool operator==(const BusinessUserInfo& other) const
+    {
+        return businessId.isEqual(other.businessId)
+            && businessName.isEqual(other.businessName)
+            && role.isEqual(other.role)
+            && email.isEqual(other.email)
+        ;
+    }
+
+    bool operator!=(const BusinessUserInfo& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1028,6 +1286,28 @@ struct PremiumInfo {
     True if the user is eligible for purchasing Premium account upgrade.
     */
     Optional< bool > premiumUpgradable;
+
+    bool operator==(const PremiumInfo& other) const
+    {
+        return (currentTime == other.currentTime)
+            && (premium == other.premium)
+            && (premiumRecurring == other.premiumRecurring)
+            && premiumExpirationDate.isEqual(other.premiumExpirationDate)
+            && (premiumExtendable == other.premiumExtendable)
+            && (premiumPending == other.premiumPending)
+            && (premiumCancellationPending == other.premiumCancellationPending)
+            && (canPurchaseUploadAllowance == other.canPurchaseUploadAllowance)
+            && sponsoredGroupName.isEqual(other.sponsoredGroupName)
+            && sponsoredGroupRole.isEqual(other.sponsoredGroupRole)
+            && premiumUpgradable.isEqual(other.premiumUpgradable)
+        ;
+    }
+
+    bool operator!=(const PremiumInfo& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1133,6 +1413,32 @@ struct User {
        user is not currently part of a business.
     */
     Optional< BusinessUserInfo > businessUserInfo;
+
+    bool operator==(const User& other) const
+    {
+        return id.isEqual(other.id)
+            && username.isEqual(other.username)
+            && email.isEqual(other.email)
+            && name.isEqual(other.name)
+            && timezone.isEqual(other.timezone)
+            && privilege.isEqual(other.privilege)
+            && created.isEqual(other.created)
+            && updated.isEqual(other.updated)
+            && deleted.isEqual(other.deleted)
+            && active.isEqual(other.active)
+            && shardId.isEqual(other.shardId)
+            && attributes.isEqual(other.attributes)
+            && accounting.isEqual(other.accounting)
+            && premiumInfo.isEqual(other.premiumInfo)
+            && businessUserInfo.isEqual(other.businessUserInfo)
+        ;
+    }
+
+    bool operator!=(const User& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1181,6 +1487,21 @@ struct Tag {
        service.
     */
     Optional< qint32 > updateSequenceNum;
+
+    bool operator==(const Tag& other) const
+    {
+        return guid.isEqual(other.guid)
+            && name.isEqual(other.name)
+            && parentGuid.isEqual(other.parentGuid)
+            && updateSequenceNum.isEqual(other.updateSequenceNum)
+        ;
+    }
+
+    bool operator!=(const Tag& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1212,6 +1533,19 @@ struct LazyMap {
     The complete map, including all keys and values.
     */
     Optional< QMap< QString, QString > > fullMap;
+
+    bool operator==(const LazyMap& other) const
+    {
+        return keysOnly.isEqual(other.keysOnly)
+            && fullMap.isEqual(other.fullMap)
+        ;
+    }
+
+    bool operator!=(const LazyMap& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1294,6 +1628,29 @@ struct ResourceAttributes {
      Syntax regex for name (key): EDAM_APPLICATIONDATA_NAME_REGEX
     */
     Optional< LazyMap > applicationData;
+
+    bool operator==(const ResourceAttributes& other) const
+    {
+        return sourceURL.isEqual(other.sourceURL)
+            && timestamp.isEqual(other.timestamp)
+            && latitude.isEqual(other.latitude)
+            && longitude.isEqual(other.longitude)
+            && altitude.isEqual(other.altitude)
+            && cameraMake.isEqual(other.cameraMake)
+            && cameraModel.isEqual(other.cameraModel)
+            && clientWillIndex.isEqual(other.clientWillIndex)
+            && recoType.isEqual(other.recoType)
+            && fileName.isEqual(other.fileName)
+            && attachment.isEqual(other.attachment)
+            && applicationData.isEqual(other.applicationData)
+        ;
+    }
+
+    bool operator!=(const ResourceAttributes& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1377,6 +1734,29 @@ struct Resource {
        this field will be unset.
     */
     Optional< Data > alternateData;
+
+    bool operator==(const Resource& other) const
+    {
+        return guid.isEqual(other.guid)
+            && noteGuid.isEqual(other.noteGuid)
+            && data.isEqual(other.data)
+            && mime.isEqual(other.mime)
+            && width.isEqual(other.width)
+            && height.isEqual(other.height)
+            && duration.isEqual(other.duration)
+            && active.isEqual(other.active)
+            && recognition.isEqual(other.recognition)
+            && attributes.isEqual(other.attributes)
+            && updateSequenceNum.isEqual(other.updateSequenceNum)
+            && alternateData.isEqual(other.alternateData)
+        ;
+    }
+
+    bool operator!=(const Resource& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1558,6 +1938,36 @@ struct NoteAttributes {
     The numeric user ID of the user described in lastEditedBy.
     */
     Optional< UserID > lastEditorId;
+
+    bool operator==(const NoteAttributes& other) const
+    {
+        return subjectDate.isEqual(other.subjectDate)
+            && latitude.isEqual(other.latitude)
+            && longitude.isEqual(other.longitude)
+            && altitude.isEqual(other.altitude)
+            && author.isEqual(other.author)
+            && source.isEqual(other.source)
+            && sourceURL.isEqual(other.sourceURL)
+            && sourceApplication.isEqual(other.sourceApplication)
+            && shareDate.isEqual(other.shareDate)
+            && reminderOrder.isEqual(other.reminderOrder)
+            && reminderDoneTime.isEqual(other.reminderDoneTime)
+            && reminderTime.isEqual(other.reminderTime)
+            && placeName.isEqual(other.placeName)
+            && contentClass.isEqual(other.contentClass)
+            && applicationData.isEqual(other.applicationData)
+            && lastEditedBy.isEqual(other.lastEditedBy)
+            && classifications.isEqual(other.classifications)
+            && creatorId.isEqual(other.creatorId)
+            && lastEditorId.isEqual(other.lastEditorId)
+        ;
+    }
+
+    bool operator!=(const NoteAttributes& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1689,6 +2099,32 @@ struct Note {
        the top level of the tag panel).
     */
     Optional< QStringList > tagNames;
+
+    bool operator==(const Note& other) const
+    {
+        return guid.isEqual(other.guid)
+            && title.isEqual(other.title)
+            && content.isEqual(other.content)
+            && contentHash.isEqual(other.contentHash)
+            && contentLength.isEqual(other.contentLength)
+            && created.isEqual(other.created)
+            && updated.isEqual(other.updated)
+            && deleted.isEqual(other.deleted)
+            && active.isEqual(other.active)
+            && updateSequenceNum.isEqual(other.updateSequenceNum)
+            && notebookGuid.isEqual(other.notebookGuid)
+            && tagGuids.isEqual(other.tagGuids)
+            && resources.isEqual(other.resources)
+            && attributes.isEqual(other.attributes)
+            && tagNames.isEqual(other.tagNames)
+        ;
+    }
+
+    bool operator!=(const Note& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1731,6 +2167,21 @@ struct Publishing {
        Regex:  EDAM_PUBLISHING_DESCRIPTION_REGEX
     */
     Optional< QString > publicDescription;
+
+    bool operator==(const Publishing& other) const
+    {
+        return uri.isEqual(other.uri)
+            && order.isEqual(other.order)
+            && ascending.isEqual(other.ascending)
+            && publicDescription.isEqual(other.publicDescription)
+        ;
+    }
+
+    bool operator!=(const Publishing& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1762,6 +2213,20 @@ struct BusinessNotebook {
            library user interface.
     */
     Optional< bool > recommended;
+
+    bool operator==(const BusinessNotebook& other) const
+    {
+        return notebookDescription.isEqual(other.notebookDescription)
+            && privilege.isEqual(other.privilege)
+            && recommended.isEqual(other.recommended)
+        ;
+    }
+
+    bool operator!=(const BusinessNotebook& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1784,6 +2249,20 @@ struct SavedSearchScope {
        the user is currently a member of.
     */
     Optional< bool > includeBusinessLinkedNotebooks;
+
+    bool operator==(const SavedSearchScope& other) const
+    {
+        return includeAccount.isEqual(other.includeAccount)
+            && includePersonalLinkedNotebooks.isEqual(other.includePersonalLinkedNotebooks)
+            && includeBusinessLinkedNotebooks.isEqual(other.includeBusinessLinkedNotebooks)
+        ;
+    }
+
+    bool operator!=(const SavedSearchScope& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1841,6 +2320,23 @@ struct SavedSearch {
         to execute the search.</p>
     */
     Optional< SavedSearchScope > scope;
+
+    bool operator==(const SavedSearch& other) const
+    {
+        return guid.isEqual(other.guid)
+            && name.isEqual(other.name)
+            && query.isEqual(other.query)
+            && format.isEqual(other.format)
+            && updateSequenceNum.isEqual(other.updateSequenceNum)
+            && scope.isEqual(other.scope)
+        ;
+    }
+
+    bool operator!=(const SavedSearch& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1873,6 +2369,19 @@ struct SharedNotebookRecipientSettings {
          by the individual applications.
     */
     Optional< bool > reminderNotifyInApp;
+
+    bool operator==(const SharedNotebookRecipientSettings& other) const
+    {
+        return reminderNotifyEmail.isEqual(other.reminderNotifyEmail)
+            && reminderNotifyInApp.isEqual(other.reminderNotifyInApp)
+        ;
+    }
+
+    bool operator!=(const SharedNotebookRecipientSettings& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -1951,6 +2460,30 @@ struct SharedNotebook {
          you are the recipient.
     */
     Optional< SharedNotebookRecipientSettings > recipientSettings;
+
+    bool operator==(const SharedNotebook& other) const
+    {
+        return id.isEqual(other.id)
+            && userId.isEqual(other.userId)
+            && notebookGuid.isEqual(other.notebookGuid)
+            && email.isEqual(other.email)
+            && notebookModifiable.isEqual(other.notebookModifiable)
+            && requireLogin.isEqual(other.requireLogin)
+            && serviceCreated.isEqual(other.serviceCreated)
+            && serviceUpdated.isEqual(other.serviceUpdated)
+            && shareKey.isEqual(other.shareKey)
+            && username.isEqual(other.username)
+            && privilege.isEqual(other.privilege)
+            && allowPreview.isEqual(other.allowPreview)
+            && recipientSettings.isEqual(other.recipientSettings)
+        ;
+    }
+
+    bool operator!=(const SharedNotebook& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2077,6 +2610,37 @@ struct NotebookRestrictions {
        See the enumeration for further details.
     */
     Optional< SharedNotebookInstanceRestrictions::type > expungeWhichSharedNotebookRestrictions;
+
+    bool operator==(const NotebookRestrictions& other) const
+    {
+        return noReadNotes.isEqual(other.noReadNotes)
+            && noCreateNotes.isEqual(other.noCreateNotes)
+            && noUpdateNotes.isEqual(other.noUpdateNotes)
+            && noExpungeNotes.isEqual(other.noExpungeNotes)
+            && noShareNotes.isEqual(other.noShareNotes)
+            && noEmailNotes.isEqual(other.noEmailNotes)
+            && noSendMessageToRecipients.isEqual(other.noSendMessageToRecipients)
+            && noUpdateNotebook.isEqual(other.noUpdateNotebook)
+            && noExpungeNotebook.isEqual(other.noExpungeNotebook)
+            && noSetDefaultNotebook.isEqual(other.noSetDefaultNotebook)
+            && noSetNotebookStack.isEqual(other.noSetNotebookStack)
+            && noPublishToPublic.isEqual(other.noPublishToPublic)
+            && noPublishToBusinessLibrary.isEqual(other.noPublishToBusinessLibrary)
+            && noCreateTags.isEqual(other.noCreateTags)
+            && noUpdateTags.isEqual(other.noUpdateTags)
+            && noExpungeTags.isEqual(other.noExpungeTags)
+            && noSetParentTag.isEqual(other.noSetParentTag)
+            && noCreateSharedNotebooks.isEqual(other.noCreateSharedNotebooks)
+            && updateWhichSharedNotebookRestrictions.isEqual(other.updateWhichSharedNotebookRestrictions)
+            && expungeWhichSharedNotebookRestrictions.isEqual(other.expungeWhichSharedNotebookRestrictions)
+        ;
+    }
+
+    bool operator!=(const NotebookRestrictions& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2199,6 +2763,31 @@ struct Notebook {
     Optional< User > contact;
     /** NOT DOCUMENTED */
     Optional< NotebookRestrictions > restrictions;
+
+    bool operator==(const Notebook& other) const
+    {
+        return guid.isEqual(other.guid)
+            && name.isEqual(other.name)
+            && updateSequenceNum.isEqual(other.updateSequenceNum)
+            && defaultNotebook.isEqual(other.defaultNotebook)
+            && serviceCreated.isEqual(other.serviceCreated)
+            && serviceUpdated.isEqual(other.serviceUpdated)
+            && publishing.isEqual(other.publishing)
+            && published.isEqual(other.published)
+            && stack.isEqual(other.stack)
+            && sharedNotebookIds.isEqual(other.sharedNotebookIds)
+            && sharedNotebooks.isEqual(other.sharedNotebooks)
+            && businessNotebook.isEqual(other.businessNotebook)
+            && contact.isEqual(other.contact)
+            && restrictions.isEqual(other.restrictions)
+        ;
+    }
+
+    bool operator!=(const Notebook& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2277,6 +2866,28 @@ struct LinkedNotebook {
        the notebook to which the linked notebook refers.
     */
     Optional< qint32 > businessId;
+
+    bool operator==(const LinkedNotebook& other) const
+    {
+        return shareName.isEqual(other.shareName)
+            && username.isEqual(other.username)
+            && shardId.isEqual(other.shardId)
+            && shareKey.isEqual(other.shareKey)
+            && uri.isEqual(other.uri)
+            && guid.isEqual(other.guid)
+            && updateSequenceNum.isEqual(other.updateSequenceNum)
+            && noteStoreUrl.isEqual(other.noteStoreUrl)
+            && webApiUrlPrefix.isEqual(other.webApiUrlPrefix)
+            && stack.isEqual(other.stack)
+            && businessId.isEqual(other.businessId)
+        ;
+    }
+
+    bool operator!=(const LinkedNotebook& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2307,6 +2918,22 @@ struct NotebookDescriptor {
     The number of users who have joined this notebook.
     */
     Optional< qint32 > joinedUserCount;
+
+    bool operator==(const NotebookDescriptor& other) const
+    {
+        return guid.isEqual(other.guid)
+            && notebookDisplayName.isEqual(other.notebookDisplayName)
+            && contactName.isEqual(other.contactName)
+            && hasSharedNotebook.isEqual(other.hasSharedNotebook)
+            && joinedUserCount.isEqual(other.joinedUserCount)
+        ;
+    }
+
+    bool operator!=(const NotebookDescriptor& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2346,6 +2973,23 @@ struct PublicUserInfo {
        developer web site.
     */
     Optional< QString > webApiUrlPrefix;
+
+    bool operator==(const PublicUserInfo& other) const
+    {
+        return (userId == other.userId)
+            && (shardId == other.shardId)
+            && privilege.isEqual(other.privilege)
+            && username.isEqual(other.username)
+            && noteStoreUrl.isEqual(other.noteStoreUrl)
+            && webApiUrlPrefix.isEqual(other.webApiUrlPrefix)
+        ;
+    }
+
+    bool operator!=(const PublicUserInfo& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2416,6 +3060,26 @@ struct AuthenticationResult {
        TODO do we need to differentiate between SMS and voice delivery?
     */
     Optional< QString > secondFactorDeliveryHint;
+
+    bool operator==(const AuthenticationResult& other) const
+    {
+        return (currentTime == other.currentTime)
+            && (authenticationToken == other.authenticationToken)
+            && (expiration == other.expiration)
+            && user.isEqual(other.user)
+            && publicUserInfo.isEqual(other.publicUserInfo)
+            && noteStoreUrl.isEqual(other.noteStoreUrl)
+            && webApiUrlPrefix.isEqual(other.webApiUrlPrefix)
+            && secondFactorRequired.isEqual(other.secondFactorRequired)
+            && secondFactorDeliveryHint.isEqual(other.secondFactorDeliveryHint)
+        ;
+    }
+
+    bool operator!=(const AuthenticationResult& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2480,6 +3144,30 @@ struct BootstrapSettings {
     Optional< bool > enableLinkedInSharing;
     /** NOT DOCUMENTED */
     Optional< bool > enablePublicNotebooks;
+
+    bool operator==(const BootstrapSettings& other) const
+    {
+        return (serviceHost == other.serviceHost)
+            && (marketingUrl == other.marketingUrl)
+            && (supportUrl == other.supportUrl)
+            && (accountEmailDomain == other.accountEmailDomain)
+            && enableFacebookSharing.isEqual(other.enableFacebookSharing)
+            && enableGiftSubscriptions.isEqual(other.enableGiftSubscriptions)
+            && enableSupportTickets.isEqual(other.enableSupportTickets)
+            && enableSharedNotebooks.isEqual(other.enableSharedNotebooks)
+            && enableSingleNoteSharing.isEqual(other.enableSingleNoteSharing)
+            && enableSponsoredAccounts.isEqual(other.enableSponsoredAccounts)
+            && enableTwitterSharing.isEqual(other.enableTwitterSharing)
+            && enableLinkedInSharing.isEqual(other.enableLinkedInSharing)
+            && enablePublicNotebooks.isEqual(other.enablePublicNotebooks)
+        ;
+    }
+
+    bool operator!=(const BootstrapSettings& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2495,6 +3183,19 @@ struct BootstrapProfile {
     The settings for this profile.
     */
     BootstrapSettings settings;
+
+    bool operator==(const BootstrapProfile& other) const
+    {
+        return (name == other.name)
+            && (settings == other.settings)
+        ;
+    }
+
+    bool operator!=(const BootstrapProfile& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2506,6 +3207,18 @@ struct BootstrapInfo {
        preference order.
     */
     QList< BootstrapProfile > profiles;
+
+    bool operator==(const BootstrapInfo& other) const
+    {
+        return (profiles == other.profiles)
+        ;
+    }
+
+    bool operator!=(const BootstrapInfo& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2601,6 +3314,31 @@ struct SyncChunk {
        that were permanently expunged in this chunk.
     */
     Optional< QList< Guid > > expungedLinkedNotebooks;
+
+    bool operator==(const SyncChunk& other) const
+    {
+        return (currentTime == other.currentTime)
+            && chunkHighUSN.isEqual(other.chunkHighUSN)
+            && (updateCount == other.updateCount)
+            && notes.isEqual(other.notes)
+            && notebooks.isEqual(other.notebooks)
+            && tags.isEqual(other.tags)
+            && searches.isEqual(other.searches)
+            && resources.isEqual(other.resources)
+            && expungedNotes.isEqual(other.expungedNotes)
+            && expungedNotebooks.isEqual(other.expungedNotebooks)
+            && expungedTags.isEqual(other.expungedTags)
+            && expungedSearches.isEqual(other.expungedSearches)
+            && linkedNotebooks.isEqual(other.linkedNotebooks)
+            && expungedLinkedNotebooks.isEqual(other.expungedLinkedNotebooks)
+        ;
+    }
+
+    bool operator!=(const SyncChunk& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2647,6 +3385,23 @@ struct NoteList {
        within the account.
     */
     Optional< qint32 > updateCount;
+
+    bool operator==(const NoteList& other) const
+    {
+        return (startIndex == other.startIndex)
+            && (totalNotes == other.totalNotes)
+            && (notes == other.notes)
+            && stoppedWords.isEqual(other.stoppedWords)
+            && searchedWords.isEqual(other.searchedWords)
+            && updateCount.isEqual(other.updateCount)
+        ;
+    }
+
+    bool operator!=(const NoteList& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2692,6 +3447,29 @@ struct NoteMetadata {
       to ask the server for a thumbnail to represent the Note.
     */
     Optional< qint32 > largestResourceSize;
+
+    bool operator==(const NoteMetadata& other) const
+    {
+        return (guid == other.guid)
+            && title.isEqual(other.title)
+            && contentLength.isEqual(other.contentLength)
+            && created.isEqual(other.created)
+            && updated.isEqual(other.updated)
+            && deleted.isEqual(other.deleted)
+            && updateSequenceNum.isEqual(other.updateSequenceNum)
+            && notebookGuid.isEqual(other.notebookGuid)
+            && tagGuids.isEqual(other.tagGuids)
+            && attributes.isEqual(other.attributes)
+            && largestResourceMime.isEqual(other.largestResourceMime)
+            && largestResourceSize.isEqual(other.largestResourceSize)
+        ;
+    }
+
+    bool operator!=(const NoteMetadata& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2742,6 +3520,23 @@ struct NotesMetadataList {
        within the account.
     */
     Optional< qint32 > updateCount;
+
+    bool operator==(const NotesMetadataList& other) const
+    {
+        return (startIndex == other.startIndex)
+            && (totalNotes == other.totalNotes)
+            && (notes == other.notes)
+            && stoppedWords.isEqual(other.stoppedWords)
+            && searchedWords.isEqual(other.searchedWords)
+            && updateCount.isEqual(other.updateCount)
+        ;
+    }
+
+    bool operator!=(const NotesMetadataList& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2786,6 +3581,23 @@ struct NoteEmailParameters {
           into the email as a message from the owner to the recipient(s).
     */
     Optional< QString > message;
+
+    bool operator==(const NoteEmailParameters& other) const
+    {
+        return guid.isEqual(other.guid)
+            && note.isEqual(other.note)
+            && toAddresses.isEqual(other.toAddresses)
+            && ccAddresses.isEqual(other.ccAddresses)
+            && subject.isEqual(other.subject)
+            && message.isEqual(other.message)
+        ;
+    }
+
+    bool operator!=(const NoteEmailParameters& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 /**
@@ -2820,6 +3632,21 @@ struct RelatedResult {
          NotebookDescriptor objects.
     */
     Optional< QList< NotebookDescriptor > > containingNotebooks;
+
+    bool operator==(const RelatedResult& other) const
+    {
+        return notes.isEqual(other.notes)
+            && notebooks.isEqual(other.notebooks)
+            && tags.isEqual(other.tags)
+            && containingNotebooks.isEqual(other.containingNotebooks)
+        ;
+    }
+
+    bool operator!=(const RelatedResult& other) const
+    {
+        return !(*this == other);
+    }
+
 };
 
 

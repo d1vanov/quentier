@@ -1,7 +1,7 @@
 #include "QEverCloudHelpers.h"
 
 namespace qevercloud {
-
+/*
 bool operator==(const UserAttributes & lhs, const UserAttributes & rhs)
 {
     if (lhs.defaultLocationName != rhs.defaultLocationName) {
@@ -495,5 +495,5 @@ bool operator!=(const Note & lhs, const Note & rhs)
 {
     return !operator==(lhs, rhs);
 }
-
+*/
 }

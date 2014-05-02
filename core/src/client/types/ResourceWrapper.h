@@ -2,29 +2,30 @@
 #define __QUTE_NOTE__CLIENT__TYPES__RESOURCE_WRAPPER_H
 
 #include "IResource.h"
-#include <Types_types.h>
 
 namespace qute_note {
 
 /**
  * @brief The ResourceWrapper class creates and manages its own instance of
- * evernote::edam::Resource object
+ * qevercloud::Resource object
  */
 class ResourceWrapper final: public IResource
 {
 public:
     ResourceWrapper();
     ResourceWrapper(const IResource & other);
+    ResourceWrapper(const qevercloud::Resource & other);
+    ResourceWrapper(qevercloud::Resource && other);
     ResourceWrapper & operator=(const IResource & other);
     virtual ~ResourceWrapper() final override;
 
 private:
-    virtual const evernote::edam::Resource & GetEnResource() const final override;
-    virtual evernote::edam::Resource & GetEnResource() final override;
+    virtual const qevercloud::Resource & GetEnResource() const final override;
+    virtual qevercloud::Resource & GetEnResource() final override;
 
     virtual QTextStream & Print(QTextStream & strm) const;
 
-    evernote::edam::Resource m_en_resource;
+    qevercloud::Resource m_enResource;
 };
 
 } // namespace qute_note

@@ -5,6 +5,7 @@
 #include <QString>
 #include <QSharedPointer>
 #include "qt4helper.h"
+#include <exception>
 
 namespace qevercloud {
 
@@ -15,14 +16,14 @@ class EverCloudExceptionData;
  */
 class EverCloudException: public std::exception {
 protected:
-    mutable std::string err_;
+    mutable QByteArray err_;
 public:
     explicit EverCloudException() {}
     ~EverCloudException() throw() {}
-    explicit EverCloudException(QString err): err_(err.toUtf8().constData()) {}
-    explicit EverCloudException(const std::string& err): err_(err) {}
+    explicit EverCloudException(QString err): err_(err.toUtf8()) {}
+    explicit EverCloudException(const std::string& err): err_(err.c_str()) {}
     explicit EverCloudException(const char* err): err_(err) {}
-    const char* what() const throw() Q_DECL_OVERRIDE {return err_.c_str();}
+    const char* what() const throw() Q_DECL_OVERRIDE {return err_.constData();}
 
     virtual QSharedPointer<EverCloudExceptionData> exceptionData() const;
 };
@@ -93,6 +94,35 @@ inline QSharedPointer<EverCloudExceptionData> EverCloudException::exceptionData(
 {
     return QSharedPointer<EverCloudExceptionData>(new EverCloudExceptionData(what()));
 }
+
+/**
+ * All exception sent by Evernote servers (as opposed to other error conditions, for example http errors) are
+ * descendants of this class.
+ */
+class EvernoteException: public EverCloudException {
+public:
+    explicit EvernoteException(): EverCloudException() {}
+    explicit EvernoteException(QString err): EverCloudException(err) {}
+    explicit EvernoteException(const std::string& err): EverCloudException(err) {}
+    explicit EvernoteException(const char* err): EverCloudException(err) {}
+
+    virtual QSharedPointer<EverCloudExceptionData> exceptionData() const Q_DECL_OVERRIDE;
+};
+
+/** Asynchronous API conterpart of EvernoteException. See EverCloudExceptionData for more details.*/
+class EvernoteExceptionData: public EverCloudExceptionData {
+    Q_OBJECT
+    Q_DISABLE_COPY(EvernoteExceptionData)
+public:
+    explicit EvernoteExceptionData(QString err) : EverCloudExceptionData(err) {}
+    virtual void throwException() const Q_DECL_OVERRIDE {throw EvernoteException(errorMessage);}
+};
+
+inline QSharedPointer<EverCloudExceptionData> EvernoteException::exceptionData() const
+{
+    return QSharedPointer<EverCloudExceptionData>(new EvernoteExceptionData(what()));
+}
+
 
 }
 #endif // QEVERCLOUD_EVERCLOUDEXCEPTION_H

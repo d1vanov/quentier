@@ -150,6 +150,12 @@ QByteArray Thumbnail::download(Guid guid, bool isPublic, bool isResourceGuid)
     return reply;
 }
 
+AsyncResult* Thumbnail::downloadAsync(Guid guid, bool isPublic, bool isResourceGuid)
+{
+    QPair<QNetworkRequest, QByteArray> pair = createPostRequest(guid, isPublic, isResourceGuid);
+    return new AsyncResult(pair.first, pair.second);
+}
+
 QPair<QNetworkRequest, QByteArray> Thumbnail::createPostRequest(Guid guid, bool isPublic, bool isResourceGuid)
 {
     QByteArray postData = ""; // not QByteArray()! or else ReplyFetcher will not work.

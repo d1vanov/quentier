@@ -24,16 +24,8 @@ QTextStream & operator <<(QTextStream & strm,
 
 } // namespace qute_note
 
-#define CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(object, name, ...) \
-    bool isSet##name = object.name.isSet(); \
-    strm << #name " is " << (isSet##name ? "set" : "not set") << "\n"; \
-    if (isSet##name) { \
-        strm << #name " = " << __VA_ARGS__(object.name) << "\n"; \
-    }
-
-
 #define CHECK_AND_PRINT_ATTRIBUTE(object, name, ...) \
-    bool isSet##name = isSet.name; \
+    bool isSet##name = object.name.isSet(); \
     strm << #name " is " << (isSet##name ? "set" : "not set") << "\n"; \
     if (isSet##name) { \
         strm << #name " = " << __VA_ARGS__(object.name) << "\n"; \
@@ -43,10 +35,10 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::BusinessUserInfo
 {
     strm << "BusinessUserInfo: {\n";
 
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(info, businessId);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(info, businessName);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(info, role, static_cast<quint8>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(info, email);
+    CHECK_AND_PRINT_ATTRIBUTE(info, businessId);
+    CHECK_AND_PRINT_ATTRIBUTE(info, businessName);
+    CHECK_AND_PRINT_ATTRIBUTE(info, role, static_cast<quint8>);
+    CHECK_AND_PRINT_ATTRIBUTE(info, email);
 
     strm << "}; \n";
     return strm;
@@ -56,10 +48,10 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::PremiumInfo & in
 {
     strm << "PremiumUserInfo {\n";
 
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(info, premiumExpirationDate, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(info, sponsoredGroupName);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(info, sponsoredGroupRole, static_cast<quint8>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(info, premiumUpgradable);
+    CHECK_AND_PRINT_ATTRIBUTE(info, premiumExpirationDate, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(info, sponsoredGroupName);
+    CHECK_AND_PRINT_ATTRIBUTE(info, sponsoredGroupRole, static_cast<quint8>);
+    CHECK_AND_PRINT_ATTRIBUTE(info, premiumUpgradable);
 
     strm << "premiumExtendable = " << info.premiumExtendable << "\n";
     strm << "premiumPending = " << info.premiumPending << "\n";
@@ -74,29 +66,29 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::Accounting & acc
 {
     strm << "Accounting: {\n";
 
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, uploadLimit, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, uploadLimitEnd, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, uploadLimitNextMonth, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, premiumServiceStatus, static_cast<quint8>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, premiumOrderNumber);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, premiumCommerceService);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, premiumServiceStart, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, premiumServiceSKU);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, lastSuccessfulCharge, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, lastFailedCharge, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, lastFailedChargeReason);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, nextPaymentDue, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, premiumLockUntil, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, updated, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, premiumSubscriptionNumber);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, lastRequestedCharge, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, currency);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, unitPrice, static_cast<qint32>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, businessId, static_cast<qint32>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, businessName);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, businessRole, static_cast<quint8>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, unitDiscount, static_cast<qint32>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(accounting, nextChargeDate, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, uploadLimit, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, uploadLimitEnd, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, uploadLimitNextMonth, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumServiceStatus, static_cast<quint8>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumOrderNumber);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumCommerceService);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumServiceStart, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumServiceSKU);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastSuccessfulCharge, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastFailedCharge, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastFailedChargeReason);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, nextPaymentDue, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumLockUntil, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, updated, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumSubscriptionNumber);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastRequestedCharge, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, currency);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, unitPrice, static_cast<qint32>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, businessId, static_cast<qint32>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, businessName);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, businessRole, static_cast<quint8>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, unitDiscount, static_cast<qint32>);
+    CHECK_AND_PRINT_ATTRIBUTE(accounting, nextChargeDate, static_cast<qint64>);
 
     strm << "}; \n";
     return strm;
@@ -106,93 +98,90 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::UserAttributes &
 {
     strm << "UserAttributes: {\n";
 
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, defaultLocationName);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, defaultLatitude);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, defaultLongitude);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, preactivation);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, incomingEmailAddress);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, comments);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, dateAgreedToTermsOfService, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, maxReferrals);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, referralCount);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, refererCode);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, sentEmailDate, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, sentEmailCount);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, dailyEmailLimit);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, emailOptOutDate, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, partnerEmailOptInDate, static_cast<qint64>);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, preferredLanguage);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, preferredCountry);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, clipFullPage);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, twitterUserName);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, twitterId);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, groupName);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, recognitionLanguage);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, referralProof);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, educationalDiscount);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, businessAddress);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, hideSponsorBilling);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, taxExempt);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, useEmailAutoFiling);
-    CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE(attributes, reminderEmailConfig, static_cast<quint8>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, defaultLocationName);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, defaultLatitude);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, defaultLongitude);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, preactivation);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, incomingEmailAddress);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, comments);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, dateAgreedToTermsOfService, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, maxReferrals);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, referralCount);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, refererCode);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, sentEmailDate, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, sentEmailCount);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, dailyEmailLimit);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, emailOptOutDate, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, partnerEmailOptInDate, static_cast<qint64>);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, preferredLanguage);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, preferredCountry);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, clipFullPage);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, twitterUserName);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, twitterId);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, groupName);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, recognitionLanguage);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, referralProof);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, educationalDiscount);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, businessAddress);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, hideSponsorBilling);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, taxExempt);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, useEmailAutoFiling);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderEmailConfig, static_cast<quint8>);
 
     strm << "}; \n";
     return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const evernote::edam::NoteAttributes & attributes)
+QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes & attributes)
 {
     strm << "NoteAttributes: {\n";
-
-    const auto & isSet = attributes.__isset;
 
     CHECK_AND_PRINT_ATTRIBUTE(attributes, subjectDate, static_cast<qint64>);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, latitude);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, longitude);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, altitude);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, author, QString::fromStdString);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, source, QString::fromStdString);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceURL, QString::fromStdString);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceApplication, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, author);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, source);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceURL);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceApplication);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, shareDate, static_cast<qint64>);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderOrder, static_cast<qint64>);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderDoneTime, static_cast<qint64>);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderTime, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, placeName, QString::fromStdString);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, contentClass, QString::fromStdString);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, lastEditedBy, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, placeName);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, contentClass);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, lastEditedBy);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, creatorId, static_cast<qint32>);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, lastEditorId, static_cast<qint32>);
 
-    strm << "applicationData is " << (isSet.applicationData ? "set" : "not set") << "\n";
-    if (isSet.applicationData)
+    if (attributes.applicationData.isSet())
     {
-        const auto & applicationData = attributes.applicationData;
-        const auto & keysOnly = applicationData.keysOnly;
-        const auto & fullMap = applicationData.fullMap;
+        const qevercloud::LazyMap & applicationData = attributes.applicationData;
 
-        strm << "ApplicationData: keys only: \n";
-        for(const auto & key: keysOnly) {
-            strm << QString::fromStdString(key) << "; ";
+        if (applicationData.keysOnly.isSet()) {
+            const QSet<QString> & keysOnly = applicationData.keysOnly;
+            strm << "ApplicationData: keys only: \n";
+            foreach(const QString & key, keysOnly) {
+                strm << key << "; ";
+            }
+            strm << "\n";
         }
-        strm << "\n";
 
-        strm << "ApplicationData: full map: \n";
-        for(const auto & pair: fullMap) {
-            strm << "(" << QString::fromStdString(pair.first)
-                 << ", " << QString::fromStdString(pair.second) << "); ";
+        if (applicationData.fullMap.isSet()) {
+            const QMap<QString, QString> & fullMap = applicationData.fullMap;
+            strm << "ApplicationData: full map: \n";
+            foreach(const QString & key, fullMap) {
+                strm << "[" << key << "] = " << fullMap.value(key) << "; ";
+            }
+            strm << "\n";
         }
-        strm << "\n";
     }
 
-    strm << "classificatiopns are " << (isSet.classifications ? "set" : "not set") << "\n";
-    if (isSet.classifications)
+    if (attributes.classifications.isSet())
     {
-        const auto & classifications = attributes.classifications;
-        strm << "Classifications: \n";
-        for(const auto & pair: classifications) {
-            strm << "(" << QString::fromStdString(pair.first)
-                 << ", " << QString::fromStdString(pair.second) << "); ";
+        const QMap<QString, QString> & classifications = attributes.classifications;
+        foreach(const QString & key, classifications) {
+            strm << "[" << key << "] = " << classifications.value(key) << "; ";
         }
         strm << "\n";
     }
@@ -201,43 +190,43 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NoteAttribut
     return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const evernote::edam::ResourceAttributes & attributes)
+QTextStream & operator <<(QTextStream & strm, const qevercloud::ResourceAttributes & attributes)
 {
     strm << "ResourceAttributes: {\n";
 
-    const auto & isSet = attributes.__isset;
-
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceURL, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceURL);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, timestamp, static_cast<qint64>);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, latitude);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, longitude);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, altitude);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, cameraMake, QString::fromStdString);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, cameraModel, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, cameraMake);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, cameraModel);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, clientWillIndex);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, recoType, QString::fromStdString);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, fileName, QString::fromStdString);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, recoType);
+    CHECK_AND_PRINT_ATTRIBUTE(attributes, fileName);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, attachment);
 
-    strm << "applicationData is " << (isSet.applicationData ? "set" : "not set") << "\n";
-    if (isSet.applicationData)
+    if (attributes.applicationData.isSet())
     {
-        const auto & applicationData = attributes.applicationData;
-        const auto & keysOnly = applicationData.keysOnly;
-        const auto & fullMap = applicationData.fullMap;
+        const qevercloud::LazyMap & applicationData = attributes.applicationData;
 
-        strm << "ApplicationData: keys only: \n";
-        for(const auto & key: keysOnly) {
-            strm << QString::fromStdString(key) << "; ";
+        if (applicationData.keysOnly.isSet()) {
+            const QSet<QString> & keysOnly = applicationData.keysOnly;
+            strm << "ApplicationData: keys only: \n";
+            foreach(const QString & key, keysOnly) {
+                strm << key << "; ";
+            }
+            strm << "\n";
         }
-        strm << "\n";
 
-        strm << "ApplicationData: full map: \n";
-        for(const auto & pair: fullMap) {
-            strm << "(" << QString::fromStdString(pair.first)
-                 << ", " << QString::fromStdString(pair.second) << "); ";
+        if (applicationData.fullMap.isSet()) {
+            const QMap<QString, QString> & fullMap = applicationData.fullMap;
+            strm << "ApplicationData: full map: \n";
+            foreach(const QString & key, fullMap) {
+                strm << "[" << key << "] = " << fullMap.value(key) << "; ";
+            }
+            strm << "\n";
         }
-        strm << "\n";
     }
 
     strm << "}; \n";
@@ -245,7 +234,6 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::ResourceAttr
 }
 
 #undef CHECK_AND_PRINT_ATTRIBUTE
-#undef CHECK_AND_PRINT_QEVERCLOUD_ATTRIBUTE
 
 QTextStream & operator <<(QTextStream & strm, const evernote::edam::PrivilegeLevel::type & level)
 {

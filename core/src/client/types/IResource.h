@@ -32,25 +32,25 @@ public:
     void setFreeAccount(const bool isFreeAccount);
 
     bool hasNoteGuid() const;
-    const QString noteGuid() const;
+    const QString & noteGuid() const;
     void setNoteGuid(const QString & guid);
 
     bool hasData() const;
 
     bool hasDataHash() const;
-    const QString dataHash() const;
-    void setDataHash(const QString & hash);
+    const QByteArray & dataHash() const;
+    void setDataHash(const QByteArray & hash);
 
     bool hasDataSize() const;
     qint32 dataSize() const;
     void setDataSize(const qint32 size);
 
     bool hasDataBody() const;
-    const QString dataBody() const;
-    void setDataBody(const QString & body);
+    const QByteArray & dataBody() const;
+    void setDataBody(const QByteArray & body);
 
     bool hasMime() const;
-    const QString mime() const;
+    const QString & mime() const;
     void setMime(const QString & mime);
 
     bool hasWidth() const;
@@ -64,7 +64,7 @@ public:
     bool hasRecognitionData() const;
 
     bool hasRecognitionDataHash() const;
-    const QString recognitionDataHash() const;
+    const QByteArray & recognitionDataHash() const;
     void setRecognitionDataHash(const QString & hash);
 
     bool hasRecognitionDataSize() const;
@@ -72,13 +72,13 @@ public:
     void setRecognitionDataSize(const qint32 size);
 
     bool hasRecognitionDataBody() const;
-    const QString recognitionDataBody() const;
-    void setRecognitionDataBody(const QString & body);
+    const QByteArray & recognitionDataBody() const;
+    void setRecognitionDataBody(const QByteArray & body);
 
     bool hasAlternateData() const;
 
     bool hasAlternateDataHash() const;
-    const QString alternateDataHash() const;
+    const QByteArray & alternateDataHash() const;
     void setAlternateDataHash(const QString & hash);
 
     bool hasAlternateDataSize() const;
@@ -86,12 +86,12 @@ public:
     void setAlternateDataSize(const qint32 size);
 
     bool hasAlternateDataBody() const;
-    const QString alternateDataBody() const;
-    void setAlternateDataBody(const QString & body);
+    const QByteArray & alternateDataBody() const;
+    void setAlternateDataBody(const QByteArray & body);
 
     bool hasResourceAttributes() const;
-    const QByteArray resourceAttributes() const;
-    void setResourceAttributes(const QByteArray & resourceAttributes);
+    const qevercloud::ResourceAttributes & resourceAttributes() const;
+    qevercloud::ResourceAttributes & resourceAttributes();
 
     friend class Note;
     friend class ResourceWrapper;
@@ -100,8 +100,8 @@ protected:
     IResource(const IResource & other);
     IResource & operator=(const IResource & other);
 
-    virtual const evernote::edam::Resource & GetEnResource() const = 0;
-    virtual evernote::edam::Resource & GetEnResource() = 0;
+    virtual const qevercloud::Resource & GetEnResource() const = 0;
+    virtual qevercloud::Resource & GetEnResource() = 0;
 
     virtual QTextStream & Print(QTextStream & strm) const;
 
