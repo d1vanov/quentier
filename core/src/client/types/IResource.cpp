@@ -374,7 +374,7 @@ const QByteArray & IResource::recognitionDataHash() const
     return GetEnResource().recognition->bodyHash;
 }
 
-void IResource::setRecognitionDataHash(const QString & hash)
+void IResource::setRecognitionDataHash(const QByteArray & hash)
 {
     qevercloud::Resource & enResource = GetEnResource();
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), recognition, bodyHash, body, size);
@@ -444,7 +444,7 @@ const QByteArray & IResource::alternateDataHash() const
     return GetEnResource().alternateData->bodyHash;
 }
 
-void IResource::setAlternateDataHash(const QString & hash)
+void IResource::setAlternateDataHash(const QByteArray & hash)
 {
     qevercloud::Resource & enResource = GetEnResource();
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), alternateData, bodyHash, size, body);
@@ -507,7 +507,12 @@ const qevercloud::ResourceAttributes & IResource::resourceAttributes() const
 
 qevercloud::ResourceAttributes & IResource::resourceAttributes()
 {
-    return GetEnResource().attributes;
+    qevercloud::Resource & enResource = GetEnResource();
+    if (!enResource.attributes.isSet()) {
+        enResource.attributes = qevercloud::ResourceAttributes();
+    }
+
+    return enResource.attributes;
 }
 
 IResource::IResource(const IResource & other) :

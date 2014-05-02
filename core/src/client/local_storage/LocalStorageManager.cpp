@@ -1410,7 +1410,7 @@ bool LocalStorageManager::FindEnResource(const QString & resourceGuid, IResource
     CHECK_AND_SET_RESOURCE_PROPERTY(noteGuid, QString, QString, setNoteGuid, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(updateSequenceNumber, int, qint32, setUpdateSequenceNumber, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, int, qint32, setDataSize, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QString, QString, setDataHash, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QByteArray, QByteArray, setDataHash, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(mime, QString, QString, setMime, isRequired);
 
     isRequired = false;
@@ -1418,11 +1418,11 @@ bool LocalStorageManager::FindEnResource(const QString & resourceGuid, IResource
     CHECK_AND_SET_RESOURCE_PROPERTY(width, int, qint32, setWidth, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint32, setHeight, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32, setRecognitionDataSize, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QString, QString, setRecognitionDataHash, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QByteArray, QByteArray, setRecognitionDataHash, isRequired);
 
     if (withBinaryData) {
-        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QString, QString, setRecognitionDataBody, isRequired);
-        CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QString, QString, setDataBody, isRequired);
+        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QByteArray, QByteArray, setRecognitionDataBody, isRequired);
+        CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QByteArray, QByteArray, setDataBody, isRequired);
     }
 
     queryString = QString("SELECT data FROM ResourceAttributes WHERE guid = %1")
@@ -1435,7 +1435,7 @@ bool LocalStorageManager::FindEnResource(const QString & resourceGuid, IResource
     }
 
     QByteArray serializedResourceAttributes = query.value(0).toByteArray();
-    resource.setResourceAttributes(serializedResourceAttributes);
+    resource.resourceAttributes() = GetDeserializedResourceAttributes(serializedResourceAttributes);
 
     return true;
 }
@@ -1904,7 +1904,7 @@ bool LocalStorageManager::SetNoteAttributes(const Note & note, QString & errorDe
     QSqlQuery query(m_sqlDatabase);
     query.prepare("INSERT OR REPLACE INTO NoteAttributes(noteGuid, data) VALUES(?, ?)");
     query.addBindValue(guid);
-    query.addBindValue(note.noteAttributes());
+    query.addBindValue(GetSerializedNoteAttributes(note.noteAttributes()));
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace lastEditorId into \"NoteAttributes\" table in SQL database");
@@ -2462,10 +2462,10 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
     {
         QString error;
 
-        std::vector<QString> tagGuids;
+        QStringList tagGuids;
         note.tagGuids(tagGuids);
 
-        for(const auto & tagGuid: tagGuids)
+        foreach(const QString & tagGuid, tagGuids)
         {
             // NOTE: the behavior expressed here is valid since tags are synchronized before notes
             // so they must exist within local storage database; if they don't then something went really wrong
@@ -2492,7 +2492,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
 
     if (note.hasResources())
     {
-        std::vector<ResourceAdapter> resources;
+        QList<ResourceAdapter> resources;
         note.resources(resources);
         size_t numResources = resources.size();
         for(size_t i = 0; i < numResources; ++i)
@@ -2639,7 +2639,8 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
         query.clear();
         res = query.prepare("INSERT OR REPLACE INTO ResourceAttributes (guid, data) VALUES(?, ?)");
         query.addBindValue(QVariant(resourceGuid));
-        query.addBindValue(QVariant(resource.resourceAttributes()), QSql::In | QSql::Binary);
+        query.addBindValue(QVariant(GetSerializedResourceAttributes(resource.resourceAttributes())),
+                           QSql::In | QSql::Binary);
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
@@ -3126,10 +3127,10 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(Note & note, QString & erro
             CHECK_AND_SET_RESOURCE_PROPERTY(updateSequenceNumber, int, qint32, setUpdateSequenceNumber,
                                             /* is required = */ true);
             CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, int, qint32, setDataSize, /* is required = */ true);
-            CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QString, QString, setDataHash, /* is required = */ true);
+            CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QByteArray, QByteArray, setDataHash, /* is required = */ true);
 
             if (withBinaryData) {
-                CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QString, QString, setDataBody,
+                CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QByteArray, QByteArray, setDataBody,
                                                 /* is required = */ true);
             }
 
@@ -3137,11 +3138,11 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(Note & note, QString & erro
             CHECK_AND_SET_RESOURCE_PROPERTY(width, int, qint32, setWidth, /* is required = */ true);
             CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint32, setHeight, /* is required = */ true);
 
-            CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QString, QString,
+            CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QByteArray, QByteArray,
                                             setRecognitionDataBody, /* is required = */ false);
             CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32,
                                             setRecognitionDataSize, /* is required = */ false);
-            CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QString, QString,
+            CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QByteArray, QByteArray,
                                             setRecognitionDataHash, /* is required = */ false);
 
             // Retrieve optional resource attributes for each resource
@@ -3159,7 +3160,7 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(Note & note, QString & erro
             }
 
             if (resourceAttributeQuery.next()) {
-                resource.setResourceAttributes(resourceAttributeQuery.value(0).toByteArray());
+                resource.resourceAttributes() = GetDeserializedResourceAttributes(resourceAttributeQuery.value(0).toByteArray());
             }
 
             QNDEBUG("Adding resource with guid " << resource.guid() << " to note with guid " << note.guid());
@@ -3190,7 +3191,7 @@ bool LocalStorageManager::FindAndSetNoteAttributesPerNote(Note & note, QString &
     DATABASE_CHECK_AND_SET_ERROR("can't select note's attributes from \"NoteAttributes\" table in SQL database");
 
     if (query.next()) {
-        note.setNoteAttributes(query.value(0).toByteArray());
+        note.noteAttributes() = GetDeserializedNoteAttributes(query.value(0).toByteArray());
     }
     else {
         errorDescription += QObject::tr("Internal error: SQL query result is empty");

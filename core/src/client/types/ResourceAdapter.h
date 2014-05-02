@@ -23,6 +23,7 @@ public:
     ResourceAdapter(const qevercloud::Resource & externalEnResource);
     ResourceAdapter(const ResourceAdapter & other);
     ResourceAdapter(ResourceAdapter && other);
+    ResourceAdapter & operator=(const ResourceAdapter & other);
     virtual ~ResourceAdapter() final override;
 
 private:
@@ -32,7 +33,6 @@ private:
     virtual QTextStream & Print(QTextStream & strm) const;
 
     ResourceAdapter() = delete;
-    ResourceAdapter & operator=(const ResourceAdapter & other) = delete;
 
     qevercloud::Resource * m_pEnResource;
     bool m_isConst;

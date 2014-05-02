@@ -12,13 +12,6 @@ QT_FORWARD_DECLARE_STRUCT(NoteAttributes)
 QT_FORWARD_DECLARE_STRUCT(ResourceAttributes)
 }
 
-namespace evernote {
-namespace edam {
-QT_FORWARD_DECLARE_CLASS(NoteAttributes)
-QT_FORWARD_DECLARE_CLASS(ResourceAttributes)
-}
-}
-
 QT_FORWARD_DECLARE_CLASS(QByteArray)
 
 namespace qute_note {
@@ -38,8 +31,8 @@ const qevercloud::UserAttributes GetDeserializedUserAttributes(const QByteArray 
 const QByteArray GetSerializedNoteAttributes(const qevercloud::NoteAttributes & noteAttributes);
 const qevercloud::NoteAttributes GetDeserializedNoteAttributes(const QByteArray & data);
 
-const QByteArray GetSerializedResourceAttributes(const evernote::edam::ResourceAttributes & resourceAttributes);
-const evernote::edam::ResourceAttributes GetDeserializedResourceAttributes(const QByteArray & data);
+const QByteArray GetSerializedResourceAttributes(const qevercloud::ResourceAttributes & resourceAttributes);
+const qevercloud::ResourceAttributes GetDeserializedResourceAttributes(const QByteArray & data);
 
 } // namespace qute_note
 

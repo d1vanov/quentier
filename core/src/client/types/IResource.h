@@ -65,7 +65,7 @@ public:
 
     bool hasRecognitionDataHash() const;
     const QByteArray & recognitionDataHash() const;
-    void setRecognitionDataHash(const QString & hash);
+    void setRecognitionDataHash(const QByteArray & hash);
 
     bool hasRecognitionDataSize() const;
     qint32 recognitionDataSize() const;
@@ -79,7 +79,7 @@ public:
 
     bool hasAlternateDataHash() const;
     const QByteArray & alternateDataHash() const;
-    void setAlternateDataHash(const QString & hash);
+    void setAlternateDataHash(const QByteArray & hash);
 
     bool hasAlternateDataSize() const;
     qint32 alternateDataSize() const;

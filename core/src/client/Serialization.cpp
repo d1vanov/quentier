@@ -1,7 +1,6 @@
 #include "Serialization.h"
 #include <QEverCloud.h>
 #include "types/QEverCloudHelpers.h"
-#include <Types_types.h>
 #include <QDataStream>
 #include <QByteArray>
 
@@ -128,8 +127,6 @@ QDataStream & operator>>(QDataStream & in, qevercloud::PremiumInfo & info)
 
 QDataStream & operator<<(QDataStream & out, const qevercloud::NoteAttributes & noteAttributes)
 {
-    const auto & isSet = noteAttributes.__isset;
-
 #define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
     { \
         bool isSet##attribute = noteAttributes.attribute.isSet(); \
@@ -166,10 +163,10 @@ QDataStream & operator<<(QDataStream & out, const qevercloud::NoteAttributes & n
         bool isSetKeysOnly = noteAttributes.applicationData->keysOnly.isSet();
         out << isSetKeysOnly;
         if (isSetKeysOnly) {
-            const QSet<QString> & keysOnly = noteAttributes.applicationData->keysOnly;
+            const QSet<QString> & keys = noteAttributes.applicationData->keysOnly;
             size_t numKeys = keys.size();
             out << static_cast<quint32>(numKeys);
-            foreach(const QString & key, keysOnly) {
+            foreach(const QString & key, keys) {
                 out << key;
             }
         }
@@ -177,11 +174,11 @@ QDataStream & operator<<(QDataStream & out, const qevercloud::NoteAttributes & n
         bool isSetFullMap = noteAttributes.applicationData->fullMap.isSet();
         out << isSetFullMap;
         if (isSetFullMap) {
-            const QMap<QString, QString> & fullMap = noteAttributes.applicationData->fullMap;
+            const QMap<QString, QString> & map = noteAttributes.applicationData->fullMap;
             size_t mapSize = map.size();
             out << static_cast<quint32>(mapSize);   // NOTE: the reasonable constraint is numKeys == mapSize but it's better to ensure
-            foreach(const QString & key, fullMap) {
-                out << key << fullMap.value(key);
+            foreach(const QString & key, map) {
+                out << key << map.value(key);
             }
         }
     }
@@ -201,19 +198,14 @@ QDataStream & operator<<(QDataStream & out, const qevercloud::NoteAttributes & n
     return out;
 }
 
-// TODO: continue from here
-
-QDataStream & operator>>(QDataStream & in, evernote::edam::NoteAttributes & noteAttributes)
+QDataStream & operator>>(QDataStream & in, qevercloud::NoteAttributes & noteAttributes)
 {
-    noteAttributes = evernote::edam::NoteAttributes();
-
-    auto & isSet = noteAttributes.__isset;
+    noteAttributes = qevercloud::NoteAttributes();
 
 #define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
     { \
         bool isSet##attribute = false; \
         in >> isSet##attribute; \
-        isSet.attribute = isSet##attribute; \
         if (isSet##attribute) { \
             qtype attribute; \
             in >> attribute; \
@@ -221,65 +213,75 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::NoteAttributes & note
         } \
     }
 
-    CHECK_AND_SET_ATTRIBUTE(subjectDate, qint64, evernote::edam::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(subjectDate, qint64, qevercloud::Timestamp);
     CHECK_AND_SET_ATTRIBUTE(latitude, double, double);
     CHECK_AND_SET_ATTRIBUTE(longitude, double, double);
     CHECK_AND_SET_ATTRIBUTE(altitude, double, double);
-    CHECK_AND_SET_ATTRIBUTE(author, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(source, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(sourceURL, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(sourceApplication, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(shareDate, qint64, evernote::edam::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(author, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(source, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(sourceURL, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(sourceApplication, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(shareDate, qint64, qevercloud::Timestamp);
     CHECK_AND_SET_ATTRIBUTE(reminderOrder, qint64, int64_t);
-    CHECK_AND_SET_ATTRIBUTE(reminderDoneTime, qint64, evernote::edam::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(reminderTime, qint64, evernote::edam::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(placeName, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(contentClass, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(lastEditedBy, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(creatorId, qint32, evernote::edam::UserID);
-    CHECK_AND_SET_ATTRIBUTE(lastEditorId, qint32, evernote::edam::UserID);
+    CHECK_AND_SET_ATTRIBUTE(reminderDoneTime, qint64, qevercloud::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(reminderTime, qint64, qevercloud::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(placeName, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(contentClass, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(lastEditedBy, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(creatorId, qint32, qevercloud::UserID);
+    CHECK_AND_SET_ATTRIBUTE(lastEditorId, qint32, qevercloud::UserID);
 
 #undef CHECK_AND_SET_ATTRIBUTE
 
     bool isSetApplicationData = false;
     in >> isSetApplicationData;
-    isSet.applicationData = isSetApplicationData;
     if (isSetApplicationData)
     {
-        quint32 numKeys = 0;
-        in >> numKeys;
-        auto & keys = noteAttributes.applicationData.keysOnly;
-        QString key;
-        for(quint32 i = 0; i < numKeys; ++i) {
-            in >> key;
-            keys.insert(key.toStdString());
+        noteAttributes.applicationData = qevercloud::LazyMap();
+
+        bool isSetKeysOnly = false;
+        in >> isSetKeysOnly;
+        if (isSetKeysOnly) {
+            noteAttributes.applicationData->keysOnly = QSet<QString>();
+            quint32 numKeys = 0;
+            in >> numKeys;
+            QSet<QString> & keys = noteAttributes.applicationData->keysOnly;
+            QString key;
+            for(quint32 i = 0; i < numKeys; ++i) {
+                in >> key;
+                keys.insert(key);
+            }
         }
 
-        quint32 mapSize = 0;
-        in >> mapSize;
-        auto & map = noteAttributes.applicationData.fullMap;
-        QString value;
-        for(quint32 i = 0; i < mapSize; ++i) {
-            in >> key;
-            in >> value;
-            map[key.toStdString()] = value.toStdString();
+        bool isSetFullMap = false;
+        in >> isSetFullMap;
+        if (isSetFullMap) {
+            noteAttributes.applicationData->fullMap = QMap<QString, QString>();
+            quint32 mapSize = 0;
+            in >> mapSize;
+            QMap<QString, QString> & map = noteAttributes.applicationData->fullMap;
+            QString key, value;
+            for(quint32 i = 0; i < mapSize; ++i) {
+                in >> key;
+                in >> value;
+                map[key] = value;
+            }
         }
     }
 
     bool isSetClassifications = false;
     in >> isSetClassifications;
-    isSet.classifications = isSetClassifications;
     if (isSetClassifications)
     {
+        noteAttributes.classifications = QMap<QString, QString>();
         quint32 mapSize;
         in >> mapSize;
-        auto & map = noteAttributes.classifications;
-        QString key;
-        QString value;
+        QMap<QString, QString> & map = noteAttributes.classifications;
+        QString key, value;
         for(quint32 i = 0; i < mapSize; ++i) {
             in >> key;
             in >> value;
-            map[key.toStdString()] = value.toStdString();
+            map[key] = value;
         }
     }
 
@@ -522,68 +524,71 @@ QDataStream & operator>>(QDataStream & in, qevercloud::Accounting & accounting)
     return in;
 }
 
-QDataStream & operator<<(QDataStream & out, const evernote::edam::ResourceAttributes & resourceAttributes)
+QDataStream & operator<<(QDataStream & out, const qevercloud::ResourceAttributes & resourceAttributes)
 {
-    const auto & isSet = resourceAttributes.__isset;
-
 #define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
     { \
-        bool isSet##attribute = isSet.attribute; \
+    bool isSet##attribute = resourceAttributes.attribute.isSet(); \
         out << isSet##attribute; \
         if (isSet##attribute) { \
             out << __VA_ARGS__(resourceAttributes.attribute); \
         } \
     }
 
-    CHECK_AND_SET_ATTRIBUTE(sourceURL, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(sourceURL);
     CHECK_AND_SET_ATTRIBUTE(timestamp, static_cast<qint64>);
     CHECK_AND_SET_ATTRIBUTE(latitude);
     CHECK_AND_SET_ATTRIBUTE(longitude);
     CHECK_AND_SET_ATTRIBUTE(altitude);
-    CHECK_AND_SET_ATTRIBUTE(cameraMake, QString::fromStdString);
-    CHECK_AND_SET_ATTRIBUTE(cameraModel, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(cameraMake);
+    CHECK_AND_SET_ATTRIBUTE(cameraModel);
     CHECK_AND_SET_ATTRIBUTE(clientWillIndex);
-    CHECK_AND_SET_ATTRIBUTE(recoType, QString::fromStdString);
-    CHECK_AND_SET_ATTRIBUTE(fileName, QString::fromStdString);
+    CHECK_AND_SET_ATTRIBUTE(recoType);
+    CHECK_AND_SET_ATTRIBUTE(fileName);
     CHECK_AND_SET_ATTRIBUTE(attachment);
 
 #undef CHECK_AND_SET_ATTRIBUTE
 
-    bool isSetApplicationData = isSet.applicationData;
+    bool isSetApplicationData = resourceAttributes.applicationData.isSet();
     out << isSetApplicationData;
     if (isSetApplicationData)
     {
-        const auto & applicationData = resourceAttributes.applicationData;
+        const qevercloud::LazyMap & applicationData = resourceAttributes.applicationData;
 
-        const auto & keys = applicationData.keysOnly;
-        size_t numKeys = keys.size();
-        out << static_cast<quint32>(numKeys);
-        for(const auto & key: keys) {
-            out << QString::fromStdString(key);
+        bool isSetKeysOnly = applicationData.keysOnly.isSet();
+        out << isSetKeysOnly;
+        if (isSetKeysOnly) {
+            const QSet<QString> & keys = applicationData.keysOnly;
+            size_t numKeys = keys.size();
+            out << static_cast<quint32>(numKeys);
+            foreach(const QString & key, keys) {
+                out << key;
+            }
         }
 
-        const auto & map = applicationData.fullMap;
-        size_t mapSize = map.size();
-        out << static_cast<quint32>(mapSize);   // NOTE: the reasonable constraint is numKeys == mapSize but it's better to ensure
-        for(const auto & items: map) {
-            out << QString::fromStdString(items.first) << QString::fromStdString(items.second);
+        bool isSetFullMap = applicationData.fullMap.isSet();
+        out << isSetFullMap;
+        if (isSetFullMap) {
+            const QMap<QString, QString> & map = applicationData.fullMap;
+            size_t numKeys = map.size();
+            out << static_cast<quint32>(numKeys);
+            foreach(const QString & key, map) {
+                out << key << map.value(key);
+            }
         }
     }
 
     return out;
 }
 
-QDataStream & operator>>(QDataStream & in, evernote::edam::ResourceAttributes & resourceAttributes)
+QDataStream & operator>>(QDataStream & in, qevercloud::ResourceAttributes & resourceAttributes)
 {
-    resourceAttributes = evernote::edam::ResourceAttributes();
-
-    auto & isSet = resourceAttributes.__isset;
+    resourceAttributes = qevercloud::ResourceAttributes();
 
 #define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
     { \
         bool isSet##attribute = false; \
         in >> isSet##attribute; \
-        isSet.attribute = isSet##attribute; \
         if (isSet##attribute) { \
             qtype attribute; \
             in >> attribute; \
@@ -591,43 +596,55 @@ QDataStream & operator>>(QDataStream & in, evernote::edam::ResourceAttributes & 
         } \
     }
 
-    CHECK_AND_SET_ATTRIBUTE(sourceURL, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(timestamp, qint64, evernote::edam::Timestamp);
+    CHECK_AND_SET_ATTRIBUTE(sourceURL, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(timestamp, qint64, qevercloud::Timestamp);
     CHECK_AND_SET_ATTRIBUTE(latitude, double, double);
     CHECK_AND_SET_ATTRIBUTE(longitude, double, double);
     CHECK_AND_SET_ATTRIBUTE(altitude, double, double);
-    CHECK_AND_SET_ATTRIBUTE(cameraMake, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(cameraModel, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(cameraMake, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(cameraModel, QString, QString);
     CHECK_AND_SET_ATTRIBUTE(clientWillIndex, bool, bool);
-    CHECK_AND_SET_ATTRIBUTE(recoType, QString, std::string, .toStdString());
-    CHECK_AND_SET_ATTRIBUTE(fileName, QString, std::string, .toStdString());
+    CHECK_AND_SET_ATTRIBUTE(recoType, QString, QString);
+    CHECK_AND_SET_ATTRIBUTE(fileName, QString, QString);
     CHECK_AND_SET_ATTRIBUTE(attachment, bool, bool);
 
 #undef CHECK_AND_SET_ATTRIBUTE
 
     bool isSetApplicationData = false;
     in >> isSetApplicationData;
-    isSet.applicationData = isSetApplicationData;
     if (isSetApplicationData)
     {
-        quint32 numKeys = 0;
-        in >> numKeys;
-        auto & keys = resourceAttributes.applicationData.keysOnly;
-        QString key;
-        for(quint32 i = 0; i < numKeys; ++i) {
-            in >> key;
-            keys.insert(key.toStdString());
+        resourceAttributes.applicationData = qevercloud::LazyMap();
+
+        bool isSetKeysOnly = false;
+        in >> isSetKeysOnly;
+        if (isSetKeysOnly) {
+            resourceAttributes.applicationData->keysOnly = QSet<QString>();
+            quint32 numKeys = 0;
+            in >> numKeys;
+            QSet<QString> & keys = resourceAttributes.applicationData->keysOnly;
+            QString key;
+            for(quint32 i = 0; i < numKeys; ++i) {
+                in >> key;
+                keys.insert(key);
+            }
         }
 
-        quint32 mapSize = 0;
-        in >> mapSize;
-        auto & map = resourceAttributes.applicationData.fullMap;
-        QString value;
-        for(quint32 i = 0; i < mapSize; ++i) {
-            in >> key;
-            in >> value;
-            map[key.toStdString()] = value.toStdString();
+        bool isSetFullMap = false;
+        in >> isSetFullMap;
+        if (isSetFullMap) {
+            resourceAttributes.applicationData->fullMap = QMap<QString, QString>();
+            quint32 mapSize = 0;
+            in >> mapSize;
+            QMap<QString, QString> & map = resourceAttributes.applicationData->fullMap;
+            QString key, value;
+            for(quint32 i = 0; i < mapSize; ++i) {
+                in >> key;
+                in >> value;
+                map[key] = value;
+            }
         }
+
     }
 
     return in;

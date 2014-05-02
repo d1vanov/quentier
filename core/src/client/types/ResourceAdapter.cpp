@@ -28,6 +28,17 @@ ResourceAdapter::ResourceAdapter(ResourceAdapter && other) :
     m_isConst(std::move(other.m_isConst))
 {}
 
+ResourceAdapter & ResourceAdapter::operator=(const ResourceAdapter & other)
+{
+    if (this != &other) {
+        IResource::operator=(other);
+        m_pEnResource = other.m_pEnResource;
+        m_isConst = other.m_isConst;
+    }
+
+    return *this;
+}
+
 ResourceAdapter::~ResourceAdapter()
 {}
 

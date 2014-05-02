@@ -94,7 +94,7 @@ bool Note::checkParameters(QString & errorDescription) const
         errorDescription = QObject::tr("Note's guid is not set");
         return false;
     }
-    else if (!CheckGuid(m_qecNote.guid)) {
+    else if (!CheckGuid(m_qecNote.guid.ref())) {
         errorDescription = QObject::tr("Note's guid is invalid");
         return false;
     }
@@ -149,7 +149,7 @@ bool Note::checkParameters(QString & errorDescription) const
         errorDescription = QObject::tr("Note's notebook Guid is not set");
         return false;
     }
-    else if (!CheckGuid(m_qecNote.notebookGuid)) {
+    else if (!CheckGuid(m_qecNote.notebookGuid.ref())) {
         errorDescription = QObject::tr("Note's notebook guid is invalid");
         return false;
     }
@@ -547,14 +547,18 @@ GET_RESOURCES(ResourceWrapper)
 
 void Note::setResources(const QList<IResource> & resources)
 {
-    if (!resources.empty()) {
+    if (!resources.empty())
+    {
         m_qecNote.resources->clear();
-        foreach(const IResource & resource, resources) {
-            m_qecNote.resources.ref() << resource.GetEnResource();
+        for(QList<IResource>::const_iterator it = resources.constBegin();
+            it != resources.constEnd(); ++it)
+        {
+            m_qecNote.resources.ref() << it->GetEnResource();
         }
         QNDEBUG("Added " << resources.size() << " resources to note");
     }
-    else {
+    else
+    {
         m_qecNote.resources.clear();
     }
 }
@@ -603,6 +607,10 @@ const qevercloud::NoteAttributes & Note::noteAttributes() const
 
 qevercloud::NoteAttributes & Note::noteAttributes()
 {
+    if (!m_qecNote.attributes.isSet()) {
+        m_qecNote.attributes = qevercloud::NoteAttributes();
+    }
+
     return m_qecNote.attributes;
 }
 
