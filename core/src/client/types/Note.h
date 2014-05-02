@@ -2,13 +2,13 @@
 #define __QUTE_NOTE__CLIENT__TYPES__NOTE_H
 
 #include "NoteStoreDataElement.h"
-#include <Types_types.h>
 #include <QEverCloud.h>
 
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
+QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 
 class Note final: public NoteStoreDataElement
 {
@@ -42,16 +42,16 @@ public:
     virtual bool checkParameters(QString &errorDescription) const final override;
 
     bool hasTitle() const;
-    const QString &title() const;
+    const QString & title() const;
     void setTitle(const QString & title);
 
     bool hasContent() const;
-    const QString &content() const;
+    const QString & content() const;
     void setContent(const QString & content);
 
     bool hasContentHash() const;
-    const QString contentHash() const;
-    void setContentHash(const QString & contentHash);
+    const QByteArray & contentHash() const;
+    void setContentHash(const QByteArray & contentHash);
 
     bool hasContentLength() const;
     qint32 contentLength() const;
@@ -74,7 +74,7 @@ public:
     void setActive(const bool active);
 
     bool hasNotebookGuid() const;
-    const QString &notebookGuid() const;
+    const QString & notebookGuid() const;
     void setNotebookGuid(const QString & guid);
 
     bool hasTagGuids() const;
@@ -92,8 +92,8 @@ public:
     void removeResource(const IResource & resource);
 
     bool hasNoteAttributes() const;
-    const QByteArray noteAttributes() const;
-    void setNoteAttributes(const QByteArray & noteAttributes);
+    const qevercloud::NoteAttributes & noteAttributes() const;
+    qevercloud::NoteAttributes & noteAttributes();
 
     bool isLocal() const;
     void setLocal(const bool local);
@@ -105,7 +105,6 @@ private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
     qevercloud::Note m_qecNote;
-    evernote::edam::Note m_enNote;
     bool m_isLocal;
     bool m_isDeleted;
 };

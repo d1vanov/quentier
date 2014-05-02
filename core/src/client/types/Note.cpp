@@ -4,8 +4,6 @@
 #include "../Utility.h"
 #include "../Serialization.h"
 #include <logging/QuteNoteLogger.h>
-#include <functional>
-#include <Limits_constants.h>
 
 namespace qute_note {
 
@@ -26,11 +24,13 @@ Note::Note(qevercloud::Note && other) :
 Note & Note::operator=(const qevercloud::Note & other)
 {
     m_qecNote = other;
+    return *this;
 }
 
 Note & Note::operator=(qevercloud::Note && other)
 {
     m_qecNote = std::move(other);
+    return *this;
 }
 
 Note::~Note()
@@ -74,7 +74,7 @@ qint32 Note::updateSequenceNumber() const
 
 void Note::setUpdateSequenceNumber(const qint32 usn)
 {
-    // TODO: set whether it's really necessary
+    // TODO: see whether it's really necessary
     if (usn >= 0) {
         m_qecNote.updateSequenceNum = usn;
     }
@@ -311,12 +311,12 @@ bool Note::hasContentHash() const
     return m_qecNote.contentHash.isSet();
 }
 
-const QString & Note::contentHash() const
+const QByteArray & Note::contentHash() const
 {
     return m_qecNote.contentHash;
 }
 
-void Note::setContentHash(const QString & contentHash)
+void Note::setContentHash(const QByteArray & contentHash)
 {
     m_qecNote.contentHash = contentHash;
 }
@@ -493,7 +493,7 @@ void Note::addTagGuid(const QString & guid)
     }
 
     if (!m_qecNote.tagGuids->contains(guid)) {
-        m_qecNote.tagGuids << guid;
+        m_qecNote.tagGuids.ref() << guid;
         QNDEBUG("Added tag with guid " << guid << " to note");
     }
 }
@@ -524,106 +524,86 @@ bool Note::hasResources() const
     return m_qecNote.resources.isSet();
 }
 
-void Note::resources(QList<ResourceAdapter> & resources) const
-{
-    resources.clear();
-
-    if (!m_qecNote.resources.isSet()) {
-        return;
-    }
-
-    int numResources = m_qecNote.resources->size();
-    resources.reserve(std::max(numResources, 0));
-    foreach(const qevercloud::Resource & resource, m_qecNote.resources) {
-        resources << ResourceAdapter(resource);
-    }
+#define GET_RESOURCES(resource_type) \
+void Note::resources(QList<resource_type> & resources) const \
+{ \
+    resources.clear(); \
+    \
+    if (!m_qecNote.resources.isSet()) { \
+        return; \
+    } \
+    \
+    int numResources = m_qecNote.resources->size(); \
+    resources.reserve(std::max(numResources, 0)); \
+    foreach(const qevercloud::Resource & resource, m_qecNote.resources.ref()) { \
+        resources << resource_type(resource); \
+    } \
 }
 
-// TODO: continue from here
+GET_RESOURCES(ResourceAdapter)
+GET_RESOURCES(ResourceWrapper)
 
-void Note::setResources(const QList<IResource> &resources)
+#undef GET_RESOURCES
+
+void Note::setResources(const QList<IResource> & resources)
 {
-    auto & localResources = m_enNote.resources;
-    localResources.clear();
-
-    size_t numResources = resources.size();
-    if (numResources == 0) {
-        m_enNote.__isset.resources = false;
-        QNDEBUG("Note::setResources: no resources");
-        return;
+    if (!resources.empty()) {
+        m_qecNote.resources->clear();
+        foreach(const IResource & resource, resources) {
+            m_qecNote.resources.ref() << resource.GetEnResource();
+        }
+        QNDEBUG("Added " << resources.size() << " resources to note");
     }
-
-    localResources.reserve(numResources);
-    for(size_t i = 0; i < numResources; ++i) {
-        localResources.push_back(resources[i].GetEnResource());
+    else {
+        m_qecNote.resources.clear();
     }
-
-    m_enNote.__isset.resources = true;
-    QNDEBUG("Added " << numResources << " resources to note");
 }
 
 void Note::addResource(const IResource & resource)
 {
-    auto & localResources = m_enNote.resources;
-
-    if (m_enNote.__isset.resources)
-    {
-        if (std::find(localResources.cbegin(), localResources.cend(), resource.GetEnResource()) != localResources.cend()) {
-            QNDEBUG("Note::addResource: already has resource with guid " << resource.guid());
-            return;
-        }
-    }
-    else
-    {
-        localResources.clear();
-        m_enNote.__isset.resources = true;
+    if (!m_qecNote.resources.isSet()) {
+        m_qecNote.resources = QList<qevercloud::Resource>();
     }
 
-    localResources.push_back(resource.GetEnResource());
-    QNDEBUG("Added resource with guid " << resource.guid() << " to note");
+    if (m_qecNote.resources->contains(resource.GetEnResource())) {
+        QNDEBUG("Can't add resource to note: this note already has this resource");
+        return;
+    }
+
+    m_qecNote.resources.ref() << resource.GetEnResource();
+
+    QNDEBUG("Added resource to note: " << resource);
 }
 
 void Note::removeResource(const IResource & resource)
 {
-    auto & localResources = m_enNote.resources;
-
-    if (m_enNote.__isset.resources)
-    {
-        auto it = std::find(localResources.begin(), localResources.end(), resource.GetEnResource());
-        if (it == localResources.end()) {
-            QNDEBUG("Note::removeResource: note has no resource with guid " << resource.guid());
-            return;
-        }
-
-        localResources.erase(it);
-        QNDEBUG("Removed resource with guid " << resource.guid() << " from note");
+    if (!m_qecNote.resources.isSet()) {
+        QNDEBUG("Can't remove resource from note: note has no attached resources");
+        return;
     }
-    else
-    {
-        QNDEBUG("Note::removeResource: note has no resources set, nothing to remove");
+
+    int removed = m_qecNote.resources->removeAll(resource);
+    if (removed > 0) {
+        QNDEBUG("Removed resource " << resource << " from note (" << removed << ") occurences");
+    }
+    else {
+        QNDEBUG("Haven't removed resource " << resource << " because there was no such resource attached to the note");
     }
 }
 
 bool Note::hasNoteAttributes() const
 {
-    return m_enNote.__isset.attributes;
+    return m_qecNote.attributes.isSet();
 }
 
-const QByteArray Note::noteAttributes() const
+const qevercloud::NoteAttributes & Note::noteAttributes() const
 {
-    return std::move(GetSerializedNoteAttributes(m_enNote.attributes));
+    return m_qecNote.attributes;
 }
 
-void Note::setNoteAttributes(const QByteArray & noteAttributes)
+qevercloud::NoteAttributes & Note::noteAttributes()
 {
-    m_enNote.attributes = GetDeserializedNoteAttributes(noteAttributes);
-
-    if (!noteAttributes.isEmpty()) {
-        m_enNote.__isset.attributes = true;
-    }
-    else {
-        m_enNote.__isset.attributes = false;
-    }
+    return m_qecNote.attributes;
 }
 
 bool Note::isLocal() const
@@ -650,107 +630,105 @@ QTextStream & Note::Print(QTextStream & strm) const
 {
     strm << "Note: { \n";
 
-    const auto & isSet = m_enNote.__isset;
-
 #define INSERT_DELIMITER \
     strm << "; \n";
 
-    if (isSet.guid) {
-        strm << "guid: " << QString::fromStdString(m_enNote.guid);
+    if (m_qecNote.guid.isSet()) {
+        strm << "guid: " << m_qecNote.guid;
     }
     else {
         strm << "guid is not set";
     }
     INSERT_DELIMITER;
 
-    if (isSet.updateSequenceNum) {
-        strm << "updateSequenceNumber: " << QString::number(m_enNote.updateSequenceNum);
+    if (m_qecNote.updateSequenceNum.isSet()) {
+        strm << "updateSequenceNumber: " << QString::number(m_qecNote.updateSequenceNum);
     }
     else {
         strm << "updateSequenceNumber is not set";
     }
     INSERT_DELIMITER;
 
-    if (isSet.title) {
-        strm << "title: " << QString::fromStdString(m_enNote.title);
+    if (m_qecNote.title.isSet()) {
+        strm << "title: " << m_qecNote.title;
     }
     else {
         strm << "title is not set";
     }
     INSERT_DELIMITER;
 
-    if (isSet.content) {
-        strm << "content: " << QString::fromStdString(m_enNote.content);
+    if (m_qecNote.content.isSet()) {
+        strm << "content: " << m_qecNote.content;
     }
     else {
         strm << "content is not set";
     }
     INSERT_DELIMITER;
 
-    if (isSet.contentHash) {
-        strm << "contentHash: " << QString::fromStdString(m_enNote.contentHash);
+    if (m_qecNote.contentHash.isSet()) {
+        strm << "contentHash: " << m_qecNote.contentHash;
     }
     else {
         strm << "contentHash is not set";
     }
     INSERT_DELIMITER;
 
-    if (isSet.contentLength) {
-        strm << "contentLength: " << QString::number(m_enNote.contentLength);
+    if (m_qecNote.contentLength.isSet()) {
+        strm << "contentLength: " << QString::number(m_qecNote.contentLength);
     }
     else {
         strm << "contentLength is not set";
     }
     INSERT_DELIMITER;
 
-    if (isSet.created) {
-        strm << "creationTimestamp: " << m_enNote.created << ", datetime: "
-             << PrintableDateTimeFromTimestamp(m_enNote.created);
+    if (m_qecNote.created.isSet()) {
+        strm << "creationTimestamp: " << m_qecNote.created << ", datetime: "
+             << PrintableDateTimeFromTimestamp(m_qecNote.created);
     }
     else {
         strm << "creationTimestamp is not set";
     }
     INSERT_DELIMITER;
 
-    if (isSet.updated) {
-        strm << "modificationTimestamp: " << m_enNote.updated << ", datetime: "
-             << PrintableDateTimeFromTimestamp(m_enNote.updated);
+    if (m_qecNote.updated.isSet()) {
+        strm << "modificationTimestamp: " << m_qecNote.updated << ", datetime: "
+             << PrintableDateTimeFromTimestamp(m_qecNote.updated);
     }
     else {
         strm << "modificationTimestamp is not set";
     }
     INSERT_DELIMITER;
 
-    if (isSet.deleted) {
-        strm << "deletionTimestamp: " << m_enNote.deleted << ", datetime: "
-             << PrintableDateTimeFromTimestamp(m_enNote.deleted);
+    if (m_qecNote.deleted.isSet()) {
+        strm << "deletionTimestamp: " << m_qecNote.deleted << ", datetime: "
+             << PrintableDateTimeFromTimestamp(m_qecNote.deleted);
     }
     else {
         strm << "deletionTimestamp is not set";
     }
     INSERT_DELIMITER;
 
-    if (isSet.active) {
-        strm << "active: " << (m_enNote.active ? "true" : "false");
+    if (m_qecNote.active.isSet()) {
+        strm << "active: " << (m_qecNote.active ? "true" : "false");
     }
     else {
         strm << "active is not set";
     }
     INSERT_DELIMITER;
 
-    if (isSet.notebookGuid) {
-        strm << "notebookGuid: " << QString::fromStdString(m_enNote.notebookGuid);
+    if (m_qecNote.notebookGuid.isSet()) {
+        strm << "notebookGuid: " << m_qecNote.notebookGuid;
     }
     else {
         strm << "notebookGuid is not set";
     }
     INSERT_DELIMITER;
 
-    if (isSet.tagGuids)
+    if (m_qecNote.tagGuids.isSet())
     {
         strm << "tagGuids: {";
-        for(const auto & tagGuid: m_enNote.tagGuids) {
-            strm << QString::fromStdString(tagGuid) << "; ";
+        foreach(const QString & tagGuid, m_qecNote.tagGuids.ref()) {
+            strm << tagGuid << "; ";
         }
         strm << "}";
     }
@@ -759,11 +737,11 @@ QTextStream & Note::Print(QTextStream & strm) const
     }
     INSERT_DELIMITER;
 
-    if (isSet.resources)
+    if (m_qecNote.resources.isSet())
     {
         strm << "resources: { \n";
-        for(const auto & resource: m_enNote.resources) {
-            strm << ResourceAdapter(resource) << "; \n";
+        foreach(const qevercloud::Resource & resource, m_qecNote.resources.ref()) {
+            strm << resource << "; \n";
         }
         strm << "}";
     }
@@ -772,8 +750,8 @@ QTextStream & Note::Print(QTextStream & strm) const
     }
     INSERT_DELIMITER;
 
-    if (isSet.attributes) {
-        strm << "attributes: " << m_enNote.attributes;
+    if (m_qecNote.attributes.isSet()) {
+        strm << "attributes: " << m_qecNote.attributes;
     }
     else {
         strm << "attributes are not set";
