@@ -326,8 +326,7 @@ QTextStream & ISharedNotebook::Print(QTextStream & strm) const
     INSERT_DELIMITER
 
     if (sharedNotebook.privilege.isSet()) {
-        // TODO: (re)implement printing of SharedNotebookPrivilegeLevel
-        strm << "privilegeLevel: " << QString::number(sharedNotebook.privilege);
+        strm << "privilegeLevel: " << sharedNotebook.privilege;
     }
     else {
         strm << "privilegeLevel is not set";

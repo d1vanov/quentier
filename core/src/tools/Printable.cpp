@@ -235,28 +235,28 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::ResourceAttribut
 
 #undef CHECK_AND_PRINT_ATTRIBUTE
 
-QTextStream & operator <<(QTextStream & strm, const evernote::edam::PrivilegeLevel::type & level)
+QTextStream & operator <<(QTextStream & strm, const qevercloud::PrivilegeLevel::type & level)
 {
     strm << "PrivilegeLevel: ";
 
     switch (level)
     {
-    case evernote::edam::PrivilegeLevel::NORMAL:
+    case qevercloud::PrivilegeLevel::NORMAL:
         strm << "NORMAL";
         break;
-    case evernote::edam::PrivilegeLevel::PREMIUM:
+    case qevercloud::PrivilegeLevel::PREMIUM:
         strm << "PREMIUM";
         break;
-    case evernote::edam::PrivilegeLevel::VIP:
+    case qevercloud::PrivilegeLevel::VIP:
         strm << "VIP";
         break;
-    case evernote::edam::PrivilegeLevel::MANAGER:
+    case qevercloud::PrivilegeLevel::MANAGER:
         strm << "MANAGER";
         break;
-    case evernote::edam::PrivilegeLevel::SUPPORT:
+    case qevercloud::PrivilegeLevel::SUPPORT:
         strm << "SUPPORT";
         break;
-    case evernote::edam::PrivilegeLevel::ADMIN:
+    case qevercloud::PrivilegeLevel::ADMIN:
         strm << "ADMIN";
         break;
     default:
@@ -267,14 +267,14 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::PrivilegeLev
     return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const evernote::edam::QueryFormat::type & format)
+QTextStream & operator <<(QTextStream & strm, const qevercloud::QueryFormat::type & format)
 {
     switch (format)
     {
-    case evernote::edam::QueryFormat::USER:
+    case qevercloud::QueryFormat::USER:
         strm << "USER";
         break;
-    case evernote::edam::QueryFormat::SEXP:
+    case qevercloud::QueryFormat::SEXP:
         strm << "SEXP";
         break;
     default:
@@ -285,32 +285,26 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::QueryFormat:
     return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const evernote::edam::Guid & guid)
-{
-    strm << QString::fromStdString(guid);
-    return strm;
-}
-
-QTextStream & operator <<(QTextStream & strm, const evernote::edam::SharedNotebookPrivilegeLevel::type & privilege)
+QTextStream & operator <<(QTextStream & strm, const qevercloud::SharedNotebookPrivilegeLevel::type & privilege)
 {
     switch(privilege)
     {
-    case evernote::edam::SharedNotebookPrivilegeLevel::READ_NOTEBOOK:
+    case qevercloud::SharedNotebookPrivilegeLevel::READ_NOTEBOOK:
         strm << "READ_NOTEBOOK";
         break;
-    case evernote::edam::SharedNotebookPrivilegeLevel::MODIFY_NOTEBOOK_PLUS_ACTIVITY:
+    case qevercloud::SharedNotebookPrivilegeLevel::MODIFY_NOTEBOOK_PLUS_ACTIVITY:
         strm << "MODIFY_NOTEBOOK_PLUS_ACTIVITY";
         break;
-    case evernote::edam::SharedNotebookPrivilegeLevel::READ_NOTEBOOK_PLUS_ACTIVITY:
+    case qevercloud::SharedNotebookPrivilegeLevel::READ_NOTEBOOK_PLUS_ACTIVITY:
         strm << "READ_NOTEBOOK_PLUS_ACTIVITY";
         break;
-    case evernote::edam::SharedNotebookPrivilegeLevel::GROUP:
+    case qevercloud::SharedNotebookPrivilegeLevel::GROUP:
         strm << "GROUP";
         break;
-    case evernote::edam::SharedNotebookPrivilegeLevel::FULL_ACCESS:
+    case qevercloud::SharedNotebookPrivilegeLevel::FULL_ACCESS:
         strm << "FULL_ACCESS";
         break;
-    case evernote::edam::SharedNotebookPrivilegeLevel::BUSINESS_FULL_ACCESS:
+    case qevercloud::SharedNotebookPrivilegeLevel::BUSINESS_FULL_ACCESS:
         strm << "BUSINESS_FULL_ACCESS";
         break;
     default:
@@ -321,23 +315,23 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::SharedNotebo
     return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const evernote::edam::NoteSortOrder::type & order)
+QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteSortOrder::type & order)
 {
     switch(order)
     {
-    case evernote::edam::NoteSortOrder::CREATED:
+    case qevercloud::NoteSortOrder::CREATED:
         strm << "CREATED";
         break;
-    case evernote::edam::NoteSortOrder::RELEVANCE:
+    case qevercloud::NoteSortOrder::RELEVANCE:
         strm << "RELEVANCE";
         break;
-    case evernote::edam::NoteSortOrder::TITLE:
+    case qevercloud::NoteSortOrder::TITLE:
         strm << "TITLE";
         break;
-    case evernote::edam::NoteSortOrder::UPDATED:
+    case qevercloud::NoteSortOrder::UPDATED:
         strm << "UPDATED";
         break;
-    case evernote::edam::NoteSortOrder::UPDATE_SEQUENCE_NUMBER:
+    case qevercloud::NoteSortOrder::UPDATE_SEQUENCE_NUMBER:
         strm << "UPDATE_SEQUENCE_NUMBER";
         break;
     default:
@@ -348,16 +342,14 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NoteSortOrde
     return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRestrictions & restrictions)
+QTextStream & operator <<(QTextStream & strm, const qevercloud::NotebookRestrictions & restrictions)
 {
-    const auto & isSet = restrictions.__isset;
-
     strm << "{ \n";
 
 #define INSERT_DELIMITER \
     strm << "; \n"
 
-    if (isSet.noReadNotes) {
+    if (restrictions.noReadNotes.isSet()) {
         strm << "noReadNotes: " << (restrictions.noReadNotes ? "true" : "false");
     }
     else {
@@ -365,7 +357,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noCreateNotes) {
+    if (restrictions.noCreateNotes.isSet()) {
         strm << "noCreateNotes: " << (restrictions.noCreateNotes ? "true" : "false");
     }
     else {
@@ -373,7 +365,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noUpdateNotes) {
+    if (restrictions.noUpdateNotes.isSet()) {
         strm << "noUpdateNotes: " << (restrictions.noUpdateNotes ? "true" : "false");
     }
     else {
@@ -381,7 +373,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noExpungeNotes) {
+    if (restrictions.noExpungeNotes.isSet()) {
         strm << "noExpungeNotes: " << (restrictions.noExpungeNotes ? "true" : "false");
     }
     else {
@@ -389,7 +381,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noShareNotes) {
+    if (restrictions.noShareNotes.isSet()) {
         strm << "noShareNotes: " << (restrictions.noShareNotes ? "true" : "false");
     }
     else {
@@ -397,7 +389,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noEmailNotes) {
+    if (restrictions.noEmailNotes.isSet()) {
         strm << "noEmailNotes: " << (restrictions.noEmailNotes ? "true" : "false");
     }
     else {
@@ -405,7 +397,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noSendMessageToRecipients) {
+    if (restrictions.noSendMessageToRecipients.isSet()) {
         strm << "noSendMessageToRecipients: " << (restrictions.noSendMessageToRecipients ? "true" : "false");
     }
     else {
@@ -413,7 +405,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noUpdateNotebook) {
+    if (restrictions.noUpdateNotebook.isSet()) {
         strm << "noUpdateNotebook: " << (restrictions.noUpdateNotebook ? "true" : "false");
     }
     else {
@@ -421,7 +413,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noExpungeNotebook) {
+    if (restrictions.noExpungeNotebook.isSet()) {
         strm << "noExpungeNotebook: " << (restrictions.noExpungeNotebook ? "true" : "false");
     }
     else {
@@ -429,7 +421,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noSetDefaultNotebook) {
+    if (restrictions.noSetDefaultNotebook.isSet()) {
         strm << "noSetDefaultNotebook: " << (restrictions.noSetDefaultNotebook ? "true" : "false");
     }
     else {
@@ -437,7 +429,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noSetNotebookStack) {
+    if (restrictions.noSetNotebookStack.isSet()) {
         strm << "noSetNotebookStack: " << (restrictions.noSetNotebookStack ? "true" : "false");
     }
     else {
@@ -445,7 +437,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noPublishToPublic) {
+    if (restrictions.noPublishToPublic.isSet()) {
         strm << "noPublishToPublic: " << (restrictions.noPublishToPublic ? "true" : "false");
     }
     else {
@@ -453,7 +445,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noPublishToBusinessLibrary) {
+    if (restrictions.noPublishToBusinessLibrary.isSet()) {
         strm << "noPublishToBusinessLibrary: " << (restrictions.noPublishToBusinessLibrary ? "true" : "false");
     }
     else {
@@ -461,7 +453,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noCreateTags) {
+    if (restrictions.noCreateTags.isSet()) {
         strm << "noCreateTags: " << (restrictions.noCreateTags ? "true" : "false");
     }
     else {
@@ -469,7 +461,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noUpdateTags) {
+    if (restrictions.noUpdateTags.isSet()) {
         strm << "noUpdateTags: " << (restrictions.noUpdateTags ? "true" : "false");
     }
     else {
@@ -477,7 +469,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noExpungeTags) {
+    if (restrictions.noExpungeTags.isSet()) {
         strm << "noExpungeTags: " << (restrictions.noExpungeTags ? "true" : "false");
     }
     else {
@@ -485,7 +477,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noSetParentTag) {
+    if (restrictions.noSetParentTag.isSet()) {
         strm << "noSetParentTag: " << (restrictions.noSetParentTag ? "true" : "false");
     }
     else {
@@ -493,7 +485,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.noCreateSharedNotebooks) {
+    if (restrictions.noCreateSharedNotebooks.isSet()) {
         strm << "noCreateSharedNotebooks: " << (restrictions.noCreateSharedNotebooks ? "true" : "false");
     }
     else {
@@ -501,7 +493,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.updateWhichSharedNotebookRestrictions) {
+    if (restrictions.updateWhichSharedNotebookRestrictions.isSet()) {
         strm << "updateWhichSharedNotebookRestrictions: " << restrictions.updateWhichSharedNotebookRestrictions;
     }
     else {
@@ -509,7 +501,7 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     }
     INSERT_DELIMITER;
 
-    if (isSet.expungeWhichSharedNotebookRestrictions) {
+    if (restrictions.expungeWhichSharedNotebookRestrictions.isSet()) {
         strm << "expungeWhichSharedNotebookRestrictions: " << restrictions.expungeWhichSharedNotebookRestrictions;
     }
     else {
@@ -524,14 +516,14 @@ QTextStream & operator <<(QTextStream & strm, const evernote::edam::NotebookRest
     return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const evernote::edam::SharedNotebookInstanceRestrictions::type & restrictions)
+QTextStream & operator <<(QTextStream & strm, const qevercloud::SharedNotebookInstanceRestrictions::type & restrictions)
 {
     switch(restrictions)
     {
-    case evernote::edam::SharedNotebookInstanceRestrictions::NO_SHARED_NOTEBOOKS:
+    case qevercloud::SharedNotebookInstanceRestrictions::NO_SHARED_NOTEBOOKS:
         strm << "NO_SHARED_NOTEBOOKS";
         break;
-    case evernote::edam::SharedNotebookInstanceRestrictions::ONLY_JOINED_OR_PREVIEW:
+    case qevercloud::SharedNotebookInstanceRestrictions::ONLY_JOINED_OR_PREVIEW:
         strm << "ONLY_JOINED_OR_PREVIEW";
         break;
     default:

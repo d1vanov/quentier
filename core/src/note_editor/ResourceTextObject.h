@@ -4,12 +4,8 @@
 #include <QScopedPointer>
 #include <QTextObjectInterface>
 
-namespace evernote {
-namespace edam {
-
-QT_FORWARD_DECLARE_CLASS(Resource)
-
-}
+namespace qevercloud {
+QT_FORWARD_DECLARE_STRUCT(Resource)
 }
 
 class ResourceTextObject: public QObject, public QTextObjectInterface
@@ -18,7 +14,7 @@ class ResourceTextObject: public QObject, public QTextObjectInterface
     Q_INTERFACES(QTextObjectInterface)
 
 public:
-    explicit ResourceTextObject(const evernote::edam::Resource & resource);
+    explicit ResourceTextObject(const qevercloud::Resource & resource);
     ResourceTextObject(const ResourceTextObject & other);
     ResourceTextObject & operator =(const ResourceTextObject & other);
     virtual ~ResourceTextObject() final override;
@@ -35,7 +31,7 @@ public:
 private:
     ResourceTextObject() = delete;
 
-    const QScopedPointer<evernote::edam::Resource> m_pResource;
+    const QScopedPointer<qevercloud::Resource> m_pResource;
     QImage m_resourceImage;
 };
 

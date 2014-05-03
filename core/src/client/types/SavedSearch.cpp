@@ -311,8 +311,7 @@ QTextStream & SavedSearch::Print(QTextStream & strm) const
     }
 
     if (m_qecSearch.format.isSet()) {
-        // TODO: (re)write print for QueryFormat
-        strm << "queryFormat: " << QString::number(m_qecSearch.format) << "; \n";
+        strm << "queryFormat: " << m_qecSearch.format << "; \n";
     }
     else {
         strm << "queryFormat is not set; \n";

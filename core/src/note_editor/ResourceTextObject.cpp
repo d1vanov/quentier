@@ -1,20 +1,19 @@
 #include "ResourceTextObject.h"
 #include <tools/QuteNoteCheckPtr.h>
-#include <NoteStore.h>
+#include <QEverCloud.h>
 #include <QPainter>
 
-using namespace evernote::edam;
-
+using namespace qevercloud;
 using namespace qute_note;
 
 ResourceTextObject::ResourceTextObject(const Resource & resource) :
     m_pResource(new Resource(resource)),
     m_resourceImage()
 {
-    if (resource.__isset.mime && resource.__isset.data) {
-        QString mimeType = QString::fromStdString(resource.mime);
-        if (mimeType.contains("image/") && resource.data.__isset.body) {
-            m_resourceImage.loadFromData(QByteArray(resource.data.body.c_str(), resource.data.body.length()));
+    if (resource.mime.isSet() && resource.data.isSet()) {
+        QString mimeType = resource.mime;
+        if (mimeType.contains("image/") && resource.data->body.isSet()) {
+            m_resourceImage.loadFromData(resource.data->body.ref());
         }
     }
 }
@@ -40,7 +39,7 @@ ResourceTextObject::~ResourceTextObject()
 bool ResourceTextObject::isValid() const
 {
     // TODO: check whether I can obtain any other useful information from the resource
-    if (m_pResource->data.__isset.body && !m_pResource->data.body.empty()) {
+    if (m_pResource->data->body.isSet() && !m_pResource->data->body->isEmpty()) {
         return true;
     }
     else {
@@ -52,7 +51,7 @@ void ResourceTextObject::drawObject(QPainter * pPainter, const QRectF & rect,
                                     QTextDocument * /* pDoc */, int /* positionInDocument */,
                                     const QTextFormat & /* format */)
 {
-    if (!m_pResource->data.__isset.body || m_pResource->data.body.empty()) {
+    if (!m_pResource->data->body.isSet() || m_pResource->data->body->isEmpty()) {
         return;
     }
 
@@ -68,7 +67,7 @@ void ResourceTextObject::drawObject(QPainter * pPainter, const QRectF & rect,
 QSizeF ResourceTextObject::intrinsicSize(QTextDocument * /* pDoc */, int /* positionInDocument */,
                                          const QTextFormat & /* format */)
 {
-    if (!m_pResource->data.__isset.body || m_pResource->data.body.empty()) {
+    if (!m_pResource->data->body.isSet() || m_pResource->data->body->isEmpty()) {
         return QSizeF();
     }
 

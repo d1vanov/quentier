@@ -5,25 +5,6 @@
 #include <QtSql>
 #include <QSharedPointer>
 
-namespace evernote {
-namespace edam {
-
-typedef std::string Guid;
-QT_FORWARD_DECLARE_CLASS(User)
-QT_FORWARD_DECLARE_CLASS(UserAttributes)
-QT_FORWARD_DECLARE_CLASS(Accounting)
-QT_FORWARD_DECLARE_CLASS(PremiumInfo)
-QT_FORWARD_DECLARE_CLASS(BusinessUserInfo)
-QT_FORWARD_DECLARE_CLASS(NoteStoreClient)
-QT_FORWARD_DECLARE_CLASS(Note)
-QT_FORWARD_DECLARE_CLASS(Notebook)
-QT_FORWARD_DECLARE_CLASS(NotebookRestrictions)
-QT_FORWARD_DECLARE_CLASS(SharedNotebook)
-typedef int32_t UserID;
-
-}
-}
-
 namespace qevercloud {
 QT_FORWARD_DECLARE_STRUCT(UserAttributes)
 QT_FORWARD_DECLARE_STRUCT(Accounting)
@@ -31,6 +12,7 @@ QT_FORWARD_DECLARE_STRUCT(PremiumInfo)
 QT_FORWARD_DECLARE_STRUCT(BusinessUserInfo)
 QT_FORWARD_DECLARE_STRUCT(SharedNotebook)
 QT_FORWARD_DECLARE_STRUCT(NotebookRestrictions)
+typedef int32_t UserID;
 }
 
 namespace qute_note {
@@ -45,7 +27,7 @@ QT_FORWARD_DECLARE_CLASS(Tag)
 QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(SavedSearch)
 QT_FORWARD_DECLARE_CLASS(IUser)
-typedef evernote::edam::UserID UserID;
+typedef qevercloud::UserID UserID;
 
 class LocalStorageManager
 {

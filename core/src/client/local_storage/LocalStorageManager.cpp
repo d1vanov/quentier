@@ -19,9 +19,6 @@
 #include <client/types/Tag.h>
 #include <tools/QuteNoteNullPtrException.h>
 #include <tools/ApplicationStoragePersistencePath.h>
-#include <Limits_constants.h>
-
-using namespace evernote::edam;
 
 namespace qute_note {
 
@@ -2487,7 +2484,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
         }
     }
 
-    // NOTE: don't even attempt fo find tags by their names because evernote::edam::Note.tagNames
+    // NOTE: don't even attempt fo find tags by their names because qevercloud::Note.tagNames
     // has the only purpose to provide tag names alternatively to guids to NoteStore::createNote method
 
     if (note.hasResources())

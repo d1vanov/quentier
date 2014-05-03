@@ -5,7 +5,6 @@
 #include <QString>
 #include <QTextStream>
 #include <QDebug>
-#include <Types_types.h>
 #include <QEverCloud.h>
 
 namespace qute_note {
@@ -56,17 +55,16 @@ const QString ToQString(const T & object)
     }
 
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessUserInfo)
-__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::Guid)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PremiumInfo)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Accounting)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::UserAttributes)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NoteAttributes)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::ResourceAttributes)
-__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::PrivilegeLevel::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::QueryFormat::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::SharedNotebookPrivilegeLevel::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::NoteSortOrder::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::NotebookRestrictions)
-__QUTE_NOTE_DECLARE_PRINTABLE(evernote::edam::SharedNotebookInstanceRestrictions::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PrivilegeLevel::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::QueryFormat::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookPrivilegeLevel::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NoteSortOrder::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NotebookRestrictions)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookInstanceRestrictions::type)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

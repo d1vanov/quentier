@@ -950,8 +950,7 @@ QTextStream & Notebook::Print(QTextStream & strm) const
         INSERT_DELIMITER;
 
         if (publishing.order.isSet()) {
-            // TODO: (re)implement printing of NoteSortOrder::type
-            strm << "publishingOrder: " << QString::number(publishing.order);
+            strm << "publishingOrder: " << publishing.order;
         }
         else {
             strm << "publishingOrder is not set";
@@ -1019,8 +1018,7 @@ QTextStream & Notebook::Print(QTextStream & strm) const
         INSERT_DELIMITER;
 
         if (businessNotebook.privilege.isSet()) {
-            // TODO: (re)implement printing of SharedNotebookPrivilegeLevel::type
-            strm << "businessNotebookPrivilegeLevel: " << QString::number(businessNotebook.privilege);
+            strm << "businessNotebookPrivilegeLevel: " << businessNotebook.privilege;
         }
         else {
             strm << "businessNotebookPrivilegeLevel is not set";
@@ -1050,8 +1048,7 @@ QTextStream & Notebook::Print(QTextStream & strm) const
     INSERT_DELIMITER;
 
     if (m_qecNotebook.restrictions.isSet()) {
-        // TODO: (re)implement printing of NotebookRestrictions
-        // strm << "restrictions: " << m_qecNotebook.restrictions;
+        strm << "restrictions: " << m_qecNotebook.restrictions;
     }
     else {
         strm << "restrictions are not set";

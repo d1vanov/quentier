@@ -538,8 +538,7 @@ QTextStream & IUser::Print(QTextStream & strm) const
     }
 
     if (enUser.privilege.isSet()) {
-        // TODO: (re)implement printing of PrivilegeLevel
-        strm << "privilege = " << QString::number(enUser.privilege) << "; \n";
+        strm << "privilege = " << enUser.privilege << "; \n";
     }
     else {
         strm << "privilege is not set" << "; \n";
@@ -574,32 +573,28 @@ QTextStream & IUser::Print(QTextStream & strm) const
     }
 
     if (enUser.attributes.isSet()) {
-        // TODO: (re)implement printing of UserAttributes
-        // strm << enUser.attributes;
+        strm << enUser.attributes;
     }
     else {
         strm << "attributes are not set" << "; \n";
     }
 
     if (enUser.accounting.isSet()) {
-        // TODO: (re)implement printing of Accounting
-        // strm << enUser.accounting;
+        strm << enUser.accounting;
     }
     else {
         strm << "accounting is not set" << "; \n";
     }
 
     if (enUser.premiumInfo.isSet()) {
-        // TODO: (re)implement printing of PremiumInfo
-        // strm << enUser.premiumInfo;
+        strm << enUser.premiumInfo;
     }
     else {
         strm << "premium info is not set" << "; \n";
     }
 
     if (enUser.businessUserInfo.isSet()) {
-        // TODO: (re)implement printing of BusinessUserInfo
-        // strm << enUser.businessUserInfo;
+        strm << enUser.businessUserInfo;
     }
     else {
         strm << "business user info is not set" << "; \n";

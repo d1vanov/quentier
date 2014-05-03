@@ -42,8 +42,6 @@ public:
 
     virtual bool checkParameters(QString & errorDescription) const final override;
 
-    // TODO: see whether I can switch to using const QString &
-
     bool hasName() const;
     const QString & name() const;
     void setName(const QString & name);
