@@ -163,32 +163,15 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         resource.setWidth(1);
         resource.setHeight(1);
 
-        evernote::edam::ResourceAttributes resourceAttributes;
+        qevercloud::ResourceAttributes & resourceAttributes = resource.resourceAttributes();
 
         resourceAttributes.sourceURL = "Fake resource source URL";
-        resourceAttributes.__isset.sourceURL = true;
-
         resourceAttributes.timestamp = 1;
-        resourceAttributes.__isset.timestamp = true;
-
         resourceAttributes.latitude = 0.0;
-        resourceAttributes.__isset.latitude = true;
-
         resourceAttributes.longitude = 0.0;
-        resourceAttributes.__isset.longitude = true;
-
         resourceAttributes.altitude = 0.0;
-        resourceAttributes.__isset.altitude = true;
-
         resourceAttributes.cameraMake = "Fake resource camera make";
-        resourceAttributes.__isset.cameraMake = true;
-
         resourceAttributes.cameraModel = "Fake resource camera model";
-        resourceAttributes.__isset.cameraModel = true;
-
-        QByteArray serializedResourceAttributes = GetSerializedResourceAttributes(resourceAttributes);
-
-        resource.setResourceAttributes(serializedResourceAttributes);
 
         error.clear();
         res = TestResourceAddFindUpdateExpungeInLocalStorage(resource, localStorageManager, error);
@@ -225,28 +208,16 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
 
-        evernote::edam::NoteAttributes noteAttributes;
+        qevercloud::NoteAttributes & noteAttributes = note.noteAttributes();
         noteAttributes.subjectDate = 1;
-        noteAttributes.__isset.subjectDate = true;
         noteAttributes.latitude = 1.0;
-        noteAttributes.__isset.latitude = true;
         noteAttributes.longitude = 1.0;
-        noteAttributes.__isset.longitude = true;
         noteAttributes.altitude = 1.0;
-        noteAttributes.__isset.altitude = true;
         noteAttributes.author = "author";
-        noteAttributes.__isset.author = true;
         noteAttributes.source = "source";
-        noteAttributes.__isset.source = true;
         noteAttributes.sourceURL = "source URL";
-        noteAttributes.__isset.sourceURL = true;
         noteAttributes.sourceApplication = "source application";
-        noteAttributes.__isset.sourceApplication = true;
         noteAttributes.shareDate = 2;
-        noteAttributes.__isset.shareDate = true;
-
-        QByteArray serializedNoteAttributes = GetSerializedNoteAttributes(noteAttributes);
-        note.setNoteAttributes(serializedNoteAttributes);
 
         res = localStorageManager.AddNote(note, error);
         QVERIFY2(res == true, qPrintable(error));

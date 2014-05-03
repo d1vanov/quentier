@@ -19,6 +19,7 @@ set(${PROJECT_NAME}_HEADERS
     thumbnail.h
     AsyncResult.h
     Optional.h
+    EventLoopFinisher.h
     EverCloudException.h
     generated/constants.h
     generated/services.h
@@ -32,6 +33,7 @@ set(${PROJECT_NAME}_SOURCES
     http.cpp
     services_nongenerated.cpp
     AsyncResult.cpp
+    EventLoopFinisher.cpp
     generated/constants.cpp 
     generated/services.cpp
     generated/types.cpp)

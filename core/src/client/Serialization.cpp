@@ -177,7 +177,7 @@ QDataStream & operator<<(QDataStream & out, const qevercloud::NoteAttributes & n
             const QMap<QString, QString> & map = noteAttributes.applicationData->fullMap;
             size_t mapSize = map.size();
             out << static_cast<quint32>(mapSize);   // NOTE: the reasonable constraint is numKeys == mapSize but it's better to ensure
-            foreach(const QString & key, map) {
+            foreach(const QString & key, map.keys()) {
                 out << key << map.value(key);
             }
         }
@@ -190,7 +190,7 @@ QDataStream & operator<<(QDataStream & out, const qevercloud::NoteAttributes & n
         const QMap<QString, QString> & fullMap = noteAttributes.classifications;
         size_t mapSize = fullMap.size();
         out << static_cast<quint32>(mapSize);
-        foreach(const QString & key, fullMap) {
+        foreach(const QString & key, fullMap.keys()) {
             out << key << fullMap.value(key);
         }
     }
@@ -572,7 +572,7 @@ QDataStream & operator<<(QDataStream & out, const qevercloud::ResourceAttributes
             const QMap<QString, QString> & map = applicationData.fullMap;
             size_t numKeys = map.size();
             out << static_cast<quint32>(numKeys);
-            foreach(const QString & key, map) {
+            foreach(const QString & key, map.keys()) {
                 out << key << map.value(key);
             }
         }

@@ -444,98 +444,100 @@ bool TestUserAttributesSerialization(QString & errorDescription)
 
 bool TestNoteAttributesSerialization(QString & errorDescription)
 {
-    evernote::edam::NoteAttributes attributes;
-    auto & isSet = attributes.__isset;
+    qevercloud::NoteAttributes attributes;
 
     // number of optional data components in NoteAttributes
 #define NOTE_ATTRIBUTES_NUM_COMPONENTS 19
     for(int mask = 0; mask != (1 << NOTE_ATTRIBUTES_NUM_COMPONENTS); ++mask)
     {
-        attributes = evernote::edam::NoteAttributes();
+        attributes = qevercloud::NoteAttributes();
 
         std::bitset<NOTE_ATTRIBUTES_NUM_COMPONENTS> bits(mask);
 
-        isSet.subjectDate = bits[0];
-        isSet.latitude = bits[1];
-        isSet.longitude = bits[2];
-        isSet.altitude = bits[3];
-        isSet.author = bits[4];
-        isSet.source = bits[5];
-        isSet.sourceURL = bits[6];
-        isSet.sourceApplication = bits[7];
-        isSet.shareDate = bits[8];
-        isSet.reminderOrder = bits[9];
-        isSet.reminderDoneTime = bits[10];
-        isSet.reminderTime = bits[11];
-        isSet.placeName = bits[12];
-        isSet.contentClass = bits[13];
-        isSet.applicationData = bits[14];
-        isSet.lastEditedBy = bits[15];
-        isSet.classifications = bits[16];
-        isSet.creatorId = bits[17];
-        isSet.lastEditorId = bits[18];
+        bool isSetSubjectDate = bits[0];
+        bool isSetLatitude = bits[1];
+        bool isSetLongitude = bits[2];
+        bool isSetAltitude = bits[3];
+        bool isSetAuthor = bits[4];
+        bool isSetSource = bits[5];
+        bool isSetSourceURL = bits[6];
+        bool isSetSourceApplication = bits[7];
+        bool isSetShareDate = bits[8];
+        bool isSetReminderOrder = bits[9];
+        bool isSetReminderDoneTime = bits[10];
+        bool isSetReminderTime = bits[11];
+        bool isSetPlaceName = bits[12];
+        bool isSetContentClass = bits[13];
+        bool isSetApplicationData = bits[14];
+        bool isSetLastEditedBy = bits[15];
+        bool isSetClassifications = bits[16];
+        bool isSetCreatorId = bits[17];
+        bool isSetLastEditorId = bits[18];
 
-        if (isSet.subjectDate) {
-            attributes.subjectDate = static_cast<evernote::edam::Timestamp>(512);
+        if (isSetSubjectDate) {
+            attributes.subjectDate = static_cast<qevercloud::Timestamp>(512);
         }
 
-        if (isSet.latitude) {
+        if (isSetLatitude) {
             attributes.latitude = 42.0;
         }
 
-        if (isSet.longitude) {
+        if (isSetLongitude) {
             attributes.longitude = 43.0;
         }
 
-        if (isSet.altitude) {
+        if (isSetAltitude) {
             attributes.altitude = 42.0;
         }
 
-        if (isSet.author) {
+        if (isSetAuthor) {
             attributes.author = "haxpeha";
         }
 
-        if (isSet.source) {
+        if (isSetSource) {
             attributes.source = "brain";
         }
 
-        if (isSet.sourceURL) {
+        if (isSetSourceURL) {
             attributes.sourceURL = "https://github.com/d1vanov";
         }
 
-        if (isSet.sourceApplication) {
+        if (isSetSourceApplication) {
             attributes.sourceApplication = "Qt Creator";
         }
 
-        if (isSet.shareDate) {
-            attributes.shareDate = static_cast<evernote::edam::Timestamp>(10);
+        if (isSetShareDate) {
+            attributes.shareDate = static_cast<qevercloud::Timestamp>(10);
         }
 
-        if (isSet.reminderOrder) {
+        if (isSetReminderOrder) {
             attributes.reminderOrder = 2;
         }
 
-        if (isSet.reminderDoneTime) {
-            attributes.reminderDoneTime = static_cast<evernote::edam::Timestamp>(20);
+        if (isSetReminderDoneTime) {
+            attributes.reminderDoneTime = static_cast<qevercloud::Timestamp>(20);
         }
 
-        if (isSet.reminderTime) {
-            attributes.reminderTime = static_cast<evernote::edam::Timestamp>(40);
+        if (isSetReminderTime) {
+            attributes.reminderTime = static_cast<qevercloud::Timestamp>(40);
         }
 
-        if (isSet.placeName) {
+        if (isSetPlaceName) {
             attributes.placeName = "My place";
         }
 
-        if (isSet.contentClass) {
+        if (isSetContentClass) {
             attributes.contentClass = "text";
         }
 
-        if (isSet.applicationData)
+        if (isSetApplicationData)
         {
-            auto & applicationData = attributes.applicationData;
-            auto & applicationDataKeys = applicationData.keysOnly;
-            auto & applicationDataMap  = applicationData.fullMap;
+            attributes.applicationData = qevercloud::LazyMap();
+            qevercloud::LazyMap & applicationData = attributes.applicationData;
+            applicationData.keysOnly = QSet<QString>();
+            QSet<QString> & applicationDataKeys = applicationData.keysOnly;
+            applicationData.fullMap = QMap<QString, QString>();
+            QMap<QString, QString> & applicationDataMap  = applicationData.fullMap;
 
             applicationDataKeys.insert("key1");
             applicationDataKeys.insert("key2");
@@ -546,33 +548,38 @@ bool TestNoteAttributesSerialization(QString & errorDescription)
             applicationDataMap["key3"] = "value3";
         }
 
-        if (isSet.lastEditedBy) {
+        if (isSetLastEditedBy) {
             attributes.lastEditedBy = "Me";
         }
 
-        if (isSet.classifications)
+        if (isSetClassifications)
         {
-            auto & classifications = attributes.classifications;
+            attributes.classifications = QMap<QString, QString>();
+            QMap<QString, QString> & classifications = attributes.classifications;
 
             classifications["classificationKey1"] = "classificationValue1";
             classifications["classificationKey2"] = "classificationValue2";
             classifications["classificationKey3"] = "classificationValue3";
         }
 
-        if (isSet.lastEditorId) {
-            attributes.lastEditorId = static_cast<evernote::edam::UserID>(10);
+        if (isSetCreatorId) {
+            attributes.creatorId = static_cast<qevercloud::UserID>(10);
+        }
+
+        if (isSetLastEditorId) {
+            attributes.lastEditorId = static_cast<qevercloud::UserID>(10);
         }
 
         QByteArray serializedAttributes = GetSerializedNoteAttributes(attributes);
-        evernote::edam::NoteAttributes deserializedAttributes = GetDeserializedNoteAttributes(serializedAttributes);
+        qevercloud::NoteAttributes deserializedAttributes = GetDeserializedNoteAttributes(serializedAttributes);
 
         if (attributes != deserializedAttributes)
         {
             errorDescription = "Serialization test for NoteAttributes FAILED! ";
             errorDescription.append("Initial NoteAttributes: \n");
-            errorDescription.append(ToQString<evernote::edam::NoteAttributes>(attributes));
+            errorDescription.append(ToQString<qevercloud::NoteAttributes>(attributes));
             errorDescription.append("Deserialized NoteAttributes: \n");
-            errorDescription.append(ToQString<evernote::edam::NoteAttributes>(deserializedAttributes));
+            errorDescription.append(ToQString<qevercloud::NoteAttributes>(deserializedAttributes));
 
             return false;
         }
@@ -585,79 +592,81 @@ bool TestNoteAttributesSerialization(QString & errorDescription)
 
 bool TestResourceAttributesSerialization(QString & errorDescription)
 {
-    evernote::edam::ResourceAttributes attributes;
-    auto & isSet = attributes.__isset;
+    qevercloud::ResourceAttributes attributes;
 
     // number of optional data components in ResourceAttributes
 #define RESOURCE_ATTRIBUTES_NUM_COMPONENTS 14
     for(int mask = 0; mask != (1 << RESOURCE_ATTRIBUTES_NUM_COMPONENTS); ++mask)
     {
-        attributes = evernote::edam::ResourceAttributes();
+        attributes = qevercloud::ResourceAttributes();
 
         std::bitset<RESOURCE_ATTRIBUTES_NUM_COMPONENTS> bits(mask);
 
-        isSet.sourceURL = bits[0];
-        isSet.timestamp = bits[1];
-        isSet.latitude = bits[2];
-        isSet.longitude = bits[3];
-        isSet.altitude = bits[4];
-        isSet.cameraMake = bits[5];
-        isSet.cameraModel = bits[6];
-        isSet.clientWillIndex = bits[7];
-        isSet.recoType = bits[8];
-        isSet.fileName = bits[9];
-        isSet.attachment = bits[10];
-        isSet.applicationData = bits[11];
+        bool isSetSourceURL = bits[0];
+        bool isSetTimestamp = bits[1];
+        bool isSetLatitude = bits[2];
+        bool isSetLongitude = bits[3];
+        bool isSetAltitude = bits[4];
+        bool isSetCameraMake = bits[5];
+        bool isSetCameraModel = bits[6];
+        bool isSetClientWillIndex = bits[7];
+        bool isSetRecoType = bits[8];
+        bool isSetFileName = bits[9];
+        bool isSetAttachment = bits[10];
+        bool isSetApplicationData = bits[11];
 
-        if (isSet.sourceURL) {
+        if (isSetSourceURL) {
             attributes.sourceURL = "https://github.com/d1vanov";
         }
 
-        if (isSet.timestamp) {
-            attributes.timestamp = static_cast<evernote::edam::Timestamp>(10);
+        if (isSetTimestamp) {
+            attributes.timestamp = static_cast<qevercloud::Timestamp>(10);
         }
 
-        if (isSet.latitude) {
+        if (isSetLatitude) {
             attributes.latitude = 20.0;
         }
 
-        if (isSet.longitude) {
+        if (isSetLongitude) {
             attributes.longitude = 30.0;
         }
 
-        if (isSet.altitude) {
+        if (isSetAltitude) {
             attributes.altitude = 40.0;
         }
 
-        if (isSet.cameraMake) {
+        if (isSetCameraMake) {
             attributes.cameraMake = "Something...";
         }
 
-        if (isSet.cameraModel) {
+        if (isSetCameraModel) {
             attributes.cameraModel = "Canon or Nikon?";
         }
 
-        if (isSet.clientWillIndex) {
+        if (isSetClientWillIndex) {
             attributes.clientWillIndex = bits[12];
         }
 
-        if (isSet.recoType) {
+        if (isSetRecoType) {
             attributes.recoType = "text";
         }
 
-        if (isSet.fileName) {
+        if (isSetFileName) {
             attributes.fileName = "some file";
         }
 
-        if (isSet.attachment) {
+        if (isSetAttachment) {
             attributes.attachment = bits[13];
         }
 
-        if (isSet.applicationData)
+        if (isSetApplicationData)
         {
-            auto & applicationData = attributes.applicationData;
-            auto & applicationDataKeys = applicationData.keysOnly;
-            auto & applicationDataMap  = applicationData.fullMap;
+            attributes.applicationData = qevercloud::LazyMap();
+            qevercloud::LazyMap & applicationData = attributes.applicationData;
+            applicationData.keysOnly = QSet<QString>();
+            QSet<QString> & applicationDataKeys = applicationData.keysOnly;
+            applicationData.fullMap = QMap<QString, QString>();
+            QMap<QString, QString> & applicationDataMap = applicationData.fullMap;
 
             applicationDataKeys.insert("key1");
             applicationDataKeys.insert("key2");
@@ -669,15 +678,15 @@ bool TestResourceAttributesSerialization(QString & errorDescription)
         }
 
         QByteArray serializedAttributes = GetSerializedResourceAttributes(attributes);
-        evernote::edam::ResourceAttributes deserializedAttributes = GetDeserializedResourceAttributes(serializedAttributes);
+        qevercloud::ResourceAttributes deserializedAttributes = GetDeserializedResourceAttributes(serializedAttributes);
 
         if (attributes != deserializedAttributes)
         {
             errorDescription = "Serialization test for ResourceAttributes FAILED! ";
             errorDescription.append("Initial ResourceAttributes: \n");
-            errorDescription.append(ToQString<evernote::edam::ResourceAttributes>(attributes));
+            errorDescription.append(ToQString<qevercloud::ResourceAttributes>(attributes));
             errorDescription.append("Deserialized ResourceAttributes: \n");
-            errorDescription.append(ToQString<evernote::edam::ResourceAttributes>(deserializedAttributes));
+            errorDescription.append(ToQString<qevercloud::ResourceAttributes>(deserializedAttributes));
 
             return false;
         }
