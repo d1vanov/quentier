@@ -1,6 +1,5 @@
 #include "QuteNoteTextEdit.h"
 #include "ToDoCheckboxTextObject.h"
-#include <NoteStore.h>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QTextCursor>
@@ -14,7 +13,7 @@
 #include <QImage>
 #include <QDebug>
 
-using namespace evernote::edam;
+using namespace qevercloud;
 
 QuteNoteTextEdit::QuteNoteTextEdit(QWidget * parent) :
     QTextEdit(parent),
@@ -371,9 +370,9 @@ void QuteNoteTextEdit::mergeFormatOnWordOrSelection(const QTextCharFormat & form
     cursor.endEditBlock();
 }
 
-bool QuteNoteTextEdit::noteRichTextToENML(Note & note, QString & errorDescription) const
+bool QuteNoteTextEdit::noteRichTextToENML(QString & ENML, QString & errorDescription) const
 {
-    return m_converter.richTextToNote(*this, note, errorDescription);
+    return m_converter.richTextToNoteContent(*this, ENML, errorDescription);
 }
 
 void QuteNoteTextEdit::insertCheckedToDoCheckboxAtCursor(QTextCursor cursor)

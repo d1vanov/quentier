@@ -7,14 +7,6 @@
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QImage)
 
-namespace evernote {
-namespace edam {
-
-QT_FORWARD_DECLARE_CLASS(Note)
-
-}
-}
-
 class QuteNoteTextEdit: public QTextEdit
 {
     Q_OBJECT
@@ -40,7 +32,7 @@ public:
     void changeIndentation(const bool increase);
     void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
 
-    bool noteRichTextToENML(evernote::edam::Note &note, QString & errorDescription) const;
+    bool noteRichTextToENML(QString & ENML, QString & errorDescription) const;
 
     void insertCheckedToDoCheckboxAtCursor(QTextCursor cursor);
     void insertUncheckedToDoCheckboxAtCursor(QTextCursor cursor);

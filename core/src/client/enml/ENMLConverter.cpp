@@ -1,8 +1,7 @@
 #include "ENMLConverter.h"
 #include <note_editor/QuteNoteTextEdit.h>
 #include <tools/QuteNoteCheckPtr.h>
-#include <NoteStore.h>
-#include <QString>
+#include <QEverCloud.h>
 #include <QTextDocument>
 #include <QTextBlock>
 #include <QTextFragment>
@@ -10,8 +9,6 @@
 #include <QDomDocument>
 #include <QMimeData>
 #include <QDebug>
-
-using namespace evernote::edam;
 
 namespace qute_note {
 
@@ -21,14 +18,10 @@ ENMLConverter::ENMLConverter()
 }
 
 ENMLConverter::ENMLConverter(const ENMLConverter & other) :
-    m_forbiddenXhtmlTags(other.m_forbiddenXhtmlTags.cbegin(),
-                         other.m_forbiddenXhtmlTags.cend()),
-    m_forbiddenXhtmlAttributes(other.m_forbiddenXhtmlAttributes.cbegin(),
-                               other.m_forbiddenXhtmlAttributes.cend()),
-    m_evernoteSpecificXhtmlTags(other.m_evernoteSpecificXhtmlTags.cbegin(),
-                                other.m_evernoteSpecificXhtmlTags.cend()),
-    m_allowedXhtmlTags(other.m_allowedXhtmlTags.cbegin(),
-                       other.m_allowedXhtmlTags.cend())
+    m_forbiddenXhtmlTags(other.m_forbiddenXhtmlTags),
+    m_forbiddenXhtmlAttributes(other.m_forbiddenXhtmlAttributes),
+    m_evernoteSpecificXhtmlTags(other.m_evernoteSpecificXhtmlTags),
+    m_allowedXhtmlTags(other.m_allowedXhtmlTags)
 {}
 
 ENMLConverter & ENMLConverter::operator=(const ENMLConverter & other)
@@ -43,19 +36,11 @@ ENMLConverter & ENMLConverter::operator=(const ENMLConverter & other)
     return *this;
 }
 
-bool ENMLConverter::richTextToNote(const QuteNoteTextEdit & noteEditor,
-                                   evernote::edam::Note & note,
-                                   QString & errorDescription) const
+bool ENMLConverter::richTextToNoteContent(const QuteNoteTextEdit & noteEditor,
+                                          QString & ENML, QString & errorDescription) const
 {
-    QString ENML;
-
     const QTextDocument * pNoteDoc = noteEditor.document();
     QUTE_NOTE_CHECK_PTR(pNoteDoc, QObject::tr("Null QTextDocument pointer received from QuteNoteTextEdit"));
-
-    const std::vector<Resource> & resources = note.resources;
-
-    size_t numResources = resources.size();
-    size_t resourceIndex = 0;
 
     ENML.append("<en-note>");
 
@@ -82,29 +67,11 @@ bool ENMLConverter::richTextToNote(const QuteNoteTextEdit & noteEditor,
             }
             else if (currentFragmentCharFormatObjectType == QuteNoteTextEdit::MEDIA_RESOURCE_TXT_FORMAT)
             {
-                if (resourceIndex >= numResources)
-                {
-                    errorDescription = QObject::tr("Internal error! Found char format corresponding to resource "
-                                                   "but haven't found the corresponding resource object for index ");
-                    errorDescription.append(QString::number(resourceIndex));
+                bool res = addEnMediaFromCharFormat(currentFragmentCharFormat, ENML,
+                                                    errorDescription);
+                if (!res) {
                     return false;
                 }
-                else
-                {
-                    const Resource & resource = resources[resourceIndex];
-
-                    ENML.append("<en-media width=\"");
-                    ENML.append(QString::number(resource.width));
-                    ENML.append("\" height=\"");
-                    ENML.append(QString::number(resource.height));
-                    ENML.append("\" type=\"");
-                    ENML.append(QString::fromStdString(resource.mime));
-                    ENML.append("\" hash=\"");
-                    ENML.append(QString::fromStdString(resource.data.bodyHash));
-                    ENML.append("/>");
-                }
-
-                ++resourceIndex;
             }
             else if (currentFragment.isValid())
             {
@@ -113,7 +80,7 @@ bool ENMLConverter::richTextToNote(const QuteNoteTextEdit & noteEditor,
                                           errorDescription);
                 if (!res) {
                     errorDescription = QObject::tr("ENML converter: can't encode fragment: ") +
-                                       errorDescription;
+                            errorDescription;
                     return false;
                 }
                 else {
@@ -130,14 +97,10 @@ bool ENMLConverter::richTextToNote(const QuteNoteTextEdit & noteEditor,
         }
     }
 
-    ENML.append("</en_note>");
-    note.content = ENML.toStdString();
-    note.__isset.content = true;
-
     return true;
 }
 
-bool ENMLConverter::NoteToRichText(const evernote::edam::Note & note, QuteNoteTextEdit & noteEditor,
+bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEdit & noteEditor,
                                    QString & errorMessage) const
 {
     const QScopedPointer<QuteNoteTextEdit> pFakeNoteEditor(new QuteNoteTextEdit());
@@ -150,7 +113,7 @@ bool ENMLConverter::NoteToRichText(const evernote::edam::Note & note, QuteNoteTe
 
     QDomDocument enXmlDomDoc;
     int errorLine = -1, errorColumn = -1;
-    bool res = enXmlDomDoc.setContent(QString::fromStdString(note.content), &errorMessage, &errorLine, &errorColumn);
+    bool res = enXmlDomDoc.setContent(note.content, &errorMessage, &errorLine, &errorColumn);
     if (!res) {
         errorMessage.append(QObject::tr(". Error happened at line ") +
                             QString::number(errorLine) + QObject::tr(", at column ") +
@@ -166,11 +129,10 @@ bool ENMLConverter::NoteToRichText(const evernote::edam::Note & note, QuteNoteTe
         return false;
     }
 
-    const std::vector<Resource> & resources = note.resources;
-    size_t numResources = resources.size();
-    bool noteHasResources = (numResources != 0);
-
-    size_t resourceIndex = 0;
+    QList<qevercloud::Resource> resources;
+    if (note.resources.isSet()) {
+        resources = note.resources.ref();
+    }
 
     QDomNode nextNode = docElem.firstChild();
     while(!nextNode.isNull())
@@ -209,51 +171,57 @@ bool ENMLConverter::NoteToRichText(const evernote::edam::Note & note, QuteNoteTe
                 }
                 else if (tagName == "en-media")
                 {
-                    if (!noteHasResources) {
-                        errorMessage = QObject::tr("Internal error: note reported no attached resources "
-                                                   "but \"en-media\" tag was found in its ENML. ");
-                        return false;
-                    }
-
-                    if (resourceIndex >= numResources) {
-                        errorMessage = QObject::tr("Internal error: the index of the next resource ");
-                        errorMessage.append(static_cast<int>(resourceIndex));
-                        errorMessage.append(QObject::tr(" must be smaller than the number of resources "
-                                                        "attached to the note."));
-                        return false;
-                    }
-
                     QString hashFromENML = element.attribute("hash");
                     if (hashFromENML.isEmpty()) {
                         errorMessage = QObject::tr("\"en-media\" tag has empty \"hash\" attribute");
                         return false;
                     }
 
-                    const Resource & resource = resources[resourceIndex];
-                    const std::string & hashFromResource = resource.data.bodyHash;
-
-                    if (hashFromENML.toStdString() != hashFromResource)
-                    {
-                        errorMessage = QObject::tr("Hashes of binary data of the resource differ for ENML "
-                                                   "and the corresponding Resource object. The ENML's hash: ");
-                        errorMessage.append(hashFromENML);
-                        errorMessage.append(QObject::tr(" , resource's hash: "));
-                        errorMessage.append(QString::fromStdString(hashFromResource));
-                        // TODO: print resource
+                    int resourceIndex = indexOfResourceByHash(resources, hashFromENML.toUtf8());
+                    if (resourceIndex < 0) {
+                        errorMessage = QObject::tr("Internal error: unable to find note's resource "
+                                                   "with specified hash: ");
+                        errorMessage += hashFromENML;
                         return false;
                     }
 
-                    ++resourceIndex;
+                    const qevercloud::Resource & resource = resources.at(resourceIndex);
+                    QString resourceHash;
+                    if (resource.data.isSet() && resource.data->bodyHash.isSet()) {
+                        resourceHash = QString(resource.data->bodyHash);
+                    }
+                    else if (resource.recognition.isSet() && resource.recognition->bodyHash.isSet()) {
+                        resourceHash = QString(resource.recognition->bodyHash);
+                    }
+                    else if (resource.alternateData.isSet() && resource.alternateData->bodyHash.isSet()) {
+                        resourceHash = QString(resource.alternateData->bodyHash);
+                    }
 
-                    QString mimeType = QString::fromStdString(resource.mime);
-                    // This should be enough, we don't need the actual binary data just to display the resource
-                    // The only exceptions are resources of image type
+                    if (resourceHash.isEmpty()) {
+                        errorMessage = QObject::tr("No relevant data hash found in the resource");
+                        return false;
+                    }
 
+                    if (!resource.mime.isSet()) {
+                        errorMessage = QObject::tr("Found resource without mime type set");
+                        return false;
+                    }
+                    QString mimeType = resource.mime;
+
+                    // Images have special treatment
                     if (mimeType.contains("image/"))
                     {
                         QMimeData resourceMimeData;
-                        resourceMimeData.setData(mimeType, QByteArray(resource.data.body.c_str(),
-                                                                      resource.data.body.length()));
+                        if (resource.data.isSet() && resource.data->body.isSet()) {
+                            resourceMimeData.setData(mimeType, resource.data->body.ref());
+                        }
+                        else if (resource.recognition.isSet() && resource.recognition->body.isSet()) {
+                            resourceMimeData.setData(mimeType, resource.recognition->body.ref());
+                        }
+                        else if (resource.alternateData.isSet() && resource.alternateData->body.isSet()) {
+                            resourceMimeData.setData(mimeType, resource.alternateData->body.ref());
+                        }
+
                         if (!resourceMimeData.hasImage()) {
                             errorMessage = QObject::tr("Internal error: mime type of the resource "
                                                        "was marked as the image one but resource's "
@@ -274,6 +242,9 @@ bool ENMLConverter::NoteToRichText(const evernote::edam::Note & note, QuteNoteTe
                     {
                         // TODO: somehow display the metadata of the resource inside the QuteNoteTextEdit object
                     }
+
+                    // TODO: support optional note content's en-media align, alt,
+                    // longdesc, height, width, border, hspace, vspace, usemap, style, lang, xml:lang, dir
                 }
                 else
                 {
@@ -510,7 +481,7 @@ const QString ENMLConverter::domElementToRawXML(const QDomElement & elem) const
 bool ENMLConverter::isForbiddenXhtmlTag(const QString & tagName) const
 {
     auto it = m_forbiddenXhtmlTags.find(tagName);
-    if (it == m_forbiddenXhtmlTags.cend()) {
+    if (it == m_forbiddenXhtmlTags.constEnd()) {
         return false;
     }
     else {
@@ -521,7 +492,7 @@ bool ENMLConverter::isForbiddenXhtmlTag(const QString & tagName) const
 bool ENMLConverter::isForbiddenXhtmlAttribute(const QString & attributeName) const
 {
     auto it = m_forbiddenXhtmlAttributes.find(attributeName);
-    if (it == m_forbiddenXhtmlAttributes.cend()) {
+    if (it == m_forbiddenXhtmlAttributes.constEnd()) {
         return false;
     }
     else {
@@ -532,7 +503,7 @@ bool ENMLConverter::isForbiddenXhtmlAttribute(const QString & attributeName) con
 bool ENMLConverter::isEvernoteSpecificXhtmlTag(const QString & tagName) const
 {
     auto it = m_evernoteSpecificXhtmlTags.find(tagName);
-    if (it == m_evernoteSpecificXhtmlTags.cend()) {
+    if (it == m_evernoteSpecificXhtmlTags.constEnd()) {
         return false;
     }
     else {
@@ -543,12 +514,113 @@ bool ENMLConverter::isEvernoteSpecificXhtmlTag(const QString & tagName) const
 bool ENMLConverter::isAllowedXhtmlTag(const QString & tagName) const
 {
     auto it = m_allowedXhtmlTags.find(tagName);
-    if (it == m_allowedXhtmlTags.cend()) {
+    if (it == m_allowedXhtmlTags.constEnd()) {
         return false;
     }
     else {
         return true;
     }
 }
+
+int ENMLConverter::indexOfResourceByHash(const QList<qevercloud::Resource> & resources,
+                                         const QByteArray & hash)
+{
+    if (resources.isEmpty()) {
+        return -1;
+    }
+
+    int numResources = resources.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const qevercloud::Resource & resource = resources.at(i);
+
+        if (resource.data.isSet() && resource.data->bodyHash.isSet()) {
+            const QByteArray & resourceHash = resource.data->bodyHash;
+            if (hash == resourceHash) {
+                return i;
+            }
+        }
+
+        if (resource.recognition.isSet() && resource.recognition->bodyHash.isSet()) {
+            const QByteArray & resourceHash = resource.recognition->bodyHash;
+            if (hash == resourceHash) {
+                return i;
+            }
+        }
+
+        if (resource.alternateData.isSet() && resource.alternateData->bodyHash.isSet()) {
+            const QByteArray & resourceHash = resource.alternateData->bodyHash;
+            if (hash == resourceHash) {
+                return i;
+            }
+        }
+    }
+
+    return -1;
+}
+
+bool ENMLConverter::addEnMediaFromCharFormat(const QTextCharFormat & format, QString & ENML,
+                                             QString & errorDescription) const
+{
+    // FIXME: set valid property id instead of these ad-hoc ones
+
+    QVariant resourceHash = format.property(QTextFormat::UserProperty + 1);
+    if (!resourceHash.isValid()) {
+        errorDescription = QObject::tr("Internal error! Unable to determine "
+                                       "resource hash from QTextCharFormat "
+                                       "in QuteNoteTextEdit widget");
+        return false;
+    }
+
+    QVariant resourceMimeType = format.property(QTextFormat::UserProperty + 2);
+    if (!resourceMimeType.isValid()) {
+        errorDescription = QObject::tr("Internal error! Unable to determime "
+                                       "resource mime type from QTextCharFormat "
+                                       "in QuteNoteTextEdit widget");
+        return false;
+    }
+
+    ENML.append("<en-media hash=\"");
+    ENML.append(QString(resourceHash.toByteArray()));
+    ENML.append("\" type=\"");
+    ENML.append(resourceMimeType.toString());
+    ENML.append("\"");
+
+#define CHECK_AND_APPEND_PROPERTY(prop, id) \
+    QVariant resource##prop = format.property(id); \
+    if (resource##prop.isValid()) { \
+        ENML.append(" " #prop "=\""); \
+        ENML.append(resource##prop.toString()); \
+        ENML.append("\""); \
+    }
+
+    CHECK_AND_APPEND_PROPERTY(align, QTextFormat::UserProperty + 3);
+    CHECK_AND_APPEND_PROPERTY(alt, QTextFormat::UserProperty + 4);
+    CHECK_AND_APPEND_PROPERTY(longdesc, QTextFormat::UserProperty + 5);
+    CHECK_AND_APPEND_PROPERTY(height, QTextFormat::UserProperty + 6);
+    CHECK_AND_APPEND_PROPERTY(width, QTextFormat::UserProperty + 7);
+    CHECK_AND_APPEND_PROPERTY(border, QTextFormat::UserProperty + 8);
+    CHECK_AND_APPEND_PROPERTY(hspace, QTextFormat::UserProperty + 9);
+    CHECK_AND_APPEND_PROPERTY(vspace, QTextFormat::UserProperty + 10);
+    CHECK_AND_APPEND_PROPERTY(usemap, QTextFormat::UserProperty + 11);
+
+    CHECK_AND_APPEND_PROPERTY(style, QTextFormat::UserProperty + 12);
+    CHECK_AND_APPEND_PROPERTY(title, QTextFormat::UserProperty + 13);
+    CHECK_AND_APPEND_PROPERTY(lang, QTextFormat::UserProperty + 14);
+    CHECK_AND_APPEND_PROPERTY(dir, QTextFormat::UserProperty + 15);
+
+#undef CHECK_AND_APPEND_PROPERTY
+
+    QVariant resourceXmlLang = format.property(QTextFormat::UserProperty + 16);
+    if (resourceXmlLang.isValid()) {
+        ENML.append(" xml:lang=\"");
+        ENML.append(resourceXmlLang.toString());
+        ENML.append("\"");
+    }
+
+    ENML.append("/>");
+    return true;
+}
+
 
 }

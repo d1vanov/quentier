@@ -1,19 +1,17 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
 
-#include <set>
+#include <QSet>
 #include <QString>
 
 QT_FORWARD_DECLARE_CLASS(QuteNoteTextEdit)
 QT_FORWARD_DECLARE_CLASS(QTextFragment)
+QT_FORWARD_DECLARE_CLASS(QTextCharFormat)
 QT_FORWARD_DECLARE_CLASS(QDomElement)
 
-namespace evernote {
-namespace edam {
-
-QT_FORWARD_DECLARE_CLASS(Note)
-
-}
+namespace qevercloud {
+QT_FORWARD_DECLARE_STRUCT(Note)
+QT_FORWARD_DECLARE_STRUCT(Resource)
 }
 
 namespace qute_note {
@@ -25,10 +23,10 @@ public:
     ENMLConverter(const ENMLConverter & other);
     ENMLConverter & operator=(const ENMLConverter & other);
 
-    bool richTextToNote(const QuteNoteTextEdit & noteEditor, evernote::edam::Note & note,
-                        QString & errorDescription) const;
+    bool richTextToNoteContent(const QuteNoteTextEdit & noteEditor, QString & ENML,
+                               QString & errorDescription) const;
 
-    bool NoteToRichText(const evernote::edam::Note & note, QuteNoteTextEdit & noteEditor,
+    bool NoteToRichText(const qevercloud::Note & note, QuteNoteTextEdit & noteEditor,
                         QString & errorMessage) const;
 
 private:
@@ -42,10 +40,16 @@ private:
     bool isEvernoteSpecificXhtmlTag(const QString & tagName) const;
     bool isAllowedXhtmlTag(const QString & tagName) const;
 
-    std::set<QString> m_forbiddenXhtmlTags;
-    std::set<QString> m_forbiddenXhtmlAttributes;
-    std::set<QString> m_evernoteSpecificXhtmlTags;
-    std::set<QString> m_allowedXhtmlTags;
+    static int indexOfResourceByHash(const QList<qevercloud::Resource> & resources,
+                                     const QByteArray & hash);
+
+    bool addEnMediaFromCharFormat(const QTextCharFormat & format, QString & ENML,
+                                  QString & errorDescription) const;
+
+    QSet<QString> m_forbiddenXhtmlTags;
+    QSet<QString> m_forbiddenXhtmlAttributes;
+    QSet<QString> m_evernoteSpecificXhtmlTags;
+    QSet<QString> m_allowedXhtmlTags;
 };
 
 
