@@ -1193,8 +1193,8 @@ bool LocalStorageManager::FindTag(const QString & tagGuid, Tag & tag, QString & 
 
     QString name = query.value(1).toString();
     size_t nameSize = name.size();
-    if ( (nameSize < evernote::limits::g_Limits_constants.EDAM_TAG_NAME_LEN_MIN) ||
-         (nameSize > evernote::limits::g_Limits_constants.EDAM_TAG_NAME_LEN_MAX) )
+    if ( (nameSize < qevercloud::EDAM_TAG_NAME_LEN_MIN) ||
+         (nameSize > qevercloud::EDAM_TAG_NAME_LEN_MAX) )
     {
         errorDescription += QObject::tr("Internal error: found tag with invalid "
                                         "name size from SQL query result");

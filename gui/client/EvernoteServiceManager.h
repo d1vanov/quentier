@@ -7,7 +7,6 @@
 #include "CredentialsModel.h"
 
 QT_FORWARD_DECLARE_CLASS(EvernoteOAuthBrowser)
-QT_FORWARD_DECLARE_CLASS(EvernoteServiceOAuthHandler)
 
 class EvernoteServiceManager: public QObject
 {
@@ -95,7 +94,6 @@ private:
     void SetFavouriteTag();
 
 private:
-    EvernoteServiceOAuthHandler * m_pOAuthHandler;
     EvernoteDataHolder * m_pEvernoteDataHolder;
     CredentialsModel     m_credentials;
     EAuthorizationState  m_authorizationState;

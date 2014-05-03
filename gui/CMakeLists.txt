@@ -13,7 +13,6 @@ set(CMAKE_AUTOMOC ON)
 set(${PROJECT_NAME}_HEADERS
     client/CredentialsModel.h
     client/EvernoteServiceManager.h
-    client/EvernoteServiceOAuthHandler.h
     src/MainWindow.h
     src/AskConsumerKeyAndSecret.h
     src/AskUserNameAndPassword.h
@@ -22,7 +21,6 @@ set(${PROJECT_NAME}_HEADERS
 set(${PROJECT_NAME}_SOURCES
     client/CredentialsModel.cpp
     client/EvernoteServiceManager.cpp
-    client/EvernoteServiceOAuthHandler.cpp
     src/MainWindow.cpp
     src/AskConsumerKeyAndSecret.cpp
     src/AskUserNameAndPassword.cpp

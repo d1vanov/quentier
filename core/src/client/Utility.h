@@ -1,9 +1,8 @@
 #ifndef __QUTE_NOTE__CLIENT__UTILITY_H
 #define __QUTE_NOTE__CLIENT__UTILITY_H
 
-#include <Types_types.h>
-#include <Limits_constants.h>
 #include <QString>
+#include <QEverCloud.h>
 
 namespace qute_note {
 
@@ -12,11 +11,11 @@ bool CheckGuid(const T & guid)
 {
     size_t guidSize = guid.size();
 
-    if (guidSize < evernote::limits::g_Limits_constants.EDAM_GUID_LEN_MIN) {
+    if (guidSize < qevercloud::EDAM_GUID_LEN_MIN) {
         return false;
     }
 
-    if (guidSize > evernote::limits::g_Limits_constants.EDAM_GUID_LEN_MAX) {
+    if (guidSize > qevercloud::EDAM_GUID_LEN_MAX) {
         return false;
     }
 

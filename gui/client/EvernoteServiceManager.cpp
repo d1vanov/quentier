@@ -1,20 +1,8 @@
 #include "EvernoteServiceManager.h"
-#include "EvernoteServiceOAuthHandler.h"
 #include "../src/MainWindow.h"
 #include "../src/EvernoteOAuthBrowser.h"
 #include <Simplecrypt.h>
-#include <thrift/transport/THttpClient.h>
-#ifndef _WIN32
-#include <netinet/in.h>
-#else
-#include <Winsock2.h>
-#endif
-#include <thrift/transport/TSSLSocket.h>
-#include <thrift/transport/TBufferTransports.h>
-#include <thrift/protocol/TBinaryProtocol.h>
-#include <UserStore.h>
-#include <NoteStore.h>
-#include <boost/shared_ptr.hpp>
+#include <QEverCloudOAuth.h>
 #include <vector>
 #include <string>
 #include <QtCore>
@@ -23,10 +11,8 @@
 
 class EvernoteServiceManager::EvernoteDataHolder
 {
-   public:
+public:
     EvernoteDataHolder() :
-        m_httpClientPtr(),
-        m_binaryProtocolPtr(),
         m_userStoreClientPtr(nullptr),
         m_noteStoreClientPtr(nullptr),
         m_notebookPtr(nullptr),
@@ -35,65 +21,47 @@ class EvernoteServiceManager::EvernoteDataHolder
         m_noteStoreUrl("")
     {}
 
-    boost::shared_ptr<apache::thrift::transport::THttpClient> & httpClientPtr()
-    {
-        return m_httpClientPtr;
-    }
-
-    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> & binaryProtocolPtr()
-    {
-        return m_binaryProtocolPtr;
-    }
-
-    evernote::edam::UserStoreClient *& userStoreClientPtr()
-    {
+    qevercloud::UserStore * userStorePtr() {
         return m_userStoreClientPtr;
     }
 
-    evernote::edam::NoteStoreClient *& noteStoreClientPtr()
+    qevercloud::NoteStore * noteStorePtr()
     {
         return m_noteStoreClientPtr;
     }
 
-    evernote::edam::Notebook *& notebookPtr()
+    qevercloud::Notebook * notebookPtr()
     {
         return m_notebookPtr;
     }
 
-    evernote::edam::Notebook *& trashNotebookPtr()
+    qevercloud::Notebook * trashNotebookPtr()
     {
         return m_trashNotebookPtr;
     }
 
-    evernote::edam::Tag *& favouriteTagPtr()
+    qevercloud::Tag * favouriteTagPtr()
     {
         return m_favouriteTagPtr;
     }
 
-    std::string & noteStoreUrl()
+    QString & noteStoreUrl()
     {
         return m_noteStoreUrl;
     }
 
 private:
-    boost::shared_ptr<apache::thrift::transport::THttpClient> m_httpClientPtr;
-    boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> m_binaryProtocolPtr;
-    evernote::edam::UserStoreClient * m_userStoreClientPtr;
-    evernote::edam::NoteStoreClient * m_noteStoreClientPtr;
-    evernote::edam::Notebook * m_notebookPtr;
-    evernote::edam::Notebook * m_trashNotebookPtr;
-    evernote::edam::Tag * m_favouriteTagPtr;
-    std::string m_noteStoreUrl;
+    qevercloud::UserStore * m_userStoreClientPtr;
+    qevercloud::NoteStore * m_noteStoreClientPtr;
+    qevercloud::Notebook * m_notebookPtr;
+    qevercloud::Notebook * m_trashNotebookPtr;
+    qevercloud::Tag * m_favouriteTagPtr;
+    QString m_noteStoreUrl;
 };
 
 void EvernoteServiceManager::authenticate()
 {
-    Q_CHECK_PTR(m_pOAuthHandler);
-
-    QString errorMessage;
-    if (!m_pOAuthHandler->getAccess(errorMessage)) {
-        emit statusTextUpdate(errorMessage, 0);
-    }
+    // TODO: implement using QEverCloud
 }
 
 void EvernoteServiceManager::connect()
@@ -101,7 +69,7 @@ void EvernoteServiceManager::connect()
     QString errorMessage;
     if (!CheckAuthenticationState(errorMessage)) {
         emit statusTextUpdate(QString(tr("Unable to connect to Evernote - authentication failed: ")) +
-                        errorMessage, 0);
+                              errorMessage, 0);
         return;
     }
 
@@ -111,36 +79,20 @@ void EvernoteServiceManager::connect()
     std::string consumerKey = m_credentials.GetConsumerKey().toStdString();
     std::string consumerSecret = m_credentials.GetConsumerSecret().toStdString();
     */
-    std::string authToken = m_credentials.GetOAuthKey().toStdString();
+    QString authToken = m_credentials.GetOAuthKey();
     // std::string authTokenSecret = m_credentials.GetOAuthSecret().toStdString();
 
-    std::string hostname = GetHostName().toStdString();
-    std::string evernoteUser = "/edam/user";
+    QString hostname = GetHostName();
 
-    typedef apache::thrift::transport::THttpClient THttpClient;
-    boost::shared_ptr<THttpClient> authClientPtr(new THttpClient(hostname, 80, evernoteUser));
-    if (authClientPtr.get() == nullptr) {
-        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: cannot instantiate THttp client. ")) +
-                        QString(tr("Please contact application developer.")), 0);
-        return;
+    qevercloud::UserStore * pUserStore = m_pEvernoteDataHolder->userStorePtr();
+    if (pUserStore == nullptr) {
+        delete pUserStore;
+        pUserStore = nullptr;
     }
 
-    authClientPtr->open();
+    pUserStore = new qevercloud::UserStore(hostname, authToken, this);
 
-    typedef apache::thrift::protocol::TBinaryProtocol TBinaryProtocol;
-    boost::shared_ptr<TBinaryProtocol> userStoreProtocolPtr(new TBinaryProtocol(authClientPtr));
-    if (userStoreProtocolPtr.get() == nullptr) {
-        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: cannot instantiate TBinaryProtocol. ")) +
-                        QString(tr("Please contact application developer.")), 0);
-        return;
-    }
-
-    typedef evernote::edam::UserStoreClient UserStoreClient;
-    UserStoreClient userStoreClient(userStoreProtocolPtr, userStoreProtocolPtr);
-    std::string noteStoreUrl = "";
-    userStoreClient.getNoteStoreUrl(noteStoreUrl, authToken);
-
-    authClientPtr->close();
+    QString noteStoreUrl = pUserStore->getNoteStoreUrl();
 
     if (m_pEvernoteDataHolder == nullptr) {
         emit statusTextUpdate(QString(tr("Unable to connect to Evernote: data holder ptr is null! ")) +
@@ -149,64 +101,17 @@ void EvernoteServiceManager::connect()
     }
 
     m_pEvernoteDataHolder->noteStoreUrl() = noteStoreUrl;
-    QString path = m_pEvernoteDataHolder->noteStoreUrl().c_str();
-    path.replace("https://","");
-    path.replace(hostname.c_str(),"");
+    QString path = noteStoreUrl;
+    path.replace("https://", "");
+    path.replace(hostname, "");
 
-    typedef apache::thrift::transport::TSSLSocketFactory TSSLSocketFactory;
-    boost::shared_ptr<TSSLSocketFactory> factoryPtr(new TSSLSocketFactory);
-    if (factoryPtr.get() == nullptr) {
-        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: unable to instantiate TSSLSocketFactory. ")) +
-                        QString(tr("Please contact application developer.")), 0);
-        return;
+    qevercloud::NoteStore * pNoteStore = m_pEvernoteDataHolder->noteStorePtr();
+    if (pNoteStore != nullptr) {
+        delete pNoteStore;
+        pNoteStore = nullptr;
     }
 
-    typedef apache::thrift::transport::TSSLSocket TSSLSocket;
-    boost::shared_ptr<TSSLSocket> socketPtr = factoryPtr->createSocket();
-    if (socketPtr.get() == nullptr) {
-        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: unable to instantiate TSSLSocket. ")) +
-                        QString(tr("Please contact application developer.")), 0);
-        return;
-    }
-
-    // TODO: make it adjustable at runtime
-    socketPtr->setConnTimeout(12000);
-    socketPtr->setRecvTimeout(12000);
-    socketPtr->setSendTimeout(12000);
-
-    typedef apache::thrift::transport::TBufferedTransport TBufferedTransport;
-    boost::shared_ptr<TBufferedTransport> transportPtr(new TBufferedTransport(socketPtr));
-    if (transportPtr.get() == nullptr) {
-        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: unable to instantiate TBufferedTransport. ")) +
-                        QString(tr("Please contact application developer.")), 0);
-        return;
-    }
-
-    boost::shared_ptr<THttpClient> & httpClientPtr = m_pEvernoteDataHolder->httpClientPtr();
-    httpClientPtr.reset(new THttpClient(transportPtr, hostname, path.toUtf8().constData()));
-    if (httpClientPtr.get() == nullptr) {
-        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: unable to instantiate THttpClient. ")) +
-                        QString(tr("Please contact application developer.")), 0);
-        return;
-    }
-
-    httpClientPtr->open();
-    m_pEvernoteDataHolder->binaryProtocolPtr().reset(new TBinaryProtocol(httpClientPtr));
-
-    typedef evernote::edam::NoteStoreClient NoteStoreClient;
-    NoteStoreClient *& pNoteStoreClient = m_pEvernoteDataHolder->noteStoreClientPtr();
-    if (pNoteStoreClient != nullptr) {
-        delete pNoteStoreClient;
-        pNoteStoreClient = nullptr;
-    }
-
-    pNoteStoreClient = new NoteStoreClient(m_pEvernoteDataHolder->binaryProtocolPtr(),
-                                           m_pEvernoteDataHolder->binaryProtocolPtr());
-    if (pNoteStoreClient == nullptr) {
-        emit statusTextUpdate(QString(tr("Unable to connect to Evernote: unable to instantiate NoteStoreClient. ")) +
-                        QString(tr("Please contact application developer.")), 0);
-        return;
-    }
+    pNoteStore = new qevercloud::NoteStore(noteStoreUrl, authToken, this);
 
     SetDefaultNotebook();
     SetTrashNotebook();
@@ -221,16 +126,9 @@ void EvernoteServiceManager::disconnect()
         return;
     }
 
-    typedef apache::thrift::transport::THttpClient THttpClient;
-    boost::shared_ptr<THttpClient> & httpClientPtr = m_pEvernoteDataHolder->httpClientPtr();
-    if (httpClientPtr.get() == nullptr) {
-        return;
-    }
-    else {
-        httpClientPtr->flush();
-        httpClientPtr->close();
-        SetConnectionState(ECS_DISCONNECTED);
-    }
+    // TODO: figure out what to do here
+
+    SetConnectionState(ECS_DISCONNECTED);
 }
 
 void EvernoteServiceManager::setRefreshTime(const double refreshTime)
@@ -239,7 +137,6 @@ void EvernoteServiceManager::setRefreshTime(const double refreshTime)
 }
 
 EvernoteServiceManager::EvernoteServiceManager() :
-    m_pOAuthHandler(new EvernoteServiceOAuthHandler(this, *this)),
     m_pEvernoteDataHolder(new EvernoteDataHolder),
     m_credentials(this),
     m_authorizationState(EAS_UNAUTHORIZED_NEVER_ATTEMPTED),
@@ -265,160 +162,137 @@ void EvernoteServiceManager::SetConnectionState(const EvernoteServiceManager::EC
 
 void EvernoteServiceManager::SetDefaultNotebook()
 {
-    typedef evernote::edam::Notebook Notebook;
-    std::vector<Notebook> notebooks;
-
     if (m_pEvernoteDataHolder == nullptr) {
         emit statusTextUpdate(QString(tr("Unable to set default notebook: EvernoteDataHolder is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
 
-    typedef evernote::edam::NoteStoreClient NoteStoreClient;
-    NoteStoreClient * noteStoreClientPtr = m_pEvernoteDataHolder->noteStoreClientPtr();
-    if (noteStoreClientPtr == nullptr) {
+    qevercloud::NoteStore * pNoteStore = m_pEvernoteDataHolder->noteStorePtr();
+    if (pNoteStore == nullptr) {
         emit statusTextUpdate(QString(tr("Unable to set default notebook: NoteStoreClient is null. ")) +
-                        QString(tr("Please contact application developer.")), 0);
+                              QString(tr("Please contact application developer.")), 0);
         return;
     }
 
-    std::string authToken = m_credentials.GetOAuthKey().toStdString();
-    noteStoreClientPtr->listNotebooks(notebooks, authToken);
+    QList<qevercloud::Notebook> notebooks = pNoteStore->listNotebooks();
+    qevercloud::Notebook defaultNotebook = pNoteStore->getDefaultNotebook();
 
-    Notebook defaultNotebook;
-    noteStoreClientPtr->getDefaultNotebook(defaultNotebook, authToken);
-
-    Notebook *& notebookPtr = m_pEvernoteDataHolder->notebookPtr();
-    size_t numNotebooks = notebooks.size();
-    for(size_t i = 0; i < numNotebooks; ++i)
+    qevercloud::Notebook * pNotebook = m_pEvernoteDataHolder->notebookPtr();
+    int numNotebooks = notebooks.size();
+    for(int i = 0; i < numNotebooks; ++i)
     {
-        Notebook & notebook = notebooks[i];
-        if (notebook.guid == defaultNotebook.guid)
+        const qevercloud::Notebook & notebook = notebooks.at(i);
+        if (notebook.guid.ref() == defaultNotebook.guid.ref())
         {   
-            if (notebookPtr != nullptr) {
-                delete notebookPtr;
-                notebookPtr = nullptr;
+            if (pNotebook != nullptr) {
+                delete pNotebook;
+                pNotebook = nullptr;
             }
-            notebookPtr = new Notebook(notebook);
+            pNotebook = new qevercloud::Notebook(notebook);
             return;
         }
     }
 
     // Default notebook not found, creating one
-    noteStoreClientPtr->createNotebook(defaultNotebook, authToken, defaultNotebook);
-    noteStoreClientPtr->getNotebook(defaultNotebook, authToken, defaultNotebook.guid);
+    defaultNotebook = pNoteStore->createNotebook(defaultNotebook);
+    defaultNotebook = pNoteStore->getNotebook(defaultNotebook.guid);
 
-    if (notebookPtr != nullptr) {
-        delete notebookPtr;
-        notebookPtr = nullptr;
+    if (pNotebook != nullptr) {
+        delete pNotebook;
+        pNotebook = nullptr;
     }
-    notebookPtr = new Notebook(defaultNotebook);
+    pNotebook = new qevercloud::Notebook(defaultNotebook);
 }
 
 void EvernoteServiceManager::SetTrashNotebook()
 {
-    typedef evernote::edam::Notebook Notebook;
-    std::vector<Notebook> notebooks;
-
     if (m_pEvernoteDataHolder == nullptr) {
         emit statusTextUpdate(QString(tr("Unable to set default notebook: EvernoteDataHolder is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
 
-    typedef evernote::edam::NoteStoreClient NoteStoreClient;
-    NoteStoreClient * noteStoreClientPtr = m_pEvernoteDataHolder->noteStoreClientPtr();
-    if (noteStoreClientPtr == nullptr) {
+    qevercloud::NoteStore * pNoteStore = m_pEvernoteDataHolder->noteStorePtr();
+    if (pNoteStore == nullptr) {
         emit statusTextUpdate(QString(tr("Unable to set default notebook: NoteStoreClient is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
 
-    std::string authToken = m_credentials.GetOAuthKey().toStdString();
-
-    Notebook *& trashNotebookPtr = m_pEvernoteDataHolder->trashNotebookPtr();
-    if (trashNotebookPtr == nullptr)
+    qevercloud::Notebook * pTrashNotebook = m_pEvernoteDataHolder->trashNotebookPtr();
+    if (pTrashNotebook == nullptr)
     {
-        trashNotebookPtr = new Notebook;
-        trashNotebookPtr->name = QString(tr("Trash notebook")).toStdString();
-        noteStoreClientPtr->createNotebook(*trashNotebookPtr, authToken,
-                                           *trashNotebookPtr);
+        pTrashNotebook = new qevercloud::Notebook;
+        pTrashNotebook->name = QString(tr("Trash notebook"));
+        *pTrashNotebook = pNoteStore->createNotebook(*pTrashNotebook);
     }
     else
     {
-        noteStoreClientPtr->listNotebooks(notebooks, authToken);
-
-        size_t numNotebooks = notebooks.size();
-        for(size_t i = 0; i < numNotebooks; ++i)
+        QList<qevercloud::Notebook> notebooks = pNoteStore->listNotebooks();
+        int numNotebooks = notebooks.size();
+        for(int i = 0; i < numNotebooks; ++i)
         {
-            Notebook & notebook = notebooks[i];
-            if (notebook.guid == trashNotebookPtr->guid)
+            const qevercloud::Notebook & notebook = notebooks.at(i);
+            if (notebook.guid.ref() == pTrashNotebook->guid.ref())
             {
-                delete trashNotebookPtr;
-                trashNotebookPtr = new Notebook(notebook);
+                delete pTrashNotebook;
+                pTrashNotebook = new qevercloud::Notebook(notebook);
                 return;
             }
         }
 
         // Trash notebook not found, creating one
-        delete trashNotebookPtr;
-        trashNotebookPtr = new Notebook;
-        trashNotebookPtr->name = QString(tr("Trash notebook")).toStdString();
-        noteStoreClientPtr->createNotebook(*trashNotebookPtr, authToken,
-                                           *trashNotebookPtr);
+        delete pTrashNotebook;
+        pTrashNotebook = new qevercloud::Notebook;
+        pTrashNotebook->name = QString(tr("Trash notebook"));
+        *pTrashNotebook = pNoteStore->createNotebook(*pTrashNotebook);
     }
 }
 
 void EvernoteServiceManager::SetFavouriteTag()
 {
-    typedef evernote::edam::Tag Tag;
-    std::vector<Tag> tags;
-
     if (m_pEvernoteDataHolder == nullptr) {
         emit statusTextUpdate(QString(tr("Unable to set favourite tag: EvernoteDataHolder is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
 
-    typedef evernote::edam::NoteStoreClient NoteStoreClient;
-    NoteStoreClient  * noteStoreClientPtr = m_pEvernoteDataHolder->noteStoreClientPtr();
-    if (noteStoreClientPtr == nullptr) {
+    qevercloud::NoteStore * pNoteStore = m_pEvernoteDataHolder->noteStorePtr();
+    if (pNoteStore == nullptr) {
         emit statusTextUpdate(QString(tr("Unable to set favourite tag: NoteStoreClient is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
 
-    std::string authToken = m_credentials.GetOAuthKey().toStdString();
-
-    Tag *& favouriteTagPtr = m_pEvernoteDataHolder->favouriteTagPtr();
-    if (favouriteTagPtr == nullptr)
+    qevercloud::Tag * pFavouriteTag = m_pEvernoteDataHolder->favouriteTagPtr();
+    if (pFavouriteTag == nullptr)
     {
-        favouriteTagPtr = new Tag;
-        favouriteTagPtr->name = QString(tr("Favourite tag")).toStdString();
-        noteStoreClientPtr->createTag(*favouriteTagPtr, authToken, *favouriteTagPtr);
+        pFavouriteTag = new qevercloud::Tag;
+        pFavouriteTag->name = QString(tr("Favourite tag"));
+        *pFavouriteTag = pNoteStore->createTag(*pFavouriteTag);
         return;
     }
     else
     {
-        noteStoreClientPtr->listTags(tags, authToken);
-
-        size_t numTags = tags.size();
-        for(size_t i = 0; i < numTags; ++i)
+        QList<qevercloud::Tag> tags = pNoteStore->listTags();
+        int numTags = tags.size();
+        for(int i = 0; i < numTags; ++i)
         {
-            Tag & tag = tags[i];
-            if (tag.guid == favouriteTagPtr->guid)
+            const qevercloud::Tag & tag = tags.at(i);
+            if (tag.guid.ref() == pFavouriteTag->guid.ref())
             {
-                delete favouriteTagPtr;
-                favouriteTagPtr = new Tag(tag);
+                delete pFavouriteTag;
+                pFavouriteTag = new qevercloud::Tag(tag);
                 return;
             }
         }
 
         // Favourite tag not found, creating one
-        delete favouriteTagPtr;
-        favouriteTagPtr = new Tag;
-        favouriteTagPtr->name = QString(tr("Favourite tag")).toStdString();
-        noteStoreClientPtr->createTag(*favouriteTagPtr, authToken, *favouriteTagPtr);
+        delete pFavouriteTag;
+        pFavouriteTag = new qevercloud::Tag;
+        pFavouriteTag->name = QString(tr("Favourite tag"));
+        *pFavouriteTag = pNoteStore->createTag(*pFavouriteTag);
     }
 }
 

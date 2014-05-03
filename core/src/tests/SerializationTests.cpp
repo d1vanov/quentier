@@ -2,7 +2,6 @@
 #include <client/Serialization.h>
 #include <client/types/QEverCloudHelpers.h>
 #include <tools/Printable.h>
-#include <Types_types.h>
 #include <bitset>
 
 namespace qute_note {
