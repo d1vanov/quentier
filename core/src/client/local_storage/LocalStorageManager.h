@@ -29,6 +29,13 @@ QT_FORWARD_DECLARE_CLASS(SavedSearch)
 QT_FORWARD_DECLARE_CLASS(IUser)
 typedef qevercloud::UserID UserID;
 
+struct WhichGuid {
+    enum type {
+        LocalGuid,
+        EverCloudGuid
+    };
+};
+
 class LocalStorageManager
 {
 public:
@@ -202,8 +209,8 @@ public:
     bool AddSavedSearch(const SavedSearch & search, QString & errorDescription);
     bool UpdateSavedSearch(const SavedSearch & search, QString & errorDescription);
 
-    bool FindSavedSearch(const QString & searchGuid, SavedSearch & search,
-                         QString & errorDescription) const;
+    bool FindSavedSearch(const QString & searchGuid, const WhichGuid::type whichGuid,
+                         SavedSearch & search, QString & errorDescription) const;
 
     bool ListAllSavedSearches(std::vector<SavedSearch> & searches, QString & errorDescription) const;
 

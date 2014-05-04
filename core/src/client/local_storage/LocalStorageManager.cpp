@@ -1470,11 +1470,11 @@ bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, QString & e
         return false;
     }
 
-    QString guid = search.guid();
-    bool exists = RowExists("SavedSearches", "guid", QVariant(guid));
+    QString localGuid = search.localGuid();
+    bool exists = RowExists("SavedSearches", "localGuid", QVariant(localGuid));
     if (exists) {
-        errorDescription += QObject::tr("saved search with the same guid already exists");
-        QNWARNING(errorDescription << ", guid: " << guid);
+        errorDescription += QObject::tr("saved search with the same local guid already exists");
+        QNWARNING(errorDescription << ", local guid: " << localGuid);
         return false;
     }
 
@@ -1493,39 +1493,47 @@ bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, QString 
         return false;
     }
 
-    QString guid = search.guid();
-    bool exists = RowExists("SavedSearches", "guid", QVariant(guid));
+    QString localGuid = search.localGuid();
+    bool exists = RowExists("SavedSearches", "localGuid", QVariant(localGuid));
     if (!exists) {
-        errorDescription += QObject::tr("saved search with specified guid was not found");
-        QNWARNING(errorDescription << ", guid: " << guid);
+        errorDescription += QObject::tr("saved search with specified local guid was not found");
+        QNWARNING(errorDescription << ", local guid: " << localGuid);
         return false;
     }
 
     return InsertOrReplaceSavedSearch(search, errorDescription);
 }
 
-bool LocalStorageManager::FindSavedSearch(const QString & searchGuid, SavedSearch & search,
-                                          QString & errorDescription) const
+bool LocalStorageManager::FindSavedSearch(const QString & searchGuid, const WhichGuid::type whichGuid,
+                                          SavedSearch & search, QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManager::FindSavedSearch: guid = " << searchGuid);
 
     errorDescription = QObject::tr("Can't find saved search in local storage database: ");
 
-    if (!CheckGuid(searchGuid)) {
-        errorDescription += QObject::tr("requested saved search guid is invalid");
-        return false;
+    QString guidColumn;
+
+    if (whichGuid == WhichGuid::LocalGuid)
+    {
+        guidColumn = "localGuid";
+    }
+    else // whichGuid == WhichGuid::EverCloudGuid
+    {
+        guidColumn = "guid";
+
+        if (!CheckGuid(searchGuid)) {
+            errorDescription += QObject::tr("requested saved search guid is invalid");
+            return false;
+        }
     }
 
     search.clear();
 
+    QString queryString = QString("SELECT localGuid, guid, name, query, format, updateSequenceNumber, includeAccount, "
+                                  "includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks "
+                                  "FROM SavedSearches WHERE %1 = \"%2\"").arg(guidColumn).arg(searchGuid);
     QSqlQuery query(m_sqlDatabase);
-
-    query.prepare("SELECT guid, name, query, format, updateSequenceNumber, includeAccount, "
-                  "includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks "
-                  "FROM SavedSearches WHERE guid = ?");
-    query.addBindValue(searchGuid);
-
-    bool res = query.exec();
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find saved search in \"SavedSearches\" table in SQL database");
 
     if (!query.next()) {
@@ -1584,26 +1592,21 @@ bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,
 {
     errorDescription = QObject::tr("Can't expunge saved search from local storage database: ");
 
-    if (!search.hasGuid()) {
-        errorDescription += QObject::tr("saved search's guid is not set");
+    QString localGuid = search.localGuid();
+    if (localGuid.isEmpty()) {
+        errorDescription += QObject::tr("saved search's local guid is not set");
         return false;
     }
 
-    const QString searchGuid = search.guid();
-    if (!CheckGuid(searchGuid)) {
-        errorDescription += QObject::tr("saved search's guid is invalid");
-        return false;
-    }
-
-    bool exists = RowExists("SavedSearches", "guid", QVariant(searchGuid));
+    bool exists = RowExists("SavedSearches", "localGuid", QVariant(localGuid));
     if (!exists) {
         errorDescription += QObject::tr("saved search to be expunged was not found");
         return false;
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("DELETE FROM SavedSearches WHERE guid = ?");
-    query.addBindValue(searchGuid);
+    query.prepare("DELETE FROM SavedSearches WHERE localGuid = ?");
+    query.addBindValue(localGuid);
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete saved search from \"SavedSearches\" table in SQL database");
@@ -1868,9 +1871,13 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     res = query.exec("CREATE INDEX IF NOT EXISTS NoteResourcesNote ON NoteResources(note)");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteResourcesNote index");
 
+    // NOTE: reasoning for existence and unique constraint for nameUpper, citing Evernote API reference:
+    // "The account may only contain one search with a given name (case-insensitive compare)"
     res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
-                     "  guid                            TEXT PRIMARY KEY    NOT NULL UNIQUE, "
+                     "  localGuid                       TEXT PRIMARY KEY    NOT NULL UNIQUE, "
+                     "  guid                            TEXT                DEFAULT NULL, "
                      "  name                            TEXT                NOT NULL, "
+                     "  nameUpper                       TEXT                NOT NULL UNIQUE, "
                      "  query                           TEXT                NOT NULL, "
                      "  format                          INTEGER             NOT NULL, "
                      "  updateSequenceNumber            INTEGER             NOT NULL, "
@@ -2655,13 +2662,18 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
     errorDescription = QObject::tr("Can't insert or replace saved search into local storage database: ");
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT OR REPLACE INTO SavedSearches (guid, name, query, format, "
+    query.prepare("INSERT OR REPLACE INTO SavedSearches (localGuid, guid, name, nameUpper, query, format, "
                   "updateSequenceNumber, includeAccount, includePersonalLinkedNotebooks, "
-                  "includeBusinessLinkedNotebooks) VALUES(:guid, :name, :query, "
+                  "includeBusinessLinkedNotebooks) VALUES(:localGuid, :guid, :name, :nameUpper, :query, "
                   ":format, :updateSequenceNumber, :includeAccount, :includePersonalLinkedNotebooks, "
                   ":includeBusinessLinkedNotebooks)");
+    query.bindValue(":localGuid", search.localGuid());
     query.bindValue(":guid", search.guid());
-    query.bindValue(":name", search.name());
+
+    QString searchName = search.name();
+    query.bindValue(":name", searchName);
+    query.bindValue(":nameUpper", searchName.toUpper());
+
     query.bindValue(":query", search.query());
     query.bindValue(":format", search.queryFormat());
     query.bindValue(":updateSequenceNumber", search.updateSequenceNumber());
@@ -2965,15 +2977,25 @@ bool LocalStorageManager::FillSavedSearchFromSqlRecord(const QSqlRecord & rec,
 {
 #define CHECK_AND_SET_SAVED_SEARCH_PROPERTY(property, type, localType, setter, isRequired) \
     if (rec.contains(#property)) { \
-        search.setter(static_cast<localType>(qvariant_cast<type>(rec.value(#property)))); \
+        QVariant value = rec.value(#property); \
+        if (value.isNull() && isRequired) { \
+            errorDescription += QObject::tr("Required parameter " #property " is null in the result of SQL query"); \
+            return false; \
+        } \
+        else if (!value.isNull()) { \
+            search.setter(static_cast<localType>(qvariant_cast<type>(value))); \
+        } \
     } \
-    else if (isRequired) { \
+    else { \
         errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
         return false; \
     }
 
-    bool isRequired = true;
+    bool isRequired = false;
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(guid, QString, QString, setGuid, isRequired);
+
+    isRequired = true;
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(localGuid, QString, QString, setLocalGuid, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(name, QString, QString, setName, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(query, QString, QString, setQuery, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(format, int, qint8, setQueryFormat, isRequired);

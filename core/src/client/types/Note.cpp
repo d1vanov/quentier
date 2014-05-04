@@ -7,6 +7,12 @@
 
 namespace qute_note {
 
+Note::Note() :
+    NoteStoreDataElement(),
+    m_isLocal(true),
+    m_isDeleted(false)
+{}
+
 Note::Note(const qevercloud::Note & other) :
     NoteStoreDataElement(),
     m_qecNote(other),

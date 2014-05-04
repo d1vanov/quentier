@@ -1,13 +1,16 @@
 #ifndef NOTESTOREDATAELEMENT_H
 #define NOTESTOREDATAELEMENT_H
 
+#include "LocalStorageDataElement.h"
 #include <tools/Printable.h>
 #include <tools/TypeWithError.h>
 #include <QtGlobal>
+#include <QUuid>
 
 namespace qute_note {
 
-class NoteStoreDataElement: public Printable,
+class NoteStoreDataElement: public LocalStorageDataElement,
+                            public Printable,
                             public TypeWithError
 {
 public:
@@ -35,11 +38,12 @@ protected:
     NoteStoreDataElement(const NoteStoreDataElement & other);
     NoteStoreDataElement(NoteStoreDataElement && other);
     NoteStoreDataElement & operator=(const NoteStoreDataElement & other);
+    NoteStoreDataElement & operator=(NoteStoreDataElement && other);
 
     virtual QTextStream & Print(QTextStream &strm) const = 0;
 
 private:
-    bool m_isDirty;
+    bool   m_isDirty;
 };
 
 } // namespace qute_note

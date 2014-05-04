@@ -13,7 +13,7 @@ QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 class Note final: public NoteStoreDataElement
 {
 public:
-    Note() = default;
+    Note();
     Note(const Note & other) = default;
     Note(Note && other) = default;
     Note & operator=(const Note & other) = default;

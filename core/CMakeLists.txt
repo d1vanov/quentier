@@ -22,6 +22,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/IResource.h
     src/client/types/IUser.h
     src/client/types/LinkedNotebook.h
+    src/client/types/LocalStorageDataElement.h
     src/client/types/Note.h
     src/client/types/Notebook.h
     src/client/types/NoteStoreDataElement.h
@@ -68,6 +69,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/IResource.cpp
     src/client/types/IUser.cpp
     src/client/types/LinkedNotebook.cpp
+    src/client/types/LocalStorageDataElement.cpp
     src/client/types/Note.cpp
     src/client/types/Notebook.cpp
     src/client/types/NoteStoreDataElement.cpp
