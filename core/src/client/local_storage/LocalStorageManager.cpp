@@ -46,6 +46,7 @@ LocalStorageManager::~LocalStorageManager()
         errorDescription += QObject::tr("Internal error: "); \
         errorDescription += QObject::tr(errorPrefix); \
         errorDescription += ": "; \
+        QNCRITICAL(errorDescription << query.lastError() << ", last executed query: " << query.lastQuery()); \
         errorDescription += query.lastError().text(); \
         return false; \
     }
@@ -1478,10 +1479,11 @@ bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, QString & e
         return false;
     }
 
-    return InsertOrReplaceSavedSearch(search, errorDescription);
+    return InsertOrReplaceSavedSearch(search, /* with local guid = */ true, errorDescription);
 }
 
-bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, QString & errorDescription)
+bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, const WhichGuid::type whichGuid,
+                                            QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't update saved search in local storage database: ");
     QString error;
@@ -1493,15 +1495,27 @@ bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search, QString 
         return false;
     }
 
-    QString localGuid = search.localGuid();
-    bool exists = RowExists("SavedSearches", "localGuid", QVariant(localGuid));
+    QString column, guid;
+    bool isLocalGuid = (whichGuid == WhichGuid::LocalGuid);
+    if (isLocalGuid) {
+        column = "localGuid";
+        guid = search.localGuid();
+    }
+    else { // whichGuid == WhichGuid::EverCloudGuid
+        column = "guid";
+        guid = search.guid();
+    }
+
+    bool exists = RowExists("SavedSearches", column, QVariant(guid));
     if (!exists) {
-        errorDescription += QObject::tr("saved search with specified local guid was not found");
-        QNWARNING(errorDescription << ", local guid: " << localGuid);
+        errorDescription += QObject::tr("saved search with specified ");
+        errorDescription += (isLocalGuid ? "local guid" : "guid");
+        errorDescription += QObject::tr(" was not found");
+        QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
-    return InsertOrReplaceSavedSearch(search, errorDescription);
+    return InsertOrReplaceSavedSearch(search, isLocalGuid, errorDescription);
 }
 
 bool LocalStorageManager::FindSavedSearch(const QString & searchGuid, const WhichGuid::type whichGuid,
@@ -2653,7 +2667,7 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
     return true;
 }
 
-bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
+bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search, const bool withLocalGuid,
                                                      QString & errorDescription)
 {
     // NOTE: this method expects to be called after the search is already checked
@@ -2661,13 +2675,32 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
 
     errorDescription = QObject::tr("Can't insert or replace saved search into local storage database: ");
 
+    QString columns = "guid, name, nameUpper, query, format, updateSequenceNumber, "
+                      "includeAccount, includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks";
+    if (withLocalGuid) {
+        columns.prepend("localGuid, ");
+    }
+
+    QString valuesNames = ":guid, :name, :nameUpper, :query, :format, :updateSequenceNumber, :includeAccount, "
+                          ":includePersonalLinkedNotebooks, :includeBusinessLinkedNotebooks";
+    if (withLocalGuid) {
+        valuesNames.prepend(":isLocalGuid, ");
+    }
+
+    QString queryString = QString("INSERT OR REPLACE INTO SavedSearches (%1) VALUES(%2)").arg(columns).arg(valuesNames);
+
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT OR REPLACE INTO SavedSearches (localGuid, guid, name, nameUpper, query, format, "
-                  "updateSequenceNumber, includeAccount, includePersonalLinkedNotebooks, "
-                  "includeBusinessLinkedNotebooks) VALUES(:localGuid, :guid, :name, :nameUpper, :query, "
-                  ":format, :updateSequenceNumber, :includeAccount, :includePersonalLinkedNotebooks, "
-                  ":includeBusinessLinkedNotebooks)");
-    query.bindValue(":localGuid", search.localGuid());
+    bool res = query.prepare(queryString);
+    if (!res) {
+        errorDescription += QObject::tr("failed to prepare SQL query: ");
+        QNDEBUG(errorDescription << query.lastError());
+        errorDescription += query.lastError().text();
+        return false;
+    }
+
+    if (withLocalGuid) {
+        query.bindValue(":localGuid", search.localGuid());
+    }
     query.bindValue(":guid", search.guid());
 
     QString searchName = search.name();
@@ -2681,7 +2714,7 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
     query.bindValue(":includePersonalLinkedNotebooks", (search.includePersonalLinkedNotebooks() ? 1 : 0));
     query.bindValue(":includeBusinessLinkedNotebooks", (search.includeBusinessLinkedNotebooks() ? 1 : 0));
 
-    bool res = query.exec();
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace saved search into \"SavedSearches\" table in SQL database");
 
     return true;

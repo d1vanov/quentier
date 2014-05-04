@@ -207,7 +207,21 @@ public:
     bool ExpungeEnResource(const IResource & resource, QString & errorDescription);
 
     bool AddSavedSearch(const SavedSearch & search, QString & errorDescription);
-    bool UpdateSavedSearch(const SavedSearch & search, QString & errorDescription);
+
+    /**
+     * @brief UpdateSavedSearch - updates passed in SavedSearch on the basis of either
+     * its local or remote guid; for example, when this method is called because
+     * user updated the search, the local guid should be used to identify the object.
+     * But when this method is called because the update from the service came in,
+     * the search to be updated should be identifier by remote guid
+     * @param search - SavedSearch filled with values to be updated in the local storage database
+     * @param whichGuid - should SavedSearch be identified with local or remote guid
+     * in the local storage database
+     * @param errorDescription - error description if SavedSearch could not be updated
+     * @return true if SavedSearch was updated successfully, false otherwise
+     */
+    bool UpdateSavedSearch(const SavedSearch & search, const WhichGuid::type whichGuid,
+                           QString & errorDescription);
 
     bool FindSavedSearch(const QString & searchGuid, const WhichGuid::type whichGuid,
                          SavedSearch & search, QString & errorDescription) const;
@@ -244,7 +258,8 @@ private:
     bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, QString & errorDescription);
-    bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
+    bool InsertOrReplaceSavedSearch(const SavedSearch & search, const bool withLocalGuid,
+                                    QString & errorDescription);
 
     bool FillNoteFromSqlRecord(const QSqlRecord & record, Note & note, QString & errorDescription,
                                const bool withResourceBinaryData) const;
