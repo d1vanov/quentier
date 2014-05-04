@@ -13,6 +13,7 @@ include("cmake/prepend.cmake")
 enable_testing()
 
 add_subdirectory(3rdparty)
+get_directory_property(SIMPLECRYPT_LIB DIRECTORY 3rdparty DEFINITION SIMPLECRYPT_LIB)
 get_directory_property(SIMPLECRYPT_SOURCES DIRECTORY 3rdparty DEFINITION ${SIMPLECRYPT_LIB}_SOURCES)
 get_directory_property(SIMPLECRYPT_INCLUDE_DIRS DIRECTORY 3rdparty DEFINITION ${SIMPLECRYPT_LIB}_INCLUDE_DIRS)
 get_directory_property(THIRDPARTY_INCLUDE_DIRS DIRECTORY 3rdparty DEFINITION THIRDPARTY_INCLUDE_DIRS)
