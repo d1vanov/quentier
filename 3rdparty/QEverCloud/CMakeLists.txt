@@ -6,6 +6,8 @@ project(QEverCloud)
 
 set(CMAKE_AUTOMOC ON)
 
+include_directories(SYSTEM "${QT_INCLUDES} ${SYSTEM}")
+
 set(${PROJECT_NAME}_HEADERS
     include/QEverCloud.h
     include/QEverCloudOAuth.h
@@ -41,6 +43,10 @@ set(${PROJECT_NAME}_SOURCES
 add_library(${PROJECT_NAME} STATIC
             ${${PROJECT_NAME}_HEADERS}
             ${${PROJECT_NAME}_SOURCES})
+
+if(USE_QT5)
+  qt5_use_modules(${PROJECT_NAME} Core Widgets Webkit WebKitWidgets Network)
+endif()
 
 # include dirs for cppcheck
 set(${PROJECT_NAME}_INCLUDE_DIRS

@@ -67,5 +67,3 @@ qevercloud::NoteStore::NoteStore(QObject *parent): QObject(parent)
 /** @fn qevercloud::NoteStore::authenticationToken
  * @returns EDAM NoteStore service url that is used by this NoteStore object.
  * */
-
-const int libraryVersion = 2*10000 + 1;

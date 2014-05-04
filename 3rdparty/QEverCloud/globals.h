@@ -19,7 +19,7 @@ QNetworkAccessManager* evernoteNetworkAccessManager();
 /**
  * qevercloud library version.
  */
-extern const int libraryVersion;
+const int libraryVersion = 2*10000 + 1;
 
 
 
