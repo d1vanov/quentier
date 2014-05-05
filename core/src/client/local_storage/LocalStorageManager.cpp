@@ -1084,7 +1084,8 @@ bool LocalStorageManager::ExpungeNote(const Note & note, QString & errorDescript
     return true;
 }
 
-bool LocalStorageManager::AddTag(const Tag & tag, QString & errorDescription)
+bool LocalStorageManager::AddTag(const Tag & tag, const WhichGuid::type whichGuid,
+                                 QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't add tag to local storage database: ");
     QString error;
@@ -1096,11 +1097,23 @@ bool LocalStorageManager::AddTag(const Tag & tag, QString & errorDescription)
         return false;
     }
 
-    QString guid = tag.guid();
-    bool exists = RowExists("Tags", "guid", QVariant(guid));
+    QString column, guid;
+    bool isLocalGuid = (whichGuid == WhichGuid::LocalGuid);
+    if (isLocalGuid) {
+        column = "localGuid";
+        guid = tag.localGuid();
+    }
+    else { // whichGuid == WhichGuid::EverCloudGuid
+        column = "guid";
+        guid = tag.guid();
+    }
+
+    bool exists = RowExists("Tags", column, QVariant(guid));
     if (exists) {
-        errorDescription += QObject::tr("tag with the same guid already exists");
-        QNWARNING(errorDescription << ", guid: " << guid);
+        errorDescription += QObject::tr("tag with the same ");
+        errorDescription += (isLocalGuid ? QObject::tr("local guid") : QObject::tr("guid"));
+        errorDescription += QObject::tr(" already exists");
+        QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
@@ -1113,10 +1126,11 @@ bool LocalStorageManager::AddTag(const Tag & tag, QString & errorDescription)
         return false;
     }
 
-    return InsertOrReplaceTag(tag, errorDescription);
+    return InsertOrReplaceTag(tag, /* with local guid = */ true, errorDescription);
 }
 
-bool LocalStorageManager::UpdateTag(const Tag &tag, QString &errorDescription)
+bool LocalStorageManager::UpdateTag(const Tag & tag, const WhichGuid::type whichGuid,
+                                    QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't update tag in local storage database: ");
     QString error;
@@ -1128,15 +1142,27 @@ bool LocalStorageManager::UpdateTag(const Tag &tag, QString &errorDescription)
         return false;
     }
 
-    QString guid = tag.guid();
-    bool exists = RowExists("Tags", "guid", QVariant(guid));
+    QString column, guid;
+    bool isLocalGuid = (whichGuid == WhichGuid::LocalGuid);
+    if (isLocalGuid) {
+        column = "localGuid";
+        guid = tag.localGuid();
+    }
+    else { // whichGuid == WhichGuid::EverCloidGuid
+        column = "guid";
+        guid = tag.guid();
+    }
+
+    bool exists = RowExists("Tags", column, QVariant(guid));
     if (!exists) {
-        errorDescription += QObject::tr("tag with specified guid was not found");
-        QNWARNING(errorDescription << ", guid: " << guid);
+        errorDescription += QObject::tr("tag with specified ");
+        errorDescription += (isLocalGuid ? QObject::tr("local guid") : QObject::tr("guid"));
+        errorDescription += QObject::tr(" was not found");
+        QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
-    return InsertOrReplaceTag(tag, errorDescription);
+    return InsertOrReplaceTag(tag, isLocalGuid, errorDescription);
 }
 
 bool LocalStorageManager::LinkTagWithNote(const Tag & tag, const Note & note,
@@ -1169,26 +1195,33 @@ bool LocalStorageManager::LinkTagWithNote(const Tag & tag, const Note & note,
     return true;
 }
 
-bool LocalStorageManager::FindTag(const QString & tagGuid, Tag & tag, QString & errorDescription) const
+bool LocalStorageManager::FindTag(const QString & tagGuid, const WhichGuid::type whichGuid,
+                                  Tag & tag, QString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManager::FindTag: guid = " << tagGuid);
+    QNDEBUG("LocalStorageManager::FindTag: guid = " << tagGuid << ", whichGuid = " << whichGuid);
 
     errorDescription = QObject::tr("Can't find tag in local storage database: ");
 
-    if (!CheckGuid(tagGuid)) {
-        errorDescription += QObject::tr("requested tag guid is invalid");
-        return false;
+    QString column;
+    bool isLocalGuid = (whichGuid == WhichGuid::LocalGuid);
+    if (isLocalGuid) {
+        column = "localGuid";
+    }
+    else { // whichGuid == WhichGuid::EverCloudGuid
+        if (!CheckGuid(tagGuid)) {
+            errorDescription += QObject::tr("requested tag guid is invalid");
+            return false;
+        }
+
+        column = "guid";
     }
 
     tag.clear();
 
+    QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, name, parentGuid, isDirty, isLocal, "
+                                  "isDeleted FROM Tags WHERE %1 = \"%2\"").arg(column).arg(tagGuid);
     QSqlQuery query(m_sqlDatabase);
-
-    query.prepare("SELECT updateSequenceNumber, name, parentGuid, isDirty, isLocal, "
-                  "isDeleted FROM Tags WHERE guid = ?");
-    query.addBindValue(tagGuid);
-
-    bool res = query.exec();
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select tag from \"Tags\" table in SQL database: ");
 
     if (!query.next()) {
@@ -1196,70 +1229,8 @@ bool LocalStorageManager::FindTag(const QString & tagGuid, Tag & tag, QString & 
         return false;
     }
 
-    tag.setGuid(tagGuid);
-
-    bool conversionResult = false;
-    qint32 updateSequenceNumber = static_cast<qint32>(query.value(0).toInt(&conversionResult));
-    if (updateSequenceNumber < 0 || !conversionResult) {
-        errorDescription += QObject::tr("No tag's update sequence number was found in SQL query result");
-        return false;
-    }
-    tag.setUpdateSequenceNumber(updateSequenceNumber);
-
-    QString name = query.value(1).toString();
-    size_t nameSize = name.size();
-    if ( (nameSize < qevercloud::EDAM_TAG_NAME_LEN_MIN) ||
-         (nameSize > qevercloud::EDAM_TAG_NAME_LEN_MAX) )
-    {
-        errorDescription += QObject::tr("Internal error: found tag with invalid "
-                                        "name size from SQL query result");
-        return false;
-    }
-    tag.setName(name);
-
-    QString parentGuid = query.value(2).toString();
-    if (parentGuid.isEmpty() || CheckGuid(parentGuid)) {
-        tag.setParentGuid(parentGuid);
-    }
-    else {
-        errorDescription += QObject::tr("Internal error: found tag with invalid parent guid "
-                                        "in SQL query result");
-        return false;
-    }
-
-    conversionResult = false;
-    int isDirtyInt = query.value(3).toInt(&conversionResult);
-    if (isDirtyInt < 0 || !conversionResult) {
-        errorDescription += QObject::tr("No tag's \"isDirty\" flag was found in SQL result");
-        return false;
-    }
-    tag.setDirty(static_cast<bool>(isDirtyInt));
-
-    conversionResult = false;
-    int isLocalInt = query.value(4).toInt(&conversionResult);
-    if (isLocalInt < 0 || !conversionResult) {
-        errorDescription += QObject::tr("No tag's \"isLocal\" flag was found in SQL result");
-        return false;
-    }
-    tag.setLocal(static_cast<bool>(isLocalInt));
-
-    conversionResult = false;
-    int isDeletedInt = query.value(5).toInt(&conversionResult);
-    if (isDeletedInt < 0 || !conversionResult) {
-        errorDescription += QObject::tr("No tag's \"isDeleted\" flag was found in SQL result");
-        return false;
-    }
-    tag.setDeleted(static_cast<bool>(isDeletedInt));
-
-    QString error;
-    res = tag.checkParameters(error);
-    if (!res) {
-        errorDescription = QObject::tr("Found tag is invalid: ");
-        errorDescription += error;
-        return false;
-    }
-
-    return true;
+    QSqlRecord record = query.record();
+    return FillTagFromSqlRecord(record, tag, errorDescription);
 }
 
 bool LocalStorageManager::ListAllTagsPerNote(const QString & noteGuid, std::vector<Tag> & tags,
@@ -1880,7 +1851,8 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributes table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
-                     "  guid                  TEXT PRIMARY KEY     NOT NULL UNIQUE, "
+                     "  localGuid             TEXT PRIMARY KEY     NOT NULL UNIQUE, "
+                     "  guid                  TEXT                 DEFAULT NULL UNIQUE, "
                      "  updateSequenceNumber  INTEGER              NOT NULL, "
                      "  name                  TEXT                 NOT NULL, "
                      "  nameUpper             TEXT                 NOT NULL, "
@@ -2523,7 +2495,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
             // so they must exist within local storage database; if they don't then something went really wrong
 
             Tag tag;
-            bool res = FindTag(tagGuid, tag, error);
+            bool res = FindTag(tagGuid, WhichGuid::EverCloudGuid, tag, error);
             if (!res) {
                 errorDescription += QObject::tr("failed to find one of note tags by guid: ");
                 errorDescription += error;
@@ -2577,7 +2549,8 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
     return SetNoteAttributes(note, errorDescription);
 }
 
-bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDescription)
+bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, const bool withLocalGuid,
+                                             QString & errorDescription)
 {
     // NOTE: this method expects to be called after tag is already checked
     // for sanity of its parameters!
@@ -2588,12 +2561,25 @@ bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDes
     QString name = tag.name();
     QString nameUpper = name.toUpper();
 
+    QString columns = "guid, updateSequenceNumber, name, nameUpper, parentGuid, "
+                      "isDirty, isLocal, isDeleted";
+    if (withLocalGuid) {
+        columns.append(", localGuid");
+    }
+
+    QString valuesString = ":guid, :updateSequenceNumber, :name, :nameUpper, :parentGuid, "
+                           ":isDirty, :isLocal, :isDeleted";
+    if (withLocalGuid) {
+        valuesString.append(", :localGuid");
+    }
+
+    QString queryString = QString("INSERT OR REPLACE INTO Tags (%1) VALUES(%2)").arg(columns).arg(valuesString);
+
     QSqlQuery query(m_sqlDatabase);
 
-    query.prepare("INSERT OR REPLACE INTO Tags (guid, updateSequenceNumber, name, "
-                  "nameUpper, parentGuid, isDirty, isLocal, isDeleted) "
-                  "VALUES(:guid, :updateSequenceNumber, :name, :nameUpper, :parentGuid, "
-                  ":isDirty, :isLocal, :isDeleted)");
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't prepare SQL query to insert or replace tag into \"Tags\" table in SQL database");
+
     query.bindValue(":guid", guid);
     query.bindValue(":updateSequenceNumber", tag.updateSequenceNumber());
     query.bindValue(":name", name);
@@ -2603,7 +2589,11 @@ bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDes
     query.bindValue(":isLocal", tag.isLocal() ? 1 : 0);
     query.bindValue(":isDeleted", tag.isDeleted() ? 1 : 0);
 
-    bool res = query.exec();
+    if (withLocalGuid) {
+        query.bindValue(":localGuid", tag.localGuid());
+    }
+
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace tag into \"Tags\" table in SQL database");
 
     return true;
@@ -3046,7 +3036,7 @@ bool LocalStorageManager::FillSavedSearchFromSqlRecord(const QSqlRecord & rec,
     if (rec.contains(#property)) { \
         QVariant value = rec.value(#property); \
         if (value.isNull() && isRequired) { \
-            errorDescription += QObject::tr("Required parameter " #property " is null in the result of SQL query"); \
+            errorDescription += QObject::tr("required parameter " #property " is null in the result of SQL query"); \
             return false; \
         } \
         else if (!value.isNull()) { \
@@ -3081,6 +3071,42 @@ bool LocalStorageManager::FillSavedSearchFromSqlRecord(const QSqlRecord & rec,
     return true;
 }
 
+bool LocalStorageManager::FillTagFromSqlRecord(const QSqlRecord & rec, Tag & tag,
+                                               QString & errorDescription) const
+{
+#define CHECK_AND_SET_TAG_PROPERTY(property, type, localType, setter, isRequired) \
+    if (rec.contains(#property)) { \
+        QVariant value = rec.value(#property); \
+        if (value.isNull() && isRequired) { \
+            errorDescription += QObject::tr("required parameter " #property " is null in the result of SQL query"); \
+            return false; \
+        } \
+        else if (!value.isNull()) { \
+            tag.setter(static_cast<localType>(qvariant_cast<type>(value))); \
+        } \
+    } \
+    else { \
+        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
+        return false; \
+    }
+
+    bool isRequired = false;
+    CHECK_AND_SET_TAG_PROPERTY(guid, QString, QString, setGuid, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(parentGuid, QString, QString, setParentGuid, isRequired);
+
+    isRequired = true;
+    CHECK_AND_SET_TAG_PROPERTY(localGuid, QString, QString, setLocalGuid, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(updateSequenceNumber, int, qint32, setUpdateSequenceNumber, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(name, QString, QString, setName, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(isDirty, int, bool, setDirty, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(isLocal, int, bool, setLocal, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(isDeleted, int, bool, setDeleted, isRequired);
+
+#undef CHECK_AND_SET_TAG_PROPERTY
+
+    return true;
+}
+
 bool LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Tag> & tags,
                                                QString & errorDescription) const
 {
@@ -3107,7 +3133,7 @@ bool LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Ta
         tags.push_back(Tag());
 
         QString error;
-        bool res = FindTag(tagGuid, tags.back(), error);
+        bool res = FindTag(tagGuid, WhichGuid::EverCloudGuid, tags.back(), error);
         if (!res) {
             errorDescription += error;
             return false;

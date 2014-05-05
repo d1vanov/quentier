@@ -162,12 +162,37 @@ public:
      */
     bool ExpungeNote(const Note & note, QString & errorDescription);
 
-    bool AddTag(const Tag & tag, QString & errorDescription);
-    bool UpdateTag(const Tag & tag, QString & errorDescription);
+    /**
+     * @brief AddTag - adds passed in Tag to the local storage database. Tag can be added
+     * from either user side e.g. when user adds new online or offline Tag (in which case
+     * Tag must be identified by local guid) or from servide side e.g. when new Tag
+     * comes from synchronization with Evernote service (in which case Tag must be identified
+     * by remote guid)
+     * @param tag - tag to be added to the local storage
+     * @param whichGuid - should Tag to be added to the local storage be identified
+     * by local or remote guid in the local storage database
+     * @param errorDescription - error description if Tag could not be added
+     * @return true if Tag was added successfully, false otherwise
+     */
+    bool AddTag(const Tag & tag, const WhichGuid::type whichGuid, QString & errorDescription);
+
+    /**
+     * @brief UpdateTag - updates passed in Tag on the basis of either its local or remote guid;
+     * for example, when this method is called because user updated the tag, the local guid
+     * should be used to identify the object. But when this method is called because
+     * the update from the service came in, the tag to be updated should be identified
+     * by remote guid
+     * @param tag - Tag filled with values to be updated in the local storage database
+     * @param whichGuid - should Tag be identified by local or remote guid in the local storage database
+     * @param errorDescription - error description if Tag could not be updated
+     * @return true if Tag was updated successfully, false otherwise
+     */
+    bool UpdateTag(const Tag & tag, const WhichGuid::type whichGuid, QString & errorDescription);
 
     bool LinkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
 
-    bool FindTag(const QString & tagGuid, Tag & tag, QString & errorDescription) const;
+    bool FindTag(const QString & tagGuid, const WhichGuid::type whichGuid, Tag & tag,
+                 QString & errorDescription) const;
 
     bool ListAllTagsPerNote(const QString & noteGuid, std::vector<Tag> & tags,
                             QString & errorDescription) const;
@@ -217,14 +242,14 @@ public:
     /**
      * @brief AddSavedSearch - adds passed in SavedSearch to the local storage database;
      * SavedSearch can be added from either user side e.g. when user creates new
-     * online or offline SavedSearch (in which case SavedSearch should be identified
+     * online or offline SavedSearch (in which case SavedSearch must be identified
      * by local guid) or from service side e.g. when new SavedSearch comes from synchronization
-     * with remote Evernote service (in which case SavedSearch should be identified
+     * with remote Evernote service (in which case SavedSearch must be identified
      * by remote guid).
      * @param search - SavedSearch to be added to the local storage
      * @param whichGuid - should SavedSearch to be added to the local storage be identified
      * by local or remote guid in the local storage database
-     * @param errorDescription - error description is SavedSearch could not be added
+     * @param errorDescription - error description if SavedSearch could not be added
      * @return true if SavedSearch was added successfully, false otherwise
      */
     bool AddSavedSearch(const SavedSearch & search, const WhichGuid::type whichGuid,
@@ -237,7 +262,7 @@ public:
      * But when this method is called because the update from the service came in,
      * the search to be updated should be identifier by remote guid
      * @param search - SavedSearch filled with values to be updated in the local storage database
-     * @param whichGuid - should SavedSearch be identified with local or remote guid
+     * @param whichGuid - should SavedSearch be identified by local or remote guid
      * in the local storage database
      * @param errorDescription - error description if SavedSearch could not be updated
      * @return true if SavedSearch was updated successfully, false otherwise
@@ -279,7 +304,7 @@ private:
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, const bool withLocalGuid,
                                        QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
-    bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
+    bool InsertOrReplaceTag(const Tag & tag, const bool withLocalGuid, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, const bool withLocalGuid,
                                     QString & errorDescription);
@@ -293,6 +318,8 @@ private:
                                          QString & errorDescription) const;
     bool FillSavedSearchFromSqlRecord(const QSqlRecord & rec, SavedSearch & search,
                                       QString & errorDescription) const;
+    bool FillTagFromSqlRecord(const QSqlRecord & rec, Tag & tag,
+                              QString & errorDescription) const;
     bool FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Tag> & tags,
                               QString & errorDescription) const;
 

@@ -170,14 +170,14 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     // ========== Check Add + Find ==========
-    bool res = localStorageManager.AddTag(tag, errorDescription);
+    bool res = localStorageManager.AddTag(tag, WhichGuid::LocalGuid, errorDescription);
     if (!res) {
         return false;
     }
 
-    const QString tagGuid = tag.guid();
+    const QString localTagGuid = tag.localGuid();
     Tag foundTag;
-    res = localStorageManager.FindTag(tagGuid, foundTag, errorDescription);
+    res = localStorageManager.FindTag(localTagGuid, WhichGuid::LocalGuid, foundTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -194,12 +194,12 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     modifiedTag.setUpdateSequenceNumber(tag.updateSequenceNumber() + 1);
     modifiedTag.setName(tag.name() + "_modified");
 
-    res = localStorageManager.UpdateTag(modifiedTag, errorDescription);
+    res = localStorageManager.UpdateTag(modifiedTag, WhichGuid::LocalGuid, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindTag(tagGuid, foundTag, errorDescription);
+    res = localStorageManager.FindTag(localTagGuid, WhichGuid::LocalGuid, foundTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -219,7 +219,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
-    res = localStorageManager.FindTag(tagGuid, foundTag, errorDescription);
+    res = localStorageManager.FindTag(localTagGuid, WhichGuid::LocalGuid, foundTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -240,7 +240,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
-    res = localStorageManager.FindTag(tagGuid, foundTag, errorDescription);
+    res = localStorageManager.FindTag(localTagGuid, WhichGuid::LocalGuid, foundTag, errorDescription);
     if (res) {
         errorDescription = "Error: found tag which should have been exounged from local storage";
         QNWARNING(errorDescription << ": Tag expunged from LocalStorageManager: " << modifiedTag
@@ -398,7 +398,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
     newTag.setUpdateSequenceNumber(1);
     newTag.setName("Fake new tag name");
 
-    res = localStorageManager.AddTag(newTag, errorDescription);
+    res = localStorageManager.AddTag(newTag, WhichGuid::LocalGuid, errorDescription);
     if (!res) {
         QNWARNING("Can't add new tag to local storage manager: "
                   << errorDescription);
