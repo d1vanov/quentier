@@ -109,9 +109,17 @@ public:
      */
     bool ExpungeNotebook(const Notebook & notebook, QString & errorDescription);
 
+    /**
+     * @brief AddLinkedNotebook - adds passed in LinkedNotebook to the local storage database;
+     * LinkedNotebook can be added only from remote service side and not from user side, offline or online
+     * @param linkedNotebook - LinkedNotebook to be added to the local storage database
+     * @param errorDescription - error description if linked notebook could not be added
+     * @return true if linked notebook was added successfully, false otherwise
+     */
     bool AddLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
-    bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
+    bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, const WhichGuid::type whichGuid,
+                              QString & errorDescription);
 
     bool FindLinkedNotebook(const QString & notebookGuid, LinkedNotebook & linkedNotebook,
                             QString & errorDescription) const;
@@ -206,7 +214,21 @@ public:
      */
     bool ExpungeEnResource(const IResource & resource, QString & errorDescription);
 
-    bool AddSavedSearch(const SavedSearch & search, QString & errorDescription);
+    /**
+     * @brief AddSavedSearch - adds passed in SavedSearch to the local storage database;
+     * SavedSearch can be added from either user side e.g. when user creates new
+     * online or offline SavedSearch (in which case SavedSearch should be identified
+     * by local guid) or from service side e.g. when new SavedSearch comes from synchronization
+     * with remote Evernote service (in which case SavedSearch should be identified
+     * by remote guid).
+     * @param search - SavedSearch to be added to the local storage
+     * @param whichGuid - should SavedSearch to be added to the local storage be identified
+     * by local or remote guid in the local storage database
+     * @param errorDescription - error description is SavedSearch could not be added
+     * @return true if SavedSearch was added successfully, false otherwise
+     */
+    bool AddSavedSearch(const SavedSearch & search, const WhichGuid::type whichGuid,
+                        QString & errorDescription);
 
     /**
      * @brief UpdateSavedSearch - updates passed in SavedSearch on the basis of either
@@ -254,7 +276,8 @@ private:
 
     bool InsertOrReplaceUser(const IUser & user, QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
-    bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
+    bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, const bool withLocalGuid,
+                                       QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, QString & errorDescription);

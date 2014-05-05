@@ -702,10 +702,12 @@ bool LocalStorageManager::AddLinkedNotebook(const LinkedNotebook & linkedNoteboo
         return false;
     }
 
-    return InsertOrReplaceLinkedNotebook(linkedNotebook, errorDescription);
+    return InsertOrReplaceLinkedNotebook(linkedNotebook, /* with local guid = */ true,
+                                         errorDescription);
 }
 
 bool LocalStorageManager::UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook,
+                                               const WhichGuid::type whichGuid,
                                                QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't update linked notebook in local storage database: ");
@@ -718,15 +720,27 @@ bool LocalStorageManager::UpdateLinkedNotebook(const LinkedNotebook & linkedNote
         return false;
     }
 
-    bool exists = RowExists("LinkedNotebooks", "guid", QVariant(linkedNotebook.guid()));
+    QString column, guid;
+    bool isLocalGuid = (whichGuid == WhichGuid::LocalGuid);
+    if (isLocalGuid) {
+        column = "localGuid";
+        guid = linkedNotebook.localGuid();
+    }
+    else { // whichGuid == WhichGuid::EverCloudGuid
+        column = "guid";
+        guid = linkedNotebook.guid();
+    }
+
+    bool exists = RowExists("LinkedNotebooks", column, QVariant(guid));
     if (!exists) {
-        errorDescription += QObject::tr("linked notebook with specified guid "
-                                        "was not found in local storage database");
-        QNWARNING(errorDescription << ", guid: " << linkedNotebook.guid());
+        errorDescription += QObject::tr("linked notebook with specified ");
+        errorDescription += (isLocalGuid ? QObject::tr("local guid") : QObject::tr("guid"));
+        errorDescription += QObject::tr("was not found in local storage database");
+        QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
-    return InsertOrReplaceLinkedNotebook(linkedNotebook, errorDescription);
+    return InsertOrReplaceLinkedNotebook(linkedNotebook, isLocalGuid, errorDescription);
 }
 
 bool LocalStorageManager::FindLinkedNotebook(const QString & notebookGuid,
@@ -1459,7 +1473,8 @@ bool LocalStorageManager::ExpungeEnResource(const IResource & resource, QString 
     return true;
 }
 
-bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, QString & errorDescription)
+bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, const WhichGuid::type whichGuid,
+                                         QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't add saved search to local storage database: ");
     QString error;
@@ -1471,11 +1486,23 @@ bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, QString & e
         return false;
     }
 
-    QString localGuid = search.localGuid();
-    bool exists = RowExists("SavedSearches", "localGuid", QVariant(localGuid));
+    QString column, guid;
+    bool isLocalGuid = (whichGuid == WhichGuid::LocalGuid);
+    if (isLocalGuid) {
+        column = "localGuid";
+        guid = search.localGuid();
+    }
+    else {
+        column = "guid";
+        guid = search.guid();
+    }
+
+    bool exists = RowExists("SavedSearches", column, QVariant(guid));
     if (exists) {
-        errorDescription += QObject::tr("saved search with the same local guid already exists");
-        QNWARNING(errorDescription << ", local guid: " << localGuid);
+        errorDescription += QObject::tr("saved search with the same ");
+        errorDescription += (isLocalGuid ? QObject::tr("local guid") : QObject::tr("guid"));
+        errorDescription += QObject::tr(" already exists");
+        QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
@@ -1760,7 +1787,8 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create NotebookRestrictions table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS LinkedNotebooks("
-                     "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
+                     "  localGuid                       TEXT PRIMARY KEY  NOT NULL UNIQUE, "
+                     "  guid                            TEXT              DEFAULT NULL UNIQUE, "
                      "  updateSequenceNumber            INTEGER           NOT NULL, "
                      "  isDirty                         INTEGER           NOT NULL, "
                      "  shareName                       TEXT              NOT NULL, "
@@ -1889,7 +1917,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     // "The account may only contain one search with a given name (case-insensitive compare)"
     res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
                      "  localGuid                       TEXT PRIMARY KEY    NOT NULL UNIQUE, "
-                     "  guid                            TEXT                DEFAULT NULL, "
+                     "  guid                            TEXT                DEFAULT NULL UNIQUE, "
                      "  name                            TEXT                NOT NULL, "
                      "  nameUpper                       TEXT                NOT NULL UNIQUE, "
                      "  query                           TEXT                NOT NULL, "
@@ -2380,6 +2408,7 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
 }
 
 bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook,
+                                                        const bool withLocalGuid,
                                                         QString & errorDescription)
 {
     // NOTE: this method expects to be called after the linked notebook
@@ -2423,6 +2452,11 @@ bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & l
 
     if (hasAnyProperty)
     {
+        if (withLocalGuid) {
+            columns.append(", localGuid");
+            values.append(", \"" + linkedNotebook.localGuid() + "\"");
+        }
+
         columns.append(", isDirty");
         values.append(", " + QString::number(linkedNotebook.isDirty() ? 1 : 0));
 
