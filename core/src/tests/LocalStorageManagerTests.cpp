@@ -170,7 +170,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     // ========== Check Add + Find ==========
-    bool res = localStorageManager.AddTag(tag, WhichGuid::LocalGuid, errorDescription);
+    bool res = localStorageManager.AddTag(tag, errorDescription);
     if (!res) {
         return false;
     }
@@ -194,7 +194,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     modifiedTag.setUpdateSequenceNumber(tag.updateSequenceNumber() + 1);
     modifiedTag.setName(tag.name() + "_modified");
 
-    res = localStorageManager.UpdateTag(modifiedTag, WhichGuid::LocalGuid, errorDescription);
+    res = localStorageManager.UpdateTag(modifiedTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -398,7 +398,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
     newTag.setUpdateSequenceNumber(1);
     newTag.setName("Fake new tag name");
 
-    res = localStorageManager.AddTag(newTag, WhichGuid::LocalGuid, errorDescription);
+    res = localStorageManager.AddTag(newTag, errorDescription);
     if (!res) {
         QNWARNING("Can't add new tag to local storage manager: "
                   << errorDescription);

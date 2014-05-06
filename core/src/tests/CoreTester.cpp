@@ -227,7 +227,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         tag.setUpdateSequenceNumber(1);
         tag.setName("Fake tag name");
 
-        res = localStorageManager.AddTag(tag, WhichGuid::LocalGuid, error);
+        res = localStorageManager.AddTag(tag, error);
         QVERIFY2(res == true, qPrintable(error));
 
         res = localStorageManager.LinkTagWithNote(tag, note, error);
@@ -346,7 +346,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         tag.setUpdateSequenceNumber(1);
         tag.setName("Fake tag name");
 
-        res = localStorageManager.AddTag(tag, WhichGuid::LocalGuid, error);
+        res = localStorageManager.AddTag(tag, error);
         QVERIFY2(res == true, qPrintable(error));
 
         res = localStorageManager.LinkTagWithNote(tag, note, error);
@@ -610,7 +610,7 @@ void CoreTester::localStorageManagerListAllTagsTest()
                 tag.setParentGuid(tags.at(i-1).guid());
             }
 
-            bool res = localStorageManager.AddTag(tag, WhichGuid::LocalGuid, error);
+            bool res = localStorageManager.AddTag(tag, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 
@@ -753,7 +753,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
             tag.setUpdateSequenceNumber(i);
             tag.setName("Tag name #" + QString::number(i));
 
-            res = localStorageManager.AddTag(tag, WhichGuid::LocalGuid, error);
+            res = localStorageManager.AddTag(tag, error);
             QVERIFY2(res == true, qPrintable(error));
 
             res = localStorageManager.LinkTagWithNote(tag, note, error);
@@ -765,7 +765,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         tagNotLinkedWithNote.setUpdateSequenceNumber(9);
         tagNotLinkedWithNote.setName("Tag not linked with note");
 
-        res = localStorageManager.AddTag(tagNotLinkedWithNote, WhichGuid::LocalGuid, error);
+        res = localStorageManager.AddTag(tagNotLinkedWithNote, error);
         QVERIFY2(res == true, qPrintable(error));
 
         std::vector<Tag> foundTags;

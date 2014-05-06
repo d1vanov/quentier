@@ -163,31 +163,24 @@ public:
     bool ExpungeNote(const Note & note, QString & errorDescription);
 
     /**
-     * @brief AddTag - adds passed in Tag to the local storage database. Tag can be added
-     * from either user side e.g. when user adds new online or offline Tag (in which case
-     * Tag must be identified by local guid) or from servide side e.g. when new Tag
-     * comes from synchronization with Evernote service (in which case Tag must be identified
-     * by remote guid)
+     * @brief AddTag - adds passed in Tag to the local storage database. If tag has
+     * "remote" Evernote service's guid set, it is identified in the database by this guid.
+     * Otherwise it is identified by local guid.
      * @param tag - tag to be added to the local storage
-     * @param whichGuid - should Tag to be added to the local storage be identified
-     * by local or remote guid in the local storage database
      * @param errorDescription - error description if Tag could not be added
      * @return true if Tag was added successfully, false otherwise
      */
-    bool AddTag(const Tag & tag, const WhichGuid::type whichGuid, QString & errorDescription);
+    bool AddTag(const Tag & tag, QString & errorDescription);
 
     /**
-     * @brief UpdateTag - updates passed in Tag on the basis of either its local or remote guid;
-     * for example, when this method is called because user updated the tag, the local guid
-     * should be used to identify the object. But when this method is called because
-     * the update from the service came in, the tag to be updated should be identified
-     * by remote guid
+     * @brief UpdateTag - updates passed in Tag in the local storage database. If tag has
+     * "remote" Evernote service's guid set, it is identified in the database by this guid.
+     * Otherwise it is identified by local guid.
      * @param tag - Tag filled with values to be updated in the local storage database
-     * @param whichGuid - should Tag be identified by local or remote guid in the local storage database
      * @param errorDescription - error description if Tag could not be updated
      * @return true if Tag was updated successfully, false otherwise
      */
-    bool UpdateTag(const Tag & tag, const WhichGuid::type whichGuid, QString & errorDescription);
+    bool UpdateTag(const Tag & tag, QString & errorDescription);
 
     bool LinkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
 
@@ -304,7 +297,7 @@ private:
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, const bool withLocalGuid,
                                        QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
-    bool InsertOrReplaceTag(const Tag & tag, const bool withLocalGuid, QString & errorDescription);
+    bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, const bool withLocalGuid,
                                     QString & errorDescription);
