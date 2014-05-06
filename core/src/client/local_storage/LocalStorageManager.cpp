@@ -702,12 +702,10 @@ bool LocalStorageManager::AddLinkedNotebook(const LinkedNotebook & linkedNoteboo
         return false;
     }
 
-    return InsertOrReplaceLinkedNotebook(linkedNotebook, /* with local guid = */ true,
-                                         errorDescription);
+    return InsertOrReplaceLinkedNotebook(linkedNotebook, errorDescription);
 }
 
 bool LocalStorageManager::UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook,
-                                               const WhichGuid::type whichGuid,
                                                QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't update linked notebook in local storage database: ");
@@ -720,27 +718,16 @@ bool LocalStorageManager::UpdateLinkedNotebook(const LinkedNotebook & linkedNote
         return false;
     }
 
-    QString column, guid;
-    bool isLocalGuid = (whichGuid == WhichGuid::LocalGuid);
-    if (isLocalGuid) {
-        column = "localGuid";
-        guid = linkedNotebook.localGuid();
-    }
-    else { // whichGuid == WhichGuid::EverCloudGuid
-        column = "guid";
-        guid = linkedNotebook.guid();
-    }
+    QString guid = linkedNotebook.guid();
 
-    bool exists = RowExists("LinkedNotebooks", column, QVariant(guid));
+    bool exists = RowExists("LinkedNotebooks", "guid", QVariant(guid));
     if (!exists) {
-        errorDescription += QObject::tr("linked notebook with specified ");
-        errorDescription += (isLocalGuid ? QObject::tr("local guid") : QObject::tr("guid"));
-        errorDescription += QObject::tr("was not found in local storage database");
-        QNWARNING(errorDescription << ", " << column << ": " << guid);
+        errorDescription += QObject::tr("linked notebook with specified guid was not found");
+        QNWARNING(errorDescription << ", guid: " << guid);
         return false;
     }
 
-    return InsertOrReplaceLinkedNotebook(linkedNotebook, isLocalGuid, errorDescription);
+    return InsertOrReplaceLinkedNotebook(linkedNotebook, errorDescription);
 }
 
 bool LocalStorageManager::FindLinkedNotebook(const QString & notebookGuid,
@@ -2377,7 +2364,6 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
 }
 
 bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook,
-                                                        const bool withLocalGuid,
                                                         QString & errorDescription)
 {
     // NOTE: this method expects to be called after the linked notebook
@@ -2421,10 +2407,8 @@ bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & l
 
     if (hasAnyProperty)
     {
-        if (withLocalGuid) {
-            columns.append(", localGuid");
-            values.append(", \"" + linkedNotebook.localGuid() + "\"");
-        }
+        columns.append(", localGuid");
+        values.append(", \"" + linkedNotebook.localGuid() + "\"");
 
         columns.append(", isDirty");
         values.append(", " + QString::number(linkedNotebook.isDirty() ? 1 : 0));

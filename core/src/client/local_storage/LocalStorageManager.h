@@ -111,15 +111,23 @@ public:
 
     /**
      * @brief AddLinkedNotebook - adds passed in LinkedNotebook to the local storage database;
-     * LinkedNotebook can be added only from remote service side and not from user side, offline or online
+     * LinkedNotebook must have "remote" Evernote service's guid set. It is not possible
+     * to add a linked notebook in offline mode so it doesn't make sense for LinkedNotebook
+     * objects to not have guid.
      * @param linkedNotebook - LinkedNotebook to be added to the local storage database
      * @param errorDescription - error description if linked notebook could not be added
      * @return true if linked notebook was added successfully, false otherwise
      */
     bool AddLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
-    bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, const WhichGuid::type whichGuid,
-                              QString & errorDescription);
+    /**
+     * @brief UpdateLinkedNotebook - updates passd in LinkedNotebook in the local storage database;
+     * LinkedNotebook must have "remote" Evernote service's guid set.
+     * @param linkedNotebook - LinkedNotebook to be updated in the local storage database
+     * @param errorDescription - error description if linked notebook could not be updated
+     * @return true if linked notebook was updated successfully, false otherwise
+     */
+    bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     bool FindLinkedNotebook(const QString & notebookGuid, LinkedNotebook & linkedNotebook,
                             QString & errorDescription) const;
@@ -283,8 +291,7 @@ private:
 
     bool InsertOrReplaceUser(const IUser & user, QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
-    bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, const bool withLocalGuid,
-                                       QString & errorDescription);
+    bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, QString & errorDescription);

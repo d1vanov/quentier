@@ -126,7 +126,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     modifiedLinkedNotebook.setStack(linkedNotebook.stack() + "_modified");
     modifiedLinkedNotebook.setBusinessId(linkedNotebook.businessId() + 1);
 
-    res = localStorageManager.UpdateLinkedNotebook(modifiedLinkedNotebook, WhichGuid::LocalGuid, errorDescription);
+    res = localStorageManager.UpdateLinkedNotebook(modifiedLinkedNotebook, errorDescription);
     if (!res) {
         return false;
     }
