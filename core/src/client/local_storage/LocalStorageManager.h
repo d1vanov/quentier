@@ -79,11 +79,28 @@ public:
      */
     bool ExpungeUser(const IUser & user, QString & errorDescription);
 
+    /**
+     * @brief AddNotebook - adds passed in Notebook to the local storage database;
+     * if Notebook has "remote" Evernote service's guid set, it is identified by this guid
+     * in local storage database. Otherwise it is identified by its local guid.
+     * @param notebook - notebook to be added to the local storage database
+     * @param errorDescription - error description if notebook could not be added
+     * @return true if notebook was added successfully, false otherwise
+     */
     bool AddNotebook(const Notebook & notebook, QString & errorDescription);
+
+    /**
+     * @brief UpdateNotebook - updates passed in Notebook in the local storage database;
+     * if Notebook has "remote" Evernote service's guid set, it is identified by this guid
+     * in local storage database. Otherwise it is identified by its local guid.
+     * @param notebook - notebook to be updated in the local storage database
+     * @param errorDescription - error description if notebook could not be updated
+     * @return true if notebook was updated successfully, false otherwise
+     */
     bool UpdateNotebook(const Notebook & notebook, QString & errorDescription);
 
-    bool FindNotebook(const QString & notebookGuid, Notebook & notebook,
-                      QString & errorDescription);
+    bool FindNotebook(const QString & notebookGuid, const WhichGuid::type whichGuid,
+                      Notebook & notebook, QString & errorDescription);
 
     bool ListAllNotebooks(std::vector<Notebook> & notebooks, QString & errorDescription) const;
 
@@ -282,7 +299,7 @@ private:
     bool SetNoteAttributes(const Note & note, QString & errorDescription);
     bool SetNotebookAdditionalAttributes(const Notebook & notebook, QString & errorDescription);
     bool SetNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
-                                 const QString & notebookGuid, QString & errorDescription);
+                                 const QString & notebookLocalGuid, QString & errorDescription);
     bool SetSharedNotebookAttributes(const ISharedNotebook &sharedNotebook,
                                      QString & errorDescription);
 

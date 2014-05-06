@@ -415,10 +415,23 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
         return false;
     }
 
-    bool exists = RowExists("Notebooks", "guid", QVariant(notebook.guid()));
+    QString column, guid;
+    bool notebookHasGuid = notebook.hasGuid();
+    if (notebookHasGuid) {
+        column = "guid";
+        guid = notebook.guid();
+    }
+    else {
+        column = "localGuid";
+        guid = notebook.localGuid();
+    }
+
+    bool exists = RowExists("Notebooks", column, QVariant(guid));
     if (exists) {
-        errorDescription += QObject::tr("notebook with specified guid already exists");
-        QNWARNING(errorDescription << ", guid: " << notebook.guid());
+        errorDescription += QObject::tr("notebook with specified ");
+        errorDescription += (notebookHasGuid ? QObject::tr("guid") : QObject::tr("local guid"));
+        errorDescription += QObject::tr(" already exists");
+        QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
@@ -437,34 +450,56 @@ bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & er
         return false;
     }
 
-    bool exists = RowExists("Notebooks", "guid", QVariant(notebook.guid()));
+    QString column, guid;
+    bool notebookHasGuid = notebook.hasGuid();
+    if (notebookHasGuid) {
+        column = "guid";
+        guid = notebook.guid();
+    }
+    else {
+        column = "localGuid";
+        guid = notebook.localGuid();
+    }
+
+    bool exists = RowExists("Notebooks", column, QVariant(guid));
     if (!exists) {
-        errorDescription += QObject::tr("notebook with specified guid was not found");
-        QNWARNING(errorDescription << ", guid: " << notebook.guid());
+        errorDescription += QObject::tr("notebook with specified ");
+        errorDescription += (notebookHasGuid ? QObject::tr("guid") : QObject::tr("local guid"));
+        errorDescription += QObject::tr(" was not found");
+        QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
     return InsertOrReplaceNotebook(notebook, errorDescription);
 }
 
-bool LocalStorageManager::FindNotebook(const QString & notebookGuid, Notebook & notebook,
-                                       QString & errorDescription)
+bool LocalStorageManager::FindNotebook(const QString & notebookGuid, const WhichGuid::type whichGuid,
+                                       Notebook & notebook, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't find notebook in local storage database: ");
 
-    if (!CheckGuid(notebookGuid)) {
-        errorDescription += QObject::tr("requested guid is invalid");
-        return false;
+    QString column;
+    bool isLocalGuid = (whichGuid == WhichGuid::LocalGuid);
+    if (isLocalGuid) {
+        column = "localGuid";
+    }
+    else { // whichGuid == WhichGuid::EverCloudGuid
+        column = "guid";
+
+        if (!CheckGuid(notebookGuid)) {
+            errorDescription += QObject::tr("requested guid is invalid");
+            return false;
+        }
     }
 
     notebook = Notebook();
 
-    QString queryString = QString("SELECT guid, updateSequenceNumber, name, creationTimestamp, "
+    QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, name, creationTimestamp, "
                                   "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed, "
                                   "publishingUri, publishingNoteSortOrder, publishingAscendingSort, "
                                   "publicDescription, isPublished, stack, businessNotebookDescription, "
                                   "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, "
-                                  "contactId FROM Notebooks WHERE guid = %1").arg("\"" + notebookGuid + "\"");
+                                  "contactId FROM Notebooks WHERE %1 = \"%2\"").arg(column).arg(notebookGuid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find notebook in SQL database by guid");
@@ -1694,7 +1729,8 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create BusinessUserInfo table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
-                     "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
+                     "  localGuid                       TEXT PRIMARY KEY  NOT NULL UNIQUE, "
+                     "  guid                            TEXT              DEFAULT NULL UNIQUE, "
                      "  updateSequenceNumber            INTEGER           NOT NULL, "
                      "  name                            TEXT              NOT NULL, "
                      "  creationTimestamp               INTEGER           NOT NULL, "
@@ -1717,7 +1753,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create Notebooks table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NotebookRestrictions("
-                     "  guid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  localGuid REFERENCES Notebooks(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  noReadNotes                 INTEGER     DEFAULT 0, "
                      "  noCreateNotes               INTEGER     DEFAULT 0, "
                      "  noUpdateNotes               INTEGER     DEFAULT 0, "
@@ -1779,6 +1815,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  guid              TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  title             TEXT, "
                      "  content           TEXT, "
+                     "  notebookLocalGuid REFERENCES Notebooks(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual table NoteText");
@@ -1881,7 +1918,8 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  updateSequenceNumber            INTEGER             NOT NULL, "
                      "  includeAccount                  INTEGER             NOT NULL, "
                      "  includePersonalLinkedNotebooks  INTEGER             NOT NULL, "
-                     "  includeBusinessLinkedNotebooks  INTEGER             NOT NULL)");
+                     "  includeBusinessLinkedNotebooks  INTEGER             NOT NULL, "
+                     "  UNIQUE(localGuid, guid))");
     DATABASE_CHECK_AND_SET_ERROR("can't create SavedSearches table");
 
     return true;
@@ -2011,8 +2049,8 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
     if (hasAdditionalAttributes)
     {
         queryString.prepend("UPDATE Notebooks SET ");
-        queryString.append(" WHERE guid = ");
-        queryString.append("\"" + notebook.guid() + "\"");
+        queryString.append(" WHERE localGuid = ");
+        queryString.append("\"" + notebook.localGuid() + "\"");
 
         QSqlQuery query(m_sqlDatabase);
         bool res = query.exec(queryString);
@@ -2023,7 +2061,7 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
     if (notebook.hasRestrictions())
     {
         QString error;
-        bool res = SetNotebookRestrictions(notebook.restrictions(), notebook.guid(), error);
+        bool res = SetNotebookRestrictions(notebook.restrictions(), notebook.localGuid(), error);
         if (!res) {
             errorDescription += error;
             return res;
@@ -2033,7 +2071,7 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
     QList<SharedNotebookAdapter> sharedNotebooks;
     notebook.sharedNotebooks(sharedNotebooks);
 
-    for(const auto & sharedNotebook: sharedNotebooks)
+    foreach(const SharedNotebookAdapter & sharedNotebook, sharedNotebooks)
     {
         QString error;
         bool res = SetSharedNotebookAttributes(sharedNotebook, error);
@@ -2047,14 +2085,14 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
 }
 
 bool LocalStorageManager::SetNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
-                                                  const QString & notebookGuid, QString & errorDescription)
+                                                  const QString & notebookLocalGuid, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't set notebook restrictions: ");
 
     bool hasAnyRestriction = false;
 
-    QString columns = "guid";
-    QString values = QString("\"%1\"").arg(notebookGuid);
+    QString columns = "localGuid";
+    QString values = QString("\"%1\"").arg(notebookLocalGuid);
 
 #define CHECK_AND_SET_NOTEBOOK_RESTRICTION(restriction, value) \
     if (notebookRestrictions.restriction.isSet()) \
@@ -2347,14 +2385,16 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
         values += QString::number(contact.id());
     }
 
+    QString localGuid = notebook.localGuid();
     QString isDirty = QString::number(notebook.isDirty() ? 1 : 0);
     QString isLocal = QString::number(notebook.isLocal() ? 1 : 0);
     QString isDefault = QString::number(notebook.isDefaultNotebook() ? 1 : 0);
     QString isLastUsed = QString::number(notebook.isLastUsed() ? 1 : 0);
 
-    QString queryString = QString("INSERT OR REPLACE INTO Notebooks (%1, isDirty, isLocal, isDefault, "
-                                  "isLastUsed) VALUES(%2, %3, %4, %5, %6)")
-                                  .arg(columns).arg(values).arg(isDirty).arg(isLocal).arg(isDefault).arg(isLastUsed);
+    QString queryString = QString("INSERT OR REPLACE INTO Notebooks (%1, localGuid, isDirty, isLocal, isDefault, "
+                                  "isLastUsed) VALUES(%2, \"%3\", %4, %5, %6, %7)")
+                                  .arg(columns).arg(values).arg(localGuid).arg(isDirty)
+                                  .arg(isLocal).arg(isDefault).arg(isLastUsed);
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -2436,6 +2476,17 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
     const QString notebookGuid = note.notebookGuid();
 
     QSqlQuery query(m_sqlDatabase);
+    query.prepare("SELECT localGuid FROM Notebooks WHERE guid = ?");
+    query.addBindValue(notebookGuid);
+    bool res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't find local notebook's guid for its remote guid: error in SQL query");
+
+    if (!query.next()) {
+        errorDescription += QObject::tr("can't find local notebook's guid for its remote guid: SQL query result is empty");
+        return false;
+    }
+
+    QString notebookLocalGuid = query.value(0).toString();
 
     query.prepare("INSERT OR REPLACE INTO Notes (guid, updateSequenceNumber, title, isDirty, "
                   "isLocal, content, creationTimestamp, modificationTimestamp, "
@@ -2451,16 +2502,14 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, QString & error
     query.addBindValue(notebookGuid);
     query.addBindValue((note.hasNoteAttributes() ? 1 : 0));
 
-    bool res = query.exec();
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"Notes\" table in SQL database");
 
-    query.prepare("INSERT OR REPLACE INTO NoteText (guid, title, content, notebookGuid) "
-                  "VALUES(?, ?, ?, ?)");
-    query.addBindValue(guid);
-    query.addBindValue(title);
-    query.addBindValue(content);
-    query.addBindValue(notebookGuid);
-    res = query.exec();
+    QString queryString = QString("INSERT OR REPLACE INTO NoteText (guid, title, "
+                                  "content, notebookGuid, notebookLocalGuid) "
+                                  "VALUES(\"%1\", \"%2\", \"%3\", \"%4\", \"%5\")")
+                                  .arg(guid).arg(title).arg(content).arg(notebookGuid).arg(notebookLocalGuid);
+    res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"NoteText\" table in SQL database");
 
     if (note.hasTagGuids())
@@ -2787,6 +2836,7 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDirty, setDirty, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLocal, setLocal, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLastUsed, setLastUsed, int, bool, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(localGuid, setLocalGuid, QString, QString, isRequired);
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(guid, setGuid, QString, QString, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(updateSequenceNumber, setUpdateSequenceNumber,
@@ -2849,8 +2899,8 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
                   "noPublishToBusinessLibrary, noCreateTags, noUpdateTags, noExpungeTags, "
                   "noSetParentTag, noCreateSharedNotebooks, updateWhichSharedNotebookRestrictions, "
                   "expungeWhichSharedNotebookRestrictions FROM NotebookRestrictions "
-                  "WHERE guid=?");
-    query.addBindValue(notebook.guid());
+                  "WHERE localGuid=?");
+    query.addBindValue(notebook.localGuid());
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't find notebook restrictions for specified "
