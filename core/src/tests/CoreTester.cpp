@@ -144,7 +144,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         note.setNotebookGuid(notebook.guid());
 
         error.clear();
-        res = localStorageManager.AddNote(note, error);
+        res = localStorageManager.AddNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         ResourceWrapper resource;
@@ -174,7 +174,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         resourceAttributes.cameraModel = "Fake resource camera model";
 
         error.clear();
-        res = TestResourceAddFindUpdateExpungeInLocalStorage(resource, localStorageManager, error);
+        res = TestResourceAddFindUpdateExpungeInLocalStorage(resource, note, localStorageManager, error);
         QVERIFY2(res == true, error.toStdString().c_str());
     }
     CATCH_EXCEPTION();
@@ -219,7 +219,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         noteAttributes.sourceApplication = "source application";
         noteAttributes.shareDate = 2;
 
-        res = localStorageManager.AddNote(note, error);
+        res = localStorageManager.AddNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Tag tag;
@@ -252,10 +252,10 @@ void CoreTester::localStorageManagedIndividualNoteTest()
 
         note.addResource(resource);
 
-        res = localStorageManager.UpdateNote(note, error);
+        res = localStorageManager.UpdateNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
-        res = TestNoteFindUpdateDeleteExpungeInLocalStorage(note, localStorageManager, error);
+        res = TestNoteFindUpdateDeleteExpungeInLocalStorage(note, notebook, localStorageManager, error);
         QVERIFY2(res == true, qPrintable(error));
     }
     CATCH_EXCEPTION();
@@ -338,7 +338,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
 
-        res = localStorageManager.AddNote(note, error);
+        res = localStorageManager.AddNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Tag tag;
@@ -735,7 +735,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
 
-        res = localStorageManager.AddNote(note, error);
+        res = localStorageManager.AddNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         size_t numTags = 5;
@@ -767,7 +767,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
 
         std::vector<Tag> foundTags;
 
-        res = localStorageManager.ListAllTagsPerNote(note.guid(), foundTags, error);
+        res = localStorageManager.ListAllTagsPerNote(note.localGuid(), foundTags, error);
         QVERIFY2(res == true, qPrintable(error));
 
         size_t numFoundTags = foundTags.size();
@@ -840,7 +840,7 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
             note.setActive(true);
             note.setNotebookGuid(notebook.guid());
 
-            res = localStorageManager.AddNote(note, error);
+            res = localStorageManager.AddNote(note, notebook, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 

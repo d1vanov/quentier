@@ -251,7 +251,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     return true;
 }
 
-bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
+bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, const Note & note,
                                                     LocalStorageManager & localStorageManager,
                                                     QString & errorDescription)
 {
@@ -261,14 +261,15 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
     }
 
     // ========== Check Add + Find ==========
-    bool res = localStorageManager.AddEnResource(resource, errorDescription);
+    bool res = localStorageManager.AddEnResource(resource, note, errorDescription);
     if (!res) {
         return false;
     }
 
     const QString resourceGuid = resource.guid();
     ResourceWrapper foundResource;
-    res = localStorageManager.FindEnResource(resourceGuid, foundResource, errorDescription,
+    foundResource.setGuid(resourceGuid);
+    res = localStorageManager.FindEnResource(foundResource, errorDescription,
                                              /* withBinaryData = */ true);
     if (!res) {
         return false;
@@ -304,12 +305,12 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
     resourceAttributes.cameraMake = "Modified camera make";
     resourceAttributes.cameraModel = "Modified camera model";
 
-    res = localStorageManager.UpdateEnResource(modifiedResource, errorDescription);
+    res = localStorageManager.UpdateEnResource(modifiedResource, note, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindEnResource(resourceGuid, foundResource, errorDescription,
+    res = localStorageManager.FindEnResource(foundResource, errorDescription,
                                              /* withBinaryData = */ true);
     if (!res) {
         return false;
@@ -328,7 +329,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
         return false;
     }
 
-    res = localStorageManager.FindEnResource(resourceGuid, foundResource, errorDescription);
+    res = localStorageManager.FindEnResource(foundResource, errorDescription);
     if (res) {
         errorDescription = QObject::tr("Error: found IResource which should have been expunged from LocalStorageManager");
         QNWARNING(errorDescription << ": IResource expunged from LocalStorageManager: " << modifiedResource
@@ -339,7 +340,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
     return true;
 }
 
-bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
+bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Notebook & notebook,
                                                    LocalStorageManager & localStorageManager,
                                                    QString & errorDescription)
 {
@@ -351,8 +352,9 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
     // ========== Check Find ==========
     const QString initialResourceGuid = "00000000-0000-0000-c000-000000000049";
     ResourceWrapper foundResource;
-    bool res = localStorageManager.FindEnResource(initialResourceGuid, foundResource,
-                                                  errorDescription, /* withBinaryData = */ true);
+    foundResource.setGuid(initialResourceGuid);
+    bool res = localStorageManager.FindEnResource(foundResource, errorDescription,
+                                                  /* withBinaryData = */ true);
     if (!res) {
         return false;
     }
@@ -360,8 +362,8 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
     const QString noteGuid = note.guid();
     const bool withResourceBinaryData = true;
     Note foundNote;
-    res = localStorageManager.FindNote(noteGuid, foundNote, errorDescription,
-                                       withResourceBinaryData);
+    foundNote.setGuid(noteGuid);
+    res = localStorageManager.FindNote(foundNote, errorDescription, withResourceBinaryData);
     if (!res) {
         return false;
     }
@@ -424,13 +426,14 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
 
     modifiedNote.addResource(newResource);
 
-    res = localStorageManager.UpdateNote(modifiedNote, errorDescription);
+    res = localStorageManager.UpdateNote(modifiedNote, notebook, errorDescription);
     if (!res) {
         return false;
     }
 
     foundResource = ResourceWrapper();
-    res = localStorageManager.FindEnResource(newResource.guid(), foundResource, errorDescription,
+    foundResource.setGuid(newResource.guid());
+    res = localStorageManager.FindEnResource(foundResource, errorDescription,
                                              /* withBinaryData = */ true);
     if (!res) {
         return false;
@@ -446,7 +449,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
         return false;
     }
 
-    res = localStorageManager.FindNote(noteGuid, foundNote, errorDescription,
+    res = localStorageManager.FindNote(foundNote, errorDescription,
                                        /* withResourceBinaryData = */ true);
     if (!res) {
         return false;
@@ -468,7 +471,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
         return false;
     }
 
-    res = localStorageManager.FindNote(noteGuid, foundNote, errorDescription,
+    res = localStorageManager.FindNote(foundNote, errorDescription,
                                        /* withResourceBinaryData = */ true);
     if (!res) {
         return false;
@@ -488,7 +491,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
         return false;
     }
 
-    res = localStorageManager.FindNote(noteGuid, foundNote, errorDescription,
+    res = localStorageManager.FindNote(foundNote, errorDescription,
                                        /* withResourceBinaryData = */ true);
     if (res) {
         errorDescription = QObject::tr("Error: found Note which should have been expunged "
@@ -500,7 +503,8 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
 
     // ========== Try to find resource belonging to expunged note (failure expected) ==========
     foundResource = ResourceWrapper();
-    res = localStorageManager.FindEnResource(newResource.guid(), foundResource, errorDescription,
+    foundResource.setGuid(newResource.guid());
+    res = localStorageManager.FindEnResource(foundResource, errorDescription,
                                              /* withBinaryData = */ true);
     if (res) {
         errorDescription = QObject::tr("Error: found Resource which should have been expunged "
@@ -527,7 +531,8 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     // =========== Check Find ============
     const QString initialNoteGuid = "00000000-0000-0000-c000-000000000049";
     Note foundNote;
-    bool res = localStorageManager.FindNote(initialNoteGuid, foundNote, errorDescription,
+    foundNote.setGuid(initialNoteGuid);
+    bool res = localStorageManager.FindNote(foundNote, errorDescription,
                                             /* withResourceBinaryData = */ true);
     if (!res) {
         return false;

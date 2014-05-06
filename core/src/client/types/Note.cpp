@@ -582,7 +582,7 @@ void Note::addResource(const IResource & resource)
 
     m_qecNote.resources.ref() << resource.GetEnResource();
 
-    QNDEBUG("Added resource to note, guid = " << (resource.hasGuid() ? resource.guid() : "<empty>"));
+    QNDEBUG("Added resource to note, local guid = " << resource.localGuid());
 }
 
 void Note::removeResource(const IResource & resource)

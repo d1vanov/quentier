@@ -28,10 +28,11 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag, LocalStorageMana
                                                QString & errorDescription);
 
 bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
+                                                    const Note & note,
                                                     LocalStorageManager & localStorageManager,
                                                     QString & errorDescription);
 
-bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note,
+bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Notebook & notebook,
                                                    LocalStorageManager & localStorageManager,
                                                    QString & errorDescription);
 

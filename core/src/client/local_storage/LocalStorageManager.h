@@ -156,10 +156,10 @@ public:
     bool ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
                                QString & errorDescription);
 
-    bool AddNote(const Note & note, QString & errorDescription);
-    bool UpdateNote(const Note & note, QString & errorDescription);
+    bool AddNote(const Note & note, const Notebook & notebook, QString & errorDescription);
+    bool UpdateNote(const Note & note, const Notebook & notebook, QString & errorDescription);
 
-    bool FindNote(const QString & noteGuid, Note & note, QString & errorDescription,
+    bool FindNote(Note & note, QString & errorDescription,
                   const bool withResourceBinaryData = true) const;
 
     bool ListAllNotesPerNotebook(const QString & notebookGuid, std::vector<Note> & notes,
@@ -241,11 +241,10 @@ public:
      */
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
-    bool AddEnResource(const IResource & resource, QString & errorDescription);
-    bool UpdateEnResource(const IResource & resource, QString & errorDescription);
+    bool AddEnResource(const IResource & resource, const Note & note, QString & errorDescription);
+    bool UpdateEnResource(const IResource & resource, const Note & note, QString & errorDescription);
 
-    bool FindEnResource(const QString & resourceGuid, IResource & resource,
-                        QString & errorDescription, const bool withBinaryData = true) const;
+    bool FindEnResource(IResource & resource, QString & errorDescription, const bool withBinaryData = true) const;
 
     // NOTE: there is no 'DeleteEnResource' method for a reason: resources are deleted automatically
     // in remote storage so there's no need to mark some resource as deleted for synchronization procedure.
@@ -311,9 +310,9 @@ private:
     bool InsertOrReplaceUser(const IUser & user, QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
-    bool InsertOrReplaceNote(const Note & note, QString & errorDescription);
+    bool InsertOrReplaceNote(const Note & note, const Notebook & notebook, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
-    bool InsertOrReplaceResource(const IResource & resource, QString & errorDescription);
+    bool InsertOrReplaceResource(const IResource & resource, const Note & note, QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
 
     bool FillNoteFromSqlRecord(const QSqlRecord & record, Note & note, QString & errorDescription,
