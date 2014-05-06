@@ -1764,8 +1764,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create NotebookRestrictions table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS LinkedNotebooks("
-                     "  localGuid                       TEXT PRIMARY KEY  NOT NULL UNIQUE, "
-                     "  guid                            TEXT              DEFAULT NULL UNIQUE, "
+                     "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
                      "  updateSequenceNumber            INTEGER           NOT NULL, "
                      "  isDirty                         INTEGER           NOT NULL, "
                      "  shareName                       TEXT              NOT NULL, "
@@ -2433,9 +2432,6 @@ bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & l
 
     if (hasAnyProperty)
     {
-        columns.append(", localGuid");
-        values.append(", \"" + linkedNotebook.localGuid() + "\"");
-
         columns.append(", isDirty");
         values.append(", " + QString::number(linkedNotebook.isDirty() ? 1 : 0));
 
