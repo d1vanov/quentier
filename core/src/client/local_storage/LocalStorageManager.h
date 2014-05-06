@@ -102,17 +102,11 @@ public:
     bool FindNotebook(const QString & notebookGuid, const WhichGuid::type whichGuid,
                       Notebook & notebook, QString & errorDescription);
 
-    bool ListAllNotebooks(std::vector<Notebook> & notebooks, QString & errorDescription) const;
+    QList<Notebook> ListAllNotebooks(QString & errorDescription) const;
+    QList<SharedNotebookWrapper> ListAllSharedNotebooks(QString & errorDescription) const;
 
-    bool ListAllSharedNotebooks(std::vector<SharedNotebookWrapper> & sharedNotebooks,
-                                QString & errorDescription) const;
-
-    bool ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                            QList<SharedNotebookWrapper> & sharedNotebooks,
-                                            QString & errorDescription) const;
-    bool ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                            QList<SharedNotebookAdapter> & sharedNotebooks,
-                                            QString & errorDescription) const;
+    QList<SharedNotebookWrapper> ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
+                                                                    QString & errorDescription) const;
 
     /**
      * @brief ExpungeNotebook - deletes specified notebook from local storage.
@@ -333,9 +327,8 @@ private:
                                     const bool withBinaryData = true) const;
     bool FindAndSetNoteAttributesPerNote(Note & note, QString & errorDescription) const;
 
-    bool ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                            QList<qevercloud::SharedNotebook> & sharedNotebooks,
-                                            QString & errorDescription) const;
+    QList<qevercloud::SharedNotebook> ListEnSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
+                                                                           QString & errorDescription) const;
 
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;

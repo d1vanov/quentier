@@ -657,12 +657,12 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
         notebook.setStack("Fake notebook stack");
 
 
-        size_t numSharedNotebooks = 5;
-        std::vector<SharedNotebookWrapper> sharedNotebooks;
+        int numSharedNotebooks = 5;
+        QList<SharedNotebookWrapper> sharedNotebooks;
         sharedNotebooks.reserve(numSharedNotebooks);
-        for(size_t i = 0; i < numSharedNotebooks; ++i)
+        for(int i = 0; i < numSharedNotebooks; ++i)
         {
-            sharedNotebooks.push_back(SharedNotebookWrapper());
+            sharedNotebooks << SharedNotebookWrapper();
             SharedNotebookWrapper & sharedNotebook = sharedNotebooks.back();
 
             sharedNotebook.setId(i);
@@ -685,12 +685,10 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
         bool res = localStorageManager.AddNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
-        std::vector<SharedNotebookWrapper> foundSharedNotebooks;
+        QList<SharedNotebookWrapper> foundSharedNotebooks = localStorageManager.ListAllSharedNotebooks(error);
+        QVERIFY2(!foundSharedNotebooks.isEmpty(), qPrintable(error));
 
-        res = localStorageManager.ListAllSharedNotebooks(foundSharedNotebooks, error);
-        QVERIFY2(res == true, qPrintable(error));
-
-        size_t numFoundSharedNotebooks = foundSharedNotebooks.size();
+        int numFoundSharedNotebooks = foundSharedNotebooks.size();
         if (numFoundSharedNotebooks != numSharedNotebooks) {
             QFAIL(qPrintable("Error: number of shared notebooks in the result of LocalStorageManager::ListAllSharedNotebooks (" +
                              QString::number(numFoundSharedNotebooks) + ") does not match the original number of added shared notebooks (" +
@@ -700,8 +698,7 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
         for(size_t i = 0; i < numFoundSharedNotebooks; ++i)
         {
             const SharedNotebookWrapper & foundSharedNotebook = foundSharedNotebooks.at(i);
-            const auto it = std::find(sharedNotebooks.cbegin(), sharedNotebooks.cend(), foundSharedNotebook);
-            if (it == sharedNotebooks.cend()) {
+            if (!sharedNotebooks.contains(foundSharedNotebook)) {
                 QFAIL("One of shared notebooks from the result of LocalStorageManager::ListAllSharedNotebooks "
                       "was not found in the list of original shared notebooks");
             }
@@ -891,11 +888,11 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
 
         QString error;
 
-        size_t numNotebooks = 5;
-        std::vector<Notebook> notebooks;
-        for(size_t i = 0; i < numNotebooks; ++i)
+        int numNotebooks = 5;
+        QList<Notebook> notebooks;
+        for(int i = 0; i < numNotebooks; ++i)
         {
-            notebooks.push_back(Notebook());
+            notebooks << Notebook();
             Notebook & notebook = notebooks.back();
 
             notebook.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
@@ -956,11 +953,10 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
             QVERIFY2(res == true, qPrintable(error));
         }
 
-        std::vector<Notebook> foundNotebooks;
-        bool res = localStorageManager.ListAllNotebooks(foundNotebooks, error);
-        QVERIFY2(res == true, qPrintable(error));
+        QList<Notebook> foundNotebooks = localStorageManager.ListAllNotebooks(error);
+        QVERIFY2(!foundNotebooks.isEmpty(), qPrintable(error));
 
-        size_t numFoundNotebooks = foundNotebooks.size();
+        int numFoundNotebooks = foundNotebooks.size();
         if (numFoundNotebooks != numNotebooks) {
             QFAIL(qPrintable("Error: number of notebooks in the result of LocalStorageManager::ListAllNotebooks (" +
                              QString::number(numFoundNotebooks) + ") does not match the original number of added notebooks (" +
@@ -970,8 +966,7 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
         for(size_t i = 0; i < numFoundNotebooks; ++i)
         {
             const Notebook & foundNotebook = foundNotebooks.at(i);
-            const auto it = std::find(notebooks.cbegin(), notebooks.cend(), foundNotebook);
-            if (it == notebooks.cend()) {
+            if (!notebooks.contains(foundNotebook)) {
                 QFAIL("One of notebooks from the result of LocalStorageManager::ListAllNotebooks "
                       "was not found in the list of original notebooks");
             }

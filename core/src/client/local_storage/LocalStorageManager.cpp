@@ -514,142 +514,118 @@ bool LocalStorageManager::FindNotebook(const QString & notebookGuid, const Which
     return FillNotebookFromSqlRecord(rec, notebook, errorDescription);
 }
 
-bool LocalStorageManager::ListAllNotebooks(std::vector<Notebook> & notebooks,
-                                           QString & errorDescription) const
+QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManager::ListAllNotebooks");
 
-    notebooks.clear();
+    QList<Notebook> notebooks;
     errorDescription = QObject::tr("Can't list all notebooks in local storage database: ");
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec("SELECT * FROM Notebooks");
-    DATABASE_CHECK_AND_SET_ERROR("can't select all notebooks from SQL database");
-
-    int numRows = query.size();
-    if (numRows == 0) {
-        QNDEBUG("Found no notebooks");
-        return true;
+    if (!res) {
+        errorDescription += QObject::tr("can't select all notebooks from SQL database: ");
+        errorDescription += query.lastError().text();
+        return notebooks;
     }
 
-    if (numRows > 0) {
-        notebooks.reserve(numRows);
-    }
+    notebooks.reserve(qMax(query.size(), 0));
 
     while(query.next())
     {
         QSqlRecord rec = query.record();
 
-        notebooks.push_back(Notebook());
-        auto & notebook = notebooks.back();
-
+        notebooks << Notebook();
+        Notebook & notebook = notebooks.back();
         res = FillNotebookFromSqlRecord(rec, notebook, errorDescription);
         if (!res) {
-            return false;
-        } 
+            notebooks.clear();
+            return notebooks;
+        }
     }
 
-    QNDEBUG("found " << notebooks.size() << " notebooks");
+    int numNotebooks = notebooks.size();
+    QNDEBUG("found " << numNotebooks << " notebooks");
 
-    return true;
+    if (numNotebooks <= 0) {
+        errorDescription += QObject::tr("found no notebooks");
+    }
+
+    return notebooks;
 }
 
-bool LocalStorageManager::ListAllSharedNotebooks(std::vector<SharedNotebookWrapper> & sharedNotebooks,
-                                                 QString & errorDescription) const
+QList<SharedNotebookWrapper> LocalStorageManager::ListAllSharedNotebooks(QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManager::ListAllSharedNotebooks");
 
-    sharedNotebooks.clear();
+    QList<SharedNotebookWrapper> sharedNotebooks;
     errorDescription = QObject::tr("Can't list all shared notebooks: ");
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec("SELECT * FROM SharedNotebooks");
-    DATABASE_CHECK_AND_SET_ERROR("Can't select shared notebooks from SQL database");
-
-    int numRows = query.size();
-    if (numRows == 0) {
-        QNDEBUG("Found no shared notebooks");
-        return true;
+    if (!res) {
+        errorDescription += QObject::tr("can't select shared notebooks from SQL database: ");
+        errorDescription += query.lastError().text();
+        QNWARNING(errorDescription << ", last error: " << query.lastError() << ", last query: " << query.lastQuery());
+        return sharedNotebooks;
     }
 
-    if (numRows > 0) {
-        sharedNotebooks.reserve(std::max(numRows, 0));
-    }
+    sharedNotebooks.reserve(qMax(query.size(), 0));
 
     while(query.next())
     {
         QSqlRecord record = query.record();
 
-        sharedNotebooks.push_back(SharedNotebookWrapper());
+        sharedNotebooks << SharedNotebookWrapper();
         SharedNotebookWrapper & sharedNotebook = sharedNotebooks.back();
 
         res = FillSharedNotebookFromSqlRecord(record, sharedNotebook, errorDescription);
         if (!res) {
-            return false;
+            sharedNotebooks.clear();
+            return sharedNotebooks;
         }
     }
 
-    QNDEBUG("found " << sharedNotebooks.size() << " shared notebooks");
+    int numSharedNotebooks = sharedNotebooks.size();
+    QNDEBUG("found " << numSharedNotebooks << " shared notebooks");
 
-    return true;
+    if (numSharedNotebooks <= 0) {
+        errorDescription += QObject::tr("found no shared notebooks");
+    }
+
+    return sharedNotebooks;
 }
 
-bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                             QList<SharedNotebookWrapper> & sharedNotebooks,
-                                                             QString & errorDescription) const
+QList<SharedNotebookWrapper> LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
+                                                                                     QString & errorDescription) const
 {
-    QList<qevercloud::SharedNotebook> enSharedNotebooks;
-    bool res = ListSharedNotebooksPerNotebookGuid(notebookGuid, enSharedNotebooks,
-                                                  errorDescription);
-    if (!res) {
-        return res;
+    QList<SharedNotebookWrapper> sharedNotebooks;
+
+    QList<qevercloud::SharedNotebook> enSharedNotebooks = ListEnSharedNotebooksPerNotebookGuid(notebookGuid, errorDescription);
+    if (enSharedNotebooks.isEmpty()) {
+        return sharedNotebooks;
     }
 
-    size_t numFoundSharedNotebooks = enSharedNotebooks.size();
-    sharedNotebooks.clear();
-    sharedNotebooks.reserve(numFoundSharedNotebooks);
+    sharedNotebooks.reserve(qMax(enSharedNotebooks.size(), 0));
 
-    for(size_t i = 0; i < numFoundSharedNotebooks; ++i) {
-        sharedNotebooks.push_back(SharedNotebookWrapper(enSharedNotebooks[i]));
+    foreach(const qevercloud::SharedNotebook & sharedNotebook, enSharedNotebooks) {
+        sharedNotebooks << sharedNotebook;
     }
 
-    return true;
+    return sharedNotebooks;
 }
 
-bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                             QList<SharedNotebookAdapter> & sharedNotebooks,
-                                                             QString & errorDescription) const
-{
-    QList<qevercloud::SharedNotebook> enSharedNotebooks;
-    bool res = ListSharedNotebooksPerNotebookGuid(notebookGuid, enSharedNotebooks,
-                                                  errorDescription);
-    if (!res) {
-        return res;
-    }
-
-    size_t numFoundSharedNotebooks = enSharedNotebooks.size();
-    sharedNotebooks.clear();
-    sharedNotebooks.reserve(numFoundSharedNotebooks);
-
-    for(size_t i = 0; i < numFoundSharedNotebooks; ++i) {
-        sharedNotebooks.push_back(SharedNotebookAdapter(enSharedNotebooks[i]));
-    }
-
-    return true;
-}
-
-bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                             QList<qevercloud::SharedNotebook> & sharedNotebooks,
-                                                             QString & errorDescription) const
+QList<qevercloud::SharedNotebook> LocalStorageManager::ListEnSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
+                                                                                            QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManager::ListSharedNotebooksPerNotebookGuid: guid = " << notebookGuid);
 
-    sharedNotebooks.clear();
-    errorDescription = QObject::tr("Can't list shared notebooks per notebook guid: ");
+    QList<qevercloud::SharedNotebook> sharedNotebooks;
+    QString errorPrefix = QObject::tr("Can't list shared notebooks per notebook guid: ");
 
     if (!CheckGuid(notebookGuid)) {
-        errorDescription += QObject::tr("notebook guid is invalid");
-        return false;
+        errorDescription = errorPrefix + QObject::tr("notebook guid is invalid");
+        return sharedNotebooks;
     }
 
     QSqlQuery query(m_sqlDatabase);
@@ -660,28 +636,35 @@ bool LocalStorageManager::ListSharedNotebooksPerNotebookGuid(const QString & not
     query.addBindValue(notebookGuid);
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select shared notebooks for given "
-                                 "notebook guid from SQL database");
+    if (!res) {
+        errorDescription = errorPrefix + QObject::tr("can't select shared notebooks for given "
+                                                     "notebook guid from SQL database: ");
+        QNWARNING(errorDescription << ", last error: " << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return sharedNotebooks;
+    }
 
-    sharedNotebooks.reserve(std::max(query.size(), 0));
+    sharedNotebooks.reserve(qMax(query.size(), 0));
 
     while(query.next())
     {
         QSqlRecord record = query.record();
 
-        sharedNotebooks.push_back(qevercloud::SharedNotebook());
+        sharedNotebooks << qevercloud::SharedNotebook();
         qevercloud::SharedNotebook & sharedNotebook = sharedNotebooks.back();
         SharedNotebookAdapter sharedNotebookAdapter(sharedNotebook);
 
         res = FillSharedNotebookFromSqlRecord(record, sharedNotebookAdapter, errorDescription);
         if (!res) {
-            return false;
+            sharedNotebooks.clear();
+            return sharedNotebooks;
         }
     }
 
-    QNDEBUG("found " << sharedNotebooks.size() << " shared notebooks");
+    int numSharedNotebooks = sharedNotebooks.size();
+    QNDEBUG("found " << numSharedNotebooks << " shared notebooks");
 
-    return true;
+    return sharedNotebooks;
 }
 
 bool LocalStorageManager::ExpungeNotebook(const Notebook & notebook, QString & errorDescription)
@@ -2948,20 +2931,14 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
 
     }
 
-    // TODO: try to optimize it, get rid of unnecessary copying
-
     QString error;
-    QList<SharedNotebookWrapper> sharedNotebooks;
-
-    res = ListSharedNotebooksPerNotebookGuid(notebook.guid(), sharedNotebooks, error);
-    if (!res) {
+    QList<qevercloud::SharedNotebook> sharedNotebooks = ListEnSharedNotebooksPerNotebookGuid(notebook.guid(), error);
+    if (!error.isEmpty()) {
         errorDescription += error;
         return false;
     }
 
-    foreach(const SharedNotebookWrapper & sharedNotebook, sharedNotebooks) {
-        notebook.addSharedNotebook(sharedNotebook);
-    }
+    notebook.setSharedNotebooks(sharedNotebooks);
 
     return true;
 }

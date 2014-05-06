@@ -419,6 +419,16 @@ void Notebook::sharedNotebooks(QList<SharedNotebookAdapter> & notebooks) const
     }
 }
 
+void Notebook::setSharedNotebooks(QList<qevercloud::SharedNotebook> sharedNotebooks)
+{
+    if (!canCreateSharedNotebooks() || !canUpdateNotebook()) {
+        QNDEBUG("Can't set shared notebooks for notebook: restrictions apply");
+        return;
+    }
+
+    m_qecNotebook.sharedNotebooks = sharedNotebooks;
+}
+
 #define SHARED_NOTEBOOKS_SETTER(type) \
     void Notebook::setSharedNotebooks(QList<type> && notebooks) \
     { \

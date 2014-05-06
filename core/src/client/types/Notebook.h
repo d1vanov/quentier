@@ -84,6 +84,7 @@ public:
 
     bool hasSharedNotebooks();
     void sharedNotebooks(QList<SharedNotebookAdapter> & notebooks) const;
+    void setSharedNotebooks(QList<qevercloud::SharedNotebook> sharedNotebooks);
     void setSharedNotebooks(QList<SharedNotebookAdapter> && notebooks);
     void setSharedNotebooks(QList<SharedNotebookWrapper> && notebooks);
     void addSharedNotebook(const ISharedNotebook & sharedNotebook);
