@@ -751,16 +751,21 @@ bool LocalStorageManager::UpdateLinkedNotebook(const LinkedNotebook & linkedNote
     return InsertOrReplaceLinkedNotebook(linkedNotebook, errorDescription);
 }
 
-bool LocalStorageManager::FindLinkedNotebook(const QString & notebookGuid,
-                                             LinkedNotebook & linkedNotebook,
-                                             QString & errorDescription) const
+bool LocalStorageManager::FindLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManager::FindLinkedNotebook: notebookGuid: " << notebookGuid);
+    QNDEBUG("LocalStorageManager::FindLinkedNotebook");
 
     errorDescription = QObject::tr("Can't find linked notebook in local storage database: ");
 
+    if (!linkedNotebook.hasGuid()) {
+        errorDescription += QObject::tr("guid is not set");
+        return false;
+    }
+
+    QString notebookGuid = linkedNotebook.guid();
+    QNDEBUG("guid = " << notebookGuid);
     if (!CheckGuid(notebookGuid)) {
-        errorDescription += QObject::tr("requested guid is invalid");
+        errorDescription += QObject::tr("guid is invalid");
         return false;
     }
 

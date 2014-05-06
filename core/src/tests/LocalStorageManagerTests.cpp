@@ -101,7 +101,8 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
 
     const QString linkedNotebookGuid = linkedNotebook.guid();
     LinkedNotebook foundLinkedNotebook;
-    res = localStorageManager.FindLinkedNotebook(linkedNotebookGuid, foundLinkedNotebook, errorDescription);
+    foundLinkedNotebook.setGuid(linkedNotebookGuid);
+    res = localStorageManager.FindLinkedNotebook(foundLinkedNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -131,7 +132,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
         return false;
     }
 
-    res = localStorageManager.FindLinkedNotebook(linkedNotebookGuid, foundLinkedNotebook, errorDescription);
+    res = localStorageManager.FindLinkedNotebook(foundLinkedNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -149,7 +150,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
         return false;
     }
 
-    res = localStorageManager.FindLinkedNotebook(linkedNotebookGuid, foundLinkedNotebook, errorDescription);
+    res = localStorageManager.FindLinkedNotebook(foundLinkedNotebook, errorDescription);
     if (res) {
         errorDescription = "Error: found linked notebook which should have been expunged from local storage";
         QNWARNING(errorDescription << ": LinkedNotebook expunged from LocalStorageManager: " << modifiedLinkedNotebook

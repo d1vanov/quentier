@@ -148,8 +148,17 @@ public:
      */
     bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
-    bool FindLinkedNotebook(const QString & notebookGuid, LinkedNotebook & linkedNotebook,
-                            QString & errorDescription) const;
+    /**
+     * @brief FindLinkedNotebook - attempts to find and set all found fields for passed in
+     * by reference LinkedNotebook object. For LinkedNotebook local guid doesn't mean anything
+     * because it can only be considered valid if it has "remote" Evernote service's guid set.
+     * So this passed in LinkedNotebook object must have guid set to identify
+     * the linked notebook in the local storage database.
+     * @param linkedNotebook - linked notebook to be found. Must have "remote" guid set
+     * @param errorDescription - error description if linked notebook could not be found
+     * @return true if linked notebook was found, false otherwise
+     */
+    bool FindLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const;
 
     bool ListAllLinkedNotebooks(std::vector<LinkedNotebook> & notebooks, QString & errorDescription) const;
 
