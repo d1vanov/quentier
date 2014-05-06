@@ -99,8 +99,16 @@ public:
      */
     bool UpdateNotebook(const Notebook & notebook, QString & errorDescription);
 
-    bool FindNotebook(const QString & notebookGuid, const WhichGuid::type whichGuid,
-                      Notebook & notebook, QString & errorDescription);
+    /**
+     * @brief FindNotebook - attempts to find and set all found fields for passed in
+     * by reference Notebook object. If "remote" Evernote service's guid for Notebook is set,
+     * it is used to identify the Notebook in local storage database. Otherwise it is
+     * identified by its local guid.
+     * @param notebook - notebook to be found. Must have either "remote" or local guid set
+     * @param errorDescription - error description if notebook could not be found
+     * @return true if notebook was found, false otherwise
+     */
+    bool FindNotebook(Notebook & notebook, QString & errorDescription);
 
     QList<Notebook> ListAllNotebooks(QString & errorDescription) const;
     QList<SharedNotebookWrapper> ListAllSharedNotebooks(QString & errorDescription) const;

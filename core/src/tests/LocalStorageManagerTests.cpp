@@ -533,10 +533,9 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
         return false;
     }
 
-    const QString notebookGuid = notebook.guid();
     Notebook foundNotebook;
-    res = localStorageManager.FindNotebook(notebookGuid, WhichGuid::EverCloudGuid,
-                                           foundNotebook, errorDescription);
+    foundNotebook.setGuid(notebook.guid());
+    res = localStorageManager.FindNotebook(foundNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -570,8 +569,8 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     }
 
     foundNotebook = Notebook();
-    res = localStorageManager.FindNotebook(modifiedNotebook.guid(), WhichGuid::EverCloudGuid,
-                                           foundNotebook, errorDescription);
+    foundNotebook.setGuid(modifiedNotebook.guid());
+    res = localStorageManager.FindNotebook(foundNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -590,8 +589,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
         return false;
     }
 
-    res = localStorageManager.FindNotebook(modifiedNotebook.guid(), WhichGuid::EverCloudGuid,
-                                           foundNotebook, errorDescription);
+    res = localStorageManager.FindNotebook(foundNotebook, errorDescription);
     if (res) {
         errorDescription = QObject::tr("Error: found Notebook which should have been expunged "
                                        "from LocalStorageManager");

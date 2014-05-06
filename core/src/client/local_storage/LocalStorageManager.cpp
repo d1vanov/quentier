@@ -473,23 +473,23 @@ bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & er
     return InsertOrReplaceNotebook(notebook, errorDescription);
 }
 
-bool LocalStorageManager::FindNotebook(const QString & notebookGuid, const WhichGuid::type whichGuid,
-                                       Notebook & notebook, QString & errorDescription)
+bool LocalStorageManager::FindNotebook(Notebook & notebook, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't find notebook in local storage database: ");
 
-    QString column;
-    bool isLocalGuid = (whichGuid == WhichGuid::LocalGuid);
-    if (isLocalGuid) {
-        column = "localGuid";
-    }
-    else { // whichGuid == WhichGuid::EverCloudGuid
+    QString column, guid;
+    bool notebookHasGuid = notebook.hasGuid();
+    if (notebookHasGuid) {
         column = "guid";
-
-        if (!CheckGuid(notebookGuid)) {
+        guid = notebook.guid();
+        if (!CheckGuid(guid)) {
             errorDescription += QObject::tr("requested guid is invalid");
             return false;
         }
+    }
+    else { // whichGuid == WhichGuid::EverCloudGuid
+        column = "localGuid";
+        guid = notebook.localGuid();
     }
 
     notebook = Notebook();
@@ -499,7 +499,7 @@ bool LocalStorageManager::FindNotebook(const QString & notebookGuid, const Which
                                   "publishingUri, publishingNoteSortOrder, publishingAscendingSort, "
                                   "publicDescription, isPublished, stack, businessNotebookDescription, "
                                   "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, "
-                                  "contactId FROM Notebooks WHERE %1 = \"%2\"").arg(column).arg(notebookGuid);
+                                  "contactId FROM Notebooks WHERE %1 = \"%2\"").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find notebook in SQL database by guid");
