@@ -498,7 +498,7 @@ void CoreTester::localStorageManagerListAllSavedSearchesTest()
             search.setIncludeBusinessLinkedNotebooks(true);
             search.setIncludePersonalLinkedNotebooks(true);
 
-            bool res = localStorageManager.AddSavedSearch(search, WhichGuid::LocalGuid, error);
+            bool res = localStorageManager.AddSavedSearch(search, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 

@@ -25,7 +25,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     }
 
     // ======== Check Add + Find ============
-    bool res = localStorageManager.AddSavedSearch(search, WhichGuid::LocalGuid, errorDescription);
+    bool res = localStorageManager.AddSavedSearch(search, errorDescription);
     if (!res) {
         return false;
     }
@@ -50,7 +50,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     modifiedSearch.setName(search.name() + "_modified");
     modifiedSearch.setQuery(search.query() + "_modified");
 
-    res = localStorageManager.UpdateSavedSearch(modifiedSearch, WhichGuid::LocalGuid, errorDescription);
+    res = localStorageManager.UpdateSavedSearch(modifiedSearch, errorDescription);
     if (!res) {
         return false;
     }
