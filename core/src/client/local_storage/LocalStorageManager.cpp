@@ -671,30 +671,33 @@ bool LocalStorageManager::ExpungeNotebook(const Notebook & notebook, QString & e
 {
     errorDescription = QObject::tr("Can't expunge notebook from local storage database: ");
 
-    if (!notebook.hasGuid()) {
-        errorDescription += QObject::tr("notebook's guid is not set");
-        return false;
+    QString column, guid;
+    bool notebookHasGuid = notebook.hasGuid();
+    if (notebookHasGuid) {
+        column = "guid";
+        guid = notebook.guid();
+
+        if (!CheckGuid(guid)) {
+            errorDescription += QObject::tr("notebook's guid is invalid");
+            return false;
+        }
+    }
+    else {
+        column = "localGuid";
+        guid = notebook.localGuid();
     }
 
-    const QString notebookGuid = notebook.guid();
-    if (!CheckGuid(notebookGuid)) {
-        errorDescription += QObject::tr("notebook's guid is invalid");
-        return false;
-    }
-
-    bool exists = RowExists("Notebooks", "guid", QVariant(notebookGuid));
+    bool exists = RowExists("Notebooks", column, QVariant(guid));
     if (!exists) {
-        errorDescription += QObject::tr("can't determine row id of notebook "
-                                        "to be expunged in \"Notebooks\" table in SQL database");
-        QNWARNING(errorDescription << ", guid: " << notebookGuid);
+        errorDescription += QObject::tr("notebook to be expunged from \"Notebooks\""
+                                        "table in SQL database was not found");
+        QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
+    QString queryString = QString("DELETE FROM Notebooks WHERE %1 = \"%2\"").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("DELETE FROM Notebooks WHERE guid = ?");
-    query.addBindValue(QVariant(notebookGuid));
-
-    bool res = query.exec();
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notebooks\" table in SQL database");
 
     return true;

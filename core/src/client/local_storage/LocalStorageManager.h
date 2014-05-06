@@ -122,7 +122,7 @@ public:
      * only be done by official desktop client or web GUI. So this method should be called
      * only during synchronization with remote database, when some notebook is found to be
      * deleted via either official desktop client or web GUI
-     * @param notebook - notebook to be expunged
+     * @param notebook - notebook to be expunged. Must have either "remote" or local guid set
      * @param errorDescription - error description if notebook could not be expunged
      * @return true if notebook was expunged successfully, false otherwise
      */
