@@ -1240,16 +1240,45 @@ bool LocalStorageManager::LinkTagWithNote(const Tag & tag, const Note & note,
         return false;
     }
 
-    // TODO: also have to find a way to properly support local tags...
+    QString columns = "localNote, localTag";
+    bool tagHasGuid = tag.hasGuid();
+    if (tagHasGuid) {
+        columns.append(", tag");
+    }
 
+    bool noteHasGuid = note.hasGuid();
+    if (noteHasGuid) {
+        columns.append(", note");
+    }
+
+    QString valuesString = ":localNote, :localTag";
+    if (tagHasGuid) {
+        valuesString.append(", :tag");
+    }
+
+    if (noteHasGuid) {
+        valuesString.append(", :note");
+    }
+
+    QString queryString = QString("INSERT OR REPLACE INTO NoteTags (%1) VALUES(%2)").arg(columns).arg(valuesString);
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("INSERT OR REPLACE INTO NoteTags (note, tag) VALUES(?, ?)");
-    query.addBindValue(note.localGuid());
-    query.addBindValue(tag.guid());
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table: can't prepare SQL query");
 
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note guid + tag guid in "
-                                 "\"NoteTags\" table in SQL storage database");
+    query.bindValue(":localNote", note.localGuid());
+    query.bindValue(":localTag", tag.localGuid());
+
+    if (tagHasGuid) {
+        query.bindValue(":tag", tag.guid());
+    }
+
+    if (noteHasGuid) {
+        query.bindValue(":note", note.guid());
+    }
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table "
+                                 "in SQL database");
 
     return true;
 }
@@ -1259,7 +1288,7 @@ bool LocalStorageManager::FindTag(const QString & tagGuid, const WhichGuid::type
 {
     QNDEBUG("LocalStorageManager::FindTag: guid = " << tagGuid << ", whichGuid = " << whichGuid);
 
-    errorDescription = QObject::tr("Can't find tag in local storage database: ");
+    QString errorPrefix = QObject::tr("Can't find tag in local storage database: ");
 
     QString column;
     bool isLocalGuid = (whichGuid == WhichGuid::LocalGuid);
@@ -1268,7 +1297,7 @@ bool LocalStorageManager::FindTag(const QString & tagGuid, const WhichGuid::type
     }
     else { // whichGuid == WhichGuid::EverCloudGuid
         if (!CheckGuid(tagGuid)) {
-            errorDescription += QObject::tr("requested tag guid is invalid");
+            errorDescription = errorPrefix + QObject::tr("requested tag guid is invalid");
             return false;
         }
 
@@ -1284,7 +1313,7 @@ bool LocalStorageManager::FindTag(const QString & tagGuid, const WhichGuid::type
     DATABASE_CHECK_AND_SET_ERROR("can't select tag from \"Tags\" table in SQL database: ");
 
     if (!query.next()) {
-        errorDescription += QObject::tr("Internal error: SQL query result is empty");
+        errorDescription = errorPrefix + QObject::tr("Internal error: SQL query result is empty");
         return false;
     }
 
@@ -1292,51 +1321,73 @@ bool LocalStorageManager::FindTag(const QString & tagGuid, const WhichGuid::type
     return FillTagFromSqlRecord(record, tag, errorDescription);
 }
 
-bool LocalStorageManager::ListAllTagsPerNote(const QString & noteGuid, std::vector<Tag> & tags,
-                                             QString & errorDescription) const
+QList<Tag> LocalStorageManager::ListAllTagsPerNote(const Note & note, QString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManager::ListAllTagsPerNote: note guid = " << noteGuid);
+    QNDEBUG("LocalStorageManager::ListAllTagsPerNote");
 
-    tags.clear();
-    errorDescription = QObject::tr("Can't find all tags per note in local storage database: ");
+    QList<Tag> tags;
+    QString errorPrefix = QObject::tr("Can't find all tags per note in local storage database: ");
 
+    QString column, guid;
+    bool noteHasGuid = note.hasGuid();
+    if (noteHasGuid) {
+        column = "note";
+        guid = note.guid();
+
+        if (!CheckGuid(guid)) {
+            errorDescription = errorPrefix + QObject::tr("note's guid is invalid");
+            return tags;
+        }
+    }
+    else {
+        column = "localNote";
+        guid = note.localGuid();
+    }
+
+    QString queryString = QString("SELECT localTag FROM NoteTags WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT tag FROM NoteTags WHERE note=?");
-    query.addBindValue(noteGuid);
-
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select tag guid from \"NoteTags\" table in SQL database");
-
-    res = FillTagsFromSqlQuery(query, tags, errorDescription);
+    bool res = query.exec(queryString);
     if (!res) {
-        return false;
+        errorDescription = errorPrefix + QObject::tr("can't select tag guids from \"NoteTags\" table in SQL database: ");
+        QNWARNING(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return tags;
+    }
+
+    tags = FillTagsFromSqlQuery(query, errorDescription);
+    if (tags.isEmpty() && !errorDescription.isEmpty()) {
+        errorDescription.prepend(errorPrefix);
     }
 
     QNDEBUG("found " << tags.size() << " tags");
 
-    return true;
+    return tags;
 }
 
-bool LocalStorageManager::ListAllTags(std::vector<Tag> & tags, QString & errorDescription) const
+QList<Tag> LocalStorageManager::ListAllTags(QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManager::ListAllTags");
 
-    tags.clear();
-
-    errorDescription = QObject::tr("Can't list all tags in local storage database: ");
+    QList<Tag> tags;
+    QString errorPrefix = QObject::tr("Can't list all tags in local storage database: ");
 
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT guid FROM Tags");
-    DATABASE_CHECK_AND_SET_ERROR("can't select tag guids from SQL database");
-
-    res = FillTagsFromSqlQuery(query, tags, errorDescription);
+    bool res = query.exec("SELECT localGuid FROM Tags");
     if (!res) {
-        return false;
+        errorDescription = errorPrefix + QObject::tr("can't select tag guids from SQL database: ");
+        QNWARNING(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return tags;
+    }
+
+    tags = FillTagsFromSqlQuery(query, errorDescription);
+    if (tags.isEmpty() && !errorDescription.isEmpty()) {
+        errorDescription.prepend(errorPrefix);
     }
 
     QNDEBUG("found " << tags.size() << " tags");
 
-    return true;
+    return tags;
 }
 
 bool LocalStorageManager::DeleteTag(const Tag & tag, QString & errorDescription)
@@ -1979,13 +2030,15 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create TagsSearchName index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteTags("
-                     "  note REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  tag  REFERENCES Tags(guid)  ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  UNIQUE(note, tag) ON CONFLICT REPLACE"
+                     "  localNote REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  note REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  localTag REFERENCES Tags(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  tag  REFERENCES Tags(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  UNIQUE(localNote, localTag) ON CONFLICT REPLACE"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteTags table");
 
-    res = query.exec("CREATE INDEX IF NOT EXISTS NoteTagsNote ON NoteTags(note)");
+    res = query.exec("CREATE INDEX IF NOT EXISTS NoteTagsNote ON NoteTags(localNote)");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteTagsNote index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteResources("
@@ -2671,12 +2724,31 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
                 return false;
             }
 
-            query.prepare("INSERT OR REPLACE INTO NoteTags(note, tag) VALUES(?, ?)");
-            query.addBindValue(localGuid);
-            query.addBindValue(tagGuid);
+            columns = "localNote, localTag, tag";
+            if (noteHasGuid) {
+                columns.append(", note");
+            }
+
+            valuesString = ":localNote, :localTag, :tag";
+            if (noteHasGuid) {
+                valuesString.append(", :note");
+            }
+
+            queryString = QString("INSERT OR REPLACE INTO NoteTags(%1) VALUES(%2)").arg(columns).arg(valuesString);
+
+            res = query.prepare(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table: can't prepare SQL query");
+
+            query.bindValue(":localNote", localGuid);
+            query.bindValue(":localTag", tag.localGuid());
+            query.bindValue(":tag", tagGuid);
+
+            if (noteHasGuid) {
+                query.bindValue(":note", note.guid());
+            }
 
             res = query.exec();
-            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace information into \"NoteTags\" table in SQL database");
+            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table in SQL database");
         }
     }
 
@@ -3259,40 +3331,33 @@ bool LocalStorageManager::FillTagFromSqlRecord(const QSqlRecord & rec, Tag & tag
     return true;
 }
 
-bool LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Tag> & tags,
-                                               QString & errorDescription) const
+QList<Tag> LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, QString & errorDescription) const
 {
-    tags.clear();
-
-    int numRows = query.size();
-    if (numRows == 0) {
-        QNDEBUG("No tags were found in SQL query");
-        return true;
-    }
-
-    if (numRows > 0) {
-        tags.reserve(numRows);
-    }
+    QList<Tag> tags;
+    tags.reserve(qMax(query.size(), 0));
 
     while(query.next())
     {
-        QString tagGuid = query.value(0).toString();
-        if (!CheckGuid(tagGuid)) {
-            errorDescription += QObject::tr("Internal error: found invalid tag guid in \"NoteTags\" table");
-            return false;
+        tags << Tag();
+        Tag & tag = tags.back();
+
+        QString tagLocalGuid = query.value(0).toString();
+        if (tagLocalGuid.isEmpty()) {
+            errorDescription = QObject::tr("Internal error: no tag's local guid in the result of SQL query");
+            tags.clear();
+            return tags;
         }
 
-        tags.push_back(Tag());
+        tag.setLocalGuid(tagLocalGuid);
 
-        QString error;
-        bool res = FindTag(tagGuid, WhichGuid::EverCloudGuid, tags.back(), error);
+        bool res = FindTag(tagLocalGuid, WhichGuid::LocalGuid, tag, errorDescription);
         if (!res) {
-            errorDescription += error;
-            return false;
+            tags.clear();
+            return tags;
         }
     }
 
-    return true;
+    return tags;
 }
 
 bool LocalStorageManager::FindAndSetTagGuidsPerNote(Note & note, QString & errorDescription) const
@@ -3305,7 +3370,7 @@ bool LocalStorageManager::FindAndSetTagGuidsPerNote(Note & note, QString & error
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT tag FROM NoteTags WHERE note = ?");
+    query.prepare("SELECT tag FROM NoteTags WHERE localNote = ?");
     query.addBindValue(note.localGuid());
 
     bool res = query.exec();
@@ -3314,6 +3379,10 @@ bool LocalStorageManager::FindAndSetTagGuidsPerNote(Note & note, QString & error
     while (query.next())
     {
         QString tagGuid = query.value(0).toString();
+        if (tagGuid.isEmpty()) {
+            continue;
+        }
+
         if (!CheckGuid(tagGuid)) {
             errorDescription += QObject::tr("found invalid tag guid for requested note");
             return false;

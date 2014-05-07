@@ -223,10 +223,28 @@ public:
     bool FindTag(const QString & tagGuid, const WhichGuid::type whichGuid, Tag & tag,
                  QString & errorDescription) const;
 
-    bool ListAllTagsPerNote(const QString & noteGuid, std::vector<Tag> & tags,
-                            QString & errorDescription) const;
+    /**
+     * @brief ListAllTagsPerNote - lists all tags per given note
+     * @param note - note for which the list of tags is requested. If it has "remote"
+     * Evernote service's guid set, it is used to identify the note in the local storage database.
+     * Otherwise its local guid is used for that.
+     * @param errorDescription - error description if tags were not listed successfully.
+     * In such case the returned list of tags would be empty and error description won't be empty.
+     * However, if, for example, the list of tags is empty and error description is empty too,
+     * it means the provided note does not have any tags assigned to it.
+     * @return the list of found tags per note
+     */
+    QList<Tag> ListAllTagsPerNote(const Note & note, QString & errorDescription) const;
 
-    bool ListAllTags(std::vector<Tag> & tags, QString & errorDescription) const;
+    /**
+     * @brief ListAllTags - lists all tags within current user's account
+     * @param errorDescription - error description if tags were not listed successfully.
+     * In such case the returned list of tags would be empty and error description won't be empty.
+     * However, if, for example, the list of tags is empty and error description is empty too,
+     * it means the current account does not have any tags created.
+     * @return the list of found tags within the account
+     */
+    QList<Tag> ListAllTags(QString & errorDescription) const;
 
     /**
      * @brief DeleteTag - either expunges the local tag (i.e. deletes it from
@@ -335,8 +353,7 @@ private:
                                       QString & errorDescription) const;
     bool FillTagFromSqlRecord(const QSqlRecord & rec, Tag & tag,
                               QString & errorDescription) const;
-    bool FillTagsFromSqlQuery(QSqlQuery & query, std::vector<Tag> & tags,
-                              QString & errorDescription) const;
+    QList<Tag> FillTagsFromSqlQuery(QSqlQuery & query, QString & errorDescription) const;
 
     bool FindAndSetTagGuidsPerNote(Note & note, QString & errorDescription) const;
     bool FindAndSetResourcesPerNote(Note & note, QString & errorDescription,
