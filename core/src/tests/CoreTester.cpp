@@ -11,6 +11,8 @@
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/UserWrapper.h>
 #include <client/Serialization.h>
+#include <QApplication>
+#include <QTextStream>
 #include <QtTest/QTest>
 
 namespace qute_note {
@@ -22,6 +24,25 @@ CoreTester::CoreTester(QObject * parent) :
 
 CoreTester::~CoreTester()
 {}
+
+#if QT_VERSION >= 0x050000
+void nullMessageHandler(QtMsgType type, const QMessageLogContext &, const QString & message) {
+    if (type != QtDebugMsg) {
+        QTextStream(stdout) << message << "\n";
+    }
+}
+#else
+void nullMessageHandler(QtMsgType type, const char * message) {
+    if (type != QtDebugMsg) {
+        QTextStream(stdout) << message << "\n";
+    }
+}
+#endif
+
+void CoreTester::initTestCase()
+{
+    qInstallMsgHandler(nullMessageHandler);
+}
 
 #define TEST(component) \
     void CoreTester::serializationTest##component() \

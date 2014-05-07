@@ -623,7 +623,8 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
 
     const qint32 initialUserId = user.id();
     UserWrapper foundUser;
-    res = localStorageManager.FindUser(initialUserId, foundUser, errorDescription);
+    foundUser.setId(initialUserId);
+    res = localStorageManager.FindUser(foundUser, errorDescription);
     if (!res) {
         return false;
     }
@@ -685,7 +686,8 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     foundUser.clear();
-    res = localStorageManager.FindUser(modifiedUser.id(), foundUser, errorDescription);
+    foundUser.setId(modifiedUser.id());
+    res = localStorageManager.FindUser(foundUser, errorDescription);
     if (!res) {
         return false;
     }
@@ -759,7 +761,8 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     foundUser.clear();
-    res = localStorageManager.FindUser(modifiedUser.id(), foundUser, errorDescription);
+    foundUser.setId(modifiedUser.id());
+    res = localStorageManager.FindUser(foundUser, errorDescription);
     if (!res) {
         return false;
     }
@@ -780,7 +783,8 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     foundUser.clear();
-    res = localStorageManager.FindUser(modifiedUser.id(), foundUser, errorDescription);
+    foundUser.setId(modifiedUser.id());
+    res = localStorageManager.FindUser(foundUser, errorDescription);
     if (res) {
         errorDescription = QObject::tr("Error: found IUser which should have been expunged "
                                        "from LocalStorageManager");

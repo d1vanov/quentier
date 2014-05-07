@@ -14,6 +14,8 @@ public:
     virtual ~CoreTester();
 
 private slots:
+    void initTestCase();
+
     void serializationTestBusinessUserInfo();
     void serializationTestPremiumInfo();
     void serializationTestAccounting();

@@ -111,13 +111,21 @@ bool LocalStorageManager::UpdateUser(const IUser & user, QString & errorDescript
     return true;
 }
 
-bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & errorDescription) const
+bool LocalStorageManager::FindUser(IUser & user, QString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManager::FindUser: id = " << id);
+    QNDEBUG("LocalStorageManager::FindUser");
 
     errorDescription = QObject::tr("Can't find user in local storage database: ");
 
+    if (!user.hasId()) {
+        errorDescription += QObject::tr("user id is not set");
+        return false;
+    }
+
+    qint32 id = user.id();
     QString userId = QString::number(id);
+    QNDEBUG("Looking for user with id = " << userId);
+
     bool exists = RowExists("Users", "id", QVariant(userId));
     if (!exists) {
         errorDescription += QObject::tr("user id was not found");
@@ -126,9 +134,10 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
     }
 
     user.clear();
+    user.setId(id);
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT id, username, email, name, timezone, privilege, creationTimestamp, "
+    query.prepare("SELECT username, email, name, timezone, privilege, creationTimestamp, "
                   "modificationTimestamp, isDirty, isLocal, deletionTimestamp, isActive "
                   "FROM Users WHERE id=?");
     query.addBindValue(userId);
@@ -158,8 +167,6 @@ bool LocalStorageManager::FindUser(const UserID id, IUser & user, QString & erro
     CHECK_AND_SET_USER_PROPERTY(Local);
 
 #undef CHECK_AND_SET_USER_PROPERTY
-
-    user.setId(id);
 
 #define CHECK_AND_SET_EN_USER_PROPERTY(propertyLocalName, setter, \
                                        type, true_type, isRequired) \
@@ -349,11 +356,12 @@ void LocalStorageManager::SwitchUser(const QString & username, const UserID user
         throw DatabaseSqlErrorException(error);
     }
 
-    if (!QSqlDatabase::contains(sqlDriverName)) {
-        m_sqlDatabase = QSqlDatabase::addDatabase(sqlDriverName);
+    QString sqlDatabaseConnectionName = "qute_note_sqlite_connection";
+    if (!QSqlDatabase::contains(sqlDatabaseConnectionName)) {
+        m_sqlDatabase = QSqlDatabase::addDatabase(sqlDriverName, sqlDatabaseConnectionName);
     }
     else {
-        m_sqlDatabase = QSqlDatabase::database(sqlDriverName);
+        m_sqlDatabase = QSqlDatabase::database(sqlDatabaseConnectionName);
     }
 
     QString databaseFileName = m_applicationPersistenceStoragePath + QString("/") +
@@ -3101,7 +3109,7 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
 
         UserAdapter user = notebook.contact();
         QString error;
-        bool res = FindUser(user.id(), user, error);
+        bool res = FindUser(user, error);
         if (!res) {
             errorDescription += error;
             return false;

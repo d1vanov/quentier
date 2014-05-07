@@ -44,9 +44,37 @@ public:
 
     void SwitchUser(const QString & username, const UserID userId, const bool startFromScratch = false);
 
+    /**
+     * @brief AddUser - adds passed in by const reference IUser subclass object
+     * to the local storage database; basically the table with Users is only involved
+     * in operations with Notebooks which have "contact" field set which in turn is
+     * intended to use with business accounts.
+     * @param user - user to be added to local storage database
+     * @param errorDescription - error description if user could not be added
+     * @return true if user was added successfully, false otherwise
+     */
     bool AddUser(const IUser & user, QString & errorDescription);
+
+    /**
+     * @brief UpdateUser - updates passed in by const reference IUser subclass object
+     * in the local storage database; basically the table with Users is only involved
+     * in operations with Notebooks which have "contact" field set which in turn is
+     * intended to use with business accounts.
+     * @param user - user to be updated  in the local storage database
+     * @param errorDescription - error description if user could not be added
+     * @return true if user was updated successfully, false otherwise
+     */
     bool UpdateUser(const IUser & user, QString & errorDescription);
-    bool FindUser(const UserID id, IUser & user, QString & errorDescription) const;
+
+    /**
+     * @brief FindUser - attempts to find and fill the fields of passed in user object which must have
+     * "id" field set as this value is the identifier of user objects in the local storage database.
+     * @param user - user to be found. Must have "id" field set.
+     * @param errorDescription - error description if user could not be found
+     * @return true if user was found successfully, false otherwise
+     */
+    bool FindUser(IUser & user, QString & errorDescription) const;
+
     bool FindUserAttributes(const UserID id, qevercloud::UserAttributes & attributes,
                             QString & errorDescription) const;
     bool FindAccounting(const UserID id, qevercloud::Accounting & accounting,
