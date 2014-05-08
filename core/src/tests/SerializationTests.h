@@ -7,8 +7,6 @@ QT_FORWARD_DECLARE_CLASS(QString)
 namespace qute_note {
 namespace test {
 
-bool TestAccountingSerialization(QString & errorDescription);
-
 // NOTE: this test is intentionally incomplete because checks for all possible
 // combinations of set/unset parameters would run too long. Some parameters are
 // are considered set/unset only if some other parameters are set/unset too.

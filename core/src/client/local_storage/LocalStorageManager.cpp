@@ -260,7 +260,6 @@ bool LocalStorageManager::FindUser(IUser & user, QString & errorDescription) con
     }
 
 FIND_OPTIONAL_USER_PROPERTIES(UserAttributes)
-FIND_OPTIONAL_USER_PROPERTIES(Accounting)
 
 #undef FIND_OPTIONAL_USER_PROPERTIES
 
@@ -1870,7 +1869,29 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Accounting("
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  data                    BLOB                    DEFAULT NULL)");
+                     "  uploadLimit                 INTEGER             DEFAULT NULL, "
+                     "  uploadLimitEnd              INTEGER             DEFAULT NULL, "
+                     "  uploadLimitNextMonth        INTEGER             DEFAULT NULL, "
+                     "  premiumServiceStatus        INTEGER             DEFAULT NULL, "
+                     "  premiumOrderNumber          TEXT                DEFAULT NULL, "
+                     "  premiumCommerceService      TEXT                DEFAULT NULL, "
+                     "  premiumServiceStart         INTEGER             DEFAULT NULL, "
+                     "  premiumServiceSKU           TEXT                DEFAULT NULL, "
+                     "  lastSuccessfulCharge        INTEGER             DEFAULT NULL, "
+                     "  lastFailedCharge            INTEGER             DEFAULT NULL, "
+                     "  lastFailedChargeReason      TEXT                DEFAULT NULL, "
+                     "  nextPaymentDue              INTEGER             DEFAULT NULL, "
+                     "  premiumLockUntil            INTEGER             DEFAULT NULL, "
+                     "  updated                     INTEGER             DEFAULT NULL, "
+                     "  premiumSubscriptionNumber   TEXT                DEFAULT NULL, "
+                     "  lastRequestedCharge         INTEGER             DEFAULT NULL, "
+                     "  currency                    TEXT                DEFAULT NULL, "
+                     "  unitPrice                   INTEGER             DEFAULT NULL, "
+                     "  businessId                  INTEGER             DEFAULT NULL, "
+                     "  businessName                TEXT                DEFAULT NULL, "
+                     "  businessRole                INTEGER             DEFAULT NULL, "
+                     "  unitDiscount                INTEGER             DEFAULT NULL, "
+                     "  nextChargeDate              INTEGER             DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create Accounting table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS PremiumInfo("
@@ -2478,14 +2499,10 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
 
     if (user.hasAccounting())
     {
-        query.clear();
-        query.prepare("INSERT OR REPLACE INTO Accounting (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(user.id()));
-        QByteArray serializedAccounting = GetSerializedAccounting(user.accounting());
-        query.addBindValue(serializedAccounting);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't add user's accounting info into \"Accounting\" table in SQL database");
+        res = InsertOrReplaceAccounting(user.id(), user.accounting(), errorDescription);
+        if (!res) {
+            return false;
+        }
     }
 
     if (user.hasPremiumInfo())
@@ -2630,6 +2647,90 @@ bool LocalStorageManager::InsertOrReplacePremiumInfo(const UserID id, const qeve
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't set user's premium info into \"PremiumInfo\" table in SQL database");
+
+    return true;
+}
+
+bool LocalStorageManager::InsertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
+                                                    QString & errorDescription)
+{
+    QString columns = "id";
+    QString valuesString = ":id";
+
+#define CHECK_AND_ADD_COLUMN_AND_VALUE(name) \
+    bool has##name = accounting.name.isSet(); \
+    if (has##name) { \
+        columns.append(", " #name); \
+        valuesString.append(", :" #name); \
+    }
+
+    CHECK_AND_ADD_COLUMN_AND_VALUE(uploadLimit);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(uploadLimitEnd);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(uploadLimitNextMonth);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumServiceStatus);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumOrderNumber);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumCommerceService);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumServiceStart);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumServiceSKU);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(lastSuccessfulCharge);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(lastFailedCharge);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(lastFailedChargeReason);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(nextPaymentDue);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumLockUntil);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(updated);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumSubscriptionNumber);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(lastRequestedCharge);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(currency);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(unitPrice);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(businessId);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(businessName);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(businessRole);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(unitDiscount);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(nextChargeDate);
+
+#undef CHECK_AND_ADD_COLUMN_AND_VALUE
+
+    QString queryString = QString("INSERT OR REPLACE INTO Accounting (%1) VALUES(%2)")
+                                  .arg(columns).arg(valuesString);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's acconting into \"Accounting\" table in SQL database");
+
+    query.bindValue(":id", id);
+
+#define CHECK_AND_BIND_VALUE(name) \
+    if (has##name) { \
+        query.bindValue(":" #name, accounting.name.ref()); \
+    }
+
+    CHECK_AND_BIND_VALUE(uploadLimit);
+    CHECK_AND_BIND_VALUE(uploadLimitEnd);
+    CHECK_AND_BIND_VALUE(uploadLimitNextMonth);
+    CHECK_AND_BIND_VALUE(premiumServiceStatus);
+    CHECK_AND_BIND_VALUE(premiumOrderNumber);
+    CHECK_AND_BIND_VALUE(premiumCommerceService);
+    CHECK_AND_BIND_VALUE(premiumServiceStart);
+    CHECK_AND_BIND_VALUE(premiumServiceSKU);
+    CHECK_AND_BIND_VALUE(lastSuccessfulCharge);
+    CHECK_AND_BIND_VALUE(lastFailedCharge);
+    CHECK_AND_BIND_VALUE(lastFailedChargeReason);
+    CHECK_AND_BIND_VALUE(nextPaymentDue);
+    CHECK_AND_BIND_VALUE(premiumLockUntil);
+    CHECK_AND_BIND_VALUE(updated);
+    CHECK_AND_BIND_VALUE(premiumSubscriptionNumber);
+    CHECK_AND_BIND_VALUE(lastRequestedCharge);
+    CHECK_AND_BIND_VALUE(currency);
+    CHECK_AND_BIND_VALUE(unitPrice);
+    CHECK_AND_BIND_VALUE(businessId);
+    CHECK_AND_BIND_VALUE(businessName);
+    CHECK_AND_BIND_VALUE(businessRole);
+    CHECK_AND_BIND_VALUE(unitDiscount);
+    CHECK_AND_BIND_VALUE(nextChargeDate);
+
+#undef CHECK_AND_BIND_VALUE
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's acconting into \"Accounting\" table in SQL database");
 
     return true;
 }
@@ -3126,25 +3227,63 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
     return true;
 }
 
+void LocalStorageManager::FillAccountingFromSqlRecord(const QSqlRecord & rec, qevercloud::Accounting & accounting) const
+{
+#define CHECK_AND_SET_ACCOUNTING_PROPERTY(property, type, localType) \
+    if (rec.contains(#property)) { \
+        QVariant value = rec.value(#property); \
+        if (!value.isNull()) { \
+            accounting.property = static_cast<localType>(qvariant_cast<type>(value)); \
+        } \
+    } \
+
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(uploadLimit, int, qint64);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(uploadLimitEnd, int, qevercloud::Timestamp);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(uploadLimitNextMonth, int, qint64);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(premiumServiceStatus, int, qevercloud::PremiumOrderStatus::type);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(premiumOrderNumber, QString, QString);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(premiumCommerceService, QString, QString);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(premiumServiceStart, int, qevercloud::Timestamp);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(premiumServiceSKU, QString, QString);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(lastSuccessfulCharge, int, qevercloud::Timestamp);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(lastFailedCharge, int, qevercloud::Timestamp);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(lastFailedChargeReason, QString, QString);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(nextPaymentDue, int, qevercloud::Timestamp);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(premiumLockUntil, int, qevercloud::Timestamp);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(updated, int, qevercloud::Timestamp);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(premiumSubscriptionNumber, QString, QString);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(lastRequestedCharge, int, qevercloud::Timestamp);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(currency, QString, QString);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(unitPrice, int, qint32);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(businessId, int, qint32);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(businessName, QString, QString);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(businessRole, int, qevercloud::BusinessUserRole::type);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(unitDiscount, int, qint32);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(nextChargeDate, int, qevercloud::Timestamp);
+
+#undef CHECK_AND_SET_ACCOUNTING_PROPERTY
+}
+
 bool LocalStorageManager::FillPremiumInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::PremiumInfo & info,
                                                        QString & errorDescription) const
 {
-#define CHECK_AND_SET_PREMIUM_INFO_PROPERTY(property, type, localType) { \
-    bool isNull = true; \
-    if (rec.contains(#property)) { \
-        QVariant value = rec.value(#property); \
-        isNull = value.isNull(); \
-        if (!isNull) { \
-            info.property = static_cast<localType>(qvariant_cast<type>(value)); \
+#define CHECK_AND_SET_PREMIUM_INFO_PROPERTY(property, type, localType) \
+    { \
+        bool isNull = true; \
+        if (rec.contains(#property)) { \
+            QVariant value = rec.value(#property); \
+            isNull = value.isNull(); \
+            if (!isNull) { \
+                info.property = static_cast<localType>(qvariant_cast<type>(value)); \
+            } \
         } \
-    } \
-    \
-    if (isNull && isRequired) { \
-        errorDescription += QObject::tr("Internal error: no " #property " field " \
-                                        "in the result of SQL query"); \
-        return false; \
-    } \
-}
+        \
+        if (isNull && isRequired) { \
+            errorDescription += QObject::tr("Internal error: no " #property " field " \
+                                            "in the result of SQL query"); \
+            return false; \
+        } \
+    }
 
     bool isRequired = true;
     CHECK_AND_SET_PREMIUM_INFO_PROPERTY(currentTime, int, qevercloud::Timestamp);
@@ -3602,6 +3741,46 @@ QList<Tag> LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, QString 
     }
 
     return tags;
+}
+
+bool LocalStorageManager::FindAccounting(const UserID id, qevercloud::Accounting & accounting,
+                                         QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManager::FindAccounting: user id = " << id);
+
+    QString errorPrefix = QObject::tr("Can't find Accounting: ");
+
+    QString queryString = QString("SELECT * FROM Accounting WHERE id = :id");
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare(queryString);
+    if (!res) {
+        errorDescription = errorPrefix + QObject::tr("can't prepare SQL query: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return false;
+    }
+
+    query.bindValue(":id", id);
+
+    res = query.exec();
+    if (!res) {
+        errorDescription = errorPrefix + QObject::tr("can't execure SQL query: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return false;
+    }
+
+    if (!query.next()) {
+        errorDescription = QObject::tr("No accounting was found for user id = ");
+        errorDescription += QString::number(id);
+        return false;
+    }
+
+    QSqlRecord rec = query.record();
+
+    FillAccountingFromSqlRecord(rec, accounting);
+
+    return true;
 }
 
 bool LocalStorageManager::FindPremiumInfo(const UserID id, qevercloud::PremiumInfo & info,

@@ -323,90 +323,6 @@ QDataStream & operator>>(QDataStream & in, qevercloud::UserAttributes & userAttr
     return in;
 }
 
-QDataStream & operator<<(QDataStream & out, const qevercloud::Accounting & accounting)
-{
-#define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
-    { \
-        bool isSet##attribute = accounting.attribute.isSet(); \
-        out << isSet##attribute; \
-        if (isSet##attribute) { \
-            out << __VA_ARGS__(accounting.attribute); \
-        } \
-    }
-
-    CHECK_AND_SET_ATTRIBUTE(uploadLimit, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(uploadLimitEnd, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(uploadLimitNextMonth, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(premiumServiceStatus, static_cast<quint8>);
-    CHECK_AND_SET_ATTRIBUTE(premiumOrderNumber);
-    CHECK_AND_SET_ATTRIBUTE(premiumCommerceService);
-    CHECK_AND_SET_ATTRIBUTE(premiumServiceStart, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(premiumServiceSKU);
-    CHECK_AND_SET_ATTRIBUTE(lastSuccessfulCharge, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(lastFailedCharge, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(lastFailedChargeReason);
-    CHECK_AND_SET_ATTRIBUTE(nextPaymentDue, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(premiumLockUntil, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(updated, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(premiumSubscriptionNumber);
-    CHECK_AND_SET_ATTRIBUTE(lastRequestedCharge, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(currency);
-    CHECK_AND_SET_ATTRIBUTE(unitPrice, static_cast<qint32>);
-    CHECK_AND_SET_ATTRIBUTE(businessId, static_cast<qint32>);
-    CHECK_AND_SET_ATTRIBUTE(businessName);
-    CHECK_AND_SET_ATTRIBUTE(businessRole, static_cast<quint8>);
-    CHECK_AND_SET_ATTRIBUTE(unitDiscount, static_cast<qint32>);
-    CHECK_AND_SET_ATTRIBUTE(nextChargeDate, static_cast<qint64>);
-
-#undef CHECK_AND_SET_ATTRIBUTE
-
-    return out;
-}
-
-QDataStream & operator>>(QDataStream & in, qevercloud::Accounting & accounting)
-{
-    accounting = qevercloud::Accounting();
-
-#define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
-    { \
-        bool isSet##attribute = false; \
-        in >> isSet##attribute; \
-        if (isSet##attribute) { \
-            qtype attribute; \
-            in >> attribute; \
-            accounting.attribute = static_cast<true_type>(attribute __VA_ARGS__); \
-        } \
-    }
-
-    CHECK_AND_SET_ATTRIBUTE(uploadLimit, qint64, int64_t);
-    CHECK_AND_SET_ATTRIBUTE(uploadLimitEnd, qint64, qevercloud::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(uploadLimitNextMonth, qint64, int64_t);
-    CHECK_AND_SET_ATTRIBUTE(premiumServiceStatus, quint8, qevercloud::PremiumOrderStatus::type);
-    CHECK_AND_SET_ATTRIBUTE(premiumOrderNumber, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(premiumCommerceService, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(premiumServiceStart, qint64, qevercloud::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(premiumServiceSKU, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(lastSuccessfulCharge, qint64, int64_t);
-    CHECK_AND_SET_ATTRIBUTE(lastFailedCharge, qint64, int64_t);
-    CHECK_AND_SET_ATTRIBUTE(lastFailedChargeReason, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(nextPaymentDue, qint64, qevercloud::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(premiumLockUntil, qint64, qevercloud::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(updated, qint64, qevercloud::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(premiumSubscriptionNumber, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(lastRequestedCharge, qint64, int64_t);
-    CHECK_AND_SET_ATTRIBUTE(currency, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(unitPrice, qint32, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(businessId, qint32, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(businessName, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(businessRole, quint8, qevercloud::BusinessUserRole::type);
-    CHECK_AND_SET_ATTRIBUTE(unitDiscount, qint32, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(nextChargeDate, qint64, qevercloud::Timestamp);
-
-#undef CHECK_AND_SET_ATTRIBUTE
-
-    return in;
-}
-
 QDataStream & operator<<(QDataStream & out, const qevercloud::ResourceAttributes & resourceAttributes)
 {
 #define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
@@ -542,7 +458,6 @@ QDataStream & operator>>(QDataStream & in, qevercloud::ResourceAttributes & reso
         return std::move(data); \
     }
 
-    GET_SERIALIZED(Accounting)
     GET_SERIALIZED(UserAttributes)
     GET_SERIALIZED(NoteAttributes)
     GET_SERIALIZED(ResourceAttributes)
@@ -558,7 +473,6 @@ QDataStream & operator>>(QDataStream & in, qevercloud::ResourceAttributes & reso
         return std::move(out); \
     }
 
-    GET_DESERIALIZED(Accounting)
     GET_DESERIALIZED(UserAttributes)
     GET_DESERIALIZED(NoteAttributes)
     GET_DESERIALIZED(ResourceAttributes)
