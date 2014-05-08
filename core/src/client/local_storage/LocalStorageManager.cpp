@@ -916,6 +916,11 @@ bool LocalStorageManager::UpdateNote(const Note & note, const Notebook & noteboo
     errorDescription = QObject::tr("Can't update note in local storage database: ");
     QString error;
 
+    if (!notebook.canUpdateNotes()) {
+        errorDescription += QObject::tr("notebook's restrictions forbid update of notes");
+        return false;
+    }
+
     bool res = note.checkParameters(error);
     if (!res) {
         errorDescription += error;
@@ -1666,34 +1671,33 @@ bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search,
     return InsertOrReplaceSavedSearch(search, errorDescription);
 }
 
-bool LocalStorageManager::FindSavedSearch(const QString & searchGuid, const WhichGuid::type whichGuid,
-                                          SavedSearch & search, QString & errorDescription) const
+bool LocalStorageManager::FindSavedSearch(SavedSearch & search, QString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManager::FindSavedSearch: guid = " << searchGuid);
+    QNDEBUG("LocalStorageManager::FindSavedSearch");
 
     errorDescription = QObject::tr("Can't find saved search in local storage database: ");
 
-    QString guidColumn;
+    QString column, guid;
+    bool searchHasGuid = search.hasGuid();
+    if (searchHasGuid) {
+        column = "guid";
+        guid = search.guid();
 
-    if (whichGuid == WhichGuid::LocalGuid)
-    {
-        guidColumn = "localGuid";
-    }
-    else // whichGuid == WhichGuid::EverCloudGuid
-    {
-        guidColumn = "guid";
-
-        if (!CheckGuid(searchGuid)) {
+        if (!CheckGuid(guid)) {
             errorDescription += QObject::tr("requested saved search guid is invalid");
             return false;
         }
+    }
+    else {
+        column = "localGuid";
+        guid = search.localGuid();
     }
 
     search.clear();
 
     QString queryString = QString("SELECT localGuid, guid, name, query, format, updateSequenceNumber, includeAccount, "
                                   "includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks "
-                                  "FROM SavedSearches WHERE %1 = \"%2\"").arg(guidColumn).arg(searchGuid);
+                                  "FROM SavedSearches WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find saved search in \"SavedSearches\" table in SQL database");
@@ -1707,46 +1711,44 @@ bool LocalStorageManager::FindSavedSearch(const QString & searchGuid, const Whic
     return FillSavedSearchFromSqlRecord(rec, search, errorDescription);
 }
 
-bool LocalStorageManager::ListAllSavedSearches(std::vector<SavedSearch> & searches,
-                                               QString & errorDescription) const
+QList<SavedSearch> LocalStorageManager::ListAllSavedSearches(QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManager::ListAllSavedSearches");
 
-    searches.clear();
+    QList<SavedSearch> searches;
 
-    errorDescription = QObject::tr("Can't find all saved searches in local storage database");
+    QString errorPrefix = QObject::tr("Can't find all saved searches in local storage database");
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec("SELECT * FROM SavedSearches");
-    DATABASE_CHECK_AND_SET_ERROR("can't select all saved searches from \"SavedSearches\" "
-                                 "table in SQL database");
-
-    int numRows = query.size();
-    if (numRows == 0) {
-        QNDEBUG("No saved searches were found");
-        return true;
+    if (!res) {
+        errorDescription = errorPrefix + QObject::tr("can't select all saved searches from "
+                                                     "\"SavedSearches\" table in SQL database: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last error = " << query.lastError());
+        errorDescription += query.lastError().text();
+        return searches;
     }
 
-    if (numRows > 0) {
-        searches.reserve(numRows);
-    }
+    searches.reserve(qMax(query.size(), 0));
 
     while(query.next())
     {
         QSqlRecord rec = query.record();
 
-        searches.push_back(SavedSearch());
-        auto & search = searches.back();
+        searches << SavedSearch();
+        SavedSearch & search = searches.back();
 
         res = FillSavedSearchFromSqlRecord(rec, search, errorDescription);
         if (!res) {
-            return false;
+            errorDescription.prepend(errorPrefix);
+            searches.clear();
+            return searches;
         }
     }
 
     QNDEBUG("found " << searches.size() << " saved searches");
 
-    return true;
+    return searches;
 }
 
 bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,

@@ -502,12 +502,12 @@ void CoreTester::localStorageManagerListAllSavedSearchesTest()
 
         QString error;
 
-        size_t nSearches = 5;
-        std::vector<SavedSearch> searches;
+        int nSearches = 5;
+        QList<SavedSearch> searches;
         searches.reserve(nSearches);
-        for(size_t i = 0; i < nSearches; ++i)
+        for(int i = 0; i < nSearches; ++i)
         {
-            searches.push_back(SavedSearch());
+            searches << SavedSearch();
             SavedSearch & search = searches.back();
 
             search.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
@@ -523,12 +523,11 @@ void CoreTester::localStorageManagerListAllSavedSearchesTest()
             QVERIFY2(res == true, qPrintable(error));
         }
 
-        std::vector<SavedSearch> foundSearches;
+        error.clear();
+        QList<SavedSearch> foundSearches = localStorageManager.ListAllSavedSearches(error);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
 
-        bool res = localStorageManager.ListAllSavedSearches(foundSearches, error);
-        QVERIFY2(res == true, qPrintable(error));
-
-        size_t numFoundSearches = foundSearches.size();
+        int numFoundSearches = foundSearches.size();
         if (numFoundSearches != nSearches) {
             QFAIL(qPrintable("Error: number of saved searches in the result of LocalStorageManager::ListAllSavedSearches (" +
                              QString::number(numFoundSearches) + ") does not match the original number of added saved searches (" +
@@ -538,8 +537,7 @@ void CoreTester::localStorageManagerListAllSavedSearchesTest()
         for(size_t i = 0; i < numFoundSearches; ++i)
         {
             const SavedSearch & foundSearch = foundSearches.at(i);
-            const auto it = std::find(searches.cbegin(), searches.cend(), foundSearch);
-            if (it == searches.cend()) {
+            if (!searches.contains(foundSearch)) {
                 QFAIL("One of saved searches from the result of LocalStorageManager::ListAllSavedSearches "
                       "was not found in the list of original searches");
             }

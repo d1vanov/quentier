@@ -39,6 +39,14 @@ struct WhichGuid {
 class LocalStorageManager
 {
 public:
+    /**
+     * @brief LocalStorageManager - constructor. Accepts name and id of user
+     * for which the LocalStorageManager instance is created and boolean parameter
+     * defining whether any pre-existing database file for this user needs to be purged
+     * @param username
+     * @param userId
+     * @param startFromScratch
+     */
     LocalStorageManager(const QString & username, const UserID userId, const bool startFromScratch);
     ~LocalStorageManager();
 
@@ -412,9 +420,39 @@ public:
      */
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
+    /**
+     * @brief AddEnResource - adds passed in resource to the local storage database
+     * @param resource - resource to be added to the database
+     * @param note - note for which the resource is added. If note doesn't have
+     * "remote" Evernote service's guid set, the resource can be linked to note
+     * by its local guid (but only in the database, not in IResource subclass object).
+     * @param errorDescription - error description if resource could not be added
+     * @return true if resource was added successfully, false otherwise
+     */
     bool AddEnResource(const IResource & resource, const Note & note, QString & errorDescription);
+
+    /**
+     * @brief UpdateEnResource - updates passed in resource in the local storage database
+     * @param resource - resource to be updated
+     * @param note - note for which the resource is updated. If note doesn't have
+     * "remote" Evernote service's guid set, the resource can be linked to note
+     * by its local guid (but only in the database, not in IResource subclass object).
+     * @param errorDescription - error description if resource could not be updated
+     * @return true if resource was updated successfully, false otherwise
+     */
     bool UpdateEnResource(const IResource & resource, const Note & note, QString & errorDescription);
 
+    /**
+     * @brief FindEnResource - attempts to find resource in the local storage database
+     * @param resource - resource to be found in the local storage database. If it has
+     * "remote" Evernote service's guid set, this guid is used to identify the resource
+     * in the local storage database. Otherwise resource's local guid is used
+     * @param errorDescription - error description if resource could not be found
+     * @param withBinaryData - optional parameter defining whether found resource should have
+     * dataBody recognitionBody, alternateDataBody filled with actual binary data.
+     * By default this parameter is true.
+     * @return true if resource was found successfully, false otherwise
+     */
     bool FindEnResource(IResource & resource, QString & errorDescription, const bool withBinaryData = true) const;
 
     // NOTE: there is no 'DeleteEnResource' method for a reason: resources are deleted automatically
@@ -449,10 +487,24 @@ public:
      */
     bool UpdateSavedSearch(const SavedSearch & search, QString & errorDescription);
 
-    bool FindSavedSearch(const QString & searchGuid, const WhichGuid::type whichGuid,
-                         SavedSearch & search, QString & errorDescription) const;
+    /**
+     * @brief FindSavedSearch - attempts to find SavedSearch in the local storage database
+     * @param search - SavedSearch to be found in the local storage database. If it
+     * would have "remote" Evernote service's guid set, it would be used to identify
+     * the search in the local storage database. Otherwise its local guid would be used.
+     * @param errorDescription - error description if SavedSearch could not be found
+     * @return true if SavedSearch was found, false otherwise
+     */
+    bool FindSavedSearch(SavedSearch & search, QString & errorDescription) const;
 
-    bool ListAllSavedSearches(std::vector<SavedSearch> & searches, QString & errorDescription) const;
+    /**
+     * @brief ListAllSavedSearches - lists all saved searches within the account
+     * @param errorDescription - error description if all saved searches could not be listed;
+     * otherwise this parameter is untouched
+     * @return either the list of all saved searches within the account or empty list
+     * in case of error or if there are no saved searches within the account
+     */
+    QList<SavedSearch> ListAllSavedSearches(QString & errorDescription) const;
 
     // NOTE: there is no 'DeleteSearch' method for a reason: saved searches are deleted automatically
     // in remote storage so there's no need to mark some saved search as deleted for synchronization procedure.

@@ -32,7 +32,8 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
 
     const QString searchGuid = search.localGuid();
     SavedSearch foundSearch;
-    res = localStorageManager.FindSavedSearch(searchGuid, WhichGuid::LocalGuid, foundSearch, errorDescription);
+    foundSearch.setLocalGuid(searchGuid);
+    res = localStorageManager.FindSavedSearch(foundSearch, errorDescription);
     if (!res) {
         return false;
     }
@@ -55,7 +56,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         return false;
     }
 
-    res = localStorageManager.FindSavedSearch(searchGuid, WhichGuid::LocalGuid, foundSearch, errorDescription);
+    res = localStorageManager.FindSavedSearch(foundSearch, errorDescription);
     if (!res) {
         return false;
     }
@@ -73,7 +74,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         return false;
     }
 
-    res = localStorageManager.FindSavedSearch(searchGuid, WhichGuid::LocalGuid, foundSearch, errorDescription);
+    res = localStorageManager.FindSavedSearch(foundSearch, errorDescription);
     if (res) {
         errorDescription = "Error: found saved search which should have been expunged from local storage";
         QNWARNING(errorDescription << ": SavedSearch expunged from LocalStorageManager: " << modifiedSearch
