@@ -7,65 +7,6 @@
 namespace qute_note {
 namespace test {
 
-bool TestPremiumInfoSerialization(QString & errorDescription)
-{
-    qevercloud::PremiumInfo info;
-
-    // number of optional data components in PremiumInfo
-#define PREMIUM_INFO_NUM_COMPONENTS 9
-
-    for(int mask = 0; mask != (1 << PREMIUM_INFO_NUM_COMPONENTS); ++mask)
-    {
-        info = qevercloud::PremiumInfo();
-        std::bitset<PREMIUM_INFO_NUM_COMPONENTS> bits(mask);
-
-        bool isSetPremiumExpirationDate = bits[0];
-
-        info.premiumExtendable = bits[1];
-        info.premiumPending = bits[2];
-        info.premiumCancellationPending = bits[3];
-        info.canPurchaseUploadAllowance = bits[4];
-
-        bool isSetSponsoredGroupName = bits[5];
-        bool isSetSponsoredGroupRole = bits[6];
-        bool isSetPremiumUpgradable = bits[7];
-
-        if (isSetPremiumExpirationDate) {
-            info.premiumExpirationDate = static_cast<qevercloud::Timestamp>(757688758765);
-        }
-
-        if (isSetSponsoredGroupName) {
-            info.sponsoredGroupName = "Chicago";
-        }
-
-        if (isSetSponsoredGroupRole) {
-            info.sponsoredGroupRole = qevercloud::SponsoredGroupRole::GROUP_MEMBER;
-        }
-
-        if (isSetPremiumUpgradable) {
-            info.premiumUpgradable = bits[8];
-        }
-
-        QByteArray serializedInfo = GetSerializedPremiumInfo(info);
-        qevercloud::PremiumInfo deserializedInfo = GetDeserializedPremiumInfo(serializedInfo);
-
-        if (info != deserializedInfo)
-        {
-            errorDescription = "Serialization test for PremiumInfo FAILED! ";
-            errorDescription.append("Initial PremiumInfo: \n");
-            errorDescription.append(ToQString<qevercloud::PremiumInfo>(info));
-            errorDescription.append("Deserialized PremiumInfo: \n");
-            errorDescription.append(ToQString<qevercloud::PremiumInfo>(deserializedInfo));
-
-            return false;
-        }
-    }
-
-#undef PREMIUM_INFO_NUM_COMPONENTS
-
-    return true;
-}
-
 bool TestAccountingSerialization(QString & errorDescription)
 {
     qevercloud::Accounting accounting;

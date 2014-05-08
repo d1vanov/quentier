@@ -261,7 +261,6 @@ bool LocalStorageManager::FindUser(IUser & user, QString & errorDescription) con
 
 FIND_OPTIONAL_USER_PROPERTIES(UserAttributes)
 FIND_OPTIONAL_USER_PROPERTIES(Accounting)
-FIND_OPTIONAL_USER_PROPERTIES(PremiumInfo)
 
 #undef FIND_OPTIONAL_USER_PROPERTIES
 
@@ -1876,7 +1875,17 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS PremiumInfo("
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  data                    BLOB                    DEFAULT NULL)");
+                     "  currentTime                 INTEGER                 DEFAULT NULL, "
+                     "  premium                     INTEGER                 DEFAULT NULL, "
+                     "  premiumRecurring            INTEGER                 DEFAULT NULL, "
+                     "  premiumExpirationDate       INTEGER                 DEFAULT NULL, "
+                     "  premiumExtendable           INTEGER                 DEFAULT NULL, "
+                     "  premiumPending              INTEGER                 DEFAULT NULL, "
+                     "  premiumCancellationPending  INTEGER                 DEFAULT NULL, "
+                     "  canPurchaseUploadAllowance  INTEGER                 DEFAULT NULL, "
+                     "  sponsoredGroupName          INTEGER                 DEFAULT NULL, "
+                     "  sponsoredGroupRole          INTEGER                 DEFAULT NULL, "
+                     "  premiumUpgradable           INTEGER                 DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create PremiumInfo table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS BusinessUserInfo("
@@ -2481,14 +2490,10 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
 
     if (user.hasPremiumInfo())
     {
-        query.clear();
-        query.prepare("INSERT OR REPLACE INTO PremiumInfo (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(user.id()));
-        QByteArray serializedPremiumInfo = GetSerializedPremiumInfo(user.premiumInfo());
-        query.addBindValue(serializedPremiumInfo);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't add user's premium info into \"PremiumInfo\" table in SQL database");
+        res = InsertOrReplacePremiumInfo(user.id(), user.premiumInfo(), errorDescription);
+        if (!res) {
+            return false;
+        }
     }
 
     if (user.hasBusinessUserInfo()) {
@@ -2535,7 +2540,7 @@ bool LocalStorageManager::InsertOrReplaceBusinesUserInfo(const UserID id, const 
                                   .arg(columns).arg(valuesString);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't add user's business info into \"BusinessUserInfo\" table in SQL database");
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's business info into \"BusinessUserInfo\" table in SQL database");
 
     query.bindValue(":id", id);
 
@@ -2556,7 +2561,75 @@ bool LocalStorageManager::InsertOrReplaceBusinesUserInfo(const UserID id, const 
     }
 
     res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't add user's business info into \"BusinessUserInfo\" table in SQL database");
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's business info into \"BusinessUserInfo\" table in SQL database");
+
+    return true;
+}
+
+bool LocalStorageManager::InsertOrReplacePremiumInfo(const UserID id, const qevercloud::PremiumInfo &info, QString & errorDescription)
+{
+    QString columns = "id, currentTime, premium, premiumRecurring, premiumExtendable, "
+                      "premiumPending, premiumCancellationPending, canPurchaseUploadAllowance";
+    QString valuesString = ":id, :currentTime, :premium, :premiumRecurring, :premiumExtendable, "
+                           ":premiumPending, :premiumCancellationPending, :canPurchaseUploadAllowance";
+
+    bool hasPremiumExpirationDate = info.premiumExpirationDate.isSet();
+    if (hasPremiumExpirationDate) {
+        columns.append(", premiumExpirationDate");
+        valuesString.append(", :premiumExpirationDate");
+    }
+
+    bool hasSponsoredGroupName = info.sponsoredGroupName.isSet();
+    if (hasSponsoredGroupName) {
+        columns.append(", sponsoredGroupName");
+        valuesString.append(", :sponsoredGroupName");
+    }
+
+    bool hasSponsoredGroupRole = info.sponsoredGroupRole.isSet();
+    if (hasSponsoredGroupRole) {
+        columns.append(", sponsoredGroupRole");
+        valuesString.append(", :sponsoredGroupRole");
+    }
+
+    bool hasPremiumUpgradable = info.premiumUpgradable.isSet();
+    if (hasPremiumUpgradable) {
+        columns.append(", premiumUpgradable");
+        valuesString.append(", :premiumUpgradable");
+    }
+
+    QString queryString = QString("INSERT OR REPLACE INTO PremiumInfo (%1) VALUES(%2)")
+                                  .arg(columns).arg(valuesString);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's premium info into \"PremiumInfo\" table in SQL database");
+
+    query.bindValue(":id", id);
+    query.bindValue(":currentTime", info.currentTime);
+    query.bindValue(":premium", (info.premium ? 1 : 0));
+    query.bindValue(":premiumRecurring", (info.premiumRecurring ? 1 : 0));
+    query.bindValue(":premiumExtendable", (info.premiumExtendable ? 1 : 0));
+    query.bindValue(":premiumPending", (info.premiumPending ? 1 : 0));
+    query.bindValue(":premiumCancellationPending", (info.premiumCancellationPending ? 1 : 0));
+    query.bindValue(":canPurchaseUploadAllowance", (info.canPurchaseUploadAllowance ? 1 : 0));
+
+    if (hasPremiumExpirationDate) {
+        query.bindValue(":premiumExpirationDate", info.premiumExpirationDate.ref());
+    }
+
+    if (hasSponsoredGroupName) {
+        query.bindValue(":sponsoredGroupName", info.sponsoredGroupName.ref());
+    }
+
+    if (hasSponsoredGroupRole) {
+        query.bindValue(":sponsoredGroupRole", static_cast<int>(info.sponsoredGroupRole.ref()));
+    }
+
+    if (hasPremiumUpgradable) {
+        query.bindValue(":premiumUpgradable", (info.premiumUpgradable.ref() ? 1 : 0));
+    }
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's premium info into \"PremiumInfo\" table in SQL database");
 
     return true;
 }
@@ -3053,6 +3126,46 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
     return true;
 }
 
+bool LocalStorageManager::FillPremiumInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::PremiumInfo & info,
+                                                       QString & errorDescription) const
+{
+#define CHECK_AND_SET_PREMIUM_INFO_PROPERTY(property, type, localType) { \
+    bool isNull = true; \
+    if (rec.contains(#property)) { \
+        QVariant value = rec.value(#property); \
+        isNull = value.isNull(); \
+        if (!isNull) { \
+            info.property = static_cast<localType>(qvariant_cast<type>(value)); \
+        } \
+    } \
+    \
+    if (isNull && isRequired) { \
+        errorDescription += QObject::tr("Internal error: no " #property " field " \
+                                        "in the result of SQL query"); \
+        return false; \
+    } \
+}
+
+    bool isRequired = true;
+    CHECK_AND_SET_PREMIUM_INFO_PROPERTY(currentTime, int, qevercloud::Timestamp);
+    CHECK_AND_SET_PREMIUM_INFO_PROPERTY(premium, int, bool);
+    CHECK_AND_SET_PREMIUM_INFO_PROPERTY(premiumRecurring, int, bool);
+    CHECK_AND_SET_PREMIUM_INFO_PROPERTY(premiumExtendable, int, bool);
+    CHECK_AND_SET_PREMIUM_INFO_PROPERTY(premiumPending, int, bool);
+    CHECK_AND_SET_PREMIUM_INFO_PROPERTY(premiumCancellationPending, int, bool);
+    CHECK_AND_SET_PREMIUM_INFO_PROPERTY(canPurchaseUploadAllowance, int, bool);
+
+    isRequired = false;
+    CHECK_AND_SET_PREMIUM_INFO_PROPERTY(premiumExpirationDate, int, qevercloud::Timestamp);
+    CHECK_AND_SET_PREMIUM_INFO_PROPERTY(sponsoredGroupName, QString, QString);
+    CHECK_AND_SET_PREMIUM_INFO_PROPERTY(sponsoredGroupRole, int, qevercloud::SponsoredGroupRole::type);
+    CHECK_AND_SET_PREMIUM_INFO_PROPERTY(premiumUpgradable, int, bool);
+
+#undef CHECK_AND_SET_PREMIUM_INFO_PROPERTY
+
+    return true;
+}
+
 bool LocalStorageManager::FillBusinessUserInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::BusinessUserInfo & info,
                                                             QString & errorDescription) const
 {
@@ -3489,6 +3602,52 @@ QList<Tag> LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, QString 
     }
 
     return tags;
+}
+
+bool LocalStorageManager::FindPremiumInfo(const UserID id, qevercloud::PremiumInfo & info,
+                                          QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManager::FindPremiumInfo: user id = " << id);
+
+    QString errorPrefix = QObject::tr("Can't find PremiumInfo: ");
+
+    QString queryString = QString("SELECT currentTime, premium, premiumRecurring, premiumExpirationDate, "
+                                  "premiumExtendable, premiumPending, premiumCancellationPending, "
+                                  "canPurchaseUploadAllowance, sponsoredGroupName, sponsoredGroupRole, "
+                                  "premiumUpgradable FROM PremiumInfo WHERE id = :id");
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare(queryString);
+    if (!res) {
+        errorDescription = errorPrefix + QObject::tr("can't prepare SQL query: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return false;
+    }
+
+    query.bindValue(":id", id);
+    res = query.exec();
+    if (!res) {
+        errorDescription = errorPrefix + QObject::tr("can't execure SQL query: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return false;
+    }
+
+    if (!query.next()) {
+        errorDescription = QObject::tr("No premium info was found for user id = ");
+        errorDescription += QString::number(id);
+        return false;
+    }
+
+    QSqlRecord rec = query.record();
+
+    res = FillPremiumInfoFromSqlRecord(rec, info, errorDescription);
+    if (!res) {
+        errorDescription.prepend(errorPrefix);
+        return false;
+    }
+
+    return true;
 }
 
 bool LocalStorageManager::FindBusinessUserInfo(const UserID id, qevercloud::BusinessUserInfo & info,

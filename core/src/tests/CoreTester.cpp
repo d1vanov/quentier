@@ -52,7 +52,6 @@ void CoreTester::initTestCase()
         QVERIFY2(res == true, error.toStdString().c_str()); \
     }
 
-TEST(PremiumInfo)
 TEST(Accounting)
 TEST(UserAttributes)
 TEST(NoteAttributes)

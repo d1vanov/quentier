@@ -7,8 +7,6 @@ QT_FORWARD_DECLARE_CLASS(QString)
 namespace qute_note {
 namespace test {
 
-bool TestPremiumInfoSerialization(QString & errorDescription);
-
 bool TestAccountingSerialization(QString & errorDescription);
 
 // NOTE: this test is intentionally incomplete because checks for all possible

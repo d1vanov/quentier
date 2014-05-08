@@ -8,75 +8,6 @@ namespace qute_note {
 
 // TODO: consider setting some fixed version to each QDataStream
 
-QDataStream & operator<<(QDataStream & out, const qevercloud::PremiumInfo & info)
-{
-    out << static_cast<qint64>(info.currentTime);
-    out << info.premium;
-    out << info.premiumRecurring;
-
-#define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
-    { \
-        bool isSet##attribute = info.attribute.isSet(); \
-        out << isSet##attribute; \
-        if (isSet##attribute) { \
-            out << __VA_ARGS__(info.attribute); \
-        } \
-    }
-
-    CHECK_AND_SET_ATTRIBUTE(premiumExpirationDate, static_cast<qint64>);
-
-    out << info.premiumExtendable;
-    out << info.premiumPending;
-    out << info.premiumCancellationPending;
-    out << info.canPurchaseUploadAllowance;
-
-    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupName);
-    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupRole, static_cast<quint8>);
-    CHECK_AND_SET_ATTRIBUTE(premiumUpgradable);
-
-#undef CHECK_AND_SET_ATTRIBUTE
-
-    return out;
-}
-
-QDataStream & operator>>(QDataStream & in, qevercloud::PremiumInfo & info)
-{
-    info = qevercloud::PremiumInfo();
-
-    qint64 currentTime;
-    in >> currentTime;
-    info.currentTime = static_cast<qevercloud::Timestamp>(currentTime);
-
-    in >> info.premium;
-    in >> info.premiumRecurring;
-
-#define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
-    { \
-        bool isSet##attribute = false; \
-        in >> isSet##attribute; \
-        if (isSet##attribute) { \
-            qtype attribute; \
-            in >> attribute; \
-            info.attribute = static_cast<true_type>(attribute __VA_ARGS__); \
-        } \
-    }
-
-    CHECK_AND_SET_ATTRIBUTE(premiumExpirationDate, qint64, qevercloud::Timestamp);
-
-    in >> info.premiumExtendable;
-    in >> info.premiumPending;
-    in >> info.premiumCancellationPending;
-    in >> info.canPurchaseUploadAllowance;
-
-    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupName, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(sponsoredGroupRole, quint8, qevercloud::SponsoredGroupRole::type);
-    CHECK_AND_SET_ATTRIBUTE(premiumUpgradable, bool, bool);
-
-#undef CHECK_AND_SET_ATTRIBUTE
-
-    return in;
-}
-
 QDataStream & operator<<(QDataStream & out, const qevercloud::NoteAttributes & noteAttributes)
 {
 #define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
@@ -611,7 +542,6 @@ QDataStream & operator>>(QDataStream & in, qevercloud::ResourceAttributes & reso
         return std::move(data); \
     }
 
-    GET_SERIALIZED(PremiumInfo)
     GET_SERIALIZED(Accounting)
     GET_SERIALIZED(UserAttributes)
     GET_SERIALIZED(NoteAttributes)
@@ -628,7 +558,6 @@ QDataStream & operator>>(QDataStream & in, qevercloud::ResourceAttributes & reso
         return std::move(out); \
     }
 
-    GET_DESERIALIZED(PremiumInfo)
     GET_DESERIALIZED(Accounting)
     GET_DESERIALIZED(UserAttributes)
     GET_DESERIALIZED(NoteAttributes)

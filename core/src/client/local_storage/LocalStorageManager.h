@@ -29,13 +29,6 @@ QT_FORWARD_DECLARE_CLASS(SavedSearch)
 QT_FORWARD_DECLARE_CLASS(IUser)
 typedef qevercloud::UserID UserID;
 
-struct WhichGuid {
-    enum type {
-        LocalGuid,
-        EverCloudGuid
-    };
-};
-
 class LocalStorageManager
 {
 public:
@@ -533,6 +526,8 @@ private:
     bool InsertOrReplaceUser(const IUser & user, QString & errorDescription);
     bool InsertOrReplaceBusinesUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
                                         QString & errorDescription);
+    bool InsertOrReplacePremiumInfo(const UserID id, const qevercloud::PremiumInfo & info,
+                                    QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, const Notebook & notebook, QString & errorDescription);
@@ -540,6 +535,8 @@ private:
     bool InsertOrReplaceResource(const IResource & resource, const Note & note, QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
 
+    bool FillPremiumInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::PremiumInfo & info,
+                                      QString & errorDescription) const;
     bool FillBusinessUserInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::BusinessUserInfo &info,
                                            QString & errorDescription) const;
     bool FillNoteFromSqlRecord(const QSqlRecord & record, Note & note, QString & errorDescription,
