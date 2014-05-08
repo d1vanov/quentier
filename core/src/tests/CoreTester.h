@@ -16,7 +16,6 @@ public:
 private slots:
     void initTestCase();
 
-    void serializationTestBusinessUserInfo();
     void serializationTestPremiumInfo();
     void serializationTestAccounting();
     void serializationTestUserAttributes();

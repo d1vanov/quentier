@@ -4,57 +4,9 @@
 #include <QDataStream>
 #include <QByteArray>
 
-// FIXME: switch all this to QEverCloud
-
 namespace qute_note {
 
 // TODO: consider setting some fixed version to each QDataStream
-
-QDataStream & operator<<(QDataStream & out, const qevercloud::BusinessUserInfo & info)
-{
-#define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
-    { \
-        bool isSet##attribute = info.attribute.isSet(); \
-        out << isSet##attribute; \
-        if (isSet##attribute) { \
-            out << __VA_ARGS__(info.attribute.ref()); \
-        } \
-    }
-
-    CHECK_AND_SET_ATTRIBUTE(businessId, static_cast<qint32>);
-    CHECK_AND_SET_ATTRIBUTE(businessName);
-    CHECK_AND_SET_ATTRIBUTE(role, static_cast<quint8>);
-    CHECK_AND_SET_ATTRIBUTE(email);
-
-#undef CHECK_AND_SET_ATTRIBUTE
-
-    return out;
-}
-
-QDataStream & operator>>(QDataStream & in, qevercloud::BusinessUserInfo & info)
-{
-    info = qevercloud::BusinessUserInfo();
-
-#define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
-    { \
-        bool isSet##attribute = false; \
-        in >> isSet##attribute; \
-        if (isSet##attribute) { \
-            qtype attribute; \
-            in >> attribute; \
-            info.attribute = static_cast<true_type>(attribute __VA_ARGS__); \
-        } \
-    }
-
-    CHECK_AND_SET_ATTRIBUTE(businessId, qint32, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(businessName, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(role, quint8, qevercloud::BusinessUserRole::type);
-    CHECK_AND_SET_ATTRIBUTE(email, QString, QString);
-
-#undef CHECK_AND_SET_ATTRIBUTE
-
-    return in;
-}
 
 QDataStream & operator<<(QDataStream & out, const qevercloud::PremiumInfo & info)
 {
@@ -659,7 +611,6 @@ QDataStream & operator>>(QDataStream & in, qevercloud::ResourceAttributes & reso
         return std::move(data); \
     }
 
-    GET_SERIALIZED(BusinessUserInfo)
     GET_SERIALIZED(PremiumInfo)
     GET_SERIALIZED(Accounting)
     GET_SERIALIZED(UserAttributes)
@@ -677,7 +628,6 @@ QDataStream & operator>>(QDataStream & in, qevercloud::ResourceAttributes & reso
         return std::move(out); \
     }
 
-    GET_DESERIALIZED(BusinessUserInfo)
     GET_DESERIALIZED(PremiumInfo)
     GET_DESERIALIZED(Accounting)
     GET_DESERIALIZED(UserAttributes)

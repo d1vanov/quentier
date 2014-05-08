@@ -4,7 +4,6 @@
 #include <QtGlobal>
 
 namespace qevercloud {
-QT_FORWARD_DECLARE_STRUCT(BusinessUserInfo)
 QT_FORWARD_DECLARE_STRUCT(PremiumInfo)
 QT_FORWARD_DECLARE_STRUCT(Accounting)
 QT_FORWARD_DECLARE_STRUCT(UserAttributes)
@@ -15,9 +14,6 @@ QT_FORWARD_DECLARE_STRUCT(ResourceAttributes)
 QT_FORWARD_DECLARE_CLASS(QByteArray)
 
 namespace qute_note {
-
-const QByteArray GetSerializedBusinessUserInfo(const qevercloud::BusinessUserInfo & info);
-const qevercloud::BusinessUserInfo GetDeserializedBusinessUserInfo(const QByteArray & data);
 
 const QByteArray GetSerializedPremiumInfo(const qevercloud::PremiumInfo & info);
 const qevercloud::PremiumInfo GetDeserializedPremiumInfo(const QByteArray & data);

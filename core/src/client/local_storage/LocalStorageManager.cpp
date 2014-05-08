@@ -262,7 +262,6 @@ bool LocalStorageManager::FindUser(IUser & user, QString & errorDescription) con
 FIND_OPTIONAL_USER_PROPERTIES(UserAttributes)
 FIND_OPTIONAL_USER_PROPERTIES(Accounting)
 FIND_OPTIONAL_USER_PROPERTIES(PremiumInfo)
-FIND_OPTIONAL_USER_PROPERTIES(BusinessUserInfo)
 
 #undef FIND_OPTIONAL_USER_PROPERTIES
 
@@ -1882,7 +1881,10 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS BusinessUserInfo("
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  data                    BLOB                    DEFAULT NULL)");
+                     "  businessId              INTEGER                 DEFAULT NULL, "
+                     "  businessName            TEXT                    DEFAULT NULL, "
+                     "  role                    INTEGER                 DEFAULT NULL, "
+                     "  email                   TEXT                    DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create BusinessUserInfo table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
@@ -2489,17 +2491,72 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
         DATABASE_CHECK_AND_SET_ERROR("can't add user's premium info into \"PremiumInfo\" table in SQL database");
     }
 
-    if (user.hasBusinessUserInfo())
-    {
-        query.clear();
-        query.prepare("INSERT OR REPLACE INTO BusinessUserInfo (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(user.id()));
-        QByteArray serializedBusinessUserInfo = GetSerializedBusinessUserInfo(user.businessUserInfo());
-        query.addBindValue(serializedBusinessUserInfo);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't add user's business info into \"BusinessUserInfo\" table in SQL database");
+    if (user.hasBusinessUserInfo()) {
+        res = InsertOrReplaceBusinesUserInfo(user.id(), user.businessUserInfo(), errorDescription);
+        if (!res) {
+            return false;
+        }
     }
+
+    return true;
+}
+
+bool LocalStorageManager::InsertOrReplaceBusinesUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
+                                                         QString & errorDescription)
+{
+    QString columns = "id, ";
+    QString valuesString = ":id, ";
+
+    bool hasBusinessId = info.businessId.isSet();
+    if (hasBusinessId) {
+        columns.append("businessId, ");
+        valuesString.append(":businessId, ");
+    }
+
+    bool hasBusinessName = info.businessName.isSet();
+    if (hasBusinessName) {
+        columns.append("businessName, ");
+        valuesString.append(":businessName, ");
+    }
+
+    bool hasRole = info.role.isSet();
+    if (hasRole) {
+        columns.append("role, ");
+        valuesString.append(":role, ");
+    }
+
+    bool hasEmail = info.email.isSet();
+    if (hasEmail) {
+        columns.append("email");
+        valuesString.append(":email");
+    }
+
+    QString queryString = QString("INSERT OR REPLACE INTO BusinessUserInfo (%1) VALUES(%2)")
+                                  .arg(columns).arg(valuesString);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't add user's business info into \"BusinessUserInfo\" table in SQL database");
+
+    query.bindValue(":id", id);
+
+    if (hasBusinessId) {
+        query.bindValue(":businessId", info.businessId.ref());
+    }
+
+    if (hasBusinessName) {
+        query.bindValue(":businessName", info.businessName.ref());
+    }
+
+    if (hasRole) {
+        query.bindValue(":role", static_cast<int>(info.role.ref()));
+    }
+
+    if (hasEmail) {
+        query.bindValue(":email", info.email.ref());
+    }
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't add user's business info into \"BusinessUserInfo\" table in SQL database");
 
     return true;
 }
@@ -2996,6 +3053,56 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
     return true;
 }
 
+bool LocalStorageManager::FillBusinessUserInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::BusinessUserInfo & info,
+                                                            QString & errorDescription) const
+{
+    QVariant businessIdValue = rec.value("businessId");
+    if (!businessIdValue.isNull())
+    {
+        bool conversionResult = false;
+        int businessId = businessIdValue.toInt(&conversionResult);
+        if (!conversionResult) {
+            errorDescription = QObject::tr("Internal error: can't convert business id to int");
+            QNCRITICAL(errorDescription);
+            return false;
+        }
+
+        info.businessId = businessId;
+    }
+
+    QVariant businessNameValue = rec.value("businessName");
+    if (!businessNameValue.isNull()) {
+        info.businessName = businessNameValue.toString();
+    }
+
+    QVariant roleValue = rec.value("role");
+    if (!roleValue.isNull())
+    {
+        bool conversionResult = false;
+        int role = roleValue.toInt(&conversionResult);
+        if (!conversionResult) {
+            errorDescription = QObject::tr("Internal error: can't convert role to int");
+            QNCRITICAL(errorDescription);
+            return false;
+        }
+
+        if ((role < 0) || (role > static_cast<int>(qevercloud::BusinessUserRole::NORMAL))) {
+            errorDescription = QObject::tr("Internal error: found invalid role for BusinessUserInfo");
+            QNCRITICAL(errorDescription);
+            return false;
+        }
+
+        info.role = static_cast<qevercloud::BusinessUserRole::type>(role);
+    }
+
+    QVariant emailValue = rec.value("email");
+    if (!emailValue.isNull()) {
+        info.email = emailValue.toString();
+    }
+
+    return true;
+}
+
 bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & note,
                                                 QString & errorDescription, const bool withResourceBinaryData) const
 {
@@ -3382,6 +3489,50 @@ QList<Tag> LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, QString 
     }
 
     return tags;
+}
+
+bool LocalStorageManager::FindBusinessUserInfo(const UserID id, qevercloud::BusinessUserInfo & info,
+                                               QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManager::FindBusinessUserInfo: user id = " << id);
+
+    QString errorPrefix = QObject::tr("Can't find BusinessUserInfo: ");
+
+    QString queryString = QString("SELECT businessId, businessName, role, email "
+                                  "FROM BusinessUserInfo WHERE id = :id");
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare(queryString);
+    if (!res) {
+        errorDescription = errorPrefix + QObject::tr("can't prepare SQL query: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return false;
+    }
+
+    query.bindValue(":id", id);
+    res = query.exec();
+    if (!res) {
+        errorDescription = errorPrefix + QObject::tr("can't execure SQL query: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return false;
+    }
+
+    if (!query.next()) {
+        errorDescription = QObject::tr("No business user info was found for user id = ");
+        errorDescription += QString::number(id);
+        return false;
+    }
+
+    QSqlRecord rec = query.record();
+
+    res = FillBusinessUserInfoFromSqlRecord(rec, info, errorDescription);
+    if (!res) {
+        errorDescription.prepend(errorPrefix);
+        return false;
+    }
+
+    return true;
 }
 
 bool LocalStorageManager::FindAndSetTagGuidsPerNote(Note & note, QString & errorDescription) const

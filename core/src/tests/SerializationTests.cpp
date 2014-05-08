@@ -7,59 +7,6 @@
 namespace qute_note {
 namespace test {
 
-bool TestBusinessUserInfoSerialization(QString & errorDescription)
-{
-    qevercloud::BusinessUserInfo info;
-
-    // number of optional data components of BusinessUserInfo
-#define BUSINESS_USER_INFO_NUM_COMPONENTS 4
-
-    for(int mask = 0; mask != (1 << BUSINESS_USER_INFO_NUM_COMPONENTS); ++mask)
-    {
-        std::bitset<BUSINESS_USER_INFO_NUM_COMPONENTS> bits(mask);
-        info = qevercloud::BusinessUserInfo();
-
-        bool isSetBusinessId   = bits[0];
-        bool isSetBusinessName = bits[1];
-        bool isSetEmail = bits[2];
-        bool isSetRole  = bits[3];
-
-        if (isSetBusinessId) {
-            info.businessId = mask;
-        }
-
-        if (isSetBusinessName) {
-            info.businessName = "Charlie";
-        }
-
-        if (isSetEmail) {
-            info.email = "nevertrustaliens@frustration.com";
-        }
-
-        if (isSetRole) {
-            info.role = qevercloud::BusinessUserRole::NORMAL;
-        }
-
-        QByteArray serializedInfo = GetSerializedBusinessUserInfo(info);
-        qevercloud::BusinessUserInfo deserializedInfo = GetDeserializedBusinessUserInfo(serializedInfo);
-
-        if (info != deserializedInfo)
-        {
-            errorDescription = "Serialization test for BusinessUserInfo FAILED! ";
-            errorDescription.append("Initial BusinessUserInfo: \n");
-            errorDescription.append(ToQString<qevercloud::BusinessUserInfo>(info));
-            errorDescription.append("Deserialized BusinessUserInfo: \n");
-            errorDescription.append(ToQString<qevercloud::BusinessUserInfo>(deserializedInfo));
-
-            return false;
-        }
-    }
-
-#undef BUSINESS_USER_INFO_NUM_COMPONENTS
-
-    return true;
-}
-
 bool TestPremiumInfoSerialization(QString & errorDescription)
 {
     qevercloud::PremiumInfo info;

@@ -531,6 +531,8 @@ private:
                    const QVariant & uniqueKeyValue) const;
 
     bool InsertOrReplaceUser(const IUser & user, QString & errorDescription);
+    bool InsertOrReplaceBusinesUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
+                                        QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, const Notebook & notebook, QString & errorDescription);
@@ -538,6 +540,8 @@ private:
     bool InsertOrReplaceResource(const IResource & resource, const Note & note, QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
 
+    bool FillBusinessUserInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::BusinessUserInfo &info,
+                                           QString & errorDescription) const;
     bool FillNoteFromSqlRecord(const QSqlRecord & record, Note & note, QString & errorDescription,
                                const bool withResourceBinaryData) const;
     bool FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QString & errorDescription) const;
