@@ -19,10 +19,8 @@ public:
 
     virtual void clear() = 0;
 
-    // TODO: once I'm done with QEverCloud integration, need to switch to returning const reference to QString
-
     virtual bool hasGuid() const = 0;
-    virtual const QString guid() const = 0;
+    virtual const QString & guid() const = 0;
     virtual void setGuid(const QString & guid) = 0;
 
     virtual bool hasUpdateSequenceNumber() const = 0;

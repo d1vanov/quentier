@@ -30,7 +30,7 @@ public:
     bool operator!=(const Note & other) const;
 
     virtual bool hasGuid() const final override;
-    virtual const QString guid() const final override;
+    virtual const QString & guid() const final override;
     virtual void setGuid(const QString & guid) final override;
 
     virtual bool hasUpdateSequenceNumber() const final override;
@@ -39,7 +39,7 @@ public:
 
     virtual void clear() final override;
 
-    virtual bool checkParameters(QString &errorDescription) const final override;
+    virtual bool checkParameters(QString & errorDescription) const final override;
 
     bool hasTitle() const;
     const QString & title() const;

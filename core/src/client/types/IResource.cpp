@@ -38,7 +38,7 @@ bool IResource::hasGuid() const
     return GetEnResource().guid.isSet();
 }
 
-const QString IResource::guid() const
+const QString & IResource::guid() const
 {
     return GetEnResource().guid;
 }
@@ -65,13 +65,14 @@ void IResource::setUpdateSequenceNumber(const qint32 updateSequenceNumber)
 
 bool IResource::checkParameters(QString & errorDescription) const
 {
-    const qevercloud::Resource & enResource = GetEnResource();
-
-    if (!enResource.guid.isSet()) {
-        errorDescription = QObject::tr("Resource's guid is not set");
+    if (localGuid().isEmpty()) {
+        errorDescription = QObject::tr("Resource's local guid is empty");
         return false;
     }
-    else if (!CheckGuid(enResource.guid.ref())) {
+
+    const qevercloud::Resource & enResource = GetEnResource();
+
+    if (enResource.guid.isSet() && !CheckGuid(enResource.guid.ref())) {
         errorDescription = QObject::tr("Resource's guid is invalid");
         return false;
     }

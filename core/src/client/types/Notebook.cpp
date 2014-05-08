@@ -78,7 +78,7 @@ bool Notebook::hasGuid() const
     return m_qecNotebook.guid.isSet();
 }
 
-const QString Notebook::guid() const
+const QString & Notebook::guid() const
 {
     return m_qecNotebook.guid;
 }
@@ -105,11 +105,12 @@ void Notebook::setUpdateSequenceNumber(const qint32 usn)
 
 bool Notebook::checkParameters(QString & errorDescription) const
 {
-    if (!m_qecNotebook.guid.isSet()) {
-        errorDescription = QObject::tr("Notebook's guid is not set");
+    if (localGuid().isEmpty()) {
+        errorDescription = QObject::tr("Notebook's local guid is empty");
         return false;
     }
-    else if (!CheckGuid(m_qecNotebook.guid.ref())) {
+
+    if (m_qecNotebook.guid.isSet() && !CheckGuid(m_qecNotebook.guid.ref())) {
         errorDescription = QObject::tr("Notebook's guid is invalid");
         return false;
     }

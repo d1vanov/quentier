@@ -29,7 +29,7 @@ public:
     virtual void clear();
 
     virtual bool hasGuid() const final override;
-    virtual const QString guid() const final override;
+    virtual const QString & guid() const final override;
     virtual void setGuid(const QString & guid) final override;
 
     virtual bool hasUpdateSequenceNumber() const final override;

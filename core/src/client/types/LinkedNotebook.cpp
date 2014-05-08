@@ -47,7 +47,7 @@ bool LinkedNotebook::hasGuid() const
     return m_qecLinkedNotebook.guid.isSet();
 }
 
-const QString LinkedNotebook::guid() const
+const QString & LinkedNotebook::guid() const
 {
     return m_qecLinkedNotebook.guid.ref();
 }
@@ -73,7 +73,7 @@ void LinkedNotebook::setUpdateSequenceNumber(const qint32 usn)
 }
 
 bool LinkedNotebook::checkParameters(QString & errorDescription) const
-{
+{    
     if (!m_qecLinkedNotebook.guid.isSet()) {
         errorDescription = QObject::tr("Linked notebook's guid is not set");
         return false;

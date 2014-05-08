@@ -54,7 +54,7 @@ bool SavedSearch::hasGuid() const
     return m_qecSearch.guid.isSet();
 }
 
-const QString SavedSearch::guid() const
+const QString & SavedSearch::guid() const
 {
     return m_qecSearch.guid;
 }
@@ -81,11 +81,12 @@ void SavedSearch::setUpdateSequenceNumber(const qint32 usn)
 
 bool SavedSearch::checkParameters(QString & errorDescription) const
 {
-    if (!m_qecSearch.guid.isSet()) {
-        errorDescription = QObject::tr("Saved search's guid is not set");
+    if (localGuid().isEmpty()) {
+        errorDescription = QObject::tr("Saved search's local guid is empty");
         return false;
     }
-    else if (!CheckGuid(m_qecSearch.guid.ref())) {
+
+    if (m_qecSearch.guid.isSet() && !CheckGuid(m_qecSearch.guid.ref())) {
         errorDescription = QObject::tr("Saved search's guid is invalid: ") + m_qecSearch.guid;
         return false;
     }

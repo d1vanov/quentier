@@ -58,7 +58,7 @@ bool Note::hasGuid() const
     return m_qecNote.guid.isSet();
 }
 
-const QString Note::guid() const
+const QString & Note::guid() const
 {
     return m_qecNote.guid;
 }
@@ -96,11 +96,12 @@ void Note::clear()
 
 bool Note::checkParameters(QString & errorDescription) const
 {
-    if (!m_qecNote.guid.isSet()) {
-        errorDescription = QObject::tr("Note's guid is not set");
+    if (localGuid().isEmpty()) {
+        errorDescription = QObject::tr("Note's local guid is not set");
         return false;
     }
-    else if (!CheckGuid(m_qecNote.guid.ref())) {
+
+    if (m_qecNote.guid.isSet() && !CheckGuid(m_qecNote.guid.ref())) {
         errorDescription = QObject::tr("Note's guid is invalid");
         return false;
     }

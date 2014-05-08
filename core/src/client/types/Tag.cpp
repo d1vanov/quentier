@@ -61,7 +61,7 @@ bool Tag::hasGuid() const
     return m_qecTag.guid.isSet();
 }
 
-const QString Tag::guid() const
+const QString & Tag::guid() const
 {
     return m_qecTag.guid;
 }
@@ -88,11 +88,12 @@ void Tag::setUpdateSequenceNumber(const qint32 usn)
 
 bool Tag::checkParameters(QString & errorDescription) const
 {
-    if (!m_qecTag.guid.isSet()) {
-        errorDescription = QObject::tr("Tag's guid is not set");
+    if (localGuid().isEmpty()) {
+        errorDescription = QObject::tr("Tag's local guid is empty");
         return false;
     }
-    else if (!CheckGuid(m_qecTag.guid.ref())) {
+
+    if (m_qecTag.guid.isSet() && !CheckGuid(m_qecTag.guid.ref())) {
         errorDescription = QObject::tr("Tag's guid is invalid: ") + m_qecTag.guid;
         return false;
     }
