@@ -533,6 +533,7 @@ QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription
     bool res = query.exec("SELECT * FROM Notebooks");
     if (!res) {
         errorDescription += QObject::tr("can't select all notebooks from SQL database: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
         errorDescription += query.lastError().text();
         return notebooks;
     }
@@ -573,8 +574,8 @@ QList<SharedNotebookWrapper> LocalStorageManager::ListAllSharedNotebooks(QString
     bool res = query.exec("SELECT * FROM SharedNotebooks");
     if (!res) {
         errorDescription += QObject::tr("can't select shared notebooks from SQL database: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
         errorDescription += query.lastError().text();
-        QNWARNING(errorDescription << ", last error: " << query.lastError() << ", last query: " << query.lastQuery());
         return sharedNotebooks;
     }
 
@@ -647,7 +648,7 @@ QList<qevercloud::SharedNotebook> LocalStorageManager::ListEnSharedNotebooksPerN
     if (!res) {
         errorDescription = errorPrefix + QObject::tr("can't select shared notebooks for given "
                                                      "notebook guid from SQL database: ");
-        QNWARNING(errorDescription << ", last error: " << query.lastError() << ", last query: " << query.lastQuery());
+        QNCRITICAL(errorDescription << ", last error = " << query.lastError() << ", last query = " << query.lastQuery());
         errorDescription += query.lastError().text();
         return sharedNotebooks;
     }
@@ -798,44 +799,41 @@ bool LocalStorageManager::FindLinkedNotebook(LinkedNotebook & linkedNotebook, QS
     return FillLinkedNotebookFromSqlRecord(rec, linkedNotebook, errorDescription);
 }
 
-bool LocalStorageManager::ListAllLinkedNotebooks(std::vector<LinkedNotebook> & notebooks,
-                                                 QString & errorDescription) const
+QList<LinkedNotebook> LocalStorageManager::ListAllLinkedNotebooks(QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManager::ListAllLinkedNotebooks");
 
-    notebooks.clear();
-    errorDescription = QObject::tr("Can't list all linked notebooks in local storage database: ");
+    QList<LinkedNotebook> notebooks;
+    QString errorPrefix = QObject::tr("Can't list all linked notebooks in local storage database: ");
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec("SELECT * FROM LinkedNotebooks");
-    DATABASE_CHECK_AND_SET_ERROR("can't select all linked notebooks from SQL database");
-
-    int numRows = query.size();
-    if (numRows == 0) {
-        QNDEBUG("Found no linked notebooks");
-        return true;
+    if (!res) {
+        errorDescription = errorPrefix + QObject::tr("can't select all linked notebooks from SQL database: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return notebooks;
     }
 
-    if (numRows > 0) {
-        notebooks.reserve(numRows);
-    }
-
+    notebooks.reserve(qMax(query.size(), 0));
     while(query.next())
     {
         QSqlRecord rec = query.record();
 
-        notebooks.push_back(LinkedNotebook());
-        auto & notebook = notebooks.back();
+        notebooks << LinkedNotebook();
+        LinkedNotebook & notebook = notebooks.back();
 
         res = FillLinkedNotebookFromSqlRecord(rec, notebook, errorDescription);
         if (!res) {
-            return false;
+            errorDescription.prepend(errorPrefix);
+            notebooks.clear();
+            return notebooks;
         }
     }
 
     QNDEBUG("found " << notebooks.size() << " notebooks");
 
-    return true;
+    return notebooks;
 }
 
 bool LocalStorageManager::ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
@@ -877,6 +875,11 @@ bool LocalStorageManager::AddNote(const Note & note, const Notebook & notebook, 
 {
     errorDescription = QObject::tr("Can't add note to local storage database: ");
     QString error;
+
+    if (!notebook.canCreateNotes()) {
+        errorDescription += QObject::tr("notebook's restrictions forbid notes creation");
+        return false;
+    }
 
     bool res = note.checkParameters(error);
     if (!res) {
@@ -1011,59 +1014,68 @@ bool LocalStorageManager::FindNote(Note & note, QString & errorDescription,
     return true;
 }
 
-bool LocalStorageManager::ListAllNotesPerNotebook(const QString & notebookGuid, std::vector<Note> & notes,
-                                                  QString & errorDescription, const bool withResourceBinaryData) const
+QList<Note> LocalStorageManager::ListAllNotesPerNotebook(const Notebook & notebook,
+                                                         QString & errorDescription,
+                                                         const bool withResourceBinaryData) const
 {
-    QNDEBUG("LocalStorageManager::ListAllNotesPerNotebook: notebookGuid = " << notebookGuid);
+    QNDEBUG("LocalStorageManager::ListAllNotesPerNotebook: notebookGuid = " << notebook);
 
-    errorDescription = QObject::tr("Can't find all notes per notebook: ");
+    QString errorPrefix = QObject::tr("Can't find all notes per notebook: ");
 
-    notes.clear();
+    QList<Note> notes;
 
-    if (!CheckGuid(notebookGuid)) {
-        errorDescription += QObject::tr("notebook guid is invalid");
-        return false;
+    QString column, guid;
+    bool notebookHasGuid = notebook.hasGuid();
+    if (notebookHasGuid) {
+        column = "notebookGuid";
+        guid = notebook.guid();
+
+        if (!CheckGuid(guid)) {
+            errorDescription = errorPrefix + QObject::tr("notebook guid is invalid");
+            return notes;
+        }
+    }
+    else {
+        column = "notebookLocalGuid";
+        guid = notebook.localGuid();
     }
 
+    QString queryString = QString("SELECT * FROM Notes WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT * FROM Notes WHERE notebookGuid = ?");
-    query.addBindValue(notebookGuid);
-
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select notes per notebook guid from SQL database");
-
-    int numRows = query.size();
-    if (numRows == 0) {
-        QNDEBUG("Found no notes per notebook");
-        return true;
+    bool res = query.exec(queryString);
+    if (!res) {
+        errorDescription = errorPrefix + QObject::tr("can't select notes per notebook guid from SQL database: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return notes;
     }
 
-    if (numRows > 0) {
-        notes.reserve(numRows);
-    }
-
+    notes.reserve(qMax(query.size(), 0));
     while(query.next())
     {
+        notes << Note();
+        Note & note = notes.back();
+
         QSqlRecord rec = query.record();
-        Note note;
 
         res = FillNoteFromSqlRecord(rec, note, errorDescription, withResourceBinaryData);
         if (!res) {
-            return false;
+            errorDescription.prepend(errorPrefix);
+            notes.clear();
+            return notes;
         }
 
         QString error;
         res = note.checkParameters(error);
         if (!res) {
-            errorDescription = QObject::tr("Found note is invalid: ");
+            errorDescription = errorPrefix + QObject::tr("found note is invalid: ");
             errorDescription += error;
-            return false;
+            notes.clear();
+            return notes;
         }
-
-        notes.push_back(note);
     }
 
-    return true;
+    return notes;
 }
 
 bool LocalStorageManager::DeleteNote(const Note & note, QString & errorDescription)
@@ -1291,31 +1303,32 @@ bool LocalStorageManager::LinkTagWithNote(const Tag & tag, const Note & note,
     return true;
 }
 
-bool LocalStorageManager::FindTag(const QString & tagGuid, const WhichGuid::type whichGuid,
-                                  Tag & tag, QString & errorDescription) const
+bool LocalStorageManager::FindTag(Tag & tag, QString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManager::FindTag: guid = " << tagGuid << ", whichGuid = " << whichGuid);
+    QNDEBUG("LocalStorageManager::FindTag");
 
     QString errorPrefix = QObject::tr("Can't find tag in local storage database: ");
 
-    QString column;
-    bool isLocalGuid = (whichGuid == WhichGuid::LocalGuid);
-    if (isLocalGuid) {
-        column = "localGuid";
-    }
-    else { // whichGuid == WhichGuid::EverCloudGuid
-        if (!CheckGuid(tagGuid)) {
+    QString column, guid;
+    bool tagHasGuid = tag.hasGuid();
+    if (tagHasGuid) {
+        column = "guid";
+        guid = tag.guid();
+
+        if (!CheckGuid(guid)) {
             errorDescription = errorPrefix + QObject::tr("requested tag guid is invalid");
             return false;
         }
-
-        column = "guid";
+    }
+    else {
+        column = "localGuid";
+        guid = tag.localGuid();
     }
 
     tag.clear();
 
     QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, name, parentGuid, isDirty, isLocal, "
-                                  "isDeleted FROM Tags WHERE %1 = \"%2\"").arg(column).arg(tagGuid);
+                                  "isDeleted FROM Tags WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select tag from \"Tags\" table in SQL database: ");
@@ -2725,7 +2738,8 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
             // so they must exist within local storage database; if they don't then something went really wrong
 
             Tag tag;
-            bool res = FindTag(tagGuid, WhichGuid::EverCloudGuid, tag, error);
+            tag.setGuid(tagGuid);
+            bool res = FindTag(tag, error);
             if (!res) {
                 errorDescription += QObject::tr("failed to find one of note tags by guid: ");
                 errorDescription += error;
@@ -3358,7 +3372,7 @@ QList<Tag> LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, QString 
 
         tag.setLocalGuid(tagLocalGuid);
 
-        bool res = FindTag(tagLocalGuid, WhichGuid::LocalGuid, tag, errorDescription);
+        bool res = FindTag(tag, errorDescription);
         if (!res) {
             tags.clear();
             return tags;

@@ -178,7 +178,8 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
 
     const QString localTagGuid = tag.localGuid();
     Tag foundTag;
-    res = localStorageManager.FindTag(localTagGuid, WhichGuid::LocalGuid, foundTag, errorDescription);
+    foundTag.setLocalGuid(localTagGuid);
+    res = localStorageManager.FindTag(foundTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -200,7 +201,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
-    res = localStorageManager.FindTag(localTagGuid, WhichGuid::LocalGuid, foundTag, errorDescription);
+    res = localStorageManager.FindTag(foundTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -220,7 +221,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
-    res = localStorageManager.FindTag(localTagGuid, WhichGuid::LocalGuid, foundTag, errorDescription);
+    res = localStorageManager.FindTag(foundTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -241,7 +242,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
-    res = localStorageManager.FindTag(localTagGuid, WhichGuid::LocalGuid, foundTag, errorDescription);
+    res = localStorageManager.FindTag(foundTag, errorDescription);
     if (res) {
         errorDescription = "Error: found tag which should have been exounged from local storage";
         QNWARNING(errorDescription << ": Tag expunged from LocalStorageManager: " << modifiedTag
@@ -699,58 +700,6 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
 
-    qevercloud::UserAttributes foundAttributes;
-    res = localStorageManager.FindUserAttributes(modifiedUser.id(), foundAttributes, errorDescription);
-    if (!res) {
-        return false;
-    }
-
-    if (foundAttributes != modifiedUserAttributes) {
-        errorDescription = QObject::tr("Updated and found user attributes in local storage don't match");
-        QNWARNING(errorDescription << ": UserAttributes updated in LocalStorageManager: " << modifiedUserAttributes
-                  << "\nUserAttributes found in LocalStorageManager: " << foundAttributes);
-        return false;
-    }
-
-    qevercloud::BusinessUserInfo foundBusinessUserInfo;
-    res = localStorageManager.FindBusinessUserInfo(modifiedUser.id(), foundBusinessUserInfo, errorDescription);
-    if (!res) {
-        return false;
-    }
-
-    if (foundBusinessUserInfo != modifiedBusinessUserInfo) {
-        errorDescription = QObject::tr("Updated and found business user info in local storage don't match");
-        QNWARNING(errorDescription << ": BusinessUserInfo updated in LocalStorageManager: " << modifiedBusinessUserInfo
-                  << "\nBusinessUserInfo found in LocalStorageManager: " << foundBusinessUserInfo);
-        return false;
-    }
-
-    qevercloud::Accounting foundAccounting;
-    res = localStorageManager.FindAccounting(modifiedUser.id(), foundAccounting, errorDescription);
-    if (!res) {
-        return false;
-    }
-
-    if (foundAccounting != modifiedAccounting) {
-        errorDescription = QObject::tr("Updated and found accounting in local storage don't match");
-        QNWARNING(errorDescription << ": Accounting updated in LocalStorageManager: " << modifiedAccounting
-                  << "\nAccounting found in LocalStorageManager: " << foundAccounting);
-        return false;
-    }
-
-    qevercloud::PremiumInfo foundPremiumInfo;
-    res = localStorageManager.FindPremiumInfo(modifiedUser.id(), foundPremiumInfo, errorDescription);
-    if (!res) {
-        return false;
-    }
-
-    if (foundPremiumInfo != modifiedPremiumInfo) {
-        errorDescription = QObject::tr("Updated and found premium info in local storage don't match");
-        QNWARNING(errorDescription << ": PremiumInfo updated in LocalStorageManager: " << modifiedPremiumInfo
-                  << "\nPremiumInfo found in LocalStorageManager: " << foundPremiumInfo);
-        return false;
-    }
-
     // ========== Check Delete + Find ==========
     modifiedUser.setDeletionTimestamp(5);
     modifiedUser.setLocal(false);
@@ -790,54 +739,6 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
                                        "from LocalStorageManager");
         QNWARNING(errorDescription << ": IUser expunged from LocalStorageManager: " << modifiedUser
                   << "\nIUser found in LocalStorageManager: " << foundUser);
-        return false;
-    }
-
-    // ========== Check FindUserAttributes for expunged user (failure expected) ==========
-    qevercloud::UserAttributes foundUserAttributes;
-    res = localStorageManager.FindUserAttributes(modifiedUser.id(), foundUserAttributes, errorDescription);
-    if (res) {
-        errorDescription = QObject::tr("Error: found UserAttributes for user which "
-                                       "should have been expunged from LocalStorageManager");
-        QNWARNING(errorDescription << ": UserAttributes for user expunged from LocalStorageManager: "
-                  << modifiedUser.userAttributes() << "\nUserAttributes found in LocalStorageManager: "
-                  << foundUserAttributes);
-        return false;
-    }
-
-    // ========== Check FindAccounting for expunged user (failure expected) ==========
-    foundAccounting = qevercloud::Accounting();
-    res = localStorageManager.FindAccounting(modifiedUser.id(), foundAccounting, errorDescription);
-    if (res) {
-        errorDescription = QObject::tr("Error: found Accounting for user which "
-                                       "should have been expunged from LocalStorageManager");
-        QNWARNING(errorDescription << ": Accounting for user expunged from LocalStorageManager: "
-                  << modifiedUser.accounting() << "\nAccounting found in LocalStorageManager: "
-                  << foundAccounting);
-        return false;
-    }
-
-    // =========== Check FindPremiumInfo for expunged user (failure expected) ==========
-    foundPremiumInfo = qevercloud::PremiumInfo();
-    res = localStorageManager.FindPremiumInfo(modifiedUser.id(), foundPremiumInfo, errorDescription);
-    if (res) {
-        errorDescription = QObject::tr("Error: found PremiumInfo for user which "
-                                       "should have been expunged from LocalStorageManager");
-        QNWARNING(errorDescription << ": PremiumInfo for user expunged from LocalStorageManager: "
-                  << modifiedUser.premiumInfo() << "\nPremiumInfo found in LocalStorageManager: "
-                  << foundPremiumInfo);
-        return false;
-    }
-
-    // ========== Check FindBusinessUserInfo for expunged user (failure expected) ==========
-    foundBusinessUserInfo = qevercloud::BusinessUserInfo();
-    res = localStorageManager.FindBusinessUserInfo(modifiedUser.id(), foundBusinessUserInfo, errorDescription);
-    if (res) {
-        errorDescription = QObject::tr("Error: found BusinessUserInfo for user which "
-                                       "should have been expunged from LocalStorageManager");
-        QNWARNING(errorDescription << ": BusinessUserInfo for user expunged from LocalStorageManager: "
-                  << modifiedUser.businessUserInfo() << "\nBusinessUserInfo found in LocalStorageManager: "
-                  << foundBusinessUserInfo);
         return false;
     }
 

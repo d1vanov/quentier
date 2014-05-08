@@ -557,12 +557,12 @@ void CoreTester::localStorageManagerListAllLinkedNotebooksTest()
 
         QString error;
 
-        size_t nLinkedNotebooks = 5;
-        std::vector<LinkedNotebook> linkedNotebooks;
+        int nLinkedNotebooks = 5;
+        QList<LinkedNotebook> linkedNotebooks;
         linkedNotebooks.reserve(nLinkedNotebooks);
-        for(size_t i = 0; i < nLinkedNotebooks; ++i)
+        for(int i = 0; i < nLinkedNotebooks; ++i)
         {
-            linkedNotebooks.push_back(LinkedNotebook());
+            linkedNotebooks << LinkedNotebook();
             LinkedNotebook & linkedNotebook = linkedNotebooks.back();
 
             linkedNotebook.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
@@ -581,12 +581,11 @@ void CoreTester::localStorageManagerListAllLinkedNotebooksTest()
             QVERIFY2(res == true, qPrintable(error));
         }
 
-        std::vector<LinkedNotebook> foundLinkedNotebooks;
+        error.clear();
+        QList<LinkedNotebook> foundLinkedNotebooks = localStorageManager.ListAllLinkedNotebooks(error);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
 
-        bool res = localStorageManager.ListAllLinkedNotebooks(foundLinkedNotebooks, error);
-        QVERIFY2(res == true, qPrintable(error));
-
-        size_t numFoundLinkedNotebooks = foundLinkedNotebooks.size();
+        int numFoundLinkedNotebooks = foundLinkedNotebooks.size();
         if (numFoundLinkedNotebooks != nLinkedNotebooks) {
             QFAIL(qPrintable("Error: number of linked notebooks in the result of LocalStorageManager::ListAllLinkedNotebooks (" +
                              QString::number(numFoundLinkedNotebooks) + ") does not match the original number of added linked notebooks (" +
@@ -596,8 +595,7 @@ void CoreTester::localStorageManagerListAllLinkedNotebooksTest()
         for(size_t i = 0; i < numFoundLinkedNotebooks; ++i)
         {
             const LinkedNotebook & foundLinkedNotebook = foundLinkedNotebooks.at(i);
-            const auto it = std::find(linkedNotebooks.cbegin(), linkedNotebooks.cend(), foundLinkedNotebook);
-            if (it == linkedNotebooks.cend()) {
+            if (!linkedNotebooks.contains(foundLinkedNotebook)) {
                 QFAIL("One of linked notebooks from the result of LocalStorageManager::ListAllLinkedNotebooks "
                       "was not found in the list of original linked notebooks");
             }
@@ -840,12 +838,12 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
         res = localStorageManager.AddNotebook(notebookNotLinkedWithNotes, error);
         QVERIFY2(res == true, qPrintable(error));
 
-        size_t numNotes = 5;
-        std::vector<Note> notes;
+        int numNotes = 5;
+        QList<Note> notes;
         notes.reserve(numNotes);
-        for(size_t i = 0; i < numNotes; ++i)
+        for(int i = 0; i < numNotes; ++i)
         {
-            notes.push_back(Note());
+            notes << Note();
             Note & note = notes.back();
 
             note.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
@@ -861,9 +859,9 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
             QVERIFY2(res == true, qPrintable(error));
         }
 
-        std::vector<Note> foundNotes;
-        res = localStorageManager.ListAllNotesPerNotebook(notebook.guid(), foundNotes, error);
-        QVERIFY2(res == true, qPrintable(error));
+        error.clear();
+        QList<Note> foundNotes = localStorageManager.ListAllNotesPerNotebook(notebook, error);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
 
         size_t numFoundNotes = foundNotes.size();
         if (numFoundNotes != numNotes) {
@@ -875,17 +873,15 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
         for(size_t i = 0; i < numFoundNotes; ++i)
         {
             const Note & foundNote = foundNotes.at(i);
-            const auto it = std::find(notes.cbegin(), notes.cend(), foundNote);
-            if (it == notes.cend()) {
+            if (!notes.contains(foundNote)) {
                 QFAIL("One of notes from the result of LocalStorageManager::ListAllNotesPerNotebook "
                       "was not found in the list of original notes");
             }
         }
 
-        foundNotes.clear();
-        res = localStorageManager.ListAllNotesPerNotebook(notebookNotLinkedWithNotes.guid(),
-                                                          foundNotes, error);
-        QVERIFY2(res == true, qPrintable(error));
+        error.clear();
+        foundNotes = localStorageManager.ListAllNotesPerNotebook(notebookNotLinkedWithNotes, error);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
 
         if (foundNotes.size() != 0) {
             QFAIL(qPrintable("Found non-zero number of notes in the result of LocalStorageManager::ListAllNotesPerNotebook "
