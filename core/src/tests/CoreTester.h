@@ -16,7 +16,6 @@ public:
 private slots:
     void initTestCase();
 
-    void serializationTestUserAttributes();
     void serializationTestNoteAttributes();
     void serializationTestResourceAttributes();
 

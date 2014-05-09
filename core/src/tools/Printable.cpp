@@ -128,6 +128,22 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::UserAttributes &
     CHECK_AND_PRINT_ATTRIBUTE(attributes, useEmailAutoFiling);
     CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderEmailConfig, static_cast<quint8>);
 
+    if (attributes.viewedPromotions.isSet()) {
+        strm << "viewedPromotions: { \n";
+        foreach(const QString & promotion, attributes.viewedPromotions.ref()) {
+            strm << promotion << "\n";
+        }
+        strm << "}; \n";
+    }
+
+    if (attributes.recentMailedAddresses.isSet()) {
+        strm << "recentMailedAddresses: { \n";
+        foreach(const QString & address, attributes.recentMailedAddresses.ref()) {
+            strm << address << "\n";
+        }
+        strm << "}; \n";
+    }
+
     strm << "}; \n";
     return strm;
 }

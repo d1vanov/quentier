@@ -530,6 +530,8 @@ private:
                                     QString & errorDescription);
     bool InsertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
                                    QString & errorDescription);
+    bool InsertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
+                                       QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, const Notebook & notebook, QString & errorDescription);
@@ -537,6 +539,7 @@ private:
     bool InsertOrReplaceResource(const IResource & resource, const Note & note, QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
 
+    void FillUserAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::UserAttributes & attributes) const;
     void FillAccountingFromSqlRecord(const QSqlRecord & rec, qevercloud::Accounting & accounting) const;
     bool FillPremiumInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::PremiumInfo & info,
                                       QString & errorDescription) const;

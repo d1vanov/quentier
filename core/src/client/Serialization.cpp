@@ -171,158 +171,6 @@ QDataStream & operator>>(QDataStream & in, qevercloud::NoteAttributes & noteAttr
     return in;
 }
 
-QDataStream & operator<<(QDataStream & out, const qevercloud::UserAttributes & userAttributes)
-{
-#define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
-    { \
-        bool isSet##attribute = userAttributes.attribute.isSet(); \
-        out << isSet##attribute; \
-        if (isSet##attribute) { \
-            out << __VA_ARGS__(userAttributes.attribute); \
-        } \
-    }
-
-    CHECK_AND_SET_ATTRIBUTE(defaultLocationName);
-    CHECK_AND_SET_ATTRIBUTE(defaultLatitude);
-    CHECK_AND_SET_ATTRIBUTE(defaultLongitude);
-    CHECK_AND_SET_ATTRIBUTE(preactivation);
-    CHECK_AND_SET_ATTRIBUTE(incomingEmailAddress);
-    CHECK_AND_SET_ATTRIBUTE(comments);
-    CHECK_AND_SET_ATTRIBUTE(dateAgreedToTermsOfService, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(maxReferrals);
-    CHECK_AND_SET_ATTRIBUTE(referralCount);
-    CHECK_AND_SET_ATTRIBUTE(refererCode);
-    CHECK_AND_SET_ATTRIBUTE(sentEmailDate, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(sentEmailCount);
-    CHECK_AND_SET_ATTRIBUTE(dailyEmailLimit);
-    CHECK_AND_SET_ATTRIBUTE(emailOptOutDate, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(partnerEmailOptInDate, static_cast<qint64>);
-    CHECK_AND_SET_ATTRIBUTE(preferredLanguage);
-    CHECK_AND_SET_ATTRIBUTE(preferredCountry);
-    CHECK_AND_SET_ATTRIBUTE(clipFullPage);
-    CHECK_AND_SET_ATTRIBUTE(twitterUserName);
-    CHECK_AND_SET_ATTRIBUTE(twitterId);
-    CHECK_AND_SET_ATTRIBUTE(groupName);
-    CHECK_AND_SET_ATTRIBUTE(recognitionLanguage);
-    CHECK_AND_SET_ATTRIBUTE(referralProof);
-    CHECK_AND_SET_ATTRIBUTE(educationalDiscount);
-    CHECK_AND_SET_ATTRIBUTE(businessAddress);
-    CHECK_AND_SET_ATTRIBUTE(hideSponsorBilling);
-    CHECK_AND_SET_ATTRIBUTE(taxExempt);
-    CHECK_AND_SET_ATTRIBUTE(useEmailAutoFiling);
-    CHECK_AND_SET_ATTRIBUTE(reminderEmailConfig, static_cast<quint8>);
-
-#undef CHECK_AND_SET_ATTRIBUTE
-
-    bool isSetViewedPromotions = userAttributes.viewedPromotions.isSet();
-    out << isSetViewedPromotions;
-    if (isSetViewedPromotions)
-    {
-        const QStringList & viewedPromotions = userAttributes.viewedPromotions;
-        size_t numViewedPromotions = viewedPromotions.size();
-        out << static_cast<quint32>(numViewedPromotions);
-        foreach(const QString & viewedPromotion, viewedPromotions) {
-            out << viewedPromotion;
-        }
-    }
-
-    bool isSetRecentMailedAddresses = userAttributes.recentMailedAddresses.isSet();
-    out << isSetRecentMailedAddresses;
-    if (isSetRecentMailedAddresses)
-    {
-        const QStringList & recentMailedAddresses = userAttributes.recentMailedAddresses;
-        size_t numRecentMailedAddresses = recentMailedAddresses.size();
-        out << static_cast<quint32>(numRecentMailedAddresses);
-        foreach(const QString & recentMailedAddress, recentMailedAddresses) {
-            out << recentMailedAddress;
-        }
-    }
-
-    return out;
-}
-
-QDataStream & operator>>(QDataStream & in, qevercloud::UserAttributes & userAttributes)
-{
-    userAttributes = qevercloud::UserAttributes();
-
-#define CHECK_AND_SET_ATTRIBUTE(attribute, qtype, true_type, ...) \
-    { \
-        bool isSet##attribute = false; \
-        in >> isSet##attribute; \
-        if (isSet##attribute) { \
-            qtype attribute; \
-            in >> attribute; \
-            userAttributes.attribute = static_cast<true_type>(attribute __VA_ARGS__); \
-        } \
-    }
-
-    CHECK_AND_SET_ATTRIBUTE(defaultLocationName, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(defaultLatitude, double, double);
-    CHECK_AND_SET_ATTRIBUTE(defaultLongitude, double, double);
-    CHECK_AND_SET_ATTRIBUTE(preactivation, bool, bool);
-    CHECK_AND_SET_ATTRIBUTE(incomingEmailAddress, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(comments, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(dateAgreedToTermsOfService, qint64, qevercloud::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(maxReferrals, int32_t, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(referralCount, int32_t, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(refererCode, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(sentEmailDate, qint64, qevercloud::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(sentEmailCount, int32_t, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(dailyEmailLimit, int32_t, int32_t);
-    CHECK_AND_SET_ATTRIBUTE(emailOptOutDate, qint64, qevercloud::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(partnerEmailOptInDate, qint64, qevercloud::Timestamp);
-    CHECK_AND_SET_ATTRIBUTE(preferredLanguage, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(preferredCountry, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(clipFullPage, bool, bool);
-    CHECK_AND_SET_ATTRIBUTE(twitterUserName, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(twitterId, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(groupName, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(recognitionLanguage, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(referralProof, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(educationalDiscount, bool, bool);
-    CHECK_AND_SET_ATTRIBUTE(businessAddress, QString, QString);
-    CHECK_AND_SET_ATTRIBUTE(hideSponsorBilling, bool, bool);
-    CHECK_AND_SET_ATTRIBUTE(taxExempt, bool, bool);
-    CHECK_AND_SET_ATTRIBUTE(useEmailAutoFiling, bool, bool);
-    CHECK_AND_SET_ATTRIBUTE(reminderEmailConfig, quint8, qevercloud::ReminderEmailConfig::type);
-
-#undef CHECK_AND_SET_ATTRIBUTE
-
-    bool isSetViewedPromotions = false;
-    in >> isSetViewedPromotions;
-    if (isSetViewedPromotions)
-    {
-        quint32 numViewedPromotions = 0;
-        in >> numViewedPromotions;
-        userAttributes.viewedPromotions = QStringList();
-        QStringList & viewedPromotions = userAttributes.viewedPromotions;
-        viewedPromotions.reserve(numViewedPromotions);
-        QString viewedPromotion;
-        for(quint32 i = 0; i < numViewedPromotions; ++i) {
-            in >> viewedPromotion;
-            viewedPromotions << viewedPromotion;
-        }
-    }
-
-    bool isSetRecentMailedAddresses = false;
-    in >> isSetRecentMailedAddresses;
-    if (isSetRecentMailedAddresses)
-    {
-        quint32 numRecentMailedAddresses = 0;
-        in >> numRecentMailedAddresses;
-        userAttributes.recentMailedAddresses = QStringList();
-        QStringList & recentMailedAddresses = userAttributes.recentMailedAddresses;
-        recentMailedAddresses.reserve(numRecentMailedAddresses);
-        QString recentMailedAddress;
-        for(quint32 i = 0; i < numRecentMailedAddresses; ++i) {
-            in >> recentMailedAddress;
-            recentMailedAddresses << recentMailedAddress;
-        }
-    }
-
-    return in;
-}
-
 QDataStream & operator<<(QDataStream & out, const qevercloud::ResourceAttributes & resourceAttributes)
 {
 #define CHECK_AND_SET_ATTRIBUTE(attribute, ...) \
@@ -458,7 +306,6 @@ QDataStream & operator>>(QDataStream & in, qevercloud::ResourceAttributes & reso
         return std::move(data); \
     }
 
-    GET_SERIALIZED(UserAttributes)
     GET_SERIALIZED(NoteAttributes)
     GET_SERIALIZED(ResourceAttributes)
 
@@ -473,7 +320,6 @@ QDataStream & operator>>(QDataStream & in, qevercloud::ResourceAttributes & reso
         return std::move(out); \
     }
 
-    GET_DESERIALIZED(UserAttributes)
     GET_DESERIALIZED(NoteAttributes)
     GET_DESERIALIZED(ResourceAttributes)
 

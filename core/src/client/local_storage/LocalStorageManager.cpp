@@ -227,42 +227,6 @@ bool LocalStorageManager::FindUser(IUser & user, QString & errorDescription) con
     return true;
 }
 
-#define FIND_OPTIONAL_USER_PROPERTIES(which) \
-    bool LocalStorageManager::Find##which(const UserID id, qevercloud::which & prop, \
-                                          QString & errorDescription) const \
-    { \
-        errorDescription = QObject::tr("Can't find " #which " in local storage database: "); \
-        \
-        prop = qevercloud::which(); \
-        QString idStr = QString::number(id); \
-        bool exists = RowExists(#which, "id", QVariant(idStr)); \
-        if (!exists) { \
-            errorDescription += QObject::tr(#which " for specified user id was not found"); \
-            QNDEBUG(errorDescription << ", id: " << idStr); \
-            return false; \
-        } \
-        \
-        QString queryString = QString("SELECT data FROM " #which " WHERE id=\'%1\'").arg(idStr); \
-        QSqlQuery query(m_sqlDatabase); \
-        bool res = query.exec(queryString); \
-        DATABASE_CHECK_AND_SET_ERROR("can't select data from " #which " table in SQL database"); \
-        \
-        if (!query.next()) { \
-            errorDescription += QObject::tr("Internal error: SQL query result is empty"); \
-            QNDEBUG(errorDescription); \
-            return false; \
-        } \
-        \
-        QByteArray data = query.value(0).toByteArray(); \
-        prop = GetDeserialized##which(data); \
-        \
-        return true; \
-    }
-
-FIND_OPTIONAL_USER_PROPERTIES(UserAttributes)
-
-#undef FIND_OPTIONAL_USER_PROPERTIES
-
 bool LocalStorageManager::DeleteUser(const IUser & user, QString & errorDescription)
 {
     if (user.isLocal()) {
@@ -1864,8 +1828,46 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS UserAttributes("
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  data                    BLOB                    DEFAULT NULL)");
+                     "  defaultLocationName         TEXT                    DEFAULT NULL, "
+                     "  defaultLatitude             REAL                    DEFAULT NULL, "
+                     "  defaultLongitude            REAL                    DEFAULT NULL, "
+                     "  preactivation               INTEGER                 DEFAULT NULL, "
+                     "  incomingEmailAddress        TEXT                    DEFAULT NULL, "
+                     "  comments                    TEXT                    DEFAULT NULL, "
+                     "  dateAgreedToTermsOfService  INTEGER                 DEFAULT NULL, "
+                     "  maxReferrals                INTEGER                 DEFAULT NULL, "
+                     "  referralCount               INTEGER                 DEFAULT NULL, "
+                     "  refererCode                 TEXT                    DEFAULT NULL, "
+                     "  sentEmailDate               INTEGER                 DEFAULT NULL, "
+                     "  sentEmailCount              INTEGER                 DEFAULT NULL, "
+                     "  dailyEmailLimit             INTEGER                 DEFAULT NULL, "
+                     "  emailOptOutDate             INTEGER                 DEFAULT NULL, "
+                     "  partnerEmailOptInDate       INTEGER                 DEFAULT NULL, "
+                     "  preferredLanguage           TEXT                    DEFAULT NULL, "
+                     "  preferredCountry            TEXT                    DEFAULT NULL, "
+                     "  clipFullPage                INTEGER                 DEFAULT NULL, "
+                     "  twitterUserName             TEXT                    DEFAULT NULL, "
+                     "  twitterId                   TEXT                    DEFAULT NULL, "
+                     "  groupName                   TEXT                    DEFAULT NULL, "
+                     "  recognitionLanguage         TEXT                    DEFAULT NULL, "
+                     "  referralProof               TEXT                    DEFAULT NULL, "
+                     "  educationalDiscount         INTEGER                 DEFAULT NULL, "
+                     "  businessAddress             TEXT                    DEFAULT NULL, "
+                     "  hideSponsorBilling          INTEGER                 DEFAULT NULL, "
+                     "  taxExempt                   INTEGER                 DEFAULT NULL, "
+                     "  useEmailAutoFiling         INTEGER                 DEFAULT NULL, "
+                     "  reminderEmailConfig         INTEGER                 DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create UserAttributes table");
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS UserAttributesViewedPromotions("
+                     "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  promotion               TEXT                    DEFAULT NULL)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create UserAttributesViewedPromotions table");
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS UserAttributesRecentMailedAddresses("
+                     "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  address                 TEXT                    DEFAULT NULL)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create UserAttributesRecentMailedAddresses table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Accounting("
                      "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
@@ -2487,14 +2489,10 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
 
     if (user.hasUserAttributes())
     {        
-        query.clear();
-        query.prepare("INSERT OR REPLACE INTO UserAttributes (id, data) VALUES(?, ?)");
-        query.addBindValue(QString::number(user.id()));
-        QByteArray serializedUserAttributes = GetSerializedUserAttributes(user.userAttributes());
-        query.addBindValue(serializedUserAttributes);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't add user attributes into \"UserAttributes\" table in SQL database");
+        res = InsertOrReplaceUserAttributes(user.id(), user.userAttributes(), errorDescription);
+        if (!res) {
+            return false;
+        }
     }
 
     if (user.hasAccounting())
@@ -2731,6 +2729,128 @@ bool LocalStorageManager::InsertOrReplaceAccounting(const UserID id, const qever
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't set user's acconting into \"Accounting\" table in SQL database");
+
+    return true;
+}
+
+bool LocalStorageManager::InsertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
+                                                        QString & errorDescription)
+{
+    QString columns = "id";
+    QString valuesString = ":id";
+
+#define CHECK_AND_ADD_COLUMN_AND_VALUE(name) \
+    bool has##name = attributes.name.isSet(); \
+    if (has##name) { \
+        columns.append(", " #name); \
+        valuesString.append(", :" #name); \
+    }
+
+    CHECK_AND_ADD_COLUMN_AND_VALUE(defaultLocationName);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(defaultLatitude);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(defaultLongitude);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(preactivation);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(incomingEmailAddress);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(comments);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(dateAgreedToTermsOfService);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(maxReferrals);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(referralCount);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(refererCode);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(sentEmailDate);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(sentEmailCount);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(dailyEmailLimit);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(emailOptOutDate);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(partnerEmailOptInDate);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(preferredLanguage);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(preferredCountry);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(clipFullPage);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(twitterUserName);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(twitterId);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(groupName);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(recognitionLanguage);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(referralProof);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(educationalDiscount);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(businessAddress);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(hideSponsorBilling);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(taxExempt);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(useEmailAutoFiling);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(reminderEmailConfig);
+
+#undef CHECK_AND_ADD_COLUMN_AND_VALUE
+
+    QString queryString = QString("INSERT OR REPLACE INTO UserAttributes (%1) VALUES(%2)")
+                                  .arg(columns).arg(valuesString);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributes\" table in SQL database");
+
+    query.bindValue(":id", id);
+
+#define CHECK_AND_BIND_VALUE(name) \
+    if (has##name) { \
+        query.bindValue(":" #name, attributes.name.ref()); \
+    }
+
+    CHECK_AND_BIND_VALUE(defaultLocationName);
+    CHECK_AND_BIND_VALUE(defaultLatitude);
+    CHECK_AND_BIND_VALUE(defaultLongitude);
+    CHECK_AND_BIND_VALUE(incomingEmailAddress);
+    CHECK_AND_BIND_VALUE(comments);
+    CHECK_AND_BIND_VALUE(dateAgreedToTermsOfService);
+    CHECK_AND_BIND_VALUE(maxReferrals);
+    CHECK_AND_BIND_VALUE(referralCount);
+    CHECK_AND_BIND_VALUE(refererCode);
+    CHECK_AND_BIND_VALUE(sentEmailDate);
+    CHECK_AND_BIND_VALUE(sentEmailCount);
+    CHECK_AND_BIND_VALUE(dailyEmailLimit);
+    CHECK_AND_BIND_VALUE(emailOptOutDate);
+    CHECK_AND_BIND_VALUE(partnerEmailOptInDate);
+    CHECK_AND_BIND_VALUE(preferredLanguage);
+    CHECK_AND_BIND_VALUE(preferredCountry);
+    CHECK_AND_BIND_VALUE(twitterUserName);
+    CHECK_AND_BIND_VALUE(twitterId);
+    CHECK_AND_BIND_VALUE(groupName);
+    CHECK_AND_BIND_VALUE(recognitionLanguage);
+    CHECK_AND_BIND_VALUE(referralProof);
+    CHECK_AND_BIND_VALUE(businessAddress);
+    CHECK_AND_BIND_VALUE(reminderEmailConfig);
+
+#undef CHECK_AND_BIND_VALUE
+
+#define CHECK_AND_BIND_BOOLEAN_VALUE(name) \
+    if (has##name) { \
+        query.bindValue(":" #name, (attributes.name.ref() ? 1 : 0)); \
+    }
+
+    CHECK_AND_BIND_BOOLEAN_VALUE(preactivation);
+    CHECK_AND_BIND_BOOLEAN_VALUE(clipFullPage);
+    CHECK_AND_BIND_BOOLEAN_VALUE(educationalDiscount);
+    CHECK_AND_BIND_BOOLEAN_VALUE(hideSponsorBilling);
+    CHECK_AND_BIND_BOOLEAN_VALUE(taxExempt);
+    CHECK_AND_BIND_BOOLEAN_VALUE(useEmailAutoFiling);
+
+#undef CHECK_AND_BIND_BOOLEAN_VALUE
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributes\" table in SQL database");
+
+    if (attributes.viewedPromotions.isSet()) {
+        foreach(const QString & promotion, attributes.viewedPromotions.ref()) {
+            queryString = QString("INSERT OR REPLACE INTO UserAttributesViewedPromotions (id, promotion) VALUES('%1', '%2')")
+                                  .arg(id).arg(promotion);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" table in SQL database");
+        }
+    }
+
+    if (attributes.recentMailedAddresses.isSet()) {
+        foreach(const QString & address, attributes.recentMailedAddresses.ref()) {
+            queryString = QString("INSERT OR REPLACE INTO UserAttributesRecentMailedAddresses (id, address) VALUES('%1', '%2')")
+                                  .arg(id).arg(address);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
+        }
+    }
 
     return true;
 }
@@ -3227,6 +3347,75 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
     return true;
 }
 
+void LocalStorageManager::FillUserAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::UserAttributes & attributes) const
+{
+    if (rec.contains("promotion")) {
+        QVariant value = rec.value("promotion");
+        if (!value.isNull()) {
+            if (!attributes.viewedPromotions.isSet()) {
+                attributes.viewedPromotions = QStringList();
+            }
+            attributes.viewedPromotions.ref() << value.toString();
+        }
+
+        return;  // NOTE: the presence of "promotion" field means the method is called after
+                 // the most part of UserAttributes is already processed so we can simply return here
+    }
+
+    if (rec.contains("address")) {
+        QVariant value = rec.value("address");
+        if (!value.isNull()) {
+            if (!attributes.recentMailedAddresses.isSet()) {
+                attributes.recentMailedAddresses = QStringList();
+            }
+            attributes.recentMailedAddresses.ref() << value.toString();
+        }
+
+        return;   // NOTE: the presence of "address" field means the method is called after
+                  // the most part of UserAttributes is already processed so we can simply return here
+    }
+
+#define CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(property, type, localType) \
+    if (rec.contains(#property)) { \
+        QVariant value = rec.value(#property); \
+        if (!value.isNull()) { \
+            attributes.property = static_cast<localType>(qvariant_cast<type>(value)); \
+        } \
+    }
+
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(defaultLocationName, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(defaultLatitude, double, double);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(defaultLongitude, double, double);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(preactivation, int, bool);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(incomingEmailAddress, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(comments, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(dateAgreedToTermsOfService, int, qevercloud::Timestamp);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(maxReferrals, int, qint32);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(referralCount, int, qint32);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(refererCode, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(sentEmailDate, int, qevercloud::Timestamp);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(sentEmailCount, int, qint32);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(dailyEmailLimit, int, qint32);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(emailOptOutDate, int, qevercloud::Timestamp);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(partnerEmailOptInDate, int, qevercloud::Timestamp);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(preferredLanguage, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(preferredCountry, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(clipFullPage, int, bool);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(twitterUserName, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(twitterId, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(groupName, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(recognitionLanguage, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(referralProof, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(educationalDiscount, int, bool);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(businessAddress, QString, QString);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(hideSponsorBilling, int, bool);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(taxExempt, int, bool);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(useEmailAutoFiling, int, bool);
+    CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(reminderEmailConfig, int, qevercloud::ReminderEmailConfig::type);
+
+#undef CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY
+}
+
 void LocalStorageManager::FillAccountingFromSqlRecord(const QSqlRecord & rec, qevercloud::Accounting & accounting) const
 {
 #define CHECK_AND_SET_ACCOUNTING_PROPERTY(property, type, localType) \
@@ -3235,7 +3424,7 @@ void LocalStorageManager::FillAccountingFromSqlRecord(const QSqlRecord & rec, qe
         if (!value.isNull()) { \
             accounting.property = static_cast<localType>(qvariant_cast<type>(value)); \
         } \
-    } \
+    }
 
     CHECK_AND_SET_ACCOUNTING_PROPERTY(uploadLimit, int, qint64);
     CHECK_AND_SET_ACCOUNTING_PROPERTY(uploadLimitEnd, int, qevercloud::Timestamp);
@@ -3743,6 +3932,73 @@ QList<Tag> LocalStorageManager::FillTagsFromSqlQuery(QSqlQuery & query, QString 
     return tags;
 }
 
+bool LocalStorageManager::FindUserAttributes(const UserID id, qevercloud::UserAttributes & attributes,
+                                             QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManager::FindUserAttributes: user id = " << id);
+
+    QString errorPrefix = QObject::tr("Can't find UserAttributes: ");
+
+    QString queryString = "SELECT * FROM UserAttributes WHERE id = :id";
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare(queryString);
+
+#define CHECK_AND_SET_QUERY_PREPARE_ERROR() \
+    if (!res) { \
+        errorDescription = errorPrefix + QObject::tr("can't prepare SQL query: "); \
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery()); \
+        errorDescription += query.lastError().text(); \
+        return false; \
+    }
+
+    CHECK_AND_SET_QUERY_PREPARE_ERROR();
+
+    query.bindValue(":id", id);
+
+    res = query.exec();
+
+#define CHECK_AND_SET_QUERY_EXEC_ERROR() \
+    if (!res) { \
+        errorDescription = errorPrefix + QObject::tr("can't execute SQL query: "); \
+        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery()); \
+        errorDescription += query.lastError().text(); \
+        return false; \
+    }
+
+    CHECK_AND_SET_QUERY_EXEC_ERROR();
+
+    if (!query.next()) {
+        errorDescription = QObject::tr("No attributes were found for user id = ");
+        errorDescription += QString::number(id);
+        return false;
+    }
+
+    QSqlRecord rec = query.record();
+    FillUserAttributesFromSqlRecord(rec, attributes);
+
+    // Special treatment for viewedPromotions field of UserAttributes
+    queryString = QString("SELECT * FROM UserAttributesViewedPromotions WHERE id = '%1'").arg(QString::number(id));
+    res = query.exec(queryString);
+    CHECK_AND_SET_QUERY_EXEC_ERROR();
+
+    while(query.next()) {
+        rec = query.record();
+        FillUserAttributesFromSqlRecord(rec, attributes);
+    }
+
+    // Special treatment for recentMailedAddresses field of UserAttributes
+    queryString = QString("SELECT * FROM UserAttributesRecentMailedAddresses WHERE id = '%1'").arg(QString::number(id));
+    res = query.exec(queryString);
+    CHECK_AND_SET_QUERY_EXEC_ERROR();
+
+    while(query.next()) {
+        rec = query.record();
+        FillUserAttributesFromSqlRecord(rec, attributes);
+    }
+
+    return true;
+}
+
 bool LocalStorageManager::FindAccounting(const UserID id, qevercloud::Accounting & accounting,
                                          QString & errorDescription) const
 {
@@ -3750,25 +4006,15 @@ bool LocalStorageManager::FindAccounting(const UserID id, qevercloud::Accounting
 
     QString errorPrefix = QObject::tr("Can't find Accounting: ");
 
-    QString queryString = QString("SELECT * FROM Accounting WHERE id = :id");
+    QString queryString = "SELECT * FROM Accounting WHERE id = :id";
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
-    if (!res) {
-        errorDescription = errorPrefix + QObject::tr("can't prepare SQL query: ");
-        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
-        errorDescription += query.lastError().text();
-        return false;
-    }
+    CHECK_AND_SET_QUERY_PREPARE_ERROR();
 
     query.bindValue(":id", id);
 
     res = query.exec();
-    if (!res) {
-        errorDescription = errorPrefix + QObject::tr("can't execure SQL query: ");
-        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
-        errorDescription += query.lastError().text();
-        return false;
-    }
+    CHECK_AND_SET_QUERY_EXEC_ERROR();
 
     if (!query.next()) {
         errorDescription = QObject::tr("No accounting was found for user id = ");
@@ -3796,21 +4042,11 @@ bool LocalStorageManager::FindPremiumInfo(const UserID id, qevercloud::PremiumIn
                                   "premiumUpgradable FROM PremiumInfo WHERE id = :id");
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
-    if (!res) {
-        errorDescription = errorPrefix + QObject::tr("can't prepare SQL query: ");
-        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
-        errorDescription += query.lastError().text();
-        return false;
-    }
+    CHECK_AND_SET_QUERY_PREPARE_ERROR();
 
     query.bindValue(":id", id);
     res = query.exec();
-    if (!res) {
-        errorDescription = errorPrefix + QObject::tr("can't execure SQL query: ");
-        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
-        errorDescription += query.lastError().text();
-        return false;
-    }
+    CHECK_AND_SET_QUERY_EXEC_ERROR();
 
     if (!query.next()) {
         errorDescription = QObject::tr("No premium info was found for user id = ");
@@ -3840,21 +4076,11 @@ bool LocalStorageManager::FindBusinessUserInfo(const UserID id, qevercloud::Busi
                                   "FROM BusinessUserInfo WHERE id = :id");
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
-    if (!res) {
-        errorDescription = errorPrefix + QObject::tr("can't prepare SQL query: ");
-        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
-        errorDescription += query.lastError().text();
-        return false;
-    }
+    CHECK_AND_SET_QUERY_PREPARE_ERROR();
 
     query.bindValue(":id", id);
     res = query.exec();
-    if (!res) {
-        errorDescription = errorPrefix + QObject::tr("can't execure SQL query: ");
-        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
-        errorDescription += query.lastError().text();
-        return false;
-    }
+    CHECK_AND_SET_QUERY_EXEC_ERROR();
 
     if (!query.next()) {
         errorDescription = QObject::tr("No business user info was found for user id = ");
@@ -3872,6 +4098,9 @@ bool LocalStorageManager::FindBusinessUserInfo(const UserID id, qevercloud::Busi
 
     return true;
 }
+
+#undef CHECK_AND_SET_QUERY_PREPARE_ERROR
+#undef CHECK_AND_SET_QUERY_EXEC_ERROR
 
 bool LocalStorageManager::FindAndSetTagGuidsPerNote(Note & note, QString & errorDescription) const
 {
