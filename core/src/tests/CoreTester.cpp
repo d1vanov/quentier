@@ -41,7 +41,11 @@ void nullMessageHandler(QtMsgType type, const char * message) {
 
 void CoreTester::initTestCase()
 {
+#if QT_VERSION >= 0x050000
+    qInstallMessageHandler(nullMessageHandler);
+#else
     qInstallMsgHandler(nullMessageHandler);
+#endif
 }
 
 #define TEST(component) \
