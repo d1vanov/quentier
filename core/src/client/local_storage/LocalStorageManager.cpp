@@ -3145,7 +3145,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     query.bindValue(":localGuid", localGuid);
     query.bindValue(":updateSequenceNumber", note.updateSequenceNumber());
-    query.bindValue("title", title);
+    query.bindValue(":title", title);
     query.bindValue(":isDirty", (note.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (note.isLocal() ? 1 : 0));
     query.bindValue(":content", content);
@@ -3188,7 +3188,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     DATABASE_CHECK_AND_SET_ERROR("can't prepare SQL query to insert or replace note into \"NoteText\" table");
 
     query.bindValue(":localGuid", localGuid);
-    query.bindValue("title", title);
+    query.bindValue(":title", title);
     query.bindValue(":content", content);
     query.bindValue(":notebookLocalGuid", notebookLocalGuid);
     query.bindValue(":hasAttributes", (note.hasNoteAttributes() ? 1 : 0));
