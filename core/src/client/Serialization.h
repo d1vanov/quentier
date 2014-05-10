@@ -15,9 +15,6 @@ QT_FORWARD_DECLARE_CLASS(QByteArray)
 
 namespace qute_note {
 
-const QByteArray GetSerializedNoteAttributes(const qevercloud::NoteAttributes & noteAttributes);
-const qevercloud::NoteAttributes GetDeserializedNoteAttributes(const QByteArray & data);
-
 const QByteArray GetSerializedResourceAttributes(const qevercloud::ResourceAttributes & resourceAttributes);
 const qevercloud::ResourceAttributes GetDeserializedResourceAttributes(const QByteArray & data);
 

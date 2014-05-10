@@ -16,7 +16,6 @@ public:
 private slots:
     void initTestCase();
 
-    void serializationTestNoteAttributes();
     void serializationTestResourceAttributes();
 
     void localStorageManagerIndividualSavedSearchTest();
