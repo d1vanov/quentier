@@ -6,6 +6,7 @@
 #include <QSharedPointer>
 
 namespace qevercloud {
+QT_FORWARD_DECLARE_STRUCT(ResourceAttributes)
 QT_FORWARD_DECLARE_STRUCT(NoteAttributes)
 QT_FORWARD_DECLARE_STRUCT(UserAttributes)
 QT_FORWARD_DECLARE_STRUCT(Accounting)
@@ -538,8 +539,13 @@ private:
     bool InsertOrReplaceNote(const Note & note, const Notebook & notebook, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, const Note & note, QString & errorDescription);
+    bool InsertOrReplaceResourceAttributes(const QString & localGuid, const qevercloud::ResourceAttributes & attributes,
+                                           QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
 
+    bool FillResourceAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
+    bool FillResourceAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
+    bool FillResourceAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
     void FillNoteAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     void FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     void FillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;

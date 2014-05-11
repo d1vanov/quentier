@@ -16,7 +16,6 @@ set(${PROJECT_NAME}_QT_HEADERS
     src/note_editor/ToDoCheckboxTextObject.h)
 
 set(${PROJECT_NAME}_HEADERS
-    src/client/Serialization.h
     src/client/Utility.h
     src/client/types/ISharedNotebook.h
     src/client/types/IResource.h
@@ -63,7 +62,6 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/QuteNoteTextEdit.cpp
     src/note_editor/ResourceTextObject.cpp
     src/note_editor/ToDoCheckboxTextObject.cpp
-    src/client/Serialization.cpp
     src/client/Utility.cpp
     src/client/types/ISharedNotebook.cpp
     src/client/types/IResource.cpp
@@ -123,12 +121,10 @@ target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB}
 
 set(TEST_HEADERS
     src/tests/LocalStorageManagerTests.h
-    src/tests/SerializationTests.h
     src/tests/CoreTester.h)
 
 set(TEST_SOURCES
     src/tests/LocalStorageManagerTests.cpp
-    src/tests/SerializationTests.cpp
     src/tests/CoreTester.cpp
     src/tests/CoreTestMain.cpp)
 

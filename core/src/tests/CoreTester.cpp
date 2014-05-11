@@ -1,5 +1,4 @@
 #include "CoreTester.h"
-#include "SerializationTests.h"
 #include "LocalStorageManagerTests.h"
 #include <tools/IQuteNoteException.h>
 #include <client/local_storage/LocalStorageManager.h>
@@ -10,7 +9,6 @@
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/UserWrapper.h>
-#include <client/Serialization.h>
 #include <QApplication>
 #include <QTextStream>
 #include <QtTest/QTest>
@@ -47,18 +45,6 @@ void CoreTester::initTestCase()
     qInstallMsgHandler(nullMessageHandler);
 #endif
 }
-
-#define TEST(component) \
-    void CoreTester::serializationTest##component() \
-    { \
-        QString error; \
-        bool res = Test##component##Serialization(error); \
-        QVERIFY2(res == true, error.toStdString().c_str()); \
-    }
-
-TEST(ResourceAttributes)
-
-#undef TEST
 
 #define CATCH_EXCEPTION() \
     catch(const std::exception & exception) { \

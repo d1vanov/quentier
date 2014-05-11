@@ -10,7 +10,6 @@
 #include <client/types/UserWrapper.h>
 #include <client/types/QEverCloudHelpers.h>
 #include <client/Utility.h>
-#include <client/Serialization.h>
 
 namespace qute_note {
 namespace test {

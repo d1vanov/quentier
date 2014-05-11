@@ -92,6 +92,8 @@ public:
     bool hasResourceAttributes() const;
     const qevercloud::ResourceAttributes & resourceAttributes() const;
     qevercloud::ResourceAttributes & resourceAttributes();
+    void setResourceAttributes(const qevercloud::ResourceAttributes & attributes);
+    void setResourceAttributes(qevercloud::ResourceAttributes && attributes);
 
     friend class Note;
     friend class ResourceWrapper;

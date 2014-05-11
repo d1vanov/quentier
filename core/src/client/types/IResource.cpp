@@ -516,6 +516,16 @@ qevercloud::ResourceAttributes & IResource::resourceAttributes()
     return enResource.attributes;
 }
 
+void IResource::setResourceAttributes(const qevercloud::ResourceAttributes & attributes)
+{
+    GetEnResource().attributes = attributes;
+}
+
+void IResource::setResourceAttributes(qevercloud::ResourceAttributes && attributes)
+{
+    GetEnResource().attributes = std::move(attributes);
+}
+
 IResource::IResource(const IResource & other) :
     NoteStoreDataElement(other),
     m_isFreeAccount(other.m_isFreeAccount)

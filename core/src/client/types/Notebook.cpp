@@ -4,7 +4,6 @@
 #include "UserAdapter.h"
 #include "QEverCloudHelpers.h"
 #include "../Utility.h"
-#include "../Serialization.h"
 #include <logging/QuteNoteLogger.h>
 
 namespace qute_note {
