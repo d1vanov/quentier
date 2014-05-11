@@ -3517,7 +3517,6 @@ bool LocalStorageManager::InsertOrReplaceResourceAttributes(const QString & loca
     CHECK_AND_BIND_VALUE(altitude);
     CHECK_AND_BIND_VALUE(cameraMake);
     CHECK_AND_BIND_VALUE(cameraModel);
-    CHECK_AND_BIND_VALUE(clientWillIndex);
     CHECK_AND_BIND_VALUE(recoType);
     CHECK_AND_BIND_VALUE(fileName);
 
@@ -3525,6 +3524,10 @@ bool LocalStorageManager::InsertOrReplaceResourceAttributes(const QString & loca
 
     if (hasattachment) {
         query.bindValue(":attachment", (attributes.attachment.ref() ? 1 : 0));
+    }
+
+    if (hasclientWillIndex) {
+        query.bindValue(":clientWillIndex", (attributes.clientWillIndex.ref() ? 1 : 0));
     }
 
     query.bindValue(":localGuid", localGuid);
