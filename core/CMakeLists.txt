@@ -38,6 +38,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/UserAdapterAccessException.h
     src/client/types/UserWrapper.h
     src/client/enml/ENMLConverter.h
+    src/client/local_storage/IAsyncLocalStorageManager.h
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
     src/client/local_storage/LocalStorageManager.h
