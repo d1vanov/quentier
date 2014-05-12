@@ -1,3 +1,11 @@
+if(NOT USE_QT5)
+  find_package(Qt4 COMPONENTS QTCORE OPTIONAL QUIET)
+  if(QT_QTCORE_LIBRARY-NOTFOUND)
+    message(STATUS "Qt4's core was not found, trying to find Qt5's libraries")
+    set(USE_QT5 1)
+  endif()
+endif()
+
 if(USE_QT5)
   find_package(Qt5Core REQUIRED)
   find_package(Qt5Gui REQUIRED)
