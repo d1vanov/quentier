@@ -11,6 +11,7 @@ QT_FORWARD_DECLARE_CLASS(IUser)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
+QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Tag)
 QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(SavedSearch)
@@ -170,7 +171,63 @@ protected:
     virtual void expungeSavedSearchFailed(QSharedPointer<SavedSearch> search,
                                           QString errorDescription) = 0;
 
-    // TODO: continue from here. Create prototypes for all slots
+    // Pure virtual prototypes for slots to be invoked:
+
+    // Pure virtual prototypes for user-related slots:
+    virtual void onSwitchUserRequest(qint32 userId, bool startFromScratch, QString username) = 0;
+    virtual void onAddUserRequest(QSharedPointer<IUser> user) = 0;
+    virtual void onUpdateUserRequest(QSharedPointer<IUser> user) = 0;
+    virtual void onFindUserRequest(QSharedPointer<IUser> user) = 0;
+    virtual void onDeleteUserRequest(QSharedPointer<IUser> user) = 0;
+    virtual void onExpungeUserRequest(QSharedPointer<IUser> user) = 0;
+
+    // Pure virtual prototypes for notebook-related slots:
+    virtual void onAddNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
+    virtual void onUpdateNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
+    virtual void onFindNotebookReques(QSharedPointer<Notebook> notebook) = 0;
+    virtual void onListAllNotebooksRequest() = 0;
+    virtual void onListAllSharedNotebooksRequest() = 0;
+    virtual void onListAllSharedNotebooksPerNotebookGuidRequest(QString notebookGuid) = 0;
+    virtual void onExpungeNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
+
+    // Pure virtual prototypes for linked notebook-related slots:
+    virtual void onAddLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
+    virtual void onUpdateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
+    virtual void onFindLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
+    virtual void onListAllLinkedNotebooksRequest() = 0;
+    virtual void onExpungeLinkedNotebookRequest() = 0;
+
+    // Pure virtual prototypes for note-related slots:
+    virtual void onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
+    virtual void onUpdateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
+    virtual void onFindNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData) = 0;
+    virtual void onListAllNotesPerNotebookRequest(QSharedPointer<Notebook> notebook,
+                                                  bool withResourceBinaryData) = 0;
+    virtual void onDeleteNoteRequest(QSharedPointer<Note> note) = 0;
+    virtual void onExpungeNoteRequest(QSharedPointer<Note> note) = 0;
+
+    // Pure virtual prototypes for tag-related slots:
+    virtual void onAddTagRequest(QSharedPointer<Tag> tag) = 0;
+    virtual void onUpdateTagRequest(QSharedPointer<Tag> tag) = 0;
+    virtual void onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, QSharedPointer<Note> note) = 0;
+    virtual void onFindTagRequest(QSharedPointer<Tag> tag) = 0;
+    virtual void onListAllTagsPerNoteRequest(QSharedPointer<Note> note) = 0;
+    virtual void onListAllTagsRequest() = 0;
+    virtual void onDeleteTagRequest(QSharedPointer<Tag> tag) = 0;
+    virtual void onExpungeTagRequest(QSharedPointer<Tag> tag) = 0;
+
+    // Pure virtual prototypes for resource-related slots:
+    virtual void onAddResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
+    virtual void onUpdateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
+    virtual void onFindResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData) = 0;
+    virtual void onExpungeResourceRequest(QSharedPointer<IResource> resource) = 0;
+
+    // Pure virtual prototypes for saved search-related methods:
+    virtual void onAddSavedSearchRequest(QSharedPointer<SavedSearch> search) = 0;
+    virtual void onUpdateSavedSearchRequest(QSharedPointer<SavedSearch> search) = 0;
+    virtual void onFindSavedSearch(QSharedPointer<SavedSearch> search) = 0;
+    virtual void onListAllSavedSearchesRequest() = 0;
+    virtual void onExpungeSavedSearch(QSharedPointer<SavedSearch> search) = 0;
 };
 
 }
