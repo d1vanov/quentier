@@ -174,17 +174,18 @@ protected:
     // Pure virtual prototypes for slots to be invoked:
 
     // Pure virtual prototypes for user-related slots:
-    virtual void onSwitchUserRequest(qint32 userId, bool startFromScratch, QString username) = 0;
+    virtual void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch) = 0;
     virtual void onAddUserRequest(QSharedPointer<IUser> user) = 0;
     virtual void onUpdateUserRequest(QSharedPointer<IUser> user) = 0;
     virtual void onFindUserRequest(QSharedPointer<IUser> user) = 0;
     virtual void onDeleteUserRequest(QSharedPointer<IUser> user) = 0;
     virtual void onExpungeUserRequest(QSharedPointer<IUser> user) = 0;
 
+    /*
     // Pure virtual prototypes for notebook-related slots:
     virtual void onAddNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
     virtual void onUpdateNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
-    virtual void onFindNotebookReques(QSharedPointer<Notebook> notebook) = 0;
+    virtual void onFindNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
     virtual void onListAllNotebooksRequest() = 0;
     virtual void onListAllSharedNotebooksRequest() = 0;
     virtual void onListAllSharedNotebooksPerNotebookGuidRequest(QString notebookGuid) = 0;
@@ -228,6 +229,7 @@ protected:
     virtual void onFindSavedSearch(QSharedPointer<SavedSearch> search) = 0;
     virtual void onListAllSavedSearchesRequest() = 0;
     virtual void onExpungeSavedSearch(QSharedPointer<SavedSearch> search) = 0;
+    */
 };
 
 }

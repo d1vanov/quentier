@@ -1,30 +1,23 @@
-#ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_H
-#define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_H
+#ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
+#define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
 
 #include "IAsyncLocalStorageManager.h"
-#include <client/types/Notebook.h>
-#include <client/types/SharedNotebookWrapper.h>
-#include <client/types/LinkedNotebook.h>
-#include <client/types/Note.h>
-#include <client/types/Tag.h>
-#include <client/types/IResource.h>
-#include <client/types/SavedSearch.h>
-#include <QThread>
-#include <QScopedPointer>
+#include "LocalStorageManager.h"
+#include <QObject>
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
-
-class LocalStorageManagerThread: public QThread,
-                                 public IAsyncLocalStorageManager
+class LocalStorageManagerThreadWorker: public QObject,
+                                       public IAsyncLocalStorageManager
 {
     Q_OBJECT
 public:
-    explicit LocalStorageManagerThread(const QString & username, const qint32 userId,
-                                       const bool startFromScratch, QObject * parent = nullptr);
-    virtual ~LocalStorageManagerThread();
-
+    explicit LocalStorageManagerThreadWorker(const QString & username,
+                                             const qint32 userId,
+                                             const bool startFromScratch,
+                                             QObject * parent = nullptr);
+    virtual ~LocalStorageManagerThreadWorker();
+    
 Q_SIGNALS:
     // User-related signals:
     void switchUserComplete(qint32 userId);
@@ -121,15 +114,7 @@ Q_SIGNALS:
     void listAllSavedSearchesFailed(QString errorDescription);
     void expungeSavedSearchComplete(QSharedPointer<SavedSearch> search);
     void expungeSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription);
-
-    // Signals for dealing with worker class:
-    void switchUserRequest(QString username, qint32 userId, bool startFromScratch);
-    void addUserRequest(QSharedPointer<IUser> user);
-    void updateUserRequest(QSharedPointer<IUser> user);
-    void findUserRequest(QSharedPointer<IUser> user);
-    void deleteUserRequest(QSharedPointer<IUser> user);
-    void expungeUserRequest(QSharedPointer<IUser> user);
-
+    
 public Q_SLOTS:
     // User-related slots:
     void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch);
@@ -140,17 +125,15 @@ public Q_SLOTS:
     void onExpungeUserRequest(QSharedPointer<IUser> user);
 
 private:
-    LocalStorageManagerThread() = delete;
-    LocalStorageManagerThread(const LocalStorageManagerThread & other) = delete;
-    LocalStorageManagerThread(LocalStorageManagerThread && other) = delete;
-    LocalStorageManagerThread & operator=(const LocalStorageManagerThread & other) = delete;
-    LocalStorageManagerThread & operator=(LocalStorageManagerThread && other) = delete;
+    LocalStorageManagerThreadWorker() = delete;
+    LocalStorageManagerThreadWorker(const LocalStorageManagerThreadWorker & other) = delete;
+    LocalStorageManagerThreadWorker(LocalStorageManagerThreadWorker && other) = delete;
+    LocalStorageManagerThreadWorker & operator=(const LocalStorageManagerThreadWorker & other) = delete;
+    LocalStorageManagerThreadWorker & operator=(LocalStorageManagerThreadWorker && other) = delete;
 
-    void createConnections();
-
-    LocalStorageManagerThreadWorker * m_pWorker;
+    LocalStorageManager   m_localStorageManager;
 };
 
-}
+} // namespace qute_note
 
-#endif // __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_H
+#endif // __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
