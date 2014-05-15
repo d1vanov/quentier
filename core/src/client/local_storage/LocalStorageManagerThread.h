@@ -130,6 +130,20 @@ Q_SIGNALS:
     void deleteUserRequest(QSharedPointer<IUser> user);
     void expungeUserRequest(QSharedPointer<IUser> user);
 
+    void addNotebookRequest(QSharedPointer<Notebook> notebook);
+    void updateNotebookRequest(QSharedPointer<Notebook> notebook);
+    void findNotebookRequest(QSharedPointer<Notebook> notebook);
+    void listAllNotebooksRequest();
+    void listAllSharedNotebooksRequest();
+    void listSharedNotebooksPerNotebookGuidRequest(QString notebookGuid);
+    void expungeNotebookRequest(QSharedPointer<Notebook> notebook);
+
+    void addLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void updateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void findLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void listAllLinkedNotebooksRequest();
+    void expungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+
 public Q_SLOTS:
     // User-related slots:
     void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch);
@@ -138,6 +152,22 @@ public Q_SLOTS:
     void onFindUserRequest(QSharedPointer<IUser> user);
     void onDeleteUserRequest(QSharedPointer<IUser> user);
     void onExpungeUserRequest(QSharedPointer<IUser> user);
+
+    // Notebook-related slots:
+    void onAddNotebookRequest(QSharedPointer<Notebook> notebook);
+    void onUpdateNotebookRequest(QSharedPointer<Notebook> notebook);
+    void onFindNotebookRequest(QSharedPointer<Notebook> notebook);
+    void onListAllNotebooksRequest();
+    void onListAllSharedNotebooksRequest();
+    void onListSharedNotebooksPerNotebookGuidRequest(QString notebookGuid);
+    void onExpungeNotebookRequest(QSharedPointer<Notebook> notebook);
+
+    // Linked notebook-related slots:
+    void onAddLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void onUpdateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void onFindLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void onListAllLinkedNotebooksRequest();
+    void onExpungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
 
 private:
     LocalStorageManagerThread() = delete;

@@ -181,14 +181,13 @@ protected:
     virtual void onDeleteUserRequest(QSharedPointer<IUser> user) = 0;
     virtual void onExpungeUserRequest(QSharedPointer<IUser> user) = 0;
 
-    /*
     // Pure virtual prototypes for notebook-related slots:
     virtual void onAddNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
     virtual void onUpdateNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
     virtual void onFindNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
     virtual void onListAllNotebooksRequest() = 0;
     virtual void onListAllSharedNotebooksRequest() = 0;
-    virtual void onListAllSharedNotebooksPerNotebookGuidRequest(QString notebookGuid) = 0;
+    virtual void onListSharedNotebooksPerNotebookGuidRequest(QString notebookGuid) = 0;
     virtual void onExpungeNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
 
     // Pure virtual prototypes for linked notebook-related slots:
@@ -196,8 +195,9 @@ protected:
     virtual void onUpdateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
     virtual void onFindLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
     virtual void onListAllLinkedNotebooksRequest() = 0;
-    virtual void onExpungeLinkedNotebookRequest() = 0;
+    virtual void onExpungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
 
+    /*
     // Pure virtual prototypes for note-related slots:
     virtual void onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
     virtual void onUpdateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;

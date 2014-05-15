@@ -124,6 +124,22 @@ public Q_SLOTS:
     void onDeleteUserRequest(QSharedPointer<IUser> user);
     void onExpungeUserRequest(QSharedPointer<IUser> user);
 
+    // Notebook-related slots:
+    void onAddNotebookRequest(QSharedPointer<Notebook> notebook);
+    void onUpdateNotebookRequest(QSharedPointer<Notebook> notebook);
+    void onFindNotebookRequest(QSharedPointer<Notebook> notebook);
+    void onListAllNotebooksRequest();
+    void onListAllSharedNotebooksRequest();
+    void onListSharedNotebooksPerNotebookGuidRequest(QString notebookGuid);
+    void onExpungeNotebookRequest(QSharedPointer<Notebook> notebook);
+
+    // Linked notebook-related slots:
+    void onAddLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void onUpdateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void onFindLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void onListAllLinkedNotebooksRequest();
+    void onExpungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+
 private:
     LocalStorageManagerThreadWorker() = delete;
     LocalStorageManagerThreadWorker(const LocalStorageManagerThreadWorker & other) = delete;
