@@ -197,7 +197,6 @@ protected:
     virtual void onListAllLinkedNotebooksRequest() = 0;
     virtual void onExpungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
 
-    /*
     // Pure virtual prototypes for note-related slots:
     virtual void onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
     virtual void onUpdateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
@@ -207,6 +206,7 @@ protected:
     virtual void onDeleteNoteRequest(QSharedPointer<Note> note) = 0;
     virtual void onExpungeNoteRequest(QSharedPointer<Note> note) = 0;
 
+    /*
     // Pure virtual prototypes for tag-related slots:
     virtual void onAddTagRequest(QSharedPointer<Tag> tag) = 0;
     virtual void onUpdateTagRequest(QSharedPointer<Tag> tag) = 0;

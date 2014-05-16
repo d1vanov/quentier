@@ -140,6 +140,14 @@ public Q_SLOTS:
     void onListAllLinkedNotebooksRequest();
     void onExpungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
 
+    // Note-related slots:
+    void onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
+    void onUpdateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
+    void onFindNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData);
+    void onListAllNotesPerNotebookRequest(QSharedPointer<Notebook> notebook, bool withResourceBinaryData);
+    void onDeleteNoteRequest(QSharedPointer<Note> note);
+    void onExpungeNoteRequest(QSharedPointer<Note> note);
+
 private:
     LocalStorageManagerThreadWorker() = delete;
     LocalStorageManagerThreadWorker(const LocalStorageManagerThreadWorker & other) = delete;

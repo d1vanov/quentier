@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_H
 
 #include "IAsyncLocalStorageManager.h"
+#include <client/types/IUser.h>
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/LinkedNotebook.h>
@@ -144,6 +145,13 @@ Q_SIGNALS:
     void listAllLinkedNotebooksRequest();
     void expungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
 
+    void addNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
+    void updateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
+    void findNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData);
+    void listAllNotesPerNotebookRequest(QSharedPointer<Notebook> notebook, bool withResourceBinaryData);
+    void deleteNoteRequest(QSharedPointer<Note> note);
+    void expungeNoteRequest(QSharedPointer<Note> note);
+
 public Q_SLOTS:
     // User-related slots:
     void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch);
@@ -168,6 +176,14 @@ public Q_SLOTS:
     void onFindLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
     void onListAllLinkedNotebooksRequest();
     void onExpungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+
+    // Note-related slots:
+    void onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
+    void onUpdateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
+    void onFindNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData);
+    void onListAllNotesPerNotebookRequest(QSharedPointer<Notebook> notebook, bool withResourceBinaryData);
+    void onDeleteNoteRequest(QSharedPointer<Note> note);
+    void onExpungeNoteRequest(QSharedPointer<Note> note);
 
 private:
     LocalStorageManagerThread() = delete;

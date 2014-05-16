@@ -2,6 +2,7 @@
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/LinkedNotebook.h>
+#include <client/types/Note.h>
 #include <logging/QuteNoteLogger.h>
 
 namespace qute_note {
@@ -349,6 +350,150 @@ void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(QSharedPoin
     }
 
     emit expungeLinkedNotebookCompleted(linkedNotebook);
+}
+
+void LocalStorageManagerThreadWorker::onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook)
+{
+    QString errorDescription;
+
+    if (note.isNull()) {
+        errorDescription = QObject::tr("Internal error: detected null pointer to note "
+                                       "on attempt to add note to local storage");
+        QNCRITICAL(errorDescription);
+        emit addNoteFailed(note, notebook, errorDescription);
+        return;
+    }
+
+    if (notebook.isNull()) {
+        errorDescription = QObject::tr("Internal error: detected null pointer to notebook "
+                                       "on attempt to add note to local storage");
+        QNCRITICAL(errorDescription);
+        emit addNoteFailed(note, notebook, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.AddNote(*note, *notebook, errorDescription);
+    if (!res) {
+        emit addNoteFailed(note, notebook, errorDescription);
+        return;
+    }
+
+    emit addNoteComplete(note, notebook);
+}
+
+void LocalStorageManagerThreadWorker::onUpdateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook)
+{
+    QString errorDescription;
+
+    if (note.isNull()) {
+        errorDescription = QObject::tr("Internal error: detected null pointer to note "
+                                       "on attempt to update note in local storage");
+        QNCRITICAL(errorDescription);
+        emit updateNoteFailed(note, notebook, errorDescription);
+        return;
+    }
+
+    if (notebook.isNull()) {
+        errorDescription = QObject::tr("Internal error: detected null pointer to notebook "
+                                       "on attempt to update note in local storage");
+        QNCRITICAL(errorDescription);
+        emit updateNoteFailed(note, notebook, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.UpdateNote(*note, *notebook, errorDescription);
+    if (!res) {
+        emit updateNoteFailed(note, notebook, errorDescription);
+        return;
+    }
+
+    emit updateNoteComplete(note, notebook);
+}
+
+void LocalStorageManagerThreadWorker::onFindNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData)
+{
+    QString errorDescription;
+
+    if (note.isNull()) {
+        errorDescription = QObject::tr("Internal error: detected null pointer to note "
+                                       "on attempt to find note in local storage");
+        QNCRITICAL(errorDescription);
+        emit findNoteFailed(note, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.FindNote(*note, errorDescription, withResourceBinaryData);
+    if (!res) {
+        emit findNoteFailed(note, errorDescription);
+        return;
+    }
+
+    emit findNoteComplete(note);
+}
+
+void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(QSharedPointer<Notebook> notebook,
+                                                                       bool withResourceBinaryData)
+{
+    QString errorDescription;
+
+    if (notebook.isNull()) {
+        errorDescription = QObject::tr("Internal error: detected null pointer to notebook "
+                                       "on attempt to list notes per notebook in local storage");
+        QNCRITICAL(errorDescription);
+        emit listAllNotesPerNotebookFailed(notebook, errorDescription);
+        return;
+    }
+
+    QList<Note> notes = m_localStorageManager.ListAllNotesPerNotebook(*notebook, errorDescription,
+                                                                      withResourceBinaryData);
+    if (notes.isEmpty() && !errorDescription.isEmpty()) {
+        emit listAllNotesPerNotebookFailed(notebook, errorDescription);
+        return;
+    }
+
+    emit listAllNotesPerNotebookComplete(notebook, notes);
+}
+
+void LocalStorageManagerThreadWorker::onDeleteNoteRequest(QSharedPointer<Note> note)
+{
+    QString errorDescription;
+
+    if (note.isNull()) {
+        errorDescription = QObject::tr("Internal error: detected null pointer to note "
+                                       "on attempt to delete note from local storage");
+        QNCRITICAL(errorDescription);
+        emit deleteNoteFailed(note, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.DeleteNote(*note, errorDescription);
+    if (!res) {
+        emit deleteNoteFailed(note, errorDescription);
+        return;
+    }
+
+    emit deleteNoteComplete(note);
+}
+
+void LocalStorageManagerThreadWorker::onExpungeNoteRequest(QSharedPointer<Note> note)
+{
+    QString errorDescription;
+
+    if (note.isNull()) {
+        errorDescription = QObject::tr("Internal error: detected null pointer to note "
+                                       "on attempt to expunge note from local storage");
+        QNCRITICAL(errorDescription);
+        emit expungeNoteFailed(note, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.ExpungeNote(*note, errorDescription);
+    if (!res) {
+        emit expungeNoteFailed(note, errorDescription);
+        return;
+    }
+
+    emit expungeNoteComplete(note);
 }
 
 } // namespace qute_note
