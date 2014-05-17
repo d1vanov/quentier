@@ -206,7 +206,6 @@ protected:
     virtual void onDeleteNoteRequest(QSharedPointer<Note> note) = 0;
     virtual void onExpungeNoteRequest(QSharedPointer<Note> note) = 0;
 
-    /*
     // Pure virtual prototypes for tag-related slots:
     virtual void onAddTagRequest(QSharedPointer<Tag> tag) = 0;
     virtual void onUpdateTagRequest(QSharedPointer<Tag> tag) = 0;
@@ -217,6 +216,7 @@ protected:
     virtual void onDeleteTagRequest(QSharedPointer<Tag> tag) = 0;
     virtual void onExpungeTagRequest(QSharedPointer<Tag> tag) = 0;
 
+    /*
     // Pure virtual prototypes for resource-related slots:
     virtual void onAddResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
     virtual void onUpdateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;

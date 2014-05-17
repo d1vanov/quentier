@@ -152,6 +152,15 @@ Q_SIGNALS:
     void deleteNoteRequest(QSharedPointer<Note> note);
     void expungeNoteRequest(QSharedPointer<Note> note);
 
+    void addTagRequest(QSharedPointer<Tag> tag);
+    void updateTagRequest(QSharedPointer<Tag> tag);
+    void linkTagWithNoteRequest(QSharedPointer<Tag> tag, QSharedPointer<Note> note);
+    void findTagRequest(QSharedPointer<Tag> tag);
+    void listAllTagsPerNoteRequest(QSharedPointer<Note> note);
+    void listAllTagsRequest();
+    void deleteTagRequest(QSharedPointer<Tag> tag);
+    void expungeTagRequest(QSharedPointer<Tag> tag);
+
 public Q_SLOTS:
     // User-related slots:
     void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch);
@@ -184,6 +193,16 @@ public Q_SLOTS:
     void onListAllNotesPerNotebookRequest(QSharedPointer<Notebook> notebook, bool withResourceBinaryData);
     void onDeleteNoteRequest(QSharedPointer<Note> note);
     void onExpungeNoteRequest(QSharedPointer<Note> note);
+
+    // Tag-related slots:
+    void onAddTagRequest(QSharedPointer<Tag> tag);
+    void onUpdateTagRequest(QSharedPointer<Tag> tag);
+    void onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, QSharedPointer<Note> note);
+    void onFindTagRequest(QSharedPointer<Tag> tag);
+    void onListAllTagsPerNoteRequest(QSharedPointer<Note> note);
+    void onListAllTagsRequest();
+    void onDeleteTagRequest(QSharedPointer<Tag> tag);
+    void onExpungeTagRequest(QSharedPointer<Tag> tag);
 
 private:
     LocalStorageManagerThread() = delete;

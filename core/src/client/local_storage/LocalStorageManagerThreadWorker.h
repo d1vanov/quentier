@@ -148,6 +148,16 @@ public Q_SLOTS:
     void onDeleteNoteRequest(QSharedPointer<Note> note);
     void onExpungeNoteRequest(QSharedPointer<Note> note);
 
+    // Tag-related slots:
+    void onAddTagRequest(QSharedPointer<Tag> tag);
+    void onUpdateTagRequest(QSharedPointer<Tag> tag);
+    void onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, QSharedPointer<Note> note);
+    void onFindTagRequest(QSharedPointer<Tag> tag);
+    void onListAllTagsPerNoteRequest(QSharedPointer<Note> note);
+    void onListAllTagsRequest();
+    void onDeleteTagRequest(QSharedPointer<Tag> tag);
+    void onExpungeTagRequest(QSharedPointer<Tag> tag);
+
 private:
     LocalStorageManagerThreadWorker() = delete;
     LocalStorageManagerThreadWorker(const LocalStorageManagerThreadWorker & other) = delete;
