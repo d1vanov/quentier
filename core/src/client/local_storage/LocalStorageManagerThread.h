@@ -17,6 +17,18 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
+/**
+ * @brief The LocalStorageManagerThread class encapsulates the idea of a thread
+ * running processing of queries into the local storage database; it is designed to
+ * re-send all coming in signals to @link LocalStorageManagerThreadWorker @endlink class
+ * which performs the synchronous calls to @link LocalStorageManager @endlink and signals
+ * back the results. The idea behind the design was taken from article "Asynchronous
+ * database access with Qt 4.x", Linux journal, Jun 01, 2007, by Dave Berton. In short,
+ * the idea is the following: "Utilize queued connections to communicate between
+ * the application and the database threads. The queued connection provides all the advantages
+ * for dealing with asynchronous database connections, but maintains a simple and familiar interface
+ * using QObject::connect()".
+ */
 class LocalStorageManagerThread: public QThread,
                                  public IAsyncLocalStorageManager
 {
