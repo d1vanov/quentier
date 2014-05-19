@@ -164,6 +164,13 @@ public Q_SLOTS:
     void onFindResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData);
     void onExpungeResourceRequest(QSharedPointer<IResource> resource);
 
+    // Saved search-related slots:
+    void onAddSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void onUpdateSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void onFindSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void onListAllSavedSearchesRequest();
+    void onExpungeSavedSearch(QSharedPointer<SavedSearch> search);
+
 private:
     LocalStorageManagerThreadWorker() = delete;
     LocalStorageManagerThreadWorker(const LocalStorageManagerThreadWorker & other) = delete;

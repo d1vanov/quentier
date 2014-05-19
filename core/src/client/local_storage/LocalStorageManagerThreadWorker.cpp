@@ -6,6 +6,7 @@
 #include <client/types/Note.h>
 #include <client/types/Tag.h>
 #include <client/types/IResource.h>
+#include <client/types/SavedSearch.h>
 #include <logging/QuteNoteLogger.h>
 
 #define QNTRANSLATE(string) \
@@ -803,6 +804,106 @@ void LocalStorageManagerThreadWorker::onExpungeResourceRequest(QSharedPointer<IR
     }
 
     emit expungeResourceComplete(resource);
+}
+
+void LocalStorageManagerThreadWorker::onAddSavedSearchRequest(QSharedPointer<SavedSearch> search)
+{
+    QString errorDescription;
+
+    if (search.isNull()) {
+        errorDescription = "Internal error: detected null pointer to saved search "
+                           "on attempt to add saved search to local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit addSavedSearchFailed(search, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.AddSavedSearch(*search, errorDescription);
+    if (!res) {
+        emit addSavedSearchFailed(search, errorDescription);
+        return;
+    }
+
+    emit addSavedSearchComplete(search);
+}
+
+void LocalStorageManagerThreadWorker::onUpdateSavedSearchRequest(QSharedPointer<SavedSearch> search)
+{
+    QString errorDescription;
+
+    if (search.isNull()) {
+        errorDescription = "Internal error: detected null pointer to saved search "
+                           "on attempt to update saved search in local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit updateSavedSearchFailed(search, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.UpdateSavedSearch(*search, errorDescription);
+    if (!res) {
+        emit updateSavedSearchFailed(search, errorDescription);
+        return;
+    }
+
+    emit updateSavedSearchComplete(search);
+}
+
+void LocalStorageManagerThreadWorker::onFindSavedSearchRequest(QSharedPointer<SavedSearch> search)
+{
+    QString errorDescription;
+
+    if (search.isNull()) {
+        errorDescription = "Internal error: detected null pointer to saved search "
+                           "on attempt to find saved search in local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit findSavedSearchFailed(search, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.FindSavedSearch(*search, errorDescription);
+    if (!res) {
+        emit findSavedSearchFailed(search, errorDescription);
+        return;
+    }
+
+    emit findSavedSearchComplete(search);
+}
+
+void LocalStorageManagerThreadWorker::onListAllSavedSearchesRequest()
+{
+    QString errorDescription;
+    QList<SavedSearch> searches = m_localStorageManager.ListAllSavedSearches(errorDescription);
+    if (searches.isEmpty() && !errorDescription.isEmpty()) {
+        emit listAllSavedSearchesFailed(errorDescription);
+        return;
+    }
+
+    emit listAllSavedSearchesComplete(searches);
+}
+
+void LocalStorageManagerThreadWorker::onExpungeSavedSearch(QSharedPointer<SavedSearch> search)
+{
+    QString errorDescription;
+
+    if (search.isNull()) {
+        errorDescription = "Internal error: detected null pointer to saved search "
+                           "on attempt to expunge saved search from local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit expungeSavedSearchFailed(search, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.ExpungeSavedSearch(*search, errorDescription);
+    if (!res) {
+        emit expungeSavedSearchFailed(search, errorDescription);
+        return;
+    }
+
+    emit expungeSavedSearchComplete(search);
 }
 
 } // namespace qute_note

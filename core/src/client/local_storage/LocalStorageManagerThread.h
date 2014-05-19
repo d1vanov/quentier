@@ -178,6 +178,12 @@ Q_SIGNALS:
     void findResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData);
     void expungeResourceRequest(QSharedPointer<IResource> resource);
 
+    void addSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void updateSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void findSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void listAllSavedSearchesRequest();
+    void expungeSavedSearchRequest(QSharedPointer<SavedSearch> search);
+
 public Q_SLOTS:
     // User-related slots:
     void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch);
@@ -226,6 +232,13 @@ public Q_SLOTS:
     void onUpdateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
     void onFindResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData);
     void onExpungeResourceRequest(QSharedPointer<IResource> resource);
+
+    // Saved search-related slots:
+    void onAddSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void onUpdateSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void onFindSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void onListAllSavedSearchesRequest();
+    void onExpungeSavedSearch(QSharedPointer<SavedSearch> search);
 
 private:
     LocalStorageManagerThread() = delete;

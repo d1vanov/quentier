@@ -250,6 +250,39 @@ void LocalStorageManagerThread::createConnections()
                      this, SIGNAL(expungeResourceComplete(QSharedPointer<IResource>)));
     QObject::connect(m_pWorker, SIGNAL(expungeResourceFailed(QSharedPointer<IResource>,QString)),
                      this, SIGNAL(expungeResourceFailed(QSharedPointer<IResource>,QString)));
+
+    // Saved search-related signal-slot connections:
+    QObject::connect(this, SIGNAL(addSavedSearchRequest(QSharedPointer<SavedSearch>)),
+                     m_pWorker, SLOT(onAddSavedSearchRequest(QSharedPointer<SavedSearch>)));
+    QObject::connect(this, SIGNAL(updateSavedSearchRequest(QSharedPointer<SavedSearch>)),
+                     m_pWorker, SLOT(onUpdateSavedSearchRequest(QSharedPointer<SavedSearch>)));
+    QObject::connect(this, SIGNAL(findSavedSearchRequest(QSharedPointer<SavedSearch>)),
+                     m_pWorker, SLOT(onFindSavedSearchRequest(QSharedPointer<SavedSearch>)));
+    QObject::connect(this, SIGNAL(listAllSavedSearchesRequest()), m_pWorker, SLOT(onListAllSavedSearchesRequest()));
+    QObject::connect(this, SIGNAL(expungeSavedSearchRequest(QSharedPointer<SavedSearch>)),
+                     m_pWorker, SLOT(onExpungeSavedSearch(QSharedPointer<SavedSearch>)));
+
+    // Saved search-related signal-signal connections:
+    QObject::connect(m_pWorker, SIGNAL(addSavedSearchComplete(QSharedPointer<SavedSearch>)),
+                     this, SIGNAL(addSavedSearchComplete(QSharedPointer<SavedSearch>)));
+    QObject::connect(m_pWorker, SIGNAL(addSavedSearchFailed(QSharedPointer<SavedSearch>,QString)),
+                     this, SIGNAL(addSavedSearchFailed(QSharedPointer<SavedSearch>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(updateSavedSearchComplete(QSharedPointer<SavedSearch>)),
+                     this, SIGNAL(updateSavedSearchComplete(QSharedPointer<SavedSearch>)));
+    QObject::connect(m_pWorker, SIGNAL(updateSavedSearchFailed(QSharedPointer<SavedSearch>,QString)),
+                     this, SIGNAL(updateSavedSearchFailed(QSharedPointer<SavedSearch>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(findSavedSearchComplete(QSharedPointer<SavedSearch>)),
+                     this, SIGNAL(findSavedSearchComplete(QSharedPointer<SavedSearch>)));
+    QObject::connect(m_pWorker, SIGNAL(findSavedSearchFailed(QSharedPointer<SavedSearch>,QString)),
+                     this, SIGNAL(findSavedSearchFailed(QSharedPointer<SavedSearch>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(listAllSavedSearchesComplete(QList<SavedSearch>)),
+                     this, SIGNAL(listAllSavedSearchesComplete(QList<SavedSearch>)));
+    QObject::connect(m_pWorker, SIGNAL(listAllSavedSearchesFailed(QString)),
+                     this, SIGNAL(listAllSavedSearchesFailed(QString)));
+    QObject::connect(m_pWorker, SIGNAL(expungeSavedSearchComplete(QSharedPointer<SavedSearch>)),
+                     this, SIGNAL(expungeSavedSearchComplete(QSharedPointer<SavedSearch>)));
+    QObject::connect(m_pWorker, SIGNAL(expungeSavedSearchFailed(QSharedPointer<SavedSearch>,QString)),
+                     this, SIGNAL(expungeSavedSearchFailed(QSharedPointer<SavedSearch>,QString)));
 }
 
 LocalStorageManagerThread::~LocalStorageManagerThread()
@@ -433,6 +466,31 @@ void LocalStorageManagerThread::onFindResourceRequest(QSharedPointer<IResource> 
 void LocalStorageManagerThread::onExpungeResourceRequest(QSharedPointer<IResource> resource)
 {
     emit expungeResourceRequest(resource);
+}
+
+void LocalStorageManagerThread::onAddSavedSearchRequest(QSharedPointer<SavedSearch> search)
+{
+    emit addSavedSearchRequest(search);
+}
+
+void LocalStorageManagerThread::onUpdateSavedSearchRequest(QSharedPointer<SavedSearch> search)
+{
+    emit updateSavedSearchRequest(search);
+}
+
+void LocalStorageManagerThread::onFindSavedSearchRequest(QSharedPointer<SavedSearch> search)
+{
+    emit findSavedSearchRequest(search);
+}
+
+void LocalStorageManagerThread::onListAllSavedSearchesRequest()
+{
+    emit listAllSavedSearchesRequest();
+}
+
+void LocalStorageManagerThread::onExpungeSavedSearch(QSharedPointer<SavedSearch> search)
+{
+    emit expungeSavedSearchRequest(search);
 }
 
 }
