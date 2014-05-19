@@ -158,6 +158,12 @@ public Q_SLOTS:
     void onDeleteTagRequest(QSharedPointer<Tag> tag);
     void onExpungeTagRequest(QSharedPointer<Tag> tag);
 
+    // Resource-related slots:
+    void onAddResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
+    void onUpdateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
+    void onFindResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData);
+    void onExpungeResourceRequest(QSharedPointer<IResource> resource);
+
 private:
     LocalStorageManagerThreadWorker() = delete;
     LocalStorageManagerThreadWorker(const LocalStorageManagerThreadWorker & other) = delete;

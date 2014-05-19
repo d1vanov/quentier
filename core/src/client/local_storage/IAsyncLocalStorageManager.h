@@ -216,13 +216,13 @@ protected:
     virtual void onDeleteTagRequest(QSharedPointer<Tag> tag) = 0;
     virtual void onExpungeTagRequest(QSharedPointer<Tag> tag) = 0;
 
-    /*
     // Pure virtual prototypes for resource-related slots:
     virtual void onAddResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
     virtual void onUpdateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
     virtual void onFindResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData) = 0;
     virtual void onExpungeResourceRequest(QSharedPointer<IResource> resource) = 0;
 
+    /*
     // Pure virtual prototypes for saved search-related methods:
     virtual void onAddSavedSearchRequest(QSharedPointer<SavedSearch> search) = 0;
     virtual void onUpdateSavedSearchRequest(QSharedPointer<SavedSearch> search) = 0;

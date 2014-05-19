@@ -173,6 +173,11 @@ Q_SIGNALS:
     void deleteTagRequest(QSharedPointer<Tag> tag);
     void expungeTagRequest(QSharedPointer<Tag> tag);
 
+    void addResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
+    void updateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
+    void findResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData);
+    void expungeResourceRequest(QSharedPointer<IResource> resource);
+
 public Q_SLOTS:
     // User-related slots:
     void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch);
@@ -215,6 +220,12 @@ public Q_SLOTS:
     void onListAllTagsRequest();
     void onDeleteTagRequest(QSharedPointer<Tag> tag);
     void onExpungeTagRequest(QSharedPointer<Tag> tag);
+
+    // Resource-related slots:
+    void onAddResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
+    void onUpdateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
+    void onFindResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData);
+    void onExpungeResourceRequest(QSharedPointer<IResource> resource);
 
 private:
     LocalStorageManagerThread() = delete;

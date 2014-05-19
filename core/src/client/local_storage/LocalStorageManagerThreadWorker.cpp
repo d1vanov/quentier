@@ -5,6 +5,7 @@
 #include <client/types/LinkedNotebook.h>
 #include <client/types/Note.h>
 #include <client/types/Tag.h>
+#include <client/types/IResource.h>
 #include <logging/QuteNoteLogger.h>
 
 #define QNTRANSLATE(string) \
@@ -696,6 +697,112 @@ void LocalStorageManagerThreadWorker::onExpungeTagRequest(QSharedPointer<Tag> ta
     }
 
     emit expungeTagComplete(tag);
+}
+
+void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note)
+{
+    QString errorDescription;
+
+    if (resource.isNull()) {
+        errorDescription = "Internal error: detected null pointer to resource "
+                           "on attempt to add resource to local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit addResourceFailed(resource, note, errorDescription);
+        return;
+    }
+
+    if (note.isNull()) {
+        errorDescription = "Internal error: detected null pointer to note "
+                           "on attempt to add resource to local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit addResourceFailed(resource, note, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.AddEnResource(*resource, *note, errorDescription);
+    if (!res) {
+        emit addResourceFailed(resource, note, errorDescription);
+        return;
+    }
+
+    emit addResourceComplete(resource, note);
+}
+
+void LocalStorageManagerThreadWorker::onUpdateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note)
+{
+    QString errorDescription;
+
+    if (resource.isNull()) {
+        errorDescription = "Internal error: detected null pointer to resource "
+                           "on attempt to update resource in local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit updateResourceFailed(resource, note, errorDescription);
+        return;
+    }
+
+    if (note.isNull()) {
+        errorDescription = "Internal error: detected null pointer to note "
+                           "on attempt to update resource in local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit updateResourceFailed(resource, note, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.UpdateEnResource(*resource, *note, errorDescription);
+    if (!res) {
+        emit updateResourceFailed(resource, note, errorDescription);
+        return;
+    }
+
+    emit updateResourceComplete(resource, note);
+}
+
+void LocalStorageManagerThreadWorker::onFindResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData)
+{
+    QString errorDescription;
+
+    if (resource.isNull()) {
+        errorDescription = "Internal error: detected null pointer to resource "
+                           "on attempt to find resource in local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit findResourceFailed(resource, withBinaryData, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.FindEnResource(*resource, errorDescription, withBinaryData);
+    if (!res) {
+        emit findResourceFailed(resource, withBinaryData, errorDescription);
+        return;
+    }
+
+    emit findResourceComplete(resource, withBinaryData);
+}
+
+void LocalStorageManagerThreadWorker::onExpungeResourceRequest(QSharedPointer<IResource> resource)
+{
+    QString errorDescription;
+
+    if (resource.isNull()) {
+        errorDescription = "Internal error: detected null pointer to resource "
+                           "on attempt to expunge resource from local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit expungeResourceFailed(resource, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.ExpungeEnResource(*resource, errorDescription);
+    if (!res) {
+        emit expungeResourceFailed(resource, errorDescription);
+        return;
+    }
+
+    emit expungeResourceComplete(resource);
 }
 
 } // namespace qute_note
