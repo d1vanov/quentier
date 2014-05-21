@@ -540,10 +540,12 @@ void Note::resources(QList<resource_type> & resources) const \
         return; \
     } \
     \
-    int numResources = m_qecNote.resources->size(); \
+    const QList<qevercloud::Resource> & noteResources = m_qecNote.resources.ref(); \
+    int numResources = noteResources.size(); \
     resources.reserve(std::max(numResources, 0)); \
-    foreach(const qevercloud::Resource & resource, m_qecNote.resources.ref()) { \
-        resources << resource_type(resource); \
+    for(int i = 0; i < numResources; ++i) { \
+        resources << resource_type(noteResources[i]); \
+        resources.back().setIndexInNote(i); \
     } \
 }
 
@@ -552,23 +554,29 @@ GET_RESOURCES(ResourceWrapper)
 
 #undef GET_RESOURCES
 
-void Note::setResources(const QList<IResource> & resources)
-{
-    if (!resources.empty())
-    {
-        m_qecNote.resources->clear();
-        for(QList<IResource>::const_iterator it = resources.constBegin();
-            it != resources.constEnd(); ++it)
-        {
-            m_qecNote.resources.ref() << it->GetEnResource();
-        }
-        QNDEBUG("Added " << resources.size() << " resources to note");
+#define SET_RESOURCES(resource_type) \
+    void Note::setResources(const QList<resource_type> & resources) \
+    { \
+        if (!resources.empty()) \
+        { \
+            m_qecNote.resources = QList<qevercloud::Resource>(); \
+            for(QList<resource_type>::const_iterator it = resources.constBegin(); \
+                it != resources.constEnd(); ++it) \
+            { \
+                m_qecNote.resources.ref() << it->GetEnResource(); \
+            } \
+            QNDEBUG("Added " << resources.size() << " resources to note"); \
+        } \
+        else \
+        { \
+            m_qecNote.resources.clear(); \
+        } \
     }
-    else
-    {
-        m_qecNote.resources.clear();
-    }
-}
+
+SET_RESOURCES(ResourceWrapper)
+SET_RESOURCES(ResourceAdapter)
+
+#undef SET_RESOURCES
 
 void Note::addResource(const IResource & resource)
 {

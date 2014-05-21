@@ -6,12 +6,14 @@ namespace qute_note {
 
 IResource::IResource() :
     NoteStoreDataElement(),
-    m_isFreeAccount(true)
+    m_isFreeAccount(true),
+    m_indexInNote(-1)
 {}
 
 IResource::IResource(const bool isFreeAccount) :
     NoteStoreDataElement(),
-    m_isFreeAccount(isFreeAccount)
+    m_isFreeAccount(isFreeAccount),
+    m_indexInNote(-1)
 {}
 
 IResource::~IResource()
@@ -200,6 +202,16 @@ bool IResource::isFreeAccount() const
 void IResource::setFreeAccount(const bool isFreeAccount)
 {
     m_isFreeAccount = isFreeAccount;
+}
+
+int IResource::indexInNote() const
+{
+    return m_indexInNote;
+}
+
+void IResource::setIndexInNote(const int index)
+{
+    m_indexInNote = index;
 }
 
 bool IResource::hasNoteGuid() const
@@ -528,7 +540,8 @@ void IResource::setResourceAttributes(qevercloud::ResourceAttributes && attribut
 
 IResource::IResource(const IResource & other) :
     NoteStoreDataElement(other),
-    m_isFreeAccount(other.m_isFreeAccount)
+    m_isFreeAccount(other.m_isFreeAccount),
+    m_indexInNote(other.indexInNote())
 {}
 
 IResource & IResource::operator=(const IResource & other)
@@ -537,6 +550,7 @@ IResource & IResource::operator=(const IResource & other)
     {
         NoteStoreDataElement::operator =(other);
         setFreeAccount(other.m_isFreeAccount);
+        setIndexInNote(other.m_indexInNote);
     }
 
     return *this;
@@ -663,6 +677,8 @@ QTextStream & IResource::Print(QTextStream & strm) const
     strm << "isDirty = " << (isDirty() ? "true" : "false") << "; \n";
 
     strm << "isFreeAccount = " << (m_isFreeAccount ? "true" : "false") << "; \n";
+
+    strm << "indexInNote = " << QString::number(m_indexInNote) << "; \n";
 
     if (enResource.attributes.isSet())
     {

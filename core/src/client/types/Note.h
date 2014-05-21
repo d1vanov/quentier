@@ -86,8 +86,8 @@ public:
     bool hasResources() const;
     void resources(QList<ResourceAdapter> & resources) const;
     void resources(QList<ResourceWrapper> & resources) const;
-    void setResources(const QList<IResource> & resources);
-    void setResources(QList<ResourceWrapper> && resources);
+    void setResources(const QList<ResourceAdapter> & resources);
+    void setResources(const QList<ResourceWrapper> & resources);
     void addResource(const IResource & resource);
     void removeResource(const IResource & resource);
 

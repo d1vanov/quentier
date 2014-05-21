@@ -31,6 +31,9 @@ public:
     bool isFreeAccount() const;
     void setFreeAccount(const bool isFreeAccount);
 
+    int indexInNote() const;
+    void setIndexInNote(const int index);
+
     bool hasNoteGuid() const;
     const QString & noteGuid() const;
     void setNoteGuid(const QString & guid);
@@ -109,6 +112,7 @@ protected:
 
 private:    
     bool m_isFreeAccount;
+    int  m_indexInNote;
 };
 
 } // namespace qute_note

@@ -467,7 +467,7 @@ bool LocalStorageManager::FindNotebook(Notebook & notebook, QString & errorDescr
                                   "publishingUri, publishingNoteSortOrder, publishingAscendingSort, "
                                   "publicDescription, isPublished, stack, businessNotebookDescription, "
                                   "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, "
-                                  "contactId FROM Notebooks WHERE %1 = \"%2\"").arg(column).arg(guid);
+                                  "contactId FROM Notebooks WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find notebook in SQL database by guid");
@@ -1465,7 +1465,7 @@ bool LocalStorageManager::FindEnResource(IResource & resource, QString & errorDe
 
     QString queryString = QString("SELECT localGuid, guid, noteGuid, noteLocalGuid, updateSequenceNumber, "
                                   "isDirty, dataSize, dataHash, mime, width, height, recognitionDataSize, "
-                                  "recognitionDataHash %1 FROM Resources WHERE %2 = \"%3\"")
+                                  "recognitionDataHash, indexInNote %1 FROM Resources WHERE %2 = \"%3\"")
                                  .arg(withBinaryData ? ", dataBody, recognitionDataBody" : " ")
                                  .arg(column).arg(guid);
 
@@ -1505,6 +1505,7 @@ bool LocalStorageManager::FindEnResource(IResource & resource, QString & errorDe
     CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint32, setHeight, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32, setRecognitionDataSize, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QByteArray, QByteArray, setRecognitionDataHash, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(indexInNote, int, int, setIndexInNote, isRequired);
 
     if (withBinaryData) {
         CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QByteArray, QByteArray, setRecognitionDataBody, isRequired);
@@ -2115,6 +2116,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  recognitionDataBody     TEXT                 DEFAULT NULL, "
                      "  recognitionDataSize     INTEGER              DEFAULT 0, "
                      "  recognitionDataHash     TEXT                 DEFAULT NULL, "
+                     "  indexInNote             INTEGER              DEFAULT NULL, "
                      "  UNIQUE(localGuid, guid)"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Resources table");
@@ -3443,6 +3445,12 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
     }
     values.append(QString::number(resource.isDirty() ? 1 : 0));
 
+    int indexInNote = resource.indexInNote();
+    if (indexInNote >= 0) {
+        columns.append(", indexInNote");
+        values.append(", " + QString::number(indexInNote));
+    }
+
     columns.append(", localGuid");
     QString resourceLocalGuid = resource.localGuid();
     values.append(", \"" + resourceLocalGuid + "\"");
@@ -4588,27 +4596,25 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(Note & note, QString & erro
         }
     }
 
-    QString columns = "localGuid, guid, noteGuid, updateSequenceNumber, dataSize, dataHash, mime, width, height, "
-                      "recognitionDataSize, recognitionDataHash";
-    if (withBinaryData) {
-        columns.append(", dataBody, recognitionDataBody");
-    }
-
     int numResources = resourceGuids.size();
     QNDEBUG("Found " << numResources << " resources");
 
-    foreach (const QString & resourceGuid, resourceGuids)
+    QList<ResourceWrapper> resources;
+    foreach(const QString & resourceGuid, resourceGuids)
     {
-        ResourceWrapper resource;
+        resources << ResourceWrapper();
+        ResourceWrapper & resource = resources.back();
         resource.setLocalGuid(resourceGuid);
 
         bool res = FindEnResource(resource, errorDescription, withBinaryData);
         DATABASE_CHECK_AND_SET_ERROR("can't find resource per local guid");
 
-        QNDEBUG("Adding resource with local guid " << resource.localGuid()
-                << " to note with local guid " << note.localGuid());
-        note.addResource(resource);
+        QNDEBUG("Found resource with local guid " << resource.localGuid()
+                << " for note with local guid " << note.localGuid());
     }
+
+    qSort(resources.begin(), resources.end(), [](const ResourceWrapper & lhs, const ResourceWrapper & rhs) { return lhs.indexInNote() < rhs.indexInNote(); });
+    note.setResources(resources);
 
     return true;
 }

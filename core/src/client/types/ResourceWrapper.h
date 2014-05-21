@@ -19,6 +19,8 @@ public:
     ResourceWrapper & operator=(const IResource & other);
     virtual ~ResourceWrapper() final override;
 
+    friend class Note;
+
 private:
     virtual const qevercloud::Resource & GetEnResource() const final override;
     virtual qevercloud::Resource & GetEnResource() final override;

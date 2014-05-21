@@ -26,6 +26,8 @@ public:
     ResourceAdapter & operator=(const ResourceAdapter & other);
     virtual ~ResourceAdapter() final override;
 
+    friend class Note;
+
 private:
     virtual const qevercloud::Resource & GetEnResource() const final override;
     virtual qevercloud::Resource & GetEnResource() final override;
