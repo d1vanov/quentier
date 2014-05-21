@@ -2171,6 +2171,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  note REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  localTag REFERENCES Tags(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  tag  REFERENCES Tags(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  indexInNote           INTEGER               DEFAULT NULL, "
                      "  UNIQUE(localNote, localTag) ON CONFLICT REPLACE"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteTags table");
@@ -3258,11 +3259,14 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
         QStringList tagGuids;
         note.tagGuids(tagGuids);
+        int numTagGuids = tagGuids.size();
 
-        foreach(const QString & tagGuid, tagGuids)
+        for(int i = 0; i < numTagGuids; ++i)
         {
             // NOTE: the behavior expressed here is valid since tags are synchronized before notes
             // so they must exist within local storage database; if they don't then something went really wrong
+
+            const QString & tagGuid = tagGuids[i];
 
             Tag tag;
             tag.setGuid(tagGuid);
@@ -3273,12 +3277,12 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
                 return false;
             }
 
-            columns = "localNote, localTag, tag";
+            columns = "localNote, localTag, tag, indexInNote";
             if (noteHasGuid) {
                 columns.append(", note");
             }
 
-            valuesString = ":localNote, :localTag, :tag";
+            valuesString = ":localNote, :localTag, :tag, :indexInNote";
             if (noteHasGuid) {
                 valuesString.append(", :note");
             }
@@ -3291,6 +3295,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
             query.bindValue(":localNote", localGuid);
             query.bindValue(":localTag", tag.localGuid());
             query.bindValue(":tag", tagGuid);
+            query.bindValue(":indexInNote", i);
 
             if (noteHasGuid) {
                 query.bindValue(":note", note.guid());
@@ -4540,17 +4545,24 @@ bool LocalStorageManager::FindAndSetTagGuidsPerNote(Note & note, QString & error
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT tag FROM NoteTags WHERE localNote = ?");
+    query.prepare("SELECT tag, indexInNote FROM NoteTags WHERE localNote = ?");
     query.addBindValue(note.localGuid());
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select note tags from \"NoteTags\" table in SQL database");
 
+    QMultiHash<int, QString> tagGuidsAndIndices;
     while (query.next())
     {
-        QString tagGuid = query.value(0).toString();
-        if (tagGuid.isEmpty()) {
-            continue;
+        QSqlRecord rec = query.record();
+
+        QString tagGuid;
+        if (rec.contains("tag")) {
+            tagGuid = rec.value("tag").toString();
+        }
+        else {
+            errorDescription += QObject::tr("Internal error: can't find tag guid in the result of SQL query");
+            return false;
         }
 
         if (!CheckGuid(tagGuid)) {
@@ -4559,8 +4571,38 @@ bool LocalStorageManager::FindAndSetTagGuidsPerNote(Note & note, QString & error
         }
 
         QNDEBUG("Found tag guid " << tagGuid << " for note with guid " << note.guid());
-        note.addTagGuid(tagGuid);
+
+        int indexInNote = -1;
+        int recordIndex = rec.indexOf("indexInNote");
+        if (recordIndex >= 0)
+        {
+            QVariant indexVariant = rec.value(recordIndex);
+            if (!indexVariant.isNull())
+            {
+                bool conversionResult = false;
+                indexInNote = indexVariant.toInt(&conversionResult);
+                if (!conversionResult) {
+                    QNWARNING("Can't convert QVariant to int: " << rec.value(recordIndex));
+                    errorDescription += QObject::tr("Internal error: unable to convert to int "
+                                                    "while processing the result of SQL query");
+                    return false;
+                }
+            }
+        }
+
+        tagGuidsAndIndices.insertMulti(indexInNote, tagGuid);
     }
+
+    int numTagGuids = tagGuidsAndIndices.size();
+    QStringList tagGuids;
+    tagGuids.reserve(std::max(numTagGuids, 0));
+    for(QMultiHash<int, QString>::ConstIterator it = tagGuidsAndIndices.constBegin();
+        it != tagGuidsAndIndices.constEnd(); ++it)
+    {
+        tagGuids << it.value();
+    }
+
+    note.setTagGuids(tagGuids);
 
     return true;
 }
