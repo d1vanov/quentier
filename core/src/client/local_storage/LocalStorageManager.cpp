@@ -280,6 +280,35 @@ bool LocalStorageManager::ExpungeUser(const IUser & user, QString & errorDescrip
     return true;
 }
 
+int LocalStorageManager::GetNotebookCount(QString & errorDescription) const
+{
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec("SELECT COUNT(*) FROM Notebooks");
+    if (!res) {
+        errorDescription = "Internal error: can't get number of notebooks in local storage database: ";
+        QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        errorDescription += query.lastError().text();
+        return -1;
+    }
+
+    if (!query.next()) {
+        QNDEBUG("Found no notebooks in local storage database");
+        return 0;
+    }
+
+    bool conversionResult = false;
+    int count = query.value(0).toInt(&conversionResult);
+    if (!conversionResult) {
+        errorDescription = "Internal error: can't convert number of notebooks to int";
+        QNCRITICAL(errorDescription << ": " << query.value(0));
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        return -1;
+    }
+
+    return count;
+}
+
 void LocalStorageManager::SwitchUser(const QString & username, const UserID userId,
                                      const bool startFromScratch)
 {

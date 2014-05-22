@@ -516,8 +516,6 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
 
-    // TODO: consider implementing some smart auto-expunge for Tags on ExpungeNote and adding the corresponding test
-
     return true;
 }
 
@@ -589,6 +587,17 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
         return false;
     }
 
+    // ========== Check GetNotebookCount to return 1 ============
+    int count = localStorageManager.GetNotebookCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 1) {
+        errorDescription = QObject::tr("GetNotebookCount returned result different from the expected one (1): ");
+        errorDescription += QString::number(count);
+        return false;
+    }
+
     // ========== Check Expunge + Find (failure expected) ==========
     modifiedNotebook.setLocal(true);
     res = localStorageManager.ExpungeNotebook(modifiedNotebook, errorDescription);
@@ -602,6 +611,17 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
                                        "from LocalStorageManager");
         QNWARNING(errorDescription << ": Notebook expunged from LocalStorageManager: " << modifiedNotebook
                   << "\nNotebook found in LocalStorageManager: " << foundNotebook);
+        return false;
+    }
+
+    // ========== Check GetNotebookCount to return 0 ============
+    count = localStorageManager.GetNotebookCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 0) {
+        errorDescription = QObject::tr("GetNotebookCount returned result different from the expected one (0): ");
+        errorDescription += QString::number(count);
         return false;
     }
 

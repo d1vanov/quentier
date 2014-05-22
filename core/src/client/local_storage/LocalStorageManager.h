@@ -118,6 +118,13 @@ public:
     bool ExpungeUser(const IUser & user, QString & errorDescription);
 
     /**
+     * @brief GetNotebookCount returns the number of notebooks currently stored in local storage database
+     * @param errorDescription - error description if the number of notebooks could not be returned
+     * @return either non-negative value with the number of notebooks or -1 which means some error occured
+     */
+    int GetNotebookCount(QString & errorDescription) const;
+
+    /**
      * @brief AddNotebook - adds passed in Notebook to the local storage database;
      * if Notebook has "remote" Evernote service's guid set, it is identified by this guid
      * in local storage database. Otherwise it is identified by its local guid.
