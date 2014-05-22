@@ -144,7 +144,18 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
         return false;
     }
 
-    // ============= Check Delete + Find (failure expected) ============
+    // ========== Check GetLinkedNotebookCount to return 1 ============
+    int count = localStorageManager.GetLinkedNotebookCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 1) {
+        errorDescription = QObject::tr("GetLinkedNotebookCount returned result different from the expected one (1): ");
+        errorDescription += QString::number(count);
+        return false;
+    }
+
+    // ============= Check Expunge + Find (failure expected) ============
     res = localStorageManager.ExpungeLinkedNotebook(modifiedLinkedNotebook, errorDescription);
     if (!res) {
         return false;
@@ -155,6 +166,17 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
         errorDescription = "Error: found linked notebook which should have been expunged from local storage";
         QNWARNING(errorDescription << ": LinkedNotebook expunged from LocalStorageManager: " << modifiedLinkedNotebook
                   << "\nLinkedNotebook found in LocalStorageManager: " << foundLinkedNotebook);
+        return false;
+    }
+
+    // ========== Check GetLinkedNotebookCount to return 0 ============
+    count = localStorageManager.GetLinkedNotebookCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 0) {
+        errorDescription = QObject::tr("GetLinkedNotebookCount returned result different from the expected one (0): ");
+        errorDescription += QString::number(count);
         return false;
     }
 

@@ -200,6 +200,13 @@ public:
     bool ExpungeNotebook(const Notebook & notebook, QString & errorDescription);
 
     /**
+     * @brief GetLinkedNotebookCount - returns the number of linked notebooks stored in the local storage database
+     * @param errorDescription - error description if the number of linked notebooks count not be returned
+     * @return either non-negative number of linked notebooks or -1 if some error has occured
+     */
+    int GetLinkedNotebookCount(QString & errorDescription);
+
+    /**
      * @brief AddLinkedNotebook - adds passed in LinkedNotebook to the local storage database;
      * LinkedNotebook must have "remote" Evernote service's guid set. It is not possible
      * to add a linked notebook in offline mode so it doesn't make sense for LinkedNotebook
