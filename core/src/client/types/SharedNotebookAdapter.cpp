@@ -39,6 +39,12 @@ SharedNotebookAdapter::SharedNotebookAdapter(const SharedNotebookAdapter & other
     m_isConst(other.m_isConst)
 {}
 
+SharedNotebookAdapter::SharedNotebookAdapter(SharedNotebookAdapter && other) :
+    ISharedNotebook(std::move(other)),
+    m_pEnSharedNotebook(other.m_pEnSharedNotebook),
+    m_isConst(other.m_isConst)
+{}
+
 SharedNotebookAdapter::~SharedNotebookAdapter()
 {}
 

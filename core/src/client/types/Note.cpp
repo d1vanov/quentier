@@ -531,28 +531,41 @@ bool Note::hasResources() const
     return m_qecNote.resources.isSet();
 }
 
-#define GET_RESOURCES(resource_type) \
-void Note::resources(QList<resource_type> & resources) const \
-{ \
-    resources.clear(); \
-    \
-    if (!m_qecNote.resources.isSet()) { \
-        return; \
-    } \
-    \
-    const QList<qevercloud::Resource> & noteResources = m_qecNote.resources.ref(); \
-    int numResources = noteResources.size(); \
-    resources.reserve(std::max(numResources, 0)); \
-    for(int i = 0; i < numResources; ++i) { \
-        resources << resource_type(noteResources[i]); \
-        resources.back().setIndexInNote(i); \
-    } \
+QList<ResourceAdapter> Note::resourceAdapters() const
+{
+    QList<ResourceAdapter> resources;
+
+    if (!m_qecNote.resources.isSet()) {
+        return resources;
+    }
+
+    const QList<qevercloud::Resource> & noteResources = m_qecNote.resources.ref();
+    int numResources = noteResources.size();
+    resources.reserve(std::max(numResources, 0));
+    for(int i = 0; i < numResources; ++i) {
+        resources << ResourceAdapter(noteResources[i]);
+        resources.back().setIndexInNote(i);
+    }
+    return resources;
 }
 
-GET_RESOURCES(ResourceAdapter)
-GET_RESOURCES(ResourceWrapper)
+QList<ResourceWrapper> Note::resources() const
+{
+    QList<ResourceWrapper> resources;
 
-#undef GET_RESOURCES
+    if (!m_qecNote.resources.isSet()) {
+        return resources;
+    }
+
+    const QList<qevercloud::Resource> & noteResources = m_qecNote.resources.ref();
+    int numResources = noteResources.size();
+    resources.reserve(qMax(numResources, 0));
+    for(int i = 0; i < numResources; ++i) {
+        resources << ResourceWrapper(noteResources[i]);
+        resources.back().setIndexInNote(i);
+    }
+    return resources;
+}
 
 #define SET_RESOURCES(resource_type) \
     void Note::setResources(const QList<resource_type> & resources) \

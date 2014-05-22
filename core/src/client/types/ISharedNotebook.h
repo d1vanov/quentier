@@ -20,6 +20,9 @@ public:
     bool operator==(const ISharedNotebook & other) const;
     bool operator!=(const ISharedNotebook & other) const;
 
+    int indexInNotebook() const;
+    void setIndexInNotebook(const int index);
+
     bool hasId() const;
     qint64 id() const;
     void setId(const qint64 id);
@@ -79,6 +82,9 @@ protected:
     virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const = 0;
 
     virtual QTextStream & Print(QTextStream & strm) const override;
+
+private:
+    int  m_indexInNotebook;
 };
 
 } // namespace qute_note

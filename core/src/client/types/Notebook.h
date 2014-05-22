@@ -83,7 +83,7 @@ public:
     void setStack(const QString & stack);
 
     bool hasSharedNotebooks();
-    void sharedNotebooks(QList<SharedNotebookAdapter> & notebooks) const;
+    QList<SharedNotebookAdapter> sharedNotebooks() const;
     void setSharedNotebooks(QList<qevercloud::SharedNotebook> sharedNotebooks);
     void setSharedNotebooks(QList<SharedNotebookAdapter> && notebooks);
     void setSharedNotebooks(QList<SharedNotebookWrapper> && notebooks);

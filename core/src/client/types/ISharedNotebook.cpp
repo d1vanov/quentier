@@ -4,7 +4,8 @@
 
 namespace qute_note {
 
-ISharedNotebook::ISharedNotebook()
+ISharedNotebook::ISharedNotebook() :
+    m_indexInNotebook(-1)
 {}
 
 ISharedNotebook::~ISharedNotebook()
@@ -16,11 +17,25 @@ bool ISharedNotebook::operator==(const ISharedNotebook & other) const
     const qevercloud::SharedNotebook & otherSharedNotebook = other.GetEnSharedNotebook();
 
     return (sharedNotebook == otherSharedNotebook);
+
+    // NOTE: m_indexInNotebook does not take any part in comparison
+    // as it is by nature a helper parameter intended to preserve sorting of shared notebooks
+    // in notebook between insertions and selections from the database
 }
 
 bool ISharedNotebook::operator!=(const ISharedNotebook & other) const
 {
     return !(*this == other);
+}
+
+int ISharedNotebook::indexInNotebook() const
+{
+    return m_indexInNotebook;
+}
+
+void ISharedNotebook::setIndexInNotebook(const int index)
+{
+    m_indexInNotebook = index;
 }
 
 bool ISharedNotebook::hasId() const
@@ -238,13 +253,15 @@ void ISharedNotebook::setReminderNotifyApp(const bool notifyApp)
 #undef CHECK_AND_SET_RECIPIENT_SETTINGS
 
 ISharedNotebook::ISharedNotebook(const ISharedNotebook & other) :
-    TypeWithError(other)
+    TypeWithError(other),
+    m_indexInNotebook(other.m_indexInNotebook)
 {}
 
 ISharedNotebook & ISharedNotebook::operator=(const ISharedNotebook & other)
 {
     if (this != &other) {
         TypeWithError::operator=(other);
+        setIndexInNotebook(other.m_indexInNotebook);
     }
 
     return *this;

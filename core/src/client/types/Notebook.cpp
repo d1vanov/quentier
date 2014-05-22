@@ -404,19 +404,25 @@ bool Notebook::hasSharedNotebooks()
     return m_qecNotebook.sharedNotebooks.isSet();
 }
 
-void Notebook::sharedNotebooks(QList<SharedNotebookAdapter> & notebooks) const
+QList<SharedNotebookAdapter> Notebook::sharedNotebooks() const
 {
-    notebooks.clear();
+    QList<SharedNotebookAdapter> notebooks;
 
     if (!m_qecNotebook.sharedNotebooks.isSet()) {
-        return;
+        return notebooks;
     }
 
     const QList<qevercloud::SharedNotebook> & sharedNotebooks = m_qecNotebook.sharedNotebooks;
-    foreach(const qevercloud::SharedNotebook & sharedNotebook, sharedNotebooks) {
-        SharedNotebookAdapter sharedNotebookadapter(sharedNotebook);
-        notebooks << sharedNotebookadapter;
+    int numSharedNotebooks = sharedNotebooks.size();
+    notebooks.reserve(qMax(numSharedNotebooks, 0));
+    for(int i = 0; i < numSharedNotebooks; ++i) {
+        const qevercloud::SharedNotebook & sharedNotebook = sharedNotebooks[i];
+        SharedNotebookAdapter sharedNotebookAdapter(sharedNotebook);
+        notebooks << sharedNotebookAdapter;
+        notebooks.back().setIndexInNotebook(i);
     }
+
+    return notebooks;
 }
 
 void Notebook::setSharedNotebooks(QList<qevercloud::SharedNotebook> sharedNotebooks)

@@ -84,8 +84,8 @@ public:
     void removeTagGuid(const QString & guid);
 
     bool hasResources() const;
-    void resources(QList<ResourceAdapter> & resources) const;
-    void resources(QList<ResourceWrapper> & resources) const;
+    QList<ResourceAdapter> resourceAdapters() const;
+    QList<ResourceWrapper> resources() const;
     void setResources(const QList<ResourceAdapter> & resources);
     void setResources(const QList<ResourceWrapper> & resources);
     void addResource(const IResource & resource);

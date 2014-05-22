@@ -599,7 +599,7 @@ QList<qevercloud::SharedNotebook> LocalStorageManager::ListEnSharedNotebooksPerN
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT shareId, userId, email, creationTimestamp, modificationTimestamp, "
-                  "shareKey, username, sharedNotebookPrivilegeLevel, allowPreview, "
+                  "shareKey, username, sharedNotebookPrivilegeLevel, allowPreview, indexInNotebook, "
                   "recipientReminderNotifyEmail, recipientReminderNotifyInApp, notebookGuid "
                   "FROM SharedNotebooks WHERE notebookGuid=?");
     query.addBindValue(notebookGuid);
@@ -613,15 +613,21 @@ QList<qevercloud::SharedNotebook> LocalStorageManager::ListEnSharedNotebooksPerN
         return sharedNotebooks;
     }
 
-    sharedNotebooks.reserve(qMax(query.size(), 0));
+    int numSharedNotebooks = query.size();
+    sharedNotebooks.reserve(qMax(numSharedNotebooks, 0));
+    QList<qevercloud::SharedNotebook> unsortedSharedNotebooks;
+    unsortedSharedNotebooks.reserve(qMax(numSharedNotebooks, 0));
+    QList<SharedNotebookAdapter> sharedNotebookAdapters;
+    sharedNotebookAdapters.reserve(qMax(numSharedNotebooks, 0));
 
     while(query.next())
     {
         QSqlRecord record = query.record();
 
-        sharedNotebooks << qevercloud::SharedNotebook();
-        qevercloud::SharedNotebook & sharedNotebook = sharedNotebooks.back();
-        SharedNotebookAdapter sharedNotebookAdapter(sharedNotebook);
+        unsortedSharedNotebooks << qevercloud::SharedNotebook();
+        qevercloud::SharedNotebook & sharedNotebook = unsortedSharedNotebooks.back();
+        sharedNotebookAdapters << SharedNotebookAdapter(sharedNotebook);
+        SharedNotebookAdapter & sharedNotebookAdapter = sharedNotebookAdapters.back();
 
         res = FillSharedNotebookFromSqlRecord(record, sharedNotebookAdapter, errorDescription);
         if (!res) {
@@ -630,7 +636,15 @@ QList<qevercloud::SharedNotebook> LocalStorageManager::ListEnSharedNotebooksPerN
         }
     }
 
-    int numSharedNotebooks = sharedNotebooks.size();
+    qSort(sharedNotebookAdapters.begin(), sharedNotebookAdapters.end(),
+          [](const SharedNotebookAdapter & lhs, const SharedNotebookAdapter & rhs)
+          { return lhs.indexInNotebook() < rhs.indexInNotebook(); });
+
+    foreach(const SharedNotebookAdapter & sharedNotebookAdapter, sharedNotebookAdapters) {
+        sharedNotebooks << sharedNotebookAdapter.GetEnSharedNotebook();
+    }
+
+    numSharedNotebooks = sharedNotebooks.size();
     QNDEBUG("found " << numSharedNotebooks << " shared notebooks");
 
     return sharedNotebooks;
@@ -2024,6 +2038,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  allowPreview                    INTEGER    DEFAULT 0, "
                      "  recipientReminderNotifyEmail    INTEGER    DEFAULT 0, "
                      "  recipientReminderNotifyInApp    INTEGER    DEFAULT 0, "
+                     "  indexInNotebook                 INTEGER    DEFAULT NULL, "
                      "  UNIQUE(shareId, notebookGuid) ON CONFLICT REPLACE"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create SharedNotebooks table");
@@ -2440,9 +2455,7 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
         }
     }
 
-    QList<SharedNotebookAdapter> sharedNotebooks;
-    notebook.sharedNotebooks(sharedNotebooks);
-
+    QList<SharedNotebookAdapter> sharedNotebooks = notebook.sharedNotebooks();
     foreach(const SharedNotebookAdapter & sharedNotebook, sharedNotebooks)
     {
         QString error;
@@ -2576,6 +2589,12 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const ISharedNotebook & sh
 #undef CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE
 
     if (hasAnyProperty) {
+        int indexInNotebook = sharedNotebook.indexInNotebook();
+        if (indexInNotebook >= 0) {
+            columns.append(", indexInNotebook");
+            values.append(", " + QString::number(indexInNotebook));
+        }
+
         QString queryString = QString("INSERT OR REPLACE INTO SharedNotebooks(%1) VALUES(%2)")
                                      .arg(columns).arg(values);
         QSqlQuery query(m_sqlDatabase);
@@ -3311,8 +3330,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     if (note.hasResources())
     {
-        QList<ResourceAdapter> resources;
-        note.resources(resources);
+        QList<ResourceAdapter> resources = note.resourceAdapters();
         size_t numResources = resources.size();
         for(size_t i = 0; i < numResources; ++i)
         {
@@ -4216,6 +4234,22 @@ bool LocalStorageManager::FillSharedNotebookFromSqlRecord(const QSqlRecord & rec
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(notebookGuid, QString, QString, setNotebookGuid, isRequired);
 
 #undef CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY
+
+    int recordIndex = rec.indexOf("indexInNotebook");
+    if (recordIndex >= 0)
+    {
+        QVariant indexInNotebookVariant = rec.value(recordIndex);
+        if (!indexInNotebookVariant.isNull())
+        {
+            bool conversionResult = false;
+            int indexInNotebook = indexInNotebookVariant.toInt(&conversionResult);
+            if (!conversionResult) {
+                errorDescription += QObject::tr("Internal error: can't convert shared notebook's index in notebook to int");
+                return false;
+            }
+            sharedNotebook.setIndexInNotebook(indexInNotebook);
+        }
+    }
 
     return true;
 }

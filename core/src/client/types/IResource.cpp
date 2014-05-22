@@ -24,7 +24,7 @@ bool IResource::operator==(const IResource & other) const
     return (GetEnResource() == other.GetEnResource()) && (isDirty() == other.isDirty());
 
     // NOTE: m_indexInNote does not take any part in comparison
-    // as it is by nature a helper parameter intended to prevent sorting of resources
+    // as it is by nature a helper parameter intended to preserve sorting of resources
     // in note between insertions and selections from the database
 }
 
