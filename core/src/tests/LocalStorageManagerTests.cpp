@@ -700,6 +700,17 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
 
+    // ========== Check GetUserCount to return 1 ===========
+    int count = localStorageManager.GetUserCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 1) {
+        errorDescription = QObject::tr("GetUserCount returned value different from expected (1): ");
+        errorDescription += QString::number(count);
+        return false;
+    }
+
     // ========== Check Delete + Find ==========
     modifiedUser.setDeletionTimestamp(5);
     modifiedUser.setLocal(false);
@@ -720,6 +731,17 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         errorDescription = QObject::tr("Deleted and found users in local storage manager don't match");
         QNWARNING(errorDescription << ": IUser marked deleted in LocalStorageManager: " << modifiedUser
                   << "\nIUser found in LocalStorageManager: " << foundUser);
+        return false;
+    }
+
+    // ========== Check GetUserCount to return 0 (as it doesn't account for deleted resources) ===========
+    count = localStorageManager.GetUserCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 0) {
+        errorDescription = QObject::tr("GetUserCount returned value different from expected (0): ");
+        errorDescription += QString::number(count);
         return false;
     }
 

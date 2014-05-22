@@ -57,6 +57,13 @@ public:
     void SwitchUser(const QString & username, const UserID userId, const bool startFromScratch = false);
 
     /**
+     * @brief GetUserCount - returns the number of non-deleted users currently stored in local storage database
+     * @param errorDescription - error description if the number of users could not be returned
+     * @return either non-negative value with the number of users or -1 which means some error occured
+     */
+    int GetUserCount(QString & errorDescription) const;
+
+    /**
      * @brief AddUser - adds passed in by const reference IUser subclass object
      * to the local storage database; basically the table with Users is only involved
      * in operations with Notebooks which have "contact" field set which in turn is

@@ -371,6 +371,35 @@ void LocalStorageManager::SwitchUser(const QString & username, const UserID user
     }
 }
 
+int LocalStorageManager::GetUserCount(QString & errorDescription) const
+{
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec("SELECT COUNT(*) FROM Users WHERE deletionTimestamp = -1");
+    if (!res) {
+        errorDescription = "Internal error: can't get number of users in local storage database: ";
+        QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        errorDescription += query.lastError().text();
+        return -1;
+    }
+
+    if (!query.next()) {
+        QNDEBUG("Found no users in local storage database");
+        return 0;
+    }
+
+    bool conversionResult = false;
+    int count = query.value(0).toInt(&conversionResult);
+    if (!conversionResult) {
+        errorDescription = "Internal error: can't convert number of users to int";
+        QNCRITICAL(errorDescription << ": " << query.value(0));
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        return -1;
+    }
+
+    return count;
+}
+
 bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't add notebook to local storage database: ");
