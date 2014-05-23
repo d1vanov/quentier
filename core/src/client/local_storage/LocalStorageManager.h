@@ -451,7 +451,7 @@ public:
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
     /**
-     * @brief GetEnResourceCountreturns the number of resources currently stored in local storage database
+     * @brief GetEnResourceCount returns the number of resources currently stored in local storage database
      * @param errorDescription - error description if the number of resources could not be returned
      * @return either non-negative value with the number of resources or -1 which means some error occured
      */
@@ -503,6 +503,13 @@ public:
      * @return true if resource was expunged successfully, false otherwise
      */
     bool ExpungeEnResource(const IResource & resource, QString & errorDescription);
+
+    /**
+     * @brief GetSavedSearchCount returns the number of saved seacrhes currently stored in local storage database
+     * @param errorDescription - error description if the number of saved seacrhes could not be returned
+     * @return either non-negative value with the number of saved seacrhes or -1 which means some error occured
+     */
+    int GetSavedSearchCount(QString & errorDescription) const;
 
     /**
      * @brief AddSavedSearch - adds passed in SavedSearch to the local storage database;

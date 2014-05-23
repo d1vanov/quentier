@@ -67,7 +67,18 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         return false;
     }
 
-    // ============ Check Delete + Find (failure expected) ============
+    // ========== Check GetSavedSearchCount to return 1 ============
+    int count = localStorageManager.GetSavedSearchCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 1) {
+        errorDescription = QObject::tr("GetSavedSearchCount returned result different from the expected one (1): ");
+        errorDescription += QString::number(count);
+        return false;
+    }
+
+    // ============ Check Expunge + Find (failure expected) ============
     res = localStorageManager.ExpungeSavedSearch(modifiedSearch, errorDescription);
     if (!res) {
         return false;
@@ -78,6 +89,17 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         errorDescription = "Error: found saved search which should have been expunged from local storage";
         QNWARNING(errorDescription << ": SavedSearch expunged from LocalStorageManager: " << modifiedSearch
                   << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
+        return false;
+    }
+
+    // ========== Check GetSavedSearchCount to return 0 ============
+    count = localStorageManager.GetSavedSearchCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 0) {
+        errorDescription = QObject::tr("GetSavedSearchCount returned result different from the expected one (0): ");
+        errorDescription += QString::number(count);
         return false;
     }
 
