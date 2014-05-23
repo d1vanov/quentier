@@ -932,6 +932,35 @@ bool LocalStorageManager::ExpungeLinkedNotebook(const LinkedNotebook & linkedNot
     return true;
 }
 
+int LocalStorageManager::GetNoteCount(QString & errorDescription)
+{
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec("SELECT COUNT(*) FROM Notes WHERE deletionTimestamp = -1");
+    if (!res) {
+        errorDescription = "Internal error: can't get number of notes in local storage database: ";
+        QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        errorDescription += query.lastError().text();
+        return -1;
+    }
+
+    if (!query.next()) {
+        QNDEBUG("Found no notes in local storage database");
+        return 0;
+    }
+
+    bool conversionResult = false;
+    int count = query.value(0).toInt(&conversionResult);
+    if (!conversionResult) {
+        errorDescription = "Internal error: can't convert number of notebooks to int";
+        QNCRITICAL(errorDescription << ": " << query.value(0));
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        return -1;
+    }
+
+    return count;
+}
+
 bool LocalStorageManager::AddNote(const Note & note, const Notebook & notebook, QString & errorDescription)
 {
     errorDescription = QObject::tr("Can't add note to local storage database: ");
@@ -1174,8 +1203,14 @@ bool LocalStorageManager::DeleteNote(const Note & note, QString & errorDescripti
         return false;
     }
 
-    QString queryString = QString("UPDATE Notes SET isDeleted=1, isDirty=1 WHERE %1 = \"%2\"")
-                                  .arg(column).arg(guid);
+    if (!note.hasDeletionTimestamp()) {
+        errorDescription += QObject::tr("note to be deleted doesn't have deletion timestamp set, "
+                                        "rejecting to delete it");
+        return false;
+    }
+
+    QString queryString = QString("UPDATE Notes SET isDeleted=1, isDirty=1, deletionTimestamp=%1 WHERE %2 = '%3'")
+                                  .arg(note.deletionTimestamp()).arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notes\" table in SQL database");
@@ -2152,7 +2187,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  content                 TEXT                 NOT NULL, "
                      "  creationTimestamp       INTEGER              NOT NULL, "
                      "  modificationTimestamp   INTEGER              NOT NULL, "
-                     "  deletionTimestamp       INTEGER              DEFAULT 0, "
+                     "  deletionTimestamp       INTEGER              DEFAULT -1, "
                      "  isActive                INTEGER              DEFAULT 1, "
                      "  hasAttributes           INTEGER              DEFAULT 0, "
                      "  notebookLocalGuid REFERENCES Notebooks(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "

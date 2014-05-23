@@ -486,9 +486,21 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
 
+    // ========== GetNoteCount to return 1 ============
+    int count = localStorageManager.GetNoteCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 1) {
+        errorDescription = QObject::tr("GetNoteCount returned result different from the expected one (1): ");
+        errorDescription += QString::number(count);
+        return false;
+    }
+
     // ========== Check Delete + Find and check deleted flag ============
     modifiedNote.setLocal(false);
     modifiedNote.setDeleted(true);
+    modifiedNote.setDeletionTimestamp(1);
     foundNote.setDeleted(false);
     res = localStorageManager.DeleteNote(modifiedNote, errorDescription);
     if (!res) {
@@ -505,6 +517,17 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         errorDescription = QObject::tr("Note which should have been marked deleted "
                                        "is not marked so after LocalStorageManager::FindNote");
         QNWARNING(errorDescription << ": Note found in LocalStorageManager: " << foundNote);
+        return false;
+    }
+
+    // ========== GetNoteCount to return 0 ============
+    count = localStorageManager.GetNoteCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 0) {
+        errorDescription = QObject::tr("GetNoteCount returned result different from the expected one (0): ");
+        errorDescription += QString::number(count);
         return false;
     }
 

@@ -260,6 +260,13 @@ public:
     bool ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     /**
+     * @brief GetNoteCount returns the number of notes currently stored in local storage database
+     * @param errorDescription - error description if the number of notes could not be returned
+     * @return either non-negative value with the number of notes or -1 which means some error occured
+     */
+    int GetNoteCount(QString & errorDescription);
+
+    /**
      * @brief AddNote - adds passed in Note to the local storage database.
      * @param note - note to be passed to local storage database
      * @param notebook - notebook for which the note must be added. It is needed
