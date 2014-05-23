@@ -260,7 +260,7 @@ public:
     bool ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     /**
-     * @brief GetNoteCount returns the number of notes currently stored in local storage database
+     * @brief GetNoteCount returns the number of non-deleted notes currently stored in local storage database
      * @param errorDescription - error description if the number of notes could not be returned
      * @return either non-negative value with the number of notes or -1 which means some error occured
      */
@@ -353,7 +353,7 @@ public:
     bool ExpungeNote(const Note & note, QString & errorDescription);
 
     /**
-     * @brief GetTagCount returns the number of tags currently stored in local storage database
+     * @brief GetTagCount returns the number of non-deleted tags currently stored in local storage database
      * @param errorDescription - error description if the number of tags could not be returned
      * @return either non-negative value with the number of tags or -1 which means some error occured
      */
@@ -449,6 +449,13 @@ public:
      * @return true if tag was expunged successfully, false otherwise
      */
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
+
+    /**
+     * @brief GetEnResourceCountreturns the number of resources currently stored in local storage database
+     * @param errorDescription - error description if the number of resources could not be returned
+     * @return either non-negative value with the number of resources or -1 which means some error occured
+     */
+    int GetEnResourceCount(QString & errorDescription) const;
 
     /**
      * @brief AddEnResource - adds passed in resource to the local storage database

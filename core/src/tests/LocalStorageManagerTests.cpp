@@ -369,6 +369,17 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
         return false;
     }
 
+    // ========== GetEnResourceCount to return 1 ============
+    int count = localStorageManager.GetEnResourceCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 1) {
+        errorDescription = QObject::tr("GetEnResourceCount returned result different from the expected one (1): ");
+        errorDescription += QString::number(count);
+        return false;
+    }
+
     // ========== Check Expunge + Find (falure expected) ==========
     res = localStorageManager.ExpungeEnResource(modifiedResource, errorDescription);
     if (!res) {
@@ -380,6 +391,17 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
         errorDescription = QObject::tr("Error: found IResource which should have been expunged from LocalStorageManager");
         QNWARNING(errorDescription << ": IResource expunged from LocalStorageManager: " << modifiedResource
                   << "\nIResource found in LocalStorageManager: " << foundResource);
+        return false;
+    }
+
+    // ========== GetEnResourceCount to return 0 ============
+    count = localStorageManager.GetEnResourceCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 0) {
+        errorDescription = QObject::tr("GetEnResourceCount returned result different from the expected one (0): ");
+        errorDescription += QString::number(count);
         return false;
     }
 
