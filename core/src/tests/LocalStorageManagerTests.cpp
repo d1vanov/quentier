@@ -663,11 +663,44 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
         return false;
     }
 
+    // ========== Check FindDefaultNotebook =========
+    Notebook defaultNotebook;
+    res = localStorageManager.FindDefaultNotebook(defaultNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // ========== Check FindLastUsedNotebook (failure expected) ==========
+    Notebook lastUsedNotebook;
+    res = localStorageManager.FindLastUsedNotebook(lastUsedNotebook, errorDescription);
+    if (res) {
+        errorDescription = QObject::tr("Found some last used notebook which shouldn't have been found");
+        QNWARNING(errorDescription << ": " << lastUsedNotebook);
+        return false;
+    }
+
+    // ========== Check FindDefaultOrLastUsedNotebook ===========
+    Notebook defaultOrLastUsedNotebook;
+    res = localStorageManager.FindDefaultOrLastUsedNotebook(defaultOrLastUsedNotebook,
+                                                            errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (defaultOrLastUsedNotebook != defaultNotebook) {
+        errorDescription = QObject::tr("Found defaultOrLastUsed notebook which should be the same "
+                                       "as default notebook right now but it is not");
+        QNWARNING(errorDescription << ". Default notebook: " << defaultNotebook
+                  << ", defaultOrLastUsedNotebook: " << defaultOrLastUsedNotebook);
+        return false;
+    }
+
     // ========== Check Update + Find ==========
     Notebook modifiedNotebook(notebook);
     modifiedNotebook.setUpdateSequenceNumber(notebook.updateSequenceNumber() + 1);
     modifiedNotebook.setName(notebook.name() + "_modified");
-    modifiedNotebook.setDefaultNotebook(!notebook.isDefaultNotebook());
+    modifiedNotebook.setDefaultNotebook(false);
+    modifiedNotebook.setLastUsed(true);
     modifiedNotebook.setModificationTimestamp(notebook.modificationTimestamp() + 1);
     modifiedNotebook.setPublishingUri(notebook.publishingUri() + "_modified");
     modifiedNotebook.setPublishingAscending(!notebook.isPublishingAscending());
@@ -695,6 +728,38 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
         errorDescription = QObject::tr("Updated and found notebooks in local storage don't match");
         QNWARNING(errorDescription << ": Notebook updated in LocalStorageManager: " << modifiedNotebook
                   << "\nNotebook found in LocalStorageManager: " << foundNotebook);
+        return false;
+    }
+
+    // ========== Check FindDefaultNotebook (failure expected) =========
+    defaultNotebook = Notebook();
+    res = localStorageManager.FindDefaultNotebook(defaultNotebook, errorDescription);
+    if (res) {
+        errorDescription = QObject::tr("Found some default notebook which shouldn't have been found");
+        QNWARNING(errorDescription << ": " << defaultNotebook);
+        return false;
+    }
+
+    // ========== Check FindLastUsedNotebook  ==========
+    lastUsedNotebook = Notebook();
+    res = localStorageManager.FindLastUsedNotebook(lastUsedNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // ========== Check FindDefaultOrLastUsedNotebook ===========
+    defaultOrLastUsedNotebook = Notebook();
+    res = localStorageManager.FindDefaultOrLastUsedNotebook(defaultOrLastUsedNotebook,
+                                                            errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (defaultOrLastUsedNotebook != lastUsedNotebook) {
+        errorDescription = QObject::tr("Found defaultOrLastUsed notebook which should be the same "
+                                       "as last used notebook right now but it is not");
+        QNWARNING(errorDescription << ". Last used notebook: " << lastUsedNotebook
+                  << ", defaultOrLastUsedNotebook: " << defaultOrLastUsedNotebook);
         return false;
     }
 

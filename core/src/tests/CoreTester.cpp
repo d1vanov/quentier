@@ -281,6 +281,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
         notebook.setDefaultNotebook(true);
+        notebook.setLastUsed(false);
         notebook.setPublishingUri("Fake publishing uri");
         notebook.setPublishingOrder(1);
         notebook.setPublishingAscending(true);

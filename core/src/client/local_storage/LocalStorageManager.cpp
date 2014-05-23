@@ -499,7 +499,7 @@ bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & er
     return InsertOrReplaceNotebook(notebook, errorDescription);
 }
 
-bool LocalStorageManager::FindNotebook(Notebook & notebook, QString & errorDescription)
+bool LocalStorageManager::FindNotebook(Notebook & notebook, QString & errorDescription) const
 {
     errorDescription = QObject::tr("Can't find notebook in local storage database: ");
 
@@ -538,6 +538,52 @@ bool LocalStorageManager::FindNotebook(Notebook & notebook, QString & errorDescr
     QSqlRecord rec = query.record();
 
     return FillNotebookFromSqlRecord(rec, notebook, errorDescription);
+}
+
+bool LocalStorageManager::FindDefaultNotebook(Notebook & notebook, QString & errorDescription)
+{
+    errorDescription = QObject::tr("Can't find default notebook in local storage database: ");
+
+    notebook = Notebook();
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec("SELECT * FROM Notebooks WHERE isDefault = 1 LIMIT 1");
+    DATABASE_CHECK_AND_SET_ERROR("can't find default notebook in SQL database");
+
+    if (!query.next()) {
+        errorDescription += QObject::tr("no default notebook was found");
+        return false;
+    }
+
+    QSqlRecord rec = query.record();
+    return FillNotebookFromSqlRecord(rec, notebook, errorDescription);
+}
+
+bool LocalStorageManager::FindLastUsedNotebook(Notebook & notebook, QString & errorDescription)
+{
+    errorDescription = QObject::tr("Can't find last used notebook in local storage database: ");
+
+    notebook = Notebook();
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec("SELECT * FROM Notebooks WHERE isLastUsed = 1 LIMIT 1");
+    DATABASE_CHECK_AND_SET_ERROR("can't find default notebook in SQL database");
+
+    if (!query.next()) {
+        errorDescription += QObject::tr("no last used notebook was found");
+        return false;
+    }
+
+    QSqlRecord rec = query.record();
+    return FillNotebookFromSqlRecord(rec, notebook, errorDescription);
+}
+
+bool LocalStorageManager::FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription)
+{
+    bool res = FindDefaultNotebook(notebook, errorDescription);
+    if (res) {
+        return true;
+    }
+
+    return FindLastUsedNotebook(notebook, errorDescription);
 }
 
 QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription) const

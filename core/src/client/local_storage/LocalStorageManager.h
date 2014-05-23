@@ -153,7 +153,32 @@ public:
      * @param errorDescription - error description if notebook could not be found
      * @return true if notebook was found, false otherwise
      */
-    bool FindNotebook(Notebook & notebook, QString & errorDescription);
+    bool FindNotebook(Notebook & notebook, QString & errorDescription) const;
+
+    /**
+     * @brief FindDefaultNotebook - attempts to find default notebook in the local storage database.
+     * @param notebook - default notebook to be found
+     * @param errorDescription - error description if default notebook could not be found
+     * @return true if default notebook was found, false otherwise
+     */
+    bool FindDefaultNotebook(Notebook & notebook, QString & errorDescription);
+
+    /**
+     * @brief FindLastUsedNotebook - attempts to find last used notebook in the local storage database.
+     * @param notebook - last used notebook to be found
+     * @param errorDescription - error description if last used notebook could not be found
+     * @return true if last used notebook was found, false otherwise
+     */
+    bool FindLastUsedNotebook(Notebook & notebook, QString & errorDescription);
+
+    /**
+     * @brief FindDefaultOrLastUsedNotebook - attempts to find either default or last used notebook
+     * in the local storage database
+     * @param notebook - default or last used notebook to be found
+     * @param errorDescription - error description if default or last used notebook could not be found
+     * @return true if default or last used notebook was found, false otherwise
+     */
+    bool FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription);
 
     /**
      * @brief ListAllNotebooks - attempts to list all notebooks within the account
