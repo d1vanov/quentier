@@ -897,7 +897,8 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
             notebook.setCreationTimestamp(i+1);
             notebook.setModificationTimestamp(i+1);
 
-            notebook.setDefaultNotebook(true);
+            notebook.setDefaultNotebook(false);
+            notebook.setLastUsed(false);
             notebook.setPublishingUri("Fake publishing uri #" + QString::number(i+1));
             notebook.setPublishingOrder(1);
             notebook.setPublishingAscending(true);

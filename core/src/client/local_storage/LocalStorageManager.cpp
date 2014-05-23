@@ -2177,8 +2177,8 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  modificationTimestamp           INTEGER           NOT NULL, "
                      "  isDirty                         INTEGER           NOT NULL, "
                      "  isLocal                         INTEGER           NOT NULL, "
-                     "  isDefault                       INTEGER           DEFAULT 0, "
-                     "  isLastUsed                      INTEGER           DEFAULT 0, "
+                     "  isDefault                       INTEGER           DEFAULT NULL UNIQUE, "
+                     "  isLastUsed                      INTEGER           DEFAULT NULL UNIQUE, "
                      "  publishingUri                   TEXT              DEFAULT NULL, "
                      "  publishingNoteSortOrder         INTEGER           DEFAULT 0, "
                      "  publishingAscendingSort         INTEGER           DEFAULT 0, "
@@ -2189,7 +2189,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  businessNotebookPrivilegeLevel  INTEGER           DEFAULT 0, "
                      "  businessNotebookIsRecommended   INTEGER           DEFAULT 0, "
                      "  contactId                       INTEGER           DEFAULT NULL, "
-                     "  UNIQUE(localGuid, guid)"
+                     "  UNIQUE(localGuid, guid) "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Notebooks table");
 
@@ -3302,16 +3302,35 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
         values += QString::number(contact.id());
     }
 
+    if (notebook.isDefaultNotebook()) {
+        if (!columns.isEmpty()) {
+            columns += ", ";
+        }
+        columns += "isDefault";
+        if (!values.isEmpty()) {
+            values += ", ";
+        }
+        values += QString::number(1);
+    }
+
+    if (notebook.isLastUsed()) {
+        if (!columns.isEmpty()) {
+            columns += ", ";
+        }
+        columns += "isLastUsed";
+        if (!values.isEmpty()) {
+            values += ", ";
+        }
+        values += QString::number(1);
+    }
+
     QString localGuid = notebook.localGuid();
     QString isDirty = QString::number(notebook.isDirty() ? 1 : 0);
     QString isLocal = QString::number(notebook.isLocal() ? 1 : 0);
-    QString isDefault = QString::number(notebook.isDefaultNotebook() ? 1 : 0);
-    QString isLastUsed = QString::number(notebook.isLastUsed() ? 1 : 0);
 
-    QString queryString = QString("INSERT OR REPLACE INTO Notebooks (%1, localGuid, isDirty, isLocal, isDefault, "
-                                  "isLastUsed) VALUES(%2, \"%3\", %4, %5, %6, %7)")
-                                  .arg(columns).arg(values).arg(localGuid).arg(isDirty)
-                                  .arg(isLocal).arg(isDefault).arg(isLastUsed);
+    QString queryString = QString("INSERT OR REPLACE INTO Notebooks (%1, localGuid, "
+                                  "isDirty, isLocal) VALUES(%2, '%3', %4, %5)")
+                                  .arg(columns).arg(values).arg(localGuid).arg(isDirty).arg(isLocal);
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -4269,28 +4288,34 @@ bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & n
 bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, 
                                                     QString & errorDescription) const
 {
-#define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute, setter, dbType, trueType, isRequired) \
-    if (record.contains(#attribute)) { \
-        notebook.setter(static_cast<trueType>((qvariant_cast<dbType>(record.value(#attribute))))); \
-    } \
-    else if (isRequired) { \
-        errorDescription += QObject::tr("Internal error: No " #attribute " field " \
-                                        "in the result of SQL query"); \
-        return false; \
+#define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute, setter, dbType, trueType, isRequired) { \
+        bool valueFound = false; \
+        int indexOfValue = record.indexOf(#attribute); \
+        if (indexOfValue >= 0) { \
+            QVariant value = record.value(indexOfValue); \
+            if (!value.isNull()) { \
+                notebook.setter(static_cast<trueType>((qvariant_cast<dbType>(value)))); \
+                valueFound = true; \
+            } \
+        } \
+        \
+        if (!valueFound && isRequired) { \
+            errorDescription += QObject::tr("Internal error: No " #attribute " field " \
+                                            "in the result of SQL query"); \
+            return false; \
+        } \
     }
 
     bool isRequired = true;
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDirty, setDirty, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLocal, setLocal, int, bool, isRequired);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLastUsed, setLastUsed, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(localGuid, setLocalGuid, QString, QString, isRequired);
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(guid, setGuid, QString, QString, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(updateSequenceNumber, setUpdateSequenceNumber,
                                      int, qint32, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(name, setName, QString, QString, isRequired);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDefault, setDefaultNotebook, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(creationTimestamp, setCreationTimestamp,
                                      int, qint64, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(modificationTimestamp, setModificationTimestamp,
@@ -4317,6 +4342,19 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
                                      int, qint8, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(businessNotebookIsRecommended, setBusinessNotebookRecommended,
                                      int, bool, isRequired);
+
+    isRequired = false;
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLastUsed, setLastUsed, int, bool, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDefault, setDefaultNotebook, int, bool, isRequired);
+
+    // NOTE: workarounding unset isDefaultNotebook and isLastUsed
+    if (!notebook.isDefaultNotebook()) {
+        notebook.setDefaultNotebook(false);
+    }
+
+    if (!notebook.isLastUsed()) {
+        notebook.setLastUsed(false);
+    }
 
     if (record.contains("contactId") && !record.isNull("contactId"))
     {
@@ -4383,8 +4421,6 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
         SET_EN_NOTEBOOK_RESTRICTION(noCreateSharedNotebooks, setCanCreateSharedNotebooks);
 
 #undef SET_EN_NOTEBOOK_RESTRICTION
-
-        isRequired = false;
 
         CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(updateWhichSharedNotebookRestrictions,
                                          setUpdateWhichSharedNotebookRestrictions,
