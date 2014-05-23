@@ -235,6 +235,17 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
+    // ========== GetTagCount to return 1 ============
+    int count = localStorageManager.GetTagCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 1) {
+        errorDescription = QObject::tr("GetTagCount returned result different from the expected one (1): ");
+        errorDescription += QString::number(count);
+        return false;
+    }
+
     // ========== Check Delete + Find ==========
     modifiedTag.setDeleted(true);
     modifiedTag.setLocal(false);
@@ -254,6 +265,17 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         QNWARNING(errorDescription << ": deleted Tag which should have been found in LocalStorageManager: "
                   << modifiedTag << "\nTag which should have actually been found: "
                   << foundTag);
+        return false;
+    }
+
+    // ========== GetTagCount to return 0 ============
+    count = localStorageManager.GetTagCount(errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 0) {
+        errorDescription = QObject::tr("GetTagCount returned result different from the expected one (0): ");
+        errorDescription += QString::number(count);
         return false;
     }
 

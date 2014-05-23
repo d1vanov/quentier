@@ -932,7 +932,7 @@ bool LocalStorageManager::ExpungeLinkedNotebook(const LinkedNotebook & linkedNot
     return true;
 }
 
-int LocalStorageManager::GetNoteCount(QString & errorDescription)
+int LocalStorageManager::GetNoteCount(QString & errorDescription) const
 {
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec("SELECT COUNT(*) FROM Notes WHERE deletionTimestamp = -1");
@@ -952,7 +952,7 @@ int LocalStorageManager::GetNoteCount(QString & errorDescription)
     bool conversionResult = false;
     int count = query.value(0).toInt(&conversionResult);
     if (!conversionResult) {
-        errorDescription = "Internal error: can't convert number of notebooks to int";
+        errorDescription = "Internal error: can't convert number of notes to int";
         QNCRITICAL(errorDescription << ": " << query.value(0));
         errorDescription = QObject::tr(qPrintable(errorDescription));
         return -1;
@@ -1262,6 +1262,35 @@ bool LocalStorageManager::ExpungeNote(const Note & note, QString & errorDescript
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notes\" table in SQL database");
 
     return true;
+}
+
+int LocalStorageManager::GetTagCount(QString & errorDescription) const
+{
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec("SELECT COUNT(*) FROM Tags WHERE isDeleted = 0");
+    if (!res) {
+        errorDescription = "Internal error: can't get number of tags in local storage database: ";
+        QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        errorDescription += query.lastError().text();
+        return -1;
+    }
+
+    if (!query.next()) {
+        QNDEBUG("Found no tags in local storage database");
+        return 0;
+    }
+
+    bool conversionResult = false;
+    int count = query.value(0).toInt(&conversionResult);
+    if (!conversionResult) {
+        errorDescription = "Internal error: can't convert number of tags to int";
+        QNCRITICAL(errorDescription << ": " << query.value(0));
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        return -1;
+    }
+
+    return count;
 }
 
 bool LocalStorageManager::AddTag(const Tag & tag, QString & errorDescription)

@@ -264,7 +264,7 @@ public:
      * @param errorDescription - error description if the number of notes could not be returned
      * @return either non-negative value with the number of notes or -1 which means some error occured
      */
-    int GetNoteCount(QString & errorDescription);
+    int GetNoteCount(QString & errorDescription) const;
 
     /**
      * @brief AddNote - adds passed in Note to the local storage database.
@@ -351,6 +351,13 @@ public:
      * @return true if note was expunged successfully, false otherwise
      */
     bool ExpungeNote(const Note & note, QString & errorDescription);
+
+    /**
+     * @brief GetTagCount returns the number of tags currently stored in local storage database
+     * @param errorDescription - error description if the number of tags could not be returned
+     * @return either non-negative value with the number of tags or -1 which means some error occured
+     */
+    int GetTagCount(QString & errorDescription) const;
 
     /**
      * @brief AddTag - adds passed in Tag to the local storage database. If tag has
