@@ -14,7 +14,11 @@ public:
     virtual ~IQuteNoteException();
 
     const QString errorMessage() const;
+#ifdef _MSC_VER
+    virtual const char * what() const override;
+#else
     virtual const char * what() const noexcept override;
+#endif
 
     virtual QTextStream & Print(QTextStream & strm) const;
 
