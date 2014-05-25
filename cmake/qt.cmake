@@ -1,6 +1,6 @@
 if(NOT USE_QT5)
   find_package(Qt4 COMPONENTS QTCORE OPTIONAL QUIET)
-  if(QT_QTCORE_LIBRARY-NOTFOUND)
+  if(QT_QTCORE_LIBRARY-NOTFOUND OR QT_QTCORE_LIBRARY_DEBUG-NOTFOUND OR QT_QTCORE_LIBRARY_DEBUG-NOTFOUND)
     message(STATUS "Qt4's core was not found, trying to find Qt5's libraries")
     set(USE_QT5 1)
   endif()
