@@ -10,21 +10,24 @@ namespace qute_note {
 Note::Note() :
     NoteStoreDataElement(),
     m_isLocal(true),
-    m_isDeleted(false)
+    m_isDeleted(false),
+    m_thumbnail()
 {}
 
 Note::Note(const qevercloud::Note & other) :
     NoteStoreDataElement(),
     m_qecNote(other),
     m_isLocal(false),
-    m_isDeleted(false)
+    m_isDeleted(false),
+    m_thumbnail()
 {}
 
 Note::Note(qevercloud::Note && other) :
     NoteStoreDataElement(),
     m_qecNote(std::move(other)),
     m_isLocal(false),
-    m_isDeleted(false)
+    m_isDeleted(false),
+    m_thumbnail()
 {}
 
 Note & Note::operator=(const qevercloud::Note & other)
@@ -46,6 +49,8 @@ bool Note::operator==(const Note & other) const
 {
     return ((m_qecNote == other.m_qecNote) && (isDirty() == other.isDirty()) &&
             (isDeleted() == other.isDeleted()));
+    // NOTE: thumbnail doesn't take part in comparison because it's merely a helper
+    // for note displaying widget, nothing more
 }
 
 bool Note::operator!=(const Note & other) const
@@ -660,6 +665,16 @@ bool Note::isDeleted() const
 void Note::setDeleted(const bool deleted)
 {
     m_isDeleted = deleted;
+}
+
+QImage Note::getThumbnail() const
+{
+    return m_thumbnail;
+}
+
+void Note::setThumbnail(const QImage & thumbnail)
+{
+    m_thumbnail = thumbnail;
 }
 
 QTextStream & Note::Print(QTextStream & strm) const

@@ -3,6 +3,7 @@
 
 #include "NoteStoreDataElement.h"
 #include <QEverCloud.h>
+#include <QImage>
 
 namespace qute_note {
 
@@ -101,12 +102,16 @@ public:
     bool isDeleted() const;
     void setDeleted(const bool deleted);
 
+    QImage getThumbnail() const;
+    void setThumbnail(const QImage & thumbnail);
+
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
     qevercloud::Note m_qecNote;
     bool m_isLocal;
     bool m_isDeleted;
+    QImage m_thumbnail;
 };
 
 } // namespace qute_note

@@ -1114,7 +1114,7 @@ bool LocalStorageManager::FindNote(Note & note, QString & errorDescription,
 
     QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, title, isDirty, isLocal, content, "
                                   "creationTimestamp, modificationTimestamp, isActive, isDeleted, deletionTimestamp, "
-                                  "hasAttributes, notebookGuid FROM Notes WHERE %1 = \"%2\"").arg(column).arg(guid);
+                                  "hasAttributes, notebookGuid, thumbnail FROM Notes WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select note from \"Notes\" table in SQL database");
@@ -2323,6 +2323,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  deletionTimestamp       INTEGER              DEFAULT -1, "
                      "  isActive                INTEGER              DEFAULT 1, "
                      "  hasAttributes           INTEGER              DEFAULT 0, "
+                     "  thumbnail               BLOB                 DEFAULT NULL, "
                      "  notebookLocalGuid REFERENCES Notebooks(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  UNIQUE(localGuid, guid)"
@@ -3449,6 +3450,9 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     errorDescription += QObject::tr("can't insert or replace note into local storage database: ");
 
+    QImage thumbnail = note.getThumbnail();
+    bool thumbnailIsNull = thumbnail.isNull();
+
     // ========= Creating and executing "insert or replace" query for Notes table
     QString columns = "localGuid, updateSequenceNumber, title, isDirty, "
                       "isLocal, content, creationTimestamp, modificationTimestamp, "
@@ -3463,6 +3467,10 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
         columns.append(", notebookGuid");
     }
 
+    if (!thumbnailIsNull) {
+        columns.append(", thumbnail");
+    }
+
     QString valuesString = ":localGuid, :updateSequenceNumber, :title, :isDirty, "
                            ":isLocal, :content, :creationTimestamp, :modificationTimestamp, "
                            ":notebookLocalGuid, :hasAttributes";
@@ -3472,6 +3480,10 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     if (notebookHasGuid) {
         valuesString.append(", :notebookGuid");
+    }
+
+    if (!thumbnailIsNull) {
+        valuesString.append(", :thumbnail");
     }
 
     QString queryString = QString("INSERT OR REPLACE INTO Notes (%1) VALUES(%2)").arg(columns).arg(valuesString);
@@ -3502,6 +3514,10 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     if (notebookHasGuid) {
         query.bindValue(":notebookGuid", notebook.guid());
+    }
+
+    if (!thumbnailIsNull) {
+        query.bindValue(":thumbnail", thumbnail);
     }
 
     res = query.exec();
@@ -4306,6 +4322,15 @@ bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & n
     CHECK_AND_SET_NOTE_PROPERTY(isActive, setActive, int, bool);
 
 #undef CHECK_AND_SET_NOTE_PROPERTY
+
+    int indexOfThumbnail = rec.indexOf("thumbnail");
+    if (indexOfThumbnail >= 0) {
+        QVariant thumbnailValue = rec.value(indexOfThumbnail);
+        if (!thumbnailValue.isNull()) {
+            QImage thumbnail = thumbnailValue.value<QImage>();
+            note.setThumbnail(thumbnail);
+        }
+    }
 
     if (rec.contains("hasAttributes"))
     {
