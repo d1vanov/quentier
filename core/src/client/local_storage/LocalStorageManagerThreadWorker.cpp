@@ -24,6 +24,18 @@ LocalStorageManagerThreadWorker::LocalStorageManagerThreadWorker(const QString &
 LocalStorageManagerThreadWorker::~LocalStorageManagerThreadWorker()
 {}
 
+void LocalStorageManagerThreadWorker::onGetUserCountRequest()
+{
+    QString errorDescription;
+    int count = m_localStorageManager.GetUserCount(errorDescription);
+    if (count < 0) {
+        emit getUserCountFailed(errorDescription);
+    }
+    else {
+        emit getUserCountComplete(count);
+    }
+}
+
 void LocalStorageManagerThreadWorker::onSwitchUserRequest(QString username, qint32 userId,
                                                           bool startFromScratch)
 {
@@ -146,6 +158,18 @@ void LocalStorageManagerThreadWorker::onExpungeUserRequest(QSharedPointer<IUser>
     }
 
     emit expungeUserComplete(user);
+}
+
+void LocalStorageManagerThreadWorker::onGetNotebookCountRequest()
+{
+    QString errorDescription;
+    int count = m_localStorageManager.GetNotebookCount(errorDescription);
+    if (count < 0) {
+        emit getNotebookCountFailed(errorDescription);
+    }
+    else {
+        emit getNotebookCountComplete(count);
+    }
 }
 
 void LocalStorageManagerThreadWorker::onAddNotebookRequest(QSharedPointer<Notebook> notebook)
@@ -272,6 +296,18 @@ void LocalStorageManagerThreadWorker::onExpungeNotebookRequest(QSharedPointer<No
     emit expungeNotebookComplete(notebook);
 }
 
+void LocalStorageManagerThreadWorker::onGetLinkedNotebookCountRequest()
+{
+    QString errorDescription;
+    int count = m_localStorageManager.GetLinkedNotebookCount(errorDescription);
+    if (count < 0) {
+        emit getLinkedNotebookCountFailed(errorDescription);
+    }
+    else {
+        emit getLinkedNotebookCountComplete(count);
+    }
+}
+
 void LocalStorageManagerThreadWorker::onAddLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook)
 {
     QString errorDescription;
@@ -370,6 +406,18 @@ void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(QSharedPoin
     }
 
     emit expungeLinkedNotebookCompleted(linkedNotebook);
+}
+
+void LocalStorageManagerThreadWorker::onGetNoteCountRequest()
+{
+    QString errorDescription;
+    int count = m_localStorageManager.GetNoteCount(errorDescription);
+    if (count < 0) {
+        emit getNoteCountFailed(errorDescription);
+    }
+    else {
+        emit getNoteCountComplete(count);
+    }
 }
 
 void LocalStorageManagerThreadWorker::onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook)
@@ -522,6 +570,18 @@ void LocalStorageManagerThreadWorker::onExpungeNoteRequest(QSharedPointer<Note> 
     }
 
     emit expungeNoteComplete(note);
+}
+
+void LocalStorageManagerThreadWorker::onGetTagCountRequest()
+{
+    QString errorDescription;
+    int count = m_localStorageManager.GetTagCount(errorDescription);
+    if (count < 0) {
+        emit getTagCountFailed(errorDescription);
+    }
+    else {
+        emit getTagCountComplete(count);
+    }
 }
 
 void LocalStorageManagerThreadWorker::onAddTagRequest(QSharedPointer<Tag> tag)
@@ -700,6 +760,18 @@ void LocalStorageManagerThreadWorker::onExpungeTagRequest(QSharedPointer<Tag> ta
     emit expungeTagComplete(tag);
 }
 
+void LocalStorageManagerThreadWorker::onGetResourceCountRequest()
+{
+    QString errorDescription;
+    int count = m_localStorageManager.GetEnResourceCount(errorDescription);
+    if (count < 0) {
+        emit getResourceCountFailed(errorDescription);
+    }
+    else {
+        emit getResourceCountComplete(count);
+    }
+}
+
 void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note)
 {
     QString errorDescription;
@@ -804,6 +876,18 @@ void LocalStorageManagerThreadWorker::onExpungeResourceRequest(QSharedPointer<IR
     }
 
     emit expungeResourceComplete(resource);
+}
+
+void LocalStorageManagerThreadWorker::onGetSavedSearchCountRequest()
+{
+    QString errorDescription;
+    int count = m_localStorageManager.GetSavedSearchCount(errorDescription);
+    if (count < 0) {
+        emit getSavedSearchCountFailed(errorDescription);
+    }
+    else {
+        emit getSavedSearchCountComplete(count);
+    }
 }
 
 void LocalStorageManagerThreadWorker::onAddSavedSearchRequest(QSharedPointer<SavedSearch> search)

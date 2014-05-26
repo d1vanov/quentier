@@ -40,6 +40,8 @@ public:
 
 Q_SIGNALS:
     // User-related signals:
+    void getUserCountComplete(int userCount);
+    void getUserCountFailed(QString errorDescription);
     void switchUserComplete(qint32 userId);
     void switchUserFailed(qint32 userId, QString errorDescription);
     void addUserComplete(QSharedPointer<IUser> user);
@@ -54,6 +56,8 @@ Q_SIGNALS:
     void expungeUserFailed(QSharedPointer<IUser> user, QString errorDescription);
 
     // Notebook-related signals:
+    void getNotebookCountComplete(int notebookCount);
+    void getNotebookCountFailed(QString errorDescription);
     void addNotebookComplete(QSharedPointer<Notebook> notebook);
     void addNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
     void updateNotebookComplete(QSharedPointer<Notebook> notebook);
@@ -70,6 +74,8 @@ Q_SIGNALS:
     void expungeNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
 
     // Linked notebook-related signals:
+    void getLinkedNotebookCountComplete(int linkedNotebookCount);
+    void getLinkedNotebookCountFailed(QString errorDescription);
     void addLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook);
     void addLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription);
     void updateLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook);
@@ -82,6 +88,8 @@ Q_SIGNALS:
     void expungeLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription);
 
     // Note-related signals:
+    void getNoteCountComplete(int noteCount);
+    void getNoteCountFailed(QString errorDescription);
     void addNoteComplete(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
     void addNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription);
     void updateNoteComplete(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
@@ -96,6 +104,8 @@ Q_SIGNALS:
     void expungeNoteFailed(QSharedPointer<Note> note, QString errorDescription);
 
     // Tag-related signals:
+    void getTagCountComplete(int tagCount);
+    void getTagCountFailed(QString errorDescription);
     void addTagComplete(QSharedPointer<Tag> tag);
     void addTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
     void updateTagComplete(QSharedPointer<Tag> tag);
@@ -114,6 +124,8 @@ Q_SIGNALS:
     void expungeTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
 
     // Resource-related signals:
+    void getResourceCountComplete(int resourceCount);
+    void getResourceCountFailed(QString errorDescription);
     void addResourceComplete(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
     void addResourceFailed(QSharedPointer<IResource> resource, QSharedPointer<Note> note, QString errorDescription);
     void updateResourceComplete(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
@@ -124,6 +136,8 @@ Q_SIGNALS:
     void expungeResourceFailed(QSharedPointer<IResource> resource, QString errorDescription);
 
     // Saved search-related signals:
+    void getSavedSearchCountComplete(int savedSearchCount);
+    void getSavedSearchCountFailed(QString errorDescription);
     void addSavedSearchComplete(QSharedPointer<SavedSearch> search);
     void addSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription);
     void updateSavedSearchComplete(QSharedPointer<SavedSearch> search);
@@ -136,6 +150,7 @@ Q_SIGNALS:
     void expungeSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription);
 
     // Signals for dealing with worker class:
+    void getUserCountRequest();
     void switchUserRequest(QString username, qint32 userId, bool startFromScratch);
     void addUserRequest(QSharedPointer<IUser> user);
     void updateUserRequest(QSharedPointer<IUser> user);
@@ -143,6 +158,7 @@ Q_SIGNALS:
     void deleteUserRequest(QSharedPointer<IUser> user);
     void expungeUserRequest(QSharedPointer<IUser> user);
 
+    void getNotebookCountRequest();
     void addNotebookRequest(QSharedPointer<Notebook> notebook);
     void updateNotebookRequest(QSharedPointer<Notebook> notebook);
     void findNotebookRequest(QSharedPointer<Notebook> notebook);
@@ -151,12 +167,14 @@ Q_SIGNALS:
     void listSharedNotebooksPerNotebookGuidRequest(QString notebookGuid);
     void expungeNotebookRequest(QSharedPointer<Notebook> notebook);
 
+    void getLinkedNotebookCountRequest();
     void addLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
     void updateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
     void findLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
     void listAllLinkedNotebooksRequest();
     void expungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
 
+    void getNoteCountRequest();
     void addNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
     void updateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
     void findNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData);
@@ -164,6 +182,7 @@ Q_SIGNALS:
     void deleteNoteRequest(QSharedPointer<Note> note);
     void expungeNoteRequest(QSharedPointer<Note> note);
 
+    void getTagCountRequest();
     void addTagRequest(QSharedPointer<Tag> tag);
     void updateTagRequest(QSharedPointer<Tag> tag);
     void linkTagWithNoteRequest(QSharedPointer<Tag> tag, QSharedPointer<Note> note);
@@ -173,11 +192,13 @@ Q_SIGNALS:
     void deleteTagRequest(QSharedPointer<Tag> tag);
     void expungeTagRequest(QSharedPointer<Tag> tag);
 
+    void getResourceCountRequest();
     void addResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
     void updateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
     void findResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData);
     void expungeResourceRequest(QSharedPointer<IResource> resource);
 
+    void getSavedSearchCountRequest();
     void addSavedSearchRequest(QSharedPointer<SavedSearch> search);
     void updateSavedSearchRequest(QSharedPointer<SavedSearch> search);
     void findSavedSearchRequest(QSharedPointer<SavedSearch> search);
@@ -186,6 +207,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     // User-related slots:
+    void onGetUserCountRequest();
     void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch);
     void onAddUserRequest(QSharedPointer<IUser> user);
     void onUpdateUserRequest(QSharedPointer<IUser> user);
@@ -194,6 +216,7 @@ public Q_SLOTS:
     void onExpungeUserRequest(QSharedPointer<IUser> user);
 
     // Notebook-related slots:
+    void onGetNotebookCountRequest();
     void onAddNotebookRequest(QSharedPointer<Notebook> notebook);
     void onUpdateNotebookRequest(QSharedPointer<Notebook> notebook);
     void onFindNotebookRequest(QSharedPointer<Notebook> notebook);
@@ -203,6 +226,7 @@ public Q_SLOTS:
     void onExpungeNotebookRequest(QSharedPointer<Notebook> notebook);
 
     // Linked notebook-related slots:
+    void onGetLinkedNotebookCountRequest();
     void onAddLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
     void onUpdateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
     void onFindLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
@@ -210,6 +234,7 @@ public Q_SLOTS:
     void onExpungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
 
     // Note-related slots:
+    void onGetNoteCountRequest();
     void onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
     void onUpdateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
     void onFindNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData);
@@ -218,6 +243,7 @@ public Q_SLOTS:
     void onExpungeNoteRequest(QSharedPointer<Note> note);
 
     // Tag-related slots:
+    void onGetTagCountRequest();
     void onAddTagRequest(QSharedPointer<Tag> tag);
     void onUpdateTagRequest(QSharedPointer<Tag> tag);
     void onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, QSharedPointer<Note> note);
@@ -228,12 +254,14 @@ public Q_SLOTS:
     void onExpungeTagRequest(QSharedPointer<Tag> tag);
 
     // Resource-related slots:
+    void onGetResourceCountRequest();
     void onAddResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
     void onUpdateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note);
     void onFindResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData);
     void onExpungeResourceRequest(QSharedPointer<IResource> resource);
 
     // Saved search-related slots:
+    void onGetSavedSearchCountRequest();
     void onAddSavedSearchRequest(QSharedPointer<SavedSearch> search);
     void onUpdateSavedSearchRequest(QSharedPointer<SavedSearch> search);
     void onFindSavedSearchRequest(QSharedPointer<SavedSearch> search);

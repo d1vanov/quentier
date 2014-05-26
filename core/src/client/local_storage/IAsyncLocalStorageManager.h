@@ -37,6 +37,9 @@ protected:
     // Pure virtual prototypes for signals to be emitted from subclasses:
 
     // Prototypes for user-related signals:
+    virtual void getUserCountComplete(int userCount) = 0;
+    virtual void getUserCountFailed(QString errorDescription) = 0;
+
     virtual void switchUserComplete(qint32 userId) = 0;
     virtual void switchUserFailed(qint32 userId, QString errorDescription) = 0;
 
@@ -56,6 +59,9 @@ protected:
     virtual void expungeUserFailed(QSharedPointer<IUser> user, QString errorDescription) = 0;
 
     // Prototypes for notebook-related signals:
+    virtual void getNotebookCountComplete(int notebookCount) = 0;
+    virtual void getNotebookCountFailed(QString errorDescription) = 0;
+
     virtual void addNotebookComplete(QSharedPointer<Notebook> notebook) = 0;
     virtual void addNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
 
@@ -78,6 +84,9 @@ protected:
     virtual void expungeNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
 
     // Prototypes for linked notebook-related signals:
+    virtual void getLinkedNotebookCountComplete(int linkedNotebookCount) = 0;
+    virtual void getLinkedNotebookCountFailed(QString errorDescription) = 0;
+
     virtual void addLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
     virtual void addLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription) = 0;
 
@@ -94,6 +103,9 @@ protected:
     virtual void expungeLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription) = 0;
 
     // Prototypes for note-related signals:
+    virtual void getNoteCountComplete(int noteCount) = 0;
+    virtual void getNoteCountFailed(QString errorDescription) = 0;
+
     virtual void addNoteComplete(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
     virtual void addNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
 
@@ -113,6 +125,9 @@ protected:
     virtual void expungeNoteFailed(QSharedPointer<Note> note, QString errorDescription) = 0;
 
     // Prototypes for tag-related signals:
+    virtual void getTagCountComplete(int tagCount) = 0;
+    virtual void getTagCountFailed(QString errorDescription) = 0;
+
     virtual void addTagComplete(QSharedPointer<Tag> tag) = 0;
     virtual void addTagFailed(QSharedPointer<Tag> tag, QString errorDescription) = 0;
 
@@ -138,6 +153,9 @@ protected:
     virtual void expungeTagFailed(QSharedPointer<Tag> tag, QString errorDescription) = 0;
 
     // Prototypes for resource-related signals
+    virtual void getResourceCountComplete(int resourceCount) = 0;
+    virtual void getResourceCountFailed(QString errorDescription) = 0;
+
     virtual void addResourceComplete(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
     virtual void addResourceFailed(QSharedPointer<IResource> resource, QSharedPointer<Note> note,
                                    QString errorDescription) = 0;
@@ -155,6 +173,9 @@ protected:
                                        QString errorDescription) = 0;
 
     // Prototypes for saved search-related signals:
+    virtual void getSavedSearchCountComplete(int savedSearchCount) = 0;
+    virtual void getSavedSearchCountFailed(QString errorDescription) = 0;
+
     virtual void addSavedSearchComplete(QSharedPointer<SavedSearch> search) = 0;
     virtual void addSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription) = 0;
 
@@ -174,6 +195,7 @@ protected:
     // Pure virtual prototypes for slots to be invoked:
 
     // Pure virtual prototypes for user-related slots:
+    virtual void onGetUserCountRequest() = 0;
     virtual void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch) = 0;
     virtual void onAddUserRequest(QSharedPointer<IUser> user) = 0;
     virtual void onUpdateUserRequest(QSharedPointer<IUser> user) = 0;
@@ -182,6 +204,7 @@ protected:
     virtual void onExpungeUserRequest(QSharedPointer<IUser> user) = 0;
 
     // Pure virtual prototypes for notebook-related slots:
+    virtual void onGetNotebookCountRequest() = 0;
     virtual void onAddNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
     virtual void onUpdateNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
     virtual void onFindNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
@@ -191,6 +214,7 @@ protected:
     virtual void onExpungeNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
 
     // Pure virtual prototypes for linked notebook-related slots:
+    virtual void onGetLinkedNotebookCountRequest() = 0;
     virtual void onAddLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
     virtual void onUpdateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
     virtual void onFindLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
@@ -198,6 +222,7 @@ protected:
     virtual void onExpungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
 
     // Pure virtual prototypes for note-related slots:
+    virtual void onGetNoteCountRequest() = 0;
     virtual void onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
     virtual void onUpdateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
     virtual void onFindNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData) = 0;
@@ -207,6 +232,7 @@ protected:
     virtual void onExpungeNoteRequest(QSharedPointer<Note> note) = 0;
 
     // Pure virtual prototypes for tag-related slots:
+    virtual void onGetTagCountRequest() = 0;
     virtual void onAddTagRequest(QSharedPointer<Tag> tag) = 0;
     virtual void onUpdateTagRequest(QSharedPointer<Tag> tag) = 0;
     virtual void onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, QSharedPointer<Note> note) = 0;
@@ -217,12 +243,14 @@ protected:
     virtual void onExpungeTagRequest(QSharedPointer<Tag> tag) = 0;
 
     // Pure virtual prototypes for resource-related slots:
+    virtual void onGetResourceCountRequest() = 0;
     virtual void onAddResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
     virtual void onUpdateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
     virtual void onFindResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData) = 0;
     virtual void onExpungeResourceRequest(QSharedPointer<IResource> resource) = 0;
 
     // Pure virtual prototypes for saved search-related methods:
+    virtual void onGetSavedSearchCountRequest() = 0;
     virtual void onAddSavedSearchRequest(QSharedPointer<SavedSearch> search) = 0;
     virtual void onUpdateSavedSearchRequest(QSharedPointer<SavedSearch> search) = 0;
     virtual void onFindSavedSearchRequest(QSharedPointer<SavedSearch> search) = 0;
