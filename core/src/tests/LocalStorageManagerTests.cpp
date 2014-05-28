@@ -38,9 +38,10 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     }
 
     if (search != foundSearch) {
-        errorDescription = QObject::tr("Added and found saved searches in local storage don't match");
+        errorDescription = "Added and found saved searches in local storage don't match";
         QNWARNING(errorDescription << ": SavedSearch added to LocalStorageManager: " << search
                   << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
+        errorDescription = QObject::tr(qPrintable(errorDescription));
         return false;
     }
 
@@ -89,6 +90,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         errorDescription = "Error: found saved search which should have been expunged from local storage";
         QNWARNING(errorDescription << ": SavedSearch expunged from LocalStorageManager: " << modifiedSearch
                   << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
+        errorDescription = QObject::tr(qPrintable(errorDescription));
         return false;
     }
 
