@@ -16,9 +16,9 @@ class Note final: public NoteStoreDataElement
 public:
     Note();
     Note(const Note & other) = default;
-    Note(Note && other) = default;
+    Note(Note && other);
     Note & operator=(const Note & other) = default;
-    Note & operator=(Note && other) = default;
+    Note & operator=(Note && other);
 
     Note(const qevercloud::Note & other);
     Note(qevercloud::Note && other);

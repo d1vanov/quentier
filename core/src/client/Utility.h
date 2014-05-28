@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QEverCloud.h>
+#include <cstdint>
 
 namespace qute_note {
 

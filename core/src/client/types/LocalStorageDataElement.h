@@ -17,9 +17,9 @@ public:
 
 protected:
     LocalStorageDataElement(const LocalStorageDataElement & other) = default;
-    LocalStorageDataElement(LocalStorageDataElement && other) = default;
+    LocalStorageDataElement(LocalStorageDataElement && other);
     LocalStorageDataElement & operator=(const LocalStorageDataElement & other) = default;
-    LocalStorageDataElement & operator=(LocalStorageDataElement && other) = default;
+    LocalStorageDataElement & operator=(LocalStorageDataElement && other);
 
 private:
     QUuid  m_localGuid;

@@ -26,10 +26,10 @@ public:
                                                   const Printable & printable);
 protected:
     Printable() = default;
+    Printable(const Printable & other) = default;
     virtual ~Printable() = default;
 
 private:
-    Printable(const Printable & other) = delete;
     Printable & operator=(const Printable & other) = delete;
 };
 

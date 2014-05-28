@@ -22,6 +22,14 @@ Note::Note(const qevercloud::Note & other) :
     m_thumbnail()
 {}
 
+Note::Note(Note && other) :
+    NoteStoreDataElement(std::move(other)),
+    m_qecNote(std::move(other.m_qecNote)),
+    m_isLocal(std::move(other.m_isLocal)),
+    m_isDeleted(std::move(other.m_isDeleted)),
+    m_thumbnail(std::move(other.m_thumbnail))
+{}
+
 Note::Note(qevercloud::Note && other) :
     NoteStoreDataElement(),
     m_qecNote(std::move(other)),
@@ -33,6 +41,19 @@ Note::Note(qevercloud::Note && other) :
 Note & Note::operator=(const qevercloud::Note & other)
 {
     m_qecNote = other;
+    return *this;
+}
+
+Note & Note::operator=(Note && other)
+{
+    if (this != &other) {
+        NoteStoreDataElement::operator=(other);
+        m_qecNote = std::move(other.m_qecNote);
+        m_isLocal = std::move(other.m_isLocal);
+        m_isDeleted = std::move(other.m_isDeleted);
+        m_thumbnail = std::move(other.m_thumbnail);
+    }
+
     return *this;
 }
 
