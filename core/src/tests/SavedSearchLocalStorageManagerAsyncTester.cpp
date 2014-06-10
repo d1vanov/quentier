@@ -91,16 +91,8 @@ void SavedSearchLocalStorageManagerAsyncTester::onGetSavedSearchCountCompleted(i
             return;
         }
 
-        // FIXME: get some amount of saved searches to work for list all method
-
-        /*
-        m_pModifiedSavedSearch->setLocalGuid();
-
-        m_initialSavedSearches << *m_pInitialSavedSearch;
-        m_initialSavedSearches << *m_pModifiedSavedSearch;
-
         QSharedPointer<SavedSearch> extraSavedSearch = QSharedPointer<SavedSearch>(new SavedSearch);
-        extraSavedSearch->setGuid("00000000-0000-0000-c000-000000000008");
+        extraSavedSearch->setGuid("00000000-0000-0000-c000-000000000001");
         extraSavedSearch->setUpdateSequenceNumber(1);
         extraSavedSearch->setName("Extra SavedSearch");
         extraSavedSearch->setQuery("Fake extra saved search query");
@@ -109,11 +101,8 @@ void SavedSearchLocalStorageManagerAsyncTester::onGetSavedSearchCountCompleted(i
         extraSavedSearch->setIncludeBusinessLinkedNotebooks(true);
         extraSavedSearch->setIncludePersonalLinkedNotebooks(true);
 
-        m_state = STATE_SENT_ADD_EXTRA_SAVED_SEARCH_REQUEST;
+        m_state = STATE_SENT_ADD_EXTRA_SAVED_SEARCH_ONE_REQUEST;
         emit addSavedSearchRequest(extraSavedSearch);
-        */
-
-        emit success();
     }
     HANDLE_WRONG_STATE();
 }
@@ -147,9 +136,27 @@ void SavedSearchLocalStorageManagerAsyncTester::onAddSavedSearchCompleted(QShare
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
         emit findSavedSearchRequest(m_pFoundSavedSearch);
     }
-    else if (m_state == STATE_SENT_ADD_EXTRA_SAVED_SEARCH_REQUEST)
+    else if (m_state == STATE_SENT_ADD_EXTRA_SAVED_SEARCH_ONE_REQUEST)
     {
         m_initialSavedSearches << *search;
+
+        QSharedPointer<SavedSearch> extraSavedSearch = QSharedPointer<SavedSearch>(new SavedSearch);
+        extraSavedSearch->setGuid("00000000-0000-0000-c000-000000000002");
+        extraSavedSearch->setUpdateSequenceNumber(2);
+        extraSavedSearch->setName("Extra SavedSearch two");
+        extraSavedSearch->setQuery("Fake extra saved search query two");
+        extraSavedSearch->setQueryFormat(1);
+        extraSavedSearch->setIncludeAccount(true);
+        extraSavedSearch->setIncludeBusinessLinkedNotebooks(false);
+        extraSavedSearch->setIncludePersonalLinkedNotebooks(true);
+
+        m_state = STATE_SENT_ADD_EXTRA_SAVED_SEARCH_TWO_REQUEST;
+        emit addSavedSearchRequest(extraSavedSearch);
+    }
+    else if (m_state == STATE_SENT_ADD_EXTRA_SAVED_SEARCH_TWO_REQUEST)
+    {
+        m_initialSavedSearches << *search;
+
         m_state = STATE_SENT_LIST_SEARCHES_REQUEST;
         emit listAllSavedSearchesRequest();
     }
