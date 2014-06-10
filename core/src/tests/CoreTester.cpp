@@ -1,6 +1,8 @@
 #include "CoreTester.h"
 #include "LocalStorageManagerTests.h"
+#include "SavedSearchLocalStorageManagerAsyncTester.h"
 #include <tools/IQuteNoteException.h>
+#include <tools/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
 #include <client/types/SavedSearch.h>
 #include <client/types/LinkedNotebook.h>
@@ -971,6 +973,42 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
         }
     }
     CATCH_EXCEPTION();
+}
+
+void CoreTester::localStorageManagerAsyncSavedSearchesTest()
+{
+    const int maxAllowedMilliseconds = 60000;   // 10 minutes should be enough
+
+    int savedSeachAsyncTestsResult = -1;
+    {
+        QTimer timer;
+        timer.setInterval(maxAllowedMilliseconds);
+        timer.setSingleShot(true);
+
+        SavedSearchLocalStorageManagerAsyncTester savedSearchAsyncTester;
+
+        EventLoopWithExitStatus loop;
+        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
+        loop.connect(&savedSearchAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
+        loop.connect(&savedSearchAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+
+        QTimer slotInvokingTimer;
+        slotInvokingTimer.setInterval(500);
+        slotInvokingTimer.setSingleShot(true);
+
+        slotInvokingTimer.singleShot(0, &savedSearchAsyncTester, SLOT(onInitTestCase()));
+        savedSeachAsyncTestsResult = loop.exec();
+    }
+
+    if (savedSeachAsyncTestsResult == -1) {
+        QFAIL("Internal error: incorrect return status from SavedSearch async tester");
+    }
+    else if (savedSeachAsyncTestsResult == EventLoopWithExitStatus::ExitStatus::Failure) {
+        QFAIL("Detected failure during the asynchronous loop processing in SavedSearch async tester");
+    }
+    else if (savedSeachAsyncTestsResult == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QFAIL("SavedSearch async tester failed to finish in time");
+    }
 }
 
 #undef CATCH_EXCEPTION

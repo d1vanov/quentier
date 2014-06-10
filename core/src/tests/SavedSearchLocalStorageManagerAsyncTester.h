@@ -60,6 +60,7 @@ private:
         STATE_SENT_EXPUNGE_REQUEST,
         STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST,
         STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST,
+        STATE_SENT_ADD_EXTRA_SAVED_SEARCH_REQUEST,
         STATE_SENT_LIST_SEARCHES_REQUEST
     };
 
@@ -69,6 +70,7 @@ private:
     QSharedPointer<SavedSearch>   m_pFoundSavedSearch;
     QSharedPointer<SavedSearch>   m_pModifiedSavedSearch;
     QList<SavedSearch>  m_initialSavedSearches;
+    QList<SavedSearch>  m_foundSavedSearches;
 };
 
 } // namespace test

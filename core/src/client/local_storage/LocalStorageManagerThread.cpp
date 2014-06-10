@@ -164,7 +164,7 @@ void LocalStorageManagerThread::createConnections()
     QObject::connect(m_pWorker, SIGNAL(addNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)),
                      this, SIGNAL(addNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)));
     QObject::connect(m_pWorker, SIGNAL(updateNoteComplete(QSharedPointer<Note>,QSharedPointer<Notebook>)),
-                     this, SIGNAL(updateNoteComplete(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)));
+                     this, SIGNAL(updateNoteComplete(QSharedPointer<Note>,QSharedPointer<Notebook>)));
     QObject::connect(m_pWorker, SIGNAL(updateNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)),
                      this, SIGNAL(updateNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)));
     QObject::connect(m_pWorker, SIGNAL(findNoteComplete(QSharedPointer<Note>)),

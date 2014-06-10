@@ -48,6 +48,7 @@ set(${PROJECT_NAME}_HEADERS
     src/logging/LoggerInitializationException.h
     src/tools/ApplicationStoragePersistencePath.h
     src/tools/EmptyDataElementException.h
+    src/tools/EventLoopWithExitStatus.h
     src/tools/IQuteNoteException.h
     src/tools/Linkage.h
     src/tools/Printable.h
@@ -97,6 +98,7 @@ set(${PROJECT_NAME}_SOURCES
     src/logging/LoggerInitializationException.cpp
     src/tools/ApplicationStoragePersistencePath.cpp
     src/tools/EmptyDataElementException.cpp
+    src/tools/EventLoopWithExitStatus.cpp
     src/tools/IQuteNoteException.cpp
     src/tools/Printable.cpp
     src/tools/QuteNoteNullPtrException.cpp

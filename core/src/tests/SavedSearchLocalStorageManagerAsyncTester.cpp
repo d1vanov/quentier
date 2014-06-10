@@ -12,7 +12,8 @@ SavedSearchLocalStorageManagerAsyncTester::SavedSearchLocalStorageManagerAsyncTe
     m_pInitialSavedSearch(),
     m_pFoundSavedSearch(),
     m_pModifiedSavedSearch(),
-    m_initialSavedSearches()
+    m_initialSavedSearches(),
+    m_foundSavedSearches()
 {}
 
 SavedSearchLocalStorageManagerAsyncTester::~SavedSearchLocalStorageManagerAsyncTester()
@@ -90,7 +91,28 @@ void SavedSearchLocalStorageManagerAsyncTester::onGetSavedSearchCountCompleted(i
             return;
         }
 
-        // TODO: I haven't covered listAllSavedSearches yet, it requires a bit special setup
+        // FIXME: get some amount of saved searches to work for list all method
+
+        /*
+        m_pModifiedSavedSearch->setLocalGuid();
+
+        m_initialSavedSearches << *m_pInitialSavedSearch;
+        m_initialSavedSearches << *m_pModifiedSavedSearch;
+
+        QSharedPointer<SavedSearch> extraSavedSearch = QSharedPointer<SavedSearch>(new SavedSearch);
+        extraSavedSearch->setGuid("00000000-0000-0000-c000-000000000008");
+        extraSavedSearch->setUpdateSequenceNumber(1);
+        extraSavedSearch->setName("Extra SavedSearch");
+        extraSavedSearch->setQuery("Fake extra saved search query");
+        extraSavedSearch->setQueryFormat(1);
+        extraSavedSearch->setIncludeAccount(true);
+        extraSavedSearch->setIncludeBusinessLinkedNotebooks(true);
+        extraSavedSearch->setIncludePersonalLinkedNotebooks(true);
+
+        m_state = STATE_SENT_ADD_EXTRA_SAVED_SEARCH_REQUEST;
+        emit addSavedSearchRequest(extraSavedSearch);
+        */
+
         emit success();
     }
     HANDLE_WRONG_STATE();
@@ -124,6 +146,12 @@ void SavedSearchLocalStorageManagerAsyncTester::onAddSavedSearchCompleted(QShare
 
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
         emit findSavedSearchRequest(m_pFoundSavedSearch);
+    }
+    else if (m_state == STATE_SENT_ADD_EXTRA_SAVED_SEARCH_REQUEST)
+    {
+        m_initialSavedSearches << *search;
+        m_state = STATE_SENT_LIST_SEARCHES_REQUEST;
+        emit listAllSavedSearchesRequest();
     }
     HANDLE_WRONG_STATE();
 }
@@ -255,8 +283,27 @@ void SavedSearchLocalStorageManagerAsyncTester::onFindSavedSearchFailed(QSharedP
 
 void SavedSearchLocalStorageManagerAsyncTester::onListAllSavedSearchesCompleted(QList<SavedSearch> searches)
 {
-    // TODO: implement
-    Q_UNUSED(searches)
+    int numInitialSearches = m_initialSavedSearches.size();
+    int numFoundSearches   = searches.size();
+
+    if (numInitialSearches != numFoundSearches) {
+        QString errorDescription = "Error: number of found saved searches does not correspond "
+                                   "to the number of original added saved searches";
+        emit failure(errorDescription);
+        return;
+    }
+
+    foreach(const SavedSearch & search, m_initialSavedSearches)
+    {
+        if (!searches.contains(search)) {
+            QString errorDescription = "Error: one of initial saved searches was not found "
+                                       "within found saved searches";
+            emit failure(errorDescription);
+            return;
+        }
+    }
+
+    emit success();
 }
 
 void SavedSearchLocalStorageManagerAsyncTester::onListAllSavedSearchedFailed(QString errorDescription)
