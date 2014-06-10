@@ -71,7 +71,6 @@ private:
     QSharedPointer<SavedSearch>   m_pFoundSavedSearch;
     QSharedPointer<SavedSearch>   m_pModifiedSavedSearch;
     QList<SavedSearch>  m_initialSavedSearches;
-    QList<SavedSearch>  m_foundSavedSearches;
 };
 
 } // namespace test

@@ -12,12 +12,16 @@ SavedSearchLocalStorageManagerAsyncTester::SavedSearchLocalStorageManagerAsyncTe
     m_pInitialSavedSearch(),
     m_pFoundSavedSearch(),
     m_pModifiedSavedSearch(),
-    m_initialSavedSearches(),
-    m_foundSavedSearches()
+    m_initialSavedSearches()
 {}
 
 SavedSearchLocalStorageManagerAsyncTester::~SavedSearchLocalStorageManagerAsyncTester()
-{}
+{
+    if (m_pLocalStorageManagerThread != nullptr) {
+        m_pLocalStorageManagerThread->exit();
+        delete m_pLocalStorageManagerThread;
+    }
+}
 
 void SavedSearchLocalStorageManagerAsyncTester::onInitTestCase()
 {
