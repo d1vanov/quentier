@@ -93,13 +93,13 @@ protected:
     virtual void updateLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
     virtual void updateLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription) = 0;
 
-    virtual void findLinkedNotebookCompleted(QSharedPointer<LinkedNotebook> foundLinkedNotebook) = 0;
+    virtual void findLinkedNotebookComplete(QSharedPointer<LinkedNotebook> foundLinkedNotebook) = 0;
     virtual void findLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription) = 0;
 
     virtual void listAllLinkedNotebooksComplete(QList<LinkedNotebook> foundLinkedNotebooks) = 0;
     virtual void listAllLinkedNotebooksFailed(QString errorDescription) = 0;
 
-    virtual void expungeLinkedNotebookCompleted(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
+    virtual void expungeLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
     virtual void expungeLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription) = 0;
 
     // Prototypes for note-related signals:

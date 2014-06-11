@@ -33,6 +33,7 @@ private slots:
     void localStorageManagerListAllNotebooksTest();
 
     void localStorageManagerAsyncSavedSearchesTest();
+    void localStorageManagerAsyncLinkedNotebooksTest();
 
 private:
     CoreTester(const CoreTester & other) = delete;

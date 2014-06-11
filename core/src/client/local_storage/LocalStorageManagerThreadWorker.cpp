@@ -371,7 +371,7 @@ void LocalStorageManagerThreadWorker::onFindLinkedNotebookRequest(QSharedPointer
         return;
     }
 
-    emit findLinkedNotebookCompleted(linkedNotebook);
+    emit findLinkedNotebookComplete(linkedNotebook);
 }
 
 void LocalStorageManagerThreadWorker::onListAllLinkedNotebooksRequest()
@@ -405,7 +405,7 @@ void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(QSharedPoin
         return;
     }
 
-    emit expungeLinkedNotebookCompleted(linkedNotebook);
+    emit expungeLinkedNotebookComplete(linkedNotebook);
 }
 
 void LocalStorageManagerThreadWorker::onGetNoteCountRequest()

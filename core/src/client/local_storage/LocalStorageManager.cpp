@@ -2276,7 +2276,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  noteStoreUrl                    TEXT              NOT NULL, "
                      "  webApiUrlPrefix                 TEXT              NOT NULL, "
                      "  stack                           TEXT              DEFAULT NULL, "
-                     "  businessId                      INTEGER           DEFAULT 0"
+                     "  businessId                      INTEGER           DEFAULT NULL"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create LinkedNotebooks table");
 
@@ -4575,12 +4575,20 @@ bool LocalStorageManager::FillLinkedNotebookFromSqlRecord(const QSqlRecord & rec
                                                           QString & errorDescription) const
 {
 #define CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(property, type, localType, setter, isRequired) \
-    if (rec.contains(#property)) { \
-        linkedNotebook.setter(static_cast<localType>(qvariant_cast<type>(rec.value(#property)))); \
-    } \
-    else if (isRequired) { \
-        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
-        return false; \
+    { \
+        bool foundValue = false; \
+        if (rec.contains(#property)) { \
+            QVariant value = rec.value(#property); \
+            if (!value.isNull()) { \
+                linkedNotebook.setter(static_cast<localType>(qvariant_cast<type>(value))); \
+                foundValue = true; \
+            } \
+        } \
+        \
+        if (!foundValue && isRequired) { \
+            errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
+            return false; \
+        } \
     }
 
     bool isRequired = true;

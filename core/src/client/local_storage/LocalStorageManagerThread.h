@@ -80,11 +80,11 @@ Q_SIGNALS:
     void addLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription);
     void updateLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook);
     void updateLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription);
-    void findLinkedNotebookCompleted(QSharedPointer<LinkedNotebook> foundLinkedNotebook);
+    void findLinkedNotebookComplete(QSharedPointer<LinkedNotebook> foundLinkedNotebook);
     void findLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription);
     void listAllLinkedNotebooksComplete(QList<LinkedNotebook> foundLinkedNotebooks);
     void listAllLinkedNotebooksFailed(QString errorDescription);
-    void expungeLinkedNotebookCompleted(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void expungeLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook);
     void expungeLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription);
 
     // Note-related signals:

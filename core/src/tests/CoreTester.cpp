@@ -1,6 +1,7 @@
 #include "CoreTester.h"
 #include "LocalStorageManagerTests.h"
 #include "SavedSearchLocalStorageManagerAsyncTester.h"
+#include "LinkedNotebookLocalStorageManagerAsyncTester.h"
 #include <tools/IQuteNoteException.h>
 #include <tools/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
@@ -1008,6 +1009,42 @@ void CoreTester::localStorageManagerAsyncSavedSearchesTest()
     }
     else if (savedSeachAsyncTestsResult == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("SavedSearch async tester failed to finish in time");
+    }
+}
+
+void CoreTester::localStorageManagerAsyncLinkedNotebooksTest()
+{
+    const int maxAllowedMilliseconds = 60000;    // 10 minutes should be enough
+
+    int linkedNotebookAsyncTestResult = -1;
+    {
+        QTimer timer;
+        timer.setInterval(maxAllowedMilliseconds);
+        timer.setSingleShot(true);
+
+        LinkedNotebookLocalStorageManagerAsyncTester linkedNotebookAsyncTester;
+
+        EventLoopWithExitStatus loop;
+        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
+        loop.connect(&linkedNotebookAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
+        loop.connect(&linkedNotebookAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+
+        QTimer slotInvokingTimer;
+        slotInvokingTimer.setInterval(500);
+        slotInvokingTimer.setSingleShot(true);
+
+        slotInvokingTimer.singleShot(0, &linkedNotebookAsyncTester, SLOT(onInitTestCase()));
+        linkedNotebookAsyncTestResult = loop.exec();
+    }
+
+    if (linkedNotebookAsyncTestResult == -1) {
+        QFAIL("Internal error: incorrect return status from LinkedNotebook async tester");
+    }
+    else if (linkedNotebookAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Failure) {
+        QFAIL("Detected failure during the asynchronous loop processing in LinkedNotebook async tester");
+    }
+    else if (linkedNotebookAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QFAIL("LinkedNotebook async tester failed to finish in time");
     }
 }
 
