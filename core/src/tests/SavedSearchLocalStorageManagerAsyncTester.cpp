@@ -17,10 +17,8 @@ SavedSearchLocalStorageManagerAsyncTester::SavedSearchLocalStorageManagerAsyncTe
 
 SavedSearchLocalStorageManagerAsyncTester::~SavedSearchLocalStorageManagerAsyncTester()
 {
-    if (m_pLocalStorageManagerThread != nullptr) {
-        m_pLocalStorageManagerThread->exit();
-        delete m_pLocalStorageManagerThread;
-    }
+    // NOTE: shouldn't attempt to delete m_pLocalStorageManagerThread as Qt's parent-child system
+    // should take care of that
 }
 
 void SavedSearchLocalStorageManagerAsyncTester::onInitTestCase()
@@ -56,8 +54,6 @@ void SavedSearchLocalStorageManagerAsyncTester::onInitTestCase()
         return;
     }
 
-    // NOTE: State is changed prior to signal emitting intentionally here and in other places,
-    // to ensure the state is correct as the answer-to-signal reaches the corresponding slot
     m_state = STATE_SENT_ADD_REQUEST;
     emit addSavedSearchRequest(m_pInitialSavedSearch);
 }
@@ -127,7 +123,7 @@ void SavedSearchLocalStorageManagerAsyncTester::onAddSavedSearchCompleted(QShare
     {
         if (m_pInitialSavedSearch != search) {
             errorDescription = "Internal error in SavedSearchLocalStorageManagerAsyncTester: "
-                               "search in addSavedSearchComplete signal doesn't match the original SavedSearch";
+                               "search in addSavedSearchCompleted slot doesn't match the original SavedSearch";
             QNWARNING(errorDescription);
             errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
