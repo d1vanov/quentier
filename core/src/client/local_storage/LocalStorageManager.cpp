@@ -152,14 +152,26 @@ bool LocalStorageManager::FindUser(IUser & user, QString & errorDescription) con
     QSqlRecord rec = query.record();
 
 #define CHECK_AND_SET_USER_PROPERTY(property) \
-    if (rec.contains("is"#property)) { \
-        int property = (qvariant_cast<int>(rec.value("is"#property)) != 0); \
-        user.set##property(static_cast<bool>(property)); \
-    } \
-    else { \
-        errorDescription += QObject::tr("Internal error: no " #property \
-                                        " field in the result of SQL query "); \
-        return false; \
+    { \
+        bool valueFound = false; \
+        int index = rec.indexOf("is"#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
+                bool conversionResult = false; \
+                int property = value.toInt(&conversionResult); \
+                if (conversionResult) { \
+                    user.set##property(property != 0 ? true : false); \
+                    valueFound = true; \
+                } \
+            } \
+        } \
+        \
+        if (!valueFound) { \
+            errorDescription += QObject::tr("Internal error: no is" #property \
+                                            " field in the result of SQL query "); \
+            return false; \
+        } \
     }
 
     CHECK_AND_SET_USER_PROPERTY(Dirty);
@@ -169,13 +181,22 @@ bool LocalStorageManager::FindUser(IUser & user, QString & errorDescription) con
 
 #define CHECK_AND_SET_EN_USER_PROPERTY(propertyLocalName, setter, \
                                        type, true_type, isRequired) \
-    if (rec.contains(#propertyLocalName)) { \
-        user.setter(static_cast<true_type>((qvariant_cast<type>(rec.value(#propertyLocalName))))); \
-    } \
-    else if (isRequired) { \
-        errorDescription += QObject::tr("Internal error: no " #propertyLocalName \
-                                        " field in the result of SQL query"); \
-        return false; \
+    { \
+        bool valueFound = false; \
+        int index = rec.indexOf(#propertyLocalName); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
+                user.setter(static_cast<true_type>((qvariant_cast<type>(value)))); \
+                valueFound = true; \
+            } \
+        } \
+        \
+        if (!valueFound && isRequired) { \
+            errorDescription += QObject::tr("Internal error: no " #propertyLocalName \
+                                            " field in the result of SQL query"); \
+            return false; \
+        } \
     }
 
     bool isRequired = true;
@@ -403,7 +424,7 @@ void LocalStorageManager::SwitchUser(const QString & username, const UserID user
 int LocalStorageManager::GetUserCount(QString & errorDescription) const
 {
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT COUNT(*) FROM Users WHERE deletionTimestamp = -1");
+    bool res = query.exec("SELECT COUNT(*) FROM Users WHERE deletionTimestamp IS NULL");
     if (!res) {
         errorDescription = "Internal error: can't get number of users in local storage database: ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
@@ -981,7 +1002,7 @@ bool LocalStorageManager::ExpungeLinkedNotebook(const LinkedNotebook & linkedNot
 int LocalStorageManager::GetNoteCount(QString & errorDescription) const
 {
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT COUNT(*) FROM Notes WHERE deletionTimestamp = -1");
+    bool res = query.exec("SELECT COUNT(*) FROM Notes WHERE deletionTimestamp IS NULL");
     if (!res) {
         errorDescription = "Internal error: can't get number of notes in local storage database: ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
@@ -2116,7 +2137,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  modificationTimestamp   INTEGER                 NOT NULL, "
                      "  isDirty                 INTEGER                 NOT NULL, "
                      "  isLocal                 INTEGER                 NOT NULL, "
-                     "  deletionTimestamp       INTEGER                 DEFAULT -1, "
+                     "  deletionTimestamp       INTEGER                 DEFAULT NULL, "
                      "  isActive                INTEGER                 NOT NULL"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Users table");
@@ -2150,7 +2171,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  businessAddress             TEXT                    DEFAULT NULL, "
                      "  hideSponsorBilling          INTEGER                 DEFAULT NULL, "
                      "  taxExempt                   INTEGER                 DEFAULT NULL, "
-                     "  useEmailAutoFiling         INTEGER                 DEFAULT NULL, "
+                     "  useEmailAutoFiling          INTEGER                 DEFAULT NULL, "
                      "  reminderEmailConfig         INTEGER                 DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create UserAttributes table");
 
@@ -2226,14 +2247,14 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  isDefault                       INTEGER           DEFAULT NULL UNIQUE, "
                      "  isLastUsed                      INTEGER           DEFAULT NULL UNIQUE, "
                      "  publishingUri                   TEXT              DEFAULT NULL, "
-                     "  publishingNoteSortOrder         INTEGER           DEFAULT 0, "
-                     "  publishingAscendingSort         INTEGER           DEFAULT 0, "
+                     "  publishingNoteSortOrder         INTEGER           DEFAULT NULL, "
+                     "  publishingAscendingSort         INTEGER           DEFAULT NULL, "
                      "  publicDescription               TEXT              DEFAULT NULL, "
-                     "  isPublished                     INTEGER           DEFAULT 0, "
+                     "  isPublished                     INTEGER           DEFAULT NULL, "
                      "  stack                           TEXT              DEFAULT NULL, "
                      "  businessNotebookDescription     TEXT              DEFAULT NULL, "
-                     "  businessNotebookPrivilegeLevel  INTEGER           DEFAULT 0, "
-                     "  businessNotebookIsRecommended   INTEGER           DEFAULT 0, "
+                     "  businessNotebookPrivilegeLevel  INTEGER           DEFAULT NULL, "
+                     "  businessNotebookIsRecommended   INTEGER           DEFAULT NULL, "
                      "  contactId                       INTEGER           DEFAULT NULL, "
                      "  UNIQUE(localGuid, guid) "
                      ")");
@@ -2241,26 +2262,26 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NotebookRestrictions("
                      "  localGuid REFERENCES Notebooks(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  noReadNotes                 INTEGER     DEFAULT 0, "
-                     "  noCreateNotes               INTEGER     DEFAULT 0, "
-                     "  noUpdateNotes               INTEGER     DEFAULT 0, "
-                     "  noExpungeNotes              INTEGER     DEFAULT 0, "
-                     "  noShareNotes                INTEGER     DEFAULT 0, "
-                     "  noEmailNotes                INTEGER     DEFAULT 0, "
-                     "  noSendMessageToRecipients   INTEGER     DEFAULT 0, "
-                     "  noUpdateNotebook            INTEGER     DEFAULT 0, "
-                     "  noExpungeNotebook           INTEGER     DEFAULT 0, "
-                     "  noSetDefaultNotebook        INTEGER     DEFAULT 0, "
-                     "  noSetNotebookStack          INTEGER     DEFAULT 0, "
-                     "  noPublishToPublic           INTEGER     DEFAULT 0, "
-                     "  noPublishToBusinessLibrary  INTEGER     DEFAULT 0, "
-                     "  noCreateTags                INTEGER     DEFAULT 0, "
-                     "  noUpdateTags                INTEGER     DEFAULT 0, "
-                     "  noExpungeTags               INTEGER     DEFAULT 0, "
-                     "  noSetParentTag              INTEGER     DEFAULT 0, "
-                     "  noCreateSharedNotebooks     INTEGER     DEFAULT 0, "
-                     "  updateWhichSharedNotebookRestrictions    INTEGER     DEFAULT 0, "
-                     "  expungeWhichSharedNotebookRestrictions   INTEGER     DEFAULT 0"
+                     "  noReadNotes                 INTEGER     DEFAULT NULL, "
+                     "  noCreateNotes               INTEGER     DEFAULT NULL, "
+                     "  noUpdateNotes               INTEGER     DEFAULT NULL, "
+                     "  noExpungeNotes              INTEGER     DEFAULT NULL, "
+                     "  noShareNotes                INTEGER     DEFAULT NULL, "
+                     "  noEmailNotes                INTEGER     DEFAULT NULL, "
+                     "  noSendMessageToRecipients   INTEGER     DEFAULT NULL, "
+                     "  noUpdateNotebook            INTEGER     DEFAULT NULL, "
+                     "  noExpungeNotebook           INTEGER     DEFAULT NULL, "
+                     "  noSetDefaultNotebook        INTEGER     DEFAULT NULL, "
+                     "  noSetNotebookStack          INTEGER     DEFAULT NULL, "
+                     "  noPublishToPublic           INTEGER     DEFAULT NULL, "
+                     "  noPublishToBusinessLibrary  INTEGER     DEFAULT NULL, "
+                     "  noCreateTags                INTEGER     DEFAULT NULL, "
+                     "  noUpdateTags                INTEGER     DEFAULT NULL, "
+                     "  noExpungeTags               INTEGER     DEFAULT NULL, "
+                     "  noSetParentTag              INTEGER     DEFAULT NULL, "
+                     "  noCreateSharedNotebooks     INTEGER     DEFAULT NULL, "
+                     "  updateWhichSharedNotebookRestrictions    INTEGER     DEFAULT NULL, "
+                     "  expungeWhichSharedNotebookRestrictions   INTEGER     DEFAULT NULL"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create NotebookRestrictions table");
 
@@ -2290,9 +2311,9 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  shareKey                        TEXT       NOT NULL, "
                      "  username                        TEXT       NOT NULL, "
                      "  sharedNotebookPrivilegeLevel    INTEGER    NOT NULL, "
-                     "  allowPreview                    INTEGER    DEFAULT 0, "
-                     "  recipientReminderNotifyEmail    INTEGER    DEFAULT 0, "
-                     "  recipientReminderNotifyInApp    INTEGER    DEFAULT 0, "
+                     "  allowPreview                    INTEGER    DEFAULT NULL, "
+                     "  recipientReminderNotifyEmail    INTEGER    DEFAULT NULL, "
+                     "  recipientReminderNotifyInApp    INTEGER    DEFAULT NULL, "
                      "  indexInNotebook                 INTEGER    DEFAULT NULL, "
                      "  UNIQUE(shareId, notebookGuid) ON CONFLICT REPLACE"
                      ")");
@@ -2315,14 +2336,14 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  updateSequenceNumber    INTEGER              NOT NULL, "
                      "  isDirty                 INTEGER              NOT NULL, "
                      "  isLocal                 INTEGER              NOT NULL, "
-                     "  isDeleted               INTEGER              DEFAULT 0, "
+                     "  isDeleted               INTEGER              DEFAULT NULL, "
                      "  title                   TEXT                 NOT NULL, "
                      "  content                 TEXT                 NOT NULL, "
                      "  creationTimestamp       INTEGER              NOT NULL, "
                      "  modificationTimestamp   INTEGER              NOT NULL, "
-                     "  deletionTimestamp       INTEGER              DEFAULT -1, "
-                     "  isActive                INTEGER              DEFAULT 1, "
-                     "  hasAttributes           INTEGER              DEFAULT 0, "
+                     "  deletionTimestamp       INTEGER              DEFAULT NULL, "
+                     "  isActive                INTEGER              DEFAULT NULL, "
+                     "  hasAttributes           INTEGER              DEFAULT NULL, "
                      "  thumbnail               BLOB                 DEFAULT NULL, "
                      "  notebookLocalGuid REFERENCES Notebooks(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
@@ -2382,10 +2403,10 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  dataSize                INTEGER              NOT NULL, "
                      "  dataHash                TEXT                 NOT NULL, "
                      "  mime                    TEXT                 NOT NULL, "
-                     "  width                   INTEGER              DEFAULT 0, "
-                     "  height                  INTEGER              DEFAULT 0, "
+                     "  width                   INTEGER              DEFAULT NULL, "
+                     "  height                  INTEGER              DEFAULT NULL, "
                      "  recognitionDataBody     TEXT                 DEFAULT NULL, "
-                     "  recognitionDataSize     INTEGER              DEFAULT 0, "
+                     "  recognitionDataSize     INTEGER              DEFAULT NULL, "
                      "  recognitionDataHash     TEXT                 DEFAULT NULL, "
                      "  indexInNote             INTEGER              DEFAULT NULL, "
                      "  UNIQUE(localGuid, guid)"
@@ -2430,7 +2451,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  parentGuid            TEXT                 DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
-                     "  isDeleted             INTEGER              DEFAULT 0"
+                     "  isDeleted             INTEGER              DEFAULT NULL"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Tags table");
 
@@ -3456,7 +3477,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     // ========= Creating and executing "insert or replace" query for Notes table
     QString columns = "localGuid, updateSequenceNumber, title, isDirty, "
                       "isLocal, content, creationTimestamp, modificationTimestamp, "
-                      "notebookLocalGuid, hasAttributes";
+                      "notebookLocalGuid, isActive, hasAttributes";
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid) {
         columns.append(", guid");
@@ -3473,7 +3494,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     QString valuesString = ":localGuid, :updateSequenceNumber, :title, :isDirty, "
                            ":isLocal, :content, :creationTimestamp, :modificationTimestamp, "
-                           ":notebookLocalGuid, :hasAttributes";
+                           ":notebookLocalGuid, :isActive, :hasAttributes";
     if (noteHasGuid) {
         valuesString.append(", :guid");
     }
@@ -3506,6 +3527,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     query.bindValue(":creationTimestamp", note.creationTimestamp());
     query.bindValue(":modificationTimestamp", note.modificationTimestamp());
     query.bindValue(":notebookLocalGuid", notebookLocalGuid);
+    query.bindValue(":isActive", (note.active() ? 1 : 0));
     query.bindValue(":hasAttributes", (note.hasNoteAttributes() ? 1 : 0));
 
     if (noteHasGuid) {
