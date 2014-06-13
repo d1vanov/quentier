@@ -1742,12 +1742,21 @@ bool LocalStorageManager::FindEnResource(IResource & resource, QString & errorDe
     QSqlRecord rec = query.record();
 
 #define CHECK_AND_SET_RESOURCE_PROPERTY(property, type, localType, setter, isRequired) \
-    if (rec.contains(#property)) { \
-        resource.setter(static_cast<localType>(qvariant_cast<type>(rec.value(#property)))); \
-    } \
-    else if (isRequired) { \
-        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
-        return false; \
+    { \
+        bool valueFound = false; \
+        int index = rec.indexOf(#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
+                resource.setter(static_cast<localType>(qvariant_cast<type>(value))); \
+                valueFound = true; \
+            } \
+        } \
+        \
+        if (!valueFound && isRequired) { \
+            errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
+            return false; \
+        } \
     }
 
     bool isRequired = true;
@@ -2784,6 +2793,7 @@ bool LocalStorageManager::SetNotebookRestrictions(const qevercloud::NotebookRest
     CHECK_AND_SET_NOTEBOOK_RESTRICTION(noCreateTags, QString::number(notebookRestrictions.noCreateTags ? 1 : 0));
     CHECK_AND_SET_NOTEBOOK_RESTRICTION(noUpdateTags, QString::number(notebookRestrictions.noUpdateTags ? 1 : 0));
     CHECK_AND_SET_NOTEBOOK_RESTRICTION(noExpungeTags, QString::number(notebookRestrictions.noExpungeTags ? 1 : 0));
+    CHECK_AND_SET_NOTEBOOK_RESTRICTION(noSetParentTag, QString::number(notebookRestrictions.noSetParentTag ? 1 : 0));
     CHECK_AND_SET_NOTEBOOK_RESTRICTION(noCreateSharedNotebooks, QString::number(notebookRestrictions.noCreateSharedNotebooks ? 1 : 0));
     CHECK_AND_SET_NOTEBOOK_RESTRICTION(updateWhichSharedNotebookRestrictions,
                                        QString::number(notebookRestrictions.updateWhichSharedNotebookRestrictions));
@@ -3476,7 +3486,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     // ========= Creating and executing "insert or replace" query for Notes table
     QString columns = "localGuid, updateSequenceNumber, title, isDirty, "
-                      "isLocal, content, creationTimestamp, modificationTimestamp, "
+                      "isLocal, isDeleted, content, creationTimestamp, modificationTimestamp, "
                       "notebookLocalGuid, isActive, hasAttributes";
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid) {
@@ -3493,7 +3503,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     }
 
     QString valuesString = ":localGuid, :updateSequenceNumber, :title, :isDirty, "
-                           ":isLocal, :content, :creationTimestamp, :modificationTimestamp, "
+                           ":isLocal, :isDeleted, :content, :creationTimestamp, :modificationTimestamp, "
                            ":notebookLocalGuid, :isActive, :hasAttributes";
     if (noteHasGuid) {
         valuesString.append(", :guid");
@@ -3523,6 +3533,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     query.bindValue(":title", title);
     query.bindValue(":isDirty", (note.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (note.isLocal() ? 1 : 0));
+    query.bindValue(":isDeleted", (note.isDeleted() ? 1 : 0));
     query.bindValue(":content", content);
     query.bindValue(":creationTimestamp", note.creationTimestamp());
     query.bindValue(":modificationTimestamp", note.modificationTimestamp());
@@ -3959,11 +3970,14 @@ bool LocalStorageManager::FillResourceAttributesFromSqlRecord(const QSqlRecord &
     bool hasSomething = false;
 
 #define CHECK_AND_SET_RESOURCE_ATTRIBUTE(property, type, localType) \
-    if (rec.contains(#property)) { \
-        QVariant value = rec.value(#property); \
-        if (!value.isNull()) { \
-            attributes.property = static_cast<localType>(qvariant_cast<type>(value)); \
-            hasSomething = true; \
+    { \
+        int index = rec.indexOf(#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
+                attributes.property = static_cast<localType>(qvariant_cast<type>(value)); \
+                hasSomething = true; \
+            } \
         } \
     }
 
@@ -3989,8 +4003,9 @@ bool LocalStorageManager::FillResourceAttributesApplicationDataKeysOnlyFromSqlRe
 {
     bool hasSomething = false;
 
-    if (rec.contains("key")) {
-        QVariant value = rec.value("key");
+    int index = rec.indexOf("key");
+    if (index >= 0) {
+        QVariant value = rec.value(index);
         if (!value.isNull()) {
             if (!attributes.applicationData.isSet()) {
                 attributes.applicationData = qevercloud::LazyMap();
@@ -4011,9 +4026,11 @@ bool LocalStorageManager::FillResourceAttributesApplicationDataFullMapFromSqlRec
 {
     bool hasSomething = false;
 
-    if (rec.contains("key") && rec.contains("value")) {
-        QVariant key = rec.value("key");
-        QVariant value = rec.value("value");
+    int keyIndex = rec.indexOf("key");
+    int valueIndex = rec.indexOf("value");
+    if ((keyIndex >= 0) && (valueIndex >= 0)) {
+        QVariant key = rec.value(keyIndex);
+        QVariant value = rec.value(valueIndex);
         if (!key.isNull() && !value.isNull()) {
             if (!attributes.applicationData.isSet()) {
                 attributes.applicationData = qevercloud::LazyMap();
@@ -4032,10 +4049,13 @@ bool LocalStorageManager::FillResourceAttributesApplicationDataFullMapFromSqlRec
 void LocalStorageManager::FillNoteAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const
 {
 #define CHECK_AND_SET_NOTE_ATTRIBUTE(property, type, localType) \
-    if (rec.contains(#property)) { \
-        QVariant value = rec.value(#property); \
-        if (!value.isNull()) { \
-            attributes.property = static_cast<localType>(qvariant_cast<type>(value)); \
+    { \
+        int index = rec.indexOf(#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
+                attributes.property = static_cast<localType>(qvariant_cast<type>(value)); \
+            } \
         } \
     }
 
@@ -4063,8 +4083,9 @@ void LocalStorageManager::FillNoteAttributesFromSqlRecord(const QSqlRecord & rec
 void LocalStorageManager::FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec,
                                                                                  qevercloud::NoteAttributes & attributes) const
 {
-    if (rec.contains("key")) {
-        QVariant value = rec.value("key");
+    int index = rec.indexOf("key");
+    if (index >= 0) {
+        QVariant value = rec.value(index);
         if (!value.isNull()) {
             if (!attributes.applicationData.isSet()) {
                 attributes.applicationData = qevercloud::LazyMap();
@@ -4080,9 +4101,11 @@ void LocalStorageManager::FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord
 void LocalStorageManager::FillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec,
                                                                                 qevercloud::NoteAttributes & attributes) const
 {
-    if (rec.contains("key") && rec.contains("value")) {
-        QVariant key = rec.value("key");
-        QVariant value = rec.value("value");
+    int keyIndex = rec.indexOf("key");
+    int valueIndex = rec.indexOf("value");
+    if ((keyIndex >= 0) && (valueIndex >= 0)) {
+        QVariant key = rec.value(keyIndex);
+        QVariant value = rec.value(valueIndex);
         if (!key.isNull() && !value.isNull()) {
             if (!attributes.applicationData.isSet()) {
                 attributes.applicationData = qevercloud::LazyMap();
@@ -4098,9 +4121,11 @@ void LocalStorageManager::FillNoteAttributesApplicationDataFullMapFromSqlRecord(
 void LocalStorageManager::FillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec,
                                                                          qevercloud::NoteAttributes & attributes) const
 {
-    if (rec.contains("key") && rec.contains("value")) {
-        QVariant key = rec.value("key");
-        QVariant value = rec.value("value");
+    int keyIndex = rec.indexOf("key");
+    int valueIndex = rec.indexOf("value");
+    if ((keyIndex >= 0) && (valueIndex >= 0)) {
+        QVariant key = rec.value(keyIndex);
+        QVariant value = rec.value(valueIndex);
         if (!key.isNull() && !value.isNull()) {
             if (!attributes.classifications.isSet()) {
                 attributes.classifications = QMap<QString, QString>();
@@ -4112,8 +4137,9 @@ void LocalStorageManager::FillNoteAttributesClassificationsFromSqlRecord(const Q
 
 void LocalStorageManager::FillUserAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::UserAttributes & attributes) const
 {
-    if (rec.contains("promotion")) {
-        QVariant value = rec.value("promotion");
+    int promotionIndex = rec.indexOf("promotion");
+    if (promotionIndex >= 0) {
+        QVariant value = rec.value(promotionIndex);
         if (!value.isNull()) {
             if (!attributes.viewedPromotions.isSet()) {
                 attributes.viewedPromotions = QStringList();
@@ -4125,8 +4151,9 @@ void LocalStorageManager::FillUserAttributesFromSqlRecord(const QSqlRecord & rec
                  // the most part of UserAttributes is already processed so we can simply return here
     }
 
-    if (rec.contains("address")) {
-        QVariant value = rec.value("address");
+    int addressIndex = rec.indexOf("address");
+    if (addressIndex >= 0) {
+        QVariant value = rec.value(addressIndex);
         if (!value.isNull()) {
             if (!attributes.recentMailedAddresses.isSet()) {
                 attributes.recentMailedAddresses = QStringList();
@@ -4139,10 +4166,13 @@ void LocalStorageManager::FillUserAttributesFromSqlRecord(const QSqlRecord & rec
     }
 
 #define CHECK_AND_SET_USER_ATTRIBUTES_PROPERTY(property, type, localType) \
-    if (rec.contains(#property)) { \
-        QVariant value = rec.value(#property); \
-        if (!value.isNull()) { \
-            attributes.property = static_cast<localType>(qvariant_cast<type>(value)); \
+    { \
+        int index = rec.indexOf(#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
+                attributes.property = static_cast<localType>(qvariant_cast<type>(value)); \
+            } \
         } \
     }
 
@@ -4182,10 +4212,13 @@ void LocalStorageManager::FillUserAttributesFromSqlRecord(const QSqlRecord & rec
 void LocalStorageManager::FillAccountingFromSqlRecord(const QSqlRecord & rec, qevercloud::Accounting & accounting) const
 {
 #define CHECK_AND_SET_ACCOUNTING_PROPERTY(property, type, localType) \
-    if (rec.contains(#property)) { \
-        QVariant value = rec.value(#property); \
-        if (!value.isNull()) { \
-            accounting.property = static_cast<localType>(qvariant_cast<type>(value)); \
+    { \
+        int index = rec.indexOf(#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(#property); \
+            if (!value.isNull()) { \
+                accounting.property = static_cast<localType>(qvariant_cast<type>(value)); \
+            } \
         } \
     }
 
@@ -4221,16 +4254,17 @@ bool LocalStorageManager::FillPremiumInfoFromSqlRecord(const QSqlRecord & rec, q
 {
 #define CHECK_AND_SET_PREMIUM_INFO_PROPERTY(property, type, localType) \
     { \
-        bool isNull = true; \
-        if (rec.contains(#property)) { \
-            QVariant value = rec.value(#property); \
-            isNull = value.isNull(); \
-            if (!isNull) { \
+        bool valueFound = false; \
+        int index = rec.indexOf(#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
                 info.property = static_cast<localType>(qvariant_cast<type>(value)); \
+                valueFound = true; \
             } \
         } \
         \
-        if (isNull && isRequired) { \
+        if (!valueFound && isRequired) { \
             errorDescription += QObject::tr("Internal error: no " #property " field " \
                                             "in the result of SQL query"); \
             return false; \
@@ -4311,13 +4345,22 @@ bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & n
                                                 QString & errorDescription, const bool withResourceBinaryData) const
 {
 #define CHECK_AND_SET_NOTE_PROPERTY(propertyLocalName, setter, type, localType) \
-    if (rec.contains(#propertyLocalName)) { \
-        note.setter(static_cast<localType>(qvariant_cast<type>(rec.value(#propertyLocalName)))); \
-    } \
-    else { \
-        errorDescription += QObject::tr("Internal error: no " #propertyLocalName " field " \
-                                        "in the result of SQL query"); \
-        return false; \
+    { \
+        bool valueFound = false; \
+        int index = rec.indexOf(#propertyLocalName); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
+                note.setter(static_cast<localType>(qvariant_cast<type>(value))); \
+                valueFound = true; \
+            } \
+        } \
+        \
+        if (!valueFound) { \
+            errorDescription += QObject::tr("Internal error: no " #propertyLocalName " field " \
+                                            "in the result of SQL query"); \
+            return false; \
+        } \
     }
 
     CHECK_AND_SET_NOTE_PROPERTY(isDirty, setDirty, int, bool);
@@ -4354,15 +4397,24 @@ bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & n
         }
     }
 
-    if (rec.contains("hasAttributes"))
-    {
-        int hasAttributes = qvariant_cast<int>(rec.value("hasAttributes"));
-        if (hasAttributes == 0) {
-            QNDEBUG("Note has no optional attributes");
-            return true;
+    int hasAttributesIndex = rec.indexOf("hasAttributes");
+    bool hasAttributesFound = false;
+    if (hasAttributesIndex >= 0) {
+        QVariant value = rec.value(hasAttributesIndex);
+        if (!value.isNull()) {
+            bool conversionResult = false;
+            int hasAttributes = value.toInt(&conversionResult);
+            if (conversionResult) {
+                hasAttributesFound = true;
+                if (hasAttributes == 0) {
+                    QNDEBUG("Note has no optional attributes");
+                    return true;
+                }
+            }
         }
     }
-    else {
+
+    if (!hasAttributesFound) {
         errorDescription += QObject::tr("Internal error: no \"hasAttributes\" field " \
                                         "in the result of SQL query");
         return false;
@@ -4383,9 +4435,9 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
 {
 #define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute, setter, dbType, trueType, isRequired) { \
         bool valueFound = false; \
-        int indexOfValue = record.indexOf(#attribute); \
-        if (indexOfValue >= 0) { \
-            QVariant value = record.value(indexOfValue); \
+        int index = record.indexOf(#attribute); \
+        if (index >= 0) { \
+            QVariant value = record.value(index); \
             if (!value.isNull()) { \
                 notebook.setter(static_cast<trueType>((qvariant_cast<dbType>(value)))); \
                 valueFound = true; \
@@ -4490,9 +4542,15 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
         QSqlRecord record = query.record();   // NOTE: intentionally hide the method parameter in this scope to reuse macro
 
 #define SET_EN_NOTEBOOK_RESTRICTION(notebook_restriction, setter) \
-    if (record.contains(#notebook_restriction)) { \
-        notebook.setter(!(static_cast<bool>((qvariant_cast<int>(record.value(#notebook_restriction)))))); \
-    } \
+    { \
+        int index = record.indexOf(#notebook_restriction); \
+        if (index >= 0) { \
+            QVariant value = record.value(index); \
+            if (!value.isNull()) { \
+                notebook.setter(!(static_cast<bool>((qvariant_cast<int>(value))))); \
+            } \
+        } \
+    }
 
         SET_EN_NOTEBOOK_RESTRICTION(noReadNotes, setCanReadNotes);
         SET_EN_NOTEBOOK_RESTRICTION(noCreateNotes, setCanCreateNotes);
@@ -4542,12 +4600,21 @@ bool LocalStorageManager::FillSharedNotebookFromSqlRecord(const QSqlRecord & rec
                                                           QString & errorDescription) const
 {
 #define CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(property, type, localType, setter, isRequired) \
-    if (rec.contains(#property)) { \
-        sharedNotebook.setter(static_cast<localType>(qvariant_cast<type>(rec.value(#property)))); \
-    } \
-    else if (isRequired) { \
-        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
-        return false; \
+    { \
+        bool valueFound = false; \
+        int index = rec.indexOf(#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
+                sharedNotebook.setter(static_cast<localType>(qvariant_cast<type>(value))); \
+                valueFound = true; \
+            } \
+        } \
+        \
+        if (!valueFound && isRequired) { \
+            errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
+            return false; \
+        } \
     }
 
     bool isRequired = true;
@@ -4576,11 +4643,11 @@ bool LocalStorageManager::FillSharedNotebookFromSqlRecord(const QSqlRecord & rec
     int recordIndex = rec.indexOf("indexInNotebook");
     if (recordIndex >= 0)
     {
-        QVariant indexInNotebookVariant = rec.value(recordIndex);
-        if (!indexInNotebookVariant.isNull())
+        QVariant value = rec.value(recordIndex);
+        if (!value.isNull())
         {
             bool conversionResult = false;
-            int indexInNotebook = indexInNotebookVariant.toInt(&conversionResult);
+            int indexInNotebook = value.toInt(&conversionResult);
             if (!conversionResult) {
                 errorDescription += QObject::tr("Internal error: can't convert shared notebook's index in notebook to int");
                 return false;
@@ -4598,16 +4665,17 @@ bool LocalStorageManager::FillLinkedNotebookFromSqlRecord(const QSqlRecord & rec
 {
 #define CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(property, type, localType, setter, isRequired) \
     { \
-        bool foundValue = false; \
-        if (rec.contains(#property)) { \
-            QVariant value = rec.value(#property); \
+        bool valueFound = false; \
+        int index = rec.indexOf(#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
             if (!value.isNull()) { \
                 linkedNotebook.setter(static_cast<localType>(qvariant_cast<type>(value))); \
-                foundValue = true; \
+                valueFound = true; \
             } \
         } \
         \
-        if (!foundValue && isRequired) { \
+        if (!valueFound && isRequired) { \
             errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
             return false; \
         } \
@@ -4642,19 +4710,21 @@ bool LocalStorageManager::FillSavedSearchFromSqlRecord(const QSqlRecord & rec,
                                                        QString & errorDescription) const
 {
 #define CHECK_AND_SET_SAVED_SEARCH_PROPERTY(property, type, localType, setter, isRequired) \
-    if (rec.contains(#property)) { \
-        QVariant value = rec.value(#property); \
-        if (value.isNull() && isRequired) { \
-            errorDescription += QObject::tr("required parameter " #property " is null in the result of SQL query"); \
+    { \
+        bool valueFound = false; \
+        int index = rec.indexOf(#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
+                search.setter(static_cast<localType>(qvariant_cast<type>(value))); \
+                valueFound = true; \
+            } \
+        } \
+        \
+        if (!valueFound && isRequired) { \
+            errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
             return false; \
         } \
-        else if (!value.isNull()) { \
-            search.setter(static_cast<localType>(qvariant_cast<type>(value))); \
-        } \
-    } \
-    else { \
-        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
-        return false; \
     }
 
     bool isRequired = false;
@@ -4684,19 +4754,21 @@ bool LocalStorageManager::FillTagFromSqlRecord(const QSqlRecord & rec, Tag & tag
                                                QString & errorDescription) const
 {
 #define CHECK_AND_SET_TAG_PROPERTY(property, type, localType, setter, isRequired) \
-    if (rec.contains(#property)) { \
-        QVariant value = rec.value(#property); \
-        if (value.isNull() && isRequired) { \
-            errorDescription += QObject::tr("required parameter " #property " is null in the result of SQL query"); \
+    { \
+        bool valueFound = false; \
+        int index = rec.indexOf(#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
+                tag.setter(static_cast<localType>(qvariant_cast<type>(value))); \
+                valueFound = true; \
+            } \
+        } \
+        \
+        if (!valueFound && isRequired) { \
+            errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
             return false; \
         } \
-        else if (!value.isNull()) { \
-            tag.setter(static_cast<localType>(qvariant_cast<type>(value))); \
-        } \
-    } \
-    else { \
-        errorDescription += QObject::tr("no " #property " field in the result of SQL query"); \
-        return false; \
     }
 
     bool isRequired = false;
@@ -4937,10 +5009,17 @@ bool LocalStorageManager::FindAndSetTagGuidsPerNote(Note & note, QString & error
         QSqlRecord rec = query.record();
 
         QString tagGuid;
-        if (rec.contains("tag")) {
-            tagGuid = rec.value("tag").toString();
+        bool tagFound = false;
+        int tagIndex = rec.indexOf("tag");
+        if (tagIndex >= 0) {
+            QVariant value = rec.value(tagIndex);
+            if (!value.isNull()) {
+                tagGuid = value.toString();
+                tagFound = true;
+            }
         }
-        else {
+
+        if (!tagFound) {
             errorDescription += QObject::tr("Internal error: can't find tag guid in the result of SQL query");
             return false;
         }
@@ -4956,11 +5035,11 @@ bool LocalStorageManager::FindAndSetTagGuidsPerNote(Note & note, QString & error
         int recordIndex = rec.indexOf("indexInNote");
         if (recordIndex >= 0)
         {
-            QVariant indexVariant = rec.value(recordIndex);
-            if (!indexVariant.isNull())
+            QVariant value = rec.value(recordIndex);
+            if (!value.isNull())
             {
                 bool conversionResult = false;
-                indexInNote = indexVariant.toInt(&conversionResult);
+                indexInNote = value.toInt(&conversionResult);
                 if (!conversionResult) {
                     QNWARNING("Can't convert QVariant to int: " << rec.value(recordIndex));
                     errorDescription += QObject::tr("Internal error: unable to convert to int "
@@ -5007,11 +5086,24 @@ bool LocalStorageManager::FindAndSetResourcesPerNote(Note & note, QString & erro
     while(query.next())
     {
         QSqlRecord rec = query.record();
-        if (rec.contains("note"))
+        int index = rec.indexOf("note");
+        if (index >= 0)
         {
-            QString foundNoteGuid = rec.value("note").toString();
-            if ((foundNoteGuid == noteGuid) && (rec.contains("resource"))) {
-                QString resourceGuid = rec.value("resource").toString();
+            QVariant value = rec.value(index);
+            if (value.isNull()) {
+                continue;
+            }
+
+            QString foundNoteGuid = value.toString();
+            int resourceIndex = rec.indexOf("resource");
+            if ((foundNoteGuid == noteGuid) && (resourceIndex >= 0))
+            {
+                value = rec.value(resourceIndex);
+                if (value.isNull()) {
+                    continue;
+                }
+
+                QString resourceGuid = value.toString();
                 resourceGuids << resourceGuid;
                 QNDEBUG("Found resource's local guid: " << resourceGuid);
             }
