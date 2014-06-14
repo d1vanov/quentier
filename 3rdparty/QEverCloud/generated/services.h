@@ -2674,7 +2674,6 @@ private:
     QString url_;
     QString authenticationToken_;
 };
-
 }
 
 Q_DECLARE_METATYPE(QList< qevercloud::Notebook >)

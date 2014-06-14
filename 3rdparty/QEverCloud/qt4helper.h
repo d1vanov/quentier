@@ -3,7 +3,7 @@
 
 #if QT_VERSION < 0x050000
 #ifndef Q_DECL_OVERRIDE
-#define Q_DECL_OVERRIDE override
+#define Q_DECL_OVERRIDE
 #endif
 #ifndef Q_STATIC_ASSERT_X
 #define Q_STATIC_ASSERT_X(x1,x2)

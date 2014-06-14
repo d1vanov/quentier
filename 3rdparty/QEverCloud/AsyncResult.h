@@ -69,10 +69,10 @@ private slots:
     void start();
 
 private:
-    QNetworkRequest request_;
     QByteArray postData_;
     ReadFunctionType readFunction_;
     bool autoDelete_;
+    QNetworkRequest request_;
 
     /** @endcond  */
 };

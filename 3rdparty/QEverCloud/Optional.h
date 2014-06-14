@@ -2,6 +2,7 @@
 #define QEVERCLOUD_OPTIONAL_H
 
 #include "EverCloudException.h"
+#include <algorithm>
 
 namespace qevercloud {
 
@@ -262,9 +263,42 @@ public:
     }
 
     template<typename X> friend class Optional;
+
+    friend void swap(Optional& first, Optional& second) {
+        using std::swap;
+        swap(first.isSet_, second.isSet_);
+        swap(first.value_, second.value_);
+    }
+
+#ifdef Q_COMPILER_RVALUE_REFS
+    Optional(Optional&& other) {
+        swap(*this, other);
+    }
+
+    Optional& operator=(Optional&& other) {
+        swap(*this, other);
+        return *this;
+    }
+
+    Optional(T&& other) {
+        using std::swap;
+        isSet_ = true;
+        swap(value_, other);
+    }
+
+    Optional& operator=(T&& other) {
+        using std::swap;
+        isSet_ = true;
+        swap(value_, other);
+        return *this;
+    }
+
+#endif
+
 };
 
 
 }
+
 
 #endif // QEVERCLOUD_OPTIONAL_H

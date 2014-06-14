@@ -18,7 +18,7 @@ qevercloud::AsyncResult::AsyncResult(QString url, QByteArray postData, qeverclou
 }
 
 qevercloud::AsyncResult::AsyncResult(QNetworkRequest request, QByteArray postData, qevercloud::AsyncResult::ReadFunctionType readFunction, bool autoDelete, QObject *parent)
- : QObject(parent), request_(request), postData_(postData), readFunction_(readFunction), autoDelete_(autoDelete)
+ : QObject(parent), postData_(postData), readFunction_(readFunction), autoDelete_(autoDelete), request_(request)
 {
     QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
 }
