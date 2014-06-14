@@ -34,6 +34,7 @@ private slots:
 
     void localStorageManagerAsyncSavedSearchesTest();
     void localStorageManagerAsyncLinkedNotebooksTest();
+    void localStorageManagerAsyncTagsTest();
 
 private:
     CoreTester(const CoreTester & other) = delete;
