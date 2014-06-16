@@ -7,7 +7,7 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(IUser)
+QT_FORWARD_DECLARE_CLASS(UserWrapper)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
@@ -43,20 +43,20 @@ protected:
     virtual void switchUserComplete(qint32 userId) = 0;
     virtual void switchUserFailed(qint32 userId, QString errorDescription) = 0;
 
-    virtual void addUserComplete(QSharedPointer<IUser> user) = 0;
-    virtual void addUserFailed(QSharedPointer<IUser> user, QString errorDescription) = 0;
+    virtual void addUserComplete(QSharedPointer<UserWrapper> user) = 0;
+    virtual void addUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription) = 0;
 
-    virtual void updateUserComplete(QSharedPointer<IUser> user) = 0;
-    virtual void updateUserFailed(QSharedPointer<IUser> user, QString errorDecription) = 0;
+    virtual void updateUserComplete(QSharedPointer<UserWrapper> user) = 0;
+    virtual void updateUserFailed(QSharedPointer<UserWrapper> user, QString errorDecription) = 0;
 
-    virtual void findUserComplete(QSharedPointer<IUser> foundUser) = 0;
-    virtual void findUserFailed(QSharedPointer<IUser> user, QString errorDescription) = 0;
+    virtual void findUserComplete(QSharedPointer<UserWrapper> foundUser) = 0;
+    virtual void findUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription) = 0;
 
-    virtual void deleteUserComplete(QSharedPointer<IUser> user) = 0;
-    virtual void deleteUserFailed(QSharedPointer<IUser> user, QString errorDescription) = 0;
+    virtual void deleteUserComplete(QSharedPointer<UserWrapper> user) = 0;
+    virtual void deleteUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription) = 0;
 
-    virtual void expungeUserComplete(QSharedPointer<IUser> user) = 0;
-    virtual void expungeUserFailed(QSharedPointer<IUser> user, QString errorDescription) = 0;
+    virtual void expungeUserComplete(QSharedPointer<UserWrapper> user) = 0;
+    virtual void expungeUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription) = 0;
 
     // Prototypes for notebook-related signals:
     virtual void getNotebookCountComplete(int notebookCount) = 0;
@@ -197,11 +197,11 @@ protected:
     // Pure virtual prototypes for user-related slots:
     virtual void onGetUserCountRequest() = 0;
     virtual void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch) = 0;
-    virtual void onAddUserRequest(QSharedPointer<IUser> user) = 0;
-    virtual void onUpdateUserRequest(QSharedPointer<IUser> user) = 0;
-    virtual void onFindUserRequest(QSharedPointer<IUser> user) = 0;
-    virtual void onDeleteUserRequest(QSharedPointer<IUser> user) = 0;
-    virtual void onExpungeUserRequest(QSharedPointer<IUser> user) = 0;
+    virtual void onAddUserRequest(QSharedPointer<UserWrapper> user) = 0;
+    virtual void onUpdateUserRequest(QSharedPointer<UserWrapper> user) = 0;
+    virtual void onFindUserRequest(QSharedPointer<UserWrapper> user) = 0;
+    virtual void onDeleteUserRequest(QSharedPointer<UserWrapper> user) = 0;
+    virtual void onExpungeUserRequest(QSharedPointer<UserWrapper> user) = 0;
 
     // Pure virtual prototypes for notebook-related slots:
     virtual void onGetNotebookCountRequest() = 0;

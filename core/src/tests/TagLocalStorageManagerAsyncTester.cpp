@@ -74,10 +74,10 @@ void TagLocalStorageManagerAsyncTester::onGetTagCountCompleted(int count)
             return;
         }
 
+        m_pModifiedTag->setLocal(false);
         m_pModifiedTag->setDeleted(true);
-
-        m_state = STATE_SENT_EXPUNGE_REQUEST;
-        emit expungeTagRequest(m_pModifiedTag);
+        m_state = STATE_SENT_DELETE_REQUEST;
+        emit deleteTagRequest(m_pModifiedTag);
     }
     else if (m_state == STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST)
     {
@@ -312,6 +312,34 @@ void TagLocalStorageManagerAsyncTester::onListAllTagsFailed(QString errorDescrip
     emit failure(errorDescription);
 }
 
+void TagLocalStorageManagerAsyncTester::onDeleteTagCompleted(QSharedPointer<Tag> tag)
+{
+    Q_ASSERT_X(!tag.isNull(), "TagLocalStorageManagerAsyncTester::onDeleteTagCompleted slot",
+               "Found NULL pointer to Tag");
+
+    QString errorDescription;
+
+    if (m_pModifiedTag != tag) {
+        errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: "
+                           "tag pointer in onDeleteTagCompleted slot doesn't match "
+                           "the pointer to the original expunged Tag";
+        QNWARNING(errorDescription);
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        emit failure(errorDescription);
+        return;
+    }
+
+    m_pModifiedTag->setLocal(true);
+    m_state = STATE_SENT_EXPUNGE_REQUEST;
+    emit expungeTagRequest(m_pModifiedTag);
+}
+
+void TagLocalStorageManagerAsyncTester::onDeleteTagFailed(QSharedPointer<Tag> tag, QString errorDescription)
+{
+    QNWARNING(errorDescription  << ", tag: " << (tag.isNull() ? QString("NULL") : tag->ToQString()));
+    emit failure(errorDescription);
+}
+
 void TagLocalStorageManagerAsyncTester::onExpungeTagCompleted(QSharedPointer<Tag> tag)
 {
     Q_ASSERT_X(!tag.isNull(), "TagLocalStorageManagerAsyncTester::onExpungeTagCompleted slot",
@@ -353,6 +381,8 @@ void TagLocalStorageManagerAsyncTester::createConnections()
                      SLOT(onFindTagRequest(QSharedPointer<Tag>)));
     QObject::connect(this, SIGNAL(listAllTagsRequest()), m_pLocalStorageManagerThread,
                      SLOT(onListAllTagsRequest()));
+    QObject::connect(this, SIGNAL(deleteTagRequest(QSharedPointer<Tag>)),
+                     m_pLocalStorageManagerThread, SLOT(onDeleteTagRequest(QSharedPointer<Tag>)));
     QObject::connect(this, SIGNAL(expungeTagRequest(QSharedPointer<Tag>)),
                      m_pLocalStorageManagerThread, SLOT(onExpungeTagRequest(QSharedPointer<Tag>)));
 
@@ -377,6 +407,10 @@ void TagLocalStorageManagerAsyncTester::createConnections()
                      this, SLOT(onListAllTagsCompleted(QList<Tag>)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(listAllTagsFailed(QString)),
                      this, SLOT(onListAllTagsFailed(QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(deleteTagComplete(QSharedPointer<Tag>)),
+                     this, SLOT(onDeleteTagCompleted(QSharedPointer<Tag>)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(deleteTagFailed(QSharedPointer<Tag>,QString)),
+                     this, SLOT(onDeleteTagFailed(QSharedPointer<Tag>,QString)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeTagComplete(QSharedPointer<Tag>)),
                      this, SLOT(onExpungeTagCompleted(QSharedPointer<Tag>)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeTagFailed(QSharedPointer<Tag>,QString)),

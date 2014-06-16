@@ -1,5 +1,5 @@
 #include "LocalStorageManagerThreadWorker.h"
-#include <client/types/IUser.h>
+#include <client/types/UserWrapper.h>
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/LinkedNotebook.h>
@@ -50,7 +50,7 @@ void LocalStorageManagerThreadWorker::onSwitchUserRequest(QString username, qint
     emit switchUserComplete(userId);
 }
 
-void LocalStorageManagerThreadWorker::onAddUserRequest(QSharedPointer<IUser> user)
+void LocalStorageManagerThreadWorker::onAddUserRequest(QSharedPointer<UserWrapper> user)
 {
     QString errorDescription;
 
@@ -72,7 +72,7 @@ void LocalStorageManagerThreadWorker::onAddUserRequest(QSharedPointer<IUser> use
     emit addUserComplete(user);
 }
 
-void LocalStorageManagerThreadWorker::onUpdateUserRequest(QSharedPointer<IUser> user)
+void LocalStorageManagerThreadWorker::onUpdateUserRequest(QSharedPointer<UserWrapper> user)
 {
     QString errorDescription;
 
@@ -94,7 +94,7 @@ void LocalStorageManagerThreadWorker::onUpdateUserRequest(QSharedPointer<IUser> 
     emit updateUserComplete(user);
 }
 
-void LocalStorageManagerThreadWorker::onFindUserRequest(QSharedPointer<IUser> user)
+void LocalStorageManagerThreadWorker::onFindUserRequest(QSharedPointer<UserWrapper> user)
 {
     QString errorDescription;
 
@@ -116,7 +116,7 @@ void LocalStorageManagerThreadWorker::onFindUserRequest(QSharedPointer<IUser> us
     emit findUserComplete(user);
 }
 
-void LocalStorageManagerThreadWorker::onDeleteUserRequest(QSharedPointer<IUser> user)
+void LocalStorageManagerThreadWorker::onDeleteUserRequest(QSharedPointer<UserWrapper> user)
 {
     QString errorDescription;
 
@@ -138,7 +138,7 @@ void LocalStorageManagerThreadWorker::onDeleteUserRequest(QSharedPointer<IUser> 
     emit deleteUserComplete(user);
 }
 
-void LocalStorageManagerThreadWorker::onExpungeUserRequest(QSharedPointer<IUser> user)
+void LocalStorageManagerThreadWorker::onExpungeUserRequest(QSharedPointer<UserWrapper> user)
 {
     QString errorDescription;
 

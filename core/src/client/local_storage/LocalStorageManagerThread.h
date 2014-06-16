@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_H
 
 #include "IAsyncLocalStorageManager.h"
-#include <client/types/IUser.h>
+#include <client/types/UserWrapper.h>
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/LinkedNotebook.h>
@@ -44,16 +44,16 @@ Q_SIGNALS:
     void getUserCountFailed(QString errorDescription);
     void switchUserComplete(qint32 userId);
     void switchUserFailed(qint32 userId, QString errorDescription);
-    void addUserComplete(QSharedPointer<IUser> user);
-    void addUserFailed(QSharedPointer<IUser> user, QString errorDescription);
-    void updateUserComplete(QSharedPointer<IUser> user);
-    void updateUserFailed(QSharedPointer<IUser> user, QString errorDecription);
-    void findUserComplete(QSharedPointer<IUser> foundUser);
-    void findUserFailed(QSharedPointer<IUser> user, QString errorDescription);
-    void deleteUserComplete(QSharedPointer<IUser> user);
-    void deleteUserFailed(QSharedPointer<IUser> user, QString errorDescription);
-    void expungeUserComplete(QSharedPointer<IUser> user);
-    void expungeUserFailed(QSharedPointer<IUser> user, QString errorDescription);
+    void addUserComplete(QSharedPointer<UserWrapper> user);
+    void addUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
+    void updateUserComplete(QSharedPointer<UserWrapper> user);
+    void updateUserFailed(QSharedPointer<UserWrapper> user, QString errorDecription);
+    void findUserComplete(QSharedPointer<UserWrapper> foundUser);
+    void findUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
+    void deleteUserComplete(QSharedPointer<UserWrapper> user);
+    void deleteUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
+    void expungeUserComplete(QSharedPointer<UserWrapper> user);
+    void expungeUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
 
     // Notebook-related signals:
     void getNotebookCountComplete(int notebookCount);
@@ -152,11 +152,11 @@ Q_SIGNALS:
     // Signals for dealing with worker class:
     void getUserCountRequest();
     void switchUserRequest(QString username, qint32 userId, bool startFromScratch);
-    void addUserRequest(QSharedPointer<IUser> user);
-    void updateUserRequest(QSharedPointer<IUser> user);
-    void findUserRequest(QSharedPointer<IUser> user);
-    void deleteUserRequest(QSharedPointer<IUser> user);
-    void expungeUserRequest(QSharedPointer<IUser> user);
+    void addUserRequest(QSharedPointer<UserWrapper> user);
+    void updateUserRequest(QSharedPointer<UserWrapper> user);
+    void findUserRequest(QSharedPointer<UserWrapper> user);
+    void deleteUserRequest(QSharedPointer<UserWrapper> user);
+    void expungeUserRequest(QSharedPointer<UserWrapper> user);
 
     void getNotebookCountRequest();
     void addNotebookRequest(QSharedPointer<Notebook> notebook);
@@ -209,11 +209,11 @@ public Q_SLOTS:
     // User-related slots:
     void onGetUserCountRequest();
     void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch);
-    void onAddUserRequest(QSharedPointer<IUser> user);
-    void onUpdateUserRequest(QSharedPointer<IUser> user);
-    void onFindUserRequest(QSharedPointer<IUser> user);
-    void onDeleteUserRequest(QSharedPointer<IUser> user);
-    void onExpungeUserRequest(QSharedPointer<IUser> user);
+    void onAddUserRequest(QSharedPointer<UserWrapper> user);
+    void onUpdateUserRequest(QSharedPointer<UserWrapper> user);
+    void onFindUserRequest(QSharedPointer<UserWrapper> user);
+    void onDeleteUserRequest(QSharedPointer<UserWrapper> user);
+    void onExpungeUserRequest(QSharedPointer<UserWrapper> user);
 
     // Notebook-related slots:
     void onGetNotebookCountRequest();

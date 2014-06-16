@@ -30,6 +30,7 @@ Q_SIGNALS:
     void updateTagRequest(QSharedPointer<Tag> tag);
     void findTagRequest(QSharedPointer<Tag> tag);
     void listAllTagsRequest();
+    void deleteTagRequest(QSharedPointer<Tag> tag);
     void expungeTagRequest(QSharedPointer<Tag> tag);
 
 private Q_SLOTS:
@@ -43,6 +44,8 @@ private Q_SLOTS:
     void onFindTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
     void onListAllTagsCompleted(QList<Tag> tags);
     void onListAllTagsFailed(QString errorDescription);
+    void onDeleteTagCompleted(QSharedPointer<Tag> tag);
+    void onDeleteTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
     void onExpungeTagCompleted(QSharedPointer<Tag> tag);
     void onExpungeTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
 
@@ -57,6 +60,7 @@ private:
         STATE_SENT_UPDATE_REQUEST,
         STATE_SENT_FIND_AFTER_UPDATE_REQUEST,
         STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST,
+        STATE_SENT_DELETE_REQUEST,
         STATE_SENT_EXPUNGE_REQUEST,
         STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST,
         STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST,
