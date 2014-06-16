@@ -1,7 +1,7 @@
 if(CMAKE_COMPILER_IS_GNUCXX)
   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
   message(STATUS "Using GNU C++ compiler, version ${GCC_VERSION}.")
-  if(GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7)
+  if(GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8)
     message(STATUS "Your compiler supports C++11 standard.")
     add_definitions("-std=gnu++11")
     if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
