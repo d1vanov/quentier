@@ -57,46 +57,151 @@ void UserLocalStorageManagerAsyncTester::onInitTestCase()
 
 void UserLocalStorageManagerAsyncTester::onGetUserCountCompleted(int count)
 {
-    Q_UNUSED(count)
-    // TODO: implement
+    QString errorDescription;
+
+#define HANDLE_WRONG_STATE() \
+    else { \
+        errorDescription = QObject::tr("Internal error in UserLocalStorageManagerAsyncTester: " \
+                                       "found wring state"); \
+        emit failure(errorDescription); \
+    }
+
+    if (m_state == STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST)
+    {
+        if (count != 1) {
+            errorDescription = QObject::tr("GetUserCount returned result different from the expected one (1): ");
+            errorDescription += QString::number(count);
+            emit failure(errorDescription);
+            return;
+        }
+
+        m_pModifiedUser->setLocal(false);
+        m_pModifiedUser->setDeletionTimestamp(13);
+        m_state = STATE_SENT_DELETE_REQUEST;
+        emit deleteUserRequest(m_pModifiedUser);
+    }
+    else if (m_state == STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST)
+    {
+        if (count != 0) {
+            errorDescription = QObject::tr("GetUserCount returned result different from the expected one (0): ");
+            errorDescription += QString::number(count);
+            emit failure(errorDescription);
+            return;
+        }
+
+        emit success();
+    }
+    HANDLE_WRONG_STATE();
 }
 
 void UserLocalStorageManagerAsyncTester::onGetUserCountFailed(QString errorDescription)
 {
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    QNWARNING(errorDescription);
+    emit failure(errorDescription);
 }
 
 void UserLocalStorageManagerAsyncTester::onAddUserCompleted(QSharedPointer<UserWrapper> user)
 {
-    Q_UNUSED(user)
-    // TODO: implement
+    Q_ASSERT_X(!user.isNull(), "UserLocalStorageManagerAsyncTester::onAddUserCompleted slot",
+               "Found NULL shared pointer to UserWrapper");
+
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_ADD_REQUEST)
+    {
+        if (m_pInitialUser != user) {
+            errorDescription = "Internal error in UserLocalStorageManagerAsyncTester: "
+                               "user in onAddUserCompleted doesn't match the original UserWrapper";
+            QNWARNING(errorDescription);
+            errorDescription = QObject::tr(qPrintable(errorDescription));
+            emit failure(errorDescription);
+            return;
+        }
+
+        m_pFoundUser = QSharedPointer<UserWrapper>(new UserWrapper);
+        m_pFoundUser->setId(user->id());
+
+        m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
+        emit findUserRequest(m_pFoundUser);
+    }
+    HANDLE_WRONG_STATE();
 }
 
 void UserLocalStorageManagerAsyncTester::onAddUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription)
 {
-    Q_UNUSED(user)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    QNWARNING(errorDescription << ", UserWrapper: " << (user.isNull() ? QString("NULL") : user->ToQString()));
+    emit failure(errorDescription);
 }
 
 void UserLocalStorageManagerAsyncTester::onUpdateUserCompleted(QSharedPointer<UserWrapper> user)
 {
-    Q_UNUSED(user)
-    // TODO: implement
+    Q_ASSERT_X(!user.isNull(), "UserLocalStorageManagerAsyncTester::onUpdateUserCompleted slot",
+               "Found NULL shared pointer to UserWrapper");
+
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_UPDATE_REQUEST)
+    {
+        if (m_pModifiedUser != user) {
+            errorDescription = "Internal error in UserLocalStorageManagerAsyncTester: "
+                               "user pointer in onUpdateUserCompleted slot doesn't match "
+                               "the pointer to the original modified UserWrapper";
+            QNWARNING(errorDescription);
+            errorDescription = QObject::tr(qPrintable(errorDescription));
+            emit failure(errorDescription);
+            return;
+        }
+
+        m_state = STATE_SENT_FIND_AFTER_UPDATE_REQUEST;
+        emit findUserRequest(m_pFoundUser);
+    }
+    HANDLE_WRONG_STATE();
 }
 
 void UserLocalStorageManagerAsyncTester::onUpdateUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription)
 {
-    Q_UNUSED(user)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    QNWARNING(errorDescription << ", user: " << (user.isNull() ? QString("NULL") : user->ToQString()));
+    emit failure(errorDescription);
 }
 
 void UserLocalStorageManagerAsyncTester::onFindUserCompleted(QSharedPointer<UserWrapper> user)
 {
-    Q_UNUSED(user)
-    // TODO: implement
+    Q_ASSERT_X(!user.isNull(), "UserLocalStorageManagerAsyncTester::onFindUserCompleted slot",
+               "Found NULL shared pointer to UserWrapper");
+
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_FIND_AFTER_ADD_REQUEST)
+    {
+        if (m_pFoundUser != user) {
+            errorDescription = "Internal error in UserLocalStorageManagerAsyncTester: "
+                               "user pointer in onFindUserCompleted slot doesn't match "
+                               "the pointer to the original UserWrapper";
+            QNWARNING(errorDescription);
+            errorDescription = QObject::tr(qPrintable(errorDescription));
+            emit failure(errorDescription);
+            return;
+        }
+
+        Q_ASSERT(!m_pInitialUser.isNull());
+        if (*m_pFoundUser != *m_pInitialUser) {
+            errorDescription = "Added and found users in local storage don't match";
+            QNWARNING(errorDescription << ": UserWrapper added to LocalStorageManager: " << *m_pInitialUser
+                      << "\nUserWrapper found in LocalStorageManager: " << *m_pFoundUser);
+            errorDescription = QObject::tr(qPrintable(errorDescription));
+            emit failure(errorDescription);
+            return;
+        }
+
+        // Ok, found user is good, updating it now
+        m_pModifiedUser = QSharedPointer<UserWrapper>(new UserWrapper(*m_pInitialUser));
+        m_pModifiedUser->setUsername(m_pInitialUser->username() + "_modified");
+        m_pModifiedUser->setName(m_pInitialUser->name() + "_modified");
+
+        m_state = STATE_SENT_UPDATE_REQUEST;
+        emit updateUserRequest(m_pModifiedUser);
+    }
+    // TODO: continue from here
 }
 
 void UserLocalStorageManagerAsyncTester::onFindUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription)
