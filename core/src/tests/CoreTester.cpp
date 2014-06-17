@@ -3,6 +3,7 @@
 #include "SavedSearchLocalStorageManagerAsyncTester.h"
 #include "LinkedNotebookLocalStorageManagerAsyncTester.h"
 #include "TagLocalStorageManagerAsyncTester.h"
+#include "UserLocalStorageManagerAsyncTester.h"
 #include <tools/IQuteNoteException.h>
 #include <tools/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
@@ -1085,6 +1086,43 @@ void CoreTester::localStorageManagerAsyncTagsTest()
     }
     else if (tagAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Tag async tester failed to finish in time");
+    }
+}
+
+void CoreTester::localStorageManagerAsyncUsersTest()
+{
+    const int maxAllowedMilliseconds = 60000;     // 10 minutes should be enough
+
+    int userAsyncTestResult = -1;
+    {
+        QTimer timer;
+        timer.setInterval(maxAllowedMilliseconds);
+        timer.setSingleShot(true);
+
+        UserLocalStorageManagerAsyncTester userAsyncTester;
+
+        EventLoopWithExitStatus loop;
+        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
+        loop.connect(&userAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
+        loop.connect(&userAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+
+        QTimer slotInvokingTimer;
+        slotInvokingTimer.setInterval(500);
+        slotInvokingTimer.setSingleShot(true);
+
+        timer.start();
+        slotInvokingTimer.singleShot(0, &userAsyncTester, SLOT(onInitTestCase()));
+        userAsyncTestResult = loop.exec();
+    }
+
+    if (userAsyncTestResult == -1) {
+        QFAIL("Internal error: incorrect return status from UserWrapper async tester");
+    }
+    else if (userAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Failure) {
+        QFAIL("Detected failure during the asynchronous loop processing in UserWrapper async tester");
+    }
+    else if (userAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QFAIL("UserWrapper async tester failed to finish in time");
     }
 }
 

@@ -37,12 +37,15 @@ void UserLocalStorageManagerAsyncTester::onInitTestCase()
     createConnections();
 
     m_pInitialUser = QSharedPointer<UserWrapper>(new UserWrapper);
-    m_pInitialUser->setUsername(username);
+    m_pInitialUser->setUsername("fakeusername");
     m_pInitialUser->setId(userId);
     m_pInitialUser->setEmail("Fake user email");
     m_pInitialUser->setName("Fake user name");
     m_pInitialUser->setTimezone("Europe/Moscow");
     m_pInitialUser->setPrivilegeLevel(qevercloud::PrivilegeLevel::NORMAL);
+    m_pInitialUser->setCreationTimestamp(3);
+    m_pInitialUser->setModificationTimestamp(3);
+    m_pInitialUser->setActive(true);
 
     QString errorDescription;
     if (!m_pInitialUser->checkParameters(errorDescription)) {
@@ -201,40 +204,109 @@ void UserLocalStorageManagerAsyncTester::onFindUserCompleted(QSharedPointer<User
         m_state = STATE_SENT_UPDATE_REQUEST;
         emit updateUserRequest(m_pModifiedUser);
     }
-    // TODO: continue from here
+    else if (m_state == STATE_SENT_FIND_AFTER_UPDATE_REQUEST)
+    {
+        if (m_pFoundUser != user) {
+            errorDescription = "Internal error in UserLocalStorageManagerAsyncTester: "
+                               "user pointer in onFindUserCompleted slot doesn't match "
+                               "the pointer to the original modified UserWrapper";
+            QNWARNING(errorDescription);
+            errorDescription = QObject::tr(qPrintable(errorDescription));
+            emit failure(errorDescription);
+            return;
+        }
+
+        Q_ASSERT(!m_pModifiedUser.isNull());
+        if (*m_pFoundUser != *m_pModifiedUser) {
+            errorDescription = "Updated and found users in local storage don't match";
+            QNWARNING(errorDescription << ": UserWrapper updated in LocalStorageManager: " << *m_pModifiedUser
+                      << "\nUserWrapper found in LocalStorageManager: " << *m_pFoundUser);
+            errorDescription = QObject::tr(qPrintable(errorDescription));
+            emit failure(errorDescription);
+            return;
+        }
+
+        m_state = STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST;
+        emit getUserCountRequest();
+    }
+    else if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST)
+    {
+        Q_ASSERT(!m_pModifiedUser.isNull());
+        errorDescription = "Error: found user which should have been expunged from local storage";
+        QNWARNING(errorDescription << ": UserWrapper expunged from LocalStorageManager: " << *m_pModifiedUser
+                  << "\nUserWrapper found in LocalStorageManager: " << *m_pFoundUser);
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        emit failure(errorDescription);
+        return;
+    }
+    HANDLE_WRONG_STATE();
 }
 
 void UserLocalStorageManagerAsyncTester::onFindUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription)
 {
-    Q_UNUSED(user)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST) {
+        m_state = STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST;
+        emit getUserCountRequest();
+        return;
+    }
+
+    QNWARNING(errorDescription << ", user: " << (user.isNull() ? QString("NULL") : user->ToQString()));
+    emit failure(errorDescription);
 }
 
 void UserLocalStorageManagerAsyncTester::onDeleteUserCompleted(QSharedPointer<UserWrapper> user)
 {
-    Q_UNUSED(user)
-    // TODO: implement
+    Q_ASSERT_X(!user.isNull(), "UserLocalStorageManagerAsyncTester::onDeleteUserCompleted slot",
+               "Found NULL pointer to UserWrapper");
+
+    QString errorDescription;
+
+    if (m_pModifiedUser != user) {
+        errorDescription = "Internal error in UserLocalStorageManagerAsyncTester: "
+                           "user pointer in onDeleteUserCompleted slot doesn't match "
+                           "the pointer to the original deleted UserWrapper";
+        QNWARNING(errorDescription);
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        emit failure(errorDescription);
+        return;
+    }
+
+    m_pModifiedUser->setLocal(true);
+    m_state = STATE_SENT_EXPUNGE_REQUEST;
+    emit expungeUserRequest(m_pModifiedUser);
 }
 
 void UserLocalStorageManagerAsyncTester::onDeleteUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription)
 {
-    Q_UNUSED(user)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    QNWARNING(errorDescription << ", user: " << (user.isNull() ? QString("NULL") : user->ToQString()));
+    emit failure(errorDescription);
 }
 
 void UserLocalStorageManagerAsyncTester::onExpungeUserCompleted(QSharedPointer<UserWrapper> user)
 {
-    Q_UNUSED(user)
-    // TODO: implement
+    Q_ASSERT_X(!user.isNull(), "UserLocalStorageManagerAsyncTester::onExpungeUserCompleted slot",
+               "Found NULL pointer to UserWrapper");
+
+    QString errorDescription;
+
+    if (m_pModifiedUser != user) {
+        errorDescription = "Internal error in UserLocalStorageManagerAsyncTester: "
+                           "user pointer in onExpungeUserCompleted slot doesn't match "
+                           "the pointer to the original expunged UserWrapper";
+        QNWARNING(errorDescription);
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        emit failure(errorDescription);
+    }
+
+    Q_ASSERT(!m_pFoundUser.isNull());
+    m_state = STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST;
+    emit findUserRequest(m_pFoundUser);
 }
 
 void UserLocalStorageManagerAsyncTester::onExpungeUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription)
 {
-    Q_UNUSED(user)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    QNWARNING(errorDescription << ", UserWrapper: " << (user.isNull() ? QString("NULL") : user->ToQString()));
+    emit failure(errorDescription);
 }
 
 void UserLocalStorageManagerAsyncTester::createConnections()
@@ -279,6 +351,8 @@ void UserLocalStorageManagerAsyncTester::createConnections()
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeUserFailed(QSharedPointer<UserWrapper>,QString)),
                      this, SLOT(onExpungeUserFailed(QSharedPointer<UserWrapper>,QString)));
 }
+
+#undef HANDLE_WRONG_STATE
 
 } // namespace test
 } // namespace qute_note
