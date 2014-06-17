@@ -56,6 +56,7 @@ Q_SIGNALS:
     void expungeUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
 
     // Notebook-related signals:
+    // TODO: add signals and slots for FindDefaultNotebook, FindLastUsedNotebook, FindDefaultOrLastUsedNotebook
     void getNotebookCountComplete(int notebookCount);
     void getNotebookCountFailed(QString errorDescription);
     void addNotebookComplete(QSharedPointer<Notebook> notebook);
