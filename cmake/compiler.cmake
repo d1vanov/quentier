@@ -1,20 +1,16 @@
 if(CMAKE_COMPILER_IS_GNUCXX)
   execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-  message(STATUS "Using GNU C++ compiler, version ${GCC_VERSION}.")
+  message(STATUS "Using GNU C++ compiler, version ${GCC_VERSION}")
   if(GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8)
     message(STATUS "Your compiler supports C++11 standard.")
     add_definitions("-std=gnu++11")
     if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
       add_definitions("-fPIC")
     endif()
-  elseif(GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
-    message(WARNING "Your compiler version is known to support C++11 standard only partially.
-                     If you'd get any compilation errors, consider upgrading to a compiler version
-                     which fully supports C++11 standard.")
-    add_definitions("-std=gnu++0x")
   else()
-    message(FATAL_ERROR "Your compiler version does not support C++11 standard.
-                         You need a GNU C++ compiler with version higher than 4.3.")
+    message(FATAL_ERROR "Your compiler is known to not support C++ standard as much
+                         as it is required to build this application. Consider upgrading
+                         your compiler to version 4.8 at least")
   endif()
   add_definitions("-Wno-uninitialized")
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
