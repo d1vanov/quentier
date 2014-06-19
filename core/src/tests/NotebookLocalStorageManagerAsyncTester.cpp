@@ -191,15 +191,96 @@ void NotebookLocalStorageManagerAsyncTester::onUpdateNotebookFailed(QSharedPoint
 
 void NotebookLocalStorageManagerAsyncTester::onFindNotebookCompleted(QSharedPointer<Notebook> notebook)
 {
-    Q_UNUSED(notebook)
-    // TODO: implement
+    Q_ASSERT_X(!notebook.isNull(), "NotebookLocalStorageManagerAsyncTester::onFindNotebookCompleted slot",
+               "Found NULL shared pointer to Notebook");
+
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_FIND_AFTER_ADD_REQUEST)
+    {
+        if (m_pFoundNotebook != notebook) {
+            errorDescription = "Internal error in NotebookLocalStorageManagerAsyncTester: "
+                               "notebook pointer in onFindNotebookCompleted slot doesn't match "
+                               "the pointer to the original Notebook";
+            QNWARNING(errorDescription);
+            errorDescription = QObject::tr(qPrintable(errorDescription));
+            emit failure(errorDescription);
+            return;
+        }
+
+        Q_ASSERT(!m_pInitialNotebook.isNull());
+        if (*m_pFoundNotebook != *m_pInitialNotebook) {
+            errorDescription = "Added and found notebooks in local storage don't match";
+            QNWARNING(errorDescription << ": Notebook added to LocalStorageManager: " << *m_pInitialNotebook
+                      << "\nNotebook found in LocalStorageManager: " << *m_pFoundNotebook);
+            errorDescription = QObject::tr(qPrintable(errorDescription));
+            emit failure(errorDescription);
+            return;
+        }
+
+        // Ok, found notebook is good, modifying it now
+        m_pModifiedNotebook = QSharedPointer<Notebook>(new Notebook(*m_pInitialNotebook));
+        m_pModifiedNotebook->setUpdateSequenceNumber(m_pInitialNotebook->updateSequenceNumber() + 1);
+        m_pModifiedNotebook->setName(m_pInitialNotebook->name() + "_modified");
+        m_pModifiedNotebook->setDefaultNotebook(true);
+        m_pModifiedNotebook->setLastUsed(false);
+        m_pModifiedNotebook->setModificationTimestamp(m_pInitialNotebook->modificationTimestamp() + 1);
+        m_pModifiedNotebook->setPublishingUri(m_pInitialNotebook->publishingUri() + "_modified");
+        m_pModifiedNotebook->setPublishingAscending(!m_pInitialNotebook->isPublishingAscending());
+        m_pModifiedNotebook->setPublishingPublicDescription(m_pInitialNotebook->publishingPublicDescription() + "_modified");
+        m_pModifiedNotebook->setStack(m_pInitialNotebook->stack() + "_modified");
+        m_pModifiedNotebook->setBusinessNotebookDescription(m_pInitialNotebook->businessNotebookDescription() + "_modified");
+
+        m_state = STATE_SENT_UPDATE_REQUEST;
+        emit updateNotebookRequest(m_pModifiedNotebook);
+    }
+    else if (m_state == STATE_SENT_FIND_AFTER_UPDATE_REQUEST)
+    {
+        if (m_pFoundNotebook != notebook) {
+            errorDescription = "Internal error in NotebookLocalStorageManagerAsyncTester: "
+                               "notebook pointer in onFindNotebookCompleted slot doesn't match "
+                               "the pointer to the oirginal modified Notebook";
+            QNWARNING(errorDescription);
+            errorDescription = QObject::tr(qPrintable(errorDescription));
+            emit failure(errorDescription);
+            return;
+        }
+
+        Q_ASSERT(!m_pModifiedNotebook.isNull());
+        if (*m_pFoundNotebook != *m_pModifiedNotebook) {
+            errorDescription = "Updated and found notebooks in local storage don't match";
+            QNWARNING(errorDescription);
+            errorDescription = QObject::tr(qPrintable(errorDescription));
+            emit failure(errorDescription);
+            return;
+        }
+
+        m_state = STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST;
+        emit getNotebookCountRequest();
+    }
+    else if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST)
+    {
+        Q_ASSERT(!m_pModifiedNotebook.isNull());
+        errorDescription = "Error: found notebook which should have been expunged from local storage";
+        QNWARNING(errorDescription << ": Notebook expunged from LocalStorageManager: " << *m_pModifiedNotebook
+                  << "\nNotebook found in LocalStorageManager: " << *m_pFoundNotebook);
+        errorDescription = QObject::tr(qPrintable(errorDescription));
+        emit failure(errorDescription);
+        return;
+    }
+    HANDLE_WRONG_STATE();
 }
 
 void NotebookLocalStorageManagerAsyncTester::onFindNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription)
 {
-    Q_UNUSED(notebook)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST) {
+        m_state = STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST;
+        emit getNotebookCountRequest();
+        return;
+    }
+
+    QNWARNING(errorDescription << ", notebook: " << (notebook.isNull() ? QString("NULL") : notebook->ToQString()));
+    emit failure(errorDescription);
 }
 
 void NotebookLocalStorageManagerAsyncTester::onFindDefaultNotebookCompleted(QSharedPointer<Notebook> notebook)
