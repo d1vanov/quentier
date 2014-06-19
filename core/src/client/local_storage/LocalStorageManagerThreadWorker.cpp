@@ -238,6 +238,72 @@ void LocalStorageManagerThreadWorker::onFindNotebookRequest(QSharedPointer<Noteb
     emit findNotebookComplete(notebook);
 }
 
+void LocalStorageManagerThreadWorker::onFindDefaultNotebookRequest(QSharedPointer<Notebook> notebook)
+{
+    QString errorDescription;
+
+    if (notebook.isNull()) {
+        errorDescription = "Internal error: detected null pointer "
+                           "on attempt to find default notebook in local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit findDefaultNotebookFailed(notebook, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.FindDefaultNotebook(*notebook, errorDescription);
+    if (!res) {
+        emit findDefaultNotebookFailed(notebook, errorDescription);
+        return;
+    }
+
+    emit findNotebookComplete(notebook);
+}
+
+void LocalStorageManagerThreadWorker::onFindLastUsedNotebookRequest(QSharedPointer<Notebook> notebook)
+{
+    QString errorDescription;
+
+    if (notebook.isNull()) {
+        errorDescription = "Internal error: detected null pointer "
+                           "on attempt to find last used notebook in local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit findLastUsedNotebookFailed(notebook, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.FindLastUsedNotebook(*notebook, errorDescription);
+    if (!res) {
+        emit findLastUsedNotebookFailed(notebook, errorDescription);
+        return;
+    }
+
+    emit findLastUsedNotebookComplete(notebook);
+}
+
+void LocalStorageManagerThreadWorker::onFindDefaultOrLastUsedNotebookRequest(QSharedPointer<Notebook> notebook)
+{
+    QString errorDescription;
+
+    if (notebook.isNull()) {
+        errorDescription = "Internal error: detected null pointer "
+                           "on attemt to find default or last used notebook in local storage";
+        QNCRITICAL(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit findDefaultOrLastUsedNotebookFailed(notebook, errorDescription);
+        return;
+    }
+
+    bool res = m_localStorageManager.FindDefaultOrLastUsedNotebook(*notebook, errorDescription);
+    if (!res) {
+        emit findDefaultOrLastUsedNotebookFailed(notebook, errorDescription);
+        return;
+    }
+
+    emit findDefaultOrLastUsedNotebookComplete(notebook);
+}
+
 void LocalStorageManagerThreadWorker::onListAllNotebooksRequest()
 {
     QString errorDescription;

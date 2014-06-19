@@ -428,8 +428,6 @@ bool IResource::hasRecognitionDataBody() const
     return GetEnResource().recognition->body.isSet();
 }
 
-// TODO: continue from here
-
 const QByteArray & IResource::recognitionDataBody() const
 {
     return GetEnResource().recognition->body;

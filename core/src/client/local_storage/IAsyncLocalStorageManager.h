@@ -71,6 +71,15 @@ protected:
     virtual void findNotebookComplete(QSharedPointer<Notebook> foundNotebook) = 0;
     virtual void findNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
 
+    virtual void findDefaultNotebookComplete(QSharedPointer<Notebook> foundNotebook) = 0;
+    virtual void findDefaultNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+
+    virtual void findLastUsedNotebookComplete(QSharedPointer<Notebook> foundNotebook) = 0;
+    virtual void findLastUsedNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+
+    virtual void findDefaultOrLastUsedNotebookComplete(QSharedPointer<Notebook> foundNotebook) = 0;
+    virtual void findDefaultOrLastUsedNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+
     virtual void listAllNotebooksComplete(QList<Notebook> foundNotebooks) = 0;
     virtual void listAllNotebooksFailed(QString errorDescription) = 0;
 
@@ -208,6 +217,9 @@ protected:
     virtual void onAddNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
     virtual void onUpdateNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
     virtual void onFindNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
+    virtual void onFindDefaultNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
+    virtual void onFindLastUsedNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
+    virtual void onFindDefaultOrLastUsedNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
     virtual void onListAllNotebooksRequest() = 0;
     virtual void onListAllSharedNotebooksRequest() = 0;
     virtual void onListSharedNotebooksPerNotebookGuidRequest(QString notebookGuid) = 0;
