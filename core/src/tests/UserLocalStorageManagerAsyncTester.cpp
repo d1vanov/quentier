@@ -65,7 +65,7 @@ void UserLocalStorageManagerAsyncTester::onGetUserCountCompleted(int count)
 #define HANDLE_WRONG_STATE() \
     else { \
         errorDescription = QObject::tr("Internal error in UserLocalStorageManagerAsyncTester: " \
-                                       "found wring state"); \
+                                       "found wrong state"); \
         emit failure(errorDescription); \
     }
 
