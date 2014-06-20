@@ -94,10 +94,22 @@ void LocalStorageManagerThread::createConnections()
                      this, SIGNAL(findNotebookComplete(QSharedPointer<Notebook>)));
     QObject::connect(m_pWorker, SIGNAL(findNotebookFailed(QSharedPointer<Notebook>,QString)),
                      this, SIGNAL(findNotebookFailed(QSharedPointer<Notebook>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(listAllLinkedNotebooksComplete(QList<LinkedNotebook>)),
-                     this, SIGNAL(listAllLinkedNotebooksComplete(QList<LinkedNotebook>)));
-    QObject::connect(m_pWorker, SIGNAL(listAllLinkedNotebooksFailed(QString)),
-                     this, SIGNAL(listAllLinkedNotebooksFailed(QString)));
+    QObject::connect(m_pWorker, SIGNAL(findDefaultNotebookComplete(QSharedPointer<Notebook>)),
+                     this, SIGNAL(findDefaultNotebookComplete(QSharedPointer<Notebook>)));
+    QObject::connect(m_pWorker, SIGNAL(findDefaultNotebookFailed(QSharedPointer<Notebook>,QString)),
+                     this, SIGNAL(findDefaultNotebookFailed(QSharedPointer<Notebook>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(findLastUsedNotebookComplete(QSharedPointer<Notebook>)),
+                     this, SIGNAL(findLastUsedNotebookComplete(QSharedPointer<Notebook>)));
+    QObject::connect(m_pWorker, SIGNAL(findLastUsedNotebookFailed(QSharedPointer<Notebook>,QString)),
+                     this, SIGNAL(findLastUsedNotebookFailed(QSharedPointer<Notebook>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(findDefaultOrLastUsedNotebookComplete(QSharedPointer<Notebook>)),
+                     this, SIGNAL(findDefaultOrLastUsedNotebookComplete(QSharedPointer<Notebook>)));
+    QObject::connect(m_pWorker, SIGNAL(findDefaultOrLastUsedNotebookFailed(QSharedPointer<Notebook>,QString)),
+                     this, SIGNAL(findDefaultOrLastUsedNotebookFailed(QSharedPointer<Notebook>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(listAllNotebooksComplete(QList<Notebook>)),
+                     this, SIGNAL(listAllNotebooksComplete(QList<Notebook>)));
+    QObject::connect(m_pWorker, SIGNAL(listAllNotebooksFailed(QString)),
+                     this, SIGNAL(listAllNotebooksFailed(QString)));
     QObject::connect(m_pWorker, SIGNAL(listAllSharedNotebooksComplete(QList<SharedNotebookWrapper>)),
                      this, SIGNAL(listAllSharedNotebooksComplete(QList<SharedNotebookWrapper>)));
     QObject::connect(m_pWorker, SIGNAL(listAllSharedNotebooksFailed(QString)),

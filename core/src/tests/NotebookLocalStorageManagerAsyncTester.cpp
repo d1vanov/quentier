@@ -523,8 +523,8 @@ void NotebookLocalStorageManagerAsyncTester::onFindDefaultOrLastUsedNotebookComp
             m_pModifiedNotebook = QSharedPointer<Notebook>(new Notebook(*m_pInitialNotebook));
             m_pModifiedNotebook->setUpdateSequenceNumber(m_pInitialNotebook->updateSequenceNumber() + 1);
             m_pModifiedNotebook->setName(m_pInitialNotebook->name() + "_modified");
-            m_pModifiedNotebook->setDefaultNotebook(true);
-            m_pModifiedNotebook->setLastUsed(false);
+            m_pModifiedNotebook->setDefaultNotebook(false);
+            m_pModifiedNotebook->setLastUsed(true);
             m_pModifiedNotebook->setModificationTimestamp(m_pInitialNotebook->modificationTimestamp() + 1);
             m_pModifiedNotebook->setPublishingUri(m_pInitialNotebook->publishingUri() + "_modified");
             m_pModifiedNotebook->setPublishingAscending(!m_pInitialNotebook->isPublishingAscending());
@@ -720,6 +720,10 @@ void NotebookLocalStorageManagerAsyncTester::createConnections()
                      this, SLOT(onAddNotebookCompleted(QSharedPointer<Notebook>)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNotebookFailed(QSharedPointer<Notebook>,QString)),
                      this, SLOT(onAddNotebookFailed(QSharedPointer<Notebook>,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateNotebookComplete(QSharedPointer<Notebook>)),
+                     this, SLOT(onUpdateNotebookCompleted(QSharedPointer<Notebook>)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateNotebookFailed(QSharedPointer<Notebook>,QString)),
+                     this, SLOT(onUpdateNotebookFailed(QSharedPointer<Notebook>,QString)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findNotebookComplete(QSharedPointer<Notebook>)),
                      this, SLOT(onFindNotebookCompleted(QSharedPointer<Notebook>)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findNotebookFailed(QSharedPointer<Notebook>,QString)),

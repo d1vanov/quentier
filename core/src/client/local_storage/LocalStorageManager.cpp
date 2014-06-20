@@ -4465,19 +4465,20 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
                                      int, qint64, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(modificationTimestamp, setModificationTimestamp,
                                      int, qint64, isRequired);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isPublished, setPublished, int, bool, isRequired);
+
+    isRequired = false;
+
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(stack, setStack, QString, QString, isRequired);
 
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isPublished, setPublished, int, bool, isRequired);
     if (notebook.hasPublished() && notebook.isPublished())
     {
-        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingUri, setPublishingUri,
-                                         QString, QString, isRequired);
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingUri, setPublishingUri, QString, QString, isRequired);
         CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingNoteSortOrder, setPublishingOrder,
                                          int, qint8, isRequired);
         CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publishingAscendingSort, setPublishingAscending,
                                          int, bool, isRequired);
-        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publicDescription,
-                                         setPublishingPublicDescription,
+        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(publicDescription, setPublishingPublicDescription,
                                          QString, QString, isRequired);
     }
 
@@ -4488,7 +4489,6 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(businessNotebookIsRecommended, setBusinessNotebookRecommended,
                                      int, bool, isRequired);
 
-    isRequired = false;
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLastUsed, setLastUsed, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDefault, setDefaultNotebook, int, bool, isRequired);
 

@@ -270,6 +270,9 @@ const QString & Notebook::publishingUri() const
 #define CHECK_AND_SET_PUBLISHING \
     if (!m_qecNotebook.publishing.isSet()) { \
         m_qecNotebook.publishing = qevercloud::Publishing(); \
+    } \
+    if (!m_qecNotebook.published.isSet()) { \
+        m_qecNotebook.published = true; \
     }
 
 void Notebook::setPublishingUri(const QString & uri)
@@ -952,6 +955,7 @@ QTextStream & Notebook::Print(QTextStream & strm) const
     else {
         strm << "modificationTimestamp is not set";
     }
+    INSERT_DELIMITER;
 
     if (m_qecNotebook.publishing.isSet())
     {

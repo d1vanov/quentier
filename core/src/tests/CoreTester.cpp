@@ -1127,7 +1127,6 @@ void CoreTester::localStorageManagerAsyncUsersTest()
     }
 }
 
-/*
 void CoreTester::localStorageManagerAsyncNotebooksTest()
 {
     const int maxAllowedMilliseconds = 60000;     // 10 minutes should be enough
@@ -1164,7 +1163,6 @@ void CoreTester::localStorageManagerAsyncNotebooksTest()
         QFAIL("Notebook async tester failed to finish in time");
     }
 }
-*/
 
 #undef CATCH_EXCEPTION
 
