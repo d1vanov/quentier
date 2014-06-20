@@ -35,7 +35,7 @@ Q_SIGNALS:
     void findDefaultOrLastUsedNotebookRequest(QSharedPointer<Notebook> notebook);
     void listAllNotebooksRequest();
     void listAllSharedNotebooksRequest();
-    void listSharedNotebooksPerNotebookRequest();
+    void listSharedNotebooksPerNotebookRequest(QString notebookGuid);
     void expungeNotebookRequest(QSharedPointer<Notebook> notebook);
 
 private Q_SLOTS:
@@ -57,8 +57,8 @@ private Q_SLOTS:
     void onListAllNotebooksFailed(QString errorDescription);
     void onListAllSharedNotebooksCompleted(QList<SharedNotebookWrapper> sharedNotebooks);
     void onListAllSharedNotebooksFailed(QString errorDescription);
-    void onListSharedNotebooksPerNotebookGuidCompleted(QList<SharedNotebookWrapper> sharedNotebooks);
-    void onListSharedNotebooksPerNotebookGuidFailed(QString errorDescription);
+    void onListSharedNotebooksPerNotebookGuidCompleted(QString notebookGuid, QList<SharedNotebookWrapper> sharedNotebooks);
+    void onListSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, QString errorDescription);
     void onExpungeNotebookCompleted(QSharedPointer<Notebook> notebook);
     void onExpungeNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
 
@@ -82,9 +82,12 @@ private:
         STATE_SENT_LIST_NOTEBOOKS_REQUEST,
         STATE_SENT_LIST_ALL_SHARED_NOTEBOOKS_REQUEST,
         STATE_SENT_LIST_SHARED_NOTEBOOKS_PER_NOTEBOOK_REQUEST,
-        STATE_SENT_FIND_DEFAULT_NOTEBOOK,
-        STATE_SENT_FIND_LAST_USED_NOTEBOOK,
-        STATE_SENT_FIND_DEFAULT_OR_LAST_USED_NOTEBOOK
+        STATE_SENT_FIND_DEFAULT_NOTEBOOK_AFTER_ADD,
+        STATE_SENT_FIND_LAST_USED_NOTEBOOK_AFTER_ADD,
+        STATE_SENT_FIND_DEFAULT_OR_LAST_USED_NOTEBOOK_AFTER_ADD,
+        STATE_SENT_FIND_DEFAULT_NOTEBOOK_AFTER_UPDATE,
+        STATE_SENT_FIND_LAST_USED_NOTEBOOK_AFTER_UPDATE,
+        STATE_SENT_FIND_DEFAULT_OR_LAST_USED_NOTEBOOK_AFTER_UPDATE
     };
 
     State m_state;

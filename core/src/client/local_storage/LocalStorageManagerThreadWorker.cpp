@@ -257,7 +257,7 @@ void LocalStorageManagerThreadWorker::onFindDefaultNotebookRequest(QSharedPointe
         return;
     }
 
-    emit findNotebookComplete(notebook);
+    emit findDefaultNotebookComplete(notebook);
 }
 
 void LocalStorageManagerThreadWorker::onFindLastUsedNotebookRequest(QSharedPointer<Notebook> notebook)
