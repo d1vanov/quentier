@@ -100,10 +100,10 @@ Q_SIGNALS:
     void addNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription);
     void updateNoteComplete(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
     void updateNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription);
-    void findNoteComplete(QSharedPointer<Note> foundNote);
-    void findNoteFailed(QSharedPointer<Note> note, QString errorDescription);
-    void listAllNotesPerNotebookComplete(QSharedPointer<Notebook> notebook, QList<Note> foundNotes);
-    void listAllNotesPerNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
+    void findNoteComplete(QSharedPointer<Note> foundNote, bool withResourceBinaryData);
+    void findNoteFailed(QSharedPointer<Note> note, bool withResourceBinaryData, QString errorDescription);
+    void listAllNotesPerNotebookComplete(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QList<Note> foundNotes);
+    void listAllNotesPerNotebookFailed(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QString errorDescription);
     void deleteNoteComplete(QSharedPointer<Note> note);
     void deleteNoteFailed(QSharedPointer<Note> note, QString errorDescription);
     void expungeNoteComplete(QSharedPointer<Note> note);

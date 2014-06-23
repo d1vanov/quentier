@@ -557,17 +557,17 @@ void LocalStorageManagerThreadWorker::onFindNoteRequest(QSharedPointer<Note> not
                            "on attempt to find note in local storage";
         QNCRITICAL(errorDescription);
         QNTRANSLATE(errorDescription);
-        emit findNoteFailed(note, errorDescription);
+        emit findNoteFailed(note, withResourceBinaryData, errorDescription);
         return;
     }
 
     bool res = m_localStorageManager.FindNote(*note, errorDescription, withResourceBinaryData);
     if (!res) {
-        emit findNoteFailed(note, errorDescription);
+        emit findNoteFailed(note, withResourceBinaryData, errorDescription);
         return;
     }
 
-    emit findNoteComplete(note);
+    emit findNoteComplete(note, withResourceBinaryData);
 }
 
 void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(QSharedPointer<Notebook> notebook,
@@ -580,18 +580,18 @@ void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(QSharedPo
                            "on attempt to list notes per notebook in local storage";
         QNCRITICAL(errorDescription);
         QNTRANSLATE(errorDescription);
-        emit listAllNotesPerNotebookFailed(notebook, errorDescription);
+        emit listAllNotesPerNotebookFailed(notebook, withResourceBinaryData, errorDescription);
         return;
     }
 
     QList<Note> notes = m_localStorageManager.ListAllNotesPerNotebook(*notebook, errorDescription,
                                                                       withResourceBinaryData);
     if (notes.isEmpty() && !errorDescription.isEmpty()) {
-        emit listAllNotesPerNotebookFailed(notebook, errorDescription);
+        emit listAllNotesPerNotebookFailed(notebook, withResourceBinaryData, errorDescription);
         return;
     }
 
-    emit listAllNotesPerNotebookComplete(notebook, notes);
+    emit listAllNotesPerNotebookComplete(notebook, withResourceBinaryData, notes);
 }
 
 void LocalStorageManagerThreadWorker::onDeleteNoteRequest(QSharedPointer<Note> note)

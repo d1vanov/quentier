@@ -185,14 +185,14 @@ void LocalStorageManagerThread::createConnections()
                      this, SIGNAL(updateNoteComplete(QSharedPointer<Note>,QSharedPointer<Notebook>)));
     QObject::connect(m_pWorker, SIGNAL(updateNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)),
                      this, SIGNAL(updateNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(findNoteComplete(QSharedPointer<Note>)),
-                     this, SIGNAL(findNoteComplete(QSharedPointer<Note>)));
-    QObject::connect(m_pWorker, SIGNAL(findNoteFailed(QSharedPointer<Note>,QString)),
-                     this, SIGNAL(findNoteFailed(QSharedPointer<Note>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(listAllNotesPerNotebookComplete(QSharedPointer<Notebook>,QList<Note>)),
-                     this, SIGNAL(listAllNotesPerNotebookComplete(QSharedPointer<Notebook>,QList<Note>)));
-    QObject::connect(m_pWorker, SIGNAL(listAllNotesPerNotebookFailed(QSharedPointer<Notebook>,QString)),
-                     this, SIGNAL(listAllNotesPerNotebookFailed(QSharedPointer<Notebook>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(findNoteComplete(QSharedPointer<Note>,bool)),
+                     this, SIGNAL(findNoteComplete(QSharedPointer<Note>,bool)));
+    QObject::connect(m_pWorker, SIGNAL(findNoteFailed(QSharedPointer<Note>,bool,QString)),
+                     this, SIGNAL(findNoteFailed(QSharedPointer<Note>,bool,QString)));
+    QObject::connect(m_pWorker, SIGNAL(listAllNotesPerNotebookComplete(QSharedPointer<Notebook>,bool,QList<Note>)),
+                     this, SIGNAL(listAllNotesPerNotebookComplete(QSharedPointer<Notebook>,bool,QList<Note>)));
+    QObject::connect(m_pWorker, SIGNAL(listAllNotesPerNotebookFailed(QSharedPointer<Notebook>,bool,QString)),
+                     this, SIGNAL(listAllNotesPerNotebookFailed(QSharedPointer<Notebook>,bool,QString)));
     QObject::connect(m_pWorker, SIGNAL(deleteNoteComplete(QSharedPointer<Note>)),
                      this, SIGNAL(deleteNoteComplete(QSharedPointer<Note>)));
     QObject::connect(m_pWorker, SIGNAL(deleteNoteFailed(QSharedPointer<Note>,QString)),

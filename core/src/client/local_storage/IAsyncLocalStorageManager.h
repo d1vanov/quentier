@@ -121,11 +121,11 @@ protected:
     virtual void updateNoteComplete(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
     virtual void updateNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
 
-    virtual void findNoteComplete(QSharedPointer<Note> foundNote) = 0;
-    virtual void findNoteFailed(QSharedPointer<Note> note, QString errorDescription) = 0;
+    virtual void findNoteComplete(QSharedPointer<Note> foundNote, bool withResourceBinaryData) = 0;
+    virtual void findNoteFailed(QSharedPointer<Note> note, bool withResourceBinaryData, QString errorDescription) = 0;
 
-    virtual void listAllNotesPerNotebookComplete(QSharedPointer<Notebook> notebook, QList<Note> foundNotes) = 0;
-    virtual void listAllNotesPerNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+    virtual void listAllNotesPerNotebookComplete(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QList<Note> foundNotes) = 0;
+    virtual void listAllNotesPerNotebookFailed(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QString errorDescription) = 0;
 
     virtual void deleteNoteComplete(QSharedPointer<Note> note) = 0;
     virtual void deleteNoteFailed(QSharedPointer<Note> note, QString errorDescription) = 0;
