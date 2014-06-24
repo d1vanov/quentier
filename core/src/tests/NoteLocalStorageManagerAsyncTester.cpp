@@ -1,6 +1,7 @@
 #include "NoteLocalStorageManagerAsyncTester.h"
 #include <client/local_storage/LocalStorageManagerThread.h>
 #include <logging/QuteNoteLogger.h>
+#include <QPainter>
 
 namespace qute_note {
 namespace test {
@@ -78,7 +79,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookCompleted(QSharedPointer<N
         errorDescription = "Internal error in NoteLocalStorageManagerAsyncTester: " \
                            "found wrong state"; \
         QNWARNING(errorDescription << ": " << m_state); \
-        errorDescription = QObject::tr(qPrintable(errorDescription)); \
+        QNTRANSLATE(errorDescription); \
         emit failure(errorDescription); \
     }
 
@@ -89,7 +90,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookCompleted(QSharedPointer<N
                                "notebook in onAddNotebookCompleted slot doesn't match "
                                "the original Notebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
+            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -106,6 +107,21 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookCompleted(QSharedPointer<N
         m_state = STATE_SENT_ADD_REQUEST;
         emit addNoteRequest(m_pInitialNote, m_pNotebook);
     }
+    else if (m_state == STATE_SENT_ADD_EXTRA_NOTEBOOK_REQUEST)
+    {
+        QSharedPointer<Note> extraNote = QSharedPointer<Note>(new Note);
+        extraNote->setGuid("00000000-0000-0000-c000-000000000006");
+        extraNote->setUpdateSequenceNumber(6);
+        extraNote->setActive(true);
+        extraNote->setContent("Fake note content three");
+        extraNote->setCreationTimestamp(3);
+        extraNote->setModificationTimestamp(3);
+        extraNote->setNotebookGuid(m_pExtraNotebook->guid());
+        extraNote->setTitle("Fake note title three");
+
+        m_state = STATE_SENT_ADD_EXTRA_NOTE_THREE_REQUEST;
+        emit addNoteRequest(extraNote, m_pExtraNotebook);
+    }
     HANDLE_WRONG_STATE();
 }
 
@@ -117,75 +133,339 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookFailed(QSharedPointer<Note
 
 void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count)
 {
-    Q_UNUSED(count)
-    // TODO: implement
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST)
+    {
+        if (count != 1) {
+            errorDescription = "GetNoteCount returned result different from the expected one (1): ";
+            errorDescription += QString::number(count);
+            QNWARNING(errorDescription);
+            QNTRANSLATE(errorDescription);
+            emit failure(errorDescription);
+            return;
+        }
+
+        m_pModifiedNote->setLocal(false);
+        m_pModifiedNote->setDeleted(true);
+        m_state = STATE_SENT_DELETE_REQUEST;
+        emit deleteNoteRequest(m_pModifiedNote);
+    }
+    else if (m_state == STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST)
+    {
+        if (count != 0) {
+            errorDescription = "GetNoteCount returned result different from the expected one (0): ";
+            errorDescription += QString::number(count);
+            QNWARNING(errorDescription);
+            QNTRANSLATE(errorDescription);
+            emit failure(errorDescription);
+            return;
+        }
+
+        QSharedPointer<Note> extraNote = QSharedPointer<Note>(new Note);
+        extraNote->setGuid("00000000-0000-0000-c000-000000000001");
+        extraNote->setUpdateSequenceNumber(1);
+        extraNote->setActive(true);
+        extraNote->setContent("Fake note content one");
+        extraNote->setCreationTimestamp(1);
+        extraNote->setModificationTimestamp(1);
+        extraNote->setNotebookGuid(m_pNotebook->guid());
+        extraNote->setTitle("Fake note title one");
+
+        QImage img(20, 20, QImage::Format_RGB32);
+        QRect rect = img.rect();
+        QPainter painter;
+        QBrush brush;
+        brush.setColor(Qt::red);
+        painter.setBrush(brush);
+        painter.drawRect(rect);
+
+        extraNote->setThumbnail(img);
+
+        ResourceWrapper resource;
+        resource.setGuid("00000000-0000-0000-c000-000000000002");
+        resource.setUpdateSequenceNumber(2);
+        resource.setNoteGuid(extraNote->guid());
+        resource.setDataBody(QByteArray("Fake resource data body"));
+        resource.setMime("text/plain");
+        resource.setHeight(rect.height());
+        resource.setWidth(rect.width());
+
+        extraNote->addResource(resource);
+
+        m_state = STATE_SENT_ADD_EXTRA_NOTE_ONE_REQUEST;
+        emit addNoteRequest(extraNote, m_pNotebook);
+    }
+    HANDLE_WRONG_STATE();
 }
 
 void NoteLocalStorageManagerAsyncTester::onGetNoteCountFailed(QString errorDescription)
 {
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    QNWARNING(errorDescription);
+    emit failure(errorDescription);
 }
 
 void NoteLocalStorageManagerAsyncTester::onAddNoteCompleted(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(notebook)
-    // TODO: implement
+    Q_ASSERT_X(!note.isNull(), "NoteLocalStorageManagerAsyncTester::onAddNoteCompleted slot",
+               "Found NULL shared pointer to Note");
+
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_ADD_REQUEST)
+    {
+        if (m_pInitialNote != note) {
+            errorDescription = "Internal error in NoteLocalStorageManagerAsyncTester: "
+                               "note pointer in onAddNoteCompleted slot doesn't match "
+                               "the pointer to the original Note";
+            QNWARNING(errorDescription);
+            QNTRANSLATE(errorDescription);
+            emit failure(errorDescription);
+            return;
+        }
+
+        m_pFoundNote = QSharedPointer<Note>(new Note);
+        m_pFoundNote->setLocalGuid(note->localGuid());
+
+        m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
+        bool withResourceBinaryData = true;
+        emit findNoteRequest(m_pFoundNote, withResourceBinaryData);
+    }
+    else if (m_state == STATE_SENT_ADD_EXTRA_NOTE_ONE_REQUEST)
+    {
+        m_initialNotes << *note;
+
+        QSharedPointer<Note> extraNote = QSharedPointer<Note>(new Note);
+        extraNote->setGuid("00000000-0000-0000-c000-000000000004");
+        extraNote->setUpdateSequenceNumber(4);
+        extraNote->setActive(true);
+        extraNote->setContent("Fake note content two");
+        extraNote->setCreationTimestamp(2);
+        extraNote->setModificationTimestamp(2);
+        extraNote->setNotebookGuid(m_pNotebook->guid());
+        extraNote->setTitle("Fake note title two");
+
+        m_state = STATE_SENT_ADD_EXTRA_NOTE_TWO_REQUEST;
+        emit addNoteRequest(extraNote, m_pNotebook);
+    }
+    else if (m_state == STATE_SENT_ADD_EXTRA_NOTE_TWO_REQUEST)
+    {
+        m_initialNotes << *note;
+
+        m_pExtraNotebook = QSharedPointer<Notebook>(new Notebook);
+        m_pExtraNotebook->setGuid("00000000-0000-0000-c000-000000000005");
+        m_pExtraNotebook->setUpdateSequenceNumber(1);
+        m_pExtraNotebook->setName("Fake notebook name two");
+        m_pExtraNotebook->setCreationTimestamp(1);
+        m_pExtraNotebook->setModificationTimestamp(1);
+        m_pExtraNotebook->setDefaultNotebook(false);
+        m_pExtraNotebook->setLastUsed(true);
+
+        m_state = STATE_SENT_ADD_EXTRA_NOTEBOOK_REQUEST;
+        emit addNotebookRequest(m_pExtraNotebook);
+    }
+    else if (m_state == STATE_SENT_ADD_EXTRA_NOTE_THREE_REQUEST)
+    {
+        m_initialNotes << *note;
+
+        m_state = STATE_SENT_LIST_ALL_NOTES_PER_NOTEBOOK_ONE_REQUEST;
+        bool withResourceBinaryData = true;
+        emit listAllNotesPerNotebookRequest(m_pNotebook, withResourceBinaryData);
+    }
+    HANDLE_WRONG_STATE();
 }
 
 void NoteLocalStorageManagerAsyncTester::onAddNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(notebook)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    QNWARNING(errorDescription << ", Note: " << (note.isNull() ? QString("NULL") : note->ToQString())
+              << ", Notebook: " << (notebook.isNull() ? QString("NULL") : notebook->ToQString()));
+    emit failure(errorDescription);
 }
 
 void NoteLocalStorageManagerAsyncTester::onUpdateNoteCompleted(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(notebook)
-    // TODO: implement
+    Q_ASSERT_X(!note.isNull(), "NoteLocalStorageManagerAsyncTester::onUpdateNoteCompleted slot",
+               "Found NULL shared pointer to Note");
+
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_UPDATE_REQUEST)
+    {
+        if (m_pModifiedNote != note) {
+            errorDescription = "Internal error in NoteLocalStorageManagerAsyncTester: "
+                               "note pointer in onUpdateNoteCompleted slot doesn't match "
+                               "the pointer to the original updated Note";
+            QNWARNING(errorDescription);
+            QNTRANSLATE(errorDescription);
+            emit failure(errorDescription);
+            return;
+        }
+
+        m_state = STATE_SENT_FIND_AFTER_UPDATE_REQUEST;
+        bool withResourceBinaryData = true;
+        emit findNoteRequest(m_pFoundNote, withResourceBinaryData);
+    }
+    HANDLE_WRONG_STATE();
 }
 
 void NoteLocalStorageManagerAsyncTester::onUpdateNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(notebook)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    QNWARNING(errorDescription << ", Note: " << (note.isNull() ? QString("NULL") : note->ToQString())
+              << ", Notebook: " << (notebook.isNull() ? QString("NULL") : notebook->ToQString()));
+    emit failure(errorDescription);
 }
 
 void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(QSharedPointer<Note> note, bool withResourceBinaryData)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(withResourceBinaryData)
-    // TODO: implement
+    Q_ASSERT_X(!note.isNull(), "NoteLocalStorageManagerAsyncTester::onFindNoteCompleted slot",
+               "Found NULL shared pointer to Note");
+
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_FIND_AFTER_ADD_REQUEST)
+    {
+        if (m_pFoundNote != note) {
+            errorDescription = "Internal error in NoteLocalStorageManagerAsyncTester: "
+                               "note pointer in onFindNoteCompleted slot doesn't match "
+                               "the pointer to the original Note";
+            QNWARNING(errorDescription);
+            QNTRANSLATE(errorDescription);
+            emit failure(errorDescription);
+            return;
+        }
+
+        Q_ASSERT(!m_pInitialNote.isNull());
+        if (*m_pFoundNote != *m_pInitialNote) {
+            errorDescription = "Added and found notes in local storage don't match";
+            QNWARNING(errorDescription << ": Note added to LocalStorageManager: " << *m_pInitialNote
+                      << "\nNote found in LocalStorageManager: " << *m_pFoundNote);
+            QNTRANSLATE(errorDescription);
+            emit failure(errorDescription);
+            return;
+        }
+
+        // Ok, found note is good, updating it now
+        m_pModifiedNote = QSharedPointer<Note>(new Note(*m_pInitialNote));
+        m_pModifiedNote->setUpdateSequenceNumber(m_pInitialNote->updateSequenceNumber() + 1);
+        m_pModifiedNote->setContent(m_pInitialNote->content() + "_modified");
+        m_pModifiedNote->setTitle(m_pInitialNote->title() + "_modified");
+
+        m_state = STATE_SENT_UPDATE_REQUEST;
+        emit updateNoteRequest(m_pModifiedNote, m_pNotebook);
+    }
+    else if (m_state == STATE_SENT_FIND_AFTER_UPDATE_REQUEST)
+    {
+        if (m_pFoundNote != note) {
+            errorDescription = "Internal error in NoteLocalStorageManagerAsyncTester: "
+                               "note pointer in onFindNoteCompleted slot doesn't match "
+                               "the pointer to the original modified Note";
+            QNWARNING(errorDescription);
+            QNTRANSLATE(errorDescription);
+            emit failure(errorDescription);
+            return;
+        }
+
+        Q_ASSERT(!m_pModifiedNote.isNull());
+        if (*m_pFoundNote != *m_pModifiedNote) {
+            errorDescription = "Updated and found notes in local storage don't match";
+            QNWARNING(errorDescription << ": Note updated in LocalStorageManager: " << *m_pModifiedNote
+                      << "\nNote found in LocalStorageManager: " << *m_pFoundNote);
+            QNTRANSLATE(errorDescription);
+            emit failure(errorDescription);
+            return;
+        }
+
+        m_state = STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST;
+        emit getNoteCountRequest();
+    }
+    else if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST)
+    {
+        Q_ASSERT(!m_pModifiedNote.isNull());
+        errorDescription = "Found note which should have been expunged from local storage";
+        QNWARNING(errorDescription << ": Note expunged from LocalStorageManager: " << *m_pModifiedNote
+                  << "\nNote found in LocalStorageManager: " << *m_pFoundNote);
+        QNTRANSLATE(errorDescription);
+        emit failure(errorDescription);
+        return;
+    }
+    HANDLE_WRONG_STATE();
 }
 
 void NoteLocalStorageManagerAsyncTester::onFindNoteFailed(QSharedPointer<Note> note, bool withResourceBinaryData, QString errorDescription)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(withResourceBinaryData)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST) {
+        m_state = STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST;
+        emit getNoteCountRequest();
+        return;
+    }
+
+    QNWARNING(errorDescription << ", Note: " << (note.isNull() ? QString("NULL") : note->ToQString())
+              << ", withResourceBinaryData = " << (withResourceBinaryData ? "true" : "false"));
+    emit failure(errorDescription);
 }
 
 void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QList<Note> notes)
 {
-    Q_UNUSED(notebook)
-    Q_UNUSED(withResourceBinaryData)
-    Q_UNUSED(notes)
-    // TODO: implement
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_LIST_ALL_NOTES_PER_NOTEBOOK_ONE_REQUEST)
+    {
+        foreach(const Note & note, notes)
+        {
+            if (!m_initialNotes.contains(note)) {
+                errorDescription = "One of found notes was not found within initial notes";
+                QNWARNING(errorDescription);
+                QNTRANSLATE(errorDescription);
+                emit failure(errorDescription);
+                return;
+            }
+
+            if (note.notebookGuid() != m_pNotebook->guid()) {
+                errorDescription = "One of found notes has invalid notebook guid: expected ";
+                errorDescription += m_pNotebook->guid();
+                errorDescription += ", found: ";
+                errorDescription += note.notebookGuid();
+                QNWARNING(errorDescription);
+                QNTRANSLATE(errorDescription);
+                emit failure(errorDescription);
+                return;
+            }
+        }
+    }
+    else if (m_state == STATE_SENT_LIST_ALL_NOTES_PER_NOTEBOOK_TWO_REQUEST)
+    {
+        foreach(const Note & note, notes)
+        {
+            if (!m_initialNotes.contains(note)) {
+                errorDescription = "One of found notes was not found within initial notes";
+                QNWARNING(errorDescription);
+                QNTRANSLATE(errorDescription);
+                emit failure(errorDescription);
+                return;
+            }
+
+            if (note.notebookGuid() != m_pExtraNotebook->guid()) {
+                errorDescription = "One of found notes has invalid notebook guid: expected ";
+                errorDescription += m_pExtraNotebook->guid();
+                errorDescription += ", found: ";
+                errorDescription += note.notebookGuid();
+                QNWARNING(errorDescription);
+                QNTRANSLATE(errorDescription);
+                emit failure(errorDescription);
+                return;
+            }
+        }
+    }
+    HANDLE_WRONG_STATE();
+
+    emit success();
 }
 
 void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookFailed(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QString errorDescription)
 {
-    Q_UNUSED(notebook)
-    Q_UNUSED(withResourceBinaryData)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    QNWARNING(errorDescription << ", Notebook: " << (notebook.isNull() ? QString("NULL") : notebook->ToQString())
+              << ", withResourceBinaryData = " << (withResourceBinaryData ? "true" : "false"));
+    emit failure(errorDescription);
 }
 
 void NoteLocalStorageManagerAsyncTester::onDeleteNoteCompleted(QSharedPointer<Note> note)

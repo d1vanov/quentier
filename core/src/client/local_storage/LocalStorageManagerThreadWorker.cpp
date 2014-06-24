@@ -9,9 +9,6 @@
 #include <client/types/SavedSearch.h>
 #include <logging/QuteNoteLogger.h>
 
-#define QNTRANSLATE(string) \
-    string = QObject::tr(qPrintable(string));
-
 namespace qute_note {
 
 LocalStorageManagerThreadWorker::LocalStorageManagerThreadWorker(const QString & username,
