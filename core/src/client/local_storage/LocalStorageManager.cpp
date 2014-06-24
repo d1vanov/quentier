@@ -1127,7 +1127,7 @@ bool LocalStorageManager::FindNote(Note & note, QString & errorDescription,
         }
     }
     else {
-        column = "local guid";
+        column = "localGuid";
         guid = note.localGuid();
     }
 
@@ -3487,7 +3487,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     // ========= Creating and executing "insert or replace" query for Notes table
     QString columns = "localGuid, updateSequenceNumber, title, isDirty, "
                       "isLocal, isDeleted, content, creationTimestamp, modificationTimestamp, "
-                      "notebookLocalGuid, isActive, hasAttributes";
+                      "notebookLocalGuid, hasAttributes";
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid) {
         columns.append(", guid");
@@ -3502,9 +3502,14 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
         columns.append(", thumbnail");
     }
 
+    bool noteHasActive = note.hasActive();
+    if (noteHasActive) {
+        columns.append(", isActive");
+    }
+
     QString valuesString = ":localGuid, :updateSequenceNumber, :title, :isDirty, "
                            ":isLocal, :isDeleted, :content, :creationTimestamp, :modificationTimestamp, "
-                           ":notebookLocalGuid, :isActive, :hasAttributes";
+                           ":notebookLocalGuid, :hasAttributes";
     if (noteHasGuid) {
         valuesString.append(", :guid");
     }
@@ -3515,6 +3520,10 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     if (!thumbnailIsNull) {
         valuesString.append(", :thumbnail");
+    }
+
+    if (noteHasActive) {
+        valuesString.append(", :isActive");
     }
 
     QString queryString = QString("INSERT OR REPLACE INTO Notes (%1) VALUES(%2)").arg(columns).arg(valuesString);
@@ -3538,7 +3547,6 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     query.bindValue(":creationTimestamp", note.creationTimestamp());
     query.bindValue(":modificationTimestamp", note.modificationTimestamp());
     query.bindValue(":notebookLocalGuid", notebookLocalGuid);
-    query.bindValue(":isActive", (note.active() ? 1 : 0));
     query.bindValue(":hasAttributes", (note.hasNoteAttributes() ? 1 : 0));
 
     if (noteHasGuid) {
@@ -3551,6 +3559,10 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     if (!thumbnailIsNull) {
         query.bindValue(":thumbnail", thumbnail);
+    }
+
+    if (noteHasActive) {
+        query.bindValue(":isActive", (note.active() ? 1 : 0));
     }
 
     res = query.exec();

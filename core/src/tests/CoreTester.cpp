@@ -5,6 +5,7 @@
 #include "TagLocalStorageManagerAsyncTester.h"
 #include "UserLocalStorageManagerAsyncTester.h"
 #include "NotebookLocalStorageManagerAsyncTester.h"
+#include "NoteLocalStorageManagerAsyncTester.h"
 #include <tools/IQuteNoteException.h>
 #include <tools/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
@@ -18,6 +19,9 @@
 #include <QApplication>
 #include <QTextStream>
 #include <QtTest/QTest>
+
+// 10 minutes should be enough
+#define MAX_ALLOWED_MILLISECONDS 600000
 
 namespace qute_note {
 namespace test {
@@ -981,12 +985,10 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
 
 void CoreTester::localStorageManagerAsyncSavedSearchesTest()
 {
-    const int maxAllowedMilliseconds = 60000;   // 10 minutes should be enough
-
     int savedSeachAsyncTestsResult = -1;
     {
         QTimer timer;
-        timer.setInterval(maxAllowedMilliseconds);
+        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
         timer.setSingleShot(true);
 
         SavedSearchLocalStorageManagerAsyncTester savedSearchAsyncTester;
@@ -1018,12 +1020,10 @@ void CoreTester::localStorageManagerAsyncSavedSearchesTest()
 
 void CoreTester::localStorageManagerAsyncLinkedNotebooksTest()
 {
-    const int maxAllowedMilliseconds = 60000;    // 10 minutes should be enough
-
     int linkedNotebookAsyncTestResult = -1;
     {
         QTimer timer;
-        timer.setInterval(maxAllowedMilliseconds);
+        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
         timer.setSingleShot(true);
 
         LinkedNotebookLocalStorageManagerAsyncTester linkedNotebookAsyncTester;
@@ -1055,12 +1055,10 @@ void CoreTester::localStorageManagerAsyncLinkedNotebooksTest()
 
 void CoreTester::localStorageManagerAsyncTagsTest()
 {
-    const int maxAllowedMilliseconds = 60000;    // 10 minutes should be enough
-
     int tagAsyncTestResult = -1;
     {
         QTimer timer;
-        timer.setInterval(maxAllowedMilliseconds);
+        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
         timer.setSingleShot(true);
 
         TagLocalStorageManagerAsyncTester tagAsyncTester;
@@ -1092,12 +1090,10 @@ void CoreTester::localStorageManagerAsyncTagsTest()
 
 void CoreTester::localStorageManagerAsyncUsersTest()
 {
-    const int maxAllowedMilliseconds = 60000;     // 10 minutes should be enough
-
     int userAsyncTestResult = -1;
     {
         QTimer timer;
-        timer.setInterval(maxAllowedMilliseconds);
+        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
         timer.setSingleShot(true);
 
         UserLocalStorageManagerAsyncTester userAsyncTester;
@@ -1129,12 +1125,10 @@ void CoreTester::localStorageManagerAsyncUsersTest()
 
 void CoreTester::localStorageManagerAsyncNotebooksTest()
 {
-    const int maxAllowedMilliseconds = 60000;     // 10 minutes should be enough
-
     int notebookAsyncTestResult = -1;
     {
         QTimer timer;
-        timer.setInterval(maxAllowedMilliseconds);
+        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
         timer.setSingleShot(true);
 
         NotebookLocalStorageManagerAsyncTester notebookAsyncTester;
@@ -1164,6 +1158,42 @@ void CoreTester::localStorageManagerAsyncNotebooksTest()
     }
 }
 
+/*
+void CoreTester::localStorageManagerAsyncNotesTest()
+{
+    int noteAsyncTestResult = -1;
+    {
+        QTimer timer;
+        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
+        timer.setSingleShot(true);
+
+        NoteLocalStorageManagerAsyncTester noteAsyncTester;
+
+        EventLoopWithExitStatus loop;
+        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
+        loop.connect(&noteAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
+        loop.connect(&noteAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+
+        QTimer slotInvokingTimer;
+        slotInvokingTimer.setInterval(500);
+        slotInvokingTimer.setSingleShot(true);
+
+        timer.start();
+        slotInvokingTimer.singleShot(0, &noteAsyncTester, SLOT(onInitTestCase()));
+        noteAsyncTestResult = loop.exec();
+    }
+
+    if (noteAsyncTestResult == -1) {
+        QFAIL("Internal error: incorrect return status from Note async tester");
+    }
+    else if (noteAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Failure) {
+        QFAIL("Detected failure during the asynchronous loop processing in Note async tester");
+    }
+    else if (noteAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QFAIL("Note async tester failed to finish in time");
+    }
+}
+*/
 #undef CATCH_EXCEPTION
 
 }

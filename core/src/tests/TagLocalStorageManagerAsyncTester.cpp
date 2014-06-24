@@ -328,7 +328,7 @@ void TagLocalStorageManagerAsyncTester::onDeleteTagCompleted(QSharedPointer<Tag>
                            "tag pointer in onDeleteTagCompleted slot doesn't match "
                            "the pointer to the original deleted Tag";
         QNWARNING(errorDescription);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
+        QNTRANSLATE(errorDescription);
         emit failure(errorDescription);
         return;
     }
@@ -356,7 +356,7 @@ void TagLocalStorageManagerAsyncTester::onExpungeTagCompleted(QSharedPointer<Tag
                            "tag pointer in onExpungeTagCompleted slot doesn't match "
                            "the pointer to the original expunged Tag";
         QNWARNING(errorDescription);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
+        QNTRANSLATE(errorDescription);
         emit failure(errorDescription);
         return;
     }

@@ -103,6 +103,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookCompleted(QSharedPointer<N
         m_pInitialNote->setCreationTimestamp(1);
         m_pInitialNote->setModificationTimestamp(1);
         m_pInitialNote->setNotebookGuid(m_pNotebook->guid());
+        m_pInitialNote->setActive(true);
 
         m_state = STATE_SENT_ADD_REQUEST;
         emit addNoteRequest(m_pInitialNote, m_pNotebook);
@@ -148,6 +149,7 @@ void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count)
 
         m_pModifiedNote->setLocal(false);
         m_pModifiedNote->setDeleted(true);
+        m_pModifiedNote->setDeletionTimestamp(3);
         m_state = STATE_SENT_DELETE_REQUEST;
         emit deleteNoteRequest(m_pModifiedNote);
     }
@@ -470,28 +472,59 @@ void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookFailed(QShared
 
 void NoteLocalStorageManagerAsyncTester::onDeleteNoteCompleted(QSharedPointer<Note> note)
 {
-    Q_UNUSED(note)
-    // TODO: implement
+    Q_ASSERT_X(!note.isNull(), "NoteLocalStorageManagerAsyncTester::onDeleteNoteCompleted",
+               "Found NULL pointer to Note");
+
+    QString errorDescription;
+
+    if (m_pModifiedNote != note) {
+        errorDescription = "Internal error in NoteLocalStorageManagerAsyncTester: "
+                           "note pointer in onDeleteNoteCompleted slot doesn't match "
+                           "the pointer to the original deleted Note";
+        QNWARNING(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit failure(errorDescription);
+        return;
+    }
+
+    m_pModifiedNote->setLocal(true);
+    m_state = STATE_SENT_EXPUNGE_REQUEST;
+    emit expungeNoteRequest(m_pModifiedNote);
 }
 
 void NoteLocalStorageManagerAsyncTester::onDeleteNoteFailed(QSharedPointer<Note> note, QString errorDescription)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    QNWARNING(errorDescription << ", Note: " << (note.isNull() ? QString("NULL") : note->ToQString()));
+    emit failure(errorDescription);
 }
 
 void NoteLocalStorageManagerAsyncTester::onExpungeNoteCompleted(QSharedPointer<Note> note)
 {
-    Q_UNUSED(note)
-    // TODO: implement
+    Q_ASSERT_X(!note.isNull(), "NoteLocalStorageManagerAsyncTester::onExpungeNoteCompleted slot",
+               "Found NULL pointer to Note");
+
+    QString errorDescription;
+
+    if (m_pModifiedNote != note) {
+        errorDescription = "Internal error in NoteLocalStorageManagerAsyncTester: "
+                           "note pointer in onExpungeNoteCompleted slot doesn't match "
+                           "the pointer to the original expunged Note";
+        QNWARNING(errorDescription);
+        QNTRANSLATE(errorDescription);
+        emit failure(errorDescription);
+        return;
+    }
+
+    Q_ASSERT(!m_pFoundNote.isNull());
+    m_state = STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST;
+    bool withResourceBinaryData = true;
+    emit findNoteRequest(m_pFoundNote, withResourceBinaryData);
 }
 
 void NoteLocalStorageManagerAsyncTester::onExpungeNoteFailed(QSharedPointer<Note> note, QString errorDescription)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(errorDescription)
-    // TODO: implement
+    QNWARNING(errorDescription << ", Note: " << (note.isNull() ? QString("NULL") : note->ToQString()));
+    emit failure(errorDescription);
 }
 
 void NoteLocalStorageManagerAsyncTester::createConnections()
@@ -531,7 +564,7 @@ void NoteLocalStorageManagerAsyncTester::createConnections()
                      this, SLOT(onUpdateNoteCompleted(QSharedPointer<Note>,QSharedPointer<Notebook>)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)),
                      this, SLOT(onUpdateNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findNoteComplete(QSharedPointer<Note>)),
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findNoteComplete(QSharedPointer<Note>,bool)),
                      this, SLOT(onFindNoteCompleted(QSharedPointer<Note>,bool)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findNoteFailed(QSharedPointer<Note>,bool,QString)),
                      this, SLOT(onFindNoteFailed(QSharedPointer<Note>,bool,QString)));
