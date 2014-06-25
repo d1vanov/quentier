@@ -187,6 +187,19 @@ void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count)
 
         extraNote->addResource(resource);
 
+        ResourceWrapper resource2;
+        resource2.setGuid("00000000-0000-0000-c000-000000000009");
+        resource2.setUpdateSequenceNumber(3);
+        resource2.setNoteGuid(extraNote->guid());
+        resource2.setDataBody(QByteArray("Fake resource data body"));
+        resource2.setDataSize(resource.dataBody().size());
+        resource2.setDataHash("Fake hash      9");
+        resource2.setMime("text/plain");
+        resource2.setHeight(30);
+        resource2.setWidth(30);
+
+        extraNote->addResource(resource2);
+
         m_state = STATE_SENT_ADD_EXTRA_NOTE_ONE_REQUEST;
         emit addNoteRequest(extraNote, m_pNotebook);
     }
