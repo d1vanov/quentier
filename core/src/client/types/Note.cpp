@@ -567,10 +567,24 @@ QList<ResourceAdapter> Note::resourceAdapters() const
 
     const QList<qevercloud::Resource> & noteResources = m_qecNote.resources.ref();
     int numResources = noteResources.size();
+    int numResourceAdditionalInfoEntries = m_resourcesAdditionalInfo.size();
+
     resources.reserve(std::max(numResources, 0));
-    for(int i = 0; i < numResources; ++i) {
+    for(int i = 0; i < numResources; ++i)
+    {
         resources << ResourceAdapter(noteResources[i]);
-        resources.back().setIndexInNote(i);
+        ResourceAdapter & resource = resources.back();
+
+        if (i < numResourceAdditionalInfoEntries) {
+            const ResourceAdditionalInfo & info = m_resourcesAdditionalInfo[i];
+            resource.setLocalGuid(info.localGuid);
+            if (!info.noteLocalGuid.isEmpty()) {
+                resource.setNoteLocalGuid(info.noteLocalGuid);
+            }
+            resource.setDirty(info.isDirty);
+        }
+
+        resource.setIndexInNote(i);
     }
     return resources;
 }
@@ -585,10 +599,24 @@ QList<ResourceWrapper> Note::resources() const
 
     const QList<qevercloud::Resource> & noteResources = m_qecNote.resources.ref();
     int numResources = noteResources.size();
+    int numResourceAdditionalInfoEntries = m_resourcesAdditionalInfo.size();
+
     resources.reserve(qMax(numResources, 0));
-    for(int i = 0; i < numResources; ++i) {
+    for(int i = 0; i < numResources; ++i)
+    {
         resources << ResourceWrapper(noteResources[i]);
-        resources.back().setIndexInNote(i);
+        ResourceWrapper & resource = resources.back();
+
+        if (i < numResourceAdditionalInfoEntries) {
+            const ResourceAdditionalInfo & info = m_resourcesAdditionalInfo[i];
+            resource.setLocalGuid(info.localGuid);
+            if (!info.noteLocalGuid.isEmpty()) {
+                resource.setNoteLocalGuid(info.noteLocalGuid);
+            }
+            resource.setDirty(info.isDirty);
+        }
+
+        resource.setIndexInNote(i);
     }
     return resources;
 }
@@ -599,10 +627,18 @@ QList<ResourceWrapper> Note::resources() const
         if (!resources.empty()) \
         { \
             m_qecNote.resources = QList<qevercloud::Resource>(); \
+            m_resourcesAdditionalInfo.clear(); \
+            ResourceAdditionalInfo info; \
             for(QList<resource_type>::const_iterator it = resources.constBegin(); \
                 it != resources.constEnd(); ++it) \
             { \
                 m_qecNote.resources.ref() << it->GetEnResource(); \
+                info.localGuid = it->localGuid(); \
+                if (it->hasNoteLocalGuid()) { \
+                    info.noteLocalGuid = it->noteLocalGuid(); \
+                } \
+                info.isDirty = it->isDirty(); \
+                m_resourcesAdditionalInfo.push_back(info); \
             } \
             QNDEBUG("Added " << resources.size() << " resources to note"); \
         } \
@@ -629,6 +665,13 @@ void Note::addResource(const IResource & resource)
     }
 
     m_qecNote.resources.ref() << resource.GetEnResource();
+    ResourceAdditionalInfo info;
+    info.localGuid = resource.localGuid();
+    if (resource.hasNoteLocalGuid()) {
+        info.noteLocalGuid = resource.noteLocalGuid();
+    }
+    info.isDirty = resource.isDirty();
+    m_resourcesAdditionalInfo.push_back(info);
 
     QNDEBUG("Added resource to note, local guid = " << resource.localGuid());
 }
@@ -643,6 +686,13 @@ void Note::removeResource(const IResource & resource)
     int removed = m_qecNote.resources->removeAll(resource.GetEnResource());
     if (removed > 0) {
         QNDEBUG("Removed resource " << resource << " from note (" << removed << ") occurences");
+        ResourceAdditionalInfo info;
+        info.localGuid = resource.localGuid();
+        if (resource.hasNoteLocalGuid()) {
+            info.noteLocalGuid = resource.noteLocalGuid();
+        }
+        info.isDirty = resource.isDirty();
+        m_resourcesAdditionalInfo.removeAll(info);
     }
     else {
         QNDEBUG("Haven't removed resource " << resource << " because there was no such resource attached to the note");

@@ -1158,7 +1158,6 @@ void CoreTester::localStorageManagerAsyncNotebooksTest()
     }
 }
 
-/*
 void CoreTester::localStorageManagerAsyncNotesTest()
 {
     int noteAsyncTestResult = -1;
@@ -1193,7 +1192,7 @@ void CoreTester::localStorageManagerAsyncNotesTest()
         QFAIL("Note async tester failed to finish in time");
     }
 }
-*/
+
 #undef CATCH_EXCEPTION
 
 }

@@ -7,13 +7,15 @@ namespace qute_note {
 IResource::IResource() :
     NoteStoreDataElement(),
     m_isFreeAccount(true),
-    m_indexInNote(-1)
+    m_indexInNote(-1),
+    m_noteLocalGuid()
 {}
 
 IResource::IResource(const bool isFreeAccount) :
     NoteStoreDataElement(),
     m_isFreeAccount(isFreeAccount),
-    m_indexInNote(-1)
+    m_indexInNote(-1),
+    m_noteLocalGuid()
 {}
 
 IResource::~IResource()
@@ -21,7 +23,10 @@ IResource::~IResource()
 
 bool IResource::operator==(const IResource & other) const
 {   
-    return (GetEnResource() == other.GetEnResource()) && (isDirty() == other.isDirty());
+    return (GetEnResource() == other.GetEnResource()) &&
+           (isDirty() == other.isDirty()) &&
+           (m_noteLocalGuid.isEqual(other.m_noteLocalGuid)) &&
+           (localGuid() == other.localGuid());
 
     // NOTE: m_indexInNote does not take any part in comparison
     // as it is by nature a helper parameter intended to preserve sorting of resources
@@ -231,6 +236,21 @@ const QString & IResource::noteGuid() const
 void IResource::setNoteGuid(const QString & guid)
 {
     GetEnResource().noteGuid = guid;
+}
+
+bool IResource::hasNoteLocalGuid() const
+{
+    return m_noteLocalGuid.isSet();
+}
+
+const QString & IResource::noteLocalGuid() const
+{
+    return m_noteLocalGuid;
+}
+
+void IResource::setNoteLocalGuid(const QString & guid)
+{
+    m_noteLocalGuid = guid;
 }
 
 bool IResource::hasData() const

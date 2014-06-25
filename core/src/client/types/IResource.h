@@ -3,6 +3,7 @@
 
 #include "NoteStoreDataElement.h"
 #include "Note.h"
+#include <QEverCloud.h>
 
 namespace qute_note {
 
@@ -37,6 +38,10 @@ public:
     bool hasNoteGuid() const;
     const QString & noteGuid() const;
     void setNoteGuid(const QString & guid);
+
+    bool hasNoteLocalGuid() const;
+    const QString & noteLocalGuid() const;
+    void setNoteLocalGuid(const QString & guid);
 
     bool hasData() const;
 
@@ -113,6 +118,7 @@ protected:
 private:    
     bool m_isFreeAccount;
     int  m_indexInNote;
+    qevercloud::Optional<QString> m_noteLocalGuid;
 };
 
 } // namespace qute_note

@@ -174,24 +174,16 @@ void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count)
         extraNote->setNotebookGuid(m_pNotebook->guid());
         extraNote->setTitle("Fake note title one");
 
-        QImage img(20, 20, QImage::Format_RGB32);
-        QRect rect = img.rect();
-        QPainter painter;
-        QBrush brush;
-        brush.setColor(Qt::red);
-        painter.setBrush(brush);
-        painter.drawRect(rect);
-
-        extraNote->setThumbnail(img);
-
         ResourceWrapper resource;
         resource.setGuid("00000000-0000-0000-c000-000000000002");
         resource.setUpdateSequenceNumber(2);
         resource.setNoteGuid(extraNote->guid());
         resource.setDataBody(QByteArray("Fake resource data body"));
+        resource.setDataSize(resource.dataBody().size());
+        resource.setDataHash("Fake hash      1");
         resource.setMime("text/plain");
-        resource.setHeight(rect.height());
-        resource.setWidth(rect.width());
+        resource.setHeight(20);
+        resource.setWidth(20);
 
         extraNote->addResource(resource);
 
@@ -416,7 +408,7 @@ void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(QSha
         {
             if (!m_initialNotes.contains(note)) {
                 errorDescription = "One of found notes was not found within initial notes";
-                QNWARNING(errorDescription);
+                QNWARNING(errorDescription << ", unfound note: " << note);
                 QNTRANSLATE(errorDescription);
                 emit failure(errorDescription);
                 return;

@@ -109,6 +109,22 @@ private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
     qevercloud::Note m_qecNote;
+
+    struct ResourceAdditionalInfo
+    {
+        QString localGuid;
+        QString noteLocalGuid;
+        bool    isDirty;
+
+        bool operator==(const ResourceAdditionalInfo & other) const
+        {
+            return (localGuid == other.localGuid) &&
+                   (noteLocalGuid == other.noteLocalGuid) &&
+                   (isDirty == other.isDirty);
+        }
+    };
+
+    QList<ResourceAdditionalInfo> m_resourcesAdditionalInfo;
     bool m_isLocal;
     bool m_isDeleted;
     QImage m_thumbnail;

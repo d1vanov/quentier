@@ -1146,7 +1146,7 @@ bool LocalStorageManager::FindNote(Note & note, QString & errorDescription,
     }
 
     QSqlRecord rec = query.record();
-    res = FillNoteFromSqlRecord(rec, note, errorDescription, withResourceBinaryData);
+    res = FillNoteFromSqlRecord(rec, note, errorDescription);
     if (!res) {
         return false;
     }
@@ -1213,6 +1213,8 @@ QList<Note> LocalStorageManager::ListAllNotesPerNotebook(const Notebook & notebo
     }
 
     notes.reserve(qMax(query.size(), 0));
+    QString error;
+
     while(query.next())
     {
         notes << Note();
@@ -1220,14 +1222,28 @@ QList<Note> LocalStorageManager::ListAllNotesPerNotebook(const Notebook & notebo
 
         QSqlRecord rec = query.record();
 
-        res = FillNoteFromSqlRecord(rec, note, errorDescription, withResourceBinaryData);
+        res = FillNoteFromSqlRecord(rec, note, errorDescription);
         if (!res) {
             errorDescription.prepend(errorPrefix);
             notes.clear();
             return notes;
         }
 
-        QString error;
+        res = FindAndSetTagGuidsPerNote(note, error);
+        if (!res) {
+            errorDescription += error;
+            notes.clear();
+            return notes;
+        }
+
+        error.clear();
+        res = FindAndSetResourcesPerNote(note, error, withResourceBinaryData);
+        if (!res) {
+            errorDescription += error;
+            notes.clear();
+            return notes;
+        }
+
         res = note.checkParameters(error);
         if (!res) {
             errorDescription = errorPrefix + QObject::tr("found note is invalid: ");
@@ -3666,8 +3682,8 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     if (note.hasResources())
     {
         QList<ResourceAdapter> resources = note.resourceAdapters();
-        size_t numResources = resources.size();
-        for(size_t i = 0; i < numResources; ++i)
+        int numResources = resources.size();
+        for(int i = 0; i < numResources; ++i)
         {
             const ResourceAdapter & resource = resources[i];
 
@@ -4354,7 +4370,7 @@ bool LocalStorageManager::FillBusinessUserInfoFromSqlRecord(const QSqlRecord & r
 }
 
 bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & note,
-                                                QString & errorDescription, const bool withResourceBinaryData) const
+                                                QString & errorDescription) const
 {
 #define CHECK_AND_SET_NOTE_PROPERTY(propertyLocalName, setter, type, localType) \
     { \

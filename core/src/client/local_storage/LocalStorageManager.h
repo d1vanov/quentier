@@ -630,8 +630,7 @@ private:
                                       QString & errorDescription) const;
     bool FillBusinessUserInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::BusinessUserInfo &info,
                                            QString & errorDescription) const;
-    bool FillNoteFromSqlRecord(const QSqlRecord & record, Note & note, QString & errorDescription,
-                               const bool withResourceBinaryData) const;
+    bool FillNoteFromSqlRecord(const QSqlRecord & record, Note & note, QString & errorDescription) const;
     bool FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QString & errorDescription) const;
     bool FillSharedNotebookFromSqlRecord(const QSqlRecord & record, ISharedNotebook & sharedNotebook,
                                          QString & errorDescription) const;
