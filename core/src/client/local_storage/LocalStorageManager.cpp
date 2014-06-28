@@ -1177,7 +1177,7 @@ bool LocalStorageManager::FindNote(Note & note, QString & errorDescription,
 
     QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, title, isDirty, isLocal, content, "
                                   "creationTimestamp, modificationTimestamp, isActive, isDeleted, deletionTimestamp, "
-                                  "hasAttributes, notebookGuid, thumbnail FROM Notes WHERE %1 = '%2'").arg(column).arg(guid);
+                                  "notebookGuid, thumbnail FROM Notes WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select note from \"Notes\" table in SQL database");
@@ -3578,7 +3578,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     // ========= Creating and executing "insert or replace" query for Notes table
     QString columns = "localGuid, updateSequenceNumber, title, isDirty, "
                       "isLocal, isDeleted, content, creationTimestamp, modificationTimestamp, "
-                      "notebookLocalGuid, hasAttributes";
+                      "notebookLocalGuid";
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid) {
         columns.append(", guid");
@@ -3600,7 +3600,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     QString valuesString = ":localGuid, :updateSequenceNumber, :title, :isDirty, "
                            ":isLocal, :isDeleted, :content, :creationTimestamp, :modificationTimestamp, "
-                           ":notebookLocalGuid, :hasAttributes";
+                           ":notebookLocalGuid";
     if (noteHasGuid) {
         valuesString.append(", :guid");
     }
@@ -3638,7 +3638,6 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     query.bindValue(":creationTimestamp", note.creationTimestamp());
     query.bindValue(":modificationTimestamp", note.modificationTimestamp());
     query.bindValue(":notebookLocalGuid", notebookLocalGuid);
-    query.bindValue(":hasAttributes", (note.hasNoteAttributes() ? 1 : 0));
 
     if (noteHasGuid) {
         query.bindValue(":guid", note.guid());
@@ -3659,6 +3658,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"Notes\" table in SQL database");
 
+    /*
     columns = "localGuid, title, content, notebookLocalGuid";
     if (noteHasGuid) {
         columns.append(", guid");
@@ -3685,7 +3685,6 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     query.bindValue(":title", title);
     query.bindValue(":content", content);
     query.bindValue(":notebookLocalGuid", notebookLocalGuid);
-    query.bindValue(":hasAttributes", (note.hasNoteAttributes() ? 1 : 0));
 
     if (noteHasGuid) {
         query.bindValue(":guid", note.guid());
@@ -3697,6 +3696,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"NoteText\" table in SQL database");
+    */
 
     if (note.hasTagGuids())
     {
@@ -4500,29 +4500,6 @@ bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & n
         }
     }
 
-    int hasAttributesIndex = rec.indexOf("hasAttributes");
-    bool hasAttributesFound = false;
-    if (hasAttributesIndex >= 0) {
-        QVariant value = rec.value(hasAttributesIndex);
-        if (!value.isNull()) {
-            bool conversionResult = false;
-            int hasAttributes = value.toInt(&conversionResult);
-            if (conversionResult) {
-                hasAttributesFound = true;
-                if (hasAttributes == 0) {
-                    QNDEBUG("Note has no optional attributes");
-                    return true;
-                }
-            }
-        }
-    }
-
-    if (!hasAttributesFound) {
-        errorDescription += QT_TR_NOOP("Internal error: no \"hasAttributes\" field " \
-                                       "in the result of SQL query");
-        return false;
-    }
-
     QString error;
     bool res = FindAndSetNoteAttributesPerNote(note, error);
     if (!res) {
@@ -5252,12 +5229,12 @@ bool LocalStorageManager::FindAndSetNoteAttributesPerNote(Note & note, QString &
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select note's attributes from \"NoteAttributes\" table in SQL database");
 
-    qevercloud::NoteAttributes & attributes = note.noteAttributes();
-
     if (!query.next()) {
-        errorDescription += QT_TR_NOOP("Note attributes were not found for provided note's local guid");
-        return false;
+        errorDescription += QT_TR_NOOP("No note attributes were found for provided note's local guid");
+        return true;
     }
+
+    qevercloud::NoteAttributes & attributes = note.noteAttributes();
 
     QSqlRecord rec = query.record();
     FillNoteAttributesFromSqlRecord(rec, attributes);
