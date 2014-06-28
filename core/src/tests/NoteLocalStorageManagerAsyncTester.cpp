@@ -196,6 +196,15 @@ void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count)
 
         extraNote->addResource(resource2);
 
+        qevercloud::NoteAttributes & noteAttributes = extraNote->noteAttributes();
+        noteAttributes.altitude = 20.0;
+        noteAttributes.latitude = 10.0;
+        noteAttributes.longitude = 30.0;
+        noteAttributes.author = "NoteLocalStorageManagerAsyncTester";
+        noteAttributes.lastEditedBy = "Same as author";
+        noteAttributes.placeName = "Testing hall";
+        noteAttributes.sourceApplication = "tester";
+
         m_state = STATE_SENT_ADD_EXTRA_NOTE_ONE_REQUEST;
         emit addNoteRequest(extraNote, m_pNotebook);
     }
