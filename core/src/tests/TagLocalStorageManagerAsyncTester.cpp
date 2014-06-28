@@ -59,8 +59,8 @@ void TagLocalStorageManagerAsyncTester::onGetTagCountCompleted(int count)
 
 #define HANDLE_WRONG_STATE() \
     else { \
-        errorDescription = QObject::tr("Internal error in TagLocalStorageManagerAsyncTester: " \
-                                       "found wrong state"); \
+        errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: " \
+                           "found wrong state"; \
         emit failure(errorDescription); \
         return; \
     }
@@ -71,7 +71,6 @@ void TagLocalStorageManagerAsyncTester::onGetTagCountCompleted(int count)
             errorDescription = "GetTagCount returned result different from the expected one (1): ";
             errorDescription += QString::number(count);
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -87,7 +86,6 @@ void TagLocalStorageManagerAsyncTester::onGetTagCountCompleted(int count)
             errorDescription = "GetTagCount returned result different from the expected one (0): ";
             errorDescription += QString::number(count);
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -122,7 +120,6 @@ void TagLocalStorageManagerAsyncTester::onAddTagCompleted(QSharedPointer<Tag> ta
             errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: "
                                "tag in onAddTagCompleted slot doesn't match the original Tag";
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -176,7 +173,6 @@ void TagLocalStorageManagerAsyncTester::onUpdateTagCompleted(QSharedPointer<Tag>
                                "tag pointer in onUpdateTagCompleted slot doesn't match "
                                "the pointer to the original modified Tag";
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -207,7 +203,6 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(QSharedPointer<Tag> t
                                "tag pointer in onFindTagCompleted slot doesn't match "
                                "the pointer to the original Tag";
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -217,7 +212,6 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(QSharedPointer<Tag> t
             errorDescription = "Added and found tags in local storage don't match";
             QNWARNING(errorDescription << ": Tag added to LocalStorageManager: " << *m_pInitialTag
                       << "\nTag found in LocalStorageManager: " << *m_pFoundTag);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -237,7 +231,6 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(QSharedPointer<Tag> t
                                "tag pointer in onFindTagCompleted slot doesn't match "
                                "the pointer to the original modified Tag";
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -247,7 +240,6 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(QSharedPointer<Tag> t
             errorDescription = "Updated and found tags in local storage don't match";
             QNWARNING(errorDescription << ": Tag updated in LocalStorageManager: " << *m_pModifiedTag
                       << "\nTag found in LocalStorageManager: " << *m_pFoundTag);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -261,7 +253,6 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(QSharedPointer<Tag> t
         errorDescription = "Found tag which should have been expunged from local storage";
         QNWARNING(errorDescription << ": Tag expunged from LocalStorageManager: " << *m_pModifiedTag
                   << "\nTag found in LocalStorageManager: " << *m_pFoundTag);
-        QNTRANSLATE(errorDescription);
         emit failure(errorDescription);
         return;
     }
@@ -291,7 +282,6 @@ void TagLocalStorageManagerAsyncTester::onListAllTagsCompleted(QList<Tag> tags)
         errorDescription = "Error: number of found tags does not correspond "
                            "to the number of original added tags";
         QNWARNING(errorDescription);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -301,7 +291,6 @@ void TagLocalStorageManagerAsyncTester::onListAllTagsCompleted(QList<Tag> tags)
         if (!tags.contains(tag)) {
             errorDescription = "One of initial tags was not found within found tags";
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -328,7 +317,6 @@ void TagLocalStorageManagerAsyncTester::onDeleteTagCompleted(QSharedPointer<Tag>
                            "tag pointer in onDeleteTagCompleted slot doesn't match "
                            "the pointer to the original deleted Tag";
         QNWARNING(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit failure(errorDescription);
         return;
     }
@@ -356,7 +344,6 @@ void TagLocalStorageManagerAsyncTester::onExpungeTagCompleted(QSharedPointer<Tag
                            "tag pointer in onExpungeTagCompleted slot doesn't match "
                            "the pointer to the original expunged Tag";
         QNWARNING(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit failure(errorDescription);
         return;
     }

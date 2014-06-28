@@ -25,7 +25,7 @@ QuteNoteLogger::QuteNoteLogger(const QString & name, const Level level) :
 
     m_logFile.open(QFile::ReadWrite);
     if (!m_logFile.isOpen()) {
-        QString error = QObject::tr("Can't open log file for writing: ");
+        QString error = QT_TR_NOOP("Can't open log file for writing: ");
         error += m_logFile.errorString();
         throw LoggerInitializationException(error);
     }

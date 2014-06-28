@@ -64,15 +64,15 @@ void UserLocalStorageManagerAsyncTester::onGetUserCountCompleted(int count)
 
 #define HANDLE_WRONG_STATE() \
     else { \
-        errorDescription = QObject::tr("Internal error in UserLocalStorageManagerAsyncTester: " \
-                                       "found wrong state"); \
+        errorDescription = "Internal error in UserLocalStorageManagerAsyncTester: " \
+                           "found wrong state"; \
         emit failure(errorDescription); \
     }
 
     if (m_state == STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST)
     {
         if (count != 1) {
-            errorDescription = QObject::tr("GetUserCount returned result different from the expected one (1): ");
+            errorDescription = "GetUserCount returned result different from the expected one (1): ";
             errorDescription += QString::number(count);
             emit failure(errorDescription);
             return;
@@ -86,7 +86,7 @@ void UserLocalStorageManagerAsyncTester::onGetUserCountCompleted(int count)
     else if (m_state == STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST)
     {
         if (count != 0) {
-            errorDescription = QObject::tr("GetUserCount returned result different from the expected one (0): ");
+            errorDescription = "GetUserCount returned result different from the expected one (0): ";
             errorDescription += QString::number(count);
             emit failure(errorDescription);
             return;
@@ -116,7 +116,6 @@ void UserLocalStorageManagerAsyncTester::onAddUserCompleted(QSharedPointer<UserW
             errorDescription = "Internal error in UserLocalStorageManagerAsyncTester: "
                                "user in onAddUserCompleted doesn't match the original UserWrapper";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -150,7 +149,6 @@ void UserLocalStorageManagerAsyncTester::onUpdateUserCompleted(QSharedPointer<Us
                                "user pointer in onUpdateUserCompleted slot doesn't match "
                                "the pointer to the original modified UserWrapper";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -181,7 +179,6 @@ void UserLocalStorageManagerAsyncTester::onFindUserCompleted(QSharedPointer<User
                                "user pointer in onFindUserCompleted slot doesn't match "
                                "the pointer to the original UserWrapper";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -191,7 +188,6 @@ void UserLocalStorageManagerAsyncTester::onFindUserCompleted(QSharedPointer<User
             errorDescription = "Added and found users in local storage don't match";
             QNWARNING(errorDescription << ": UserWrapper added to LocalStorageManager: " << *m_pInitialUser
                       << "\nUserWrapper found in LocalStorageManager: " << *m_pFoundUser);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -211,7 +207,6 @@ void UserLocalStorageManagerAsyncTester::onFindUserCompleted(QSharedPointer<User
                                "user pointer in onFindUserCompleted slot doesn't match "
                                "the pointer to the original modified UserWrapper";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -221,7 +216,6 @@ void UserLocalStorageManagerAsyncTester::onFindUserCompleted(QSharedPointer<User
             errorDescription = "Updated and found users in local storage don't match";
             QNWARNING(errorDescription << ": UserWrapper updated in LocalStorageManager: " << *m_pModifiedUser
                       << "\nUserWrapper found in LocalStorageManager: " << *m_pFoundUser);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -235,7 +229,6 @@ void UserLocalStorageManagerAsyncTester::onFindUserCompleted(QSharedPointer<User
         errorDescription = "Error: found user which should have been expunged from local storage";
         QNWARNING(errorDescription << ": UserWrapper expunged from LocalStorageManager: " << *m_pModifiedUser
                   << "\nUserWrapper found in LocalStorageManager: " << *m_pFoundUser);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -266,7 +259,6 @@ void UserLocalStorageManagerAsyncTester::onDeleteUserCompleted(QSharedPointer<Us
                            "user pointer in onDeleteUserCompleted slot doesn't match "
                            "the pointer to the original deleted UserWrapper";
         QNWARNING(errorDescription);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -294,7 +286,6 @@ void UserLocalStorageManagerAsyncTester::onExpungeUserCompleted(QSharedPointer<U
                            "user pointer in onExpungeUserCompleted slot doesn't match "
                            "the pointer to the original expunged UserWrapper";
         QNWARNING(errorDescription);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
     }
 

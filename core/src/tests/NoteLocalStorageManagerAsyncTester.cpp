@@ -79,7 +79,6 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookCompleted(QSharedPointer<N
         errorDescription = "Internal error in NoteLocalStorageManagerAsyncTester: " \
                            "found wrong state"; \
         QNWARNING(errorDescription << ": " << m_state); \
-        QNTRANSLATE(errorDescription); \
         emit failure(errorDescription); \
     }
 
@@ -90,7 +89,6 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookCompleted(QSharedPointer<N
                                "notebook in onAddNotebookCompleted slot doesn't match "
                                "the original Notebook";
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -142,7 +140,6 @@ void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count)
             errorDescription = "GetNoteCount returned result different from the expected one (1): ";
             errorDescription += QString::number(count);
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -159,7 +156,6 @@ void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count)
             errorDescription = "GetNoteCount returned result different from the expected one (0): ";
             errorDescription += QString::number(count);
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -226,7 +222,6 @@ void NoteLocalStorageManagerAsyncTester::onAddNoteCompleted(QSharedPointer<Note>
                                "note pointer in onAddNoteCompleted slot doesn't match "
                                "the pointer to the original Note";
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -303,7 +298,6 @@ void NoteLocalStorageManagerAsyncTester::onUpdateNoteCompleted(QSharedPointer<No
                                "note pointer in onUpdateNoteCompleted slot doesn't match "
                                "the pointer to the original updated Note";
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -336,7 +330,6 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(QSharedPointer<Note
                                "note pointer in onFindNoteCompleted slot doesn't match "
                                "the pointer to the original Note";
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -346,7 +339,6 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(QSharedPointer<Note
             errorDescription = "Added and found notes in local storage don't match";
             QNWARNING(errorDescription << ": Note added to LocalStorageManager: " << *m_pInitialNote
                       << "\nNote found in LocalStorageManager: " << *m_pFoundNote);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -367,7 +359,6 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(QSharedPointer<Note
                                "note pointer in onFindNoteCompleted slot doesn't match "
                                "the pointer to the original modified Note";
             QNWARNING(errorDescription);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -377,7 +368,6 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(QSharedPointer<Note
             errorDescription = "Updated and found notes in local storage don't match";
             QNWARNING(errorDescription << ": Note updated in LocalStorageManager: " << *m_pModifiedNote
                       << "\nNote found in LocalStorageManager: " << *m_pFoundNote);
-            QNTRANSLATE(errorDescription);
             emit failure(errorDescription);
             return;
         }
@@ -391,7 +381,6 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(QSharedPointer<Note
         errorDescription = "Found note which should have been expunged from local storage";
         QNWARNING(errorDescription << ": Note expunged from LocalStorageManager: " << *m_pModifiedNote
                   << "\nNote found in LocalStorageManager: " << *m_pFoundNote);
-        QNTRANSLATE(errorDescription);
         emit failure(errorDescription);
         return;
     }
@@ -422,7 +411,6 @@ void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(QSha
             if (!m_initialNotes.contains(note)) {
                 errorDescription = "One of found notes was not found within initial notes";
                 QNWARNING(errorDescription << ", unfound note: " << note);
-                QNTRANSLATE(errorDescription);
                 emit failure(errorDescription);
                 return;
             }
@@ -433,7 +421,6 @@ void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(QSha
                 errorDescription += ", found: ";
                 errorDescription += note.notebookGuid();
                 QNWARNING(errorDescription);
-                QNTRANSLATE(errorDescription);
                 emit failure(errorDescription);
                 return;
             }
@@ -446,7 +433,6 @@ void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(QSha
             if (!m_initialNotes.contains(note)) {
                 errorDescription = "One of found notes was not found within initial notes";
                 QNWARNING(errorDescription);
-                QNTRANSLATE(errorDescription);
                 emit failure(errorDescription);
                 return;
             }
@@ -457,7 +443,6 @@ void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(QSha
                 errorDescription += ", found: ";
                 errorDescription += note.notebookGuid();
                 QNWARNING(errorDescription);
-                QNTRANSLATE(errorDescription);
                 emit failure(errorDescription);
                 return;
             }
@@ -487,7 +472,6 @@ void NoteLocalStorageManagerAsyncTester::onDeleteNoteCompleted(QSharedPointer<No
                            "note pointer in onDeleteNoteCompleted slot doesn't match "
                            "the pointer to the original deleted Note";
         QNWARNING(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit failure(errorDescription);
         return;
     }
@@ -515,7 +499,6 @@ void NoteLocalStorageManagerAsyncTester::onExpungeNoteCompleted(QSharedPointer<N
                            "note pointer in onExpungeNoteCompleted slot doesn't match "
                            "the pointer to the original expunged Note";
         QNWARNING(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit failure(errorDescription);
         return;
     }

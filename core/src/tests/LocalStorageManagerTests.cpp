@@ -41,7 +41,6 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         errorDescription = "Added and found saved searches in local storage don't match";
         QNWARNING(errorDescription << ": SavedSearch added to LocalStorageManager: " << search
                   << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         return false;
     }
 
@@ -62,7 +61,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     }
 
     if (modifiedSearch != foundSearch) {
-        errorDescription = QObject::tr("Updated and found saved searches in local storage don't match");
+        errorDescription = "Updated and found saved searches in local storage don't match";
         QNWARNING(errorDescription << ": SavedSearch updated in LocalStorageManager: " << modifiedSearch
                   << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
         return false;
@@ -74,7 +73,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         return false;
     }
     else if (count != 1) {
-        errorDescription = QObject::tr("GetSavedSearchCount returned result different from the expected one (1): ");
+        errorDescription = "GetSavedSearchCount returned result different from the expected one (1): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -90,7 +89,6 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         errorDescription = "Error: found saved search which should have been expunged from local storage";
         QNWARNING(errorDescription << ": SavedSearch expunged from LocalStorageManager: " << modifiedSearch
                   << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         return false;
     }
 
@@ -100,7 +98,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         return false;
     }
     else if (count != 0) {
-        errorDescription = QObject::tr("GetSavedSearchCount returned result different from the expected one (0): ");
+        errorDescription = "GetSavedSearchCount returned result different from the expected one (0): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -132,7 +130,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     }
 
     if (linkedNotebook != foundLinkedNotebook) {
-        errorDescription = QObject::tr("Added and found linked noteboks in local storage don't match");
+        errorDescription = "Added and found linked noteboks in local storage don't match";
         QNWARNING(errorDescription << ": LinkedNotebook added to LocalStorageManager: " << linkedNotebook
                   << "\nLinkedNotebook found in LocalStorageManager: " << foundLinkedNotebook);
         return false;
@@ -162,7 +160,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     }
 
     if (modifiedLinkedNotebook != foundLinkedNotebook) {
-        errorDescription = QObject::tr("Updated and found linked notebooks in local storage don't match");
+        errorDescription = "Updated and found linked notebooks in local storage don't match";
         QNWARNING(errorDescription << ": LinkedNotebook updated in LocalStorageManager: " << modifiedLinkedNotebook
                   << "\nLinkedNotebook found in LocalStorageManager: " << foundLinkedNotebook);
         return false;
@@ -174,7 +172,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
         return false;
     }
     else if (count != 1) {
-        errorDescription = QObject::tr("GetLinkedNotebookCount returned result different from the expected one (1): ");
+        errorDescription = "GetLinkedNotebookCount returned result different from the expected one (1): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -199,7 +197,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
         return false;
     }
     else if (count != 0) {
-        errorDescription = QObject::tr("GetLinkedNotebookCount returned result different from the expected one (0): ");
+        errorDescription = "GetLinkedNotebookCount returned result different from the expected one (0): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -231,7 +229,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     if (tag != foundTag) {
-        errorDescription = QObject::tr("Added and found tags in local storage tags don't match");
+        errorDescription = "Added and found tags in local storage tags don't match";
         QNWARNING(errorDescription << ": Tag added to LocalStorageManager: " << tag
                   << "\nTag found in LocalStorageManager: " << foundTag);
         return false;
@@ -253,7 +251,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     if (modifiedTag != foundTag) {
-        errorDescription = QObject::tr("Updated and found tags in local storage don't match");
+        errorDescription = "Updated and found tags in local storage don't match";
         QNWARNING(errorDescription << ": Tag updated in LocalStorageManaged: " << modifiedTag
                   << "\nTag found in LocalStorageManager: " << foundTag);
         return false;
@@ -265,7 +263,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
     else if (count != 1) {
-        errorDescription = QObject::tr("GetTagCount returned result different from the expected one (1): ");
+        errorDescription = "GetTagCount returned result different from the expected one (1): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -284,8 +282,8 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     if (!foundTag.isDeleted()) {
-        errorDescription = QObject::tr("Tag which should have been marked as deleted one "
-                                       "is not marked so in the result of FindTag");
+        errorDescription = "Tag which should have been marked as deleted one "
+                           "is not marked so in the result of FindTag";
         QNWARNING(errorDescription << ": deleted Tag which should have been found in LocalStorageManager: "
                   << modifiedTag << "\nTag which should have actually been found: "
                   << foundTag);
@@ -298,7 +296,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
     else if (count != 0) {
-        errorDescription = QObject::tr("GetTagCount returned result different from the expected one (0): ");
+        errorDescription = "GetTagCount returned result different from the expected one (0): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -346,7 +344,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     }
 
     if (resource != foundResource) {
-        errorDescription = QObject::tr("Added and found in local storage resources don't match");
+        errorDescription = "Added and found in local storage resources don't match";
         QNWARNING(errorDescription << ": IResource added to LocalStorageManager: " << resource
                   << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
@@ -387,7 +385,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     }
 
     if (modifiedResource != foundResource) {
-        errorDescription = QObject::tr("Updated and found in local storage resources don't match");
+        errorDescription = "Updated and found in local storage resources don't match";
         QNWARNING(errorDescription << ": IResource updated in LocalStorageManager: " << modifiedResource
                   << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
@@ -399,7 +397,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
         return false;
     }
     else if (count != 1) {
-        errorDescription = QObject::tr("GetEnResourceCount returned result different from the expected one (1): ");
+        errorDescription = "GetEnResourceCount returned result different from the expected one (1): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -412,7 +410,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
 
     res = localStorageManager.FindEnResource(foundResource, errorDescription);
     if (res) {
-        errorDescription = QObject::tr("Error: found IResource which should have been expunged from LocalStorageManager");
+        errorDescription = "Error: found IResource which should have been expunged from LocalStorageManager";
         QNWARNING(errorDescription << ": IResource expunged from LocalStorageManager: " << modifiedResource
                   << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
@@ -424,7 +422,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
         return false;
     }
     else if (count != 0) {
-        errorDescription = QObject::tr("GetEnResourceCount returned result different from the expected one (0): ");
+        errorDescription = "GetEnResourceCount returned result different from the expected one (0): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -461,7 +459,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     }
 
     if (note != foundNote) {
-        errorDescription = QObject::tr("Added and found notes in local storage don't match");
+        errorDescription = "Added and found notes in local storage don't match";
         QNWARNING(errorDescription << ": Note added to LocalStorageManager: " << note
                   << "\nNote found in LocalStorageManager: " << foundNote);
         return false;
@@ -533,9 +531,9 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
 
     if (foundResource != newResource)
     {
-        errorDescription = QObject::tr("Something is wrong with the new resource "
-                                       "which should have been added to local storage "
-                                       "along with note update: it is not equal to original resource");
+        errorDescription = "Something is wrong with the new resource "
+                           "which should have been added to local storage "
+                           "along with note update: it is not equal to original resource";
         QNWARNING(errorDescription << ": original resource: " << newResource
                   << "\nfound resource: " << foundResource);
         return false;
@@ -548,7 +546,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     }
 
     if (modifiedNote != foundNote) {
-        errorDescription = QObject::tr("Updated and found in local storage notes don't match");
+        errorDescription = "Updated and found in local storage notes don't match";
         QNWARNING(errorDescription << ": Note updated in LocalStorageManager: " << modifiedNote
                   << "\nNote found in LocalStorageManager: " << foundNote);
         return false;
@@ -560,7 +558,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
     else if (count != 1) {
-        errorDescription = QObject::tr("GetNoteCount returned result different from the expected one (1): ");
+        errorDescription = "GetNoteCount returned result different from the expected one (1): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -582,8 +580,8 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     }
 
     if (!foundNote.isDeleted()) {
-        errorDescription = QObject::tr("Note which should have been marked deleted "
-                                       "is not marked so after LocalStorageManager::FindNote");
+        errorDescription = "Note which should have been marked deleted "
+                           "is not marked so after LocalStorageManager::FindNote";
         QNWARNING(errorDescription << ": Note found in LocalStorageManager: " << foundNote);
         return false;
     }
@@ -594,7 +592,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
     else if (count != 0) {
-        errorDescription = QObject::tr("GetNoteCount returned result different from the expected one (0): ");
+        errorDescription = "GetNoteCount returned result different from the expected one (0): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -609,8 +607,8 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     res = localStorageManager.FindNote(foundNote, errorDescription,
                                        /* withResourceBinaryData = */ true);
     if (res) {
-        errorDescription = QObject::tr("Error: found Note which should have been expunged "
-                                       "from LocalStorageManager");
+        errorDescription = "Error: found Note which should have been expunged "
+                           "from LocalStorageManager";
         QNWARNING(errorDescription << ": Note expunged from LocalStorageManager: " << modifiedNote
                   << "\nNote found in LocalStorageManager: " << foundNote);
         return false;
@@ -622,8 +620,8 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     res = localStorageManager.FindEnResource(foundResource, errorDescription,
                                              /* withBinaryData = */ true);
     if (res) {
-        errorDescription = QObject::tr("Error: found Resource which should have been expunged "
-                                       "from LocalStorageManager along with Note owning it");
+        errorDescription = "Error: found Resource which should have been expunged "
+                           "from LocalStorageManager along with Note owning it";
         QNWARNING(errorDescription << ": Note expunged from LocalStorageManager: " << modifiedNote
                   << "\nResource found in LocalStorageManager: " << foundResource);
         return false;
@@ -659,7 +657,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     }
 
     if (notebook != foundNotebook) {
-        errorDescription = QObject::tr("Added and found notebooks in local storage don't match");
+        errorDescription = "Added and found notebooks in local storage don't match";
         QNWARNING(errorDescription << ": Notebook added to LocalStorageManager: " << notebook
                   << "\nNotebook found in LocalStorageManager: " << foundNotebook);
         return false;
@@ -676,7 +674,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     Notebook lastUsedNotebook;
     res = localStorageManager.FindLastUsedNotebook(lastUsedNotebook, errorDescription);
     if (res) {
-        errorDescription = QObject::tr("Found some last used notebook which shouldn't have been found");
+        errorDescription = "Found some last used notebook which shouldn't have been found";
         QNWARNING(errorDescription << ": " << lastUsedNotebook);
         return false;
     }
@@ -690,8 +688,8 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     }
 
     if (defaultOrLastUsedNotebook != defaultNotebook) {
-        errorDescription = QObject::tr("Found defaultOrLastUsed notebook which should be the same "
-                                       "as default notebook right now but it is not");
+        errorDescription = "Found defaultOrLastUsed notebook which should be the same "
+                           "as default notebook right now but it is not";
         QNWARNING(errorDescription << ". Default notebook: " << defaultNotebook
                   << ", defaultOrLastUsedNotebook: " << defaultOrLastUsedNotebook);
         return false;
@@ -727,7 +725,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     }
 
     if (modifiedNotebook != foundNotebook) {
-        errorDescription = QObject::tr("Updated and found notebooks in local storage don't match");
+        errorDescription = "Updated and found notebooks in local storage don't match";
         QNWARNING(errorDescription << ": Notebook updated in LocalStorageManager: " << modifiedNotebook
                   << "\nNotebook found in LocalStorageManager: " << foundNotebook);
         return false;
@@ -737,7 +735,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     defaultNotebook = Notebook();
     res = localStorageManager.FindDefaultNotebook(defaultNotebook, errorDescription);
     if (res) {
-        errorDescription = QObject::tr("Found some default notebook which shouldn't have been found");
+        errorDescription = "Found some default notebook which shouldn't have been found";
         QNWARNING(errorDescription << ": " << defaultNotebook);
         return false;
     }
@@ -758,8 +756,8 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     }
 
     if (defaultOrLastUsedNotebook != lastUsedNotebook) {
-        errorDescription = QObject::tr("Found defaultOrLastUsed notebook which should be the same "
-                                       "as last used notebook right now but it is not");
+        errorDescription = "Found defaultOrLastUsed notebook which should be the same "
+                           "as last used notebook right now but it is not";
         QNWARNING(errorDescription << ". Last used notebook: " << lastUsedNotebook
                   << ", defaultOrLastUsedNotebook: " << defaultOrLastUsedNotebook);
         return false;
@@ -771,7 +769,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
         return false;
     }
     else if (count != 1) {
-        errorDescription = QObject::tr("GetNotebookCount returned result different from the expected one (1): ");
+        errorDescription = "GetNotebookCount returned result different from the expected one (1): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -785,8 +783,8 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
 
     res = localStorageManager.FindNotebook(foundNotebook, errorDescription);
     if (res) {
-        errorDescription = QObject::tr("Error: found Notebook which should have been expunged "
-                                       "from LocalStorageManager");
+        errorDescription = "Error: found Notebook which should have been expunged "
+                           "from LocalStorageManager";
         QNWARNING(errorDescription << ": Notebook expunged from LocalStorageManager: " << modifiedNotebook
                   << "\nNotebook found in LocalStorageManager: " << foundNotebook);
         return false;
@@ -798,7 +796,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
         return false;
     }
     else if (count != 0) {
-        errorDescription = QObject::tr("GetNotebookCount returned result different from the expected one (0): ");
+        errorDescription = "GetNotebookCount returned result different from the expected one (0): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -829,7 +827,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     if (user != foundUser) {
-        errorDescription = QObject::tr("Added and found users in local storage don't match");
+        errorDescription = "Added and found users in local storage don't match";
         QNWARNING(errorDescription << ": IUser added to LocalStorageManager: " << user
                   << "\nIUser found in LocalStorageManager: " << foundUser);
         return false;
@@ -892,7 +890,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     if (modifiedUser != foundUser) {
-        errorDescription = QObject::tr("Updated and found users in local storage don't match");
+        errorDescription = "Updated and found users in local storage don't match";
         QNWARNING(errorDescription << ": IUser updated in LocalStorageManager: " << modifiedUser
                   << "\nIUser found in LocalStorageManager: " << foundUser);
         return false;
@@ -904,7 +902,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
     else if (count != 1) {
-        errorDescription = QObject::tr("GetUserCount returned value different from expected (1): ");
+        errorDescription = "GetUserCount returned value different from expected (1): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -926,7 +924,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     if (modifiedUser != foundUser) {
-        errorDescription = QObject::tr("Deleted and found users in local storage manager don't match");
+        errorDescription = "Deleted and found users in local storage manager don't match";
         QNWARNING(errorDescription << ": IUser marked deleted in LocalStorageManager: " << modifiedUser
                   << "\nIUser found in LocalStorageManager: " << foundUser);
         return false;
@@ -938,7 +936,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
         return false;
     }
     else if (count != 0) {
-        errorDescription = QObject::tr("GetUserCount returned value different from expected (0): ");
+        errorDescription = "GetUserCount returned value different from expected (0): ";
         errorDescription += QString::number(count);
         return false;
     }
@@ -955,8 +953,8 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     foundUser.setId(modifiedUser.id());
     res = localStorageManager.FindUser(foundUser, errorDescription);
     if (res) {
-        errorDescription = QObject::tr("Error: found IUser which should have been expunged "
-                                       "from LocalStorageManager");
+        errorDescription = "Error: found IUser which should have been expunged "
+                           "from LocalStorageManager";
         QNWARNING(errorDescription << ": IUser expunged from LocalStorageManager: " << modifiedUser
                   << "\nIUser found in LocalStorageManager: " << foundUser);
         return false;

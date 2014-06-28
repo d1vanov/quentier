@@ -66,12 +66,12 @@ bool IUser::checkParameters(QString & errorDescription) const
     const auto & enUser = GetEnUser();
 
     if (!enUser.id.isSet()) {
-        errorDescription = QObject::tr("User id is not set");
+        errorDescription = QT_TR_NOOP("User id is not set");
         return false;
     }
 
     if (!enUser.username.isSet()) {
-        errorDescription = QObject::tr("User name is not set");
+        errorDescription = QT_TR_NOOP("User name is not set");
         return false;
     }
 
@@ -80,9 +80,10 @@ bool IUser::checkParameters(QString & errorDescription) const
     if ( (usernameSize > qevercloud::EDAM_USER_USERNAME_LEN_MAX) ||
          (usernameSize < qevercloud::EDAM_USER_USERNAME_LEN_MIN) )
     {
-        errorDescription = QObject::tr("User name should have length from ");
+        errorDescription = QT_TR_NOOP("User name should have length from ");
         errorDescription += QString::number(qevercloud::EDAM_USER_USERNAME_LEN_MIN);
-        errorDescription += QObject::tr(" to ");
+        // TRANSLATOR "Previous part of the phrase was "User should have length from ..."
+        errorDescription += QT_TR_NOOP(" to ");
         errorDescription += QString::number(qevercloud::EDAM_USER_USERNAME_LEN_MAX);
 
         return false;
@@ -90,7 +91,7 @@ bool IUser::checkParameters(QString & errorDescription) const
 
     QRegExp usernameRegExp(qevercloud::EDAM_USER_USERNAME_REGEX);
     if (usernameRegExp.indexIn(username) < 0) {
-        errorDescription = QObject::tr("User name can contain only \"a-z\" or \"0-9\""
+        errorDescription = QT_TR_NOOP("User name can contain only \"a-z\" or \"0-9\""
                                        "or \"-\" but should not start or end with \"-\"");
         return false;
     }
@@ -99,7 +100,7 @@ bool IUser::checkParameters(QString & errorDescription) const
     // authenticate using OAuth do not have access to this field"
 
     if (!enUser.name.isSet()) {
-        errorDescription = QObject::tr("User's displayed name is not set");
+        errorDescription = QT_TR_NOOP("User's displayed name is not set");
         return false;
     }
 
@@ -108,9 +109,10 @@ bool IUser::checkParameters(QString & errorDescription) const
     if ( (nameSize > qevercloud::EDAM_USER_NAME_LEN_MAX) ||
          (nameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) )
     {
-        errorDescription = QObject::tr("User displayed name must have length from ");
+        errorDescription = QT_TR_NOOP("User displayed name must have length from ");
         errorDescription += QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
-        errorDescription += QObject::tr(" to ");
+        // TRANSLATOR "Previous part of the phrase was "User displayed name must have length from ..."
+        errorDescription += QT_TR_NOOP(" to ");
         errorDescription += QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
 
         return false;
@@ -118,8 +120,8 @@ bool IUser::checkParameters(QString & errorDescription) const
 
     QRegExp nameRegExp(qevercloud::EDAM_USER_NAME_REGEX);
     if (nameRegExp.indexIn(name) < 0) {
-        errorDescription = QObject::tr("User displayed name doesn't match its regular expression. "
-                                       "Consider removing any special characters");
+        errorDescription = QT_TR_NOOP("User displayed name doesn't match its regular expression. "
+                                      "Consider removing any special characters");
         return false;
     }
 
@@ -130,9 +132,10 @@ bool IUser::checkParameters(QString & errorDescription) const
         if ( (timezoneSize > qevercloud::EDAM_TIMEZONE_LEN_MAX) ||
              (timezoneSize < qevercloud::EDAM_TIMEZONE_LEN_MIN) )
         {
-            errorDescription = QObject::tr("User timezone should have length from ");
+            errorDescription = QT_TR_NOOP("User timezone should have length from ");
             errorDescription += QString::number(qevercloud::EDAM_TIMEZONE_LEN_MIN);
-            errorDescription += QObject::tr(" to ");
+            // TRANSlATOR Previous part of the phrase was "User timezone should have length from ..."
+            errorDescription += QT_TR_NOOP(" to ");
             errorDescription += QString::number(qevercloud::EDAM_TIMEZONE_LEN_MAX);
 
             return false;
@@ -140,9 +143,9 @@ bool IUser::checkParameters(QString & errorDescription) const
 
         QRegExp timezoneRegExp(qevercloud::EDAM_TIMEZONE_REGEX);
         if (timezoneRegExp.indexIn(timezone) < 0) {
-            errorDescription = QObject::tr("User timezone doesn't match its regular expression. "
-                                           "It must be encoded as a standard zone ID such as \"America/Los_Angeles\" "
-                                           "or \"GMT+08:00\".");
+            errorDescription = QT_TR_NOOP("User timezone doesn't match its regular expression. "
+                                          "It must be encoded as a standard zone ID such as \"America/Los_Angeles\" "
+                                          "or \"GMT+08:00\".");
             return false;
         }
     }
@@ -158,9 +161,10 @@ bool IUser::checkParameters(QString & errorDescription) const
             if ( (defaultLocationNameSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                  (defaultLocationNameSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
             {
-                errorDescription = QObject::tr("User default location name must have length from ");
+                errorDescription = QT_TR_NOOP("User default location name must have length from ");
                 errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN);
-                errorDescription += QObject::tr(" to ");
+                // TRANSLATOR previous part of the phrase was "User default location name must have length from ..."
+                errorDescription += QT_TR_NOOP(" to ");
                 errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX);
 
                 return false;
@@ -176,9 +180,10 @@ bool IUser::checkParameters(QString & errorDescription) const
                 if ( (viewedPromotionSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                      (viewedPromotionSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
                 {
-                    errorDescription = QObject::tr("Each User's viewed promotion must have length from ");
+                    errorDescription = QT_TR_NOOP("Each User's viewed promotion must have length from ");
                     errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN);
-                    errorDescription += QObject::tr(" to ");
+                    // TRANSLATOR "Each User's viewed promotion must have length from "
+                    errorDescription += QT_TR_NOOP(" to ");
                     errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX);
 
                     return false;
@@ -193,9 +198,10 @@ bool IUser::checkParameters(QString & errorDescription) const
             if ( (incomingEmailAddressSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                  (incomingEmailAddressSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
             {
-                errorDescription = QObject::tr("User's incoming email address must have length from ");
+                errorDescription = QT_TR_NOOP("User's incoming email address must have length from ");
                 errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN);
-                errorDescription += QObject::tr(" to ");
+                // TRANSLATOR Previous part of the phrase was "User's incoming email address must have length from ..."
+                errorDescription += QT_TR_NOOP(" to ");
                 errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX);
 
                 return false;
@@ -208,7 +214,7 @@ bool IUser::checkParameters(QString & errorDescription) const
             size_t numRecentMailedAddresses = recentMailedAddresses.size();
             if (numRecentMailedAddresses > qevercloud::EDAM_USER_RECENT_MAILED_ADDRESSES_MAX)
             {
-                errorDescription = QObject::tr("User must have no more recent mailed addresses than ");
+                errorDescription = QT_TR_NOOP("User must have no more recent mailed addresses than ");
                 errorDescription += QString::number(qevercloud::EDAM_USER_RECENT_MAILED_ADDRESSES_MAX);
 
                 return false;
@@ -220,9 +226,10 @@ bool IUser::checkParameters(QString & errorDescription) const
                 if ( (recentMailedAddressSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                      (recentMailedAddressSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
                 {
-                    errorDescription = QObject::tr("Each user's recent emailed address must have length from ");
+                    errorDescription = QT_TR_NOOP("Each user's recent emailed address must have length from ");
                     errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN);
-                    errorDescription += QObject::tr(" to ");
+                    // TRANSLATOR Previous part of the phrase was "Each user's recent emailed address must have length from ..."
+                    errorDescription += QT_TR_NOOP(" to ");
                     errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX);
 
                     return false;
@@ -237,9 +244,10 @@ bool IUser::checkParameters(QString & errorDescription) const
             if ( (commentsSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                  (commentsSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
             {
-                errorDescription = QObject::tr("User's comments must have length from ");
+                errorDescription = QT_TR_NOOP("User's comments must have length from ");
                 errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN);
-                errorDescription += QObject::tr(" to ");
+                // TRANSLATOR Previous part of the phrase was "User's comments must have length from ..."
+                errorDescription += QT_TR_NOOP(" to ");
                 errorDescription += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX);
 
                 return false;

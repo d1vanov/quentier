@@ -68,8 +68,8 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onGetLinkedNotebookCountCompl
 
 #define HANDLE_WRONG_STATE() \
     else { \
-        errorDescription = QObject::tr("Internal error in LinkedNotebookLocalStorageManagerAsyncTester: " \
-                                       "found wrong state"); \
+        errorDescription = "Internal error in LinkedNotebookLocalStorageManagerAsyncTester: " \
+                           "found wrong state"; \
         emit failure(errorDescription); \
         return; \
     }
@@ -77,7 +77,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onGetLinkedNotebookCountCompl
     if (m_state == STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST)
     {
         if (count != 1) {
-            errorDescription = QObject::tr("GetLinkedNotebookCount returned result different from the expected one (1): ");
+            errorDescription = "GetLinkedNotebookCount returned result different from the expected one (1): ";
             errorDescription += QString::number(count);
             emit failure(errorDescription);
             return;
@@ -89,7 +89,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onGetLinkedNotebookCountCompl
     else if (m_state == STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST)
     {
         if (count != 0) {
-            errorDescription = QObject::tr("GetLinkedNotebookCount returned result different from the expected one (0): ");
+            errorDescription = "GetLinkedNotebookCount returned result different from the expected one (0): ";
             errorDescription += QString::number(count);
             emit failure(errorDescription);
             return;
@@ -131,7 +131,6 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onAddLinkedNotebookCompleted(
             errorDescription = "Internal error in LinkedNotebookLocalStorageManagerAsyncTester: "
                                "notebook in addLinkedNotebookCompleted slot doesn't match the original LinkedNotebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -193,7 +192,6 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onUpdateLinkedNotebookComplet
                                "notebook pointer in onUpdateLinkedNotebookCompleted slot doesn't match "
                                "the pointer to the original modified LinkedNotebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -223,7 +221,6 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookCompleted
                                "notebook pointer in onFindLinkedNotebookCompleted slot doesn't match "
                                "the pointer to the original LinkedNotebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -254,7 +251,6 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookCompleted
                                "notebook pointer in onFindLinkedNotebookCompleted slot doesn't match "
                                "the pointer to the original modified LinkedNotebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -265,7 +261,6 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookCompleted
             QNWARNING(errorDescription << ": LinkedNotebook updated in LocalStorageManager: "
                       << *m_pModifiedLinkedNotebook << "\nLinkedNotebook found in LocalStorageManager: "
                       << *m_pFoundLinkedNotebook);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -279,7 +274,6 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookCompleted
         errorDescription = "Error: found linked notebook which should have been expunged from local storage";
         QNWARNING(errorDescription << ": LinkedNotebook expunged from LocalStorageManager: " << *m_pModifiedLinkedNotebook
                   << "\nLinkedNotebook found in LocalStorageManager: " << *m_pFoundLinkedNotebook);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -306,8 +300,8 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onListAllLinkedNotebooksCompl
     QString errorDescription;
 
     if (numInitialLinkedNotebooks != numFoundLinkedNotebooks) {
-        errorDescription = QObject::tr("Error: number of found linked notebooks does not correspond "
-                                       "to the number of original added linked notebooks");
+        errorDescription = "Error: number of found linked notebooks does not correspond "
+                           "to the number of original added linked notebooks";
         emit failure(errorDescription);
         return;
     }
@@ -315,8 +309,8 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onListAllLinkedNotebooksCompl
     foreach(const LinkedNotebook & notebook, m_initialLinkedNotebooks)
     {
         if (!linkedNotebooks.contains(notebook)) {
-            errorDescription = QObject::tr("Error: one of initial linked notebooks was not found "
-                                           "within found linked notebooks");
+            errorDescription = "Error: one of initial linked notebooks was not found "
+                               "within found linked notebooks";
             emit failure(errorDescription);
             return;
         }
@@ -342,7 +336,6 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onExpungeLinkedNotebookComple
                            "linked notebook pointer in onExpungeLinkedNotebookCompleted slot doesn't match "
                            "the pointer to the original expunged LinkedNotebook";
         QNWARNING(errorDescription);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }

@@ -75,27 +75,27 @@ void LinkedNotebook::setUpdateSequenceNumber(const qint32 usn)
 bool LinkedNotebook::checkParameters(QString & errorDescription) const
 {    
     if (!m_qecLinkedNotebook.guid.isSet()) {
-        errorDescription = QObject::tr("Linked notebook's guid is not set");
+        errorDescription = QT_TR_NOOP("Linked notebook's guid is not set");
         return false;
     }
     else if (!CheckGuid(m_qecLinkedNotebook.guid.ref())) {
-        errorDescription = QObject::tr("Linked notebook's guid is invalid");
+        errorDescription = QT_TR_NOOP("Linked notebook's guid is invalid");
         return false;
     }
 
     if (!m_qecLinkedNotebook.shareName.isSet()) {
-        errorDescription = QObject::tr("Linked notebook's custom name is not set");
+        errorDescription = QT_TR_NOOP("Linked notebook's custom name is not set");
         return false;
     }
     else if (m_qecLinkedNotebook.shareName->isEmpty()) {
-        errorDescription = QObject::tr("Linked notebook's custom name is empty");
+        errorDescription = QT_TR_NOOP("Linked notebook's custom name is empty");
         return false;
     }
     else
     {
         QString simplifiedShareName = QString(m_qecLinkedNotebook.shareName.ref()).replace(" ", "");
         if (simplifiedShareName.isEmpty()) {
-            errorDescription = QObject::tr("Linked notebook's custom name must contain non-space characters");
+            errorDescription = QT_TR_NOOP("Linked notebook's custom name must contain non-space characters");
             return false;
         }
     }

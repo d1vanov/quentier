@@ -67,7 +67,4 @@ __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NoteSortOrder::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NotebookRestrictions)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookInstanceRestrictions::type)
 
-#define QNTRANSLATE(text) \
-    text = QObject::tr(qPrintable(text));
-
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

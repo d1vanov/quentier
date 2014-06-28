@@ -105,26 +105,26 @@ void Notebook::setUpdateSequenceNumber(const qint32 usn)
 bool Notebook::checkParameters(QString & errorDescription) const
 {
     if (localGuid().isEmpty()) {
-        errorDescription = QObject::tr("Notebook's local guid is empty");
+        errorDescription = QT_TR_NOOP("Notebook's local guid is empty");
         return false;
     }
 
     if (m_qecNotebook.guid.isSet() && !CheckGuid(m_qecNotebook.guid.ref())) {
-        errorDescription = QObject::tr("Notebook's guid is invalid");
+        errorDescription = QT_TR_NOOP("Notebook's guid is invalid");
         return false;
     }
 
     if (!m_qecNotebook.updateSequenceNum.isSet()) {
-        errorDescription = QObject::tr("Notebook's update sequence number is not set");
+        errorDescription = QT_TR_NOOP("Notebook's update sequence number is not set");
         return false;
     }
     else if (!CheckUpdateSequenceNumber(m_qecNotebook.updateSequenceNum)) {
-        errorDescription = QObject::tr("Notebook's update sequence number is invalid");
+        errorDescription = QT_TR_NOOP("Notebook's update sequence number is invalid");
         return false;
     }
 
     if (!m_qecNotebook.name.isSet()) {
-        errorDescription = QObject::tr("Notebook's name is not set");
+        errorDescription = QT_TR_NOOP("Notebook's name is not set");
         return false;
     }
 
@@ -133,17 +133,17 @@ bool Notebook::checkParameters(QString & errorDescription) const
     if ( (nameSize < qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN) ||
          (nameSize > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX) )
     {
-        errorDescription = QObject::tr("Notebook's name has invalid size");
+        errorDescription = QT_TR_NOOP("Notebook's name has invalid size");
         return false;
     }
 
     if (!m_qecNotebook.serviceCreated.isSet()) {
-        errorDescription = QObject::tr("Notebook's creation timestamp is not set");
+        errorDescription = QT_TR_NOOP("Notebook's creation timestamp is not set");
         return false;
     }
 
     if (!m_qecNotebook.serviceUpdated.isSet()) {
-        errorDescription = QObject::tr("Notebook's modification timestamp is not set");
+        errorDescription = QT_TR_NOOP("Notebook's modification timestamp is not set");
         return false;
     }
 
@@ -152,16 +152,16 @@ bool Notebook::checkParameters(QString & errorDescription) const
         foreach(const qevercloud::SharedNotebook & sharedNotebook, m_qecNotebook.sharedNotebooks.ref())
         {
             if (!sharedNotebook.id.isSet()) {
-                errorDescription = QObject::tr("Notebook has shared notebook without share id set");
+                errorDescription = QT_TR_NOOP("Notebook has shared notebook without share id set");
                 return false;
             }
 
             if (!sharedNotebook.notebookGuid.isSet()) {
-                errorDescription = QObject::tr("Notebook has shared notebook without real notebook's guid set");
+                errorDescription = QT_TR_NOOP("Notebook has shared notebook without real notebook's guid set");
                 return false;
             }
             else if (!CheckGuid(sharedNotebook.notebookGuid.ref())) {
-                errorDescription = QObject::tr("Notebook has shared notebook with invalid guid");
+                errorDescription = QT_TR_NOOP("Notebook has shared notebook with invalid guid");
                 return false;
             }
         }
@@ -170,7 +170,7 @@ bool Notebook::checkParameters(QString & errorDescription) const
     if (m_qecNotebook.businessNotebook.isSet())
     {
         if (!m_qecNotebook.businessNotebook->notebookDescription.isSet()) {
-            errorDescription = QObject::tr("Description for business notebook is not set");
+            errorDescription = QT_TR_NOOP("Description for business notebook is not set");
             return false;
         }
 
@@ -179,7 +179,7 @@ bool Notebook::checkParameters(QString & errorDescription) const
         if ( (businessNotebookDescriptionSize < qevercloud::EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MIN) ||
              (businessNotebookDescriptionSize > qevercloud::EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MAX) )
         {
-            errorDescription = QObject::tr("Description for business notebook has invalid size");
+            errorDescription = QT_TR_NOOP("Description for business notebook has invalid size");
             return false;
         }
     }

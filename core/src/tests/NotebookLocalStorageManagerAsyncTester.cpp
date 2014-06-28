@@ -90,7 +90,6 @@ void NotebookLocalStorageManagerAsyncTester::onGetNotebookCountCompleted(int cou
         errorDescription = "Internal error in NotebookLocalStorageManagerAsyncTester: " \
                            "found wrong state"; \
         QNWARNING(errorDescription << ": " << m_state); \
-        errorDescription = QObject::tr(qPrintable(errorDescription)); \
         emit failure(errorDescription); \
     }
 
@@ -100,7 +99,6 @@ void NotebookLocalStorageManagerAsyncTester::onGetNotebookCountCompleted(int cou
             errorDescription = "GetNotebookCount returned result different from the expected one (1): ";
             errorDescription += QString::number(count);
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -114,7 +112,6 @@ void NotebookLocalStorageManagerAsyncTester::onGetNotebookCountCompleted(int cou
             errorDescription = "GetNotebookCount returned result different from the expected one (0): ";
             errorDescription += QString::number(count);
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -199,7 +196,6 @@ void NotebookLocalStorageManagerAsyncTester::onAddNotebookCompleted(QSharedPoint
             errorDescription = "Internal error in NotebookLocalStorageManagerAsyncTester: "
                                "notebook in onAddNotebookCompleted doesn't match the original Notebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -282,7 +278,6 @@ void NotebookLocalStorageManagerAsyncTester::onUpdateNotebookCompleted(QSharedPo
                                "notebook pointer in onUpdateNotebookCompleted slot doesn't match "
                                "the pointer to the original modified Notebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -313,7 +308,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindNotebookCompleted(QSharedPoin
                                "notebook pointer in onFindNotebookCompleted slot doesn't match "
                                "the pointer to the original Notebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -323,7 +317,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindNotebookCompleted(QSharedPoin
             errorDescription = "Added and found notebooks in local storage don't match";
             QNWARNING(errorDescription << ": Notebook added to LocalStorageManager: " << *m_pInitialNotebook
                       << "\nNotebook found in LocalStorageManager: " << *m_pFoundNotebook);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -338,7 +331,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindNotebookCompleted(QSharedPoin
                                "notebook pointer in onFindNotebookCompleted slot doesn't match "
                                "the pointer to the original modified Notebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -347,7 +339,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindNotebookCompleted(QSharedPoin
         if (*m_pFoundNotebook != *m_pModifiedNotebook) {
             errorDescription = "Updated and found notebooks in local storage don't match";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -361,7 +352,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindNotebookCompleted(QSharedPoin
         errorDescription = "Error: found notebook which should have been expunged from local storage";
         QNWARNING(errorDescription << ": Notebook expunged from LocalStorageManager: " << *m_pModifiedNotebook
                   << "\nNotebook found in LocalStorageManager: " << *m_pFoundNotebook);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -394,7 +384,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindDefaultNotebookCompleted(QSha
                                "notebook pointer in onFindDefaultNotebookCompleted slot doesn't match "
                                "the pointer to the original added Notebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -403,7 +392,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindDefaultNotebookCompleted(QSha
         if (*m_pFoundNotebook != *m_pInitialNotebook) {
             errorDescription = "Added and found notebooks in local storage don't match";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -415,7 +403,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindDefaultNotebookCompleted(QSha
     {
         errorDescription = "Error: found default notebook which should not have been in local storage";
         QNWARNING(errorDescription << ": Notebook found in LocalStorageManager: " << *notebook);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -448,7 +435,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindLastUsedNotebookCompleted(QSh
                                "notebook pointer in onFindLastUsedNotebookCompleted slot doesn't match "
                                "the pointer to the original modified Notebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -457,7 +443,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindLastUsedNotebookCompleted(QSh
         if (*m_pFoundNotebook != *m_pModifiedNotebook) {
             errorDescription = "Updated and found notebooks in local storage don't match";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -469,7 +454,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindLastUsedNotebookCompleted(QSh
     {
         errorDescription = "Error: found last used notebook which should not have been in LocalStorageManager";
         QNWARNING(errorDescription << ": Notebook found in LocalStorageManager: " << *notebook);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -503,7 +487,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindDefaultOrLastUsedNotebookComp
                     "notebook pointer in onFindDefaultOrLastUsedNotebookCompleted slot doesn't match "
                     "the pointer to the original Notebook";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -514,7 +497,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindDefaultOrLastUsedNotebookComp
             if (*m_pFoundNotebook != *m_pInitialNotebook) {
                 errorDescription = "Added and found notebooks in local storage don't match";
                 QNWARNING(errorDescription);
-                errorDescription = QObject::tr(qPrintable(errorDescription));
                 emit failure(errorDescription);
                 return;
             }
@@ -541,7 +523,6 @@ void NotebookLocalStorageManagerAsyncTester::onFindDefaultOrLastUsedNotebookComp
             if (*m_pFoundNotebook != *m_pModifiedNotebook) {
                 errorDescription = "Updated and found notebooks in local storage don't match";
                 QNWARNING(errorDescription);
-                errorDescription = QObject::tr(qPrintable(errorDescription));
                 emit failure(errorDescription);
                 return;
             }
@@ -566,7 +547,6 @@ void NotebookLocalStorageManagerAsyncTester::onListAllNotebooksCompleted(QList<N
     if (m_initialNotebooks.size() != notebooks.size()) {
         errorDescription = "Sizes of listed and reference notebooks don't match";
         QNWARNING(errorDescription);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -575,7 +555,6 @@ void NotebookLocalStorageManagerAsyncTester::onListAllNotebooksCompleted(QList<N
         if (!notebooks.contains(notebook)) {
             QString errorDescription = "One of initial notebooks is not found within listed notebooks";
             QNWARNING(errorDescription << ", notebook which was not found: " << notebook);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -598,7 +577,6 @@ void NotebookLocalStorageManagerAsyncTester::onListAllSharedNotebooksCompleted(Q
     if (m_allInitialSharedNotebooks.size() != sharedNotebooks.size()) {
         errorDescription = "Sizes of listed and reference shared notebooks don't match";
         QNWARNING(errorDescription);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -607,7 +585,6 @@ void NotebookLocalStorageManagerAsyncTester::onListAllSharedNotebooksCompleted(Q
         if (!sharedNotebooks.contains(sharedNotebook)) {
             errorDescription = "One of initial shared notebooks is not found within listed shared notebooks";
             QNWARNING(errorDescription << ", shared notebook which was not found: " << sharedNotebook);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -631,7 +608,6 @@ void NotebookLocalStorageManagerAsyncTester::onListSharedNotebooksPerNotebookGui
     if (m_initialSharedNotebooksPerNotebook.size() != sharedNotebooks.size()) {
         errorDescription = "Sizes of listed and reference shared notebooks don't match";
         QNWARNING(errorDescription << ", notebook guid = " << notebookGuid);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -641,7 +617,6 @@ void NotebookLocalStorageManagerAsyncTester::onListSharedNotebooksPerNotebookGui
             errorDescription = "One of initial shared notebooks is not found within listed shared notebooks";
             QNWARNING(errorDescription << ", shared notebook which was not found: " << sharedNotebook
                       << ", notebook guid = " << notebookGuid);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -669,7 +644,6 @@ void NotebookLocalStorageManagerAsyncTester::onExpungeNotebookCompleted(QSharedP
                 "notebook pointer in onExpungeNotebookCompleted slot doesn't match "
                 "the pointer to the original expunged Notebook";
         QNWARNING(errorDescription);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }

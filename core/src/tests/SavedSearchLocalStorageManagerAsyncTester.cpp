@@ -64,8 +64,8 @@ void SavedSearchLocalStorageManagerAsyncTester::onGetSavedSearchCountCompleted(i
 
 #define HANDLE_WRONG_STATE() \
     else { \
-        errorDescription = QObject::tr("Internal error in SavedSearchLocalStorageManagerAsyncTester: " \
-                                       "found wrong state"); \
+        errorDescription = "Internal error in SavedSearchLocalStorageManagerAsyncTester: " \
+                           "found wrong state"; \
         emit failure(errorDescription); \
         return; \
     }
@@ -73,7 +73,7 @@ void SavedSearchLocalStorageManagerAsyncTester::onGetSavedSearchCountCompleted(i
     if (m_state == STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST)
     {
         if (count != 1) {
-            errorDescription = QObject::tr("GetSavedSearchCount returned result different from the expected one (1): ");
+            errorDescription = "GetSavedSearchCount returned result different from the expected one (1): ";
             errorDescription += QString::number(count);
             emit failure(errorDescription);
             return;
@@ -85,7 +85,7 @@ void SavedSearchLocalStorageManagerAsyncTester::onGetSavedSearchCountCompleted(i
     else if (m_state == STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST)
     {
         if (count != 0) {
-            errorDescription = QObject::tr("GetSavedSearchCount returned result different from the expected one (0): ");
+            errorDescription = "GetSavedSearchCount returned result different from the expected one (0): ";
             errorDescription += QString::number(count);
             emit failure(errorDescription);
             return;
@@ -126,7 +126,6 @@ void SavedSearchLocalStorageManagerAsyncTester::onAddSavedSearchCompleted(QShare
             errorDescription = "Internal error in SavedSearchLocalStorageManagerAsyncTester: "
                                "search in onAddSavedSearchCompleted slot doesn't match the original SavedSearch";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -184,7 +183,6 @@ void SavedSearchLocalStorageManagerAsyncTester::onUpdateSavedSearchCompleted(QSh
                                "search pointer in onUpdateSavedSearchCompleted slot doesn't match "
                                "the pointer to the original modified SavedSearch";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -215,7 +213,6 @@ void SavedSearchLocalStorageManagerAsyncTester::onFindSavedSearchCompleted(QShar
                                "search pointer in onFindSavedSearchCompleted slot doesn't match "
                                "the pointer to the original SavedSearch";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -225,7 +222,6 @@ void SavedSearchLocalStorageManagerAsyncTester::onFindSavedSearchCompleted(QShar
             errorDescription = "Added and found saved searches in local storage don't match";
             QNWARNING(errorDescription << ": SavedSearch added to LocalStorageManager: " << *m_pInitialSavedSearch
                       << "\nSavedSearch found in LocalStorageManager: " << *m_pFoundSavedSearch);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -246,7 +242,6 @@ void SavedSearchLocalStorageManagerAsyncTester::onFindSavedSearchCompleted(QShar
                                "search pointer in onFindSavedSearchCompleted slot doesn't match "
                                "the pointer to the original modified SavedSearch";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -256,7 +251,6 @@ void SavedSearchLocalStorageManagerAsyncTester::onFindSavedSearchCompleted(QShar
             errorDescription = "Updated and found saved searches in local storage don't match";
             QNWARNING(errorDescription << ": SavedSearch updated in LocalStorageManager: " << *m_pModifiedSavedSearch
                       << "\nSavedSearch found in LocalStorageManager: " << *m_pFoundSavedSearch);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -270,7 +264,6 @@ void SavedSearchLocalStorageManagerAsyncTester::onFindSavedSearchCompleted(QShar
         errorDescription = "Error: found saved search which should have been expunged from local storage";
         QNWARNING(errorDescription << ": SavedSearch expunged from LocalStorageManager: " << *m_pModifiedSavedSearch
                   << "\nSavedSearch found in LocalStorageManager: " << *m_pFoundSavedSearch);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -300,7 +293,6 @@ void SavedSearchLocalStorageManagerAsyncTester::onListAllSavedSearchesCompleted(
         errorDescription = "Number of found saved searches does not correspond "
                            "to the number of original added saved searches";
         QNWARNING(errorDescription);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }
@@ -311,7 +303,6 @@ void SavedSearchLocalStorageManagerAsyncTester::onListAllSavedSearchesCompleted(
             errorDescription = "One of initial saved searches was not found "
                                "within found saved searches";
             QNWARNING(errorDescription);
-            errorDescription = QObject::tr(qPrintable(errorDescription));
             emit failure(errorDescription);
             return;
         }
@@ -338,7 +329,6 @@ void SavedSearchLocalStorageManagerAsyncTester::onExpungeSavedSearchCompleted(QS
                            "search pointer in onExpungeSavedSearchCompleted slot doesn't match "
                            "the pointer to the original expunged SavedSearch";
         QNWARNING(errorDescription);
-        errorDescription = QObject::tr(qPrintable(errorDescription));
         emit failure(errorDescription);
         return;
     }

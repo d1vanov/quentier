@@ -89,17 +89,17 @@ void Tag::setUpdateSequenceNumber(const qint32 usn)
 bool Tag::checkParameters(QString & errorDescription) const
 {
     if (localGuid().isEmpty()) {
-        errorDescription = QObject::tr("Tag's local guid is empty");
+        errorDescription = QT_TR_NOOP("Tag's local guid is empty");
         return false;
     }
 
     if (m_qecTag.guid.isSet() && !CheckGuid(m_qecTag.guid.ref())) {
-        errorDescription = QObject::tr("Tag's guid is invalid: ") + m_qecTag.guid;
+        errorDescription = QT_TR_NOOP("Tag's guid is invalid: ") + m_qecTag.guid;
         return false;
     }
 
     if (!m_qecTag.name.isSet()) {
-        errorDescription = QObject::tr("Tag's name is not set");
+        errorDescription = QT_TR_NOOP("Tag's name is not set");
         return false;
     }
 
@@ -108,36 +108,36 @@ bool Tag::checkParameters(QString & errorDescription) const
     if ( (nameSize < qevercloud::EDAM_TAG_NAME_LEN_MIN) ||
          (nameSize > qevercloud::EDAM_TAG_NAME_LEN_MAX) )
     {
-        errorDescription = QObject::tr("Tag's name exceeds allowed size: ") + m_qecTag.name;
+        errorDescription = QT_TR_NOOP("Tag's name exceeds allowed size: ") + m_qecTag.name;
         return false;
     }
 
     if (m_qecTag.name->startsWith(' ')) {
-        errorDescription = QObject::tr("Tag's name can't begin from space: ") + m_qecTag.name;
+        errorDescription = QT_TR_NOOP("Tag's name can't begin from space: ") + m_qecTag.name;
         return false;
     }
     else if (m_qecTag.name->endsWith(' ')) {
-        errorDescription = QObject::tr("Tag's name can't end with space: ") + m_qecTag.name;
+        errorDescription = QT_TR_NOOP("Tag's name can't end with space: ") + m_qecTag.name;
         return false;
     }
 
     if (m_qecTag.name->contains(',')) {
-        errorDescription = QObject::tr("Tag's name can't contain comma: ") + m_qecTag.name;
+        errorDescription = QT_TR_NOOP("Tag's name can't contain comma: ") + m_qecTag.name;
         return false;
     }
 
     if (!m_qecTag.updateSequenceNum.isSet()) {
-        errorDescription = QObject::tr("Tag's update sequence number is not set");
+        errorDescription = QT_TR_NOOP("Tag's update sequence number is not set");
         return false;
     }
     else if (!CheckUpdateSequenceNumber(m_qecTag.updateSequenceNum)) {
-        errorDescription = QObject::tr("Tag's update sequence number is invalid: ");
+        errorDescription = QT_TR_NOOP("Tag's update sequence number is invalid: ");
         errorDescription += QString::number(m_qecTag.updateSequenceNum);
         return false;
     }
 
     if (m_qecTag.parentGuid.isSet() && !CheckGuid(m_qecTag.parentGuid.ref())) {
-        errorDescription = QObject::tr("Tag's parent guid is invalid: ") + m_qecTag.parentGuid;
+        errorDescription = QT_TR_NOOP("Tag's parent guid is invalid: ") + m_qecTag.parentGuid;
         return false;
     }
 

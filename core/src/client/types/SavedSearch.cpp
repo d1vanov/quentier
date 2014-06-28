@@ -82,17 +82,17 @@ void SavedSearch::setUpdateSequenceNumber(const qint32 usn)
 bool SavedSearch::checkParameters(QString & errorDescription) const
 {
     if (localGuid().isEmpty()) {
-        errorDescription = QObject::tr("Saved search's local guid is empty");
+        errorDescription = QT_TR_NOOP("Saved search's local guid is empty");
         return false;
     }
 
     if (m_qecSearch.guid.isSet() && !CheckGuid(m_qecSearch.guid.ref())) {
-        errorDescription = QObject::tr("Saved search's guid is invalid: ") + m_qecSearch.guid;
+        errorDescription = QT_TR_NOOP("Saved search's guid is invalid: ") + m_qecSearch.guid;
         return false;
     }
 
     if (!m_qecSearch.name.isSet()) {
-        errorDescription = QObject::tr("Saved search's name is not set");
+        errorDescription = QT_TR_NOOP("Saved search's name is not set");
         return false;
     }
 
@@ -103,31 +103,31 @@ bool SavedSearch::checkParameters(QString & errorDescription) const
     if ( (nameSize < qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN) ||
          (nameSize > qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX) )
     {
-        errorDescription = QObject::tr("Saved search's name exceeds allowed size: ") + name;
+        errorDescription = QT_TR_NOOP("Saved search's name exceeds allowed size: ") + name;
         return false;
     }
 
     if (name.at(0) == ' ') {
-        errorDescription = QObject::tr("Saved search's name can't begin from space: ") + name;
+        errorDescription = QT_TR_NOOP("Saved search's name can't begin from space: ") + name;
         return false;
     }
     else if (name.at(nameSize - 1) == ' ') {
-        errorDescription = QObject::tr("Saved search's name can't end with space: ") + name;
+        errorDescription = QT_TR_NOOP("Saved search's name can't end with space: ") + name;
         return false;
     }
 
     if (!m_qecSearch.updateSequenceNum.isSet()) {
-        errorDescription = QObject::tr("Saved search's update sequence number is not set");
+        errorDescription = QT_TR_NOOP("Saved search's update sequence number is not set");
         return false;
     }
     else if (!CheckUpdateSequenceNumber(m_qecSearch.updateSequenceNum)) {
-        errorDescription = QObject::tr("Saved search's update sequence number is invalid: ");
+        errorDescription = QT_TR_NOOP("Saved search's update sequence number is invalid: ");
         errorDescription.append(QString::number(m_qecSearch.updateSequenceNum));
         return false;
     }
 
     if (!m_qecSearch.query.isSet()) {
-        errorDescription = QObject::tr("Saved search's query is not set");
+        errorDescription = QT_TR_NOOP("Saved search's query is not set");
         return false;
     }
 
@@ -137,38 +137,38 @@ bool SavedSearch::checkParameters(QString & errorDescription) const
     if ( (querySize < qevercloud::EDAM_SEARCH_QUERY_LEN_MIN) ||
          (querySize > qevercloud::EDAM_SEARCH_QUERY_LEN_MAX) )
     {
-        errorDescription = QObject::tr("Saved search's query exceeds allowed size: ") + query;
+        errorDescription = QT_TR_NOOP("Saved search's query exceeds allowed size: ") + query;
         return false;
     }
 
     if (!m_qecSearch.format.isSet()) {
-        errorDescription = QObject::tr("Saved search's format is not set");
+        errorDescription = QT_TR_NOOP("Saved search's format is not set");
         return false;
     }
     else if (static_cast<QueryFormat>(m_qecSearch.format) != qevercloud::QueryFormat::USER) {
-        errorDescription = QObject::tr("Saved search has unsupported query format");
+        errorDescription = QT_TR_NOOP("Saved search has unsupported query format");
         return false;
     }
 
     if (!m_qecSearch.scope.isSet()) {
-        errorDescription = QObject::tr("Saved search's scope is not set");
+        errorDescription = QT_TR_NOOP("Saved search's scope is not set");
         return false;
     }
 
     const SavedSearchScope & scope = m_qecSearch.scope;
 
     if (!scope.includeAccount.isSet()) {
-        errorDescription = QObject::tr("Include account option in saved search's scope is not set");
+        errorDescription = QT_TR_NOOP("Include account option in saved search's scope is not set");
         return false;
     }
 
     if (!scope.includePersonalLinkedNotebooks.isSet()) {
-        errorDescription = QObject::tr("Include personal linked notebooks option in saved search's scope is not set");
+        errorDescription = QT_TR_NOOP("Include personal linked notebooks option in saved search's scope is not set");
         return false;
     }
 
     if (!scope.includeBusinessLinkedNotebooks.isSet()) {
-        errorDescription = QObject::tr("Include business linked notebooks option in saved search's scope is not set");
+        errorDescription = QT_TR_NOOP("Include business linked notebooks option in saved search's scope is not set");
         return false;
     }
 

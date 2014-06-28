@@ -55,7 +55,6 @@ void LocalStorageManagerThreadWorker::onAddUserRequest(QSharedPointer<UserWrappe
         errorDescription = "Internal error: detected null pointer on attempt "
                            "to add user to local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit addUserFailed(user, errorDescription);
         return;
     }
@@ -77,7 +76,6 @@ void LocalStorageManagerThreadWorker::onUpdateUserRequest(QSharedPointer<UserWra
         errorDescription = "Internal error: detected null pointer on attempt "
                            "to update user in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit updateUserFailed(user, errorDescription);
         return;
     }
@@ -99,7 +97,6 @@ void LocalStorageManagerThreadWorker::onFindUserRequest(QSharedPointer<UserWrapp
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to find user in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit findUserFailed(user, errorDescription);
         return;
     }
@@ -121,7 +118,6 @@ void LocalStorageManagerThreadWorker::onDeleteUserRequest(QSharedPointer<UserWra
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to delete user in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit deleteUserFailed(user, errorDescription);
         return;
     }
@@ -143,7 +139,6 @@ void LocalStorageManagerThreadWorker::onExpungeUserRequest(QSharedPointer<UserWr
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to expunge user from local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit expungeUserFailed(user, errorDescription);
         return;
     }
@@ -177,7 +172,6 @@ void LocalStorageManagerThreadWorker::onAddNotebookRequest(QSharedPointer<Notebo
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to add notebook to local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit addNotebookFailed(notebook, errorDescription);
         return;
     }
@@ -199,7 +193,6 @@ void LocalStorageManagerThreadWorker::onUpdateNotebookRequest(QSharedPointer<Not
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to update notebook in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit updateNotebookFailed(notebook, errorDescription);
         return;
     }
@@ -221,7 +214,6 @@ void LocalStorageManagerThreadWorker::onFindNotebookRequest(QSharedPointer<Noteb
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to find notebook in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit findNotebookFailed(notebook, errorDescription);
         return;
     }
@@ -243,7 +235,6 @@ void LocalStorageManagerThreadWorker::onFindDefaultNotebookRequest(QSharedPointe
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to find default notebook in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit findDefaultNotebookFailed(notebook, errorDescription);
         return;
     }
@@ -265,7 +256,6 @@ void LocalStorageManagerThreadWorker::onFindLastUsedNotebookRequest(QSharedPoint
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to find last used notebook in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit findLastUsedNotebookFailed(notebook, errorDescription);
         return;
     }
@@ -287,7 +277,6 @@ void LocalStorageManagerThreadWorker::onFindDefaultOrLastUsedNotebookRequest(QSh
         errorDescription = "Internal error: detected null pointer "
                            "on attemt to find default or last used notebook in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit findDefaultOrLastUsedNotebookFailed(notebook, errorDescription);
         return;
     }
@@ -345,7 +334,6 @@ void LocalStorageManagerThreadWorker::onExpungeNotebookRequest(QSharedPointer<No
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to expunge notebook from local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit expungeNotebookFailed(notebook, errorDescription);
         return;
     }
@@ -379,7 +367,6 @@ void LocalStorageManagerThreadWorker::onAddLinkedNotebookRequest(QSharedPointer<
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to add linked notebook to local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit addLinkedNotebookFailed(linkedNotebook, errorDescription);
         return;
     }
@@ -401,7 +388,6 @@ void LocalStorageManagerThreadWorker::onUpdateLinkedNotebookRequest(QSharedPoint
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to update linked notebook in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit updateLinkedNotebookFailed(linkedNotebook, errorDescription);
         return;
     }
@@ -423,7 +409,6 @@ void LocalStorageManagerThreadWorker::onFindLinkedNotebookRequest(QSharedPointer
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to find linked notebook in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit findLinkedNotebookFailed(linkedNotebook, errorDescription);
         return;
     }
@@ -457,7 +442,6 @@ void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(QSharedPoin
         errorDescription = "Internal error: detected null pointer "
                            "on attempt to expunge linked notebook from local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit expungeLinkedNotebookFailed(linkedNotebook, errorDescription);
         return;
     }
@@ -491,7 +475,6 @@ void LocalStorageManagerThreadWorker::onAddNoteRequest(QSharedPointer<Note> note
         errorDescription = "Internal error: detected null pointer to note "
                            "on attempt to add note to local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit addNoteFailed(note, notebook, errorDescription);
         return;
     }
@@ -500,7 +483,6 @@ void LocalStorageManagerThreadWorker::onAddNoteRequest(QSharedPointer<Note> note
         errorDescription = "Internal error: detected null pointer to notebook "
                            "on attempt to add note to local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit addNoteFailed(note, notebook, errorDescription);
         return;
     }
@@ -522,7 +504,6 @@ void LocalStorageManagerThreadWorker::onUpdateNoteRequest(QSharedPointer<Note> n
         errorDescription = "Internal error: detected null pointer to note "
                            "on attempt to update note in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit updateNoteFailed(note, notebook, errorDescription);
         return;
     }
@@ -531,7 +512,6 @@ void LocalStorageManagerThreadWorker::onUpdateNoteRequest(QSharedPointer<Note> n
         errorDescription = "Internal error: detected null pointer to notebook "
                            "on attempt to update note in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit updateNoteFailed(note, notebook, errorDescription);
         return;
     }
@@ -553,7 +533,6 @@ void LocalStorageManagerThreadWorker::onFindNoteRequest(QSharedPointer<Note> not
         errorDescription = "Internal error: detected null pointer to note "
                            "on attempt to find note in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit findNoteFailed(note, withResourceBinaryData, errorDescription);
         return;
     }
@@ -576,7 +555,6 @@ void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(QSharedPo
         errorDescription = "Internal error: detected null pointer to notebook "
                            "on attempt to list notes per notebook in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit listAllNotesPerNotebookFailed(notebook, withResourceBinaryData, errorDescription);
         return;
     }
@@ -599,7 +577,6 @@ void LocalStorageManagerThreadWorker::onDeleteNoteRequest(QSharedPointer<Note> n
         errorDescription = "Internal error: detected null pointer to note "
                            "on attempt to delete note from local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit deleteNoteFailed(note, errorDescription);
         return;
     }
@@ -621,7 +598,6 @@ void LocalStorageManagerThreadWorker::onExpungeNoteRequest(QSharedPointer<Note> 
         errorDescription = "Internal error: detected null pointer to note "
                            "on attempt to expunge note from local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit expungeNoteFailed(note, errorDescription);
         return;
     }
@@ -655,7 +631,6 @@ void LocalStorageManagerThreadWorker::onAddTagRequest(QSharedPointer<Tag> tag)
         errorDescription = "Internal error: detected null pointer to tag "
                            "on attempt to add tag to local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit addTagFailed(tag, errorDescription);
         return;
     }
@@ -677,7 +652,6 @@ void LocalStorageManagerThreadWorker::onUpdateTagRequest(QSharedPointer<Tag> tag
         errorDescription = "Internal error: detected null pointer to tag "
                            "on attempt to update tag in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit updateTagFailed(tag, errorDescription);
         return;
     }
@@ -699,7 +673,6 @@ void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(QSharedPointer<Ta
         errorDescription = "Internal error: detected null pointer to tag "
                            "on attempt to link tag with note";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit linkTagWithNoteFailed(tag, note, errorDescription);
         return;
     }
@@ -708,7 +681,6 @@ void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(QSharedPointer<Ta
         errorDescription = "Internal error: detected null pointer to note "
                            "on attempt to link tag with note in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit linkTagWithNoteFailed(tag, note, errorDescription);
         return;
     }
@@ -730,7 +702,6 @@ void LocalStorageManagerThreadWorker::onFindTagRequest(QSharedPointer<Tag> tag)
         errorDescription = "Internal error: detected null pointer to tag "
                            "on attempt to find tag in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit findTagFailed(tag, errorDescription);
         return;
     }
@@ -752,7 +723,6 @@ void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(QSharedPointer
         errorDescription = "Internal error: detected null pointer to note "
                            "on attempt to list all tags per note in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit listAllTagsPerNoteFailed(note, errorDescription);
         return;
     }
@@ -787,7 +757,6 @@ void LocalStorageManagerThreadWorker::onDeleteTagRequest(QSharedPointer<Tag> tag
         errorDescription = "Internal error: detected null pointet to tag "
                            "on attempt to delete tag in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit deleteTagFailed(tag, errorDescription);
         return;
     }
@@ -809,7 +778,6 @@ void LocalStorageManagerThreadWorker::onExpungeTagRequest(QSharedPointer<Tag> ta
         errorDescription = "Internal error: detected null pointer to tag "
                            "on attempt to expunge tag from local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit expungeTagFailed(tag, errorDescription);
         return;
     }
@@ -843,7 +811,6 @@ void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<IResou
         errorDescription = "Internal error: detected null pointer to resource "
                            "on attempt to add resource to local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit addResourceFailed(resource, note, errorDescription);
         return;
     }
@@ -852,7 +819,6 @@ void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<IResou
         errorDescription = "Internal error: detected null pointer to note "
                            "on attempt to add resource to local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit addResourceFailed(resource, note, errorDescription);
         return;
     }
@@ -874,7 +840,6 @@ void LocalStorageManagerThreadWorker::onUpdateResourceRequest(QSharedPointer<IRe
         errorDescription = "Internal error: detected null pointer to resource "
                            "on attempt to update resource in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit updateResourceFailed(resource, note, errorDescription);
         return;
     }
@@ -883,7 +848,6 @@ void LocalStorageManagerThreadWorker::onUpdateResourceRequest(QSharedPointer<IRe
         errorDescription = "Internal error: detected null pointer to note "
                            "on attempt to update resource in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit updateResourceFailed(resource, note, errorDescription);
         return;
     }
@@ -905,7 +869,6 @@ void LocalStorageManagerThreadWorker::onFindResourceRequest(QSharedPointer<IReso
         errorDescription = "Internal error: detected null pointer to resource "
                            "on attempt to find resource in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit findResourceFailed(resource, withBinaryData, errorDescription);
         return;
     }
@@ -927,7 +890,6 @@ void LocalStorageManagerThreadWorker::onExpungeResourceRequest(QSharedPointer<IR
         errorDescription = "Internal error: detected null pointer to resource "
                            "on attempt to expunge resource from local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit expungeResourceFailed(resource, errorDescription);
         return;
     }
@@ -961,7 +923,6 @@ void LocalStorageManagerThreadWorker::onAddSavedSearchRequest(QSharedPointer<Sav
         errorDescription = "Internal error: detected null pointer to saved search "
                            "on attempt to add saved search to local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit addSavedSearchFailed(search, errorDescription);
         return;
     }
@@ -983,7 +944,6 @@ void LocalStorageManagerThreadWorker::onUpdateSavedSearchRequest(QSharedPointer<
         errorDescription = "Internal error: detected null pointer to saved search "
                            "on attempt to update saved search in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit updateSavedSearchFailed(search, errorDescription);
         return;
     }
@@ -1005,7 +965,6 @@ void LocalStorageManagerThreadWorker::onFindSavedSearchRequest(QSharedPointer<Sa
         errorDescription = "Internal error: detected null pointer to saved search "
                            "on attempt to find saved search in local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit findSavedSearchFailed(search, errorDescription);
         return;
     }
@@ -1039,7 +998,6 @@ void LocalStorageManagerThreadWorker::onExpungeSavedSearch(QSharedPointer<SavedS
         errorDescription = "Internal error: detected null pointer to saved search "
                            "on attempt to expunge saved search from local storage";
         QNCRITICAL(errorDescription);
-        QNTRANSLATE(errorDescription);
         emit expungeSavedSearchFailed(search, errorDescription);
         return;
     }
@@ -1054,5 +1012,3 @@ void LocalStorageManagerThreadWorker::onExpungeSavedSearch(QSharedPointer<SavedS
 }
 
 } // namespace qute_note
-
-#undef QNTRANSLATE

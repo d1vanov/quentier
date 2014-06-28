@@ -40,7 +40,7 @@ bool ENMLConverter::richTextToNoteContent(const QuteNoteTextEdit & noteEditor,
                                           QString & ENML, QString & errorDescription) const
 {
     const QTextDocument * pNoteDoc = noteEditor.document();
-    QUTE_NOTE_CHECK_PTR(pNoteDoc, QObject::tr("Null QTextDocument pointer received from QuteNoteTextEdit"));
+    QUTE_NOTE_CHECK_PTR(pNoteDoc, QT_TR_NOOP("Null QTextDocument pointer received from QuteNoteTextEdit"));
 
     ENML.append("<en-note>");
 
@@ -79,8 +79,7 @@ bool ENMLConverter::richTextToNoteContent(const QuteNoteTextEdit & noteEditor,
                 bool res = encodeFragment(currentFragment, encodedCurrentFragment,
                                           errorDescription);
                 if (!res) {
-                    errorDescription = QObject::tr("ENML converter: can't encode fragment: ") +
-                            errorDescription;
+                    errorDescription.prepend(QT_TR_NOOP("ENML converter: can't encode fragment: "));
                     return false;
                 }
                 else {
@@ -88,8 +87,8 @@ bool ENMLConverter::richTextToNoteContent(const QuteNoteTextEdit & noteEditor,
                 }
             }
             else {
-                errorDescription = QObject::tr("Found invalid QTextFragment during "
-                                               "encoding note content to ENML: ");
+                errorDescription = QT_TR_NOOP("Found invalid QTextFragment during "
+                                              "encoding note content to ENML: ");
                 errorDescription.append(currentFragment.text());
                 return false;
             }
@@ -115,8 +114,8 @@ bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEd
     int errorLine = -1, errorColumn = -1;
     bool res = enXmlDomDoc.setContent(note.content, &errorMessage, &errorLine, &errorColumn);
     if (!res) {
-        errorMessage.append(QObject::tr(". Error happened at line ") +
-                            QString::number(errorLine) + QObject::tr(", at column ") +
+        errorMessage.append(QT_TR_NOOP(". Error happened at line ") +
+                            QString::number(errorLine) + QT_TR_NOOP(", at column ") +
                             QString::number(errorColumn));
         return false;
     }
@@ -124,7 +123,7 @@ bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEd
     QDomElement docElem = enXmlDomDoc.documentElement();
     QString rootTag = docElem.tagName();
     if (rootTag != QString("en-note")) {
-        errorMessage = QObject::tr("Wrong root tag, should be \"en-note\", instead: ");
+        errorMessage = QT_TR_NOOP("Wrong root tag, should be \"en-note\", instead: ");
         errorMessage.append(rootTag);
         return false;
     }
@@ -142,7 +141,7 @@ bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEd
         {
             QString tagName = element.tagName();
             if (isForbiddenXhtmlTag(tagName)) {
-                errorMessage = QObject::tr("Found forbidden XHTML tag in ENML: ");
+                errorMessage = QT_TR_NOOP("Found forbidden XHTML tag in ENML: ");
                 errorMessage.append(tagName);
                 return false;
             }
@@ -161,25 +160,25 @@ bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEd
                 else if (tagName == "en-crypt")
                 {
                     // TODO: support encrypted note content
-                    errorMessage = QObject::tr("Encrypted note content is not supported in QuteNote yet");
+                    errorMessage = QT_TR_NOOP("Encrypted note content is not supported in QuteNote yet");
                     return false;
                 }
                 else if (tagName == "en-note")
                 {
-                    errorMessage = QObject::tr("Internal error: en-note should be the root node of note\'s ENML");
+                    errorMessage = QT_TR_NOOP("Internal error: en-note should be the root node of note\'s ENML");
                     return false;
                 }
                 else if (tagName == "en-media")
                 {
                     QString hashFromENML = element.attribute("hash");
                     if (hashFromENML.isEmpty()) {
-                        errorMessage = QObject::tr("\"en-media\" tag has empty \"hash\" attribute");
+                        errorMessage = QT_TR_NOOP("\"en-media\" tag has empty \"hash\" attribute");
                         return false;
                     }
 
                     int resourceIndex = indexOfResourceByHash(resources, hashFromENML.toUtf8());
                     if (resourceIndex < 0) {
-                        errorMessage = QObject::tr("Internal error: unable to find note's resource "
+                        errorMessage = QT_TR_NOOP("Internal error: unable to find note's resource "
                                                    "with specified hash: ");
                         errorMessage += hashFromENML;
                         return false;
@@ -198,12 +197,12 @@ bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEd
                     }
 
                     if (resourceHash.isEmpty()) {
-                        errorMessage = QObject::tr("No relevant data hash found in the resource");
+                        errorMessage = QT_TR_NOOP("No relevant data hash found in the resource");
                         return false;
                     }
 
                     if (!resource.mime.isSet()) {
-                        errorMessage = QObject::tr("Found resource without mime type set");
+                        errorMessage = QT_TR_NOOP("Found resource without mime type set");
                         return false;
                     }
                     QString mimeType = resource.mime;
@@ -223,9 +222,9 @@ bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEd
                         }
 
                         if (!resourceMimeData.hasImage()) {
-                            errorMessage = QObject::tr("Internal error: mime type of the resource "
-                                                       "was marked as the image one but resource's "
-                                                       "mime data does not have an image.");
+                            errorMessage = QT_TR_NOOP("Internal error: mime type of the resource "
+                                                      "was marked as the image one but resource's "
+                                                      "mime data does not have an image.");
                             // TODO: print resource
                             return false;
                         }
@@ -248,9 +247,9 @@ bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEd
                 }
                 else
                 {
-                    errorMessage = QObject::tr("Internal error: found some ENML tag specified as "
-                                               "Evernote-specific one but not en-note, en-crypt, "
-                                               "en-media or en-todo: ");
+                    errorMessage = QT_TR_NOOP("Internal error: found some ENML tag specified as "
+                                              "Evernote-specific one but not en-note, en-crypt, "
+                                              "en-media or en-todo: ");
                     errorMessage.append(tagName);
                     return false;
                 }
@@ -260,15 +259,15 @@ bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEd
                 cursor.insertHtml(elementHtml);
             }
             else {
-                errorMessage = QObject::tr("Found XHTML tag not listed as either "
-                                           "forbidden or allowed one: ");
+                errorMessage = QT_TR_NOOP("Found XHTML tag not listed as either "
+                                          "forbidden or allowed one: ");
                 errorMessage.append(tagName);
                 return false;
             }
         }
         else
         {
-            errorMessage = QObject::tr("Found QDomNode not convertable to QDomElement");
+            errorMessage = QT_TR_NOOP("Found QDomNode not convertable to QDomElement");
             return false;
         }
     }
@@ -404,7 +403,7 @@ bool ENMLConverter::encodeFragment(const QTextFragment & fragment,
                                    QString & errorMessage) const
 {
     if (!fragment.isValid()) {
-        errorMessage = QObject::tr("Cannot encode ENML fragment: fragment is not valid: ");
+        errorMessage = QT_TR_NOOP("Cannot encode ENML fragment: fragment is not valid: ");
         errorMessage.append(fragment.text());
         return false;
     }
@@ -423,8 +422,8 @@ bool ENMLConverter::encodeFragment(const QTextFragment & fragment,
     int errorLine = -1, errorColumn = -1;
     bool res = htmlXmlDoc.setContent(html, &errorMessage, &errorLine, &errorColumn);
     if (!res) {
-        errorMessage.append(QObject::tr(". Error happened at line ") +
-                            QString::number(errorLine) + QObject::tr(", at column ") +
+        errorMessage.append(QT_TR_NOOP(". Error happened at line ") +
+                            QString::number(errorLine) + QT_TR_NOOP(", at column ") +
                             QString::number(errorColumn));
         return false;
     }
@@ -566,7 +565,7 @@ bool ENMLConverter::addEnMediaFromCharFormat(const QTextCharFormat & format, QSt
 
     QVariant resourceHash = format.property(QTextFormat::UserProperty + 1);
     if (!resourceHash.isValid()) {
-        errorDescription = QObject::tr("Internal error! Unable to determine "
+        errorDescription = QT_TR_NOOP("Internal error! Unable to determine "
                                        "resource hash from QTextCharFormat "
                                        "in QuteNoteTextEdit widget");
         return false;
@@ -574,7 +573,7 @@ bool ENMLConverter::addEnMediaFromCharFormat(const QTextCharFormat & format, QSt
 
     QVariant resourceMimeType = format.property(QTextFormat::UserProperty + 2);
     if (!resourceMimeType.isValid()) {
-        errorDescription = QObject::tr("Internal error! Unable to determime "
+        errorDescription = QT_TR_NOOP("Internal error! Unable to determime "
                                        "resource mime type from QTextCharFormat "
                                        "in QuteNoteTextEdit widget");
         return false;
