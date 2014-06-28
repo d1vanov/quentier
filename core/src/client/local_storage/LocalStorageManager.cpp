@@ -557,24 +557,33 @@ bool LocalStorageManager::FindNotebook(Notebook & notebook, QString & errorDescr
 
     notebook = Notebook();
 
-    QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, name, creationTimestamp, "
-                                  "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed, "
-                                  "publishingUri, publishingNoteSortOrder, publishingAscendingSort, "
-                                  "publicDescription, isPublished, stack, businessNotebookDescription, "
-                                  "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, "
-                                  "contactId FROM Notebooks WHERE %1 = '%2'").arg(column).arg(guid);
+    QString queryString = QString("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
+                                  "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
+                                  "WHERE Notebooks.%1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find notebook in SQL database by guid");
 
-    if (!query.next()) {
+    size_t counter = 0;
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+        QString error;
+        res = FillNotebookFromSqlRecord(rec, notebook, error);
+        if (!res) {
+            errorDescription += error;
+            return false;
+        }
+
+        ++counter;
+    }
+
+    if (!counter) {
         errorDescription += QT_TR_NOOP("Internal error: SQL query result is empty");
         return false;
     }
 
-    QSqlRecord rec = query.record();
-
-    return FillNotebookFromSqlRecord(rec, notebook, errorDescription);
+    return true;
 }
 
 bool LocalStorageManager::FindDefaultNotebook(Notebook & notebook, QString & errorDescription)
@@ -633,7 +642,8 @@ QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription
     errorDescription = QT_TR_NOOP("Can't list all notebooks in local storage database: ");
 
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT * FROM Notebooks");
+    bool res = query.exec("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
+                          "ON Notebooks.localGuid = NotebookRestrictions.localGuid");
     if (!res) {
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("can't select all notebooks from SQL database: ");
@@ -4603,24 +4613,6 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
         }
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT noReadNotes, noCreateNotes, noUpdateNotes, noExpungeNotes, "
-                  "noShareNotes, noEmailNotes, noSendMessageToRecipients, noUpdateNotebook, "
-                  "noExpungeNotebook, noSetDefaultNotebook, noSetNotebookStack, noPublishToPublic, "
-                  "noPublishToBusinessLibrary, noCreateTags, noUpdateTags, noExpungeTags, "
-                  "noSetParentTag, noCreateSharedNotebooks, updateWhichSharedNotebookRestrictions, "
-                  "expungeWhichSharedNotebookRestrictions FROM NotebookRestrictions "
-                  "WHERE localGuid=?");
-    query.addBindValue(notebook.localGuid());
-
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't find notebook restrictions for specified "
-                                 "notebook guid from SQL database");
-
-    if (query.next())
-    {
-        QSqlRecord record = query.record();   // NOTE: intentionally hide the method parameter in this scope to reuse macro
-
 #define SET_EN_NOTEBOOK_RESTRICTION(notebook_restriction, setter) \
     { \
         int index = record.indexOf(#notebook_restriction); \
@@ -4632,45 +4624,46 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
         } \
     }
 
-        SET_EN_NOTEBOOK_RESTRICTION(noReadNotes, setCanReadNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noCreateNotes, setCanCreateNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noUpdateNotes, setCanUpdateNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noExpungeNotes, setCanExpungeNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noShareNotes, setCanShareNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noEmailNotes, setCanEmailNotes);
-        SET_EN_NOTEBOOK_RESTRICTION(noSendMessageToRecipients, setCanSendMessageToRecipients);
-        SET_EN_NOTEBOOK_RESTRICTION(noUpdateNotebook, setCanUpdateNotebook);
-        SET_EN_NOTEBOOK_RESTRICTION(noExpungeNotebook, setCanExpungeNotebook);
-        SET_EN_NOTEBOOK_RESTRICTION(noSetDefaultNotebook, setCanSetDefaultNotebook);
-        SET_EN_NOTEBOOK_RESTRICTION(noSetNotebookStack, setCanSetNotebookStack);
-        SET_EN_NOTEBOOK_RESTRICTION(noPublishToPublic, setCanPublishToPublic);
-        SET_EN_NOTEBOOK_RESTRICTION(noPublishToBusinessLibrary, setCanPublishToBusinessLibrary);
-        SET_EN_NOTEBOOK_RESTRICTION(noCreateTags, setCanCreateTags);
-        SET_EN_NOTEBOOK_RESTRICTION(noUpdateTags, setCanUpdateTags);
-        SET_EN_NOTEBOOK_RESTRICTION(noExpungeTags, setCanExpungeTags);
-        SET_EN_NOTEBOOK_RESTRICTION(noSetParentTag, setCanSetParentTag);
-        SET_EN_NOTEBOOK_RESTRICTION(noCreateSharedNotebooks, setCanCreateSharedNotebooks);
+    SET_EN_NOTEBOOK_RESTRICTION(noReadNotes, setCanReadNotes);
+    SET_EN_NOTEBOOK_RESTRICTION(noCreateNotes, setCanCreateNotes);
+    SET_EN_NOTEBOOK_RESTRICTION(noUpdateNotes, setCanUpdateNotes);
+    SET_EN_NOTEBOOK_RESTRICTION(noExpungeNotes, setCanExpungeNotes);
+    SET_EN_NOTEBOOK_RESTRICTION(noShareNotes, setCanShareNotes);
+    SET_EN_NOTEBOOK_RESTRICTION(noEmailNotes, setCanEmailNotes);
+    SET_EN_NOTEBOOK_RESTRICTION(noSendMessageToRecipients, setCanSendMessageToRecipients);
+    SET_EN_NOTEBOOK_RESTRICTION(noUpdateNotebook, setCanUpdateNotebook);
+    SET_EN_NOTEBOOK_RESTRICTION(noExpungeNotebook, setCanExpungeNotebook);
+    SET_EN_NOTEBOOK_RESTRICTION(noSetDefaultNotebook, setCanSetDefaultNotebook);
+    SET_EN_NOTEBOOK_RESTRICTION(noSetNotebookStack, setCanSetNotebookStack);
+    SET_EN_NOTEBOOK_RESTRICTION(noPublishToPublic, setCanPublishToPublic);
+    SET_EN_NOTEBOOK_RESTRICTION(noPublishToBusinessLibrary, setCanPublishToBusinessLibrary);
+    SET_EN_NOTEBOOK_RESTRICTION(noCreateTags, setCanCreateTags);
+    SET_EN_NOTEBOOK_RESTRICTION(noUpdateTags, setCanUpdateTags);
+    SET_EN_NOTEBOOK_RESTRICTION(noExpungeTags, setCanExpungeTags);
+    SET_EN_NOTEBOOK_RESTRICTION(noSetParentTag, setCanSetParentTag);
+    SET_EN_NOTEBOOK_RESTRICTION(noCreateSharedNotebooks, setCanCreateSharedNotebooks);
 
 #undef SET_EN_NOTEBOOK_RESTRICTION
 
-        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(updateWhichSharedNotebookRestrictions,
-                                         setUpdateWhichSharedNotebookRestrictions,
-                                         int, qint8, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(updateWhichSharedNotebookRestrictions,
+                                     setUpdateWhichSharedNotebookRestrictions,
+                                     int, qint8, isRequired);
 
-        CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(expungeWhichSharedNotebookRestrictions,
-                                         setExpungeWhichSharedNotebookRestrictions,
-                                         int, qint8, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(expungeWhichSharedNotebookRestrictions,
+                                     setExpungeWhichSharedNotebookRestrictions,
+                                     int, qint8, isRequired);
 
+    if (notebook.hasGuid())
+    {
+        QString error;
+        QList<qevercloud::SharedNotebook> sharedNotebooks = ListEnSharedNotebooksPerNotebookGuid(notebook.guid(), error);
+        if (!error.isEmpty()) {
+            errorDescription += error;
+            return false;
+        }
+
+        notebook.setSharedNotebooks(sharedNotebooks);
     }
-
-    QString error;
-    QList<qevercloud::SharedNotebook> sharedNotebooks = ListEnSharedNotebooksPerNotebookGuid(notebook.guid(), error);
-    if (!error.isEmpty()) {
-        errorDescription += error;
-        return false;
-    }
-
-    notebook.setSharedNotebooks(sharedNotebooks);
 
     return true;
 }
