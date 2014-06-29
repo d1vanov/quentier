@@ -559,6 +559,7 @@ bool LocalStorageManager::FindNotebook(Notebook & notebook, QString & errorDescr
 
     QString queryString = QString("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
                                   "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
+                                  "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
                                   "WHERE Notebooks.%1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -583,6 +584,7 @@ bool LocalStorageManager::FindNotebook(Notebook & notebook, QString & errorDescr
         return false;
     }
 
+    SortSharedNotebooks(notebook);
     return true;
 }
 
@@ -592,7 +594,10 @@ bool LocalStorageManager::FindDefaultNotebook(Notebook & notebook, QString & err
 
     notebook = Notebook();
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT * FROM Notebooks WHERE isDefault = 1 LIMIT 1");
+    bool res = query.exec("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
+                          "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
+                          "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
+                          "WHERE isDefault = 1 LIMIT 1");
     DATABASE_CHECK_AND_SET_ERROR("can't find default notebook in SQL database");
 
     if (!query.next()) {
@@ -602,7 +607,13 @@ bool LocalStorageManager::FindDefaultNotebook(Notebook & notebook, QString & err
     }
 
     QSqlRecord rec = query.record();
-    return FillNotebookFromSqlRecord(rec, notebook, errorDescription);
+    res = FillNotebookFromSqlRecord(rec, notebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    SortSharedNotebooks(notebook);
+    return true;
 }
 
 bool LocalStorageManager::FindLastUsedNotebook(Notebook & notebook, QString & errorDescription)
@@ -611,7 +622,10 @@ bool LocalStorageManager::FindLastUsedNotebook(Notebook & notebook, QString & er
 
     notebook = Notebook();
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT * FROM Notebooks WHERE isLastUsed = 1 LIMIT 1");
+    bool res = query.exec("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
+                          "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
+                          "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
+                          "WHERE isLastUsed = 1 LIMIT 1");
     DATABASE_CHECK_AND_SET_ERROR("can't find default notebook in SQL database");
 
     if (!query.next()) {
@@ -621,7 +635,13 @@ bool LocalStorageManager::FindLastUsedNotebook(Notebook & notebook, QString & er
     }
 
     QSqlRecord rec = query.record();
-    return FillNotebookFromSqlRecord(rec, notebook, errorDescription);
+    res = FillNotebookFromSqlRecord(rec, notebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    SortSharedNotebooks(notebook);
+    return true;
 }
 
 bool LocalStorageManager::FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription)
@@ -643,7 +663,8 @@ QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
-                          "ON Notebooks.localGuid = NotebookRestrictions.localGuid");
+                          "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
+                          "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid");
     if (!res) {
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("can't select all notebooks from SQL database: ");
@@ -652,19 +673,45 @@ QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription
         return notebooks;
     }
 
+    // NOTE: it's not actually a good estimation due to joins but still better than nothing
     notebooks.reserve(qMax(query.size(), 0));
+    QMap<QString, int> indexForLocalGuid;
 
     while(query.next())
     {
         QSqlRecord rec = query.record();
 
-        notebooks << Notebook();
-        Notebook & notebook = notebooks.back();
+        int localGuidIndex = rec.indexOf("localGuid");
+        if (localGuidIndex < 0) {
+            errorDescription += QT_TR_NOOP("Internal error: no localGuid field in SQL record");
+            notebooks.clear();
+            return notebooks;
+        }
+
+        QVariant localGuidValue = rec.value(localGuidIndex);
+        QString localGuid = localGuidValue.toString();
+        if (localGuid.isEmpty()) {
+            errorDescription += QT_TR_NOOP("Internal error: found empty localGuid field for Notebook");
+            notebooks.clear();
+            return notebooks;
+        }
+
+        auto it = indexForLocalGuid.find(localGuid);
+        bool notFound = (it == indexForLocalGuid.end());
+        if (notFound) {
+            indexForLocalGuid[localGuid] = notebooks.size();
+            notebooks << Notebook();
+        }
+
+        Notebook & notebook = (notFound ? notebooks.back() : notebooks[it.value()]);
+
         res = FillNotebookFromSqlRecord(rec, notebook, errorDescription);
         if (!res) {
             notebooks.clear();
             return notebooks;
         }
+
+        SortSharedNotebooks(notebook);
     }
 
     int numNotebooks = notebooks.size();
@@ -754,10 +801,10 @@ QList<qevercloud::SharedNotebook> LocalStorageManager::ListEnSharedNotebooksPerN
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT shareId, userId, email, creationTimestamp, modificationTimestamp, "
-                  "shareKey, username, sharedNotebookPrivilegeLevel, allowPreview, indexInNotebook, "
-                  "recipientReminderNotifyEmail, recipientReminderNotifyInApp, notebookGuid "
-                  "FROM SharedNotebooks WHERE notebookGuid=?");
+    query.prepare("SELECT shareId, userId, email, sharedNotebookCreationTimestamp, "
+                  "sharedNotebookModificationTimestamp, shareKey, username, sharedNotebookPrivilegeLevel, "
+                  "allowPreview, indexInNotebook, recipientReminderNotifyEmail, recipientReminderNotifyInApp, "
+                  "notebookGuid FROM SharedNotebooks WHERE notebookGuid=?");
     query.addBindValue(notebookGuid);
 
     bool res = query.exec();
@@ -2412,19 +2459,19 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create LinkedNotebooks table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS SharedNotebooks("
-                     "  shareId                         INTEGER    NOT NULL, "
-                     "  userId                          INTEGER    NOT NULL, "
+                     "  shareId                             INTEGER    NOT NULL, "
+                     "  userId                              INTEGER    NOT NULL, "
                      "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  email                           TEXT       NOT NULL, "
-                     "  creationTimestamp               INTEGER    NOT NULL, "
-                     "  modificationTimestamp           INTEGER    NOT NULL, "
-                     "  shareKey                        TEXT       NOT NULL, "
-                     "  username                        TEXT       NOT NULL, "
-                     "  sharedNotebookPrivilegeLevel    INTEGER    NOT NULL, "
-                     "  allowPreview                    INTEGER    DEFAULT NULL, "
-                     "  recipientReminderNotifyEmail    INTEGER    DEFAULT NULL, "
-                     "  recipientReminderNotifyInApp    INTEGER    DEFAULT NULL, "
-                     "  indexInNotebook                 INTEGER    DEFAULT NULL, "
+                     "  email                               TEXT       NOT NULL, "
+                     "  sharedNotebookCreationTimestamp     INTEGER    NOT NULL, "
+                     "  sharedNotebookModificationTimestamp INTEGER    NOT NULL, "
+                     "  shareKey                            TEXT       NOT NULL, "
+                     "  username                            TEXT       NOT NULL, "
+                     "  sharedNotebookPrivilegeLevel        INTEGER    NOT NULL, "
+                     "  allowPreview                        INTEGER    DEFAULT NULL, "
+                     "  recipientReminderNotifyEmail        INTEGER    DEFAULT NULL, "
+                     "  recipientReminderNotifyInApp        INTEGER    DEFAULT NULL, "
+                     "  indexInNotebook                     INTEGER    DEFAULT NULL, "
                      "  UNIQUE(shareId, notebookGuid) ON CONFLICT REPLACE"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create SharedNotebooks table");
@@ -2959,9 +3006,9 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const ISharedNotebook & sh
                                             QString::number(sharedNotebook.userId()));
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasNotebookGuid, notebookGuid, "\"" + sharedNotebook.notebookGuid() + "\"");
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasEmail, email, "\"" + sharedNotebook.email() + "\"");
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasCreationTimestamp,creationTimestamp,
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasCreationTimestamp, sharedNotebookCreationTimestamp,
                                             QString::number(sharedNotebook.creationTimestamp()));
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasModificationTimestamp, modificationTimestamp,
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasModificationTimestamp, sharedNotebookModificationTimestamp,
                                             QString::number(sharedNotebook.modificationTimestamp()));
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasShareKey, shareKey, "\"" + sharedNotebook.shareKey() + "\"");
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasUsername, username, "\"" + sharedNotebook.username() + "\"");
@@ -3667,46 +3714,6 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"Notes\" table in SQL database");
-
-    /*
-    columns = "localGuid, title, content, notebookLocalGuid";
-    if (noteHasGuid) {
-        columns.append(", guid");
-    }
-
-    if (notebookHasGuid) {
-        columns.append(", notebookGuid");
-    }
-
-    valuesString = ":localGuid, :title, :content, :notebookLocalGuid";
-    if (noteHasGuid) {
-        valuesString.append(", :guid");
-    }
-
-    if (notebookHasGuid) {
-        valuesString.append(", :notebookGuid");
-    }
-
-    queryString = QString("INSERT OR REPLACE INTO NoteText (%1) VALUES(%2)").arg(columns).arg(valuesString);
-    res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't prepare SQL query to insert or replace note into \"NoteText\" table");
-
-    query.bindValue(":localGuid", localGuid);
-    query.bindValue(":title", title);
-    query.bindValue(":content", content);
-    query.bindValue(":notebookLocalGuid", notebookLocalGuid);
-
-    if (noteHasGuid) {
-        query.bindValue(":guid", note.guid());
-    }
-
-    if (notebookHasGuid) {
-        query.bindValue(":notebookGuid", notebook.guid());
-    }
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"NoteText\" table in SQL database");
-    */
 
     if (note.hasTagGuids())
     {
@@ -4656,13 +4663,14 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
     if (notebook.hasGuid())
     {
         QString error;
-        QList<qevercloud::SharedNotebook> sharedNotebooks = ListEnSharedNotebooksPerNotebookGuid(notebook.guid(), error);
-        if (!error.isEmpty()) {
+        SharedNotebookWrapper sharedNotebook;
+        bool res = FillSharedNotebookFromSqlRecord(record, sharedNotebook, error);
+        if (!res) {
             errorDescription += error;
             return false;
         }
 
-        notebook.setSharedNotebooks(sharedNotebooks);
+        notebook.addSharedNotebook(sharedNotebook);
     }
 
     return true;
@@ -4672,44 +4680,31 @@ bool LocalStorageManager::FillSharedNotebookFromSqlRecord(const QSqlRecord & rec
                                                           ISharedNotebook & sharedNotebook,
                                                           QString & errorDescription) const
 {
-#define CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(property, type, localType, setter, isRequired) \
+#define CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(property, type, localType, setter) \
     { \
-        bool valueFound = false; \
         int index = rec.indexOf(#property); \
         if (index >= 0) { \
             QVariant value = rec.value(index); \
             if (!value.isNull()) { \
                 sharedNotebook.setter(static_cast<localType>(qvariant_cast<type>(value))); \
-                valueFound = true; \
             } \
-        } \
-        \
-        if (!valueFound && isRequired) { \
-            errorDescription += QT_TR_NOOP("no " #property " field in the result of SQL query"); \
-            return false; \
         } \
     }
 
-    bool isRequired = true;
-
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareId, int, qint64, setId, isRequired);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(userId, int, qint32, setUserId, isRequired);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(email, QString, QString, setEmail, isRequired);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(creationTimestamp, int, qint64,
-                                           setCreationTimestamp, isRequired);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(modificationTimestamp, int, qint64,
-                                           setModificationTimestamp, isRequired);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareKey, QString, QString, setShareKey, isRequired);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(username, QString, QString, setUsername, isRequired);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookPrivilegeLevel, int, qint8,
-                                           setPrivilegeLevel, isRequired);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(allowPreview, int, bool, setAllowPreview,
-                                           isRequired);   // NOTE: int to bool cast
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyEmail, int, bool,
-                                           setReminderNotifyEmail, isRequired);  // NOTE: int to bool cast
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyInApp, int, bool,
-                                           setReminderNotifyApp, isRequired);  // NOTE: int to bool cast
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(notebookGuid, QString, QString, setNotebookGuid, isRequired);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareId, int, qint64, setId);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(userId, int, qint32, setUserId);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(email, QString, QString, setEmail);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookCreationTimestamp, int,
+                                           qint64, setCreationTimestamp);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookModificationTimestamp, int,
+                                           qint64, setModificationTimestamp);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareKey, QString, QString, setShareKey);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(username, QString, QString, setUsername);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookPrivilegeLevel, int, qint8, setPrivilegeLevel);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(allowPreview, int, bool, setAllowPreview);   // NOTE: int to bool cast
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyEmail, int, bool, setReminderNotifyEmail);  // NOTE: int to bool cast
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyInApp, int, bool, setReminderNotifyApp);  // NOTE: int to bool cast
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(notebookGuid, QString, QString, setNotebookGuid);
 
 #undef CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY
 
@@ -5263,6 +5258,20 @@ bool LocalStorageManager::FindAndSetNoteAttributesPerNote(Note & note, QString &
     }
 
     return true;
+}
+
+void LocalStorageManager::SortSharedNotebooks(Notebook & notebook) const
+{
+    if (!notebook.hasSharedNotebooks()) {
+        return;
+    }
+
+    // Sort shared notebooks to ensure the correct order for proper work of comparison operators
+    QList<SharedNotebookAdapter> sharedNotebookAdapters = notebook.sharedNotebooks();
+
+    qSort(sharedNotebookAdapters.begin(), sharedNotebookAdapters.end(),
+          [](const SharedNotebookAdapter & lhs, const SharedNotebookAdapter & rhs)
+          { return lhs.indexInNotebook() < rhs.indexInNotebook(); });
 }
 
 #undef CHECK_AND_SET_RESOURCE_PROPERTY
