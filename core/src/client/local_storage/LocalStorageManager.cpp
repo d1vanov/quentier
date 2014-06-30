@@ -671,8 +671,6 @@ QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription
         return notebooks;
     }
 
-    // NOTE: it's not actually a good estimation due to joins but still better than nothing
-    notebooks.reserve(qMax(query.size(), 0));
     QMap<QString, int> indexForLocalGuid;
 
     while(query.next())
