@@ -801,10 +801,7 @@ QList<qevercloud::SharedNotebook> LocalStorageManager::ListEnSharedNotebooksPerN
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT shareId, userId, email, sharedNotebookCreationTimestamp, "
-                  "sharedNotebookModificationTimestamp, shareKey, username, sharedNotebookPrivilegeLevel, "
-                  "allowPreview, indexInNotebook, recipientReminderNotifyEmail, recipientReminderNotifyInApp, "
-                  "notebookGuid FROM SharedNotebooks WHERE notebookGuid=?");
+    query.prepare("SELECT * FROM SharedNotebooks WHERE notebookGuid=?");
     query.addBindValue(notebookGuid);
 
     bool res = query.exec();
@@ -2462,11 +2459,11 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  shareId                             INTEGER    NOT NULL, "
                      "  userId                              INTEGER    NOT NULL, "
                      "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  email                               TEXT       NOT NULL, "
+                     "  sharedNotebookEmail                 TEXT       NOT NULL, "
                      "  sharedNotebookCreationTimestamp     INTEGER    NOT NULL, "
                      "  sharedNotebookModificationTimestamp INTEGER    NOT NULL, "
                      "  shareKey                            TEXT       NOT NULL, "
-                     "  username                            TEXT       NOT NULL, "
+                     "  SharedNotebookUsername              TEXT       NOT NULL, "
                      "  sharedNotebookPrivilegeLevel        INTEGER    NOT NULL, "
                      "  allowPreview                        INTEGER    DEFAULT NULL, "
                      "  recipientReminderNotifyEmail        INTEGER    DEFAULT NULL, "
@@ -3005,13 +3002,13 @@ bool LocalStorageManager::SetSharedNotebookAttributes(const ISharedNotebook & sh
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasUserId, userId,
                                             QString::number(sharedNotebook.userId()));
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasNotebookGuid, notebookGuid, "\"" + sharedNotebook.notebookGuid() + "\"");
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasEmail, email, "\"" + sharedNotebook.email() + "\"");
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasEmail, sharedNotebookEmail, "\"" + sharedNotebook.email() + "\"");
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasCreationTimestamp, sharedNotebookCreationTimestamp,
                                             QString::number(sharedNotebook.creationTimestamp()));
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasModificationTimestamp, sharedNotebookModificationTimestamp,
                                             QString::number(sharedNotebook.modificationTimestamp()));
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasShareKey, shareKey, "\"" + sharedNotebook.shareKey() + "\"");
-    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasUsername, username, "\"" + sharedNotebook.username() + "\"");
+    CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasUsername, sharedNotebookUsername, "\"" + sharedNotebook.username() + "\"");
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasPrivilegeLevel, sharedNotebookPrivilegeLevel,
                                             QString::number(sharedNotebook.privilegeLevel()));
     CHECK_AND_SET_SHARED_NOTEBOOK_ATTRIBUTE(hasAllowPreview, allowPreview,
@@ -4693,13 +4690,13 @@ bool LocalStorageManager::FillSharedNotebookFromSqlRecord(const QSqlRecord & rec
 
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareId, int, qint64, setId);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(userId, int, qint32, setUserId);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(email, QString, QString, setEmail);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookEmail, QString, QString, setEmail);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookCreationTimestamp, int,
                                            qint64, setCreationTimestamp);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookModificationTimestamp, int,
                                            qint64, setModificationTimestamp);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareKey, QString, QString, setShareKey);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(username, QString, QString, setUsername);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookUsername, QString, QString, setUsername);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookPrivilegeLevel, int, qint8, setPrivilegeLevel);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(allowPreview, int, bool, setAllowPreview);   // NOTE: int to bool cast
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyEmail, int, bool, setReminderNotifyEmail);  // NOTE: int to bool cast
