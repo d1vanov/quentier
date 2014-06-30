@@ -2393,7 +2393,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  localGuid                       TEXT PRIMARY KEY  NOT NULL UNIQUE, "
                      "  guid                            TEXT              DEFAULT NULL UNIQUE, "
                      "  updateSequenceNumber            INTEGER           NOT NULL, "
-                     "  name                            TEXT              NOT NULL, "
+                     "  notebookName                    TEXT              NOT NULL, "
                      "  creationTimestamp               INTEGER           NOT NULL, "
                      "  modificationTimestamp           INTEGER           NOT NULL, "
                      "  isDirty                         INTEGER           NOT NULL, "
@@ -3500,18 +3500,28 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
         if (!values.isEmpty()) { \
             values += ", "; \
         } \
-        values += "\"" + __VA_ARGS__ (notebook.name()) + "\""; \
+    values += "'" + __VA_ARGS__ (notebook.name()) + "'"; \
     }
 
     APPEND_COLUMN_VALUE(hasGuid, guid);
     APPEND_COLUMN_VALUE(hasUpdateSequenceNumber, updateSequenceNumber, QString::number);
-    APPEND_COLUMN_VALUE(hasName, name);
     APPEND_COLUMN_VALUE(hasCreationTimestamp, creationTimestamp, QString::number);
     APPEND_COLUMN_VALUE(hasModificationTimestamp, modificationTimestamp, QString::number);
     APPEND_COLUMN_VALUE(hasPublished, isPublished, QString::number);
     APPEND_COLUMN_VALUE(hasStack, stack);
 
 #undef APPEND_COLUMN_VALUE
+
+    if (notebook.hasName()) {
+        if (!columns.isEmpty()) {
+            columns += ", ";
+        }
+        columns += "notebookName";
+        if (!values.isEmpty()) {
+            values += ", ";
+        }
+        values += "'" + notebook.name() + "'";
+    }
 
     if (notebook.hasContact()) {
         UserAdapter contact = notebook.contact();
@@ -4554,7 +4564,7 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(guid, setGuid, QString, QString, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(updateSequenceNumber, setUpdateSequenceNumber,
                                      int, qint32, isRequired);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(name, setName, QString, QString, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(notebookName, setName, QString, QString, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(creationTimestamp, setCreationTimestamp,
                                      int, qint64, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(modificationTimestamp, setModificationTimestamp,
