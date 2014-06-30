@@ -624,6 +624,7 @@ private:
     void FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     void FillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     void FillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
+    void FillUserFromSqlRecord(const QSqlRecord & rec, IUser & user) const;
     void FillUserAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::UserAttributes & attributes) const;
     void FillAccountingFromSqlRecord(const QSqlRecord & rec, qevercloud::Accounting & accounting) const;
     bool FillPremiumInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::PremiumInfo & info,

@@ -4276,6 +4276,122 @@ void LocalStorageManager::FillNoteAttributesClassificationsFromSqlRecord(const Q
     }
 }
 
+void LocalStorageManager::FillUserFromSqlRecord(const QSqlRecord & rec, IUser & user) const
+{
+    // NOTE: this method is not actually used yet, it is a prototype for new workflow with selection of users
+    Q_UNUSED(rec)
+
+    bool foundSomeAccountingProperty = false;
+    qevercloud::Accounting accounting;
+
+#define FIND_AND_SET_ACCOUNTING_PROPERTY(column, property, type, localType) \
+    { \
+        int index = rec.indexOf(#column); \
+        if (index >= 0) { \
+            QVariant value = rec.value(#column); \
+            if (!value.isNull()) { \
+                accounting.property = static_cast<localType>(qvariant_cast<type>(value)); \
+                foundSomeAccountingProperty = true; \
+            } \
+        } \
+    }
+
+    FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimit, uploadLimit, int, qint64);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimitEnd, uploadLimitEnd, int, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimitNextMonth, uploadLimitNextMonth, int, qint64);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(premiumServiceStatus, premiumServiceStatus,
+                                     int, qevercloud::PremiumOrderStatus::type);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(premiumOrderNumber, premiumOrderNumber, QString, QString);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(premiumCommerceService, premiumCommerceService, QString, QString);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(premiumServiceStart, premiumServiceStart,
+                                     int, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(premiumServiceSKU, premiumServiceSKU, QString, QString);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(lastSuccessfulCharge, lastSuccessfulCharge,
+                                     int, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(lastFailedCharge, lastFailedCharge, int, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(lastFailedChargeReason, lastFailedChargeReason, QString, QString);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(nextPaymentDue, nextPaymentDue, int, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(premiumLockUntil, premiumLockUntil, int, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(updated, updated, int, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(premiumSubscriptionNumber, premiumSubscriptionNumber,
+                                     QString, QString);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(lastRequestedCharge, lastRequestedCharge, int, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(currency, currency, QString, QString);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessId, businessId, int, qint32);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessName, businessName, QString, QString);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessRole, businessRole, int, qevercloud::BusinessUserRole::type);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(unitPrice, unitPrice, int, qint32);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(unitDiscount, unitDiscount, int, qint32);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(nextChargeDate, nextChargeDate, int, qevercloud::Timestamp);
+
+#undef FIND_AND_SET_ACCOUNTING_PROPERTY
+
+    if (foundSomeAccountingProperty) {
+        user.setAccounting(std::move(accounting));
+    }
+
+    bool foundSomePremiumInfoProperty = false;
+    qevercloud::PremiumInfo premiumInfo;
+
+#define FIND_AND_SET_PREMIUM_INFO_PROPERTY(column, property, type, localType) \
+    { \
+        int index = rec.indexOf(#column); \
+        if (index >= 0) { \
+            QVariant value = rec.value(#column); \
+            if (!value.isNull()) { \
+                premiumInfo.property = static_cast<localType>(qvariant_cast<type>(value)); \
+                foundSomePremiumInfoProperty = true; \
+            } \
+        } \
+    }
+
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(currentTime, currentTime, int, qevercloud::Timestamp);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premium, premium, int, bool);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumRecurring, premiumRecurring, int, bool);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumExtendable, premiumExtendable, int, bool);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumPending, premiumPending, int, bool);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumCancellationPending, premiumCancellationPending, int, bool);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(canPurchaseUploadAllowance, canPurchaseUploadAllowance, int, bool);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumExpirationDate, premiumExpirationDate, int, qevercloud::Timestamp);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(sponsoredGroupName, sponsoredGroupName, QString, QString);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(sponsoredGroupRole, sponsoredGroupRole, int, qevercloud::SponsoredGroupRole::type);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumUpgradable, premiumUpgradable, int, bool);
+
+#undef FIND_AND_SET_PREMIUM_INFO_PROPERTY
+
+    if (foundSomePremiumInfoProperty) {
+        user.setPremiumInfo(std::move(premiumInfo));
+    }
+
+    bool foundSomeBusinessUserInfoProperty = false;
+    qevercloud::BusinessUserInfo businessUserInfo;
+
+#define FIND_AND_SET_BUSINESS_USER_INFO_PROPERTY(column, property, type, localType) \
+    { \
+        int index = rec.indexOf(#column); \
+        if (index >= 0) { \
+            QVariant value = rec.value(#column); \
+            if (!value.isNull()) { \
+                businessUserInfo.property = static_cast<localType>(qvariant_cast<type>(value)); \
+                foundSomeBusinessUserInfoProperty = true; \
+            } \
+        } \
+    }
+
+    FIND_AND_SET_BUSINESS_USER_INFO_PROPERTY(businessId, businessId, int, qint32);
+    FIND_AND_SET_BUSINESS_USER_INFO_PROPERTY(businessName, businessName, QString, QString);
+    FIND_AND_SET_BUSINESS_USER_INFO_PROPERTY(role, role, int, qevercloud::BusinessUserRole::type);
+    FIND_AND_SET_BUSINESS_USER_INFO_PROPERTY(businessInfoEmail, email, QString, QString);
+
+#undef FIND_AND_SET_BUSINESS_USER_INFO_PROPERTY
+
+    if (foundSomeBusinessUserInfoProperty) {
+        user.setBusinessUserInfo(std::move(businessUserInfo));
+    }
+
+    // TODO: continue from here
+}
+
 void LocalStorageManager::FillUserAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::UserAttributes & attributes) const
 {
     int promotionIndex = rec.indexOf("promotion");
