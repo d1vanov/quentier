@@ -139,9 +139,7 @@ bool LocalStorageManager::FindUser(IUser & user, QString & errorDescription) con
     user.setId(id);
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT username, email, name, timezone, privilege, creationTimestamp, "
-                  "modificationTimestamp, isDirty, isLocal, deletionTimestamp, isActive "
-                  "FROM Users WHERE id=?");
+    query.prepare("SELECT * FROM Users WHERE id=?");
     query.addBindValue(userId);
 
     bool res = query.exec();
@@ -157,7 +155,7 @@ bool LocalStorageManager::FindUser(IUser & user, QString & errorDescription) con
 #define CHECK_AND_SET_USER_PROPERTY(property) \
     { \
         bool valueFound = false; \
-        int index = rec.indexOf("is"#property); \
+        int index = rec.indexOf("userIs"#property); \
         if (index >= 0) { \
             QVariant value = rec.value(index); \
             if (!value.isNull()) { \
@@ -209,13 +207,13 @@ bool LocalStorageManager::FindUser(IUser & user, QString & errorDescription) con
     CHECK_AND_SET_EN_USER_PROPERTY(timezone, setTimezone, QString, QString,
                                    /* isRequired = */ false);
     CHECK_AND_SET_EN_USER_PROPERTY(privilege, setPrivilegeLevel, int, qint8, isRequired);
-    CHECK_AND_SET_EN_USER_PROPERTY(creationTimestamp, setCreationTimestamp,
+    CHECK_AND_SET_EN_USER_PROPERTY(userCreationTimestamp, setCreationTimestamp,
                                    int, qint64, isRequired);
-    CHECK_AND_SET_EN_USER_PROPERTY(modificationTimestamp, setModificationTimestamp,
+    CHECK_AND_SET_EN_USER_PROPERTY(userModificationTimestamp, setModificationTimestamp,
                                    int, qint64, isRequired);
-    CHECK_AND_SET_EN_USER_PROPERTY(deletionTimestamp, setDeletionTimestamp,
+    CHECK_AND_SET_EN_USER_PROPERTY(userDeletionTimestamp, setDeletionTimestamp,
                                    int, qint64, /* isRequired = */ false);
-    CHECK_AND_SET_EN_USER_PROPERTY(isActive, setActive, int, bool, isRequired);   // NOTE: int to bool cast
+    CHECK_AND_SET_EN_USER_PROPERTY(userIsActive, setActive, int, bool, isRequired);   // NOTE: int to bool cast
 
 #undef CHECK_AND_SET_EN_USER_PROPERTY
 
@@ -271,7 +269,7 @@ bool LocalStorageManager::DeleteUser(const IUser & user, QString & errorDescript
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("UPDATE Users SET deletionTimestamp = ?, isLocal = ? WHERE id = ?");
+    query.prepare("UPDATE Users SET userDeletionTimestamp = ?, userIsLocal = ? WHERE id = ?");
     query.addBindValue(user.deletionTimestamp());
     query.addBindValue(user.isLocal() ? 1 : 0);
     query.addBindValue(user.id());
@@ -429,7 +427,7 @@ void LocalStorageManager::SwitchUser(const QString & username, const UserID user
 int LocalStorageManager::GetUserCount(QString & errorDescription) const
 {
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT COUNT(*) FROM Users WHERE deletionTimestamp IS NULL");
+    bool res = query.exec("SELECT COUNT(*) FROM Users WHERE userDeletionTimestamp IS NULL");
     if (!res) {
         errorDescription = QT_TR_NOOP("Internal error: can't get number of users in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
@@ -2281,18 +2279,18 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     bool res;
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Users("
-                     "  id                      INTEGER PRIMARY KEY     NOT NULL UNIQUE, "
-                     "  username                TEXT                    NOT NULL, "
-                     "  email                   TEXT                    NOT NULL, "
-                     "  name                    TEXT                    NOT NULL, "
-                     "  timezone                TEXT                    DEFAULT NULL, "
-                     "  privilege               INTEGER                 NOT NULL, "
-                     "  creationTimestamp       INTEGER                 NOT NULL, "
-                     "  modificationTimestamp   INTEGER                 NOT NULL, "
-                     "  isDirty                 INTEGER                 NOT NULL, "
-                     "  isLocal                 INTEGER                 NOT NULL, "
-                     "  deletionTimestamp       INTEGER                 DEFAULT NULL, "
-                     "  isActive                INTEGER                 NOT NULL"
+                     "  id                          INTEGER PRIMARY KEY     NOT NULL UNIQUE, "
+                     "  username                    TEXT                    NOT NULL, "
+                     "  email                       TEXT                    NOT NULL, "
+                     "  name                        TEXT                    NOT NULL, "
+                     "  timezone                    TEXT                    DEFAULT NULL, "
+                     "  privilege                   INTEGER                 NOT NULL, "
+                     "  userCreationTimestamp       INTEGER                 NOT NULL, "
+                     "  userModificationTimestamp   INTEGER                 NOT NULL, "
+                     "  userIsDirty                 INTEGER                 NOT NULL, "
+                     "  userIsLocal                 INTEGER                 NOT NULL, "
+                     "  userDeletionTimestamp       INTEGER                 DEFAULT NULL, "
+                     "  userIsActive                INTEGER                 NOT NULL"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Users table");
 
@@ -3068,8 +3066,8 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
 {
     errorDescription += QT_TR_NOOP("Can't insert or replace User into local storage database: ");
 
-    QString columns = "id, username, email, name, timezone, privilege, creationTimestamp, "
-                      "modificationTimestamp, isDirty, isLocal, isActive";
+    QString columns = "id, username, email, name, timezone, privilege, userCreationTimestamp, "
+                      "userModificationTimestamp, userIsDirty, userIsLocal, userIsActive";
     QString values;
 
 #define CHECK_AND_SET_USER_VALUE(checker, property, error, use_quotation, ...) \
@@ -3080,7 +3078,7 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
     else { \
         if (!values.isEmpty()) { values.append(", "); } \
         if (use_quotation) { \
-            values.append("\'" + __VA_ARGS__(user.property()) + "\'"); \
+            values.append("'" + __VA_ARGS__(user.property()) + "'"); \
         } \
         else { \
             values.append(__VA_ARGS__(user.property())); \
@@ -3099,13 +3097,13 @@ bool LocalStorageManager::InsertOrReplaceUser(const IUser & user, QString & erro
 
 #undef CHECK_AND_SET_USER_VALUE
 
-    values.append(", \"" + QString::number((user.isDirty() ? 1 : 0)) + "\"");
-    values.append(", \"" + QString::number((user.isLocal() ? 1 : 0)) + "\"");
+    values.append(", '" + QString::number((user.isDirty() ? 1 : 0)) + "'");
+    values.append(", '" + QString::number((user.isLocal() ? 1 : 0)) + "'");
 
     // Process deletionTimestamp properties specifically
     if (user.hasDeletionTimestamp()) {
-        columns.append(", deletionTimestamp");
-        values.append(", \"" + QString::number(user.deletionTimestamp()) + "\"");
+        columns.append(", userDeletionTimestamp");
+        values.append(", '" + QString::number(user.deletionTimestamp()) + "'");
     }
 
     QString queryString = QString("INSERT OR REPLACE INTO Users (%1) VALUES(%2)").arg(columns).arg(values);
