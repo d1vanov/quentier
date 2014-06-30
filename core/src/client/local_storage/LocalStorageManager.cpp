@@ -2357,9 +2357,9 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  lastRequestedCharge         INTEGER             DEFAULT NULL, "
                      "  currency                    TEXT                DEFAULT NULL, "
                      "  unitPrice                   INTEGER             DEFAULT NULL, "
-                     "  businessId                  INTEGER             DEFAULT NULL, "
-                     "  businessName                TEXT                DEFAULT NULL, "
-                     "  businessRole                INTEGER             DEFAULT NULL, "
+                     "  accountingBusinessId        INTEGER             DEFAULT NULL, "
+                     "  accountingBusinessName      TEXT                DEFAULT NULL, "
+                     "  accountingBusinessRole      INTEGER             DEFAULT NULL, "
                      "  unitDiscount                INTEGER             DEFAULT NULL, "
                      "  nextChargeDate              INTEGER             DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create Accounting table");
@@ -2384,7 +2384,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  businessId              INTEGER                 DEFAULT NULL, "
                      "  businessName            TEXT                    DEFAULT NULL, "
                      "  role                    INTEGER                 DEFAULT NULL, "
-                     "  email                   TEXT                    DEFAULT NULL)");
+                     "  businessInfoEmail       TEXT                    DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create BusinessUserInfo table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
@@ -3171,8 +3171,8 @@ bool LocalStorageManager::InsertOrReplaceBusinesUserInfo(const UserID id, const 
 
     bool hasEmail = info.email.isSet();
     if (hasEmail) {
-        columns.append("email");
-        valuesString.append(":email");
+        columns.append("businessInfoEmail");
+        valuesString.append(":businessInfoEmail");
     }
 
     QString queryString = QString("INSERT OR REPLACE INTO BusinessUserInfo (%1) VALUES(%2)")
@@ -3196,7 +3196,7 @@ bool LocalStorageManager::InsertOrReplaceBusinesUserInfo(const UserID id, const 
     }
 
     if (hasEmail) {
-        query.bindValue(":email", info.email.ref());
+        query.bindValue(":businessInfoEmail", info.email.ref());
     }
 
     res = query.exec();
@@ -3304,11 +3304,21 @@ bool LocalStorageManager::InsertOrReplaceAccounting(const UserID id, const qever
     CHECK_AND_ADD_COLUMN_AND_VALUE(lastRequestedCharge);
     CHECK_AND_ADD_COLUMN_AND_VALUE(currency);
     CHECK_AND_ADD_COLUMN_AND_VALUE(unitPrice);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(businessId);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(businessName);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(businessRole);
     CHECK_AND_ADD_COLUMN_AND_VALUE(unitDiscount);
     CHECK_AND_ADD_COLUMN_AND_VALUE(nextChargeDate);
+
+#undef CHECK_AND_ADD_COLUMN_AND_VALUE
+
+#define CHECK_AND_ADD_COLUMN_AND_VALUE(name, columnName) \
+    bool has##name = accounting.name.isSet(); \
+    if (has##name) { \
+        columns.append(", " #columnName); \
+        valuesString.append(", :" #columnName); \
+    }
+
+    CHECK_AND_ADD_COLUMN_AND_VALUE(businessId, accountingBusinessId);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(businessName, accountingBusinessName);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(businessRole, accountingBusinessRole);
 
 #undef CHECK_AND_ADD_COLUMN_AND_VALUE
 
@@ -3343,11 +3353,19 @@ bool LocalStorageManager::InsertOrReplaceAccounting(const UserID id, const qever
     CHECK_AND_BIND_VALUE(lastRequestedCharge);
     CHECK_AND_BIND_VALUE(currency);
     CHECK_AND_BIND_VALUE(unitPrice);
-    CHECK_AND_BIND_VALUE(businessId);
-    CHECK_AND_BIND_VALUE(businessName);
-    CHECK_AND_BIND_VALUE(businessRole);
     CHECK_AND_BIND_VALUE(unitDiscount);
     CHECK_AND_BIND_VALUE(nextChargeDate);
+
+#undef CHECK_AND_BIND_VALUE
+
+#define CHECK_AND_BIND_VALUE(name, columnName) \
+    if (has##name) { \
+        query.bindValue(":" #columnName, accounting.name.ref()); \
+    }
+
+    CHECK_AND_BIND_VALUE(businessId, accountingBusinessId);
+    CHECK_AND_BIND_VALUE(businessName, accountingBusinessName);
+    CHECK_AND_BIND_VALUE(businessRole, accountingBusinessRole);
 
 #undef CHECK_AND_BIND_VALUE
 
@@ -4365,11 +4383,25 @@ void LocalStorageManager::FillAccountingFromSqlRecord(const QSqlRecord & rec, qe
     CHECK_AND_SET_ACCOUNTING_PROPERTY(lastRequestedCharge, int, qevercloud::Timestamp);
     CHECK_AND_SET_ACCOUNTING_PROPERTY(currency, QString, QString);
     CHECK_AND_SET_ACCOUNTING_PROPERTY(unitPrice, int, qint32);
-    CHECK_AND_SET_ACCOUNTING_PROPERTY(businessId, int, qint32);
-    CHECK_AND_SET_ACCOUNTING_PROPERTY(businessName, QString, QString);
-    CHECK_AND_SET_ACCOUNTING_PROPERTY(businessRole, int, qevercloud::BusinessUserRole::type);
     CHECK_AND_SET_ACCOUNTING_PROPERTY(unitDiscount, int, qint32);
     CHECK_AND_SET_ACCOUNTING_PROPERTY(nextChargeDate, int, qevercloud::Timestamp);
+
+#undef CHECK_AND_SET_ACCOUNTING_PROPERTY
+
+#define CHECK_AND_SET_ACCOUNTING_PROPERTY(column, property, type, localType) \
+    { \
+        int index = rec.indexOf(#column); \
+        if (index >= 0) { \
+            QVariant value = rec.value(#column); \
+            if (!value.isNull()) { \
+                accounting.property = static_cast<localType>(qvariant_cast<type>(value)); \
+            } \
+        } \
+    }
+
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessId, businessId, int, qint32);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessName, businessName, QString, QString);
+    CHECK_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessRole, businessRole, int, qevercloud::BusinessUserRole::type);
 
 #undef CHECK_AND_SET_ACCOUNTING_PROPERTY
 }
@@ -4458,7 +4490,7 @@ bool LocalStorageManager::FillBusinessUserInfoFromSqlRecord(const QSqlRecord & r
         info.role = static_cast<qevercloud::BusinessUserRole::type>(role);
     }
 
-    QVariant emailValue = rec.value("email");
+    QVariant emailValue = rec.value("businessInfoEmail");
     if (!emailValue.isNull()) {
         info.email = emailValue.toString();
     }
@@ -5030,7 +5062,7 @@ bool LocalStorageManager::FindBusinessUserInfo(const UserID id, qevercloud::Busi
 
     QString errorPrefix = QT_TR_NOOP("Can't find BusinessUserInfo: ");
 
-    QString queryString = QString("SELECT businessId, businessName, role, email "
+    QString queryString = QString("SELECT businessId, businessName, role, businessInfoEmail "
                                   "FROM BusinessUserInfo WHERE id = :id");
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
