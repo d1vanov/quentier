@@ -624,13 +624,7 @@ private:
     void FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     void FillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     void FillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
-    void FillUserFromSqlRecord(const QSqlRecord & rec, IUser & user) const;
-    void FillUserAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::UserAttributes & attributes) const;
-    void FillAccountingFromSqlRecord(const QSqlRecord & rec, qevercloud::Accounting & accounting) const;
-    bool FillPremiumInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::PremiumInfo & info,
-                                      QString & errorDescription) const;
-    bool FillBusinessUserInfoFromSqlRecord(const QSqlRecord & rec, qevercloud::BusinessUserInfo &info,
-                                           QString & errorDescription) const;
+    bool FillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QString &errorDescription) const;
     bool FillNoteFromSqlRecord(const QSqlRecord & record, Note & note, QString & errorDescription) const;
     bool FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QString & errorDescription) const;
     bool FillSharedNotebookFromSqlRecord(const QSqlRecord & record, ISharedNotebook & sharedNotebook,
@@ -642,15 +636,6 @@ private:
     bool FillTagFromSqlRecord(const QSqlRecord & rec, Tag & tag,
                               QString & errorDescription) const;
     QList<Tag> FillTagsFromSqlQuery(QSqlQuery & query, QString & errorDescription) const;
-
-    bool FindUserAttributes(const UserID id, qevercloud::UserAttributes & attributes,
-                            QString & errorDescription) const;
-    bool FindAccounting(const UserID id, qevercloud::Accounting & accounting,
-                        QString & errorDescription) const;
-    bool FindPremiumInfo(const UserID id, qevercloud::PremiumInfo & info,
-                         QString & errorDescription) const;
-    bool FindBusinessUserInfo(const UserID id, qevercloud::BusinessUserInfo & info,
-                              QString & errorDescription) const;
 
     bool FindAndSetTagGuidsPerNote(Note & note, QString & errorDescription) const;
     bool FindAndSetResourcesPerNote(Note & note, QString & errorDescription,
