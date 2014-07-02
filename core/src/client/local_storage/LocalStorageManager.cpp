@@ -475,6 +475,13 @@ bool LocalStorageManager::FindNotebook(Notebook & notebook, QString & errorDescr
     QString queryString = QString("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
                                   "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
                                   "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
+                                  "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
+                                  "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
+                                  "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
+                                  "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
+                                  "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
+                                  "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
+                                  "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
                                   "WHERE Notebooks.%1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -514,6 +521,13 @@ bool LocalStorageManager::FindDefaultNotebook(Notebook & notebook, QString & err
     bool res = query.exec("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
                           "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
                           "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
+                          "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
+                          "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
+                          "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
+                          "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
+                          "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
+                          "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
+                          "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
                           "WHERE isDefault = 1 LIMIT 1");
     DATABASE_CHECK_AND_SET_ERROR("can't find default notebook in SQL database");
 
@@ -543,6 +557,13 @@ bool LocalStorageManager::FindLastUsedNotebook(Notebook & notebook, QString & er
     bool res = query.exec("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
                           "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
                           "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
+                          "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
+                          "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
+                          "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
+                          "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
+                          "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
+                          "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
+                          "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
                           "WHERE isLastUsed = 1 LIMIT 1");
     DATABASE_CHECK_AND_SET_ERROR("can't find default notebook in SQL database");
 
@@ -583,7 +604,14 @@ QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
                           "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
-                          "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid");
+                          "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
+                          "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
+                          "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
+                          "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
+                          "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
+                          "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
+                          "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
+                          "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id");
     if (!res) {
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("can't select all notebooks from SQL database: ");
@@ -4638,7 +4666,7 @@ bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, N
 
         UserAdapter user = notebook.contact();
         QString error;
-        bool res = FindUser(user, error);
+        bool res = FillUserFromSqlRecord(record, user, error);
         if (!res) {
             errorDescription += error;
             return false;
