@@ -379,34 +379,49 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
         return false;
     }
 
+    QString localGuid = notebook.localGuid();
+
     QString column, guid;
+    bool shouldCheckRowExistence = true;
+
     bool notebookHasGuid = notebook.hasGuid();
-    if (notebookHasGuid) {
+    if (notebookHasGuid)
+    {
         column = "guid";
         guid = notebook.guid();
+
+        if (localGuid.isEmpty()) {
+            QString queryString = QString("SELECT localGuid FROM Notebooks WHERE guid = ").arg("'" + notebook.guid()+ "'");
+            QSqlQuery query(m_sqlDatabase);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Notebook's guid");
+
+            localGuid = query.value(0).toString();
+            if (!localGuid.isEmpty()) {
+                errorDescription += QT_TR_NOOP("found existing local guid corresponding to Notebook's guid");
+                QNCRITICAL(errorDescription << ", localGuid: " << localGuid << ", guid: " << notebook.guid());
+                return false;
+            }
+
+            shouldCheckRowExistence = false;
+        }
     }
     else {
         column = "localGuid";
-        guid = notebook.localGuid();
+        guid = localGuid;
     }
 
-    bool exists = RowExists("Notebooks", column, QVariant(guid));
-    if (exists)
-    {
-        if (notebookHasGuid) {
-            // TRANSLATOR explaining the reason of error
-            errorDescription += QT_TR_NOOP("notebook with specified guid already exists");
-        }
-        else {
-            // TRANSLATOR explaining the reason of error
-            errorDescription += QT_TR_NOOP("notebook with specified local guid already exists");
-        }
-
+    if (shouldCheckRowExistence && RowExists("Notebooks", column, QVariant(guid))) {
+        // TRANSLATOR explaining the reason of error
+        errorDescription += QT_TR_NOOP("notebook with specified ");
+        errorDescription += column;
+        // TRANSLATOR previous part of the phrase was "notebook with specified "
+        errorDescription += QT_TR_NOOP(" already exists in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
-    return InsertOrReplaceNotebook(notebook, errorDescription);
+    return InsertOrReplaceNotebook(notebook, localGuid, errorDescription);
 }
 
 bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & errorDescription)
@@ -421,32 +436,49 @@ bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & er
         return false;
     }
 
+    QString localGuid = notebook.localGuid();
+
     QString column, guid;
+    bool shouldCheckRowExistence = true;
+
     bool notebookHasGuid = notebook.hasGuid();
-    if (notebookHasGuid) {
+    if (notebookHasGuid)
+    {
         column = "guid";
         guid = notebook.guid();
+
+        if (localGuid.isEmpty()) {
+            QString queryString = QString("SELECT localGuid FROM Notebooks WHERE guid = ").arg("'" + notebook.guid()+ "'");
+            QSqlQuery query(m_sqlDatabase);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Notebook's guid");
+
+            localGuid = query.value(0).toString();
+            if (localGuid.isEmpty()) {
+                errorDescription += QT_TR_NOOP("no existing local guid corresponding to Notebook's guid was found");
+                QNCRITICAL(errorDescription << ", localGuid: " << localGuid << ", guid: " << notebook.guid());
+                return false;
+            }
+
+            shouldCheckRowExistence = false;
+        }
     }
     else {
         column = "localGuid";
-        guid = notebook.localGuid();
+        guid = localGuid;
     }
 
-    bool exists = RowExists("Notebooks", column, QVariant(guid));
-    if (!exists) {
-        if (notebookHasGuid) {
-            // TRANSLATOR explaining the reason of error
-            errorDescription += QT_TR_NOOP("notebook with specified guid was not found");
-        }
-        else {
-            // TRANSLATOR explaining the reason of error
-            errorDescription += QT_TR_NOOP("notebook with specified local guid was not found");
-        }
+    if (shouldCheckRowExistence && !RowExists("Notebooks", column, QVariant(guid))) {
+        // TRANSLATOR explaining the reason of error
+        errorDescription += QT_TR_NOOP("notebook with specified ");
+        errorDescription += column;
+        // TRANSLATOR previous part of the phrase was "notebook with specified "
+        errorDescription += QT_TR_NOOP(" was not found in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
-    return InsertOrReplaceNotebook(notebook, errorDescription);
+    return InsertOrReplaceNotebook(notebook, localGuid, errorDescription);
 }
 
 bool LocalStorageManager::FindNotebook(Notebook & notebook, QString & errorDescription) const
@@ -1082,34 +1114,49 @@ bool LocalStorageManager::AddNote(const Note & note, const Notebook & notebook, 
         return false;
     }
 
+    QString localGuid = note.localGuid();
+
     QString column, guid;
+    bool shouldCheckNoteExistence = true;
+
     bool noteHasGuid = note.hasGuid();
-    if (noteHasGuid) {
+    if (noteHasGuid)
+    {
         column = "guid";
         guid = note.guid();
+
+        if (localGuid.isEmpty()) {
+            QString queryString = QString("SELECT localGuid FROM Notes WHERE guid = ").arg("'" + note.guid()+ "'");
+            QSqlQuery query(m_sqlDatabase);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Note's guid");
+
+            localGuid = query.value(0).toString();
+            if (!localGuid.isEmpty()) {
+                errorDescription += QT_TR_NOOP("found existing local guid corresponding to Note's guid");
+                QNCRITICAL(errorDescription << ", localGuid: " << localGuid << ", guid: " << note.guid());
+                return false;
+            }
+
+            shouldCheckNoteExistence = false;
+        }
     }
     else {
         column = "localGuid";
-        guid = note.localGuid();
+        guid = localGuid;
     }
 
-    bool exists = RowExists("Notes", column, QVariant(guid));
-    if (exists)
-    {
-        if (noteHasGuid) {
-            // TRANSLATOR explaining why note cannot be added
-            errorDescription += QT_TR_NOOP("note with specified guid already exists");
-        }
-        else {
-            // TRANSLATOR explaining why note cannot be added
-            errorDescription += QT_TR_NOOP("note with specified local guid already exists");
-        }
-
+    if (shouldCheckNoteExistence && RowExists("Notes", column, QVariant(guid))) {
+        // TRANSLATOR explaining the reason of error
+        errorDescription += QT_TR_NOOP("note with specified ");
+        errorDescription += column;
+        // TRANSLATOR previous part of the phrase was "notebook with specified "
+        errorDescription += QT_TR_NOOP(" already exists in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
-    return InsertOrReplaceNote(note, notebook, errorDescription);
+    return InsertOrReplaceNote(note, notebook, localGuid, errorDescription);
 }
 
 bool LocalStorageManager::UpdateNote(const Note & note, const Notebook & notebook, QString & errorDescription)
@@ -1130,34 +1177,49 @@ bool LocalStorageManager::UpdateNote(const Note & note, const Notebook & noteboo
         return false;
     }
 
+    QString localGuid = note.localGuid();
+
     QString column, guid;
+    bool shouldCheckNoteExistence = true;
+
     bool noteHasGuid = note.hasGuid();
-    if (noteHasGuid) {
+    if (noteHasGuid)
+    {
         column = "guid";
         guid = note.guid();
+
+        if (localGuid.isEmpty()) {
+            QString queryString = QString("SELECT localGuid FROM Notes WHERE guid = ").arg("'" + note.guid()+ "'");
+            QSqlQuery query(m_sqlDatabase);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Note's guid");
+
+            localGuid = query.value(0).toString();
+            if (localGuid.isEmpty()) {
+                errorDescription += QT_TR_NOOP("no existing local guid corresponding to Note's guid was found in local storage");
+                QNCRITICAL(errorDescription << ", localGuid: " << localGuid << ", guid: " << note.guid());
+                return false;
+            }
+
+            shouldCheckNoteExistence = false;
+        }
     }
     else {
         column = "localGuid";
-        guid = note.localGuid();
+        guid = localGuid;
     }
 
-    bool exists = RowExists("Notes", column, QVariant(guid));
-    if (!exists)
-    {
-        if (noteHasGuid) {
-            // TRANSLATOR explaining why note cannot be updated
-            errorDescription += QT_TR_NOOP("note with specified guid was not found");
-        }
-        else {
-            // TRANSLATOR explaining why note cannot be updated
-            errorDescription += QT_TR_NOOP("note with specified local guid was not found");
-        }
-
+    if (shouldCheckNoteExistence && !RowExists("Notes", column, QVariant(guid))) {
+        // TRANSLATOR explaining the reason of error
+        errorDescription += QT_TR_NOOP("note with specified ");
+        errorDescription += column;
+        // TRANSLATOR previous part of the phrase was "notebook with specified "
+        errorDescription += QT_TR_NOOP(" was not found in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
-    return InsertOrReplaceNote(note, notebook, errorDescription);
+    return InsertOrReplaceNote(note, notebook, localGuid, errorDescription);
 }
 
 bool LocalStorageManager::FindNote(Note & note, QString & errorDescription,
@@ -3490,6 +3552,7 @@ bool LocalStorageManager::InsertOrReplaceUserAttributes(const UserID id, const q
 }
 
 bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
+                                                  const QString & overrideLocalGuid,
                                                   QString & errorDescription)
 {
     // NOTE: this method expects to be called after notebook is already checked
@@ -3565,7 +3628,7 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
         values += QString::number(1);
     }
 
-    QString localGuid = notebook.localGuid();
+    QString localGuid = (overrideLocalGuid.isEmpty() ? notebook.localGuid() : overrideLocalGuid);
     QString isDirty = QString::number(notebook.isDirty() ? 1 : 0);
     QString isLocal = QString::number(notebook.isLocal() ? 1 : 0);
 
@@ -3637,7 +3700,8 @@ bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & l
     return true;
 }
 
-bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook & notebook, QString & errorDescription)
+bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook & notebook,
+                                              const QString & overrideLocalGuid, QString & errorDescription)
 {
     // NOTE: this method expects to be called after the note is already checked
     // for sanity of its parameters!
@@ -3695,7 +3759,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     DATABASE_CHECK_AND_SET_ERROR("can't find local notebook's guid for its remote guid: "
                                  "can't prepare SQL query for \"Notes\" table");
 
-    const QString localGuid = note.localGuid();
+    const QString localGuid = (overrideLocalGuid.isEmpty() ? note.localGuid() : overrideLocalGuid);
     const QString content = note.content();
     const QString title = note.title();
     const QString notebookLocalGuid = notebook.localGuid();

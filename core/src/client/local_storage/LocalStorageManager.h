@@ -608,9 +608,9 @@ private:
                                    QString & errorDescription);
     bool InsertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
                                        QString & errorDescription);
-    bool InsertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
+    bool InsertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalGuid, QString & errorDescription);
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
-    bool InsertOrReplaceNote(const Note & note, const Notebook & notebook, QString & errorDescription);
+    bool InsertOrReplaceNote(const Note & note, const Notebook & notebook, const QString &overrideLocalGuid, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, const Note & note, QString & errorDescription);
     bool InsertOrReplaceResourceAttributes(const QString & localGuid, const qevercloud::ResourceAttributes & attributes,

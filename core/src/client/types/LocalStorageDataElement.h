@@ -14,6 +14,7 @@ public:
 
     const QString localGuid() const;
     void setLocalGuid(const QString & guid);
+    void unsetLocalGuid();
 
 protected:
     LocalStorageDataElement(const LocalStorageDataElement & other) = default;

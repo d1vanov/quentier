@@ -11,12 +11,22 @@ LocalStorageDataElement::~LocalStorageDataElement()
 
 const QString LocalStorageDataElement::localGuid() const
 {
-    return std::move(m_localGuid.toString());
+    if (m_localGuid.isNull()) {
+        return std::move(QString());
+    }
+    else {
+        return std::move(m_localGuid.toString());
+    }
 }
 
 void LocalStorageDataElement::setLocalGuid(const QString & guid)
 {
     m_localGuid = QUuid(guid);
+}
+
+void LocalStorageDataElement::unsetLocalGuid()
+{
+    m_localGuid = QUuid();
 }
 
 LocalStorageDataElement::LocalStorageDataElement(LocalStorageDataElement && other) :
