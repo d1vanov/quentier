@@ -1100,6 +1100,12 @@ bool LocalStorageManager::AddNote(const Note & note, const Notebook & notebook, 
     errorDescription = QT_TR_NOOP("Can't add note to local storage database: ");
     QString error;
 
+    if (!notebook.hasGuid() && notebook.localGuid().isEmpty()) {
+        errorDescription += QT_TR_NOOP("both local and remote notebook's guids are empty");
+        QNWARNING(errorDescription << ", notebook: " << notebook);
+        return false;
+    }
+
     if (!notebook.canCreateNotes()) {
         // TRANSLATOR explaining why note cannot be added to notebook
         errorDescription += QT_TR_NOOP("notebook's restrictions forbid notes creation");
@@ -1163,6 +1169,12 @@ bool LocalStorageManager::UpdateNote(const Note & note, const Notebook & noteboo
 {
     errorDescription = QT_TR_NOOP("Can't update note in local storage database: ");
     QString error;
+
+    if (!notebook.hasGuid() && notebook.localGuid().isEmpty()) {
+        errorDescription += QT_TR_NOOP("both local and remote notebook's guids are empty");
+        QNWARNING(errorDescription << ", notebook: " << notebook);
+        return false;
+    }
 
     if (!notebook.canUpdateNotes()) {
         // TRANSLATOR explaining why note cannot be updated
@@ -3712,9 +3724,8 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     bool thumbnailIsNull = thumbnail.isNull();
 
     // ========= Creating and executing "insert or replace" query for Notes table
-    QString columns = "localGuid, updateSequenceNumber, title, isDirty, "
-                      "isLocal, isDeleted, content, creationTimestamp, modificationTimestamp, "
-                      "notebookLocalGuid";
+    QString columns = "localGuid, updateSequenceNumber, title, isDirty, isLocal, "
+                      "isDeleted, content, creationTimestamp, modificationTimestamp";
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid) {
         columns.append(", guid");
@@ -3734,9 +3745,14 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
         columns.append(", isActive");
     }
 
-    QString valuesString = ":localGuid, :updateSequenceNumber, :title, :isDirty, "
-                           ":isLocal, :isDeleted, :content, :creationTimestamp, :modificationTimestamp, "
-                           ":notebookLocalGuid";
+    const QString notebookLocalGuid = notebook.localGuid();
+    bool notebookHasLocalGuid = !notebookLocalGuid.isEmpty();
+    if (notebookHasLocalGuid) {
+        columns.append(", notebookLocalGuid");
+    }
+
+    QString valuesString = ":localGuid, :updateSequenceNumber, :title, :isDirty, :isLocal, "
+                           ":isDeleted, :content, :creationTimestamp, :modificationTimestamp";
     if (noteHasGuid) {
         valuesString.append(", :guid");
     }
@@ -3753,6 +3769,10 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
         valuesString.append(", :isActive");
     }
 
+    if (notebookHasLocalGuid) {
+        valuesString.append(", :notebookLocalGuid");
+    }
+
     QString queryString = QString("INSERT OR REPLACE INTO Notes (%1) VALUES(%2)").arg(columns).arg(valuesString);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
@@ -3762,7 +3782,6 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     const QString localGuid = (overrideLocalGuid.isEmpty() ? note.localGuid() : overrideLocalGuid);
     const QString content = note.content();
     const QString title = note.title();
-    const QString notebookLocalGuid = notebook.localGuid();
 
     query.bindValue(":localGuid", localGuid);
     query.bindValue(":updateSequenceNumber", note.updateSequenceNumber());
@@ -3773,7 +3792,10 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     query.bindValue(":content", content);
     query.bindValue(":creationTimestamp", note.creationTimestamp());
     query.bindValue(":modificationTimestamp", note.modificationTimestamp());
-    query.bindValue(":notebookLocalGuid", notebookLocalGuid);
+
+    if (notebookHasLocalGuid) {
+        query.bindValue(":notebookLocalGuid", notebookLocalGuid);
+    }
 
     if (noteHasGuid) {
         query.bindValue(":guid", note.guid());
