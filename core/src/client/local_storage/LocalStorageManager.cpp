@@ -406,7 +406,7 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
                 return false;
             }
 
-            localGuid = QUuid().toString();
+            localGuid = QUuid::createUuid().toString();
             shouldCheckRowExistence = false;
         }
     }
@@ -1154,7 +1154,7 @@ bool LocalStorageManager::AddNote(const Note & note, const Notebook & notebook, 
                 return false;
             }
 
-            localGuid = QUuid().toString();
+            localGuid = QUuid::createUuid().toString();
             shouldCheckNoteExistence = false;
         }
     }
@@ -2317,7 +2317,7 @@ bool LocalStorageManager::AddEnResource(const IResource & resource, const Note &
         return false;
     }
 
-    return InsertOrReplaceResource(resource, note, errorDescription);
+    return InsertOrReplaceResource(resource, QString(), note, QString(), errorDescription);
 }
 
 bool LocalStorageManager::UpdateEnResource(const IResource & resource, const Note &note, QString & errorDescription)
@@ -2350,7 +2350,7 @@ bool LocalStorageManager::UpdateEnResource(const IResource & resource, const Not
         return false;
     }
 
-    return InsertOrReplaceResource(resource, note, errorDescription);
+    return InsertOrReplaceResource(resource, QString(), note, QString(), errorDescription);
 }
 
 bool LocalStorageManager::CreateTables(QString & errorDescription)
@@ -2731,15 +2731,17 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     return true;
 }
 
-bool LocalStorageManager::SetNoteAttributes(const Note & note, QString & errorDescription)
+bool LocalStorageManager::InsertOrReplaceNoteAttributes(const Note & note,
+                                                        const QString & overrideLocalGuid,
+                                                        QString & errorDescription)
 {
-    QNDEBUG("LocalStorageManager::SetNoteAttributes");
+    QNDEBUG("LocalStorageManager::InsertOrReplaceNoteAttributes");
 
     if (!note.hasNoteAttributes()) {
         return true;
     }
 
-    const QString localGuid = note.localGuid();
+    const QString localGuid = (overrideLocalGuid.isEmpty() ? note.localGuid() : overrideLocalGuid);
 
     QString columns = "noteLocalGuid";
     QString valuesString = ":noteLocalGuid";
@@ -2983,7 +2985,7 @@ bool LocalStorageManager::InsertOrReplaceNotebookAdditionalAttributes(const Note
 bool LocalStorageManager::InsertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
                                                               const QString & localGuid, QString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't set notebook restrictions: ");
+    errorDescription = QT_TR_NOOP("Can't insert or replace notebook restrictions: ");
 
     bool hasAnyRestriction = false;
 
@@ -3908,7 +3910,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
             }
 
             error.clear();
-            res = InsertOrReplaceResource(resource, note, error);
+            res = InsertOrReplaceResource(resource, QString(), note, localGuid, error);
             if (!res) {
                 errorDescription += QT_TR_NOOP("can't add or update one of note's "
                                                "attached resources: ");
@@ -3922,7 +3924,7 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
         return true;
     }
 
-    return SetNoteAttributes(note, errorDescription);
+    return InsertOrReplaceNoteAttributes(note, localGuid, errorDescription);
 }
 
 bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDescription)
@@ -3966,8 +3968,9 @@ bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDes
     return true;
 }
 
-bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
-                                                  const Note & note, QString & errorDescription)
+bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
+                                                  const Note & note, const QString & overrideNoteLocalGuid,
+                                                  QString & errorDescription)
 {
     // NOTE: this method expects to be called after resource is already checked
     // for sanity of its parameters!
@@ -4038,7 +4041,8 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
     }
 
     columns.append(", localGuid");
-    QString resourceLocalGuid = resource.localGuid();
+    QString resourceLocalGuid = (overrideResourceLocalGuid.isEmpty()
+                                 ? resource.localGuid() : overrideResourceLocalGuid);
     values.append(", \"" + resourceLocalGuid + "\"");
 
     QSqlQuery query(m_sqlDatabase);
@@ -4046,7 +4050,8 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource,
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database");
 
-    QString noteLocalGuid = note.localGuid();
+    QString noteLocalGuid = (overrideNoteLocalGuid.isEmpty()
+                             ? note.localGuid() : overrideNoteLocalGuid);
 
     queryString = QString("INSERT OR REPLACE INTO NoteResources (note, resource) VALUES(\"%1\", \"%2\")")
                           .arg(noteLocalGuid).arg(resource.localGuid());

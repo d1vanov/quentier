@@ -458,6 +458,13 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
 
+    // NOTE: foundNote was searched by guid and might have another local guid is the original note
+    // doesn't have one. So use this workaround to ensure the comparison is good for everything
+    // without local guid
+    if (note.localGuid().isEmpty()) {
+        foundNote.unsetLocalGuid();
+    }
+
     if (note != foundNote) {
         errorDescription = "Added and found notes in local storage don't match";
         QNWARNING(errorDescription << ": Note added to LocalStorageManager: " << note
@@ -516,6 +523,8 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
 
     modifiedNote.addResource(newResource);
 
+    modifiedNote.unsetLocalGuid();
+
     res = localStorageManager.UpdateNote(modifiedNote, notebook, errorDescription);
     if (!res) {
         return false;
@@ -543,6 +552,13 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
                                        /* withResourceBinaryData = */ true);
     if (!res) {
         return false;
+    }
+
+    // NOTE: foundNote was searched by guid and might have another local guid is the original note
+    // doesn't have one. So use this workaround to ensure the comparison is good for everything
+    // without local guid
+    if (modifiedNote.localGuid().isEmpty()) {
+        foundNote.unsetLocalGuid();
     }
 
     if (modifiedNote != foundNote) {

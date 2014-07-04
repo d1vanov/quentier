@@ -122,8 +122,8 @@ void Note::clear()
 
 bool Note::checkParameters(QString & errorDescription) const
 {
-    if (localGuid().isEmpty()) {
-        errorDescription = QT_TR_NOOP("Note's local guid is not set");
+    if (localGuid().isEmpty() && !m_qecNote.guid.isSet()) {
+        errorDescription = QT_TR_NOOP("Both Note's local and remote guids are empty");
         return false;
     }
 

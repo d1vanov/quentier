@@ -235,6 +235,8 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         noteAttributes.sourceApplication = "source application";
         noteAttributes.shareDate = 2;
 
+        note.unsetLocalGuid();
+
         res = localStorageManager.AddNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 

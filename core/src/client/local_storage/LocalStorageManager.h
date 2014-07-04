@@ -589,7 +589,8 @@ public:
 
 private:
     bool CreateTables(QString & errorDescription);
-    bool SetNoteAttributes(const Note & note, QString & errorDescription);
+    bool InsertOrReplaceNoteAttributes(const Note & note, const QString & overrideLocalGuid,
+                                       QString & errorDescription);
     bool InsertOrReplaceNotebookAdditionalAttributes(const Notebook & notebook,
                                                      const QString & overrideLocalGuid,
                                                      QString & errorDescription);
@@ -614,7 +615,8 @@ private:
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, const Notebook & notebook, const QString &overrideLocalGuid, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
-    bool InsertOrReplaceResource(const IResource & resource, const Note & note, QString & errorDescription);
+    bool InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
+                                 const Note & note, const QString & overrideNoteLocalGuid, QString & errorDescription);
     bool InsertOrReplaceResourceAttributes(const QString & localGuid, const qevercloud::ResourceAttributes & attributes,
                                            QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
