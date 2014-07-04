@@ -391,18 +391,22 @@ bool LocalStorageManager::AddNotebook(const Notebook & notebook, QString & error
         guid = notebook.guid();
 
         if (localGuid.isEmpty()) {
-            QString queryString = QString("SELECT localGuid FROM Notebooks WHERE guid = ").arg("'" + notebook.guid()+ "'");
+            QString queryString = QString("SELECT localGuid FROM Notebooks WHERE guid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Notebook's guid");
 
-            localGuid = query.value(0).toString();
+            if (query.next()) {
+                localGuid = query.record().value("localGuid").toString();
+            }
+
             if (!localGuid.isEmpty()) {
                 errorDescription += QT_TR_NOOP("found existing local guid corresponding to Notebook's guid");
-                QNCRITICAL(errorDescription << ", localGuid: " << localGuid << ", guid: " << notebook.guid());
+                QNCRITICAL(errorDescription << ", guid: " << guid);
                 return false;
             }
 
+            localGuid = QUuid().toString();
             shouldCheckRowExistence = false;
         }
     }
@@ -448,15 +452,18 @@ bool LocalStorageManager::UpdateNotebook(const Notebook & notebook, QString & er
         guid = notebook.guid();
 
         if (localGuid.isEmpty()) {
-            QString queryString = QString("SELECT localGuid FROM Notebooks WHERE guid = ").arg("'" + notebook.guid()+ "'");
+            QString queryString = QString("SELECT localGuid FROM Notebooks WHERE guid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Notebook's guid");
 
-            localGuid = query.value(0).toString();
+            if (query.next()) {
+                localGuid = query.record().value("localGuid").toString();
+            }
+
             if (localGuid.isEmpty()) {
-                errorDescription += QT_TR_NOOP("no existing local guid corresponding to Notebook's guid was found");
-                QNCRITICAL(errorDescription << ", localGuid: " << localGuid << ", guid: " << notebook.guid());
+                errorDescription += QT_TR_NOOP("no existing local guid corresponding to Notebook's guid was found in local storage");
+                QNCRITICAL(errorDescription << ", guid: " << guid);
                 return false;
             }
 
@@ -1132,18 +1139,22 @@ bool LocalStorageManager::AddNote(const Note & note, const Notebook & notebook, 
         guid = note.guid();
 
         if (localGuid.isEmpty()) {
-            QString queryString = QString("SELECT localGuid FROM Notes WHERE guid = ").arg("'" + note.guid()+ "'");
+            QString queryString = QString("SELECT localGuid FROM Notes WHERE guid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Note's guid");
 
-            localGuid = query.value(0).toString();
+            if (query.next()) {
+                localGuid = query.record().value("localGuid").toString();
+            }
+
             if (!localGuid.isEmpty()) {
                 errorDescription += QT_TR_NOOP("found existing local guid corresponding to Note's guid");
-                QNCRITICAL(errorDescription << ", localGuid: " << localGuid << ", guid: " << note.guid());
+                QNCRITICAL(errorDescription << ", guid: " << guid);
                 return false;
             }
 
+            localGuid = QUuid().toString();
             shouldCheckNoteExistence = false;
         }
     }
@@ -1200,16 +1211,20 @@ bool LocalStorageManager::UpdateNote(const Note & note, const Notebook & noteboo
         column = "guid";
         guid = note.guid();
 
-        if (localGuid.isEmpty()) {
-            QString queryString = QString("SELECT localGuid FROM Notes WHERE guid = ").arg("'" + note.guid()+ "'");
+        if (localGuid.isEmpty())
+        {
+            QString queryString = QString("SELECT localGuid FROM Notes WHERE guid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Note's guid");
 
-            localGuid = query.value(0).toString();
+            if (query.next()) {
+                localGuid = query.record().value("localGuid").toString();
+            }
+
             if (localGuid.isEmpty()) {
                 errorDescription += QT_TR_NOOP("no existing local guid corresponding to Note's guid was found in local storage");
-                QNCRITICAL(errorDescription << ", localGuid: " << localGuid << ", guid: " << note.guid());
+                QNCRITICAL(errorDescription << ", guid: " << guid);
                 return false;
             }
 
@@ -2498,7 +2513,7 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
                      "  noSetParentTag              INTEGER     DEFAULT NULL, "
                      "  noCreateSharedNotebooks     INTEGER     DEFAULT NULL, "
                      "  updateWhichSharedNotebookRestrictions    INTEGER     DEFAULT NULL, "
-                     "  expungeWhichSharedNotebookRestrictions   INTEGER     DEFAULT NULL"
+                     "  expungeWhichSharedNotebookRestrictions   INTEGER     DEFAULT NULL "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create NotebookRestrictions table");
 
@@ -2833,8 +2848,9 @@ bool LocalStorageManager::SetNoteAttributes(const Note & note, QString & errorDe
     return true;
 }
 
-bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & notebook,
-                                                          QString & errorDescription)
+bool LocalStorageManager::InsertOrReplaceNotebookAdditionalAttributes(const Notebook & notebook,
+                                                                      const QString & overrideLocalGuid,
+                                                                      QString & errorDescription)
 {
     bool hasAdditionalAttributes = false;
     QString queryString;
@@ -2927,11 +2943,12 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
 
 #undef APPEND_SEPARATOR
 
+    QString localGuid = (overrideLocalGuid.isEmpty() ? notebook.localGuid() : overrideLocalGuid);
+
     if (hasAdditionalAttributes)
     {
         queryString.prepend("UPDATE Notebooks SET ");
-        queryString.append(" WHERE localGuid = ");
-        queryString.append("\"" + notebook.localGuid() + "\"");
+        queryString += QString(" WHERE localGuid = '%1'").arg(localGuid);
 
         QSqlQuery query(m_sqlDatabase);
         bool res = query.exec(queryString);
@@ -2942,7 +2959,7 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
     if (notebook.hasRestrictions())
     {
         QString error;
-        bool res = SetNotebookRestrictions(notebook.restrictions(), notebook.localGuid(), error);
+        bool res = InsertOrReplaceNotebookRestrictions(notebook.restrictions(), localGuid, error);
         if (!res) {
             errorDescription += error;
             return res;
@@ -2963,15 +2980,15 @@ bool LocalStorageManager::SetNotebookAdditionalAttributes(const Notebook & noteb
     return true;
 }
 
-bool LocalStorageManager::SetNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
-                                                  const QString & notebookLocalGuid, QString & errorDescription)
+bool LocalStorageManager::InsertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
+                                                              const QString & localGuid, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't set notebook restrictions: ");
 
     bool hasAnyRestriction = false;
 
     QString columns = "localGuid";
-    QString values = QString("\"%1\"").arg(notebookLocalGuid);
+    QString values = QString("'%1'").arg(localGuid);
 
 #define CHECK_AND_SET_NOTEBOOK_RESTRICTION(restriction, value) \
     if (notebookRestrictions.restriction.isSet()) \
@@ -3652,7 +3669,7 @@ bool LocalStorageManager::InsertOrReplaceNotebook(const Notebook & notebook,
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook into \"Notebooks\" table in SQL database");
 
-    return SetNotebookAdditionalAttributes(notebook, errorDescription);
+    return InsertOrReplaceNotebookAdditionalAttributes(notebook, overrideLocalGuid, errorDescription);
 }
 
 bool LocalStorageManager::InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook,

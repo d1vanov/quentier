@@ -104,8 +104,8 @@ void Notebook::setUpdateSequenceNumber(const qint32 usn)
 
 bool Notebook::checkParameters(QString & errorDescription) const
 {
-    if (localGuid().isEmpty()) {
-        errorDescription = QT_TR_NOOP("Notebook's local guid is empty");
+    if (localGuid().isEmpty() && !m_qecNotebook.guid.isSet()) {
+        errorDescription = QT_TR_NOOP("Both notebook's local and remote guids are not set");
         return false;
     }
 

@@ -590,9 +590,11 @@ public:
 private:
     bool CreateTables(QString & errorDescription);
     bool SetNoteAttributes(const Note & note, QString & errorDescription);
-    bool SetNotebookAdditionalAttributes(const Notebook & notebook, QString & errorDescription);
-    bool SetNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
-                                 const QString & notebookLocalGuid, QString & errorDescription);
+    bool InsertOrReplaceNotebookAdditionalAttributes(const Notebook & notebook,
+                                                     const QString & overrideLocalGuid,
+                                                     QString & errorDescription);
+    bool InsertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
+                                             const QString & localGuid, QString & errorDescription);
     bool SetSharedNotebookAttributes(const ISharedNotebook &sharedNotebook,
                                      QString & errorDescription);
 
