@@ -88,8 +88,8 @@ void Tag::setUpdateSequenceNumber(const qint32 usn)
 
 bool Tag::checkParameters(QString & errorDescription) const
 {
-    if (localGuid().isEmpty()) {
-        errorDescription = QT_TR_NOOP("Tag's local guid is empty");
+    if (localGuid().isEmpty() && !m_qecTag.guid.isSet()) {
+        errorDescription = QT_TR_NOOP("both tag's local and remote guids are empty");
         return false;
     }
 

@@ -239,6 +239,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     Tag modifiedTag(tag);
     modifiedTag.setUpdateSequenceNumber(tag.updateSequenceNumber() + 1);
     modifiedTag.setName(tag.name() + "_modified");
+    modifiedTag.unsetLocalGuid();
 
     res = localStorageManager.UpdateTag(modifiedTag, errorDescription);
     if (!res) {
@@ -250,6 +251,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
+    modifiedTag.setLocalGuid(localTagGuid);
     if (modifiedTag != foundTag) {
         errorDescription = "Updated and found tags in local storage don't match";
         QNWARNING(errorDescription << ": Tag updated in LocalStorageManaged: " << modifiedTag

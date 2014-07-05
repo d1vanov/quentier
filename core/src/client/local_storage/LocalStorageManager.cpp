@@ -1167,7 +1167,7 @@ bool LocalStorageManager::AddNote(const Note & note, const Notebook & notebook, 
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("note with specified ");
         errorDescription += column;
-        // TRANSLATOR previous part of the phrase was "notebook with specified "
+        // TRANSLATOR previous part of the phrase was "note with specified guid|localGuid o"
         errorDescription += QT_TR_NOOP(" already exists in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
@@ -1240,7 +1240,7 @@ bool LocalStorageManager::UpdateNote(const Note & note, const Notebook & noteboo
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("note with specified ");
         errorDescription += column;
-        // TRANSLATOR previous part of the phrase was "notebook with specified "
+        // TRANSLATOR previous part of the phrase was "note with specified guid|localGuid"
         errorDescription += QT_TR_NOOP(" was not found in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
@@ -1547,43 +1547,52 @@ bool LocalStorageManager::AddTag(const Tag & tag, QString & errorDescription)
         return false;
     }
 
+    QString localGuid = tag.localGuid();
+
     QString column, guid;
+    bool shouldCheckTagExistence = true;
+
     bool tagHasGuid = tag.hasGuid();
     if (tagHasGuid) {
         column = "guid";
         guid = tag.guid();
+
+        if (localGuid.isEmpty()) {
+            QString queryString = QString("SELECT localGuid FROM Tags WHERE guid = '%1'").arg(guid);
+            QSqlQuery query(m_sqlDatabase);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Tag's guid");
+
+            if (query.next()) {
+                localGuid = query.record().value("localGuid").toString();
+            }
+
+            if (!localGuid.isEmpty()) {
+                errorDescription += QT_TR_NOOP("found existing local guid corresponding to Tag's guid");
+                QNCRITICAL(errorDescription << ", guid: " << guid);
+                return false;
+            }
+
+            localGuid = QUuid::createUuid().toString();
+            shouldCheckTagExistence = false;
+        }
     }
     else {
         column = "localGuid";
         guid = tag.localGuid();
     }
 
-    bool exists = RowExists("Tags", column, QVariant(guid));
-    if (exists)
-    {
-        if (tagHasGuid) {
-            // TRANSLATION explaining why tag cannot be added into the local storage
-            errorDescription += QT_TR_NOOP("tag with the same guid already exists");
-        }
-        else {
-            // TRANSLATION explaining why tag cannot be added into the local storage
-            errorDescription += QT_TR_NOOP("tag with the same local guid already exists");
-        }
-
+    if (shouldCheckTagExistence && RowExists("Tags", column, QVariant(guid))) {
+        // TRANSLATOR explaining the reason of error
+        errorDescription += QT_TR_NOOP("tag with specified ");
+        errorDescription += column;
+        // TRANSATOR previous part of the phrase was "tag with specified guid|localGuid "
+        errorDescription += QT_TR_NOOP(" already exists in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
-    QString nameUpper = tag.name().toUpper();
-    exists = RowExists("Tags", "nameUpper", QVariant(nameUpper));
-    if (exists) {
-        // TRANSLATION explaining why tag cannot be added into the local storage
-        errorDescription += QT_TR_NOOP("tag with similar name (case insensitive) already exists");
-        QNWARNING(errorDescription << ", nameUpper: " << nameUpper);
-        return false;
-    }
-
-    return InsertOrReplaceTag(tag, errorDescription);
+    return InsertOrReplaceTag(tag, localGuid, errorDescription);
 }
 
 bool LocalStorageManager::UpdateTag(const Tag & tag, QString & errorDescription)
@@ -1598,34 +1607,52 @@ bool LocalStorageManager::UpdateTag(const Tag & tag, QString & errorDescription)
         return false;
     }
 
+    QString localGuid = tag.localGuid();
+
     QString column, guid;
+    bool shouldCheckTagExistence = true;
+
     bool tagHasGuid = tag.hasGuid();
     if (tagHasGuid) {
         column = "guid";
         guid = tag.guid();
+
+        if (localGuid.isEmpty()) {
+            QString queryString = QString("SELECT localGuid FROM Tags WHERE guid = '%1'").arg(guid);
+            QSqlQuery query(m_sqlDatabase);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Tag's guid");
+
+            if (query.next()) {
+                localGuid = query.record().value("localGuid").toString();
+            }
+
+            if (localGuid.isEmpty()) {
+                errorDescription += QT_TR_NOOP("no existing local guid corresponding to "
+                                               "Tag's guid was found in local storage");
+                QNCRITICAL(errorDescription << ", guid: " << guid);
+                return false;
+            }
+
+            shouldCheckTagExistence = false;
+        }
     }
     else {
         column = "localGuid";
         guid = tag.localGuid();
     }
 
-    bool exists = RowExists("Tags", column, QVariant(guid));
-    if (!exists)
-    {
-        if (tagHasGuid) {
-            // TRANSLATOR explaining why tag cannot be updated in local storage
-            errorDescription += QT_TR_NOOP("tag with specified guid was not found");
-        }
-        else {
-            // TRANSLATOR explaining why tag cannot be updated in local storage
-            errorDescription += QT_TR_NOOP("tag with specified local guid was not found");
-        }
-
+    if (shouldCheckTagExistence && !RowExists("Tags", column, QVariant(guid))) {
+        // TRANSLATOR explaining the reason of error
+        errorDescription += QT_TR_NOOP("tag with specified ");
+        errorDescription += column;
+        // TRANSLATOR previous part of the phrase was "tag with specified guid|localGuid"
+        errorDescription += QT_TR_NOOP(" was not found in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
-    return InsertOrReplaceTag(tag, errorDescription);
+    return InsertOrReplaceTag(tag, localGuid, errorDescription);
 }
 
 bool LocalStorageManager::LinkTagWithNote(const Tag & tag, const Note & note,
@@ -3927,14 +3954,15 @@ bool LocalStorageManager::InsertOrReplaceNote(const Note & note, const Notebook 
     return InsertOrReplaceNoteAttributes(note, localGuid, errorDescription);
 }
 
-bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, QString & errorDescription)
+bool LocalStorageManager::InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid,
+                                             QString & errorDescription)
 {
     // NOTE: this method expects to be called after tag is already checked
     // for sanity of its parameters!
 
     errorDescription = QT_TR_NOOP("Can't insert or replace tag into local storage database: ");
 
-    QString localGuid = tag.localGuid();
+    QString localGuid = (overrideLocalGuid.isEmpty() ? tag.localGuid() : overrideLocalGuid);
     QString guid = tag.guid();
     QString name = tag.name();
     QString nameUpper = name.toUpper();

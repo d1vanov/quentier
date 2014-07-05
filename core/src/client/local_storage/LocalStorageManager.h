@@ -613,8 +613,9 @@ private:
                                        QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalGuid, QString & errorDescription);
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
-    bool InsertOrReplaceNote(const Note & note, const Notebook & notebook, const QString &overrideLocalGuid, QString & errorDescription);
-    bool InsertOrReplaceTag(const Tag & tag, QString & errorDescription);
+    bool InsertOrReplaceNote(const Note & note, const Notebook & notebook,
+                             const QString & overrideLocalGuid, QString & errorDescription);
+    bool InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
                                  const Note & note, const QString & overrideNoteLocalGuid, QString & errorDescription);
     bool InsertOrReplaceResourceAttributes(const QString & localGuid, const qevercloud::ResourceAttributes & attributes,
