@@ -375,6 +375,9 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     resourceAttributes.cameraMake = "Modified camera make";
     resourceAttributes.cameraModel = "Modified camera model";
 
+    QString resourceLocalGuid = modifiedResource.localGuid();
+    modifiedResource.unsetLocalGuid();
+
     res = localStorageManager.UpdateEnResource(modifiedResource, note, errorDescription);
     if (!res) {
         return false;
@@ -386,6 +389,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
         return false;
     }
 
+    modifiedResource.setLocalGuid(resourceLocalGuid);
     if (modifiedResource != foundResource) {
         errorDescription = "Updated and found in local storage resources don't match";
         QNWARNING(errorDescription << ": IResource updated in LocalStorageManager: " << modifiedResource

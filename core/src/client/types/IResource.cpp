@@ -76,12 +76,12 @@ void IResource::setUpdateSequenceNumber(const qint32 updateSequenceNumber)
 
 bool IResource::checkParameters(QString & errorDescription) const
 {
-    if (localGuid().isEmpty()) {
-        errorDescription = QT_TR_NOOP("Resource's local guid is empty");
+    const qevercloud::Resource & enResource = GetEnResource();
+
+    if (localGuid().isEmpty() && !enResource.guid.isSet()) {
+        errorDescription = QT_TR_NOOP("Both resource's local and remote guids are empty");
         return false;
     }
-
-    const qevercloud::Resource & enResource = GetEnResource();
 
     if (enResource.guid.isSet() && !CheckGuid(enResource.guid.ref())) {
         errorDescription = QT_TR_NOOP("Resource's guid is invalid");

@@ -189,6 +189,8 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         resourceAttributes.cameraMake = "Fake resource camera make";
         resourceAttributes.cameraModel = "Fake resource camera model";
 
+        note.unsetLocalGuid();
+
         error.clear();
         res = TestResourceAddFindUpdateExpungeInLocalStorage(resource, note, localStorageManager, error);
         QVERIFY2(res == true, error.toStdString().c_str());
