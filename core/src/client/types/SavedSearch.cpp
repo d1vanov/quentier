@@ -81,8 +81,8 @@ void SavedSearch::setUpdateSequenceNumber(const qint32 usn)
 
 bool SavedSearch::checkParameters(QString & errorDescription) const
 {
-    if (localGuid().isEmpty()) {
-        errorDescription = QT_TR_NOOP("Saved search's local guid is empty");
+    if (localGuid().isEmpty() && !m_qecSearch.guid.isSet()) {
+        errorDescription = QT_TR_NOOP("Both saved search's local and remote guids are empty");
         return false;
     }
 

@@ -2123,34 +2123,52 @@ bool LocalStorageManager::AddSavedSearch(const SavedSearch & search, QString & e
         return false;
     }
 
+    QString localGuid = search.localGuid();
+
     QString column, guid;
+    bool shouldCheckSearchExistence = true;
+
     bool searchHasGuid = search.hasGuid();
     if (searchHasGuid) {
         column = "guid";
         guid = search.guid();
+
+        if (localGuid.isEmpty()) {
+            QString queryString = QString("SELECT localGuid FROM SavedSearches WHERE guid = '%1'").arg(guid);
+            QSqlQuery query(m_sqlDatabase);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to SavedSearch's guid");
+
+            if (query.next()) {
+                localGuid = query.record().value("localGuid").toString();
+            }
+
+            if (!localGuid.isEmpty()) {
+                errorDescription += QT_TR_NOOP("found existing local guid corresponding to Resource's guid");
+                QNCRITICAL(errorDescription << ", guid: " << guid);
+                return false;
+            }
+
+            localGuid = QUuid::createUuid().toString();
+            shouldCheckSearchExistence = false;
+        }
     }
     else {
         column = "localGuid";
         guid = search.localGuid();
     }
 
-    bool exists = RowExists("SavedSearches", column, QVariant(guid));
-    if (exists)
-    {
-        if (searchHasGuid) {
-            // TRANSLATOR explaining why saved search could not be added to local storage
-            errorDescription += QT_TR_NOOP("saved search with the same guid already exists");
-        }
-        else {
-            // TRANSLATOR explaining why saved search could not be added to local storage
-            errorDescription += QT_TR_NOOP("saved search with the same local guid already exists");
-        }
-
+    if (shouldCheckSearchExistence && RowExists("SavedSearches", column, QVariant(guid))) {
+        // TRANSLATOR explaining why saved search could not be added to local storage
+        errorDescription += QT_TR_NOOP("saved search with specified ");
+        errorDescription += column;
+        // TRANSLATOR prevous part of the phrase was "saved search with specified guid|localGuid "
+        errorDescription += QT_TR_NOOP(" already exists in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
-    return InsertOrReplaceSavedSearch(search, errorDescription);
+    return InsertOrReplaceSavedSearch(search, localGuid, errorDescription);
 }
 
 bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search,
@@ -2166,34 +2184,51 @@ bool LocalStorageManager::UpdateSavedSearch(const SavedSearch & search,
         return false;
     }
 
+    QString localGuid = search.localGuid();
+
     QString column, guid;
+    bool shouldCheckSearchExistence = true;
+
     bool searchHasGuid = search.hasGuid();
     if (searchHasGuid) {
         column = "guid";
         guid = search.guid();
+
+        if (localGuid.isEmpty()) {
+            QString queryString = QString("SELECT localGuid FROM SavedSearches WHERE guid = '%1'").arg(guid);
+            QSqlQuery query(m_sqlDatabase);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't find local guid correspinding to SavedSearch's guid");
+
+            if (query.next()) {
+                localGuid = query.record().value("localGuid").toString();
+            }
+
+            if (localGuid.isEmpty()) {
+                errorDescription += QT_TR_NOOP("no existing local guid corresponding to Resource's guid was found in local storage");
+                QNCRITICAL(errorDescription << ", guid: " << guid);
+                return false;
+            }
+
+            shouldCheckSearchExistence = false;
+        }
     }
     else {
         column = "localGuid";
         guid = search.localGuid();
     }
 
-    bool exists = RowExists("SavedSearches", column, QVariant(guid));
-    if (!exists)
-    {
-        if (searchHasGuid) {
-            // TRANSLATOR explaining  why saved search cannot be updated in local storage
-            errorDescription += QT_TR_NOOP("saved search with specified guid was not found");
-        }
-        else {
-            // TRANSLATOR explaining  why saved search cannot be updated in local storage
-            errorDescription += QT_TR_NOOP("saved search with specified local guid was not found");
-        }
-
+    if (shouldCheckSearchExistence && !RowExists("SavedSearches", column, QVariant(guid))) {
+        // TRANSLATOR explaining why saved search could not be added to local storage
+        errorDescription += QT_TR_NOOP("saved search with specified ");
+        errorDescription += column;
+        // TRANSLATOR prevous part of the phrase was "saved search with specified guid|localGuid "
+        errorDescription += QT_TR_NOOP(" was not found in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << guid);
         return false;
     }
 
-    return InsertOrReplaceSavedSearch(search, errorDescription);
+    return InsertOrReplaceSavedSearch(search, localGuid, errorDescription);
 }
 
 bool LocalStorageManager::FindSavedSearch(SavedSearch & search, QString & errorDescription) const
@@ -4271,6 +4306,7 @@ bool LocalStorageManager::InsertOrReplaceResourceAttributes(const QString & loca
 }
 
 bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
+                                                     const QString & overrideLocalGuid,
                                                      QString & errorDescription)
 {
     // NOTE: this method expects to be called after the search is already checked
@@ -4295,7 +4331,9 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
         return false;
     }
 
-    query.bindValue(":localGuid", search.localGuid());
+    query.bindValue(":localGuid", (overrideLocalGuid.isEmpty()
+                                   ? search.localGuid()
+                                   : overrideLocalGuid));
     query.bindValue(":guid", search.guid());
 
     QString searchName = search.name();

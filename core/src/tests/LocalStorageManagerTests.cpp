@@ -50,6 +50,9 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     modifiedSearch.setName(search.name() + "_modified");
     modifiedSearch.setQuery(search.query() + "_modified");
 
+    QString localGuid = modifiedSearch.localGuid();
+    modifiedSearch.unsetLocalGuid();
+
     res = localStorageManager.UpdateSavedSearch(modifiedSearch, errorDescription);
     if (!res) {
         return false;
@@ -60,6 +63,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         return false;
     }
 
+    modifiedSearch.setLocalGuid(localGuid);
     if (modifiedSearch != foundSearch) {
         errorDescription = "Updated and found saved searches in local storage don't match";
         QNWARNING(errorDescription << ": SavedSearch updated in LocalStorageManager: " << modifiedSearch

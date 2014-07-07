@@ -620,7 +620,7 @@ private:
                                  const Note & note, const QString & overrideNoteLocalGuid, QString & errorDescription);
     bool InsertOrReplaceResourceAttributes(const QString & localGuid, const qevercloud::ResourceAttributes & attributes,
                                            QString & errorDescription);
-    bool InsertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
+    bool InsertOrReplaceSavedSearch(const SavedSearch & search, const QString & overrideLocalGuid, QString & errorDescription);
 
     bool FillResourceAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
     bool FillResourceAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
