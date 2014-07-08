@@ -1276,22 +1276,29 @@ bool LocalStorageManager::FindNote(Note & note, QString & errorDescription,
 
     note = Note();
 
-    QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, title, isDirty, isLocal, content, "
-                                  "creationTimestamp, modificationTimestamp, isActive, isDeleted, deletionTimestamp, "
-                                  "notebookGuid, thumbnail FROM Notes WHERE %1 = '%2'").arg(column).arg(guid);
+    QString queryString = QString("SELECT * FROM Notes LEFT OUTER JOIN NoteAttributes "
+                                  "ON Notes.localGuid = NoteAttributes.noteLocalGuid "
+                                  "LEFT OUTER JOIN NoteAttributesApplicationDataKeysOnly "
+                                  "ON Notes.localGuid = NoteAttributesApplicationDataKeysOnly.noteLocalGuid "
+                                  "LEFT OUTER JOIN NoteAttributesApplicationDataFullMap "
+                                  "ON Notes.localGuid = NoteAttributesApplicationDataFullMap.noteLocalGuid "
+                                  "LEFT OUTER JOIN NoteAttributesClassifications "
+                                  "ON Notes.localGuid = NoteAttributesClassifications.noteLocalGuid "
+                                  "WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select note from \"Notes\" table in SQL database");
 
-    if (!query.next()) {
-        errorDescription += QT_TR_NOOP("no note was found in local storage");
-        QNDEBUG(errorDescription);
-        return false;
+    size_t counter = 0;
+    while(query.next()) {
+        QSqlRecord rec = query.record();
+        FillNoteFromSqlRecord(rec, note);
+        ++counter;
     }
 
-    QSqlRecord rec = query.record();
-    res = FillNoteFromSqlRecord(rec, note, errorDescription);
-    if (!res) {
+    if (!counter) {
+        errorDescription += QT_TR_NOOP("no note was found in local storage");
+        QNDEBUG(errorDescription);
         return false;
     }
 
@@ -1351,7 +1358,15 @@ QList<Note> LocalStorageManager::ListAllNotesPerNotebook(const Notebook & notebo
         guid = notebook.localGuid();
     }
 
-    QString queryString = QString("SELECT * FROM Notes WHERE %1 = '%2'").arg(column).arg(guid);
+    QString queryString = QString("SELECT * FROM Notes LEFT OUTER JOIN NoteAttributes "
+                                  "ON Notes.localGuid = NoteAttributes.noteLocalGuid "
+                                  "LEFT OUTER JOIN NoteAttributesApplicationDataKeysOnly "
+                                  "ON Notes.localGuid = NoteAttributesApplicationDataKeysOnly.noteLocalGuid "
+                                  "LEFT OUTER JOIN NoteAttributesApplicationDataFullMap "
+                                  "ON Notes.localGuid = NoteAttributesApplicationDataFullMap.noteLocalGuid "
+                                  "LEFT OUTER JOIN NoteAttributesClassifications "
+                                  "ON Notes.localGuid = NoteAttributesClassifications.noteLocalGuid "
+                                  "WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     if (!res) {
@@ -1370,13 +1385,7 @@ QList<Note> LocalStorageManager::ListAllNotesPerNotebook(const Notebook & notebo
         Note & note = notes.back();
 
         QSqlRecord rec = query.record();
-
-        res = FillNoteFromSqlRecord(rec, note, errorDescription);
-        if (!res) {
-            errorDescription.prepend(errorPrefix);
-            notes.clear();
-            return notes;
-        }
+        FillNoteFromSqlRecord(rec, note);
 
         res = FindAndSetTagGuidsPerNote(note, error);
         if (!res) {
@@ -4430,8 +4439,10 @@ bool LocalStorageManager::FillResourceAttributesApplicationDataFullMapFromSqlRec
     return hasSomething;
 }
 
-void LocalStorageManager::FillNoteAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const
+bool LocalStorageManager::FillNoteAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const
 {
+    bool hasSomething = false;
+
 #define CHECK_AND_SET_NOTE_ATTRIBUTE(property, type, localType) \
     { \
         int index = rec.indexOf(#property); \
@@ -4439,6 +4450,7 @@ void LocalStorageManager::FillNoteAttributesFromSqlRecord(const QSqlRecord & rec
             QVariant value = rec.value(index); \
             if (!value.isNull()) { \
                 attributes.property = static_cast<localType>(qvariant_cast<type>(value)); \
+                hasSomething = true; \
             } \
         } \
     }
@@ -4462,11 +4474,15 @@ void LocalStorageManager::FillNoteAttributesFromSqlRecord(const QSqlRecord & rec
     CHECK_AND_SET_NOTE_ATTRIBUTE(lastEditorId, int, UserID);
 
 #undef CHECK_AND_SET_NOTE_ATTRIBUTE
+
+    return hasSomething;
 }
 
-void LocalStorageManager::FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec,
+bool LocalStorageManager::FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec,
                                                                                  qevercloud::NoteAttributes & attributes) const
 {
+    bool hasSomething = false;
+
     int index = rec.indexOf("noteKey");
     if (index >= 0) {
         QVariant value = rec.value(index);
@@ -4478,13 +4494,18 @@ void LocalStorageManager::FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord
                 attributes.applicationData->keysOnly = QSet<QString>();
             }
             attributes.applicationData->keysOnly.ref().insert(value.toString());
+            hasSomething = true;
         }
     }
+
+    return hasSomething;
 }
 
-void LocalStorageManager::FillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec,
+bool LocalStorageManager::FillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec,
                                                                                 qevercloud::NoteAttributes & attributes) const
 {
+    bool hasSomething = false;
+
     int keyIndex = rec.indexOf("noteMapKey");
     int valueIndex = rec.indexOf("noteValue");
     if ((keyIndex >= 0) && (valueIndex >= 0)) {
@@ -4498,13 +4519,18 @@ void LocalStorageManager::FillNoteAttributesApplicationDataFullMapFromSqlRecord(
                 attributes.applicationData->fullMap = QMap<QString, QString>();
             }
             attributes.applicationData->fullMap.ref().insert(key.toString(), value.toString());
+            hasSomething = true;
         }
     }
+
+    return hasSomething;
 }
 
-void LocalStorageManager::FillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec,
+bool LocalStorageManager::FillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec,
                                                                          qevercloud::NoteAttributes & attributes) const
 {
+    bool hasSomething = false;
+
     int keyIndex = rec.indexOf("noteClassificationKey");
     int valueIndex = rec.indexOf("noteClassificationValue");
     if ((keyIndex >= 0) && (valueIndex >= 0)) {
@@ -4515,8 +4541,11 @@ void LocalStorageManager::FillNoteAttributesClassificationsFromSqlRecord(const Q
                 attributes.classifications = QMap<QString, QString>();
             }
             attributes.classifications.ref().insert(key.toString(), value.toString());
+            hasSomething = true;
         }
     }
+
+    return hasSomething;
 }
 
 bool LocalStorageManager::FillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QString & errorDescription) const
@@ -4758,26 +4787,14 @@ bool LocalStorageManager::FillUserFromSqlRecord(const QSqlRecord & rec, IUser & 
     return true;
 }
 
-bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & note,
-                                                QString & errorDescription) const
+void LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & note) const
 {
 #define CHECK_AND_SET_NOTE_PROPERTY(propertyLocalName, setter, type, localType) \
-    { \
-        bool valueFound = false; \
-        int index = rec.indexOf(#propertyLocalName); \
-        if (index >= 0) { \
-            QVariant value = rec.value(index); \
-            if (!value.isNull()) { \
-                note.setter(static_cast<localType>(qvariant_cast<type>(value))); \
-                valueFound = true; \
-            } \
-        } \
-        \
-        if (!valueFound) { \
-            errorDescription += QT_TR_NOOP("Internal error: no " #propertyLocalName " field " \
-                                           "in the result of SQL query"); \
-            QNCRITICAL(errorDescription); \
-            return false; \
+    int propertyLocalName##index = rec.indexOf(#propertyLocalName); \
+    if (propertyLocalName##index >= 0) { \
+        QVariant value = rec.value(propertyLocalName##index); \
+        if (!value.isNull()) { \
+            note.setter(static_cast<localType>(qvariant_cast<type>(value))); \
         } \
     }
 
@@ -4815,15 +4832,19 @@ bool LocalStorageManager::FillNoteFromSqlRecord(const QSqlRecord & rec, Note & n
         }
     }
 
-    QString error;
-    bool res = FindAndSetNoteAttributesPerNote(note, error);
-    if (!res) {
-        errorDescription += error;
-        QNWARNING(errorDescription);
-        return false;
-    }
+    qevercloud::NoteAttributes localAttributes;
+    qevercloud::NoteAttributes & attributes = (note.hasNoteAttributes()
+                                               ? note.noteAttributes()
+                                               : localAttributes);
 
-    return true;
+    bool hasAttributes = FillNoteAttributesFromSqlRecord(rec, attributes);
+    hasAttributes |= FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(rec, attributes);
+    hasAttributes |= FillNoteAttributesApplicationDataFullMapFromSqlRecord(rec, attributes);
+    hasAttributes |= FillNoteAttributesClassificationsFromSqlRecord(rec, attributes);
+
+    if (hasAttributes && !note.hasNoteAttributes()) {
+        note.noteAttributes() = attributes;
+    }
 }
 
 bool LocalStorageManager::FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, 
