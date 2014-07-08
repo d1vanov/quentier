@@ -1930,7 +1930,7 @@ bool LocalStorageManager::FindEnResource(IResource & resource, QString & errorDe
     QString column, guid;
     bool resourceHasGuid = resource.hasGuid();
     if (resourceHasGuid) {
-        column = "guid";
+        column = "resourceGuid";
         guid = resource.guid();
 
         if (!CheckGuid(guid)) {
@@ -1941,15 +1941,16 @@ bool LocalStorageManager::FindEnResource(IResource & resource, QString & errorDe
         }
     }
     else {
-        column = "localGuid";
+        column = "resourceLocalGuid";
         guid = resource.localGuid();
     }
 
     resource.clear();
 
-    QString queryString = QString("SELECT localGuid, guid, noteGuid, noteLocalGuid, updateSequenceNumber, "
-                                  "isDirty, dataSize, dataHash, mime, width, height, recognitionDataSize, "
-                                  "recognitionDataHash, indexInNote %1 FROM Resources WHERE %2 = \"%3\"")
+    QString queryString = QString("SELECT resourceLocalGuid, resourceGuid, noteGuid, noteLocalGuid, "
+                                  "resourceUpdateSequenceNumber, resourceIsDirty, dataSize, dataHash, "
+                                  "mime, width, height, recognitionDataSize, recognitionDataHash, "
+                                  "resourceIndexInNote %1 FROM Resources WHERE %2 = \"%3\"")
                                  .arg(withBinaryData ? ", dataBody, recognitionDataBody" : " ")
                                  .arg(column).arg(guid);
 
@@ -1958,7 +1959,7 @@ bool LocalStorageManager::FindEnResource(IResource & resource, QString & errorDe
     DATABASE_CHECK_AND_SET_ERROR("can't find resource in \"Resources\" table in SQL database");
 
     if (!query.next()) {
-        errorDescription += QT_TR_NOOP("no resource was found in local storage");
+        errorDescription += QT_TR_NOOP("requested resource was found in local storage");
         QNDEBUG(errorDescription);
         return false;
     }
@@ -1985,22 +1986,22 @@ bool LocalStorageManager::FindEnResource(IResource & resource, QString & errorDe
     }
 
     bool isRequired = true;
-    CHECK_AND_SET_RESOURCE_PROPERTY(localGuid, QString, QString, setLocalGuid, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(isDirty, int, bool, setDirty, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(resourceLocalGuid, QString, QString, setLocalGuid, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(resourceIsDirty, int, bool, setDirty, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(noteGuid, QString, QString, setNoteGuid, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(updateSequenceNumber, int, qint32, setUpdateSequenceNumber, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(resourceUpdateSequenceNumber, int, qint32, setUpdateSequenceNumber, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, int, qint32, setDataSize, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QByteArray, QByteArray, setDataHash, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(mime, QString, QString, setMime, isRequired);
 
     isRequired = false;
 
-    CHECK_AND_SET_RESOURCE_PROPERTY(guid, QString, QString, setGuid, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(resourceGuid, QString, QString, setGuid, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(width, int, qint32, setWidth, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint32, setHeight, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32, setRecognitionDataSize, isRequired);
     CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QByteArray, QByteArray, setRecognitionDataHash, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(indexInNote, int, int, setIndexInNote, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(resourceIndexInNote, int, int, setIndexInNote, isRequired);
 
     if (withBinaryData) {
         CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QByteArray, QByteArray, setRecognitionDataBody, isRequired);
@@ -2011,7 +2012,7 @@ bool LocalStorageManager::FindEnResource(IResource & resource, QString & errorDe
     qevercloud::ResourceAttributes attributes;
     bool hasAttributes = false;
 
-    queryString = QString("SELECT * FROM ResourceAttributes WHERE localGuid = '%1'").arg(resource.localGuid());
+    queryString = QString("SELECT * FROM ResourceAttributes WHERE resourceLocalGuid = '%1'").arg(resource.localGuid());
     res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributes\" table in SQL database");
 
@@ -2021,7 +2022,7 @@ bool LocalStorageManager::FindEnResource(IResource & resource, QString & errorDe
     }
 
     // ======== 2) Fetch applicationData.keysOnly =======
-    queryString = QString("SELECT * FROM ResourceAttributesApplicationDataKeysOnly WHERE localGuid = '%1'").arg(resource.localGuid());
+    queryString = QString("SELECT * FROM ResourceAttributesApplicationDataKeysOnly WHERE resourceLocalGuid = '%1'").arg(resource.localGuid());
     res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributesApplicationDataKeysOnly\" table in SQL database");
 
@@ -2031,7 +2032,7 @@ bool LocalStorageManager::FindEnResource(IResource & resource, QString & errorDe
     }
 
     // ======== 3) Fetch applicationData.fullMap =======
-    queryString = QString("SELECT * FROM ResourceAttributesApplicationDataFullMap WHERE localGuid = '%1'").arg(resource.localGuid());
+    queryString = QString("SELECT * FROM ResourceAttributesApplicationDataFullMap WHERE resourceLocalGuid = '%1'").arg(resource.localGuid());
     res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributesApplicationFullMapOnly\" table in SQL database");
 
@@ -2054,7 +2055,7 @@ bool LocalStorageManager::ExpungeEnResource(const IResource & resource, QString 
     QString column, guid;
     bool resourceHasGuid = resource.hasGuid();
     if (resourceHasGuid) {
-        column = "guid";
+        column = "resourceGuid";
         guid = resource.guid();
 
         if (!CheckGuid(guid)) {
@@ -2065,7 +2066,7 @@ bool LocalStorageManager::ExpungeEnResource(const IResource & resource, QString 
         }
     }
     else {
-        column = "localGuid";
+        column = "resourceLocalGuid";
         guid = resource.localGuid();
     }
 
@@ -2364,17 +2365,17 @@ bool LocalStorageManager::AddEnResource(const IResource & resource, const Note &
 
     bool resourceHasGuid = resource.hasGuid();
     if (resourceHasGuid) {
-        column = "guid";
+        column = "resourceGuid";
         guid = resource.guid();
 
         if (resourceLocalGuid.isEmpty()) {
-            QString queryString = QString("SELECT localGuid FROM Resources WHERE guid = '%1'").arg(guid);
+            QString queryString = QString("SELECT resourceLocalGuid FROM Resources WHERE resourceGuid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             bool res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Resource's guid");
 
             if (query.next()) {
-                resourceLocalGuid = query.record().value("localGuid").toString();
+                resourceLocalGuid = query.record().value("resourceLocalGuid").toString();
             }
 
             if (!resourceLocalGuid.isEmpty()) {
@@ -2387,7 +2388,7 @@ bool LocalStorageManager::AddEnResource(const IResource & resource, const Note &
         }
     }
     else {
-        column = "localGuid";
+        column = "resourceLocalGuid";
         guid = resource.localGuid();
     }
 
@@ -2427,17 +2428,17 @@ bool LocalStorageManager::UpdateEnResource(const IResource & resource, const Not
 
     bool resourceHasGuid = resource.hasGuid();
     if (resourceHasGuid) {
-        column = "guid";
+        column = "resourceGuid";
         guid = resource.guid();
 
         if (resourceLocalGuid.isEmpty()) {
-            QString queryString = QString("SELECT localGuid FROM Resources WHERE guid = '%1'").arg(guid);
+            QString queryString = QString("SELECT resourceLocalGuid FROM Resources WHERE resourceGuid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             bool res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't find local guid corresponding to Resource's guid");
 
             if (query.next()) {
-                resourceLocalGuid = query.record().value("localGuid").toString();
+                resourceLocalGuid = query.record().value("resourceLocalGuid").toString();
             }
 
             if (resourceLocalGuid.isEmpty()) {
@@ -2450,7 +2451,7 @@ bool LocalStorageManager::UpdateEnResource(const IResource & resource, const Not
         }
     }
     else {
-        column = "localGuid";
+        column = "resourceLocalGuid";
         guid = resource.localGuid();
     }
 
@@ -2739,23 +2740,23 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create index NotesNotebooks");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
-                     "  localGuid               TEXT PRIMARY KEY     NOT NULL UNIQUE, "
-                     "  guid                    TEXT                 DEFAULT NULL UNIQUE, "
+                     "  resourceLocalGuid               TEXT PRIMARY KEY     NOT NULL UNIQUE, "
+                     "  resourceGuid                    TEXT                 DEFAULT NULL UNIQUE, "
                      "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  updateSequenceNumber    INTEGER              NOT NULL, "
-                     "  isDirty                 INTEGER              NOT NULL, "
-                     "  dataBody                TEXT                 NOT NULL, "
-                     "  dataSize                INTEGER              NOT NULL, "
-                     "  dataHash                TEXT                 NOT NULL, "
-                     "  mime                    TEXT                 NOT NULL, "
-                     "  width                   INTEGER              DEFAULT NULL, "
-                     "  height                  INTEGER              DEFAULT NULL, "
-                     "  recognitionDataBody     TEXT                 DEFAULT NULL, "
-                     "  recognitionDataSize     INTEGER              DEFAULT NULL, "
-                     "  recognitionDataHash     TEXT                 DEFAULT NULL, "
-                     "  indexInNote             INTEGER              DEFAULT NULL, "
-                     "  UNIQUE(localGuid, guid)"
+                     "  resourceUpdateSequenceNumber    INTEGER              NOT NULL, "
+                     "  resourceIsDirty                 INTEGER              NOT NULL, "
+                     "  dataBody                        TEXT                 NOT NULL, "
+                     "  dataSize                        INTEGER              NOT NULL, "
+                     "  dataHash                        TEXT                 NOT NULL, "
+                     "  mime                            TEXT                 NOT NULL, "
+                     "  width                           INTEGER              DEFAULT NULL, "
+                     "  height                          INTEGER              DEFAULT NULL, "
+                     "  recognitionDataBody             TEXT                 DEFAULT NULL, "
+                     "  recognitionDataSize             INTEGER              DEFAULT NULL, "
+                     "  recognitionDataHash             TEXT                 DEFAULT NULL, "
+                     "  resourceIndexInNote             INTEGER              DEFAULT NULL, "
+                     "  UNIQUE(resourceLocalGuid, resourceGuid)"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Resources table");
 
@@ -2763,12 +2764,12 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceNote index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributes("
-                     "  localGuid REFERENCES Resources(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  sourceURL               TEXT                DEFAULT NULL, "
                      "  timestamp               INTEGER             DEFAULT NULL, "
-                     "  latitude                REAL                DEFAULT NULL, "
-                     "  longitude               REAL                DEFAULT NULL, "
-                     "  altitude                REAL                DEFAULT NULL, "
+                     "  resourceLatitude        REAL                DEFAULT NULL, "
+                     "  resourceLongitude       REAL                DEFAULT NULL, "
+                     "  resourceAltitude        REAL                DEFAULT NULL, "
                      "  cameraMake              TEXT                DEFAULT NULL, "
                      "  cameraModel             TEXT                DEFAULT NULL, "
                      "  clientWillIndex         INTEGER             DEFAULT NULL, "
@@ -2778,12 +2779,12 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributes table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributesApplicationDataKeysOnly("
-                     "  localGuid REFERENCES Resources(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  key                     TEXT                DEFAULT NULL UNIQUE)");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributesApplicationDataKeysOnly table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributesApplicationDataFullMap("
-                     "  localGuid REFERENCES Resources(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  key                     TEXT                DEFAULT NULL UNIQUE, "
                      "  value                   TEXT                DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributesApplicationDataFullMap table");
@@ -2820,8 +2821,8 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteResources("
                      "  localNote     REFERENCES Notes(localGuid)     ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  note          REFERENCES Notes(guid)          ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  localResource REFERENCES Resources(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  resource      REFERENCES Resources(guid)      ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  localResource REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  resource      REFERENCES Resources(resourceGuid)      ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  UNIQUE(localNote, localResource) ON CONFLICT REPLACE)");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteResources table");
 
@@ -4096,7 +4097,7 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource, co
 
     QString columns, values;
 
-#define CHECK_AND_INSERT_RESOURCE_PROPERTY(property, checker, ...) \
+#define CHECK_AND_INSERT_RESOURCE_PROPERTY(property, checker, getter, ...) \
     if (resource.checker()) \
     { \
         if (!columns.isEmpty()) { \
@@ -4107,44 +4108,44 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource, co
         if (!values.isEmpty()) { \
             values.append(", "); \
         } \
-        values.append("\"" + __VA_ARGS__ (resource.property()) + "\""); \
+        values.append("\"" + __VA_ARGS__ (resource.getter()) + "\""); \
     }
 
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(guid, hasGuid);
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(noteGuid, hasNoteGuid);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(resourceGuid, hasGuid, guid);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(noteGuid, hasNoteGuid, noteGuid);
 
     bool hasData = resource.hasData();
     bool hasAnyData = (hasData || resource.hasAlternateData());
     if (hasAnyData)
     {
         const auto & dataBody = (hasData ? resource.dataBody() : resource.alternateDataBody());
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataBody, hasDataBody);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataBody, hasDataBody, dataBody);
 
         const auto & dataSize = (hasData ? resource.dataSize() : resource.alternateDataSize());
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataSize, hasDataSize, QString::number);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataSize, hasDataSize, dataSize, QString::number);
 
         const auto & dataHash = (hasData ? resource.dataHash() : resource.alternateDataHash());
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataHash, hasDataHash);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataHash, hasDataHash, dataHash);
     }
 
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(mime, hasMime);
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(width, hasWidth, QString::number);
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(height, hasHeight, QString::number);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(mime, hasMime, mime);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(width, hasWidth, width, QString::number);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(height, hasHeight, height, QString::number);
 
     if (resource.hasRecognitionData()) {
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataBody, hasRecognitionDataBody);
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataSize, hasRecognitionDataSize, QString::number);
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataHash, hasRecognitionDataHash);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataBody, hasRecognitionDataBody, recognitionDataBody);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataSize, hasRecognitionDataSize, recognitionDataSize, QString::number);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataHash, hasRecognitionDataHash, recognitionDataHash);
     }
 
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(updateSequenceNumber, hasUpdateSequenceNumber, QString::number);
+    CHECK_AND_INSERT_RESOURCE_PROPERTY(resourceUpdateSequenceNumber, hasUpdateSequenceNumber, updateSequenceNumber, QString::number);
 
 #undef CHECK_AND_INSERT_RESOURCE_PROPERTY
 
     if (!columns.isEmpty()) {
         columns.append(", ");
     }
-    columns.append("isDirty");
+    columns.append("resourceIsDirty");
 
     if (!values.isEmpty()) {
         values.append(", ");
@@ -4153,11 +4154,11 @@ bool LocalStorageManager::InsertOrReplaceResource(const IResource & resource, co
 
     int indexInNote = resource.indexInNote();
     if (indexInNote >= 0) {
-        columns.append(", indexInNote");
+        columns.append(", resourceIndexInNote");
         values.append(", " + QString::number(indexInNote));
     }
 
-    columns.append(", localGuid");
+    columns.append(", resourceLocalGuid");
     QString resourceLocalGuid = (overrideResourceLocalGuid.isEmpty()
                                  ? resource.localGuid() : overrideResourceLocalGuid);
     values.append(", \"" + resourceLocalGuid + "\"");
@@ -4214,27 +4215,27 @@ bool LocalStorageManager::InsertOrReplaceResourceAttributes(const QString & loca
                                                             const qevercloud::ResourceAttributes & attributes,
                                                             QString & errorDescription)
 {
-    QString columns = "localGuid";
-    QString valuesString = ":localGuid";
+    QString columns = "resourceLocalGuid";
+    QString valuesString = ":resourceLocalGuid";
 
-#define CHECK_AND_ADD_COLUMN_AND_VALUE(name) \
-    bool has##name = attributes.name.isSet(); \
+#define CHECK_AND_ADD_COLUMN_AND_VALUE(name, property) \
+    bool has##name = attributes.property.isSet(); \
     if (has##name) { \
         columns.append(", " #name); \
         valuesString.append(", :" #name); \
     }
 
-    CHECK_AND_ADD_COLUMN_AND_VALUE(sourceURL);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(timestamp);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(latitude);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(longitude);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(altitude);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(cameraMake);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(cameraModel);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(clientWillIndex);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(recoType);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(fileName);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(attachment);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(sourceURL, sourceURL);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(timestamp, timestamp);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(resourceLatitude, latitude);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(resourceLongitude, longitude);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(resourceAltitude, altitude);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(cameraMake, cameraMake);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(cameraModel, cameraModel);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(clientWillIndex, clientWillIndex);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(recoType, recoType);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(fileName, fileName);
+    CHECK_AND_ADD_COLUMN_AND_VALUE(attachment, attachment);
 
 #undef CHECK_AND_ADD_COLUMN_AND_VALUE
 
@@ -4244,20 +4245,20 @@ bool LocalStorageManager::InsertOrReplaceResourceAttributes(const QString & loca
     bool res = query.prepare(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't prepare SQL query");
 
-#define CHECK_AND_BIND_VALUE(name) \
+#define CHECK_AND_BIND_VALUE(name, property) \
     if (has##name) { \
-        query.bindValue(":" #name, attributes.name.ref()); \
+        query.bindValue(":" #name, attributes.property.ref()); \
     }
 
-    CHECK_AND_BIND_VALUE(sourceURL);
-    CHECK_AND_BIND_VALUE(timestamp);
-    CHECK_AND_BIND_VALUE(latitude);
-    CHECK_AND_BIND_VALUE(longitude);
-    CHECK_AND_BIND_VALUE(altitude);
-    CHECK_AND_BIND_VALUE(cameraMake);
-    CHECK_AND_BIND_VALUE(cameraModel);
-    CHECK_AND_BIND_VALUE(recoType);
-    CHECK_AND_BIND_VALUE(fileName);
+    CHECK_AND_BIND_VALUE(sourceURL, sourceURL);
+    CHECK_AND_BIND_VALUE(timestamp, timestamp);
+    CHECK_AND_BIND_VALUE(resourceLatitude, latitude);
+    CHECK_AND_BIND_VALUE(resourceLongitude, longitude);
+    CHECK_AND_BIND_VALUE(resourceAltitude, altitude);
+    CHECK_AND_BIND_VALUE(cameraMake, cameraMake);
+    CHECK_AND_BIND_VALUE(cameraModel, cameraModel);
+    CHECK_AND_BIND_VALUE(recoType, recoType);
+    CHECK_AND_BIND_VALUE(fileName, fileName);
 
 #undef CHECK_AND_BIND_VALUE
 
@@ -4269,7 +4270,7 @@ bool LocalStorageManager::InsertOrReplaceResourceAttributes(const QString & loca
         query.bindValue(":clientWillIndex", (attributes.clientWillIndex.ref() ? 1 : 0));
     }
 
-    query.bindValue(":localGuid", localGuid);
+    query.bindValue(":resourceLocalGuid", localGuid);
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
@@ -4282,7 +4283,7 @@ bool LocalStorageManager::InsertOrReplaceResourceAttributes(const QString & loca
         {
             const QSet<QString> & keysOnly = attributes.applicationData->keysOnly.ref();
             foreach(const QString & key, keysOnly) {
-                queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataKeysOnly(localGuid, key) VALUES('%1', '%2')")
+                queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataKeysOnly(resourceLocalGuid, key) VALUES('%1', '%2')")
                                         .arg(localGuid).arg(key);
                 res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataKeysOnly\" table in SQL database");
@@ -4293,7 +4294,7 @@ bool LocalStorageManager::InsertOrReplaceResourceAttributes(const QString & loca
         {
             const QMap<QString, QString> & fullMap = attributes.applicationData->fullMap.ref();
             foreach(const QString & key, fullMap.keys()) {
-                queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataFullMap(localGuid, key, value) VALUES('%1', '%2', '%3')")
+                queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataFullMap(resourceLocalGuid, key, value) VALUES('%1', '%2', '%3')")
                                       .arg(localGuid).arg(key).arg(fullMap.value(key));
                 res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataFullMap\" table in SQL database");
@@ -4357,9 +4358,9 @@ bool LocalStorageManager::FillResourceAttributesFromSqlRecord(const QSqlRecord &
 {
     bool hasSomething = false;
 
-#define CHECK_AND_SET_RESOURCE_ATTRIBUTE(property, type, localType) \
+#define CHECK_AND_SET_RESOURCE_ATTRIBUTE(name, property, type, localType) \
     { \
-        int index = rec.indexOf(#property); \
+        int index = rec.indexOf(#name); \
         if (index >= 0) { \
             QVariant value = rec.value(index); \
             if (!value.isNull()) { \
@@ -4369,17 +4370,17 @@ bool LocalStorageManager::FillResourceAttributesFromSqlRecord(const QSqlRecord &
         } \
     }
 
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(sourceURL, QString, QString);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(timestamp, int, qevercloud::Timestamp);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(latitude, double, double);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(longitude, double, double);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(altitude, double, double);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(cameraMake, QString, QString);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(cameraModel, QString, QString);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(clientWillIndex, int, bool);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(recoType, QString, QString);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(fileName, QString, QString);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(attachment, int, bool);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(sourceURL, sourceURL, QString, QString);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(timestamp, timestamp, int, qevercloud::Timestamp);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(resourceLatitude, latitude, double, double);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(resourceLongitude, longitude, double, double);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(resourceAltitude, altitude, double, double);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(cameraMake, cameraMake, QString, QString);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(cameraModel, cameraModel, QString, QString);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(clientWillIndex, clientWillIndex, int, bool);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(recoType, recoType, QString, QString);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(fileName, fileName, QString, QString);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(attachment, attachment, int, bool);
 
 #undef CHECK_AND_SET_RESOURCE_ATTRIBUTE
 
