@@ -1965,87 +1965,7 @@ bool LocalStorageManager::FindEnResource(IResource & resource, QString & errorDe
     }
 
     QSqlRecord rec = query.record();
-
-#define CHECK_AND_SET_RESOURCE_PROPERTY(property, type, localType, setter, isRequired) \
-    { \
-        bool valueFound = false; \
-        int index = rec.indexOf(#property); \
-        if (index >= 0) { \
-            QVariant value = rec.value(index); \
-            if (!value.isNull()) { \
-                resource.setter(static_cast<localType>(qvariant_cast<type>(value))); \
-                valueFound = true; \
-            } \
-        } \
-        \
-        if (!valueFound && isRequired) { \
-            errorDescription += QT_TR_NOOP("no " #property " field exists in the result of SQL query"); \
-            QNCRITICAL(errorDescription); \
-            return false; \
-        } \
-    }
-
-    bool isRequired = true;
-    CHECK_AND_SET_RESOURCE_PROPERTY(resourceLocalGuid, QString, QString, setLocalGuid, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(resourceIsDirty, int, bool, setDirty, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(noteGuid, QString, QString, setNoteGuid, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(resourceUpdateSequenceNumber, int, qint32, setUpdateSequenceNumber, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, int, qint32, setDataSize, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QByteArray, QByteArray, setDataHash, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(mime, QString, QString, setMime, isRequired);
-
-    isRequired = false;
-
-    CHECK_AND_SET_RESOURCE_PROPERTY(resourceGuid, QString, QString, setGuid, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(width, int, qint32, setWidth, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint32, setHeight, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32, setRecognitionDataSize, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QByteArray, QByteArray, setRecognitionDataHash, isRequired);
-    CHECK_AND_SET_RESOURCE_PROPERTY(resourceIndexInNote, int, int, setIndexInNote, isRequired);
-
-    if (withBinaryData) {
-        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QByteArray, QByteArray, setRecognitionDataBody, isRequired);
-        CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QByteArray, QByteArray, setDataBody, isRequired);
-    }
-
-    // ======= 1) Fetch the common part of resource attributes =======
-    qevercloud::ResourceAttributes attributes;
-    bool hasAttributes = false;
-
-    queryString = QString("SELECT * FROM ResourceAttributes WHERE resourceLocalGuid = '%1'").arg(resource.localGuid());
-    res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributes\" table in SQL database");
-
-    while(query.next()) {
-        QSqlRecord rec = query.record();
-        hasAttributes |= FillResourceAttributesFromSqlRecord(rec, attributes);
-    }
-
-    // ======== 2) Fetch applicationData.keysOnly =======
-    queryString = QString("SELECT * FROM ResourceAttributesApplicationDataKeysOnly WHERE resourceLocalGuid = '%1'").arg(resource.localGuid());
-    res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributesApplicationDataKeysOnly\" table in SQL database");
-
-    while(query.next()) {
-        QSqlRecord rec = query.record();
-        hasAttributes |= FillResourceAttributesApplicationDataKeysOnlyFromSqlRecord(rec, attributes);
-    }
-
-    // ======== 3) Fetch applicationData.fullMap =======
-    queryString = QString("SELECT * FROM ResourceAttributesApplicationDataFullMap WHERE resourceLocalGuid = '%1'").arg(resource.localGuid());
-    res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributesApplicationFullMapOnly\" table in SQL database");
-
-    while(query.next()) {
-        QSqlRecord rec = query.record();
-        hasAttributes |= FillResourceAttributesApplicationDataFullMapFromSqlRecord(rec, attributes);
-    }
-
-    if (hasAttributes) {
-        resource.setResourceAttributes(attributes);
-    }
-
-    return true;
+    return FillResourceFromSqlRecord(rec, withBinaryData, resource, errorDescription);
 }
 
 bool LocalStorageManager::ExpungeEnResource(const IResource & resource, QString & errorDescription)
@@ -4352,6 +4272,93 @@ bool LocalStorageManager::InsertOrReplaceSavedSearch(const SavedSearch & search,
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace saved search into \"SavedSearches\" table in SQL database");
 
     return true;
+}
+
+bool LocalStorageManager::FillResourceFromSqlRecord(const QSqlRecord & rec, const bool withBinaryData,
+                                                    IResource & resource, QString & errorDescription) const
+{
+#define CHECK_AND_SET_RESOURCE_PROPERTY(property, type, localType, setter, isRequired) \
+    { \
+        bool valueFound = false; \
+        int index = rec.indexOf(#property); \
+        if (index >= 0) { \
+            QVariant value = rec.value(index); \
+            if (!value.isNull()) { \
+                resource.setter(static_cast<localType>(qvariant_cast<type>(value))); \
+                valueFound = true; \
+            } \
+        } \
+        \
+        if (!valueFound && isRequired) { \
+            errorDescription += QT_TR_NOOP("no " #property " field exists in the result of SQL query"); \
+            QNCRITICAL(errorDescription); \
+            return false; \
+        } \
+    }
+
+    bool isRequired = true;
+    CHECK_AND_SET_RESOURCE_PROPERTY(resourceLocalGuid, QString, QString, setLocalGuid, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(resourceIsDirty, int, bool, setDirty, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(noteGuid, QString, QString, setNoteGuid, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(resourceUpdateSequenceNumber, int, qint32, setUpdateSequenceNumber, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, int, qint32, setDataSize, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QByteArray, QByteArray, setDataHash, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(mime, QString, QString, setMime, isRequired);
+
+    isRequired = false;
+
+    CHECK_AND_SET_RESOURCE_PROPERTY(resourceGuid, QString, QString, setGuid, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(width, int, qint32, setWidth, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint32, setHeight, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32, setRecognitionDataSize, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QByteArray, QByteArray, setRecognitionDataHash, isRequired);
+    CHECK_AND_SET_RESOURCE_PROPERTY(resourceIndexInNote, int, int, setIndexInNote, isRequired);
+
+    if (withBinaryData) {
+        CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QByteArray, QByteArray, setRecognitionDataBody, isRequired);
+        CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QByteArray, QByteArray, setDataBody, isRequired);
+    }
+
+    // ======= 1) Fetch the common part of resource attributes =======
+    qevercloud::ResourceAttributes attributes;
+    bool hasAttributes = false;
+
+    QString queryString = QString("SELECT * FROM ResourceAttributes WHERE resourceLocalGuid = '%1'").arg(resource.localGuid());
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributes\" table in SQL database");
+
+    while(query.next()) {
+        QSqlRecord rec = query.record();
+        hasAttributes |= FillResourceAttributesFromSqlRecord(rec, attributes);
+    }
+
+    // ======== 2) Fetch applicationData.keysOnly =======
+    queryString = QString("SELECT * FROM ResourceAttributesApplicationDataKeysOnly WHERE resourceLocalGuid = '%1'").arg(resource.localGuid());
+    res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributesApplicationDataKeysOnly\" table in SQL database");
+
+    while(query.next()) {
+        QSqlRecord rec = query.record();
+        hasAttributes |= FillResourceAttributesApplicationDataKeysOnlyFromSqlRecord(rec, attributes);
+    }
+
+    // ======== 3) Fetch applicationData.fullMap =======
+    queryString = QString("SELECT * FROM ResourceAttributesApplicationDataFullMap WHERE resourceLocalGuid = '%1'").arg(resource.localGuid());
+    res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't select data from \"ResourceAttributesApplicationFullMapOnly\" table in SQL database");
+
+    while(query.next()) {
+        QSqlRecord rec = query.record();
+        hasAttributes |= FillResourceAttributesApplicationDataFullMapFromSqlRecord(rec, attributes);
+    }
+
+    if (hasAttributes) {
+        resource.setResourceAttributes(attributes);
+    }
+
+    return true;
+
 }
 
 bool LocalStorageManager::FillResourceAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const
