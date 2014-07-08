@@ -2663,19 +2663,19 @@ bool LocalStorageManager::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteAttributesApplicationDataKeysOnly("
                      "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  key                     TEXT                DEFAULT NULL UNIQUE)");
+                     "  noteKey                     TEXT                DEFAULT NULL UNIQUE)");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteAttributesApplicationDataKeysOnly table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteAttributesApplicationDataFullMap("
                      "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  key                     TEXT                DEFAULT NULL UNIQUE, "
-                     "  value                   TEXT                DEFAULT NULL)");
+                     "  noteMapKey                  TEXT                DEFAULT NULL UNIQUE, "
+                     "  noteValue                   TEXT                DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteAttributesApplicationDataFullMap table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteAttributesClassifications("
                      "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  key                     TEXT                DEFAULT NULL UNIQUE, "
-                     "  value                   TEXT                DEFAULT NULL)");
+                     "  noteClassificationKey       TEXT                DEFAULT NULL UNIQUE, "
+                     "  noteClassificationValue     TEXT                DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteAttributesClassifications table");
 
     res = query.exec("CREATE INDEX IF NOT EXISTS NotesNotebooks ON Notes(notebookLocalGuid)");
@@ -2876,7 +2876,8 @@ bool LocalStorageManager::InsertOrReplaceNoteAttributes(const Note & note,
         {
             const QSet<QString> & keysOnly = attributes.applicationData->keysOnly.ref();
             foreach(const QString & key, keysOnly) {
-                queryString = QString("INSERT OR REPLACE INTO NoteAttributesApplicationDataKeysOnly(noteLocalGuid, key) VALUES('%1', '%2')")
+                queryString = QString("INSERT OR REPLACE INTO NoteAttributesApplicationDataKeysOnly"
+                                      "(noteLocalGuid, noteKey) VALUES('%1', '%2')")
                                       .arg(localGuid).arg(key);
                 res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteAttributesApplicationDataKeysOnly\" table in SQL database");
@@ -2887,7 +2888,8 @@ bool LocalStorageManager::InsertOrReplaceNoteAttributes(const Note & note,
         {
             const QMap<QString, QString> & fullMap = attributes.applicationData->fullMap.ref();
             foreach(const QString & key, fullMap.keys()) {
-                queryString = QString("INSERT OR REPLACE INTO NoteAttributesApplicationDataFullMap(noteLocalGuid, key, value) VALUES('%1', '%2', '%3')")
+                queryString = QString("INSERT OR REPLACE INTO NoteAttributesApplicationDataFullMap"
+                                      "(noteLocalGuid, noteMapKey, noteValue) VALUES('%1', '%2', '%3')")
                                       .arg(localGuid).arg(key).arg(fullMap.value(key));
                 res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteAttributesApplicationDataFullMap\" table in SQL database");
@@ -2899,7 +2901,8 @@ bool LocalStorageManager::InsertOrReplaceNoteAttributes(const Note & note,
     {
         const QMap<QString, QString> & map = attributes.classifications.ref();
         foreach(const QString & key, map.keys()) {
-            queryString = QString("INSERT OR REPLACE INTO NoteAttributesClassifications(noteLocalGuid, key, value) VALUES('%1', '%2', '%3')")
+            queryString = QString("INSERT OR REPLACE INTO NoteAttributesClassifications"
+                                  "(noteLocalGuid, noteClassificationKey, noteClassificationValue) VALUES('%1', '%2', '%3')")
                                   .arg(localGuid).arg(key).arg(map.value(key));
             res = query.exec();
             DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteAttributesClassifications\" table in SQL database");
@@ -4464,7 +4467,7 @@ void LocalStorageManager::FillNoteAttributesFromSqlRecord(const QSqlRecord & rec
 void LocalStorageManager::FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec,
                                                                                  qevercloud::NoteAttributes & attributes) const
 {
-    int index = rec.indexOf("key");
+    int index = rec.indexOf("noteKey");
     if (index >= 0) {
         QVariant value = rec.value(index);
         if (!value.isNull()) {
@@ -4482,8 +4485,8 @@ void LocalStorageManager::FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord
 void LocalStorageManager::FillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec,
                                                                                 qevercloud::NoteAttributes & attributes) const
 {
-    int keyIndex = rec.indexOf("key");
-    int valueIndex = rec.indexOf("value");
+    int keyIndex = rec.indexOf("noteMapKey");
+    int valueIndex = rec.indexOf("noteValue");
     if ((keyIndex >= 0) && (valueIndex >= 0)) {
         QVariant key = rec.value(keyIndex);
         QVariant value = rec.value(valueIndex);
@@ -4502,8 +4505,8 @@ void LocalStorageManager::FillNoteAttributesApplicationDataFullMapFromSqlRecord(
 void LocalStorageManager::FillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec,
                                                                          qevercloud::NoteAttributes & attributes) const
 {
-    int keyIndex = rec.indexOf("key");
-    int valueIndex = rec.indexOf("value");
+    int keyIndex = rec.indexOf("noteClassificationKey");
+    int valueIndex = rec.indexOf("noteClassificationValue");
     if ((keyIndex >= 0) && (valueIndex >= 0)) {
         QVariant key = rec.value(keyIndex);
         QVariant value = rec.value(valueIndex);
