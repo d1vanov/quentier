@@ -1943,27 +1943,15 @@ bool LocalStorageManagerPrivate::FindEnResource(IResource & resource, QString & 
 
     resource.clear();
 
-    QString queryString = QString("SELECT Resources.resourceLocalGuid, resourceGuid, noteGuid, noteLocalGuid, "
-                                  "resourceUpdateSequenceNumber, resourceIsDirty, dataSize, dataHash, "
-                                  "mime, width, height, recognitionDataSize, recognitionDataHash, "
-                                  "resourceIndexInNote, ResourceAttributes.resourceSourceURL, "
-                                  "ResourceAttributes.timestamp, ResourceAttributes.resourceLatitude, "
-                                  "ResourceAttributes.resourceLongitude, ResourceAttributes.resourceAltitude, "
-                                  "ResourceAttributes.cameraMake, ResourceAttributes.cameraModel, "
-                                  "ResourceAttributes.clientWillIndex, ResourceAttributes.recoType, "
-                                  "ResourceAttributes.fileName, ResourceAttributes.attachment, "
-                                  "ResourceAttributesApplicationDataKeysOnly.resourceKey, "
-                                  "ResourceAttributesApplicationDataFullMap.resourceMapKey, "
-                                  "ResourceAttributesApplicationDataFullMap.resourceValue "
-                                  "%1 FROM Resources "
+    QString queryString = QString("SELECT * FROM %1 "
                                   "LEFT OUTER JOIN ResourceAttributes "
-                                  "ON Resources.resourceLocalGuid = ResourceAttributes.resourceLocalGuid "
+                                  "ON %1.resourceLocalGuid = ResourceAttributes.resourceLocalGuid "
                                   "LEFT OUTER JOIN ResourceAttributesApplicationDataKeysOnly "
-                                  "ON Resources.resourceLocalGuid = ResourceAttributesApplicationDataKeysOnly.resourceLocalGuid "
+                                  "ON %1.resourceLocalGuid = ResourceAttributesApplicationDataKeysOnly.resourceLocalGuid "
                                   "LEFT OUTER JOIN ResourceAttributesApplicationDataFullMap "
-                                  "ON Resources.resourceLocalGuid = ResourceAttributesApplicationDataFullMap.resourceLocalGuid "
-                                  "WHERE Resources.%2 = '%3'")
-                                 .arg(withBinaryData ? ", dataBody, recognitionDataBody" : " ")
+                                  "ON %1.resourceLocalGuid = ResourceAttributesApplicationDataFullMap.resourceLocalGuid "
+                                  "WHERE %1.%2 = '%3'")
+                                 .arg(withBinaryData ? "Resources" : "ResourcesWithoutBinaryData")
                                  .arg(column).arg(guid);
 
     QSqlQuery query(m_sqlDatabase);
@@ -2697,6 +2685,13 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  UNIQUE(resourceLocalGuid, resourceGuid)"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Resources table");
+
+    res = query.exec("CREATE VIEW IF NOT EXISTS ResourcesWithoutBinaryData "
+                     "AS SELECT resourceLocalGuid, resourceGuid, noteLocalGuid, noteGuid, "
+                     "resourceUpdateSequenceNumber, resourceIsDirty, dataSize, dataHash, "
+                     "mime, width, height, recognitionDataSize, recognitionDataHash, "
+                     "resourceIndexInNote FROM Resources");
+    DATABASE_CHECK_AND_SET_ERROR("can't create ResourcesWithoutBinaryData view");
 
     res = query.exec("CREATE INDEX IF NOT EXISTS ResourceNote ON Resources(noteLocalGuid)");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceNote index");

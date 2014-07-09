@@ -401,6 +401,26 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
         return false;
     }
 
+    // ========== Check Find without resource binary data =========
+    foundResource.clear();
+    foundResource.setGuid(resourceGuid);
+    res = localStorageManager.FindEnResource(foundResource, errorDescription,
+                                             /* withBinaryData = */ false);
+    if (!res) {
+        return false;
+    }
+
+    modifiedResource.setDataBody(QByteArray());
+    modifiedResource.setRecognitionDataBody(QByteArray());
+
+    if (modifiedResource != foundResource) {
+        errorDescription = "Updated and found in local storage resources without binary data don't match";
+        QNWARNING(errorDescription << ": IResource updated in LocalStorageManager: " << modifiedResource
+                  << "\nIResource found in LocalStorageManager: " << foundResource);
+        return false;
+    }
+
+
     // ========== GetEnResourceCount to return 1 ============
     int count = localStorageManager.GetEnResourceCount(errorDescription);
     if (count < 0) {
