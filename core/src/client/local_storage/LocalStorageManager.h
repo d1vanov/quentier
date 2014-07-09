@@ -2,7 +2,6 @@
 #define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H
 
 #include <QString>
-#include <QtSql>
 #include <QSharedPointer>
 
 namespace qevercloud {
@@ -31,6 +30,8 @@ QT_FORWARD_DECLARE_CLASS(SavedSearch)
 QT_FORWARD_DECLARE_CLASS(IUser)
 typedef qevercloud::UserID UserID;
 
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerPrivate)
+
 class LocalStorageManager
 {
 public:
@@ -43,7 +44,7 @@ public:
      * @param startFromScratch
      */
     LocalStorageManager(const QString & username, const UserID userId, const bool startFromScratch);
-    ~LocalStorageManager();
+    virtual ~LocalStorageManager();
 
     /**
      * @brief SwitchUser - switches to another local database file associated with passed in
@@ -161,7 +162,7 @@ public:
      * @param errorDescription - error description if default notebook could not be found
      * @return true if default notebook was found, false otherwise
      */
-    bool FindDefaultNotebook(Notebook & notebook, QString & errorDescription);
+    bool FindDefaultNotebook(Notebook & notebook, QString & errorDescription) const;
 
     /**
      * @brief FindLastUsedNotebook - attempts to find last used notebook in the local storage database.
@@ -169,7 +170,7 @@ public:
      * @param errorDescription - error description if last used notebook could not be found
      * @return true if last used notebook was found, false otherwise
      */
-    bool FindLastUsedNotebook(Notebook & notebook, QString & errorDescription);
+    bool FindLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
 
     /**
      * @brief FindDefaultOrLastUsedNotebook - attempts to find either default or last used notebook
@@ -178,7 +179,7 @@ public:
      * @param errorDescription - error description if default or last used notebook could not be found
      * @return true if default or last used notebook was found, false otherwise
      */
-    bool FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription);
+    bool FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
 
     /**
      * @brief ListAllNotebooks - attempts to list all notebooks within the account
@@ -229,7 +230,7 @@ public:
      * @param errorDescription - error description if the number of linked notebooks count not be returned
      * @return either non-negative number of linked notebooks or -1 if some error has occured
      */
-    int GetLinkedNotebookCount(QString & errorDescription);
+    int GetLinkedNotebookCount(QString & errorDescription) const;
 
     /**
      * @brief AddLinkedNotebook - adds passed in LinkedNotebook to the local storage database;
@@ -588,82 +589,14 @@ public:
     bool ExpungeSavedSearch(const SavedSearch & search, QString & errorDescription);
 
 private:
-    bool CreateTables(QString & errorDescription);
-    bool InsertOrReplaceNoteAttributes(const Note & note, const QString & overrideLocalGuid,
-                                       QString & errorDescription);
-    bool InsertOrReplaceNotebookAdditionalAttributes(const Notebook & notebook,
-                                                     const QString & overrideLocalGuid,
-                                                     QString & errorDescription);
-    bool InsertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
-                                             const QString & localGuid, QString & errorDescription);
-    bool SetSharedNotebookAttributes(const ISharedNotebook &sharedNotebook,
-                                     QString & errorDescription);
-
-    bool RowExists(const QString & tableName, const QString & uniqueKeyName,
-                   const QVariant & uniqueKeyValue) const;
-
-    bool InsertOrReplaceUser(const IUser & user, QString & errorDescription);
-    bool InsertOrReplaceBusinesUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
-                                        QString & errorDescription);
-    bool InsertOrReplacePremiumInfo(const UserID id, const qevercloud::PremiumInfo & info,
-                                    QString & errorDescription);
-    bool InsertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
-                                   QString & errorDescription);
-    bool InsertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
-                                       QString & errorDescription);
-    bool InsertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalGuid, QString & errorDescription);
-    bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
-    bool InsertOrReplaceNote(const Note & note, const Notebook & notebook,
-                             const QString & overrideLocalGuid, QString & errorDescription);
-    bool InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid, QString & errorDescription);
-    bool InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
-                                 const Note & note, const QString & overrideNoteLocalGuid, QString & errorDescription);
-    bool InsertOrReplaceResourceAttributes(const QString & localGuid, const qevercloud::ResourceAttributes & attributes,
-                                           QString & errorDescription);
-    bool InsertOrReplaceSavedSearch(const SavedSearch & search, const QString & overrideLocalGuid, QString & errorDescription);
-
-    void FillResourceFromSqlRecord(const QSqlRecord & rec, const bool withBinaryData, IResource & resource) const;
-    bool FillResourceAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
-    bool FillResourceAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
-    bool FillResourceAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
-    bool FillNoteAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
-    bool FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
-    bool FillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
-    bool FillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
-    bool FillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QString &errorDescription) const;
-    void FillNoteFromSqlRecord(const QSqlRecord & record, Note & note) const;
-    bool FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QString & errorDescription) const;
-    bool FillSharedNotebookFromSqlRecord(const QSqlRecord & record, ISharedNotebook & sharedNotebook,
-                                         QString & errorDescription) const;
-    bool FillLinkedNotebookFromSqlRecord(const QSqlRecord & record, LinkedNotebook & linkedNotebook,
-                                         QString & errorDescription) const;
-    bool FillSavedSearchFromSqlRecord(const QSqlRecord & rec, SavedSearch & search,
-                                      QString & errorDescription) const;
-    bool FillTagFromSqlRecord(const QSqlRecord & rec, Tag & tag,
-                              QString & errorDescription) const;
-    QList<Tag> FillTagsFromSqlQuery(QSqlQuery & query, QString & errorDescription) const;
-
-    bool FindAndSetTagGuidsPerNote(Note & note, QString & errorDescription) const;
-    bool FindAndSetResourcesPerNote(Note & note, QString & errorDescription,
-                                    const bool withBinaryData = true) const;
-    bool FindAndSetNoteAttributesPerNote(Note & note, QString & errorDescription) const;
-
-    void SortSharedNotebooks(Notebook & notebook) const;
-
-    QList<qevercloud::SharedNotebook> ListEnSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                                           QString & errorDescription) const;
-
     LocalStorageManager() = delete;
     LocalStorageManager(const LocalStorageManager & other) = delete;
     LocalStorageManager & operator=(const LocalStorageManager & other) = delete;
 
-    QString m_currentUsername;
-    UserID m_currentUserId;
-    QString m_applicationPersistenceStoragePath;
-
-    QSqlDatabase m_sqlDatabase;
+    LocalStorageManagerPrivate * const d_ptr;
+    Q_DECLARE_PRIVATE(LocalStorageManager)
 };
 
-}
+} // namespace qute_note
 
 #endif // __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H
