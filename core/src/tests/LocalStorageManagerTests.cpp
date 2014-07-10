@@ -551,6 +551,25 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     newResource.setRecognitionDataSize(newResource.recognitionDataBody().size());
     newResource.setRecognitionDataHash("Fake hash      4");
 
+    qevercloud::ResourceAttributes & resourceAttributes = newResource.resourceAttributes();
+
+    resourceAttributes.sourceURL = "Fake resource source URL";
+    resourceAttributes.timestamp = 1;
+    resourceAttributes.latitude = 0.0;
+    resourceAttributes.longitude = 0.0;
+    resourceAttributes.altitude = 0.0;
+    resourceAttributes.cameraMake = "Fake resource camera make";
+    resourceAttributes.cameraModel = "Fake resource camera model";
+
+    // FIXME: it breaks tests! Must understand and fix!
+    /*
+    resourceAttributes.applicationData = qevercloud::LazyMap();
+    resourceAttributes.applicationData->keysOnly = QSet<QString>();
+    resourceAttributes.applicationData->keysOnly->insert("key 1");
+    resourceAttributes.applicationData->fullMap = QMap<QString, QString>();
+    resourceAttributes.applicationData->fullMap.ref()["key 1 map"] = "value 1";
+    */
+
     modifiedNote.addResource(newResource);
 
     modifiedNote.unsetLocalGuid();

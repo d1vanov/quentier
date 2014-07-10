@@ -271,6 +271,16 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         resource.setRecognitionDataSize(resource.recognitionDataBody().size());
         resource.setRecognitionDataHash("Fake hash      2");
 
+        qevercloud::ResourceAttributes & resourceAttributes = resource.resourceAttributes();
+
+        resourceAttributes.sourceURL = "Fake resource source URL";
+        resourceAttributes.timestamp = 1;
+        resourceAttributes.latitude = 0.0;
+        resourceAttributes.longitude = 0.0;
+        resourceAttributes.altitude = 0.0;
+        resourceAttributes.cameraMake = "Fake resource camera make";
+        resourceAttributes.cameraModel = "Fake resource camera model";
+
         note.addResource(resource);
 
         res = localStorageManager.UpdateNote(note, notebook, error);

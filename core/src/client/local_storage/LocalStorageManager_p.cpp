@@ -1263,6 +1263,13 @@ bool LocalStorageManagerPrivate::FindNote(Note & note, QString & errorDescriptio
 
     note = Note();
 
+    QString resourcesTable = "Resources";
+    if (!withResourceBinaryData) {
+        resourcesTable += "WithoutBinaryData";
+    }
+
+    QString resourceIndexColumn = (column == "localGuid" ? "noteLocalGuid" : "noteGuid");
+
     QString queryString = QString("SELECT * FROM Notes LEFT OUTER JOIN NoteAttributes "
                                   "ON Notes.localGuid = NoteAttributes.noteLocalGuid "
                                   "LEFT OUTER JOIN NoteAttributesApplicationDataKeysOnly "
@@ -1271,16 +1278,56 @@ bool LocalStorageManagerPrivate::FindNote(Note & note, QString & errorDescriptio
                                   "ON Notes.localGuid = NoteAttributesApplicationDataFullMap.noteLocalGuid "
                                   "LEFT OUTER JOIN NoteAttributesClassifications "
                                   "ON Notes.localGuid = NoteAttributesClassifications.noteLocalGuid "
-                                  "WHERE %1 = '%2'").arg(column).arg(guid);
+                                  "LEFT OUTER JOIN %1 ON Notes.%3 = %1.%2 "
+                                  "LEFT OUTER JOIN ResourceAttributes "
+                                  "ON (Notes.localGuid = ResourceAttributes.noteLocalGuid AND "
+                                  "%1.resourceLocalGuid = ResourceAttributes.resourceLocalGuid) "
+                                  "LEFT OUTER JOIN ResourceAttributesApplicationDataKeysOnly "
+                                  "ON (Notes.localGuid = ResourceAttributesApplicationDataKeysOnly.noteLocalGuid AND "
+                                  "%1.resourceLocalGuid = ResourceAttributesApplicationDataKeysOnly.resourceLocalGuid) "
+                                  "LEFT OUTER JOIN ResourceAttributesApplicationDataFullMap "
+                                  "ON (Notes.localGuid = ResourceAttributesApplicationDataFullMap.noteLocalGuid AND "
+                                  "%1.resourceLocalGuid = ResourceAttributesApplicationDataFullMap.resourceLocalGuid) "
+                                  "WHERE %3 = '%4'")
+                                 .arg(resourcesTable).arg(resourceIndexColumn)
+                                 .arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select note from \"Notes\" table in SQL database");
 
+    QList<ResourceWrapper> resources;
+    QHash<QString, int> resourceIndexPerLocalGuid;
+
     size_t counter = 0;
-    while(query.next()) {
+    while(query.next())
+    {
         QSqlRecord rec = query.record();
         FillNoteFromSqlRecord(rec, note);
         ++counter;
+
+        int resourceLocalGuidIndex = rec.indexOf("resourceLocalGuid");
+        if (resourceLocalGuidIndex >= 0)
+        {
+            int resourceIndexInList = -1;
+            QVariant value = rec.value(resourceLocalGuidIndex);
+            if (value.isNull()) {
+                continue;
+            }
+
+            QString resourceLocalGuid = value.toString();
+            QHash<QString, int>::const_iterator it = resourceIndexPerLocalGuid.find(resourceLocalGuid);
+            if (it == resourceIndexPerLocalGuid.end()) {
+                resourceIndexInList = resources.size();
+                resourceIndexPerLocalGuid[resourceLocalGuid] = resourceIndexInList;
+                resources.push_back(ResourceWrapper());
+            }
+            else {
+                resourceIndexInList = it.value();
+            }
+
+            ResourceWrapper & resource = resources[resourceIndexInList];
+            FillResourceFromSqlRecord(rec, withResourceBinaryData, resource);
+        }
     }
 
     if (!counter) {
@@ -1289,16 +1336,15 @@ bool LocalStorageManagerPrivate::FindNote(Note & note, QString & errorDescriptio
         return false;
     }
 
-    QString error;
-    res = FindAndSetTagGuidsPerNote(note, error);
-    if (!res) {
-        errorDescription += error;
-        QNWARNING(errorDescription);
-        return false;
+    int numResources = resources.size();
+    if (numResources > 0) {
+        qSort(resources.begin(), resources.end(), [](const ResourceWrapper & lhs, const ResourceWrapper & rhs)
+                                                    { return lhs.indexInNote() < rhs.indexInNote(); });
+        note.setResources(resources);
     }
 
-    error.clear();
-    res = FindAndSetResourcesPerNote(note, error, withResourceBinaryData);
+    QString error;
+    res = FindAndSetTagGuidsPerNote(note, error);
     if (!res) {
         errorDescription += error;
         QNWARNING(errorDescription);
@@ -2698,6 +2744,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributes("
                      "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  resourceSourceURL       TEXT                DEFAULT NULL, "
                      "  timestamp               INTEGER             DEFAULT NULL, "
                      "  resourceLatitude        REAL                DEFAULT NULL, "
@@ -2713,11 +2760,13 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributesApplicationDataKeysOnly("
                      "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  resourceKey             TEXT                DEFAULT NULL UNIQUE)");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributesApplicationDataKeysOnly table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributesApplicationDataFullMap("
                      "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  resourceMapKey          TEXT                DEFAULT NULL UNIQUE, "
                      "  resourcevalue           TEXT                DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributesApplicationDataFullMap table");
@@ -2743,7 +2792,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  note REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  localTag REFERENCES Tags(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  tag  REFERENCES Tags(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  indexInNote           INTEGER               DEFAULT NULL, "
+                     "  tagIndexInNote        INTEGER               DEFAULT NULL, "
                      "  UNIQUE(localNote, localTag) ON CONFLICT REPLACE"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteTags table");
@@ -3913,12 +3962,12 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                 return false;
             }
 
-            columns = "localNote, localTag, tag, indexInNote";
+            columns = "localNote, localTag, tag, tagIndexInNote";
             if (noteHasGuid) {
                 columns.append(", note");
             }
 
-            valuesString = ":localNote, :localTag, :tag, :indexInNote";
+            valuesString = ":localNote, :localTag, :tag, :tagIndexInNote";
             if (noteHasGuid) {
                 valuesString.append(", :note");
             }
@@ -3931,7 +3980,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
             query.bindValue(":localNote", localGuid);
             query.bindValue(":localTag", tag.localGuid());
             query.bindValue(":tag", tagGuid);
-            query.bindValue(":indexInNote", i);
+            query.bindValue(":tagIndexInNote", i);
 
             if (noteHasGuid) {
                 query.bindValue(":note", note.guid());
@@ -4023,8 +4072,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
-                                                  const Note & note, const QString & overrideNoteLocalGuid,
-                                                  QString & errorDescription)
+                                                         const Note & note, const QString & overrideNoteLocalGuid,
+                                                         QString & errorDescription)
 {
     // NOTE: this method expects to be called after resource is already checked
     // for sanity of its parameters!
@@ -4138,7 +4187,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
     if (resource.hasResourceAttributes())
     {
         const qevercloud::ResourceAttributes & attributes = resource.resourceAttributes();
-        res = InsertOrReplaceResourceAttributes(resourceLocalGuid, attributes, errorDescription);
+        res = InsertOrReplaceResourceAttributes(resourceLocalGuid, noteLocalGuid, attributes, errorDescription);
         if (!res) {
             return false;
         }
@@ -4147,12 +4196,12 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
     return true;
 }
 
-bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString & localGuid,
-                                                            const qevercloud::ResourceAttributes & attributes,
-                                                            QString & errorDescription)
+bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString & localGuid, const QString & noteLocalGuid,
+                                                                   const qevercloud::ResourceAttributes & attributes,
+                                                                   QString & errorDescription)
 {
-    QString columns = "resourceLocalGuid";
-    QString valuesString = ":resourceLocalGuid";
+    QString columns = "resourceLocalGuid, noteLocalGuid";
+    QString valuesString = ":resourceLocalGuid, :noteLocalGuid";
 
 #define CHECK_AND_ADD_COLUMN_AND_VALUE(name, property) \
     bool has##name = attributes.property.isSet(); \
@@ -4207,6 +4256,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
     }
 
     query.bindValue(":resourceLocalGuid", localGuid);
+    query.bindValue(":noteLocalGuid", noteLocalGuid);
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
@@ -4220,8 +4270,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
             const QSet<QString> & keysOnly = attributes.applicationData->keysOnly.ref();
             foreach(const QString & key, keysOnly) {
                 queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataKeysOnly"
-                                      "(resourceLocalGuid, resourceKey) VALUES('%1', '%2')")
-                                     .arg(localGuid).arg(key);
+                                      "(resourceLocalGuid, noteLocalGuid, resourceKey) VALUES('%1', '%2', '%3')")
+                                     .arg(localGuid).arg(noteLocalGuid).arg(key);
                 res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataKeysOnly\" table in SQL database");
             }
@@ -4232,8 +4282,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
             const QMap<QString, QString> & fullMap = attributes.applicationData->fullMap.ref();
             foreach(const QString & key, fullMap.keys()) {
                 queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataFullMap"
-                                      "(resourceLocalGuid, resourceMapKey, resourceValue) VALUES('%1', '%2', '%3')")
-                                     .arg(localGuid).arg(key).arg(fullMap.value(key));
+                                      "(resourceLocalGuid, noteLocalGuid, resourceMapKey, resourceValue) VALUES('%1', '%2', '%3', '%4')")
+                                     .arg(localGuid).arg(noteLocalGuid).arg(key).arg(fullMap.value(key));
                 res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataFullMap\" table in SQL database");
 
@@ -4245,8 +4295,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & search,
-                                                     const QString & overrideLocalGuid,
-                                                     QString & errorDescription)
+                                                            const QString & overrideLocalGuid,
+                                                            QString & errorDescription)
 {
     // NOTE: this method expects to be called after the search is already checked
     // for sanity of its parameters!
@@ -4293,7 +4343,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & 
 }
 
 void LocalStorageManagerPrivate::FillResourceFromSqlRecord(const QSqlRecord & rec, const bool withBinaryData,
-                                                    IResource & resource) const
+                                                           IResource & resource) const
 {
 #define CHECK_AND_SET_RESOURCE_PROPERTY(property, type, localType, setter) \
     { \
@@ -5202,7 +5252,7 @@ bool LocalStorageManagerPrivate::FindAndSetTagGuidsPerNote(Note & note, QString 
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT tag, indexInNote FROM NoteTags WHERE localNote = ?");
+    query.prepare("SELECT tag, tagIndexInNote FROM NoteTags WHERE localNote = ?");
     query.addBindValue(note.localGuid());
 
     bool res = query.exec();
@@ -5237,7 +5287,7 @@ bool LocalStorageManagerPrivate::FindAndSetTagGuidsPerNote(Note & note, QString 
         QNDEBUG("Found tag guid " << tagGuid << " for note with guid " << note.guid());
 
         int indexInNote = -1;
-        int recordIndex = rec.indexOf("indexInNote");
+        int recordIndex = rec.indexOf("tagIndexInNote");
         if (recordIndex >= 0)
         {
             QVariant value = rec.value(recordIndex);
