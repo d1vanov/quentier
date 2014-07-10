@@ -1280,14 +1280,11 @@ bool LocalStorageManagerPrivate::FindNote(Note & note, QString & errorDescriptio
                                   "ON Notes.localGuid = NoteAttributesClassifications.noteLocalGuid "
                                   "LEFT OUTER JOIN %1 ON Notes.%3 = %1.%2 "
                                   "LEFT OUTER JOIN ResourceAttributes "
-                                  "ON (Notes.localGuid = ResourceAttributes.noteLocalGuid AND "
-                                  "%1.resourceLocalGuid = ResourceAttributes.resourceLocalGuid) "
+                                  "ON %1.resourceLocalGuid = ResourceAttributes.resourceLocalGuid "
                                   "LEFT OUTER JOIN ResourceAttributesApplicationDataKeysOnly "
-                                  "ON (Notes.localGuid = ResourceAttributesApplicationDataKeysOnly.noteLocalGuid AND "
-                                  "%1.resourceLocalGuid = ResourceAttributesApplicationDataKeysOnly.resourceLocalGuid) "
+                                  "ON %1.resourceLocalGuid = ResourceAttributesApplicationDataKeysOnly.resourceLocalGuid "
                                   "LEFT OUTER JOIN ResourceAttributesApplicationDataFullMap "
-                                  "ON (Notes.localGuid = ResourceAttributesApplicationDataFullMap.noteLocalGuid AND "
-                                  "%1.resourceLocalGuid = ResourceAttributesApplicationDataFullMap.resourceLocalGuid) "
+                                  "ON %1.resourceLocalGuid = ResourceAttributesApplicationDataFullMap.resourceLocalGuid "
                                   "WHERE %3 = '%4'")
                                  .arg(resourcesTable).arg(resourceIndexColumn)
                                  .arg(column).arg(guid);
@@ -2744,7 +2741,6 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributes("
                      "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  resourceSourceURL       TEXT                DEFAULT NULL, "
                      "  timestamp               INTEGER             DEFAULT NULL, "
                      "  resourceLatitude        REAL                DEFAULT NULL, "
@@ -2755,20 +2751,24 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  clientWillIndex         INTEGER             DEFAULT NULL, "
                      "  recoType                TEXT                DEFAULT NULL, "
                      "  fileName                TEXT                DEFAULT NULL, "
-                     "  attachment              INTEGER             DEFAULT NULL)");
+                     "  attachment              INTEGER             DEFAULT NULL, "
+                     "  UNIQUE(resourceLocalGuid) "
+                     ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributes table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributesApplicationDataKeysOnly("
                      "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  resourceKey             TEXT                DEFAULT NULL UNIQUE)");
+                     "  resourceKey             TEXT                DEFAULT NULL, "
+                     "  UNIQUE(resourceLocalGuid, resourceKey)"
+                     ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributesApplicationDataKeysOnly table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributesApplicationDataFullMap("
                      "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  resourceMapKey          TEXT                DEFAULT NULL UNIQUE, "
-                     "  resourcevalue           TEXT                DEFAULT NULL)");
+                     "  resourceMapKey          TEXT                DEFAULT NULL, "
+                     "  resourcevalue           TEXT                DEFAULT NULL, "
+                     "  UNIQUE(resourceLocalGuid, resourceMapKey) ON CONFLICT REPLACE" 
+                     ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributesApplicationDataFullMap table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
@@ -4187,7 +4187,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
     if (resource.hasResourceAttributes())
     {
         const qevercloud::ResourceAttributes & attributes = resource.resourceAttributes();
-        res = InsertOrReplaceResourceAttributes(resourceLocalGuid, noteLocalGuid, attributes, errorDescription);
+        res = InsertOrReplaceResourceAttributes(resourceLocalGuid, attributes, errorDescription);
         if (!res) {
             return false;
         }
@@ -4196,12 +4196,12 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
     return true;
 }
 
-bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString & localGuid, const QString & noteLocalGuid,
+bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString & localGuid, 
                                                                    const qevercloud::ResourceAttributes & attributes,
                                                                    QString & errorDescription)
 {
-    QString columns = "resourceLocalGuid, noteLocalGuid";
-    QString valuesString = ":resourceLocalGuid, :noteLocalGuid";
+    QString columns = "resourceLocalGuid";
+    QString valuesString = ":resourceLocalGuid";
 
 #define CHECK_AND_ADD_COLUMN_AND_VALUE(name, property) \
     bool has##name = attributes.property.isSet(); \
@@ -4256,7 +4256,6 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
     }
 
     query.bindValue(":resourceLocalGuid", localGuid);
-    query.bindValue(":noteLocalGuid", noteLocalGuid);
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
@@ -4270,9 +4269,9 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
             const QSet<QString> & keysOnly = attributes.applicationData->keysOnly.ref();
             foreach(const QString & key, keysOnly) {
                 queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataKeysOnly"
-                                      "(resourceLocalGuid, noteLocalGuid, resourceKey) VALUES('%1', '%2', '%3')")
-                                     .arg(localGuid).arg(noteLocalGuid).arg(key);
-                res = query.exec();
+                                      "(resourceLocalGuid, resourceKey) VALUES('%1', '%2')")
+                                     .arg(localGuid).arg(key);
+                res = query.exec(queryString);
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataKeysOnly\" table in SQL database");
             }
         }
@@ -4282,9 +4281,9 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
             const QMap<QString, QString> & fullMap = attributes.applicationData->fullMap.ref();
             foreach(const QString & key, fullMap.keys()) {
                 queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataFullMap"
-                                      "(resourceLocalGuid, noteLocalGuid, resourceMapKey, resourceValue) VALUES('%1', '%2', '%3', '%4')")
-                                     .arg(localGuid).arg(noteLocalGuid).arg(key).arg(fullMap.value(key));
-                res = query.exec();
+                                      "(resourceLocalGuid, resourceMapKey, resourceValue) VALUES('%1', '%2', '%3')")
+                                     .arg(localGuid).arg(key).arg(fullMap.value(key));
+                res = query.exec(queryString);
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataFullMap\" table in SQL database");
 
             }

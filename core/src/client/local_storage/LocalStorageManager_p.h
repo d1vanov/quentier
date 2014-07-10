@@ -124,7 +124,7 @@ private:
     bool InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
                                  const Note & note, const QString & overrideNoteLocalGuid, QString & errorDescription);
-    bool InsertOrReplaceResourceAttributes(const QString & localGuid, const QString & noteLocalGuid,
+    bool InsertOrReplaceResourceAttributes(const QString & localGuid, 
                                            const qevercloud::ResourceAttributes & attributes,
                                            QString & errorDescription);
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, const QString & overrideLocalGuid, QString & errorDescription);
