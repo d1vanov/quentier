@@ -1285,6 +1285,7 @@ bool LocalStorageManagerPrivate::FindNote(Note & note, QString & errorDescriptio
                                   "ON %1.resourceLocalGuid = ResourceAttributesApplicationDataKeysOnly.resourceLocalGuid "
                                   "LEFT OUTER JOIN ResourceAttributesApplicationDataFullMap "
                                   "ON %1.resourceLocalGuid = ResourceAttributesApplicationDataFullMap.resourceLocalGuid "
+                                  "LEFT OUTER JOIN NoteTags ON Notes.localGuid = NoteTags.localNote "
                                   "WHERE %3 = '%4'")
                                  .arg(resourcesTable).arg(resourceIndexColumn)
                                  .arg(column).arg(guid);
@@ -1294,6 +1295,9 @@ bool LocalStorageManagerPrivate::FindNote(Note & note, QString & errorDescriptio
 
     QList<ResourceWrapper> resources;
     QHash<QString, int> resourceIndexPerLocalGuid;
+
+    QList<QPair<QString, int> > tagGuidsAndIndices;
+    QHash<QString, int> tagGuidIndexPerGuid;
 
     size_t counter = 0;
     while(query.next())
@@ -1305,25 +1309,58 @@ bool LocalStorageManagerPrivate::FindNote(Note & note, QString & errorDescriptio
         int resourceLocalGuidIndex = rec.indexOf("resourceLocalGuid");
         if (resourceLocalGuidIndex >= 0)
         {
-            int resourceIndexInList = -1;
             QVariant value = rec.value(resourceLocalGuidIndex);
-            if (value.isNull()) {
-                continue;
-            }
+            if (!value.isNull())
+            {
+                QString resourceLocalGuid = value.toString();
+                auto it = resourceIndexPerLocalGuid.find(resourceLocalGuid);
+                bool resourceIndexNotFound = (it == resourceIndexPerLocalGuid.end());
+                if (resourceIndexNotFound) {
+                    int resourceIndexInList = resources.size();
+                    resourceIndexPerLocalGuid[resourceLocalGuid] = resourceIndexInList;
+                    resources << ResourceWrapper();
+                }
 
-            QString resourceLocalGuid = value.toString();
-            QHash<QString, int>::const_iterator it = resourceIndexPerLocalGuid.find(resourceLocalGuid);
-            if (it == resourceIndexPerLocalGuid.end()) {
-                resourceIndexInList = resources.size();
-                resourceIndexPerLocalGuid[resourceLocalGuid] = resourceIndexInList;
-                resources.push_back(ResourceWrapper());
+                ResourceWrapper & resource = (resourceIndexNotFound
+                                              ? resources.back()
+                                              : resources[it.value()]);
+                FillResourceFromSqlRecord(rec, withResourceBinaryData, resource);
             }
-            else {
-                resourceIndexInList = it.value();
-            }
+        }
 
-            ResourceWrapper & resource = resources[resourceIndexInList];
-            FillResourceFromSqlRecord(rec, withResourceBinaryData, resource);
+        int tagGuidIndex = rec.indexOf("tag");
+        if (tagGuidIndex >= 0)
+        {
+            QVariant value = rec.value(tagGuidIndex);
+            if (!value.isNull())
+            {
+                QVariant tagGuidIndexInNoteValue = rec.value("tagIndexInNote");
+                if (tagGuidIndexInNoteValue.isNull()) {
+                    QNWARNING("tag index in note was not found in the result of SQL query");
+                    continue;
+                }
+
+                bool conversionResult = false;
+                int tagGuidIndexInNote = tagGuidIndexInNoteValue.toInt(&conversionResult);
+                if (!conversionResult) {
+                    errorDescription += QT_TR_NOOP("Internal error: can't convert tag guid's index in note to int");
+                    return false;
+                }
+
+                QString tagGuid = value.toString();
+                auto it = tagGuidIndexPerGuid.find(tagGuid);
+                bool tagGuidIndexNotFound = (it == tagGuidIndexPerGuid.end());
+                if (tagGuidIndexNotFound) {
+                    int tagGuidIndexInList = tagGuidsAndIndices.size();
+                    tagGuidIndexPerGuid[tagGuid] = tagGuidIndexInList;
+                    tagGuidsAndIndices << QPair<QString, int>(tagGuid, tagGuidIndexInNote);
+                    continue;
+                }
+
+                QPair<QString, int> & tagGuidAndIndexInNote = tagGuidsAndIndices[it.value()];
+                tagGuidAndIndexInNote.first = tagGuid;
+                tagGuidAndIndexInNote.second = tagGuidIndexInNote;
+            }
         }
     }
 
@@ -1340,15 +1377,20 @@ bool LocalStorageManagerPrivate::FindNote(Note & note, QString & errorDescriptio
         note.setResources(resources);
     }
 
-    QString error;
-    res = FindAndSetTagGuidsPerNote(note, error);
-    if (!res) {
-        errorDescription += error;
-        QNWARNING(errorDescription);
-        return false;
+    int numTags = tagGuidsAndIndices.size();
+    if (numTags > 0) {
+        qSort(tagGuidsAndIndices.begin(), tagGuidsAndIndices.end(), [](const QPair<QString, int> & lhs, const QPair<QString, int> & rhs)
+                                                                       { return lhs.second < rhs.second; });
+        QStringList tagGuids;
+        tagGuids.reserve(numTags);
+        for(int i = 0; i < numTags; ++i) {
+            tagGuids << tagGuidsAndIndices[i].first;
+        }
+
+        note.setTagGuids(tagGuids);
     }
 
-    error.clear();
+    QString error;
     res = note.checkParameters(error);
     if (!res) {
         errorDescription = QT_TR_NOOP("Found note is invalid: ");
@@ -1695,7 +1737,7 @@ bool LocalStorageManagerPrivate::UpdateTag(const Tag & tag, QString & errorDescr
 }
 
 bool LocalStorageManagerPrivate::LinkTagWithNote(const Tag & tag, const Note & note,
-                                          QString & errorDescription)
+                                                 QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't link tag with note: ");
     QString error;
@@ -1714,7 +1756,7 @@ bool LocalStorageManagerPrivate::LinkTagWithNote(const Tag & tag, const Note & n
         return false;
     }
 
-    QString columns = "localNote, localTag";
+    QString columns = "localNote, localTag, tagIndexInNote";
     bool tagHasGuid = tag.hasGuid();
     if (tagHasGuid) {
         columns.append(", tag");
@@ -1725,7 +1767,7 @@ bool LocalStorageManagerPrivate::LinkTagWithNote(const Tag & tag, const Note & n
         columns.append(", note");
     }
 
-    QString valuesString = ":localNote, :localTag";
+    QString valuesString = ":localNote, :localTag, :tagIndexInNote";
     if (tagHasGuid) {
         valuesString.append(", :tag");
     }
@@ -1741,6 +1783,23 @@ bool LocalStorageManagerPrivate::LinkTagWithNote(const Tag & tag, const Note & n
 
     query.bindValue(":localNote", note.localGuid());
     query.bindValue(":localTag", tag.localGuid());
+
+    QStringList tagGuids;
+    note.tagGuids(tagGuids);
+    int numTagGuids = tagGuids.size();
+
+    bool foundAndBindedGuidIndex = false;
+    if (tagHasGuid) {
+        int tagGuidIndexInNote = tagGuids.indexOf(tag.guid());
+        if (tagGuidIndexInNote >= 0) {
+            query.bindValue(":tagIndexInNote", tagGuidIndexInNote);
+            foundAndBindedGuidIndex = true;
+        }
+    }
+
+    if (!foundAndBindedGuidIndex) {
+        query.bindValue(":tagIndexInNote", numTagGuids);
+    }
 
     if (tagHasGuid) {
         query.bindValue(":tag", tag.guid());
