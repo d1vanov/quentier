@@ -582,25 +582,33 @@ QTextStream & IResource::Print(QTextStream & strm) const
 {
     const qevercloud::Resource & enResource = GetEnResource();
 
+    const QString _localGuid = localGuid();
+    if (!_localGuid.isEmpty()) {
+        strm << "local guid = " << _localGuid << "; \n";
+    }
+    else {
+        strm << "localGuid is empty; \n";
+    }
+
     if (enResource.guid.isSet()) {
         strm << "guid = " << enResource.guid << "; \n";
     }
     else {
-        strm << "guid is not set" << "; \n";
+        strm << "guid is not set; \n";
     }
 
     if (enResource.updateSequenceNum.isSet()) {
         strm << "updateSequenceNumber = " << QString::number(enResource.updateSequenceNum) << "; \n";
     }
     else {
-        strm << "updateSequenceNumber is not set";
+        strm << "updateSequenceNumber is not set; \n";
     }
 
     if (enResource.noteGuid.isSet()) {
         strm << "noteGuid = " << enResource.noteGuid << "; \n";
     }
     else {
-        strm << "noteGuid is not set" << "; \n";
+        strm << "noteGuid is not set; \n";
     }
 
     if (enResource.data.isSet())
@@ -609,21 +617,21 @@ QTextStream & IResource::Print(QTextStream & strm) const
             strm << "dataSize = " << QString::number(enResource.data->size) << "; \n";
         }
         else {
-            strm << "dataSize is not set" << "; \n";
+            strm << "dataSize is not set; \n";
         }
 
         if (enResource.data->bodyHash.isSet()) {
             strm << "dataHash = " << enResource.data->bodyHash << "; \n";
         }
         else {
-            strm << "dataHash is not set" << "; \n";
+            strm << "dataHash is not set; \n";
         }
 
         if (enResource.data->body.isSet()) {
             strm << "dataBody is set" << "; \n";
         }
         else {
-            strm << "dataBody is not set" << "; \n";
+            strm << "dataBody is not set; \n";
         }
     }
 
@@ -631,21 +639,21 @@ QTextStream & IResource::Print(QTextStream & strm) const
         strm << "mime = " << enResource.mime << "; \n";
     }
     else {
-        strm << "mime is not set" << "; \n";
+        strm << "mime is not set; \n";
     }
 
     if (enResource.width.isSet()) {
         strm << "width = " << QString::number(enResource.width) << "; \n";
     }
     else {
-        strm << "width is not set" << "; \n";
+        strm << "width is not set; \n";
     }
 
     if (enResource.height.isSet()) {
         strm << "height = " << QString::number(enResource.height) << "; \n";
     }
     else {
-        strm << "height is not set" << "; \n";
+        strm << "height is not set; \n";
     }
 
     if (enResource.recognition.isSet())
@@ -654,21 +662,21 @@ QTextStream & IResource::Print(QTextStream & strm) const
             strm << "recognitionDataSize = " << QString::number(enResource.recognition->size) << "; \n";
         }
         else {
-            strm << "recognitionDataSize is not set" << "; \n";
+            strm << "recognitionDataSize is not set; \n";
         }
 
         if (enResource.recognition->bodyHash.isSet()) {
             strm << "recognitionDataHash = " << enResource.recognition->bodyHash << "; \n";
         }
         else {
-            strm << "recognitionDataHash is not set" << "; \n";
+            strm << "recognitionDataHash is not set; \n";
         }
 
         if (enResource.recognition->body.isSet()) {
-            strm << "recognitionDataBody is set" << "; \n";
+            strm << "recognitionDataBody is set; \n";
         }
         else {
-            strm << "recognitionDataBody is not set" << "; \n";
+            strm << "recognitionDataBody is not set; \n";
         }
     }
 
@@ -678,21 +686,21 @@ QTextStream & IResource::Print(QTextStream & strm) const
             strm << "alternateDataSize = " << QString::number(enResource.alternateData->size) << "; \n";
         }
         else {
-            strm << "alternateDataSize is not set" << "; \n";
+            strm << "alternateDataSize is not set; \n";
         }
 
         if (enResource.alternateData->bodyHash.isSet()) {
             strm << "alternateDataHash = " << enResource.alternateData->bodyHash << "; \n";
         }
         else {
-            strm << "alternateDataHash is not set" << "; \n";
+            strm << "alternateDataHash is not set; \n";
         }
 
         if (enResource.alternateData->body.isSet()) {
-            strm << "alternateDataBody is set" << "; \n";
+            strm << "alternateDataBody is set; \n";
         }
         else {
-            strm << "alternateDataBody is not set" << "; \n";
+            strm << "alternateDataBody is not set; \n";
         }
     }
 
@@ -710,70 +718,70 @@ QTextStream & IResource::Print(QTextStream & strm) const
             strm << "sourceURL = " << attributes.sourceURL << "; \n";
         }
         else {
-            strm << "sourceURL is not set" << "; \n";
+            strm << "sourceURL is not set; \n";
         }
 
         if (attributes.timestamp.isSet()) {
             strm << "timestamp = " << attributes.timestamp << "; \n";
         }
         else {
-            strm << "timestamp is not set" << "; \n";
+            strm << "timestamp is not set; \n";
         }
 
         if (attributes.latitude.isSet()) {
             strm << "latitude = " << attributes.latitude << "; \n";
         }
         else {
-            strm << "latitude is not set" << "; \n";
+            strm << "latitude is not set; \n";
         }
 
         if (attributes.longitude.isSet()) {
             strm << "longitude = " << attributes.longitude << "; \n";
         }
         else {
-            strm << "longitude is not set" << "; \n";
+            strm << "longitude is not set; \n";
         }
 
         if (attributes.altitude.isSet()) {
             strm << "altitude = " << attributes.altitude << "; \n";
         }
         else {
-            strm << "altitude is not set" << "; \n";
+            strm << "altitude is not set; \n";
         }
 
         if (attributes.cameraMake.isSet()) {
             strm << "cameraMake = " << attributes.cameraMake << "; \n";
         }
         else {
-            strm << "cameraMake is not set" << "; \n";
+            strm << "cameraMake is not set; \n";
         }
 
         if (attributes.cameraModel.isSet()) {
             strm << "cameraModel = " << attributes.cameraModel << "; \n";
         }
         else {
-            strm << "cameraModel is not set" << "; \n";
+            strm << "cameraModel is not set; \n";
         }
 
         if (attributes.clientWillIndex.isSet()) {
             strm << "clientWillIndex = " << (attributes.clientWillIndex ? "true" : "false") << "; \n";
         }
         else {
-            strm << "clientWillIndex is not set" << "; \n";
+            strm << "clientWillIndex is not set; \n";
         }
 
         if (attributes.fileName.isSet()) {
             strm << "fileName = " << attributes.fileName << "; \n";
         }
         else {
-            strm << "fileName is not set" << "; \n";
+            strm << "fileName is not set; \n";
         }
 
         if (attributes.attachment.isSet()) {
             strm << "attachment = " << (attributes.attachment ? "true" : "false") << "; \n";
         }
         else {
-            strm << "attachment is not set" << "; \n";
+            strm << "attachment is not set; \n";
         }
 
         if (attributes.applicationData.isSet())

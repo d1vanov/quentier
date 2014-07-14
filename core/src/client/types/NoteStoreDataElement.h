@@ -38,7 +38,7 @@ protected:
     NoteStoreDataElement & operator=(const NoteStoreDataElement & other);
     NoteStoreDataElement & operator=(NoteStoreDataElement && other);
 
-    virtual QTextStream & Print(QTextStream &strm) const = 0;
+    virtual QTextStream & Print(QTextStream & strm) const = 0;
 
 private:
     bool   m_isDirty;
