@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__NOTEBOOK_H
 #define __QUTE_NOTE__CLIENT__TYPES__NOTEBOOK_H
 
-#include "NoteStoreDataElement.h"
+#include "DataElementWithShortcut.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
@@ -12,7 +12,7 @@ QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
 QT_FORWARD_DECLARE_CLASS(IUser)
 QT_FORWARD_DECLARE_CLASS(UserAdapter)
 
-class Notebook final: public NoteStoreDataElement
+class Notebook final: public DataElementWithShortcut
 {
 public:
     Notebook();

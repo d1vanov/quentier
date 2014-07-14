@@ -5,21 +5,21 @@
 namespace qute_note {
 
 Tag::Tag() :
-    NoteStoreDataElement(),
+    DataElementWithShortcut(),
     m_qecTag(),
     m_isLocal(true),
     m_isDeleted(false)
 {}
 
 Tag::Tag(const qevercloud::Tag & other) :
-    NoteStoreDataElement(),
+    DataElementWithShortcut(),
     m_qecTag(other),
     m_isLocal(true),
     m_isDeleted(false)
 {}
 
 Tag::Tag(qevercloud::Tag && other) :
-    NoteStoreDataElement(),
+    DataElementWithShortcut(),
     m_qecTag(std::move(other)),
     m_isLocal(true),
     m_isDeleted(false)

@@ -5,12 +5,12 @@
 namespace qute_note {
 
 SavedSearch::SavedSearch(const qevercloud::SavedSearch & search) :
-    NoteStoreDataElement(),
+    DataElementWithShortcut(),
     m_qecSearch(search)
 {}
 
 SavedSearch::SavedSearch(qevercloud::SavedSearch && search) :
-    NoteStoreDataElement(),
+    DataElementWithShortcut(),
     m_qecSearch(std::move(search))
 {}
 

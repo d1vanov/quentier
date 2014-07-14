@@ -1,12 +1,12 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__TAG_H
 #define __QUTE_NOTE__CLIENT__TYPES__TAG_H
 
-#include "NoteStoreDataElement.h"
+#include "DataElementWithShortcut.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class Tag final: public NoteStoreDataElement
+class Tag final: public DataElementWithShortcut
 {
 public:
     Tag();

@@ -9,21 +9,21 @@
 namespace qute_note {
 
 Notebook::Notebook() :
-    NoteStoreDataElement(),
+    DataElementWithShortcut(),
     m_qecNotebook(),
     m_isLocal(true),
     m_isLastUsed(false)
 {}
 
 Notebook::Notebook(const qevercloud::Notebook & other) :
-    NoteStoreDataElement(),
+    DataElementWithShortcut(),
     m_qecNotebook(other),
     m_isLocal(true),
     m_isLastUsed(false)
 {}
 
 Notebook::Notebook(qevercloud::Notebook && other) :
-    NoteStoreDataElement(),
+    DataElementWithShortcut(),
     m_qecNotebook(std::move(other)),
     m_isLocal(true),
     m_isLastUsed(false)

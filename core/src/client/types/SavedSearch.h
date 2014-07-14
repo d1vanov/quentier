@@ -1,12 +1,12 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__SAVED_SEARCH_H
 #define __QUTE_NOTE__CLIENT__TYPES__SAVED_SEARCH_H
 
-#include "NoteStoreDataElement.h"
+#include "DataElementWithShortcut.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class SavedSearch final: public NoteStoreDataElement
+class SavedSearch final: public DataElementWithShortcut
 {
 public:
     typedef qevercloud::QueryFormat::type QueryFormat;

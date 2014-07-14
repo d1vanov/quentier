@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__NOTE_H
 #define __QUTE_NOTE__CLIENT__TYPES__NOTE_H
 
-#include "NoteStoreDataElement.h"
+#include "DataElementWithShortcut.h"
 #include <QEverCloud.h>
 #include <QImage>
 
@@ -11,7 +11,7 @@ QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
 QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 
-class Note final: public NoteStoreDataElement
+class Note final: public DataElementWithShortcut
 {
 public:
     Note();

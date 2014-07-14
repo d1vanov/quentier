@@ -17,6 +17,7 @@ set(${PROJECT_NAME}_QT_HEADERS
 
 set(${PROJECT_NAME}_HEADERS
     src/client/Utility.h
+    src/client/types/DataElementWithShortcut.h
     src/client/types/ISharedNotebook.h
     src/client/types/IResource.h
     src/client/types/IUser.h
@@ -68,6 +69,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ResourceTextObject.cpp
     src/note_editor/ToDoCheckboxTextObject.cpp
     src/client/Utility.cpp
+    src/client/types/DataElementWithShortcut.cpp
     src/client/types/ISharedNotebook.cpp
     src/client/types/IResource.cpp
     src/client/types/IUser.cpp

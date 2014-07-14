@@ -8,14 +8,14 @@
 namespace qute_note {
 
 Note::Note() :
-    NoteStoreDataElement(),
+    DataElementWithShortcut(),
     m_isLocal(true),
     m_isDeleted(false),
     m_thumbnail()
 {}
 
 Note::Note(const qevercloud::Note & other) :
-    NoteStoreDataElement(),
+    DataElementWithShortcut(),
     m_qecNote(other),
     m_isLocal(false),
     m_isDeleted(false),
@@ -23,7 +23,7 @@ Note::Note(const qevercloud::Note & other) :
 {}
 
 Note::Note(Note && other) :
-    NoteStoreDataElement(std::move(other)),
+    DataElementWithShortcut(std::move(other)),
     m_qecNote(std::move(other.m_qecNote)),
     m_isLocal(std::move(other.m_isLocal)),
     m_isDeleted(std::move(other.m_isDeleted)),
@@ -31,7 +31,7 @@ Note::Note(Note && other) :
 {}
 
 Note::Note(qevercloud::Note && other) :
-    NoteStoreDataElement(),
+    DataElementWithShortcut(),
     m_qecNote(std::move(other)),
     m_isLocal(false),
     m_isDeleted(false),
