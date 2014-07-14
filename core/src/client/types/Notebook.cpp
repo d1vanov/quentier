@@ -46,7 +46,10 @@ Notebook::~Notebook()
 
 bool Notebook::operator==(const Notebook & other) const
 {
-    if (isDirty() != other.isDirty()) {
+    if (hasShortcut() != other.hasShortcut()) {
+        return false;
+    }
+    else if (isDirty() != other.isDirty()) {
         return false;
     }
     else if (m_isLocal != other.m_isLocal) {
@@ -1097,6 +1100,9 @@ QTextStream & Notebook::Print(QTextStream & strm) const
     else {
         strm << "notebook is not last used";
     }
+    INSERT_DELIMITER;
+
+    strm << "hasShortcut = " << (hasShortcut() ? "true" : "false");
     INSERT_DELIMITER;
 
 #undef INSERT_DELIMITER

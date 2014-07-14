@@ -1843,7 +1843,7 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
     tag.clear();
 
     QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, name, parentGuid, isDirty, isLocal, "
-                                  "isDeleted FROM Tags WHERE %1 = '%2'").arg(column).arg(guid);
+                                  "isDeleted, hasShortcut FROM Tags WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select tag from \"Tags\" table in SQL database: ");
@@ -2285,7 +2285,7 @@ bool LocalStorageManagerPrivate::FindSavedSearch(SavedSearch & search, QString &
     search.clear();
 
     QString queryString = QString("SELECT localGuid, guid, name, query, format, updateSequenceNumber, includeAccount, "
-                                  "includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks "
+                                  "includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks, hasShortcut "
                                   "FROM SavedSearches WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -2621,6 +2621,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  isLocal                         INTEGER           NOT NULL, "
                      "  isDefault                       INTEGER           DEFAULT NULL UNIQUE, "
                      "  isLastUsed                      INTEGER           DEFAULT NULL UNIQUE, "
+                     "  hasShortcut                     INTEGER           DEFAULT NULL, "
                      "  publishingUri                   TEXT              DEFAULT NULL, "
                      "  publishingNoteSortOrder         INTEGER           DEFAULT NULL, "
                      "  publishingAscendingSort         INTEGER           DEFAULT NULL, "
@@ -2712,6 +2713,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  isDirty                 INTEGER              NOT NULL, "
                      "  isLocal                 INTEGER              NOT NULL, "
                      "  isDeleted               INTEGER              DEFAULT NULL, "
+                     "  hasShortcut             INTEGER              DEFAULT NULL, "
                      "  title                   TEXT                 NOT NULL, "
                      "  content                 TEXT                 NOT NULL, "
                      "  creationTimestamp       INTEGER              NOT NULL, "
@@ -2839,7 +2841,8 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  parentGuid            TEXT                 DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
-                     "  isDeleted             INTEGER              DEFAULT NULL"
+                     "  isDeleted             INTEGER              DEFAULT NULL, "
+                     "  hasShortcut           INTEGER              DEFAULT NULL "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Tags table");
 
@@ -2883,6 +2886,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  includeAccount                  INTEGER             NOT NULL, "
                      "  includePersonalLinkedNotebooks  INTEGER             NOT NULL, "
                      "  includeBusinessLinkedNotebooks  INTEGER             NOT NULL, "
+                     "  hasShortcut                     INTEGER             NOT NULL, "
                      "  UNIQUE(localGuid, guid))");
     DATABASE_CHECK_AND_SET_ERROR("can't create SavedSearches table");
 
@@ -3823,10 +3827,11 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
     QString localGuid = (overrideLocalGuid.isEmpty() ? notebook.localGuid() : overrideLocalGuid);
     QString isDirty = QString::number(notebook.isDirty() ? 1 : 0);
     QString isLocal = QString::number(notebook.isLocal() ? 1 : 0);
+    QString hasShortcut = QString::number(notebook.hasShortcut() ? 1 : 0);
 
     QString queryString = QString("INSERT OR REPLACE INTO Notebooks (%1, localGuid, "
-                                  "isDirty, isLocal) VALUES(%2, '%3', %4, %5)")
-                                  .arg(columns).arg(values).arg(localGuid).arg(isDirty).arg(isLocal);
+                                  "isDirty, isLocal, hasShortcut) VALUES(%2, '%3', %4, %5, %6)")
+                                  .arg(columns).arg(values).arg(localGuid).arg(isDirty).arg(isLocal).arg(hasShortcut);
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -3905,7 +3910,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
 
     // ========= Creating and executing "insert or replace" query for Notes table
     QString columns = "localGuid, updateSequenceNumber, title, isDirty, isLocal, "
-                      "isDeleted, content, creationTimestamp, modificationTimestamp";
+                      "isDeleted, hasShortcut, content, creationTimestamp, modificationTimestamp";
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid) {
         columns.append(", guid");
@@ -3932,7 +3937,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     }
 
     QString valuesString = ":localGuid, :updateSequenceNumber, :title, :isDirty, :isLocal, "
-                           ":isDeleted, :content, :creationTimestamp, :modificationTimestamp";
+                           ":isDeleted, :hasShortcut, :content, :creationTimestamp, :modificationTimestamp";
     if (noteHasGuid) {
         valuesString.append(", :guid");
     }
@@ -3969,6 +3974,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     query.bindValue(":isDirty", (note.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (note.isLocal() ? 1 : 0));
     query.bindValue(":isDeleted", (note.isDeleted() ? 1 : 0));
+    query.bindValue(":hasShortcut", (note.hasShortcut() ? 1 : 0));
     query.bindValue(":content", content);
     query.bindValue(":creationTimestamp", note.creationTimestamp());
     query.bindValue(":modificationTimestamp", note.modificationTimestamp());
@@ -4102,10 +4108,10 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
     QString nameUpper = name.toUpper();
 
     QString columns = "localGuid, guid, updateSequenceNumber, name, nameUpper, parentGuid, "
-                      "isDirty, isLocal, isDeleted";
+                      "isDirty, isLocal, isDeleted, hasShortcut";
 
     QString valuesString = ":localGuid, :guid, :updateSequenceNumber, :name, :nameUpper, :parentGuid, "
-                           ":isDirty, :isLocal, :isDeleted";
+                           ":isDirty, :isLocal, :isDeleted, :hasShortcut";
 
     QString queryString = QString("INSERT OR REPLACE INTO Tags (%1) VALUES(%2)").arg(columns).arg(valuesString);
 
@@ -4123,6 +4129,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
     query.bindValue(":isDirty", tag.isDirty() ? 1 : 0);
     query.bindValue(":isLocal", tag.isLocal() ? 1 : 0);
     query.bindValue(":isDeleted", tag.isDeleted() ? 1 : 0);
+    query.bindValue(":hasShortcut", tag.hasShortcut() ? 1 : 0);
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace tag into \"Tags\" table in SQL database");
@@ -4362,10 +4369,12 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & 
     errorDescription = QT_TR_NOOP("Can't insert or replace saved search into local storage database: ");
 
     QString columns = "localGuid, guid, name, nameUpper, query, format, updateSequenceNumber, "
-                      "includeAccount, includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks";
+                      "includeAccount, includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks, "
+                      "hasShortcut";
 
     QString valuesNames = ":localGuid, :guid, :name, :nameUpper, :query, :format, :updateSequenceNumber, "
-                          ":includeAccount, :includePersonalLinkedNotebooks, :includeBusinessLinkedNotebooks";
+                          ":includeAccount, :includePersonalLinkedNotebooks, :includeBusinessLinkedNotebooks, "
+                          ":hasShortcut";
 
     QString queryString = QString("INSERT OR REPLACE INTO SavedSearches (%1) VALUES(%2)").arg(columns).arg(valuesNames);
 
@@ -4393,6 +4402,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & 
     query.bindValue(":includeAccount", (search.includeAccount() ? 1 : 0));
     query.bindValue(":includePersonalLinkedNotebooks", (search.includePersonalLinkedNotebooks() ? 1 : 0));
     query.bindValue(":includeBusinessLinkedNotebooks", (search.includeBusinessLinkedNotebooks() ? 1 : 0));
+    query.bindValue(":hasShortcut", (search.hasShortcut() ? 1 : 0));
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace saved search into \"SavedSearches\" table in SQL database");
@@ -4891,6 +4901,7 @@ void LocalStorageManagerPrivate::FillNoteFromSqlRecord(const QSqlRecord & rec, N
     CHECK_AND_SET_NOTE_PROPERTY(isDirty, setDirty, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(isLocal, setLocal, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(isDeleted, setDeleted, int, bool);
+    CHECK_AND_SET_NOTE_PROPERTY(hasShortcut, setShortcut, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(localGuid, setLocalGuid, QString, QString);
 
     CHECK_AND_SET_NOTE_PROPERTY(guid, setGuid, QString, QString);
@@ -4938,7 +4949,7 @@ void LocalStorageManagerPrivate::FillNoteFromSqlRecord(const QSqlRecord & rec, N
 }
 
 bool LocalStorageManagerPrivate::FillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook,
-                                                    QString & errorDescription) const
+                                                           QString & errorDescription) const
 {
 #define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute, setter, dbType, trueType, isRequired) { \
         bool valueFound = false; \
@@ -4976,6 +4987,7 @@ bool LocalStorageManagerPrivate::FillNotebookFromSqlRecord(const QSqlRecord & re
 
     isRequired = false;
 
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasShortcut, setShortcut, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(stack, setStack, QString, QString, isRequired);
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isPublished, setPublished, int, bool, isRequired);
@@ -5211,6 +5223,7 @@ bool LocalStorageManagerPrivate::FillSavedSearchFromSqlRecord(const QSqlRecord &
 
     bool isRequired = false;
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(guid, QString, QString, setGuid, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(hasShortcut, int, bool, setShortcut, isRequired);
 
     isRequired = true;
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(localGuid, QString, QString, setLocalGuid, isRequired);
@@ -5257,6 +5270,7 @@ bool LocalStorageManagerPrivate::FillTagFromSqlRecord(const QSqlRecord & rec, Ta
     bool isRequired = false;
     CHECK_AND_SET_TAG_PROPERTY(guid, QString, QString, setGuid, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(parentGuid, QString, QString, setParentGuid, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(hasShortcut, int, bool, setShortcut, isRequired);
 
     isRequired = true;
     CHECK_AND_SET_TAG_PROPERTY(localGuid, QString, QString, setLocalGuid, isRequired);

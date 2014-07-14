@@ -29,7 +29,10 @@ SavedSearch::operator qevercloud::SavedSearch & ()
 
 bool SavedSearch::operator==(const SavedSearch & other) const
 {
-    if (isDirty() != other.isDirty()) {
+    if (hasShortcut() != other.hasShortcut()) {
+        return false;
+    }
+    else if (isDirty() != other.isDirty()) {
         return false;
     }
     else if (m_qecSearch != other.m_qecSearch) {
@@ -348,6 +351,8 @@ QTextStream & SavedSearch::Print(QTextStream & strm) const
     else {
         strm << "includeBusinessLinkedNotebooks is not set; \n";
     }
+
+    strm << "hasShortcut = " << (hasShortcut() ? "true" : "false") << "; \n";
 
     return strm;
 }

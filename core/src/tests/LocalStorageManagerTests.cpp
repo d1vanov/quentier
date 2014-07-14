@@ -49,6 +49,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     modifiedSearch.setUpdateSequenceNumber(search.updateSequenceNumber() + 1);
     modifiedSearch.setName(search.name() + "_modified");
     modifiedSearch.setQuery(search.query() + "_modified");
+    modifiedSearch.setShortcut(true);
 
     QString localGuid = modifiedSearch.localGuid();
     modifiedSearch.unsetLocalGuid();
@@ -243,6 +244,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     Tag modifiedTag(tag);
     modifiedTag.setUpdateSequenceNumber(tag.updateSequenceNumber() + 1);
     modifiedTag.setName(tag.name() + "_modified");
+    modifiedTag.setShortcut(true);
     modifiedTag.unsetLocalGuid();
 
     res = localStorageManager.UpdateTag(modifiedTag, errorDescription);
@@ -509,6 +511,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     modifiedNote.setContent(note.content() + "_modified");
     modifiedNote.setCreationTimestamp(note.creationTimestamp() + 1);
     modifiedNote.setModificationTimestamp(note.modificationTimestamp() + 1);
+    modifiedNote.setShortcut(true);
 
     qevercloud::NoteAttributes & noteAttributes = modifiedNote.noteAttributes();
 
@@ -773,6 +776,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     modifiedNotebook.setCanExpungeNotes(false);
     modifiedNotebook.setCanEmailNotes(false);
     modifiedNotebook.setCanPublishToPublic(false);
+    modifiedNotebook.setShortcut(true);
     modifiedNotebook.unsetLocalGuid();
 
     res = localStorageManager.UpdateNotebook(modifiedNotebook, errorDescription);

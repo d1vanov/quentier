@@ -69,7 +69,7 @@ Note::~Note()
 bool Note::operator==(const Note & other) const
 {
     return ((m_qecNote == other.m_qecNote) && (isDirty() == other.isDirty()) &&
-            (isDeleted() == other.isDeleted()));
+            (isDeleted() == other.isDeleted()) && (hasShortcut() == other.hasShortcut()));
     // NOTE: thumbnail doesn't take part in comparison because it's merely a helper
     // for note displaying widget, nothing more
 }
@@ -887,6 +887,9 @@ QTextStream & Note::Print(QTextStream & strm) const
     INSERT_DELIMITER;
 
     strm << "isDeleted: " << (m_isDeleted ? "true" : "false");
+    INSERT_DELIMITER;
+
+    strm << "hasShortcut = " << (hasShortcut() ? "true" : "false");
     INSERT_DELIMITER;
 
 #undef INSERT_DELIMITER

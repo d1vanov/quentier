@@ -30,7 +30,10 @@ Tag::~Tag()
 
 bool Tag::operator==(const Tag & other) const
 {
-    if (isDirty() != other.isDirty()) {
+    if (hasShortcut() != other.hasShortcut()) {
+        return false;
+    }
+    else if (isDirty() != other.isDirty()) {
         return false;
     }
     else if (m_isLocal != other.m_isLocal) {
@@ -229,6 +232,7 @@ QTextStream & Tag::Print(QTextStream & strm) const
     strm << "isDirty: " << (isDirty() ? "true" : "false") << "; \n";
     strm << "isLocal: " << (m_isLocal ? "true" : "false") << "; \n";
     strm << "isDeleted: " << (m_isDeleted ? "true" : "false") << "; \n";
+    strm << "hasShortcut = " << (hasShortcut() ? "true" : "false") << "; \n";
     strm << "}; \n";
 
     return strm;
