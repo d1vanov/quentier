@@ -50,6 +50,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     modifiedSearch.setName(search.name() + "_modified");
     modifiedSearch.setQuery(search.query() + "_modified");
     modifiedSearch.setShortcut(true);
+    modifiedSearch.setDirty(true);
 
     QString localGuid = modifiedSearch.localGuid();
     modifiedSearch.unsetLocalGuid();

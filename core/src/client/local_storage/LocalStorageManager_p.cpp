@@ -2284,9 +2284,9 @@ bool LocalStorageManagerPrivate::FindSavedSearch(SavedSearch & search, QString &
 
     search.clear();
 
-    QString queryString = QString("SELECT localGuid, guid, name, query, format, updateSequenceNumber, includeAccount, "
-                                  "includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks, hasShortcut "
-                                  "FROM SavedSearches WHERE %1 = '%2'").arg(column).arg(guid);
+    QString queryString = QString("SELECT localGuid, guid, name, query, format, updateSequenceNumber, isDirty, "
+                                  "includeAccount, includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks, "
+                                  "hasShortcut FROM SavedSearches WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find saved search in \"SavedSearches\" table in SQL database");
@@ -2883,6 +2883,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  query                           TEXT                NOT NULL, "
                      "  format                          INTEGER             NOT NULL, "
                      "  updateSequenceNumber            INTEGER             NOT NULL, "
+                     "  isDirty                         INTEGER             NOT NULL, "
                      "  includeAccount                  INTEGER             NOT NULL, "
                      "  includePersonalLinkedNotebooks  INTEGER             NOT NULL, "
                      "  includeBusinessLinkedNotebooks  INTEGER             NOT NULL, "
@@ -4368,11 +4369,11 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & 
 
     errorDescription = QT_TR_NOOP("Can't insert or replace saved search into local storage database: ");
 
-    QString columns = "localGuid, guid, name, nameUpper, query, format, updateSequenceNumber, "
+    QString columns = "localGuid, guid, name, nameUpper, query, format, updateSequenceNumber, isDirty, "
                       "includeAccount, includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks, "
                       "hasShortcut";
 
-    QString valuesNames = ":localGuid, :guid, :name, :nameUpper, :query, :format, :updateSequenceNumber, "
+    QString valuesNames = ":localGuid, :guid, :name, :nameUpper, :query, :format, :updateSequenceNumber, :isDirty, "
                           ":includeAccount, :includePersonalLinkedNotebooks, :includeBusinessLinkedNotebooks, "
                           ":hasShortcut";
 
@@ -4399,6 +4400,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & 
     query.bindValue(":query", search.query());
     query.bindValue(":format", search.queryFormat());
     query.bindValue(":updateSequenceNumber", search.updateSequenceNumber());
+    query.bindValue(":isDirty", (search.isDirty() ? 1 : 0));
     query.bindValue(":includeAccount", (search.includeAccount() ? 1 : 0));
     query.bindValue(":includePersonalLinkedNotebooks", (search.includePersonalLinkedNotebooks() ? 1 : 0));
     query.bindValue(":includeBusinessLinkedNotebooks", (search.includeBusinessLinkedNotebooks() ? 1 : 0));
@@ -5232,6 +5234,7 @@ bool LocalStorageManagerPrivate::FillSavedSearchFromSqlRecord(const QSqlRecord &
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(format, int, qint8, setQueryFormat, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(updateSequenceNumber, int, int32_t,
                                         setUpdateSequenceNumber, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isDirty, int, bool, setDirty, isRequired);
 
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(includeAccount, int, bool, setIncludeAccount,
                                         isRequired);

@@ -286,6 +286,14 @@ QTextStream & SavedSearch::Print(QTextStream & strm) const
 {
     strm << "Saved search: { \n" ;
 
+    const QString _localGuid = localGuid();
+    if (!_localGuid.isEmpty()) {
+        strm << "localGuid: " << _localGuid << "; \n";
+    }
+    else {
+        strm << "localGuid is not set; \n";
+    }
+
     if (m_qecSearch.guid.isSet()) {
         strm << "guid: " << m_qecSearch.guid << "; \n";
     }
