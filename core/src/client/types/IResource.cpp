@@ -563,7 +563,8 @@ void IResource::setResourceAttributes(qevercloud::ResourceAttributes && attribut
 IResource::IResource(const IResource & other) :
     NoteStoreDataElement(other),
     m_isFreeAccount(other.m_isFreeAccount),
-    m_indexInNote(other.indexInNote())
+    m_indexInNote(other.indexInNote()),
+    m_noteLocalGuid(other.m_noteLocalGuid)
 {}
 
 IResource & IResource::operator=(const IResource & other)
@@ -573,6 +574,7 @@ IResource & IResource::operator=(const IResource & other)
         NoteStoreDataElement::operator =(other);
         setFreeAccount(other.m_isFreeAccount);
         setIndexInNote(other.m_indexInNote);
+        setNoteLocalGuid(other.m_noteLocalGuid.isSet() ? other.m_noteLocalGuid.ref() : QString());
     }
 
     return *this;
@@ -609,6 +611,13 @@ QTextStream & IResource::Print(QTextStream & strm) const
     }
     else {
         strm << "noteGuid is not set; \n";
+    }
+
+    if (m_noteLocalGuid.isSet()) {
+        strm << "noteLocalGuid = " << m_noteLocalGuid.ref() << "; \n";
+    }
+    else {
+        strm << "noteLocalGuid is not set; \n";
     }
 
     if (enResource.data.isSet())
@@ -797,7 +806,7 @@ QTextStream & IResource::Print(QTextStream & strm) const
 
             if (applicationData.fullMap.isSet()) {
                 const QMap<QString, QString> & fullMap = applicationData.fullMap;
-                foreach(const QString & key, fullMap) {
+                foreach(const QString & key, fullMap.keys()) {
                     strm << "applicationData[" << key << "] = " << fullMap.value(key) << "; \n";
                 }
             }

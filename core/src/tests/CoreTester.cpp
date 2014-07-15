@@ -6,6 +6,7 @@
 #include "UserLocalStorageManagerAsyncTester.h"
 #include "NotebookLocalStorageManagerAsyncTester.h"
 #include "NoteLocalStorageManagerAsyncTester.h"
+#include "ResourceLocalStorageManagerAsyncTester.h"
 #include <tools/IQuteNoteException.h>
 #include <tools/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
@@ -1207,6 +1208,41 @@ void CoreTester::localStorageManagerAsyncNotesTest()
     }
     else if (noteAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Note async tester failed to finish in time");
+    }
+}
+
+void CoreTester::localStorageManagerAsyncResourceTest()
+{
+    int resourceAsyncTestResult = -1;
+    {
+        QTimer timer;
+        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
+        timer.setSingleShot(true);
+
+        ResourceLocalStorageManagerAsyncTester resourceAsyncTester;
+
+        EventLoopWithExitStatus loop;
+        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
+        loop.connect(&resourceAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
+        loop.connect(&resourceAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+
+        QTimer slotInvokingTimer;
+        slotInvokingTimer.setInterval(500);
+        slotInvokingTimer.setSingleShot(true);
+
+        timer.start();
+        slotInvokingTimer.singleShot(0, &resourceAsyncTester, SLOT(onInitTestCase()));
+        resourceAsyncTestResult = loop.exec();
+    }
+
+    if (resourceAsyncTestResult == -1) {
+        QFAIL("Internal error: incorrect return status from Resource async tester");
+    }
+    else if (resourceAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Failure) {
+        QFAIL("Detected failure during the asynchronous loop processing in Resource async tester");
+    }
+    else if (resourceAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QFAIL("Resource async tester failed to finish in time");
     }
 }
 

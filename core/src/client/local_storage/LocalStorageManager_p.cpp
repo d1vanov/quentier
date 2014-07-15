@@ -2043,7 +2043,7 @@ bool LocalStorageManagerPrivate::FindEnResource(IResource & resource, QString & 
         guid = resource.localGuid();
     }
 
-    resource.clear();
+    resource.clear();    
 
     QString queryString = QString("SELECT * FROM %1 "
                                   "LEFT OUTER JOIN ResourceAttributes "
@@ -2052,6 +2052,7 @@ bool LocalStorageManagerPrivate::FindEnResource(IResource & resource, QString & 
                                   "ON %1.resourceLocalGuid = ResourceAttributesApplicationDataKeysOnly.resourceLocalGuid "
                                   "LEFT OUTER JOIN ResourceAttributesApplicationDataFullMap "
                                   "ON %1.resourceLocalGuid = ResourceAttributesApplicationDataFullMap.resourceLocalGuid "
+                                  "LEFT OUTER JOIN NoteResources ON %1.resourceLocalGuid = NoteResources.localResource "
                                   "WHERE %1.%2 = '%3'")
                                  .arg(withBinaryData ? "Resources" : "ResourcesWithoutBinaryData")
                                  .arg(column).arg(guid);
@@ -4429,6 +4430,7 @@ void LocalStorageManagerPrivate::FillResourceFromSqlRecord(const QSqlRecord & re
     CHECK_AND_SET_RESOURCE_PROPERTY(resourceLocalGuid, QString, QString, setLocalGuid);
     CHECK_AND_SET_RESOURCE_PROPERTY(resourceIsDirty, int, bool, setDirty);
     CHECK_AND_SET_RESOURCE_PROPERTY(noteGuid, QString, QString, setNoteGuid);
+    CHECK_AND_SET_RESOURCE_PROPERTY(localNote, QString, QString, setNoteLocalGuid);
     CHECK_AND_SET_RESOURCE_PROPERTY(resourceUpdateSequenceNumber, int, qint32, setUpdateSequenceNumber);
     CHECK_AND_SET_RESOURCE_PROPERTY(dataSize, int, qint32, setDataSize);
     CHECK_AND_SET_RESOURCE_PROPERTY(dataHash, QByteArray, QByteArray, setDataHash);

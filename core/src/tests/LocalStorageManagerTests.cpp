@@ -588,6 +588,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
 
+    foundResource.setNoteLocalGuid(QString());
     if (foundResource != newResource)
     {
         errorDescription = "Something is wrong with the new resource "

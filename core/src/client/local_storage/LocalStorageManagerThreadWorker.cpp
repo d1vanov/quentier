@@ -5,7 +5,7 @@
 #include <client/types/LinkedNotebook.h>
 #include <client/types/Note.h>
 #include <client/types/Tag.h>
-#include <client/types/IResource.h>
+#include <client/types/ResourceWrapper.h>
 #include <client/types/SavedSearch.h>
 #include <logging/QuteNoteLogger.h>
 
@@ -803,7 +803,7 @@ void LocalStorageManagerThreadWorker::onGetResourceCountRequest()
     }
 }
 
-void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note)
+void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note)
 {
     QString errorDescription;
 
@@ -832,7 +832,7 @@ void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<IResou
     emit addResourceComplete(resource, note);
 }
 
-void LocalStorageManagerThreadWorker::onUpdateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note)
+void LocalStorageManagerThreadWorker::onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note)
 {
     QString errorDescription;
 
@@ -861,7 +861,7 @@ void LocalStorageManagerThreadWorker::onUpdateResourceRequest(QSharedPointer<IRe
     emit updateResourceComplete(resource, note);
 }
 
-void LocalStorageManagerThreadWorker::onFindResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData)
+void LocalStorageManagerThreadWorker::onFindResourceRequest(QSharedPointer<ResourceWrapper> resource, bool withBinaryData)
 {
     QString errorDescription;
 
@@ -882,7 +882,7 @@ void LocalStorageManagerThreadWorker::onFindResourceRequest(QSharedPointer<IReso
     emit findResourceComplete(resource, withBinaryData);
 }
 
-void LocalStorageManagerThreadWorker::onExpungeResourceRequest(QSharedPointer<IResource> resource)
+void LocalStorageManagerThreadWorker::onExpungeResourceRequest(QSharedPointer<ResourceWrapper> resource)
 {
     QString errorDescription;
 

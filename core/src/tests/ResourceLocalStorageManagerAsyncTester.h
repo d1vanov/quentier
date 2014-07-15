@@ -43,11 +43,12 @@ private Q_SLOTS:
     void onGetResourceCountCompleted(int count);
     void onGetResourceCountFailed(QString errorDescription);
     void onAddResourceCompleted(QSharedPointer<ResourceWrapper> resource);
-    void onAddResourceFailed(QSharedPointer<ResourceWrapper> resource, QString errorDescription);
+    void onAddResourceFailed(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note, QString errorDescription);
     void onUpdateResourceCompleted(QSharedPointer<ResourceWrapper> resource);
-    void onUpdateResourceFailed(QSharedPointer<ResourceWrapper> resource, QString errorDescription);
-    void onFindResourceCompleted(QSharedPointer<ResourceWrapper> resource);
-    void onFindResourceFailed(QSharedPointer<ResourceWrapper> resource, QString errorDescription);
+    void onUpdateResourceFailed(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note, QString errorDescription);
+    void onFindResourceCompleted(QSharedPointer<ResourceWrapper> resource, bool withBinaryData);
+    void onFindResourceFailed(QSharedPointer<ResourceWrapper> resource, bool withBinaryData,
+                              QString errorDescription);
     void onExpungeResourceCompleted(QSharedPointer<ResourceWrapper> resource);
     void onExpungeResourceFailed(QSharedPointer<ResourceWrapper> resource, QString errorDescription);
 

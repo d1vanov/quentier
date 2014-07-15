@@ -13,7 +13,7 @@ QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Tag)
-QT_FORWARD_DECLARE_CLASS(IResource)
+QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 QT_FORWARD_DECLARE_CLASS(SavedSearch)
 
 /**
@@ -165,20 +165,20 @@ protected:
     virtual void getResourceCountComplete(int resourceCount) = 0;
     virtual void getResourceCountFailed(QString errorDescription) = 0;
 
-    virtual void addResourceComplete(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
-    virtual void addResourceFailed(QSharedPointer<IResource> resource, QSharedPointer<Note> note,
+    virtual void addResourceComplete(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note) = 0;
+    virtual void addResourceFailed(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note,
                                    QString errorDescription) = 0;
 
-    virtual void updateResourceComplete(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
-    virtual void updateResourceFailed(QSharedPointer<IResource> resource, QSharedPointer<Note> note,
+    virtual void updateResourceComplete(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note) = 0;
+    virtual void updateResourceFailed(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note,
                                       QString errorDescription) = 0;
 
-    virtual void findResourceComplete(QSharedPointer<IResource> resource, bool withBinaryData) = 0;
-    virtual void findResourceFailed(QSharedPointer<IResource> resource, bool withBinaryData,
+    virtual void findResourceComplete(QSharedPointer<ResourceWrapper> resource, bool withBinaryData) = 0;
+    virtual void findResourceFailed(QSharedPointer<ResourceWrapper> resource, bool withBinaryData,
                                     QString errorDescription) = 0;
 
-    virtual void expungeResourceComplete(QSharedPointer<IResource> resource) = 0;
-    virtual void expungeResourceFailed(QSharedPointer<IResource> resource,
+    virtual void expungeResourceComplete(QSharedPointer<ResourceWrapper> resource) = 0;
+    virtual void expungeResourceFailed(QSharedPointer<ResourceWrapper> resource,
                                        QString errorDescription) = 0;
 
     // Prototypes for saved search-related signals:
@@ -256,10 +256,10 @@ protected:
 
     // Pure virtual prototypes for resource-related slots:
     virtual void onGetResourceCountRequest() = 0;
-    virtual void onAddResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
-    virtual void onUpdateResourceRequest(QSharedPointer<IResource> resource, QSharedPointer<Note> note) = 0;
-    virtual void onFindResourceRequest(QSharedPointer<IResource> resource, bool withBinaryData) = 0;
-    virtual void onExpungeResourceRequest(QSharedPointer<IResource> resource) = 0;
+    virtual void onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note) = 0;
+    virtual void onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note) = 0;
+    virtual void onFindResourceRequest(QSharedPointer<ResourceWrapper> resource, bool withBinaryData) = 0;
+    virtual void onExpungeResourceRequest(QSharedPointer<ResourceWrapper> resource) = 0;
 
     // Pure virtual prototypes for saved search-related methods:
     virtual void onGetSavedSearchCountRequest() = 0;
