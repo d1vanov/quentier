@@ -336,18 +336,21 @@ bool ENMLConverter::noteContentToPlainText(const QString & noteContent, QString 
     return true;
 }
 
-bool ENMLConverter::noteContentToListOfWords(const QString & noteContent,
-                                             QStringList & listOfWords,
-                                             QString & errorMessage) const
+bool ENMLConverter::noteContentToListOfWords(const QString & noteContent, QStringList & listOfWords,
+                                             QString & errorMessage, QString * plainText) const
 {
-    QString plainText;
-    bool res = noteContentToPlainText(noteContent, plainText, errorMessage);
+    QString _plainText;
+    bool res = noteContentToPlainText(noteContent, _plainText, errorMessage);
     if (!res) {
         listOfWords.clear();
         return false;
     }
 
-    listOfWords = plainTextToListOfWords(plainText);
+    if (plainText) {
+        *plainText = _plainText;
+    }
+
+    listOfWords = plainTextToListOfWords(_plainText);
     return true;
 }
 

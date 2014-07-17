@@ -818,7 +818,7 @@ void Note::setThumbnail(const QImage & thumbnail)
     m_thumbnail = thumbnail;
 }
 
-QString Note::plainText(QString * errorMessage)
+QString Note::plainText(QString * errorMessage) const
 {
     if (m_lazyPlainTextIsValid)
     {
@@ -863,7 +863,7 @@ QString Note::plainText(QString * errorMessage)
     return *m_pLazyPlainText;
 }
 
-QStringList Note::listOfWords(QString * errorMessage)
+QStringList Note::listOfWords(QString * errorMessage) const
 {
     if (m_lazyListOfWordsIsValid)
     {
@@ -901,9 +901,14 @@ QStringList Note::listOfWords(QString * errorMessage)
         m_pLazyListOfWords = new QStringList;
     }
 
+    if (!m_pLazyPlainText) {
+        m_pLazyPlainText = new QString;
+    }
+
     ENMLConverter converter;
     QString error;
-    bool res = converter.noteContentToListOfWords(m_qecNote.content.ref(), *m_pLazyListOfWords, error);
+    bool res = converter.noteContentToListOfWords(m_qecNote.content.ref(), *m_pLazyListOfWords,
+                                                  error, m_pLazyPlainText);
     if (!res) {
         QNWARNING(error);
         if (errorMessage) {
@@ -912,6 +917,7 @@ QStringList Note::listOfWords(QString * errorMessage)
         return QStringList();
     }
 
+    m_lazyPlainTextIsValid = true;
     m_lazyListOfWordsIsValid = true;
     return *m_pLazyListOfWords;
 }

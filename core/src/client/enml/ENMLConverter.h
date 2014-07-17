@@ -33,7 +33,7 @@ public:
                                 QString & errorMessage) const;
 
     bool noteContentToListOfWords(const QString & noteContent, QStringList & listOfWords,
-                                  QString & errorMessage) const;
+                                  QString & errorMessage, QString * plainText = nullptr) const;
 
     static QStringList plainTextToListOfWords(const QString & plainText);
 
