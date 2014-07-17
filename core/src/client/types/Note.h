@@ -105,6 +105,9 @@ public:
     QImage getThumbnail() const;
     void setThumbnail(const QImage & thumbnail);
 
+    QString plainText(QString * errorMessage = nullptr);
+    QStringList listOfWords(QString * errorMessage = nullptr);
+
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
 
@@ -128,6 +131,12 @@ private:
     bool m_isLocal;
     bool m_isDeleted;
     QImage m_thumbnail;
+
+    QString * m_pLazyPlainText;
+    bool      m_lazyPlainTextIsValid;
+
+    QStringList * m_pLazyListOfWords;
+    bool          m_lazyListOfWordsIsValid;
 };
 
 } // namespace qute_note

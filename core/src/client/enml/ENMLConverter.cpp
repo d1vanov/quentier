@@ -99,7 +99,7 @@ bool ENMLConverter::richTextToNoteContent(const QuteNoteTextEdit & noteEditor,
     return true;
 }
 
-bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEdit & noteEditor,
+bool ENMLConverter::noteToRichText(const qevercloud::Note & note, QuteNoteTextEdit & noteEditor,
                                    QString & errorMessage) const
 {
     const QScopedPointer<QuteNoteTextEdit> pFakeNoteEditor(new QuteNoteTextEdit());
@@ -114,17 +114,18 @@ bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEd
     int errorLine = -1, errorColumn = -1;
     bool res = enXmlDomDoc.setContent(note.content, &errorMessage, &errorLine, &errorColumn);
     if (!res) {
-        errorMessage.append(QT_TR_NOOP(". Error happened at line ") +
-                            QString::number(errorLine) + QT_TR_NOOP(", at column ") +
-                            QString::number(errorColumn));
+        // TRANSLATOR Explaining the error of XML parsing
+        errorMessage += QT_TR_NOOP(". Error happened at line ") +
+                        QString::number(errorLine) + QT_TR_NOOP(", at column ") +
+                        QString::number(errorColumn);
         return false;
     }
 
     QDomElement docElem = enXmlDomDoc.documentElement();
     QString rootTag = docElem.tagName();
     if (rootTag != QString("en-note")) {
-        errorMessage = QT_TR_NOOP("Wrong root tag, should be \"en-note\", instead: ");
-        errorMessage.append(rootTag);
+        errorMessage = QT_TR_NOOP("Bad note content: wrong root tag, should be \"en-note\", instead: ");
+        errorMessage += rootTag;
         return false;
     }
 
@@ -273,6 +274,87 @@ bool ENMLConverter::NoteToRichText(const qevercloud::Note & note, QuteNoteTextEd
     }
 
     return true;
+}
+
+bool ENMLConverter::noteContentToPlainText(const QString & noteContent, QString & plainText,
+                                           QString & errorMessage) const
+{
+    plainText.clear();
+
+    QDomDocument enXmlDomDoc;
+    int errorLine = -1, errorColumn = -1;
+    bool res = enXmlDomDoc.setContent(noteContent, &errorMessage, &errorLine, &errorColumn);
+    if (!res) {
+        // TRANSLATOR Explaining the error of XML parsing
+        errorMessage += QT_TR_NOOP(". Error happened at line ") + QString::number(errorLine) +
+                        QT_TR_NOOP(", at column ") + QString::number(errorColumn);
+        return false;
+    }
+
+    QDomElement docElem = enXmlDomDoc.documentElement();
+    QString rootTag = docElem.tagName();
+    if (rootTag != QString("en-note")) {
+        // TRANSLATOR Explaining the error of XML parsing
+        errorMessage = QT_TR_NOOP("Bad note content: wrong root tag, should be \"en-note\", instead: ");
+        errorMessage += rootTag;
+        return false;
+    }
+
+    QDomNode nextNode = docElem.firstChild();
+    while(!nextNode.isNull())
+    {
+        QDomElement element = nextNode.toElement();
+        if (!element.isNull())
+        {
+            QString tagName = element.tagName();
+            if (isAllowedXhtmlTag(tagName)) {
+                plainText += element.text();
+                continue;
+            }
+            else if (isForbiddenXhtmlTag(tagName)) {
+                errorMessage = QT_TR_NOOP("Found forbidden XHTML tag in ENML: ");
+                errorMessage += tagName;
+                return false;
+            }
+            else if (isEvernoteSpecificXhtmlTag(tagName)) {
+                continue;
+            }
+            else {
+                errorMessage = QT_TR_NOOP("Found XHTML tag not listed as either "
+                                          "forbidden or allowed one: ");
+                errorMessage += tagName;
+                return false;
+            }
+        }
+        else
+        {
+            errorMessage = QT_TR_NOOP("Found QDomNode not convertable to QDomElement");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool ENMLConverter::noteContentToListOfWords(const QString & noteContent,
+                                             QStringList & listOfWords,
+                                             QString & errorMessage) const
+{
+    QString plainText;
+    bool res = noteContentToPlainText(noteContent, plainText, errorMessage);
+    if (!res) {
+        listOfWords.clear();
+        return false;
+    }
+
+    listOfWords = plainTextToListOfWords(plainText);
+    return true;
+}
+
+QStringList ENMLConverter::plainTextToListOfWords(const QString & plainText)
+{
+    // Simply remove all non-word characters from plain text
+    return plainText.split(QRegExp("\\W+"), QString::SkipEmptyParts);
 }
 
 void ENMLConverter::fillTagsLists()

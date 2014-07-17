@@ -26,8 +26,16 @@ public:
     bool richTextToNoteContent(const QuteNoteTextEdit & noteEditor, QString & ENML,
                                QString & errorDescription) const;
 
-    bool NoteToRichText(const qevercloud::Note & note, QuteNoteTextEdit & noteEditor,
+    bool noteToRichText(const qevercloud::Note & note, QuteNoteTextEdit & noteEditor,
                         QString & errorMessage) const;
+
+    bool noteContentToPlainText(const QString & noteContent, QString & plainText,
+                                QString & errorMessage) const;
+
+    bool noteContentToListOfWords(const QString & noteContent, QStringList & listOfWords,
+                                  QString & errorMessage) const;
+
+    static QStringList plainTextToListOfWords(const QString & plainText);
 
 private:
     void fillTagsLists();
