@@ -77,18 +77,29 @@ Note & Note::operator=(const qevercloud::Note & other)
 
 Note & Note::operator=(Note && other)
 {
-    if (this != &other) {
+    if (this != &other)
+    {
         NoteStoreDataElement::operator=(other);
         m_qecNote = std::move(other.m_qecNote);
         m_isLocal = std::move(other.m_isLocal);
         m_isDeleted = std::move(other.m_isDeleted);
         m_thumbnail = std::move(other.m_thumbnail);
 
+        if (m_pLazyPlainText) {
+            delete m_pLazyPlainText;
+            m_pLazyPlainText = nullptr;
+        }
+
         m_pLazyPlainText = other.m_pLazyPlainText;
         other.m_pLazyPlainText = nullptr;
 
         m_lazyPlainTextIsValid = other.m_lazyPlainTextIsValid;
         other.m_lazyPlainTextIsValid = false;
+
+        if (m_pLazyListOfWords) {
+            delete m_pLazyListOfWords;
+            m_pLazyListOfWords = nullptr;
+        }
 
         m_pLazyListOfWords = other.m_pLazyListOfWords;
         other.m_pLazyListOfWords = nullptr;
