@@ -2696,15 +2696,8 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create SharedNotebooks table");
 
-    res = query.exec("CREATE VIRTUAL TABLE IF NOT EXISTS NoteText USING fts3("
-                     "  localGuid         TEXT PRIMARY KEY     NOT NULL UNIQUE, "
-                     "  guid              TEXT                 DEFAULT NULL UNIQUE, "
-                     "  title             TEXT, "
-                     "  content           TEXT, "
-                     "  notebookLocalGuid REFERENCES Notebooks(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  UNIQUE(localGuid, guid)"
-                     ")");
+    res = query.exec("CREATE VIRTUAL TABLE IF NOT EXISTS NoteText USING fts4 "
+                     "(localGuid, guid, title, content, contentPlainText, contentListOfWords)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual table NoteText");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notes("
@@ -2717,8 +2710,6 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  hasShortcut             INTEGER              DEFAULT NULL, "
                      "  title                   TEXT                 NOT NULL, "
                      "  content                 TEXT                 NOT NULL, "
-                     "  contentPlainText        TEXT                 NOT NULL, "
-                     "  contentListOfWords      TEXT                 NOT NULL, "
                      "  creationTimestamp       INTEGER              NOT NULL, "
                      "  modificationTimestamp   INTEGER              NOT NULL, "
                      "  deletionTimestamp       INTEGER              DEFAULT NULL, "
@@ -3902,7 +3893,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceLinkedNotebook(const LinkedNoteb
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const Notebook & notebook,
-                                              const QString & overrideLocalGuid, QString & errorDescription)
+                                                     const QString & overrideLocalGuid, QString & errorDescription)
 {
     // NOTE: this method expects to be called after the note is already checked
     // for sanity of its parameters!
@@ -3913,9 +3904,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     bool thumbnailIsNull = thumbnail.isNull();
 
     // ========= Creating and executing "insert or replace" query for Notes table
-    QString columns = "localGuid, updateSequenceNumber, title, isDirty, isLocal, "
-                      "isDeleted, hasShortcut, content, contentPlainText, "
-                      "contentListOfWords, creationTimestamp, modificationTimestamp";
+    QString columns = "localGuid, updateSequenceNumber, title, isDirty, isLocal, isDeleted, "
+                      "hasShortcut, content, creationTimestamp, modificationTimestamp";
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid) {
         columns.append(", guid");
@@ -3942,8 +3932,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     }
 
     QString valuesString = ":localGuid, :updateSequenceNumber, :title, :isDirty, :isLocal, "
-                           ":isDeleted, :hasShortcut, :content, :contentPlainText, "
-                           ":contentListOfWords, :creationTimestamp, :modificationTimestamp";
+                           ":isDeleted, :hasShortcut, :content, :creationTimestamp, "
+                           ":modificationTimestamp";
     if (noteHasGuid) {
         valuesString.append(", :guid");
     }
@@ -3974,25 +3964,6 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     const QString content = note.content();
     const QString title = note.title();
 
-    QString error;
-    QString contentPlainText = note.plainText(&error);
-    if (contentPlainText.isEmpty()) {
-        errorDescription += QT_TR_NOOP("can't get Note's plain text: ");
-        errorDescription += error;
-        QNWARNING(errorDescription);
-        return false;
-    }
-
-    error.clear();
-    QStringList listOfWords = note.listOfWords(&error);
-    if (listOfWords.isEmpty()) {
-        errorDescription += QT_TR_NOOP("can't get Note's list of words");
-        errorDescription += error;
-        QNWARNING(errorDescription);
-        return false;
-    }
-    QString contentListOfWords = listOfWords.join(" ");
-
     query.bindValue(":localGuid", localGuid);
     query.bindValue(":updateSequenceNumber", note.updateSequenceNumber());
     query.bindValue(":title", title);
@@ -4001,8 +3972,6 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     query.bindValue(":isDeleted", (note.isDeleted() ? 1 : 0));
     query.bindValue(":hasShortcut", (note.hasShortcut() ? 1 : 0));
     query.bindValue(":content", content);
-    query.bindValue(":contentPlainText", contentPlainText);
-    query.bindValue(":contentListOfWords", contentListOfWords);
     query.bindValue(":creationTimestamp", note.creationTimestamp());
     query.bindValue(":modificationTimestamp", note.modificationTimestamp());
 
@@ -4028,6 +3997,11 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"Notes\" table in SQL database");
+
+    res = InsertOrReplaceNoteText(note, overrideLocalGuid, errorDescription);
+    if (!res) {
+        return false;
+    }
 
     if (note.hasTagGuids())
     {
@@ -4119,6 +4093,65 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     }
 
     return InsertOrReplaceNoteAttributes(note, localGuid, errorDescription);
+}
+
+bool LocalStorageManagerPrivate::InsertOrReplaceNoteText(const Note & note, const QString & overrideLocalGuid,
+                                                         QString & errorDescription)
+{
+    QString error;
+    const QString contentPlainText = note.plainText(&error);
+    if (contentPlainText.isEmpty()) {
+        errorDescription += QT_TR_NOOP("can't get Note's plain text: ");
+        errorDescription += error;
+        QNWARNING(errorDescription);
+        return false;
+    }
+
+    error.clear();
+    QStringList listOfWords = note.listOfWords(&error);
+    if (listOfWords.isEmpty()) {
+        errorDescription += QT_TR_NOOP("can't get Note's list of words");
+        errorDescription += error;
+        QNWARNING(errorDescription);
+        return false;
+    }
+    const QString contentListOfWords = listOfWords.join(" ");
+
+    QString columns = "localGuid, title, content, contentPlainText, contentListOfWords";
+    bool noteHasGuid = note.hasGuid();
+    if (noteHasGuid) {
+        columns += ", guid";
+    }
+
+    QString values = ":localGuid, :title, :content, :contentPlainText, :contentListOfWords";
+    if (noteHasGuid) {
+        values += ", :guid";
+    }
+
+    QString queryString = QString("INSERT OR REPLACE INTO NoteText (%1) VALUES(%2)").arg(columns).arg(values);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteText\" virtual table: "
+                                 "can't prepare SQL query");
+
+    const QString localGuid = (overrideLocalGuid.isEmpty() ? note.localGuid() : overrideLocalGuid);
+    const QString content = note.content();
+    const QString title = note.title();
+
+    query.bindValue(":localGuid", localGuid);
+    query.bindValue(":title", title);
+    query.bindValue(":content", content);
+    query.bindValue(":contentPlainText", contentPlainText);
+    query.bindValue(":contentListOfWords", contentListOfWords);
+
+    if (noteHasGuid) {
+        query.bindValue(":guid", note.guid());
+    }
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteText\" table in SQL database");
+
+    return true;
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid,

@@ -121,6 +121,8 @@ private:
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool InsertOrReplaceNote(const Note & note, const Notebook & notebook,
                              const QString & overrideLocalGuid, QString & errorDescription);
+    bool InsertOrReplaceNoteText(const Note & note, const QString & overrideLocalGuid,
+                                 QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
                                  const Note & note, const QString & overrideNoteLocalGuid, QString & errorDescription);
