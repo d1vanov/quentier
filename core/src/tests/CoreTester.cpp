@@ -154,7 +154,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         note.setGuid("00000000-0000-0000-c000-000000000046");
         note.setUpdateSequenceNumber(1);
         note.setTitle("Fake note title");
-        note.setContent("Fake note content");
+        note.setContent("<en-note><h1>Hello, world</h1></en-note>");
         note.setCreationTimestamp(1);
         note.setModificationTimestamp(1);
         note.setActive(true);
@@ -221,7 +221,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         note.setGuid("00000000-0000-0000-c000-000000000046");
         note.setUpdateSequenceNumber(1);
         note.setTitle("Fake note title");
-        note.setContent("Fake note content");
+        note.setContent("<en-note><h1>Hello, world</h1></en-note>");
         note.setCreationTimestamp(1);
         note.setModificationTimestamp(1);
         note.setActive(true);
@@ -367,7 +367,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         note.setGuid("00000000-0000-0000-c000-000000000049");
         note.setUpdateSequenceNumber(1);
         note.setTitle("Fake note title");
-        note.setContent("Fake note content");
+        note.setContent("<en-note><h1>Hello, world</h1></en-note>");
         note.setCreationTimestamp(1);
         note.setModificationTimestamp(1);
         note.setActive(true);
@@ -759,7 +759,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         note.setGuid("00000000-0000-0000-c000-000000000046");
         note.setUpdateSequenceNumber(1);
         note.setTitle("Fake note title");
-        note.setContent("Fake note content");
+        note.setContent("<en-note><h1>Hello, world</h1></en-note>");
         note.setCreationTimestamp(1);
         note.setModificationTimestamp(1);
         note.setActive(true);
@@ -861,7 +861,7 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
             note.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
             note.setUpdateSequenceNumber(i+1);
             note.setTitle("Fake note title #" + QString::number(i));
-            note.setContent("Fake note content #" + QString::number(i));
+            note.setContent("<en-note><h1>Hello, world #" + QString::number(i) + "</h1></en-note>");
             note.setCreationTimestamp(i+1);
             note.setModificationTimestamp(i+1);
             note.setActive(true);

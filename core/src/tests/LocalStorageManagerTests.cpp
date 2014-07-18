@@ -509,7 +509,6 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     Note modifiedNote(note);
     modifiedNote.setUpdateSequenceNumber(note.updateSequenceNumber() + 1);
     modifiedNote.setTitle(note.title() + "_modified");
-    modifiedNote.setContent(note.content() + "_modified");
     modifiedNote.setCreationTimestamp(note.creationTimestamp() + 1);
     modifiedNote.setModificationTimestamp(note.modificationTimestamp() + 1);
     modifiedNote.setShortcut(true);

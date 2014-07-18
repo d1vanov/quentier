@@ -132,11 +132,11 @@ private:
     bool m_isDeleted;
     QImage m_thumbnail;
 
-    mutable QString * m_pLazyPlainText;
-    mutable bool      m_lazyPlainTextIsValid;
+    mutable QString m_lazyPlainText;
+    mutable bool    m_lazyPlainTextIsValid;
 
-    mutable QStringList * m_pLazyListOfWords;
-    mutable bool          m_lazyListOfWordsIsValid;
+    mutable QStringList m_lazyListOfWords;
+    mutable bool        m_lazyListOfWordsIsValid;
 };
 
 } // namespace qute_note

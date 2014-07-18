@@ -22,7 +22,7 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
 
 LocalStorageManagerPrivate::~LocalStorageManagerPrivate()
 {
-    if (m_sqlDatabase.open()) {
+    if (m_sqlDatabase.isOpen()) {
         m_sqlDatabase.close();
     }
 }
@@ -2717,6 +2717,8 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  hasShortcut             INTEGER              DEFAULT NULL, "
                      "  title                   TEXT                 NOT NULL, "
                      "  content                 TEXT                 NOT NULL, "
+                     "  contentPlainText        TEXT                 NOT NULL, "
+                     "  contentListOfWords      TEXT                 NOT NULL, "
                      "  creationTimestamp       INTEGER              NOT NULL, "
                      "  modificationTimestamp   INTEGER              NOT NULL, "
                      "  deletionTimestamp       INTEGER              DEFAULT NULL, "
@@ -3912,7 +3914,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
 
     // ========= Creating and executing "insert or replace" query for Notes table
     QString columns = "localGuid, updateSequenceNumber, title, isDirty, isLocal, "
-                      "isDeleted, hasShortcut, content, creationTimestamp, modificationTimestamp";
+                      "isDeleted, hasShortcut, content, contentPlainText, "
+                      "contentListOfWords, creationTimestamp, modificationTimestamp";
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid) {
         columns.append(", guid");
@@ -3939,7 +3942,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     }
 
     QString valuesString = ":localGuid, :updateSequenceNumber, :title, :isDirty, :isLocal, "
-                           ":isDeleted, :hasShortcut, :content, :creationTimestamp, :modificationTimestamp";
+                           ":isDeleted, :hasShortcut, :content, :contentPlainText, "
+                           ":contentListOfWords, :creationTimestamp, :modificationTimestamp";
     if (noteHasGuid) {
         valuesString.append(", :guid");
     }
@@ -3970,6 +3974,25 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     const QString content = note.content();
     const QString title = note.title();
 
+    QString error;
+    QString contentPlainText = note.plainText(&error);
+    if (contentPlainText.isEmpty()) {
+        errorDescription += QT_TR_NOOP("can't get Note's plain text: ");
+        errorDescription += error;
+        QNWARNING(errorDescription);
+        return false;
+    }
+
+    error.clear();
+    QStringList listOfWords = note.listOfWords(&error);
+    if (listOfWords.isEmpty()) {
+        errorDescription += QT_TR_NOOP("can't get Note's list of words");
+        errorDescription += error;
+        QNWARNING(errorDescription);
+        return false;
+    }
+    QString contentListOfWords = listOfWords.join(" ");
+
     query.bindValue(":localGuid", localGuid);
     query.bindValue(":updateSequenceNumber", note.updateSequenceNumber());
     query.bindValue(":title", title);
@@ -3978,6 +4001,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     query.bindValue(":isDeleted", (note.isDeleted() ? 1 : 0));
     query.bindValue(":hasShortcut", (note.hasShortcut() ? 1 : 0));
     query.bindValue(":content", content);
+    query.bindValue(":contentPlainText", contentPlainText);
+    query.bindValue(":contentListOfWords", contentListOfWords);
     query.bindValue(":creationTimestamp", note.creationTimestamp());
     query.bindValue(":modificationTimestamp", note.modificationTimestamp());
 

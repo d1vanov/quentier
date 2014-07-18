@@ -94,7 +94,7 @@ void ResourceLocalStorageManagerAsyncTester::onAddNotebookCompleted(QSharedPoint
         m_pNote->setGuid("00000000-0000-0000-c000-000000000048");
         m_pNote->setUpdateSequenceNumber(1);
         m_pNote->setTitle("Fake note");
-        m_pNote->setContent("Fake note content");
+        m_pNote->setContent("<en-note><h1>Hello, world</h1></en-note>");
         m_pNote->setCreationTimestamp(1);
         m_pNote->setModificationTimestamp(1);
         m_pNote->setNotebookGuid(m_pNotebook->guid());

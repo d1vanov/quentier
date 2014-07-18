@@ -287,7 +287,8 @@ bool ENMLConverter::noteContentToPlainText(const QString & noteContent, QString 
     if (!res) {
         // TRANSLATOR Explaining the error of XML parsing
         errorMessage += QT_TR_NOOP(". Error happened at line ") + QString::number(errorLine) +
-                        QT_TR_NOOP(", at column ") + QString::number(errorColumn);
+                        QT_TR_NOOP(", at column ") + QString::number(errorColumn) +
+                        QT_TR_NOOP(", bad note content: ") + noteContent;
         return false;
     }
 
@@ -309,17 +310,13 @@ bool ENMLConverter::noteContentToPlainText(const QString & noteContent, QString 
             QString tagName = element.tagName();
             if (isAllowedXhtmlTag(tagName)) {
                 plainText += element.text();
-                continue;
             }
             else if (isForbiddenXhtmlTag(tagName)) {
                 errorMessage = QT_TR_NOOP("Found forbidden XHTML tag in ENML: ");
                 errorMessage += tagName;
                 return false;
             }
-            else if (isEvernoteSpecificXhtmlTag(tagName)) {
-                continue;
-            }
-            else {
+            else if (!isEvernoteSpecificXhtmlTag(tagName)) {
                 errorMessage = QT_TR_NOOP("Found XHTML tag not listed as either "
                                           "forbidden or allowed one: ");
                 errorMessage += tagName;
@@ -331,6 +328,8 @@ bool ENMLConverter::noteContentToPlainText(const QString & noteContent, QString 
             errorMessage = QT_TR_NOOP("Found QDomNode not convertable to QDomElement");
             return false;
         }
+
+        nextNode = nextNode.nextSibling();
     }
 
     return true;

@@ -97,7 +97,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookCompleted(QSharedPointer<N
         m_pInitialNote->setGuid("00000000-0000-0000-c000-000000000048");
         m_pInitialNote->setUpdateSequenceNumber(1);
         m_pInitialNote->setTitle("Fake note");
-        m_pInitialNote->setContent("Fake note content");
+        m_pInitialNote->setContent("<en-note><h1>Hello, world</h1></en-note>");
         m_pInitialNote->setCreationTimestamp(1);
         m_pInitialNote->setModificationTimestamp(1);
         m_pInitialNote->setNotebookGuid(m_pNotebook->guid());
@@ -112,7 +112,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookCompleted(QSharedPointer<N
         extraNote->setGuid("00000000-0000-0000-c000-000000000006");
         extraNote->setUpdateSequenceNumber(6);
         extraNote->setActive(true);
-        extraNote->setContent("Fake note content three");
+        extraNote->setContent("<en-note><h1>Hello, world 3</h1></en-note>");
         extraNote->setCreationTimestamp(3);
         extraNote->setModificationTimestamp(3);
         extraNote->setNotebookGuid(m_pExtraNotebook->guid());
@@ -164,7 +164,7 @@ void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count)
         extraNote->setGuid("00000000-0000-0000-c000-000000000001");
         extraNote->setUpdateSequenceNumber(1);
         extraNote->setActive(true);
-        extraNote->setContent("Fake note content one");
+        extraNote->setContent("<en-note><h1>Hello, world 1</h1></en-note>");
         extraNote->setCreationTimestamp(1);
         extraNote->setModificationTimestamp(1);
         extraNote->setNotebookGuid(m_pNotebook->guid());
@@ -250,7 +250,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNoteCompleted(QSharedPointer<Note>
         extraNote->setGuid("00000000-0000-0000-c000-000000000004");
         extraNote->setUpdateSequenceNumber(4);
         extraNote->setActive(true);
-        extraNote->setContent("Fake note content two");
+        extraNote->setContent("<en-note><h1>Hello, world 2</h1></en-note>");
         extraNote->setCreationTimestamp(2);
         extraNote->setModificationTimestamp(2);
         extraNote->setNotebookGuid(m_pNotebook->guid());
@@ -355,7 +355,6 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(QSharedPointer<Note
         // Ok, found note is good, updating it now
         m_pModifiedNote = QSharedPointer<Note>(new Note(*m_pInitialNote));
         m_pModifiedNote->setUpdateSequenceNumber(m_pInitialNote->updateSequenceNumber() + 1);
-        m_pModifiedNote->setContent(m_pInitialNote->content() + "_modified");
         m_pModifiedNote->setTitle(m_pInitialNote->title() + "_modified");
 
         m_state = STATE_SENT_UPDATE_REQUEST;

@@ -13,9 +13,9 @@ Note::Note() :
     m_isLocal(true),
     m_isDeleted(false),
     m_thumbnail(),
-    m_pLazyPlainText(nullptr),
+    m_lazyPlainText(),
     m_lazyPlainTextIsValid(false),
-    m_pLazyListOfWords(nullptr),
+    m_lazyListOfWords(),
     m_lazyListOfWordsIsValid(false)
 {}
 
@@ -25,9 +25,9 @@ Note::Note(const qevercloud::Note & other) :
     m_isLocal(false),
     m_isDeleted(false),
     m_thumbnail(),
-    m_pLazyPlainText(nullptr),
+    m_lazyPlainText(),
     m_lazyPlainTextIsValid(false),
-    m_pLazyListOfWords(nullptr),
+    m_lazyListOfWords(),
     m_lazyListOfWordsIsValid(false)
 {}
 
@@ -37,19 +37,19 @@ Note::Note(Note && other) :
     m_isLocal(std::move(other.m_isLocal)),
     m_isDeleted(std::move(other.m_isDeleted)),
     m_thumbnail(std::move(other.m_thumbnail)),
-    m_pLazyPlainText(nullptr),
+    m_lazyPlainText(),
     m_lazyPlainTextIsValid(other.m_lazyPlainTextIsValid),
-    m_pLazyListOfWords(nullptr),
+    m_lazyListOfWords(),
     m_lazyListOfWordsIsValid(false)
 {
-    m_pLazyPlainText = other.m_pLazyPlainText;
-    other.m_pLazyPlainText = nullptr;
+    m_lazyPlainText = other.m_lazyPlainText;
+    other.m_lazyPlainText.clear();
 
     m_lazyPlainTextIsValid = other.m_lazyPlainTextIsValid;
     other.m_lazyPlainTextIsValid = false;
 
-    m_pLazyListOfWords = other.m_pLazyListOfWords;
-    other.m_pLazyListOfWords = nullptr;
+    m_lazyListOfWords = other.m_lazyListOfWords;
+    other.m_lazyListOfWords.clear();
 
     m_lazyListOfWordsIsValid = other.m_lazyListOfWordsIsValid;
     other.m_lazyListOfWordsIsValid = false;
@@ -61,9 +61,9 @@ Note::Note(qevercloud::Note && other) :
     m_isLocal(false),
     m_isDeleted(false),
     m_thumbnail(),
-    m_pLazyPlainText(nullptr),
+    m_lazyPlainText(),
     m_lazyPlainTextIsValid(false),
-    m_pLazyListOfWords(nullptr),
+    m_lazyListOfWords(),
     m_lazyListOfWordsIsValid(false)
 {}
 
@@ -85,24 +85,14 @@ Note & Note::operator=(Note && other)
         m_isDeleted = std::move(other.m_isDeleted);
         m_thumbnail = std::move(other.m_thumbnail);
 
-        if (m_pLazyPlainText) {
-            delete m_pLazyPlainText;
-            m_pLazyPlainText = nullptr;
-        }
-
-        m_pLazyPlainText = other.m_pLazyPlainText;
-        other.m_pLazyPlainText = nullptr;
+        m_lazyPlainText = other.m_lazyPlainText;
+        other.m_lazyPlainText.clear();
 
         m_lazyPlainTextIsValid = other.m_lazyPlainTextIsValid;
         other.m_lazyPlainTextIsValid = false;
 
-        if (m_pLazyListOfWords) {
-            delete m_pLazyListOfWords;
-            m_pLazyListOfWords = nullptr;
-        }
-
-        m_pLazyListOfWords = other.m_pLazyListOfWords;
-        other.m_pLazyListOfWords = nullptr;
+        m_lazyListOfWords = other.m_lazyListOfWords;
+        other.m_lazyListOfWords.clear();
 
         m_lazyListOfWordsIsValid = other.m_lazyListOfWordsIsValid;
         other.m_lazyListOfWordsIsValid = false;
@@ -120,17 +110,7 @@ Note & Note::operator=(qevercloud::Note && other)
 }
 
 Note::~Note()
-{
-    if (m_pLazyPlainText) {
-        delete m_pLazyPlainText;
-        m_pLazyPlainText = nullptr;
-    }
-
-    if (m_pLazyListOfWords) {
-        delete m_pLazyListOfWords;
-        m_pLazyListOfWords = nullptr;
-    }
-}
+{}
 
 bool Note::operator==(const Note & other) const
 {
@@ -820,19 +800,8 @@ void Note::setThumbnail(const QImage & thumbnail)
 
 QString Note::plainText(QString * errorMessage) const
 {
-    if (m_lazyPlainTextIsValid)
-    {
-        if (m_pLazyPlainText) {
-            return *m_pLazyPlainText;
-        }
-        else {
-            if (errorMessage) {
-                *errorMessage = "Internal error: note's plain text is marked as valid "
-                                "but it is null";
-                QNWARNING(*errorMessage);
-            }
-            return QString();
-        }
+    if (m_lazyPlainTextIsValid) {
+        return m_lazyPlainText;
     }
 
     if (!m_qecNote.content.isSet()) {
@@ -842,14 +811,10 @@ QString Note::plainText(QString * errorMessage) const
         return QString();
     }
 
-    if (!m_pLazyPlainText) {
-        m_pLazyPlainText = new QString;
-    }
-
     ENMLConverter converter;
     QString error;
     bool res = converter.noteContentToPlainText(m_qecNote.content.ref(),
-                                                *m_pLazyPlainText, error);
+                                                m_lazyPlainText, error);
     if (!res) {
         QNWARNING(error);
         if (errorMessage) {
@@ -860,55 +825,28 @@ QString Note::plainText(QString * errorMessage) const
 
     m_lazyPlainTextIsValid = true;
 
-    return *m_pLazyPlainText;
+    return m_lazyPlainText;
 }
 
 QStringList Note::listOfWords(QString * errorMessage) const
 {
-    if (m_lazyListOfWordsIsValid)
-    {
-        if (m_pLazyListOfWords) {
-            return *m_pLazyListOfWords;
-        }
-        else {
-            if (errorMessage) {
-                *errorMessage = "Internal error: note's list of words is marked as valid "
-                                "but it is null";
-                QNWARNING(*errorMessage);
-            }
-            return QStringList();
-        }
+    if (m_lazyListOfWordsIsValid) {
+        return m_lazyListOfWords;
     }
 
-    if (m_pLazyPlainText)
-    {
-        if (m_lazyPlainTextIsValid)
-        {
-            if (!m_pLazyListOfWords) {
-                m_pLazyListOfWords = new QStringList;
-            }
-
-            *m_pLazyListOfWords = ENMLConverter::plainTextToListOfWords(*m_pLazyPlainText);
-            m_lazyListOfWordsIsValid = true;
-            return *m_pLazyListOfWords;
-        }
+    if (m_lazyPlainTextIsValid) {
+        m_lazyListOfWords = ENMLConverter::plainTextToListOfWords(m_lazyPlainText);
+        m_lazyListOfWordsIsValid = true;
+        return m_lazyListOfWords;
     }
 
     // If still not returned, there's no plain text available so will get the list of words
     // from Note's content instead
 
-    if (!m_pLazyListOfWords) {
-        m_pLazyListOfWords = new QStringList;
-    }
-
-    if (!m_pLazyPlainText) {
-        m_pLazyPlainText = new QString;
-    }
-
     ENMLConverter converter;
     QString error;
-    bool res = converter.noteContentToListOfWords(m_qecNote.content.ref(), *m_pLazyListOfWords,
-                                                  error, m_pLazyPlainText);
+    bool res = converter.noteContentToListOfWords(m_qecNote.content.ref(), m_lazyListOfWords,
+                                                  error, &m_lazyPlainText);
     if (!res) {
         QNWARNING(error);
         if (errorMessage) {
@@ -919,7 +857,7 @@ QStringList Note::listOfWords(QString * errorMessage) const
 
     m_lazyPlainTextIsValid = true;
     m_lazyListOfWordsIsValid = true;
-    return *m_pLazyListOfWords;
+    return m_lazyListOfWords;
 }
 
 QTextStream & Note::Print(QTextStream & strm) const
@@ -1075,23 +1013,13 @@ QTextStream & Note::Print(QTextStream & strm) const
     strm << "hasShortcut = " << (hasShortcut() ? "true" : "false");
     INSERT_DELIMITER;
 
-    if (m_pLazyPlainText) {
-        strm << "lazyPlainText: " << *m_pLazyPlainText;
-    }
-    else {
-        strm << "lazyPlainText is null";
-    }
+    strm << "lazyPlainText: " << m_lazyPlainText;
     INSERT_DELIMITER;
 
     strm << "lazyPlainText is " << (m_lazyPlainTextIsValid ? "valid" : "invalid");
     INSERT_DELIMITER;
 
-    if (m_pLazyListOfWords) {
-        strm << "lazyListOfWords: " << m_pLazyListOfWords->join(",");
-    }
-    else {
-        strm << "lazyListOfWords is null";
-    }
+    strm << "lazyListOfWords: " << m_lazyListOfWords.join(",");
     INSERT_DELIMITER;
 
     strm << "lazyListOfWords is " << (m_lazyListOfWordsIsValid ? "valid" : "invalid");
