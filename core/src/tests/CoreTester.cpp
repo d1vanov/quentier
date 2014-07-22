@@ -176,6 +176,10 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         resource.setRecognitionDataSize(resource.recognitionDataBody().size());
         resource.setRecognitionDataHash("Fake hash      2");
 
+        resource.setAlternateDataBody("Fake alternate data body");
+        resource.setAlternateDataSize(resource.alternateDataBody().size());
+        resource.setAlternateDataHash("Fake hash      3");
+
         resource.setMime("text/plain");
         resource.setWidth(1);
         resource.setHeight(1);

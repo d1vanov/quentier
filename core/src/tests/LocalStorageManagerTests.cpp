@@ -371,6 +371,9 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     modifiedResource.setRecognitionDataBody(resource.recognitionDataBody() + "_modified");
     modifiedResource.setRecognitionDataSize(modifiedResource.recognitionDataBody().size());
     modifiedResource.setRecognitionDataHash("Fake hash      4");
+    modifiedResource.setAlternateDataBody(resource.alternateDataBody() + "_modified");
+    modifiedResource.setAlternateDataSize(modifiedResource.alternateDataBody().size());
+    modifiedResource.setAlternateDataHash("Fake hash      5");
 
     qevercloud::ResourceAttributes & resourceAttributes = modifiedResource.resourceAttributes();
 
@@ -415,6 +418,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
 
     modifiedResource.setDataBody(QByteArray());
     modifiedResource.setRecognitionDataBody(QByteArray());
+    modifiedResource.setAlternateDataBody(QByteArray());
 
     if (modifiedResource != foundResource) {
         errorDescription = "Updated and found in local storage resources without binary data don't match";

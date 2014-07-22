@@ -2750,6 +2750,9 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  recognitionDataBody             TEXT                 DEFAULT NULL, "
                      "  recognitionDataSize             INTEGER              DEFAULT NULL, "
                      "  recognitionDataHash             TEXT                 DEFAULT NULL, "
+                     "  alternateDataBody               TEXT                 DEFAULT NULL, "
+                     "  alternateDataSize               INTEGER              DEFAULT NULL, "
+                     "  alternateDataHash               TEXT                 DEFAULT NULL, "
                      "  resourceIndexInNote             INTEGER              DEFAULT NULL, "
                      "  UNIQUE(resourceLocalGuid, resourceGuid)"
                      ")");
@@ -2759,7 +2762,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "AS SELECT resourceLocalGuid, resourceGuid, noteLocalGuid, noteGuid, "
                      "resourceUpdateSequenceNumber, resourceIsDirty, dataSize, dataHash, "
                      "mime, width, height, recognitionDataSize, recognitionDataHash, "
-                     "resourceIndexInNote FROM Resources");
+                     "alternateDataSize, alternateDataHash, resourceIndexInNote FROM Resources");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourcesWithoutBinaryData view");
 
     res = query.exec("CREATE INDEX IF NOT EXISTS ResourceNote ON Resources(noteLocalGuid)");
@@ -4189,17 +4192,9 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
     CHECK_AND_INSERT_RESOURCE_PROPERTY(resourceGuid, hasGuid, guid);
     CHECK_AND_INSERT_RESOURCE_PROPERTY(noteGuid, hasNoteGuid, noteGuid);
 
-    bool hasData = resource.hasData();
-    bool hasAnyData = (hasData || resource.hasAlternateData());
-    if (hasAnyData)
-    {
-        const auto & dataBody = (hasData ? resource.dataBody() : resource.alternateDataBody());
+    if (resource.hasData()) {
         CHECK_AND_INSERT_RESOURCE_PROPERTY(dataBody, hasDataBody, dataBody);
-
-        const auto & dataSize = (hasData ? resource.dataSize() : resource.alternateDataSize());
         CHECK_AND_INSERT_RESOURCE_PROPERTY(dataSize, hasDataSize, dataSize, QString::number);
-
-        const auto & dataHash = (hasData ? resource.dataHash() : resource.alternateDataHash());
         CHECK_AND_INSERT_RESOURCE_PROPERTY(dataHash, hasDataHash, dataHash);
     }
 
@@ -4211,6 +4206,12 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
         CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataBody, hasRecognitionDataBody, recognitionDataBody);
         CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataSize, hasRecognitionDataSize, recognitionDataSize, QString::number);
         CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataHash, hasRecognitionDataHash, recognitionDataHash);
+    }
+
+    if (resource.hasAlternateData()) {
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(alternateDataBody, hasAlternateDataBody, alternateDataBody);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(alternateDataSize, hasAlternateDataSize, alternateDataSize, QString::number);
+        CHECK_AND_INSERT_RESOURCE_PROPERTY(alternateDataHash, hasAlternateDataHash, alternateDataHash);
     }
 
     CHECK_AND_INSERT_RESOURCE_PROPERTY(resourceUpdateSequenceNumber, hasUpdateSequenceNumber, updateSequenceNumber, QString::number);
@@ -4464,10 +4465,13 @@ void LocalStorageManagerPrivate::FillResourceFromSqlRecord(const QSqlRecord & re
     CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32, setRecognitionDataSize);
     CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QByteArray, QByteArray, setRecognitionDataHash);
     CHECK_AND_SET_RESOURCE_PROPERTY(resourceIndexInNote, int, int, setIndexInNote);
+    CHECK_AND_SET_RESOURCE_PROPERTY(alternateDataSize, int, qint32, setAlternateDataSize);
+    CHECK_AND_SET_RESOURCE_PROPERTY(alternateDataHash, QByteArray, QByteArray, setAlternateDataHash);
 
     if (withBinaryData) {
         CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataBody, QByteArray, QByteArray, setRecognitionDataBody);
         CHECK_AND_SET_RESOURCE_PROPERTY(dataBody, QByteArray, QByteArray, setDataBody);
+        CHECK_AND_SET_RESOURCE_PROPERTY(alternateDataBody, QByteArray, QByteArray, setAlternateDataBody);
     }
 
     qevercloud::ResourceAttributes localAttributes;
