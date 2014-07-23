@@ -108,8 +108,13 @@ public:
     QString plainText(QString * errorMessage = nullptr) const;
     QStringList listOfWords(QString * errorMessage = nullptr) const;
 
+    bool containsCheckedTodo() const;
+    bool containsUncheckedTodo() const;
+    bool containsTodo() const;
+
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
+    bool containsToDoImpl(const bool checked) const;
 
     qevercloud::Note m_qecNote;
 
@@ -137,6 +142,13 @@ private:
 
     mutable QStringList m_lazyListOfWords;
     mutable bool        m_lazyListOfWordsIsValid;
+
+    // these flags are int in order to handle the "empty" state:
+    // "-1" - empty, undefined
+    // "0" - false
+    // "1" - true
+    mutable int m_lazyContainsCheckedToDo;
+    mutable int m_lazyContainsUncheckedToDo;
 };
 
 } // namespace qute_note

@@ -125,6 +125,52 @@ void CoreTester::resourceRecognitionIndicesTest()
     CATCH_EXCEPTION();
 }
 
+void CoreTester::noteContainsToDoTest()
+{
+    try
+    {
+        QString noteContent = "<en-note><h1>Hello, world!</h1><en-todo checked = \"true\"/>"
+                              "Completed item<en-todo/>Not yet completed item</en-note>";
+        Note note;
+        note.setContent(noteContent);
+
+        QString error = "Wrong result of Note's containsToDo method";
+        QVERIFY2(note.containsCheckedTodo(), qPrintable(error));
+        QVERIFY2(note.containsUncheckedTodo(), qPrintable(error));
+        QVERIFY2(note.containsTodo(), qPrintable(error));
+
+        noteContent = "<en-note><h1>Hello, world!</h1><en-todo checked = \"true\"/>"
+                      "Completed item</en-note>";
+        note.setContent(noteContent);
+
+        QVERIFY2(note.containsCheckedTodo(), qPrintable(error));
+        QVERIFY2(!note.containsUncheckedTodo(), qPrintable(error));
+        QVERIFY2(note.containsTodo(), qPrintable(error));
+
+        noteContent = "<en-note><h1>Hello, world!</h1><en-todo/>Not yet completed item</en-note>";
+        note.setContent(noteContent);
+
+        QVERIFY2(!note.containsCheckedTodo(), qPrintable(error));
+        QVERIFY2(note.containsUncheckedTodo(), qPrintable(error));
+        QVERIFY2(note.containsTodo(), qPrintable(error));
+
+        noteContent = "<en-note><h1>Hello, world!</h1><en-todo checked = \"false\"/>Not yet completed item</en-note>";
+        note.setContent(noteContent);
+
+        QVERIFY2(!note.containsCheckedTodo(), qPrintable(error));
+        QVERIFY2(note.containsUncheckedTodo(), qPrintable(error));
+        QVERIFY2(note.containsTodo(), qPrintable(error));
+
+        noteContent = "<en-note><h1>Hello, world!</h1></en-note>";
+        note.setContent(noteContent);
+
+        QVERIFY2(!note.containsCheckedTodo(), qPrintable(error));
+        QVERIFY2(!note.containsUncheckedTodo(), qPrintable(error));
+        QVERIFY2(!note.containsTodo(), qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::localStorageManagerIndividualSavedSearchTest()
 {
     try

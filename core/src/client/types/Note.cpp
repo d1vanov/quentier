@@ -5,6 +5,7 @@
 #include "../Utility.h"
 #include <client/enml/ENMLConverter.h>
 #include <logging/QuteNoteLogger.h>
+#include <QDomDocument>
 
 namespace qute_note {
 
@@ -16,7 +17,9 @@ Note::Note() :
     m_lazyPlainText(),
     m_lazyPlainTextIsValid(false),
     m_lazyListOfWords(),
-    m_lazyListOfWordsIsValid(false)
+    m_lazyListOfWordsIsValid(false),
+    m_lazyContainsCheckedToDo(-1),
+    m_lazyContainsUncheckedToDo(-1)
 {}
 
 Note::Note(const qevercloud::Note & other) :
@@ -28,7 +31,9 @@ Note::Note(const qevercloud::Note & other) :
     m_lazyPlainText(),
     m_lazyPlainTextIsValid(false),
     m_lazyListOfWords(),
-    m_lazyListOfWordsIsValid(false)
+    m_lazyListOfWordsIsValid(false),
+    m_lazyContainsCheckedToDo(-1),
+    m_lazyContainsUncheckedToDo(-1)
 {}
 
 Note::Note(Note && other) :
@@ -40,7 +45,9 @@ Note::Note(Note && other) :
     m_lazyPlainText(),
     m_lazyPlainTextIsValid(other.m_lazyPlainTextIsValid),
     m_lazyListOfWords(),
-    m_lazyListOfWordsIsValid(false)
+    m_lazyListOfWordsIsValid(false),
+    m_lazyContainsCheckedToDo(other.m_lazyContainsCheckedToDo),
+    m_lazyContainsUncheckedToDo(other.m_lazyContainsUncheckedToDo)
 {
     m_lazyPlainText = other.m_lazyPlainText;
     other.m_lazyPlainText.clear();
@@ -64,7 +71,9 @@ Note::Note(qevercloud::Note && other) :
     m_lazyPlainText(),
     m_lazyPlainTextIsValid(false),
     m_lazyListOfWords(),
-    m_lazyListOfWordsIsValid(false)
+    m_lazyListOfWordsIsValid(false),
+    m_lazyContainsCheckedToDo(-1),
+    m_lazyContainsUncheckedToDo(-1)
 {}
 
 Note & Note::operator=(const qevercloud::Note & other)
@@ -72,6 +81,8 @@ Note & Note::operator=(const qevercloud::Note & other)
     m_qecNote = other;
     m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
     m_lazyListOfWordsIsValid = false;
+    m_lazyContainsCheckedToDo = -1;
+    m_lazyContainsUncheckedToDo = -1;
     return *this;
 }
 
@@ -96,6 +107,9 @@ Note & Note::operator=(Note && other)
 
         m_lazyListOfWordsIsValid = other.m_lazyListOfWordsIsValid;
         other.m_lazyListOfWordsIsValid = false;
+
+        m_lazyContainsCheckedToDo = other.m_lazyContainsCheckedToDo;
+        m_lazyContainsUncheckedToDo = other.m_lazyContainsUncheckedToDo;
     }
 
     return *this;
@@ -106,6 +120,8 @@ Note & Note::operator=(qevercloud::Note && other)
     m_qecNote = std::move(other);
     m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
     m_lazyListOfWordsIsValid = false;
+    m_lazyContainsCheckedToDo = -1;
+    m_lazyContainsUncheckedToDo = -1;
     return *this;
 }
 
@@ -166,6 +182,8 @@ void Note::clear()
     m_qecNote = qevercloud::Note();
     m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
     m_lazyListOfWordsIsValid = false;
+    m_lazyContainsCheckedToDo = -1;
+    m_lazyContainsUncheckedToDo = -1;
 }
 
 bool Note::checkParameters(QString & errorDescription) const
@@ -387,6 +405,8 @@ void Note::setContent(const QString & content)
     m_qecNote.content = content;
     m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
     m_lazyListOfWordsIsValid = false;
+    m_lazyContainsCheckedToDo = -1;
+    m_lazyContainsUncheckedToDo = -1;
 }
 
 bool Note::hasContentHash() const
@@ -860,6 +880,21 @@ QStringList Note::listOfWords(QString * errorMessage) const
     return m_lazyListOfWords;
 }
 
+bool Note::containsCheckedTodo() const
+{
+    return containsToDoImpl(/* checked = */ true);
+}
+
+bool Note::containsUncheckedTodo() const
+{
+    return containsToDoImpl(/* checked = */ false);
+}
+
+bool Note::containsTodo() const
+{
+    return (containsUncheckedTodo() || containsCheckedTodo());
+}
+
 QTextStream & Note::Print(QTextStream & strm) const
 {
     strm << "Note: { \n";
@@ -907,6 +942,16 @@ QTextStream & Note::Print(QTextStream & strm) const
         strm << "content is not set";
     }
     INSERT_DELIMITER;
+
+    if (m_lazyContainsCheckedToDo > (-1)) {
+        strm << "m_lazyContainsCheckedToDo = " << QString::number(m_lazyContainsCheckedToDo);
+        INSERT_DELIMITER;
+    }
+
+    if (m_lazyContainsUncheckedToDo > (-1)) {
+        strm << "m_lazyContainsUncheckedToDo = " << QString::number(m_lazyContainsUncheckedToDo);
+        INSERT_DELIMITER;
+    }
 
     if (m_qecNote.contentHash.isSet()) {
         strm << "contentHash: " << m_qecNote.contentHash;
@@ -1028,6 +1073,65 @@ QTextStream & Note::Print(QTextStream & strm) const
 #undef INSERT_DELIMITER
 
     return strm;
+}
+
+bool Note::containsToDoImpl(const bool checked) const
+{
+    int & refLazyContainsToDo = (checked ? m_lazyContainsCheckedToDo : m_lazyContainsUncheckedToDo);
+    if (refLazyContainsToDo > (-1)) {
+        if (refLazyContainsToDo == 0) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    if (!m_qecNote.content.isSet()) {
+        refLazyContainsToDo = 0;
+        return false;
+    }
+
+    QDomDocument enXmlDomDoc;
+    int errorLine = -1, errorColumn = -1;
+    QString errorMessage;
+    bool res = enXmlDomDoc.setContent(m_qecNote.content.ref(), &errorMessage, &errorLine, &errorColumn);
+    if (!res) {
+        // TRANSLATOR Explaining the error of XML parsing
+        errorMessage += QT_TR_NOOP(". Error happened at line ") +
+                        QString::number(errorLine) + QT_TR_NOOP(", at column ") +
+                        QString::number(errorColumn);
+        QNWARNING("Note content parsing error: " << errorMessage);
+        refLazyContainsToDo = 0;
+        return false;
+    }
+
+    QDomElement docElem = enXmlDomDoc.documentElement();
+    QDomNode nextNode = docElem.firstChild();
+    while (!nextNode.isNull())
+    {
+        QDomElement element = nextNode.toElement();
+        if (!element.isNull())
+        {
+            QString tagName = element.tagName();
+            if (tagName == "en-todo")
+            {
+                QString checkedStr = element.attribute("checked", "false");
+                if (checked && (checkedStr == "true")) {
+                    refLazyContainsToDo = 1;
+                    return true;
+                }
+                else if (!checked && (checkedStr == "false")) {
+                    refLazyContainsToDo = 1;
+                    return true;
+                }
+            }
+        }
+        nextNode = nextNode.nextSibling();
+    }
+
+    refLazyContainsToDo = 0;
+    return false;
 }
 
 } // namespace qute_note

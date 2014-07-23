@@ -17,6 +17,7 @@ private slots:
     void initTestCase();
 
     void resourceRecognitionIndicesTest();
+    void noteContainsToDoTest();
 
     void localStorageManagerIndividualSavedSearchTest();
     void localStorageManagerIndividualLinkedNotebookTest();
