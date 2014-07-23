@@ -8,14 +8,16 @@ IResource::IResource() :
     NoteStoreDataElement(),
     m_isFreeAccount(true),
     m_indexInNote(-1),
-    m_noteLocalGuid()
+    m_noteLocalGuid(),
+    m_lazyRecognitionIndices()
 {}
 
 IResource::IResource(const bool isFreeAccount) :
     NoteStoreDataElement(),
     m_isFreeAccount(isFreeAccount),
     m_indexInNote(-1),
-    m_noteLocalGuid()
+    m_noteLocalGuid(),
+    m_lazyRecognitionIndices()
 {}
 
 IResource::~IResource()
@@ -42,6 +44,7 @@ void IResource::clear()
 {
     setDirty(true);
     GetEnResource() = qevercloud::Resource();
+    m_lazyRecognitionIndices.clear();
 }
 
 bool IResource::hasGuid() const
@@ -456,8 +459,83 @@ const QByteArray & IResource::recognitionDataBody() const
 void IResource::setRecognitionDataBody(const QByteArray & body)
 {
     qevercloud::Resource & enResource = GetEnResource();
+    m_lazyRecognitionIndices.clear();
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(body.isEmpty(), recognition, body, size, bodyHash);
     enResource.recognition->body = body;
+}
+
+bool IResource::hasRecognitionIndex(const QString & recognitionIndex) const
+{
+    const qevercloud::Resource & enResource = GetEnResource();
+    if (!enResource.recognition.isSet()) {
+        return false;
+    }
+
+    if (!enResource.recognition->body.isSet()) {
+        return false;
+    }
+
+    if (m_lazyRecognitionIndices.isEmpty()) {
+        m_lazyRecognitionIndices = recognitionIndices();
+    }
+
+    return m_lazyRecognitionIndices.contains(recognitionIndex, Qt::CaseInsensitive);
+}
+
+const QStringList IResource::recognitionIndices() const
+{
+    if (!m_lazyRecognitionIndices.isEmpty()) {
+        return m_lazyRecognitionIndices;
+    }
+
+    const qevercloud::Resource & enResource = GetEnResource();
+    if (!enResource.recognition.isSet()) {
+        return QStringList();
+    }
+
+    if (!enResource.recognition->body.isSet()) {
+        return QStringList();
+    }
+
+    QString searchString = "docType=";
+    int searchStringSize = searchString.size();
+
+    QString simplifiedRecognitionBody(enResource.recognition->body.ref());
+    simplifiedRecognitionBody = simplifiedRecognitionBody.simplified();
+
+    int index = 0;
+    int size = simplifiedRecognitionBody.size();
+    while((index >= 0) && (index < size))
+    {
+        index = simplifiedRecognitionBody.indexOf(searchString, index, Qt::CaseInsensitive);
+        if ((index >= 0) && (index + searchStringSize < size))
+        {
+            int i = index + searchStringSize;
+            bool insideQuote = false;
+            QString word;
+            while (i < size)
+            {
+                QChar currentChar = simplifiedRecognitionBody.at(i);
+                if (currentChar == QChar('\"'))
+                {
+                    insideQuote = !insideQuote;
+                    if (!insideQuote) {
+                        m_lazyRecognitionIndices << word;
+                        break;
+                    }
+                }
+                else if (insideQuote) {
+                    word += currentChar;
+                }
+
+                ++i;
+            }
+
+            index = i;  // start from this index for the next search
+        }
+    }
+
+    return m_lazyRecognitionIndices;
 }
 
 bool IResource::hasAlternateData() const
@@ -564,7 +642,8 @@ IResource::IResource(const IResource & other) :
     NoteStoreDataElement(other),
     m_isFreeAccount(other.m_isFreeAccount),
     m_indexInNote(other.indexInNote()),
-    m_noteLocalGuid(other.m_noteLocalGuid)
+    m_noteLocalGuid(other.m_noteLocalGuid),
+    m_lazyRecognitionIndices(other.m_lazyRecognitionIndices)
 {}
 
 IResource & IResource::operator=(const IResource & other)
@@ -575,6 +654,7 @@ IResource & IResource::operator=(const IResource & other)
         setFreeAccount(other.m_isFreeAccount);
         setIndexInNote(other.m_indexInNote);
         setNoteLocalGuid(other.m_noteLocalGuid.isSet() ? other.m_noteLocalGuid.ref() : QString());
+        m_lazyRecognitionIndices = other.m_lazyRecognitionIndices;
     }
 
     return *this;
@@ -683,6 +763,9 @@ QTextStream & IResource::Print(QTextStream & strm) const
 
         if (enResource.recognition->body.isSet()) {
             strm << "recognitionDataBody is set; \n";
+            if (!m_lazyRecognitionIndices.isEmpty()) {
+                strm << "recognition indices: " << m_lazyRecognitionIndices.join("; ") << "; \n";
+            }
         }
         else {
             strm << "recognitionDataBody is not set; \n";

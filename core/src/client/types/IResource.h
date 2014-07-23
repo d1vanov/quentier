@@ -83,6 +83,9 @@ public:
     const QByteArray & recognitionDataBody() const;
     void setRecognitionDataBody(const QByteArray & body);
 
+    bool hasRecognitionIndex(const QString & recognitionIndex) const;
+    const QStringList recognitionIndices() const;
+
     bool hasAlternateData() const;
 
     bool hasAlternateDataHash() const;
@@ -119,6 +122,7 @@ private:
     bool m_isFreeAccount;
     int  m_indexInNote;
     qevercloud::Optional<QString> m_noteLocalGuid;
+    mutable QStringList m_lazyRecognitionIndices;
 };
 
 } // namespace qute_note

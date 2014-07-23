@@ -62,6 +62,69 @@ void CoreTester::initTestCase()
         QFAIL(qPrintable(QString("Caught exception: ") + QString(exception.what()))); \
     }
 
+void CoreTester::resourceRecognitionIndicesTest()
+{
+    try
+    {
+        QString recognitionData = "<recoIndex docType=\"unknown\" objType=\"image\" "
+                "objID=\"fc83e58282d8059be17debabb69be900\" engineVersion=\"5.5.22.7\" "
+                "recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\"> "
+                "<t w=\"87\">EVER ?</t> "
+                "</item> "
+                "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\"> "
+                "<t w=\"11\">et</t> "
+                "<t w=\"10\">TQ</t> "
+                "</item> "
+                "</recoIndex>]]>";
+
+        recognitionData += "<recoIndex docType=\"printed\" objType=\"image\" "
+                "objID=\"fc83e58282d8059be17debabb69be900\" engineVersion=\"5.5.22.7\" "
+                "recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\"> "
+                "<t w=\"87\">EVER ?</t> "
+                "</item> "
+                "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\"> "
+                "<t w=\"11\">et</t> "
+                "<t w=\"10\">TQ</t> "
+                "</item> "
+                "</recoIndex>]]>";
+
+        recognitionData += "<recoIndex docType=\"handwritten\" objType=\"image\" "
+                "objID=\"fc83e58282d8059be17debabb69be900\" engineVersion=\"5.5.22.7\" "
+                "recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\"> "
+                "<t w=\"87\">EVER ?</t> "
+                "</item> "
+                "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\"> "
+                "<t w=\"11\">et</t> "
+                "<t w=\"10\">TQ</t> "
+                "</item> "
+                "</recoIndex>]]>";
+
+        ResourceWrapper resource;
+        resource.setRecognitionDataBody(recognitionData.toUtf8());
+
+        QStringList recognitionIndices = resource.recognitionIndices();
+        QString error = "Recognition index not found";
+        QVERIFY2(recognitionIndices.contains("unknown", Qt::CaseInsensitive), qPrintable(error));
+        QVERIFY2(recognitionIndices.contains("printed", Qt::CaseInsensitive), qPrintable(error));
+        QVERIFY2(recognitionIndices.contains("handwritten", Qt::CaseInsensitive), qPrintable(error));
+
+        QVERIFY2(resource.hasRecognitionIndex("unknown"), qPrintable(error));
+        QVERIFY2(resource.hasRecognitionIndex("printed"), qPrintable(error));
+        QVERIFY2(resource.hasRecognitionIndex("handwritten"), qPrintable(error));
+
+        error = "Found non-existing recognition index";
+        QVERIFY2(!recognitionIndices.contains("picture", Qt::CaseInsensitive), qPrintable(error));
+        QVERIFY2(!recognitionIndices.contains("speech", Qt::CaseInsensitive), qPrintable(error));
+
+        QVERIFY2(!resource.hasRecognitionIndex("picture"), qPrintable(error));
+        QVERIFY2(!resource.hasRecognitionIndex("speech"), qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::localStorageManagerIndividualSavedSearchTest()
 {
     try
