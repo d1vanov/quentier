@@ -2802,14 +2802,14 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
                      "  localGuid             TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  guid                  TEXT                 DEFAULT NULL UNIQUE, "
-                     "  updateSequenceNumber  INTEGER              NOT NULL, "
-                     "  name                  TEXT                 NOT NULL, "
-                     "  nameUpper             TEXT                 NOT NULL, "
+                     "  updateSequenceNumber  INTEGER              DEFAULT NULL, "
+                     "  name                  TEXT                 DEFAULT NULL, "
+                     "  nameUpper             TEXT                 DEFAULT NULL UNIQUE, "
                      "  parentGuid            TEXT                 DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
-                     "  isDeleted             INTEGER              DEFAULT NULL, "
-                     "  hasShortcut           INTEGER              DEFAULT NULL "
+                     "  isDeleted             INTEGER              NOT NULL, "
+                     "  hasShortcut           INTEGER              NOT NULL "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Tags table");
 
@@ -4129,9 +4129,6 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
     errorDescription = QT_TR_NOOP("Can't insert or replace tag into local storage database: ");
 
     QString localGuid = (overrideLocalGuid.isEmpty() ? tag.localGuid() : overrideLocalGuid);
-    QString guid = tag.guid();
-    QString name = tag.name();
-    QString nameUpper = name.toUpper();
 
     QString columns = "localGuid, guid, updateSequenceNumber, name, nameUpper, parentGuid, "
                       "isDirty, isLocal, isDeleted, hasShortcut";
@@ -4146,16 +4143,18 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
     bool res = query.prepare(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't prepare SQL query to insert or replace tag into \"Tags\" table in SQL database");
 
+    QVariant nullValue;
+
     query.bindValue(":localGuid", localGuid);
-    query.bindValue(":guid", guid);
-    query.bindValue(":updateSequenceNumber", tag.updateSequenceNumber());
-    query.bindValue(":name", name);
-    query.bindValue(":nameUpper", nameUpper);
-    query.bindValue(":parentGuid", tag.hasParentGuid() ? tag.parentGuid() : QString());
-    query.bindValue(":isDirty", tag.isDirty() ? 1 : 0);
-    query.bindValue(":isLocal", tag.isLocal() ? 1 : 0);
-    query.bindValue(":isDeleted", tag.isDeleted() ? 1 : 0);
-    query.bindValue(":hasShortcut", tag.hasShortcut() ? 1 : 0);
+    query.bindValue(":guid", (tag.hasGuid() ? tag.guid() : nullValue));
+    query.bindValue(":updateSequenceNumber", (tag.hasUpdateSequenceNumber() ? tag.updateSequenceNumber() : nullValue));
+    query.bindValue(":name", (tag.hasName() ? tag.name() : nullValue));
+    query.bindValue(":nameUpper", (tag.hasName() ? tag.name().toUpper() : nullValue));
+    query.bindValue(":parentGuid", (tag.hasParentGuid() ? tag.parentGuid() : nullValue));
+    query.bindValue(":isDirty", (tag.isDirty() ? 1 : 0));
+    query.bindValue(":isLocal", (tag.isLocal() ? 1 : 0));
+    query.bindValue(":isDeleted", (tag.isDeleted() ? 1 : 0));
+    query.bindValue(":hasShortcut", (tag.hasShortcut() ? 1 : 0));
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace tag into \"Tags\" table in SQL database");
