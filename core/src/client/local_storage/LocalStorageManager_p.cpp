@@ -2739,12 +2739,12 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  resourceGuid                    TEXT                 DEFAULT NULL UNIQUE, "
                      "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  resourceUpdateSequenceNumber    INTEGER              NOT NULL, "
+                     "  resourceUpdateSequenceNumber    INTEGER              DEFAULT NULL, "
                      "  resourceIsDirty                 INTEGER              NOT NULL, "
-                     "  dataBody                        TEXT                 NOT NULL, "
-                     "  dataSize                        INTEGER              NOT NULL, "
-                     "  dataHash                        TEXT                 NOT NULL, "
-                     "  mime                            TEXT                 NOT NULL, "
+                     "  dataBody                        TEXT                 DEFAULT NULL, "
+                     "  dataSize                        INTEGER              DEFAULT NULL, "
+                     "  dataHash                        TEXT                 DEFAULT NULL, "
+                     "  mime                            TEXT                 DEFAULT NULL, "
                      "  width                           INTEGER              DEFAULT NULL, "
                      "  height                          INTEGER              DEFAULT NULL, "
                      "  recognitionDataBody             TEXT                 DEFAULT NULL, "
@@ -2778,7 +2778,6 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  cameraMake              TEXT                DEFAULT NULL, "
                      "  cameraModel             TEXT                DEFAULT NULL, "
                      "  clientWillIndex         INTEGER             DEFAULT NULL, "
-                     "  recoType                TEXT                DEFAULT NULL, "
                      "  fileName                TEXT                DEFAULT NULL, "
                      "  attachment              INTEGER             DEFAULT NULL, "
                      "  UNIQUE(resourceLocalGuid) "
@@ -4173,106 +4172,68 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
 
     errorDescription = QT_TR_NOOP("Can't insert or replace resource into local storage database: ");
 
-    QString columns, values;
+    QString columns = "resourceGuid, noteGuid, dataBody, dataSize, dataHash, mime, "
+                      "width, height, recognitionDataBody, recognitionDataSize, "
+                      "recognitionDataHash, alternateDataBody, alternateDataSize, "
+                      "alternateDataHash, resourceUpdateSequenceNumber, resourceIsDirty, "
+                      "resourceIndexInNote, resourceLocalGuid";
 
-#define CHECK_AND_INSERT_RESOURCE_PROPERTY(property, checker, getter, ...) \
-    if (resource.checker()) \
-    { \
-        if (!columns.isEmpty()) { \
-            columns.append(", "); \
-        } \
-        columns.append(#property); \
-        \
-        if (!values.isEmpty()) { \
-            values.append(", "); \
-        } \
-        values.append("\"" + __VA_ARGS__ (resource.getter()) + "\""); \
-    }
-
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(resourceGuid, hasGuid, guid);
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(noteGuid, hasNoteGuid, noteGuid);
-
-    if (resource.hasData()) {
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataBody, hasDataBody, dataBody);
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataSize, hasDataSize, dataSize, QString::number);
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(dataHash, hasDataHash, dataHash);
-    }
-
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(mime, hasMime, mime);
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(width, hasWidth, width, QString::number);
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(height, hasHeight, height, QString::number);
-
-    if (resource.hasRecognitionData()) {
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataBody, hasRecognitionDataBody, recognitionDataBody);
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataSize, hasRecognitionDataSize, recognitionDataSize, QString::number);
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(recognitionDataHash, hasRecognitionDataHash, recognitionDataHash);
-    }
-
-    if (resource.hasAlternateData()) {
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(alternateDataBody, hasAlternateDataBody, alternateDataBody);
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(alternateDataSize, hasAlternateDataSize, alternateDataSize, QString::number);
-        CHECK_AND_INSERT_RESOURCE_PROPERTY(alternateDataHash, hasAlternateDataHash, alternateDataHash);
-    }
-
-    CHECK_AND_INSERT_RESOURCE_PROPERTY(resourceUpdateSequenceNumber, hasUpdateSequenceNumber, updateSequenceNumber, QString::number);
-
-#undef CHECK_AND_INSERT_RESOURCE_PROPERTY
-
-    if (!columns.isEmpty()) {
-        columns.append(", ");
-    }
-    columns.append("resourceIsDirty");
-
-    if (!values.isEmpty()) {
-        values.append(", ");
-    }
-    values.append(QString::number(resource.isDirty() ? 1 : 0));
-
-    int indexInNote = resource.indexInNote();
-    if (indexInNote >= 0) {
-        columns.append(", resourceIndexInNote");
-        values.append(", " + QString::number(indexInNote));
-    }
-
-    columns.append(", resourceLocalGuid");
-    QString resourceLocalGuid = (overrideResourceLocalGuid.isEmpty()
-                                 ? resource.localGuid() : overrideResourceLocalGuid);
-    values.append(", \"" + resourceLocalGuid + "\"");
+    QString values = ":resourceGuid, :noteGuid, :dataBody, :dataSize, :dataHash, :mime, "
+                     ":width, :height, :recognitionDataBody, :recognitionDataSize, "
+                     ":recognitionDataHash, :alternateDataBody, :alternateDataSize, "
+                     ":alternateDataHash, :resourceUpdateSequenceNumber, :resourceIsDirty, "
+                     ":resourceIndexInNote, :resourceLocalGuid";
 
     QSqlQuery query(m_sqlDatabase);
     QString queryString = QString("INSERT OR REPLACE INTO Resources (%1) VALUES(%2)").arg(columns).arg(values);
-    bool res = query.exec(queryString);
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database, "
+                                 "can't prepare SQL query");
+
+    QString resourceLocalGuid = (overrideResourceLocalGuid.isEmpty()
+                                 ? resource.localGuid() : overrideResourceLocalGuid);
+
+    QVariant nullValue;
+
+    query.bindValue(":resourceGuid", (resource.hasGuid() ? resource.guid() : nullValue));
+    query.bindValue(":noteGuid", (resource.hasNoteGuid() ? resource.noteGuid() : nullValue));
+    query.bindValue(":dataBody", (resource.hasDataBody() ? resource.dataBody() : nullValue));
+    query.bindValue(":dataSize", (resource.hasDataSize() ? resource.dataSize() : nullValue));
+    query.bindValue(":dataHash", (resource.hasDataHash() ? resource.dataHash() : nullValue));
+    query.bindValue(":mime", (resource.hasMime() ? resource.mime() : nullValue));
+    query.bindValue(":width", (resource.hasWidth() ? resource.width() : nullValue));
+    query.bindValue(":height", (resource.hasHeight() ? resource.height() : nullValue));
+    query.bindValue(":recognitionDataBody", (resource.hasRecognitionDataBody() ? resource.recognitionDataBody() : nullValue));
+    query.bindValue(":recognitionDataSize", (resource.hasRecognitionDataSize() ? resource.recognitionDataSize() : nullValue));
+    query.bindValue(":recognitionDataHash", (resource.hasRecognitionDataHash() ? resource.recognitionDataHash() : nullValue));
+    query.bindValue(":alternateDataBody", (resource.hasAlternateDataBody() ? resource.alternateDataBody() : nullValue));
+    query.bindValue(":alternateDataSize", (resource.hasAlternateDataSize() ? resource.alternateDataSize() : nullValue));
+    query.bindValue(":alternateDataHash", (resource.hasAlternateDataHash() ? resource.alternateDataHash() : nullValue));
+    query.bindValue(":resourceUpdateSequenceNumber", (resource.hasUpdateSequenceNumber() ? resource.updateSequenceNumber() : nullValue));
+    query.bindValue(":resourceIsDirty", (resource.isDirty() ? 1 : 0));
+    query.bindValue(":resourceIndexInNote", resource.indexInNote());
+    query.bindValue(":resourceLocalGuid", resourceLocalGuid);
+
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database");
+
+    columns = "localNote, note, localResource, resource";
+    values = ":localNote, :note, :localResource, :resource";
+    queryString = QString("INSERT OR REPLACE INTO NoteResources (%1) VALUES(%2)")
+                          .arg(columns).arg(values);
+    res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database, "
+                                 "can't prepare SQL query");
 
     QString noteLocalGuid = (overrideNoteLocalGuid.isEmpty()
                              ? note.localGuid() : overrideNoteLocalGuid);
 
-    QString noteColumns, noteValues;
-    if (!noteLocalGuid.isEmpty()) {
-        noteColumns += "localNote";
-        noteValues += "'" + noteLocalGuid + "'";
-    }
+    query.bindValue(":localNote", (noteLocalGuid.isEmpty() ? nullValue : noteLocalGuid));
+    query.bindValue(":note", (note.hasGuid() ? note.guid() : nullValue));
+    query.bindValue(":localResource", resourceLocalGuid);
+    query.bindValue(":resource", (resource.hasGuid() ? resource.guid() : nullValue));
 
-    if (note.hasGuid()) {
-        if (!noteColumns.isEmpty()) {
-            noteColumns += ", ";
-            noteValues += ", ";
-        }
-
-        noteColumns += "note";
-        noteValues += "'" + note.guid() + "'";
-    }
-
-    QString resourceColumns = "localResource";
-    QString resourceValues = "'" + resourceLocalGuid + "'";
-    if (resource.hasGuid()) {
-        resourceColumns += ", resource";
-        resourceValues += ", '" + resource.guid() + "'";
-    }
-
-    queryString = QString("INSERT OR REPLACE INTO NoteResources (%1, %2) VALUES(%3, %4)")
-                          .arg(noteColumns).arg(resourceColumns).arg(noteValues).arg(resourceValues);
-    res = query.exec(queryString);
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database");
 
     if (resource.hasResourceAttributes())
@@ -4291,62 +4252,34 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
                                                                    const qevercloud::ResourceAttributes & attributes,
                                                                    QString & errorDescription)
 {
-    QString columns = "resourceLocalGuid";
-    QString valuesString = ":resourceLocalGuid";
+    QString columns = "resourceLocalGuid, resourceSourceURL, timestamp, resourceLatitude, "
+                      "resourceLongitude, resourceAltitude, cameraMake, cameraModel, "
+                      "clientWillIndex, fileName, attachment";
 
-#define CHECK_AND_ADD_COLUMN_AND_VALUE(name, property) \
-    bool has##name = attributes.property.isSet(); \
-    if (has##name) { \
-        columns.append(", " #name); \
-        valuesString.append(", :" #name); \
-    }
-
-    CHECK_AND_ADD_COLUMN_AND_VALUE(resourceSourceURL, sourceURL);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(timestamp, timestamp);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(resourceLatitude, latitude);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(resourceLongitude, longitude);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(resourceAltitude, altitude);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(cameraMake, cameraMake);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(cameraModel, cameraModel);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(clientWillIndex, clientWillIndex);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(recoType, recoType);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(fileName, fileName);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(attachment, attachment);
-
-#undef CHECK_AND_ADD_COLUMN_AND_VALUE
+    QString values = ":resourceLocalGuid, :resourceSourceURL, :timestamp, :resourceLatitude, "
+                     ":resourceLongitude, :resourceAltitude, :cameraMake, :cameraModel, "
+                     ":clientWillIndex, :fileName, :attachment";
 
     QString queryString = QString("INSERT OR REPLACE INTO ResourceAttributes(%1) VALUES(%2)")
-                                  .arg(columns).arg(valuesString);
+                                  .arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't prepare SQL query");
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database, "
+                                 "can't prepare SQL query");
 
-#define CHECK_AND_BIND_VALUE(name, property) \
-    if (has##name) { \
-        query.bindValue(":" #name, attributes.property.ref()); \
-    }
-
-    CHECK_AND_BIND_VALUE(resourceSourceURL, sourceURL);
-    CHECK_AND_BIND_VALUE(timestamp, timestamp);
-    CHECK_AND_BIND_VALUE(resourceLatitude, latitude);
-    CHECK_AND_BIND_VALUE(resourceLongitude, longitude);
-    CHECK_AND_BIND_VALUE(resourceAltitude, altitude);
-    CHECK_AND_BIND_VALUE(cameraMake, cameraMake);
-    CHECK_AND_BIND_VALUE(cameraModel, cameraModel);
-    CHECK_AND_BIND_VALUE(recoType, recoType);
-    CHECK_AND_BIND_VALUE(fileName, fileName);
-
-#undef CHECK_AND_BIND_VALUE
-
-    if (hasattachment) {
-        query.bindValue(":attachment", (attributes.attachment.ref() ? 1 : 0));
-    }
-
-    if (hasclientWillIndex) {
-        query.bindValue(":clientWillIndex", (attributes.clientWillIndex.ref() ? 1 : 0));
-    }
+    QVariant nullValue;
 
     query.bindValue(":resourceLocalGuid", localGuid);
+    query.bindValue(":resourceSourceURL", (attributes.sourceURL.isSet() ? attributes.sourceURL.ref() : nullValue));
+    query.bindValue(":timestamp", (attributes.timestamp.isSet() ? attributes.timestamp.ref() : nullValue));
+    query.bindValue(":resourceLatitude", (attributes.latitude.isSet() ? attributes.latitude.ref() : nullValue));
+    query.bindValue(":resourceLongitude", (attributes.longitude.isSet() ? attributes.longitude.ref() : nullValue));
+    query.bindValue(":resourceAltitude", (attributes.altitude.isSet() ? attributes.altitude.ref() : nullValue));
+    query.bindValue(":cameraMake", (attributes.cameraMake.isSet() ? attributes.cameraMake.ref() : nullValue));
+    query.bindValue(":cameraModel", (attributes.cameraModel.isSet() ? attributes.cameraModel.ref() : nullValue));
+    query.bindValue(":clientWillIndex", (attributes.clientWillIndex.isSet() ? (attributes.clientWillIndex.ref() ? 1 : 0) : nullValue));
+    query.bindValue(":fileName", (attributes.fileName.isSet() ? attributes.fileName.ref() : nullValue));
+    query.bindValue(":attachment", (attributes.attachment.isSet() ? (attributes.attachment.ref() ? 1 : 0) : nullValue));
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
@@ -4412,18 +4345,20 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & 
         return false;
     }
 
+    QVariant nullValue;
+
     query.bindValue(":localGuid", (overrideLocalGuid.isEmpty()
                                    ? search.localGuid()
                                    : overrideLocalGuid));
-    query.bindValue(":guid", (search.hasGuid() ? search.guid() : QVariant()));
-    query.bindValue(":name", (search.hasName() ? search.name() : QVariant()));
-    query.bindValue(":nameUpper", (search.hasName() ? search.name().toUpper() : QVariant()));
+    query.bindValue(":guid", (search.hasGuid() ? search.guid() : nullValue));
+    query.bindValue(":name", (search.hasName() ? search.name() : nullValue));
+    query.bindValue(":nameUpper", (search.hasName() ? search.name().toUpper() : nullValue));
 
-    query.bindValue(":query", (search.hasQuery() ? search.query() : QVariant()));
-    query.bindValue(":format", (search.hasQueryFormat() ? search.queryFormat() : QVariant()));
+    query.bindValue(":query", (search.hasQuery() ? search.query() : nullValue));
+    query.bindValue(":format", (search.hasQueryFormat() ? search.queryFormat() : nullValue));
     query.bindValue(":updateSequenceNumber", (search.hasUpdateSequenceNumber()
                                               ? search.updateSequenceNumber()
-                                              : QVariant()));
+                                              : nullValue));
     query.bindValue(":isDirty", (search.isDirty() ? 1 : 0));
     query.bindValue(":includeAccount", (search.includeAccount() ? 1 : 0));
     query.bindValue(":includePersonalLinkedNotebooks", (search.includePersonalLinkedNotebooks() ? 1 : 0));
@@ -4512,7 +4447,6 @@ bool LocalStorageManagerPrivate::FillResourceAttributesFromSqlRecord(const QSqlR
     CHECK_AND_SET_RESOURCE_ATTRIBUTE(cameraMake, cameraMake, QString, QString);
     CHECK_AND_SET_RESOURCE_ATTRIBUTE(cameraModel, cameraModel, QString, QString);
     CHECK_AND_SET_RESOURCE_ATTRIBUTE(clientWillIndex, clientWillIndex, int, bool);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(recoType, recoType, QString, QString);
     CHECK_AND_SET_RESOURCE_ATTRIBUTE(fileName, fileName, QString, QString);
     CHECK_AND_SET_RESOURCE_ATTRIBUTE(attachment, attachment, int, bool);
 

@@ -162,7 +162,6 @@ void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(QSharedPointer<N
         attributes.cameraMake = "Fake resource camera make";
         attributes.cameraModel = "Fake resource camera model";
         attributes.fileName = "Fake resource file name";
-        attributes.recoType = "unknown";
 
         attributes.applicationData = qevercloud::LazyMap();
         qevercloud::LazyMap & appData = attributes.applicationData.ref();
