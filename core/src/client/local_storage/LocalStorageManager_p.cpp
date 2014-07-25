@@ -2846,11 +2846,11 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
                      "  localGuid                       TEXT PRIMARY KEY    NOT NULL UNIQUE, "
                      "  guid                            TEXT                DEFAULT NULL UNIQUE, "
-                     "  name                            TEXT                NOT NULL, "
-                     "  nameUpper                       TEXT                NOT NULL UNIQUE, "
-                     "  query                           TEXT                NOT NULL, "
-                     "  format                          INTEGER             NOT NULL, "
-                     "  updateSequenceNumber            INTEGER             NOT NULL, "
+                     "  name                            TEXT                DEFAULT NULL, "
+                     "  nameUpper                       TEXT                DEFAULT NULL UNIQUE, "
+                     "  query                           TEXT                DEFAULT NULL, "
+                     "  format                          INTEGER             DEFAULT NULL, "
+                     "  updateSequenceNumber            INTEGER             DEFAULT NULL, "
                      "  isDirty                         INTEGER             NOT NULL, "
                      "  includeAccount                  INTEGER             NOT NULL, "
                      "  includePersonalLinkedNotebooks  INTEGER             NOT NULL, "
@@ -4415,15 +4415,15 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & 
     query.bindValue(":localGuid", (overrideLocalGuid.isEmpty()
                                    ? search.localGuid()
                                    : overrideLocalGuid));
-    query.bindValue(":guid", search.guid());
+    query.bindValue(":guid", (search.hasGuid() ? search.guid() : QVariant()));
+    query.bindValue(":name", (search.hasName() ? search.name() : QVariant()));
+    query.bindValue(":nameUpper", (search.hasName() ? search.name().toUpper() : QVariant()));
 
-    QString searchName = search.name();
-    query.bindValue(":name", searchName);
-    query.bindValue(":nameUpper", searchName.toUpper());
-
-    query.bindValue(":query", search.query());
-    query.bindValue(":format", search.queryFormat());
-    query.bindValue(":updateSequenceNumber", search.updateSequenceNumber());
+    query.bindValue(":query", (search.hasQuery() ? search.query() : QVariant()));
+    query.bindValue(":format", (search.hasQueryFormat() ? search.queryFormat() : QVariant()));
+    query.bindValue(":updateSequenceNumber", (search.hasUpdateSequenceNumber()
+                                              ? search.updateSequenceNumber()
+                                              : QVariant()));
     query.bindValue(":isDirty", (search.isDirty() ? 1 : 0));
     query.bindValue(":includeAccount", (search.includeAccount() ? 1 : 0));
     query.bindValue(":includePersonalLinkedNotebooks", (search.includePersonalLinkedNotebooks() ? 1 : 0));
