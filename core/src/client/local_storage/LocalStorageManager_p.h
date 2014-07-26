@@ -95,13 +95,10 @@ private:
     LocalStorageManagerPrivate & operator=(const LocalStorageManagerPrivate & other) = delete;
 
     bool CreateTables(QString & errorDescription);
-    bool InsertOrReplaceNotebookAdditionalAttributes(const Notebook & notebook,
-                                                     const QString & overrideLocalGuid,
-                                                     QString & errorDescription);
     bool InsertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
                                              const QString & localGuid, QString & errorDescription);
-    bool SetSharedNotebookAttributes(const ISharedNotebook &sharedNotebook,
-                                     QString & errorDescription);
+    bool InsertOrReplaceSharedNotebook(const ISharedNotebook & sharedNotebook,
+                                       QString & errorDescription);
 
     bool RowExists(const QString & tableName, const QString & uniqueKeyName,
                    const QVariant & uniqueKeyValue) const;
