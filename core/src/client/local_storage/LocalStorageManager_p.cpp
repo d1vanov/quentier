@@ -2599,10 +2599,10 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
                      "  localGuid                       TEXT PRIMARY KEY  NOT NULL UNIQUE, "
                      "  guid                            TEXT              DEFAULT NULL UNIQUE, "
-                     "  updateSequenceNumber            INTEGER           NOT NULL, "
-                     "  notebookName                    TEXT              NOT NULL, "
-                     "  creationTimestamp               INTEGER           NOT NULL, "
-                     "  modificationTimestamp           INTEGER           NOT NULL, "
+                     "  updateSequenceNumber            INTEGER           DEFAULT NULL, "
+                     "  notebookName                    TEXT              DEFAULT NULL, "
+                     "  creationTimestamp               INTEGER           DEFAULT NULL, "
+                     "  modificationTimestamp           INTEGER           DEFAULT NULL, "
                      "  isDirty                         INTEGER           NOT NULL, "
                      "  isLocal                         INTEGER           NOT NULL, "
                      "  isDefault                       INTEGER           DEFAULT NULL UNIQUE, "
@@ -3594,94 +3594,60 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, 
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebook,
-                                                  const QString & overrideLocalGuid,
-                                                  QString & errorDescription)
+                                                         const QString & overrideLocalGuid,
+                                                         QString & errorDescription)
 {
     // NOTE: this method expects to be called after notebook is already checked
     // for sanity of its parameters!
 
     errorDescription = QT_TR_NOOP("Can't insert or replace notebook into local storage database: ");
 
-    QString columns, values;
+    QString columns = "localGuid, guid, updateSequenceNumber, notebookName, creationTimestamp, "
+                      "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed, "
+                      "hasShortcut, publishingUri, publishingNoteSortOrder, publishingAscendingSort, "
+                      "publicDescription, isPublished, stack, businessNotebookDescription, "
+                      "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, contactId";
 
-#define APPEND_COLUMN_VALUE(checker, name, ...) \
-    if (notebook.checker()) { \
-        if (!columns.isEmpty()) { \
-            columns += ", "; \
-        } \
-        columns += #name; \
-        if (!values.isEmpty()) { \
-            values += ", "; \
-        } \
-        values += "'" + __VA_ARGS__ (notebook.name()) + "'"; \
-    }
+    QString values = ":localGuid, :guid, :updateSequenceNumber, :notebookName, :creationTimestamp, "
+                     ":modificationTimestamp, :isDirty, :isLocal, :isDefault, :isLastUsed, "
+                     ":hasShortcut, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
+                     ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
+                     ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId";
 
-    APPEND_COLUMN_VALUE(hasGuid, guid);
-    APPEND_COLUMN_VALUE(hasUpdateSequenceNumber, updateSequenceNumber, QString::number);
-    APPEND_COLUMN_VALUE(hasCreationTimestamp, creationTimestamp, QString::number);
-    APPEND_COLUMN_VALUE(hasModificationTimestamp, modificationTimestamp, QString::number);
-    APPEND_COLUMN_VALUE(hasPublished, isPublished, QString::number);
-    APPEND_COLUMN_VALUE(hasStack, stack);
-
-#undef APPEND_COLUMN_VALUE
-
-    if (notebook.hasName()) {
-        if (!columns.isEmpty()) {
-            columns += ", ";
-        }
-        columns += "notebookName";
-        if (!values.isEmpty()) {
-            values += ", ";
-        }
-        values += "'" + notebook.name() + "'";
-    }
-
-    if (notebook.hasContact()) {
-        UserAdapter contact = notebook.contact();
-        if (!columns.isEmpty()) {
-            columns += ", ";
-        }
-        columns += "contact";
-        if (!values.isEmpty()) {
-            values += ", ";
-        }
-        values += QString::number(contact.id());
-    }
-
-    if (notebook.isDefaultNotebook()) {
-        if (!columns.isEmpty()) {
-            columns += ", ";
-        }
-        columns += "isDefault";
-        if (!values.isEmpty()) {
-            values += ", ";
-        }
-        values += QString::number(1);
-    }
-
-    if (notebook.isLastUsed()) {
-        if (!columns.isEmpty()) {
-            columns += ", ";
-        }
-        columns += "isLastUsed";
-        if (!values.isEmpty()) {
-            values += ", ";
-        }
-        values += QString::number(1);
-    }
+    QString queryString = QString("INSERT OR REPLACE INTO Notebooks(%1) VALUES(%2)").arg(columns).arg(values);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Notebooks\" table of SQL database: "
+                                 "can't prepare SQL query");
 
     QString localGuid = (overrideLocalGuid.isEmpty() ? notebook.localGuid() : overrideLocalGuid);
-    QString isDirty = QString::number(notebook.isDirty() ? 1 : 0);
-    QString isLocal = QString::number(notebook.isLocal() ? 1 : 0);
-    QString hasShortcut = QString::number(notebook.hasShortcut() ? 1 : 0);
 
-    QString queryString = QString("INSERT OR REPLACE INTO Notebooks (%1, localGuid, "
-                                  "isDirty, isLocal, hasShortcut) VALUES(%2, '%3', %4, %5, %6)")
-                                  .arg(columns).arg(values).arg(localGuid).arg(isDirty).arg(isLocal).arg(hasShortcut);
+    QVariant nullValue;
 
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook into \"Notebooks\" table in SQL database");
+    query.bindValue(":localGuid", localGuid);
+    query.bindValue(":guid", (notebook.hasGuid() ? notebook.guid() : nullValue));
+    query.bindValue(":updateSequenceNumber", (notebook.hasUpdateSequenceNumber() ? notebook.updateSequenceNumber() : nullValue));
+    query.bindValue(":notebookName", (notebook.hasName() ? notebook.name() : nullValue));
+    query.bindValue(":creationTimestamp", (notebook.hasCreationTimestamp() ? notebook.creationTimestamp() : nullValue));
+    query.bindValue(":modificationTimestamp", (notebook.hasModificationTimestamp() ? notebook.modificationTimestamp() : nullValue));
+    query.bindValue(":isDirty", (notebook.isDirty() ? 1 : 0));
+    query.bindValue(":isLocal", (notebook.isLocal() ? 1 : 0));
+    query.bindValue(":isDefault", (notebook.isDefaultNotebook() ? 1 : nullValue));
+    query.bindValue(":isLastUsed", (notebook.isLastUsed() ? 1 : nullValue));
+    query.bindValue(":hasShortcut", (notebook.hasShortcut() ? 1 : 0));
+    query.bindValue(":publishingUri", (notebook.hasPublishingUri() ? notebook.publishingUri() : nullValue));
+    query.bindValue(":publishingNoteSortOrder", (notebook.hasPublishingOrder() ? notebook.publishingOrder() : nullValue));
+    query.bindValue(":publishingAscendingSort", (notebook.hasPublishingAscending() ? (notebook.isPublishingAscending() ? 1 : 0) : nullValue));
+    query.bindValue(":publicDescription", (notebook.hasPublishingPublicDescription() ? notebook.publishingPublicDescription() : nullValue));
+    query.bindValue(":isPublished", (notebook.hasPublished() ? (notebook.isPublished() ? 1 : 0) : nullValue));
+    query.bindValue(":stack", (notebook.hasStack() ? notebook.stack() : nullValue));
+    query.bindValue(":businessNotebookDescription", (notebook.hasBusinessNotebookDescription() ? notebook.businessNotebookDescription() : nullValue));
+    query.bindValue(":businessNotebookPrivilegeLevel", (notebook.hasBusinessNotebookPrivilegeLevel() ? notebook.businessNotebookPrivilegeLevel() : nullValue));
+    query.bindValue(":businessNotebookIsRecommended", (notebook.hasBusinessNotebookRecommended() ? (notebook.isBusinessNotebookRecommended() ? 1 : 0) : nullValue));
+    query.bindValue(":contactId", (notebook.hasContact() && notebook.contact().hasId() ? notebook.contact().id() : nullValue));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Notebooks\" table in SQL database");
 
     return InsertOrReplaceNotebookAdditionalAttributes(notebook, overrideLocalGuid, errorDescription);
 }
