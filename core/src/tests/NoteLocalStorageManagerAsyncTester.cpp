@@ -145,7 +145,7 @@ void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count)
         }
 
         m_pModifiedNote->setLocal(false);
-        m_pModifiedNote->setDeleted(true);
+        m_pModifiedNote->setActive(false);
         m_pModifiedNote->setDeletionTimestamp(3);
         m_state = STATE_SENT_DELETE_REQUEST;
         emit deleteNoteRequest(m_pModifiedNote);

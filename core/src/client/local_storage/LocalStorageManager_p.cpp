@@ -1500,9 +1500,10 @@ bool LocalStorageManagerPrivate::DeleteNote(const Note & note, QString & errorDe
         guid = note.localGuid();
     }
 
-    if (!note.isDeleted()) {
+    if (!note.hasActive() || note.active()) {
         errorDescription += QT_TR_NOOP("note to be marked as deleted in local storage "
-                                       "does not have corresponding mark, rejecting to mark it deleted");
+                                       "does not have corresponding \"active\" mark set to false, "
+                                       "rejecting to mark it deleted");
         QNWARNING(errorDescription);
         return false;
     }
@@ -1514,7 +1515,7 @@ bool LocalStorageManagerPrivate::DeleteNote(const Note & note, QString & errorDe
         return false;
     }
 
-    QString queryString = QString("UPDATE Notes SET isDeleted=1, isDirty=1, deletionTimestamp=%1 WHERE %2 = '%3'")
+    QString queryString = QString("UPDATE Notes SET isActive=0, isDirty=1, deletionTimestamp=%1 WHERE %2 = '%3'")
                                   .arg(note.deletionTimestamp()).arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -1552,8 +1553,8 @@ bool LocalStorageManagerPrivate::ExpungeNote(const Note & note, QString & errorD
         return false;
     }
 
-    if (!note.isDeleted()) {
-        errorDescription += QT_TR_NOOP("note to be expunged from local storage is not marked deleted, "
+    if (!note.hasActive() || note.active()) {
+        errorDescription += QT_TR_NOOP("note to be expunged from local storage is not marked non-active, "
                                        "expunging non-deleted notes is not allowed");
         QNWARNING(errorDescription);
         return false;
@@ -2688,20 +2689,21 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS Notes("
                      "  localGuid               TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  guid                    TEXT                 DEFAULT NULL UNIQUE, "
-                     "  updateSequenceNumber    INTEGER              NOT NULL, "
+                     "  updateSequenceNumber    INTEGER              DEFAULT NULL, "
                      "  isDirty                 INTEGER              NOT NULL, "
                      "  isLocal                 INTEGER              NOT NULL, "
-                     "  isDeleted               INTEGER              DEFAULT NULL, "
-                     "  hasShortcut             INTEGER              DEFAULT NULL, "
-                     "  title                   TEXT                 NOT NULL, "
-                     "  content                 TEXT                 NOT NULL, "
-                     "  contentPlainText        TEXT                 NOT NULL, "
-                     "  contentListOfWords      TEXT                 NOT NULL, "
-                     "  creationTimestamp       INTEGER              NOT NULL, "
-                     "  modificationTimestamp   INTEGER              NOT NULL, "
+                     "  hasShortcut             INTEGER              NOT NULL, "
+                     "  title                   TEXT                 DEFAULT NULL, "
+                     "  content                 TEXT                 DEFAULT NULL, "
+                     "  contentLength           INTEGER              DEFAULT NULL, "
+                     "  contentHash             TEXT                 DEFAULT NULL, "
+                     "  contentPlainText        TEXT                 DEFAULT NULL, "
+                     "  contentListOfWords      TEXT                 DEFAULT NULL, "
+                     "  creationTimestamp       INTEGER              DEFAULT NULL, "
+                     "  modificationTimestamp   INTEGER              DEFAULT NULL, "
                      "  deletionTimestamp       INTEGER              DEFAULT NULL, "
                      "  isActive                INTEGER              DEFAULT NULL, "
-                     "  hasAttributes           INTEGER              DEFAULT NULL, "
+                     "  hasAttributes           INTEGER              NOT NULL, "
                      "  thumbnail               BLOB                 DEFAULT NULL, "
                      "  notebookLocalGuid REFERENCES Notebooks(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
@@ -3566,204 +3568,114 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
 
     errorDescription += QT_TR_NOOP("can't insert or replace note into local storage database: ");
 
-    QImage thumbnail = note.getThumbnail();
-    bool thumbnailIsNull = thumbnail.isNull();
+    QString columns = "localGuid, guid, updateSequenceNumber, isDirty, isLocal, "
+                      "hasShortcut, title, content, contentLength, contentHash, "
+                      "contentPlainText, contentListOfWords, creationTimestamp, "
+                      "modificationTimestamp, deletionTimestamp, isActive, hasAttributes, "
+                      "thumbnail, notebookLocalGuid, notebookGuid, subjectDate, latitude, "
+                      "longitude, altitude, author, source, sourceURL, sourceApplication, "
+                      "shareDate, reminderOrder, reminderDoneTime, reminderTime, placeName, "
+                      "contentClass, lastEditedBy, creatorId, lastEditorId, "
+                      "applicationDataKeysOnly, applicationDataKeysMap, "
+                      "applicationDataValues, classificationKeys, classificationValues";
 
-    // ========= Creating and executing "insert or replace" query for Notes table
-    QString columns = "localGuid, updateSequenceNumber, title, isDirty, isLocal, isDeleted, "
-                      "hasShortcut, content, contentPlainText, contentListOfWords, "
-                      "creationTimestamp, modificationTimestamp, hasAttributes";
-    bool noteHasGuid = note.hasGuid();
-    if (noteHasGuid) {
-        columns.append(", guid");
-    }
+    QString values = ":localGuid, :guid, :updateSequenceNumber, :isDirty, :isLocal, "
+                     ":hasShortcut, :title, :content, :contentLength, :contentHash, "
+                     ":contentPlainText, :contentListOfWords, :creationTimestamp, "
+                     ":modificationTimestamp, :deletionTimestamp, :isActive, :hasAttributes, "
+                     ":thumbnail, :notebookLocalGuid, :notebookGuid, :subjectDate, :latitude, "
+                     ":longitude, :altitude, :author, :source, :sourceURL, :sourceApplication, "
+                     ":shareDate, :reminderOrder, :reminderDoneTime, :reminderTime, :placeName, "
+                     ":contentClass, :lastEditedBy, :creatorId, :lastEditorId, "
+                     ":applicationDataKeysOnly, :applicationDataKeysMap, "
+                     ":applicationDataValues, :classificationKeys, :classificationValues";
 
-    bool notebookHasGuid = notebook.hasGuid();
-    if (notebookHasGuid) {
-        columns.append(", notebookGuid");
-    }
-
-    if (!thumbnailIsNull) {
-        columns.append(", thumbnail");
-    }
-
-    bool noteHasActive = note.hasActive();
-    if (noteHasActive) {
-        columns.append(", isActive");
-    }
-
-    const QString notebookLocalGuid = notebook.localGuid();
-    bool notebookHasLocalGuid = !notebookLocalGuid.isEmpty();
-    if (notebookHasLocalGuid) {
-        columns.append(", notebookLocalGuid");
-    }
-
-    QString valuesString = ":localGuid, :updateSequenceNumber, :title, :isDirty, :isLocal, "
-                           ":isDeleted, :hasShortcut, :content, :contentPlainText, "
-                           ":contentListOfWords, :creationTimestamp, :modificationTimestamp, "
-                           ":hasAttributes";
-    if (noteHasGuid) {
-        valuesString.append(", :guid");
-    }
-
-    if (notebookHasGuid) {
-        valuesString.append(", :notebookGuid");
-    }
-
-    if (!thumbnailIsNull) {
-        valuesString.append(", :thumbnail");
-    }
-
-    if (noteHasActive) {
-        valuesString.append(", :isActive");
-    }
-
-    if (notebookHasLocalGuid) {
-        valuesString.append(", :notebookLocalGuid");
-    }
-
-    QString error;
-    const QString contentPlainText = note.plainText(&error);
-    if (contentPlainText.isEmpty()) {
-        errorDescription += QT_TR_NOOP("can't get Note's plain text: ");
-        errorDescription += error;
-        QNWARNING(errorDescription);
-        return false;
-    }
-
-    error.clear();
-    QStringList listOfWords = note.listOfWords(&error);
-    if (listOfWords.isEmpty()) {
-        errorDescription += QT_TR_NOOP("can't get Note's list of words");
-        errorDescription += error;
-        QNWARNING(errorDescription);
-        return false;
-    }
-    const QString contentListOfWords = listOfWords.join(" ");
-
-    bool noteHasAttributes = note.hasNoteAttributes();
-    if (noteHasAttributes)
-    {
-        const qevercloud::NoteAttributes & attributes = note.noteAttributes();
-
-#define CHECK_AND_ADD_NOTE_ATTRIBUTE(name) \
-    if (attributes.name.isSet()) { \
-        columns += ", " #name; \
-        valuesString += ", :" #name; \
-    }
-
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(subjectDate);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(latitude);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(longitude);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(altitude);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(author);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(source);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(sourceURL);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(sourceApplication);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(shareDate);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(reminderOrder);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(reminderDoneTime);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(reminderTime);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(placeName);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(contentClass);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(lastEditedBy);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(creatorId);
-        CHECK_AND_ADD_NOTE_ATTRIBUTE(lastEditorId);
-
-#undef CHECK_AND_ADD_NOTE_ATTRIBUTE
-
-        if (attributes.applicationData.isSet())
-        {
-            const qevercloud::LazyMap & lazyMap = attributes.applicationData.ref();
-            if (lazyMap.keysOnly.isSet()) {
-                columns += ", applicationDataKeysOnly";
-                valuesString += ", :applicationDataKeysOnly";
-            }
-
-            if (lazyMap.fullMap.isSet()) {
-                columns += ", applicationDataKeysMap, applicationDataValues";
-                valuesString += ", :applicationDataKeysMap, :applicationDataValues";
-            }
-        }
-
-        if (attributes.classifications.isSet()) {
-            columns += ", classificationKeys, classificationValues";
-            valuesString += ", :classificationKeys, :classificationValues";
-        }
-    }
-
-    QString queryString = QString("INSERT OR REPLACE INTO Notes (%1) VALUES(%2)").arg(columns).arg(valuesString);
+    QString queryString = QString("INSERT OR REPLACE INTO Notes(%1) VALUES(%2)").arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't find local notebook's guid for its remote guid: "
-                                 "can't prepare SQL query for \"Notes\" table");
+    DATABASE_CHECK_AND_SET_ERROR("Can't insert data into \"Notes\" table in SQL database: can't prepare SQL query");
 
-    const QString localGuid = (overrideLocalGuid.isEmpty() ? note.localGuid() : overrideLocalGuid);
-    const QString content = note.content();
-    const QString title = note.title();
+    QString localGuid = (overrideLocalGuid.isEmpty() ? note.localGuid() : overrideLocalGuid);
+
+    QVariant nullValue;
 
     query.bindValue(":localGuid", localGuid);
-    query.bindValue(":updateSequenceNumber", note.updateSequenceNumber());
-    query.bindValue(":title", title);
+    query.bindValue(":guid", (note.hasGuid() ? note.guid() : nullValue));
+    query.bindValue(":updateSequenceNumber", (note.hasUpdateSequenceNumber() ? note.updateSequenceNumber() : nullValue));
     query.bindValue(":isDirty", (note.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (note.isLocal() ? 1 : 0));
-    query.bindValue(":isDeleted", (note.isDeleted() ? 1 : 0));
     query.bindValue(":hasShortcut", (note.hasShortcut() ? 1 : 0));
-    query.bindValue(":content", content);
-    query.bindValue(":contentPlainText", contentPlainText);
-    query.bindValue(":contentListOfWords", contentListOfWords);
-    query.bindValue(":creationTimestamp", note.creationTimestamp());
-    query.bindValue(":modificationTimestamp", note.modificationTimestamp());
-    query.bindValue(":hasAttributes", (noteHasAttributes ? 1 : 0));
+    query.bindValue(":title", (note.hasTitle() ? note.title() : nullValue));
+    query.bindValue(":content", (note.hasContent() ? note.content() : nullValue));
+    query.bindValue(":contentLength", (note.hasContentLength() ? note.contentLength() : nullValue));
+    query.bindValue(":contentHash", (note.hasContentHash() ? note.contentHash() : nullValue));
 
-    if (notebookHasLocalGuid) {
-        query.bindValue(":notebookLocalGuid", notebookLocalGuid);
+    if (note.hasContent())
+    {
+        QString error;
+        QString contentPlainText = note.plainText(&error);
+        if (!error.isEmpty()) {
+            errorDescription += QT_TR_NOOP("can't get note's plain text: ") + error;
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        error.clear();
+        QStringList contentListOfWords = note.listOfWords(&error);
+        if (!error.isEmpty()) {
+            errorDescription += QT_TR_NOOP("can't get note's list of words: ") + error;
+            QNWARNING(errorDescription);
+            return false;
+        }
+        QString listOfWords = contentListOfWords.join(" ");
+
+        query.bindValue(":contentPlainText", (contentPlainText.isEmpty() ? nullValue : contentPlainText));
+        query.bindValue(":contentListOfWords", (listOfWords.isEmpty() ? nullValue : listOfWords));
+    }
+    else {
+        query.bindValue(":contentPlainText", nullValue);
+        query.bindValue(":contentListOfWords", nullValue);
     }
 
-    if (noteHasGuid) {
-        query.bindValue(":guid", note.guid());
-    }
+    query.bindValue(":creationTimestamp", (note.hasCreationTimestamp() ? note.creationTimestamp() : nullValue));
+    query.bindValue(":modificationTimestamp", (note.hasModificationTimestamp() ? note.modificationTimestamp() : nullValue));
+    query.bindValue(":deletionTimestamp", (note.hasDeletionTimestamp() ? note.deletionTimestamp() : nullValue));
+    query.bindValue(":isActive", (note.hasActive() ? (note.active() ? 1 : 0) : nullValue));
+    query.bindValue(":hasAttributes", (note.hasNoteAttributes() ? 1 : 0));
 
-    if (notebookHasGuid) {
-        query.bindValue(":notebookGuid", notebook.guid());
-    }
+    QImage thumbnail = note.thumbnail();
+    bool thumbnailIsNull = thumbnail.isNull();
 
-    if (!thumbnailIsNull) {
-        query.bindValue(":thumbnail", thumbnail);
-    }
+    query.bindValue(":thumbnail", (thumbnailIsNull ? nullValue : thumbnail));
+    query.bindValue(":notebookLocalGuid", (notebook.localGuid().isEmpty() ? nullValue : notebook.localGuid()));
+    query.bindValue(":notebookGuid", (note.hasNotebookGuid() ? note.notebookGuid() : nullValue));
 
-    if (noteHasActive) {
-        query.bindValue(":isActive", (note.active() ? 1 : 0));
-    }
-
-    if (noteHasAttributes)
+    if (note.hasNoteAttributes())
     {
         const qevercloud::NoteAttributes & attributes = note.noteAttributes();
 
-#define CHECK_AND_BIND_NOTE_ATTRIBUTE(name) \
-    if (attributes.name.isSet()) { \
-        query.bindValue(":" #name, attributes.name.ref()); \
-    }
+#define BIND_ATTRIBUTE(name) \
+        query.bindValue(":" #name, (attributes.name.isSet() ? attributes.name.ref() : nullValue))
 
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(subjectDate);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(latitude);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(longitude);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(altitude);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(author);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(source);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(sourceURL);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(sourceApplication);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(shareDate);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(reminderOrder);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(reminderDoneTime);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(reminderTime);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(placeName);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(contentClass);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(lastEditedBy);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(creatorId);
-        CHECK_AND_BIND_NOTE_ATTRIBUTE(lastEditorId);
+        BIND_ATTRIBUTE(subjectDate);
+        BIND_ATTRIBUTE(latitude);
+        BIND_ATTRIBUTE(longitude);
+        BIND_ATTRIBUTE(altitude);
+        BIND_ATTRIBUTE(author);
+        BIND_ATTRIBUTE(source);
+        BIND_ATTRIBUTE(sourceURL);
+        BIND_ATTRIBUTE(sourceApplication);
+        BIND_ATTRIBUTE(shareDate);
+        BIND_ATTRIBUTE(reminderOrder);
+        BIND_ATTRIBUTE(reminderDoneTime);
+        BIND_ATTRIBUTE(reminderTime);
+        BIND_ATTRIBUTE(placeName);
+        BIND_ATTRIBUTE(contentClass);
+        BIND_ATTRIBUTE(lastEditedBy);
+        BIND_ATTRIBUTE(creatorId);
+        BIND_ATTRIBUTE(lastEditorId);
 
-#undef CHECK_AND_BIND_NOTE_ATTRIBUTE
+#undef BIND_ATTRIBUTE
 
         if (attributes.applicationData.isSet())
         {
@@ -3786,6 +3698,10 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                 QNDEBUG("Application data keys only string: " << keysOnlyString);
 
                 query.bindValue(":applicationDataKeysOnly", keysOnlyString);
+            }
+            else
+            {
+                query.bindValue(":applicationDataKeysOnly", nullValue);
             }
 
             if (lazyMap.fullMap.isSet())
@@ -3815,6 +3731,17 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                 query.bindValue(":applicationDataKeysMap", fullMapKeysString);
                 query.bindValue(":applicationDataValues", fullMapValuesString);
             }
+            else
+            {
+                query.bindValue(":applicationDataKeysMap", nullValue);
+                query.bindValue(":applicationDataValues", nullValue);
+            }
+        }
+        else
+        {
+            query.bindValue(":applicationDataKeysOnly", nullValue);
+            query.bindValue(":applicationDataKeysMap", nullValue);
+            query.bindValue(":applicationDataValues", nullValue);
         }
 
         if (attributes.classifications.isSet())
@@ -3842,6 +3769,41 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
             query.bindValue(":classificationKeys", classificationKeys);
             query.bindValue(":classificationValues", classificationValues);
         }
+        else
+        {
+            query.bindValue(":classificationKeys", nullValue);
+            query.bindValue(":classificationValues", nullValue);
+        }
+    }
+    else
+    {
+#define BIND_NULL_ATTRIBUTE(name) \
+        query.bindValue(":" #name, nullValue)
+
+        BIND_NULL_ATTRIBUTE(subjectDate);
+        BIND_NULL_ATTRIBUTE(latitude);
+        BIND_NULL_ATTRIBUTE(longitude);
+        BIND_NULL_ATTRIBUTE(altitude);
+        BIND_NULL_ATTRIBUTE(author);
+        BIND_NULL_ATTRIBUTE(source);
+        BIND_NULL_ATTRIBUTE(sourceURL);
+        BIND_NULL_ATTRIBUTE(sourceApplication);
+        BIND_NULL_ATTRIBUTE(shareDate);
+        BIND_NULL_ATTRIBUTE(reminderOrder);
+        BIND_NULL_ATTRIBUTE(reminderDoneTime);
+        BIND_NULL_ATTRIBUTE(reminderTime);
+        BIND_NULL_ATTRIBUTE(placeName);
+        BIND_NULL_ATTRIBUTE(contentClass);
+        BIND_NULL_ATTRIBUTE(lastEditedBy);
+        BIND_NULL_ATTRIBUTE(creatorId);
+        BIND_NULL_ATTRIBUTE(lastEditorId);
+        BIND_NULL_ATTRIBUTE(applicationDataKeysOnly);
+        BIND_NULL_ATTRIBUTE(applicationDataKeysMap);
+        BIND_NULL_ATTRIBUTE(applicationDataValues);
+        BIND_NULL_ATTRIBUTE(classificationKeys);
+        BIND_NULL_ATTRIBUTE(classificationValues);
+
+#undef BIND_NULL_ATTRIBUTE
     }
 
     res = query.exec();
@@ -3872,29 +3834,19 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                 return false;
             }
 
-            columns = "localNote, localTag, tag, tagIndexInNote";
-            if (noteHasGuid) {
-                columns.append(", note");
-            }
+            columns = "localNote, note, localTag, tag, tagIndexInNote";
+            values = ":localNote, :note, :localTag, :tag, :tagIndexInNote";
 
-            valuesString = ":localNote, :localTag, :tag, :tagIndexInNote";
-            if (noteHasGuid) {
-                valuesString.append(", :note");
-            }
-
-            queryString = QString("INSERT OR REPLACE INTO NoteTags(%1) VALUES(%2)").arg(columns).arg(valuesString);
+            queryString = QString("INSERT OR REPLACE INTO NoteTags(%1) VALUES(%2)").arg(columns).arg(values);
 
             res = query.prepare(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table: can't prepare SQL query");
 
             query.bindValue(":localNote", localGuid);
+            query.bindValue(":note", (note.hasGuid() ? note.guid() : nullValue));
             query.bindValue(":localTag", tag.localGuid());
             query.bindValue(":tag", tagGuid);
             query.bindValue(":tagIndexInNote", i);
-
-            if (noteHasGuid) {
-                query.bindValue(":note", note.guid());
-            }
 
             res = query.exec();
             DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table in SQL database");
@@ -4815,7 +4767,6 @@ void LocalStorageManagerPrivate::FillNoteFromSqlRecord(const QSqlRecord & rec, N
 
     CHECK_AND_SET_NOTE_PROPERTY(isDirty, setDirty, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(isLocal, setLocal, int, bool);
-    CHECK_AND_SET_NOTE_PROPERTY(isDeleted, setDeleted, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(hasShortcut, setShortcut, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(localGuid, setLocalGuid, QString, QString);
 
@@ -4825,16 +4776,12 @@ void LocalStorageManagerPrivate::FillNoteFromSqlRecord(const QSqlRecord & rec, N
     CHECK_AND_SET_NOTE_PROPERTY(notebookGuid, setNotebookGuid, QString, QString);
     CHECK_AND_SET_NOTE_PROPERTY(title, setTitle, QString, QString);
     CHECK_AND_SET_NOTE_PROPERTY(content, setContent, QString, QString);
-
-    // NOTE: omitting content hash and content length as it will be set by the service
+    CHECK_AND_SET_NOTE_PROPERTY(contentLength, setContentLength, int, qint32);
+    CHECK_AND_SET_NOTE_PROPERTY(contentHash, setContentHash, QByteArray, QByteArray);
 
     CHECK_AND_SET_NOTE_PROPERTY(creationTimestamp, setCreationTimestamp, int, qint32);
     CHECK_AND_SET_NOTE_PROPERTY(modificationTimestamp, setModificationTimestamp, int, qint32);
-
-    if (note.isDeleted()) {
-        CHECK_AND_SET_NOTE_PROPERTY(deletionTimestamp, setDeletionTimestamp, int, qint32);
-    }
-
+    CHECK_AND_SET_NOTE_PROPERTY(deletionTimestamp, setDeletionTimestamp, int, qint32);
     CHECK_AND_SET_NOTE_PROPERTY(isActive, setActive, int, bool);
 
 #undef CHECK_AND_SET_NOTE_PROPERTY

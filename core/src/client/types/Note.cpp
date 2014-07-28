@@ -12,7 +12,6 @@ namespace qute_note {
 Note::Note() :
     DataElementWithShortcut(),
     m_isLocal(true),
-    m_isDeleted(false),
     m_thumbnail(),
     m_lazyPlainText(),
     m_lazyPlainTextIsValid(false),
@@ -26,7 +25,6 @@ Note::Note(const qevercloud::Note & other) :
     DataElementWithShortcut(),
     m_qecNote(other),
     m_isLocal(false),
-    m_isDeleted(false),
     m_thumbnail(),
     m_lazyPlainText(),
     m_lazyPlainTextIsValid(false),
@@ -40,7 +38,6 @@ Note::Note(Note && other) :
     DataElementWithShortcut(std::move(other)),
     m_qecNote(std::move(other.m_qecNote)),
     m_isLocal(std::move(other.m_isLocal)),
-    m_isDeleted(std::move(other.m_isDeleted)),
     m_thumbnail(std::move(other.m_thumbnail)),
     m_lazyPlainText(),
     m_lazyPlainTextIsValid(other.m_lazyPlainTextIsValid),
@@ -66,7 +63,6 @@ Note::Note(qevercloud::Note && other) :
     DataElementWithShortcut(),
     m_qecNote(std::move(other)),
     m_isLocal(false),
-    m_isDeleted(false),
     m_thumbnail(),
     m_lazyPlainText(),
     m_lazyPlainTextIsValid(false),
@@ -93,7 +89,6 @@ Note & Note::operator=(Note && other)
         NoteStoreDataElement::operator=(other);
         m_qecNote = std::move(other.m_qecNote);
         m_isLocal = std::move(other.m_isLocal);
-        m_isDeleted = std::move(other.m_isDeleted);
         m_thumbnail = std::move(other.m_thumbnail);
 
         m_lazyPlainText = other.m_lazyPlainText;
@@ -131,7 +126,7 @@ Note::~Note()
 bool Note::operator==(const Note & other) const
 {
     return ((m_qecNote == other.m_qecNote) && (isDirty() == other.isDirty()) &&
-            (isDeleted() == other.isDeleted()) && (hasShortcut() == other.hasShortcut()));
+            (hasShortcut() == other.hasShortcut()));
     // NOTE: thumbnail doesn't take part in comparison because it's merely a helper
     // for note displaying widget, nothing more
 }
@@ -798,17 +793,7 @@ void Note::setLocal(const bool local)
     m_isLocal = local;
 }
 
-bool Note::isDeleted() const
-{
-    return m_isDeleted;
-}
-
-void Note::setDeleted(const bool deleted)
-{
-    m_isDeleted = deleted;
-}
-
-QImage Note::getThumbnail() const
+QImage Note::thumbnail() const
 {
     return m_thumbnail;
 }
@@ -1050,9 +1035,6 @@ QTextStream & Note::Print(QTextStream & strm) const
     INSERT_DELIMITER;
 
     strm << "isLocal: " << (m_isLocal ? "true" : "false");
-    INSERT_DELIMITER;
-
-    strm << "isDeleted: " << (m_isDeleted ? "true" : "false");
     INSERT_DELIMITER;
 
     strm << "hasShortcut = " << (hasShortcut() ? "true" : "false");

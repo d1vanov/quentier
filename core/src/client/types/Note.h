@@ -99,10 +99,7 @@ public:
     bool isLocal() const;
     void setLocal(const bool local);
 
-    bool isDeleted() const;
-    void setDeleted(const bool deleted);
-
-    QImage getThumbnail() const;
+    QImage thumbnail() const;
     void setThumbnail(const QImage & thumbnail);
 
     QString plainText(QString * errorMessage = nullptr) const;
@@ -134,7 +131,6 @@ private:
 
     QList<ResourceAdditionalInfo> m_resourcesAdditionalInfo;
     bool m_isLocal;
-    bool m_isDeleted;
     QImage m_thumbnail;
 
     mutable QString m_lazyPlainText;

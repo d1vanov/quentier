@@ -635,9 +635,9 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
 
     // ========== Check Delete + Find and check deleted flag ============
     modifiedNote.setLocal(false);
-    modifiedNote.setDeleted(true);
+    modifiedNote.setActive(false);
     modifiedNote.setDeletionTimestamp(1);
-    foundNote.setDeleted(false);
+    foundNote.setActive(true);
     res = localStorageManager.DeleteNote(modifiedNote, errorDescription);
     if (!res) {
         return false;
@@ -649,8 +649,8 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
 
-    if (!foundNote.isDeleted()) {
-        errorDescription = "Note which should have been marked deleted "
+    if (!foundNote.hasActive() || foundNote.active()) {
+        errorDescription = "Note which should have been marked non-active "
                            "is not marked so after LocalStorageManager::FindNote";
         QNWARNING(errorDescription << ": Note found in LocalStorageManager: " << foundNote);
         return false;
