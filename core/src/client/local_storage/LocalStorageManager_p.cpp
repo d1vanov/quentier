@@ -3082,58 +3082,24 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceBusinesUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
-                                                         QString & errorDescription)
+                                                                QString & errorDescription)
 {
-    QString columns = "id, ";
-    QString valuesString = ":id, ";
-
-    bool hasBusinessId = info.businessId.isSet();
-    if (hasBusinessId) {
-        columns.append("businessId, ");
-        valuesString.append(":businessId, ");
-    }
-
-    bool hasBusinessName = info.businessName.isSet();
-    if (hasBusinessName) {
-        columns.append("businessName, ");
-        valuesString.append(":businessName, ");
-    }
-
-    bool hasRole = info.role.isSet();
-    if (hasRole) {
-        columns.append("role, ");
-        valuesString.append(":role, ");
-    }
-
-    bool hasEmail = info.email.isSet();
-    if (hasEmail) {
-        columns.append("businessInfoEmail");
-        valuesString.append(":businessInfoEmail");
-    }
+    QString columns = "id, businessId, businessName, role, businessInfoEmail";
+    QString values = ":id, :businessId, :businessName, :role, :businessInfoEmail";
 
     QString queryString = QString("INSERT OR REPLACE INTO BusinessUserInfo (%1) VALUES(%2)")
-                                  .arg(columns).arg(valuesString);
+                                  .arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't set user's business info into \"BusinessUserInfo\" table in SQL database");
 
+    QVariant nullValue;
+
     query.bindValue(":id", id);
-
-    if (hasBusinessId) {
-        query.bindValue(":businessId", info.businessId.ref());
-    }
-
-    if (hasBusinessName) {
-        query.bindValue(":businessName", info.businessName.ref());
-    }
-
-    if (hasRole) {
-        query.bindValue(":role", static_cast<int>(info.role.ref()));
-    }
-
-    if (hasEmail) {
-        query.bindValue(":businessInfoEmail", info.email.ref());
-    }
+    query.bindValue(":businessId", (info.businessId.isSet() ? info.businessId.ref() : nullValue));
+    query.bindValue(":businessName", (info.businessName.isSet() ? info.businessName.ref() : nullValue));
+    query.bindValue(":role", (info.role.isSet() ? info.role.ref() : nullValue));
+    query.bindValue(":businessInfoEmail", (info.email.isSet() ? info.email.ref() : nullValue));
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't set user's business info into \"BusinessUserInfo\" table in SQL database");
@@ -3141,36 +3107,15 @@ bool LocalStorageManagerPrivate::InsertOrReplaceBusinesUserInfo(const UserID id,
     return true;
 }
 
-bool LocalStorageManagerPrivate::InsertOrReplacePremiumInfo(const UserID id, const qevercloud::PremiumInfo &info, QString & errorDescription)
+bool LocalStorageManagerPrivate::InsertOrReplacePremiumInfo(const UserID id, const qevercloud::PremiumInfo & info,
+                                                            QString & errorDescription)
 {
     QString columns = "id, currentTime, premium, premiumRecurring, premiumExtendable, "
-                      "premiumPending, premiumCancellationPending, canPurchaseUploadAllowance";
+                      "premiumPending, premiumCancellationPending, canPurchaseUploadAllowance, "
+                      "premiumExpirationDate, sponsoredGroupName, sponsoredGroupRole, premiumUpgradable";
     QString valuesString = ":id, :currentTime, :premium, :premiumRecurring, :premiumExtendable, "
-                           ":premiumPending, :premiumCancellationPending, :canPurchaseUploadAllowance";
-
-    bool hasPremiumExpirationDate = info.premiumExpirationDate.isSet();
-    if (hasPremiumExpirationDate) {
-        columns.append(", premiumExpirationDate");
-        valuesString.append(", :premiumExpirationDate");
-    }
-
-    bool hasSponsoredGroupName = info.sponsoredGroupName.isSet();
-    if (hasSponsoredGroupName) {
-        columns.append(", sponsoredGroupName");
-        valuesString.append(", :sponsoredGroupName");
-    }
-
-    bool hasSponsoredGroupRole = info.sponsoredGroupRole.isSet();
-    if (hasSponsoredGroupRole) {
-        columns.append(", sponsoredGroupRole");
-        valuesString.append(", :sponsoredGroupRole");
-    }
-
-    bool hasPremiumUpgradable = info.premiumUpgradable.isSet();
-    if (hasPremiumUpgradable) {
-        columns.append(", premiumUpgradable");
-        valuesString.append(", :premiumUpgradable");
-    }
+                           ":premiumPending, :premiumCancellationPending, :canPurchaseUploadAllowance, "
+                           ":premiumExpirationDate, :sponsoredGroupName, :sponsoredGroupRole, :premiumUpgradable";
 
     QString queryString = QString("INSERT OR REPLACE INTO PremiumInfo (%1) VALUES(%2)")
                                   .arg(columns).arg(valuesString);
@@ -3187,21 +3132,12 @@ bool LocalStorageManagerPrivate::InsertOrReplacePremiumInfo(const UserID id, con
     query.bindValue(":premiumCancellationPending", (info.premiumCancellationPending ? 1 : 0));
     query.bindValue(":canPurchaseUploadAllowance", (info.canPurchaseUploadAllowance ? 1 : 0));
 
-    if (hasPremiumExpirationDate) {
-        query.bindValue(":premiumExpirationDate", info.premiumExpirationDate.ref());
-    }
+    QVariant nullValue;
 
-    if (hasSponsoredGroupName) {
-        query.bindValue(":sponsoredGroupName", info.sponsoredGroupName.ref());
-    }
-
-    if (hasSponsoredGroupRole) {
-        query.bindValue(":sponsoredGroupRole", static_cast<int>(info.sponsoredGroupRole.ref()));
-    }
-
-    if (hasPremiumUpgradable) {
-        query.bindValue(":premiumUpgradable", (info.premiumUpgradable.ref() ? 1 : 0));
-    }
+    query.bindValue(":premiumExpirationDate", (info.premiumExpirationDate.isSet() ? info.premiumExpirationDate.ref() : nullValue));
+    query.bindValue(":sponsoredGroupName", (info.sponsoredGroupName.isSet() ? info.sponsoredGroupName.ref() : nullValue));
+    query.bindValue(":sponsoredGroupRole", (info.sponsoredGroupRole.isSet() ? info.sponsoredGroupRole.ref() : nullValue));
+    query.bindValue(":premiumUpgradable", (info.premiumUpgradable.isSet() ? (info.premiumUpgradable.ref() ? 1 : 0) : nullValue));
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't set user's premium info into \"PremiumInfo\" table in SQL database");
@@ -3282,60 +3218,34 @@ bool LocalStorageManagerPrivate::InsertOrReplaceAccounting(const UserID id, cons
 bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
                                                                QString & errorDescription)
 {
-    QString columns = "id";
-    QString valuesString = ":id";
+    QString columns = "id, defaultLocationName, defaultLatitude, defaultLongitude, preactivation, "
+                      "incomingEmailAddress, comments, dateAgreedToTermsOfService, maxReferrals, "
+                      "referralCount, refererCode, sentEmailDate, sentEmailCount, dailyEmailLimit, "
+                      "emailOptOutDate, partnerEmailOptInDate, preferredLanguage, preferredCountry, "
+                      "clipFullPage, twitterUserName, twitterId, groupName, recognitionLanguage, "
+                      "referralProof, educationalDiscount, businessAddress, hideSponsorBilling, "
+                      "taxExempt, useEmailAutoFiling, reminderEmailConfig";
 
-#define CHECK_AND_ADD_COLUMN_AND_VALUE(name) \
-    bool has##name = attributes.name.isSet(); \
-    if (has##name) { \
-        columns.append(", " #name); \
-        valuesString.append(", :" #name); \
-    }
-
-    CHECK_AND_ADD_COLUMN_AND_VALUE(defaultLocationName);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(defaultLatitude);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(defaultLongitude);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(preactivation);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(incomingEmailAddress);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(comments);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(dateAgreedToTermsOfService);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(maxReferrals);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(referralCount);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(refererCode);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(sentEmailDate);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(sentEmailCount);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(dailyEmailLimit);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(emailOptOutDate);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(partnerEmailOptInDate);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(preferredLanguage);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(preferredCountry);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(clipFullPage);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(twitterUserName);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(twitterId);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(groupName);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(recognitionLanguage);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(referralProof);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(educationalDiscount);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(businessAddress);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(hideSponsorBilling);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(taxExempt);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(useEmailAutoFiling);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(reminderEmailConfig);
-
-#undef CHECK_AND_ADD_COLUMN_AND_VALUE
+    QString values = ":id, :defaultLocationName, :defaultLatitude, :defaultLongitude, :preactivation, "
+                     ":incomingEmailAddress, :comments, :dateAgreedToTermsOfService, :maxReferrals, "
+                     ":referralCount, :refererCode, :sentEmailDate, :sentEmailCount, :dailyEmailLimit, "
+                     ":emailOptOutDate, :partnerEmailOptInDate, :preferredLanguage, :preferredCountry, "
+                     ":clipFullPage, :twitterUserName, :twitterId, :groupName, :recognitionLanguage, "
+                     ":referralProof, :educationalDiscount, :businessAddress, :hideSponsorBilling, "
+                     ":taxExempt, :useEmailAutoFiling, :reminderEmailConfig";
 
     QString queryString = QString("INSERT OR REPLACE INTO UserAttributes (%1) VALUES(%2)")
-                                  .arg(columns).arg(valuesString);
+                                  .arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributes\" table in SQL database");
 
     query.bindValue(":id", id);
 
+    QVariant nullValue;
+
 #define CHECK_AND_BIND_VALUE(name) \
-    if (has##name) { \
-        query.bindValue(":" #name, attributes.name.ref()); \
-    }
+    query.bindValue(":" #name, (attributes.name.isSet() ? attributes.name.ref() : nullValue))
 
     CHECK_AND_BIND_VALUE(defaultLocationName);
     CHECK_AND_BIND_VALUE(defaultLatitude);
@@ -3364,9 +3274,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, 
 #undef CHECK_AND_BIND_VALUE
 
 #define CHECK_AND_BIND_BOOLEAN_VALUE(name) \
-    if (has##name) { \
-        query.bindValue(":" #name, (attributes.name.ref() ? 1 : 0)); \
-    }
+    query.bindValue(":" #name, (attributes.name.isSet() ? (attributes.name.ref() ? 1 : 0) : nullValue))
 
     CHECK_AND_BIND_BOOLEAN_VALUE(preactivation);
     CHECK_AND_BIND_BOOLEAN_VALUE(clipFullPage);
@@ -3388,6 +3296,11 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, 
             DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" table in SQL database");
         }
     }
+    else {
+        queryString = QString("DELETE FROM UserAttributesViewedPromotions WHERE id = %1").arg(QString::number(id));
+        res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" table in SQL database");
+    }
 
     if (attributes.recentMailedAddresses.isSet()) {
         foreach(const QString & address, attributes.recentMailedAddresses.ref()) {
@@ -3396,6 +3309,11 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, 
             res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
         }
+    }
+    else {
+        queryString = QString("DELETE FROM UserAttributesRecentMailedAddresses WHERE id = %1").arg(QString::number(id));
+        res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
     }
 
     return true;
