@@ -3210,66 +3210,36 @@ bool LocalStorageManagerPrivate::InsertOrReplacePremiumInfo(const UserID id, con
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
-                                                    QString & errorDescription)
+                                                           QString & errorDescription)
 {
-    QString columns = "id";
-    QString valuesString = ":id";
+    QString columns = "id, uploadLimit, uploadLimitEnd, uploadLimitNextMonth, "
+                      "premiumServiceStatus, premiumOrderNumber, premiumCommerceService, "
+                      "premiumServiceStart, premiumServiceSKU, lastSuccessfulCharge, "
+                      "lastFailedCharge, lastFailedChargeReason, nextPaymentDue, premiumLockUntil, "
+                      "updated, premiumSubscriptionNumber, lastRequestedCharge, currency, "
+                      "unitPrice, unitDiscount, nextChargeDate, accountingBusinessId, "
+                      "accountingBusinessName, accountingBusinessRole";
 
-#define CHECK_AND_ADD_COLUMN_AND_VALUE(name) \
-    bool has##name = accounting.name.isSet(); \
-    if (has##name) { \
-        columns.append(", " #name); \
-        valuesString.append(", :" #name); \
-    }
-
-    CHECK_AND_ADD_COLUMN_AND_VALUE(uploadLimit);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(uploadLimitEnd);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(uploadLimitNextMonth);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumServiceStatus);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumOrderNumber);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumCommerceService);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumServiceStart);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumServiceSKU);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(lastSuccessfulCharge);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(lastFailedCharge);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(lastFailedChargeReason);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(nextPaymentDue);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumLockUntil);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(updated);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(premiumSubscriptionNumber);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(lastRequestedCharge);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(currency);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(unitPrice);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(unitDiscount);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(nextChargeDate);
-
-#undef CHECK_AND_ADD_COLUMN_AND_VALUE
-
-#define CHECK_AND_ADD_COLUMN_AND_VALUE(name, columnName) \
-    bool has##name = accounting.name.isSet(); \
-    if (has##name) { \
-        columns.append(", " #columnName); \
-        valuesString.append(", :" #columnName); \
-    }
-
-    CHECK_AND_ADD_COLUMN_AND_VALUE(businessId, accountingBusinessId);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(businessName, accountingBusinessName);
-    CHECK_AND_ADD_COLUMN_AND_VALUE(businessRole, accountingBusinessRole);
-
-#undef CHECK_AND_ADD_COLUMN_AND_VALUE
+    QString values = ":id, :uploadLimit, :uploadLimitEnd, :uploadLimitNextMonth, "
+                     ":premiumServiceStatus, :premiumOrderNumber, :premiumCommerceService, "
+                     ":premiumServiceStart, :premiumServiceSKU, :lastSuccessfulCharge, "
+                     ":lastFailedCharge, :lastFailedChargeReason, :nextPaymentDue, :premiumLockUntil, "
+                     ":updated, :premiumSubscriptionNumber, :lastRequestedCharge, :currency, "
+                     ":unitPrice, :unitDiscount, :nextChargeDate, :accountingBusinessId, "
+                     ":accountingBusinessName, :accountingBusinessRole";
 
     QString queryString = QString("INSERT OR REPLACE INTO Accounting (%1) VALUES(%2)")
-                                  .arg(columns).arg(valuesString);
+                                  .arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't set user's acconting into \"Accounting\" table in SQL database");
 
     query.bindValue(":id", id);
 
+    QVariant nullValue;
+
 #define CHECK_AND_BIND_VALUE(name) \
-    if (has##name) { \
-        query.bindValue(":" #name, accounting.name.ref()); \
-    }
+    query.bindValue(":" #name, accounting.name.isSet() ? accounting.name.ref() : nullValue)
 
     CHECK_AND_BIND_VALUE(uploadLimit);
     CHECK_AND_BIND_VALUE(uploadLimitEnd);
@@ -3295,9 +3265,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceAccounting(const UserID id, cons
 #undef CHECK_AND_BIND_VALUE
 
 #define CHECK_AND_BIND_VALUE(name, columnName) \
-    if (has##name) { \
-        query.bindValue(":" #columnName, accounting.name.ref()); \
-    }
+    query.bindValue(":" #columnName, accounting.name.isSet() ? accounting.name.ref() : nullValue)
 
     CHECK_AND_BIND_VALUE(businessId, accountingBusinessId);
     CHECK_AND_BIND_VALUE(businessName, accountingBusinessName);
@@ -3312,7 +3280,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceAccounting(const UserID id, cons
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
-                                                        QString & errorDescription)
+                                                               QString & errorDescription)
 {
     QString columns = "id";
     QString valuesString = ":id";
