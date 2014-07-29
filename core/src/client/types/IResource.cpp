@@ -91,11 +91,7 @@ bool IResource::checkParameters(QString & errorDescription) const
         return false;
     }
 
-    if (!enResource.updateSequenceNum.isSet()) {
-        errorDescription = QT_TR_NOOP("Resource's update sequence number is not set");
-        return false;
-    }
-    else if (!CheckUpdateSequenceNumber(enResource.updateSequenceNum)) {
+    if (enResource.updateSequenceNum.isSet() && !CheckUpdateSequenceNumber(enResource.updateSequenceNum)) {
         errorDescription = QT_TR_NOOP("Resource's update sequence number is invalid");
         return false;
     }
@@ -146,17 +142,7 @@ bool IResource::checkParameters(QString & errorDescription) const
 
 #undef CHECK_RESOURCE_DATA
 
-    if (!enResource.data.isSet() && enResource.alternateData.isSet()) {
-        errorDescription = QT_TR_NOOP("Resource has no data set but alternate data is present");
-        return false;
-    }
-
-    if (!enResource.mime.isSet())
-    {
-        errorDescription = QT_TR_NOOP("Resource's mime type is not set");
-        return false;
-    }
-    else
+    if (enResource.mime.isSet())
     {
         int32_t mimeSize = static_cast<int32_t>(enResource.mime->size());
         if ( (mimeSize < qevercloud::EDAM_MIME_LEN_MIN) ||

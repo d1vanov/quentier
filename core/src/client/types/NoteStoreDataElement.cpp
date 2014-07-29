@@ -32,7 +32,7 @@ NoteStoreDataElement::NoteStoreDataElement(const NoteStoreDataElement & other) :
 NoteStoreDataElement::NoteStoreDataElement(NoteStoreDataElement && other) :
     LocalStorageDataElement(std::move(other)),
     Printable(),
-    TypeWithError(other),
+    TypeWithError(std::move(other)),
     m_isDirty(std::move(other.m_isDirty))
 {}
 

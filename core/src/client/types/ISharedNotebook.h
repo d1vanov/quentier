@@ -7,8 +7,8 @@
 
 namespace qute_note {
 
-class ISharedNotebook: public Printable,
-                       public TypeWithError
+class QUTE_NOTE_EXPORT ISharedNotebook: public Printable,
+                                        public TypeWithError
 {
 public:
     typedef qevercloud::SharedNotebookPrivilegeLevel::type SharedNotebookPrivilegeLevel;

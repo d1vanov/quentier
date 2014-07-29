@@ -9,7 +9,7 @@ namespace qute_note {
  * @brief The ResourceWrapper class creates and manages its own instance of
  * qevercloud::Resource object
  */
-class ResourceWrapper final: public IResource
+class QUTE_NOTE_EXPORT ResourceWrapper final: public IResource
 {
 public:
     ResourceWrapper();

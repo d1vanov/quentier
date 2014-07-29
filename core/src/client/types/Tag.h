@@ -6,7 +6,7 @@
 
 namespace qute_note {
 
-class Tag final: public DataElementWithShortcut
+class QUTE_NOTE_EXPORT Tag final: public DataElementWithShortcut
 {
 public:
     Tag();

@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-class SharedNotebookAdapterAccessException : public IQuteNoteException
+class QUTE_NOTE_EXPORT SharedNotebookAdapterAccessException : public IQuteNoteException
 {
 public:
     explicit SharedNotebookAdapterAccessException(const QString & message);

@@ -6,7 +6,7 @@
 
 namespace qute_note {
 
-class SavedSearch final: public DataElementWithShortcut
+class QUTE_NOTE_EXPORT SavedSearch final: public DataElementWithShortcut
 {
 public:
     typedef qevercloud::QueryFormat::type QueryFormat;

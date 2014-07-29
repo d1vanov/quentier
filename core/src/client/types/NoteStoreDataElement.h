@@ -9,9 +9,9 @@
 
 namespace qute_note {
 
-class NoteStoreDataElement: public LocalStorageDataElement,
-                            public Printable,
-                            public TypeWithError
+class QUTE_NOTE_EXPORT NoteStoreDataElement: public LocalStorageDataElement,
+                                             public Printable,
+                                             public TypeWithError
 {
 public:
     NoteStoreDataElement();

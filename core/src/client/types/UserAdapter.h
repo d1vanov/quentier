@@ -16,7 +16,7 @@ namespace qute_note {
  *
  * @see UserAdapterAccessException
  */
-class UserAdapter : public IUser
+class QUTE_NOTE_EXPORT UserAdapter : public IUser
 {
 public:
     UserAdapter(qevercloud::User & externalEnUser);

@@ -10,7 +10,7 @@ namespace qute_note {
  * @brief The UserWrapper class creates and manages its own instance of
  * qevercloud::User object
  */
-class UserWrapper final: public IUser
+class QUTE_NOTE_EXPORT UserWrapper final: public IUser
 {
 public:
     UserWrapper() = default;

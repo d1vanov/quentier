@@ -5,7 +5,12 @@
 
 namespace qute_note {
 
-class DataElementWithShortcut : public NoteStoreDataElement
+/**
+ * Class adding one more attribute to each note store data element subclassing it:
+ * shortcut. Shortcut is basically a quick access link in application GUI. However,
+ * the sign whether some note store data element is shortcutted is stored in local storage db.
+ */
+class QUTE_NOTE_EXPORT DataElementWithShortcut : public NoteStoreDataElement
 {
 public:
     DataElementWithShortcut();
@@ -16,9 +21,9 @@ public:
 
 protected:
     DataElementWithShortcut(const DataElementWithShortcut & other) = default;
-    DataElementWithShortcut(DataElementWithShortcut && other) = default;
+    DataElementWithShortcut(DataElementWithShortcut && other);
     DataElementWithShortcut & operator=(const DataElementWithShortcut & other) = default;
-    DataElementWithShortcut & operator=(DataElementWithShortcut && other) = default;
+    DataElementWithShortcut & operator=(DataElementWithShortcut && other);
 
 private:
     bool  m_hasShortcut;

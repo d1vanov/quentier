@@ -279,7 +279,6 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
 
     // ========== Check Delete + Find ==========
     modifiedTag.setDeleted(true);
-    modifiedTag.setLocal(false);
     res = localStorageManager.DeleteTag(modifiedTag, errorDescription);
     if (!res) {
         return false;
@@ -311,7 +310,6 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     // ========== Check Expunge + Find (failure expected) ==========
-    modifiedTag.setLocal(true);
     res = localStorageManager.ExpungeTag(modifiedTag, errorDescription);
     if (!res) {
         return false;
@@ -634,7 +632,6 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     }
 
     // ========== Check Delete + Find and check deleted flag ============
-    modifiedNote.setLocal(false);
     modifiedNote.setActive(false);
     modifiedNote.setDeletionTimestamp(1);
     foundNote.setActive(true);
@@ -668,7 +665,6 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     }
 
     // ========== Check Expunge + Find (failure expected) ==========
-    modifiedNote.setLocal(true);
     res = localStorageManager.ExpungeNote(modifiedNote, errorDescription);
     if (!res) {
         return false;
@@ -847,7 +843,6 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     }
 
     // ========== Check Expunge + Find (failure expected) ==========
-    modifiedNotebook.setLocal(true);
     res = localStorageManager.ExpungeNotebook(modifiedNotebook, errorDescription);
     if (!res) {
         return false;
@@ -981,7 +976,6 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
 
     // ========== Check Delete + Find ==========
     modifiedUser.setDeletionTimestamp(5);
-    modifiedUser.setLocal(false);
 
     res = localStorageManager.DeleteUser(modifiedUser, errorDescription);
     if (!res) {
@@ -1014,8 +1008,6 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     // ========== Check Expunge + Find (failure expected) ==========
-    modifiedUser.setLocal(true);
-
     res = localStorageManager.ExpungeUser(modifiedUser, errorDescription);
     if (!res) {
         return false;

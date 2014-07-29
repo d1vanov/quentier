@@ -11,7 +11,7 @@ QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
 QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 
-class Note final: public DataElementWithShortcut
+class QUTE_NOTE_EXPORT Note final: public DataElementWithShortcut
 {
 public:
     Note();

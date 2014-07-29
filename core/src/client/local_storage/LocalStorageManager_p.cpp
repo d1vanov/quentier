@@ -152,10 +152,6 @@ bool LocalStorageManagerPrivate::FindUser(IUser & user, QString & errorDescripti
 
 bool LocalStorageManagerPrivate::DeleteUser(const IUser & user, QString & errorDescription)
 {
-    if (user.isLocal()) {
-        return ExpungeUser(user, errorDescription);
-    }
-
     errorDescription = QT_TR_NOOP("Can't delete user from local storage database: ");
 
     if (!user.hasDeletionTimestamp()) {
@@ -187,13 +183,6 @@ bool LocalStorageManagerPrivate::DeleteUser(const IUser & user, QString & errorD
 bool LocalStorageManagerPrivate::ExpungeUser(const IUser & user, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't expunge user from local storage database: ");
-
-    if (!user.isLocal()) {
-        // TRANSLATOR explaining the reason of error
-        errorDescription += QT_TR_NOOP("user is not local, expunge is disallowed");
-        QNWARNING(errorDescription);
-        return false;
-    }
 
     if (!user.hasId()) {
         // TRANSLATOR explaining the reason of error
@@ -856,7 +845,7 @@ bool LocalStorageManagerPrivate::ExpungeNotebook(const Notebook & notebook, QStr
         return false;
     }
 
-    QString queryString = QString("DELETE FROM Notebooks WHERE %1 = \"%2\"").arg(column).arg(guid);
+    QString queryString = QString("DELETE FROM Notebooks WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notebooks\" table in SQL database");
@@ -1024,7 +1013,7 @@ QList<LinkedNotebook> LocalStorageManagerPrivate::ListAllLinkedNotebooks(QString
 }
 
 bool LocalStorageManagerPrivate::ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
-                                                QString & errorDescription)
+                                                       QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't expunge linked notebook from local storage database: ");
 
@@ -1476,10 +1465,6 @@ QList<Note> LocalStorageManagerPrivate::ListAllNotesPerNotebook(const Notebook &
 
 bool LocalStorageManagerPrivate::DeleteNote(const Note & note, QString & errorDescription)
 {
-    if (note.isLocal()) {
-        return ExpungeNote(note, errorDescription);
-    }
-
     errorDescription = QT_TR_NOOP("Can't delete note from local storage database: ");
 
     QString column, guid;
@@ -1546,20 +1531,6 @@ bool LocalStorageManagerPrivate::ExpungeNote(const Note & note, QString & errorD
         guid = note.localGuid();
     }
 
-    if (!note.isLocal()) {
-        errorDescription += QT_TR_NOOP("note to be expunged from local storage is not marked local, "
-                                       "expunging non-local notes is not allowed");
-        QNWARNING(errorDescription);
-        return false;
-    }
-
-    if (!note.hasActive() || note.active()) {
-        errorDescription += QT_TR_NOOP("note to be expunged from local storage is not marked non-active, "
-                                       "expunging non-deleted notes is not allowed");
-        QNWARNING(errorDescription);
-        return false;
-    }
-
     bool exists = RowExists("Notes", column, QVariant(guid));
     if (!exists) {
         errorDescription += QT_TR_NOOP("can't find note to be expunged in \"Notes\" table in SQL database");
@@ -1567,7 +1538,7 @@ bool LocalStorageManagerPrivate::ExpungeNote(const Note & note, QString & errorD
         return false;
     }
 
-    QString queryString = QString("DELETE FROM Notes WHERE %1 = \"%2\"").arg(column).arg(guid);
+    QString queryString = QString("DELETE FROM Notes WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notes\" table in SQL database");
@@ -1920,10 +1891,6 @@ QList<Tag> LocalStorageManagerPrivate::ListAllTags(QString & errorDescription) c
 
 bool LocalStorageManagerPrivate::DeleteTag(const Tag & tag, QString & errorDescription)
 {
-    if (tag.isLocal()) {
-        return ExpungeTag(tag, errorDescription);
-    }
-
     errorDescription = QT_TR_NOOP("Can't delete tag from local storage database: ");
 
     if (!tag.isDeleted()) {
@@ -1945,20 +1912,6 @@ bool LocalStorageManagerPrivate::DeleteTag(const Tag & tag, QString & errorDescr
 bool LocalStorageManagerPrivate::ExpungeTag(const Tag & tag, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't expunge tag from local storage database: ");
-
-    if (!tag.isLocal()) {
-        errorDescription += QT_TR_NOOP("tag to be expunged is not marked local, "
-                                       "expunging non-local tags is not allowed");
-        QNWARNING(errorDescription);
-        return false;
-    }
-
-    if (!tag.isDeleted()) {
-        errorDescription += QT_TR_NOOP("tag to be expunged is not marked deleted, "
-                                       "expunging non-deleted tags is not allowed");
-        QNWARNING(errorDescription);
-        return false;
-    }
 
     bool exists = RowExists("Tags", "localGuid", QVariant(tag.localGuid()));
     if (!exists) {

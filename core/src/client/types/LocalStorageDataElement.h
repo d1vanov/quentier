@@ -1,12 +1,13 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__LOCAL_STORAGE_DATA_ELEMENT_H
 #define __QUTE_NOTE__CLIENT__TYPES__LOCAL_STORAGE_DATA_ELEMENT_H
 
+#include <tools/Linkage.h>
 #include <QString>
 #include <QUuid>
 
 namespace qute_note {
 
-class LocalStorageDataElement
+class QUTE_NOTE_EXPORT LocalStorageDataElement
 {
 public:
     LocalStorageDataElement();

@@ -16,7 +16,7 @@ namespace qute_note {
  *
  * @see ResourceAdapterAccessException
  */
-class ResourceAdapter final: public IResource
+class QUTE_NOTE_EXPORT ResourceAdapter final: public IResource
 {
 public:
     ResourceAdapter(qevercloud::Resource & externalEnResource);

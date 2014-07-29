@@ -10,7 +10,7 @@ namespace qute_note {
  * @brief The SharedNotebookWrapper class creates and manages its own instance of
  * qevercloud::SharedNotebook object
  */
-class SharedNotebookWrapper final: public ISharedNotebook
+class QUTE_NOTE_EXPORT SharedNotebookWrapper final: public ISharedNotebook
 {
 public:
     SharedNotebookWrapper() = default;

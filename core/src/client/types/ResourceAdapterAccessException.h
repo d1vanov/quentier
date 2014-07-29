@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-class ResourceAdapterAccessException : public IQuteNoteException
+class QUTE_NOTE_EXPORT ResourceAdapterAccessException : public IQuteNoteException
 {
 public:
     explicit ResourceAdapterAccessException(const QString & message);

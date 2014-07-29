@@ -7,7 +7,7 @@
 
 namespace qute_note {
 
-class IResource: public NoteStoreDataElement
+class QUTE_NOTE_EXPORT IResource: public NoteStoreDataElement
 {
 public:
     IResource();

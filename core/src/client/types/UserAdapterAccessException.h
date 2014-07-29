@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-class UserAdapterAccessException final: public IQuteNoteException
+class QUTE_NOTE_EXPORT UserAdapterAccessException final: public IQuteNoteException
 {
 public:
     explicit UserAdapterAccessException(const QString & message);

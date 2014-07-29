@@ -83,20 +83,20 @@ bool LinkedNotebook::checkParameters(QString & errorDescription) const
         return false;
     }
 
-    if (!m_qecLinkedNotebook.shareName.isSet()) {
-        errorDescription = QT_TR_NOOP("Linked notebook's custom name is not set");
-        return false;
-    }
-    else if (m_qecLinkedNotebook.shareName->isEmpty()) {
-        errorDescription = QT_TR_NOOP("Linked notebook's custom name is empty");
-        return false;
-    }
-    else
+    if (m_qecLinkedNotebook.shareName.isSet())
     {
-        QString simplifiedShareName = QString(m_qecLinkedNotebook.shareName.ref()).replace(" ", "");
-        if (simplifiedShareName.isEmpty()) {
-            errorDescription = QT_TR_NOOP("Linked notebook's custom name must contain non-space characters");
+        if (m_qecLinkedNotebook.shareName->isEmpty())
+        {
+            errorDescription = QT_TR_NOOP("Linked notebook's custom name is empty");
             return false;
+        }
+        else
+        {
+            QString simplifiedShareName = QString(m_qecLinkedNotebook.shareName.ref()).replace(" ", "");
+            if (simplifiedShareName.isEmpty()) {
+                errorDescription = QT_TR_NOOP("Linked notebook's custom name must contain non-space characters");
+                return false;
+            }
         }
     }
 

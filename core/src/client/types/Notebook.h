@@ -12,7 +12,7 @@ QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
 QT_FORWARD_DECLARE_CLASS(IUser)
 QT_FORWARD_DECLARE_CLASS(UserAdapter)
 
-class Notebook final: public DataElementWithShortcut
+class QUTE_NOTE_EXPORT Notebook final: public DataElementWithShortcut
 {
 public:
     Notebook();

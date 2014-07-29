@@ -96,12 +96,7 @@ public:
     bool FindUser(IUser & user, QString & errorDescription) const;
 
     /**
-     * @brief DeleteUser - either expunges the local user (i.e. deletes it from
-     * local storage completely, without the possibility to restore)
-     * if it has not been synchronized with Evernote service yet or marks
-     * user as deleted otherwise. Evernote API doesn't allow thirdparty
-     * applications to expunge users which have ever been synchronized
-     * with remote data store at least once
+     * @brief DeleteUser - marks user as deleted in local storage.
      * @param user - user to be deleted
      * @param errorDescription - error description if user could not be deleted
      * @return true if user was deleted successfully, false otherwise
@@ -109,9 +104,7 @@ public:
     bool DeleteUser(const IUser & user, QString & errorDescription);
 
     /**
-     * @brief ExpungeUser - permanently deletes local user i.e. user which
-     * has not yet been synchronized with Evernote service. This method deletes
-     * user from local storage completely, without the possibility to restore
+     * @brief ExpungeUser - permanently deletes user from local storage database.
      * @param user - user to be expunged
      * @param errorDescription - error description if user could not be expunged
      * @return true if user was expunged successfully, false otherwise
@@ -214,11 +207,11 @@ public:
                                                                     QString & errorDescription) const;
 
     /**
-     * @brief ExpungeNotebook - deletes specified notebook from local storage.
+     * @brief ExpungeNotebook - permanently deletes specified notebook from local storage.
      * Evernote API doesn't allow to delete notebooks from remote storage, it can
      * only be done by official desktop client or web GUI. So this method should be called
      * only during the synchronization with remote database, when some notebook is found to be
-     * deleted via either official desktop client or web GUI
+     * deleted via either official desktop client or web GUI.
      * @param notebook - notebook to be expunged. Must have either "remote" or local guid set
      * @param errorDescription - error description if notebook could not be expunged
      * @return true if notebook was expunged successfully, false otherwise
@@ -274,7 +267,7 @@ public:
     QList<LinkedNotebook> ListAllLinkedNotebooks(QString & errorDescription) const;
 
     /**
-     * @brief ExpungeLinkedNotebook - deletes specified linked notebook from local storage.
+     * @brief ExpungeLinkedNotebook - permanently deletes specified linked notebook from local storage.
      * Evernote API doesn't allow to delete linked notebooks from remote storage, it can
      * only be done by official desktop client or web GUI. So this method should be called
      * only during the synchronization with remote database, when some linked notebook
@@ -356,12 +349,7 @@ public:
 
 
     /**
-     * @brief DeleteNote - either expunges the local note (i.e. deletes it from
-     * local storage completely, without the possibility to restore)
-     * if it has not been synchronized with Evernote service yet or marks
-     * the note as deleted otherwise. Evernote API doesn't allow thirdparty
-     * applications to expunge notes which have ever been synchronized
-     * with remote data store at least once
+     * @brief DeleteNote - marks the note as deleted in local storage.
      * @param note - note to be deleted
      * @param errorDescription - error description if note could not be deleted
      * @return true if note was deleted successfully, false otherwise
@@ -369,9 +357,11 @@ public:
     bool DeleteNote(const Note & note, QString & errorDescription);
 
     /**
-     * @brief ExpungeNote - permanently deletes local notes i.e. notes which
-     * have not yet been synchronized with Evernote service. This method deletes
-     * the note from local storage completely, without the possibility to restore it
+     * @brief ExpungeNote - permanently deletes note from local storage.
+     * Evernote API doesn't allow to delete notes from remote storage, it can
+     * only be done by official desktop client or web GUI. So this method should be called
+     * only during the synchronization with remote database, when some note is found to be
+     * deleted via either official desktop client or web GUI.
      * @param note - note to be expunged
      * @param errorDescription - error description if note could not be expunged
      * @return true if note was expunged successfully, false otherwise
@@ -455,11 +445,7 @@ public:
     QList<Tag> ListAllTags(QString & errorDescription) const;
 
     /**
-     * @brief DeleteTag - either expunges the local tag (i.e. deletes it from
-     * local storage completely, without the possibility to restore)
-     * if it has not been synchronized with Evernote service yet or marks the tag
-     * as deleted otherwise. Evernote API doesn't allow thirdparty applications
-     * to expunge tags which have ever been synchronized with remote data store at least once
+     * @brief DeleteTag - marks tag as deleted in local storage.
      * @param tag - tag to be deleted
      * @param errorDescription - error description if tag could not be deleted
      * @return true if tag was deleted successfully, false otherwise
@@ -467,9 +453,11 @@ public:
     bool DeleteTag(const Tag & tag, QString & errorDescription);
 
     /**
-     * @brief ExpungeTag - permanently deletes local tags i.e. tags which have not yet been
-     * sychronized with Evernote service. This method deletes the tag from local storage
-     * completely, without the possibility to restore it
+     * @brief ExpungeTag - permanently deletes tag from local storage.
+     * Evernote API doesn't allow to delete tags from remote storage, it can
+     * only be done by official desktop client or web GUI. So this method should be called
+     * only during the synchronization with remote database, when some tag is found to be
+     * deleted via either official desktop client or web GUI.
      * @param tag - tag to be expunged
      * @param errorDescription - error description if tag could not be expunged
      * @return true if tag was expunged successfully, false otherwise
