@@ -70,65 +70,64 @@ bool IUser::checkParameters(QString & errorDescription) const
         return false;
     }
 
-    if (!enUser.username.isSet()) {
-        errorDescription = QT_TR_NOOP("User name is not set");
-        return false;
-    }
-
-    const QString & username = enUser.username;
-    size_t usernameSize = username.size();
-    if ( (usernameSize > qevercloud::EDAM_USER_USERNAME_LEN_MAX) ||
-         (usernameSize < qevercloud::EDAM_USER_USERNAME_LEN_MIN) )
+    if (enUser.username.isSet())
     {
-        errorDescription = QT_TR_NOOP("User name should have length from ");
-        errorDescription += QString::number(qevercloud::EDAM_USER_USERNAME_LEN_MIN);
-        // TRANSLATOR "Previous part of the phrase was "User should have length from ..."
-        errorDescription += QT_TR_NOOP(" to ");
-        errorDescription += QString::number(qevercloud::EDAM_USER_USERNAME_LEN_MAX);
+        const QString & username = enUser.username.ref();
+        size_t usernameSize = username.size();
 
-        return false;
-    }
+        if ( (usernameSize > qevercloud::EDAM_USER_USERNAME_LEN_MAX) ||
+             (usernameSize < qevercloud::EDAM_USER_USERNAME_LEN_MIN) )
+        {
+            errorDescription = QT_TR_NOOP("User name should have length from ");
+            errorDescription += QString::number(qevercloud::EDAM_USER_USERNAME_LEN_MIN);
+            // TRANSLATOR "Previous part of the phrase was "User should have length from ..."
+            errorDescription += QT_TR_NOOP(" to ");
+            errorDescription += QString::number(qevercloud::EDAM_USER_USERNAME_LEN_MAX);
 
-    QRegExp usernameRegExp(qevercloud::EDAM_USER_USERNAME_REGEX);
-    if (usernameRegExp.indexIn(username) < 0) {
-        errorDescription = QT_TR_NOOP("User name can contain only \"a-z\" or \"0-9\""
-                                       "or \"-\" but should not start or end with \"-\"");
-        return false;
+            return false;
+        }
+
+        QRegExp usernameRegExp(qevercloud::EDAM_USER_USERNAME_REGEX);
+        if (usernameRegExp.indexIn(username) < 0) {
+            errorDescription = QT_TR_NOOP("User name can contain only \"a-z\" or \"0-9\""
+                                           "or \"-\" but should not start or end with \"-\"");
+            return false;
+        }
     }
 
     // NOTE: ignore everything about email because "Third party applications that
     // authenticate using OAuth do not have access to this field"
 
-    if (!enUser.name.isSet()) {
-        errorDescription = QT_TR_NOOP("User's displayed name is not set");
-        return false;
-    }
-
-    const QString & name = enUser.name;
-    size_t nameSize = name.size();
-    if ( (nameSize > qevercloud::EDAM_USER_NAME_LEN_MAX) ||
-         (nameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) )
+    if (enUser.name.isSet())
     {
-        errorDescription = QT_TR_NOOP("User displayed name must have length from ");
-        errorDescription += QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
-        // TRANSLATOR "Previous part of the phrase was "User displayed name must have length from ..."
-        errorDescription += QT_TR_NOOP(" to ");
-        errorDescription += QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
+        const QString & name = enUser.name;
+        size_t nameSize = name.size();
 
-        return false;
-    }
+        if ( (nameSize > qevercloud::EDAM_USER_NAME_LEN_MAX) ||
+             (nameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) )
+        {
+            errorDescription = QT_TR_NOOP("User displayed name must have length from ");
+            errorDescription += QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
+            // TRANSLATOR "Previous part of the phrase was "User displayed name must have length from ..."
+            errorDescription += QT_TR_NOOP(" to ");
+            errorDescription += QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
 
-    QRegExp nameRegExp(qevercloud::EDAM_USER_NAME_REGEX);
-    if (nameRegExp.indexIn(name) < 0) {
-        errorDescription = QT_TR_NOOP("User displayed name doesn't match its regular expression. "
-                                      "Consider removing any special characters");
-        return false;
+            return false;
+        }
+
+        QRegExp nameRegExp(qevercloud::EDAM_USER_NAME_REGEX);
+        if (nameRegExp.indexIn(name) < 0) {
+            errorDescription = QT_TR_NOOP("User displayed name doesn't match its regular expression. "
+                                          "Consider removing any special characters");
+            return false;
+        }
     }
 
     if (enUser.timezone.isSet())
     {
         const QString & timezone = enUser.timezone;
         size_t timezoneSize = timezone.size();
+
         if ( (timezoneSize > qevercloud::EDAM_TIMEZONE_LEN_MAX) ||
              (timezoneSize < qevercloud::EDAM_TIMEZONE_LEN_MIN) )
         {
@@ -158,6 +157,7 @@ bool IUser::checkParameters(QString & errorDescription) const
         {
             const QString & defaultLocationName = attributes.defaultLocationName;
             size_t defaultLocationNameSize = defaultLocationName.size();
+
             if ( (defaultLocationNameSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                  (defaultLocationNameSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
             {
@@ -195,6 +195,7 @@ bool IUser::checkParameters(QString & errorDescription) const
         {
             const QString & incomingEmailAddress = attributes.incomingEmailAddress;
             size_t incomingEmailAddressSize = incomingEmailAddress.size();
+
             if ( (incomingEmailAddressSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                  (incomingEmailAddressSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
             {
@@ -212,6 +213,7 @@ bool IUser::checkParameters(QString & errorDescription) const
         {
             const QStringList & recentMailedAddresses = attributes.recentMailedAddresses;
             size_t numRecentMailedAddresses = recentMailedAddresses.size();
+
             if (numRecentMailedAddresses > qevercloud::EDAM_USER_RECENT_MAILED_ADDRESSES_MAX)
             {
                 errorDescription = QT_TR_NOOP("User must have no more recent mailed addresses than ");
@@ -241,6 +243,7 @@ bool IUser::checkParameters(QString & errorDescription) const
         {
             const QString & comments = attributes.comments;
             size_t commentsSize = comments.size();
+
             if ( (commentsSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                  (commentsSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
             {
