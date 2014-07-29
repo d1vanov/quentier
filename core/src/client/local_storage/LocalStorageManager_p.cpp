@@ -2497,8 +2497,8 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  privilege                   INTEGER                 DEFAULT NULL, "
                      "  userCreationTimestamp       INTEGER                 DEFAULT NULL, "
                      "  userModificationTimestamp   INTEGER                 DEFAULT NULL, "
-                     "  userIsDirty                 INTEGER                 DEFAULT NULL, "
-                     "  userIsLocal                 INTEGER                 DEFAULT NULL, "
+                     "  userIsDirty                 INTEGER                 NOT NULL, "
+                     "  userIsLocal                 INTEGER                 NOT NULL, "
                      "  userDeletionTimestamp       INTEGER                 DEFAULT NULL, "
                      "  userIsActive                INTEGER                 DEFAULT NULL"
                      ")");
@@ -3000,52 +3000,38 @@ bool LocalStorageManagerPrivate::RowExists(const QString & tableName, const QStr
 
 bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString & errorDescription)
 {
+    // NOTE: this method is expected to be called after the check of user object for sanity of its parameters!
+
     errorDescription += QT_TR_NOOP("Can't insert or replace User into local storage database: ");
 
     QString columns = "id, username, email, name, timezone, privilege, userCreationTimestamp, "
-                      "userModificationTimestamp, userIsDirty, userIsLocal, userIsActive";
-    QString values;
+                      "userModificationTimestamp, userIsDirty, userIsLocal, userIsActive, userDeletionTimestamp";
+    QString values = ":id, :username, :email, :name, :timezone, :privilege, :userCreationTimestamp, "
+                     ":userModificationTimestamp, :userIsDirty, :userIsLocal, :userIsActive, :userDeletionTimestamp";
 
-#define CHECK_AND_SET_USER_VALUE(checker, property, error, use_quotation, ...) \
-    if (!user.checker()) { \
-        errorDescription += QT_TR_NOOP(error); \
-        return false; \
-    } \
-    else { \
-        if (!values.isEmpty()) { values.append(", "); } \
-        if (use_quotation) { \
-            values.append("'" + __VA_ARGS__(user.property()) + "'"); \
-        } \
-        else { \
-            values.append(__VA_ARGS__(user.property())); \
-        } \
-    }
-
-    CHECK_AND_SET_USER_VALUE(hasId, id, "User ID is not set", false, QString::number);
-    CHECK_AND_SET_USER_VALUE(hasUsername, username, "Username is not set", true);
-    CHECK_AND_SET_USER_VALUE(hasEmail, email, "User's email is not set", true);
-    CHECK_AND_SET_USER_VALUE(hasName, name, "User's name is not set", true);
-    CHECK_AND_SET_USER_VALUE(hasTimezone, timezone, "User's timezone is not set", true);
-    CHECK_AND_SET_USER_VALUE(hasPrivilegeLevel, privilegeLevel, "User's privilege level is not set", false, QString::number);
-    CHECK_AND_SET_USER_VALUE(hasCreationTimestamp, creationTimestamp, "User's creation timestamp is not set", false, QString::number);
-    CHECK_AND_SET_USER_VALUE(hasModificationTimestamp, modificationTimestamp, "User's modification timestamp is not set", false, QString::number);
-    CHECK_AND_SET_USER_VALUE(hasActive, active, "User's active field is not set", false, QString::number);
-
-#undef CHECK_AND_SET_USER_VALUE
-
-    values.append(", '" + QString::number((user.isDirty() ? 1 : 0)) + "'");
-    values.append(", '" + QString::number((user.isLocal() ? 1 : 0)) + "'");
-
-    // Process deletionTimestamp properties specifically
-    if (user.hasDeletionTimestamp()) {
-        columns.append(", userDeletionTimestamp");
-        values.append(", '" + QString::number(user.deletionTimestamp()) + "'");
-    }
-
-    QString queryString = QString("INSERT OR REPLACE INTO Users (%1) VALUES(%2)").arg(columns).arg(values);
+    QString queryString = QString("INSERT OR REPLACE INTO Users(%1) VALUES(%2)").arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace user into \"Users\" table in SQL database");
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Users\" table in SQL database: "
+                                 "can't prepare SQL query");
+
+    QVariant nullValue;
+
+    query.bindValue(":id", user.id());
+    query.bindValue(":username", (user.hasUsername() ? user.username() : nullValue));
+    query.bindValue(":email", (user.hasEmail() ? user.email() : nullValue));
+    query.bindValue(":name", (user.hasName() ? user.name() : nullValue));
+    query.bindValue(":timezone", (user.hasTimezone() ? user.timezone() : nullValue));
+    query.bindValue(":privilege", (user.hasPrivilegeLevel() ? user.privilegeLevel() : nullValue));
+    query.bindValue(":userCreationTimestamp", (user.hasCreationTimestamp() ? user.creationTimestamp() : nullValue));
+    query.bindValue(":userModificationTimestamp", (user.hasModificationTimestamp() ? user.modificationTimestamp() : nullValue));
+    query.bindValue(":userIsDirty", (user.isDirty() ? 1 : 0));
+    query.bindValue(":userIsLocal", (user.isLocal() ? 1 : 0));
+    query.bindValue(":userIsActive", (user.hasActive() ? (user.active() ? 1 : 0) : nullValue));
+    query.bindValue(":userDeletionTimestamp", (user.hasDeletionTimestamp() ? user.deletionTimestamp() : nullValue));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Users\" table in SQL database");
 
     if (user.hasUserAttributes())
     {
