@@ -1,6 +1,7 @@
 #include "LocalStorageManager_p.h"
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
+#include "Transaction.h"
 #include <client/Utility.h>
 #include <logging/QuteNoteLogger.h>
 #include <tools/QuteNoteNullPtrException.h>
@@ -2962,6 +2963,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
     QString values = ":id, :username, :email, :name, :timezone, :privilege, :userCreationTimestamp, "
                      ":userModificationTimestamp, :userIsDirty, :userIsLocal, :userIsActive, :userDeletionTimestamp";
 
+    Transaction transaction(m_sqlDatabase);
+
     QString queryString = QString("INSERT OR REPLACE INTO Users(%1) VALUES(%2)").arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
@@ -3017,7 +3020,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
         }
     }
 
-    return true;
+    return transaction.commit(errorDescription);
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceBusinesUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
@@ -3279,6 +3282,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
                      ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
                      ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId";
 
+    Transaction transaction(m_sqlDatabase);
+
     QString queryString = QString("INSERT OR REPLACE INTO Notebooks(%1) VALUES(%2)").arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
@@ -3340,7 +3345,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
         }
     }
 
-    return true;
+    return transaction.commit(errorDescription);
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook,
@@ -3414,6 +3419,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                      ":contentClass, :lastEditedBy, :creatorId, :lastEditorId, "
                      ":applicationDataKeysOnly, :applicationDataKeysMap, "
                      ":applicationDataValues, :classificationKeys, :classificationValues";
+
+    Transaction transaction(m_sqlDatabase);
 
     QString queryString = QString("INSERT OR REPLACE INTO Notes(%1) VALUES(%2)").arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
@@ -3699,7 +3706,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
             }
 
             error.clear();
-            res = InsertOrReplaceResource(resource, QString(), note, localGuid, error);
+            res = InsertOrReplaceResource(resource, QString(), note, localGuid, error,
+                                          /* useSeparateTransaction = */ false);
             if (!res) {
                 errorDescription += QT_TR_NOOP("can't add or update one of note's "
                                                "attached resources: ");
@@ -3709,11 +3717,11 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
         }
     }
 
-    return true;
+    return transaction.commit(errorDescription);
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid,
-                                             QString & errorDescription)
+                                                    QString & errorDescription)
 {
     // NOTE: this method expects to be called after tag is already checked
     // for sanity of its parameters!
@@ -3756,7 +3764,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
 
 bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
                                                          const Note & note, const QString & overrideNoteLocalGuid,
-                                                         QString & errorDescription)
+                                                         QString & errorDescription, const bool useSeparateTransaction)
 {
     // NOTE: this method expects to be called after resource is already checked
     // for sanity of its parameters!
@@ -3774,6 +3782,11 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
                      ":recognitionDataHash, :alternateDataBody, :alternateDataSize, "
                      ":alternateDataHash, :resourceUpdateSequenceNumber, :resourceIsDirty, "
                      ":resourceIndexInNote, :resourceLocalGuid";
+
+    QScopedPointer<Transaction> pTransaction;
+    if (useSeparateTransaction) {
+        pTransaction.reset(new Transaction(m_sqlDatabase));
+    }
 
     QSqlQuery query(m_sqlDatabase);
     QString queryString = QString("INSERT OR REPLACE INTO Resources (%1) VALUES(%2)").arg(columns).arg(values);
@@ -3836,7 +3849,12 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
         }
     }
 
-    return true;
+    if (useSeparateTransaction) {
+        return pTransaction->commit(errorDescription);
+    }
+    else {
+        return true;
+    }
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString & localGuid, 

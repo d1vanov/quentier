@@ -118,7 +118,8 @@ private:
                              const QString & overrideLocalGuid, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid, QString & errorDescription);
     bool InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
-                                 const Note & note, const QString & overrideNoteLocalGuid, QString & errorDescription);
+                                 const Note & note, const QString & overrideNoteLocalGuid,
+                                 QString & errorDescription, const bool useSeparateTransaction = true);
     bool InsertOrReplaceResourceAttributes(const QString & localGuid, 
                                            const qevercloud::ResourceAttributes & attributes,
                                            QString & errorDescription);
