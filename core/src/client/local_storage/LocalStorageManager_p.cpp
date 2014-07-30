@@ -6,6 +6,7 @@
 #include <logging/QuteNoteLogger.h>
 #include <tools/QuteNoteNullPtrException.h>
 #include <tools/ApplicationStoragePersistencePath.h>
+#include <tools/OSPageSize.h>
 
 namespace qute_note {
 
@@ -307,6 +308,13 @@ void LocalStorageManagerPrivate::SwitchUser(const QString & username, const User
     QSqlQuery query(m_sqlDatabase);
     if (!query.exec("PRAGMA foreign_keys = ON")) {
         throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot set foreign_keys = ON pragma "
+                                                   "for SQL local storage database"));
+    }
+
+    qint64 osPageSize = GetOSPageSize();
+    QString pageSizeQuery = QString("PRAGMA page_size = %1").arg(QString::number(osPageSize));
+    if (!query.exec(pageSizeQuery)) {
+        throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot set page_size pragma "
                                                    "for SQL local storage database"));
     }
 
