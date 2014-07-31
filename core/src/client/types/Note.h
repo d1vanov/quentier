@@ -108,6 +108,7 @@ public:
     bool containsCheckedTodo() const;
     bool containsUncheckedTodo() const;
     bool containsTodo() const;
+    bool containsEncryption() const;
 
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
@@ -145,6 +146,7 @@ private:
     // "1" - true
     mutable int m_lazyContainsCheckedToDo;
     mutable int m_lazyContainsUncheckedToDo;
+    mutable int m_lazyContainsEncryption;
 };
 
 } // namespace qute_note

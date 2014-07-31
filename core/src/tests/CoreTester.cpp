@@ -171,6 +171,38 @@ void CoreTester::noteContainsToDoTest()
     CATCH_EXCEPTION();
 }
 
+void CoreTester::noteContainsEncryptionTest()
+{
+    try
+    {
+        QString noteContent = "<en-note><h1>Hello, world!</h1><en-crypt hint = \"the hint\" "
+                              "cipher = \"RC2\" length = \"64\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>";
+
+        Note note;
+        note.setContent(noteContent);
+
+        QString error = "Wrong result of Note's containsEncryption method";
+        QVERIFY2(note.containsEncryption(), qPrintable(error));
+
+        QString noteContentWithoutEncryption = "<en-note><h1>Hello, world!</h1></en-note>";
+        note.setContent(noteContentWithoutEncryption);
+
+        QVERIFY2(!note.containsEncryption(), qPrintable(error));
+
+        note.clear();
+        note.setContent(noteContentWithoutEncryption);
+
+        QVERIFY2(!note.containsEncryption(), qPrintable(error));
+
+        note.setContent(noteContent);
+        QVERIFY2(note.containsEncryption(), qPrintable(error));
+
+        note.clear();
+        QVERIFY2(!note.containsEncryption(), qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::localStorageManagerIndividualSavedSearchTest()
 {
     try

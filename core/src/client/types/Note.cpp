@@ -18,7 +18,8 @@ Note::Note() :
     m_lazyListOfWords(),
     m_lazyListOfWordsIsValid(false),
     m_lazyContainsCheckedToDo(-1),
-    m_lazyContainsUncheckedToDo(-1)
+    m_lazyContainsUncheckedToDo(-1),
+    m_lazyContainsEncryption(-1)
 {}
 
 Note::Note(const qevercloud::Note & other) :
@@ -31,7 +32,8 @@ Note::Note(const qevercloud::Note & other) :
     m_lazyListOfWords(),
     m_lazyListOfWordsIsValid(false),
     m_lazyContainsCheckedToDo(-1),
-    m_lazyContainsUncheckedToDo(-1)
+    m_lazyContainsUncheckedToDo(-1),
+    m_lazyContainsEncryption(-1)
 {}
 
 Note::Note(Note && other) :
@@ -44,7 +46,8 @@ Note::Note(Note && other) :
     m_lazyListOfWords(),
     m_lazyListOfWordsIsValid(false),
     m_lazyContainsCheckedToDo(other.m_lazyContainsCheckedToDo),
-    m_lazyContainsUncheckedToDo(other.m_lazyContainsUncheckedToDo)
+    m_lazyContainsUncheckedToDo(other.m_lazyContainsUncheckedToDo),
+    m_lazyContainsEncryption(other.m_lazyContainsEncryption)
 {
     m_lazyPlainText = other.m_lazyPlainText;
     other.m_lazyPlainText.clear();
@@ -69,7 +72,8 @@ Note::Note(qevercloud::Note && other) :
     m_lazyListOfWords(),
     m_lazyListOfWordsIsValid(false),
     m_lazyContainsCheckedToDo(-1),
-    m_lazyContainsUncheckedToDo(-1)
+    m_lazyContainsUncheckedToDo(-1),
+    m_lazyContainsEncryption(-1)
 {}
 
 Note & Note::operator=(const qevercloud::Note & other)
@@ -79,6 +83,7 @@ Note & Note::operator=(const qevercloud::Note & other)
     m_lazyListOfWordsIsValid = false;
     m_lazyContainsCheckedToDo = -1;
     m_lazyContainsUncheckedToDo = -1;
+    m_lazyContainsEncryption = -1;
     return *this;
 }
 
@@ -105,6 +110,7 @@ Note & Note::operator=(Note && other)
 
         m_lazyContainsCheckedToDo = other.m_lazyContainsCheckedToDo;
         m_lazyContainsUncheckedToDo = other.m_lazyContainsUncheckedToDo;
+        m_lazyContainsEncryption = other.m_lazyContainsEncryption;
     }
 
     return *this;
@@ -117,6 +123,7 @@ Note & Note::operator=(qevercloud::Note && other)
     m_lazyListOfWordsIsValid = false;
     m_lazyContainsCheckedToDo = -1;
     m_lazyContainsUncheckedToDo = -1;
+    m_lazyContainsEncryption = -1;
     return *this;
 }
 
@@ -179,6 +186,7 @@ void Note::clear()
     m_lazyListOfWordsIsValid = false;
     m_lazyContainsCheckedToDo = -1;
     m_lazyContainsUncheckedToDo = -1;
+    m_lazyContainsEncryption = -1;
 }
 
 bool Note::checkParameters(QString & errorDescription) const
@@ -386,6 +394,7 @@ void Note::setContent(const QString & content)
     m_lazyListOfWordsIsValid = false;
     m_lazyContainsCheckedToDo = -1;
     m_lazyContainsUncheckedToDo = -1;
+    m_lazyContainsEncryption = -1;
 }
 
 bool Note::hasContentHash() const
@@ -864,6 +873,56 @@ bool Note::containsTodo() const
     return (containsUncheckedTodo() || containsCheckedTodo());
 }
 
+bool Note::containsEncryption() const
+{
+    if (m_lazyContainsEncryption > (-1)) {
+        if (m_lazyContainsEncryption == 0) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    if (!m_qecNote.content.isSet()) {
+        m_lazyContainsEncryption = 0;
+        return false;
+    }
+
+    QDomDocument enXmlDomDoc;
+    int errorLine = -1, errorColumn = -1;
+    QString errorMessage;
+    bool res = enXmlDomDoc.setContent(m_qecNote.content.ref(), &errorMessage, &errorLine, &errorColumn);
+    if (!res) {
+        // TRANSLATOR Explaining the error of XML parsing
+        errorMessage += QT_TR_NOOP(". Error happened at line ") +
+                        QString::number(errorLine) + QT_TR_NOOP(", at column ") +
+                        QString::number(errorColumn);
+        QNWARNING("Note content parsing error: " << errorMessage);
+        m_lazyContainsEncryption = 0;
+        return false;
+    }
+
+    QDomElement docElem = enXmlDomDoc.documentElement();
+    QDomNode nextNode = docElem.firstChild();
+    while (!nextNode.isNull())
+    {
+        QDomElement element = nextNode.toElement();
+        if (!element.isNull())
+        {
+            QString tagName = element.tagName();
+            if (tagName == "en-crypt") {
+                m_lazyContainsEncryption = 1;
+                return true;
+            }
+        }
+        nextNode = nextNode.nextSibling();
+    }
+
+    m_lazyContainsEncryption = 0;
+    return false;
+}
+
 QTextStream & Note::Print(QTextStream & strm) const
 {
     strm << "Note: { \n";
@@ -919,6 +978,11 @@ QTextStream & Note::Print(QTextStream & strm) const
 
     if (m_lazyContainsUncheckedToDo > (-1)) {
         strm << "m_lazyContainsUncheckedToDo = " << QString::number(m_lazyContainsUncheckedToDo);
+        INSERT_DELIMITER;
+    }
+
+    if (m_lazyContainsEncryption > (-1)) {
+        strm << "m_lazyContainsEncryption = " << QString::number(m_lazyContainsEncryption);
         INSERT_DELIMITER;
     }
 
