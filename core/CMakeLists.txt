@@ -54,7 +54,7 @@ set(${PROJECT_NAME}_HEADERS
     src/tools/EventLoopWithExitStatus.h
     src/tools/IQuteNoteException.h
     src/tools/Linkage.h
-    src/tools/OSPageSize.h
+    src/tools/SysInfo.h
     src/tools/Printable.h
     src/tools/QuteNoteCheckPtr.h
     src/tools/QuteNoteNullPtrException.h
@@ -107,10 +107,15 @@ set(${PROJECT_NAME}_SOURCES
     src/tools/EmptyDataElementException.cpp
     src/tools/EventLoopWithExitStatus.cpp
     src/tools/IQuteNoteException.cpp
-    src/tools/OSPageSize.cpp
     src/tools/Printable.cpp
     src/tools/QuteNoteNullPtrException.cpp
     src/tools/TypeWithError.cpp)
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  list(APPEND ${PROJECT_NAME}_SOURCES src/tools/windows/SysInfo.cpp)
+else()
+  list(APPEND ${PROJECT_NAME}_SOURCES src/tools/unix/SysInfo.cpp)
+endif()
 
 add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_QT_HEADERS}

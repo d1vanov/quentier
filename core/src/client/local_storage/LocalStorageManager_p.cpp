@@ -6,7 +6,7 @@
 #include <logging/QuteNoteLogger.h>
 #include <tools/QuteNoteNullPtrException.h>
 #include <tools/ApplicationStoragePersistencePath.h>
-#include <tools/OSPageSize.h>
+#include <tools/SysInfo.h>
 
 namespace qute_note {
 
@@ -311,8 +311,8 @@ void LocalStorageManagerPrivate::SwitchUser(const QString & username, const User
                                                    "for SQL local storage database"));
     }
 
-    qint64 osPageSize = GetOSPageSize();
-    QString pageSizeQuery = QString("PRAGMA page_size = %1").arg(QString::number(osPageSize));
+    qint64 pageSize = SysInfo::GetSingleton().GetPageSize();
+    QString pageSizeQuery = QString("PRAGMA page_size = %1").arg(QString::number(pageSize));
     if (!query.exec(pageSizeQuery)) {
         throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot set page_size pragma "
                                                    "for SQL local storage database"));
