@@ -12,6 +12,9 @@ public:
     static ApplicationSettings & instance(const QString & orgName = "d1vanov",
                                           const QString & appName = "QuteNote");
 
+    QVariant value(const QString & key, const QString & keyGroup, const QVariant & defaultValue = QVariant()) const;
+    void setValue(const QString & key, const QVariant & value, const QString & keyGroup = QString());
+
 private:
     ApplicationSettings() = delete;
     ApplicationSettings(const ApplicationSettings & other) = delete;
