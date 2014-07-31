@@ -6,8 +6,9 @@
 
 namespace qute_note {
 
-Transaction::Transaction(QSqlDatabase & db) :
+Transaction::Transaction(QSqlDatabase & db, TransactionType type) :
     m_db(db),
+    m_type(type),
     m_committed(false)
 {
     init();
@@ -15,6 +16,7 @@ Transaction::Transaction(QSqlDatabase & db) :
 
 Transaction::Transaction(Transaction && other) :
     m_db(other.m_db),
+    m_type(std::move(other.m_type)),
     m_committed(std::move(other.m_committed))
 {
     init();
@@ -51,8 +53,16 @@ bool Transaction::commit(QString & errorDescription)
 
 void Transaction::init()
 {
+    QString queryString = "BEGIN";
+    if (m_type == Immediate) {
+        queryString += " IMMEDIATE";
+    }
+    else if (m_type == Exclusive) {
+        queryString += " EXCLUSIVE";
+    }
+
     QSqlQuery query(m_db);
-    bool res = query.exec("BEGIN");
+    bool res = query.exec(queryString);
     if (!res) {
         QNCRITICAL("Error beginning the SQL transaction: " << query.lastError());
         throw DatabaseSqlErrorException("Can't begin SQL transaction, last error: " +

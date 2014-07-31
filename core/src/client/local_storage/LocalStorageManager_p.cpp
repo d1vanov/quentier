@@ -2971,7 +2971,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
     QString values = ":id, :username, :email, :name, :timezone, :privilege, :userCreationTimestamp, "
                      ":userModificationTimestamp, :userIsDirty, :userIsLocal, :userIsActive, :userDeletionTimestamp";
 
-    Transaction transaction(m_sqlDatabase);
+    Transaction transaction(m_sqlDatabase, Transaction::Exclusive);
 
     QString queryString = QString("INSERT OR REPLACE INTO Users(%1) VALUES(%2)").arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
@@ -3290,7 +3290,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
                      ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
                      ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId";
 
-    Transaction transaction(m_sqlDatabase);
+    Transaction transaction(m_sqlDatabase, Transaction::Exclusive);
 
     QString queryString = QString("INSERT OR REPLACE INTO Notebooks(%1) VALUES(%2)").arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
@@ -3428,7 +3428,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                      ":applicationDataKeysOnly, :applicationDataKeysMap, "
                      ":applicationDataValues, :classificationKeys, :classificationValues";
 
-    Transaction transaction(m_sqlDatabase);
+    Transaction transaction(m_sqlDatabase, Transaction::Exclusive);
 
     QString queryString = QString("INSERT OR REPLACE INTO Notes(%1) VALUES(%2)").arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
@@ -3793,7 +3793,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
 
     QScopedPointer<Transaction> pTransaction;
     if (useSeparateTransaction) {
-        pTransaction.reset(new Transaction(m_sqlDatabase));
+        pTransaction.reset(new Transaction(m_sqlDatabase, Transaction::Exclusive));
     }
 
     QSqlQuery query(m_sqlDatabase);
@@ -3857,7 +3857,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
         }
     }
 
-    if (useSeparateTransaction) {
+    if (!pTransaction.isNull()) {
         return pTransaction->commit(errorDescription);
     }
     else {

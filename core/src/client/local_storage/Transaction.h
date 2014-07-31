@@ -8,7 +8,13 @@ namespace qute_note {
 class Transaction
 {
 public:
-    Transaction(QSqlDatabase & db);
+    enum TransactionType {
+        Default,
+        Immediate,
+        Exclusive
+    };
+
+    Transaction(QSqlDatabase & db, TransactionType type = Default);
     Transaction(Transaction && other);
     virtual ~Transaction();
 
@@ -23,6 +29,7 @@ private:
     void init();
 
     QSqlDatabase & m_db;
+    TransactionType m_type;
     bool m_committed;
 };
 
