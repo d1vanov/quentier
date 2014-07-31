@@ -49,6 +49,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/Transaction.h
     src/logging/QuteNoteLogger.h
     src/logging/LoggerInitializationException.h
+    src/tools/ApplicationSettings.h
     src/tools/ApplicationStoragePersistencePath.h
     src/tools/EmptyDataElementException.h
     src/tools/EventLoopWithExitStatus.h
@@ -103,6 +104,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/Transaction.cpp
     src/logging/QuteNoteLogger.cpp
     src/logging/LoggerInitializationException.cpp
+    src/tools/ApplicationSettings.cpp
     src/tools/ApplicationStoragePersistencePath.cpp
     src/tools/EmptyDataElementException.cpp
     src/tools/EventLoopWithExitStatus.cpp
