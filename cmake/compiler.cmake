@@ -28,7 +28,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     add_definitions("-fPIC")
   endif()
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS_INIT} $ENV{LDFLAGS} -fsanitize=undefined")
+  # set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS_INIT} $ENV{LDFLAGS} -fsanitize=undefined")
   # NOTE: don't link it on Linux, it causes linking issues with log4cplus library
   if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     find_library(LIBCPP NAMES libc++.so libc++.so.1.0 libc++.dylib OPTIONAL)

@@ -113,8 +113,10 @@ set(${PROJECT_NAME}_SOURCES
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND ${PROJECT_NAME}_SOURCES src/tools/windows/SysInfo.cpp)
-else()
-  list(APPEND ${PROJECT_NAME}_SOURCES src/tools/unix/SysInfo.cpp)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  list(APPEND ${PROJECT_NAME}_SOURCES src/tools/linux/SysInfo.cpp)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+  list(APPEND ${PROJECT_NAME}_SOURCES src/tools/osx/SysInfo.cpp)
 endif()
 
 add_library(${PROJECT_NAME} SHARED
