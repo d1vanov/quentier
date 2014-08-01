@@ -46,6 +46,8 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/LocalStorageManager_p.h
     src/client/local_storage/LocalStorageManagerThread.h
     src/client/local_storage/LocalStorageManagerThreadWorker.h
+    src/client/local_storage/NoteSearchQuery.h
+    src/client/local_storage/NoteSearchQuery_p.h
     src/client/local_storage/Transaction.h
     src/logging/QuteNoteLogger.h
     src/logging/LoggerInitializationException.h
@@ -101,6 +103,8 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/LocalStorageManager_p.cpp
     src/client/local_storage/LocalStorageManagerThread.cpp
     src/client/local_storage/LocalStorageManagerThreadWorker.cpp
+    src/client/local_storage/NoteSearchQuery.cpp
+    src/client/local_storage/NoteSearchQuery_p.cpp
     src/client/local_storage/Transaction.cpp
     src/logging/QuteNoteLogger.cpp
     src/logging/LoggerInitializationException.cpp
