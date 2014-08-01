@@ -68,7 +68,233 @@ const QVector<qint64> & NoteSearchQuery::negatedCreationTimestamps() const
     return d->m_negatedCreationTimestamps;
 }
 
-// TODO: continue from here
+const QVector<qint64> & NoteSearchQuery::modificationTimestamps() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_modificationTimestamps;
+}
+
+const QVector<qint64> & NoteSearchQuery::negatedModificationTimestamps() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedModificationTimestamps;
+}
+
+const QStringList & NoteSearchQuery::resourceMimeTypes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_resourceMimeTypes;
+}
+
+const QStringList & NoteSearchQuery::negatedResourceMimeTypes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedResourceMimeTypes;
+}
+
+const QVector<qint64> & NoteSearchQuery::subjectDateTimestamps() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_subjectDateTimestamps;
+}
+
+const QVector<qint64> & NoteSearchQuery::negatedSubjectDateTimestamps() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedSubjectDateTimestamps;
+}
+
+const QVector<double> & NoteSearchQuery::latitudes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_latitudes;
+}
+
+const QVector<double> & NoteSearchQuery::negatedLatitudes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedLatitudes;
+}
+
+const QVector<double> & NoteSearchQuery::longitudes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_longitudes;
+}
+
+const QVector<double> & NoteSearchQuery::negatedLongitudes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedLongitudes;
+}
+
+const QVector<double> & NoteSearchQuery::altitudes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_altitudes;
+}
+
+const QVector<double> & NoteSearchQuery::negatedAltitudes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedAltitudes;
+}
+
+const QStringList & NoteSearchQuery::authors() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_authors;
+}
+
+const QStringList & NoteSearchQuery::negatedAuthors() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedAuthors;
+}
+
+const QStringList & NoteSearchQuery::sources() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_sources;
+}
+
+const QStringList & NoteSearchQuery::negatedSources() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedSources;
+}
+
+const QStringList & NoteSearchQuery::sourceApplications() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_sourceApplications;
+}
+
+const QStringList & NoteSearchQuery::negatedSourceApplications() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedSourceApplications;
+}
+
+const QStringList & NoteSearchQuery::contentClasses() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_contentClasses;
+}
+
+const QStringList & NoteSearchQuery::negatedContentClasses() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedContentClasses;
+}
+
+const QStringList & NoteSearchQuery::placeNames() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_placeNames;
+}
+
+const QStringList & NoteSearchQuery::negatedPlaceNames() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedPlaceNames;
+}
+
+const QStringList & NoteSearchQuery::applicationData() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_applicationData;
+}
+
+const QStringList & NoteSearchQuery::negatedApplicationData() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedApplicationData;
+}
+
+const QStringList & NoteSearchQuery::recognitionTypes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_recognitionTypes;
+}
+
+const QStringList & NoteSearchQuery::negatedRecognitionTypes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedRecognitionTypes;
+}
+
+bool NoteSearchQuery::hasReminderOrder() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_hasReminderOrder;
+}
+
+const QVector<qint64> & NoteSearchQuery::reminderOrders() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_reminderOrders;
+}
+
+const QVector<qint64> & NoteSearchQuery::negatedReminderOrders() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedReminderOrders;
+}
+
+const QVector<qint64> & NoteSearchQuery::reminderTimes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_reminderTimes;
+}
+
+const QVector<qint64> & NoteSearchQuery::negatedReminderTimes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedReminderTimes;
+}
+
+const QVector<qint64> & NoteSearchQuery::reminderDoneTimes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_reminderDoneTimes;
+}
+
+const QVector<qint64> & NoteSearchQuery::negatedReminderDoneTimes() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedReminderDoneTimes;
+}
+
+bool NoteSearchQuery::hasUnfinishedToDo() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_hasUnfinishedToDo;
+}
+
+bool NoteSearchQuery::hasFinishedToDo() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_hasFinishedToDo;
+}
+
+bool NoteSearchQuery::hasEncryption() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_hasEncryption;
+}
+
+const QStringList & NoteSearchQuery::contentSearchTerms() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_contentSearchTerms;
+}
+
+const QStringList & NoteSearchQuery::negatedContentSearchTerms() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedContentSearchTerms;
+}
 
 QTextStream & NoteSearchQuery::Print(QTextStream & strm) const
 {
