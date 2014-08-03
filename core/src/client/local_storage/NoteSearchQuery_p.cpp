@@ -119,7 +119,31 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
             if (insideQuotedText)
             {
                 QChar nextChr = searchQueryString[i+1];
-                if (nextChr == space) {
+                if (nextChr == space)
+                {
+                    if (i != 0)
+                    {
+                        QChar prevChr = searchQueryString[i-1];
+
+                        if (prevChr == '\\')
+                        {
+                            bool backslashEscaped = false;
+                            // Looks like this space is escaped. Just in case, let's check whether the backslash is esacped itself
+                            if (i != 1) {
+                                QChar prevPrevChar = searchQueryString[i-2];
+                                if (prevPrevChar == '\\') {
+                                    // Yes, backslash is escaped itself, so the quote at i is really the closing one
+                                    backslashEscaped = true;
+                                }
+                            }
+
+                            if (!backslashEscaped) {
+                                currentWord += chr;
+                                continue;
+                            }
+                        }
+                    }
+
                     words << currentWord;
                     currentWord.clear();
                     insideQuotedText = false;
