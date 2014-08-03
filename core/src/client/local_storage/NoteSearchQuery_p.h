@@ -63,6 +63,9 @@ public:
     bool            m_hasEncryption;
     QStringList     m_contentSearchTerms;
     QStringList     m_negatedContentSearchTerms;
+
+private:
+    QStringList splitSearchQueryString(const QString &searchQueryString) const;
 };
 
 } // namespace qute_note
