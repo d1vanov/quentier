@@ -56,6 +56,8 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
 {
     QStringList words = splitSearchQueryString(queryString);
 
+    // TODO: postprocess words list: convert day, week, month etc. to timestamps
+
     int notebookScopeModifierPosition = words.indexOf(QRegExp("notebook:*"));
     if (notebookScopeModifierPosition > 0) {
         error = QT_TR_NOOP("Incorrect position of \"notebook:\" scope modified in the search query: "
@@ -71,6 +73,42 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
     else {
         m_hasAnyModifier = false;
     }
+
+    parseStringValue("tag", words, m_tagNames, m_negatedTagNames);
+    parseStringValue("intitle", words, m_titleNames, m_negatedTitleNames);
+    parseStringValue("resource", words, m_resourceMimeTypes, m_negatedResourceMimeTypes);
+    parseStringValue("author", words, m_authors, m_negatedAuthors);
+    parseStringValue("source", words, m_sources, m_negatedSources);
+    parseStringValue("sourceApplication", words, m_sourceApplications, m_negatedSourceApplications);
+    parseStringValue("contentClass", words, m_contentClasses, m_negatedContentClasses);;
+    parseStringValue("placeName", words, m_placeNames, m_negatedPlaceNames);
+    parseStringValue("applicationData", words, m_applicationData, m_negatedApplicationData);
+    parseStringValue("recoType", words, m_recognitionTypes, m_negatedRecognitionTypes);
+
+    bool res = parseIntValue("created", words, m_creationTimestamps, m_negatedCreationTimestamps, error);
+    if (!res) {
+        return false;
+    }
+
+    res = parseIntValue("updated", words, m_modificationTimestamps, m_negatedModificationTimestamps, error);
+    if (!res) {
+        return false;
+    }
+
+    res = parseIntValue("subject", words, m_subjectDateTimestamps, m_negatedSubjectDateTimestamps, error);
+    if (!res) {
+        return false;
+    }
+
+    // TODO: must have special treatment for "reminderOrder" key as it is allowed to be asterisk
+
+    res = parseDoubleValue("latitude", words, m_latitudes, m_negatedLatitudes, error);
+    if (!res) {
+        return false;
+    }
+
+    // By now all tagged search terms must have been removed from the list of words
+    // so we can extract the actual untagged content search terms here
 
     // TODO: implement further
 
@@ -182,6 +220,165 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
     }
 
     return words;
+}
+
+void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList & words,
+                                              QStringList & container, QStringList & negatedContainer) const
+{
+    int keyIndex = -1;
+    QChar negation('-');
+    QStringList processedWords;
+    while(keyIndex >= 0)
+    {
+        keyIndex = words.indexOf(QRegExp(QString("*") + key + QString(":*")),
+                                 (keyIndex >= 0 ? keyIndex : 0));
+        if (keyIndex < 0) {
+            break;
+        }
+        QString word = words[keyIndex];
+        if (processedWords.contains(word)) {
+            ++keyIndex;
+            continue;
+        }
+        else {
+            processedWords << word;
+        }
+        int positionInWord = word.indexOf(key + QString(":"));
+        if (positionInWord < 0) {
+            continue;
+        }
+        bool isNegated = false;
+        if (positionInWord != 0) {
+            QChar prevChr = word[positionInWord-1];
+            if (prevChr == negation) {
+                isNegated = true;
+            }
+        }
+
+        QString value = word.remove(key + QString(":"));
+        if (isNegated) {
+            negatedContainer << value;
+        }
+        else {
+            container << value;
+        }
+    }
+
+    foreach(const QString & word, processedWords) {
+        words.removeAll(word);
+    }
+}
+
+bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & words,
+                                           QVector<qint64> & container, QVector<qint64> & negatedContainer,
+                                           QString & error) const
+{
+    int keyIndex = -1;
+    QChar negation('-');
+    QStringList processedWords;
+    while(keyIndex >= 0)
+    {
+        keyIndex = words.indexOf(QRegExp(QString("*") + key + QString(":*")),
+                                 (keyIndex >= 0 ? keyIndex : 0));
+        if (keyIndex < 0) {
+            break;
+        }
+        QString word = words[keyIndex];
+        if (processedWords.contains(word)) {
+            ++keyIndex;
+            continue;
+        }
+        else {
+            processedWords << word;
+        }
+        int positionInWord = word.indexOf(key + QString(":"));
+        if (positionInWord < 0) {
+            continue;
+        }
+        bool isNegated = false;
+        if (positionInWord != 0) {
+            QChar prevChr = word[positionInWord-1];
+            if (prevChr == negation) {
+                isNegated = true;
+            }
+        }
+        word = word.remove(key + QString(":"));
+        bool conversionResult = false;
+        qint64 value = static_cast<qint64>(word.toInt(&conversionResult));
+        if (!conversionResult) {
+            error = QT_TR_NOOP("Internal error during search query parsing: "
+                               "cannot convert parsed value to qint64");
+            return false;
+        }
+        if (isNegated) {
+            negatedContainer << value;
+        }
+        else {
+            container << value;
+        }
+    }
+
+    foreach(const QString & word, processedWords) {
+        words.removeAll(word);
+    }
+
+    return true;
+}
+
+bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList & words,
+                                              QVector<double> & container, QVector<double> & negatedContainer,
+                                              QString & error) const
+{
+    int keyIndex = -1;
+    QChar negation('-');
+    QStringList processedWords;
+    while(keyIndex >= 0)
+    {
+        keyIndex = words.indexOf(QRegExp(QString("*") + key + QString(":*")),
+                                 (keyIndex >= 0 ? keyIndex : 0));
+        if (keyIndex < 0) {
+            break;
+        }
+        QString word = words[keyIndex];
+        if (processedWords.contains(word)) {
+            ++keyIndex;
+            continue;
+        }
+        else {
+            processedWords << word;
+        }
+        int positionInWord = word.indexOf(key + QString(":"));
+        if (positionInWord < 0) {
+            continue;
+        }
+        bool isNegated = false;
+        if (positionInWord != 0) {
+            QChar prevChr = word[positionInWord-1];
+            if (prevChr == negation) {
+                isNegated = true;
+            }
+        }
+        word = word.remove(key + QString(":"));
+        bool conversionResult = false;
+        double value = static_cast<double>(word.toDouble(&conversionResult));
+        if (!conversionResult) {
+            error = QT_TR_NOOP("Internal error during search query parsing: "
+                               "cannot convert parsed value to double");
+            return false;
+        }
+        if (isNegated) {
+            negatedContainer << value;
+        }
+        else {
+            container << value;
+        }
+    }
+
+    foreach(const QString & word, processedWords) {
+        words.removeAll(word);
+    }
+
+    return true;
 }
 
 } // namespace qute_note

@@ -65,7 +65,13 @@ public:
     QStringList     m_negatedContentSearchTerms;
 
 private:
-    QStringList splitSearchQueryString(const QString &searchQueryString) const;
+    QStringList splitSearchQueryString(const QString & searchQueryString) const;
+    void parseStringValue(const QString & key, QStringList & words,
+                          QStringList & container, QStringList & negatedContainer) const;
+    bool parseIntValue(const QString & key, QStringList & words,
+                       QVector<qint64> & container, QVector<qint64> & negatedContainer, QString & error) const;
+    bool parseDoubleValue(const QString & key, QStringList & words,
+                          QVector<double> & container, QVector<double> &negatedContainer, QString & error) const;
 };
 
 } // namespace qute_note
