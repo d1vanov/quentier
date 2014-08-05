@@ -61,7 +61,10 @@ public:
     QVector<qint64> m_reminderDoneTimes;
     QVector<qint64> m_negatedReminderDoneTimes;
     bool            m_hasUnfinishedToDo;
+    bool            m_hasNegatedUnfinishedToDo;
     bool            m_hasFinishedToDo;
+    bool            m_hasNegatedFinishedToDo;
+    bool            m_hasAnyToDo;
     bool            m_hasEncryption;
     QStringList     m_contentSearchTerms;
     QStringList     m_negatedContentSearchTerms;

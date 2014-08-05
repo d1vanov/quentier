@@ -48,7 +48,10 @@ NoteSearchQueryPrivate::NoteSearchQueryPrivate() :
     m_reminderDoneTimes(),
     m_negatedReminderDoneTimes(),
     m_hasUnfinishedToDo(false),
+    m_hasNegatedUnfinishedToDo(false),
     m_hasFinishedToDo(false),
+    m_hasNegatedFinishedToDo(false),
+    m_hasAnyToDo(false),
     m_hasEncryption(false),
     m_contentSearchTerms(),
     m_negatedContentSearchTerms()
@@ -56,7 +59,56 @@ NoteSearchQueryPrivate::NoteSearchQueryPrivate() :
 
 void NoteSearchQueryPrivate::clear()
 {
-    // TODO: implement
+    m_queryString.clear();
+    m_notebookModifier.clear();
+    m_hasAnyModifier = false;
+    m_tagNames.clear();
+    m_negatedTagNames.clear();
+    m_titleNames.clear();
+    m_negatedTitleNames.clear();
+    m_creationTimestamps.clear();
+    m_negatedCreationTimestamps.clear();
+    m_modificationTimestamps.clear();
+    m_negatedModificationTimestamps.clear();
+    m_resourceMimeTypes.clear();
+    m_negatedResourceMimeTypes.clear();
+    m_subjectDateTimestamps.clear();
+    m_negatedSubjectDateTimestamps.clear();
+    m_latitudes.clear();
+    m_negatedLatitudes.clear();
+    m_longitudes.clear();
+    m_negatedLongitudes.clear();
+    m_altitudes.clear();
+    m_negatedAltitudes.clear();
+    m_authors.clear();
+    m_negatedAuthors.clear();
+    m_sources.clear();
+    m_negatedSources.clear();
+    m_sourceApplications.clear();
+    m_negatedSourceApplications.clear();
+    m_contentClasses.clear();
+    m_negatedContentClasses.clear();
+    m_placeNames.clear();
+    m_negatedPlaceNames.clear();
+    m_applicationData.clear();
+    m_negatedApplicationData.clear();
+    m_recognitionTypes.clear();
+    m_negatedRecognitionTypes.clear();
+    m_hasReminderOrder = false;
+    m_reminderOrders.clear();
+    m_negatedReminderOrders.clear();
+    m_reminderTimes.clear();
+    m_negatedReminderTimes.clear();
+    m_reminderDoneTimes.clear();
+    m_negatedReminderDoneTimes.clear();
+    m_hasUnfinishedToDo = false;
+    m_hasNegatedUnfinishedToDo = false;
+    m_hasFinishedToDo = false;
+    m_hasNegatedFinishedToDo = false;
+    m_hasAnyToDo = false;
+    m_hasEncryption = false;
+    m_contentSearchTerms.clear();
+    m_negatedContentSearchTerms.clear();
 }
 
 bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QString & error)
@@ -147,17 +199,68 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
         return false;
     }
 
-    // TODO: process "todo:" tags properly
+    // Processing all possible variants of "todo:[true|false|*]" tags
+
+    QString negatedFinishedToDo = "-todo:true";
+    QString finishedToDo = "todo:true";
+    QString negatedUnfinishedToDo = "-todo:false";
+    QString unfinishedToDo = "todo:false";
+    QString anyToDo = "todo:*";
 
     foreach(const QString & searchTerm, words)
     {
-        if (searchTerm.startsWith("encryption:")) {
+        if (searchTerm == negatedFinishedToDo)
+        {
+            if (m_hasFinishedToDo) {
+                error = QT_TR_NOOP("Incorrect search query: both finished todo and negated finished todo tags were found");
+                return false;
+            }
+            m_hasNegatedFinishedToDo = true;
+        }
+        else if (searchTerm == finishedToDo)
+        {
+            if (m_hasNegatedFinishedToDo) {
+                error = QT_TR_NOOP("Incorrect search query: both negated finished todo and finished todo tags were found");
+                return false;
+            }
+            m_hasFinishedToDo = true;
+        }
+        else if (searchTerm == negatedUnfinishedToDo) {
+            if (m_hasUnfinishedToDo) {
+                error = QT_TR_NOOP("Incorrect search query: both unfinished todo and negated unfinished todo tags were found");
+                return false;
+            }
+            m_hasNegatedUnfinishedToDo = true;
+        }
+        else if (searchTerm == unfinishedToDo) {
+            if (m_hasNegatedUnfinishedToDo) {
+                error = QT_TR_NOOP("Incorrect search query: both negated unfinished todo and unfinished todo tags were found");
+                return false;
+            }
+        }
+        else if (searchTerm == anyToDo) {
+            m_hasAnyToDo = true;
+        }
+    }
+
+    words.removeAll(negatedFinishedToDo);
+    words.removeAll(finishedToDo);
+    words.removeAll(negatedUnfinishedToDo);
+    words.removeAll(unfinishedToDo);
+    words.removeAll(anyToDo);
+
+    // Processing encryption tag
+
+    QString encryption = "encryption:";
+    foreach(const QString & searchTerm, words)
+    {
+        if (searchTerm == encryption) {
             m_hasEncryption = true;
             break;
         }
     }
 
-    words.removeAll("encryption:");
+    words.removeAll(encryption);
 
     // By now all tagged search terms must have been removed from the list of words
     // so we can extract the actual untagged content search terms here
@@ -178,7 +281,81 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
 
 QTextStream & NoteSearchQueryPrivate::Print(QTextStream & strm) const
 {
-    // TODO: implement
+    QString indent = "  ";
+
+    strm << "NoteSearchQuery: { \n";
+    strm << indent << "query string: " << (m_queryString.isEmpty() ? "<empty>" : m_queryString) << "; \n";
+    strm << indent << "notebookModifier: " << (m_notebookModifier.isEmpty() ? "<empty>" : m_notebookModifier) << "; \n";
+    strm << indent << "hasAnyModifier: " << (m_hasAnyModifier ? "true" : "false")   << "\n";
+
+#define CHECK_AND_PRINT_LIST(name, type, ...) \
+    if (m_##name.isEmpty()) { \
+        strm << indent << #name " is empty; \n"; \
+    } \
+    else { \
+        strm << indent << #name ": { \n"; \
+        foreach(const type & word, m_##name) { \
+            strm << indent << indent << __VA_ARGS__ (word) << "; \n"; \
+        } \
+        strm << indent << "}; \n"; \
+    }
+
+    CHECK_AND_PRINT_LIST(tagNames, QString);
+    CHECK_AND_PRINT_LIST(negatedTagNames, QString);
+    CHECK_AND_PRINT_LIST(titleNames, QString);
+    CHECK_AND_PRINT_LIST(negatedTitleNames, QString);
+    CHECK_AND_PRINT_LIST(creationTimestamps, qint64, QString::number);
+    CHECK_AND_PRINT_LIST(negatedCreationTimestamps, qint64, QString::number);
+    CHECK_AND_PRINT_LIST(modificationTimestamps, qint64, QString::number);
+    CHECK_AND_PRINT_LIST(negatedModificationTimestamps, qint64, QString::number);
+    CHECK_AND_PRINT_LIST(resourceMimeTypes, QString);
+    CHECK_AND_PRINT_LIST(negatedResourceMimeTypes, QString);
+    CHECK_AND_PRINT_LIST(subjectDateTimestamps, qint64, QString::number);
+    CHECK_AND_PRINT_LIST(negatedSubjectDateTimestamps, qint64, QString::number);
+    CHECK_AND_PRINT_LIST(latitudes, double, QString::number);
+    CHECK_AND_PRINT_LIST(negatedLatitudes, double, QString::number);
+    CHECK_AND_PRINT_LIST(longitudes, double, QString::number);
+    CHECK_AND_PRINT_LIST(negatedLongitudes, double, QString::number);
+    CHECK_AND_PRINT_LIST(altitudes, double, QString::number);
+    CHECK_AND_PRINT_LIST(negatedAltitudes, double, QString::number);
+    CHECK_AND_PRINT_LIST(authors, QString);
+    CHECK_AND_PRINT_LIST(negatedAuthors, QString);
+    CHECK_AND_PRINT_LIST(sources, QString);
+    CHECK_AND_PRINT_LIST(negatedSources, QString);
+    CHECK_AND_PRINT_LIST(sourceApplications, QString);
+    CHECK_AND_PRINT_LIST(negatedSourceApplications, QString);
+    CHECK_AND_PRINT_LIST(contentClasses, QString);
+    CHECK_AND_PRINT_LIST(negatedContentClasses, QString);
+    CHECK_AND_PRINT_LIST(placeNames, QString);
+    CHECK_AND_PRINT_LIST(negatedPlaceNames, QString);
+    CHECK_AND_PRINT_LIST(applicationData, QString);
+    CHECK_AND_PRINT_LIST(negatedApplicationData, QString);
+    CHECK_AND_PRINT_LIST(recognitionTypes, QString);
+    CHECK_AND_PRINT_LIST(negatedRecognitionTypes, QString);
+
+    strm << indent << "hasReminderOrder: " << (m_hasReminderOrder ? "true" : "false") << "; \n";
+
+    CHECK_AND_PRINT_LIST(reminderOrders, qint64, QString::number);
+    CHECK_AND_PRINT_LIST(negatedReminderOrders, qint64, QString::number);
+    CHECK_AND_PRINT_LIST(reminderTimes, qint64, QString::number);
+    CHECK_AND_PRINT_LIST(negatedReminderTimes, qint64, QString::number);
+    CHECK_AND_PRINT_LIST(reminderDoneTimes, qint64, QString::number);
+    CHECK_AND_PRINT_LIST(negatedReminderDoneTimes, qint64, QString::number);
+
+    strm << indent << "hasUnfinishedToDo: " << (m_hasUnfinishedToDo ? "true" : "false") << "; \n";
+    strm << indent << "hasNegatedUnfinishedToDo: " << (m_hasNegatedUnfinishedToDo ? "true" : "false") << "; \n";
+    strm << indent << "hasFinishedToDo: " << (m_hasFinishedToDo ? "true" : "false") << "; \n";
+    strm << indent << "hasNegatedFinishedToDo: " << (m_hasNegatedFinishedToDo ? "true" : "false") << "; \n";
+    strm << indent << "hasAnyToDo: " << (m_hasAnyToDo ? "true" : "false") << "; \n";
+    strm << indent << "encryption: " << (m_hasEncryption ? "true" : "false") << "\n";
+
+    CHECK_AND_PRINT_LIST(contentSearchTerms, QString);
+    CHECK_AND_PRINT_LIST(negatedContentSearchTerms, QString);
+
+#undef CHECK_AND_PRINT_LIST
+
+    strm << "}; \n";
+
     return strm;
 }
 

@@ -273,10 +273,28 @@ bool NoteSearchQuery::hasUnfinishedToDo() const
     return d->m_hasUnfinishedToDo;
 }
 
+bool NoteSearchQuery::hasNegatedUnfinishedToDo() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_hasNegatedUnfinishedToDo;
+}
+
 bool NoteSearchQuery::hasFinishedToDo() const
 {
     Q_D(const NoteSearchQuery);
     return d->m_hasFinishedToDo;
+}
+
+bool NoteSearchQuery::hasNegatedFinishedToDo() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_hasNegatedFinishedToDo;
+}
+
+bool NoteSearchQuery::hasAnyToDo() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_hasAnyToDo;
 }
 
 bool NoteSearchQuery::hasEncryption() const

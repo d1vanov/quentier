@@ -95,7 +95,13 @@ public:
     const QVector<qint64> & negatedReminderDoneTimes() const;
 
     bool hasUnfinishedToDo() const;
+    bool hasNegatedUnfinishedToDo() const;
+
     bool hasFinishedToDo() const;
+    bool hasNegatedFinishedToDo() const;
+
+    bool hasAnyToDo() const;
+
     bool hasEncryption() const;
 
     const QStringList & contentSearchTerms() const;
