@@ -12,6 +12,8 @@ class NoteSearchQueryPrivate : public Printable
 public:
     NoteSearchQueryPrivate();
 
+    void clear();
+
     bool parseQueryString(const QString & queryString, QString & error);
 
     QTextStream & Print(QTextStream & strm) const;
@@ -69,9 +71,12 @@ private:
     void parseStringValue(const QString & key, QStringList & words,
                           QStringList & container, QStringList & negatedContainer) const;
     bool parseIntValue(const QString & key, QStringList & words,
-                       QVector<qint64> & container, QVector<qint64> & negatedContainer, QString & error) const;
+                       QVector<qint64> & container, QVector<qint64> & negatedContainer,
+                       QString & error, bool * pFoundAsteriskReminderOrder = nullptr) const;
     bool parseDoubleValue(const QString & key, QStringList & words,
                           QVector<double> & container, QVector<double> &negatedContainer, QString & error) const;
+    bool dateTimeStringToTimestamp(QString dateTimeString, qint64 & timestamp, QString & error) const;
+    bool convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, QString & error) const;
 };
 
 } // namespace qute_note

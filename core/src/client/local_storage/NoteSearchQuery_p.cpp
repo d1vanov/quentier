@@ -1,4 +1,6 @@
 #include "NoteSearchQuery_p.h"
+#include <logging/QuteNoteLogger.h>
+#include <QDateTime>
 
 namespace qute_note {
 
@@ -52,11 +54,14 @@ NoteSearchQueryPrivate::NoteSearchQueryPrivate() :
     m_negatedContentSearchTerms()
 {}
 
+void NoteSearchQueryPrivate::clear()
+{
+    // TODO: implement
+}
+
 bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QString & error)
 {
     QStringList words = splitSearchQueryString(queryString);
-
-    // TODO: postprocess words list: convert day, week, month etc. to timestamps
 
     int notebookScopeModifierPosition = words.indexOf(QRegExp("notebook:*"));
     if (notebookScopeModifierPosition > 0) {
@@ -74,6 +79,11 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
         m_hasAnyModifier = false;
     }
 
+    bool res = convertAbsoluteAndRelativeDateTimesToTimestamps(words, error);
+    if (!res) {
+        return false;
+    }
+
     parseStringValue("tag", words, m_tagNames, m_negatedTagNames);
     parseStringValue("intitle", words, m_titleNames, m_negatedTitleNames);
     parseStringValue("resource", words, m_resourceMimeTypes, m_negatedResourceMimeTypes);
@@ -85,7 +95,7 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
     parseStringValue("applicationData", words, m_applicationData, m_negatedApplicationData);
     parseStringValue("recoType", words, m_recognitionTypes, m_negatedRecognitionTypes);
 
-    bool res = parseIntValue("created", words, m_creationTimestamps, m_negatedCreationTimestamps, error);
+    res = parseIntValue("created", words, m_creationTimestamps, m_negatedCreationTimestamps, error);
     if (!res) {
         return false;
     }
@@ -100,17 +110,68 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
         return false;
     }
 
-    // TODO: must have special treatment for "reminderOrder" key as it is allowed to be asterisk
+    res = parseIntValue("reminderTime", words, m_reminderTimes, m_negatedReminderTimes, error);
+    if (!res) {
+        return false;
+    }
+
+    res = parseIntValue("reminderDoneTime", words, m_reminderDoneTimes, m_negatedReminderDoneTimes, error);
+    if (!res) {
+        return false;
+    }
+
+    // Special treatment for reminderOrder key as it is the only integer key which is allowed to be asterisk
+    bool foundReminderOrderAsterisk = false;
+    res = parseIntValue("reminderOrder", words, m_reminderOrders, m_negatedReminderOrders, error,
+                        &foundReminderOrderAsterisk);
+    if (!res) {
+        return false;
+    }
+
+    if (foundReminderOrderAsterisk) {
+        m_hasReminderOrder = true;
+    }
 
     res = parseDoubleValue("latitude", words, m_latitudes, m_negatedLatitudes, error);
     if (!res) {
         return false;
     }
 
+    res = parseDoubleValue("longitude", words, m_longitudes, m_negatedLongitudes, error);
+    if (!res) {
+        return false;
+    }
+
+    res = parseDoubleValue("altitude", words, m_altitudes, m_negatedAltitudes, error);
+    if (!res) {
+        return false;
+    }
+
+    // TODO: process "todo:" tags properly
+
+    foreach(const QString & searchTerm, words)
+    {
+        if (searchTerm.startsWith("encryption:")) {
+            m_hasEncryption = true;
+            break;
+        }
+    }
+
+    words.removeAll("encryption:");
+
     // By now all tagged search terms must have been removed from the list of words
     // so we can extract the actual untagged content search terms here
 
-    // TODO: implement further
+    foreach(const QString & searchTerm, words)
+    {
+        if (searchTerm.startsWith("-")) {
+            QString localSearchTerm = searchTerm;
+            m_negatedContentSearchTerms << localSearchTerm.remove("-");
+        }
+        else {
+            m_contentSearchTerms << searchTerm;
+        }
+    }
 
     return true;
 }
@@ -271,11 +332,19 @@ void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList &
 
 bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & words,
                                            QVector<qint64> & container, QVector<qint64> & negatedContainer,
-                                           QString & error) const
+                                           QString & error, bool * pFoundAsteriskReminderOrder) const
 {
     int keyIndex = -1;
     QChar negation('-');
     QStringList processedWords;
+
+    // reminderOrder is a key with special treatment as it is allowed to be asterisk, not a number
+    QString reminderOrderKey("reminderOrder");
+    QString asterisk("*");
+    if (pFoundAsteriskReminderOrder) {
+        *pFoundAsteriskReminderOrder = false;
+    }
+
     while(keyIndex >= 0)
     {
         keyIndex = words.indexOf(QRegExp(QString("*") + key + QString(":*")),
@@ -303,18 +372,28 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
             }
         }
         word = word.remove(key + QString(":"));
-        bool conversionResult = false;
-        qint64 value = static_cast<qint64>(word.toInt(&conversionResult));
-        if (!conversionResult) {
-            error = QT_TR_NOOP("Internal error during search query parsing: "
-                               "cannot convert parsed value to qint64");
-            return false;
+        // Special treatment for "reminderOrder" key as it is allowed to be asterisk
+        if ((key == reminderOrderKey) && (word == asterisk))
+        {
+            if (pFoundAsteriskReminderOrder) {
+                *pFoundAsteriskReminderOrder = true;
+            }
         }
-        if (isNegated) {
-            negatedContainer << value;
-        }
-        else {
-            container << value;
+        else
+        {
+            bool conversionResult = false;
+            qint64 value = static_cast<qint64>(word.toInt(&conversionResult));
+            if (!conversionResult) {
+                error = QT_TR_NOOP("Internal error during search query parsing: "
+                                   "cannot convert parsed value to integer");
+                return false;
+            }
+            if (isNegated) {
+                negatedContainer << value;
+            }
+            else {
+                container << value;
+            }
         }
     }
 
@@ -376,6 +455,153 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
 
     foreach(const QString & word, processedWords) {
         words.removeAll(word);
+    }
+
+    return true;
+}
+
+bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
+                                                       qint64 & timestamp, QString & error) const
+{
+    QDateTime todayMidnight = QDateTime::currentDateTime();
+    todayMidnight.setTime(QTime(0, 0, 0, 1));
+
+    QDateTime dateTime = todayMidnight;
+    bool relativeDateArgumentFound = false;
+
+    if (dateTimeString.startsWith("day"))
+    {
+        relativeDateArgumentFound = true;
+
+        QString offsetSubstr = dateTimeString.remove("day");
+        if (!offsetSubstr.isEmpty())
+        {
+            bool conversionResult = false;
+            int daysOffset = offsetSubstr.toInt(&conversionResult);
+            if (!conversionResult) {
+                error = QT_TR_NOOP("Invalid query string: unable to convert days offset to integer");
+                return false;
+            }
+
+            dateTime.addDays(daysOffset);
+        }
+    }
+    else if (dateTimeString.startsWith("week"))
+    {
+        relativeDateArgumentFound = true;
+
+        QString offsetSubstr = dateTimeString.remove("week");
+        if (!offsetSubstr.isEmpty())
+        {
+            bool conversionResult = false;
+            int weekOffset = offsetSubstr.toInt(&conversionResult);
+            if (!conversionResult) {
+                error = QT_TR_NOOP("Invalid query string: unable to convert weeks offset to integer");
+                return false;
+            }
+
+            int dayOfWeek = dateTime.date().dayOfWeek();
+            dateTime.addDays(-1 * dayOfWeek);   // go to week start and count offset from there
+
+            dateTime.addDays(7 * weekOffset);
+        }
+    }
+    else if (dateTimeString.startsWith("month"))
+    {
+        relativeDateArgumentFound = true;
+
+        QString offsetSubstr = dateTimeString.remove("month");
+        if (!offsetSubstr.isEmpty())
+        {
+            bool conversionResult = false;
+            int monthOffset = offsetSubstr.toInt(&conversionResult);
+            if (!conversionResult) {
+                error = QT_TR_NOOP("Invalid query string: unable to convert months offset to integer");
+                return false;
+            }
+
+            int dayOfMonth = dateTime.date().day();
+            dateTime.addDays(-1 * (dayOfMonth - 1));   // go to month start and count offset from there
+
+            dateTime.addMonths(monthOffset);
+        }
+    }
+    else if (dateTimeString.startsWith("year"))
+    {
+        relativeDateArgumentFound = true;
+
+        QString offsetSubstr = dateTimeString.remove("year");
+        if (!offsetSubstr.isEmpty())
+        {
+            bool conversionResult = false;
+            int yearsOffset = offsetSubstr.toInt(&conversionResult);
+            if (!conversionResult) {
+                error = QT_TR_NOOP("Invalid query string: unable to convert years offset to integer");
+                return false;
+            }
+
+            int dayOfMonth = dateTime.date().day();
+            dateTime.addDays(-1 * (dayOfMonth - 1));    // go to month start
+
+            int currentMonth = dateTime.date().month();
+            dateTime.addMonths(-1 * (currentMonth - 1));    // go to year start and count offset from there
+
+            dateTime.addYears(yearsOffset);
+        }
+    }
+
+    if (relativeDateArgumentFound)
+    {
+        if (!dateTime.isValid()) {
+            error = QT_TR_NOOP("Internal error: datetime processed from query string is invalid: ");
+            error += dateTime.toString(Qt::ISODate);
+            QNWARNING(error);
+            return false;
+        }
+
+        timestamp = dateTime.toMSecsSinceEpoch();
+        return true;
+    }
+
+    // Getting here means the datetime in the string is actually a datetime in ISO 8601 compact profile
+    dateTime = QDateTime::fromString(dateTimeString, Qt::ISODate);
+    if (!dateTime.isValid()) {
+        error = QT_TR_NOOP("Internal error: datetime in query string is invalid with respect to ISO 8601 compact profile: ");
+        error += dateTime.toString(Qt::ISODate);
+        QNWARNING(error);
+        return false;
+    }
+
+    timestamp = dateTime.toMSecsSinceEpoch();
+    return true;
+}
+
+bool NoteSearchQueryPrivate::convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList &words, QString &error) const
+{
+    QStringList dateTimePrefixes;
+    dateTimePrefixes << "created:" << "-created:" << "updated:" << "-updated:"
+                     << "subjectDate:" << "-subjectDate:" << "reminderTime:"
+                     << "-reminderTime:" << "reminderDoneTime:" << "-reminderDoneTime";
+
+    int numWords = words.size();
+    for(int i = 0; i < numWords; ++i)
+    {
+        QString & word = words[i];
+
+        foreach (const QString & prefix, dateTimePrefixes)
+        {
+            if (word.startsWith(prefix))
+            {
+                QString dateTimeString = word.remove(prefix);
+                qint64 timestamp;
+                bool res = dateTimeStringToTimestamp(dateTimeString, timestamp, error);
+                if (!res) {
+                    return false;
+                }
+
+                word = prefix + QString::number(timestamp);
+            }
+        }
     }
 
     return true;
