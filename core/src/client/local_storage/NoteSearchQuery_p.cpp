@@ -113,13 +113,22 @@ void NoteSearchQueryPrivate::clear()
 
 bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QString & error)
 {
+    m_queryString = queryString;
+
     QStringList words = splitSearchQueryString(queryString);
 
-    int notebookScopeModifierPosition = words.indexOf(QRegExp("notebook:*"));
+    int notebookScopeModifierPosition = words.indexOf("notebook:");
+    QNWARNING("notebookScopeModifierPosition = " << notebookScopeModifierPosition);
     if (notebookScopeModifierPosition > 0) {
         error = QT_TR_NOOP("Incorrect position of \"notebook:\" scope modified in the search query: "
                            "when present in the query, it should be the first term in the search");
         return false;
+    }
+    else if (notebookScopeModifierPosition == 0)
+    {
+        m_notebookModifier = words[notebookScopeModifierPosition];
+        m_notebookModifier = m_notebookModifier.remove("notebook:");
+        QNWARNING("Just set m_notebookModifier to: " << m_notebookModifier);
     }
 
     // NOTE: "any:" scope modifier is not position dependent and affects the whole query
@@ -369,6 +378,7 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
     const QChar space = ' ';
     const QChar quote = '\"';
     QString currentWord;
+    // FIXME: need to also correctly process words without quotes
     for(int i = 0; i < length; ++i)
     {
         QChar chr = searchQueryString[i];
@@ -421,6 +431,7 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
                     }
 
                     words << currentWord;
+                    QNWARNING("Splitting to words: added word " << currentWord);
                     currentWord.clear();
                     insideQuotedText = false;
                     continue;
@@ -428,7 +439,6 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
             }
             else
             {
-                currentWord += chr;
                 insideQuotedText = true;
                 continue;
             }

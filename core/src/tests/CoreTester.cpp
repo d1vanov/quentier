@@ -10,6 +10,7 @@
 #include <tools/IQuteNoteException.h>
 #include <tools/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
+#include <client/local_storage/NoteSearchQuery.h>
 #include <client/types/SavedSearch.h>
 #include <client/types/LinkedNotebook.h>
 #include <client/types/Tag.h>
@@ -17,9 +18,11 @@
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/UserWrapper.h>
+#include <logging/QuteNoteLogger.h>
 #include <QApplication>
 #include <QTextStream>
 #include <QtTest/QTest>
+#include <bitset>
 
 // 10 minutes should be enough
 #define MAX_ALLOWED_MILLISECONDS 600000
@@ -199,6 +202,293 @@ void CoreTester::noteContainsEncryptionTest()
 
         note.clear();
         QVERIFY2(!note.containsEncryption(), qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
+void CoreTester::noteSearchQueryTest()
+{
+    // Disclaimer: unfortunately, it doesn't seem possible to verify every potential combinations
+    // of different keywords and scope modifiers within the search query. Due to that, only a subset
+    // of a limited number of combinations of keywords would be tested
+    try
+    {
+        QString notebookName = "fake notebook name";
+
+        QStringList tagNames;
+        tagNames << "allowed tag 1" << "allowed tag 2" << "allowed tag 3";
+
+        QStringList negatedTagNames;
+        negatedTagNames << "disallowed tag 1" << "disallowed tag 3" << "disallowed tag 3";
+
+        QStringList titleNames;
+        titleNames << "allowed title name 1" << "allowed title name 2" << "allowed title name 3";
+
+        QStringList negatedTitleNames;
+        negatedTitleNames << "disallowed title name 1" << "disallowed title name 2"
+                          << "disallowed title name 3";
+
+        qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
+
+        QVector<qint64> creationTimestamps;
+        creationTimestamps << (currentTimestamp-9) << (currentTimestamp-8) << (currentTimestamp-7);
+
+        QVector<qint64> negatedCreationTimestamps;
+        negatedCreationTimestamps << (currentTimestamp-12) << (currentTimestamp-11) << (currentTimestamp-10);
+
+        QVector<qint64> modificationTimestamps;
+        modificationTimestamps << (currentTimestamp-6) << (currentTimestamp-5) << (currentTimestamp-4);
+
+        QVector<qint64> negatedModificationTimestamps;
+        negatedModificationTimestamps << (currentTimestamp-3) << (currentTimestamp-2) << (currentTimestamp-1);
+
+        QStringList resourceMimeTypes;
+        resourceMimeTypes << "allowed resource mime type 1" << "allowed resource mime type 2" << "allowed resource mime type 3";
+
+        QStringList negatedResourceMimeTypes;
+        negatedResourceMimeTypes << "disallowed resource mime type 1" << "disallowed resource mime type 2" << "disallowed resource mime type 3";
+
+        QVector<qint64> subjectDateTimestamps;
+        subjectDateTimestamps << (currentTimestamp-15) << (currentTimestamp-14) << (currentTimestamp-13);
+
+        QVector<qint64> negatedSubjectDateTimestamps;
+        negatedSubjectDateTimestamps << (currentTimestamp-18) << (currentTimestamp-17) << (currentTimestamp-16);
+
+        QVector<double> latitudes;
+        latitudes << 32.15 << 17.41 << 12.02;
+
+        QVector<double> negatedLatitudes;
+        negatedLatitudes << -33.13 << -21.02 << -10.55;
+
+        QVector<double> longitudes;
+        longitudes << 33.14 << 18.92 << 11.04;
+
+        QVector<double> negatedLongitudes;
+        negatedLongitudes << -35.18 << -21.93 << -13.24;
+
+        QVector<double> altitudes;
+        altitudes << 34.10 << 16.17 << 10.93;
+
+        QVector<double> negatedAltitudes;
+        negatedAltitudes << -32.96 << -19.15 << -10.25;
+
+        QStringList authors;
+        authors << "author 1" << "author 2" << "author 3";
+
+        QStringList negatedAuthors;
+        negatedAuthors << "author 4" << "author 5" << "author 6";
+
+        QStringList sources;
+        sources << "web.clip" << "mail.clip" << "mail.smpt";
+
+        QStringList negatedSources;
+        negatedSources << "mobile.ios" << "mobile.android" << "mobile.*";
+
+        QStringList sourceApplications;
+        sourceApplications << "qutenote" << "nixnote2" << "everpad";
+
+        QStringList negatedSourceApplications;
+        negatedSourceApplications << "food.*" << "hello.*" << "skitch.*";
+
+        QStringList contentClasses;
+        contentClasses << "content class 1" << "content class 2" << "content class 3";
+
+        QStringList negatedContentClasses;
+        negatedContentClasses << "content class 4" << "content class 5" << "content class 6";
+
+        QStringList placeNames;
+        placeNames << "home" << "university" << "work";
+
+        QStringList negatedPlaceNames;
+        negatedPlaceNames << "bus" << "caffee" << "shower";
+
+        QStringList applicationData;
+        applicationData << "application data 1" << "application data 2" << "applicationData 3";
+
+        QStringList negatedApplicationData;
+        negatedApplicationData << "negated application data 1" << "negated application data 2"
+                               << "negated application data 3";
+
+        QStringList recognitionTypes;
+        recognitionTypes << "printed" << "speech" << "handwritten";
+
+        QStringList negatedRecognitionTypes;
+        negatedRecognitionTypes << "picture" << "unknown" << "*";
+
+        QVector<qint64> reminderOrders;
+        reminderOrders << (currentTimestamp-3) << (currentTimestamp-2) << (currentTimestamp-1);
+
+        QVector<qint64> negatedReminderOrders;
+        negatedReminderOrders << (currentTimestamp-6) << (currentTimestamp-5) << (currentTimestamp-4);
+
+        QVector<qint64> reminderTimes;
+        reminderTimes << (currentTimestamp+1) << (currentTimestamp+2) << (currentTimestamp+3);
+
+        QVector<qint64> negatedReminderTimes;
+        negatedReminderTimes << (currentTimestamp+4) << (currentTimestamp+5) << (currentTimestamp+6);
+
+        QVector<qint64> reminderDoneTimes;
+        reminderDoneTimes << (currentTimestamp-3) << (currentTimestamp-2) << (currentTimestamp-1);
+
+        QVector<qint64> negatedReminderDoneTimes;
+        negatedReminderDoneTimes << (currentTimestamp-6) << (currentTimestamp-5) << (currentTimestamp-4);
+
+        QStringList contentSearchTerms;
+        contentSearchTerms << "think" << "do" << "act";
+
+        QStringList negatedContentSearchTerms;
+        negatedContentSearchTerms << "bird" << "is" << "a word";
+
+        NoteSearchQuery noteSearchQuery;
+
+        // Iterating over all combinations of 7 boolean factors with a special meaning
+        for(int mask = 0; mask != (1<<7); ++mask)
+        {
+            std::bitset<9> bits(mask);
+
+            QString queryString;
+
+            if (bits[0]) {
+                queryString += "notebook:";
+                queryString += "\"";
+                queryString += notebookName;
+                queryString += "\" ";
+            }
+
+            if (bits[1]) {
+                queryString += "any: ";
+            }
+
+            if (bits[2]) {
+                queryString += "reminderOrder:* ";
+            }
+
+            if (bits[3]) {
+                queryString += "todo:false ";
+            }
+            else {
+                queryString += "-todo:false ";
+            }
+
+            if (bits[4]) {
+                queryString += "todo:true ";
+            }
+            else {
+                queryString += "-todo:true ";
+            }
+
+            if (bits[5]) {
+                queryString += "todo:* ";
+            }
+
+            if (bits[6]) {
+                queryString += "encryption: ";
+            }
+
+#define ADD_LIST_TO_QUERY_STRING(keyword, list, type, ...) \
+    foreach(const type & item, list) { \
+        queryString += #keyword ":"; \
+        queryString += "\""; \
+        queryString += __VA_ARGS__(item); \
+        queryString += "\""; \
+        queryString += " "; \
+    }
+
+            ADD_LIST_TO_QUERY_STRING(tag, tagNames, QString);
+            ADD_LIST_TO_QUERY_STRING(-tag, negatedTagNames, QString);
+            ADD_LIST_TO_QUERY_STRING(intitle, titleNames, QString);
+            ADD_LIST_TO_QUERY_STRING(-intitle, negatedTitleNames, QString);
+            // FIXME: timestamps should be translated to proper datetime in ISO 861 profile
+            // + I should perhaps also have some kind of test for "day", "week", "month" and "year" wordings
+            /*
+            ADD_LIST_TO_QUERY_STRING(created, creationTimestamps, qint64, QString::number);
+            ADD_LIST_TO_QUERY_STRING(-created, negatedCreationTimestamps, qint64, QString::number);
+            ADD_LIST_TO_QUERY_STRING(modified, modificationTimestamps, qint64, QString::number);
+            ADD_LIST_TO_QUERY_STRING(-modified, negatedModificationTimestamps, qint64, QString::number);
+            */
+            ADD_LIST_TO_QUERY_STRING(resource, resourceMimeTypes, QString);
+            ADD_LIST_TO_QUERY_STRING(-resource, negatedResourceMimeTypes, QString);
+            /*
+            ADD_LIST_TO_QUERY_STRING(subjectDate, subjectDateTimestamps, qint64, QString::number);
+            ADD_LIST_TO_QUERY_STRING(-subjectDate, negatedSubjectDateTimestamps, qint64, QString::number);
+            */
+            ADD_LIST_TO_QUERY_STRING(latitude, latitudes, double, QString::number);
+            ADD_LIST_TO_QUERY_STRING(-latitude, negatedLatitudes, double, QString::number);
+            ADD_LIST_TO_QUERY_STRING(longitude, longitudes, double, QString::number);
+            ADD_LIST_TO_QUERY_STRING(-longitude, negatedLongitudes, double, QString::number);
+            ADD_LIST_TO_QUERY_STRING(altitude, altitudes, double, QString::number);
+            ADD_LIST_TO_QUERY_STRING(-altitude, negatedAltitudes, double, QString::number);
+            ADD_LIST_TO_QUERY_STRING(author, authors, QString);
+            ADD_LIST_TO_QUERY_STRING(-author, negatedAuthors, QString);
+            ADD_LIST_TO_QUERY_STRING(source, sources, QString);
+            ADD_LIST_TO_QUERY_STRING(-source, negatedSources, QString);
+            ADD_LIST_TO_QUERY_STRING(sourceApplication, sourceApplications, QString);
+            ADD_LIST_TO_QUERY_STRING(-sourceApplication, negatedSourceApplications, QString);
+            ADD_LIST_TO_QUERY_STRING(contentClass, contentClasses, QString);
+            ADD_LIST_TO_QUERY_STRING(-contentClass, negatedContentClasses, QString);
+            ADD_LIST_TO_QUERY_STRING(placeName, placeNames, QString);
+            ADD_LIST_TO_QUERY_STRING(-placeName, negatedPlaceNames, QString);
+            ADD_LIST_TO_QUERY_STRING(applicationData, applicationData, QString);
+            ADD_LIST_TO_QUERY_STRING(-applicationData, negatedApplicationData, QString);
+            ADD_LIST_TO_QUERY_STRING(recoType, recognitionTypes, QString);
+            ADD_LIST_TO_QUERY_STRING(-recoType, negatedRecognitionTypes, QString);
+            ADD_LIST_TO_QUERY_STRING(reminderOrder, reminderOrders, qint64, QString::number);
+            ADD_LIST_TO_QUERY_STRING(-reminderOrder, negatedReminderOrders, qint64, QString::number);
+            /*
+            ADD_LIST_TO_QUERY_STRING(reminderTime, reminderTimes, qint64, QString::number);
+            ADD_LIST_TO_QUERY_STRING(-reminderTime, negatedReminderTimes, qint64, QString::number);
+            ADD_LIST_TO_QUERY_STRING(reminderDoneTime, reminderDoneTimes, qint64, QString::number);
+            ADD_LIST_TO_QUERY_STRING(-reminderDoneTime, negatedReminderDoneTimes, qint64, QString::number);
+            */
+
+#undef ADD_LIST_TO_QUERY_STRING
+
+            foreach(const QString & searchTerm, contentSearchTerms) {
+                queryString += "\"";
+                queryString += searchTerm;
+                queryString += "\" ";
+            }
+
+            foreach(const QString & negatedSearchTerm, negatedContentSearchTerms) {
+                queryString += "\"-";
+                queryString += negatedSearchTerm;
+                queryString += "\" ";
+            }
+
+            QNWARNING("Query string = " << queryString);
+
+            QString error;
+            bool res = noteSearchQuery.setQueryString(queryString, error);
+            QVERIFY2(res == true, qPrintable(error));
+
+            const QString & noteSearchQueryString = noteSearchQuery.queryString();
+            if (noteSearchQueryString != queryString)
+            {
+                error = "NoteSearchQuery has query string not equal to original string: ";
+                error += "original string: " + queryString + "; NoteSearchQuery's internal query string: ";
+                error += noteSearchQuery.queryString();
+                QFAIL(qPrintable(error));
+            }
+
+            if (bits[0])
+            {
+                const QString & noteSearchQueryNotebookModifier = noteSearchQuery.notebookModifier();
+                if (noteSearchQueryNotebookModifier != notebookName)
+                {
+                    error = "NoteSearchQuery's notebook modifier is not equal to original notebook name: ";
+                    error += "original notebook name: " + notebookName;
+                    error += ", NoteSearchQuery's internal notebook modifier: ";
+                    error += noteSearchQuery.notebookModifier();
+                    QFAIL(qPrintable(error));
+                }
+            }
+            else
+            {
+                QVERIFY2(noteSearchQuery.notebookModifier().isEmpty(), "NoteSearchQuery's notebook modified is not empty while it should be!");
+            }
+
+            // TODO: continue from here
+        }
     }
     CATCH_EXCEPTION();
 }
