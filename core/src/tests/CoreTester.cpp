@@ -228,6 +228,35 @@ void CoreTester::noteSearchQueryTest()
         negatedTitleNames << "disallowed title name 1" << "disallowed title name 2"
                           << "disallowed title name 3";
 
+        // Adding the relative datetime attributes with their respective timestamps
+        // for future comparison with query string parsing results
+
+        QHash<QString,qint64> timestampForDateTimeString;
+
+        QDateTime datetime = QDateTime::currentDateTime();
+        datetime.setTime(QTime(0, 0, 0, 1));  // today midnight
+        timestampForDateTimeString["day"] = datetime.toMSecsSinceEpoch();
+
+        datetime.addDays(-1);
+        timestampForDateTimeString["day-1"] = datetime.toMSecsSinceEpoch();
+
+        datetime.addDays(-1);
+        timestampForDateTimeString["day-2"] = datetime.toMSecsSinceEpoch();
+
+        datetime.addDays(-1);
+        timestampForDateTimeString["day-3"] = datetime.toMSecsSinceEpoch();
+
+        datetime.addDays(4);
+        timestampForDateTimeString["day+1"] = datetime.toMSecsSinceEpoch();
+
+        datetime.addDays(1);
+        timestampForDateTimeString["day+2"] = datetime.toMSecsSinceEpoch();
+
+        datetime.addDays(1);
+        timestampForDateTimeString["day+3"] = datetime.toMSecsSinceEpoch();
+
+        // TODO: continue from here with week, month, year, add also absolute datetime argument
+
         qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
 
         QVector<qint64> creationTimestamps;
