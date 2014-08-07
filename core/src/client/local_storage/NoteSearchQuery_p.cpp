@@ -116,11 +116,11 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
     m_queryString = queryString;
 
     QStringList words = splitSearchQueryString(queryString);
-    QString wordsList = words.join(";");
-    QNWARNING("Splitted words list: " << wordsList);
 
-    int notebookScopeModifierPosition = words.indexOf("notebook:");
-    QNWARNING("notebookScopeModifierPosition = " << notebookScopeModifierPosition);
+    QRegExp notebookModifierRegex("notebook:*");
+    notebookModifierRegex.setPatternSyntax(QRegExp::Wildcard);
+
+    int notebookScopeModifierPosition = words.indexOf(notebookModifierRegex);
     if (notebookScopeModifierPosition > 0) {
         error = QT_TR_NOOP("Incorrect position of \"notebook:\" scope modified in the search query: "
                            "when present in the query, it should be the first term in the search");
@@ -130,7 +130,7 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
     {
         m_notebookModifier = words[notebookScopeModifierPosition];
         m_notebookModifier = m_notebookModifier.remove("notebook:");
-        QNWARNING("Just set m_notebookModifier to: " << m_notebookModifier);
+        removeBoundaryQuotesFromWord(m_notebookModifier);
     }
 
     // NOTE: "any:" scope modifier is not position dependent and affects the whole query
@@ -474,17 +474,7 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
     for(int i = 0; i < numWords; ++i)
     {
         QString & word = words[i];
-        if (word.startsWith('\"') && word.endsWith('\"'))
-        {
-            // Removing the last character = quote
-            int wordLength = word.length();
-            word = word.remove(wordLength-1, 1);
-
-            if (word.length() != 0) {
-                // Removing the first character = quote
-                word = word.remove(0, 1);
-            }
-        }
+        removeBoundaryQuotesFromWord(word);
     }
 
     return words;
@@ -524,6 +514,8 @@ void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList &
         }
 
         QString value = word.remove(key + QString(":"));
+        removeBoundaryQuotesFromWord(value);
+
         if (isNegated) {
             negatedContainer << value;
         }
@@ -579,6 +571,8 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
             }
         }
         word = word.remove(key + QString(":"));
+        removeBoundaryQuotesFromWord(word);
+
         // Special treatment for "reminderOrder" key as it is allowed to be asterisk
         if ((key == reminderOrderKey) && (word == asterisk))
         {
@@ -645,6 +639,8 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
             }
         }
         word = word.remove(key + QString(":"));
+        removeBoundaryQuotesFromWord(word);
+
         bool conversionResult = false;
         double value = static_cast<double>(word.toDouble(&conversionResult));
         if (!conversionResult) {
@@ -812,6 +808,21 @@ bool NoteSearchQueryPrivate::convertAbsoluteAndRelativeDateTimesToTimestamps(QSt
     }
 
     return true;
+}
+
+void NoteSearchQueryPrivate::removeBoundaryQuotesFromWord(QString & word) const
+{
+    if (word.startsWith('\"') && word.endsWith('\"'))
+    {
+        // Removing the last character = quote
+        int wordLength = word.length();
+        word = word.remove(wordLength-1, 1);
+
+        if (word.length() != 0) {
+            // Removing the first character = quote
+            word = word.remove(0, 1);
+        }
+    }
 }
 
 } // namespace qute_note

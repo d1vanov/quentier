@@ -80,6 +80,7 @@ private:
                           QVector<double> & container, QVector<double> &negatedContainer, QString & error) const;
     bool dateTimeStringToTimestamp(QString dateTimeString, qint64 & timestamp, QString & error) const;
     bool convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, QString & error) const;
+    void removeBoundaryQuotesFromWord(QString & word) const;
 };
 
 } // namespace qute_note

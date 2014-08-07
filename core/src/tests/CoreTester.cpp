@@ -455,8 +455,6 @@ void CoreTester::noteSearchQueryTest()
                 queryString += "\" ";
             }
 
-            QNWARNING("Query string = " << queryString);
-
             QString error;
             bool res = noteSearchQuery.setQueryString(queryString, error);
             QVERIFY2(res == true, qPrintable(error));
