@@ -116,6 +116,8 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
     m_queryString = queryString;
 
     QStringList words = splitSearchQueryString(queryString);
+    QString wordsList = words.join(";");
+    QNWARNING("Splitted words list: " << wordsList);
 
     int notebookScopeModifierPosition = words.indexOf("notebook:");
     QNWARNING("notebookScopeModifierPosition = " << notebookScopeModifierPosition);
@@ -374,6 +376,7 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
 
     // Retrieving single words from the query string considering any text between quotes a single word
     bool insideQuotedText = false;
+    bool insideUnquotedWord = false;
     int length = searchQueryString.length();
     const QChar space = ' ';
     const QChar quote = '\"';
@@ -383,20 +386,31 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
     {
         QChar chr = searchQueryString[i];
 
-        if ((chr == space) && !insideQuotedText)
+        if (chr == space)
         {
-            continue;
+            if (insideQuotedText) {
+                currentWord += chr;
+                continue;
+            }
+
+            if (insideUnquotedWord && !currentWord.isEmpty()) {
+                words << currentWord;
+                currentWord.clear();
+                insideUnquotedWord = false;
+                continue;
+            }
         }
         else if (chr == quote)
         {
+            currentWord += chr;
+
             if (i == (length - 1))
             {
                 // If that was quoted text, it's not any longer
                 insideQuotedText = false;
-                // can clear the starting quote from the current word right now
-                if (currentWord.startsWith(quote)) {
-                    currentWord = currentWord.remove(0, 1);
-                }
+                // It's not the unquoted word any longer too
+                insideUnquotedWord = false;
+
                 words << currentWord;
                 currentWord.clear();
                 break;
@@ -418,34 +432,40 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
                             if (i != 1) {
                                 QChar prevPrevChar = searchQueryString[i-2];
                                 if (prevPrevChar == '\\') {
-                                    // Yes, backslash is escaped itself, so the quote at i is really the closing one
+                                    // Yes, backslash is escaped itself, so the quote at i is really the enclosing one
                                     backslashEscaped = true;
                                 }
                             }
 
                             if (!backslashEscaped) {
-                                currentWord += chr;
                                 continue;
                             }
                         }
                     }
 
                     words << currentWord;
-                    QNWARNING("Splitting to words: added word " << currentWord);
                     currentWord.clear();
                     insideQuotedText = false;
+                    insideUnquotedWord = false;
                     continue;
                 }
             }
             else
             {
-                insideQuotedText = true;
+                if (!insideQuotedText) {
+                    insideQuotedText = true;
+                }
+
                 continue;
             }
         }
         else
         {
             currentWord += chr;
+
+            if (!insideQuotedText && !insideUnquotedWord) {
+                insideUnquotedWord = true;
+            }
         }
     }
 
