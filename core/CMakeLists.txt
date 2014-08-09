@@ -152,6 +152,7 @@ set(TEST_HEADERS
     src/tests/LinkedNotebookLocalStorageManagerAsyncTester.h
     src/tests/NotebookLocalStorageManagerAsyncTester.h
     src/tests/NoteLocalStorageManagerAsyncTester.h
+    src/tests/NoteSearchQueryTest.h
     src/tests/ResourceLocalStorageManagerAsyncTester.h
     src/tests/TagLocalStorageManagerAsyncTester.h
     src/tests/SavedSearchLocalStorageManagerAsyncTester.h
@@ -163,6 +164,7 @@ set(TEST_SOURCES
     src/tests/LinkedNotebookLocalStorageManagerAsyncTester.cpp
     src/tests/NotebookLocalStorageManagerAsyncTester.cpp
     src/tests/NoteLocalStorageManagerAsyncTester.cpp
+    src/tests/NoteSearchQueryTest.cpp
     src/tests/ResourceLocalStorageManagerAsyncTester.cpp
     src/tests/TagLocalStorageManagerAsyncTester.cpp
     src/tests/SavedSearchLocalStorageManagerAsyncTester.cpp

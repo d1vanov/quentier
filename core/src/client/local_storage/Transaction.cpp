@@ -30,8 +30,7 @@ Transaction::~Transaction()
         bool res = query.exec("ROLLBACK");
         if (!res) {
             QNCRITICAL("Error rolling back the SQL transaction: " << query.lastError());
-            throw DatabaseSqlErrorException("Can't rollback SQL transaction, last error: " +
-                                            query.lastError().text());
+            throw DatabaseSqlErrorException("Can't rollback SQL transaction, last error: " + query.lastError().text());
         }
     }
 }

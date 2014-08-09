@@ -168,7 +168,7 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
         return false;
     }
 
-    res = parseIntValue("subject", words, m_subjectDateTimestamps, m_negatedSubjectDateTimestamps, error);
+    res = parseIntValue("subjectDate", words, m_subjectDateTimestamps, m_negatedSubjectDateTimestamps, error);
     if (!res) {
         return false;
     }
@@ -686,7 +686,7 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
                 return false;
             }
 
-            dateTime.addDays(daysOffset);
+            dateTime = dateTime.addDays(daysOffset);
         }
     }
     else if (dateTimeString.startsWith("week"))
@@ -704,9 +704,9 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
             }
 
             int dayOfWeek = dateTime.date().dayOfWeek();
-            dateTime.addDays(-1 * dayOfWeek);   // go to week start and count offset from there
+            dateTime = dateTime.addDays(-1 * dayOfWeek);   // go to week start and count offset from there
 
-            dateTime.addDays(7 * weekOffset);
+            dateTime = dateTime.addDays(7 * weekOffset);
         }
     }
     else if (dateTimeString.startsWith("month"))
@@ -724,9 +724,9 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
             }
 
             int dayOfMonth = dateTime.date().day();
-            dateTime.addDays(-1 * (dayOfMonth - 1));   // go to month start and count offset from there
+            dateTime = dateTime.addDays(-1 * (dayOfMonth - 1));   // go to month start and count offset from there
 
-            dateTime.addMonths(monthOffset);
+            dateTime = dateTime.addMonths(monthOffset);
         }
     }
     else if (dateTimeString.startsWith("year"))
@@ -744,12 +744,12 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
             }
 
             int dayOfMonth = dateTime.date().day();
-            dateTime.addDays(-1 * (dayOfMonth - 1));    // go to month start
+            dateTime = dateTime.addDays(-1 * (dayOfMonth - 1));    // go to month start
 
             int currentMonth = dateTime.date().month();
-            dateTime.addMonths(-1 * (currentMonth - 1));    // go to year start and count offset from there
+            dateTime = dateTime.addMonths(-1 * (currentMonth - 1));    // go to year start and count offset from there
 
-            dateTime.addYears(yearsOffset);
+            dateTime = dateTime.addYears(yearsOffset);
         }
     }
 
@@ -757,7 +757,8 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
     {
         if (!dateTime.isValid()) {
             error = QT_TR_NOOP("Internal error: datetime processed from query string is invalid: ");
-            error += dateTime.toString(Qt::ISODate);
+            error += QT_TR_NOOP("Datetime in ISO 861 format: ") + dateTime.toString(Qt::ISODate);
+            error += QT_TR_NOOP(", datetime in simple text format: ") + dateTime.toString(Qt::TextDate);
             QNWARNING(error);
             return false;
         }
@@ -770,7 +771,7 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
     dateTime = QDateTime::fromString(dateTimeString, Qt::ISODate);
     if (!dateTime.isValid()) {
         error = QT_TR_NOOP("Internal error: datetime in query string is invalid with respect to ISO 8601 compact profile: ");
-        error += dateTime.toString(Qt::ISODate);
+        error += dateTimeString;
         QNWARNING(error);
         return false;
     }
@@ -784,7 +785,7 @@ bool NoteSearchQueryPrivate::convertAbsoluteAndRelativeDateTimesToTimestamps(QSt
     QStringList dateTimePrefixes;
     dateTimePrefixes << "created:" << "-created:" << "updated:" << "-updated:"
                      << "subjectDate:" << "-subjectDate:" << "reminderTime:"
-                     << "-reminderTime:" << "reminderDoneTime:" << "-reminderDoneTime";
+                     << "-reminderTime:" << "reminderDoneTime:" << "-reminderDoneTime:";
 
     int numWords = words.size();
     for(int i = 0; i < numWords; ++i)
