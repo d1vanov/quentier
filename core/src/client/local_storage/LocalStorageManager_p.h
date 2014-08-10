@@ -20,6 +20,7 @@
 namespace qute_note {
 
 typedef qevercloud::UserID UserID;
+QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
 
 class LocalStorageManagerPrivate
 {
@@ -155,6 +156,9 @@ private:
 
     QList<qevercloud::SharedNotebook> ListEnSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                            QString & errorDescription) const;
+
+    bool noteSearchQueryToSQL(const NoteSearchQuery & noteSearchQuery, QString & sql,
+                              QString & errorDescription) const;
 
     QString             m_currentUsername;
     qevercloud::UserID  m_currentUserId;

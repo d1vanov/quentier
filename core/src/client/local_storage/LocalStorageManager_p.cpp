@@ -2,6 +2,7 @@
 #include "DatabaseOpeningException.h"
 #include "DatabaseSqlErrorException.h"
 #include "Transaction.h"
+#include "NoteSearchQuery.h"
 #include <client/Utility.h>
 #include <logging/QuteNoteLogger.h>
 #include <tools/QuteNoteNullPtrException.h>
@@ -2563,7 +2564,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  localGuid                       TEXT PRIMARY KEY  NOT NULL UNIQUE, "
                      "  guid                            TEXT              DEFAULT NULL UNIQUE, "
                      "  updateSequenceNumber            INTEGER           DEFAULT NULL, "
-                     "  notebookName                    TEXT              DEFAULT NULL, "
+                     "  notebookName                    TEXT              DEFAULT NULL UNIQUE, "
                      "  creationTimestamp               INTEGER           DEFAULT NULL, "
                      "  modificationTimestamp           INTEGER           DEFAULT NULL, "
                      "  isDirty                         INTEGER           NOT NULL, "
@@ -5270,6 +5271,63 @@ void LocalStorageManagerPrivate::SortSharedNotebooks(Notebook & notebook) const
     qSort(sharedNotebookAdapters.begin(), sharedNotebookAdapters.end(),
           [](const SharedNotebookAdapter & lhs, const SharedNotebookAdapter & rhs)
           { return lhs.indexInNotebook() < rhs.indexInNotebook(); });
+}
+
+bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & noteSearchQuery,
+                                                      QString & sql, QString & errorDescription) const
+{
+    errorDescription = QT_TR_NOOP("Can't convert note search string into SQL query: ");
+
+    sql = "SELECT localGuid from NoteFTS WHERE ";   // initial template to add to
+
+    QString notebookName = noteSearchQuery.notebookModifier();
+    QString notebookLocalGuid;
+    if (!notebookName.isEmpty())
+    {
+        QSqlQuery query(m_sqlDatabase);
+        QString notebookQueryString = QString("SELECT localGuid FROM NotebookFTS WHERE notebookName MATCH \"%1\" LIMIT 1").arg(notebookName);
+        bool res = query.exec(notebookQueryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't select notebook's local guid by notebook's name");
+
+        if (!query.next()) {
+            errorDescription += QT_TR_NOOP("notebook with provided name was not found");
+            return false;
+        }
+
+        QSqlRecord rec = query.record();
+        int index = rec.indexOf("localGuid");
+        if (index < 0) {
+            errorDescription += QT_TR_NOOP("can't find notebook's local guid by notebook name: "
+                                           "SQL query record doesn't contain the requested item");
+            return false;
+        }
+
+        QVariant value = rec.value(index);
+        if (value.isNull()) {
+            errorDescription += QT_TR_NOOP("Internal error: found null notebook's local guid "
+                                           "corresponding to notebook's name");
+            return false;
+        }
+
+        notebookLocalGuid = value.toString();
+        if (notebookLocalGuid.isEmpty()) {
+            errorDescription += QT_TR_NOOP("Internal error: found empty notebook's local guid "
+                                           "corresponding to notebook's name");
+            return false;
+        }
+    }
+
+    if (!notebookLocalGuid.isEmpty()) {
+        sql += "notebookLocalGuid = '";
+        sql += notebookLocalGuid;
+        sql += "' AND ";
+    }
+
+    // QString uniteOperator = (noteSearchQuery.hasAnyModifier() ? "OR" : "AND");
+
+    // TODO: continue from here
+
+    return true;
 }
 
 #undef CHECK_AND_SET_RESOURCE_PROPERTY
