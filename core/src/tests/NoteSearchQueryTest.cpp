@@ -236,6 +236,9 @@ bool NoteSearchQueryTest(QString & error)
     negatedReminderDoneTimes << "year+3" << datetime.toString(Qt::ISODate)
                              << datetime.addYears(-1).toString(Qt::ISODate);
 
+    timestampForDateTimeString[datetime.toString(Qt::ISODate)] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[datetime.addYears(-1).toString(Qt::ISODate)] = datetime.addYears(-1).toMSecsSinceEpoch();
+
     QStringList contentSearchTerms;
     contentSearchTerms << "think" << "do" << "act !";
 
@@ -399,7 +402,144 @@ foreach(const type & item, list) { \
             return false;
         }
 
-        // TODO: continue from here
+        if (bits[2]) {
+            if (!noteSearchQuery.hasReminderOrder()) {
+                error = "NoteSearchQuery doesn't have \"any\" option set for reminderOrder while it should have one";
+                return false;
+            }
+        }
+        else {
+            if (noteSearchQuery.hasReminderOrder()) {
+                error = "NoteSearchQuery has \"any\" option set for reminderOrder while it shouldn't have one";
+                return false;
+            }
+        }
+
+        if (bits[3])
+        {
+            if (!noteSearchQuery.hasUnfinishedToDo()) {
+                error = "NoteSearchQuery doesn't have unfinished todo while it should have one";
+                return false;
+            }
+
+            if (noteSearchQuery.hasNegatedUnfinishedToDo()) {
+                error = "NoteSearchQUery has negated unfinished todo while it should have non-negated one";
+                return false;
+            }
+        }
+        else
+        {
+            if (!noteSearchQuery.hasNegatedUnfinishedToDo()) {
+                error = "NoteSearchQUery doesn't have negated unfinished todo while it should have one";
+                return false;
+            }
+
+            if (noteSearchQuery.hasUnfinishedToDo()) {
+                error = "NoteSearchQuery has unfinished todo while it should have negated unfinished todo";
+                return false;
+            }
+        }
+
+        if (bits[4])
+        {
+            if (!noteSearchQuery.hasFinishedToDo()) {
+                error = "NoteSearchQuery hasn't finished todo while it should have one";
+                return false;
+            }
+
+            if (noteSearchQuery.hasNegatedFinishedToDo()) {
+                error = "NoteSearchQuery has negated finished todo while it should have non-negated one";
+                return false;
+            }
+        }
+        else
+        {
+            if (!noteSearchQuery.hasNegatedFinishedToDo()) {
+                error = "NoteSearchQuery doesn't have negated finished todo while it should have one";
+                return false;
+            }
+
+            if (noteSearchQuery.hasFinishedToDo()) {
+                error = "NoteSearchQuery has finished todo while it should have negated finished todo";
+                return false;
+            }
+        }
+
+        if (bits[5]) {
+            if (!noteSearchQuery.hasAnyToDo()) {
+                error = "NoteSearchQuery doesn't have \"any\" todo modifier while it should have one";
+                return false;
+            }
+        }
+        else {
+            if (noteSearchQuery.hasAnyToDo()) {
+                error = "NoteSearchQuery has \"any\" todo modifier while it should not have one";
+                return false;
+            }
+        }
+
+        if (bits[6]) {
+            if (!noteSearchQuery.hasEncryption()) {
+                error = "NoteSearchQuery doesn't have encryption while it should have one";
+                return false;
+            }
+        }
+        else {
+            if (noteSearchQuery.hasEncryption()) {
+                error = "NoteSearchQuery has encryption while it should have one";
+                return false;
+            }
+        }
+
+#define CHECK_LIST(list, accessor, ...) \
+    auto noteSearchQueryList##list = noteSearchQuery.accessor(); \
+    if (noteSearchQueryList##list != list) { \
+        error = "NoteSearchQuery: " #list " doesn't match the one from the original list; "; \
+        error += "original " #list ": "; \
+        foreach(const auto & item, list) { \
+            error += __VA_ARGS__(item); \
+            error += "; "; \
+        } \
+        error += "; \nNoteSearchQuery's list: "; \
+        foreach(const auto & item, noteSearchQueryList##list) { \
+            error += __VA_ARGS__(item); \
+            error += "; "; \
+        } \
+        return false; \
+    }
+
+        CHECK_LIST(tagNames, tagNames);
+        CHECK_LIST(negatedTagNames, negatedTagNames);
+        CHECK_LIST(titleNames, titleNames);
+        CHECK_LIST(negatedTitleNames, negatedTitleNames);
+        CHECK_LIST(resourceMimeTypes, resourceMimeTypes);
+        CHECK_LIST(negatedResourceMimeTypes, negatedResourceMimeTypes);
+        CHECK_LIST(latitudes, latitudes, QString::number);
+        CHECK_LIST(negatedLatitudes, negatedLatitudes, QString::number);
+        CHECK_LIST(longitudes, longitudes, QString::number);
+        CHECK_LIST(negatedLongitudes, negatedLongitudes, QString::number);
+        CHECK_LIST(altitudes, altitudes, QString::number);
+        CHECK_LIST(negatedAltitudes, negatedAltitudes, QString::number);
+        CHECK_LIST(authors, authors);
+        CHECK_LIST(negatedAuthors, negatedAuthors);
+        CHECK_LIST(sources, sources);
+        CHECK_LIST(negatedSources, negatedSources);
+        CHECK_LIST(sourceApplications, sourceApplications);
+        CHECK_LIST(negatedSourceApplications, negatedSourceApplications);
+        CHECK_LIST(contentClasses, contentClasses);
+        CHECK_LIST(negatedContentClasses, negatedContentClasses);
+        CHECK_LIST(placeNames, placeNames);
+        CHECK_LIST(negatedPlaceNames, negatedPlaceNames);
+        CHECK_LIST(applicationData, applicationData);
+        CHECK_LIST(negatedApplicationData, negatedApplicationData);
+        CHECK_LIST(recognitionTypes, recognitionTypes);
+        CHECK_LIST(negatedRecognitionTypes, negatedRecognitionTypes);
+        CHECK_LIST(reminderOrders, reminderOrders, QString::number);
+        CHECK_LIST(negatedReminderOrders, negatedReminderOrders, QString::number);
+
+#undef CHECK_LIST
+
+        // TODO: continue from here with checking timestampt for datetime types
     }
 
     return true;

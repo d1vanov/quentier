@@ -57,6 +57,18 @@ const QStringList & NoteSearchQuery::negatedTagNames() const
     return d->m_negatedTagNames;
 }
 
+const QStringList & NoteSearchQuery::titleNames() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_titleNames;
+}
+
+const QStringList & NoteSearchQuery::negatedTitleNames() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->m_negatedTitleNames;
+}
+
 const QVector<qint64> & NoteSearchQuery::creationTimestamps() const
 {
     Q_D(const NoteSearchQuery);

@@ -248,6 +248,7 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
                 error = QT_TR_NOOP("Incorrect search query: both negated unfinished todo and unfinished todo tags were found");
                 return false;
             }
+            m_hasUnfinishedToDo = true;
         }
         else if (searchTerm == anyToDo) {
             m_hasAnyToDo = true;
@@ -483,13 +484,16 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
 void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList & words,
                                               QStringList & container, QStringList & negatedContainer) const
 {
-    int keyIndex = -1;
+    int keyIndex = 0;
     QChar negation('-');
     QStringList processedWords;
+
+    QRegExp regexp(QString("*") + key + QString(":*"));
+    regexp.setPatternSyntax(QRegExp::Wildcard);
+
     while(keyIndex >= 0)
     {
-        keyIndex = words.indexOf(QRegExp(QString("*") + key + QString(":*")),
-                                 (keyIndex >= 0 ? keyIndex : 0));
+        keyIndex = words.indexOf(regexp, (keyIndex >= 0 ? keyIndex : 0));
         if (keyIndex < 0) {
             break;
         }
@@ -505,6 +509,7 @@ void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList &
         if (positionInWord < 0) {
             continue;
         }
+
         bool isNegated = false;
         if (positionInWord != 0) {
             QChar prevChr = word[positionInWord-1];
@@ -513,14 +518,19 @@ void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList &
             }
         }
 
-        QString value = word.remove(key + QString(":"));
-        removeBoundaryQuotesFromWord(value);
-
         if (isNegated) {
-            negatedContainer << value;
+            word = word.remove(QString("-") + key + QString(":"));
         }
         else {
-            container << value;
+            word = word.remove(key + QString(":"));
+        }
+        removeBoundaryQuotesFromWord(word);
+
+        if (isNegated) {
+            negatedContainer << word;
+        }
+        else {
+            container << word;
         }
     }
 
@@ -533,7 +543,7 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
                                            QVector<qint64> & container, QVector<qint64> & negatedContainer,
                                            QString & error, bool * pFoundAsteriskReminderOrder) const
 {
-    int keyIndex = -1;
+    int keyIndex = 0;
     QChar negation('-');
     QStringList processedWords;
 
@@ -544,10 +554,12 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
         *pFoundAsteriskReminderOrder = false;
     }
 
+    QRegExp regexp(QString("*") + key + QString(":*"));
+    regexp.setPatternSyntax(QRegExp::Wildcard);
+
     while(keyIndex >= 0)
     {
-        keyIndex = words.indexOf(QRegExp(QString("*") + key + QString(":*")),
-                                 (keyIndex >= 0 ? keyIndex : 0));
+        keyIndex = words.indexOf(regexp, (keyIndex >= 0 ? keyIndex : 0));
         if (keyIndex < 0) {
             break;
         }
@@ -563,6 +575,7 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
         if (positionInWord < 0) {
             continue;
         }
+
         bool isNegated = false;
         if (positionInWord != 0) {
             QChar prevChr = word[positionInWord-1];
@@ -570,7 +583,13 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
                 isNegated = true;
             }
         }
-        word = word.remove(key + QString(":"));
+
+        if (isNegated) {
+            word = word.remove(QString("-") + key + QString(":"));
+        }
+        else {
+            word = word.remove(key + QString(":"));
+        }
         removeBoundaryQuotesFromWord(word);
 
         // Special treatment for "reminderOrder" key as it is allowed to be asterisk
@@ -583,10 +602,11 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
         else
         {
             bool conversionResult = false;
-            qint64 value = static_cast<qint64>(word.toInt(&conversionResult));
+            qint64 value = static_cast<qint64>(word.toLongLong(&conversionResult));
             if (!conversionResult) {
                 error = QT_TR_NOOP("Internal error during search query parsing: "
-                                   "cannot convert parsed value to integer");
+                                   "cannot convert parsed value to integer: parsed value = ");
+                error += word;
                 return false;
             }
             if (isNegated) {
@@ -609,13 +629,16 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
                                               QVector<double> & container, QVector<double> & negatedContainer,
                                               QString & error) const
 {
-    int keyIndex = -1;
+    int keyIndex = 0;
     QChar negation('-');
     QStringList processedWords;
+
+    QRegExp regexp(QString("*") + key + QString(":*"));
+    regexp.setPatternSyntax(QRegExp::Wildcard);
+
     while(keyIndex >= 0)
     {
-        keyIndex = words.indexOf(QRegExp(QString("*") + key + QString(":*")),
-                                 (keyIndex >= 0 ? keyIndex : 0));
+        keyIndex = words.indexOf(regexp, (keyIndex >= 0 ? keyIndex : 0));
         if (keyIndex < 0) {
             break;
         }
@@ -631,6 +654,7 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
         if (positionInWord < 0) {
             continue;
         }
+
         bool isNegated = false;
         if (positionInWord != 0) {
             QChar prevChr = word[positionInWord-1];
@@ -638,14 +662,21 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
                 isNegated = true;
             }
         }
-        word = word.remove(key + QString(":"));
+
+        if (isNegated) {
+            word = word.remove(QString("-") + key + QString(":"));
+        }
+        else {
+            word = word.remove(key + QString(":"));
+        }
         removeBoundaryQuotesFromWord(word);
 
         bool conversionResult = false;
         double value = static_cast<double>(word.toDouble(&conversionResult));
         if (!conversionResult) {
             error = QT_TR_NOOP("Internal error during search query parsing: "
-                               "cannot convert parsed value to double");
+                               "cannot convert parsed value to double: parsed value = ");
+            error += word;
             return false;
         }
         if (isNegated) {
