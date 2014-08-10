@@ -698,7 +698,7 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
                                                        qint64 & timestamp, QString & error) const
 {
     QDateTime todayMidnight = QDateTime::currentDateTime();
-    todayMidnight.setTime(QTime(0, 0, 0, 1));
+    todayMidnight.setTime(QTime(0, 0, 0, 0));
 
     QDateTime dateTime = todayMidnight;
     bool relativeDateArgumentFound = false;
@@ -724,6 +724,9 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
     {
         relativeDateArgumentFound = true;
 
+        int dayOfWeek = dateTime.date().dayOfWeek();
+        dateTime = dateTime.addDays(-1 * dayOfWeek);   // go to week start
+
         QString offsetSubstr = dateTimeString.remove("week");
         if (!offsetSubstr.isEmpty())
         {
@@ -734,15 +737,15 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
                 return false;
             }
 
-            int dayOfWeek = dateTime.date().dayOfWeek();
-            dateTime = dateTime.addDays(-1 * dayOfWeek);   // go to week start and count offset from there
-
             dateTime = dateTime.addDays(7 * weekOffset);
         }
     }
     else if (dateTimeString.startsWith("month"))
     {
         relativeDateArgumentFound = true;
+
+        int dayOfMonth = dateTime.date().day();
+        dateTime = dateTime.addDays(-1 * (dayOfMonth - 1));   // go to month start
 
         QString offsetSubstr = dateTimeString.remove("month");
         if (!offsetSubstr.isEmpty())
@@ -754,15 +757,18 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
                 return false;
             }
 
-            int dayOfMonth = dateTime.date().day();
-            dateTime = dateTime.addDays(-1 * (dayOfMonth - 1));   // go to month start and count offset from there
-
             dateTime = dateTime.addMonths(monthOffset);
         }
     }
     else if (dateTimeString.startsWith("year"))
     {
         relativeDateArgumentFound = true;
+
+        int dayOfMonth = dateTime.date().day();
+        dateTime = dateTime.addDays(-1 * (dayOfMonth - 1));    // go to month start
+
+        int currentMonth = dateTime.date().month();
+        dateTime = dateTime.addMonths(-1 * (currentMonth - 1));    // go to year start
 
         QString offsetSubstr = dateTimeString.remove("year");
         if (!offsetSubstr.isEmpty())
@@ -773,12 +779,6 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
                 error = QT_TR_NOOP("Invalid query string: unable to convert years offset to integer");
                 return false;
             }
-
-            int dayOfMonth = dateTime.date().day();
-            dateTime = dateTime.addDays(-1 * (dayOfMonth - 1));    // go to month start
-
-            int currentMonth = dateTime.date().month();
-            dateTime = dateTime.addMonths(-1 * (currentMonth - 1));    // go to year start and count offset from there
 
             dateTime = dateTime.addYears(yearsOffset);
         }

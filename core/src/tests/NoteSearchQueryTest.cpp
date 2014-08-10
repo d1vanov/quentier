@@ -1,5 +1,6 @@
 #include "NoteSearchQueryTest.h"
 #include <client/local_storage/NoteSearchQuery.h>
+#include <logging/QuteNoteLogger.h>
 #include <QStringList>
 #include <QDateTime>
 #include <bitset>
@@ -34,7 +35,7 @@ bool NoteSearchQueryTest(QString & error)
     QHash<QString,qint64> timestampForDateTimeString;
 
     QDateTime datetime = QDateTime::currentDateTime();
-    datetime.setTime(QTime(0, 0, 0, 1));  // today midnight
+    datetime.setTime(QTime(0, 0, 0, 0));  // today midnight
     timestampForDateTimeString["day"] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(-1);
@@ -233,8 +234,8 @@ bool NoteSearchQueryTest(QString & error)
     reminderDoneTimes << "year-3" << "year+1" << "year+2";
 
     QStringList negatedReminderDoneTimes;
-    negatedReminderDoneTimes << "year+3" << datetime.toString(Qt::ISODate)
-                             << datetime.addYears(-1).toString(Qt::ISODate);
+    negatedReminderDoneTimes << "year+3" << datetime.addYears(-1).toString(Qt::ISODate)
+                             << datetime.toString(Qt::ISODate);
 
     timestampForDateTimeString[datetime.toString(Qt::ISODate)] = datetime.toMSecsSinceEpoch();
     timestampForDateTimeString[datetime.addYears(-1).toString(Qt::ISODate)] = datetime.addYears(-1).toMSecsSinceEpoch();
@@ -539,7 +540,44 @@ foreach(const type & item, list) { \
 
 #undef CHECK_LIST
 
-        // TODO: continue from here with checking timestampt for datetime types
+#define CHECK_DATETIME_LIST(list, accessor) \
+    auto noteSearchQuery##list = noteSearchQuery.accessor(); \
+    int size##list = noteSearchQuery##list.size() ; \
+    for(int i = 0; i < size##list; ++i) \
+    { \
+        const auto & item = noteSearchQuery##list[i]; \
+        const auto & strItem = list.at(i); \
+        \
+        if (!timestampForDateTimeString.contains(strItem)) { \
+            error = "Internal error in test: unknown datetime argument "; \
+            error += strItem; \
+            return false; \
+        } \
+        \
+        if (item != timestampForDateTimeString[strItem]) { \
+            error = "Timestamp from NoteSearchQuery is different from precalculated one "; \
+            error += "for string item \""; \
+            error += strItem; \
+            error += "\": precalculated timestamp = "; \
+            error += QString::number(timestampForDateTimeString[strItem]); \
+            error += ", timestamp from NoteSearchQuery: "; \
+            error += QString::number(item); \
+            return false; \
+        } \
+    }
+
+        CHECK_DATETIME_LIST(created, creationTimestamps);
+        CHECK_DATETIME_LIST(negatedCreated, negatedCreationTimestamps);
+        CHECK_DATETIME_LIST(updated, modificationTimestamps);
+        CHECK_DATETIME_LIST(negatedUpdated, negatedModificationTimestamps);
+        CHECK_DATETIME_LIST(subjectDate, subjectDateTimestamps);
+        CHECK_DATETIME_LIST(negatedSubjectDate, negatedSubjectDateTimestamps);
+        CHECK_DATETIME_LIST(reminderTimes, reminderTimes);
+        CHECK_DATETIME_LIST(negatedReminderTimes, negatedReminderTimes);
+        CHECK_DATETIME_LIST(reminderDoneTimes, reminderDoneTimes);
+        CHECK_DATETIME_LIST(negatedReminderDoneTimes, negatedReminderDoneTimes);
+
+#undef CHECK_DATETIME_LIST
     }
 
     return true;
