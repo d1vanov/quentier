@@ -2585,6 +2585,10 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Notebooks table");
 
+    res = query.exec("CREATE VIRTUAL TABLE NotebookFTS USING FTS4(content=\"Notebooks\" "
+                     "localGuid, guid, notebookName)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 NotebookFTS table");
+
     res = query.exec("CREATE TABLE IF NOT EXISTS NotebookRestrictions("
                      "  localGuid REFERENCES Notebooks(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  noReadNotes                 INTEGER      DEFAULT NULL, "
@@ -2700,6 +2704,15 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
 
     res = query.exec("CREATE INDEX IF NOT EXISTS NotesNotebooks ON Notes(notebookLocalGuid)");
     DATABASE_CHECK_AND_SET_ERROR("can't create index NotesNotebooks");
+
+    res = query.exec("CREATE VIRTUAL TABLE NoteFTS USING FTS4(content=\"Notes\", title, "
+                     "contentPlainText, contentContainsFinishedToDo, contentContainsUnfinishedToDo, "
+                     "contentContainsEncryption, creationTimestamp, modificationTimestamp, "
+                     "isActive, subjectDate, latitude, longitude, altitude, "
+                     "author, source, sourceApplication, reminderOrder, reminderDoneTime, "
+                     "reminderTime, placeName, contentClass, applicationDataKeysOnly, "
+                     "applicationDataKeysMap, applicationDataValues)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 table NoteFTS");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
                      "  resourceLocalGuid               TEXT PRIMARY KEY     NOT NULL UNIQUE, "
