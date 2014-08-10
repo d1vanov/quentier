@@ -6,7 +6,7 @@
 
 namespace qute_note {
 
-Transaction::Transaction(QSqlDatabase & db, TransactionType type) :
+Transaction::Transaction(const QSqlDatabase & db, TransactionType type) :
     m_db(db),
     m_type(type),
     m_committed(false)

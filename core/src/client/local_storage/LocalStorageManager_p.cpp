@@ -5278,7 +5278,12 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 {
     errorDescription = QT_TR_NOOP("Can't convert note search string into SQL query: ");
 
-    sql = "SELECT localGuid from NoteFTS WHERE ";   // initial template to add to
+    sql = "SELECT localGuid from NoteFTS, NoteTags WHERE ";   // initial template to add to
+
+    Transaction transaction(m_sqlDatabase);   // there can be multiple selections here, single transaction can speed things out a bit
+    Q_UNUSED(transaction)
+
+    // ========== 1) Processing notebook modifier (if present) ==============
 
     QString notebookName = noteSearchQuery.notebookModifier();
     QString notebookLocalGuid;
@@ -5323,9 +5328,134 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         sql += "' AND ";
     }
 
-    // QString uniteOperator = (noteSearchQuery.hasAnyModifier() ? "OR" : "AND");
+    // 2) ============ Determining whether "any:" modifier takes effect ==============
+
+    QString uniteOperator = (noteSearchQuery.hasAnyModifier() ? "OR" : "AND");
+
+    // 3) ============ Processing tag names and negated tag names, if any =============
+
+    QStringList tagLocalGuids;
+    QStringList tagNegatedLocalGuids;
+
+    const QStringList & tagNames = noteSearchQuery.tagNames();
+    if (!tagNames.isEmpty())
+    {
+        bool res = tagNamesToTagLocalGuids(tagNames, tagLocalGuids, errorDescription);
+        if (!res) {
+            return false;
+        }
+
+        if (tagLocalGuids.isEmpty()) {
+            errorDescription += QT_TR_NOOP("Internal error: silently empty list of tag local guids "
+                                           "corresponding to non-empty list of tag names");
+            return false;
+        }
+    }
+
+    if (!tagLocalGuids.isEmpty())
+    {
+        sql += "NoteTags.localTag IN ";
+        sql += tagLocalGuids.join(", ");
+        sql += " ";
+        sql += uniteOperator;
+        sql += " ";
+    }
+
+    const QStringList & negatedTagNames = noteSearchQuery.negatedTagNames();
+    if (!negatedTagNames.isEmpty())
+    {
+        bool res = tagNamesToTagLocalGuids(negatedTagNames, tagNegatedLocalGuids, errorDescription);
+        if (!res) {
+            return false;
+        }
+
+        if (tagNegatedLocalGuids.isEmpty()) {
+            errorDescription += QT_TR_NOOP("Internal error: silently empty list of negated tag local guids "
+                                           "corresponding to non-empty list of negated tag guids");
+            return false;
+        }
+    }
+
+    if (!tagNegatedLocalGuids.isEmpty())
+    {
+        sql += "NoteTags.localTag NOT IN ";
+        sql += tagNegatedLocalGuids.join(", ");
+        sql += " ";
+        sql += uniteOperator;
+        sql += " ";
+    }
+
+    // TODO: argh! Special treatment is also required for stuff related to resources...
+
+    // 4) ============== Processing other better generalizable filters =============
+
+#define CHECK_AND_PROCESS_LIST(list, column, negated, ...) \
+    const auto & noteSearchQuery##list = noteSearchQuery.list(); \
+    if (!noteSearchQuery##list.isEmpty()) \
+    { \
+        if (negated) { \
+            sql += "NoteFTS." #column " NOT IN "; \
+        } \
+        else { \
+            sql += "NoteFTS." #column " IN "; \
+        } \
+        \
+        bool firstItem = true; \
+        foreach(const auto & item, noteSearchQuery##list) \
+        { \
+            if (!firstItem) { \
+                sql += ", "; \
+            } \
+            sql += __VA_ARGS__(item); \
+            if (firstItem) { \
+                firstItem = false; \
+            } \
+        } \
+        sql += uniteOperator; \
+        sql += " "; \
+    }
+
+    bool negated = true;
+    CHECK_AND_PROCESS_LIST(titleNames, title, !negated);
+    CHECK_AND_PROCESS_LIST(negatedTitleNames, title, negated);
+    CHECK_AND_PROCESS_LIST(creationTimestamps, creationTimestamp, !negated, QString::number);
+    CHECK_AND_PROCESS_LIST(negatedCreationTimestamps, creationTimestamp, negated, QString::number);
+    CHECK_AND_PROCESS_LIST(modificationTimestamps, modificationTimestamp, !negated, QString::number);
+    CHECK_AND_PROCESS_LIST(negatedModificationTimestamps, modificationTimestamp, negated, QString::number);
 
     // TODO: continue from here
+
+    return true;
+}
+
+bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tagNames,
+                                                         QStringList & tagLocalGuids,
+                                                         QString & errorDescription) const
+{
+    tagLocalGuids.clear();
+
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare("SELECT localGuid WHERE nameUpper IN :names");
+    DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names: can't prepare SQL query");
+
+    QString names = tagNames.join(", ").toUpper();
+    query.bindValue(":names", names);
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names");
+
+    while (query.next())
+    {
+        QSqlRecord rec = query.record();
+        int index = rec.indexOf("localGuid");
+        if (index < 0) {
+            errorDescription += QT_TR_NOOP("Internal error: tag's local guid is not present in the result of SQL query");
+            return false;
+        }
+
+        QVariant value = rec.value(index);
+        tagLocalGuids << value.toString();
+    }
 
     return true;
 }

@@ -14,7 +14,7 @@ public:
         Exclusive
     };
 
-    Transaction(QSqlDatabase & db, TransactionType type = Default);
+    Transaction(const QSqlDatabase & db, TransactionType type = Default);
     Transaction(Transaction && other);
     virtual ~Transaction();
 
@@ -28,7 +28,7 @@ private:
 
     void init();
 
-    QSqlDatabase & m_db;
+    const QSqlDatabase & m_db;
     TransactionType m_type;
     bool m_committed;
 };

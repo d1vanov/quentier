@@ -160,6 +160,9 @@ private:
     bool noteSearchQueryToSQL(const NoteSearchQuery & noteSearchQuery, QString & sql,
                               QString & errorDescription) const;
 
+    bool tagNamesToTagLocalGuids(const QStringList & tagNames, QStringList & tagLocalGuids,
+                                 QString & errorDescription) const;
+
     QString             m_currentUsername;
     qevercloud::UserID  m_currentUserId;
     QString             m_applicationPersistenceStoragePath;
