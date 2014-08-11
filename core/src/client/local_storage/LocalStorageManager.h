@@ -1,8 +1,8 @@
 #ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H
 #define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H
 
+#include "Lists.h"
 #include <QString>
-#include <QSharedPointer>
 
 namespace qevercloud {
 QT_FORWARD_DECLARE_STRUCT(ResourceAttributes)
@@ -18,19 +18,10 @@ typedef int32_t UserID;
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(ISharedNotebook)
-QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
-QT_FORWARD_DECLARE_CLASS(SharedNotebookAdapter)
-QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
-QT_FORWARD_DECLARE_CLASS(Notebook)
-QT_FORWARD_DECLARE_CLASS(Note)
-QT_FORWARD_DECLARE_CLASS(Tag)
-QT_FORWARD_DECLARE_CLASS(IResource)
-QT_FORWARD_DECLARE_CLASS(SavedSearch)
-QT_FORWARD_DECLARE_CLASS(IUser)
 typedef qevercloud::UserID UserID;
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerPrivate)
+QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
 
 class LocalStorageManager
 {
@@ -347,6 +338,22 @@ public:
     QList<Note> ListAllNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
                                         const bool withResourceBinaryData = true) const;
 
+    /**
+     * @brief FindNotesWithSearchQuery - attempt to find notes corresponding to passed in
+     * NoteSearchQuery object.
+     * @param noteSearchQuery - filled NoteSearchQuery object used to filter the notes
+     * @param errorDescription - error description in case notes could not be listed
+     * @param withResourceBinaryData - optional boolean parameter defining whether found notes
+     * should be filled with all the contents of their respective attached resources.
+     * By default this parameter is true which means the whole contents of all resources
+     * would be filled. If it's false, dataBody, recognitionBody or alternateDataBody
+     * won't be present within each found note's resources
+     * @return either list of notes per NoteSearchQuery or empty list in case of error or
+     * no notes presence for the given NoteSearchQuery
+     */
+    NoteList FindNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
+                                      QString & errorDescription,
+                                      const bool withResourceBinaryData = true) const;
 
     /**
      * @brief DeleteNote - marks the note as deleted in local storage.

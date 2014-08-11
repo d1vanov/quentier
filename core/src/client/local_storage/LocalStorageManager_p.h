@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_PRIVATE_H
 #define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_PRIVATE_H
 
+#include "Lists.h"
 #include <client/types/IUser.h>
 #include <client/types/UserAdapter.h>
 #include <client/types/UserWrapper.h>
@@ -66,6 +67,10 @@ public:
                                         const bool withResourceBinaryData = true) const;
     bool DeleteNote(const Note & note, QString & errorDescription);
     bool ExpungeNote(const Note & note, QString & errorDescription);
+
+    NoteList FindNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
+                                      QString & errorDescription,
+                                      const bool withResourceBinaryData = true) const;
 
     int GetTagCount(QString & errorDescription) const;
     bool AddTag(const Tag & tag, QString & errorDescription);

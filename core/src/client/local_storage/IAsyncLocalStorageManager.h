@@ -1,20 +1,12 @@
 #ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__I_ASYNC_LOCAL_STORAGE_MANAGER_H
 #define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__I_ASYNC_LOCAL_STORAGE_MANAGER_H
 
+#include "Lists.h"
 #include <tools/Linkage.h>
 #include <QString>
-#include <QSharedPointer>
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(UserWrapper)
-QT_FORWARD_DECLARE_CLASS(Notebook)
-QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
-QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
-QT_FORWARD_DECLARE_CLASS(Note)
-QT_FORWARD_DECLARE_CLASS(Tag)
-QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
-QT_FORWARD_DECLARE_CLASS(SavedSearch)
 
 /**
  * @brief The IAsyncLocalStorageManager class defines the interfaces for signals and slots

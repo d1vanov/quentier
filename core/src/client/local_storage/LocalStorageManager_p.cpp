@@ -1395,8 +1395,8 @@ bool LocalStorageManagerPrivate::FindNote(Note & note, QString & errorDescriptio
 }
 
 QList<Note> LocalStorageManagerPrivate::ListAllNotesPerNotebook(const Notebook & notebook,
-                                                         QString & errorDescription,
-                                                         const bool withResourceBinaryData) const
+                                                                QString & errorDescription,
+                                                                const bool withResourceBinaryData) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllNotesPerNotebook: notebookGuid = " << notebook);
 
@@ -1554,6 +1554,113 @@ bool LocalStorageManagerPrivate::ExpungeNote(const Note & note, QString & errorD
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notes\" table in SQL database");
 
     return true;
+}
+
+NoteList LocalStorageManagerPrivate::FindNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
+                                                              QString & errorDescription,
+                                                              const bool withResourceBinaryData) const
+{
+    QNDEBUG("LocalStorageManagerPrivate::FindNotesWithSearchQuery: " << noteSearchQuery);
+
+    QString queryString;
+
+    // Will run all the queries from this method and its sub-methods within a single transaction
+    // to prevent multiple drops and re-obtainings of shared lock
+    Transaction transaction(m_sqlDatabase, Transaction::Selection);
+    Q_UNUSED(transaction)
+
+    errorDescription = QT_TR_NOOP("Can't convert note search query string into SQL query string: ");
+    bool res = noteSearchQueryToSQL(noteSearchQuery, queryString, errorDescription);
+    if (!res) {
+        return NoteList();
+    }
+
+    errorDescription = QT_TR_NOOP("Can't execute SQL to find notes local guids: ");
+    QSqlQuery query(m_sqlDatabase);
+    res = query.exec(queryString);
+    if (!res) {
+        errorDescription += query.lastError().text();
+        QNCRITICAL(errorDescription << ", full error: " << query.lastError());
+        return NoteList();
+    }
+
+    QSet<QString> foundLocalGuids;
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+        int index = rec.indexOf("localNote");   // one way of selecting notes
+        if (index < 0) {
+            continue;
+        }
+
+        QString value = rec.value(index).toString();
+        if (value.isEmpty() || foundLocalGuids.contains(value)) {
+            continue;
+        }
+
+        foundLocalGuids.insert(value);
+    }
+
+    QString joinedLocalGuids;
+    foreach(const QString & item, foundLocalGuids)
+    {
+        if (!joinedLocalGuids.isEmpty()) {
+            joinedLocalGuids += ", ";
+        }
+
+        joinedLocalGuids += "'";
+        joinedLocalGuids += item;
+        joinedLocalGuids += "'";
+    }
+
+    queryString = QString("SELECT * FROM Notes WHERE localGuid IN (%1)").arg(joinedLocalGuids);
+    errorDescription = QT_TR_NOOP("Can't execute SQL to find notes per local guids: ");
+    res = query.exec(queryString);
+    if (!res) {
+        errorDescription += query.lastError().text();
+        QNCRITICAL(errorDescription << ", full error: " << query.lastError());
+        return NoteList();
+    }
+
+    NoteList notes;
+    notes.reserve(qMax(query.size(), 0));
+    QString error;
+
+    errorDescription = QT_TR_NOOP("Can't perform post-processing when fetching notes per note search query: ");
+    while(query.next())
+    {
+        notes << QSharedPointer<Note>(new Note);
+        Note & note = *(notes.back());
+
+        QSqlRecord rec = query.record();
+        FillNoteFromSqlRecord(rec, note);
+
+        res = FindAndSetTagGuidsPerNote(note, error);
+        if (!res) {
+            errorDescription += error;
+            QNWARNING(errorDescription);
+            return NoteList();
+        }
+
+        error.clear();
+        res = FindAndSetResourcesPerNote(note, error, withResourceBinaryData);
+        if (!res) {
+            errorDescription += error;
+            QNWARNING(errorDescription);
+            return NoteList();
+        }
+
+        res = note.checkParameters(error);
+        if (!res) {
+            errorDescription += QT_TR_NOOP("found note is invalid: ");
+            errorDescription += error;
+            QNWARNING(errorDescription);
+            return NoteList();
+        }
+    }
+
+    errorDescription.clear();
+    return notes;
 }
 
 int LocalStorageManagerPrivate::GetTagCount(QString & errorDescription) const
@@ -5173,7 +5280,7 @@ bool LocalStorageManagerPrivate::FindAndSetTagGuidsPerNote(Note & note, QString 
 }
 
 bool LocalStorageManagerPrivate::FindAndSetResourcesPerNote(Note & note, QString & errorDescription,
-                                                     const bool withBinaryData) const
+                                                            const bool withBinaryData) const
 {
     errorDescription += QT_TR_NOOP("can't find resources for note: ");
 
@@ -5318,11 +5425,6 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     errorDescription = QT_TR_NOOP("Can't convert note search string into SQL query: ");
 
     sql = "SELECT localGuid from NoteFTS, NoteTags, NoteResources WHERE ";   // initial template to add to
-
-    // Will run all the queries from this method within a single transaction
-    // to prevent multiple drops and re-obtainings of shared lock
-    Transaction transaction(m_sqlDatabase, Transaction::Selection);
-    Q_UNUSED(transaction)
 
     // ========== 1) Processing notebook modifier (if present) ==============
 
