@@ -107,22 +107,22 @@ void CoreTester::resourceRecognitionIndicesTest()
         ResourceWrapper resource;
         resource.setRecognitionDataBody(recognitionData.toUtf8());
 
-        QStringList recognitionIndices = resource.recognitionIndices();
+        QStringList recognitionIndices = resource.recognitionTypes();
         QString error = "Recognition index not found";
         QVERIFY2(recognitionIndices.contains("unknown", Qt::CaseInsensitive), qPrintable(error));
         QVERIFY2(recognitionIndices.contains("printed", Qt::CaseInsensitive), qPrintable(error));
         QVERIFY2(recognitionIndices.contains("handwritten", Qt::CaseInsensitive), qPrintable(error));
 
-        QVERIFY2(resource.hasRecognitionIndex("unknown"), qPrintable(error));
-        QVERIFY2(resource.hasRecognitionIndex("printed"), qPrintable(error));
-        QVERIFY2(resource.hasRecognitionIndex("handwritten"), qPrintable(error));
+        QVERIFY2(resource.hasRecognitionType("unknown"), qPrintable(error));
+        QVERIFY2(resource.hasRecognitionType("printed"), qPrintable(error));
+        QVERIFY2(resource.hasRecognitionType("handwritten"), qPrintable(error));
 
         error = "Found non-existing recognition index";
         QVERIFY2(!recognitionIndices.contains("picture", Qt::CaseInsensitive), qPrintable(error));
         QVERIFY2(!recognitionIndices.contains("speech", Qt::CaseInsensitive), qPrintable(error));
 
-        QVERIFY2(!resource.hasRecognitionIndex("picture"), qPrintable(error));
-        QVERIFY2(!resource.hasRecognitionIndex("speech"), qPrintable(error));
+        QVERIFY2(!resource.hasRecognitionType("picture"), qPrintable(error));
+        QVERIFY2(!resource.hasRecognitionType("speech"), qPrintable(error));
     }
     CATCH_EXCEPTION();
 }

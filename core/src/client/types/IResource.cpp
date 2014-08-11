@@ -9,7 +9,7 @@ IResource::IResource() :
     m_isFreeAccount(true),
     m_indexInNote(-1),
     m_noteLocalGuid(),
-    m_lazyRecognitionIndices()
+    m_lazyRecognitionType()
 {}
 
 IResource::IResource(const bool isFreeAccount) :
@@ -17,7 +17,7 @@ IResource::IResource(const bool isFreeAccount) :
     m_isFreeAccount(isFreeAccount),
     m_indexInNote(-1),
     m_noteLocalGuid(),
-    m_lazyRecognitionIndices()
+    m_lazyRecognitionType()
 {}
 
 IResource::~IResource()
@@ -44,7 +44,7 @@ void IResource::clear()
 {
     setDirty(true);
     GetEnResource() = qevercloud::Resource();
-    m_lazyRecognitionIndices.clear();
+    m_lazyRecognitionType.clear();
 }
 
 bool IResource::hasGuid() const
@@ -445,12 +445,12 @@ const QByteArray & IResource::recognitionDataBody() const
 void IResource::setRecognitionDataBody(const QByteArray & body)
 {
     qevercloud::Resource & enResource = GetEnResource();
-    m_lazyRecognitionIndices.clear();
+    m_lazyRecognitionType.clear();
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(body.isEmpty(), recognition, body, size, bodyHash);
     enResource.recognition->body = body;
 }
 
-bool IResource::hasRecognitionIndex(const QString & recognitionIndex) const
+bool IResource::hasRecognitionType(const QString & recognitionType) const
 {
     const qevercloud::Resource & enResource = GetEnResource();
     if (!enResource.recognition.isSet()) {
@@ -461,17 +461,17 @@ bool IResource::hasRecognitionIndex(const QString & recognitionIndex) const
         return false;
     }
 
-    if (m_lazyRecognitionIndices.isEmpty()) {
-        m_lazyRecognitionIndices = recognitionIndices();
+    if (m_lazyRecognitionType.isEmpty()) {
+        m_lazyRecognitionType = recognitionTypes();
     }
 
-    return m_lazyRecognitionIndices.contains(recognitionIndex, Qt::CaseInsensitive);
+    return m_lazyRecognitionType.contains(recognitionType, Qt::CaseInsensitive);
 }
 
-const QStringList IResource::recognitionIndices() const
+const QStringList IResource::recognitionTypes() const
 {
-    if (!m_lazyRecognitionIndices.isEmpty()) {
-        return m_lazyRecognitionIndices;
+    if (!m_lazyRecognitionType.isEmpty()) {
+        return m_lazyRecognitionType;
     }
 
     const qevercloud::Resource & enResource = GetEnResource();
@@ -483,6 +483,10 @@ const QStringList IResource::recognitionIndices() const
         return QStringList();
     }
 
+    // FIXME: no QDomDocument involving approach is used here because of the reliance
+    // on the fact the Evernote server would not ever create XML containing space between
+    // the tag name and the operator=, like "docType = <...>".
+    // I'd like the true xml approach to be employed here later, for the safety
     QString searchString = "docType=";
     int searchStringSize = searchString.size();
 
@@ -506,7 +510,7 @@ const QStringList IResource::recognitionIndices() const
                 {
                     insideQuote = !insideQuote;
                     if (!insideQuote) {
-                        m_lazyRecognitionIndices << word;
+                        m_lazyRecognitionType << word;
                         break;
                     }
                 }
@@ -521,7 +525,7 @@ const QStringList IResource::recognitionIndices() const
         }
     }
 
-    return m_lazyRecognitionIndices;
+    return m_lazyRecognitionType;
 }
 
 bool IResource::hasAlternateData() const
@@ -629,7 +633,7 @@ IResource::IResource(const IResource & other) :
     m_isFreeAccount(other.m_isFreeAccount),
     m_indexInNote(other.indexInNote()),
     m_noteLocalGuid(other.m_noteLocalGuid),
-    m_lazyRecognitionIndices(other.m_lazyRecognitionIndices)
+    m_lazyRecognitionType(other.m_lazyRecognitionType)
 {}
 
 IResource & IResource::operator=(const IResource & other)
@@ -640,7 +644,7 @@ IResource & IResource::operator=(const IResource & other)
         setFreeAccount(other.m_isFreeAccount);
         setIndexInNote(other.m_indexInNote);
         setNoteLocalGuid(other.m_noteLocalGuid.isSet() ? other.m_noteLocalGuid.ref() : QString());
-        m_lazyRecognitionIndices = other.m_lazyRecognitionIndices;
+        m_lazyRecognitionType = other.m_lazyRecognitionType;
     }
 
     return *this;
@@ -749,8 +753,8 @@ QTextStream & IResource::Print(QTextStream & strm) const
 
         if (enResource.recognition->body.isSet()) {
             strm << "recognitionDataBody is set; \n";
-            if (!m_lazyRecognitionIndices.isEmpty()) {
-                strm << "recognition indices: " << m_lazyRecognitionIndices.join("; ") << "; \n";
+            if (!m_lazyRecognitionType.isEmpty()) {
+                strm << "recognition indices: " << m_lazyRecognitionType.join("; ") << "; \n";
             }
         }
         else {

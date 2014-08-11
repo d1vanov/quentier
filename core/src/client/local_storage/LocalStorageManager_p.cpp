@@ -2739,6 +2739,17 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Resources table");
 
+    res = query.exec("CREATE TABLE IF NOT EXISTS ResourceRecognitionTypes("
+                     "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  recognitionType                 TEXT                DEFAULT NULL)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create ResourceRecognitionTypes table");
+
+    res = query.exec("CREATE VIRTUAL TABLE ResourceRecoTypesFTS USING FTS4(content=\"ResourceRecognitionTypes\", recognitionType)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 ResourceRecoTypesFTS table");
+
+    res = query.exec("CREATE VIRTUAL TABLE ResourceMimeFTS USING FTS4(content=\"Resources\", mime)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 ResourceMimeFTS table");
+
     res = query.exec("CREATE VIEW IF NOT EXISTS ResourcesWithoutBinaryData "
                      "AS SELECT resourceLocalGuid, resourceGuid, noteLocalGuid, noteGuid, "
                      "resourceUpdateSequenceNumber, resourceIsDirty, dataSize, dataHash, "
@@ -3851,6 +3862,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database");
 
+    // Updating connections between note and resource in NoteResources table
+
     columns = "localNote, note, localResource, resource";
     values = ":localNote, :note, :localResource, :resource";
     queryString = QString("INSERT OR REPLACE INTO NoteResources (%1) VALUES(%2)")
@@ -3869,6 +3882,32 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database");
+
+    // Updating resource's recognition types
+
+    queryString = QString("DELETE FROM ResourceRecognitionTypes WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
+    res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionTypes table");
+
+    QStringList recognitionTypes = resource.recognitionTypes();
+    if (!recognitionTypes.isEmpty())
+    {
+        foreach(const QString & recognitionType, recognitionTypes)
+        {
+            columns = "resourceLocalGuid, recognitionType";
+            values = ":resourceLocalGuid, :recognitionType";
+
+            queryString = QString("INSERT OR REPLACE INTO ResourceRecognitionTypes(%1) VALUES(%2)").arg(columns).arg(values);
+            res = query.prepare(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceRecognitionTypes\" table in SQL database, "
+                                         "can't prepare SQL query");
+            query.bindValue(":resourceLocalGuid", resourceLocalGuid);
+            query.bindValue(":recognitionType", recognitionType);
+
+            res = query.exec();
+            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceRecognitionTypes\" table in SQL database");
+        }
+    }
 
     if (resource.hasResourceAttributes())
     {
@@ -5278,10 +5317,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 {
     errorDescription = QT_TR_NOOP("Can't convert note search string into SQL query: ");
 
-    sql = "SELECT localGuid from NoteFTS, NoteTags WHERE ";   // initial template to add to
-
-    Transaction transaction(m_sqlDatabase);   // there can be multiple selections here, single transaction can speed things out a bit
-    Q_UNUSED(transaction)
+    sql = "SELECT localGuid from NoteFTS, NoteTags, NoteResources WHERE ";   // initial template to add to
 
     // ========== 1) Processing notebook modifier (if present) ==============
 
@@ -5344,19 +5380,13 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         if (!res) {
             return false;
         }
-
-        if (tagLocalGuids.isEmpty()) {
-            errorDescription += QT_TR_NOOP("Internal error: silently empty list of tag local guids "
-                                           "corresponding to non-empty list of tag names");
-            return false;
-        }
     }
 
     if (!tagLocalGuids.isEmpty())
     {
-        sql += "NoteTags.localTag IN ";
+        sql += "NoteTags.localTag IN '";
         sql += tagLocalGuids.join(", ");
-        sql += " ";
+        sql += "' ";
         sql += uniteOperator;
         sql += " ";
     }
@@ -5368,30 +5398,111 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         if (!res) {
             return false;
         }
-
-        if (tagNegatedLocalGuids.isEmpty()) {
-            errorDescription += QT_TR_NOOP("Internal error: silently empty list of negated tag local guids "
-                                           "corresponding to non-empty list of negated tag guids");
-            return false;
-        }
     }
 
     if (!tagNegatedLocalGuids.isEmpty())
     {
-        sql += "NoteTags.localTag NOT IN ";
+        sql += "NoteTags.localTag NOT IN '";
         sql += tagNegatedLocalGuids.join(", ");
-        sql += " ";
+        sql += "' ";
         sql += uniteOperator;
         sql += " ";
     }
 
-    // TODO: argh! Special treatment is also required for stuff related to resources...
+    // 4) ============== Processing resource mime types ===============
 
-    // 4) ============== Processing other better generalizable filters =============
+    QStringList resourceLocalGuidsPerMime;
+    QStringList resourceNegatedLocalGuidsPerMime;
+
+    const QStringList & resourceMimeTypes = noteSearchQuery.resourceMimeTypes();
+    if (!resourceMimeTypes.isEmpty())
+    {
+        bool res = resourceMimeTypesToResourceLocalGuids(resourceMimeTypes, resourceLocalGuidsPerMime,
+                                                         errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    if (!resourceLocalGuidsPerMime.isEmpty())
+    {
+        sql += "NoteResources.localResource IN '";
+        sql += resourceLocalGuidsPerMime.join(", ");
+        sql += "' ";
+        sql += uniteOperator;
+        sql += " ";
+    }
+
+    const QStringList & negatedResourceMimeTypes = noteSearchQuery.negatedResourceMimeTypes();
+    if (!negatedResourceMimeTypes.isEmpty())
+    {
+        bool res = resourceMimeTypesToResourceLocalGuids(negatedResourceMimeTypes,
+                                                         resourceNegatedLocalGuidsPerMime,
+                                                         errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    if (!resourceNegatedLocalGuidsPerMime.isEmpty())
+    {
+        sql += "NoteResources.localResource NOT IN '";
+        sql += resourceNegatedLocalGuidsPerMime.join(", ");
+        sql += "' ";
+        sql += uniteOperator;
+        sql += " ";
+    }
+
+    // 5) ============== Processing resource recognition indices ===============
+
+    QStringList resourceLocalGuidsPerRecognitionType;
+    QStringList resourceNegatedLocalGuidsPerRecognitionType;
+
+    const QStringList & resourceRecognitionTypes = noteSearchQuery.recognitionTypes();
+    if (!resourceRecognitionTypes.isEmpty())
+    {
+        bool res = resourceRecognitionTypesToResourceLocalGuids(resourceRecognitionTypes,
+                                                                resourceLocalGuidsPerRecognitionType,
+                                                                errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    if (!resourceLocalGuidsPerRecognitionType.isEmpty())
+    {
+        sql += "NoteResources.localResource IN '";
+        sql += resourceLocalGuidsPerRecognitionType.join(", ");
+        sql += "' ";
+        sql += uniteOperator;
+        sql += " ";
+    }
+
+    const QStringList & negatedResourceRecognitionTypes = noteSearchQuery.negatedRecognitionTypes();
+    if (!negatedResourceRecognitionTypes.isEmpty())
+    {
+        bool res = resourceRecognitionTypesToResourceLocalGuids(negatedResourceRecognitionTypes,
+                                                                resourceNegatedLocalGuidsPerRecognitionType,
+                                                                errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    if (!resourceNegatedLocalGuidsPerRecognitionType.isEmpty())
+    {
+        sql += "NoteResources.localGuid NOT IN '";
+        sql += resourceNegatedLocalGuidsPerRecognitionType.join(", ");
+        sql += "' ";
+        sql += uniteOperator;
+        sql += " ";
+    }
+
+    // 6) ============== Processing other better generalizable filters =============
 
 #define CHECK_AND_PROCESS_LIST(list, column, negated, ...) \
-    const auto & noteSearchQuery##list = noteSearchQuery.list(); \
-    if (!noteSearchQuery##list.isEmpty()) \
+    const auto & noteSearchQuery##list##column = noteSearchQuery.list(); \
+    if (!noteSearchQuery##list##column.isEmpty()) \
     { \
         if (negated) { \
             sql += "NoteFTS." #column " NOT IN "; \
@@ -5401,7 +5512,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         } \
         \
         bool firstItem = true; \
-        foreach(const auto & item, noteSearchQuery##list) \
+        foreach(const auto & item, noteSearchQuery##list##column) \
         { \
             if (!firstItem) { \
                 sql += ", "; \
@@ -5422,8 +5533,78 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     CHECK_AND_PROCESS_LIST(negatedCreationTimestamps, creationTimestamp, negated, QString::number);
     CHECK_AND_PROCESS_LIST(modificationTimestamps, modificationTimestamp, !negated, QString::number);
     CHECK_AND_PROCESS_LIST(negatedModificationTimestamps, modificationTimestamp, negated, QString::number);
+    CHECK_AND_PROCESS_LIST(subjectDateTimestamps, subjectDate, !negated, QString::number);
+    CHECK_AND_PROCESS_LIST(negatedSubjectDateTimestamps, subjectDate, negated, QString::number);
+    CHECK_AND_PROCESS_LIST(latitudes, latitude, !negated, QString::number);
+    CHECK_AND_PROCESS_LIST(negatedLatitudes, latitude, negated, QString::number);
+    CHECK_AND_PROCESS_LIST(longitudes, longitude, !negated, QString::number);
+    CHECK_AND_PROCESS_LIST(negatedLongitudes, longitude, negated, QString::number);
+    CHECK_AND_PROCESS_LIST(altitudes, altitude, !negated, QString::number);
+    CHECK_AND_PROCESS_LIST(negatedAltitudes, altitude, negated, QString::number);
+    CHECK_AND_PROCESS_LIST(authors, author, !negated);
+    CHECK_AND_PROCESS_LIST(negatedAuthors, author, negated);
+    CHECK_AND_PROCESS_LIST(sources, source, !negated);
+    CHECK_AND_PROCESS_LIST(negatedSources, source, negated);
+    CHECK_AND_PROCESS_LIST(sourceApplications, sourceApplication, !negated);
+    CHECK_AND_PROCESS_LIST(negatedSourceApplications, sourceApplication, negated);
+    CHECK_AND_PROCESS_LIST(contentClasses, contentClass, !negated);
+    CHECK_AND_PROCESS_LIST(negatedContentClasses, contentClass, negated);
+    CHECK_AND_PROCESS_LIST(placeNames, placeName, !negated);
+    CHECK_AND_PROCESS_LIST(negatedPlaceNames, placeName, negated);
+    CHECK_AND_PROCESS_LIST(applicationData, applicationDataKeysOnly, !negated);
+    CHECK_AND_PROCESS_LIST(applicationData, applicationDataKeysMap, !negated);
+    CHECK_AND_PROCESS_LIST(negatedApplicationData, applicationDataKeysOnly, negated);
+    CHECK_AND_PROCESS_LIST(negatedApplicationData, applicationDataKeysMap, negated);
+    CHECK_AND_PROCESS_LIST(reminderOrders, reminderOrder, !negated, QString::number);
+    CHECK_AND_PROCESS_LIST(negatedReminderOrders, reminderOrder, negated, QString::number);
+    CHECK_AND_PROCESS_LIST(reminderTimes, reminderTime, !negated, QString::number);
+    CHECK_AND_PROCESS_LIST(negatedReminderTimes, reminderTime, negated, QString::number);
+    CHECK_AND_PROCESS_LIST(reminderDoneTimes, reminderDoneTime, !negated, QString::number);
+    CHECK_AND_PROCESS_LIST(negatedReminderDoneTimes, reminderDoneTime, negated, QString::number);
 
-    // TODO: continue from here
+#undef CHECK_AND_PROCESS_LIST
+
+    if (noteSearchQuery.hasAnyToDo())
+    {
+        sql += "((NoteFTS.containsFinishedToDo IS 1) OR (NoteFTS.containsUnfinishedToDo IS 1)) ";
+        sql += uniteOperator;
+        sql += " ";
+    }
+    else
+    {
+        if (noteSearchQuery.hasFinishedToDo()) {
+            sql += "NoteFTS.containsFinishedToDo IS 1" ;
+            sql += uniteOperator;
+            sql += " ";
+        }
+        else if (noteSearchQuery.hasNegatedFinishedToDo()) {
+            sql += "(NoteFTS.containsFinishedToDo IS 0) OR (NoteFTS.containsFinishedToDo IS NULL) " ;
+            sql += uniteOperator;
+            sql += " ";
+        }
+
+        if (noteSearchQuery.hasUnfinishedToDo()) {
+            sql += "NoteFTS.containsUnfinishedToDo IS 1" ;
+            sql += uniteOperator;
+            sql += " ";
+        }
+        else if (noteSearchQuery.hasNegatedUnfinishedToDo()) {
+            sql += "(NoteFTS.containsUnfinishedToDo IS 0) OR (NoteFTS.containsUnfinishedToDo IS NULL) " ;
+            sql += uniteOperator;
+            sql += " ";
+        }
+    }
+
+    if (noteSearchQuery.hasEncryption()) {
+        sql += "NoteFTS.contentContainsEncryption IS 1 ";
+        sql += uniteOperator;
+        sql += " ";
+    }
+
+    QString spareEnd = uniteOperator + QString(" ");
+    if (sql.endsWith(spareEnd)) {
+        sql.chop(spareEnd.size());
+    }
 
     return true;
 }
@@ -5455,6 +5636,72 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tag
 
         QVariant value = rec.value(index);
         tagLocalGuids << value.toString();
+    }
+
+    return true;
+}
+
+bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalGuids(const QStringList & resourceMimeTypes,
+                                                                       QStringList & resourceLocalGuids,
+                                                                       QString & errorDescription) const
+{
+    resourceLocalGuids.clear();
+
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare("SELECT resourceLocalGuid WHERE mime MATCH ':mimeTypes'");
+    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types: "
+                                 "can't prepare SQL query");
+
+    QString mimeTypes = resourceMimeTypes.join(" OR ");
+    query.bindValue(":mimeTypes", mimeTypes);
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types");
+
+    while (query.next())
+    {
+        QSqlRecord rec = query.record();
+        int index = rec.indexOf("resourceLocalGuid");
+        if (index < 0) {
+            errorDescription += QT_TR_NOOP("Internal error: resource's local guid is not present in the result of SQL query");
+            return false;
+        }
+
+        QVariant value = rec.value(index);
+        resourceLocalGuids << value.toString();
+    }
+
+    return true;
+}
+
+bool LocalStorageManagerPrivate::resourceRecognitionTypesToResourceLocalGuids(const QStringList & resourceRecognitionTypes,
+                                                                              QStringList & resourceLocalGuids,
+                                                                              QString & errorDescription) const
+{
+    resourceLocalGuids.clear();
+
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.prepare("SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType MATCH ':recognitionTypes'");
+    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types: "
+                                 "can't prepare SQL query");
+
+    QString recognitionTypes = resourceRecognitionTypes.join(" OR ");
+    query.bindValue(":recognitionTypes", recognitionTypes);
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types");
+
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+        int index = rec.indexOf("resourceLocalGuid");
+        if (index < 0) {
+            errorDescription += QT_TR_NOOP("Internal error: resource's local guid is not present in the result of SQL query");
+            return false;
+        }
+
+        QVariant value = rec.value(index);
+        resourceLocalGuids << value.toString();
     }
 
     return true;

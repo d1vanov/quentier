@@ -162,6 +162,12 @@ private:
 
     bool tagNamesToTagLocalGuids(const QStringList & tagNames, QStringList & tagLocalGuids,
                                  QString & errorDescription) const;
+    bool resourceMimeTypesToResourceLocalGuids(const QStringList & resourceMimeTypes,
+                                               QStringList & resourceLocalGuids,
+                                               QString & errorDescription) const;
+    bool resourceRecognitionTypesToResourceLocalGuids(const QStringList & resourceRecognitionTypes,
+                                                      QStringList & resourceLocalGuids,
+                                                      QString & errorDescription) const;
 
     QString             m_currentUsername;
     qevercloud::UserID  m_currentUserId;
