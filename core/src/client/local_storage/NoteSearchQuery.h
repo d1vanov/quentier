@@ -79,8 +79,6 @@ public:
     const QStringList & applicationData() const;
     const QStringList & negatedApplicationData() const;
 
-    // TODO: support any application data modifier
-
     const QStringList & recognitionTypes() const;
     const QStringList & negatedRecognitionTypes() const;
 

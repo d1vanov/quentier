@@ -10,6 +10,7 @@ class Transaction
 public:
     enum TransactionType {
         Default,
+        Selection,  // transaction type for speeding-up selection queries via holding the shared lock
         Immediate,
         Exclusive
     };
@@ -19,6 +20,7 @@ public:
     virtual ~Transaction();
 
     bool commit(QString & errorDescription);
+    bool end(QString & errorDescription);
 
 private:
     Transaction() = delete;
@@ -31,6 +33,7 @@ private:
     const QSqlDatabase & m_db;
     TransactionType m_type;
     bool m_committed;
+    bool m_ended;
 };
 
 } // namespace qute_note

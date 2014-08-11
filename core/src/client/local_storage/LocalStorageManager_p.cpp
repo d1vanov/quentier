@@ -5319,6 +5319,11 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     sql = "SELECT localGuid from NoteFTS, NoteTags, NoteResources WHERE ";   // initial template to add to
 
+    // Will run all the queries from this method within a single transaction
+    // to prevent multiple drops and re-obtainings of shared lock
+    Transaction transaction(m_sqlDatabase, Transaction::Selection);
+    Q_UNUSED(transaction)
+
     // ========== 1) Processing notebook modifier (if present) ==============
 
     QString notebookName = noteSearchQuery.notebookModifier();
