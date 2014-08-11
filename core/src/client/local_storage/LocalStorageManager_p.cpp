@@ -5510,23 +5510,24 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     if (!noteSearchQuery##list##column.isEmpty()) \
     { \
         if (negated) { \
-            sql += "NoteFTS." #column " NOT IN "; \
+            sql += "NoteFTS." #column " NOT MATCH '"; \
         } \
         else { \
-            sql += "NoteFTS." #column " IN "; \
+            sql += "NoteFTS." #column " MATCH '"; \
         } \
         \
         bool firstItem = true; \
         foreach(const auto & item, noteSearchQuery##list##column) \
         { \
             if (!firstItem) { \
-                sql += ", "; \
+                sql += " OR "; \
             } \
             sql += __VA_ARGS__(item); \
             if (firstItem) { \
                 firstItem = false; \
             } \
         } \
+        sql += "' "; \
         sql += uniteOperator; \
         sql += " "; \
     }
