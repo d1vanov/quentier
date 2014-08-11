@@ -5561,14 +5561,26 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     CHECK_AND_PROCESS_LIST(applicationData, applicationDataKeysMap, !negated);
     CHECK_AND_PROCESS_LIST(negatedApplicationData, applicationDataKeysOnly, negated);
     CHECK_AND_PROCESS_LIST(negatedApplicationData, applicationDataKeysMap, negated);
-    CHECK_AND_PROCESS_LIST(reminderOrders, reminderOrder, !negated, QString::number);
-    CHECK_AND_PROCESS_LIST(negatedReminderOrders, reminderOrder, negated, QString::number);
+
+    // Special processing for reminderOrder - timestamp field which can also be arbitrary
+    if (noteSearchQuery.hasReminderOrder()) {
+        sql += "NoteFTS.reminderOrder MATCH '*' ";
+        sql += uniteOperator;
+        sql += " ";
+    }
+    else {
+        CHECK_AND_PROCESS_LIST(reminderOrders, reminderOrder, !negated, QString::number);
+        CHECK_AND_PROCESS_LIST(negatedReminderOrders, reminderOrder, negated, QString::number);
+    }
+
     CHECK_AND_PROCESS_LIST(reminderTimes, reminderTime, !negated, QString::number);
     CHECK_AND_PROCESS_LIST(negatedReminderTimes, reminderTime, negated, QString::number);
     CHECK_AND_PROCESS_LIST(reminderDoneTimes, reminderDoneTime, !negated, QString::number);
     CHECK_AND_PROCESS_LIST(negatedReminderDoneTimes, reminderDoneTime, negated, QString::number);
 
 #undef CHECK_AND_PROCESS_LIST
+
+    // 7) ============== Processing ToDo items ================
 
     if (noteSearchQuery.hasAnyToDo())
     {
@@ -5601,11 +5613,15 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         }
     }
 
+    // 8) ============== Processing encryption item =================
+
     if (noteSearchQuery.hasEncryption()) {
         sql += "NoteFTS.contentContainsEncryption IS 1 ";
         sql += uniteOperator;
         sql += " ";
     }
+
+    // 9) ============== Removing trailing unite operator from the SQL string =============
 
     QString spareEnd = uniteOperator + QString(" ");
     if (sql.endsWith(spareEnd)) {
