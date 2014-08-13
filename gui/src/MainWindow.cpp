@@ -24,7 +24,7 @@
 
 #define GET_QUTE_NOTE_TEXT_EDIT() \
     QuteNoteTextEdit * pNoteEditor = m_pUI->noteEditWidget; \
-    Q_CHECK_PTR(pNoteEditor); \
+    QUTE_NOTE_CHECK_PTR(pNoteEditor); \
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     GET_QUTE_NOTE_TEXT_EDIT();
 
     QAbstractTextDocumentLayout * pLayout = pNoteEditor->document()->documentLayout();
+    QUTE_NOTE_CHECK_PTR(pLayout);
     pLayout->registerHandler(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_UNCHECKED, m_pToDoChkboxTxtObjUnchecked);
     pLayout->registerHandler(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_CHECKED, m_pToDoChkboxTxtObjChecked);
 
@@ -213,7 +214,7 @@ void MainWindow::checkAndSetupCredentials(MainWindow::ECredentialsToCheck creden
 
 #define ASK_FOR_CREDENTIALS(widgetName)  \
     { \
-        Q_CHECK_PTR(widgetName); \
+        QUTE_NOTE_CHECK_PTR(widgetName); \
         QRect centralWidgetRect = rect(); \
         double xCenter = centralWidgetRect.left() + 0.5 * centralWidgetRect.width(); \
         double yCenter = centralWidgetRect.top() + 0.5 * centralWidgetRect.height(); \
@@ -278,7 +279,7 @@ void MainWindow::onShowAuthWebPage(QUrl url)
 {
     if (m_pOAuthBrowser == nullptr) {
         m_pOAuthBrowser = new EvernoteOAuthBrowser(this, *m_pManager);
-        Q_CHECK_PTR(m_pOAuthBrowser);
+        QUTE_NOTE_CHECK_PTR(m_pOAuthBrowser);
     }
 
     m_pOAuthBrowser->load(url);
@@ -364,7 +365,7 @@ void MainWindow::noteTextStrikeThrough()
 void MainWindow::noteTextAlignLeft()
 {
     QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    Q_CHECK_PTR(pNoteEdit);
+    QUTE_NOTE_CHECK_PTR(pNoteEdit);
 
     QTextCursor cursor = pNoteEdit->textCursor();
     cursor.beginEditBlock();
@@ -379,7 +380,7 @@ void MainWindow::noteTextAlignLeft()
 void MainWindow::noteTextAlignCenter()
 {
     QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    Q_CHECK_PTR(pNoteEdit);
+    QUTE_NOTE_CHECK_PTR(pNoteEdit);
 
     QTextCursor cursor = pNoteEdit->textCursor();
     cursor.beginEditBlock();
@@ -394,7 +395,7 @@ void MainWindow::noteTextAlignCenter()
 void MainWindow::noteTextAlignRight()
 {
     QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    Q_CHECK_PTR(pNoteEdit);
+    QUTE_NOTE_CHECK_PTR(pNoteEdit);
 
     QTextCursor cursor = pNoteEdit->textCursor();
     cursor.beginEditBlock();
@@ -503,7 +504,7 @@ void MainWindow::noteTextInsertToDoCheckBox()
 void MainWindow::noteHtmlContentToStdOut()
 {
     QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    Q_CHECK_PTR(pNoteEdit);
+    QUTE_NOTE_CHECK_PTR(pNoteEdit);
 
     QString noteHtml = pNoteEdit->toHtml();
     qDebug() << noteHtml;
@@ -512,7 +513,7 @@ void MainWindow::noteHtmlContentToStdOut()
 void MainWindow::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
 {
     QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    Q_CHECK_PTR(pNoteEdit);
+    QUTE_NOTE_CHECK_PTR(pNoteEdit);
 
     QTextCursor cursor = pNoteEdit->textCursor();
     cursor.beginEditBlock();
@@ -530,7 +531,7 @@ void MainWindow::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
 void MainWindow::changeIndentation(const bool increaseIndentationFlag)
 {
     QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    Q_CHECK_PTR(pNoteEdit);
+    QUTE_NOTE_CHECK_PTR(pNoteEdit);
 
     QTextCursor cursor = pNoteEdit->textCursor();
     cursor.beginEditBlock();
@@ -592,7 +593,7 @@ void MainWindow::changeIndentation(const bool increaseIndentationFlag)
 void MainWindow::insertList(const QTextListFormat::Style style)
 {
     QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    Q_CHECK_PTR(pNoteEdit);
+    QUTE_NOTE_CHECK_PTR(pNoteEdit);
 
     QTextCursor cursor = pNoteEdit->textCursor();
     cursor.beginEditBlock();
@@ -640,7 +641,7 @@ void MainWindow::setAlignButtonsCheckedState(const ESelectedAlignment alignment)
 void MainWindow::changeTextColor(const MainWindow::EChangeColor changeColorOption)
 {
     QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    Q_CHECK_PTR(pNoteEdit);
+    QUTE_NOTE_CHECK_PTR(pNoteEdit);
 
     QColor color = QColorDialog::getColor(pNoteEdit->textColor(), this);
     if (!color.isValid()) {

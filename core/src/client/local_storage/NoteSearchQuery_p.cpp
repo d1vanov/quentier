@@ -407,11 +407,7 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
 
             if (i == (length - 1))
             {
-                // If that was quoted text, it's not any longer
-                insideQuotedText = false;
-                // It's not the unquoted word any longer too
-                insideUnquotedWord = false;
-
+                // The last word, grab it and go
                 words << currentWord;
                 currentWord.clear();
                 break;

@@ -1,5 +1,6 @@
 #include "AskConsumerKeyAndSecret.h"
 #include "ui_AskConsumerKeyAndSecret.h"
+#include <tools/QuteNoteCheckPtr.h>
 #include <QMessageBox>
 #include <QKeyEvent>
 
@@ -7,7 +8,7 @@ AskConsumerKeyAndSecret::AskConsumerKeyAndSecret(QWidget * parent) :
     QWidget(parent),
     m_pUI(new Ui::AskConsumerKeyAndSecret)
 {
-    Q_CHECK_PTR(m_pUI);
+    QUTE_NOTE_CHECK_PTR(m_pUI);
     m_pUI->setupUi(this);
 
     QObject::connect(m_pUI->okButton, SIGNAL(clicked()),

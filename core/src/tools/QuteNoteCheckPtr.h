@@ -4,11 +4,18 @@
 #include "QuteNoteNullPtrException.h"
 
 #ifndef QUTE_NOTE_CHECK_PTR
-#define QUTE_NOTE_CHECK_PTR(pointer, message) \
+#define QUTE_NOTE_CHECK_PTR(pointer, X...) \
 { \
-    if (pointer == nullptr) { \
+    if (!pointer) \
+    { \
         using qute_note::QuteNoteNullPtrException; \
-        throw QuteNoteNullPtrException(QString(message)); \
+        QString qute_note_null_ptr_error = "Found NULL pointer at "; \
+        qute_note_null_ptr_error += __FILE__; \
+        qute_note_null_ptr_error += " ("; \
+        qute_note_null_ptr_error += QString::number(__LINE__); \
+        qute_note_null_ptr_error += ") "; \
+        qute_note_null_ptr_error = qute_note_null_ptr_error.sprintf(qPrintable(qute_note_null_ptr_error), #X); \
+        throw QuteNoteNullPtrException(qute_note_null_ptr_error); \
     } \
 }
 #endif
