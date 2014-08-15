@@ -1,5 +1,6 @@
 #include "LocalStorageManagerNoteSearchQueryTest.h"
 #include <client/local_storage/LocalStorageManager.h>
+#include <client/local_storage/NoteSearchQuery.h>
 #include <client/types/Notebook.h>
 #include <client/types/Note.h>
 #include <client/types/Tag.h>
@@ -10,17 +11,6 @@ namespace test {
 
 bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 {
-    // Plan:
-    // 1) create ranges for all searchable note's properties
-    // 2) create 3 notebooks and 9 notes per these 3 notebooks
-    // 3) create some amount of note search queries affecting one, three and seven note's properties
-    // 4) execute those queries, ensure they all return the expected result
-    // 5) wrap these ranged tests into outer loops over bitset representing simple boolean note's properties
-
-    const bool startFromScratch = true;
-    LocalStorageManager localStorageManager("LocalStorageManagerNoteSearchQueryTestFakeUser",
-                                            0, startFromScratch);
-
     // 1) =========== Create some notebooks ================
 
     int numNotebooks = 3;
@@ -55,6 +45,16 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         tag.setUpdateSequenceNumber(i);
     }
 
+    tags[0].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813a");
+    tags[1].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813b");
+    tags[2].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813c");
+    tags[3].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813d");
+    tags[4].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813e");
+    tags[5].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813f");
+    tags[6].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813g");
+    tags[7].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813h");
+    tags[8].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813i");
+
     // 3) ================= Create some resources ==================
 
     int numResources = 3;
@@ -86,7 +86,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     res2.setDataBody(QByteArray("fake application/vnd.evernote.ink byte array"));
     res2.setDataSize(res2.dataBody().size());
     res2.setDataHash("Fake_hash______3");
-    res2.setRecognitionDataBody(QByteArray("<recoIndex docType=\"unknown\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+    res2.setRecognitionDataBody(QByteArray("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
                                            "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
                                            "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
                                            "<t w=\"87\">EVER ?</t>"
@@ -122,11 +122,11 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
              << "<en-note><h1>The XHTML block that makes up the note. This is the canonical form of the note's contents</h1><en-todo checked = \"true\"/></en-note>"
              << "<en-note><h1>The binary MD5 checksum of the UTF-8 encoded content body.</h1></en-note>"
              << "<en-note><h1>The number of Unicode characters in the content of the note.</h1><en-todo/></en-note>"
-             << "<en-note><h1>The date and time when the note was created in one of the clients.</h1><en-todo checked = \"false\"/></en-note>"
+             << "<en-note><en-todo checked = \"true\"/><h1>The date and time when the note was created in one of the clients.</h1><en-todo checked = \"false\"/></en-note>"
              << "<en-note><h1>If present, the note is considered \"deleted\", and this stores the date and time when the note was deleted</h1></en-note>"
-             << "<en-note><h1>If the note is available for normal actions and viewing, this flag will be set to true.</h1></en-note>"
+             << "<en-note><h1>If the note is available for normal actions and viewing, this flag will be set to true.</h1><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>"
              << "<en-note><h1>A number identifying the last transaction to modify the state of this note</h1></en-note>"
-             << "<en-note><h1>The list of resources that are embedded within this note.<en-todo checked = \"true\"/></h1></en-note>";
+             << "<en-note><h1>The list of resources that are embedded within this note.<en-todo checked = \"true\"/></h1><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>";
 
     QHash<QString,qint64> timestampForDateTimeString;
 
@@ -283,7 +283,49 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     authors.reserve(numAuthors);
     authors << "Shakespeare" << "Homer" << "Socrates";
 
-    // TODO: continue from here
+    int numSources = 3;
+    QVector<QString> sources;
+    sources.reserve(numSources);
+    sources << "web.clip" << "mail.clip" << "mobile.android";
+
+    int numSourceApplications = 3;
+    QVector<QString> sourceApplications;
+    sourceApplications.reserve(numSourceApplications);
+    sourceApplications << "food.*" << "hello.*" << "skitch.*";
+
+    int numContentClasses = 3;
+    QVector<QString> contentClasses;
+    contentClasses.reserve(numContentClasses);
+    contentClasses << "evernote.food.meal" << "evernote.hello.*" << "whatever";
+
+    int numPlaceNames = 3;
+    QVector<QString> placeNames;
+    placeNames.reserve(numPlaceNames);
+    placeNames << "home" << "school" << "bus";
+
+    int numApplicationData = 3;
+    QVector<QString> applicationData;
+    applicationData.reserve(numApplicationData);
+    applicationData << "myapp" << "Evernote" << "QuteNote";
+
+    int numReminderOrders = 3;
+    QVector<qint64> reminderOrders;
+    reminderOrders.reserve(numReminderOrders);
+    reminderOrders << 1 << 2 << 3;
+
+    int numReminderTimes = 3;
+    QVector<qint64> reminderTimes;
+    reminderTimes.reserve(numReminderTimes);
+    reminderTimes << timestampForDateTimeString["year-3"]
+                  << timestampForDateTimeString["year-2"]
+                  << timestampForDateTimeString["year-1"];
+
+    int numReminderDoneTimes = 3;
+    QVector<qint64> reminderDoneTimes;
+    reminderDoneTimes.reserve(numReminderDoneTimes);
+    reminderDoneTimes << timestampForDateTimeString["year"]
+                      << timestampForDateTimeString["year+1"]
+                      << timestampForDateTimeString["year+2"];
 
     // 5) ============= Create some notes ================
 
@@ -296,22 +338,139 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         notes << Note();
         Note & note = notes.back();
 
-        if (i < 3) {
-            note.setTitle(titles[0]);
-        }
-        else if (i < 6) {
-            note.setTitle(titles[1]);
-        }
-        else {
-            note.setTitle(titles[2]);
-        }
+        note.setTitle(titles[i/numTitles] + QString(" #") + QString::number(i));
+        note.setContent(contents[i]);
+        note.setCreationTimestamp(creationTimestamps[i]);
+        note.setModificationTimestamp(modificationTimestamps[i]);
 
-        note.setTitle(note.title() + QString(" #") + QString::number(i));
+        qevercloud::NoteAttributes & attributes = note.noteAttributes();
 
-        // TODO: continue from here
+        attributes.subjectDate = subjectDateTimestamps[i/numSubjectDateTimestamps];
+        attributes.latitude = latitudes[i];
+        attributes.longitude = longitudes[i];
+        attributes.altitude = altitudes[i];
+        attributes.author = authors[i/numAuthors];
+        attributes.source = sources[i/numSources];
+        attributes.sourceApplication = sourceApplications[i/numSourceApplications];
+        attributes.contentClass = contentClasses[i/numContentClasses];
+        attributes.placeName = placeNames[i/numPlaceNames];
+
+        attributes.applicationData = qevercloud::LazyMap();
+        attributes.applicationData->keysOnly = QSet<QString>();
+        attributes.applicationData->fullMap = QMap<QString,QString>();
+
+        attributes.applicationData->keysOnly->insert(applicationData[i/numApplicationData]);
+        attributes.applicationData->fullMap->insert(applicationData[i/numApplicationData],
+                QString("Application data value at key ") + applicationData[i/numApplicationData]);
+
+        attributes.reminderOrder = reminderOrders[i/numReminderOrders];
+        attributes.reminderTime = reminderTimes[i/numReminderTimes];
+        attributes.reminderDoneTime = reminderDoneTimes[i/numReminderDoneTimes];
+
+        note.addTagGuid(tags[i/numTags].guid());
+        note.addTagGuid(tags[numTags-1 - i/numTags].guid());
+
+        note.addResource(resources[i/numResources]);
     }
 
-    Q_UNUSED(errorDescription);
+    QMap<int,int> notebookIndexForNoteIndex;
+    for(int i = 0; i < numNotes; ++i) {
+        notebookIndexForNoteIndex[i] = i/numNotebooks;
+    }
+
+    // 6) =========== Create local storage, add created notebooks, tags and notes there ===========
+
+    const bool startFromScratch = true;
+    LocalStorageManager localStorageManager("LocalStorageManagerNoteSearchQueryTestFakeUser",
+                                            0, startFromScratch);
+
+    for(int i = 0; i < numNotebooks; ++i)
+    {
+        bool res = localStorageManager.AddNotebook(notebooks[i], errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    for(int i = 0; i < numTags; ++i)
+    {
+        bool res = localStorageManager.AddTag(tags[i], errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    for(int i = 0; i < numNotes; ++i)
+    {
+        bool res = localStorageManager.AddNote(notes[i], notebooks[notebookIndexForNoteIndex[i]], errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    // 7) =========== Create and execute some note search queries, verify they are consistent
+
+    // 7.1) ToDo queries
+
+    // 7.1.1) Finished todo query
+    QString queryString = "todo:true";
+
+    NoteSearchQuery noteSearchQuery;
+    bool res = noteSearchQuery.setQueryString(queryString, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (!noteSearchQuery.hasFinishedToDo()) {
+        errorDescription = "Internal error: NoteSearchQuery doesn't have finished todo "
+                           "even though it has been set";
+        return false;
+    }
+
+    errorDescription.clear();
+    NoteList foundNotes = localStorageManager.FindNotesWithSearchQuery(noteSearchQuery, errorDescription);
+    if (foundNotes.isEmpty())
+    {
+        if (errorDescription.isEmpty()) {
+            errorDescription = "Internal error: no notes containing finished todo statements were found "
+                               "and the error description is empty as well";
+        }
+        return false;
+    }
+
+    int numFoundNotes = foundNotes.size();
+    QVector<Note> foundNotesVec;
+    foundNotesVec.reserve(numFoundNotes);
+    for(int i = 0; i < numFoundNotes; ++i) {
+        foundNotesVec << *(foundNotes[i]);
+    }
+
+    res = (!foundNotesVec.contains(notes[0]) &&
+            foundNotesVec.contains(notes[1]) &&
+           !foundNotesVec.contains(notes[2]) &&
+           !foundNotesVec.contains(notes[3]) &&
+            foundNotesVec.contains(notes[4]) &&
+           !foundNotesVec.contains(notes[5]) &&
+           !foundNotesVec.contains(notes[6]) &&
+           !foundNotesVec.contains(notes[7]) &&
+            foundNotesVec.contains(notes[8]));
+
+    if (!res)
+    {
+        errorDescription = "Internal error: note search for finished todo tags provided unexpected result: \n";
+        for(int i = 0; i < numNotes; ++i) {
+            errorDescription += "foundNotes.contains(notes[";
+            errorDescription += QString::number(i);
+            errorDescription += "]) = ";
+            errorDescription += (foundNotesVec.contains(notes[i]) ? "true" : "false");
+            errorDescription += "\n";
+        }
+
+        return false;
+    }
+
+    // TODO: continue from here
+
     return true;
 }
 

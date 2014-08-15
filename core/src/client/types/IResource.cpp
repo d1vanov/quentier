@@ -239,7 +239,12 @@ const QString & IResource::noteLocalGuid() const
 
 void IResource::setNoteLocalGuid(const QString & guid)
 {
-    m_noteLocalGuid = guid;
+    if (guid.isEmpty()) {
+        m_noteLocalGuid.clear();
+    }
+    else {
+        m_noteLocalGuid = guid;
+    }
 }
 
 bool IResource::hasData() const

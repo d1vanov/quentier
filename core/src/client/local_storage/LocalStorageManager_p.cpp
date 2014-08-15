@@ -1580,6 +1580,8 @@ NoteList LocalStorageManagerPrivate::FindNotesWithSearchQuery(const NoteSearchQu
     res = query.exec(queryString);
     if (!res) {
         errorDescription += query.lastError().text();
+        errorDescription += QT_TR_NOOP("; full executed SQL query: ");
+        errorDescription += queryString;
         QNCRITICAL(errorDescription << ", full error: " << query.lastError());
         return NoteList();
     }
@@ -2813,7 +2815,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
     res = query.exec("CREATE INDEX IF NOT EXISTS NotesNotebooks ON Notes(notebookLocalGuid)");
     DATABASE_CHECK_AND_SET_ERROR("can't create index NotesNotebooks");
 
-    res = query.exec("CREATE VIRTUAL TABLE NoteFTS USING FTS4(content=\"Notes\", title, "
+    res = query.exec("CREATE VIRTUAL TABLE NoteFTS USING FTS4(content=\"Notes\", localGuid, title, "
                      "contentPlainText, contentContainsFinishedToDo, contentContainsUnfinishedToDo, "
                      "contentContainsEncryption, creationTimestamp, modificationTimestamp, "
                      "isActive, subjectDate, latitude, longitude, altitude, "
@@ -5686,30 +5688,30 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     if (noteSearchQuery.hasAnyToDo())
     {
-        sql += "((NoteFTS.containsFinishedToDo IS 1) OR (NoteFTS.containsUnfinishedToDo IS 1)) ";
+        sql += "((NoteFTS.contentcontainsFinishedToDo IS 1) OR (NoteFTS.contentContainsUnfinishedToDo IS 1)) ";
         sql += uniteOperator;
         sql += " ";
     }
     else
     {
         if (noteSearchQuery.hasFinishedToDo()) {
-            sql += "NoteFTS.containsFinishedToDo IS 1" ;
+            sql += "NoteFTS.contentContainsFinishedToDo IS 1" ;
             sql += uniteOperator;
             sql += " ";
         }
         else if (noteSearchQuery.hasNegatedFinishedToDo()) {
-            sql += "(NoteFTS.containsFinishedToDo IS 0) OR (NoteFTS.containsFinishedToDo IS NULL) " ;
+            sql += "(NoteFTS.contentContainsFinishedToDo IS 0) OR (NoteFTS.contentContainsFinishedToDo IS NULL) " ;
             sql += uniteOperator;
             sql += " ";
         }
 
         if (noteSearchQuery.hasUnfinishedToDo()) {
-            sql += "NoteFTS.containsUnfinishedToDo IS 1" ;
+            sql += "NoteFTS.contentContainsUnfinishedToDo IS 1" ;
             sql += uniteOperator;
             sql += " ";
         }
         else if (noteSearchQuery.hasNegatedUnfinishedToDo()) {
-            sql += "(NoteFTS.containsUnfinishedToDo IS 0) OR (NoteFTS.containsUnfinishedToDo IS NULL) " ;
+            sql += "(NoteFTS.contentContainsUnfinishedToDo IS 0) OR (NoteFTS.contentContainsUnfinishedToDo IS NULL) " ;
             sql += uniteOperator;
             sql += " ";
         }

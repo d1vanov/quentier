@@ -8,6 +8,7 @@
 #include "NoteLocalStorageManagerAsyncTester.h"
 #include "NoteSearchQueryTest.h"
 #include "ResourceLocalStorageManagerAsyncTester.h"
+#include "LocalStorageManagerNoteSearchQueryTest.h"
 #include <tools/IQuteNoteException.h>
 #include <tools/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
@@ -215,6 +216,19 @@ void CoreTester::noteSearchQueryTest()
     }
     CATCH_EXCEPTION();
 }
+
+/*
+void CoreTester::localStorageManagerNoteSearchQueryTest()
+{
+    try
+    {
+        QString error;
+        bool res = LocalStorageManagerNoteSearchQueryTest(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+*/
 
 void CoreTester::localStorageManagerIndividualSavedSearchTest()
 {

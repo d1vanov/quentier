@@ -320,7 +320,7 @@ bool Note::checkParameters(QString & errorDescription) const
 
             for(QMap<QString, QString>::const_iterator it = fullMap.constBegin(); it != fullMap.constEnd(); ++it)
             {
-                int keySize = it.value().size();
+                int keySize = it.key().size();
                 if ( (keySize < qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MIN) ||
                      (keySize > qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MAX) )
                 {

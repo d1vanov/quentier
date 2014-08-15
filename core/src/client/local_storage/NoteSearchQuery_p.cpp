@@ -466,6 +466,11 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
         }
     }
 
+    if (!currentWord.isEmpty()) {
+        words << currentWord;
+        currentWord.clear();
+    }
+
     // Now we can remove any quotes from the words from the splitted query string
     int numWords = words.size();
     for(int i = 0; i < numWords; ++i)
