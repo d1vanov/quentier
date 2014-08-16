@@ -1590,7 +1590,7 @@ NoteList LocalStorageManagerPrivate::FindNotesWithSearchQuery(const NoteSearchQu
     while(query.next())
     {
         QSqlRecord rec = query.record();
-        int index = rec.indexOf("localNote");   // one way of selecting notes
+        int index = rec.indexOf("localGuid");   // one way of selecting notes
         if (index < 0) {
             continue;
         }
@@ -1631,8 +1631,9 @@ NoteList LocalStorageManagerPrivate::FindNotesWithSearchQuery(const NoteSearchQu
     errorDescription = QT_TR_NOOP("Can't perform post-processing when fetching notes per note search query: ");
     while(query.next())
     {
-        notes << QSharedPointer<Note>(new Note);
+        notes.push_back(QSharedPointer<Note>(new Note));
         Note & note = *(notes.back());
+        note.setLocalGuid(QString());
 
         QSqlRecord rec = query.record();
         FillNoteFromSqlRecord(rec, note);
@@ -2077,7 +2078,7 @@ int LocalStorageManagerPrivate::GetEnResourceCount(QString & errorDescription) c
 }
 
 bool LocalStorageManagerPrivate::FindEnResource(IResource & resource, QString & errorDescription,
-                                         const bool withBinaryData) const
+                                                const bool withBinaryData) const
 {
     QNDEBUG("LocalStorageManagerPrivate::FindEnResource");
 
@@ -4337,9 +4338,11 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataKeysOnlyFromSq
         return;
     }
 
-    if (!attributes.applicationData.isSet()) {
+    bool applicationDataWasEmpty = !attributes.applicationData.isSet();
+    if (applicationDataWasEmpty) {
         attributes.applicationData = qevercloud::LazyMap();
     }
+
     if (!attributes.applicationData->keysOnly.isSet()) {
         attributes.applicationData->keysOnly = QSet<QString>();
     }
@@ -4371,12 +4374,26 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataKeysOnlyFromSq
             currentKey.append(currentChar);
         }
     }
+
+    if (!currentKey.isEmpty()) {
+        keysOnly.insert(currentKey);
+    }
+
+    if (keysOnly.isEmpty())
+    {
+        if (applicationDataWasEmpty) {
+            attributes.applicationData.clear();
+        }
+        else {
+            attributes.applicationData->keysOnly.clear();
+        }
+    }
 }
 
 void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec,
                                                                                        qevercloud::NoteAttributes & attributes) const
 {
-    int keyIndex = rec.indexOf("applicationDataMapKeys");
+    int keyIndex = rec.indexOf("applicationDataKeysMap");
     int valueIndex = rec.indexOf("applicationDataValues");
 
     if ((keyIndex < 0) || (valueIndex < 0)) {
@@ -4390,9 +4407,11 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataFullMapFromSql
         return;
     }
 
-    if (!attributes.applicationData.isSet()) {
+    bool applicationDataWasEmpty = !attributes.applicationData.isSet();
+    if (applicationDataWasEmpty) {
         attributes.applicationData = qevercloud::LazyMap();
     }
+
     if (!attributes.applicationData->fullMap.isSet()) {
         attributes.applicationData->fullMap = QMap<QString, QString>();
     }
@@ -4426,6 +4445,10 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataFullMapFromSql
         }
     }
 
+    if (!currentKey.isEmpty()) {
+        keysList << currentKey;
+    }
+
     QString valuesString = values.toString();
     int valuesLength = valuesString.length();
     insideQuotedText = false;
@@ -4450,9 +4473,23 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataFullMapFromSql
         }
     }
 
+    if (!currentValue.isEmpty()) {
+        valuesList << currentValue;
+    }
+
     int numKeys = keysList.size();
     for(int i = 0; i < numKeys; ++i) {
-        fullMap[keysList.at(i)] = valuesList.at(i);
+        fullMap.insert(keysList.at(i), valuesList.at(i));
+    }
+
+    if (fullMap.isEmpty())
+    {
+        if (applicationDataWasEmpty) {
+            attributes.applicationData.clear();
+        }
+        else {
+            attributes.applicationData->fullMap.clear();
+        }
     }
 }
 
@@ -4473,7 +4510,8 @@ void LocalStorageManagerPrivate::FillNoteAttributesClassificationsFromSqlRecord(
         return;
     }
 
-    if (!attributes.classifications.isSet()) {
+    bool classificationsWereEmpty = !attributes.classifications.isSet();
+    if (classificationsWereEmpty) {
         attributes.classifications = QMap<QString, QString>();
     }
 
@@ -4533,6 +4571,10 @@ void LocalStorageManagerPrivate::FillNoteAttributesClassificationsFromSqlRecord(
     int numKeys = keysList.size();
     for(int i = 0; i < numKeys; ++i) {
         classifications[keysList.at(i)] = valuesList.at(i);
+    }
+
+    if (classifications.isEmpty() && classificationsWereEmpty) {
+        attributes.classifications.clear();
     }
 }
 
@@ -4800,9 +4842,9 @@ void LocalStorageManagerPrivate::FillNoteFromSqlRecord(const QSqlRecord & rec, N
     CHECK_AND_SET_NOTE_PROPERTY(contentLength, setContentLength, int, qint32);
     CHECK_AND_SET_NOTE_PROPERTY(contentHash, setContentHash, QByteArray, QByteArray);
 
-    CHECK_AND_SET_NOTE_PROPERTY(creationTimestamp, setCreationTimestamp, int, qint32);
-    CHECK_AND_SET_NOTE_PROPERTY(modificationTimestamp, setModificationTimestamp, int, qint32);
-    CHECK_AND_SET_NOTE_PROPERTY(deletionTimestamp, setDeletionTimestamp, int, qint32);
+    CHECK_AND_SET_NOTE_PROPERTY(creationTimestamp, setCreationTimestamp, qint64, qint64);
+    CHECK_AND_SET_NOTE_PROPERTY(modificationTimestamp, setModificationTimestamp, qint64, qint64);
+    CHECK_AND_SET_NOTE_PROPERTY(deletionTimestamp, setDeletionTimestamp, qint64, qint64);
     CHECK_AND_SET_NOTE_PROPERTY(isActive, setActive, int, bool);
 
 #undef CHECK_AND_SET_NOTE_PROPERTY
@@ -5207,14 +5249,11 @@ bool LocalStorageManagerPrivate::FindAndSetTagGuidsPerNote(Note & note, QString 
 {
     errorDescription += QT_TR_NOOP("can't find tag guids per note: ");
 
-    if (!CheckGuid(note.guid())) {
-        errorDescription += QT_TR_NOOP("note's guid is invalid");
-        return false;
-    }
+    const QString noteLocalGuid = note.localGuid();
 
     QSqlQuery query(m_sqlDatabase);
     query.prepare("SELECT tag, tagIndexInNote FROM NoteTags WHERE localNote = ?");
-    query.addBindValue(note.localGuid());
+    query.addBindValue(noteLocalGuid);
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select note tags from \"NoteTags\" table in SQL database");
@@ -5245,7 +5284,7 @@ bool LocalStorageManagerPrivate::FindAndSetTagGuidsPerNote(Note & note, QString 
             return false;
         }
 
-        QNDEBUG("Found tag guid " << tagGuid << " for note with guid " << note.guid());
+        QNDEBUG("Found tag guid " << tagGuid << " for note with local guid " << noteLocalGuid);
 
         int indexInNote = -1;
         int recordIndex = rec.indexOf("tagIndexInNote");
@@ -5286,7 +5325,7 @@ bool LocalStorageManagerPrivate::FindAndSetResourcesPerNote(Note & note, QString
 {
     errorDescription += QT_TR_NOOP("can't find resources for note: ");
 
-    const QString noteGuid = note.localGuid();
+    const QString noteLocalGuid = note.localGuid();
 
     // NOTE: it's weird but I can only get this query work as intended,
     // any more specific ones trying to pick the resource for note's local guid fail miserably.
@@ -5309,9 +5348,10 @@ bool LocalStorageManagerPrivate::FindAndSetResourcesPerNote(Note & note, QString
                 continue;
             }
 
-            QString foundNoteGuid = value.toString();
+            QString foundNoteLocalGuid = value.toString();
+
             int resourceIndex = rec.indexOf("localResource");
-            if ((foundNoteGuid == noteGuid) && (resourceIndex >= 0))
+            if ((foundNoteLocalGuid == noteLocalGuid) && (resourceIndex >= 0))
             {
                 value = rec.value(resourceIndex);
                 if (value.isNull()) {
@@ -5339,10 +5379,11 @@ bool LocalStorageManagerPrivate::FindAndSetResourcesPerNote(Note & note, QString
         DATABASE_CHECK_AND_SET_ERROR("can't find resource per local guid");
 
         QNDEBUG("Found resource with local guid " << resource.localGuid()
-                << " for note with local guid " << note.localGuid());
+                << " for note with local guid " << noteLocalGuid);
     }
 
-    qSort(resources.begin(), resources.end(), [](const ResourceWrapper & lhs, const ResourceWrapper & rhs) { return lhs.indexInNote() < rhs.indexInNote(); });
+    qSort(resources.begin(), resources.end(), [](const ResourceWrapper & lhs, const ResourceWrapper & rhs)
+                                              { return lhs.indexInNote() < rhs.indexInNote(); });
     note.setResources(resources);
 
     return true;

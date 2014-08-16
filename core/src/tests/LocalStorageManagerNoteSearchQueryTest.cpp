@@ -5,6 +5,7 @@
 #include <client/types/Note.h>
 #include <client/types/Tag.h>
 #include <client/types/ResourceWrapper.h>
+#include <logging/QuteNoteLogger.h>
 
 namespace qute_note {
 namespace test {
@@ -126,7 +127,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
              << "<en-note><h1>If present, the note is considered \"deleted\", and this stores the date and time when the note was deleted</h1></en-note>"
              << "<en-note><h1>If the note is available for normal actions and viewing, this flag will be set to true.</h1><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>"
              << "<en-note><h1>A number identifying the last transaction to modify the state of this note</h1></en-note>"
-             << "<en-note><h1>The list of resources that are embedded within this note.<en-todo checked = \"true\"/></h1><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>";
+             << "<en-note><h1>The list of resources that are embedded within this note.</h1><en-todo checked = \"true\"/><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>";
 
     QHash<QString,qint64> timestampForDateTimeString;
 
@@ -370,7 +371,9 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         note.addTagGuid(tags[i/numTags].guid());
         note.addTagGuid(tags[numTags-1 - i/numTags].guid());
 
-        note.addResource(resources[i/numResources]);
+        ResourceWrapper resource = resources[i/numResources];
+        resource.setLocalGuid(QUuid::createUuid().toString());
+        note.addResource(resource);
     }
 
     QMap<int,int> notebookIndexForNoteIndex;
@@ -439,11 +442,16 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     }
 
     int numFoundNotes = foundNotes.size();
+    QNWARNING("Found " << numFoundNotes << " notes");
     QVector<Note> foundNotesVec;
     foundNotesVec.reserve(numFoundNotes);
     for(int i = 0; i < numFoundNotes; ++i) {
-        foundNotesVec << *(foundNotes[i]);
+        foundNotesVec.push_back(*(foundNotes[i]));
+        QNWARNING("Added note to vector of found notes: " << foundNotesVec.back());
     }
+
+    res = foundNotesVec.contains(notes[1]);
+    QNWARNING("Found notes " << (res ? "contain" : "don't contain") << " note[1]");
 
     res = (!foundNotesVec.contains(notes[0]) &&
             foundNotesVec.contains(notes[1]) &&
@@ -458,7 +466,9 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     if (!res)
     {
         errorDescription = "Internal error: note search for finished todo tags provided unexpected result: \n";
-        for(int i = 0; i < numNotes; ++i) {
+
+        for(int i = 0; i < numNotes; ++i)
+        {
             errorDescription += "foundNotes.contains(notes[";
             errorDescription += QString::number(i);
             errorDescription += "]) = ";
@@ -466,10 +476,18 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
             errorDescription += "\n";
         }
 
+        for(int i = 0; i < numFoundNotes; ++i)
+        {
+            const Note & note = foundNotesVec[i];
+            errorDescription += "foundNotes[";
+            errorDescription += QString::number(i);
+            errorDescription += "]: ";
+            errorDescription += note.ToQString();
+            errorDescription += "\n";
+        }
+
         return false;
     }
-
-    // TODO: continue from here
 
     return true;
 }
