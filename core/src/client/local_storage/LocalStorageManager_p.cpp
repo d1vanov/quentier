@@ -4304,7 +4304,7 @@ void LocalStorageManagerPrivate::FillNoteAttributesFromSqlRecord(const QSqlRecor
         } \
     }
 
-    CHECK_AND_SET_NOTE_ATTRIBUTE(subjectDate, int, qevercloud::Timestamp);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(subjectDate, qint64, qevercloud::Timestamp);
     CHECK_AND_SET_NOTE_ATTRIBUTE(latitude, double, double);
     CHECK_AND_SET_NOTE_ATTRIBUTE(longitude, double, double);
     CHECK_AND_SET_NOTE_ATTRIBUTE(altitude, double, double);
@@ -4312,15 +4312,15 @@ void LocalStorageManagerPrivate::FillNoteAttributesFromSqlRecord(const QSqlRecor
     CHECK_AND_SET_NOTE_ATTRIBUTE(source, QString, QString);
     CHECK_AND_SET_NOTE_ATTRIBUTE(sourceURL, QString, QString);
     CHECK_AND_SET_NOTE_ATTRIBUTE(sourceApplication, QString, QString);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(shareDate, int, qevercloud::Timestamp);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(reminderOrder, int, qint64);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(reminderDoneTime, int, qevercloud::Timestamp);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(reminderTime, int, qevercloud::Timestamp);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(shareDate, qint64, qevercloud::Timestamp);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(reminderOrder, qint64, qint64);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(reminderDoneTime, qint64, qevercloud::Timestamp);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(reminderTime, qint64, qevercloud::Timestamp);
     CHECK_AND_SET_NOTE_ATTRIBUTE(placeName, QString, QString);
     CHECK_AND_SET_NOTE_ATTRIBUTE(contentClass, QString, QString);
     CHECK_AND_SET_NOTE_ATTRIBUTE(lastEditedBy, QString, QString);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(creatorId, int, UserID);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(lastEditorId, int, UserID);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(creatorId, qint32, UserID);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(lastEditorId, qint32, UserID);
 
 #undef CHECK_AND_SET_NOTE_ATTRIBUTE
 }
@@ -4609,11 +4609,11 @@ bool LocalStorageManagerPrivate::FillUserFromSqlRecord(const QSqlRecord & rec, I
     FIND_AND_SET_USER_PROPERTY(timezone, setTimezone, QString, QString, !isRequired);
     FIND_AND_SET_USER_PROPERTY(privilege, setPrivilegeLevel, int, qint8, !isRequired);
     FIND_AND_SET_USER_PROPERTY(userCreationTimestamp, setCreationTimestamp,
-                               int, qint64, !isRequired);
+                               qint64, qint64, !isRequired);
     FIND_AND_SET_USER_PROPERTY(userModificationTimestamp, setModificationTimestamp,
-                               int, qint64, !isRequired);
+                               qint64, qint64, !isRequired);
     FIND_AND_SET_USER_PROPERTY(userDeletionTimestamp, setDeletionTimestamp,
-                               int, qint64, !isRequired);
+                               qint64, qint64, !isRequired);
     FIND_AND_SET_USER_PROPERTY(userIsActive, setActive, int, bool, !isRequired);
 
 #undef FIND_AND_SET_USER_PROPERTY
@@ -4676,15 +4676,15 @@ bool LocalStorageManagerPrivate::FillUserFromSqlRecord(const QSqlRecord & rec, I
     FIND_AND_SET_USER_ATTRIBUTE(preactivation, preactivation, int, bool);
     FIND_AND_SET_USER_ATTRIBUTE(incomingEmailAddress, incomingEmailAddress, QString, QString);
     FIND_AND_SET_USER_ATTRIBUTE(comments, comments, QString, QString);
-    FIND_AND_SET_USER_ATTRIBUTE(dateAgreedToTermsOfService, dateAgreedToTermsOfService, int, qevercloud::Timestamp);
-    FIND_AND_SET_USER_ATTRIBUTE(maxReferrals, maxReferrals, int, qint32);
-    FIND_AND_SET_USER_ATTRIBUTE(referralCount, referralCount, int, qint32);
+    FIND_AND_SET_USER_ATTRIBUTE(dateAgreedToTermsOfService, dateAgreedToTermsOfService, qint64, qevercloud::Timestamp);
+    FIND_AND_SET_USER_ATTRIBUTE(maxReferrals, maxReferrals, qint32, qint32);
+    FIND_AND_SET_USER_ATTRIBUTE(referralCount, referralCount, qint32, qint32);
     FIND_AND_SET_USER_ATTRIBUTE(refererCode, refererCode, QString, QString);
-    FIND_AND_SET_USER_ATTRIBUTE(sentEmailDate, sentEmailDate, int, qevercloud::Timestamp);
-    FIND_AND_SET_USER_ATTRIBUTE(sentEmailCount, sentEmailCount, int, qint32);
-    FIND_AND_SET_USER_ATTRIBUTE(dailyEmailLimit, dailyEmailLimit, int, qint32);
-    FIND_AND_SET_USER_ATTRIBUTE(emailOptOutDate, emailOptOutDate, int, qevercloud::Timestamp);
-    FIND_AND_SET_USER_ATTRIBUTE(partnerEmailOptInDate, partnerEmailOptInDate, int, qevercloud::Timestamp);
+    FIND_AND_SET_USER_ATTRIBUTE(sentEmailDate, sentEmailDate, qint64, qevercloud::Timestamp);
+    FIND_AND_SET_USER_ATTRIBUTE(sentEmailCount, sentEmailCount, qint32, qint32);
+    FIND_AND_SET_USER_ATTRIBUTE(dailyEmailLimit, dailyEmailLimit, qint32, qint32);
+    FIND_AND_SET_USER_ATTRIBUTE(emailOptOutDate, emailOptOutDate, qint64, qevercloud::Timestamp);
+    FIND_AND_SET_USER_ATTRIBUTE(partnerEmailOptInDate, partnerEmailOptInDate, qint64, qevercloud::Timestamp);
     FIND_AND_SET_USER_ATTRIBUTE(preferredLanguage, preferredLanguage, QString, QString);
     FIND_AND_SET_USER_ATTRIBUTE(preferredCountry, preferredCountry, QString, QString);
     FIND_AND_SET_USER_ATTRIBUTE(clipFullPage, clipFullPage, int, bool);
@@ -4721,33 +4721,33 @@ bool LocalStorageManagerPrivate::FillUserFromSqlRecord(const QSqlRecord & rec, I
         } \
     }
 
-    FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimit, uploadLimit, int, qint64);
-    FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimitEnd, uploadLimitEnd, int, qevercloud::Timestamp);
-    FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimitNextMonth, uploadLimitNextMonth, int, qint64);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimit, uploadLimit, qint64, qint64);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimitEnd, uploadLimitEnd, qint64, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimitNextMonth, uploadLimitNextMonth, qint64, qint64);
     FIND_AND_SET_ACCOUNTING_PROPERTY(premiumServiceStatus, premiumServiceStatus,
                                      int, qevercloud::PremiumOrderStatus::type);
     FIND_AND_SET_ACCOUNTING_PROPERTY(premiumOrderNumber, premiumOrderNumber, QString, QString);
     FIND_AND_SET_ACCOUNTING_PROPERTY(premiumCommerceService, premiumCommerceService, QString, QString);
     FIND_AND_SET_ACCOUNTING_PROPERTY(premiumServiceStart, premiumServiceStart,
-                                     int, qevercloud::Timestamp);
+                                     qint64, qevercloud::Timestamp);
     FIND_AND_SET_ACCOUNTING_PROPERTY(premiumServiceSKU, premiumServiceSKU, QString, QString);
     FIND_AND_SET_ACCOUNTING_PROPERTY(lastSuccessfulCharge, lastSuccessfulCharge,
-                                     int, qevercloud::Timestamp);
-    FIND_AND_SET_ACCOUNTING_PROPERTY(lastFailedCharge, lastFailedCharge, int, qevercloud::Timestamp);
+                                     qint64, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(lastFailedCharge, lastFailedCharge, qint64, qevercloud::Timestamp);
     FIND_AND_SET_ACCOUNTING_PROPERTY(lastFailedChargeReason, lastFailedChargeReason, QString, QString);
-    FIND_AND_SET_ACCOUNTING_PROPERTY(nextPaymentDue, nextPaymentDue, int, qevercloud::Timestamp);
-    FIND_AND_SET_ACCOUNTING_PROPERTY(premiumLockUntil, premiumLockUntil, int, qevercloud::Timestamp);
-    FIND_AND_SET_ACCOUNTING_PROPERTY(updated, updated, int, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(nextPaymentDue, nextPaymentDue, qint64, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(premiumLockUntil, premiumLockUntil, qint64, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(updated, updated, qint64, qevercloud::Timestamp);
     FIND_AND_SET_ACCOUNTING_PROPERTY(premiumSubscriptionNumber, premiumSubscriptionNumber,
                                      QString, QString);
-    FIND_AND_SET_ACCOUNTING_PROPERTY(lastRequestedCharge, lastRequestedCharge, int, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(lastRequestedCharge, lastRequestedCharge, qint64, qevercloud::Timestamp);
     FIND_AND_SET_ACCOUNTING_PROPERTY(currency, currency, QString, QString);
     FIND_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessId, businessId, int, qint32);
     FIND_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessName, businessName, QString, QString);
     FIND_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessRole, businessRole, int, qevercloud::BusinessUserRole::type);
     FIND_AND_SET_ACCOUNTING_PROPERTY(unitPrice, unitPrice, int, qint32);
     FIND_AND_SET_ACCOUNTING_PROPERTY(unitDiscount, unitDiscount, int, qint32);
-    FIND_AND_SET_ACCOUNTING_PROPERTY(nextChargeDate, nextChargeDate, int, qevercloud::Timestamp);
+    FIND_AND_SET_ACCOUNTING_PROPERTY(nextChargeDate, nextChargeDate, qint64, qevercloud::Timestamp);
 
 #undef FIND_AND_SET_ACCOUNTING_PROPERTY
 
@@ -4770,14 +4770,14 @@ bool LocalStorageManagerPrivate::FillUserFromSqlRecord(const QSqlRecord & rec, I
         } \
     }
 
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(currentTime, currentTime, int, qevercloud::Timestamp);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(currentTime, currentTime, qint64, qevercloud::Timestamp);
     FIND_AND_SET_PREMIUM_INFO_PROPERTY(premium, premium, int, bool);
     FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumRecurring, premiumRecurring, int, bool);
     FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumExtendable, premiumExtendable, int, bool);
     FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumPending, premiumPending, int, bool);
     FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumCancellationPending, premiumCancellationPending, int, bool);
     FIND_AND_SET_PREMIUM_INFO_PROPERTY(canPurchaseUploadAllowance, canPurchaseUploadAllowance, int, bool);
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumExpirationDate, premiumExpirationDate, int, qevercloud::Timestamp);
+    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumExpirationDate, premiumExpirationDate, qint64, qevercloud::Timestamp);
     FIND_AND_SET_PREMIUM_INFO_PROPERTY(sponsoredGroupName, sponsoredGroupName, QString, QString);
     FIND_AND_SET_PREMIUM_INFO_PROPERTY(sponsoredGroupRole, sponsoredGroupRole, int, qevercloud::SponsoredGroupRole::type);
     FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumUpgradable, premiumUpgradable, int, bool);
@@ -4803,7 +4803,7 @@ bool LocalStorageManagerPrivate::FillUserFromSqlRecord(const QSqlRecord & rec, I
         } \
     }
 
-    FIND_AND_SET_BUSINESS_USER_INFO_PROPERTY(businessId, businessId, int, qint32);
+    FIND_AND_SET_BUSINESS_USER_INFO_PROPERTY(businessId, businessId, qint32, qint32);
     FIND_AND_SET_BUSINESS_USER_INFO_PROPERTY(businessName, businessName, QString, QString);
     FIND_AND_SET_BUSINESS_USER_INFO_PROPERTY(role, role, int, qevercloud::BusinessUserRole::type);
     FIND_AND_SET_BUSINESS_USER_INFO_PROPERTY(businessInfoEmail, email, QString, QString);
@@ -4834,12 +4834,12 @@ void LocalStorageManagerPrivate::FillNoteFromSqlRecord(const QSqlRecord & rec, N
     CHECK_AND_SET_NOTE_PROPERTY(localGuid, setLocalGuid, QString, QString);
 
     CHECK_AND_SET_NOTE_PROPERTY(guid, setGuid, QString, QString);
-    CHECK_AND_SET_NOTE_PROPERTY(updateSequenceNumber, setUpdateSequenceNumber, int, qint32);
+    CHECK_AND_SET_NOTE_PROPERTY(updateSequenceNumber, setUpdateSequenceNumber, qint32, qint32);
 
     CHECK_AND_SET_NOTE_PROPERTY(notebookGuid, setNotebookGuid, QString, QString);
     CHECK_AND_SET_NOTE_PROPERTY(title, setTitle, QString, QString);
     CHECK_AND_SET_NOTE_PROPERTY(content, setContent, QString, QString);
-    CHECK_AND_SET_NOTE_PROPERTY(contentLength, setContentLength, int, qint32);
+    CHECK_AND_SET_NOTE_PROPERTY(contentLength, setContentLength, qint32, qint32);
     CHECK_AND_SET_NOTE_PROPERTY(contentHash, setContentHash, QByteArray, QByteArray);
 
     CHECK_AND_SET_NOTE_PROPERTY(creationTimestamp, setCreationTimestamp, qint64, qint64);
@@ -4908,12 +4908,12 @@ bool LocalStorageManagerPrivate::FillNotebookFromSqlRecord(const QSqlRecord & re
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(guid, setGuid, QString, QString, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(updateSequenceNumber, setUpdateSequenceNumber,
-                                     int, qint32, isRequired);
+                                     qint32, qint32, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(notebookName, setName, QString, QString, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(creationTimestamp, setCreationTimestamp,
-                                     int, qint64, isRequired);
+                                     qint64, qint64, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(modificationTimestamp, setModificationTimestamp,
-                                     int, qint64, isRequired);
+                                     qint64, qint64, isRequired);
 
     isRequired = false;
 
@@ -5044,12 +5044,12 @@ bool LocalStorageManagerPrivate::FillSharedNotebookFromSqlRecord(const QSqlRecor
         } \
     }
 
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareId, int, qint64, setId);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(userId, int, qint32, setUserId);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareId, qint64, qint64, setId);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(userId, qint32, qint32, setUserId);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookEmail, QString, QString, setEmail);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookCreationTimestamp, int,
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookCreationTimestamp, qint64,
                                            qint64, setCreationTimestamp);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookModificationTimestamp, int,
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookModificationTimestamp, qint64,
                                            qint64, setModificationTimestamp);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareKey, QString, QString, setShareKey);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookUsername, QString, QString, setUsername);
@@ -5082,8 +5082,8 @@ bool LocalStorageManagerPrivate::FillSharedNotebookFromSqlRecord(const QSqlRecor
 }
 
 bool LocalStorageManagerPrivate::FillLinkedNotebookFromSqlRecord(const QSqlRecord & rec,
-                                                          LinkedNotebook & linkedNotebook,
-                                                          QString & errorDescription) const
+                                                                 LinkedNotebook & linkedNotebook,
+                                                                 QString & errorDescription) const
 {
 #define CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(property, type, localType, setter, isRequired) \
     { \
@@ -5107,7 +5107,7 @@ bool LocalStorageManagerPrivate::FillLinkedNotebookFromSqlRecord(const QSqlRecor
     bool isRequired = true;
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(isDirty, int, bool, setDirty, isRequired);
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(guid, QString, QString, setGuid, isRequired);
-    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(updateSequenceNumber, int, qint32,
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(updateSequenceNumber, qint32, qint32,
                                            setUpdateSequenceNumber, isRequired);
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(shareName, QString, QString, setShareName, isRequired);
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(username, QString, QString, setUsername, isRequired);
@@ -5121,7 +5121,7 @@ bool LocalStorageManagerPrivate::FillLinkedNotebookFromSqlRecord(const QSqlRecor
 
     isRequired = false;
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(stack, QString, QString, setStack, isRequired);
-    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(businessId, int, qint32, setBusinessId, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(businessId, qint32, qint32, setBusinessId, isRequired);
 
 #undef CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY
 
@@ -5160,7 +5160,7 @@ bool LocalStorageManagerPrivate::FillSavedSearchFromSqlRecord(const QSqlRecord &
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(name, QString, QString, setName, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(query, QString, QString, setQuery, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(format, int, qint8, setQueryFormat, isRequired);
-    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(updateSequenceNumber, int, int32_t,
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(updateSequenceNumber, qint32, qint32,
                                         setUpdateSequenceNumber, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isDirty, int, bool, setDirty, isRequired);
 
@@ -5205,7 +5205,7 @@ bool LocalStorageManagerPrivate::FillTagFromSqlRecord(const QSqlRecord & rec, Ta
 
     isRequired = true;
     CHECK_AND_SET_TAG_PROPERTY(localGuid, QString, QString, setLocalGuid, isRequired);
-    CHECK_AND_SET_TAG_PROPERTY(updateSequenceNumber, int, qint32, setUpdateSequenceNumber, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(updateSequenceNumber, qint32, qint32, setUpdateSequenceNumber, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(name, QString, QString, setName, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isDirty, int, bool, setDirty, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isLocal, int, bool, setLocal, isRequired);

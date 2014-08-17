@@ -442,16 +442,11 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     }
 
     int numFoundNotes = foundNotes.size();
-    QNWARNING("Found " << numFoundNotes << " notes");
     QVector<Note> foundNotesVec;
     foundNotesVec.reserve(numFoundNotes);
     for(int i = 0; i < numFoundNotes; ++i) {
         foundNotesVec.push_back(*(foundNotes[i]));
-        QNWARNING("Added note to vector of found notes: " << foundNotesVec.back());
     }
-
-    res = foundNotesVec.contains(notes[1]);
-    QNWARNING("Found notes " << (res ? "contain" : "don't contain") << " note[1]");
 
     res = (!foundNotesVec.contains(notes[0]) &&
             foundNotesVec.contains(notes[1]) &&

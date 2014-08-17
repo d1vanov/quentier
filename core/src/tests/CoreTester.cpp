@@ -217,7 +217,6 @@ void CoreTester::noteSearchQueryTest()
     CATCH_EXCEPTION();
 }
 
-/*
 void CoreTester::localStorageManagerNoteSearchQueryTest()
 {
     try
@@ -228,7 +227,6 @@ void CoreTester::localStorageManagerNoteSearchQueryTest()
     }
     CATCH_EXCEPTION();
 }
-*/
 
 void CoreTester::localStorageManagerIndividualSavedSearchTest()
 {
