@@ -4228,7 +4228,7 @@ bool LocalStorageManagerPrivate::FillResourceAttributesFromSqlRecord(const QSqlR
     }
 
     CHECK_AND_SET_RESOURCE_ATTRIBUTE(resourceSourceURL, sourceURL, QString, QString);
-    CHECK_AND_SET_RESOURCE_ATTRIBUTE(timestamp, timestamp, int, qevercloud::Timestamp);
+    CHECK_AND_SET_RESOURCE_ATTRIBUTE(timestamp, timestamp, qint64, qevercloud::Timestamp);
     CHECK_AND_SET_RESOURCE_ATTRIBUTE(resourceLatitude, latitude, double, double);
     CHECK_AND_SET_RESOURCE_ATTRIBUTE(resourceLongitude, longitude, double, double);
     CHECK_AND_SET_RESOURCE_ATTRIBUTE(resourceAltitude, altitude, double, double);
