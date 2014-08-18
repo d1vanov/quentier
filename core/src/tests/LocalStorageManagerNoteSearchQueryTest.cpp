@@ -595,6 +595,21 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     if (!res) {
         return false;
     }
+
+    // 7.2) Encryption queries
+    queryString = "encryption:";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[6] = true;
+    expectedContainedNotesIndices[8] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
 }
 
 } // namespace test
