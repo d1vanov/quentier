@@ -10,6 +10,87 @@
 namespace qute_note {
 namespace test {
 
+bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
+                      const QVector<bool> expectedContainedNotesIndices,
+                      const LocalStorageManager & localStorageManager,
+                      QString & errorDescription)
+{
+    NoteSearchQuery noteSearchQuery;
+    bool res = noteSearchQuery.setQueryString(queryString, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    errorDescription.clear();
+    NoteList foundNotes = localStorageManager.FindNotesWithSearchQuery(noteSearchQuery, errorDescription);
+    if (foundNotes.isEmpty())
+    {
+        if (!expectedContainedNotesIndices.contains(true)) {
+            return true;
+        }
+
+        if (errorDescription.isEmpty())
+        {
+            errorDescription = "Internal error: no notes containing corresponding to note search "
+                               "query were found and the error description is empty as well; "
+                               "query string: ";
+            errorDescription += queryString;
+            errorDescription += "; \nNoteSearchQuery: ";
+            errorDescription += noteSearchQuery.ToQString();
+        }
+
+        return false;
+    }
+
+    int numFoundNotes = foundNotes.size();
+    QVector<Note> foundNotesVec;
+    foundNotesVec.reserve(numFoundNotes);
+    for(int i = 0; i < numFoundNotes; ++i) {
+        foundNotesVec.push_back(*(foundNotes[i]));
+    }
+
+    res = true;
+    int numOriginalNotes = notes.size();
+    for(int i = 0; i < numOriginalNotes; ++i) {
+        res &= (foundNotesVec.contains(notes[i]) == expectedContainedNotesIndices[i]);
+    }
+
+    if (!res)
+    {
+        errorDescription = "Internal error: unexpected result of note search query processing: \n";
+
+        for(int i = 0; i < numFoundNotes; ++i)
+        {
+            errorDescription += "foundNotes.contains(notes[";
+            errorDescription += QString::number(i);
+            errorDescription += "]) = ";
+            errorDescription += (foundNotesVec.contains(notes[i]) ? "true" : "false");
+            errorDescription += "; expected: ";
+            errorDescription += (expectedContainedNotesIndices[i] ? "true" : "false");
+            errorDescription += "\n";
+        }
+
+        errorDescription += "Query string: ";
+        errorDescription += queryString;
+        errorDescription += "; \nNoteSearchQuery: ";
+        errorDescription += noteSearchQuery.ToQString();
+
+        for(int i = 0; i < numFoundNotes; ++i)
+        {
+            const Note & note = foundNotesVec[i];
+            errorDescription += "foundNotes[";
+            errorDescription += QString::number(i);
+            errorDescription += "]: ";
+            errorDescription += note.ToQString();
+            errorDescription += "\n";
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
 bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 {
     // 1) =========== Create some notebooks ================
@@ -417,70 +498,14 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
     // 7.1.1) Finished todo query
     QString queryString = "todo:true";
+    QVector<bool> expectedContainedNotesIndices(numNotes, false);
+    expectedContainedNotesIndices[1] = true;
+    expectedContainedNotesIndices[4] = true;
+    expectedContainedNotesIndices[8] = true;
 
-    NoteSearchQuery noteSearchQuery;
-    bool res = noteSearchQuery.setQueryString(queryString, errorDescription);
+    bool res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                                localStorageManager, errorDescription);
     if (!res) {
-        return false;
-    }
-
-    if (!noteSearchQuery.hasFinishedToDo()) {
-        errorDescription = "Internal error: NoteSearchQuery doesn't have finished todo "
-                           "even though it has been set";
-        return false;
-    }
-
-    errorDescription.clear();
-    NoteList foundNotes = localStorageManager.FindNotesWithSearchQuery(noteSearchQuery, errorDescription);
-    if (foundNotes.isEmpty())
-    {
-        if (errorDescription.isEmpty()) {
-            errorDescription = "Internal error: no notes containing finished todo statements were found "
-                               "and the error description is empty as well";
-        }
-        return false;
-    }
-
-    int numFoundNotes = foundNotes.size();
-    QVector<Note> foundNotesVec;
-    foundNotesVec.reserve(numFoundNotes);
-    for(int i = 0; i < numFoundNotes; ++i) {
-        foundNotesVec.push_back(*(foundNotes[i]));
-    }
-
-    res = (!foundNotesVec.contains(notes[0]) &&
-            foundNotesVec.contains(notes[1]) &&
-           !foundNotesVec.contains(notes[2]) &&
-           !foundNotesVec.contains(notes[3]) &&
-            foundNotesVec.contains(notes[4]) &&
-           !foundNotesVec.contains(notes[5]) &&
-           !foundNotesVec.contains(notes[6]) &&
-           !foundNotesVec.contains(notes[7]) &&
-            foundNotesVec.contains(notes[8]));
-
-    if (!res)
-    {
-        errorDescription = "Internal error: note search for finished todo tags provided unexpected result: \n";
-
-        for(int i = 0; i < numNotes; ++i)
-        {
-            errorDescription += "foundNotes.contains(notes[";
-            errorDescription += QString::number(i);
-            errorDescription += "]) = ";
-            errorDescription += (foundNotesVec.contains(notes[i]) ? "true" : "false");
-            errorDescription += "\n";
-        }
-
-        for(int i = 0; i < numFoundNotes; ++i)
-        {
-            const Note & note = foundNotesVec[i];
-            errorDescription += "foundNotes[";
-            errorDescription += QString::number(i);
-            errorDescription += "]: ";
-            errorDescription += note.ToQString();
-            errorDescription += "\n";
-        }
-
         return false;
     }
 
