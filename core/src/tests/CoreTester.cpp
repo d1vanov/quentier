@@ -223,7 +223,9 @@ void CoreTester::localStorageManagerNoteSearchQueryTest()
     {
         QString error;
         bool res = LocalStorageManagerNoteSearchQueryTest(error);
-        QVERIFY2(res == true, qPrintable(error));
+        if (!res) {
+            QFAIL(qPrintable(error));
+        }
     }
     CATCH_EXCEPTION();
 }

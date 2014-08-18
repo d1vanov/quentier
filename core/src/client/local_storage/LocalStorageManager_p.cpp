@@ -3587,7 +3587,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     query.bindValue(":hasShortcut", (note.hasShortcut() ? 1 : 0));
     query.bindValue(":title", (note.hasTitle() ? note.title() : nullValue));
     query.bindValue(":content", (note.hasContent() ? note.content() : nullValue));
-    query.bindValue(":contentContainsUnfihishedToDo", (note.containsUncheckedTodo() ? 1 : nullValue));
+    query.bindValue(":contentContainsUnfinishedToDo", (note.containsUncheckedTodo() ? 1 : nullValue));
     query.bindValue(":contentContainsFinishedToDo", (note.containsCheckedTodo() ? 1 : nullValue));
     query.bindValue(":contentContainsEncryption", (note.containsEncryption() ? 1 : nullValue));
     query.bindValue(":contentLength", (note.hasContentLength() ? note.contentLength() : nullValue));

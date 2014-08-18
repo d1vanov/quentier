@@ -31,8 +31,8 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
 
         if (errorDescription.isEmpty())
         {
-            errorDescription = "Internal error: no notes containing corresponding to note search "
-                               "query were found and the error description is empty as well; "
+            errorDescription = "Internal error: no notes corresponding to note search query "
+                               "were found and the error description is empty as well; "
                                "query string: ";
             errorDescription += queryString;
             errorDescription += "; \nNoteSearchQuery: ";
@@ -505,6 +505,19 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
     bool res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                                 localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.1.2) Unfinished todo query
+    queryString = "todo:false";
+
+    expectedContainedNotesIndices[1] = false;
+    expectedContainedNotesIndices[8] = false;
+    expectedContainedNotesIndices[3] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
     if (!res) {
         return false;
     }
