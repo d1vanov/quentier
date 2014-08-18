@@ -5467,7 +5467,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 {
     errorDescription = QT_TR_NOOP("Can't convert note search string into SQL query: ");
 
-    sql = "SELECT localGuid from NoteFTS, NoteTags, NoteResources WHERE ";   // initial template to add to
+    sql = "SELECT DISTINCT localGuid from NoteFTS, NoteTags, NoteResources WHERE ";   // initial template to add to
 
     // ========== 1) Processing notebook modifier (if present) ==============
 
@@ -5509,9 +5509,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     }
 
     if (!notebookLocalGuid.isEmpty()) {
-        sql += "notebookLocalGuid = '";
+        sql += "(notebookLocalGuid = '";
         sql += notebookLocalGuid;
-        sql += "' AND ";
+        sql += "') AND ";
     }
 
     // 2) ============ Determining whether "any:" modifier takes effect ==============
@@ -5534,9 +5534,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     if (!tagLocalGuids.isEmpty())
     {
-        sql += "NoteTags.localTag IN '";
+        sql += "(NoteTags.localTag IN '";
         sql += tagLocalGuids.join(", ");
-        sql += "' ";
+        sql += "') ";
         sql += uniteOperator;
         sql += " ";
     }
@@ -5552,9 +5552,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     if (!tagNegatedLocalGuids.isEmpty())
     {
-        sql += "NoteTags.localTag NOT IN '";
+        sql += "(NoteTags.localTag NOT IN '";
         sql += tagNegatedLocalGuids.join(", ");
-        sql += "' ";
+        sql += "') ";
         sql += uniteOperator;
         sql += " ";
     }
@@ -5576,9 +5576,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     if (!resourceLocalGuidsPerMime.isEmpty())
     {
-        sql += "NoteResources.localResource IN '";
+        sql += "(NoteResources.localResource IN '";
         sql += resourceLocalGuidsPerMime.join(", ");
-        sql += "' ";
+        sql += "') ";
         sql += uniteOperator;
         sql += " ";
     }
@@ -5596,9 +5596,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     if (!resourceNegatedLocalGuidsPerMime.isEmpty())
     {
-        sql += "NoteResources.localResource NOT IN '";
+        sql += "(NoteResources.localResource NOT IN '";
         sql += resourceNegatedLocalGuidsPerMime.join(", ");
-        sql += "' ";
+        sql += "') ";
         sql += uniteOperator;
         sql += " ";
     }
@@ -5621,9 +5621,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     if (!resourceLocalGuidsPerRecognitionType.isEmpty())
     {
-        sql += "NoteResources.localResource IN '";
+        sql += "(NoteResources.localResource IN '";
         sql += resourceLocalGuidsPerRecognitionType.join(", ");
-        sql += "' ";
+        sql += "') ";
         sql += uniteOperator;
         sql += " ";
     }
@@ -5641,9 +5641,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     if (!resourceNegatedLocalGuidsPerRecognitionType.isEmpty())
     {
-        sql += "NoteResources.localGuid NOT IN '";
+        sql += "(NoteResources.localGuid NOT IN '";
         sql += resourceNegatedLocalGuidsPerRecognitionType.join(", ");
-        sql += "' ";
+        sql += "') ";
         sql += uniteOperator;
         sql += " ";
     }
@@ -5655,10 +5655,10 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     if (!noteSearchQuery##list##column.isEmpty()) \
     { \
         if (negated) { \
-            sql += "NoteFTS." #column " NOT MATCH '"; \
+            sql += "(NoteFTS." #column " NOT MATCH '"; \
         } \
         else { \
-            sql += "NoteFTS." #column " MATCH '"; \
+            sql += "(NoteFTS." #column " MATCH '"; \
         } \
         \
         bool firstItem = true; \
@@ -5672,7 +5672,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
                 firstItem = false; \
             } \
         } \
-        sql += "' "; \
+        sql += "') "; \
         sql += uniteOperator; \
         sql += " "; \
     }
@@ -5709,7 +5709,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     // Special processing for reminderOrder - timestamp field which can also be arbitrary
     if (noteSearchQuery.hasReminderOrder()) {
-        sql += "NoteFTS.reminderOrder MATCH '*' ";
+        sql += "(NoteFTS.reminderOrder MATCH '*') ";
         sql += uniteOperator;
         sql += " ";
     }
@@ -5736,23 +5736,23 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     else
     {
         if (noteSearchQuery.hasFinishedToDo()) {
-            sql += "NoteFTS.contentContainsFinishedToDo IS 1" ;
+            sql += "(NoteFTS.contentContainsFinishedToDo IS 1) " ;
             sql += uniteOperator;
             sql += " ";
         }
         else if (noteSearchQuery.hasNegatedFinishedToDo()) {
-            sql += "(NoteFTS.contentContainsFinishedToDo IS 0) OR (NoteFTS.contentContainsFinishedToDo IS NULL) " ;
+            sql += "((NoteFTS.contentContainsFinishedToDo IS 0) OR (NoteFTS.contentContainsFinishedToDo IS NULL)) " ;
             sql += uniteOperator;
             sql += " ";
         }
 
         if (noteSearchQuery.hasUnfinishedToDo()) {
-            sql += "NoteFTS.contentContainsUnfinishedToDo IS 1" ;
+            sql += "(NoteFTS.contentContainsUnfinishedToDo IS 1) " ;
             sql += uniteOperator;
             sql += " ";
         }
         else if (noteSearchQuery.hasNegatedUnfinishedToDo()) {
-            sql += "(NoteFTS.contentContainsUnfinishedToDo IS 0) OR (NoteFTS.contentContainsUnfinishedToDo IS NULL) " ;
+            sql += "((NoteFTS.contentContainsUnfinishedToDo IS 0) OR (NoteFTS.contentContainsUnfinishedToDo IS NULL)) " ;
             sql += uniteOperator;
             sql += " ";
         }
@@ -5761,7 +5761,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     // 8) ============== Processing encryption item =================
 
     if (noteSearchQuery.hasEncryption()) {
-        sql += "NoteFTS.contentContainsEncryption IS 1 ";
+        sql += "(NoteFTS.contentContainsEncryption IS 1) ";
         sql += uniteOperator;
         sql += " ";
     }
