@@ -437,15 +437,21 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         attributes.contentClass = contentClasses[i/numContentClasses];
         attributes.placeName = placeNames[i/numPlaceNames];
 
-        attributes.applicationData = qevercloud::LazyMap();
-        attributes.applicationData->keysOnly = QSet<QString>();
-        attributes.applicationData->fullMap = QMap<QString,QString>();
+        if (i/numNotes != 1)
+        {
+            attributes.applicationData = qevercloud::LazyMap();
+            attributes.applicationData->keysOnly = QSet<QString>();
+            attributes.applicationData->fullMap = QMap<QString,QString>();
 
-        attributes.applicationData->keysOnly->insert(applicationData[i/numApplicationData]);
-        attributes.applicationData->fullMap->insert(applicationData[i/numApplicationData],
-                QString("Application data value at key ") + applicationData[i/numApplicationData]);
+            attributes.applicationData->keysOnly->insert(applicationData[i/numApplicationData]);
+            attributes.applicationData->fullMap->insert(applicationData[i/numApplicationData],
+                    QString("Application data value at key ") + applicationData[i/numApplicationData]);
+        }
 
-        attributes.reminderOrder = reminderOrders[i/numReminderOrders];
+        if (i/numNotes != 0) {
+            attributes.reminderOrder = reminderOrders[i/numReminderOrders];
+        }
+
         attributes.reminderTime = reminderTimes[i/numReminderTimes];
         attributes.reminderDoneTime = reminderDoneTimes[i/numReminderDoneTimes];
 
@@ -604,6 +610,38 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     }
     expectedContainedNotesIndices[6] = true;
     expectedContainedNotesIndices[8] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.3) Arbitrary reminder order
+    queryString = "reminderOrder:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[0] = false;
+    expectedContainedNotesIndices[1] = false;
+    expectedContainedNotesIndices[2] = false;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.4) Arbitrary application data
+    queryString = "applicationData:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[3] = false;
+    expectedContainedNotesIndices[4] = false;
+    expectedContainedNotesIndices[5] = false;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
