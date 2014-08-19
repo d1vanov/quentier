@@ -404,13 +404,13 @@ foreach(const type & item, list) { \
         }
 
         if (bits[2]) {
-            if (!noteSearchQuery.hasReminderOrder()) {
+            if (!noteSearchQuery.hasAnyReminderOrder()) {
                 error = "NoteSearchQuery doesn't have \"any\" option set for reminderOrder while it should have one";
                 return false;
             }
         }
         else {
-            if (noteSearchQuery.hasReminderOrder()) {
+            if (noteSearchQuery.hasAnyReminderOrder()) {
                 error = "NoteSearchQuery has \"any\" option set for reminderOrder while it shouldn't have one";
                 return false;
             }

@@ -2696,7 +2696,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Notebooks table");
 
-    res = query.exec("CREATE VIRTUAL TABLE NotebookFTS USING FTS4(content=\"Notebooks\" "
+    res = query.exec("CREATE VIRTUAL TABLE NotebookFTS USING FTS4(content=\"Notebooks\", "
                      "localGuid, guid, notebookName)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 NotebookFTS table");
 
@@ -2759,7 +2759,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create SharedNotebooks table");
 
-    res = query.exec("CREATE VIRTUAL TABLE IF NOT EXISTS NoteText USING fts4 "
+    res = query.exec("CREATE VIRTUAL TABLE IF NOT EXISTS NoteText USING FTS4 "
                      "(localGuid, guid, title, content, contentPlainText, contentListOfWords)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual table NoteText");
 
@@ -2819,8 +2819,8 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
     res = query.exec("CREATE VIRTUAL TABLE NoteFTS USING FTS4(content=\"Notes\", localGuid, title, "
                      "contentPlainText, contentContainsFinishedToDo, contentContainsUnfinishedToDo, "
                      "contentContainsEncryption, creationTimestamp, modificationTimestamp, "
-                     "isActive, subjectDate, latitude, longitude, altitude, "
-                     "author, source, sourceApplication, reminderOrder, reminderDoneTime, "
+                     "isActive, notebookLocalGuid, notebookGuid, subjectDate, latitude, longitude, "
+                     "altitude, author, source, sourceApplication, reminderOrder, reminderDoneTime, "
                      "reminderTime, placeName, contentClass, applicationDataKeysOnly, "
                      "applicationDataKeysMap, applicationDataValues)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 table NoteFTS");
@@ -5467,7 +5467,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 {
     errorDescription = QT_TR_NOOP("Can't convert note search string into SQL query: ");
 
-    sql = "SELECT DISTINCT localGuid from NoteFTS, NoteTags, NoteResources WHERE ";   // initial template to add to
+    sql = "SELECT DISTINCT localGuid FROM NoteFTS, NoteTags, NoteResources WHERE ";   // initial template to add to
 
     // ========== 1) Processing notebook modifier (if present) ==============
 
@@ -5476,7 +5476,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     if (!notebookName.isEmpty())
     {
         QSqlQuery query(m_sqlDatabase);
-        QString notebookQueryString = QString("SELECT localGuid FROM NotebookFTS WHERE notebookName MATCH \"%1\" LIMIT 1").arg(notebookName);
+        // FIXME: for whatever unknown reason SQLite refuses to match just anything from NotebookFTS table. Weird.
+        QString notebookQueryString = QString("SELECT localGuid FROM NotebookFTS WHERE notebookName LIKE \"\%%1\%\" LIMIT 1").arg(notebookName);
         bool res = query.exec(notebookQueryString);
         DATABASE_CHECK_AND_SET_ERROR("can't select notebook's local guid by notebook's name");
 
@@ -5708,8 +5709,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     CHECK_AND_PROCESS_LIST(negatedApplicationData, applicationDataKeysMap, negated);
 
     // Special processing for reminderOrder - timestamp field which can also be arbitrary
-    if (noteSearchQuery.hasReminderOrder()) {
-        sql += "(NoteFTS.reminderOrder MATCH '*') ";
+    if (noteSearchQuery.hasAnyReminderOrder()) {
+        sql += "(NoteFTS.reminderOrder IS NOT NULL) ";
         sql += uniteOperator;
         sql += " ";
     }
@@ -5783,14 +5784,23 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tag
     tagLocalGuids.clear();
 
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare("SELECT localGuid WHERE nameUpper IN :names");
-    DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names: can't prepare SQL query");
 
-    QString names = tagNames.join(", ").toUpper();
-    query.bindValue(":names", names);
+    if (tagNames.contains("*"))
+    {
+        bool res = query.exec("SELECT localGuid FROM Tags WHERE nameUpper IS NOT NULL");
+        DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names");
+    }
+    else
+    {
+        bool res = query.prepare("SELECT localGuid FROM Tags WHERE nameUpper MATCH ':names'");
+        DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names: can't prepare SQL query");
 
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names");
+        QString names = tagNames.join(", ").toUpper();
+        query.bindValue(":names", names);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names");
+    }
 
     while (query.next())
     {
@@ -5815,15 +5825,24 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalGuids(const QSt
     resourceLocalGuids.clear();
 
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare("SELECT resourceLocalGuid WHERE mime MATCH ':mimeTypes'");
-    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types: "
-                                 "can't prepare SQL query");
 
-    QString mimeTypes = resourceMimeTypes.join(" OR ");
-    query.bindValue(":mimeTypes", mimeTypes);
+    if (resourceMimeTypes.contains("*"))
+    {
+        bool res = query.exec("SELECT resourceLocalGuid WHERE mime IS NOT NULL");
+        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types");
+    }
+    else
+    {
+        bool res = query.prepare("SELECT resourceLocalGuid WHERE mime MATCH ':mimeTypes'");
+        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types: "
+                                     "can't prepare SQL query");
 
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types");
+        QString mimeTypes = resourceMimeTypes.join(" OR ");
+        query.bindValue(":mimeTypes", mimeTypes);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types");
+    }
 
     while (query.next())
     {
@@ -5848,15 +5867,23 @@ bool LocalStorageManagerPrivate::resourceRecognitionTypesToResourceLocalGuids(co
     resourceLocalGuids.clear();
 
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare("SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType MATCH ':recognitionTypes'");
-    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types: "
-                                 "can't prepare SQL query");
+    if (resourceRecognitionTypes.contains("*"))
+    {
+        bool res = query.exec("SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType IS NOT NULL");
+        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types");
+    }
+    else
+    {
+        bool res = query.prepare("SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType MATCH ':recognitionTypes'");
+        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types: "
+                                     "can't prepare SQL query");
 
-    QString recognitionTypes = resourceRecognitionTypes.join(" OR ");
-    query.bindValue(":recognitionTypes", recognitionTypes);
+        QString recognitionTypes = resourceRecognitionTypes.join(" OR ");
+        query.bindValue(":recognitionTypes", recognitionTypes);
 
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types");
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types");
+    }
 
     while(query.next())
     {

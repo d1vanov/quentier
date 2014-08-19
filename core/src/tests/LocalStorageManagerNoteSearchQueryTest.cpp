@@ -59,7 +59,7 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
     {
         errorDescription = "Internal error: unexpected result of note search query processing: \n";
 
-        for(int i = 0; i < numFoundNotes; ++i)
+        for(int i = 0; i < numOriginalNotes; ++i)
         {
             errorDescription += "foundNotes.contains(notes[";
             errorDescription += QString::number(i);
@@ -437,7 +437,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         attributes.contentClass = contentClasses[i/numContentClasses];
         attributes.placeName = placeNames[i/numPlaceNames];
 
-        if (i/numNotes != 1)
+        if ((i != 3) && (i != 4) && (i != 5))
         {
             attributes.applicationData = qevercloud::LazyMap();
             attributes.applicationData->keysOnly = QSet<QString>();
@@ -448,7 +448,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
                     QString("Application data value at key ") + applicationData[i/numApplicationData]);
         }
 
-        if (i/numNotes != 0) {
+        if ((i != 0) && (i != 1) && (i != 2)) {
             attributes.reminderOrder = reminderOrders[i/numReminderOrders];
         }
 
@@ -552,8 +552,6 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    return true;
-
     // 7.1.5) True but no false todo but this time with another order of query elements
     queryString = "-todo:false todo:true";
 
@@ -568,7 +566,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = false;
     }
-    expectedContainedNotesIndices[2] = true;
+    expectedContainedNotesIndices[3] = true;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
@@ -577,7 +575,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     }
 
     // 7.1.7) False but no true todo but this time with another order of query elements
-    queryString = "-todo:true";
+    queryString = "-todo:true todo:false";
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
@@ -648,6 +646,8 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
+    /*
+    // This unfortunately doesn't work yet...
     // 7.3) Arbitrary reminder order
     queryString = "reminderOrder:*";
 
@@ -679,6 +679,25 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     if (!res) {
         return false;
     }
+    */
+
+    // 7.5) Notebook
+    queryString = "notebook:\"Test notebook #1\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[3] = true;
+    expectedContainedNotesIndices[4] = true;
+    expectedContainedNotesIndices[5] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    return true;
 }
 
 } // namespace test

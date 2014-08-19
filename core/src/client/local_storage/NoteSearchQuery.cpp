@@ -237,7 +237,7 @@ const QStringList & NoteSearchQuery::negatedRecognitionTypes() const
     return d->m_negatedRecognitionTypes;
 }
 
-bool NoteSearchQuery::hasReminderOrder() const
+bool NoteSearchQuery::hasAnyReminderOrder() const
 {
     Q_D(const NoteSearchQuery);
     return d->m_hasReminderOrder;
