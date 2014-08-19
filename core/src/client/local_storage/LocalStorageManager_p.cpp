@@ -2700,6 +2700,18 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "localGuid, guid, notebookName)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 NotebookFTS table");
 
+    res = query.exec("CREATE TRIGGER NotebookFTS_BeforeDeleteTrigger BEFORE DELETE ON Notebooks "
+                     "BEGIN "
+                     "DELETE FROM NotebookFTS WHERE localGuid=old.localGuid; "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create NotebookFTS_BeforeDeleteTrigger");
+
+    res = query.exec("CREATE TRIGGER NotebookFTS_AfterInsertTrigger AFTER INSERT ON Notebooks "
+                     "BEGIN "
+                     "INSERT INTO NotebookFTS(NotebookFTS) VALUES('rebuild'); "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create NotebookFTS_AfterInsertTrigger");
+
     res = query.exec("CREATE TABLE IF NOT EXISTS NotebookRestrictions("
                      "  localGuid REFERENCES Notebooks(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  noReadNotes                 INTEGER      DEFAULT NULL, "
@@ -2825,6 +2837,18 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "applicationDataKeysMap, applicationDataValues)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 table NoteFTS");
 
+    res = query.exec("CREATE TRIGGER NoteFTS_BeforeDeleteTrigger BEFORE DELETE ON Notes "
+                     "BEGIN "
+                     "DELETE FROM NoteFTS WHERE localGuid=old.localGuid; "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger NoteFTS_BeforeDeleteTrigger");
+
+    res = query.exec("CREATE TRIGGER NoteFTS_AfterInsertTrigger AFTER INSERT ON Notes "
+                     "BEGIN "
+                     "INSERT INTO NoteFTS(NoteFTS) VALUES('rebuild'); "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger NoteFTS_AfterInsertTrigger");
+
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
                      "  resourceLocalGuid               TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  resourceGuid                    TEXT                 DEFAULT NULL UNIQUE, "
@@ -2857,8 +2881,32 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
     res = query.exec("CREATE VIRTUAL TABLE ResourceRecoTypesFTS USING FTS4(content=\"ResourceRecognitionTypes\", recognitionType)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 ResourceRecoTypesFTS table");
 
+    res = query.exec("CREATE TRIGGER ResourceRecoTypesFTS_BeforeDeleteTrigger BEFORE DELETE ON ResourceRecognitionTypes "
+                     "BEGIN "
+                     "DELETE FROM ResourceRecoTypesFTS WHERE recognitionType=old.recognitionType; "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger ResourceRecoTypesFTS_BeforeDeleteTrigger");
+
+    res = query.exec("CREATE TRIGGER ResourceRecoTypesFTS_AfterInsertTrigger AFTER INSERT ON ResourceRecognitionTypes "
+                     "BEGIN "
+                     "INSERT INTO ResourceRecoTypesFTS(ResourceRecoTypesFTS) VALUES('rebuild'); "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger ResourceRecoTypesFTS_AfterInsertTrigger");
+
     res = query.exec("CREATE VIRTUAL TABLE ResourceMimeFTS USING FTS4(content=\"Resources\", mime)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 ResourceMimeFTS table");
+
+    res = query.exec("CREATE TRIGGER ResourceMimeFTS_BeforeDeleteTrigger BEFORE DELETE ON Resources "
+                     "BEGIN "
+                     "DELETE FROM ResourceMimeFTS WHERE mime=old.mime; "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger ResourceMimeFTS_BeforeDeleteTrigger");
+
+    res = query.exec("CREATE TRIGGER ResourceMimeFTS_AfterInsertTrigger AFTER INSERT ON Resources "
+                     "BEGIN "
+                     "INSERT INTO ResourceMimeFTS(ResourceMimeFTS) VALUES('rebuild'); "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger ResourceMimeFTS_AfterInsertTrigger");
 
     res = query.exec("CREATE VIEW IF NOT EXISTS ResourcesWithoutBinaryData "
                      "AS SELECT resourceLocalGuid, resourceGuid, noteLocalGuid, noteGuid, "
