@@ -602,6 +602,37 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
+    // 7.1.9) Ensure "any:" modifier works as expected with todo
+    queryString ="any: todo:true todo:false";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
+    expectedContainedNotesIndices[3] = true;
+    expectedContainedNotesIndices[4] = true;
+    expectedContainedNotesIndices[8] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.1.10) Ensure we have just one match without "any:"
+    queryString = "todo:true todo:false";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[4] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
     // 7.2) Encryption queries
     queryString = "encryption:";
 
