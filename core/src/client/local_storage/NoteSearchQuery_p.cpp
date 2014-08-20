@@ -10,43 +10,80 @@ NoteSearchQueryPrivate::NoteSearchQueryPrivate() :
     m_hasAnyModifier(false),
     m_tagNames(),
     m_negatedTagNames(),
+    m_hasAnyTag(false),
+    m_hasNegatedAnyTag(false),
     m_titleNames(),
     m_negatedTitleNames(),
+    m_hasAnyTitleName(false),
+    m_hasNegatedAnyTitleName(false),
     m_creationTimestamps(),
     m_negatedCreationTimestamps(),
+    m_hasAnyCreationTimestamp(false),
+    m_hasNegatedAnyCreationTimestamp(false),
     m_modificationTimestamps(),
     m_negatedModificationTimestamps(),
+    m_hasAnyModificationTimestamp(false),
+    m_hasNegatedAnyModificationTimestamp(false),
     m_resourceMimeTypes(),
     m_negatedResourceMimeTypes(),
+    m_hasAnyResourceMimeType(false),
+    m_hasNegatedAnyResourceMimeType(false),
     m_subjectDateTimestamps(),
     m_negatedSubjectDateTimestamps(),
+    m_hasAnySubjectDateTimestamp(false),
+    m_hasNegatedAnySubjectDateTimestamp(false),
     m_latitudes(),
     m_negatedLatitudes(),
+    m_hasAnyLatitude(false),
+    m_hasNegatedAnyLatitude(false),
     m_longitudes(),
     m_negatedLongitudes(),
+    m_hasAnyLongitude(false),
+    m_hasNegatedAnyLongitude(false),
     m_altitudes(),
     m_negatedAltitudes(),
+    m_hasAnyAltitude(false),
+    m_hasNegatedAnyAltitude(false),
     m_authors(),
     m_negatedAuthors(),
+    m_hasAnyAuthor(false),
+    m_hasNegatedAnyAuthor(false),
     m_sources(),
     m_negatedSources(),
+    m_hasAnySource(false),
+    m_hasNegatedAnySource(false),
     m_sourceApplications(),
     m_negatedSourceApplications(),
+    m_hasAnySourceApplication(false),
+    m_hasNegatedAnySourceApplication(false),
     m_contentClasses(),
     m_negatedContentClasses(),
+    m_hasAnyContentClass(false),
+    m_hasNegatedAnyContentClass(false),
     m_placeNames(),
     m_negatedPlaceNames(),
+    m_hasAnyPlaceName(false),
+    m_hasNegatedAnyPlaceName(false),
     m_applicationData(),
     m_negatedApplicationData(),
+    m_hasAnyApplicationData(false),
+    m_hasNegatedAnyApplicationData(false),
     m_recognitionTypes(),
     m_negatedRecognitionTypes(),
-    m_hasReminderOrder(false),
+    m_hasAnyRecognitionType(false),
+    m_hasNegatedAnyRecognitionType(false),
     m_reminderOrders(),
     m_negatedReminderOrders(),
+    m_hasAnyReminderOrder(false),
+    m_hasNegatedAnyReminderOrder(false),
     m_reminderTimes(),
     m_negatedReminderTimes(),
+    m_hasAnyReminderTime(false),
+    m_hasNegatedAnyReminderTime(false),
     m_reminderDoneTimes(),
     m_negatedReminderDoneTimes(),
+    m_hasAnyReminderDoneTime(false),
+    m_hasNegatedAnyReminderDoneTime(false),
     m_hasUnfinishedToDo(false),
     m_hasNegatedUnfinishedToDo(false),
     m_hasFinishedToDo(false),
@@ -64,43 +101,80 @@ void NoteSearchQueryPrivate::clear()
     m_hasAnyModifier = false;
     m_tagNames.clear();
     m_negatedTagNames.clear();
+    m_hasAnyTag = false;
+    m_hasNegatedAnyTag = false;
     m_titleNames.clear();
     m_negatedTitleNames.clear();
+    m_hasAnyTitleName = false;
+    m_hasNegatedAnyTitleName = false;
     m_creationTimestamps.clear();
     m_negatedCreationTimestamps.clear();
+    m_hasAnyCreationTimestamp = false;
+    m_hasNegatedAnyCreationTimestamp = false;
     m_modificationTimestamps.clear();
     m_negatedModificationTimestamps.clear();
+    m_hasAnyModificationTimestamp = false;
+    m_hasNegatedAnyModificationTimestamp = false;
     m_resourceMimeTypes.clear();
     m_negatedResourceMimeTypes.clear();
+    m_hasAnyResourceMimeType = false;
+    m_hasNegatedAnyResourceMimeType = false;
     m_subjectDateTimestamps.clear();
     m_negatedSubjectDateTimestamps.clear();
+    m_hasAnySubjectDateTimestamp = false;
+    m_hasNegatedAnySubjectDateTimestamp = false;
     m_latitudes.clear();
     m_negatedLatitudes.clear();
+    m_hasAnyLatitude = false;
+    m_hasNegatedAnyLatitude = false;
     m_longitudes.clear();
     m_negatedLongitudes.clear();
+    m_hasAnyLongitude = false;
+    m_hasNegatedAnyLongitude = false;
     m_altitudes.clear();
     m_negatedAltitudes.clear();
+    m_hasAnyAltitude = false;
+    m_hasNegatedAnyAltitude = false;
     m_authors.clear();
     m_negatedAuthors.clear();
+    m_hasAnyAuthor = false;
+    m_hasNegatedAnyAuthor = false;
     m_sources.clear();
     m_negatedSources.clear();
+    m_hasAnySource = false;
+    m_hasNegatedAnySource = false;
     m_sourceApplications.clear();
     m_negatedSourceApplications.clear();
+    m_hasAnySourceApplication = false;
+    m_hasNegatedAnySourceApplication = false;
     m_contentClasses.clear();
     m_negatedContentClasses.clear();
+    m_hasAnyContentClass = false;
+    m_hasNegatedAnyContentClass = false;
     m_placeNames.clear();
     m_negatedPlaceNames.clear();
+    m_hasAnyPlaceName = false;
+    m_hasNegatedAnyPlaceName = false;
     m_applicationData.clear();
     m_negatedApplicationData.clear();
+    m_hasAnyApplicationData = false;
+    m_hasNegatedAnyApplicationData = false;
     m_recognitionTypes.clear();
     m_negatedRecognitionTypes.clear();
-    m_hasReminderOrder = false;
+    m_hasAnyRecognitionType = false;
+    m_hasNegatedAnyRecognitionType = false;
     m_reminderOrders.clear();
     m_negatedReminderOrders.clear();
+    m_hasAnyReminderOrder = false;
+    m_hasNegatedAnyReminderOrder = false;
     m_reminderTimes.clear();
     m_negatedReminderTimes.clear();
+    m_hasAnyReminderTime = false;
+    m_hasNegatedAnyReminderTime = false;
     m_reminderDoneTimes.clear();
     m_negatedReminderDoneTimes.clear();
+    m_hasAnyReminderDoneTime = false;
+    m_hasNegatedAnyReminderDoneTime = false;
     m_hasUnfinishedToDo = false;
     m_hasNegatedUnfinishedToDo = false;
     m_hasFinishedToDo = false;
@@ -192,7 +266,7 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
     }
 
     if (foundReminderOrderAsterisk) {
-        m_hasReminderOrder = true;
+        m_hasAnyReminderOrder = true;
     }
 
     res = parseDoubleValue("latitude", words, m_latitudes, m_negatedLatitudes, error);
@@ -345,7 +419,7 @@ QTextStream & NoteSearchQueryPrivate::Print(QTextStream & strm) const
     CHECK_AND_PRINT_LIST(recognitionTypes, QString);
     CHECK_AND_PRINT_LIST(negatedRecognitionTypes, QString);
 
-    strm << indent << "hasReminderOrder: " << (m_hasReminderOrder ? "true" : "false") << "; \n";
+    strm << indent << "hasReminderOrder: " << (m_hasAnyReminderOrder ? "true" : "false") << "; \n";
 
     CHECK_AND_PRINT_LIST(reminderOrders, qint64, QString::number);
     CHECK_AND_PRINT_LIST(negatedReminderOrders, qint64, QString::number);

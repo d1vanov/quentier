@@ -240,7 +240,7 @@ const QStringList & NoteSearchQuery::negatedRecognitionTypes() const
 bool NoteSearchQuery::hasAnyReminderOrder() const
 {
     Q_D(const NoteSearchQuery);
-    return d->m_hasReminderOrder;
+    return d->m_hasAnyReminderOrder;
 }
 
 const QVector<qint64> & NoteSearchQuery::reminderOrders() const
