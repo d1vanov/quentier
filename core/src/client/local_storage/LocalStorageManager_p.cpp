@@ -5524,8 +5524,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     if (!notebookName.isEmpty())
     {
         QSqlQuery query(m_sqlDatabase);
-        // FIXME: for whatever unknown reason SQLite refuses to match just anything from NotebookFTS table. Weird.
-        QString notebookQueryString = QString("SELECT localGuid FROM NotebookFTS WHERE notebookName LIKE \"\%%1\%\" LIMIT 1").arg(notebookName);
+        QString notebookQueryString = QString("SELECT localGuid FROM NotebookFTS WHERE notebookName MATCH '%1' LIMIT 1").arg(notebookName);
         bool res = query.exec(notebookQueryString);
         DATABASE_CHECK_AND_SET_ERROR("can't select notebook's local guid by notebook's name");
 

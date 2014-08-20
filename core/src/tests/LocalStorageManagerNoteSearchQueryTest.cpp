@@ -646,8 +646,6 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    /*
-    // This unfortunately doesn't work yet...
     // 7.3) Arbitrary reminder order
     queryString = "reminderOrder:*";
 
@@ -664,6 +662,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
+    /*
     // 7.4) Arbitrary application data
     queryString = "applicationData:*";
 
