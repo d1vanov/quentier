@@ -216,7 +216,7 @@ bool NoteSearchQueryTest(QString & error)
     recognitionTypes << "printed" << "speech" << "handwritten";
 
     QStringList negatedRecognitionTypes;
-    negatedRecognitionTypes << "picture" << "unknown" << "*";
+    negatedRecognitionTypes << "picture" << "unknown";
 
     QVector<qint64> reminderOrders;
     reminderOrders << 1 << 2 << 3;
@@ -267,7 +267,7 @@ bool NoteSearchQueryTest(QString & error)
         }
 
         if (bits[2]) {
-            queryString += "reminderOrder:* ";
+            // queryString += "reminderOrder:* ";
         }
 
         if (bits[3]) {
@@ -403,6 +403,7 @@ foreach(const type & item, list) { \
             return false;
         }
 
+        /*
         if (bits[2]) {
             if (!noteSearchQuery.hasAnyReminderOrder()) {
                 error = "NoteSearchQuery doesn't have \"any\" option set for reminderOrder while it should have one";
@@ -415,6 +416,7 @@ foreach(const type & item, list) { \
                 return false;
             }
         }
+        */
 
         if (bits[3])
         {

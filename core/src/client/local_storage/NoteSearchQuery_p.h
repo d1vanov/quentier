@@ -102,19 +102,23 @@ public:
     bool            m_hasFinishedToDo;
     bool            m_hasNegatedFinishedToDo;
     bool            m_hasAnyToDo;
+    bool            m_hasNegatedAnyToDo;
     bool            m_hasEncryption;
+    bool            m_hasNegatedEncryption;
     QStringList     m_contentSearchTerms;
     QStringList     m_negatedContentSearchTerms;
 
 private:
     QStringList splitSearchQueryString(const QString & searchQueryString) const;
     void parseStringValue(const QString & key, QStringList & words,
-                          QStringList & container, QStringList & negatedContainer) const;
+                          QStringList & container, QStringList & negatedContainer,
+                          bool & hasAnyValue, bool & hasNegatedAnyValue) const;
     bool parseIntValue(const QString & key, QStringList & words,
                        QVector<qint64> & container, QVector<qint64> & negatedContainer,
-                       QString & error, bool * pFoundAsteriskReminderOrder = nullptr) const;
+                       bool & hasAnyValue, bool & hasNegatedAnyValue, QString & error) const;
     bool parseDoubleValue(const QString & key, QStringList & words,
-                          QVector<double> & container, QVector<double> &negatedContainer, QString & error) const;
+                          QVector<double> & container, QVector<double> &negatedContainer,
+                          bool & hasAnyValue, bool & hasNegatedAnyValue, QString & error) const;
     bool dateTimeStringToTimestamp(QString dateTimeString, qint64 & timestamp, QString & error) const;
     bool convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, QString & error) const;
     void removeBoundaryQuotesFromWord(QString & word) const;

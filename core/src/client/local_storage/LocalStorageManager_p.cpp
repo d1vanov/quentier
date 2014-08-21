@@ -5568,135 +5568,192 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     // 3) ============ Processing tag names and negated tag names, if any =============
 
-    QStringList tagLocalGuids;
-    QStringList tagNegatedLocalGuids;
-
-    const QStringList & tagNames = noteSearchQuery.tagNames();
-    if (!tagNames.isEmpty())
+    if (noteSearchQuery.hasAnyTag())
     {
-        bool res = tagNamesToTagLocalGuids(tagNames, tagLocalGuids, errorDescription);
-        if (!res) {
-            return false;
-        }
-    }
-
-    if (!tagLocalGuids.isEmpty())
-    {
-        sql += "(NoteTags.localTag IN '";
-        sql += tagLocalGuids.join(", ");
-        sql += "') ";
+        sql += "(NoteTags.localTag IS NOT NULL) ";
         sql += uniteOperator;
         sql += " ";
     }
-
-    const QStringList & negatedTagNames = noteSearchQuery.negatedTagNames();
-    if (!negatedTagNames.isEmpty())
+    else if (noteSearchQuery.hasNegatedAnyTag())
     {
-        bool res = tagNamesToTagLocalGuids(negatedTagNames, tagNegatedLocalGuids, errorDescription);
-        if (!res) {
-            return false;
-        }
-    }
-
-    if (!tagNegatedLocalGuids.isEmpty())
-    {
-        sql += "(NoteTags.localTag NOT IN '";
-        sql += tagNegatedLocalGuids.join(", ");
-        sql += "') ";
+        sql += "(NoteTags.localTag IS NULL) ";
         sql += uniteOperator;
         sql += " ";
+    }
+    else
+    {
+        QStringList tagLocalGuids;
+        QStringList tagNegatedLocalGuids;
+
+        const QStringList & tagNames = noteSearchQuery.tagNames();
+        if (!tagNames.isEmpty())
+        {
+            bool res = tagNamesToTagLocalGuids(tagNames, tagLocalGuids, errorDescription);
+            if (!res) {
+                return false;
+            }
+        }
+
+        if (!tagLocalGuids.isEmpty())
+        {
+            sql += "(NoteTags.localTag IN '";
+            sql += tagLocalGuids.join(", ");
+            sql += "') ";
+            sql += uniteOperator;
+            sql += " ";
+        }
+
+        const QStringList & negatedTagNames = noteSearchQuery.negatedTagNames();
+        if (!negatedTagNames.isEmpty())
+        {
+            bool res = tagNamesToTagLocalGuids(negatedTagNames, tagNegatedLocalGuids, errorDescription);
+            if (!res) {
+                return false;
+            }
+        }
+
+        if (!tagNegatedLocalGuids.isEmpty())
+        {
+            sql += "(NoteTags.localTag NOT IN '";
+            sql += tagNegatedLocalGuids.join(", ");
+            sql += "') ";
+            sql += uniteOperator;
+            sql += " ";
+        }
     }
 
     // 4) ============== Processing resource mime types ===============
 
-    QStringList resourceLocalGuidsPerMime;
-    QStringList resourceNegatedLocalGuidsPerMime;
-
-    const QStringList & resourceMimeTypes = noteSearchQuery.resourceMimeTypes();
-    if (!resourceMimeTypes.isEmpty())
+    if (noteSearchQuery.hasAnyResourceMimeType())
     {
-        bool res = resourceMimeTypesToResourceLocalGuids(resourceMimeTypes, resourceLocalGuidsPerMime,
-                                                         errorDescription);
-        if (!res) {
-            return false;
-        }
-    }
-
-    if (!resourceLocalGuidsPerMime.isEmpty())
-    {
-        sql += "(NoteResources.localResource IN '";
-        sql += resourceLocalGuidsPerMime.join(", ");
-        sql += "') ";
+        sql += "(NoteResources.localResource IS NOT NULL) ";
         sql += uniteOperator;
         sql += " ";
     }
-
-    const QStringList & negatedResourceMimeTypes = noteSearchQuery.negatedResourceMimeTypes();
-    if (!negatedResourceMimeTypes.isEmpty())
+    else if (noteSearchQuery.hasNegatedAnyResourceMimeType())
     {
-        bool res = resourceMimeTypesToResourceLocalGuids(negatedResourceMimeTypes,
-                                                         resourceNegatedLocalGuidsPerMime,
-                                                         errorDescription);
-        if (!res) {
-            return false;
-        }
-    }
-
-    if (!resourceNegatedLocalGuidsPerMime.isEmpty())
-    {
-        sql += "(NoteResources.localResource NOT IN '";
-        sql += resourceNegatedLocalGuidsPerMime.join(", ");
-        sql += "') ";
+        sql += "(NoteResources.localResource IS NULL) ";
         sql += uniteOperator;
         sql += " ";
+    }
+    else
+    {
+        QStringList resourceLocalGuidsPerMime;
+        QStringList resourceNegatedLocalGuidsPerMime;
+
+        const QStringList & resourceMimeTypes = noteSearchQuery.resourceMimeTypes();
+        if (!resourceMimeTypes.isEmpty())
+        {
+            bool res = resourceMimeTypesToResourceLocalGuids(resourceMimeTypes, resourceLocalGuidsPerMime,
+                                                             errorDescription);
+            if (!res) {
+                return false;
+            }
+        }
+
+        if (!resourceLocalGuidsPerMime.isEmpty())
+        {
+            sql += "(NoteResources.localResource IN '";
+            sql += resourceLocalGuidsPerMime.join(", ");
+            sql += "') ";
+            sql += uniteOperator;
+            sql += " ";
+        }
+
+        const QStringList & negatedResourceMimeTypes = noteSearchQuery.negatedResourceMimeTypes();
+        if (!negatedResourceMimeTypes.isEmpty())
+        {
+            bool res = resourceMimeTypesToResourceLocalGuids(negatedResourceMimeTypes,
+                                                             resourceNegatedLocalGuidsPerMime,
+                                                             errorDescription);
+            if (!res) {
+                return false;
+            }
+        }
+
+        if (!resourceNegatedLocalGuidsPerMime.isEmpty())
+        {
+            sql += "(NoteResources.localResource NOT IN '";
+            sql += resourceNegatedLocalGuidsPerMime.join(", ");
+            sql += "') ";
+            sql += uniteOperator;
+            sql += " ";
+        }
     }
 
     // 5) ============== Processing resource recognition indices ===============
 
-    QStringList resourceLocalGuidsPerRecognitionType;
-    QStringList resourceNegatedLocalGuidsPerRecognitionType;
-
-    const QStringList & resourceRecognitionTypes = noteSearchQuery.recognitionTypes();
-    if (!resourceRecognitionTypes.isEmpty())
+    if (noteSearchQuery.hasAnyRecognitionType())
     {
-        bool res = resourceRecognitionTypesToResourceLocalGuids(resourceRecognitionTypes,
-                                                                resourceLocalGuidsPerRecognitionType,
-                                                                errorDescription);
-        if (!res) {
-            return false;
-        }
-    }
-
-    if (!resourceLocalGuidsPerRecognitionType.isEmpty())
-    {
-        sql += "(NoteResources.localResource IN '";
-        sql += resourceLocalGuidsPerRecognitionType.join(", ");
-        sql += "') ";
+        sql += "(NoteResources.localResource IS NOT NULL) ";
         sql += uniteOperator;
         sql += " ";
     }
-
-    const QStringList & negatedResourceRecognitionTypes = noteSearchQuery.negatedRecognitionTypes();
-    if (!negatedResourceRecognitionTypes.isEmpty())
+    else if (noteSearchQuery.hasNegatedAnyRecognitionType())
     {
-        bool res = resourceRecognitionTypesToResourceLocalGuids(negatedResourceRecognitionTypes,
-                                                                resourceNegatedLocalGuidsPerRecognitionType,
-                                                                errorDescription);
-        if (!res) {
-            return false;
-        }
-    }
-
-    if (!resourceNegatedLocalGuidsPerRecognitionType.isEmpty())
-    {
-        sql += "(NoteResources.localGuid NOT IN '";
-        sql += resourceNegatedLocalGuidsPerRecognitionType.join(", ");
-        sql += "') ";
+        sql += "(NoteResources.localResource IS NULL) ";
         sql += uniteOperator;
         sql += " ";
+    }
+    else
+    {
+        QStringList resourceLocalGuidsPerRecognitionType;
+        QStringList resourceNegatedLocalGuidsPerRecognitionType;
+
+        const QStringList & resourceRecognitionTypes = noteSearchQuery.recognitionTypes();
+        if (!resourceRecognitionTypes.isEmpty())
+        {
+            bool res = resourceRecognitionTypesToResourceLocalGuids(resourceRecognitionTypes,
+                                                                    resourceLocalGuidsPerRecognitionType,
+                                                                    errorDescription);
+            if (!res) {
+                return false;
+            }
+        }
+
+        if (!resourceLocalGuidsPerRecognitionType.isEmpty())
+        {
+            sql += "(NoteResources.localResource IN '";
+            sql += resourceLocalGuidsPerRecognitionType.join(", ");
+            sql += "') ";
+            sql += uniteOperator;
+            sql += " ";
+        }
+
+        const QStringList & negatedResourceRecognitionTypes = noteSearchQuery.negatedRecognitionTypes();
+        if (!negatedResourceRecognitionTypes.isEmpty())
+        {
+            bool res = resourceRecognitionTypesToResourceLocalGuids(negatedResourceRecognitionTypes,
+                                                                    resourceNegatedLocalGuidsPerRecognitionType,
+                                                                    errorDescription);
+            if (!res) {
+                return false;
+            }
+        }
+
+        if (!resourceNegatedLocalGuidsPerRecognitionType.isEmpty())
+        {
+            sql += "(NoteResources.localGuid NOT IN '";
+            sql += resourceNegatedLocalGuidsPerRecognitionType.join(", ");
+            sql += "') ";
+            sql += uniteOperator;
+            sql += " ";
+        }
     }
 
     // 6) ============== Processing other better generalizable filters =============
+
+#define CHECK_AND_PROCESS_ANY_ITEM(hasAnyItem, hasNegatedAnyItem, column) \
+    if (noteSearchQuery.hasAnyItem()) { \
+        sql += "(NoteFTS." #column " IS NOT NULL) "; \
+        sql += uniteOperator; \
+        sql += " "; \
+    } \
+    else if (noteSearchQuery.hasNegatedAnyItem()) { \
+        sql += "(NoteFTS." #column " IS NULL) "; \
+        sql += uniteOperator; \
+        sql += " "; \
+    }
 
 #define CHECK_AND_PROCESS_LIST(list, column, negated, ...) \
     const auto & noteSearchQuery##list##column = noteSearchQuery.list(); \
@@ -5725,59 +5782,63 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         sql += " "; \
     }
 
+#define CHECK_AND_PROCESS_ITEM(list, negatedList, hasAnyItem, hasNegatedAnyItem, column, ...) \
+    CHECK_AND_PROCESS_ANY_ITEM(hasAnyItem, hasNegatedAnyItem, column) \
+    else { \
+        CHECK_AND_PROCESS_LIST(list, column, !negated, __VA_ARGS__); \
+        CHECK_AND_PROCESS_LIST(negatedList, column, negated, __VA_ARGS__); \
+    }
+
     bool negated = true;
-    CHECK_AND_PROCESS_LIST(titleNames, title, !negated);
-    CHECK_AND_PROCESS_LIST(negatedTitleNames, title, negated);
-    CHECK_AND_PROCESS_LIST(creationTimestamps, creationTimestamp, !negated, QString::number);
-    CHECK_AND_PROCESS_LIST(negatedCreationTimestamps, creationTimestamp, negated, QString::number);
-    CHECK_AND_PROCESS_LIST(modificationTimestamps, modificationTimestamp, !negated, QString::number);
-    CHECK_AND_PROCESS_LIST(negatedModificationTimestamps, modificationTimestamp, negated, QString::number);
-    CHECK_AND_PROCESS_LIST(subjectDateTimestamps, subjectDate, !negated, QString::number);
-    CHECK_AND_PROCESS_LIST(negatedSubjectDateTimestamps, subjectDate, negated, QString::number);
-    CHECK_AND_PROCESS_LIST(latitudes, latitude, !negated, QString::number);
-    CHECK_AND_PROCESS_LIST(negatedLatitudes, latitude, negated, QString::number);
-    CHECK_AND_PROCESS_LIST(longitudes, longitude, !negated, QString::number);
-    CHECK_AND_PROCESS_LIST(negatedLongitudes, longitude, negated, QString::number);
-    CHECK_AND_PROCESS_LIST(altitudes, altitude, !negated, QString::number);
-    CHECK_AND_PROCESS_LIST(negatedAltitudes, altitude, negated, QString::number);
-    CHECK_AND_PROCESS_LIST(authors, author, !negated);
-    CHECK_AND_PROCESS_LIST(negatedAuthors, author, negated);
-    CHECK_AND_PROCESS_LIST(sources, source, !negated);
-    CHECK_AND_PROCESS_LIST(negatedSources, source, negated);
-    CHECK_AND_PROCESS_LIST(sourceApplications, sourceApplication, !negated);
-    CHECK_AND_PROCESS_LIST(negatedSourceApplications, sourceApplication, negated);
-    CHECK_AND_PROCESS_LIST(contentClasses, contentClass, !negated);
-    CHECK_AND_PROCESS_LIST(negatedContentClasses, contentClass, negated);
-    CHECK_AND_PROCESS_LIST(placeNames, placeName, !negated);
-    CHECK_AND_PROCESS_LIST(negatedPlaceNames, placeName, negated);
-    CHECK_AND_PROCESS_LIST(applicationData, applicationDataKeysOnly, !negated);
-    CHECK_AND_PROCESS_LIST(applicationData, applicationDataKeysMap, !negated);
-    CHECK_AND_PROCESS_LIST(negatedApplicationData, applicationDataKeysOnly, negated);
-    CHECK_AND_PROCESS_LIST(negatedApplicationData, applicationDataKeysMap, negated);
+    CHECK_AND_PROCESS_ITEM(titleNames, negatedTitleNames, hasAnyTitleName, hasNegatedAnyTitleName, title);
+    CHECK_AND_PROCESS_ITEM(creationTimestamps, negatedCreationTimestamps, hasAnyCreationTimestamp,
+                           hasNegatedAnyCreationTimestamp, creationTimestamp, QString::number);
+    CHECK_AND_PROCESS_ITEM(modificationTimestamps, negatedModificationTimestamps,
+                           hasAnyModificationTimestamp, hasNegatedAnyModificationTimestamp,
+                           modificationTimestamp, QString::number);
+    CHECK_AND_PROCESS_ITEM(subjectDateTimestamps, negatedSubjectDateTimestamps,
+                           hasAnySubjectDateTimestamp, hasNegatedAnySubjectDateTimestamp,
+                           subjectDate, QString::number);
+    CHECK_AND_PROCESS_ITEM(latitudes, negatedLatitudes, hasAnyLatitude, hasNegatedAnyLatitude,
+                           latitude, QString::number);
+    CHECK_AND_PROCESS_ITEM(longitudes, negatedLongitudes, hasAnyLongitude, hasNegatedAnyLongitude,
+                           longitude, QString::number);
+    CHECK_AND_PROCESS_ITEM(altitudes, negatedAltitudes, hasAnyAltitude, hasNegatedAnyAltitude,
+                           altitude, QString::number);
+    CHECK_AND_PROCESS_ITEM(authors, negatedAuthors, hasAnyAuthor, hasNegatedAnyAuthor, author);
+    CHECK_AND_PROCESS_ITEM(sources, negatedSources, hasAnySource, hasNegatedAnySource, source);
+    CHECK_AND_PROCESS_ITEM(sourceApplications, negatedSourceApplications, hasAnySourceApplication,
+                           hasNegatedAnySourceApplication, sourceApplication);
+    CHECK_AND_PROCESS_ITEM(contentClasses, negatedContentClasses, hasAnyContentClass,
+                           hasNegatedAnyContentClass, contentClass);
+    CHECK_AND_PROCESS_ITEM(placeNames, negatedPlaceNames, hasAnyPlaceName, hasNegatedAnyPlaceName, placeName);
+    CHECK_AND_PROCESS_ITEM(applicationData, negatedApplicationData, hasAnyApplicationData,
+                           hasNegatedAnyApplicationData, applicationDataKeysOnly);
+    CHECK_AND_PROCESS_ITEM(applicationData, negatedApplicationData, hasAnyApplicationData,
+                           hasNegatedAnyApplicationData, applicationDataKeysMap);
+    CHECK_AND_PROCESS_ITEM(reminderOrders, negatedReminderOrders, hasAnyReminderOrder, hasNegatedAnyReminderOrder,
+                           reminderOrder, QString::number);
+    CHECK_AND_PROCESS_ITEM(reminderTimes, negatedReminderTimes, hasAnyReminderTime,
+                           hasNegatedAnyReminderTime, reminderTime, QString::number);
+    CHECK_AND_PROCESS_ITEM(reminderDoneTimes, negatedReminderDoneTimes, hasAnyReminderDoneTime,
+                           hasNegatedAnyReminderDoneTime, reminderDoneTime, QString::number);
 
-    // Special processing for reminderOrder - timestamp field which can also be arbitrary
-    if (noteSearchQuery.hasAnyReminderOrder()) {
-        sql += "(NoteFTS.reminderOrder IS NOT NULL) ";
-        sql += uniteOperator;
-        sql += " ";
-    }
-    else {
-        CHECK_AND_PROCESS_LIST(reminderOrders, reminderOrder, !negated, QString::number);
-        CHECK_AND_PROCESS_LIST(negatedReminderOrders, reminderOrder, negated, QString::number);
-    }
-
-    CHECK_AND_PROCESS_LIST(reminderTimes, reminderTime, !negated, QString::number);
-    CHECK_AND_PROCESS_LIST(negatedReminderTimes, reminderTime, negated, QString::number);
-    CHECK_AND_PROCESS_LIST(reminderDoneTimes, reminderDoneTime, !negated, QString::number);
-    CHECK_AND_PROCESS_LIST(negatedReminderDoneTimes, reminderDoneTime, negated, QString::number);
-
+#undef CHECK_AND_PROCESS_ITEM
 #undef CHECK_AND_PROCESS_LIST
+#undef CHECK_AND_PROCESS_ANY_ITEM
 
     // 7) ============== Processing ToDo items ================
 
     if (noteSearchQuery.hasAnyToDo())
     {
-        sql += "((NoteFTS.contentcontainsFinishedToDo IS 1) OR (NoteFTS.contentContainsUnfinishedToDo IS 1)) ";
+        sql += "((NoteFTS.contentContainsFinishedToDo IS 1) OR (NoteFTS.contentContainsUnfinishedToDo IS 1)) ";
+        sql += uniteOperator;
+        sql += " ";
+    }
+    else if (noteSearchQuery.hasNegatedAnyToDo())
+    {
+        sql += "((NoteFTS.contentContainsFinishedToDo IS 0) OR (NoteFTS.contentContainsFinishedToDo IS NULL)) AND "
+               "((NoteFTS.contentContainsUnfinishedToDo IS 0) OR (NoteFTS.contentContainsUnfinishedToDo IS NULL)) ";
         sql += uniteOperator;
         sql += " ";
     }
@@ -5808,7 +5869,12 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     // 8) ============== Processing encryption item =================
 
-    if (noteSearchQuery.hasEncryption()) {
+    if (noteSearchQuery.hasNegatedEncryption()) {
+        sql += "((NoteFTS.contentContainsEncryption IS 0) OR (NoteFTS.contentContainsEncryption IS NULL)) ";
+        sql += uniteOperator;
+        sql += " ";
+    }
+    else if (noteSearchQuery.hasEncryption()) {
         sql += "(NoteFTS.contentContainsEncryption IS 1) ";
         sql += uniteOperator;
         sql += " ";

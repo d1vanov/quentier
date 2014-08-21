@@ -89,7 +89,9 @@ NoteSearchQueryPrivate::NoteSearchQueryPrivate() :
     m_hasFinishedToDo(false),
     m_hasNegatedFinishedToDo(false),
     m_hasAnyToDo(false),
+    m_hasNegatedAnyToDo(false),
     m_hasEncryption(false),
+    m_hasNegatedEncryption(false),
     m_contentSearchTerms(),
     m_negatedContentSearchTerms()
 {}
@@ -180,7 +182,9 @@ void NoteSearchQueryPrivate::clear()
     m_hasFinishedToDo = false;
     m_hasNegatedFinishedToDo = false;
     m_hasAnyToDo = false;
+    m_hasNegatedAnyToDo = false;
     m_hasEncryption = false;
+    m_hasNegatedEncryption = false;
     m_contentSearchTerms.clear();
     m_negatedContentSearchTerms.clear();
 }
@@ -221,65 +225,73 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
         return false;
     }
 
-    parseStringValue("tag", words, m_tagNames, m_negatedTagNames);
-    parseStringValue("intitle", words, m_titleNames, m_negatedTitleNames);
-    parseStringValue("resource", words, m_resourceMimeTypes, m_negatedResourceMimeTypes);
-    parseStringValue("author", words, m_authors, m_negatedAuthors);
-    parseStringValue("source", words, m_sources, m_negatedSources);
-    parseStringValue("sourceApplication", words, m_sourceApplications, m_negatedSourceApplications);
-    parseStringValue("contentClass", words, m_contentClasses, m_negatedContentClasses);;
-    parseStringValue("placeName", words, m_placeNames, m_negatedPlaceNames);
-    parseStringValue("applicationData", words, m_applicationData, m_negatedApplicationData);
-    parseStringValue("recoType", words, m_recognitionTypes, m_negatedRecognitionTypes);
+    parseStringValue("tag", words, m_tagNames, m_negatedTagNames, m_hasAnyTag, m_hasNegatedAnyTag);
+    parseStringValue("intitle", words, m_titleNames, m_negatedTitleNames, m_hasAnyTitleName, m_hasNegatedAnyTitleName);
+    parseStringValue("resource", words, m_resourceMimeTypes, m_negatedResourceMimeTypes,
+                     m_hasAnyResourceMimeType, m_hasNegatedAnyResourceMimeType);
+    parseStringValue("author", words, m_authors, m_negatedAuthors, m_hasAnyAuthor, m_hasNegatedAnyAuthor);
+    parseStringValue("source", words, m_sources, m_negatedSources, m_hasAnySource, m_hasNegatedAnySource);
+    parseStringValue("sourceApplication", words, m_sourceApplications, m_negatedSourceApplications,
+                     m_hasAnySourceApplication, m_hasNegatedAnySourceApplication);
+    parseStringValue("contentClass", words, m_contentClasses, m_negatedContentClasses,
+                     m_hasAnyContentClass, m_hasNegatedAnyContentClass);
+    parseStringValue("placeName", words, m_placeNames, m_negatedPlaceNames,
+                     m_hasAnyPlaceName, m_hasNegatedAnyPlaceName);
+    parseStringValue("applicationData", words, m_applicationData, m_negatedApplicationData,
+                     m_hasAnyApplicationData, m_hasNegatedAnyApplicationData);
+    parseStringValue("recoType", words, m_recognitionTypes, m_negatedRecognitionTypes,
+                     m_hasAnyRecognitionType, m_hasNegatedAnyRecognitionType);
 
-    res = parseIntValue("created", words, m_creationTimestamps, m_negatedCreationTimestamps, error);
+    res = parseIntValue("created", words, m_creationTimestamps, m_negatedCreationTimestamps,
+                        m_hasAnyCreationTimestamp, m_hasNegatedAnyCreationTimestamp, error);
     if (!res) {
         return false;
     }
 
-    res = parseIntValue("updated", words, m_modificationTimestamps, m_negatedModificationTimestamps, error);
+    res = parseIntValue("updated", words, m_modificationTimestamps, m_negatedModificationTimestamps,
+                        m_hasAnyModificationTimestamp, m_hasNegatedAnyModificationTimestamp, error);
     if (!res) {
         return false;
     }
 
-    res = parseIntValue("subjectDate", words, m_subjectDateTimestamps, m_negatedSubjectDateTimestamps, error);
+    res = parseIntValue("subjectDate", words, m_subjectDateTimestamps, m_negatedSubjectDateTimestamps,
+                        m_hasAnySubjectDateTimestamp, m_hasNegatedAnySubjectDateTimestamp, error);
     if (!res) {
         return false;
     }
 
-    res = parseIntValue("reminderTime", words, m_reminderTimes, m_negatedReminderTimes, error);
+    res = parseIntValue("reminderTime", words, m_reminderTimes, m_negatedReminderTimes,
+                        m_hasAnyReminderTime, m_hasNegatedAnyReminderTime, error);
     if (!res) {
         return false;
     }
 
-    res = parseIntValue("reminderDoneTime", words, m_reminderDoneTimes, m_negatedReminderDoneTimes, error);
+    res = parseIntValue("reminderDoneTime", words, m_reminderDoneTimes, m_negatedReminderDoneTimes,
+                        m_hasAnyReminderDoneTime, m_hasNegatedAnyReminderDoneTime, error);
     if (!res) {
         return false;
     }
 
-    // Special treatment for reminderOrder key as it is the only integer key which is allowed to be asterisk
-    bool foundReminderOrderAsterisk = false;
-    res = parseIntValue("reminderOrder", words, m_reminderOrders, m_negatedReminderOrders, error,
-                        &foundReminderOrderAsterisk);
+    res = parseIntValue("reminderOrder", words, m_reminderOrders, m_negatedReminderOrders,
+                        m_hasAnyReminderOrder, m_hasNegatedAnyReminderOrder, error);
     if (!res) {
         return false;
     }
 
-    if (foundReminderOrderAsterisk) {
-        m_hasAnyReminderOrder = true;
-    }
-
-    res = parseDoubleValue("latitude", words, m_latitudes, m_negatedLatitudes, error);
+    res = parseDoubleValue("latitude", words, m_latitudes, m_negatedLatitudes,
+                           m_hasAnyLatitude, m_hasNegatedAnyLatitude, error);
     if (!res) {
         return false;
     }
 
-    res = parseDoubleValue("longitude", words, m_longitudes, m_negatedLongitudes, error);
+    res = parseDoubleValue("longitude", words, m_longitudes, m_negatedLongitudes,
+                           m_hasAnyLongitude, m_hasNegatedAnyLongitude, error);
     if (!res) {
         return false;
     }
 
-    res = parseDoubleValue("altitude", words, m_altitudes, m_negatedAltitudes, error);
+    res = parseDoubleValue("altitude", words, m_altitudes, m_negatedAltitudes,
+                           m_hasAnyAltitude, m_hasNegatedAnyAltitude, error);
     if (!res) {
         return false;
     }
@@ -290,6 +302,7 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
     QString finishedToDo = "todo:true";
     QString negatedUnfinishedToDo = "-todo:false";
     QString unfinishedToDo = "todo:false";
+    QString negatedAnyToDo = "-todo:*";
     QString anyToDo = "todo:*";
 
     foreach(const QString & searchTerm, words)
@@ -324,6 +337,9 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
             }
             m_hasUnfinishedToDo = true;
         }
+        else if (searchTerm == negatedAnyToDo) {
+            m_hasNegatedAnyToDo = true;
+        }
         else if (searchTerm == anyToDo) {
             m_hasAnyToDo = true;
         }
@@ -333,19 +349,24 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
     words.removeAll(finishedToDo);
     words.removeAll(negatedUnfinishedToDo);
     words.removeAll(unfinishedToDo);
+    words.removeAll(negatedAnyToDo);
     words.removeAll(anyToDo);
 
     // Processing encryption tag
 
+    QString negatedEncryption = "-encryption:";
     QString encryption = "encryption:";
     foreach(const QString & searchTerm, words)
     {
-        if (searchTerm == encryption) {
+        if (searchTerm == negatedEncryption) {
+            m_hasNegatedEncryption = true;
+        }
+        else if (searchTerm == encryption) {
             m_hasEncryption = true;
-            break;
         }
     }
 
+    words.removeAll(negatedEncryption);
     words.removeAll(encryption);
 
     // By now all tagged search terms must have been removed from the list of words
@@ -557,13 +578,16 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
 }
 
 void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList & words,
-                                              QStringList & container, QStringList & negatedContainer) const
+                                              QStringList & container, QStringList & negatedContainer,
+                                              bool & hasAnyValue, bool & hasNegatedAnyValue) const
 {
     int keyIndex = 0;
     QChar negation('-');
     QStringList processedWords;
 
-    QRegExp regexp(QString("*") + key + QString(":*"));
+    QString asterisk = "*";
+
+    QRegExp regexp(asterisk + key + QString(":*"));
     regexp.setPatternSyntax(QRegExp::Wildcard);
 
     while(keyIndex >= 0)
@@ -601,11 +625,25 @@ void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList &
         }
         removeBoundaryQuotesFromWord(word);
 
-        if (isNegated) {
-            negatedContainer << word;
+        if (word == asterisk)
+        {
+            if (isNegated) {
+                hasNegatedAnyValue = true;
+            }
+            else {
+                hasAnyValue = true;
+            }
+
+            break;  // As long as asterisk "beats all", it doesn't matter which other words can be in the query
         }
-        else {
-            container << word;
+        else
+        {
+            if (isNegated) {
+                negatedContainer << word;
+            }
+            else {
+                container << word;
+            }
         }
     }
 
@@ -616,20 +654,15 @@ void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList &
 
 bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & words,
                                            QVector<qint64> & container, QVector<qint64> & negatedContainer,
-                                           QString & error, bool * pFoundAsteriskReminderOrder) const
+                                           bool & hasAnyValue, bool & hasNegatedAnyValue, QString & error) const
 {
     int keyIndex = 0;
     QChar negation('-');
     QStringList processedWords;
 
-    // reminderOrder is a key with special treatment as it is allowed to be asterisk, not a number
-    QString reminderOrderKey("reminderOrder");
-    QString asterisk("*");
-    if (pFoundAsteriskReminderOrder) {
-        *pFoundAsteriskReminderOrder = false;
-    }
+    QString asterisk = "*";
 
-    QRegExp regexp(QString("*") + key + QString(":*"));
+    QRegExp regexp(asterisk + key + QString(":*"));
     regexp.setPatternSyntax(QRegExp::Wildcard);
 
     while(keyIndex >= 0)
@@ -667,12 +700,16 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
         }
         removeBoundaryQuotesFromWord(word);
 
-        // Special treatment for "reminderOrder" key as it is allowed to be asterisk
-        if ((key == reminderOrderKey) && (word == asterisk))
+        if (word == asterisk)
         {
-            if (pFoundAsteriskReminderOrder) {
-                *pFoundAsteriskReminderOrder = true;
+            if (isNegated) {
+                hasNegatedAnyValue = true;
             }
+            else {
+                hasAnyValue = true;
+            }
+
+            break;  // As long as asterisk "beats all", it doesn't matter which other words can be in the query
         }
         else
         {
@@ -684,6 +721,7 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
                 error += word;
                 return false;
             }
+
             if (isNegated) {
                 negatedContainer << value;
             }
@@ -702,13 +740,15 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
 
 bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList & words,
                                               QVector<double> & container, QVector<double> & negatedContainer,
-                                              QString & error) const
+                                              bool & hasAnyValue, bool & hasNegatedAnyValue, QString & error) const
 {
     int keyIndex = 0;
     QChar negation('-');
     QStringList processedWords;
 
-    QRegExp regexp(QString("*") + key + QString(":*"));
+    QString asterisk = "*";
+
+    QRegExp regexp(asterisk + key + QString(":*"));
     regexp.setPatternSyntax(QRegExp::Wildcard);
 
     while(keyIndex >= 0)
@@ -746,19 +786,34 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
         }
         removeBoundaryQuotesFromWord(word);
 
-        bool conversionResult = false;
-        double value = static_cast<double>(word.toDouble(&conversionResult));
-        if (!conversionResult) {
-            error = QT_TR_NOOP("Internal error during search query parsing: "
-                               "cannot convert parsed value to double: parsed value = ");
-            error += word;
-            return false;
+        if (word == asterisk)
+        {
+            if (isNegated) {
+                hasNegatedAnyValue = true;
+            }
+            else {
+                hasAnyValue = true;
+            }
+
+            break;  // As long as asterisk "beats all", it doesn't matter which other words can be in the query
         }
-        if (isNegated) {
-            negatedContainer << value;
-        }
-        else {
-            container << value;
+        else
+        {
+            bool conversionResult = false;
+            double value = static_cast<double>(word.toDouble(&conversionResult));
+            if (!conversionResult) {
+                error = QT_TR_NOOP("Internal error during search query parsing: "
+                                   "cannot convert parsed value to double: parsed value = ");
+                error += word;
+                return false;
+            }
+
+            if (isNegated) {
+                negatedContainer << value;
+            }
+            else {
+                container << value;
+            }
         }
     }
 
