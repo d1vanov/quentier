@@ -17,17 +17,17 @@ bool NoteSearchQueryTest(QString & error)
     QString notebookName = "fake notebook name";
 
     QStringList tagNames;
-    tagNames << "allowed tag 1" << "allowed_tag_2" << "allowed tag 3";
+    tagNames << "allowed tag 1" << "allowed_tag_2" << "allowed tag 3" << "*";
 
     QStringList negatedTagNames;
-    negatedTagNames << "disallowed tag 1" << "disallowed_tag_2" << "disallowed tag 3";
+    negatedTagNames << "disallowed tag 1" << "disallowed_tag_2" << "disallowed tag 3" << "*";
 
     QStringList titleNames;
-    titleNames << "allowed title name 1" << "allowed_title_name_2" << "allowed title name 3";
+    titleNames << "allowed title name 1" << "allowed_title_name_2" << "allowed title name 3" << "*";
 
     QStringList negatedTitleNames;
     negatedTitleNames << "disallowed title name 1" << "disallowed_title_name_2"
-                      << "disallowed title name 3";
+                      << "disallowed title name 3" << "*";
 
     // Adding the relative datetime attributes with their respective timestamps
     // for future comparison with query string parsing results
@@ -145,11 +145,11 @@ bool NoteSearchQueryTest(QString & error)
 
     QStringList resourceMimeTypes;
     resourceMimeTypes << "allowed resource mime type 1" << "allowed_resource_mime_type_2"
-                      << "allowed resource mime type 3";
+                      << "allowed resource mime type 3" << "*";
 
     QStringList negatedResourceMimeTypes;
     negatedResourceMimeTypes << "disallowed resource mime type 1" << "disallowed_resource_mime_type_2"
-                             << "disallowed resource mime type 3";
+                             << "disallowed resource mime type 3" << "*";
 
     QStringList subjectDate;
     subjectDate << "week+2" << "week+3" << "month-3";
@@ -176,47 +176,47 @@ bool NoteSearchQueryTest(QString & error)
     negatedAltitudes << -32.96 << -19.15 << -10.25;
 
     QStringList authors;
-    authors << "author 1" << "author_2" << "author 3";
+    authors << "author 1" << "author_2" << "author 3" << "*";
 
     QStringList negatedAuthors;
-    negatedAuthors << "author 4" << "author_5" << "author 6";
+    negatedAuthors << "author 4" << "author_5" << "author 6" << "*";
 
     QStringList sources;
-    sources << "web.clip" << "mail.clip" << "mail.smpt";
+    sources << "web.clip" << "mail.clip" << "mail.smpt" << "*";
 
     QStringList negatedSources;
-    negatedSources << "mobile.ios" << "mobile.android" << "mobile.*";
+    negatedSources << "mobile.ios" << "mobile.android" << "mobile.*" << "*";
 
     QStringList sourceApplications;
-    sourceApplications << "qutenote" << "nixnote2" << "everpad";
+    sourceApplications << "qutenote" << "nixnote2" << "everpad" << "*";
 
     QStringList negatedSourceApplications;
-    negatedSourceApplications << "food.*" << "hello.*" << "skitch.*";
+    negatedSourceApplications << "food.*" << "hello.*" << "skitch.*" << "*";
 
     QStringList contentClasses;
-    contentClasses << "content class 1" << "content_class_2" << "content class 3";
+    contentClasses << "content class 1" << "content_class_2" << "content class 3" << "*";
 
     QStringList negatedContentClasses;
-    negatedContentClasses << "content class 4" << "content_class_5" << "content class 6";
+    negatedContentClasses << "content class 4" << "content_class_5" << "content class 6" << "*";
 
     QStringList placeNames;
-    placeNames << "home" << "university" << "work";
+    placeNames << "home" << "university" << "work" << "*";
 
     QStringList negatedPlaceNames;
-    negatedPlaceNames << "bus" << "caffee" << "shower";
+    negatedPlaceNames << "bus" << "caffee" << "shower" << "*";
 
     QStringList applicationData;
-    applicationData << "application data 1" << "application_data_2" << "applicationData 3";
+    applicationData << "application data 1" << "application_data_2" << "applicationData 3" << "*";
 
     QStringList negatedApplicationData;
     negatedApplicationData << "negated application data 1" << "negated_application_data_2"
-                           << "negated application data 3";
+                           << "negated application data 3" << "*";
 
     QStringList recognitionTypes;
-    recognitionTypes << "printed" << "speech" << "handwritten";
+    recognitionTypes << "printed" << "speech" << "handwritten" << "*";
 
     QStringList negatedRecognitionTypes;
-    negatedRecognitionTypes << "picture" << "unknown";
+    negatedRecognitionTypes << "picture" << "unknown" << "*";
 
     QVector<qint64> reminderOrders;
     reminderOrders << 1 << 2 << 3;
@@ -248,10 +248,10 @@ bool NoteSearchQueryTest(QString & error)
 
     NoteSearchQuery noteSearchQuery;
 
-    // Iterating over all combinations of 7 boolean factors with a special meaning
-    for(int mask = 0; mask != (1<<7); ++mask)
+    // Iterating over all combinations of 8 boolean factors with a special meaning
+    for(int mask = 0; mask != (1<<8); ++mask)
     {
-        std::bitset<9> bits(mask);
+        std::bitset<8> bits(mask);
 
         QString queryString;
 
@@ -267,45 +267,49 @@ bool NoteSearchQueryTest(QString & error)
         }
 
         if (bits[2]) {
-            // queryString += "reminderOrder:* ";
-        }
-
-        if (bits[3]) {
             queryString += "todo:false ";
         }
         else {
             queryString += "-todo:false ";
         }
 
-        if (bits[4]) {
+        if (bits[3]) {
             queryString += "todo:true ";
         }
         else {
             queryString += "-todo:true ";
         }
 
-        if (bits[5]) {
+        if (bits[4]) {
             queryString += "todo:* ";
+        }
+
+        if (bits[5]) {
+            queryString += "-todo:* ";
         }
 
         if (bits[6]) {
             queryString += "encryption: ";
         }
 
+        if (bits[7]) {
+            queryString += "-encryption: ";
+        }
+
 #define ADD_LIST_TO_QUERY_STRING(keyword, list, type, ...) \
-foreach(const type & item, list) { \
-    queryString += #keyword ":"; \
-    QString itemStr = __VA_ARGS__(item); \
-    bool itemContainsSpace = itemStr.contains(" "); \
-    if (itemContainsSpace) { \
-        queryString += "\""; \
+    foreach(const type & item, list) { \
+        queryString += #keyword ":"; \
+        QString itemStr = __VA_ARGS__(item); \
+        bool itemContainsSpace = itemStr.contains(" "); \
+        if (itemContainsSpace) { \
+            queryString += "\""; \
+        } \
+        queryString += itemStr; \
+        if (itemContainsSpace) { \
+            queryString += "\""; \
+        } \
+        queryString += " "; \
     } \
-    queryString += itemStr; \
-    if (itemContainsSpace) { \
-        queryString += "\""; \
-    } \
-    queryString += " "; \
-}
 
         ADD_LIST_TO_QUERY_STRING(tag, tagNames, QString);
         ADD_LIST_TO_QUERY_STRING(-tag, negatedTagNames, QString);
@@ -348,6 +352,16 @@ foreach(const type & item, list) { \
 
 #undef ADD_LIST_TO_QUERY_STRING
 
+        queryString += "created:* -created:* ";
+        queryString += "updated:* -updated:* ";
+        queryString += "subjectDate:* -subjectDate:* ";
+        queryString += "latitude:* -latitude:* ";
+        queryString += "longitude:* -longitude:* ";
+        queryString += "altitude:* -altitude:* ";
+        queryString += "reminderOrder:* -reminderOrder:* ";
+        queryString += "reminderTime:* -reminderTime:* ";
+        queryString += "reminderDoneTime:* -reminderDoneTime:* ";
+
         foreach(const QString & searchTerm, contentSearchTerms) {
             bool searchTermContainsSpace = searchTerm.contains(" ");
             if (searchTermContainsSpace) {
@@ -385,6 +399,196 @@ foreach(const type & item, list) { \
             return false;
         }
 
+        if (!noteSearchQuery.hasAnyTag()) {
+            error = "NoteSearchQuery doesn't have any tag while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyTag()) {
+            error = "NoteSearchQuery doesn't have negated any tag while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyTitleName()) {
+            error = "NoteSearchQuery doesn't have any title name while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyTitleName()) {
+            error = "NoteSearchQuery doesn't have negated any title name while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyCreationTimestamp()) {
+            error = "NoteSearchQuery doesn't have any creation timestamp while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyCreationTimestamp()) {
+            error = "NoteSearchQuery doesn't have negated any creation timestamp while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyModificationTimestamp()) {
+            error = "NoteSearchQuery doesn't have any modification timestamp while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyModificationTimestamp()) {
+            error = "NoteSearchQuery doesn't have negated any modification timestamp while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyResourceMimeType()) {
+            error = "NoteSearchQuery doesn't have any resource mime type while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyResourceMimeType()) {
+            error = "NoteSearchQuery doesn't have negated any resource mime type while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnySubjectDateTimestamp()) {
+            error = "NoteSearchQuery doesn't have any subject date timestamp while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnySubjectDateTimestamp()) {
+            error = "NoteSearchQuery doesn't have negated any subject date timestamp while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyLatitude()) {
+            error = "NoteSearchQuery doesn't have any latitude while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyLatitude()) {
+            error = "NoteSearchQuery doesn't have negated any latitude while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyLongitude()) {
+            error = "NoteSearchQuery doesn't have any longitude while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyLongitude()) {
+            error = "NoteSearchQuery doesn't have negated any longitude while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyAltitude()) {
+            error = "NoteSearchQuery doesn't have any altitude while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyAltitude()) {
+            error = "NoteSearchQuery doesn't have negated any altitude while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyAuthor()) {
+            error = "NoteSearchQuery doesn't have any author while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyAuthor()) {
+            error = "NoteSearchQuery doesn't have negated any author while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnySource()) {
+            error = "NoteSearchQuery doesn't have any source while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnySource()) {
+            error = "NoteSearchQuery doesn't have negated any source while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnySourceApplication()) {
+            error = "NoteSearchQuery doesn't have any source application while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnySourceApplication()) {
+            error = "NoteSearchQuery doesn't have negated any source application while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyContentClass()) {
+            error = "NoteSearchQuery doesn't have any content class while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyContentClass()) {
+            error = "NoteSearchQuery doesn't have negated any content class while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyPlaceName()) {
+            error = "NoteSearchQuery doesn't have any place name while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyPlaceName()) {
+            error = "NoteSearchQuery doesn't have negated any place name while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyApplicationData()) {
+            error = "NoteSearchQuery doesn't have any application data while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyApplicationData()) {
+            error = "NoteSearchQuery doesn't have negated any application data while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyRecognitionType()) {
+            error = "NoteSearchQuery doesn't have any recognition type while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyRecognitionType()) {
+            error = "NoteSearchQuery doesn't have negated any recognition type while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyReminderOrder()) {
+            error = "NoteSearchQuery doesn't have any reminder order while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyReminderOrder()) {
+            error = "NoteSearchQuery doesn't have negated any reminder order while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyReminderTime()) {
+            error = "NoteSearchQuery doesn't have any reminder time while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyReminderTime()) {
+            error = "NoteSearchQuery doesn't have negated any reminder time while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasAnyReminderDoneTime()) {
+            error = "NoteSearchQuery doesn't have any reminder done time while it should have one";
+            return false;
+        }
+
+        if (!noteSearchQuery.hasNegatedAnyReminderDoneTime()) {
+            error = "NoteSearchQuery doesn't have negated any reminder done time while it should have one";
+            return false;
+        }
+
         if (bits[0])
         {
             const QString & noteSearchQueryNotebookModifier = noteSearchQuery.notebookModifier();
@@ -403,22 +607,7 @@ foreach(const type & item, list) { \
             return false;
         }
 
-        /*
-        if (bits[2]) {
-            if (!noteSearchQuery.hasAnyReminderOrder()) {
-                error = "NoteSearchQuery doesn't have \"any\" option set for reminderOrder while it should have one";
-                return false;
-            }
-        }
-        else {
-            if (noteSearchQuery.hasAnyReminderOrder()) {
-                error = "NoteSearchQuery has \"any\" option set for reminderOrder while it shouldn't have one";
-                return false;
-            }
-        }
-        */
-
-        if (bits[3])
+        if (bits[2])
         {
             if (!noteSearchQuery.hasUnfinishedToDo()) {
                 error = "NoteSearchQuery doesn't have unfinished todo while it should have one";
@@ -443,7 +632,7 @@ foreach(const type & item, list) { \
             }
         }
 
-        if (bits[4])
+        if (bits[3])
         {
             if (!noteSearchQuery.hasFinishedToDo()) {
                 error = "NoteSearchQuery hasn't finished todo while it should have one";
@@ -468,7 +657,7 @@ foreach(const type & item, list) { \
             }
         }
 
-        if (bits[5]) {
+        if (bits[4]) {
             if (!noteSearchQuery.hasAnyToDo()) {
                 error = "NoteSearchQuery doesn't have \"any\" todo modifier while it should have one";
                 return false;
@@ -481,6 +670,19 @@ foreach(const type & item, list) { \
             }
         }
 
+        if (bits[5]) {
+            if (!noteSearchQuery.hasNegatedAnyToDo()) {
+                error = "NoteSearchQuery doesn't have negated \"any\" todo modifier while it should have one";
+                return false;
+            }
+        }
+        else {
+            if (noteSearchQuery.hasNegatedAnyToDo()) {
+                error = "NoteSearchQuery has negated \"any\" todo modifier while it should not have one";
+                return false;
+            }
+        }
+
         if (bits[6]) {
             if (!noteSearchQuery.hasEncryption()) {
                 error = "NoteSearchQuery doesn't have encryption while it should have one";
@@ -489,7 +691,20 @@ foreach(const type & item, list) { \
         }
         else {
             if (noteSearchQuery.hasEncryption()) {
-                error = "NoteSearchQuery has encryption while it should have one";
+                error = "NoteSearchQuery has encryption while it should not have one";
+                return false;
+            }
+        }
+
+        if (bits[7]) {
+            if (!noteSearchQuery.hasNegatedEncryption()) {
+                error = "NoteSearchQuery doesn't have negated encryption while it should have one";
+                return false;
+            }
+        }
+        else {
+            if (noteSearchQuery.hasNegatedEncryption()) {
+                error = "NoteSearchQuery has negated encryption while it should not have one";
                 return false;
             }
         }

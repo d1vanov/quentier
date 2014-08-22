@@ -561,6 +561,12 @@ const QStringList & NoteSearchQuery::negatedContentSearchTerms() const
     return d->m_negatedContentSearchTerms;
 }
 
+bool NoteSearchQuery::isMatcheable() const
+{
+    Q_D(const NoteSearchQuery);
+    return d->isMatcheable();
+}
+
 QTextStream & NoteSearchQuery::Print(QTextStream & strm) const
 {
     Q_D(const NoteSearchQuery);

@@ -108,6 +108,8 @@ public:
     QStringList     m_contentSearchTerms;
     QStringList     m_negatedContentSearchTerms;
 
+    bool isMatcheable() const;
+
 private:
     QStringList splitSearchQueryString(const QString & searchQueryString) const;
     void parseStringValue(const QString & key, QStringList & words,

@@ -395,6 +395,14 @@ QTextStream & NoteSearchQueryPrivate::Print(QTextStream & strm) const
     strm << indent << "notebookModifier: " << (m_notebookModifier.isEmpty() ? "<empty>" : m_notebookModifier) << "; \n";
     strm << indent << "hasAnyModifier: " << (m_hasAnyModifier ? "true" : "false")   << "\n";
 
+#define CHECK_AND_PRINT_ANY_ITEM(name) \
+    if (m_hasAny##name) { \
+        strm << indent << "hasAny" #name " is true; \n"; \
+    } \
+    if (m_hasNegatedAny##name) { \
+        strm << indent << "hasNegatedAny" #name "is true; \n"; \
+    }
+
 #define CHECK_AND_PRINT_LIST(name, type, ...) \
     if (m_##name.isEmpty()) { \
         strm << indent << #name " is empty; \n"; \
@@ -407,45 +415,79 @@ QTextStream & NoteSearchQueryPrivate::Print(QTextStream & strm) const
         strm << indent << "}; \n"; \
     }
 
+    CHECK_AND_PRINT_ANY_ITEM(Tag);
     CHECK_AND_PRINT_LIST(tagNames, QString);
     CHECK_AND_PRINT_LIST(negatedTagNames, QString);
+
+    CHECK_AND_PRINT_ANY_ITEM(TitleName);
     CHECK_AND_PRINT_LIST(titleNames, QString);
     CHECK_AND_PRINT_LIST(negatedTitleNames, QString);
+
+    CHECK_AND_PRINT_ANY_ITEM(CreationTimestamp);
     CHECK_AND_PRINT_LIST(creationTimestamps, qint64, QString::number);
     CHECK_AND_PRINT_LIST(negatedCreationTimestamps, qint64, QString::number);
+
+    CHECK_AND_PRINT_ANY_ITEM(ModificationTimestamp);
     CHECK_AND_PRINT_LIST(modificationTimestamps, qint64, QString::number);
     CHECK_AND_PRINT_LIST(negatedModificationTimestamps, qint64, QString::number);
+
+    CHECK_AND_PRINT_ANY_ITEM(ResourceMimeType);
     CHECK_AND_PRINT_LIST(resourceMimeTypes, QString);
     CHECK_AND_PRINT_LIST(negatedResourceMimeTypes, QString);
+
+    CHECK_AND_PRINT_ANY_ITEM(SubjectDateTimestamp);
     CHECK_AND_PRINT_LIST(subjectDateTimestamps, qint64, QString::number);
     CHECK_AND_PRINT_LIST(negatedSubjectDateTimestamps, qint64, QString::number);
+
+    CHECK_AND_PRINT_ANY_ITEM(Latitude);
     CHECK_AND_PRINT_LIST(latitudes, double, QString::number);
     CHECK_AND_PRINT_LIST(negatedLatitudes, double, QString::number);
+
+    CHECK_AND_PRINT_ANY_ITEM(Longitude);
     CHECK_AND_PRINT_LIST(longitudes, double, QString::number);
     CHECK_AND_PRINT_LIST(negatedLongitudes, double, QString::number);
+
+    CHECK_AND_PRINT_ANY_ITEM(Altitude);
     CHECK_AND_PRINT_LIST(altitudes, double, QString::number);
     CHECK_AND_PRINT_LIST(negatedAltitudes, double, QString::number);
+
+    CHECK_AND_PRINT_ANY_ITEM(Author);
     CHECK_AND_PRINT_LIST(authors, QString);
     CHECK_AND_PRINT_LIST(negatedAuthors, QString);
+
+    CHECK_AND_PRINT_ANY_ITEM(Source);
     CHECK_AND_PRINT_LIST(sources, QString);
     CHECK_AND_PRINT_LIST(negatedSources, QString);
+
+    CHECK_AND_PRINT_ANY_ITEM(SourceApplication);
     CHECK_AND_PRINT_LIST(sourceApplications, QString);
     CHECK_AND_PRINT_LIST(negatedSourceApplications, QString);
+
+    CHECK_AND_PRINT_ANY_ITEM(ContentClass);
     CHECK_AND_PRINT_LIST(contentClasses, QString);
     CHECK_AND_PRINT_LIST(negatedContentClasses, QString);
+
+    CHECK_AND_PRINT_ANY_ITEM(PlaceName);
     CHECK_AND_PRINT_LIST(placeNames, QString);
     CHECK_AND_PRINT_LIST(negatedPlaceNames, QString);
+
+    CHECK_AND_PRINT_ANY_ITEM(ApplicationData);
     CHECK_AND_PRINT_LIST(applicationData, QString);
     CHECK_AND_PRINT_LIST(negatedApplicationData, QString);
+
+    CHECK_AND_PRINT_ANY_ITEM(RecognitionType);
     CHECK_AND_PRINT_LIST(recognitionTypes, QString);
     CHECK_AND_PRINT_LIST(negatedRecognitionTypes, QString);
 
-    strm << indent << "hasReminderOrder: " << (m_hasAnyReminderOrder ? "true" : "false") << "; \n";
-
+    CHECK_AND_PRINT_ANY_ITEM(ReminderOrder);
     CHECK_AND_PRINT_LIST(reminderOrders, qint64, QString::number);
     CHECK_AND_PRINT_LIST(negatedReminderOrders, qint64, QString::number);
+
+    CHECK_AND_PRINT_ANY_ITEM(ReminderTime);
     CHECK_AND_PRINT_LIST(reminderTimes, qint64, QString::number);
     CHECK_AND_PRINT_LIST(negatedReminderTimes, qint64, QString::number);
+
+    CHECK_AND_PRINT_ANY_ITEM(ReminderDoneTime);
     CHECK_AND_PRINT_LIST(reminderDoneTimes, qint64, QString::number);
     CHECK_AND_PRINT_LIST(negatedReminderDoneTimes, qint64, QString::number);
 
@@ -454,16 +496,108 @@ QTextStream & NoteSearchQueryPrivate::Print(QTextStream & strm) const
     strm << indent << "hasFinishedToDo: " << (m_hasFinishedToDo ? "true" : "false") << "; \n";
     strm << indent << "hasNegatedFinishedToDo: " << (m_hasNegatedFinishedToDo ? "true" : "false") << "; \n";
     strm << indent << "hasAnyToDo: " << (m_hasAnyToDo ? "true" : "false") << "; \n";
-    strm << indent << "encryption: " << (m_hasEncryption ? "true" : "false") << "\n";
+    strm << indent << "hasNegatedAnyTodo: " << (m_hasNegatedAnyToDo ? "true" : "false") << " \n";
+    strm << indent << "hasEncryption: " << (m_hasEncryption ? "true" : "false") << "\n";
+    strm << indent << "hasNegatedEncryption: " << (m_hasNegatedEncryption ? "true" : "false") << " \n";
 
     CHECK_AND_PRINT_LIST(contentSearchTerms, QString);
     CHECK_AND_PRINT_LIST(negatedContentSearchTerms, QString);
 
 #undef CHECK_AND_PRINT_LIST
+#undef CHECK_AND_PRINT_ANY_ITEM
 
     strm << "}; \n";
 
     return strm;
+}
+
+bool NoteSearchQueryPrivate::isMatcheable() const
+{
+    if (m_hasAnyTag && m_hasNegatedAnyTag) {
+        return false;
+    }
+
+    if (m_hasAnyTitleName && m_hasNegatedAnyTitleName) {
+        return false;
+    }
+
+    if (m_hasAnyCreationTimestamp && m_hasNegatedAnyCreationTimestamp) {
+        return false;
+    }
+
+    if (m_hasAnyModificationTimestamp && m_hasNegatedAnyModificationTimestamp) {
+        return false;
+    }
+
+    if (m_hasAnyResourceMimeType && m_hasNegatedAnyResourceMimeType) {
+        return false;
+    }
+
+    if (m_hasAnySubjectDateTimestamp && m_hasNegatedAnySubjectDateTimestamp) {
+        return false;
+    }
+
+    if (m_hasAnyLatitude && m_hasNegatedAnyLatitude) {
+        return false;
+    }
+
+    if (m_hasAnyLongitude && m_hasNegatedAnyLongitude) {
+        return false;
+    }
+
+    if (m_hasAnyAltitude && m_hasNegatedAnyAltitude) {
+        return false;
+    }
+
+    if (m_hasAnyAuthor && m_hasNegatedAnyAuthor) {
+        return false;
+    }
+
+    if (m_hasAnySource && m_hasNegatedAnySource) {
+        return false;
+    }
+
+    if (m_hasAnySourceApplication && m_hasNegatedAnySourceApplication) {
+        return false;
+    }
+
+    if (m_hasAnyContentClass && m_hasNegatedAnyContentClass) {
+        return false;
+    }
+
+    if (m_hasAnyPlaceName && m_hasNegatedAnyPlaceName) {
+        return false;
+    }
+
+    if (m_hasAnyApplicationData && m_hasNegatedAnyApplicationData) {
+        return false;
+    }
+
+    if (m_hasAnyRecognitionType && m_hasNegatedAnyRecognitionType) {
+        return false;
+    }
+
+    if (m_hasAnyReminderOrder && m_hasNegatedAnyReminderOrder) {
+        return false;
+    }
+
+    if (m_hasAnyReminderTime && m_hasNegatedAnyReminderTime) {
+        return false;
+    }
+
+    if (m_hasAnyReminderDoneTime && m_hasNegatedAnyReminderDoneTime) {
+        return false;
+    }
+
+    if (m_hasAnyToDo && m_hasNegatedAnyToDo) {
+        return false;
+    }
+
+    if (m_hasEncryption && m_hasNegatedEncryption) {
+        return false;
+    }
+
+    return true;
 }
 
 QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searchQueryString) const
@@ -633,17 +767,13 @@ void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList &
             else {
                 hasAnyValue = true;
             }
-
-            break;  // As long as asterisk "beats all", it doesn't matter which other words can be in the query
         }
-        else
-        {
-            if (isNegated) {
-                negatedContainer << word;
-            }
-            else {
-                container << word;
-            }
+
+        if (isNegated) {
+            negatedContainer << word;
+        }
+        else {
+            container << word;
         }
     }
 
@@ -708,17 +838,17 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
             else {
                 hasAnyValue = true;
             }
-
-            break;  // As long as asterisk "beats all", it doesn't matter which other words can be in the query
         }
         else
         {
             bool conversionResult = false;
             qint64 value = static_cast<qint64>(word.toLongLong(&conversionResult));
             if (!conversionResult) {
-                error = QT_TR_NOOP("Internal error during search query parsing: "
+                error = QT_TR_NOOP("Error during search query parsing: "
                                    "cannot convert parsed value to integer: parsed value = ");
                 error += word;
+                error += QT_TR_NOOP(", modifier of parsed value = ");
+                error += key;
                 return false;
             }
 
@@ -794,17 +924,17 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
             else {
                 hasAnyValue = true;
             }
-
-            break;  // As long as asterisk "beats all", it doesn't matter which other words can be in the query
         }
         else
         {
             bool conversionResult = false;
             double value = static_cast<double>(word.toDouble(&conversionResult));
             if (!conversionResult) {
-                error = QT_TR_NOOP("Internal error during search query parsing: "
+                error = QT_TR_NOOP("Error during search query parsing: "
                                    "cannot convert parsed value to double: parsed value = ");
                 error += word;
+                error += QT_TR_NOOP(", modifier of parsed value = ");
+                error += key;
                 return false;
             }
 
@@ -941,14 +1071,16 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
     return true;
 }
 
-bool NoteSearchQueryPrivate::convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList &words, QString &error) const
+bool NoteSearchQueryPrivate::convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, QString & error) const
 {
     QStringList dateTimePrefixes;
     dateTimePrefixes << "created:" << "-created:" << "updated:" << "-updated:"
                      << "subjectDate:" << "-subjectDate:" << "reminderTime:"
                      << "-reminderTime:" << "reminderDoneTime:" << "-reminderDoneTime:";
 
+    QString asterisk = "*";
     int numWords = words.size();
+    QString wordCopy;
     for(int i = 0; i < numWords; ++i)
     {
         QString & word = words[i];
@@ -957,7 +1089,15 @@ bool NoteSearchQueryPrivate::convertAbsoluteAndRelativeDateTimesToTimestamps(QSt
         {
             if (word.startsWith(prefix))
             {
-                QString dateTimeString = word.remove(prefix);
+                wordCopy = word;
+
+                QString dateTimeString = wordCopy.remove(prefix);
+                if (dateTimeString == asterisk) {
+                    continue;
+                }
+
+                word = wordCopy;
+
                 qint64 timestamp;
                 bool res = dateTimeStringToTimestamp(dateTimeString, timestamp, error);
                 if (!res) {

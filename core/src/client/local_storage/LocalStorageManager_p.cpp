@@ -1562,6 +1562,10 @@ NoteList LocalStorageManagerPrivate::FindNotesWithSearchQuery(const NoteSearchQu
 {
     QNDEBUG("LocalStorageManagerPrivate::FindNotesWithSearchQuery: " << noteSearchQuery);
 
+    if (!noteSearchQuery.isMatcheable()) {
+        return NoteList();
+    }
+
     QString queryString;
 
     // Will run all the queries from this method and its sub-methods within a single transaction

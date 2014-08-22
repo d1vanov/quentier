@@ -145,6 +145,8 @@ public:
     const QStringList & negatedContentSearchTerms() const;
     bool hasAnyContentSearchTerms() const;
 
+    bool isMatcheable() const;
+
 private:
     QTextStream & Print(QTextStream & strm) const;
 
