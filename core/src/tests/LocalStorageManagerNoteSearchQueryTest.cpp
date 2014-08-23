@@ -428,7 +428,11 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         qevercloud::NoteAttributes & attributes = note.noteAttributes();
 
         attributes.subjectDate = subjectDateTimestamps[i/numSubjectDateTimestamps];
-        attributes.latitude = latitudes[i];
+
+        if ((i != 6) && (i != 7) && (i != 8)) {
+            attributes.latitude = latitudes[i/numLatitudes];
+        }
+
         attributes.longitude = longitudes[i];
         attributes.altitude = altitudes[i];
         attributes.author = authors[i/numAuthors];
@@ -631,7 +635,24 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.2) Encryption queries
+    // 7.1.11) Ensure notes without "todo" tags can be found too:
+    queryString = "-todo:*";
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[0] = true;
+    expectedContainedNotesIndices[2] = true;
+    expectedContainedNotesIndices[5] = true;
+    expectedContainedNotesIndices[6] = true;
+    expectedContainedNotesIndices[7] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.2.1) Notes with encryption tags
     queryString = "encryption:";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -639,6 +660,21 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     }
     expectedContainedNotesIndices[6] = true;
     expectedContainedNotesIndices[8] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.2.2) Notes without encryption tags
+    queryString = "-encryption:";
+
+    for(int i = 0;i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[6] = false;
+    expectedContainedNotesIndices[8] = false;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
@@ -662,8 +698,23 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    /*
-    // 7.4) Arbitrary application data
+    // 7.4) No reminder order
+    queryString = "-reminderOrder:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[0] = true;
+    expectedContainedNotesIndices[1] = true;
+    expectedContainedNotesIndices[2] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.5) Arbitrary application data
     queryString = "applicationData:*";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -678,9 +729,56 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     if (!res) {
         return false;
     }
-    */
 
-    // 7.5) Notebook
+    // 7.6) No application data
+    queryString = "-applicationData:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[3] = true;
+    expectedContainedNotesIndices[4] = true;
+    expectedContainedNotesIndices[5] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.7) Arbitrary latitude
+    queryString = "latitude:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[6] = false;
+    expectedContainedNotesIndices[7] = false;
+    expectedContainedNotesIndices[8] = false;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.8) No latitude
+    queryString = "-latitude:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[6] = true;
+    expectedContainedNotesIndices[7] = true;
+    expectedContainedNotesIndices[8] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.9) Notebook
     queryString = "notebook:\"Test notebook #1\"";
 
     for(int i = 0; i < numNotes; ++i) {
