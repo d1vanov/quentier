@@ -2775,10 +2775,6 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create SharedNotebooks table");
 
-    res = query.exec("CREATE VIRTUAL TABLE IF NOT EXISTS NoteText USING FTS4 "
-                     "(localGuid, guid, title, content, contentPlainText, contentListOfWords)");
-    DATABASE_CHECK_AND_SET_ERROR("can't create virtual table NoteText");
-
     res = query.exec("CREATE TABLE IF NOT EXISTS Notes("
                      "  localGuid                       TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  guid                            TEXT                 DEFAULT NULL UNIQUE, "
@@ -2966,6 +2962,21 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  hasShortcut           INTEGER              NOT NULL "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Tags table");
+
+    res = query.exec("CREATE VIRTUAL TABLE TagFTS USING FTS4(content=\"Tags\", localGuid, guid, nameUpper)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 table TagFTS");
+
+    res = query.exec("CREATE TRIGGER TagFTS_BeforeDeleteTrigger BEFORE DELETE ON Tags "
+                     "BEGIN "
+                     "DELETE FROM TagFTS WHERE localGuid=old.localGuid; "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger TagFTS_BeforeDeleteTrigger");
+
+    res = query.exec("CREATE TRIGGER TagFTS_AfterInsertTrigger AFTER INSERT ON Tags "
+                     "BEGIN "
+                     "INSERT INTO TagFTS(TagFTS) VALUES('rebuild'); "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger TagFTS_AfterInsertTrigger");
 
     res = query.exec("CREATE INDEX IF NOT EXISTS TagsSearchName ON Tags(nameUpper)");
     DATABASE_CHECK_AND_SET_ERROR("can't create TagsSearchName index");
@@ -5519,7 +5530,11 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 {
     errorDescription = QT_TR_NOOP("Can't convert note search string into SQL query: ");
 
-    sql = "SELECT DISTINCT localGuid FROM NoteFTS, NoteTags, NoteResources WHERE ";   // initial template to add to
+    // Setting up initial templates
+    QString sqlPrefix = "SELECT DISTINCT localGuid ";
+    sql.clear();
+
+    bool queryHasAnyModifier = noteSearchQuery.hasAnyModifier();
 
     // ========== 1) Processing notebook modifier (if present) ==============
 
@@ -5600,11 +5615,35 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!tagLocalGuids.isEmpty())
         {
-            sql += "(NoteTags.localTag IN '";
-            sql += tagLocalGuids.join(", ");
-            sql += "') ";
-            sql += uniteOperator;
-            sql += " ";
+            if (!queryHasAnyModifier)
+            {
+                const int numTagLocalGuids = tagLocalGuids.size();
+                sql += "(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
+                        "FROM NoteTags WHERE NoteTags.localTag IN ('";
+                foreach(const QString & tagLocalGuid, tagLocalGuids) {
+                    sql += tagLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+                sql += ") GROUP BY localNote HAVING COUNT(*)=";
+                sql += QString::number(numTagLocalGuids);
+                sql += "))) ";
+                sql += uniteOperator;
+                sql += " ";
+            }
+            else
+            {
+                sql += "NoteTags.localTag IN ('";
+                foreach(const QString & tagLocalGuid, tagLocalGuids) {
+                    sql += tagLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+                sql += ") ";
+                sql += uniteOperator;
+                sql += " ";
+            }
         }
 
         const QStringList & negatedTagNames = noteSearchQuery.negatedTagNames();
@@ -5618,11 +5657,35 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!tagNegatedLocalGuids.isEmpty())
         {
-            sql += "(NoteTags.localTag NOT IN '";
-            sql += tagNegatedLocalGuids.join(", ");
-            sql += "') ";
-            sql += uniteOperator;
-            sql += " ";
+            if (!queryHasAnyModifier)
+            {
+                const int numTagNegatedLocalGuids = tagNegatedLocalGuids.size();
+                sql += "(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
+                        "FROM NoteTags WHERE NoteTags.localTag IN ('";
+                foreach(const QString & tagNegatedLocalGuid, tagNegatedLocalGuids) {
+                    sql += tagNegatedLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+                sql += ") GROUP BY localNote HAVING COUNT(*)=";
+                sql += QString::number(numTagNegatedLocalGuids);
+                sql += ")) OR (NoteTags.localNote IS NULL)) ";
+                sql += uniteOperator;
+                sql += " ";
+            }
+            else
+            {
+                sql += "NoteTags.localTag NOT IN ('";
+                foreach(const QString & tagLocalGuid, tagLocalGuids) {
+                    sql += tagLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+                sql += ") ";
+                sql += uniteOperator;
+                sql += " ";
+            }
         }
     }
 
@@ -5657,9 +5720,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceLocalGuidsPerMime.isEmpty())
         {
-            sql += "(NoteResources.localResource IN '";
+            sql += "(NoteResources.localResource IN ('";
             sql += resourceLocalGuidsPerMime.join(", ");
-            sql += "') ";
+            sql += "')) ";
             sql += uniteOperator;
             sql += " ";
         }
@@ -5677,9 +5740,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceNegatedLocalGuidsPerMime.isEmpty())
         {
-            sql += "(NoteResources.localResource NOT IN '";
+            sql += "((NoteResources.localNote NOT IN (SELECT DISTINCT localNote FROM NoteResources WHERE localResource IN ('";
             sql += resourceNegatedLocalGuidsPerMime.join(", ");
-            sql += "') ";
+            sql += "'))) OR (NoteResources.localNote IS NULL)) ";
             sql += uniteOperator;
             sql += " ";
         }
@@ -5717,9 +5780,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceLocalGuidsPerRecognitionType.isEmpty())
         {
-            sql += "(NoteResources.localResource IN '";
+            sql += "(NoteResources.localResource IN ('";
             sql += resourceLocalGuidsPerRecognitionType.join(", ");
-            sql += "') ";
+            sql += "')) ";
             sql += uniteOperator;
             sql += " ";
         }
@@ -5737,9 +5800,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceNegatedLocalGuidsPerRecognitionType.isEmpty())
         {
-            sql += "(NoteResources.localGuid NOT IN '";
+            sql += "(NoteResources.localNote NOT IN (SELECT DISTINCT localNote FROM NoteResources WHERE localResource IN ('";
             sql += resourceNegatedLocalGuidsPerRecognitionType.join(", ");
-            sql += "') ";
+            sql += "'))) OR (NoteResources.localNote IS NULL)) ";
             sql += uniteOperator;
             sql += " ";
         }
@@ -5764,24 +5827,24 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     if (!noteSearchQuery##list##column.isEmpty()) \
     { \
         if (negated) { \
-            sql += "(NoteFTS." #column " NOT MATCH '"; \
+            sql += "(NoteFTS." #column " NOT MATCH \'"; \
         } \
         else { \
-            sql += "(NoteFTS." #column " MATCH '"; \
+            sql += "(NoteFTS." #column " MATCH \'"; \
         } \
         \
         bool firstItem = true; \
         foreach(const auto & item, noteSearchQuery##list##column) \
         { \
             if (!firstItem) { \
-                sql += " OR "; \
+                sql += " "; \
             } \
             sql += __VA_ARGS__(item); \
             if (firstItem) { \
                 firstItem = false; \
             } \
         } \
-        sql += "') "; \
+        sql += "\') "; \
         sql += uniteOperator; \
         sql += " "; \
     }
@@ -5891,6 +5954,25 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         sql.chop(spareEnd.size());
     }
 
+    // 10) ============= See whether we should bother anything regarding tags or resources ============
+
+    QString sqlPostfix = "FROM NoteFTS ";
+    if (sql.contains("NoteTags")) {
+        sqlPrefix += ", NoteTags.localTag ";
+        sqlPostfix += "LEFT OUTER JOIN NoteTags ON NoteFTS.localGuid = NoteTags.localNote ";
+    }
+
+    if (sql.contains("NoteResources")) {
+        sqlPrefix += ", NoteResources.localResource ";
+        sqlPostfix += "LEFT OUTER JOIN NoteResources ON NoteFTS.localGuid = NoteResources.localNote ";
+    }
+
+    // 11) ============== Finalize the query composed of parts ===============
+
+    sqlPrefix += sqlPostfix;
+    sqlPrefix += "WHERE ";
+    sql.prepend(sqlPrefix);
+
     return true;
 }
 
@@ -5902,22 +5984,66 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tag
 
     QSqlQuery query(m_sqlDatabase);
 
-    if (tagNames.contains("*"))
+    QString queryString;
+
+    bool singleTagName = (tagNames.size() == 1);
+    if (singleTagName)
     {
-        bool res = query.exec("SELECT localGuid FROM Tags WHERE nameUpper IS NOT NULL");
-        DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names");
+        bool res = query.prepare("SELECT localGuid FROM TagFTS WHERE nameUpper MATCH :names");
+        DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names: can't prepare SQL query");
+
+        QString names = tagNames.at(0).toUpper();
+        names.prepend("\'");
+        names.append("\'");
+        query.bindValue(":names", names);
     }
     else
     {
-        bool res = query.prepare("SELECT localGuid FROM Tags WHERE nameUpper MATCH ':names'");
-        DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names: can't prepare SQL query");
+        bool someTagNameHasSpace = false;
+        foreach(const QString & tagName, tagNames)
+        {
+            if (tagName.contains(" ")) {
+                someTagNameHasSpace = true;
+                break;
+            }
+        }
 
-        QString names = tagNames.join(", ").toUpper();
-        query.bindValue(":names", names);
+        if (someTagNameHasSpace)
+        {
+            // Unfortunately, stardard SQLite at least from Qt 4.x has standard query syntax for FTS
+            // which does not support whitespaces in search terms and therefore MATCH function is simply inapplicable here,
+            // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
+            // FIXME: create index by name upper for faster search
+            queryString = "SELECT localGuid FROM Tags WHERE ";
 
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names");
+            foreach(const QString & tagName, tagNames) {
+                queryString += "(nameUpper = \'";
+                queryString += tagName.toUpper();
+                queryString += "\') OR ";
+            }
+            queryString.chop(4);    // remove trailing OR and two whitespaces
+        }
+        else
+        {
+            queryString = "SELECT localGuid FROM TagFTS WHERE nameUpper MATCH \'";
+
+            foreach(const QString & tagName, tagNames) {
+                queryString += tagName.toUpper();
+                queryString += " ";
+            }
+            queryString.chop(1);    // remove trailing whitespace
+            queryString += "\'";
+        }
     }
+
+    bool res = false;
+    if (queryString.isEmpty()) {
+        res = query.exec();
+    }
+    else {
+        res = query.exec(queryString);
+    }
+    DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names " + tagNames.join(", "));
 
     while (query.next())
     {
@@ -5943,23 +6069,43 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalGuids(const QSt
 
     QSqlQuery query(m_sqlDatabase);
 
-    if (resourceMimeTypes.contains("*"))
-    {
-        bool res = query.exec("SELECT resourceLocalGuid WHERE mime IS NOT NULL");
-        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types");
-    }
-    else
-    {
-        bool res = query.prepare("SELECT resourceLocalGuid WHERE mime MATCH ':mimeTypes'");
-        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types: "
-                                     "can't prepare SQL query");
+    bool res = query.prepare("SELECT resourceLocalGuid WHERE mime MATCH :mimeTypes");
+    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types: "
+                                 "can't prepare SQL query");
 
-        QString mimeTypes = resourceMimeTypes.join(" OR ");
-        query.bindValue(":mimeTypes", mimeTypes);
+    // FIXME: reimplement like tags
 
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types");
+    QString mimeTypes;
+    bool multipleSearchTerms = (resourceMimeTypes.size() != 1);
+    foreach(const QString & resourceMimeType, resourceMimeTypes)
+    {
+        if (multipleSearchTerms) {
+            mimeTypes += "\"";
+        }
+
+        mimeTypes += resourceMimeType;
+
+        if (multipleSearchTerms) {
+            mimeTypes += "\" OR ";
+        }
     }
+
+    if (multipleSearchTerms) {
+        mimeTypes.chop(4);  // remove OR + two trailing whitespaces
+    }
+
+    if (multipleSearchTerms) {
+        mimeTypes.prepend("(");
+        mimeTypes.append(")");
+    }
+
+    mimeTypes.prepend("\'");
+    mimeTypes.append("\'");
+
+    query.bindValue(":mimeTypes", mimeTypes);
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types");
 
     while (query.next())
     {
@@ -5984,23 +6130,43 @@ bool LocalStorageManagerPrivate::resourceRecognitionTypesToResourceLocalGuids(co
     resourceLocalGuids.clear();
 
     QSqlQuery query(m_sqlDatabase);
-    if (resourceRecognitionTypes.contains("*"))
-    {
-        bool res = query.exec("SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType IS NOT NULL");
-        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types");
-    }
-    else
-    {
-        bool res = query.prepare("SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType MATCH ':recognitionTypes'");
-        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types: "
-                                     "can't prepare SQL query");
+    bool res = query.prepare("SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType MATCH :recognitionTypes");
+    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types: "
+                                 "can't prepare SQL query");
 
-        QString recognitionTypes = resourceRecognitionTypes.join(" OR ");
-        query.bindValue(":recognitionTypes", recognitionTypes);
+    // FIXME: reimplement like tags
 
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types");
+    QString recognitionTypes;
+    bool multipleSearchTerms = (resourceRecognitionTypes.size() != 1);
+    foreach(const QString & recognitionType, resourceRecognitionTypes)
+    {
+        if (multipleSearchTerms) {
+            recognitionTypes += "\"";
+        }
+
+        recognitionTypes += recognitionType;
+
+        if (multipleSearchTerms) {
+            recognitionTypes += "\" OR ";
+        }
     }
+
+    if (multipleSearchTerms) {
+        recognitionTypes.chop(4);   // remove OR + two trailing whitespaces
+    }
+
+    if (multipleSearchTerms) {
+        recognitionTypes.prepend("(");
+        recognitionTypes.append("(");
+    }
+
+    recognitionTypes.prepend("\'");
+    recognitionTypes.append("\'");
+
+    query.bindValue(":recognitionTypes", recognitionTypes);
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types");
 
     while(query.next())
     {

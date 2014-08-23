@@ -123,7 +123,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         tags << Tag();
         Tag & tag = tags.back();
 
-        tag.setName(QString("Test tag #") + QString::number(i));
+        tag.setName(QString("Test tag ") + QString::number(i));
         tag.setUpdateSequenceNumber(i);
     }
 
@@ -459,8 +459,14 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         attributes.reminderTime = reminderTimes[i/numReminderTimes];
         attributes.reminderDoneTime = reminderDoneTimes[i/numReminderDoneTimes];
 
-        note.addTagGuid(tags[i/numTags].guid());
-        note.addTagGuid(tags[numTags-1 - i/numTags].guid());
+        if (i != (numNotes-1))
+        {
+            size_t k = 0;
+            while( ((i+k) < numTags) && (k < 3) ) {
+                note.addTagGuid(tags[i+k].guid());
+                ++k;
+            }
+        }
 
         ResourceWrapper resource = resources[i/numResources];
         resource.setLocalGuid(QUuid::createUuid().toString());
@@ -787,6 +793,129 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     expectedContainedNotesIndices[3] = true;
     expectedContainedNotesIndices[4] = true;
     expectedContainedNotesIndices[5] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.10) Tags
+
+    // 7.10.1) Check a single tag
+    queryString = "tag:\"";
+    queryString += tags[1].name();
+    queryString += "\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[0] = true;
+    expectedContainedNotesIndices[1] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.10.2) Check negative for single tag
+    queryString = "-tag:\"";
+    queryString += tags[2].name();
+    queryString += "\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[0] = false;
+    expectedContainedNotesIndices[1] = false;
+    expectedContainedNotesIndices[2] = false;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.10.3) Check for multiple tags
+    queryString = "tag:\"";
+    queryString += tags[1].name();
+    queryString += "\" tag:\"";
+    queryString += tags[3].name();
+    queryString += "\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.10.3) Check for multiple tags with any modifier
+    queryString = "any: tag:\"";
+    queryString += tags[1].name();
+    queryString += "\" \"tag:";
+    queryString += tags[3].name();
+    queryString += "\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[0] = true;
+    expectedContainedNotesIndices[1] = true;
+    expectedContainedNotesIndices[2] = true;
+    expectedContainedNotesIndices[3] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.10.4) Check for both positive and negated tags
+    queryString = "tag:\"";
+    queryString += tags[4].name();
+    queryString += "\" -tag:\"";
+    queryString += tags[2].name();
+    queryString += "\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[3] = true;
+    expectedContainedNotesIndices[4] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.10.5) Find all notes with a tag
+    queryString = "tag:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[8] = false;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.10.6) Find all notes without a tag
+    queryString = "-tag:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[8] = true;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);

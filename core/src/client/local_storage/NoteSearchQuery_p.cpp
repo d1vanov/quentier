@@ -844,11 +844,11 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
             bool conversionResult = false;
             qint64 value = static_cast<qint64>(word.toLongLong(&conversionResult));
             if (!conversionResult) {
-                error = QT_TR_NOOP("Error during search query parsing: "
-                                   "cannot convert parsed value to integer: parsed value = ");
+                error = QT_TR_NOOP("Invalid search query: cannot parse integer value \"");
                 error += word;
-                error += QT_TR_NOOP(", modifier of parsed value = ");
+                error += QT_TR_NOOP("\", search term of parsed value is \"");
                 error += key;
+                error += "\"";
                 return false;
             }
 
@@ -930,11 +930,11 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
             bool conversionResult = false;
             double value = static_cast<double>(word.toDouble(&conversionResult));
             if (!conversionResult) {
-                error = QT_TR_NOOP("Error during search query parsing: "
-                                   "cannot convert parsed value to double: parsed value = ");
+                error = QT_TR_NOOP("Invalid search query: cannot parse double value \"");
                 error += word;
-                error += QT_TR_NOOP(", modifier of parsed value = ");
+                error += QT_TR_NOOP("\", search term of parsed value is \"");
                 error += key;
+                error += "\"";
                 return false;
             }
 
@@ -1061,9 +1061,10 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
     // Getting here means the datetime in the string is actually a datetime in ISO 8601 compact profile
     dateTime = QDateTime::fromString(dateTimeString, Qt::ISODate);
     if (!dateTime.isValid()) {
-        error = QT_TR_NOOP("Internal error: datetime in query string is invalid with respect to ISO 8601 compact profile: ");
+        error = QT_TR_NOOP("Invalid query string: cannot parse datetime from \"");
         error += dateTimeString;
-        QNWARNING(error);
+        error += "\"";
+        QNDEBUG(error);
         return false;
     }
 
