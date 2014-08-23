@@ -73,7 +73,7 @@ bool IUser::checkParameters(QString & errorDescription) const
     if (enUser.username.isSet())
     {
         const QString & username = enUser.username.ref();
-        size_t usernameSize = username.size();
+        int usernameSize = username.size();
 
         if ( (usernameSize > qevercloud::EDAM_USER_USERNAME_LEN_MAX) ||
              (usernameSize < qevercloud::EDAM_USER_USERNAME_LEN_MIN) )
@@ -101,7 +101,7 @@ bool IUser::checkParameters(QString & errorDescription) const
     if (enUser.name.isSet())
     {
         const QString & name = enUser.name;
-        size_t nameSize = name.size();
+        int nameSize = name.size();
 
         if ( (nameSize > qevercloud::EDAM_USER_NAME_LEN_MAX) ||
              (nameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) )
@@ -126,7 +126,7 @@ bool IUser::checkParameters(QString & errorDescription) const
     if (enUser.timezone.isSet())
     {
         const QString & timezone = enUser.timezone;
-        size_t timezoneSize = timezone.size();
+        int timezoneSize = timezone.size();
 
         if ( (timezoneSize > qevercloud::EDAM_TIMEZONE_LEN_MAX) ||
              (timezoneSize < qevercloud::EDAM_TIMEZONE_LEN_MIN) )
@@ -156,7 +156,7 @@ bool IUser::checkParameters(QString & errorDescription) const
         if (attributes.defaultLocationName.isSet())
         {
             const QString & defaultLocationName = attributes.defaultLocationName;
-            size_t defaultLocationNameSize = defaultLocationName.size();
+            int defaultLocationNameSize = defaultLocationName.size();
 
             if ( (defaultLocationNameSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                  (defaultLocationNameSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
@@ -176,7 +176,7 @@ bool IUser::checkParameters(QString & errorDescription) const
             const QStringList & viewedPromotions = attributes.viewedPromotions;
             foreach(const QString & viewedPromotion, viewedPromotions)
             {
-                size_t viewedPromotionSize = viewedPromotion.size();
+                int viewedPromotionSize = viewedPromotion.size();
                 if ( (viewedPromotionSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                      (viewedPromotionSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
                 {
@@ -194,7 +194,7 @@ bool IUser::checkParameters(QString & errorDescription) const
         if (attributes.incomingEmailAddress.isSet())
         {
             const QString & incomingEmailAddress = attributes.incomingEmailAddress;
-            size_t incomingEmailAddressSize = incomingEmailAddress.size();
+            int incomingEmailAddressSize = incomingEmailAddress.size();
 
             if ( (incomingEmailAddressSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                  (incomingEmailAddressSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
@@ -212,7 +212,7 @@ bool IUser::checkParameters(QString & errorDescription) const
         if (attributes.recentMailedAddresses.isSet())
         {
             const QStringList & recentMailedAddresses = attributes.recentMailedAddresses;
-            size_t numRecentMailedAddresses = recentMailedAddresses.size();
+            int numRecentMailedAddresses = recentMailedAddresses.size();
 
             if (numRecentMailedAddresses > qevercloud::EDAM_USER_RECENT_MAILED_ADDRESSES_MAX)
             {
@@ -224,7 +224,7 @@ bool IUser::checkParameters(QString & errorDescription) const
 
             foreach(const QString & recentMailedAddress, recentMailedAddresses)
             {
-                size_t recentMailedAddressSize = recentMailedAddress.size();
+                int recentMailedAddressSize = recentMailedAddress.size();
                 if ( (recentMailedAddressSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                      (recentMailedAddressSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
                 {
@@ -242,7 +242,7 @@ bool IUser::checkParameters(QString & errorDescription) const
         if (attributes.comments.isSet())
         {
             const QString & comments = attributes.comments;
-            size_t commentsSize = comments.size();
+            int commentsSize = comments.size();
 
             if ( (commentsSize > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ||
                  (commentsSize < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) )
@@ -504,6 +504,16 @@ IUser::IUser(IUser && other) :
     m_isDirty(std::move(other.m_isDirty)),
     m_isLocal(std::move(other.m_isLocal))
 {}
+
+IUser & IUser::operator=(IUser && other)
+{
+    if (this != std::addressof(other)) {
+        m_isDirty = std::move(other.m_isDirty);
+        m_isLocal = std::move(other.m_isLocal);
+    }
+
+    return *this;
+}
 
 QTextStream & IUser::Print(QTextStream & strm) const
 {

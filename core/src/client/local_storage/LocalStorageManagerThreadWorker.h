@@ -7,8 +7,8 @@
 
 namespace qute_note {
 
-class LocalStorageManagerThreadWorker: public QObject,
-                                       public IAsyncLocalStorageManager
+class QUTE_NOTE_EXPORT LocalStorageManagerThreadWorker: public QObject,
+                                                        public IAsyncLocalStorageManager
 {
     Q_OBJECT
 public:

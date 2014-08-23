@@ -693,7 +693,7 @@ void CoreTester::localStorageManagerListAllSavedSearchesTest()
                              QString::number(nSearches) + ")"));
         }
 
-        for(size_t i = 0; i < numFoundSearches; ++i)
+        for(int i = 0; i < numFoundSearches; ++i)
         {
             const SavedSearch & foundSearch = foundSearches.at(i);
             if (!searches.contains(foundSearch)) {
@@ -749,7 +749,7 @@ void CoreTester::localStorageManagerListAllLinkedNotebooksTest()
                              QString::number(nLinkedNotebooks) + ")"));
         }
 
-        for(size_t i = 0; i < numFoundLinkedNotebooks; ++i)
+        for(int i = 0; i < numFoundLinkedNotebooks; ++i)
         {
             const LinkedNotebook & foundLinkedNotebook = foundLinkedNotebooks.at(i);
             if (!linkedNotebooks.contains(foundLinkedNotebook)) {
@@ -870,7 +870,7 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
                              QString::number(numSharedNotebooks) + ")"));
         }
 
-        for(size_t i = 0; i < numFoundSharedNotebooks; ++i)
+        for(int i = 0; i < numFoundSharedNotebooks; ++i)
         {
             const SharedNotebookWrapper & foundSharedNotebook = foundSharedNotebooks.at(i);
             if (!sharedNotebooks.contains(foundSharedNotebook)) {
@@ -1134,7 +1134,7 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
                              QString::number(numNotebooks) + ")"));
         }
 
-        for(size_t i = 0; i < numFoundNotebooks; ++i)
+        for(int i = 0; i < numFoundNotebooks; ++i)
         {
             const Notebook & foundNotebook = foundNotebooks.at(i);
             if (!notebooks.contains(foundNotebook)) {

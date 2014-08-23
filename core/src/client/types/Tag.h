@@ -11,9 +11,9 @@ class QUTE_NOTE_EXPORT Tag final: public DataElementWithShortcut
 public:
     Tag();
     Tag(const Tag & other) = default;
-    Tag(Tag && other) = default;
+    Tag(Tag && other);
     Tag & operator=(const Tag & other) = default;
-    Tag & operator=(Tag && other) = default;
+    Tag & operator=(Tag && other);
 
     Tag(const qevercloud::Tag & other);
     Tag(qevercloud::Tag && other);

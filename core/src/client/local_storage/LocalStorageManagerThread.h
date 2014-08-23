@@ -29,8 +29,8 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
  * for dealing with asynchronous database connections, but maintains a simple and familiar interface
  * using QObject::connect()".
  */
-class LocalStorageManagerThread: public QThread,
-                                 public IAsyncLocalStorageManager
+class QUTE_NOTE_EXPORT LocalStorageManagerThread: public QThread,
+                                                  public IAsyncLocalStorageManager
 {
     Q_OBJECT
 public:

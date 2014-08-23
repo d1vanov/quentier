@@ -15,9 +15,9 @@ class QUTE_NOTE_EXPORT UserWrapper final: public IUser
 public:
     UserWrapper() = default;
     UserWrapper(const UserWrapper & other) = default;
-    UserWrapper(UserWrapper && other) = default;
+    UserWrapper(UserWrapper && other);
     UserWrapper & operator=(const UserWrapper & other) = default;
-    UserWrapper & operator=(UserWrapper && other) = default;
+    UserWrapper & operator=(UserWrapper && other);
 
     virtual ~UserWrapper() final override;
 

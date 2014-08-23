@@ -119,6 +119,7 @@ Note & Note::operator=(Note && other)
 Note & Note::operator=(qevercloud::Note && other)
 {
     m_qecNote = std::move(other);
+
     m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
     m_lazyListOfWordsIsValid = false;
     m_lazyContainsCheckedToDo = -1;
@@ -208,7 +209,7 @@ bool Note::checkParameters(QString & errorDescription) const
 
     if (m_qecNote.title.isSet())
     {
-        size_t titleSize = m_qecNote.title->size();
+        int titleSize = m_qecNote.title->size();
 
         if ( (titleSize < qevercloud::EDAM_NOTE_TITLE_LEN_MIN) ||
              (titleSize > qevercloud::EDAM_NOTE_TITLE_LEN_MAX) )
@@ -220,7 +221,7 @@ bool Note::checkParameters(QString & errorDescription) const
 
     if (m_qecNote.content.isSet())
     {
-        size_t contentSize = m_qecNote.content->size();
+        int contentSize = m_qecNote.content->size();
 
         if ( (contentSize < qevercloud::EDAM_NOTE_CONTENT_LEN_MIN) ||
              (contentSize > qevercloud::EDAM_NOTE_CONTENT_LEN_MAX) )
@@ -247,7 +248,7 @@ bool Note::checkParameters(QString & errorDescription) const
 
     if (m_qecNote.tagGuids.isSet())
     {
-        size_t numTagGuids = m_qecNote.tagGuids->size();
+        int numTagGuids = m_qecNote.tagGuids->size();
 
         if (numTagGuids > qevercloud::EDAM_NOTE_TAGS_MAX) {
             errorDescription = QT_TR_NOOP("Note has too many tags, max allowed ");
@@ -258,7 +259,7 @@ bool Note::checkParameters(QString & errorDescription) const
 
     if (m_qecNote.resources.isSet())
     {
-        size_t numResources = m_qecNote.resources->size();
+        int numResources = m_qecNote.resources->size();
 
         if (numResources > qevercloud::EDAM_NOTE_RESOURCES_MAX) {
             errorDescription = QT_TR_NOOP("Note has too many resources, max allowed ");
@@ -274,7 +275,7 @@ bool Note::checkParameters(QString & errorDescription) const
 
 #define CHECK_NOTE_ATTRIBUTE(name) \
     if (attributes.name.isSet()) { \
-        size_t name##Size = attributes.name->size(); \
+        int name##Size = attributes.name->size(); \
         \
         if ( (name##Size < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) || \
              (name##Size > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ) \

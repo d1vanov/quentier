@@ -6,14 +6,14 @@
 
 namespace qute_note {
 
-class LinkedNotebook final: public NoteStoreDataElement
+class QUTE_NOTE_EXPORT LinkedNotebook final: public NoteStoreDataElement
 {
 public:
     LinkedNotebook() = default;
     LinkedNotebook(const LinkedNotebook & other) = default;
-    LinkedNotebook(LinkedNotebook && other) = default;
+    LinkedNotebook(LinkedNotebook && other);
     LinkedNotebook & operator=(const LinkedNotebook & other) = default;
-    LinkedNotebook & operator=(LinkedNotebook && other) = default;
+    LinkedNotebook & operator=(LinkedNotebook && other);
 
     LinkedNotebook(const qevercloud::LinkedNotebook & linkedNotebook);
     LinkedNotebook(qevercloud::LinkedNotebook && linkedNotebook);

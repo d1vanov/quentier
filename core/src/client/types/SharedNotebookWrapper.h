@@ -15,9 +15,9 @@ class QUTE_NOTE_EXPORT SharedNotebookWrapper final: public ISharedNotebook
 public:
     SharedNotebookWrapper() = default;
     SharedNotebookWrapper(const SharedNotebookWrapper & other) = default;
-    SharedNotebookWrapper(SharedNotebookWrapper && other) = default;
+    SharedNotebookWrapper(SharedNotebookWrapper && other);
     SharedNotebookWrapper & operator=(const SharedNotebookWrapper & other) = default;
-    SharedNotebookWrapper & operator=(SharedNotebookWrapper && other) = default;
+    SharedNotebookWrapper & operator=(SharedNotebookWrapper && other);
 
     SharedNotebookWrapper(const qevercloud::SharedNotebook & other);
     SharedNotebookWrapper(qevercloud::SharedNotebook && other);

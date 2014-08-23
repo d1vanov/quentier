@@ -4,6 +4,20 @@
 
 namespace qute_note {
 
+LinkedNotebook::LinkedNotebook(LinkedNotebook && other) :
+    NoteStoreDataElement(std::move(other)),
+    m_qecLinkedNotebook(std::move(other.m_qecLinkedNotebook))
+{}
+
+LinkedNotebook & LinkedNotebook::operator=(LinkedNotebook && other)
+{
+    if (this != std::addressof(other)) {
+        m_qecLinkedNotebook = std::move(other);
+    }
+
+    return *this;
+}
+
 LinkedNotebook::LinkedNotebook(const qevercloud::LinkedNotebook & linkedNotebook) :
     NoteStoreDataElement(),
     m_qecLinkedNotebook(linkedNotebook)

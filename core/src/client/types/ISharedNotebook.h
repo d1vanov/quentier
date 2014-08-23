@@ -76,7 +76,9 @@ public:
 
 protected:
     ISharedNotebook(const ISharedNotebook & other);
+    ISharedNotebook(ISharedNotebook && other);
     ISharedNotebook & operator=(const ISharedNotebook & other);
+    ISharedNotebook & operator=(ISharedNotebook && other);
 
     virtual qevercloud::SharedNotebook & GetEnSharedNotebook() = 0;
     virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const = 0;

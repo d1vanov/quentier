@@ -7,6 +7,20 @@ SharedNotebookWrapper::SharedNotebookWrapper(const qevercloud::SharedNotebook & 
     m_qecSharedNotebook(other)
 {}
 
+SharedNotebookWrapper::SharedNotebookWrapper(SharedNotebookWrapper && other) :
+    ISharedNotebook(),
+    m_qecSharedNotebook(std::move(other.m_qecSharedNotebook))
+{}
+
+SharedNotebookWrapper & SharedNotebookWrapper::operator=(SharedNotebookWrapper && other)
+{
+    if (this != std::addressof(other)) {
+        m_qecSharedNotebook = std::move(other.m_qecSharedNotebook);
+    }
+
+    return *this;
+}
+
 SharedNotebookWrapper::SharedNotebookWrapper(qevercloud::SharedNotebook && other) :
     ISharedNotebook(),
     m_qecSharedNotebook(std::move(other))

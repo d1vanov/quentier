@@ -22,7 +22,7 @@ QT_FORWARD_DECLARE_CLASS(SavedSearch)
  * slot like "onRequestToDoSmth" + a couple of "complete"/"failed" resulting signals
  * for each public method in LocalStorageManager.
  */
-class IAsyncLocalStorageManager
+class QUTE_NOTE_EXPORT IAsyncLocalStorageManager
 {
 public:
     virtual ~IAsyncLocalStorageManager();
@@ -30,9 +30,9 @@ public:
 protected:
     IAsyncLocalStorageManager() = default;
     IAsyncLocalStorageManager(const IAsyncLocalStorageManager & other) = default;
-    IAsyncLocalStorageManager(IAsyncLocalStorageManager && other) = default;
+    IAsyncLocalStorageManager(IAsyncLocalStorageManager && other);
     IAsyncLocalStorageManager & operator=(const IAsyncLocalStorageManager & other) = default;
-    IAsyncLocalStorageManager & operator=(IAsyncLocalStorageManager && other) = default;
+    IAsyncLocalStorageManager & operator=(IAsyncLocalStorageManager && other);
 
     // Pure virtual prototypes for signals to be emitted from subclasses:
 

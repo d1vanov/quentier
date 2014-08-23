@@ -1,8 +1,10 @@
 #ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H
 #define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H
 
+#include <tools/Linkage.h>
 #include <QString>
 #include <QSharedPointer>
+#include <cstdint>
 
 namespace qevercloud {
 QT_FORWARD_DECLARE_STRUCT(ResourceAttributes)
@@ -32,7 +34,7 @@ typedef qevercloud::UserID UserID;
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerPrivate)
 
-class LocalStorageManager
+class QUTE_NOTE_EXPORT LocalStorageManager
 {
 public:
     /**

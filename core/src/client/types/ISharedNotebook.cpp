@@ -257,11 +257,28 @@ ISharedNotebook::ISharedNotebook(const ISharedNotebook & other) :
     m_indexInNotebook(other.m_indexInNotebook)
 {}
 
+ISharedNotebook::ISharedNotebook(ISharedNotebook && other) :
+    TypeWithError(std::move(other)),
+    m_indexInNotebook(std::move(other.m_indexInNotebook))
+{}
+
 ISharedNotebook & ISharedNotebook::operator=(const ISharedNotebook & other)
 {
+    TypeWithError::operator=(other);
+
     if (this != &other) {
-        TypeWithError::operator=(other);
-        setIndexInNotebook(other.m_indexInNotebook);
+        m_indexInNotebook = other.m_indexInNotebook;
+    }
+
+    return *this;
+}
+
+ISharedNotebook & ISharedNotebook::operator=(ISharedNotebook && other)
+{
+    TypeWithError::operator=(std::move(other));
+
+    if (this != std::addressof(other)) {
+        m_indexInNotebook = std::move(other.m_indexInNotebook);
     }
 
     return *this;

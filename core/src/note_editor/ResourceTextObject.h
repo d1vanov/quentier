@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__NOTE_EDITOR__RESOURCE_TEXT_OBJECT_H
 #define __QUTE_NOTE__NOTE_EDITOR__RESOURCE_TEXT_OBJECT_H
 
+#include <tools/Linkage.h>
 #include <QScopedPointer>
 #include <QTextObjectInterface>
 
@@ -8,7 +9,7 @@ namespace qevercloud {
 QT_FORWARD_DECLARE_STRUCT(Resource)
 }
 
-class ResourceTextObject: public QObject, public QTextObjectInterface
+class QUTE_NOTE_EXPORT ResourceTextObject: public QObject, public QTextObjectInterface
 {
     Q_OBJECT
     Q_INTERFACES(QTextObjectInterface)

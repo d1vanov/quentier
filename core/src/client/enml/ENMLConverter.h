@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
 
+#include <tools/Linkage.h>
 #include <QSet>
 #include <QString>
 
@@ -16,7 +17,7 @@ QT_FORWARD_DECLARE_STRUCT(Resource)
 
 namespace qute_note {
 
-class ENMLConverter
+class QUTE_NOTE_EXPORT ENMLConverter
 {
 public:
     ENMLConverter();
@@ -60,7 +61,6 @@ private:
     QSet<QString> m_allowedXhtmlTags;
 };
 
-
-}
+} // namespace qute_note
 
 #endif // __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H

@@ -1,11 +1,12 @@
 #ifndef __QUTE_NOTE__CORE__TOOLS__EVENT_LOOP_WITH_EXIT_STATUS_H
 #define __QUTE_NOTE__CORE__TOOLS__EVENT_LOOP_WITH_EXIT_STATUS_H
 
+#include <tools/Linkage.h>
 #include <QEventLoop>
 
 namespace qute_note {
 
-class EventLoopWithExitStatus : public QEventLoop
+class QUTE_NOTE_EXPORT EventLoopWithExitStatus : public QEventLoop
 {
     Q_OBJECT
 public:

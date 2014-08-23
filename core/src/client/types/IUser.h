@@ -90,14 +90,13 @@ public:
 protected:
     IUser(const IUser & other);
     IUser(IUser && other);
+    IUser & operator=(const IUser & other) = default;
+    IUser & operator=(IUser && other);
 
     virtual const qevercloud::User & GetEnUser() const = 0;
     virtual qevercloud::User & GetEnUser() = 0;
 
 private:
-    // prevent slicing:
-    IUser & operator=(const IUser & other) = delete;
-
     virtual QTextStream & Print(QTextStream & strm) const;
 
     bool m_isDirty;

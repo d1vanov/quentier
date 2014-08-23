@@ -29,7 +29,7 @@ qint64 SysInfo::GetFreeMemoryBytes()
     ZeroMemory(&memory_status, sizeof(MEMORYSTATUSEX));
     memory_status.dwLength = sizeof(MEMORYSTATUSEX);
     if (GlobalMemoryStatusEx(&memory_status)) {
-        return static_cast<qint64>(statex.ullAvailPhys);
+        return static_cast<qint64>(memory_status.ullAvailPhys);
     }
     else {
         return -1;
@@ -45,7 +45,7 @@ qint64 SysInfo::GetTotalMemoryBytes()
     ZeroMemory(&memory_status, sizeof(MEMORYSTATUSEX));
     memory_status.dwLength = sizeof(MEMORYSTATUSEX);
     if (GlobalMemoryStatusEx(&memory_status)) {
-        return static_cast<qint64>(statex.ullTotalPhys);
+        return static_cast<qint64>(memory_status.ullTotalPhys);
     }
     else {
         return -1;

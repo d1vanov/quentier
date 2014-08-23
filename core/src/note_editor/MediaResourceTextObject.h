@@ -1,9 +1,10 @@
 #ifndef MEDIARESOURCETEXTOBJECT_H
 #define MEDIARESOURCETEXTOBJECT_H
 
+#include <tools/Linkage.h>
 #include <QTextObjectInterface>
 
-class MediaResourceTextObject : public QObject, public QTextObjectInterface
+class QUTE_NOTE_EXPORT MediaResourceTextObject : public QObject, public QTextObjectInterface
 {
     Q_OBJECT
     Q_INTERFACES(QTextObjectInterface)

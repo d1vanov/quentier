@@ -1,13 +1,14 @@
 #ifndef __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H
 #define __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H
 
+#include <tools/Linkage.h>
 #include <client/enml/ENMLConverter.h>
 #include <QTextEdit>
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QImage)
 
-class QuteNoteTextEdit: public QTextEdit
+class QUTE_NOTE_EXPORT QuteNoteTextEdit: public QTextEdit
 {
     Q_OBJECT
 public:

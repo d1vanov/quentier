@@ -29,6 +29,19 @@ Notebook::Notebook(qevercloud::Notebook && other) :
     m_isLastUsed(false)
 {}
 
+Notebook & Notebook::operator=(Notebook && other)
+{
+    DataElementWithShortcut::operator=(std::move(other));
+
+    if (this != std::addressof(other)) {
+        m_qecNotebook = std::move(other.m_qecNotebook);
+        m_isLocal = std::move(other.m_isLocal);
+        m_isLastUsed = std::move(other.m_isLastUsed);
+    }
+
+    return *this;
+}
+
 Notebook & Notebook::operator=(const qevercloud::Notebook & other)
 {
     m_qecNotebook = other;
@@ -124,7 +137,7 @@ bool Notebook::checkParameters(QString & errorDescription) const
 
     if (m_qecNotebook.name.isSet())
     {
-        size_t nameSize = m_qecNotebook.name->size();
+        int nameSize = m_qecNotebook.name->size();
         if ( (nameSize < qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN) ||
              (nameSize > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX) )
         {
@@ -153,7 +166,7 @@ bool Notebook::checkParameters(QString & errorDescription) const
     {
         if (m_qecNotebook.businessNotebook->notebookDescription.isSet())
         {
-            size_t businessNotebookDescriptionSize = m_qecNotebook.businessNotebook->notebookDescription->size();
+            int businessNotebookDescriptionSize = m_qecNotebook.businessNotebook->notebookDescription->size();
 
             if ( (businessNotebookDescriptionSize < qevercloud::EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MIN) ||
                  (businessNotebookDescriptionSize > qevercloud::EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MAX) )

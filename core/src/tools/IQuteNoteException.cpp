@@ -15,7 +15,11 @@ const QString IQuteNoteException::errorMessage() const
     return m_message;
 }
 
+#if defined(_MSC_VER)
+const char * IQuteNoteException::what() const
+#else
 const char * IQuteNoteException::what() const noexcept
+#endif
 {
     return qPrintable(m_message);
 }

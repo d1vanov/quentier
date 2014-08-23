@@ -4,6 +4,22 @@
 
 namespace qute_note {
 
+SavedSearch::SavedSearch(SavedSearch && other) :
+    DataElementWithShortcut(std::move(other)),
+    m_qecSearch(std::move(other))
+{}
+
+SavedSearch & SavedSearch::operator=(SavedSearch && other)
+{
+    DataElementWithShortcut::operator=(std::move(other));
+
+    if (this != std::addressof(other)) {
+        m_qecSearch = std::move(other.m_qecSearch);
+    }
+
+    return *this;
+}
+
 SavedSearch::SavedSearch(const qevercloud::SavedSearch & search) :
     DataElementWithShortcut(),
     m_qecSearch(search)
@@ -97,7 +113,7 @@ bool SavedSearch::checkParameters(QString & errorDescription) const
     if (m_qecSearch.name.isSet())
     {
         const QString & name = m_qecSearch.name;
-        size_t nameSize = name.size();
+        int nameSize = name.size();
 
         if ( (nameSize < qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN) ||
              (nameSize > qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX) )
@@ -125,7 +141,7 @@ bool SavedSearch::checkParameters(QString & errorDescription) const
     if (m_qecSearch.query.isSet())
     {
         const QString & query = m_qecSearch.query;
-        size_t querySize = query.size();
+        int querySize = query.size();
 
         if ( (querySize < qevercloud::EDAM_SEARCH_QUERY_LEN_MIN) ||
              (querySize > qevercloud::EDAM_SEARCH_QUERY_LEN_MAX) )

@@ -47,7 +47,7 @@ private:
 
 namespace qute_note_private {
 
-void messageHandler(QtMsgType type, const QMessageLogContext & context, const QString & message);
+void QUTE_NOTE_EXPORT messageHandler(QtMsgType type, const QMessageLogContext & context, const QString & message);
 
 }
 
@@ -70,7 +70,7 @@ void messageHandler(QtMsgType type, const QMessageLogContext & context, const QS
 
 namespace qute_note_private {
 
-void messageHandler(QtMsgType type, const char * msg);
+void QUTE_NOTE_EXPORT messageHandler(QtMsgType type, const char * msg);
 
 }
 

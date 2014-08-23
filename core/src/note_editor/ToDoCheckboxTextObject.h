@@ -1,11 +1,12 @@
 #ifndef __QUTE_NOTE__TODO_CHECKBOX_TEXT_OBJECT_H
 #define __QUTE_NOTE__TODO_CHECKBOX_TEXT_OBJECT_H
 
+#include <tools/Linkage.h>
 #include <QTextObjectInterface>
 
 // NOTE: I have to declare two classes instead of a template one as Q_OBJECT does not support template classes
 
-class ToDoCheckboxTextObjectUnchecked: public QObject, public QTextObjectInterface
+class QUTE_NOTE_EXPORT ToDoCheckboxTextObjectUnchecked: public QObject, public QTextObjectInterface
 {
     Q_OBJECT
     Q_INTERFACES(QTextObjectInterface)
@@ -23,7 +24,7 @@ public:
                                  const QTextFormat & format) final override;
 };
 
-class ToDoCheckboxTextObjectChecked: public QObject, public QTextObjectInterface
+class QUTE_NOTE_EXPORT ToDoCheckboxTextObjectChecked: public QObject, public QTextObjectInterface
 {
     Q_OBJECT
     Q_INTERFACES(QTextObjectInterface)

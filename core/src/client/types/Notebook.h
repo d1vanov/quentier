@@ -17,9 +17,9 @@ class QUTE_NOTE_EXPORT Notebook final: public DataElementWithShortcut
 public:
     Notebook();
     Notebook(const Notebook & other) = default;
-    Notebook(Notebook && other) = default;
+    Notebook(Notebook && other);
     Notebook & operator=(const Notebook & other) = default;
-    Notebook & operator=(Notebook && other) = default;
+    Notebook & operator=(Notebook && other);
 
     Notebook(const qevercloud::Notebook & other);
     Notebook(qevercloud::Notebook && other);

@@ -11,6 +11,26 @@ Tag::Tag() :
     m_isDeleted(false)
 {}
 
+Tag::Tag(Tag && other) :
+    DataElementWithShortcut(std::move(other)),
+    m_qecTag(std::move(other.m_qecTag)),
+    m_isLocal(std::move(other.m_isLocal)),
+    m_isDeleted(std::move(other.m_isDeleted))
+{}
+
+Tag & Tag::operator=(Tag && other)
+{
+    DataElementWithShortcut::operator=(std::move(other));
+
+    if (this != std::addressof(other)) {
+        m_qecTag = std::move(other.m_qecTag);
+        m_isLocal = std::move(other.m_isLocal);
+        m_isDeleted = std::move(other.m_isDeleted);
+    }
+
+    return *this;
+}
+
 Tag::Tag(const qevercloud::Tag & other) :
     DataElementWithShortcut(),
     m_qecTag(other),
@@ -103,7 +123,7 @@ bool Tag::checkParameters(QString & errorDescription) const
 
     if (m_qecTag.name.isSet())
     {
-        size_t nameSize = m_qecTag.name->size();
+        int nameSize = m_qecTag.name->size();
         if ( (nameSize < qevercloud::EDAM_TAG_NAME_LEN_MIN) ||
              (nameSize > qevercloud::EDAM_TAG_NAME_LEN_MAX) )
         {

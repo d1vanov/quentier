@@ -10,7 +10,7 @@ namespace qute_note {
 template <class T>
 bool CheckGuid(const T & guid)
 {
-    size_t guidSize = guid.size();
+    qint32 guidSize = static_cast<qint32>(guid.size());
 
     if (guidSize < qevercloud::EDAM_GUID_LEN_MIN) {
         return false;

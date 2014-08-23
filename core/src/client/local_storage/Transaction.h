@@ -1,11 +1,12 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__TRANSACTION_H
 #define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__TRANSACTION_H
 
+#include <tools/Linkage.h>
 #include <QSqlDatabase>
 
 namespace qute_note {
 
-class Transaction
+class QUTE_NOTE_EXPORT Transaction
 {
 public:
     enum TransactionType {

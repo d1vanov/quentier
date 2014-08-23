@@ -68,6 +68,7 @@ else()
 endif()
 
 set(${PROJECT_NAME}_SOURCES
+    src/note_editor/HorizontalLineExtraData.cpp
     src/note_editor/QuteNoteTextEdit.cpp
     src/note_editor/ResourceTextObject.cpp
     src/note_editor/ToDoCheckboxTextObject.cpp
@@ -180,7 +181,7 @@ else()
 endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  add_definitions("-DBUILDING_QUTE_NOTE_DLL")
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "BUILDING_QUTE_NOTE_DLL=1")
 endif()
 
 # modifying sources list with absolute paths for cppcheck

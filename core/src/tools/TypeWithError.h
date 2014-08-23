@@ -22,7 +22,8 @@ protected:
     TypeWithError();
     TypeWithError(const TypeWithError & other);
     TypeWithError(TypeWithError && other);
-    TypeWithError & operator =(const TypeWithError & other);
+    TypeWithError & operator=(const TypeWithError & other);
+    TypeWithError & operator=(TypeWithError && other);
     virtual ~TypeWithError();
 
 private:

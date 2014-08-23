@@ -15,9 +15,9 @@ public:
 public:
     SavedSearch() = default;
     SavedSearch(const SavedSearch & other) = default;
-    SavedSearch(SavedSearch && other) = default;
+    SavedSearch(SavedSearch && other);
     SavedSearch & operator=(const SavedSearch & other) = default;
-    SavedSearch & operator=(SavedSearch && other) = default;
+    SavedSearch & operator=(SavedSearch && other);
 
     SavedSearch(const qevercloud::SavedSearch & search);
     SavedSearch(qevercloud::SavedSearch && search);
