@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__TODO_CHECKBOX_TEXT_OBJECT_H
-#define __QUTE_NOTE__TODO_CHECKBOX_TEXT_OBJECT_H
+#ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__TODO_CHECKBOX_TEXT_OBJECT_H
+#define __QUTE_NOTE__CORE__NOTE_EDITOR__TODO_CHECKBOX_TEXT_OBJECT_H
 
 #include <tools/Linkage.h>
 #include <QTextObjectInterface>
@@ -42,4 +42,4 @@ public:
                                  const QTextFormat & format) final override;
 };
 
-#endif // __QUTE_NOTE__TODO_CHECKBOX_TEXT_OBJECT_H
+#endif // __QUTE_NOTE__CORE__NOTE_EDITOR__TODO_CHECKBOX_TEXT_OBJECT_H

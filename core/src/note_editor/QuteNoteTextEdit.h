@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H
-#define __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H
+#ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__QUTE_NOTE_TEXT_EDIT_H
+#define __QUTE_NOTE__CORE__NOTE_EDITOR__QUTE_NOTE_TEXT_EDIT_H
 
 #include <tools/Linkage.h>
 #include <client/enml/ENMLConverter.h>
@@ -55,4 +55,4 @@ private:
     std::pair<QImage, QImage> m_todoCheckboxImgs;
 };
 
-#endif // __QUTE_NOTE___QUTE_NOTE_TEXT_EDIT_H
+#endif // __QUTE_NOTE__CORE__NOTE_EDITOR__QUTE_NOTE_TEXT_EDIT_H

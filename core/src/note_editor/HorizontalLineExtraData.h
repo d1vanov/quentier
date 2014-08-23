@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__HORIZONTAL_LINE_EXTRA_DATA_H
-#define __QUTE_NOTE__HORIZONTAL_LINE_EXTRA_DATA_H
+#ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__HORIZONTAL_LINE_EXTRA_DATA_H
+#define __QUTE_NOTE__CORE__NOTE_EDITOR__HORIZONTAL_LINE_EXTRA_DATA_H
 
 #include <tools/Linkage.h>
 #include <QTextBlockUserData>
@@ -11,4 +11,4 @@ public:
     virtual ~HorizontalLineExtraData() override;
 };
 
-#endif // __QUTE_NOTE__HORIZONTAL_LINE_EXTRA_DATA_H
+#endif // __QUTE_NOTE__CORE__NOTE_EDITOR__HORIZONTAL_LINE_EXTRA_DATA_H

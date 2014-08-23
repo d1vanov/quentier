@@ -1,5 +1,5 @@
-#ifndef MEDIARESOURCETEXTOBJECT_H
-#define MEDIARESOURCETEXTOBJECT_H
+#ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__MEDIA_RESOURCE_TEXT_OBJECT_H
+#define __QUTE_NOTE__CORE__NOTE_EDITOR__MEDIA_RESOURCE_TEXT_OBJECT_H
 
 #include <tools/Linkage.h>
 #include <QTextObjectInterface>
@@ -22,4 +22,4 @@ public:
                                  const QTextFormat & format) = 0;
 };
 
-#endif // MEDIARESOURCETEXTOBJECT_H
+#endif // __QUTE_NOTE__CORE__NOTE_EDITOR__MEDIA_RESOURCE_TEXT_OBJECT_H
