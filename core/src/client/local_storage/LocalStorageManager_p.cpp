@@ -5615,25 +5615,41 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!tagLocalGuids.isEmpty())
         {
-            const int numTagLocalGuids = tagLocalGuids.size();
-            sql += "(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
-                   "FROM NoteTags WHERE NoteTags.localTag IN ('";
-            foreach(const QString & tagLocalGuid, tagLocalGuids) {
-                sql += tagLocalGuid;
-                sql += "', '";
-            }
-            sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+            if (!queryHasAnyModifier)
+            {
+                // One note can be labeled with multiple tags; therefore, when the search is for notes with
+                // some particular tags, we need to ensure that each note's local guid in the sub-query result
+                // is present there exactly as many times as there are tags in the query which the note is labeled with
 
-            sql += ") GROUP BY localNote HAVING COUNT(*)";
-            if (queryHasAnyModifier) {
-                sql += "<=";
+                const int numTagLocalGuids = tagLocalGuids.size();
+                sql += "(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
+                       "FROM NoteTags WHERE NoteTags.localTag IN ('";
+                foreach(const QString & tagLocalGuid, tagLocalGuids) {
+                    sql += tagLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+                sql += ") GROUP BY localNote HAVING COUNT(*)=";
+                sql += QString::number(numTagLocalGuids);
+                sql += "))) ";
             }
-            else {
-                sql += "=";
+            else
+            {
+                // With "any:" modifier the search doesn't care about the exactness of tag-to-note map,
+                // it would instead pick just any note corresponding to any of requested tags at least once
+
+                sql += "(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag "
+                       "FROM NoteTags WHERE NoteTags.localTag IN ('";
+                foreach(const QString & tagLocalGuid, tagLocalGuids) {
+                    sql += tagLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+                sql += ")))) ";
             }
 
-            sql += QString::number(numTagLocalGuids);
-            sql += "))) ";
             sql += uniteOperator;
             sql += " ";
         }
@@ -5649,25 +5665,48 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!tagNegatedLocalGuids.isEmpty())
         {
-            const int numTagNegatedLocalGuids = tagNegatedLocalGuids.size();
-            sql += "(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
-                   "FROM NoteTags WHERE NoteTags.localTag IN ('";
-            foreach(const QString & tagNegatedLocalGuid, tagNegatedLocalGuids) {
-                sql += tagNegatedLocalGuid;
-                sql += "', '";
-            }
-            sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+            if (!queryHasAnyModifier)
+            {
+                // First find all notes' local guids which actually correspond to negated tags' local guids;
+                // then simply negate that condition
 
-            sql += ") GROUP BY localNote HAVING COUNT(*)";
-            if (queryHasAnyModifier) {
-                sql += "<=";
+                const int numTagNegatedLocalGuids = tagNegatedLocalGuids.size();
+                sql += "(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
+                       "FROM NoteTags WHERE NoteTags.localTag IN ('";
+                foreach(const QString & tagNegatedLocalGuid, tagNegatedLocalGuids) {
+                    sql += tagNegatedLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+                sql += ") GROUP BY localNote HAVING COUNT(*)=";
+                sql += QString::number(numTagNegatedLocalGuids);
+
+                // Don't forget to account for the case of no tags used for note
+                // so it's not even present in NoteTags table
+
+                sql += ")) OR (NoteTags.localNote IS NULL)) ";
             }
-            else {
-                sql += "=";
+            else
+            {
+                // With "any:" modifier the search doesn't care about the exactness of tag-to-note map,
+                // it would instead pick just any note not from the list of notes corresponding to
+                // any of requested tags at least once
+
+                sql += "(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag "
+                       "FROM NoteTags WHERE NoteTags.localTag IN ('";
+                foreach(const QString & tagNegatedLocalGuid, tagNegatedLocalGuids) {
+                    sql += tagNegatedLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+                // Don't forget to account for the case of no tags used for note
+                // so it's not even present in NoteTags table
+
+                sql += "))) OR (NoteTags.localNote IS NULL)) ";
             }
 
-            sql += QString::number(numTagNegatedLocalGuids);
-            sql += ")) OR (NoteTags.localNote IS NULL)) ";
             sql += uniteOperator;
             sql += " ";
         }
