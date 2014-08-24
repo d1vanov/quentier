@@ -2893,7 +2893,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "END");
     DATABASE_CHECK_AND_SET_ERROR("can't create trigger ResourceRecoTypesFTS_AfterInsertTrigger");
 
-    res = query.exec("CREATE VIRTUAL TABLE ResourceMimeFTS USING FTS4(content=\"Resources\", mime)");
+    res = query.exec("CREATE VIRTUAL TABLE ResourceMimeFTS USING FTS4(content=\"Resources\", resourceLocalGuid, mime)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 ResourceMimeFTS table");
 
     res = query.exec("CREATE TRIGGER ResourceMimeFTS_BeforeDeleteTrigger BEFORE DELETE ON Resources "
@@ -5704,9 +5704,19 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceLocalGuidsPerMime.isEmpty())
         {
-            sql += "(NoteResources.localResource IN ('";
-            sql += resourceLocalGuidsPerMime.join(", ");
-            sql += "')) ";
+            const int numResourceLocalGuids = resourceLocalGuidsPerMime.size();
+            sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
+                   "FROM NoteResources WHERE NoteResources.localResource IN ('";
+            foreach(const QString & resourceLocalGuid, resourceLocalGuidsPerMime) {
+                sql += resourceLocalGuid;
+                sql += "', '";
+            }
+            sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+            sql += ") GROUP BY localNote HAVING COUNT(*)<=";
+
+            sql += QString::number(numResourceLocalGuids);
+            sql += "))) ";
             sql += uniteOperator;
             sql += " ";
         }
@@ -5724,9 +5734,19 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceNegatedLocalGuidsPerMime.isEmpty())
         {
-            sql += "((NoteResources.localNote NOT IN (SELECT DISTINCT localNote FROM NoteResources WHERE localResource IN ('";
-            sql += resourceNegatedLocalGuidsPerMime.join(", ");
-            sql += "'))) OR (NoteResources.localNote IS NULL)) ";
+            const int numResourceNegatedLocalGuids = resourceNegatedLocalGuidsPerMime.size();
+            sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
+                   "FROM NoteResources WHERE NoteResources.localResource IN ('";
+            foreach(const QString & resourceNegatedLocalGuid, resourceNegatedLocalGuidsPerMime) {
+                sql += resourceNegatedLocalGuid;
+                sql += "', '";
+            }
+            sql.chop(3);    // remove trailing comma, whitespace and single quotation marj
+
+            sql += ") GROUP BY localNote HAVING COUNT(*)<=";
+
+            sql += QString::number(numResourceNegatedLocalGuids);
+            sql += ")))";
             sql += uniteOperator;
             sql += " ";
         }
@@ -6053,42 +6073,66 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalGuids(const QSt
 
     QSqlQuery query(m_sqlDatabase);
 
-    bool res = query.prepare("SELECT resourceLocalGuid WHERE mime MATCH :mimeTypes");
-    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types: "
-                                 "can't prepare SQL query");
+    QString queryString;
 
-    // FIXME: reimplement like tags
-
-    QString mimeTypes;
-    bool multipleSearchTerms = (resourceMimeTypes.size() != 1);
-    foreach(const QString & resourceMimeType, resourceMimeTypes)
+    bool singleMimeType = (resourceMimeTypes.size() == 1);
+    if (singleMimeType)
     {
-        if (multipleSearchTerms) {
-            mimeTypes += "\"";
+        bool res = query.prepare("SELECT resourceLocalGuid FROM ResourceMimeFTS WHERE mime MATCH :mimeTypes");
+        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types: "
+                                     "can't prepare SQL query");
+
+        QString mimeTypes = resourceMimeTypes.at(0);
+        mimeTypes.prepend("\'");
+        mimeTypes.append("\'");
+        query.bindValue(":mimeTypes", mimeTypes);
+    }
+    else
+    {
+        bool someMimeTypeHasSpace = false;
+        foreach(const QString & mimeType, resourceMimeTypes)
+        {
+            if (mimeType.contains(" ")) {
+                someMimeTypeHasSpace = true;
+                break;
+            }
         }
 
-        mimeTypes += resourceMimeType;
+        if (someMimeTypeHasSpace)
+        {
+            // Unfortunately, stardard SQLite at least from Qt 4.x has standard query syntax for FTS
+            // which does not support whitespaces in search terms and therefore MATCH function is simply inapplicable here,
+            // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
+            // FIXME: create index by name upper for faster search
+            queryString = "SELECT resourceLocalGuid FROM Resources WHERE ";
 
-        if (multipleSearchTerms) {
-            mimeTypes += "\" OR ";
+            foreach(const QString & mimeType, resourceMimeTypes) {
+                queryString += "(mime = \'";
+                queryString += mimeType;
+                queryString += "\') OR ";
+            }
+            queryString.chop(4);    // remove trailing OR and two whitespaces
+        }
+        else
+        {
+            queryString = "SELECT resourceLocalGuid FROM ResourceMimeFTS WHERE mime MATCH \'";
+
+            foreach(const QString & mimeType, resourceMimeTypes) {
+                queryString += mimeType;
+                queryString += " ";
+            }
+            queryString.chop(1);    // remove trailing whitespace
+            queryString += "\'";
         }
     }
 
-    if (multipleSearchTerms) {
-        mimeTypes.chop(4);  // remove OR + two trailing whitespaces
+    bool res = false;
+    if (queryString.isEmpty()) {
+        res = query.exec();
     }
-
-    if (multipleSearchTerms) {
-        mimeTypes.prepend("(");
-        mimeTypes.append(")");
+    else {
+        res = query.exec(queryString);
     }
-
-    mimeTypes.prepend("\'");
-    mimeTypes.append("\'");
-
-    query.bindValue(":mimeTypes", mimeTypes);
-
-    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types");
 
     while (query.next())

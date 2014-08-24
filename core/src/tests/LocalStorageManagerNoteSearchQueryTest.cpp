@@ -943,6 +943,23 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
+    // 7.11) Resource mime types
+
+    // 7.11.1) Check a single mime type
+    queryString = "resource:\"";
+    queryString += resources[1].mime();
+    queryString += "\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i/numResources == 1) ? true : false);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
     return true;
 }
 
