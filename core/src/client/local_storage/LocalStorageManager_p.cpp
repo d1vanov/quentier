@@ -5827,9 +5827,15 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceLocalGuidsPerRecognitionType.isEmpty())
         {
-            sql += "(NoteResources.localResource IN ('";
-            sql += resourceLocalGuidsPerRecognitionType.join(", ");
-            sql += "')) ";
+            sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource "
+                   "FROM NoteResources WHERE NoteResources.localResource IN ('";
+            foreach(const QString & resourceLocalGuid, resourceLocalGuidsPerRecognitionType) {
+                sql += resourceLocalGuid;
+                sql += "', '";
+            }
+            sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+            sql += ")))) ";
             sql += uniteOperator;
             sql += " ";
         }
@@ -5847,9 +5853,17 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceNegatedLocalGuidsPerRecognitionType.isEmpty())
         {
-            sql += "(NoteResources.localNote NOT IN (SELECT DISTINCT localNote FROM NoteResources WHERE localResource IN ('";
-            sql += resourceNegatedLocalGuidsPerRecognitionType.join(", ");
-            sql += "'))) OR (NoteResources.localNote IS NULL)) ";
+            sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResouce "
+                   "FROM NoteResources WHERE NoteResources.localResource IN ('";
+            foreach(const QString & resourceNegatedLocalGuid, resourceNegatedLocalGuidsPerRecognitionType) {
+                sql += resourceNegatedLocalGuid;
+                sql += "', '";
+            }
+            sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+            // Don't forget to account for the case of no resources existing in the note
+            // so it's not even present in NoteResources table
+            sql += "))) OR (NoteResources.localNote IS NULL)) ";
             sql += uniteOperator;
             sql += " ";
         }
@@ -6046,16 +6060,16 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tag
     }
     else
     {
-        bool someTagNameHasSpace = false;
+        bool someTagNameHasWhitespace = false;
         foreach(const QString & tagName, tagNames)
         {
             if (tagName.contains(" ")) {
-                someTagNameHasSpace = true;
+                someTagNameHasWhitespace = true;
                 break;
             }
         }
 
-        if (someTagNameHasSpace)
+        if (someTagNameHasWhitespace)
         {
             // Unfortunately, stardard SQLite at least from Qt 4.x has standard query syntax for FTS
             // which does not support whitespaces in search terms and therefore MATCH function is simply inapplicable here,
@@ -6132,21 +6146,21 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalGuids(const QSt
     }
     else
     {
-        bool someMimeTypeHasSpace = false;
+        bool someMimeTypeHasWhitespace = false;
         foreach(const QString & mimeType, resourceMimeTypes)
         {
             if (mimeType.contains(" ")) {
-                someMimeTypeHasSpace = true;
+                someMimeTypeHasWhitespace = true;
                 break;
             }
         }
 
-        if (someMimeTypeHasSpace)
+        if (someMimeTypeHasWhitespace)
         {
             // Unfortunately, stardard SQLite at least from Qt 4.x has standard query syntax for FTS
             // which does not support whitespaces in search terms and therefore MATCH function is simply inapplicable here,
             // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
-            // FIXME: create index by name upper for faster search
+            // FIXME: create index by mime for faster search
             queryString = "SELECT resourceLocalGuid FROM Resources WHERE ";
 
             foreach(const QString & mimeType, resourceMimeTypes) {
@@ -6201,42 +6215,67 @@ bool LocalStorageManagerPrivate::resourceRecognitionTypesToResourceLocalGuids(co
     resourceLocalGuids.clear();
 
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare("SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType MATCH :recognitionTypes");
-    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types: "
-                                 "can't prepare SQL query");
 
-    // FIXME: reimplement like tags
+    QString queryString;
 
-    QString recognitionTypes;
-    bool multipleSearchTerms = (resourceRecognitionTypes.size() != 1);
-    foreach(const QString & recognitionType, resourceRecognitionTypes)
+    bool singleRecognitionType = (resourceRecognitionTypes.size() == 1);
+    if (singleRecognitionType)
     {
-        if (multipleSearchTerms) {
-            recognitionTypes += "\"";
+        bool res = query.prepare("SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType MATCH :recognitionTypes");
+        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types: "
+                                     "can't prepare SQL query");
+
+        QString recognitionTypes = recognitionTypes.at(0);
+        recognitionTypes.prepend("\'");
+        recognitionTypes.append("\'");
+        query.bindValue(":recognitionTypes", recognitionTypes);
+    }
+    else
+    {
+        bool someRecognitionTypeHasWhitespace = false;
+        foreach(const QString & recognitionType, resourceRecognitionTypes)
+        {
+            if (recognitionType.contains(" ")) {
+                someRecognitionTypeHasWhitespace = true;
+                break;
+            }
         }
 
-        recognitionTypes += recognitionType;
+        if (someRecognitionTypeHasWhitespace)
+        {
+            // Unfortunately, stardard SQLite at least from Qt 4.x has standard query syntax for FTS
+            // which does not support whitespaces in search terms and therefore MATCH function is simply inapplicable here,
+            // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
+            // FIXME: create index by recognition type for faster search
+            queryString = "SELECT resourceLocalGuid FROM Resources WHERE ";
 
-        if (multipleSearchTerms) {
-            recognitionTypes += "\" OR ";
+            foreach(const QString & recognitionType, resourceRecognitionTypes) {
+                queryString += "(recognitionType = \'";
+                queryString += recognitionType;
+                queryString += "\') OR ";
+            }
+            queryString.chop(4);    // remove trailing OR and two whitespaces
+        }
+        else
+        {
+            queryString = "SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType MATCH \'";
+
+            foreach(const QString & recognitionType, resourceRecognitionTypes) {
+                queryString += recognitionType;
+                queryString += " ";
+            }
+            queryString.chop(1);    // remove trailing whitespace
+            queryString += "\'";
         }
     }
 
-    if (multipleSearchTerms) {
-        recognitionTypes.chop(4);   // remove OR + two trailing whitespaces
+    bool res = false;
+    if (queryString.isEmpty()) {
+        res = query.exec();
     }
-
-    if (multipleSearchTerms) {
-        recognitionTypes.prepend("(");
-        recognitionTypes.append("(");
+    else {
+        res = query.exec(queryString);
     }
-
-    recognitionTypes.prepend("\'");
-    recognitionTypes.append("\'");
-
-    query.bindValue(":recognitionTypes", recognitionTypes);
-
-    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types");
 
     while(query.next())
