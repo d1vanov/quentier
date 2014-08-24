@@ -895,7 +895,27 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.10.5) Find all notes with a tag
+    // 7.10.5) Check for both positive and negated tag names with "any:" modifier
+    queryString = "any: tag:\"";
+    queryString += tags[4].name();
+    queryString += "\" -tag:\"";
+    queryString += tags[2].name();
+    queryString += "\"";
+
+    for(int i = 0; i < 2; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    for(int i = 2; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.10.6) Find all notes with a tag
     queryString = "tag:*";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -909,7 +929,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.10.6) Find all notes without a tag
+    // 7.10.7) Find all notes without a tag
     queryString = "-tag:*";
 
     for(int i = 0; i < numNotes; ++i) {

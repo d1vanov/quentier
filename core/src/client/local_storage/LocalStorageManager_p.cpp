@@ -5615,35 +5615,27 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!tagLocalGuids.isEmpty())
         {
-            if (!queryHasAnyModifier)
-            {
-                const int numTagLocalGuids = tagLocalGuids.size();
-                sql += "(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
-                        "FROM NoteTags WHERE NoteTags.localTag IN ('";
-                foreach(const QString & tagLocalGuid, tagLocalGuids) {
-                    sql += tagLocalGuid;
-                    sql += "', '";
-                }
-                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+            const int numTagLocalGuids = tagLocalGuids.size();
+            sql += "(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
+                   "FROM NoteTags WHERE NoteTags.localTag IN ('";
+            foreach(const QString & tagLocalGuid, tagLocalGuids) {
+                sql += tagLocalGuid;
+                sql += "', '";
+            }
+            sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
-                sql += ") GROUP BY localNote HAVING COUNT(*)=";
-                sql += QString::number(numTagLocalGuids);
-                sql += "))) ";
-                sql += uniteOperator;
-                sql += " ";
+            sql += ") GROUP BY localNote HAVING COUNT(*)";
+            if (queryHasAnyModifier) {
+                sql += "<=";
             }
-            else
-            {
-                sql += "NoteTags.localTag IN ('";
-                foreach(const QString & tagLocalGuid, tagLocalGuids) {
-                    sql += tagLocalGuid;
-                    sql += "', '";
-                }
-                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
-                sql += ") ";
-                sql += uniteOperator;
-                sql += " ";
+            else {
+                sql += "=";
             }
+
+            sql += QString::number(numTagLocalGuids);
+            sql += "))) ";
+            sql += uniteOperator;
+            sql += " ";
         }
 
         const QStringList & negatedTagNames = noteSearchQuery.negatedTagNames();
@@ -5657,35 +5649,27 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!tagNegatedLocalGuids.isEmpty())
         {
-            if (!queryHasAnyModifier)
-            {
-                const int numTagNegatedLocalGuids = tagNegatedLocalGuids.size();
-                sql += "(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
-                        "FROM NoteTags WHERE NoteTags.localTag IN ('";
-                foreach(const QString & tagNegatedLocalGuid, tagNegatedLocalGuids) {
-                    sql += tagNegatedLocalGuid;
-                    sql += "', '";
-                }
-                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+            const int numTagNegatedLocalGuids = tagNegatedLocalGuids.size();
+            sql += "(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
+                   "FROM NoteTags WHERE NoteTags.localTag IN ('";
+            foreach(const QString & tagNegatedLocalGuid, tagNegatedLocalGuids) {
+                sql += tagNegatedLocalGuid;
+                sql += "', '";
+            }
+            sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
-                sql += ") GROUP BY localNote HAVING COUNT(*)=";
-                sql += QString::number(numTagNegatedLocalGuids);
-                sql += ")) OR (NoteTags.localNote IS NULL)) ";
-                sql += uniteOperator;
-                sql += " ";
+            sql += ") GROUP BY localNote HAVING COUNT(*)";
+            if (queryHasAnyModifier) {
+                sql += "<=";
             }
-            else
-            {
-                sql += "NoteTags.localTag NOT IN ('";
-                foreach(const QString & tagLocalGuid, tagLocalGuids) {
-                    sql += tagLocalGuid;
-                    sql += "', '";
-                }
-                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
-                sql += ") ";
-                sql += uniteOperator;
-                sql += " ";
+            else {
+                sql += "=";
             }
+
+            sql += QString::number(numTagNegatedLocalGuids);
+            sql += ")) OR (NoteTags.localNote IS NULL)) ";
+            sql += uniteOperator;
+            sql += " ";
         }
     }
 
