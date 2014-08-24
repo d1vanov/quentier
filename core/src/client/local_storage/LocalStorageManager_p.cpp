@@ -5743,8 +5743,16 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceLocalGuidsPerMime.isEmpty())
         {
-            const int numResourceLocalGuids = resourceLocalGuidsPerMime.size();
-            sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
+            // Note the difference with the above handling of search for note with particular tags:
+            // there one tag could be used by more than one note and due to that the search
+            // used "count(*)" function to figure out which of notes from the result of sub-query
+            // really have the required tags.
+            //
+            // On the contrary, one resource can belong to exactly one note, no more, no less.
+            // Therefore, "count(*)" is simply not needed here because it would always return 1.
+            // Thanks to this feature, there's also no necessity to separate cases with and without "any:" modifier.
+
+            sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource "
                    "FROM NoteResources WHERE NoteResources.localResource IN ('";
             foreach(const QString & resourceLocalGuid, resourceLocalGuidsPerMime) {
                 sql += resourceLocalGuid;
@@ -5752,10 +5760,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
             }
             sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
-            sql += ") GROUP BY localNote HAVING COUNT(*)<=";
-
-            sql += QString::number(numResourceLocalGuids);
-            sql += "))) ";
+            sql += ")))) ";
             sql += uniteOperator;
             sql += " ";
         }
@@ -5773,19 +5778,18 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceNegatedLocalGuidsPerMime.isEmpty())
         {
-            const int numResourceNegatedLocalGuids = resourceNegatedLocalGuidsPerMime.size();
-            sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
+            sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource "
                    "FROM NoteResources WHERE NoteResources.localResource IN ('";
             foreach(const QString & resourceNegatedLocalGuid, resourceNegatedLocalGuidsPerMime) {
                 sql += resourceNegatedLocalGuid;
                 sql += "', '";
             }
-            sql.chop(3);    // remove trailing comma, whitespace and single quotation marj
+            sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
-            sql += ") GROUP BY localNote HAVING COUNT(*)<=";
+            // Don't forget to account for the case of no resources existing in the note
+            // so it's not even present in NoteResources table
 
-            sql += QString::number(numResourceNegatedLocalGuids);
-            sql += ")))";
+            sql += "))) OR (NoteResources.localNote IS NULL)) ";
             sql += uniteOperator;
             sql += " ";
         }
