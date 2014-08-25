@@ -471,6 +471,12 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         ResourceWrapper resource = resources[i/numResources];
         resource.setLocalGuid(QUuid::createUuid().toString());
         note.addResource(resource);
+
+        if (i == 3) {
+            ResourceWrapper additionalResource = resources[0];
+            additionalResource.setLocalGuid(QUuid::createUuid().toString());
+            note.addResource(additionalResource);
+        }
     }
 
     QMap<int,int> notebookIndexForNoteIndex;
@@ -959,6 +965,42 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     if (!res) {
         return false;
     }
+
+    // 7.11.2) Check negative for single resource mime type
+    queryString = "-resource:\"";
+    queryString += resources[2].mime();
+    queryString += "\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i/numResources == 2) ? false : true);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    /*
+    // This one doesn't work yet, unfortunately
+    // 7.11.3) Check for multiple resource mime types
+    queryString = "resource:\"";
+    queryString += resources[0].mime();
+    queryString += "\" resource:\"";
+    queryString += resources[1].mime();
+    queryString += "\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[3] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+    */
 
     return true;
 }

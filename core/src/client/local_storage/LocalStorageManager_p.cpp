@@ -6172,14 +6172,15 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalGuids(const QSt
         }
         else
         {
-            queryString = "SELECT resourceLocalGuid FROM ResourceMimeFTS WHERE mime MATCH \'";
+            // For unknown reason statements like "MATCH 'x OR y'" don't work for me while
+            // "SELECT ... MATCH 'x' UNION SELECT ... MATCH 'y'" does work.
 
             foreach(const QString & mimeType, resourceMimeTypes) {
+                queryString = "SELECT resourceLocalGuid FROM ResourceMimeFTS WHERE mime MATCH \'";
                 queryString += mimeType;
-                queryString += " ";
+                queryString += "\' UNION ";
             }
-            queryString.chop(1);    // remove trailing whitespace
-            queryString += "\'";
+            queryString.chop(7);    // remove trailing characters
         }
     }
 
