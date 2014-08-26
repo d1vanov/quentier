@@ -468,9 +468,11 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
             }
         }
 
-        ResourceWrapper resource = resources[i/numResources];
-        resource.setLocalGuid(QUuid::createUuid().toString());
-        note.addResource(resource);
+        if (i != 8) {
+            ResourceWrapper resource = resources[i/numResources];
+            resource.setLocalGuid(QUuid::createUuid().toString());
+            note.addResource(resource);
+        }
 
         if (i == 3) {
             ResourceWrapper additionalResource = resources[0];
@@ -864,7 +866,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     // 7.10.3) Check for multiple tags with any modifier
     queryString = "any: tag:\"";
     queryString += tags[1].name();
-    queryString += "\" \"tag:";
+    queryString += "\" tag:\"";
     queryString += tags[3].name();
     queryString += "\"";
 
@@ -974,6 +976,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = ((i/numResources == 2) ? false : true);
     }
+    expectedContainedNotesIndices[8] = true;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
@@ -992,6 +995,97 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         expectedContainedNotesIndices[i] = false;
     }
     expectedContainedNotesIndices[3] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.11.4) Check for multiple resource mime types with "any:" modifier
+    queryString = "any: resource:\"";
+    queryString += resources[0].mime();
+    queryString += "\" resource:\"";
+    queryString += resources[1].mime();
+    queryString += "\"";
+
+    for(int i = 0; i < 6; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    for(int i = 6; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.11.5) Check for both positive and negated resource mime types
+    queryString = "resource:\"";
+    queryString += resources[0].mime();
+    queryString += "\" -resource:\"";
+    queryString += resources[1].mime();
+    queryString += "\"";
+
+    for(int i = 0; i < 3; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    for(int i = 3; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.11.6) Check for both positive and negated resource mime types with "any:" modifier
+    queryString = "any: resource:\"";
+    queryString += resources[0].mime();
+    queryString += "\" -resource:\"";
+    queryString += resources[1].mime();
+    queryString += "\"";
+
+    for(int i = 0; i < 4; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    for(int i = 4; i < 6; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    for(int i = 6; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.11.7) Find all notes with a resource of any mime type
+    queryString = "resource:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[8] = false;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.11.8) Find all notes without resources
+    queryString = "-resource:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[8] = true;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
