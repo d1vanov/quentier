@@ -981,8 +981,6 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    /*
-    // This one doesn't work yet, unfortunately
     // 7.11.3) Check for multiple resource mime types
     queryString = "resource:\"";
     queryString += resources[0].mime();
@@ -1000,7 +998,6 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     if (!res) {
         return false;
     }
-    */
 
     return true;
 }

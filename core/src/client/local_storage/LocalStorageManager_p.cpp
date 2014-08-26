@@ -5617,9 +5617,11 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         {
             if (!queryHasAnyModifier)
             {
-                // One note can be labeled with multiple tags; therefore, when the search is for notes with
-                // some particular tags, we need to ensure that each note's local guid in the sub-query result
-                // is present there exactly as many times as there are tags in the query which the note is labeled with
+                // In successful note search query there are exactly as many tag local guids
+                // as there are tag names; therefore, when the search is for notes with
+                // some particular tags, we need to ensure that each note's local guid
+                // in the sub-query result is present there exactly as many times
+                // as there are tag local guids in the query which the note is labeled with
 
                 const int numTagLocalGuids = tagLocalGuids.size();
                 sql += "(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
@@ -5732,6 +5734,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         QStringList resourceNegatedLocalGuidsPerMime;
 
         const QStringList & resourceMimeTypes = noteSearchQuery.resourceMimeTypes();
+        const int numResourceMimeTypes = resourceMimeTypes.size();
         if (!resourceMimeTypes.isEmpty())
         {
             bool res = resourceMimeTypesToResourceLocalGuids(resourceMimeTypes, resourceLocalGuidsPerMime,
@@ -5743,29 +5746,50 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceLocalGuidsPerMime.isEmpty())
         {
-            // Note the difference with the above handling of search for note with particular tags:
-            // there one tag could be used by more than one note and due to that the search
-            // used "count(*)" function to figure out which of notes from the result of sub-query
-            // really have the required tags.
-            //
-            // On the contrary, one resource can belong to exactly one note, no more, no less.
-            // Therefore, "count(*)" is simply not needed here because it would always return 1.
-            // Thanks to this feature, there's also no necessity to separate cases with and without "any:" modifier.
+            if (!queryHasAnyModifier)
+            {
+                // Need to find notes which each have all the found resource local guids
 
-            sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource "
-                   "FROM NoteResources WHERE NoteResources.localResource IN ('";
-            foreach(const QString & resourceLocalGuid, resourceLocalGuidsPerMime) {
-                sql += resourceLocalGuid;
-                sql += "', '";
+                // One resource mime type can correspond to multiple resources. However,
+                // one resource corresponds to exactly one note. When searching for notes
+                // which resources have particular mime type, we need to ensure that each note's
+                // local guid in the sub-query result is present there exactly as many times
+                // as there are resource mime types in the query
+
+                sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
+                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
+                foreach(const QString & resourceLocalGuid, resourceLocalGuidsPerMime) {
+                    sql += resourceLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+                sql += ") GROUP BY localNote HAVING COUNT(*)=";
+                sql += QString::number(numResourceMimeTypes);
+                sql += "))) ";
             }
-            sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+            else
+            {
+                // With "any:" modifier the search doesn't care about the exactness of resource mime type-to-note map,
+                // it would instead pick just any note having at least one resource with requested mime type
 
-            sql += ")))) ";
+                sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource "
+                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
+                foreach(const QString & resourceLocalGuid, resourceLocalGuidsPerMime) {
+                    sql += resourceLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+                sql += ")))) ";
+            }
+
             sql += uniteOperator;
             sql += " ";
         }
 
         const QStringList & negatedResourceMimeTypes = noteSearchQuery.negatedResourceMimeTypes();
+        const int numNegatedResourceMimeTypes = negatedResourceMimeTypes.size();
         if (!negatedResourceMimeTypes.isEmpty())
         {
             bool res = resourceMimeTypesToResourceLocalGuids(negatedResourceMimeTypes,
@@ -5778,18 +5802,40 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (!resourceNegatedLocalGuidsPerMime.isEmpty())
         {
-            sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource "
-                   "FROM NoteResources WHERE NoteResources.localResource IN ('";
-            foreach(const QString & resourceNegatedLocalGuid, resourceNegatedLocalGuidsPerMime) {
-                sql += resourceNegatedLocalGuid;
-                sql += "', '";
+            if (!queryHasAnyModifier)
+            {
+                sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
+                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
+                foreach(const QString & resourceNegatedLocalGuid, resourceNegatedLocalGuidsPerMime) {
+                    sql += resourceNegatedLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+
+                sql += ") GROUP BY localNote HAVING COUNT(*)=";
+                sql += QString::number(numNegatedResourceMimeTypes);
+
+                // Don't forget to account for the case of no resources existing in the note
+                // so it's not even present in NoteResources table
+
+                sql += ")) OR (NoteResources.localNote IS NULL)) ";
             }
-            sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
+            else
+            {
+                sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource "
+                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
+                foreach(const QString & resourceNegatedLocalGuid, resourceNegatedLocalGuidsPerMime) {
+                    sql += resourceNegatedLocalGuid;
+                    sql += "', '";
+                }
+                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
-            // Don't forget to account for the case of no resources existing in the note
-            // so it's not even present in NoteResources table
+                // Don't forget to account for the case of no resources existing in the note
+                // so it's not even present in NoteResources table
 
-            sql += "))) OR (NoteResources.localNote IS NULL)) ";
+                sql += "))) OR (NoteResources.localNote IS NULL)) ";
+            }
+
             sql += uniteOperator;
             sql += " ";
         }
@@ -6176,7 +6222,7 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalGuids(const QSt
             // "SELECT ... MATCH 'x' UNION SELECT ... MATCH 'y'" does work.
 
             foreach(const QString & mimeType, resourceMimeTypes) {
-                queryString = "SELECT resourceLocalGuid FROM ResourceMimeFTS WHERE mime MATCH \'";
+                queryString += "SELECT resourceLocalGuid FROM ResourceMimeFTS WHERE mime MATCH \'";
                 queryString += mimeType;
                 queryString += "\' UNION ";
             }
