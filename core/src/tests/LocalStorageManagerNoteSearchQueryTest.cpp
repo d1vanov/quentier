@@ -156,19 +156,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     res0.setDataBody(QByteArray("fake image/gif byte array"));
     res0.setDataSize(res0.dataBody().size());
     res0.setDataHash("Fake_hash______1");
-
-    ResourceWrapper & res1 = resources[1];
-    res1.setMime("audio/*");
-    res1.setDataBody(QByteArray("fake audio/* byte array"));
-    res1.setDataSize(res1.dataBody().size());
-    res1.setDataHash("Fake_hash______2");
-
-    ResourceWrapper & res2 = resources[2];
-    res2.setMime("application/vnd.evernote.ink");
-    res2.setDataBody(QByteArray("fake application/vnd.evernote.ink byte array"));
-    res2.setDataSize(res2.dataBody().size());
-    res2.setDataHash("Fake_hash______3");
-    res2.setRecognitionDataBody(QByteArray("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+    res0.setRecognitionDataBody(QByteArray("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
                                            "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
                                            "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
                                            "<t w=\"87\">EVER ?</t>"
@@ -188,8 +176,42 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
                                            "<t w=\"10\">TQ</t>"
                                            "</item>"
                                            "</recoIndex>]]>"));
-    res2.setRecognitionDataSize(res2.recognitionDataBody().size());
-    res2.setRecognitionDataHash("Fake_hash______4");
+    res0.setRecognitionDataSize(res0.recognitionDataBody().size());
+    res0.setRecognitionDataHash("Fake_hash______2");
+
+    ResourceWrapper & res1 = resources[1];
+    res1.setMime("audio/*");
+    res1.setDataBody(QByteArray("fake audio/* byte array"));
+    res1.setDataSize(res1.dataBody().size());
+    res1.setDataHash("Fake_hash______3");
+    res1.setRecognitionDataBody(QByteArray("<recoIndex docType=\"picture\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+                                           "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                                           "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
+                                           "<t w=\"87\">EVER ?</t>"
+                                           "<t w=\"83\">EVER NOTE</t>"
+                                           "<t w=\"82\">EVERNOTE</t>"
+                                           "<t w=\"71\">EVER NaTE</t>"
+                                           "<t w=\"67\">EVER nine</t>"
+                                           "<t w=\"67\">EVER none</t>"
+                                           "<t w=\"66\">EVER not</t>"
+                                           "<t w=\"62\">over NOTE</t>"
+                                           "<t w=\"62\">even NOTE</t>"
+                                           "<t w=\"61\">EVER nose</t>"
+                                           "<t w=\"50\">EV£RNoTE</t>"
+                                           "</item>"
+                                           "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
+                                           "<t w=\"11\">et</t>"
+                                           "<t w=\"10\">TQ</t>"
+                                           "</item>"
+                                           "</recoIndex>]]>"));
+    res1.setRecognitionDataSize(res1.recognitionDataBody().size());
+    res1.setRecognitionDataHash("Fake_hash______4");
+
+    ResourceWrapper & res2 = resources[2];
+    res2.setMime("application/vnd.evernote.ink");
+    res2.setDataBody(QByteArray("fake application/vnd.evernote.ink byte array"));
+    res2.setDataSize(res2.dataBody().size());
+    res2.setDataHash("Fake_hash______5");
 
     // 4) ============= Create some ranges for note's properties ==============
     int numTitles = 3;
@@ -1085,6 +1107,131 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = false;
     }
+    expectedContainedNotesIndices[8] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12) Resource recognition types
+
+    // 7.12.1) Check a single resource recognition type
+    queryString = "recoType:picture";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i/numResources == 1) ? true : false);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.2) check negative for single resource recognition type
+    queryString = "-recoType:picture";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i/numResources == 1) ? false : true);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.3) Check for multiple resource recognition types
+    queryString = "recoType:picture recoType:handwritten";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[3] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.4) Check for multiple resource recognition types with "any:" modifier
+    queryString = "any: recoType:picture recoType:handwritten";
+
+    for(int i = 0; i < 6; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    for(int i = 6; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.5) Check for both positive and negated resource recognition type
+    queryString = "recoType:handwritten -recoType:picture";
+
+    for(int i = 0; i < 3; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    for(int i = 3; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.6) Check for both positive and negated resource recognition types with "any:" modifier
+    queryString = "any: recoType:handwritten -recoType:picture";
+
+    for(int i = 0; i < 4; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    for(int i = 4; i < 6; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    for(int i = 6; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.7) Find all notes with a resource of any recognition type
+    queryString = "recoType:*";
+
+    for(int i = 0; i < 6; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[6] = false;
+    expectedContainedNotesIndices[7] = false;
+    expectedContainedNotesIndices[8] = false;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.8) Find all notes without resources with recognition data
+    queryString = "-recoType:*";
+
+    for(int i = 0; i < 6; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[6] = true;
+    expectedContainedNotesIndices[7] = true;
     expectedContainedNotesIndices[8] = true;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
