@@ -14,8 +14,8 @@ QuteNoteLogger::QuteNoteLogger(const QString & name, const Level level) :
     QString appPersistentStoragePathString = GetApplicationPersistentStoragePath();
     QDir appPersistentStoragePathFolder(appPersistentStoragePathString);
     if (!appPersistentStoragePathFolder.exists()) {
-        if (!appPersistentStoragePathFolder.mkdir(appPersistentStoragePathString)) {
-            throw LoggerInitializationException("Can't create folder for log file");
+        if (!appPersistentStoragePathFolder.mkpath(".")) {
+            throw LoggerInitializationException(QString("Can't create path for log file: ") + appPersistentStoragePathString);
         }
     }
 
