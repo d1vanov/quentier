@@ -5989,24 +5989,70 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     if (!noteSearchQuery##list##column.isEmpty()) \
     { \
         if (negated) { \
-            sql += "(NoteFTS." #column " NOT MATCH \'"; \
+            sql += "(localGuid NOT IN ("; \
         } \
         else { \
-            sql += "(NoteFTS." #column " MATCH \'"; \
+            sql += "(localGuid IN ("; \
         } \
         \
-        bool firstItem = true; \
-        foreach(const auto & item, noteSearchQuery##list##column) \
+        const int numElements = noteSearchQuery##list##column.size(); \
+        if (numElements == 1) \
         { \
-            if (!firstItem) { \
-                sql += " "; \
-            } \
-            sql += __VA_ARGS__(item); \
-            if (firstItem) { \
-                firstItem = false; \
-            } \
+            sql += "SELECT localGuid FROM NoteFTS WHERE NoteFTS." #column " MATCH \'"; \
+            sql += __VA_ARGS__(noteSearchQuery##list##column.at(0)); \
+            sql += "\')) "; \
         } \
-        sql += "\') "; \
+        else \
+        { \
+            foreach(const auto & item, noteSearchQuery##list##column) \
+            { \
+                sql += "(SELECT localGuid FROM NoteFTS WHERE NoteFTS." #column " MATCH \'"; \
+                sql += __VA_ARGS__(item); \
+                sql += "\') UNION "; \
+            } \
+            sql.chop(7); \
+            sql += ")) "; \
+        } \
+        sql += uniteOperator; \
+        sql += " "; \
+    }
+
+#define CHECK_AND_PROCESS_NUMERIC_LIST(list, column, negated, ...) \
+    const auto & noteSearchQuery##list##column = noteSearchQuery.list(); \
+    if (!noteSearchQuery##list##column.isEmpty()) \
+    { \
+        sql += "(localGuid IN ("; \
+        \
+        const int numElements = noteSearchQuery##list##column.size(); \
+        if (numElements == 1) \
+        { \
+            sql += "SELECT localGuid FROM Notes WHERE Notes." #column; \
+            if (negated) { \
+                sql += " < "; \
+            } \
+            else { \
+                sql += " >= "; \
+            } \
+            sql += __VA_ARGS__(noteSearchQuery##list##column.at(0)); \
+            sql += ")) "; \
+        } \
+        else \
+        { \
+            foreach(const auto & item, noteSearchQuery##list##column) \
+            { \
+                sql += "(SELECT localGuid FROM Notes WHERE Notes." #column; \
+                if (negated) { \
+                    sql += " < "; \
+                } \
+                else { \
+                    sql += " >= "; \
+                } \
+                sql += __VA_ARGS__(item); \
+                sql += "\') UNION "; \
+            } \
+            sql.chop(7); \
+            sql += ")) "; \
+        } \
         sql += uniteOperator; \
         sql += " "; \
     }
@@ -6018,22 +6064,29 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         CHECK_AND_PROCESS_LIST(negatedList, column, negated, __VA_ARGS__); \
     }
 
+#define CHECK_AND_PROCESS_NUMERIC_ITEM(list, negatedList, hasAnyItem, hasNegatedAnyItem, column, ...) \
+    CHECK_AND_PROCESS_ANY_ITEM(hasAnyItem, hasNegatedAnyItem, column) \
+    else { \
+        CHECK_AND_PROCESS_NUMERIC_LIST(list, column, !negated, __VA_ARGS__); \
+        CHECK_AND_PROCESS_NUMERIC_LIST(negatedList, column, negated, __VA_ARGS__); \
+    }
+
     bool negated = true;
     CHECK_AND_PROCESS_ITEM(titleNames, negatedTitleNames, hasAnyTitleName, hasNegatedAnyTitleName, title);
-    CHECK_AND_PROCESS_ITEM(creationTimestamps, negatedCreationTimestamps, hasAnyCreationTimestamp,
-                           hasNegatedAnyCreationTimestamp, creationTimestamp, QString::number);
-    CHECK_AND_PROCESS_ITEM(modificationTimestamps, negatedModificationTimestamps,
-                           hasAnyModificationTimestamp, hasNegatedAnyModificationTimestamp,
-                           modificationTimestamp, QString::number);
-    CHECK_AND_PROCESS_ITEM(subjectDateTimestamps, negatedSubjectDateTimestamps,
-                           hasAnySubjectDateTimestamp, hasNegatedAnySubjectDateTimestamp,
-                           subjectDate, QString::number);
-    CHECK_AND_PROCESS_ITEM(latitudes, negatedLatitudes, hasAnyLatitude, hasNegatedAnyLatitude,
-                           latitude, QString::number);
-    CHECK_AND_PROCESS_ITEM(longitudes, negatedLongitudes, hasAnyLongitude, hasNegatedAnyLongitude,
-                           longitude, QString::number);
-    CHECK_AND_PROCESS_ITEM(altitudes, negatedAltitudes, hasAnyAltitude, hasNegatedAnyAltitude,
-                           altitude, QString::number);
+    CHECK_AND_PROCESS_NUMERIC_ITEM(creationTimestamps, negatedCreationTimestamps, hasAnyCreationTimestamp,
+                                   hasNegatedAnyCreationTimestamp, creationTimestamp, QString::number);
+    CHECK_AND_PROCESS_NUMERIC_ITEM(modificationTimestamps, negatedModificationTimestamps,
+                                   hasAnyModificationTimestamp, hasNegatedAnyModificationTimestamp,
+                                   modificationTimestamp, QString::number);
+    CHECK_AND_PROCESS_NUMERIC_ITEM(subjectDateTimestamps, negatedSubjectDateTimestamps,
+                                   hasAnySubjectDateTimestamp, hasNegatedAnySubjectDateTimestamp,
+                                   subjectDate, QString::number);
+    CHECK_AND_PROCESS_NUMERIC_ITEM(latitudes, negatedLatitudes, hasAnyLatitude, hasNegatedAnyLatitude,
+                                   latitude, QString::number);
+    CHECK_AND_PROCESS_NUMERIC_ITEM(longitudes, negatedLongitudes, hasAnyLongitude, hasNegatedAnyLongitude,
+                                   longitude, QString::number);
+    CHECK_AND_PROCESS_NUMERIC_ITEM(altitudes, negatedAltitudes, hasAnyAltitude, hasNegatedAnyAltitude,
+                                   altitude, QString::number);
     CHECK_AND_PROCESS_ITEM(authors, negatedAuthors, hasAnyAuthor, hasNegatedAnyAuthor, author);
     CHECK_AND_PROCESS_ITEM(sources, negatedSources, hasAnySource, hasNegatedAnySource, source);
     CHECK_AND_PROCESS_ITEM(sourceApplications, negatedSourceApplications, hasAnySourceApplication,
@@ -6045,16 +6098,17 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
                            hasNegatedAnyApplicationData, applicationDataKeysOnly);
     CHECK_AND_PROCESS_ITEM(applicationData, negatedApplicationData, hasAnyApplicationData,
                            hasNegatedAnyApplicationData, applicationDataKeysMap);
-    CHECK_AND_PROCESS_ITEM(reminderOrders, negatedReminderOrders, hasAnyReminderOrder, hasNegatedAnyReminderOrder,
-                           reminderOrder, QString::number);
-    CHECK_AND_PROCESS_ITEM(reminderTimes, negatedReminderTimes, hasAnyReminderTime,
-                           hasNegatedAnyReminderTime, reminderTime, QString::number);
-    CHECK_AND_PROCESS_ITEM(reminderDoneTimes, negatedReminderDoneTimes, hasAnyReminderDoneTime,
-                           hasNegatedAnyReminderDoneTime, reminderDoneTime, QString::number);
+    CHECK_AND_PROCESS_NUMERIC_ITEM(reminderOrders, negatedReminderOrders, hasAnyReminderOrder,
+                                   hasNegatedAnyReminderOrder, reminderOrder, QString::number);
+    CHECK_AND_PROCESS_NUMERIC_ITEM(reminderTimes, negatedReminderTimes, hasAnyReminderTime,
+                                     hasNegatedAnyReminderTime, reminderTime, QString::number);
+    CHECK_AND_PROCESS_NUMERIC_ITEM(reminderDoneTimes, negatedReminderDoneTimes, hasAnyReminderDoneTime,
+                                     hasNegatedAnyReminderDoneTime, reminderDoneTime, QString::number);
 
 #undef CHECK_AND_PROCESS_ITEM
 #undef CHECK_AND_PROCESS_LIST
 #undef CHECK_AND_PROCESS_ANY_ITEM
+#undef CHECK_AND_PROCESS_NUMERIC_ITEM
 
     // 7) ============== Processing ToDo items ================
 

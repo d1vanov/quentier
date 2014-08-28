@@ -444,8 +444,14 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
         note.setTitle(titles[i/numTitles] + QString(" #") + QString::number(i));
         note.setContent(contents[i]);
-        note.setCreationTimestamp(creationTimestamps[i]);
-        note.setModificationTimestamp(modificationTimestamps[i]);
+
+        if (i != 7) {
+            note.setCreationTimestamp(creationTimestamps[i]);
+        }
+
+        if (i != 6) {
+            note.setModificationTimestamp(modificationTimestamps[i]);
+        }
 
         qevercloud::NoteAttributes & attributes = note.noteAttributes();
 
@@ -1233,6 +1239,41 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     expectedContainedNotesIndices[6] = true;
     expectedContainedNotesIndices[7] = true;
     expectedContainedNotesIndices[8] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.13) Creation timestamps
+
+    // 7.13.1) Single creation timestamps
+    QStringList creationTimestampDateTimeStrings;
+    creationTimestampDateTimeStrings.reserve(numNotes - 1);
+    creationTimestampDateTimeStrings << "day-3" << "day-2" << "day-1"
+                                     << "day" << "day+1" << "day+2"
+                                     << "day+3" << "week-3" << "week-2";
+
+    queryString = "created:day";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i >= 3) && (i <= 6));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+
+    // 7.13.2) Negated single creation timestamps
+    queryString = "-created:day+1";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i <= 3) || (i > 7));
+    }
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
