@@ -8,6 +8,7 @@
 #include <tools/QuteNoteNullPtrException.h>
 #include <tools/ApplicationStoragePersistencePath.h>
 #include <tools/SysInfo.h>
+#include <algorithm>
 
 namespace qute_note {
 
@@ -6021,40 +6022,32 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     const auto & noteSearchQuery##list##column = noteSearchQuery.list(); \
     if (!noteSearchQuery##list##column.isEmpty()) \
     { \
-        sql += "(localGuid IN ("; \
-        \
-        const int numElements = noteSearchQuery##list##column.size(); \
-        if (numElements == 1) \
+        auto it = noteSearchQuery##list##column.constEnd(); \
+        if (queryHasAnyModifier) \
         { \
-            sql += "SELECT localGuid FROM Notes WHERE Notes." #column; \
+            it = std::min_element(noteSearchQuery##list##column.constBegin(), \
+                                  noteSearchQuery##list##column.constEnd()); \
+        } \
+        else \
+        { \
+            it = std::max_element(noteSearchQuery##list##column.constBegin(), \
+                                  noteSearchQuery##list##column.constEnd()); \
+        } \
+        \
+        if (it != noteSearchQuery##list##column.constEnd()) \
+        { \
+            sql += "(localGuid IN (SELECT localGuid FROM Notes WHERE Notes." #column; \
             if (negated) { \
                 sql += " < "; \
             } \
             else { \
                 sql += " >= "; \
             } \
-            sql += __VA_ARGS__(noteSearchQuery##list##column.at(0)); \
+            sql += __VA_ARGS__(*it); \
             sql += ")) "; \
+            sql += uniteOperator; \
+            sql += " "; \
         } \
-        else \
-        { \
-            foreach(const auto & item, noteSearchQuery##list##column) \
-            { \
-                sql += "(SELECT localGuid FROM Notes WHERE Notes." #column; \
-                if (negated) { \
-                    sql += " < "; \
-                } \
-                else { \
-                    sql += " >= "; \
-                } \
-                sql += __VA_ARGS__(item); \
-                sql += "\') UNION "; \
-            } \
-            sql.chop(7); \
-            sql += ")) "; \
-        } \
-        sql += uniteOperator; \
-        sql += " "; \
     }
 
 #define CHECK_AND_PROCESS_ITEM(list, negatedList, hasAnyItem, hasNegatedAnyItem, column, ...) \
