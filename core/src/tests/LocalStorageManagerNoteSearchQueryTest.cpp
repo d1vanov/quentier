@@ -448,16 +448,12 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
             note.setCreationTimestamp(creationTimestamps[i]);
         }
 
-        if (i != 6) {
-            note.setModificationTimestamp(modificationTimestamps[i]);
-        }
-
         qevercloud::NoteAttributes & attributes = note.noteAttributes();
 
         attributes.subjectDate = subjectDateTimestamps[i/numSubjectDateTimestamps];
 
         if ((i != 6) && (i != 7) && (i != 8)) {
-            attributes.latitude = latitudes[i/numLatitudes];
+            attributes.latitude = latitudes[i];
         }
 
         attributes.longitude = longitudes[i];
@@ -1376,6 +1372,138 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = (i == 7);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.14 latitudes
+
+    // 7.14.1) Single latitude
+    queryString = "latitude:10";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i == 4) || (i == 5));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.14.2) Single negated latitude
+    queryString = "-latitude:-30";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i <= 2);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.14.3) Multiple latitudes
+    queryString = "latitude:-10 latitude:10";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i == 4) || (i == 5));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.14.4) Multiple latitudes with "any:" modifier
+    queryString = "any: latitude:-10 latitude:10";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i >= 4) && (i < 6));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.14.5) Multiple negated latitudes
+    queryString = "-latitude:-30 -latitude:-10";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i <= 2);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.14.6) Multiple negated latitudes with "any:" modifier
+    queryString = "any: -latitude:-30 -latitude:-10";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i <= 3);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.14.7) Both positive and negated latitudes
+    queryString = "latitude:-20 -latitude:20";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i == 3) || (i == 4));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.14.8) Both positive and negated latitudes with "any:" modifier
+    queryString = "any: -latitude:-30 latitude:30";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i <= 2) || (i == 5));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.14.9) Find notes with any latitude set
+    queryString = "latitude:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i < 6);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.14.10) Find notes without latitude set
+    queryString = "-latitude:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i >= 6);
     }
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
