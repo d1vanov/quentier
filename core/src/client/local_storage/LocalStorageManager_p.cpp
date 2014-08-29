@@ -6025,13 +6025,25 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         auto it = noteSearchQuery##list##column.constEnd(); \
         if (queryHasAnyModifier) \
         { \
-            it = std::min_element(noteSearchQuery##list##column.constBegin(), \
-                                  noteSearchQuery##list##column.constEnd()); \
+            if (negated) { \
+                it = std::max_element(noteSearchQuery##list##column.constBegin(), \
+                                      noteSearchQuery##list##column.constEnd()); \
+            } \
+            else { \
+                it = std::min_element(noteSearchQuery##list##column.constBegin(), \
+                                      noteSearchQuery##list##column.constEnd()); \
+            } \
         } \
         else \
         { \
-            it = std::max_element(noteSearchQuery##list##column.constBegin(), \
-                                  noteSearchQuery##list##column.constEnd()); \
+            if (negated) { \
+                it = std::min_element(noteSearchQuery##list##column.constBegin(), \
+                                      noteSearchQuery##list##column.constEnd()); \
+            } \
+            else { \
+                it = std::max_element(noteSearchQuery##list##column.constBegin(), \
+                                      noteSearchQuery##list##column.constEnd()); \
+            } \
         } \
         \
         if (it != noteSearchQuery##list##column.constEnd()) \

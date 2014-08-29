@@ -441,7 +441,6 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     {
         notes << Note();
         Note & note = notes.back();
-
         note.setTitle(titles[i/numTitles] + QString(" #") + QString::number(i));
         note.setContent(contents[i]);
 
@@ -1273,6 +1272,110 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = ((i <= 3) || (i > 7));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.13.3) Multiple creation timestamps
+    queryString = "created:day created:day+2";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i >= 5) && (i < 7));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.13.4) Multiple negated creation timestamps
+    queryString = "-created:day+2 -created:day-1";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i < 2) || (i == 8));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.13.5) Multiple creation timestamps with "any:" modifier
+    queryString = "any: created:day-1 created:day+2";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i >= 2) && (i < 7));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.13.6) Multiple negated creation timestamps with "any:" modifier
+    queryString = "any: -created:day+2 -created:day-1";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i <= 4) || (i == 8));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.13.7) Both positive and negated creation timestamps
+    queryString = "created:day-1 -created:day+2";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i >= 2) && (i < 5));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.13.8) Both positive and negated creation timestamps with "any:" modifier
+    queryString = "any: created:day+2 -created:day-1";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i < 2) || ((i >= 5) && (i < 7)) || (i == 8));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.13.9) Find notes with any creation timestamp set
+    queryString = "created:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i != 7);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.13.10) Find notes with no creation timestamp set
+    queryString = "-created:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i == 7);
     }
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
