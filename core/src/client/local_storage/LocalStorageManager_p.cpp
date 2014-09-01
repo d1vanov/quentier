@@ -2874,10 +2874,16 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Resources table");
 
+    res = query.exec("CREATE INDEX IF NOT EXISTS ResourceMimeIndex ON Resources(mime)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create ResourceMimeIndex index");
+
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceRecognitionTypes("
                      "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  recognitionType                 TEXT                DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceRecognitionTypes table");
+
+    res = query.exec("CREATE INDEX IF NOT EXISTS ResourceRecognitionTypeIndex ON ResourceRecognitionTypes(recognitionType)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create ResourceRecognitionTypeIndex index");
 
     res = query.exec("CREATE VIRTUAL TABLE ResourceRecoTypesFTS USING FTS4(content=\"ResourceRecognitionTypes\", resourceLocalGuid, recognitionType)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 ResourceRecoTypesFTS table");
@@ -2963,6 +2969,9 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  hasShortcut           INTEGER              NOT NULL "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Tags table");
+
+    res = query.exec("CREATE INDEX IF NOT EXISTS TagNameUpperIndex ON Tags(nameUpper)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create TagNameUpperIndex index");
 
     res = query.exec("CREATE VIRTUAL TABLE TagFTS USING FTS4(content=\"Tags\", localGuid, guid, nameUpper)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 table TagFTS");
@@ -5989,31 +5998,24 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     const auto & noteSearchQuery##list##column = noteSearchQuery.list(); \
     if (!noteSearchQuery##list##column.isEmpty()) \
     { \
-        if (negated) { \
-            sql += "(localGuid NOT IN ("; \
-        } \
-        else { \
-            sql += "(localGuid IN ("; \
-        } \
-        \
-        const int numElements = noteSearchQuery##list##column.size(); \
-        if (numElements == 1) \
+        sql += "("; \
+        foreach(const auto & item, noteSearchQuery##list##column) \
         { \
-            sql += "SELECT localGuid FROM NoteFTS WHERE NoteFTS." #column " MATCH \'"; \
-            sql += __VA_ARGS__(noteSearchQuery##list##column.at(0)); \
-            sql += "\')) "; \
-        } \
-        else \
-        { \
-            foreach(const auto & item, noteSearchQuery##list##column) \
-            { \
-                sql += "(SELECT localGuid FROM NoteFTS WHERE NoteFTS." #column " MATCH \'"; \
-                sql += __VA_ARGS__(item); \
-                sql += "\') UNION "; \
+            if (negated) { \
+                sql += "(localGuid NOT IN "; \
             } \
-            sql.chop(7); \
-            sql += ")) "; \
+            else { \
+                sql += "(localGuid IN "; \
+            } \
+            \
+            sql += "(SELECT localGuid FROM NoteFTS WHERE NoteFTS." #column " MATCH \'"; \
+            sql += __VA_ARGS__(item); \
+            sql += "\')) "; \
+            sql += uniteOperator; \
+            sql += " "; \
         } \
+        sql.chop(uniteOperator.length() + 1); \
+        sql += ")"; \
         sql += uniteOperator; \
         sql += " "; \
     }
@@ -6106,9 +6108,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     CHECK_AND_PROCESS_NUMERIC_ITEM(reminderOrders, negatedReminderOrders, hasAnyReminderOrder,
                                    hasNegatedAnyReminderOrder, reminderOrder, QString::number);
     CHECK_AND_PROCESS_NUMERIC_ITEM(reminderTimes, negatedReminderTimes, hasAnyReminderTime,
-                                     hasNegatedAnyReminderTime, reminderTime, QString::number);
+                                   hasNegatedAnyReminderTime, reminderTime, QString::number);
     CHECK_AND_PROCESS_NUMERIC_ITEM(reminderDoneTimes, negatedReminderDoneTimes, hasAnyReminderDoneTime,
-                                     hasNegatedAnyReminderDoneTime, reminderDoneTime, QString::number);
+                                   hasNegatedAnyReminderDoneTime, reminderDoneTime, QString::number);
 
 #undef CHECK_AND_PROCESS_ITEM
 #undef CHECK_AND_PROCESS_LIST
@@ -6234,7 +6236,6 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tag
             // Unfortunately, stardard SQLite at least from Qt 4.x has standard query syntax for FTS
             // which does not support whitespaces in search terms and therefore MATCH function is simply inapplicable here,
             // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
-            // FIXME: create index by name upper for faster search
             queryString = "SELECT localGuid FROM Tags WHERE ";
 
             foreach(const QString & tagName, tagNames) {
@@ -6320,7 +6321,6 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalGuids(const QSt
             // Unfortunately, stardard SQLite at least from Qt 4.x has standard query syntax for FTS
             // which does not support whitespaces in search terms and therefore MATCH function is simply inapplicable here,
             // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
-            // FIXME: create index by mime for faster search
             queryString = "SELECT resourceLocalGuid FROM Resources WHERE ";
 
             foreach(const QString & mimeType, resourceMimeTypes) {
@@ -6407,7 +6407,6 @@ bool LocalStorageManagerPrivate::resourceRecognitionTypesToResourceLocalGuids(co
             // Unfortunately, stardard SQLite at least from Qt 4.x has standard query syntax for FTS
             // which does not support whitespaces in search terms and therefore MATCH function is simply inapplicable here,
             // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
-            // FIXME: create index by recognition type for faster search
             queryString = "SELECT resourceLocalGuid FROM ResourceRecognitionTypes WHERE ";
 
             foreach(const QString & recognitionType, resourceRecognitionTypes) {

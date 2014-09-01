@@ -462,7 +462,10 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         attributes.source = sources[i/numSources];
         attributes.sourceApplication = sourceApplications[i/numSourceApplications];
         attributes.contentClass = contentClasses[i/numContentClasses];
-        attributes.placeName = placeNames[i/numPlaceNames];
+
+        if (i/numPlaceNames != 2) {
+            attributes.placeName = placeNames[i/numPlaceNames];
+        }
 
         if ((i != 3) && (i != 4) && (i != 5))
         {
@@ -1504,6 +1507,159 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = (i >= 6);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.15) place names
+
+    // 7.15.1) Single place name
+    queryString = "placeName:";
+    queryString += placeNames[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i > 2) && (i < 6));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.15.2) Single negated place name
+    queryString = "-placeName:";
+    queryString += placeNames[0];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i > 2);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.15.3) Two place names (each note has the only one)
+    queryString = "placeName:";
+    queryString += placeNames[0];
+    queryString += " placeName:";
+    queryString += placeNames[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.15.4) Two place names with "any:" modifier
+    queryString = "any: placeName:";
+    queryString += placeNames[0];
+    queryString += " placeName:";
+    queryString += placeNames[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i < 6);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.15.5) Both positive and negated placeNames (should work the same way as only positive
+    // placeName provided that negated one is not the same)
+    queryString = "placeName:";
+    queryString += placeNames[0];
+    queryString += " -placeName:";
+    queryString += placeNames[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i < 3);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.15.6) Both positive and negated placeNames with "any:" modifier
+    queryString = "any: placeName:";
+    queryString += placeNames[0];
+    queryString += " -placeName:";
+    queryString += placeNames[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i < 3) || (i > 5));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.15.7) Two negated placeNames
+    queryString = "-placeName:";
+    queryString += placeNames[0];
+    queryString += " -placeName:";
+    queryString += placeNames[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i > 5);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.15.8) Two negated placeNames with "any:" modifier
+    queryString = "any: -placeName:";
+    queryString += placeNames[0];
+    queryString += " -placeName:";
+    queryString += placeNames[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.15.9) Find note with any place name
+    queryString = "placeName:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i < 6);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.15.10) Find note without any place name
+    queryString = "-placeName:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i > 5);
     }
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
