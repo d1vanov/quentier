@@ -478,6 +478,13 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
                     QString("Application data value at key ") + applicationData[i/numApplicationData]);
         }
 
+        if (i == 6)
+        {
+            attributes.applicationData->keysOnly->insert(applicationData[1]);
+            attributes.applicationData->fullMap->insert(applicationData[1],
+                    QString("Application data value at key ") + applicationData[1]);
+        }
+
         if ((i != 0) && (i != 1) && (i != 2)) {
             attributes.reminderOrder = reminderOrders[i/numReminderOrders];
         }
@@ -754,71 +761,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.5) Arbitrary application data
-    queryString = "applicationData:*";
-
-    for(int i = 0; i < numNotes; ++i) {
-        expectedContainedNotesIndices[i] = true;
-    }
-    expectedContainedNotesIndices[3] = false;
-    expectedContainedNotesIndices[4] = false;
-    expectedContainedNotesIndices[5] = false;
-
-    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
-                           localStorageManager, errorDescription);
-    if (!res) {
-        return false;
-    }
-
-    // 7.6) No application data
-    queryString = "-applicationData:*";
-
-    for(int i = 0; i < numNotes; ++i) {
-        expectedContainedNotesIndices[i] = false;
-    }
-    expectedContainedNotesIndices[3] = true;
-    expectedContainedNotesIndices[4] = true;
-    expectedContainedNotesIndices[5] = true;
-
-    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
-                           localStorageManager, errorDescription);
-    if (!res) {
-        return false;
-    }
-
-    // 7.7) Arbitrary latitude
-    queryString = "latitude:*";
-
-    for(int i = 0; i < numNotes; ++i) {
-        expectedContainedNotesIndices[i] = true;
-    }
-    expectedContainedNotesIndices[6] = false;
-    expectedContainedNotesIndices[7] = false;
-    expectedContainedNotesIndices[8] = false;
-
-    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
-                           localStorageManager, errorDescription);
-    if (!res) {
-        return false;
-    }
-
-    // 7.8) No latitude
-    queryString = "-latitude:*";
-
-    for(int i = 0; i < numNotes; ++i) {
-        expectedContainedNotesIndices[i] = false;
-    }
-    expectedContainedNotesIndices[6] = true;
-    expectedContainedNotesIndices[7] = true;
-    expectedContainedNotesIndices[8] = true;
-
-    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
-                           localStorageManager, errorDescription);
-    if (!res) {
-        return false;
-    }
-
-    // 7.9) Notebook
+    // 7.5) Notebook
     queryString = "notebook:\"Test notebook #1\"";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -834,9 +777,9 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.10) Tags
+    // 7.6) Tags
 
-    // 7.10.1) Check a single tag
+    // 7.6.1) Check a single tag
     queryString = "tag:\"";
     queryString += tags[1].name();
     queryString += "\"";
@@ -853,7 +796,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.10.2) Check negative for single tag
+    // 7.6.2) Check negative for single tag
     queryString = "-tag:\"";
     queryString += tags[2].name();
     queryString += "\"";
@@ -871,7 +814,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.10.3) Check for multiple tags
+    // 7.6.3) Check for multiple tags
     queryString = "tag:\"";
     queryString += tags[1].name();
     queryString += "\" tag:\"";
@@ -889,7 +832,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.10.3) Check for multiple tags with any modifier
+    // 7.6.3) Check for multiple tags with any modifier
     queryString = "any: tag:\"";
     queryString += tags[1].name();
     queryString += "\" tag:\"";
@@ -910,7 +853,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.10.4) Check for both positive and negated tags
+    // 7.6.4) Check for both positive and negated tags
     queryString = "tag:\"";
     queryString += tags[4].name();
     queryString += "\" -tag:\"";
@@ -929,7 +872,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.10.5) Check for both positive and negated tag names with "any:" modifier
+    // 7.6.5) Check for both positive and negated tag names with "any:" modifier
     queryString = "any: tag:\"";
     queryString += tags[4].name();
     queryString += "\" -tag:\"";
@@ -949,7 +892,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.10.6) Find all notes with a tag
+    // 7.6.6) Find all notes with a tag
     queryString = "tag:*";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -963,7 +906,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.10.7) Find all notes without a tag
+    // 7.6.7) Find all notes without a tag
     queryString = "-tag:*";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -977,9 +920,9 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.11) Resource mime types
+    // 7.7) Resource mime types
 
-    // 7.11.1) Check a single mime type
+    // 7.7.1) Check a single mime type
     queryString = "resource:\"";
     queryString += resources[1].mime();
     queryString += "\"";
@@ -994,7 +937,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.11.2) Check negative for single resource mime type
+    // 7.7.2) Check negative for single resource mime type
     queryString = "-resource:\"";
     queryString += resources[2].mime();
     queryString += "\"";
@@ -1010,7 +953,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.11.3) Check for multiple resource mime types
+    // 7.7.3) Check for multiple resource mime types
     queryString = "resource:\"";
     queryString += resources[0].mime();
     queryString += "\" resource:\"";
@@ -1028,7 +971,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.11.4) Check for multiple resource mime types with "any:" modifier
+    // 7.7.4) Check for multiple resource mime types with "any:" modifier
     queryString = "any: resource:\"";
     queryString += resources[0].mime();
     queryString += "\" resource:\"";
@@ -1048,7 +991,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.11.5) Check for both positive and negated resource mime types
+    // 7.7.5) Check for both positive and negated resource mime types
     queryString = "resource:\"";
     queryString += resources[0].mime();
     queryString += "\" -resource:\"";
@@ -1068,7 +1011,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.11.6) Check for both positive and negated resource mime types with "any:" modifier
+    // 7.7.6) Check for both positive and negated resource mime types with "any:" modifier
     queryString = "any: resource:\"";
     queryString += resources[0].mime();
     queryString += "\" -resource:\"";
@@ -1091,7 +1034,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.11.7) Find all notes with a resource of any mime type
+    // 7.7.7) Find all notes with a resource of any mime type
     queryString = "resource:*";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1105,7 +1048,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.11.8) Find all notes without resources
+    // 7.7.8) Find all notes without resources
     queryString = "-resource:*";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1119,9 +1062,9 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.12) Resource recognition types
+    // 7.8) Resource recognition types
 
-    // 7.12.1) Check a single resource recognition type
+    // 7.8.1) Check a single resource recognition type
     queryString = "recoType:picture";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1134,7 +1077,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.12.2) check negative for single resource recognition type
+    // 7.8.2) check negative for single resource recognition type
     queryString = "-recoType:picture";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1147,7 +1090,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.12.3) Check for multiple resource recognition types
+    // 7.8.3) Check for multiple resource recognition types
     queryString = "recoType:picture recoType:handwritten";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1161,7 +1104,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.12.4) Check for multiple resource recognition types with "any:" modifier
+    // 7.8.4) Check for multiple resource recognition types with "any:" modifier
     queryString = "any: recoType:picture recoType:handwritten";
 
     for(int i = 0; i < 6; ++i) {
@@ -1177,7 +1120,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.12.5) Check for both positive and negated resource recognition type
+    // 7.8.5) Check for both positive and negated resource recognition type
     queryString = "recoType:handwritten -recoType:picture";
 
     for(int i = 0; i < 3; ++i) {
@@ -1193,7 +1136,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.12.6) Check for both positive and negated resource recognition types with "any:" modifier
+    // 7.8.6) Check for both positive and negated resource recognition types with "any:" modifier
     queryString = "any: recoType:handwritten -recoType:picture";
 
     for(int i = 0; i < 4; ++i) {
@@ -1212,7 +1155,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.12.7) Find all notes with a resource of any recognition type
+    // 7.8.7) Find all notes with a resource of any recognition type
     queryString = "recoType:*";
 
     for(int i = 0; i < 6; ++i) {
@@ -1228,7 +1171,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.12.8) Find all notes without resources with recognition data
+    // 7.8.8) Find all notes without resources with recognition data
     queryString = "-recoType:*";
 
     for(int i = 0; i < 6; ++i) {
@@ -1244,9 +1187,9 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.13) Creation timestamps
+    // 7.9) Creation timestamps
 
-    // 7.13.1) Single creation timestamps
+    // 7.9.1) Single creation timestamps
     QStringList creationTimestampDateTimeStrings;
     creationTimestampDateTimeStrings.reserve(numNotes - 1);
     creationTimestampDateTimeStrings << "day-3" << "day-2" << "day-1"
@@ -1266,7 +1209,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     }
 
 
-    // 7.13.2) Negated single creation timestamps
+    // 7.9.2) Negated single creation timestamps
     queryString = "-created:day+1";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1279,7 +1222,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.13.3) Multiple creation timestamps
+    // 7.9.3) Multiple creation timestamps
     queryString = "created:day created:day+2";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1292,7 +1235,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.13.4) Multiple negated creation timestamps
+    // 7.9.4) Multiple negated creation timestamps
     queryString = "-created:day+2 -created:day-1";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1305,7 +1248,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.13.5) Multiple creation timestamps with "any:" modifier
+    // 7.9.5) Multiple creation timestamps with "any:" modifier
     queryString = "any: created:day-1 created:day+2";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1318,7 +1261,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.13.6) Multiple negated creation timestamps with "any:" modifier
+    // 7.9.6) Multiple negated creation timestamps with "any:" modifier
     queryString = "any: -created:day+2 -created:day-1";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1331,7 +1274,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.13.7) Both positive and negated creation timestamps
+    // 7.9.7) Both positive and negated creation timestamps
     queryString = "created:day-1 -created:day+2";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1344,7 +1287,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.13.8) Both positive and negated creation timestamps with "any:" modifier
+    // 7.9.8) Both positive and negated creation timestamps with "any:" modifier
     queryString = "any: created:day+2 -created:day-1";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1357,7 +1300,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.13.9) Find notes with any creation timestamp set
+    // 7.9.9) Find notes with any creation timestamp set
     queryString = "created:*";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1370,7 +1313,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.13.10) Find notes with no creation timestamp set
+    // 7.9.10) Find notes with no creation timestamp set
     queryString = "-created:*";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1383,9 +1326,9 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.14 latitudes
+    // 7.10 latitudes
 
-    // 7.14.1) Single latitude
+    // 7.10.1) Single latitude
     queryString = "latitude:10";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1398,7 +1341,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.14.2) Single negated latitude
+    // 7.10.2) Single negated latitude
     queryString = "-latitude:-30";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1411,7 +1354,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.14.3) Multiple latitudes
+    // 7.10.3) Multiple latitudes
     queryString = "latitude:-10 latitude:10";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1424,7 +1367,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.14.4) Multiple latitudes with "any:" modifier
+    // 7.10.4) Multiple latitudes with "any:" modifier
     queryString = "any: latitude:-10 latitude:10";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1437,7 +1380,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.14.5) Multiple negated latitudes
+    // 7.10.5) Multiple negated latitudes
     queryString = "-latitude:-30 -latitude:-10";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1450,7 +1393,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.14.6) Multiple negated latitudes with "any:" modifier
+    // 7.10.6) Multiple negated latitudes with "any:" modifier
     queryString = "any: -latitude:-30 -latitude:-10";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1463,7 +1406,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.14.7) Both positive and negated latitudes
+    // 7.10.7) Both positive and negated latitudes
     queryString = "latitude:-20 -latitude:20";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1476,7 +1419,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.14.8) Both positive and negated latitudes with "any:" modifier
+    // 7.10.8) Both positive and negated latitudes with "any:" modifier
     queryString = "any: -latitude:-30 latitude:30";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1489,7 +1432,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.14.9) Find notes with any latitude set
+    // 7.10.9) Find notes with any latitude set
     queryString = "latitude:*";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1502,7 +1445,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.14.10) Find notes without latitude set
+    // 7.10.10) Find notes without latitude set
     queryString = "-latitude:*";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1515,9 +1458,9 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.15) place names
+    // 7.11) place names
 
-    // 7.15.1) Single place name
+    // 7.11.1) Single place name
     queryString = "placeName:";
     queryString += placeNames[1];
 
@@ -1531,7 +1474,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.15.2) Single negated place name
+    // 7.11.2) Single negated place name
     queryString = "-placeName:";
     queryString += placeNames[0];
 
@@ -1545,7 +1488,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.15.3) Two place names (each note has the only one)
+    // 7.11.3) Two place names (each note has the only one)
     queryString = "placeName:";
     queryString += placeNames[0];
     queryString += " placeName:";
@@ -1561,7 +1504,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.15.4) Two place names with "any:" modifier
+    // 7.11.4) Two place names with "any:" modifier
     queryString = "any: placeName:";
     queryString += placeNames[0];
     queryString += " placeName:";
@@ -1577,7 +1520,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.15.5) Both positive and negated placeNames (should work the same way as only positive
+    // 7.11.5) Both positive and negated placeNames (should work the same way as only positive
     // placeName provided that negated one is not the same)
     queryString = "placeName:";
     queryString += placeNames[0];
@@ -1594,7 +1537,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.15.6) Both positive and negated placeNames with "any:" modifier
+    // 7.11.6) Both positive and negated placeNames with "any:" modifier
     queryString = "any: placeName:";
     queryString += placeNames[0];
     queryString += " -placeName:";
@@ -1610,7 +1553,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.15.7) Two negated placeNames
+    // 7.11.7) Two negated placeNames
     queryString = "-placeName:";
     queryString += placeNames[0];
     queryString += " -placeName:";
@@ -1626,7 +1569,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.15.8) Two negated placeNames with "any:" modifier
+    // 7.11.8) Two negated placeNames with "any:" modifier
     queryString = "any: -placeName:";
     queryString += placeNames[0];
     queryString += " -placeName:";
@@ -1642,7 +1585,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.15.9) Find note with any place name
+    // 7.11.9) Find note with any place name
     queryString = "placeName:*";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1655,12 +1598,170 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 7.15.10) Find note without any place name
+    // 7.11.10) Find note without any place name
     queryString = "-placeName:*";
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = (i > 5);
     }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12) Application data
+
+    // 7.12.1) Find notes with a single application data entry
+    queryString = "applicationData:";
+    queryString += applicationData[0];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i < 3);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.2) Find notes via negated application data entry
+    queryString = "-applicationData:";
+    queryString += applicationData[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i < 6) || (i > 6));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.3) Find notes with two application data entries
+    queryString = "applicationData:";
+    queryString += applicationData[1];
+    queryString += " applicationData:";
+    queryString += applicationData[2];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i == 6);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.4) Find notes with two application data entries and "any:" modifier
+    queryString = "any: applicationData:";
+    queryString += applicationData[0];
+    queryString += " applicationData:";
+    queryString += applicationData[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i < 3) || (i == 6));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.5) Find notes with two negated application data entries
+    queryString = "-applicationData:";
+    queryString += applicationData[0];
+    queryString += " -applicationData:";
+    queryString += applicationData[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = ((i > 2) && (i != 6));
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.6) Find notes with two negated application data entries nad "any:" modifier
+    queryString = "any: -applicationData:";
+    queryString += applicationData[0];
+    queryString += " -applicationData:";
+    queryString += applicationData[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.7) Find notes with both positive and negated application data entry
+    queryString = "applicationData:";
+    queryString += applicationData[2];
+    queryString += " -applicationData:";
+    queryString += applicationData[1];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i > 6);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.8) Find notes with both positive and negated application data entry and "any:" modifier
+    queryString = "any: applicationData:";
+    queryString += applicationData[2];
+    queryString += " -applicationData:";
+    queryString += applicationData[0];
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = (i > 2);
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.9) Arbitrary application data
+    queryString = "applicationData:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[3] = false;
+    expectedContainedNotesIndices[4] = false;
+    expectedContainedNotesIndices[5] = false;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7.12.10) No application data
+    queryString = "-applicationData:*";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[3] = true;
+    expectedContainedNotesIndices[4] = true;
+    expectedContainedNotesIndices[5] = true;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);

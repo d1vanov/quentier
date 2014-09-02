@@ -3748,7 +3748,6 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                     keysOnlyString += "'";
                     keysOnlyString += *it;
                     keysOnlyString += "'";
-                    keysOnlyString += "\0";
                 }
 
                 QNDEBUG("Application data keys only string: " << keysOnlyString);
@@ -3773,12 +3772,10 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                     fullMapKeysString += "'";
                     fullMapKeysString += it.key();
                     fullMapKeysString += "'";
-                    fullMapKeysString += "\0";
 
                     fullMapValuesString += "'";
                     fullMapValuesString += it.value();
                     fullMapValuesString += "'";
-                    fullMapValuesString += "\0";
                 }
 
                 QNDEBUG("Application data map keys: " << fullMapKeysString
@@ -3811,12 +3808,10 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                 classificationKeys += "'";
                 classificationKeys += it.key();
                 classificationKeys += "'";
-                classificationKeys += "\0";
 
                 classificationValues += "'";
                 classificationValues += it.value();
                 classificationValues += "'";
-                classificationValues += "\0";
             }
 
             QNDEBUG("Classification keys: " << classificationKeys << ", classification values"
@@ -4427,7 +4422,6 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataKeysOnlyFromSq
     bool insideQuotedText = false;
     QString currentKey;
     QChar wordSep('\'');
-    QChar sep('\0');
     for(int i = 0; i < (length - 1); ++i)
     {
         const QChar currentChar = keysOnlyString.at(i);
@@ -4437,7 +4431,7 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataKeysOnlyFromSq
         {
             insideQuotedText = !insideQuotedText;
 
-            if (nextChar == sep) {
+            if (nextChar == wordSep) {
                 keysOnly.insert(currentKey);
                 currentKey.clear();
             }
@@ -4497,7 +4491,6 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataFullMapFromSql
     bool insideQuotedText = false;
     QString currentKey;
     QChar wordSep('\'');
-    QChar sep('\0');
     for(int i = 0; i < (keysLength - 1); ++i)
     {
         const QChar currentChar = keysString.at(i);
@@ -4507,7 +4500,7 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataFullMapFromSql
         {
             insideQuotedText = !insideQuotedText;
 
-            if (nextChar == sep) {
+            if (nextChar == wordSep) {
                 keysList << currentKey;
                 currentKey.clear();
             }
@@ -4535,7 +4528,7 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataFullMapFromSql
         {
             insideQuotedText = !insideQuotedText;
 
-            if (nextChar == sep) {
+            if (nextChar == wordSep) {
                 valuesList << currentValue;
                 currentValue.clear();
             }
@@ -4596,7 +4589,6 @@ void LocalStorageManagerPrivate::FillNoteAttributesClassificationsFromSqlRecord(
     bool insideQuotedText = false;
     QString currentKey;
     QChar wordSep('\'');
-    QChar sep('\0');
     for(int i = 0; i < (keysLength - 1); ++i)
     {
         const QChar currentChar = keysString.at(i);
@@ -4606,7 +4598,7 @@ void LocalStorageManagerPrivate::FillNoteAttributesClassificationsFromSqlRecord(
         {
             insideQuotedText = !insideQuotedText;
 
-            if (nextChar == sep) {
+            if (nextChar == wordSep) {
                 keysList << currentKey;
                 currentKey.clear();
             }
@@ -4630,7 +4622,7 @@ void LocalStorageManagerPrivate::FillNoteAttributesClassificationsFromSqlRecord(
         {
             insideQuotedText = !insideQuotedText;
 
-            if (nextChar == sep) {
+            if (nextChar == wordSep) {
                 valuesList << currentValue;
                 currentValue.clear();
             }
