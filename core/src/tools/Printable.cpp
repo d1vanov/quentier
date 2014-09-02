@@ -186,7 +186,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes &
         if (applicationData.fullMap.isSet()) {
             const QMap<QString, QString> & fullMap = applicationData.fullMap;
             strm << "ApplicationData: full map: \n";
-            foreach(const QString & key, fullMap) {
+            foreach(const QString & key, fullMap.keys()) {
                 strm << "[" << key << "] = " << fullMap.value(key) << "; ";
             }
             strm << "\n";

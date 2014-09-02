@@ -306,41 +306,47 @@ bool Note::checkParameters(QString & errorDescription) const
         if (attributes.applicationData.isSet())
         {
             const qevercloud::LazyMap & applicationData = attributes.applicationData;
-            const QSet<QString> & keysOnly = applicationData.keysOnly;
-            const QMap<QString, QString> & fullMap = applicationData.fullMap;
 
-            foreach(const QString & key, keysOnly) {
-                int keySize = key.size();
-                if ( (keySize < qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MIN) ||
-                     (keySize > qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MAX) )
-                {
-                    errorDescription = QT_TR_NOOP("Note's attributes application data has invalid key (in keysOnly part)");
-                    return false;
+            if (applicationData.keysOnly.isSet())
+            {
+                const QSet<QString> & keysOnly = applicationData.keysOnly;
+                foreach(const QString & key, keysOnly) {
+                    int keySize = key.size();
+                    if ( (keySize < qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MIN) ||
+                         (keySize > qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MAX) )
+                    {
+                        errorDescription = QT_TR_NOOP("Note's attributes application data has invalid key (in keysOnly part)");
+                        return false;
+                    }
                 }
             }
 
-            for(QMap<QString, QString>::const_iterator it = fullMap.constBegin(); it != fullMap.constEnd(); ++it)
+            if (applicationData.fullMap.isSet())
             {
-                int keySize = it.value().size();
-                if ( (keySize < qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MIN) ||
-                     (keySize > qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MAX) )
+                const QMap<QString, QString> & fullMap = applicationData.fullMap;
+                for(QMap<QString, QString>::const_iterator it = fullMap.constBegin(); it != fullMap.constEnd(); ++it)
                 {
-                    errorDescription = QT_TR_NOOP("Note's attributes application data has invalid key (in fullMap part)");
-                    return false;
-                }
+                    int keySize = it.key().size();
+                    if ( (keySize < qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MIN) ||
+                         (keySize > qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MAX) )
+                    {
+                        errorDescription = QT_TR_NOOP("Note's attributes application data has invalid key (in fullMap part)");
+                        return false;
+                    }
 
-                int valueSize = it.value().size();
-                if ( (valueSize < qevercloud::EDAM_APPLICATIONDATA_VALUE_LEN_MIN) ||
-                     (valueSize > qevercloud::EDAM_APPLICATIONDATA_VALUE_LEN_MAX) )
-                {
-                    errorDescription = QT_TR_NOOP("Note's attributes application data has invalid value");
-                    return false;
-                }
+                    int valueSize = it.value().size();
+                    if ( (valueSize < qevercloud::EDAM_APPLICATIONDATA_VALUE_LEN_MIN) ||
+                         (valueSize > qevercloud::EDAM_APPLICATIONDATA_VALUE_LEN_MAX) )
+                    {
+                        errorDescription = QT_TR_NOOP("Note's attributes application data has invalid value");
+                        return false;
+                    }
 
-                int sumSize = keySize + valueSize;
-                if (sumSize > qevercloud::EDAM_APPLICATIONDATA_ENTRY_LEN_MAX) {
-                    errorDescription = QT_TR_NOOP("Note's attributes application data has invalid entry size");
-                    return false;
+                    int sumSize = keySize + valueSize;
+                    if (sumSize > qevercloud::EDAM_APPLICATIONDATA_ENTRY_LEN_MAX) {
+                        errorDescription = QT_TR_NOOP("Note's attributes application data has invalid entry size");
+                        return false;
+                    }
                 }
             }
         }
@@ -563,12 +569,12 @@ void Note::setTagGuids(const QStringList & guids)
         m_qecNote.tagGuids = QList<QString>();
     }
 
-    QList<QString> & localTagGuids = m_qecNote.tagGuids;
-    localTagGuids.clear();
+    QList<QString> & tagGuids = m_qecNote.tagGuids;
+    tagGuids.clear();
 
-    localTagGuids.reserve(numTagGuids);
+    tagGuids.reserve(numTagGuids);
     foreach(const QString & guid, guids) {
-        localTagGuids << guid;
+        tagGuids << guid;
     }
 
     QNDEBUG("Added " << numTagGuids << " tag guids to note");
@@ -1050,7 +1056,7 @@ QTextStream & Note::Print(QTextStream & strm) const
     {
         strm << "tagGuids: {";
         foreach(const QString & tagGuid, m_qecNote.tagGuids.ref()) {
-            strm << tagGuid << "; ";
+            strm << "'" << tagGuid << "'; ";
         }
         strm << "}";
     }

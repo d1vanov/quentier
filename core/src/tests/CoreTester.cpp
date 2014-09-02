@@ -6,7 +6,9 @@
 #include "UserLocalStorageManagerAsyncTester.h"
 #include "NotebookLocalStorageManagerAsyncTester.h"
 #include "NoteLocalStorageManagerAsyncTester.h"
+#include "NoteSearchQueryTest.h"
 #include "ResourceLocalStorageManagerAsyncTester.h"
+#include "LocalStorageManagerNoteSearchQueryTest.h"
 #include <tools/IQuteNoteException.h>
 #include <tools/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
@@ -17,6 +19,7 @@
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/UserWrapper.h>
+#include <logging/QuteNoteLogger.h>
 #include <QApplication>
 #include <QTextStream>
 #include <QtTest/QTest>
@@ -105,22 +108,22 @@ void CoreTester::resourceRecognitionIndicesTest()
         ResourceWrapper resource;
         resource.setRecognitionDataBody(recognitionData.toUtf8());
 
-        QStringList recognitionIndices = resource.recognitionIndices();
+        QStringList recognitionIndices = resource.recognitionTypes();
         QString error = "Recognition index not found";
         QVERIFY2(recognitionIndices.contains("unknown", Qt::CaseInsensitive), qPrintable(error));
         QVERIFY2(recognitionIndices.contains("printed", Qt::CaseInsensitive), qPrintable(error));
         QVERIFY2(recognitionIndices.contains("handwritten", Qt::CaseInsensitive), qPrintable(error));
 
-        QVERIFY2(resource.hasRecognitionIndex("unknown"), qPrintable(error));
-        QVERIFY2(resource.hasRecognitionIndex("printed"), qPrintable(error));
-        QVERIFY2(resource.hasRecognitionIndex("handwritten"), qPrintable(error));
+        QVERIFY2(resource.hasRecognitionType("unknown"), qPrintable(error));
+        QVERIFY2(resource.hasRecognitionType("printed"), qPrintable(error));
+        QVERIFY2(resource.hasRecognitionType("handwritten"), qPrintable(error));
 
         error = "Found non-existing recognition index";
         QVERIFY2(!recognitionIndices.contains("picture", Qt::CaseInsensitive), qPrintable(error));
         QVERIFY2(!recognitionIndices.contains("speech", Qt::CaseInsensitive), qPrintable(error));
 
-        QVERIFY2(!resource.hasRecognitionIndex("picture"), qPrintable(error));
-        QVERIFY2(!resource.hasRecognitionIndex("speech"), qPrintable(error));
+        QVERIFY2(!resource.hasRecognitionType("picture"), qPrintable(error));
+        QVERIFY2(!resource.hasRecognitionType("speech"), qPrintable(error));
     }
     CATCH_EXCEPTION();
 }
@@ -199,6 +202,30 @@ void CoreTester::noteContainsEncryptionTest()
 
         note.clear();
         QVERIFY2(!note.containsEncryption(), qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
+void CoreTester::noteSearchQueryTest()
+{
+    try
+    {
+        QString error;
+        bool res = NoteSearchQueryTest(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
+void CoreTester::localStorageManagerNoteSearchQueryTest()
+{
+    try
+    {
+        QString error;
+        bool res = LocalStorageManagerNoteSearchQueryTest(error);
+        if (!res) {
+            QFAIL(qPrintable(error));
+        }
     }
     CATCH_EXCEPTION();
 }

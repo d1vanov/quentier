@@ -10,7 +10,7 @@ bool CheckUpdateSequenceNumber(const int32_t updateSequenceNumber)
               (updateSequenceNumber == std::numeric_limits<int32_t>::max()) );
 }
 
-const QString PrintableDateTimeFromTimestamp(const quint64 timestamp)
+const QString PrintableDateTimeFromTimestamp(const qint64 timestamp)
 {
     return std::move(QDateTime::fromMSecsSinceEpoch(timestamp).toString(Qt::ISODate));
 }

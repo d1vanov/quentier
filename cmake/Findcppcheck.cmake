@@ -64,7 +64,7 @@ if(CPPCHECK_EXECUTABLE)
 
 	# Check for the two types of command line arguments by just trying them
 	execute_process(COMMAND
-		"${CPPCHECK_EXECUTABLE}"
+        "${CPPCHECK_EXECUTABLE}"
 		"--enable=style"
 		"--quiet"
 		"${_cppcheckdummyfile}"
@@ -107,7 +107,7 @@ if(CPPCHECK_EXECUTABLE)
 		# Old arguments
 		set(CPPCHECK_UNUSEDFUNC_ARG "--unused-functions")
 		set(CPPCHECK_POSSIBLEERROR_ARG "--all")
-		set(CPPCHECK_STYLE_ARG "--style")
+        set(CPPCHECK_STYLE_ARG "--style")
 		set(CPPCHECK_QUIET_ARG "--quiet")
 		set(CPPCHECK_INCLUDEPATH_ARG "-I")
 		set(CPPCHECK_FAIL_REGULAR_EXPRESSION "error:")
@@ -117,8 +117,6 @@ if(CPPCHECK_EXECUTABLE)
 		message(STATUS
 			"WARNING: Can't detect whether CPPCHECK wants new or old-style arguments!")
 	endif()
-
-
 endif()
 
 set(CPPCHECK_ALL

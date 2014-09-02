@@ -1,5 +1,6 @@
 #include "QuteNoteTextEdit.h"
 #include "ToDoCheckboxTextObject.h"
+#include <tools/QuteNoteCheckPtr.h>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QTextCursor>
@@ -223,7 +224,7 @@ void QuteNoteTextEdit::keyPressEvent(QKeyEvent * pEvent)
                 // 5. Create a new list and fill it with saved items
                 cursor.movePosition(QTextCursor::Down);
                 QTextList * pNewList = cursor.createList(QTextListFormat::ListDecimal);
-                Q_CHECK_PTR(pNewList);
+                QUTE_NOTE_CHECK_PTR(pNewList);
 
                 for(int i = 1; i < nLinesToLastItem; ++i) {
                     cursor.movePosition(QTextCursor::Down);

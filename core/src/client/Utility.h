@@ -1,8 +1,8 @@
 #ifndef __QUTE_NOTE__CLIENT__UTILITY_H
 #define __QUTE_NOTE__CLIENT__UTILITY_H
 
-#include <QString>
 #include <QEverCloud.h>
+#include <QString>
 #include <cstdint>
 
 namespace qute_note {
@@ -25,7 +25,7 @@ bool CheckGuid(const T & guid)
 
 bool CheckUpdateSequenceNumber(const int32_t updateSequenceNumber);
 
-const QString PrintableDateTimeFromTimestamp(const quint64 timestamp);
+const QString PrintableDateTimeFromTimestamp(const qint64 timestamp);
 
 } // namespace qute_note
 

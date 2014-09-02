@@ -46,6 +46,8 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/LocalStorageManager_p.h
     src/client/local_storage/LocalStorageManagerThread.h
     src/client/local_storage/LocalStorageManagerThreadWorker.h
+    src/client/local_storage/NoteSearchQuery.h
+    src/client/local_storage/NoteSearchQuery_p.h
     src/client/local_storage/Transaction.h
     src/logging/QuteNoteLogger.h
     src/logging/LoggerInitializationException.h
@@ -102,6 +104,8 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/LocalStorageManager_p.cpp
     src/client/local_storage/LocalStorageManagerThread.cpp
     src/client/local_storage/LocalStorageManagerThreadWorker.cpp
+    src/client/local_storage/NoteSearchQuery.cpp
+    src/client/local_storage/NoteSearchQuery_p.cpp
     src/client/local_storage/Transaction.cpp
     src/logging/QuteNoteLogger.cpp
     src/logging/LoggerInitializationException.cpp
@@ -149,22 +153,26 @@ set(TEST_HEADERS
     src/tests/LinkedNotebookLocalStorageManagerAsyncTester.h
     src/tests/NotebookLocalStorageManagerAsyncTester.h
     src/tests/NoteLocalStorageManagerAsyncTester.h
+    src/tests/NoteSearchQueryTest.h
     src/tests/ResourceLocalStorageManagerAsyncTester.h
     src/tests/TagLocalStorageManagerAsyncTester.h
     src/tests/SavedSearchLocalStorageManagerAsyncTester.h
     src/tests/UserLocalStorageManagerAsyncTester.h
     src/tests/LocalStorageManagerTests.h
+    src/tests/LocalStorageManagerNoteSearchQueryTest.h
     src/tests/CoreTester.h)
 
 set(TEST_SOURCES
     src/tests/LinkedNotebookLocalStorageManagerAsyncTester.cpp
     src/tests/NotebookLocalStorageManagerAsyncTester.cpp
     src/tests/NoteLocalStorageManagerAsyncTester.cpp
+    src/tests/NoteSearchQueryTest.cpp
     src/tests/ResourceLocalStorageManagerAsyncTester.cpp
     src/tests/TagLocalStorageManagerAsyncTester.cpp
     src/tests/SavedSearchLocalStorageManagerAsyncTester.cpp
     src/tests/UserLocalStorageManagerAsyncTester.cpp
     src/tests/LocalStorageManagerTests.cpp
+    src/tests/LocalStorageManagerNoteSearchQueryTest.cpp
     src/tests/CoreTester.cpp
     src/tests/CoreTestMain.cpp)
 

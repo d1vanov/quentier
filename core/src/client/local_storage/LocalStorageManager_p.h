@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_PRIVATE_H
 #define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_PRIVATE_H
 
+#include "Lists.h"
 #include <client/types/IUser.h>
 #include <client/types/UserAdapter.h>
 #include <client/types/UserWrapper.h>
@@ -20,6 +21,7 @@
 namespace qute_note {
 
 typedef qevercloud::UserID UserID;
+QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
 
 class LocalStorageManagerPrivate
 {
@@ -65,6 +67,10 @@ public:
                                         const bool withResourceBinaryData = true) const;
     bool DeleteNote(const Note & note, QString & errorDescription);
     bool ExpungeNote(const Note & note, QString & errorDescription);
+
+    NoteList FindNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
+                                      QString & errorDescription,
+                                      const bool withResourceBinaryData = true) const;
 
     int GetTagCount(QString & errorDescription) const;
     bool AddTag(const Tag & tag, QString & errorDescription);
@@ -155,6 +161,18 @@ private:
 
     QList<qevercloud::SharedNotebook> ListEnSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                            QString & errorDescription) const;
+
+    bool noteSearchQueryToSQL(const NoteSearchQuery & noteSearchQuery, QString & sql,
+                              QString & errorDescription) const;
+
+    bool tagNamesToTagLocalGuids(const QStringList & tagNames, QStringList & tagLocalGuids,
+                                 QString & errorDescription) const;
+    bool resourceMimeTypesToResourceLocalGuids(const QStringList & resourceMimeTypes,
+                                               QStringList & resourceLocalGuids,
+                                               QString & errorDescription) const;
+    bool resourceRecognitionTypesToResourceLocalGuids(const QStringList & resourceRecognitionTypes,
+                                                      QStringList & resourceLocalGuids,
+                                                      QString & errorDescription) const;
 
     QString             m_currentUsername;
     qevercloud::UserID  m_currentUserId;

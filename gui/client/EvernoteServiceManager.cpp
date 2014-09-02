@@ -21,26 +21,26 @@ public:
         m_noteStoreUrl("")
     {}
 
-    qevercloud::UserStore * userStorePtr() {
+    qevercloud::UserStore *& userStorePtr() {
         return m_userStoreClientPtr;
     }
 
-    qevercloud::NoteStore * noteStorePtr()
+    qevercloud::NoteStore *& noteStorePtr()
     {
         return m_noteStoreClientPtr;
     }
 
-    qevercloud::Notebook * notebookPtr()
+    qevercloud::Notebook *& notebookPtr()
     {
         return m_notebookPtr;
     }
 
-    qevercloud::Notebook * trashNotebookPtr()
+    qevercloud::Notebook *& trashNotebookPtr()
     {
         return m_trashNotebookPtr;
     }
 
-    qevercloud::Tag * favouriteTagPtr()
+    qevercloud::Tag *& favouriteTagPtr()
     {
         return m_favouriteTagPtr;
     }
@@ -66,6 +66,7 @@ void EvernoteServiceManager::authenticate()
 
 void EvernoteServiceManager::connect()
 {
+    /*
     QString errorMessage;
     if (!CheckAuthenticationState(errorMessage)) {
         emit statusTextUpdate(QString(tr("Unable to connect to Evernote - authentication failed: ")) +
@@ -73,12 +74,10 @@ void EvernoteServiceManager::connect()
         return;
     }
 
-    /*
-    std::string username = m_credentials.GetUsername().toStdString();
-    std::string password = m_credentials.GetPassword().toStdString();
-    std::string consumerKey = m_credentials.GetConsumerKey().toStdString();
-    std::string consumerSecret = m_credentials.GetConsumerSecret().toStdString();
-    */
+    // std::string username = m_credentials.GetUsername().toStdString();
+    // std::string password = m_credentials.GetPassword().toStdString();
+    // std::string consumerKey = m_credentials.GetConsumerKey().toStdString();
+    // std::string consumerSecret = m_credentials.GetConsumerSecret().toStdString();
     QString authToken = m_credentials.GetOAuthKey();
     // std::string authTokenSecret = m_credentials.GetOAuthSecret().toStdString();
 
@@ -118,6 +117,7 @@ void EvernoteServiceManager::connect()
     SetFavouriteTag();
     SetConnectionState(ECS_CONNECTED);
     // TODO: set up timer to refresh connection, synchronize
+    */
 }
 
 void EvernoteServiceManager::disconnect()
@@ -178,18 +178,19 @@ void EvernoteServiceManager::SetDefaultNotebook()
     QList<qevercloud::Notebook> notebooks = pNoteStore->listNotebooks();
     qevercloud::Notebook defaultNotebook = pNoteStore->getDefaultNotebook();
 
-    qevercloud::Notebook * pNotebook = m_pEvernoteDataHolder->notebookPtr();
+    qevercloud::Notebook *& pNotebook = m_pEvernoteDataHolder->notebookPtr();
     int numNotebooks = notebooks.size();
     for(int i = 0; i < numNotebooks; ++i)
     {
         const qevercloud::Notebook & notebook = notebooks.at(i);
         if (notebook.guid.ref() == defaultNotebook.guid.ref())
         {   
-            if (pNotebook != nullptr) {
-                delete pNotebook;
-                pNotebook = nullptr;
+            if (!pNotebook) {
+                pNotebook = new qevercloud::Notebook(notebook);
             }
-            pNotebook = new qevercloud::Notebook(notebook);
+            else {
+                *pNotebook = notebook;
+            }
             return;
         }
     }
@@ -198,11 +199,12 @@ void EvernoteServiceManager::SetDefaultNotebook()
     defaultNotebook = pNoteStore->createNotebook(defaultNotebook);
     defaultNotebook = pNoteStore->getNotebook(defaultNotebook.guid);
 
-    if (pNotebook != nullptr) {
-        delete pNotebook;
-        pNotebook = nullptr;
+    if (!pNotebook) {
+        pNotebook = new qevercloud::Notebook(defaultNotebook);
     }
-    pNotebook = new qevercloud::Notebook(defaultNotebook);
+    else {
+        *pNotebook = defaultNotebook;
+    }
 }
 
 void EvernoteServiceManager::SetTrashNotebook()
@@ -213,15 +215,15 @@ void EvernoteServiceManager::SetTrashNotebook()
         return;
     }
 
-    qevercloud::NoteStore * pNoteStore = m_pEvernoteDataHolder->noteStorePtr();
-    if (pNoteStore == nullptr) {
+    qevercloud::NoteStore *& pNoteStore = m_pEvernoteDataHolder->noteStorePtr();
+    if (!pNoteStore) {
         emit statusTextUpdate(QString(tr("Unable to set default notebook: NoteStoreClient is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
 
-    qevercloud::Notebook * pTrashNotebook = m_pEvernoteDataHolder->trashNotebookPtr();
-    if (pTrashNotebook == nullptr)
+    qevercloud::Notebook *& pTrashNotebook = m_pEvernoteDataHolder->trashNotebookPtr();
+    if (!pTrashNotebook)
     {
         pTrashNotebook = new qevercloud::Notebook;
         pTrashNotebook->name = QString(tr("Trash notebook"));
@@ -236,15 +238,13 @@ void EvernoteServiceManager::SetTrashNotebook()
             const qevercloud::Notebook & notebook = notebooks.at(i);
             if (notebook.guid.ref() == pTrashNotebook->guid.ref())
             {
-                delete pTrashNotebook;
-                pTrashNotebook = new qevercloud::Notebook(notebook);
+                *pTrashNotebook = notebook;
                 return;
             }
         }
 
         // Trash notebook not found, creating one
-        delete pTrashNotebook;
-        pTrashNotebook = new qevercloud::Notebook;
+        *pTrashNotebook = qevercloud::Notebook();
         pTrashNotebook->name = QString(tr("Trash notebook"));
         *pTrashNotebook = pNoteStore->createNotebook(*pTrashNotebook);
     }
@@ -258,15 +258,15 @@ void EvernoteServiceManager::SetFavouriteTag()
         return;
     }
 
-    qevercloud::NoteStore * pNoteStore = m_pEvernoteDataHolder->noteStorePtr();
-    if (pNoteStore == nullptr) {
+    qevercloud::NoteStore *& pNoteStore = m_pEvernoteDataHolder->noteStorePtr();
+    if (!pNoteStore) {
         emit statusTextUpdate(QString(tr("Unable to set favourite tag: NoteStoreClient is null. ")) +
                         QString(tr("Please contact application developer.")), 0);
         return;
     }
 
-    qevercloud::Tag * pFavouriteTag = m_pEvernoteDataHolder->favouriteTagPtr();
-    if (pFavouriteTag == nullptr)
+    qevercloud::Tag *& pFavouriteTag = m_pEvernoteDataHolder->favouriteTagPtr();
+    if (!pFavouriteTag)
     {
         pFavouriteTag = new qevercloud::Tag;
         pFavouriteTag->name = QString(tr("Favourite tag"));
@@ -282,15 +282,13 @@ void EvernoteServiceManager::SetFavouriteTag()
             const qevercloud::Tag & tag = tags.at(i);
             if (tag.guid.ref() == pFavouriteTag->guid.ref())
             {
-                delete pFavouriteTag;
-                pFavouriteTag = new qevercloud::Tag(tag);
+                *pFavouriteTag = tag;
                 return;
             }
         }
 
         // Favourite tag not found, creating one
-        delete pFavouriteTag;
-        pFavouriteTag = new qevercloud::Tag;
+        *pFavouriteTag = qevercloud::Tag();
         pFavouriteTag->name = QString(tr("Favourite tag"));
         *pFavouriteTag = pNoteStore->createTag(*pFavouriteTag);
     }

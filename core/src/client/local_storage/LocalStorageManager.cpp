@@ -1,5 +1,6 @@
 #include "LocalStorageManager.h"
 #include "LocalStorageManager_p.h"
+#include "NoteSearchQuery.h"
 
 namespace qute_note {
 
@@ -197,6 +198,14 @@ QList<Note> LocalStorageManager::ListAllNotesPerNotebook(const Notebook & notebo
 {
     Q_D(const LocalStorageManager);
     return d->ListAllNotesPerNotebook(notebook, errorDescription, withResourceBinaryData);
+}
+
+NoteList LocalStorageManager::FindNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
+                                                       QString & errorDescription,
+                                                       const bool withResourceBinaryData) const
+{
+    Q_D(const LocalStorageManager);
+    return d->FindNotesWithSearchQuery(noteSearchQuery, errorDescription, withResourceBinaryData);
 }
 
 bool LocalStorageManager::DeleteNote(const Note & note, QString & errorDescription)

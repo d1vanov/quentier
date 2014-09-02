@@ -20,6 +20,9 @@ private slots:
     void noteContainsToDoTest();
     void noteContainsEncryptionTest();
 
+    void noteSearchQueryTest();
+    void localStorageManagerNoteSearchQueryTest();
+
     void localStorageManagerIndividualSavedSearchTest();
     void localStorageManagerIndividualLinkedNotebookTest();
     void localStorageManagerIndividualTagTest();

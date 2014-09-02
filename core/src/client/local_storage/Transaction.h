@@ -11,15 +11,17 @@ class QUTE_NOTE_EXPORT Transaction
 public:
     enum TransactionType {
         Default,
+        Selection,  // transaction type for speeding-up selection queries via holding the shared lock
         Immediate,
         Exclusive
     };
 
-    Transaction(QSqlDatabase & db, TransactionType type = Default);
+    Transaction(const QSqlDatabase & db, TransactionType type = Default);
     Transaction(Transaction && other);
     virtual ~Transaction();
 
     bool commit(QString & errorDescription);
+    bool end(QString & errorDescription);
 
 private:
     Transaction() = delete;
@@ -29,9 +31,10 @@ private:
 
     void init();
 
-    QSqlDatabase & m_db;
+    const QSqlDatabase & m_db;
     TransactionType m_type;
     bool m_committed;
+    bool m_ended;
 };
 
 } // namespace qute_note
