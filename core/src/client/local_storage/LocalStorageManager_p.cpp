@@ -3912,6 +3912,11 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"Notes\" table in SQL database");
 
+    // Clear note-to-tag binding first, update them second
+    queryString = QString("DELETE From NoteTags WHERE localNote = '%1'").arg(localGuid);
+    res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't clear note's tags when updating note");
+
     if (note.hasTagGuids())
     {
         QString error;
@@ -3958,6 +3963,13 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
 
     // NOTE: don't even attempt fo find tags by their names because qevercloud::Note.tagNames
     // has the only purpose to provide tag names alternatively to guids to NoteStore::createNote method
+
+    // Clear note's resources first and insert new ones second
+    // FIXME: it can be inefficient; need to figure out some partial update approach
+
+    queryString = QString("DELETE FROM Resources WHERE noteLocalGuid = '%1'").arg(localGuid);
+    res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't clear resources when updating note");
 
     if (note.hasResources())
     {
