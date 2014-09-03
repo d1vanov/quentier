@@ -3190,6 +3190,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Users\" table in SQL database: "
                                  "can't prepare SQL query");
 
+    QString userId = QString::number(user.id());
+
     QVariant nullValue;
 
     query.bindValue(":id", user.id());
@@ -3210,10 +3212,24 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
 
     if (user.hasUserAttributes())
     {
-        res = InsertOrReplaceUserAttributes(user.id(), user.userAttributes(), errorDescription);
+        res = InsertOrReplaceUserAttributes(user.id(), user.userAttributes(), errorDescription);   
         if (!res) {
             return false;
         }
+    }
+    else
+    {
+        queryString = QString("DELETE FROM UserAttributes WHERE id = %1").arg(userId);
+        res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributes when updating user");
+
+        queryString = QString("DELETE FROM UserAttributesViewedPromotions WHERE id = %1").arg(userId);
+        res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesViewedPromotions when updating user");
+
+        queryString = QString("DELETE FROM UserAttributesRecentMailedAddresses WHERE id = %1").arg(userId);
+        res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesRecentMailedAddresses when updating user");
     }
 
     if (user.hasAccounting())
@@ -3223,6 +3239,12 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
             return false;
         }
     }
+    else
+    {
+        queryString = QString("DELETE FROM Accounting WHERE id = %1").arg(userId);
+        res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't clear Accounting when updating user");
+    }
 
     if (user.hasPremiumInfo())
     {
@@ -3231,12 +3253,25 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
             return false;
         }
     }
+    else
+    {
+        queryString = QString("DELETE FROM PremiumInfo WHERE id = %1").arg(userId);
+        res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't clear PremiumInfo when updating user");
+    }
 
-    if (user.hasBusinessUserInfo()) {
+    if (user.hasBusinessUserInfo())
+    {
         res = InsertOrReplaceBusinesUserInfo(user.id(), user.businessUserInfo(), errorDescription);
         if (!res) {
             return false;
         }
+    }
+    else
+    {
+        queryString = QString("DELETE FROM BusinessUserInfo WHERE id = %1").arg(userId);
+        res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't clear BusinesUserInfo when updating user");
     }
 
     return transaction.commit(errorDescription);
@@ -3449,7 +3484,14 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributes\" table in SQL database");
 
-    if (attributes.viewedPromotions.isSet()) {
+    // Clean viewed promotions first, then re-insert
+
+    queryString = QString("DELETE FROM UserAttributesViewedPromotions WHERE id = %1").arg(QString::number(id));
+    res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" table in SQL database");
+
+    if (attributes.viewedPromotions.isSet())
+    {
         foreach(const QString & promotion, attributes.viewedPromotions.ref()) {
             queryString = QString("INSERT OR REPLACE INTO UserAttributesViewedPromotions (id, promotion) VALUES('%1', '%2')")
                                   .arg(id).arg(promotion);
@@ -3457,24 +3499,21 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, 
             DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" table in SQL database");
         }
     }
-    else {
-        queryString = QString("DELETE FROM UserAttributesViewedPromotions WHERE id = %1").arg(QString::number(id));
-        res = query.exec(queryString);
-        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" table in SQL database");
-    }
 
-    if (attributes.recentMailedAddresses.isSet()) {
+    // Clean recent mailed addresses first, then re-insert
+
+    queryString = QString("DELETE FROM UserAttributesRecentMailedAddresses WHERE id = %1").arg(QString::number(id));
+    res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
+
+    if (attributes.recentMailedAddresses.isSet())
+    {
         foreach(const QString & address, attributes.recentMailedAddresses.ref()) {
             queryString = QString("INSERT OR REPLACE INTO UserAttributesRecentMailedAddresses (id, address) VALUES('%1', '%2')")
                                   .arg(id).arg(address);
             res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
         }
-    }
-    else {
-        queryString = QString("DELETE FROM UserAttributesRecentMailedAddresses WHERE id = %1").arg(QString::number(id));
-        res = query.exec(queryString);
-        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
     }
 
     return true;
@@ -3547,20 +3586,33 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
             return res;
         }
     }
-
-    QList<SharedNotebookAdapter> sharedNotebooks = notebook.sharedNotebooks();
-    foreach(const SharedNotebookAdapter & sharedNotebook, sharedNotebooks)
+    else
     {
-        if (!sharedNotebook.hasId()) {
-            QNWARNING("Found shared notebook without primary identifier of the share set, skipping it");
-            continue;
-        }
+        queryString = QString("DELETE FROM NotebookRestrictions WHERE localGuid = '%1'").arg(localGuid);
+        res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't clear notebook restrictions when updating notebook");
+    }
 
-        QString error;
-        res = InsertOrReplaceSharedNotebook(sharedNotebook, error);
-        if (!res) {
-            errorDescription += error;
-            return res;
+    if (notebook.hasGuid())
+    {
+        queryString = QString("DELETE FROM SharedNotebooks WHERE notebookGuid = '%1'").arg(notebook.guid());
+        res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't clear shared notebooks before the insertion");
+
+        QList<SharedNotebookAdapter> sharedNotebooks = notebook.sharedNotebooks();
+        foreach(const SharedNotebookAdapter & sharedNotebook, sharedNotebooks)
+        {
+            if (!sharedNotebook.hasId()) {
+                QNWARNING("Found shared notebook without primary identifier of the share set, skipping it");
+                continue;
+            }
+
+            QString error;
+            res = InsertOrReplaceSharedNotebook(sharedNotebook, error);
+            if (!res) {
+                errorDescription += error;
+                return res;
+            }
         }
     }
 
