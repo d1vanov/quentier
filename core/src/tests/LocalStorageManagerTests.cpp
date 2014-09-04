@@ -1027,5 +1027,128 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     return true;
 }
 
+bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
+{
+    // 1) ========== Create LocalStorageManager =============
+
+    const bool startFromScratch = true;
+    LocalStorageManager localStorageManager("LocalStorageManagerSequentialUpdatesTestFakeUser",
+                                            0, startFromScratch);
+
+    // 2) ========== Create User ============
+    UserWrapper   user;
+    user.setId(1);
+    user.setUsername("checker");
+    user.setEmail("mail@checker.com");
+    user.setTimezone("Europe/Moscow");
+    user.setPrivilegeLevel(qevercloud::PrivilegeLevel::NORMAL);
+    user.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    user.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    user.setActive(true);
+
+    qevercloud::UserAttributes userAttributes;
+    userAttributes.defaultLocationName = "Default location";
+    userAttributes.comments = "My comment";
+    userAttributes.preferredLanguage = "English";
+
+    userAttributes.viewedPromotions = QStringList();
+    userAttributes.viewedPromotions.ref() << "Promotion #1" << "Promotion #2" << "Promotion #3";
+
+    userAttributes.recentMailedAddresses = QStringList();
+    userAttributes.recentMailedAddresses.ref() << "Recent mailed address #1"
+                                               << "Recent mailed address #2"
+                                               << "Recent mailed address #3";
+
+    user.setUserAttributes(std::move(userAttributes));
+
+    qevercloud::Accounting accounting;
+    accounting.premiumOrderNumber = "Premium order number";
+    accounting.premiumSubscriptionNumber = "Premium subscription number";
+    accounting.updated = QDateTime::currentMSecsSinceEpoch();
+
+    user.setAccounting(std::move(accounting));
+
+    qevercloud::BusinessUserInfo businessUserInfo;
+    businessUserInfo.businessName = "Business name";
+    businessUserInfo.email = "Business email";
+
+    user.setBusinessUserInfo(std::move(businessUserInfo));
+
+    qevercloud::PremiumInfo premiumInfo;
+    premiumInfo.sponsoredGroupName = "Sponsored group name";
+    premiumInfo.canPurchaseUploadAllowance = true;
+    premiumInfo.premiumExtendable = true;
+
+    user.setPremiumInfo(std::move(premiumInfo));
+
+    // 3) ============ Add user to local storage ==============
+    bool res = localStorageManager.AddUser(user, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 4) ============ Create new user without all the supplementary data but with the same id
+    //                 and update it in local storage ===================
+    UserWrapper updatedUser;
+    updatedUser.setId(1);
+    updatedUser.setUsername("checker");
+    updatedUser.setEmail("mail@checker.com");
+    updatedUser.setPrivilegeLevel(qevercloud::PrivilegeLevel::NORMAL);
+    updatedUser.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    updatedUser.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    updatedUser.setActive(true);
+
+    res = localStorageManager.UpdateUser(updatedUser, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 5) =========== Find this user in local storage, check whether it has user attributes,
+    //                accounting, business user info and premium info (it shouldn't) =========
+    UserWrapper foundUser;
+    foundUser.setId(1);
+
+    res = localStorageManager.FindUser(foundUser, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (foundUser.hasUserAttributes()) {
+        errorDescription = "Updated user found in local storage still has user attributes "
+                           "while it shouldn't have them after the update";
+        QNWARNING(errorDescription << ": initial user: " << user << "\nUpdated user: "
+                  << updatedUser << "\nFound user: " << foundUser);
+        return false;
+    }
+
+    if (foundUser.hasAccounting()) {
+        errorDescription = "Updated user found in local storage still has accounting "
+                           "while it shouldn't have it after the update";
+        QNWARNING(errorDescription << ": initial user: " << user << "\nUpdated user: "
+                  << updatedUser << "\nFound user: " << foundUser);
+        return false;
+    }
+
+    if (foundUser.hasBusinessUserInfo()) {
+        errorDescription = "Updated user found in local storage still has business user info "
+                           "while it shouldn't have it after the update";
+        QNWARNING(errorDescription << ": initial user: " << user << "\nUpdated user: "
+                  << updatedUser << "\nFound user: " << foundUser);
+        return false;
+    }
+
+    if (foundUser.hasPremiumInfo()) {
+        errorDescription = "Updated user found in local storage still has premium info "
+                           "while it shouldn't have it after the update";
+        QNWARNING(errorDescription << ": initial user: " << user << "\nUpdated user: "
+                  << updatedUser << "\nFound user: " << foundUser);
+        return false;
+    }
+
+    // TODO: implement other sequential updates tests
+
+    return true;
+}
+
 }
 }

@@ -44,6 +44,8 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user,
                                                       LocalStorageManager & localStorageManager,
                                                       QString & errorDescription);
 
+bool TestSequentialUpdatesInLocalStorage(QString & errorDescription);
+
 }
 }
 

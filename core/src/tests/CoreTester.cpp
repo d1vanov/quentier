@@ -679,6 +679,17 @@ void CoreTester::localStorageManagedIndividualUserTest()
     CATCH_EXCEPTION();
 }
 
+void CoreTester::localStorageManagerSequentialUpdatesTest()
+{
+    try
+    {
+        QString error;
+        bool res = TestSequentialUpdatesInLocalStorage(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::localStorageManagerListAllSavedSearchesTest()
 {
     try
