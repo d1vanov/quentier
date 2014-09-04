@@ -4151,7 +4151,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
         }
     }
 
-    queryString = QString("DELETE FROM ResourcesAttributes WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
+    queryString = QString("DELETE FROM ResourceAttributes WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
     res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributes table");
 
