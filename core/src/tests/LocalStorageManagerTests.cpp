@@ -7,6 +7,7 @@
 #include <client/types/ResourceWrapper.h>
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
+#include <client/types/SharedNotebookWrapper.h>
 #include <client/types/UserWrapper.h>
 #include <client/types/QEverCloudHelpers.h>
 #include <client/Utility.h>
@@ -1142,6 +1143,122 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
                            "while it shouldn't have it after the update";
         QNWARNING(errorDescription << ": initial user: " << user << "\nUpdated user: "
                   << updatedUser << "\nFound user: " << foundUser);
+        return false;
+    }
+
+    // ============ 6) Create Notebook with restrictions and shared notebooks ==================
+    Notebook notebook;
+    notebook.setGuid("00000000-0000-0000-c000-000000000049");
+    notebook.setUpdateSequenceNumber(1);
+    notebook.setName("Fake notebook name");
+    notebook.setCreationTimestamp(1);
+    notebook.setModificationTimestamp(1);
+    notebook.setDefaultNotebook(true);
+    notebook.setLastUsed(false);
+    notebook.setPublishingUri("Fake publishing uri");
+    notebook.setPublishingOrder(1);
+    notebook.setPublishingAscending(true);
+    notebook.setPublishingPublicDescription("Fake public description");
+    notebook.setPublished(true);
+    notebook.setStack("Fake notebook stack");
+    notebook.setBusinessNotebookDescription("Fake business notebook description");
+    notebook.setBusinessNotebookPrivilegeLevel(1);
+    notebook.setBusinessNotebookRecommended(true);
+    // NotebookRestrictions
+    notebook.setCanReadNotes(true);
+    notebook.setCanCreateNotes(true);
+    notebook.setCanUpdateNotes(true);
+    notebook.setCanExpungeNotes(false);
+    notebook.setCanShareNotes(true);
+    notebook.setCanEmailNotes(false);
+    notebook.setCanSendMessageToRecipients(true);
+    notebook.setCanUpdateNotebook(true);
+    notebook.setCanExpungeNotebook(false);
+    notebook.setCanSetDefaultNotebook(true);
+    notebook.setCanSetNotebookStack(false);
+    notebook.setCanPublishToPublic(true);
+    notebook.setCanPublishToBusinessLibrary(false);
+    notebook.setCanCreateTags(true);
+    notebook.setCanUpdateTags(true);
+    notebook.setCanExpungeTags(false);
+    notebook.setCanSetParentTag(true);
+    notebook.setCanCreateSharedNotebooks(true);
+    notebook.setCanCreateSharedNotebooks(true);
+    notebook.setCanUpdateNotebook(true);
+    notebook.setUpdateWhichSharedNotebookRestrictions(1);
+    notebook.setExpungeWhichSharedNotebookRestrictions(1);
+
+    SharedNotebookWrapper sharedNotebook;
+    sharedNotebook.setId(1);
+    sharedNotebook.setUserId(1);
+    sharedNotebook.setNotebookGuid(notebook.guid());
+    sharedNotebook.setEmail("Fake shared notebook email");
+    sharedNotebook.setCreationTimestamp(1);
+    sharedNotebook.setModificationTimestamp(1);
+    sharedNotebook.setShareKey("Fake shared notebook share key");
+    sharedNotebook.setUsername("Fake shared notebook username");
+    sharedNotebook.setPrivilegeLevel(1);
+    sharedNotebook.setAllowPreview(true);
+    sharedNotebook.setReminderNotifyEmail(true);
+    sharedNotebook.setReminderNotifyApp(false);
+
+    notebook.addSharedNotebook(sharedNotebook);
+
+    res = localStorageManager.AddNotebook(notebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 7) ============ Update notebook: remove restrictions and shared notebooks =========
+    Notebook updatedNotebook;
+    updatedNotebook.setLocalGuid(notebook.localGuid());
+    updatedNotebook.setGuid(notebook.guid());
+    updatedNotebook.setUpdateSequenceNumber(1);
+    updatedNotebook.setName("Fake notebook name");
+    updatedNotebook.setCreationTimestamp(1);
+    updatedNotebook.setModificationTimestamp(1);
+    updatedNotebook.setDefaultNotebook(true);
+    updatedNotebook.setLastUsed(false);
+    updatedNotebook.setPublishingUri("Fake publishing uri");
+    updatedNotebook.setPublishingOrder(1);
+    updatedNotebook.setPublishingAscending(true);
+    updatedNotebook.setPublishingPublicDescription("Fake public description");
+    updatedNotebook.setPublished(true);
+    updatedNotebook.setStack("Fake notebook stack");
+    updatedNotebook.setBusinessNotebookDescription("Fake business notebook description");
+    updatedNotebook.setBusinessNotebookPrivilegeLevel(1);
+    updatedNotebook.setBusinessNotebookRecommended(true);
+
+    res = localStorageManager.UpdateNotebook(updatedNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8) ============= Find notebook, ensure it doesn't have neither restrictions nor shared notebooks
+
+    Notebook foundNotebook;
+    foundNotebook.setGuid(notebook.guid());
+
+    res = localStorageManager.FindNotebook(foundNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (foundNotebook.hasSharedNotebooks()) {
+        errorDescription = "Updated notebook found in local storage has shared notebooks "
+                           "while it shouldn't have them";
+        QNWARNING(errorDescription << ", original notebook: " << notebook
+                  << "\nUpdated notebook: " << updatedNotebook << "\nFound notebook: "
+                  << foundNotebook);
+        return false;
+    }
+
+    if (foundNotebook.hasRestrictions()) {
+        errorDescription = "Updated notebook found in local storage has restrictions "
+                           "while it shouldn't have them";
+        QNWARNING(errorDescription << ", original notebook: " << notebook
+                  << "\nUpdated notebook: " << updatedNotebook << "\nFound notebook: "
+                  << foundNotebook);
         return false;
     }
 

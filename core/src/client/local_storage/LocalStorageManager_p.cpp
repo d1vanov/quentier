@@ -5164,7 +5164,9 @@ bool LocalStorageManagerPrivate::FillNotebookFromSqlRecord(const QSqlRecord & re
             return false;
         }
 
-        notebook.addSharedNotebook(sharedNotebook);
+        if (sharedNotebook.hasNotebookGuid()) {
+            notebook.addSharedNotebook(sharedNotebook);
+        }
     }
 
     return true;
