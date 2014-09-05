@@ -5,6 +5,7 @@
 #include <client/types/LinkedNotebook.h>
 #include <client/types/Tag.h>
 #include <client/types/ResourceWrapper.h>
+#include <client/types/ResourceAdapter.h>
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
@@ -1341,7 +1342,65 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
         return false;
     }
 
-    // TODO: implement other sequential updates tests
+    // 13) ============== Add resource attributes to the resource and add resource to note =============
+    qevercloud::ResourceAttributes & resourceAttributes = resource.resourceAttributes();
+    resourceAttributes.applicationData = qevercloud::LazyMap();
+    resourceAttributes.applicationData->keysOnly = QSet<QString>();
+    resourceAttributes.applicationData->fullMap = QMap<QString, QString>();
+
+    resourceAttributes.applicationData->keysOnly.ref() << "key_1" << "key_2" << "key_3";
+    resourceAttributes.applicationData->fullMap.ref()["key_1"] = "value_1";
+    resourceAttributes.applicationData->fullMap.ref()["key_2"] = "value_2";
+    resourceAttributes.applicationData->fullMap.ref()["key_3"] = "value_3";
+
+    updatedNote.addResource(resource);
+
+    res = localStorageManager.UpdateNote(updatedNote, updatedNotebook, errorDescription);
+    if (!res) {
+        return res;
+    }
+
+    // 14) ================ Remove resource attributes from note's resource and update it again
+    QList<ResourceWrapper> resources = updatedNote.resources();
+    if (resources.empty()) {
+        errorDescription = "Note returned empty list of resource adapters while it should have "
+                           "contained at least one entry";
+        QNWARNING(errorDescription << ", updated note: " << updatedNote);
+        return false;
+    }
+
+    ResourceWrapper & resourceWrapper = resources[0];
+    qevercloud::ResourceAttributes & underlyngResourceAttributes = resourceWrapper.resourceAttributes();
+    underlyngResourceAttributes = qevercloud::ResourceAttributes();
+
+    updatedNote.setResources(resources);
+
+    res = localStorageManager.UpdateNote(updatedNote, updatedNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 15) ============= Find note in local storage again ===============
+    res = localStorageManager.FindNote(foundNote, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    resources = foundNote.resources();
+    if (resources.empty()) {
+        errorDescription = "Note returned empty list of resource adapters while it should have "
+                           "contained at least one entry";
+        QNWARNING(errorDescription << ", found note: " << foundNote);
+        return false;
+    }
+
+    ResourceWrapper & foundResourceWrapper = resources[0];
+    qevercloud::ResourceAttributes & foundResourceAttributes = foundResourceWrapper.resourceAttributes();
+    if (foundResourceAttributes.applicationData.isSet()) {
+        errorDescription = "Resource from updated note has application data while it shouldn't have it";
+        QNWARNING(errorDescription << ", found resource: " << foundResourceWrapper);
+        return false;
+    }
 
     return true;
 }
