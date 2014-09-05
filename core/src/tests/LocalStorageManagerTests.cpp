@@ -1262,6 +1262,85 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
         return false;
     }
 
+    // 9) ============== Create tag =================
+    Tag tag;
+    tag.setGuid("00000000-0000-0000-c000-000000000046");
+    tag.setUpdateSequenceNumber(1);
+    tag.setName("Fake tag name");
+
+    res = localStorageManager.AddTag(tag, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 10) ============= Create note, add this tag to it along with some resource ===========
+    Note note;
+    note.setGuid("00000000-0000-0000-c000-000000000045");
+    note.setUpdateSequenceNumber(1);
+    note.setTitle("Fake note title");
+    note.setContent("<en-note><h1>Hello, world</h1></en-note>");
+    note.setCreationTimestamp(1);
+    note.setModificationTimestamp(1);
+    note.setActive(true);
+    note.setNotebookGuid(notebook.guid());
+
+    ResourceWrapper resource;
+    resource.setGuid("00000000-0000-0000-c000-000000000044");
+    resource.setUpdateSequenceNumber(1);
+    resource.setNoteGuid(note.guid());
+    resource.setDataBody("Fake resource data body");
+    resource.setDataSize(resource.dataBody().size());
+    resource.setDataHash("Fake hash      1");
+
+    note.addResource(resource);
+    note.addTagGuid(tag.guid());
+
+    res = localStorageManager.AddNote(note, updatedNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 11) ============ Update note, remove tag guid and resource ============
+    Note updatedNote;
+    updatedNote.setLocalGuid(note.localGuid());
+    updatedNote.setGuid("00000000-0000-0000-c000-000000000045");
+    updatedNote.setUpdateSequenceNumber(1);
+    updatedNote.setTitle("Fake note title");
+    updatedNote.setContent("<en-note><h1>Hello, world</h1></en-note>");
+    updatedNote.setCreationTimestamp(1);
+    updatedNote.setModificationTimestamp(1);
+    updatedNote.setActive(true);
+    updatedNote.setNotebookGuid(notebook.guid());
+
+    res = localStorageManager.UpdateNote(updatedNote, updatedNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 12) =========== Find updated note in local storage, ensure it doesn't have neither tag guids, nor resources
+    Note foundNote;
+    foundNote.setLocalGuid(updatedNote.localGuid());
+    foundNote.setGuid(updatedNote.guid());
+
+    res = localStorageManager.FindNote(foundNote, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (foundNote.hasTagGuids()) {
+        errorDescription = "Updated note found in local storage has tag guids while it shouldn't have them";
+        QNWARNING(errorDescription << ", original note: " << note << "\nUpdated note: "
+                  << updatedNote << "\nFound note: " << foundNote);
+        return false;
+    }
+
+    if (foundNote.hasResources()) {
+        errorDescription = "Updated note found in local storage has resources while it shouldn't have them";
+        QNWARNING(errorDescription << ", original note: " << note << "\nUpdated note: "
+                  << updatedNote << "\nFound note: " << foundNote);
+        return false;
+    }
+
     // TODO: implement other sequential updates tests
 
     return true;
