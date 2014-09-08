@@ -155,8 +155,6 @@ private:
     bool FindAndSetTagGuidsPerNote(Note & note, QString & errorDescription) const;
     bool FindAndSetResourcesPerNote(Note & note, QString & errorDescription,
                                     const bool withBinaryData = true) const;
-    bool FindAndSetNoteAttributesPerNote(Note & note, QString & errorDescription) const;
-
     void SortSharedNotebooks(Notebook & notebook) const;
 
     QList<qevercloud::SharedNotebook> ListEnSharedNotebooksPerNotebookGuid(const QString & notebookGuid,

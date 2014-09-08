@@ -5532,65 +5532,6 @@ bool LocalStorageManagerPrivate::FindAndSetResourcesPerNote(Note & note, QString
     return true;
 }
 
-bool LocalStorageManagerPrivate::FindAndSetNoteAttributesPerNote(Note & note, QString & errorDescription) const
-{
-    QNDEBUG("LocalStorageManagerPrivate::FindAndSetNoteAttributesPerNote: note's local guid = " << note.localGuid());
-
-    errorDescription += QT_TR_NOOP("can't find note attributes: ");
-
-    const QString guid = note.localGuid();
-
-    // ====== 1) Basic NoteAttributes =======
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT * FROM NoteAttributes WHERE noteLocalGuid=?");
-    query.addBindValue(guid);
-
-    bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select note's attributes from \"NoteAttributes\" table in SQL database");
-
-    if (!query.next()) {
-        errorDescription += QT_TR_NOOP("no note attributes were found for provided note's local guid");
-        return true;
-    }
-
-    qevercloud::NoteAttributes & attributes = note.noteAttributes();
-
-    QSqlRecord rec = query.record();
-    FillNoteAttributesFromSqlRecord(rec, attributes);
-
-    // ======= 2) NoteAttributes.applicationData.keysOnly =======
-    QString queryString = QString("SELECT * FROM NoteAttributesApplicationDataKeysOnly WHERE noteLocalGuid = '%1'").arg(guid);
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select note's attributes from \"NoteAttributesApplicationDataKeysOnly\" table in SQL database");
-
-    if (query.next()) {
-        rec = query.record();
-        FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(rec, attributes);
-    }
-
-    // ======= 3) NoteAttributes.applicationData.fullMap =======
-    queryString = QString("SELECT * FROM NoteAttributesApplicationDataFullMap WHERE noteLocalGuid = '%1'").arg(guid);
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select note's attributes from \"NoteAttributesApplicationDataFullMap\" table in SQL database");
-
-    if (query.next()) {
-        rec = query.record();
-        FillNoteAttributesApplicationDataFullMapFromSqlRecord(rec, attributes);
-    }
-
-    // ======= 4) NoteAttributes.classifications =======
-    queryString = QString("SELECT * FROM NoteAttributesClassifications WHERE noteLocalGuid = '%1'").arg(guid);
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't select note's attributes from \"NoteAttributesClassifications\" table in SQL database");
-
-    if (query.next()) {
-        rec = query.record();
-        FillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(rec, attributes);
-    }
-
-    return true;
-}
-
 void LocalStorageManagerPrivate::SortSharedNotebooks(Notebook & notebook) const
 {
     if (!notebook.hasSharedNotebooks()) {
