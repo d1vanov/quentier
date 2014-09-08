@@ -206,49 +206,6 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes &
     return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const qevercloud::ResourceAttributes & attributes)
-{
-    strm << "ResourceAttributes: {\n";
-
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceURL);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, timestamp, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, latitude);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, longitude);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, altitude);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, cameraMake);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, cameraModel);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, clientWillIndex);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, recoType);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, fileName);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, attachment);
-
-    if (attributes.applicationData.isSet())
-    {
-        const qevercloud::LazyMap & applicationData = attributes.applicationData;
-
-        if (applicationData.keysOnly.isSet()) {
-            const QSet<QString> & keysOnly = applicationData.keysOnly;
-            strm << "ApplicationData: keys only: \n";
-            foreach(const QString & key, keysOnly) {
-                strm << key << "; ";
-            }
-            strm << "\n";
-        }
-
-        if (applicationData.fullMap.isSet()) {
-            const QMap<QString, QString> & fullMap = applicationData.fullMap;
-            strm << "ApplicationData: full map: \n";
-            foreach(const QString & key, fullMap) {
-                strm << "[" << key << "] = " << fullMap.value(key) << "; ";
-            }
-            strm << "\n";
-        }
-    }
-
-    strm << "}; \n";
-    return strm;
-}
-
 #undef CHECK_AND_PRINT_ATTRIBUTE
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::PrivilegeLevel::type & level)
@@ -546,6 +503,244 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::SharedNotebookIn
         strm << "UNKNOWN";
         break;
     }
+
+    return strm;
+}
+
+QTextStream & operator <<(QTextStream & strm, const qevercloud::ResourceAttributes & attributes)
+{
+    strm << "ResourceAttributes: { \n";
+
+    QString indent = "  ";
+
+    if (attributes.sourceURL.isSet()) {
+        strm << indent << "sourceURL = " << attributes.sourceURL << "; \n";
+    }
+    else {
+        strm << indent << "sourceURL is not set; \n";
+    }
+
+    if (attributes.timestamp.isSet()) {
+        strm << indent << "timestamp = " << attributes.timestamp << "; \n";
+    }
+    else {
+        strm << indent << "timestamp is not set; \n";
+    }
+
+    if (attributes.latitude.isSet()) {
+        strm << indent << "latitude = " << attributes.latitude << "; \n";
+    }
+    else {
+        strm << indent << "latitude is not set; \n";
+    }
+
+    if (attributes.longitude.isSet()) {
+        strm << indent << "longitude = " << attributes.longitude << "; \n";
+    }
+    else {
+        strm << indent << "longitude is not set; \n";
+    }
+
+    if (attributes.altitude.isSet()) {
+        strm << indent << "altitude = " << attributes.altitude << "; \n";
+    }
+    else {
+        strm << indent << "altitude is not set; \n";
+    }
+
+    if (attributes.cameraMake.isSet()) {
+        strm << indent << "cameraMake = " << attributes.cameraMake << "; \n";
+    }
+    else {
+        strm << indent << "cameraMake is not set; \n";
+    }
+
+    if (attributes.cameraModel.isSet()) {
+        strm << indent << "cameraModel = " << attributes.cameraModel << "; \n";
+    }
+    else {
+        strm << indent << "cameraModel is not set; \n";
+    }
+
+    if (attributes.clientWillIndex.isSet()) {
+        strm << indent << "clientWillIndex = " << (attributes.clientWillIndex ? "true" : "false") << "; \n";
+    }
+    else {
+        strm << indent << "clientWillIndex is not set; \n";
+    }
+
+    if (attributes.fileName.isSet()) {
+        strm << indent << "fileName = " << attributes.fileName << "; \n";
+    }
+    else {
+        strm << indent << "fileName is not set; \n";
+    }
+
+    if (attributes.attachment.isSet()) {
+        strm << indent << "attachment = " << (attributes.attachment ? "true" : "false") << "; \n";
+    }
+    else {
+        strm << indent << "attachment is not set; \n";
+    }
+
+    if (attributes.applicationData.isSet())
+    {
+        const qevercloud::LazyMap & applicationData = attributes.applicationData;
+
+        if (applicationData.keysOnly.isSet()) {
+            const QSet<QString> & keysOnly = applicationData.keysOnly;
+            foreach(const QString & item, keysOnly) {
+                strm << indent << "applicationData key: " << item << "; \n";
+            }
+        }
+
+        if (applicationData.fullMap.isSet()) {
+            const QMap<QString, QString> & fullMap = applicationData.fullMap;
+            foreach(const QString & key, fullMap.keys()) {
+                strm << indent << "applicationData[" << key << "] = " << fullMap.value(key) << "; \n";
+            }
+        }
+    }
+
+    strm << "}; \n";
+
+    return strm;
+}
+
+QTextStream & operator <<(QTextStream & strm, const qevercloud::Resource & resource)
+{
+    strm << "qevercloud::Resource { \n";
+    QString indent = "  ";
+
+    if (resource.guid.isSet()) {
+        strm << indent << "guid = " << resource.guid << "; \n";
+    }
+    else {
+        strm << "guid is not set; \n";
+    }
+
+    if (resource.updateSequenceNum.isSet()) {
+        strm << indent << "updateSequenceNumber = " << QString::number(resource.updateSequenceNum) << "; \n";
+    }
+    else {
+        strm << indent << "updateSequenceNumber is not set; \n";
+    }
+
+    if (resource.noteGuid.isSet()) {
+        strm << indent << "noteGuid = " << resource.noteGuid << "; \n";
+    }
+    else {
+        strm << indent << "noteGuid is not set; \n";
+    }
+
+    if (resource.data.isSet())
+    {
+        strm << indent << "Data: { \n";
+
+        if (resource.data->size.isSet()) {
+            strm << indent << indent << "size = " << QString::number(resource.data->size) << "; \n";
+        }
+        else {
+            strm << indent << indent << "size is not set; \n";
+        }
+
+        if (resource.data->bodyHash.isSet()) {
+            strm << indent << indent << "hash = " << resource.data->bodyHash << "; \n";
+        }
+        else {
+            strm << indent << indent << "hash is not set; \n";
+        }
+
+        if (resource.data->body.isSet()) {
+            strm << indent << indent << "body is set" << "; \n";
+        }
+        else {
+            strm << indent << indent << "body is not set; \n";
+        }
+
+        strm << indent << "}; \n";
+    }
+
+    if (resource.mime.isSet()) {
+        strm << indent << "mime = " << resource.mime << "; \n";
+    }
+    else {
+        strm << indent << "mime is not set; \n";
+    }
+
+    if (resource.width.isSet()) {
+        strm << indent << "width = " << QString::number(resource.width) << "; \n";
+    }
+    else {
+        strm << indent << "width is not set; \n";
+    }
+
+    if (resource.height.isSet()) {
+        strm << indent << "height = " << QString::number(resource.height) << "; \n";
+    }
+    else {
+        strm << indent << "height is not set; \n";
+    }
+
+    if (resource.recognition.isSet())
+    {
+        strm << indent << "Recognition data: { \n";
+        if (resource.recognition->size.isSet()) {
+            strm << indent << indent << "size = "
+                 << QString::number(resource.recognition->size) << "; \n";
+        }
+        else {
+            strm << indent << indent << "size is not set; \n";
+        }
+
+        if (resource.recognition->bodyHash.isSet()) {
+            strm << indent << indent << "hash = " << resource.recognition->bodyHash << "; \n";
+        }
+        else {
+            strm << indent << indent << "hash is not set; \n";
+        }
+
+        if (resource.recognition->body.isSet()) {
+            strm << indent << indent << "body is set; \n";
+        }
+        else {
+            strm << indent << indent << "body is not set; \n";
+        }
+
+        strm << indent << "}; \n";
+    }
+
+    if (resource.alternateData.isSet())
+    {
+        strm << indent << "Alternate data: { \n";
+
+        if (resource.alternateData->size.isSet()) {
+            strm << indent << indent << "size = " << QString::number(resource.alternateData->size) << "; \n";
+        }
+        else {
+            strm << indent << indent << "size is not set; \n";
+        }
+
+        if (resource.alternateData->bodyHash.isSet()) {
+            strm << indent << indent << "hash = " << resource.alternateData->bodyHash << "; \n";
+        }
+        else {
+            strm << indent << indent << "hash is not set; \n";
+        }
+
+        if (resource.alternateData->body.isSet()) {
+            strm << indent << indent << "body is set; \n";
+        }
+        else {
+            strm << indent << indent << "body is not set; \n";
+        }
+    }
+
+    if (resource.attributes.isSet()) {
+        strm << indent << resource.attributes.ref();
+    }
+
+    strm << "}; \n";
 
     return strm;
 }

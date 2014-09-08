@@ -1069,7 +1069,7 @@ QTextStream & Note::Print(QTextStream & strm) const
     {
         strm << "resources: { \n";
         foreach(const qevercloud::Resource & resource, m_qecNote.resources.ref()) {
-            strm << ResourceAdapter(resource) << "; \n";
+            strm << resource << "; \n";
         }
         strm << "}";
     }
