@@ -1423,6 +1423,11 @@ QList<Note> LocalStorageManagerPrivate::ListAllNotesPerNotebook(const Notebook &
         guid = notebook.localGuid();
     }
 
+    // Will run all the queries from this method and its sub-methods within a single transaction
+    // to prevent multiple drops and re-obtainings of shared lock
+    Transaction transaction(m_sqlDatabase, Transaction::Selection);
+    Q_UNUSED(transaction)
+
     QString queryString = QString("SELECT * FROM Notes WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -1965,6 +1970,11 @@ QList<Tag> LocalStorageManagerPrivate::ListAllTagsPerNote(const Note & note, QSt
         guid = note.localGuid();
     }
 
+    // Will run all the queries from this method and its sub-methods within a single transaction
+    // to prevent multiple drops and re-obtainings of shared lock
+    Transaction transaction(m_sqlDatabase, Transaction::Selection);
+    Q_UNUSED(transaction)
+
     QString queryString = QString("SELECT localTag FROM NoteTags WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -1992,6 +2002,11 @@ QList<Tag> LocalStorageManagerPrivate::ListAllTags(QString & errorDescription) c
 
     QList<Tag> tags;
     QString errorPrefix = QT_TR_NOOP("Can't list all tags from local storage database: ");
+
+    // Will run all the queries from this method and its sub-methods within a single transaction
+    // to prevent multiple drops and re-obtainings of shared lock
+    Transaction transaction(m_sqlDatabase, Transaction::Selection);
+    Q_UNUSED(transaction)
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec("SELECT localGuid FROM Tags");
