@@ -38,10 +38,12 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/UserAdapter.h
     src/client/types/UserAdapterAccessException.h
     src/client/types/UserWrapper.h
+    src/client/types/data/NoteData.h
     src/client/enml/ENMLConverter.h
     src/client/local_storage/IAsyncLocalStorageManager.h
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
+    src/client/local_storage/LocalStorageCacheManager.h
     src/client/local_storage/LocalStorageManager.h
     src/client/local_storage/LocalStorageManager_p.h
     src/client/local_storage/LocalStorageManagerThread.h
@@ -96,6 +98,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/UserAdapter.cpp
     src/client/types/UserAdapterAccessException.cpp
     src/client/types/UserWrapper.cpp
+    src/client/types/data/NoteData.cpp
     src/client/enml/ENMLConverter.cpp
     src/client/local_storage/IAsyncLocalStorageManager.cpp
     src/client/local_storage/DatabaseOpeningException.cpp

@@ -6,6 +6,7 @@
 #include <QTextStream>
 #include <QFile>
 #include <QApplication>
+#include <QDebug>
 
 namespace qute_note {
 

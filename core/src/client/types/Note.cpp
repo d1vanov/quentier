@@ -11,120 +11,32 @@ namespace qute_note {
 
 Note::Note() :
     DataElementWithShortcut(),
-    m_isLocal(true),
-    m_thumbnail(),
-    m_lazyPlainText(),
-    m_lazyPlainTextIsValid(false),
-    m_lazyListOfWords(),
-    m_lazyListOfWordsIsValid(false),
-    m_lazyContainsCheckedToDo(-1),
-    m_lazyContainsUncheckedToDo(-1),
-    m_lazyContainsEncryption(-1)
+    d(new NoteData)
 {}
 
 Note::Note(const qevercloud::Note & other) :
     DataElementWithShortcut(),
-    m_qecNote(other),
-    m_isLocal(false),
-    m_thumbnail(),
-    m_lazyPlainText(),
-    m_lazyPlainTextIsValid(false),
-    m_lazyListOfWords(),
-    m_lazyListOfWordsIsValid(false),
-    m_lazyContainsCheckedToDo(-1),
-    m_lazyContainsUncheckedToDo(-1),
-    m_lazyContainsEncryption(-1)
+    d(new NoteData(other))
 {}
 
 Note::Note(Note && other) :
     DataElementWithShortcut(std::move(other)),
-    m_qecNote(std::move(other.m_qecNote)),
-    m_isLocal(std::move(other.m_isLocal)),
-    m_thumbnail(std::move(other.m_thumbnail)),
-    m_lazyPlainText(),
-    m_lazyPlainTextIsValid(other.m_lazyPlainTextIsValid),
-    m_lazyListOfWords(),
-    m_lazyListOfWordsIsValid(false),
-    m_lazyContainsCheckedToDo(other.m_lazyContainsCheckedToDo),
-    m_lazyContainsUncheckedToDo(other.m_lazyContainsUncheckedToDo),
-    m_lazyContainsEncryption(other.m_lazyContainsEncryption)
-{
-    m_lazyPlainText = other.m_lazyPlainText;
-    other.m_lazyPlainText.clear();
-
-    m_lazyPlainTextIsValid = other.m_lazyPlainTextIsValid;
-    other.m_lazyPlainTextIsValid = false;
-
-    m_lazyListOfWords = other.m_lazyListOfWords;
-    other.m_lazyListOfWords.clear();
-
-    m_lazyListOfWordsIsValid = other.m_lazyListOfWordsIsValid;
-    other.m_lazyListOfWordsIsValid = false;
-}
-
-Note::Note(qevercloud::Note && other) :
-    DataElementWithShortcut(),
-    m_qecNote(std::move(other)),
-    m_isLocal(false),
-    m_thumbnail(),
-    m_lazyPlainText(),
-    m_lazyPlainTextIsValid(false),
-    m_lazyListOfWords(),
-    m_lazyListOfWordsIsValid(false),
-    m_lazyContainsCheckedToDo(-1),
-    m_lazyContainsUncheckedToDo(-1),
-    m_lazyContainsEncryption(-1)
+    d(std::move(other.d))
 {}
 
 Note & Note::operator=(const qevercloud::Note & other)
 {
-    m_qecNote = other;
-    m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
-    m_lazyListOfWordsIsValid = false;
-    m_lazyContainsCheckedToDo = -1;
-    m_lazyContainsUncheckedToDo = -1;
-    m_lazyContainsEncryption = -1;
+    d->operator=(other);
     return *this;
 }
 
 Note & Note::operator=(Note && other)
 {
-    if (this != &other)
-    {
+    if (this != &other) {
         NoteStoreDataElement::operator=(other);
-        m_qecNote = std::move(other.m_qecNote);
-        m_isLocal = std::move(other.m_isLocal);
-        m_thumbnail = std::move(other.m_thumbnail);
-
-        m_lazyPlainText = other.m_lazyPlainText;
-        other.m_lazyPlainText.clear();
-
-        m_lazyPlainTextIsValid = other.m_lazyPlainTextIsValid;
-        other.m_lazyPlainTextIsValid = false;
-
-        m_lazyListOfWords = other.m_lazyListOfWords;
-        other.m_lazyListOfWords.clear();
-
-        m_lazyListOfWordsIsValid = other.m_lazyListOfWordsIsValid;
-        other.m_lazyListOfWordsIsValid = false;
-
-        m_lazyContainsCheckedToDo = other.m_lazyContainsCheckedToDo;
-        m_lazyContainsUncheckedToDo = other.m_lazyContainsUncheckedToDo;
-        m_lazyContainsEncryption = other.m_lazyContainsEncryption;
+        d = other.d;
     }
 
-    return *this;
-}
-
-Note & Note::operator=(qevercloud::Note && other)
-{
-    m_qecNote = std::move(other);
-
-    m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
-    m_lazyListOfWordsIsValid = false;
-    m_lazyContainsCheckedToDo = -1;
-    m_lazyContainsUncheckedToDo = -1;
-    m_lazyContainsEncryption = -1;
     return *this;
 }
 
@@ -133,7 +45,7 @@ Note::~Note()
 
 bool Note::operator==(const Note & other) const
 {
-    return ((m_qecNote == other.m_qecNote) && (isDirty() == other.isDirty()) &&
+    return ((d->m_qecNote == other.d->m_qecNote) && (isDirty() == other.isDirty()) &&
             (hasShortcut() == other.hasShortcut()));
     // NOTE: thumbnail doesn't take part in comparison because it's merely a helper
     // for note displaying widget, nothing more
@@ -146,70 +58,65 @@ bool Note::operator!=(const Note & other) const
 
 bool Note::hasGuid() const
 {
-    return m_qecNote.guid.isSet();
+    return d->m_qecNote.guid.isSet();
 }
 
 const QString & Note::guid() const
 {
-    return m_qecNote.guid;
+    return d->m_qecNote.guid;
 }
 
 void Note::setGuid(const QString & guid)
 {
-    m_qecNote.guid = guid;
+    d->m_qecNote.guid = guid;
 }
 
 bool Note::hasUpdateSequenceNumber() const
 {
-    return m_qecNote.updateSequenceNum.isSet();
+    return d->m_qecNote.updateSequenceNum.isSet();
 }
 
 qint32 Note::updateSequenceNumber() const
 {
-    return m_qecNote.updateSequenceNum;
+    return d->m_qecNote.updateSequenceNum;
 }
 
 void Note::setUpdateSequenceNumber(const qint32 usn)
 {
     // TODO: see whether it's really necessary
     if (usn >= 0) {
-        m_qecNote.updateSequenceNum = usn;
+        d->m_qecNote.updateSequenceNum = usn;
     }
     else {
-        m_qecNote.updateSequenceNum.clear();
+        d->m_qecNote.updateSequenceNum.clear();
     }
 }
 
 void Note::clear()
 {
-    m_qecNote = qevercloud::Note();
-    m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
-    m_lazyListOfWordsIsValid = false;
-    m_lazyContainsCheckedToDo = -1;
-    m_lazyContainsUncheckedToDo = -1;
-    m_lazyContainsEncryption = -1;
+    d->clear();
 }
 
 bool Note::checkParameters(QString & errorDescription) const
 {
-    if (localGuid().isEmpty() && !m_qecNote.guid.isSet()) {
+    if (localGuid().isEmpty() && !d->m_qecNote.guid.isSet()) {
         errorDescription = QT_TR_NOOP("Both Note's local and remote guids are empty");
         return false;
     }
 
-    if (m_qecNote.guid.isSet() && !CheckGuid(m_qecNote.guid.ref())) {
+    if (d->m_qecNote.guid.isSet() && !CheckGuid(d->m_qecNote.guid.ref())) {
         errorDescription = QT_TR_NOOP("Note's guid is invalid");
         return false;
     }
 
-    if (m_qecNote.updateSequenceNum.isSet() && !CheckUpdateSequenceNumber(m_qecNote.updateSequenceNum)) {
+    if (d->m_qecNote.updateSequenceNum.isSet() && !CheckUpdateSequenceNumber(d->m_qecNote.updateSequenceNum)) {
         errorDescription = QT_TR_NOOP("Note's update sequence number is invalid");
         return false;
     }
 
-    if (m_qecNote.title.isSet())
+    if (d->m_qecNote.title.isSet())
     {
-        int titleSize = m_qecNote.title->size();
+        int titleSize = d->m_qecNote.title->size();
 
         if ( (titleSize < qevercloud::EDAM_NOTE_TITLE_LEN_MIN) ||
              (titleSize > qevercloud::EDAM_NOTE_TITLE_LEN_MAX) )
@@ -219,9 +126,9 @@ bool Note::checkParameters(QString & errorDescription) const
         }
     }
 
-    if (m_qecNote.content.isSet())
+    if (d->m_qecNote.content.isSet())
     {
-        int contentSize = m_qecNote.content->size();
+        int contentSize = d->m_qecNote.content->size();
 
         if ( (contentSize < qevercloud::EDAM_NOTE_CONTENT_LEN_MIN) ||
              (contentSize > qevercloud::EDAM_NOTE_CONTENT_LEN_MAX) )
@@ -231,9 +138,9 @@ bool Note::checkParameters(QString & errorDescription) const
         }
     }
 
-    if (m_qecNote.contentHash.isSet())
+    if (d->m_qecNote.contentHash.isSet())
     {
-        size_t contentHashSize = m_qecNote.contentHash->size();
+        size_t contentHashSize = d->m_qecNote.contentHash->size();
 
         if (contentHashSize != qevercloud::EDAM_HASH_LEN) {
             errorDescription = QT_TR_NOOP("Note's content hash size is invalid");
@@ -241,14 +148,14 @@ bool Note::checkParameters(QString & errorDescription) const
         }
     }
 
-    if (m_qecNote.notebookGuid.isSet() && !CheckGuid(m_qecNote.notebookGuid.ref())) {
+    if (d->m_qecNote.notebookGuid.isSet() && !CheckGuid(d->m_qecNote.notebookGuid.ref())) {
         errorDescription = QT_TR_NOOP("Note's notebook guid is invalid");
         return false;
     }
 
-    if (m_qecNote.tagGuids.isSet())
+    if (d->m_qecNote.tagGuids.isSet())
     {
-        int numTagGuids = m_qecNote.tagGuids->size();
+        int numTagGuids = d->m_qecNote.tagGuids->size();
 
         if (numTagGuids > qevercloud::EDAM_NOTE_TAGS_MAX) {
             errorDescription = QT_TR_NOOP("Note has too many tags, max allowed ");
@@ -257,9 +164,9 @@ bool Note::checkParameters(QString & errorDescription) const
         }
     }
 
-    if (m_qecNote.resources.isSet())
+    if (d->m_qecNote.resources.isSet())
     {
-        int numResources = m_qecNote.resources->size();
+        int numResources = d->m_qecNote.resources->size();
 
         if (numResources > qevercloud::EDAM_NOTE_RESOURCES_MAX) {
             errorDescription = QT_TR_NOOP("Note has too many resources, max allowed ");
@@ -269,9 +176,9 @@ bool Note::checkParameters(QString & errorDescription) const
     }
 
 
-    if (m_qecNote.attributes.isSet())
+    if (d->m_qecNote.attributes.isSet())
     {
-        const qevercloud::NoteAttributes & attributes = m_qecNote.attributes;
+        const qevercloud::NoteAttributes & attributes = d->m_qecNote.attributes;
 
 #define CHECK_NOTE_ATTRIBUTE(name) \
     if (attributes.name.isSet()) { \
@@ -371,179 +278,179 @@ bool Note::checkParameters(QString & errorDescription) const
 
 bool Note::hasTitle() const
 {
-    return m_qecNote.title.isSet();
+    return d->m_qecNote.title.isSet();
 }
 
 const QString & Note::title() const
 {
-    return m_qecNote.title;
+    return d->m_qecNote.title;
 }
 
 void Note::setTitle(const QString & title)
 {
-    m_qecNote.title = title;
+    d->m_qecNote.title = title;
 }
 
 bool Note::hasContent() const
 {
-    return m_qecNote.content.isSet();
+    return d->m_qecNote.content.isSet();
 }
 
 const QString & Note::content() const
 {
-    return m_qecNote.content;
+    return d->m_qecNote.content;
 }
 
 void Note::setContent(const QString & content)
 {
-    m_qecNote.content = content;
-    m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
-    m_lazyListOfWordsIsValid = false;
-    m_lazyContainsCheckedToDo = -1;
-    m_lazyContainsUncheckedToDo = -1;
-    m_lazyContainsEncryption = -1;
+    d->m_qecNote.content = content;
+    d->m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
+    d->m_lazyListOfWordsIsValid = false;
+    d->m_lazyContainsCheckedToDo = -1;
+    d->m_lazyContainsUncheckedToDo = -1;
+    d->m_lazyContainsEncryption = -1;
 }
 
 bool Note::hasContentHash() const
 {
-    return m_qecNote.contentHash.isSet();
+    return d->m_qecNote.contentHash.isSet();
 }
 
 const QByteArray & Note::contentHash() const
 {
-    return m_qecNote.contentHash;
+    return d->m_qecNote.contentHash;
 }
 
 void Note::setContentHash(const QByteArray & contentHash)
 {
-    m_qecNote.contentHash = contentHash;
+    d->m_qecNote.contentHash = contentHash;
 }
 
 bool Note::hasContentLength() const
 {
-    return m_qecNote.contentLength.isSet();
+    return d->m_qecNote.contentLength.isSet();
 }
 
 qint32 Note::contentLength() const
 {
-    return m_qecNote.contentLength;
+    return d->m_qecNote.contentLength;
 }
 
 void Note::setContentLength(const qint32 length)
 {
     if (length >= 0) {
-        m_qecNote.contentLength = length;
+        d->m_qecNote.contentLength = length;
     }
     else {
-        m_qecNote.contentLength.clear();
+        d->m_qecNote.contentLength.clear();
     }
 }
 
 bool Note::hasCreationTimestamp() const
 {
-    return m_qecNote.created.isSet();
+    return d->m_qecNote.created.isSet();
 }
 
 qint64 Note::creationTimestamp() const
 {
-    return m_qecNote.created;
+    return d->m_qecNote.created;
 }
 
 void Note::setCreationTimestamp(const qint64 timestamp)
 {
     if (timestamp >= 0) {
-        m_qecNote.created = timestamp;
+        d->m_qecNote.created = timestamp;
     }
     else {
-        m_qecNote.created.clear();
+        d->m_qecNote.created.clear();
     }
 }
 
 bool Note::hasModificationTimestamp() const
 {
-    return m_qecNote.updated.isSet();
+    return d->m_qecNote.updated.isSet();
 }
 
 qint64 Note::modificationTimestamp() const
 {
-    return m_qecNote.updated;
+    return d->m_qecNote.updated;
 }
 
 void Note::setModificationTimestamp(const qint64 timestamp)
 {
     if (timestamp >= 0) {
-        m_qecNote.updated = timestamp;
+        d->m_qecNote.updated = timestamp;
     }
     else {
-        m_qecNote.updated.clear();
+        d->m_qecNote.updated.clear();
     }
 }
 
 bool Note::hasDeletionTimestamp() const
 {
-    return m_qecNote.deleted.isSet();
+    return d->m_qecNote.deleted.isSet();
 }
 
 qint64 Note::deletionTimestamp() const
 {
-    return m_qecNote.deleted;
+    return d->m_qecNote.deleted;
 }
 
 void Note::setDeletionTimestamp(const qint64 timestamp)
 {
     if (timestamp >= 0) {
-        m_qecNote.deleted = timestamp;
+        d->m_qecNote.deleted = timestamp;
     }
     else {
-        m_qecNote.deleted.clear();
+        d->m_qecNote.deleted.clear();
     }
 }
 
 bool Note::hasActive() const
 {
-    return m_qecNote.active.isSet();
+    return d->m_qecNote.active.isSet();
 }
 
 bool Note::active() const
 {
-    return m_qecNote.active;
+    return d->m_qecNote.active;
 }
 
 void Note::setActive(const bool active)
 {
-    m_qecNote.active = active;
+    d->m_qecNote.active = active;
 }
 
 bool Note::hasNotebookGuid() const
 {
-    return m_qecNote.notebookGuid.isSet();
+    return d->m_qecNote.notebookGuid.isSet();
 }
 
 const QString & Note::notebookGuid() const
 {
-    return m_qecNote.notebookGuid;
+    return d->m_qecNote.notebookGuid;
 }
 
 void Note::setNotebookGuid(const QString & guid)
 {
-    m_qecNote.notebookGuid = guid;
+    d->m_qecNote.notebookGuid = guid;
 }
 
 bool Note::hasTagGuids() const
 {
-    return m_qecNote.tagGuids.isSet();
+    return d->m_qecNote.tagGuids.isSet();
 }
 
 void Note::tagGuids(QStringList & guids) const
 {
     guids.clear();
 
-    if (!m_qecNote.tagGuids.isSet()) {
+    if (!d->m_qecNote.tagGuids.isSet()) {
         QNDEBUG("Note::tagGuids:: no tag guids set");
         return;
     }
 
-    const QList<QString> & localTagGuids = m_qecNote.tagGuids;
+    const QList<QString> & localTagGuids = d->m_qecNote.tagGuids;
     size_t numTagGuids = localTagGuids.size();
     if (numTagGuids == 0) {
         QNDEBUG("Note::tagGuids: no tags");
@@ -559,17 +466,17 @@ void Note::tagGuids(QStringList & guids) const
 void Note::setTagGuids(const QStringList & guids)
 {
     if (guids.isEmpty()) {
-        m_qecNote.tagGuids.clear();
+        d->m_qecNote.tagGuids.clear();
         return;
     }
 
     int numTagGuids = guids.size();
 
-    if (!m_qecNote.tagGuids.isSet()) {
-        m_qecNote.tagGuids = QList<QString>();
+    if (!d->m_qecNote.tagGuids.isSet()) {
+        d->m_qecNote.tagGuids = QList<QString>();
     }
 
-    QList<QString> & tagGuids = m_qecNote.tagGuids;
+    QList<QString> & tagGuids = d->m_qecNote.tagGuids;
     tagGuids.clear();
 
     tagGuids.reserve(numTagGuids);
@@ -586,12 +493,12 @@ void Note::addTagGuid(const QString & guid)
         return;
     }
 
-    if (!m_qecNote.tagGuids.isSet()) {
-        m_qecNote.tagGuids = QList<QString>();
+    if (!d->m_qecNote.tagGuids.isSet()) {
+        d->m_qecNote.tagGuids = QList<QString>();
     }
 
-    if (!m_qecNote.tagGuids->contains(guid)) {
-        m_qecNote.tagGuids.ref() << guid;
+    if (!d->m_qecNote.tagGuids->contains(guid)) {
+        d->m_qecNote.tagGuids.ref() << guid;
         QNDEBUG("Added tag with guid " << guid << " to note");
     }
 }
@@ -603,12 +510,12 @@ void Note::removeTagGuid(const QString & guid)
         return;
     }
 
-    if (!m_qecNote.tagGuids.isSet()) {
+    if (!d->m_qecNote.tagGuids.isSet()) {
         QNDEBUG("No tag guids are set, cannot remove one");
         return;
     }
 
-    int removed = m_qecNote.tagGuids->removeAll(guid);
+    int removed = d->m_qecNote.tagGuids->removeAll(guid);
     if (removed > 0) {
         QNDEBUG("Removed tag guid " << guid << " (" << removed << ") occurences");
     }
@@ -619,20 +526,20 @@ void Note::removeTagGuid(const QString & guid)
 
 bool Note::hasResources() const
 {
-    return m_qecNote.resources.isSet();
+    return d->m_qecNote.resources.isSet();
 }
 
 QList<ResourceAdapter> Note::resourceAdapters() const
 {
     QList<ResourceAdapter> resources;
 
-    if (!m_qecNote.resources.isSet()) {
+    if (!d->m_qecNote.resources.isSet()) {
         return resources;
     }
 
-    const QList<qevercloud::Resource> & noteResources = m_qecNote.resources.ref();
+    const QList<qevercloud::Resource> & noteResources = d->m_qecNote.resources.ref();
     int numResources = noteResources.size();
-    int numResourceAdditionalInfoEntries = m_resourcesAdditionalInfo.size();
+    int numResourceAdditionalInfoEntries = d->m_resourcesAdditionalInfo.size();
 
     resources.reserve(std::max(numResources, 0));
     for(int i = 0; i < numResources; ++i)
@@ -641,7 +548,7 @@ QList<ResourceAdapter> Note::resourceAdapters() const
         ResourceAdapter & resource = resources.back();
 
         if (i < numResourceAdditionalInfoEntries) {
-            const ResourceAdditionalInfo & info = m_resourcesAdditionalInfo[i];
+            const NoteData::ResourceAdditionalInfo & info = d->m_resourcesAdditionalInfo[i];
             resource.setLocalGuid(info.localGuid);
             if (!info.noteLocalGuid.isEmpty()) {
                 resource.setNoteLocalGuid(info.noteLocalGuid);
@@ -658,13 +565,13 @@ QList<ResourceWrapper> Note::resources() const
 {
     QList<ResourceWrapper> resources;
 
-    if (!m_qecNote.resources.isSet()) {
+    if (!d->m_qecNote.resources.isSet()) {
         return resources;
     }
 
-    const QList<qevercloud::Resource> & noteResources = m_qecNote.resources.ref();
+    const QList<qevercloud::Resource> & noteResources = d->m_qecNote.resources.ref();
     int numResources = noteResources.size();
-    int numResourceAdditionalInfoEntries = m_resourcesAdditionalInfo.size();
+    int numResourceAdditionalInfoEntries = d->m_resourcesAdditionalInfo.size();
 
     resources.reserve(qMax(numResources, 0));
     for(int i = 0; i < numResources; ++i)
@@ -673,7 +580,7 @@ QList<ResourceWrapper> Note::resources() const
         ResourceWrapper & resource = resources.back();
 
         if (i < numResourceAdditionalInfoEntries) {
-            const ResourceAdditionalInfo & info = m_resourcesAdditionalInfo[i];
+            const NoteData::ResourceAdditionalInfo & info = d->m_resourcesAdditionalInfo[i];
             resource.setLocalGuid(info.localGuid);
             if (!info.noteLocalGuid.isEmpty()) {
                 resource.setNoteLocalGuid(info.noteLocalGuid);
@@ -691,25 +598,25 @@ QList<ResourceWrapper> Note::resources() const
     { \
         if (!resources.empty()) \
         { \
-            m_qecNote.resources = QList<qevercloud::Resource>(); \
-            m_resourcesAdditionalInfo.clear(); \
-            ResourceAdditionalInfo info; \
+            d->m_qecNote.resources = QList<qevercloud::Resource>(); \
+            d->m_resourcesAdditionalInfo.clear(); \
+            NoteData::ResourceAdditionalInfo info; \
             for(QList<resource_type>::const_iterator it = resources.constBegin(); \
                 it != resources.constEnd(); ++it) \
             { \
-                m_qecNote.resources.ref() << it->GetEnResource(); \
+                d->m_qecNote.resources.ref() << it->GetEnResource(); \
                 info.localGuid = it->localGuid(); \
                 if (it->hasNoteLocalGuid()) { \
                     info.noteLocalGuid = it->noteLocalGuid(); \
                 } \
                 info.isDirty = it->isDirty(); \
-                m_resourcesAdditionalInfo.push_back(info); \
+                d->m_resourcesAdditionalInfo.push_back(info); \
             } \
             QNDEBUG("Added " << resources.size() << " resources to note"); \
         } \
         else \
         { \
-            m_qecNote.resources.clear(); \
+            d->m_qecNote.resources.clear(); \
         } \
     }
 
@@ -720,44 +627,44 @@ SET_RESOURCES(ResourceAdapter)
 
 void Note::addResource(const IResource & resource)
 {
-    if (!m_qecNote.resources.isSet()) {
-        m_qecNote.resources = QList<qevercloud::Resource>();
+    if (!d->m_qecNote.resources.isSet()) {
+        d->m_qecNote.resources = QList<qevercloud::Resource>();
     }
 
-    if (m_qecNote.resources->contains(resource.GetEnResource())) {
+    if (d->m_qecNote.resources->contains(resource.GetEnResource())) {
         QNDEBUG("Can't add resource to note: this note already has this resource");
         return;
     }
 
-    m_qecNote.resources.ref() << resource.GetEnResource();
-    ResourceAdditionalInfo info;
+    d->m_qecNote.resources.ref() << resource.GetEnResource();
+    NoteData::ResourceAdditionalInfo info;
     info.localGuid = resource.localGuid();
     if (resource.hasNoteLocalGuid()) {
         info.noteLocalGuid = resource.noteLocalGuid();
     }
     info.isDirty = resource.isDirty();
-    m_resourcesAdditionalInfo.push_back(info);
+    d->m_resourcesAdditionalInfo.push_back(info);
 
     QNDEBUG("Added resource to note, local guid = " << resource.localGuid());
 }
 
 void Note::removeResource(const IResource & resource)
 {
-    if (!m_qecNote.resources.isSet()) {
+    if (!d->m_qecNote.resources.isSet()) {
         QNDEBUG("Can't remove resource from note: note has no attached resources");
         return;
     }
 
-    int removed = m_qecNote.resources->removeAll(resource.GetEnResource());
+    int removed = d->m_qecNote.resources->removeAll(resource.GetEnResource());
     if (removed > 0) {
         QNDEBUG("Removed resource " << resource << " from note (" << removed << ") occurences");
-        ResourceAdditionalInfo info;
+        NoteData::ResourceAdditionalInfo info;
         info.localGuid = resource.localGuid();
         if (resource.hasNoteLocalGuid()) {
             info.noteLocalGuid = resource.noteLocalGuid();
         }
         info.isDirty = resource.isDirty();
-        m_resourcesAdditionalInfo.removeAll(info);
+        d->m_resourcesAdditionalInfo.removeAll(info);
     }
     else {
         QNDEBUG("Haven't removed resource " << resource << " because there was no such resource attached to the note");
@@ -766,50 +673,50 @@ void Note::removeResource(const IResource & resource)
 
 bool Note::hasNoteAttributes() const
 {
-    return m_qecNote.attributes.isSet();
+    return d->m_qecNote.attributes.isSet();
 }
 
 const qevercloud::NoteAttributes & Note::noteAttributes() const
 {
-    return m_qecNote.attributes;
+    return d->m_qecNote.attributes;
 }
 
 qevercloud::NoteAttributes & Note::noteAttributes()
 {
-    if (!m_qecNote.attributes.isSet()) {
-        m_qecNote.attributes = qevercloud::NoteAttributes();
+    if (!d->m_qecNote.attributes.isSet()) {
+        d->m_qecNote.attributes = qevercloud::NoteAttributes();
     }
 
-    return m_qecNote.attributes;
+    return d->m_qecNote.attributes;
 }
 
 bool Note::isLocal() const
 {
-    return m_isLocal;
+    return d->m_isLocal;
 }
 
 void Note::setLocal(const bool local)
 {
-    m_isLocal = local;
+    d->m_isLocal = local;
 }
 
 QImage Note::thumbnail() const
 {
-    return m_thumbnail;
+    return d->m_thumbnail;
 }
 
 void Note::setThumbnail(const QImage & thumbnail)
 {
-    m_thumbnail = thumbnail;
+    d->m_thumbnail = thumbnail;
 }
 
 QString Note::plainText(QString * errorMessage) const
 {
-    if (m_lazyPlainTextIsValid) {
-        return m_lazyPlainText;
+    if (d->m_lazyPlainTextIsValid) {
+        return d->m_lazyPlainText;
     }
 
-    if (!m_qecNote.content.isSet()) {
+    if (!d->m_qecNote.content.isSet()) {
         if (errorMessage) {
             *errorMessage = "Note content is not set";
         }
@@ -818,8 +725,8 @@ QString Note::plainText(QString * errorMessage) const
 
     ENMLConverter converter;
     QString error;
-    bool res = converter.noteContentToPlainText(m_qecNote.content.ref(),
-                                                m_lazyPlainText, error);
+    bool res = converter.noteContentToPlainText(d->m_qecNote.content.ref(),
+                                                d->m_lazyPlainText, error);
     if (!res) {
         QNWARNING(error);
         if (errorMessage) {
@@ -828,21 +735,21 @@ QString Note::plainText(QString * errorMessage) const
         return QString();
     }
 
-    m_lazyPlainTextIsValid = true;
+    d->m_lazyPlainTextIsValid = true;
 
-    return m_lazyPlainText;
+    return d->m_lazyPlainText;
 }
 
 QStringList Note::listOfWords(QString * errorMessage) const
 {
-    if (m_lazyListOfWordsIsValid) {
-        return m_lazyListOfWords;
+    if (d->m_lazyListOfWordsIsValid) {
+        return d->m_lazyListOfWords;
     }
 
-    if (m_lazyPlainTextIsValid) {
-        m_lazyListOfWords = ENMLConverter::plainTextToListOfWords(m_lazyPlainText);
-        m_lazyListOfWordsIsValid = true;
-        return m_lazyListOfWords;
+    if (d->m_lazyPlainTextIsValid) {
+        d->m_lazyListOfWords = ENMLConverter::plainTextToListOfWords(d->m_lazyPlainText);
+        d->m_lazyListOfWordsIsValid = true;
+        return d->m_lazyListOfWords;
     }
 
     // If still not returned, there's no plain text available so will get the list of words
@@ -850,8 +757,9 @@ QStringList Note::listOfWords(QString * errorMessage) const
 
     ENMLConverter converter;
     QString error;
-    bool res = converter.noteContentToListOfWords(m_qecNote.content.ref(), m_lazyListOfWords,
-                                                  error, &m_lazyPlainText);
+    bool res = converter.noteContentToListOfWords(d->m_qecNote.content.ref(),
+                                                  d->m_lazyListOfWords,
+                                                  error, &(d->m_lazyPlainText));
     if (!res) {
         QNWARNING(error);
         if (errorMessage) {
@@ -860,19 +768,19 @@ QStringList Note::listOfWords(QString * errorMessage) const
         return QStringList();
     }
 
-    m_lazyPlainTextIsValid = true;
-    m_lazyListOfWordsIsValid = true;
-    return m_lazyListOfWords;
+    d->m_lazyPlainTextIsValid = true;
+    d->m_lazyListOfWordsIsValid = true;
+    return d->m_lazyListOfWords;
 }
 
 bool Note::containsCheckedTodo() const
 {
-    return containsToDoImpl(/* checked = */ true);
+    return d->containsToDoImpl(/* checked = */ true);
 }
 
 bool Note::containsUncheckedTodo() const
 {
-    return containsToDoImpl(/* checked = */ false);
+    return d->containsToDoImpl(/* checked = */ false);
 }
 
 bool Note::containsTodo() const
@@ -882,8 +790,8 @@ bool Note::containsTodo() const
 
 bool Note::containsEncryption() const
 {
-    if (m_lazyContainsEncryption > (-1)) {
-        if (m_lazyContainsEncryption == 0) {
+    if (d->m_lazyContainsEncryption > (-1)) {
+        if (d->m_lazyContainsEncryption == 0) {
             return false;
         }
         else {
@@ -891,22 +799,22 @@ bool Note::containsEncryption() const
         }
     }
 
-    if (!m_qecNote.content.isSet()) {
-        m_lazyContainsEncryption = 0;
+    if (!d->m_qecNote.content.isSet()) {
+        d->m_lazyContainsEncryption = 0;
         return false;
     }
 
     QDomDocument enXmlDomDoc;
     int errorLine = -1, errorColumn = -1;
     QString errorMessage;
-    bool res = enXmlDomDoc.setContent(m_qecNote.content.ref(), &errorMessage, &errorLine, &errorColumn);
+    bool res = enXmlDomDoc.setContent(d->m_qecNote.content.ref(), &errorMessage, &errorLine, &errorColumn);
     if (!res) {
         // TRANSLATOR Explaining the error of XML parsing
         errorMessage += QT_TR_NOOP(". Error happened at line ") +
                         QString::number(errorLine) + QT_TR_NOOP(", at column ") +
                         QString::number(errorColumn);
         QNWARNING("Note content parsing error: " << errorMessage);
-        m_lazyContainsEncryption = 0;
+        d->m_lazyContainsEncryption = 0;
         return false;
     }
 
@@ -919,14 +827,14 @@ bool Note::containsEncryption() const
         {
             QString tagName = element.tagName();
             if (tagName == "en-crypt") {
-                m_lazyContainsEncryption = 1;
+                d->m_lazyContainsEncryption = 1;
                 return true;
             }
         }
         nextNode = nextNode.nextSibling();
     }
 
-    m_lazyContainsEncryption = 0;
+    d->m_lazyContainsEncryption = 0;
     return false;
 }
 
@@ -946,116 +854,116 @@ QTextStream & Note::Print(QTextStream & strm) const
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.guid.isSet()) {
-        strm << "guid: " << m_qecNote.guid;
+    if (d->m_qecNote.guid.isSet()) {
+        strm << "guid: " << d->m_qecNote.guid;
     }
     else {
         strm << "guid is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.updateSequenceNum.isSet()) {
-        strm << "updateSequenceNumber: " << QString::number(m_qecNote.updateSequenceNum);
+    if (d->m_qecNote.updateSequenceNum.isSet()) {
+        strm << "updateSequenceNumber: " << QString::number(d->m_qecNote.updateSequenceNum);
     }
     else {
         strm << "updateSequenceNumber is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.title.isSet()) {
-        strm << "title: " << m_qecNote.title;
+    if (d->m_qecNote.title.isSet()) {
+        strm << "title: " << d->m_qecNote.title;
     }
     else {
         strm << "title is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.content.isSet()) {
-        strm << "content: " << m_qecNote.content;
+    if (d->m_qecNote.content.isSet()) {
+        strm << "content: " << d->m_qecNote.content;
     }
     else {
         strm << "content is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_lazyContainsCheckedToDo > (-1)) {
-        strm << "m_lazyContainsCheckedToDo = " << QString::number(m_lazyContainsCheckedToDo);
+    if (d->m_lazyContainsCheckedToDo > (-1)) {
+        strm << "m_lazyContainsCheckedToDo = " << QString::number(d->m_lazyContainsCheckedToDo);
         INSERT_DELIMITER;
     }
 
-    if (m_lazyContainsUncheckedToDo > (-1)) {
-        strm << "m_lazyContainsUncheckedToDo = " << QString::number(m_lazyContainsUncheckedToDo);
+    if (d->m_lazyContainsUncheckedToDo > (-1)) {
+        strm << "m_lazyContainsUncheckedToDo = " << QString::number(d->m_lazyContainsUncheckedToDo);
         INSERT_DELIMITER;
     }
 
-    if (m_lazyContainsEncryption > (-1)) {
-        strm << "m_lazyContainsEncryption = " << QString::number(m_lazyContainsEncryption);
+    if (d->m_lazyContainsEncryption > (-1)) {
+        strm << "m_lazyContainsEncryption = " << QString::number(d->m_lazyContainsEncryption);
         INSERT_DELIMITER;
     }
 
-    if (m_qecNote.contentHash.isSet()) {
-        strm << "contentHash: " << m_qecNote.contentHash;
+    if (d->m_qecNote.contentHash.isSet()) {
+        strm << "contentHash: " << d->m_qecNote.contentHash;
     }
     else {
         strm << "contentHash is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.contentLength.isSet()) {
-        strm << "contentLength: " << QString::number(m_qecNote.contentLength);
+    if (d->m_qecNote.contentLength.isSet()) {
+        strm << "contentLength: " << QString::number(d->m_qecNote.contentLength);
     }
     else {
         strm << "contentLength is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.created.isSet()) {
-        strm << "creationTimestamp: " << m_qecNote.created << ", datetime: "
-             << PrintableDateTimeFromTimestamp(m_qecNote.created);
+    if (d->m_qecNote.created.isSet()) {
+        strm << "creationTimestamp: " << d->m_qecNote.created << ", datetime: "
+             << PrintableDateTimeFromTimestamp(d->m_qecNote.created);
     }
     else {
         strm << "creationTimestamp is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.updated.isSet()) {
-        strm << "modificationTimestamp: " << m_qecNote.updated << ", datetime: "
-             << PrintableDateTimeFromTimestamp(m_qecNote.updated);
+    if (d->m_qecNote.updated.isSet()) {
+        strm << "modificationTimestamp: " << d->m_qecNote.updated << ", datetime: "
+             << PrintableDateTimeFromTimestamp(d->m_qecNote.updated);
     }
     else {
         strm << "modificationTimestamp is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.deleted.isSet()) {
-        strm << "deletionTimestamp: " << m_qecNote.deleted << ", datetime: "
-             << PrintableDateTimeFromTimestamp(m_qecNote.deleted);
+    if (d->m_qecNote.deleted.isSet()) {
+        strm << "deletionTimestamp: " << d->m_qecNote.deleted << ", datetime: "
+             << PrintableDateTimeFromTimestamp(d->m_qecNote.deleted);
     }
     else {
         strm << "deletionTimestamp is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.active.isSet()) {
-        strm << "active: " << (m_qecNote.active ? "true" : "false");
+    if (d->m_qecNote.active.isSet()) {
+        strm << "active: " << (d->m_qecNote.active ? "true" : "false");
     }
     else {
         strm << "active is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.notebookGuid.isSet()) {
-        strm << "notebookGuid: " << m_qecNote.notebookGuid;
+    if (d->m_qecNote.notebookGuid.isSet()) {
+        strm << "notebookGuid: " << d->m_qecNote.notebookGuid;
     }
     else {
         strm << "notebookGuid is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.tagGuids.isSet())
+    if (d->m_qecNote.tagGuids.isSet())
     {
         strm << "tagGuids: {";
-        foreach(const QString & tagGuid, m_qecNote.tagGuids.ref()) {
+        foreach(const QString & tagGuid, d->m_qecNote.tagGuids.ref()) {
             strm << "'" << tagGuid << "'; ";
         }
         strm << "}";
@@ -1065,10 +973,10 @@ QTextStream & Note::Print(QTextStream & strm) const
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.resources.isSet())
+    if (d->m_qecNote.resources.isSet())
     {
         strm << "resources: { \n";
-        foreach(const qevercloud::Resource & resource, m_qecNote.resources.ref()) {
+        foreach(const qevercloud::Resource & resource, d->m_qecNote.resources.ref()) {
             strm << resource << "; \n";
         }
         strm << "}";
@@ -1078,8 +986,8 @@ QTextStream & Note::Print(QTextStream & strm) const
     }
     INSERT_DELIMITER;
 
-    if (m_qecNote.attributes.isSet()) {
-        strm << "attributes: " << m_qecNote.attributes;
+    if (d->m_qecNote.attributes.isSet()) {
+        strm << "attributes: " << d->m_qecNote.attributes;
     }
     else {
         strm << "attributes are not set";
@@ -1089,86 +997,27 @@ QTextStream & Note::Print(QTextStream & strm) const
     strm << "isDirty: " << (isDirty() ? "true" : "false");
     INSERT_DELIMITER;
 
-    strm << "isLocal: " << (m_isLocal ? "true" : "false");
+    strm << "isLocal: " << (d->m_isLocal ? "true" : "false");
     INSERT_DELIMITER;
 
     strm << "hasShortcut = " << (hasShortcut() ? "true" : "false");
     INSERT_DELIMITER;
 
-    strm << "lazyPlainText: " << m_lazyPlainText;
+    strm << "lazyPlainText: " << d->m_lazyPlainText;
     INSERT_DELIMITER;
 
-    strm << "lazyPlainText is " << (m_lazyPlainTextIsValid ? "valid" : "invalid");
+    strm << "lazyPlainText is " << (d->m_lazyPlainTextIsValid ? "valid" : "invalid");
     INSERT_DELIMITER;
 
-    strm << "lazyListOfWords: " << m_lazyListOfWords.join(",");
+    strm << "lazyListOfWords: " << d->m_lazyListOfWords.join(",");
     INSERT_DELIMITER;
 
-    strm << "lazyListOfWords is " << (m_lazyListOfWordsIsValid ? "valid" : "invalid");
+    strm << "lazyListOfWords is " << (d->m_lazyListOfWordsIsValid ? "valid" : "invalid");
     INSERT_DELIMITER;
 
 #undef INSERT_DELIMITER
 
     return strm;
-}
-
-bool Note::containsToDoImpl(const bool checked) const
-{
-    int & refLazyContainsToDo = (checked ? m_lazyContainsCheckedToDo : m_lazyContainsUncheckedToDo);
-    if (refLazyContainsToDo > (-1)) {
-        if (refLazyContainsToDo == 0) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-
-    if (!m_qecNote.content.isSet()) {
-        refLazyContainsToDo = 0;
-        return false;
-    }
-
-    QDomDocument enXmlDomDoc;
-    int errorLine = -1, errorColumn = -1;
-    QString errorMessage;
-    bool res = enXmlDomDoc.setContent(m_qecNote.content.ref(), &errorMessage, &errorLine, &errorColumn);
-    if (!res) {
-        // TRANSLATOR Explaining the error of XML parsing
-        errorMessage += QT_TR_NOOP(". Error happened at line ") +
-                        QString::number(errorLine) + QT_TR_NOOP(", at column ") +
-                        QString::number(errorColumn);
-        QNWARNING("Note content parsing error: " << errorMessage);
-        refLazyContainsToDo = 0;
-        return false;
-    }
-
-    QDomElement docElem = enXmlDomDoc.documentElement();
-    QDomNode nextNode = docElem.firstChild();
-    while (!nextNode.isNull())
-    {
-        QDomElement element = nextNode.toElement();
-        if (!element.isNull())
-        {
-            QString tagName = element.tagName();
-            if (tagName == "en-todo")
-            {
-                QString checkedStr = element.attribute("checked", "false");
-                if (checked && (checkedStr == "true")) {
-                    refLazyContainsToDo = 1;
-                    return true;
-                }
-                else if (!checked && (checkedStr == "false")) {
-                    refLazyContainsToDo = 1;
-                    return true;
-                }
-            }
-        }
-        nextNode = nextNode.nextSibling();
-    }
-
-    refLazyContainsToDo = 0;
-    return false;
 }
 
 } // namespace qute_note

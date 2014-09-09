@@ -2,8 +2,10 @@
 #define __QUTE_NOTE__CLIENT__TYPES__NOTE_H
 
 #include "DataElementWithShortcut.h"
+#include "data/NoteData.h"
 #include <QEverCloud.h>
 #include <QImage>
+#include <QSharedDataPointer>
 
 namespace qute_note {
 
@@ -11,7 +13,7 @@ QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
 QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 
-class QUTE_NOTE_EXPORT Note final: public DataElementWithShortcut
+class QUTE_NOTE_EXPORT Note: public DataElementWithShortcut
 {
 public:
     Note();
@@ -21,9 +23,7 @@ public:
     Note & operator=(Note && other);
 
     Note(const qevercloud::Note & other);
-    Note(qevercloud::Note && other);
     Note & operator=(const qevercloud::Note & other);
-    Note & operator=(qevercloud::Note && other);
 
     virtual ~Note() final override;
 
@@ -112,41 +112,8 @@ public:
 
 private:
     virtual QTextStream & Print(QTextStream & strm) const final override;
-    bool containsToDoImpl(const bool checked) const;
 
-    qevercloud::Note m_qecNote;
-
-    struct ResourceAdditionalInfo
-    {
-        QString localGuid;
-        QString noteLocalGuid;
-        bool    isDirty;
-
-        bool operator==(const ResourceAdditionalInfo & other) const
-        {
-            return (localGuid == other.localGuid) &&
-                   (noteLocalGuid == other.noteLocalGuid) &&
-                   (isDirty == other.isDirty);
-        }
-    };
-
-    QList<ResourceAdditionalInfo> m_resourcesAdditionalInfo;
-    bool m_isLocal;
-    QImage m_thumbnail;
-
-    mutable QString m_lazyPlainText;
-    mutable bool    m_lazyPlainTextIsValid;
-
-    mutable QStringList m_lazyListOfWords;
-    mutable bool        m_lazyListOfWordsIsValid;
-
-    // these flags are int in order to handle the "empty" state:
-    // "-1" - empty, undefined
-    // "0" - false
-    // "1" - true
-    mutable int m_lazyContainsCheckedToDo;
-    mutable int m_lazyContainsUncheckedToDo;
-    mutable int m_lazyContainsEncryption;
+    QSharedDataPointer<NoteData> d;
 };
 
 } // namespace qute_note
