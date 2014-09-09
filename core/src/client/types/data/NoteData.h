@@ -19,8 +19,12 @@ public:
     NoteData & operator=(const qevercloud::Note & other);
     virtual ~NoteData();
 
-    bool containsToDoImpl(const bool checked) const;
     void clear();
+    bool checkParameters(QString & errorDescription) const;
+
+    bool containsToDoImpl(const bool checked) const;
+
+    void setContent(const QString & content);
 
     qevercloud::Note m_qecNote;
 

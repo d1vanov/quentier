@@ -1,4 +1,5 @@
 #include "NoteData.h"
+#include "../../Utility.h"
 #include <logging/QuteNoteLogger.h>
 #include <QDomDocument>
 
@@ -153,6 +154,16 @@ bool NoteData::containsToDoImpl(const bool checked) const
     return false;
 }
 
+void NoteData::setContent(const QString &content)
+{
+    m_qecNote.content = content;
+    m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
+    m_lazyListOfWordsIsValid = false;
+    m_lazyContainsCheckedToDo = -1;
+    m_lazyContainsUncheckedToDo = -1;
+    m_lazyContainsEncryption = -1;
+}
+
 void NoteData::clear()
 {
     m_qecNote = qevercloud::Note();
@@ -161,6 +172,180 @@ void NoteData::clear()
     m_lazyContainsCheckedToDo = -1;
     m_lazyContainsUncheckedToDo = -1;
     m_lazyContainsEncryption = -1;
+}
+
+bool NoteData::checkParameters(QString & errorDescription) const
+{
+    if (m_qecNote.guid.isSet() && !CheckGuid(m_qecNote.guid.ref())) {
+        errorDescription = QT_TR_NOOP("Note's guid is invalid");
+        return false;
+    }
+
+    if (m_qecNote.updateSequenceNum.isSet() && !CheckUpdateSequenceNumber(m_qecNote.updateSequenceNum)) {
+        errorDescription = QT_TR_NOOP("Note's update sequence number is invalid");
+        return false;
+    }
+
+    if (m_qecNote.title.isSet())
+    {
+        int titleSize = m_qecNote.title->size();
+
+        if ( (titleSize < qevercloud::EDAM_NOTE_TITLE_LEN_MIN) ||
+             (titleSize > qevercloud::EDAM_NOTE_TITLE_LEN_MAX) )
+        {
+            errorDescription = QT_TR_NOOP("Note's title length is invalid");
+            return false;
+        }
+    }
+
+    if (m_qecNote.content.isSet())
+    {
+        int contentSize = m_qecNote.content->size();
+
+        if ( (contentSize < qevercloud::EDAM_NOTE_CONTENT_LEN_MIN) ||
+             (contentSize > qevercloud::EDAM_NOTE_CONTENT_LEN_MAX) )
+        {
+            errorDescription = QT_TR_NOOP("Note's content length is invalid");
+            return false;
+        }
+    }
+
+    if (m_qecNote.contentHash.isSet())
+    {
+        size_t contentHashSize = m_qecNote.contentHash->size();
+
+        if (contentHashSize != qevercloud::EDAM_HASH_LEN) {
+            errorDescription = QT_TR_NOOP("Note's content hash size is invalid");
+            return false;
+        }
+    }
+
+    if (m_qecNote.notebookGuid.isSet() && !CheckGuid(m_qecNote.notebookGuid.ref())) {
+        errorDescription = QT_TR_NOOP("Note's notebook guid is invalid");
+        return false;
+    }
+
+    if (m_qecNote.tagGuids.isSet())
+    {
+        int numTagGuids = m_qecNote.tagGuids->size();
+
+        if (numTagGuids > qevercloud::EDAM_NOTE_TAGS_MAX) {
+            errorDescription = QT_TR_NOOP("Note has too many tags, max allowed ");
+            errorDescription.append(QString::number(qevercloud::EDAM_NOTE_TAGS_MAX));
+            return false;
+        }
+    }
+
+    if (m_qecNote.resources.isSet())
+    {
+        int numResources = m_qecNote.resources->size();
+
+        if (numResources > qevercloud::EDAM_NOTE_RESOURCES_MAX) {
+            errorDescription = QT_TR_NOOP("Note has too many resources, max allowed ");
+            errorDescription.append(QString::number(qevercloud::EDAM_NOTE_RESOURCES_MAX));
+            return false;
+        }
+    }
+
+
+    if (m_qecNote.attributes.isSet())
+    {
+        const qevercloud::NoteAttributes & attributes = m_qecNote.attributes;
+
+#define CHECK_NOTE_ATTRIBUTE(name) \
+    if (attributes.name.isSet()) { \
+        int name##Size = attributes.name->size(); \
+        \
+        if ( (name##Size < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) || \
+             (name##Size > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ) \
+        { \
+            errorDescription = QT_TR_NOOP("Note attributes' " #name " field has invalid size"); \
+            return false; \
+        } \
+    }
+
+        CHECK_NOTE_ATTRIBUTE(author);
+        CHECK_NOTE_ATTRIBUTE(source);
+        CHECK_NOTE_ATTRIBUTE(sourceURL);
+        CHECK_NOTE_ATTRIBUTE(sourceApplication);
+
+#undef CHECK_NOTE_ATTRIBUTE
+
+        if (attributes.contentClass.isSet())
+        {
+            int contentClassSize = attributes.contentClass->size();
+            if ( (contentClassSize < qevercloud::EDAM_NOTE_CONTENT_CLASS_LEN_MIN) ||
+                 (contentClassSize > qevercloud::EDAM_NOTE_CONTENT_CLASS_LEN_MAX) )
+            {
+                errorDescription = QT_TR_NOOP("Note attributes' content class has invalid size");
+                return false;
+            }
+        }
+
+        if (attributes.applicationData.isSet())
+        {
+            const qevercloud::LazyMap & applicationData = attributes.applicationData;
+
+            if (applicationData.keysOnly.isSet())
+            {
+                const QSet<QString> & keysOnly = applicationData.keysOnly;
+                foreach(const QString & key, keysOnly) {
+                    int keySize = key.size();
+                    if ( (keySize < qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MIN) ||
+                         (keySize > qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MAX) )
+                    {
+                        errorDescription = QT_TR_NOOP("Note's attributes application data has invalid key (in keysOnly part)");
+                        return false;
+                    }
+                }
+            }
+
+            if (applicationData.fullMap.isSet())
+            {
+                const QMap<QString, QString> & fullMap = applicationData.fullMap;
+                for(QMap<QString, QString>::const_iterator it = fullMap.constBegin(); it != fullMap.constEnd(); ++it)
+                {
+                    int keySize = it.key().size();
+                    if ( (keySize < qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MIN) ||
+                         (keySize > qevercloud::EDAM_APPLICATIONDATA_NAME_LEN_MAX) )
+                    {
+                        errorDescription = QT_TR_NOOP("Note's attributes application data has invalid key (in fullMap part)");
+                        return false;
+                    }
+
+                    int valueSize = it.value().size();
+                    if ( (valueSize < qevercloud::EDAM_APPLICATIONDATA_VALUE_LEN_MIN) ||
+                         (valueSize > qevercloud::EDAM_APPLICATIONDATA_VALUE_LEN_MAX) )
+                    {
+                        errorDescription = QT_TR_NOOP("Note's attributes application data has invalid value");
+                        return false;
+                    }
+
+                    int sumSize = keySize + valueSize;
+                    if (sumSize > qevercloud::EDAM_APPLICATIONDATA_ENTRY_LEN_MAX) {
+                        errorDescription = QT_TR_NOOP("Note's attributes application data has invalid entry size");
+                        return false;
+                    }
+                }
+            }
+        }
+
+        if (attributes.classifications.isSet())
+        {
+            const QMap<QString, QString> & classifications = attributes.classifications;
+            for(QMap<QString, QString>::const_iterator it = classifications.constBegin();
+                it != classifications.constEnd(); ++it)
+            {
+                const QString & value = it.value();
+                if (!value.startsWith("CLASSIFICATION_")) {
+                    errorDescription = QT_TR_NOOP("Note's attributes classifications has invalid classification value");
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 } // namespace qute_note
