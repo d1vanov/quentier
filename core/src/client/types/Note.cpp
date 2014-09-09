@@ -1,4 +1,5 @@
 #include "Note.h"
+#include "data/NoteData.h"
 #include "ResourceAdapter.h"
 #include "ResourceWrapper.h"
 #include "QEverCloudHelpers.h"
@@ -14,6 +15,11 @@ Note::Note() :
     d(new NoteData)
 {}
 
+Note::Note(const Note & other) :
+    DataElementWithShortcut(other),
+    d(other.d)
+{}
+
 Note::Note(const qevercloud::Note & other) :
     DataElementWithShortcut(),
     d(new NoteData(other))
@@ -23,6 +29,16 @@ Note::Note(Note && other) :
     DataElementWithShortcut(std::move(other)),
     d(std::move(other.d))
 {}
+
+Note & Note::operator =(const Note & other)
+{
+    if (this != &other) {
+        NoteStoreDataElement::operator=(other);
+        d = other.d;
+    }
+
+    return *this;
+}
 
 Note & Note::operator=(const qevercloud::Note & other)
 {

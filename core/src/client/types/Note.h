@@ -2,7 +2,6 @@
 #define __QUTE_NOTE__CLIENT__TYPES__NOTE_H
 
 #include "DataElementWithShortcut.h"
-#include "data/NoteData.h"
 #include <QEverCloud.h>
 #include <QImage>
 #include <QSharedDataPointer>
@@ -12,14 +11,15 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
 QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
+QT_FORWARD_DECLARE_CLASS(NoteData)
 
 class QUTE_NOTE_EXPORT Note: public DataElementWithShortcut
 {
 public:
     Note();
-    Note(const Note & other) = default;
+    Note(const Note & other);
     Note(Note && other);
-    Note & operator=(const Note & other) = default;
+    Note & operator=(const Note & other);
     Note & operator=(Note && other);
 
     Note(const qevercloud::Note & other);
