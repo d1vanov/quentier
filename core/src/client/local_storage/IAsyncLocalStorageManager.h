@@ -107,23 +107,23 @@ protected:
     virtual void getNoteCountComplete(int noteCount) = 0;
     virtual void getNoteCountFailed(QString errorDescription) = 0;
 
-    virtual void addNoteComplete(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
-    virtual void addNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+    virtual void addNoteComplete(Note note, Notebook notebook) = 0;
+    virtual void addNoteFailed(Note note, Notebook notebook, QString errorDescription) = 0;
 
-    virtual void updateNoteComplete(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
-    virtual void updateNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+    virtual void updateNoteComplete(Note note, Notebook notebook) = 0;
+    virtual void updateNoteFailed(Note note, Notebook notebook, QString errorDescription) = 0;
 
-    virtual void findNoteComplete(QSharedPointer<Note> foundNote, bool withResourceBinaryData) = 0;
-    virtual void findNoteFailed(QSharedPointer<Note> note, bool withResourceBinaryData, QString errorDescription) = 0;
+    virtual void findNoteComplete(Note foundNote, bool withResourceBinaryData) = 0;
+    virtual void findNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription) = 0;
 
-    virtual void listAllNotesPerNotebookComplete(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QList<Note> foundNotes) = 0;
-    virtual void listAllNotesPerNotebookFailed(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QString errorDescription) = 0;
+    virtual void listAllNotesPerNotebookComplete(Notebook notebook, bool withResourceBinaryData, QList<Note> foundNotes) = 0;
+    virtual void listAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData, QString errorDescription) = 0;
 
-    virtual void deleteNoteComplete(QSharedPointer<Note> note) = 0;
-    virtual void deleteNoteFailed(QSharedPointer<Note> note, QString errorDescription) = 0;
+    virtual void deleteNoteComplete(Note note) = 0;
+    virtual void deleteNoteFailed(Note note, QString errorDescription) = 0;
 
-    virtual void expungeNoteComplete(QSharedPointer<Note> note) = 0;
-    virtual void expungeNoteFailed(QSharedPointer<Note> note, QString errorDescription) = 0;
+    virtual void expungeNoteComplete(Note note) = 0;
+    virtual void expungeNoteFailed(Note note, QString errorDescription) = 0;
 
     // Prototypes for tag-related signals:
     virtual void getTagCountComplete(int tagCount) = 0;
@@ -227,13 +227,12 @@ protected:
 
     // Pure virtual prototypes for note-related slots:
     virtual void onGetNoteCountRequest() = 0;
-    virtual void onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
-    virtual void onUpdateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook) = 0;
-    virtual void onFindNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData) = 0;
-    virtual void onListAllNotesPerNotebookRequest(QSharedPointer<Notebook> notebook,
-                                                  bool withResourceBinaryData) = 0;
-    virtual void onDeleteNoteRequest(QSharedPointer<Note> note) = 0;
-    virtual void onExpungeNoteRequest(QSharedPointer<Note> note) = 0;
+    virtual void onAddNoteRequest(Note note, Notebook notebook) = 0;
+    virtual void onUpdateNoteRequest(Note note, Notebook notebook) = 0;
+    virtual void onFindNoteRequest(Note note, bool withResourceBinaryData) = 0;
+    virtual void onListAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData) = 0;
+    virtual void onDeleteNoteRequest(Note note) = 0;
+    virtual void onExpungeNoteRequest(Note note) = 0;
 
     // Pure virtual prototypes for tag-related slots:
     virtual void onGetTagCountRequest() = 0;

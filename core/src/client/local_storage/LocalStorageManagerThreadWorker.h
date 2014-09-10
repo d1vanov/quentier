@@ -76,18 +76,18 @@ Q_SIGNALS:
     // Note-related signals:
     void getNoteCountComplete(int noteCount);
     void getNoteCountFailed(QString errorDescription);
-    void addNoteComplete(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
-    void addNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription);
-    void updateNoteComplete(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
-    void updateNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription);
-    void findNoteComplete(QSharedPointer<Note> foundNote, bool withResourceBinaryData);
-    void findNoteFailed(QSharedPointer<Note> note, bool withResourceBinaryData, QString errorDescription);
-    void listAllNotesPerNotebookComplete(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QList<Note> foundNotes);
-    void listAllNotesPerNotebookFailed(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QString errorDescription);
-    void deleteNoteComplete(QSharedPointer<Note> note);
-    void deleteNoteFailed(QSharedPointer<Note> note, QString errorDescription);
-    void expungeNoteComplete(QSharedPointer<Note> note);
-    void expungeNoteFailed(QSharedPointer<Note> note, QString errorDescription);
+    void addNoteComplete(Note note, Notebook notebook);
+    void addNoteFailed(Note note, Notebook notebook, QString errorDescription);
+    void updateNoteComplete(Note note, Notebook notebook);
+    void updateNoteFailed(Note note, Notebook notebook, QString errorDescription);
+    void findNoteComplete(Note foundNote, bool withResourceBinaryData);
+    void findNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription);
+    void listAllNotesPerNotebookComplete(Notebook notebook, bool withResourceBinaryData, QList<Note> foundNotes);
+    void listAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData, QString errorDescription);
+    void deleteNoteComplete(Note note);
+    void deleteNoteFailed(Note note, QString errorDescription);
+    void expungeNoteComplete(Note note);
+    void expungeNoteFailed(Note note, QString errorDescription);
 
     // Tag-related signals:
     void getTagCountComplete(int tagCount);
@@ -168,12 +168,12 @@ public Q_SLOTS:
 
     // Note-related slots:
     void onGetNoteCountRequest();
-    void onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
-    void onUpdateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
-    void onFindNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData);
-    void onListAllNotesPerNotebookRequest(QSharedPointer<Notebook> notebook, bool withResourceBinaryData);
-    void onDeleteNoteRequest(QSharedPointer<Note> note);
-    void onExpungeNoteRequest(QSharedPointer<Note> note);
+    void onAddNoteRequest(Note note, Notebook notebook);
+    void onUpdateNoteRequest(Note note, Notebook notebook);
+    void onFindNoteRequest(Note note, bool withResourceBinaryData);
+    void onListAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData);
+    void onDeleteNoteRequest(Note note);
+    void onExpungeNoteRequest(Note note);
 
     // Tag-related slots:
     void onGetTagCountRequest();

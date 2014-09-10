@@ -161,46 +161,46 @@ void LocalStorageManagerThread::createConnections()
 
     // Note-related signal-slot connections:
     QObject::connect(this, SIGNAL(getNoteCountRequest()), m_pWorker, SLOT(onGetNoteCountRequest()));
-    QObject::connect(this, SIGNAL(addNoteRequest(QSharedPointer<Note>,QSharedPointer<Notebook>)),
-                     m_pWorker, SLOT(onAddNoteRequest(QSharedPointer<Note>,QSharedPointer<Notebook>)));
-    QObject::connect(this, SIGNAL(updateNoteRequest(QSharedPointer<Note>,QSharedPointer<Notebook>)),
-                     m_pWorker, SLOT(onUpdateNoteRequest(QSharedPointer<Note>,QSharedPointer<Notebook>)));
-    QObject::connect(this, SIGNAL(findNoteRequest(QSharedPointer<Note>,bool)),
-                     m_pWorker, SLOT(onFindNoteRequest(QSharedPointer<Note>,bool)));
-    QObject::connect(this, SIGNAL(listAllNotesPerNotebookRequest(QSharedPointer<Notebook>,bool)),
-                     m_pWorker, SLOT(onListAllNotesPerNotebookRequest(QSharedPointer<Notebook>,bool)));
-    QObject::connect(this, SIGNAL(deleteNoteRequest(QSharedPointer<Note>)),
-                     m_pWorker, SLOT(onDeleteNoteRequest(QSharedPointer<Note>)));
-    QObject::connect(this, SIGNAL(expungeNoteRequest(QSharedPointer<Note>)),
-                     m_pWorker, SLOT(onExpungeNoteRequest(QSharedPointer<Note>)));
+    QObject::connect(this, SIGNAL(addNoteRequest(Note,Notebook)),
+                     m_pWorker, SLOT(onAddNoteRequest(Note,Notebook)));
+    QObject::connect(this, SIGNAL(updateNoteRequest(Note,Notebook)),
+                     m_pWorker, SLOT(onUpdateNoteRequest(Note,Notebook)));
+    QObject::connect(this, SIGNAL(findNoteRequest(Note,bool)),
+                     m_pWorker, SLOT(onFindNoteRequest(Note,bool)));
+    QObject::connect(this, SIGNAL(listAllNotesPerNotebookRequest(Notebook,bool)),
+                     m_pWorker, SLOT(onListAllNotesPerNotebookRequest(Notebook,bool)));
+    QObject::connect(this, SIGNAL(deleteNoteRequest(Note)),
+                     m_pWorker, SLOT(onDeleteNoteRequest(Note)));
+    QObject::connect(this, SIGNAL(expungeNoteRequest(Note)),
+                     m_pWorker, SLOT(onExpungeNoteRequest(Note)));
 
     // Note-related signal-signal connections:
     QObject::connect(m_pWorker, SIGNAL(getNoteCountComplete(int)), this, SIGNAL(getNoteCountComplete(int)));
     QObject::connect(m_pWorker, SIGNAL(getNoteCountFailed(QString)), this, SIGNAL(getNoteCountFailed(QString)));
-    QObject::connect(m_pWorker, SIGNAL(addNoteComplete(QSharedPointer<Note>,QSharedPointer<Notebook>)),
-                     this, SIGNAL(addNoteComplete(QSharedPointer<Note>,QSharedPointer<Notebook>)));
-    QObject::connect(m_pWorker, SIGNAL(addNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)),
-                     this, SIGNAL(addNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(updateNoteComplete(QSharedPointer<Note>,QSharedPointer<Notebook>)),
-                     this, SIGNAL(updateNoteComplete(QSharedPointer<Note>,QSharedPointer<Notebook>)));
-    QObject::connect(m_pWorker, SIGNAL(updateNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)),
-                     this, SIGNAL(updateNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(findNoteComplete(QSharedPointer<Note>,bool)),
-                     this, SIGNAL(findNoteComplete(QSharedPointer<Note>,bool)));
-    QObject::connect(m_pWorker, SIGNAL(findNoteFailed(QSharedPointer<Note>,bool,QString)),
-                     this, SIGNAL(findNoteFailed(QSharedPointer<Note>,bool,QString)));
-    QObject::connect(m_pWorker, SIGNAL(listAllNotesPerNotebookComplete(QSharedPointer<Notebook>,bool,QList<Note>)),
-                     this, SIGNAL(listAllNotesPerNotebookComplete(QSharedPointer<Notebook>,bool,QList<Note>)));
-    QObject::connect(m_pWorker, SIGNAL(listAllNotesPerNotebookFailed(QSharedPointer<Notebook>,bool,QString)),
-                     this, SIGNAL(listAllNotesPerNotebookFailed(QSharedPointer<Notebook>,bool,QString)));
-    QObject::connect(m_pWorker, SIGNAL(deleteNoteComplete(QSharedPointer<Note>)),
-                     this, SIGNAL(deleteNoteComplete(QSharedPointer<Note>)));
-    QObject::connect(m_pWorker, SIGNAL(deleteNoteFailed(QSharedPointer<Note>,QString)),
-                     this, SIGNAL(deleteNoteFailed(QSharedPointer<Note>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(expungeNoteComplete(QSharedPointer<Note>)),
-                     this, SIGNAL(expungeNoteComplete(QSharedPointer<Note>)));
-    QObject::connect(m_pWorker, SIGNAL(expungeNoteFailed(QSharedPointer<Note>,QString)),
-                     this, SIGNAL(expungeNoteFailed(QSharedPointer<Note>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(addNoteComplete(Note,Notebook)),
+                     this, SIGNAL(addNoteComplete(Note,Notebook)));
+    QObject::connect(m_pWorker, SIGNAL(addNoteFailed(Note,Notebook,QString)),
+                     this, SIGNAL(addNoteFailed(Note,Notebook,QString)));
+    QObject::connect(m_pWorker, SIGNAL(updateNoteComplete(Note,Notebook)),
+                     this, SIGNAL(updateNoteComplete(Note,Notebook)));
+    QObject::connect(m_pWorker, SIGNAL(updateNoteFailed(Note,Notebook,QString)),
+                     this, SIGNAL(updateNoteFailed(Note,Notebook,QString)));
+    QObject::connect(m_pWorker, SIGNAL(findNoteComplete(Note,bool)),
+                     this, SIGNAL(findNoteComplete(Note,bool)));
+    QObject::connect(m_pWorker, SIGNAL(findNoteFailed(Note,bool,QString)),
+                     this, SIGNAL(findNoteFailed(Note,bool,QString)));
+    QObject::connect(m_pWorker, SIGNAL(listAllNotesPerNotebookComplete(Notebook,bool,QList<Note>)),
+                     this, SIGNAL(listAllNotesPerNotebookComplete(Notebook,bool,QList<Note>)));
+    QObject::connect(m_pWorker, SIGNAL(listAllNotesPerNotebookFailed(Notebook,bool,QString)),
+                     this, SIGNAL(listAllNotesPerNotebookFailed(Notebook,bool,QString)));
+    QObject::connect(m_pWorker, SIGNAL(deleteNoteComplete(Note)),
+                     this, SIGNAL(deleteNoteComplete(Note)));
+    QObject::connect(m_pWorker, SIGNAL(deleteNoteFailed(Note,QString)),
+                     this, SIGNAL(deleteNoteFailed(Note,QString)));
+    QObject::connect(m_pWorker, SIGNAL(expungeNoteComplete(Note)),
+                     this, SIGNAL(expungeNoteComplete(Note)));
+    QObject::connect(m_pWorker, SIGNAL(expungeNoteFailed(Note,QString)),
+                     this, SIGNAL(expungeNoteFailed(Note,QString)));
 
     // Tag-related signal-slot connections:
     QObject::connect(this, SIGNAL(getTagCountRequest()), m_pWorker, SLOT(onGetTagCountRequest()));
@@ -452,32 +452,32 @@ void LocalStorageManagerThread::onGetNoteCountRequest()
     emit getNoteCountRequest();
 }
 
-void LocalStorageManagerThread::onAddNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook)
+void LocalStorageManagerThread::onAddNoteRequest(Note note, Notebook notebook)
 {
     emit addNoteRequest(note, notebook);
 }
 
-void LocalStorageManagerThread::onUpdateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook)
+void LocalStorageManagerThread::onUpdateNoteRequest(Note note, Notebook notebook)
 {
     emit updateNoteRequest(note, notebook);
 }
 
-void LocalStorageManagerThread::onFindNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData)
+void LocalStorageManagerThread::onFindNoteRequest(Note note, bool withResourceBinaryData)
 {
     emit findNoteRequest(note, withResourceBinaryData);
 }
 
-void LocalStorageManagerThread::onListAllNotesPerNotebookRequest(QSharedPointer<Notebook> notebook, bool withResourceBinaryData)
+void LocalStorageManagerThread::onListAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData)
 {
     emit listAllNotesPerNotebookRequest(notebook, withResourceBinaryData);
 }
 
-void LocalStorageManagerThread::onDeleteNoteRequest(QSharedPointer<Note> note)
+void LocalStorageManagerThread::onDeleteNoteRequest(Note note)
 {
     emit deleteNoteRequest(note);
 }
 
-void LocalStorageManagerThread::onExpungeNoteRequest(QSharedPointer<Note> note)
+void LocalStorageManagerThread::onExpungeNoteRequest(Note note)
 {
     emit expungeNoteRequest(note);
 }

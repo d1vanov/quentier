@@ -27,33 +27,33 @@ Q_SIGNALS:
     void failure(QString errorDescription);
     
 // private signals
-    void addNotebookRequest(QSharedPointer<Notebook> notebook);
+    void addNotebookRequest(Notebook notebook);
     void getNoteCountRequest();
-    void addNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
-    void updateNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
-    void findNoteRequest(QSharedPointer<Note> note, bool withResourceBinaryData);
-    void listAllNotesPerNotebookRequest(QSharedPointer<Notebook> notebook,
+    void addNoteRequest(Note note, Notebook notebook);
+    void updateNoteRequest(Note note, Notebook notebook);
+    void findNoteRequest(Note note, bool withResourceBinaryData);
+    void listAllNotesPerNotebookRequest(Notebook notebook,
                                         bool withResourceBinaryData);
-    void deleteNoteRequest(QSharedPointer<Note> note);
-    void expungeNoteRequest(QSharedPointer<Note> note);
+    void deleteNoteRequest(Note note);
+    void expungeNoteRequest(Note note);
 
 private Q_SLOTS:
-    void onAddNotebookCompleted(QSharedPointer<Notebook> notebook);
-    void onAddNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
+    void onAddNotebookCompleted(Notebook notebook);
+    void onAddNotebookFailed(Notebook notebook, QString errorDescription);
     void onGetNoteCountCompleted(int count);
     void onGetNoteCountFailed(QString errorDescription);
-    void onAddNoteCompleted(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
-    void onAddNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription);
-    void onUpdateNoteCompleted(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
-    void onUpdateNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription);
-    void onFindNoteCompleted(QSharedPointer<Note> note, bool withResourceBinaryData);
-    void onFindNoteFailed(QSharedPointer<Note> note, bool withResourceBinaryData, QString errorDescription);
-    void onListAllNotesPerNotebookCompleted(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QList<Note> notes);
-    void onListAllNotesPerNotebookFailed(QSharedPointer<Notebook> notebook, bool withResourceBinaryData, QString errorDescription);
-    void onDeleteNoteCompleted(QSharedPointer<Note> note);
-    void onDeleteNoteFailed(QSharedPointer<Note> note, QString errorDescription);
-    void onExpungeNoteCompleted(QSharedPointer<Note> note);
-    void onExpungeNoteFailed(QSharedPointer<Note> note, QString errorDescription);
+    void onAddNoteCompleted(Note note, Notebook notebook);
+    void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription);
+    void onUpdateNoteCompleted(Note note, Notebook notebook);
+    void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription);
+    void onFindNoteCompleted(Note note, bool withResourceBinaryData);
+    void onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription);
+    void onListAllNotesPerNotebookCompleted(Notebook notebook, bool withResourceBinaryData, QList<Note> notes);
+    void onListAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData, QString errorDescription);
+    void onDeleteNoteCompleted(Note note);
+    void onDeleteNoteFailed(Note note, QString errorDescription);
+    void onExpungeNoteCompleted(Note note);
+    void onExpungeNoteFailed(Note note, QString errorDescription);
 
 private:
     void createConnections();
@@ -81,11 +81,11 @@ private:
 
     State m_state;
     LocalStorageManagerThread * m_pLocalStorageManagerThread;
-    QSharedPointer<Notebook>    m_pNotebook;
-    QSharedPointer<Notebook>    m_pExtraNotebook;
-    QSharedPointer<Note>        m_pInitialNote;
-    QSharedPointer<Note>        m_pFoundNote;
-    QSharedPointer<Note>        m_pModifiedNote;
+    Notebook                    m_notebook;
+    Notebook                    m_extraNotebook;
+    Note                        m_initialNote;
+    Note                        m_foundNote;
+    Note                        m_modifiedNote;
     QList<Note>                 m_initialNotes;
     QList<Note>                 m_extraNotes;
 };
