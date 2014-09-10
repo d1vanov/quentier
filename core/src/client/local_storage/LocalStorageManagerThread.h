@@ -58,26 +58,26 @@ Q_SIGNALS:
     // Notebook-related signals:
     void getNotebookCountComplete(int notebookCount);
     void getNotebookCountFailed(QString errorDescription);
-    void addNotebookComplete(QSharedPointer<Notebook> notebook);
-    void addNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void updateNotebookComplete(QSharedPointer<Notebook> notebook);
-    void updateNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void findNotebookComplete(QSharedPointer<Notebook> foundNotebook);
-    void findNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void findDefaultNotebookComplete(QSharedPointer<Notebook> foundNotebook);
-    void findDefaultNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void findLastUsedNotebookComplete(QSharedPointer<Notebook> foundNotebook);
-    void findLastUsedNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void findDefaultOrLastUsedNotebookComplete(QSharedPointer<Notebook> foundNotebook);
-    void findDefaultOrLastUsedNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
+    void addNotebookComplete(Notebook notebook);
+    void addNotebookFailed(Notebook notebook, QString errorDescription);
+    void updateNotebookComplete(Notebook notebook);
+    void updateNotebookFailed(Notebook notebook, QString errorDescription);
+    void findNotebookComplete(Notebook foundNotebook);
+    void findNotebookFailed(Notebook notebook, QString errorDescription);
+    void findDefaultNotebookComplete(Notebook foundNotebook);
+    void findDefaultNotebookFailed(Notebook notebook, QString errorDescription);
+    void findLastUsedNotebookComplete(Notebook foundNotebook);
+    void findLastUsedNotebookFailed(Notebook notebook, QString errorDescription);
+    void findDefaultOrLastUsedNotebookComplete(Notebook foundNotebook);
+    void findDefaultOrLastUsedNotebookFailed(Notebook notebook, QString errorDescription);
     void listAllNotebooksComplete(QList<Notebook> foundNotebooks);
     void listAllNotebooksFailed(QString errorDescription);
     void listAllSharedNotebooksComplete(QList<SharedNotebookWrapper> foundSharedNotebooks);
     void listAllSharedNotebooksFailed(QString errorDescription);
     void listSharedNotebooksPerNotebookGuidComplete(QString notebookGuid, QList<SharedNotebookWrapper> foundSharedNotebooks);
     void listSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, QString errorDescription);
-    void expungeNotebookComplete(QSharedPointer<Notebook> notebook);
-    void expungeNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
+    void expungeNotebookComplete(Notebook notebook);
+    void expungeNotebookFailed(Notebook notebook, QString errorDescription);
 
     // Linked notebook-related signals:
     void getLinkedNotebookCountComplete(int linkedNotebookCount);
@@ -165,16 +165,16 @@ Q_SIGNALS:
     void expungeUserRequest(QSharedPointer<UserWrapper> user);
 
     void getNotebookCountRequest();
-    void addNotebookRequest(QSharedPointer<Notebook> notebook);
-    void updateNotebookRequest(QSharedPointer<Notebook> notebook);
-    void findNotebookRequest(QSharedPointer<Notebook> notebook);
-    void findDefaultNotebookRequest(QSharedPointer<Notebook> notebook);
-    void findLastUsedNotebookRequest(QSharedPointer<Notebook> notebook);
-    void findDefaultOrLastUsedNotebookRequest(QSharedPointer<Notebook> notebook);
+    void addNotebookRequest(Notebook notebook);
+    void updateNotebookRequest(Notebook notebook);
+    void findNotebookRequest(Notebook notebook);
+    void findDefaultNotebookRequest(Notebook notebook);
+    void findLastUsedNotebookRequest(Notebook notebook);
+    void findDefaultOrLastUsedNotebookRequest(Notebook notebook);
     void listAllNotebooksRequest();
     void listAllSharedNotebooksRequest();
     void listSharedNotebooksPerNotebookGuidRequest(QString notebookGuid);
-    void expungeNotebookRequest(QSharedPointer<Notebook> notebook);
+    void expungeNotebookRequest(Notebook notebook);
 
     void getLinkedNotebookCountRequest();
     void addLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
@@ -226,16 +226,16 @@ public Q_SLOTS:
 
     // Notebook-related slots:
     void onGetNotebookCountRequest();
-    void onAddNotebookRequest(QSharedPointer<Notebook> notebook);
-    void onUpdateNotebookRequest(QSharedPointer<Notebook> notebook);
-    void onFindNotebookRequest(QSharedPointer<Notebook> notebook);
-    void onFindDefaultNotebookRequest(QSharedPointer<Notebook> notebook);
-    void onFindLastUsedNotebookRequest(QSharedPointer<Notebook> notebook);
-    void onFindDefaultOrLastUsedNotebookRequest(QSharedPointer<Notebook> notebook);
+    void onAddNotebookRequest(Notebook notebook);
+    void onUpdateNotebookRequest(Notebook notebook);
+    void onFindNotebookRequest(Notebook notebook);
+    void onFindDefaultNotebookRequest(Notebook notebook);
+    void onFindLastUsedNotebookRequest(Notebook notebook);
+    void onFindDefaultOrLastUsedNotebookRequest(Notebook notebook);
     void onListAllNotebooksRequest();
     void onListAllSharedNotebooksRequest();
     void onListSharedNotebooksPerNotebookGuidRequest(QString notebookGuid);
-    void onExpungeNotebookRequest(QSharedPointer<Notebook> notebook);
+    void onExpungeNotebookRequest(Notebook notebook);
 
     // Linked notebook-related slots:
     void onGetLinkedNotebookCountRequest();

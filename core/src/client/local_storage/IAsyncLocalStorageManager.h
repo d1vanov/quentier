@@ -54,23 +54,23 @@ protected:
     virtual void getNotebookCountComplete(int notebookCount) = 0;
     virtual void getNotebookCountFailed(QString errorDescription) = 0;
 
-    virtual void addNotebookComplete(QSharedPointer<Notebook> notebook) = 0;
-    virtual void addNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+    virtual void addNotebookComplete(Notebook notebook) = 0;
+    virtual void addNotebookFailed(Notebook notebook, QString errorDescription) = 0;
 
-    virtual void updateNotebookComplete(QSharedPointer<Notebook> notebook) = 0;
-    virtual void updateNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+    virtual void updateNotebookComplete(Notebook notebook) = 0;
+    virtual void updateNotebookFailed(Notebook notebook, QString errorDescription) = 0;
 
-    virtual void findNotebookComplete(QSharedPointer<Notebook> foundNotebook) = 0;
-    virtual void findNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+    virtual void findNotebookComplete(Notebook foundNotebook) = 0;
+    virtual void findNotebookFailed(Notebook notebook, QString errorDescription) = 0;
 
-    virtual void findDefaultNotebookComplete(QSharedPointer<Notebook> foundNotebook) = 0;
-    virtual void findDefaultNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+    virtual void findDefaultNotebookComplete(Notebook foundNotebook) = 0;
+    virtual void findDefaultNotebookFailed(Notebook notebook, QString errorDescription) = 0;
 
-    virtual void findLastUsedNotebookComplete(QSharedPointer<Notebook> foundNotebook) = 0;
-    virtual void findLastUsedNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+    virtual void findLastUsedNotebookComplete(Notebook foundNotebook) = 0;
+    virtual void findLastUsedNotebookFailed(Notebook notebook, QString errorDescription) = 0;
 
-    virtual void findDefaultOrLastUsedNotebookComplete(QSharedPointer<Notebook> foundNotebook) = 0;
-    virtual void findDefaultOrLastUsedNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+    virtual void findDefaultOrLastUsedNotebookComplete(Notebook foundNotebook) = 0;
+    virtual void findDefaultOrLastUsedNotebookFailed(Notebook notebook, QString errorDescription) = 0;
 
     virtual void listAllNotebooksComplete(QList<Notebook> foundNotebooks) = 0;
     virtual void listAllNotebooksFailed(QString errorDescription) = 0;
@@ -81,8 +81,8 @@ protected:
     virtual void listSharedNotebooksPerNotebookGuidComplete(QString notebookGuid, QList<SharedNotebookWrapper> foundSharedNotebooks) = 0;
     virtual void listSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, QString errorDescription) = 0;
 
-    virtual void expungeNotebookComplete(QSharedPointer<Notebook> notebook) = 0;
-    virtual void expungeNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription) = 0;
+    virtual void expungeNotebookComplete(Notebook notebook) = 0;
+    virtual void expungeNotebookFailed(Notebook notebook, QString errorDescription) = 0;
 
     // Prototypes for linked notebook-related signals:
     virtual void getLinkedNotebookCountComplete(int linkedNotebookCount) = 0;
@@ -206,16 +206,16 @@ protected:
 
     // Pure virtual prototypes for notebook-related slots:
     virtual void onGetNotebookCountRequest() = 0;
-    virtual void onAddNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
-    virtual void onUpdateNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
-    virtual void onFindNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
-    virtual void onFindDefaultNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
-    virtual void onFindLastUsedNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
-    virtual void onFindDefaultOrLastUsedNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
+    virtual void onAddNotebookRequest(Notebook notebook) = 0;
+    virtual void onUpdateNotebookRequest(Notebook notebook) = 0;
+    virtual void onFindNotebookRequest(Notebook notebook) = 0;
+    virtual void onFindDefaultNotebookRequest(Notebook notebook) = 0;
+    virtual void onFindLastUsedNotebookRequest(Notebook notebook) = 0;
+    virtual void onFindDefaultOrLastUsedNotebookRequest(Notebook notebook) = 0;
     virtual void onListAllNotebooksRequest() = 0;
     virtual void onListAllSharedNotebooksRequest() = 0;
     virtual void onListSharedNotebooksPerNotebookGuidRequest(QString notebookGuid) = 0;
-    virtual void onExpungeNotebookRequest(QSharedPointer<Notebook> notebook) = 0;
+    virtual void onExpungeNotebookRequest(Notebook notebook) = 0;
 
     // Pure virtual prototypes for linked notebook-related slots:
     virtual void onGetLinkedNotebookCountRequest() = 0;

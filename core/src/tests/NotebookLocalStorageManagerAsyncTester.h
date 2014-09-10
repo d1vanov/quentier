@@ -27,40 +27,40 @@ Q_SIGNALS:
 
 // private signals:
     void getNotebookCountRequest();
-    void addNotebookRequest(QSharedPointer<Notebook> notebook);
-    void updateNotebookRequest(QSharedPointer<Notebook> notebook);
-    void findNotebookRequest(QSharedPointer<Notebook> notebook);
-    void findDefaultNotebookRequest(QSharedPointer<Notebook> notebook);
-    void findLastUsedNotebookRequest(QSharedPointer<Notebook> notebook);
-    void findDefaultOrLastUsedNotebookRequest(QSharedPointer<Notebook> notebook);
+    void addNotebookRequest(Notebook notebook);
+    void updateNotebookRequest(Notebook notebook);
+    void findNotebookRequest(Notebook notebook);
+    void findDefaultNotebookRequest(Notebook notebook);
+    void findLastUsedNotebookRequest(Notebook notebook);
+    void findDefaultOrLastUsedNotebookRequest(Notebook notebook);
     void listAllNotebooksRequest();
     void listAllSharedNotebooksRequest();
     void listSharedNotebooksPerNotebookRequest(QString notebookGuid);
-    void expungeNotebookRequest(QSharedPointer<Notebook> notebook);
+    void expungeNotebookRequest(Notebook notebook);
 
 private Q_SLOTS:
     void onGetNotebookCountCompleted(int count);
     void onGetNotebookCountFailed(QString errorDescription);
-    void onAddNotebookCompleted(QSharedPointer<Notebook> notebook);
-    void onAddNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void onUpdateNotebookCompleted(QSharedPointer<Notebook> notebook);
-    void onUpdateNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void onFindNotebookCompleted(QSharedPointer<Notebook> notebook);
-    void onFindNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void onFindDefaultNotebookCompleted(QSharedPointer<Notebook> notebook);
-    void onFindDefaultNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void onFindLastUsedNotebookCompleted(QSharedPointer<Notebook> notebook);
-    void onFindLastUsedNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void onFindDefaultOrLastUsedNotebookCompleted(QSharedPointer<Notebook> notebook);
-    void onFindDefaultOrLastUsedNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
+    void onAddNotebookCompleted(Notebook notebook);
+    void onAddNotebookFailed(Notebook notebook, QString errorDescription);
+    void onUpdateNotebookCompleted(Notebook notebook);
+    void onUpdateNotebookFailed(Notebook notebook, QString errorDescription);
+    void onFindNotebookCompleted(Notebook notebook);
+    void onFindNotebookFailed(Notebook notebook, QString errorDescription);
+    void onFindDefaultNotebookCompleted(Notebook notebook);
+    void onFindDefaultNotebookFailed(Notebook notebook, QString errorDescription);
+    void onFindLastUsedNotebookCompleted(Notebook notebook);
+    void onFindLastUsedNotebookFailed(Notebook notebook, QString errorDescription);
+    void onFindDefaultOrLastUsedNotebookCompleted(Notebook notebook);
+    void onFindDefaultOrLastUsedNotebookFailed(Notebook notebook, QString errorDescription);
     void onListAllNotebooksCompleted(QList<Notebook> notebooks);
     void onListAllNotebooksFailed(QString errorDescription);
     void onListAllSharedNotebooksCompleted(QList<SharedNotebookWrapper> sharedNotebooks);
     void onListAllSharedNotebooksFailed(QString errorDescription);
     void onListSharedNotebooksPerNotebookGuidCompleted(QString notebookGuid, QList<SharedNotebookWrapper> sharedNotebooks);
     void onListSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, QString errorDescription);
-    void onExpungeNotebookCompleted(QSharedPointer<Notebook> notebook);
-    void onExpungeNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
+    void onExpungeNotebookCompleted(Notebook notebook);
+    void onExpungeNotebookFailed(Notebook notebook, QString errorDescription);
 
 private:
     void createConnections();
@@ -92,9 +92,9 @@ private:
 
     State m_state;
     LocalStorageManagerThread * m_pLocalStorageManagerThread;
-    QSharedPointer<Notebook>    m_pInitialNotebook;
-    QSharedPointer<Notebook>    m_pFoundNotebook;
-    QSharedPointer<Notebook>    m_pModifiedNotebook;
+    Notebook                    m_initialNotebook;
+    Notebook                    m_foundNotebook;
+    Notebook                    m_modifiedNotebook;
     QList<Notebook>             m_initialNotebooks;
     QList<SharedNotebookWrapper>  m_allInitialSharedNotebooks;
     QList<SharedNotebookWrapper>  m_initialSharedNotebooksPerNotebook;
