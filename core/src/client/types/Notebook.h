@@ -3,6 +3,7 @@
 
 #include "DataElementWithShortcut.h"
 #include <QEverCloud.h>
+#include <QSharedDataPointer>
 
 namespace qute_note {
 
@@ -11,14 +12,15 @@ QT_FORWARD_DECLARE_CLASS(SharedNotebookAdapter)
 QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
 QT_FORWARD_DECLARE_CLASS(IUser)
 QT_FORWARD_DECLARE_CLASS(UserAdapter)
+QT_FORWARD_DECLARE_CLASS(NotebookData)
 
-class QUTE_NOTE_EXPORT Notebook final: public DataElementWithShortcut
+class QUTE_NOTE_EXPORT Notebook: public DataElementWithShortcut
 {
 public:
     Notebook();
-    Notebook(const Notebook & other) = default;
+    Notebook(const Notebook & other);
     Notebook(Notebook && other);
-    Notebook & operator=(const Notebook & other) = default;
+    Notebook & operator=(const Notebook & other);
     Notebook & operator=(Notebook && other);
 
     Notebook(const qevercloud::Notebook & other);
@@ -26,22 +28,22 @@ public:
     Notebook & operator=(const qevercloud::Notebook & other);
     Notebook & operator=(qevercloud::Notebook && other);
 
-    virtual ~Notebook() final override;
+    virtual ~Notebook();
 
     bool operator==(const Notebook & other) const;
     bool operator!=(const Notebook & other) const;
 
     virtual void clear() final override;
 
-    virtual bool hasGuid() const final override;
-    virtual const QString & guid() const final override;
-    virtual void setGuid(const QString & guid) final override;
+    virtual bool hasGuid() const override;
+    virtual const QString & guid() const override;
+    virtual void setGuid(const QString & guid) override;
 
-    virtual bool hasUpdateSequenceNumber() const final override;
-    virtual qint32 updateSequenceNumber() const final override;
-    virtual void setUpdateSequenceNumber(const qint32 usn) final override;
+    virtual bool hasUpdateSequenceNumber() const override;
+    virtual qint32 updateSequenceNumber() const override;
+    virtual void setUpdateSequenceNumber(const qint32 usn) override;
 
-    virtual bool checkParameters(QString & errorDescription) const final override;
+    virtual bool checkParameters(QString & errorDescription) const override;
 
     bool hasName() const;
     const QString & name() const;
@@ -180,11 +182,9 @@ public:
     const qevercloud::NotebookRestrictions & restrictions() const;
 
 private:
-    virtual QTextStream & Print(QTextStream & strm) const final override;
+    virtual QTextStream & Print(QTextStream & strm) const override;
 
-    qevercloud::Notebook m_qecNotebook;
-    bool   m_isLocal;
-    bool   m_isLastUsed;
+    QSharedDataPointer<NotebookData> d;
 };
 
 } // namespace qute_note

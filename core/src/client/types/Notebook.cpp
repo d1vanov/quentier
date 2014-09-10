@@ -1,4 +1,5 @@
 #include "Notebook.h"
+#include "data/NotebookData.h"
 #include "SharedNotebookAdapter.h"
 #include "SharedNotebookWrapper.h"
 #include "UserAdapter.h"
@@ -10,33 +11,41 @@ namespace qute_note {
 
 Notebook::Notebook() :
     DataElementWithShortcut(),
-    m_qecNotebook(),
-    m_isLocal(true),
-    m_isLastUsed(false)
+    d(new NotebookData)
+{}
+
+Notebook::Notebook(const Notebook & other) :
+    DataElementWithShortcut(other),
+    d(other.d)
 {}
 
 Notebook::Notebook(const qevercloud::Notebook & other) :
     DataElementWithShortcut(),
-    m_qecNotebook(other),
-    m_isLocal(true),
-    m_isLastUsed(false)
+    d(new NotebookData(other))
 {}
 
 Notebook::Notebook(qevercloud::Notebook && other) :
     DataElementWithShortcut(),
-    m_qecNotebook(std::move(other)),
-    m_isLocal(true),
-    m_isLastUsed(false)
+    d(new NotebookData(std::move(other)))
 {}
+
+Notebook & Notebook::operator=(const Notebook & other)
+{
+    DataElementWithShortcut::operator=(other);
+
+    if (this != std::addressof(other)) {
+        d = other.d;
+    }
+
+    return *this;
+}
 
 Notebook & Notebook::operator=(Notebook && other)
 {
     DataElementWithShortcut::operator=(std::move(other));
 
     if (this != std::addressof(other)) {
-        m_qecNotebook = std::move(other.m_qecNotebook);
-        m_isLocal = std::move(other.m_isLocal);
-        m_isLastUsed = std::move(other.m_isLastUsed);
+        d = other.d;
     }
 
     return *this;
@@ -44,13 +53,13 @@ Notebook & Notebook::operator=(Notebook && other)
 
 Notebook & Notebook::operator=(const qevercloud::Notebook & other)
 {
-    m_qecNotebook = other;
+    *d = other;
     return *this;
 }
 
 Notebook & Notebook::operator=(qevercloud::Notebook && other)
 {
-    m_qecNotebook = std::move(other);
+    *d = std::move(other);
     return *this;
 }
 
@@ -65,13 +74,7 @@ bool Notebook::operator==(const Notebook & other) const
     else if (isDirty() != other.isDirty()) {
         return false;
     }
-    else if (m_isLocal != other.m_isLocal) {
-        return false;
-    }
-    else if (m_isLastUsed != other.m_isLastUsed) {
-        return false;
-    }
-    else if (m_qecNotebook != other.m_qecNotebook) {
+    else if ((d != other.d) && (*d != *other.d)) {
         return false;
     }
 
@@ -85,109 +88,57 @@ bool Notebook::operator!=(const Notebook & other) const
 
 void Notebook::clear()
 {
-    m_qecNotebook = qevercloud::Notebook();
+    d->m_qecNotebook = qevercloud::Notebook();
 }
 
 bool Notebook::hasGuid() const
 {
-    return m_qecNotebook.guid.isSet();
+    return d->m_qecNotebook.guid.isSet();
 }
 
 const QString & Notebook::guid() const
 {
-    return m_qecNotebook.guid;
+    return d->m_qecNotebook.guid;
 }
 
 void Notebook::setGuid(const QString & guid)
 {
-    m_qecNotebook.guid = guid;
+    d->m_qecNotebook.guid = guid;
 }
 
 bool Notebook::hasUpdateSequenceNumber() const
 {
-    return m_qecNotebook.updateSequenceNum.isSet();
+    return d->m_qecNotebook.updateSequenceNum.isSet();
 }
 
 qint32 Notebook::updateSequenceNumber() const
 {
-    return m_qecNotebook.updateSequenceNum;
+    return d->m_qecNotebook.updateSequenceNum;
 }
 
 void Notebook::setUpdateSequenceNumber(const qint32 usn)
 {
-    m_qecNotebook.updateSequenceNum = usn;
+    d->m_qecNotebook.updateSequenceNum = usn;
 }
 
 bool Notebook::checkParameters(QString & errorDescription) const
 {
-    if (localGuid().isEmpty() && !m_qecNotebook.guid.isSet()) {
+    if (localGuid().isEmpty() && !d->m_qecNotebook.guid.isSet()) {
         errorDescription = QT_TR_NOOP("Both notebook's local and remote guids are not set");
         return false;
     }
 
-    if (m_qecNotebook.guid.isSet() && !CheckGuid(m_qecNotebook.guid.ref())) {
-        errorDescription = QT_TR_NOOP("Notebook's guid is invalid");
-        return false;
-    }
-
-    if (m_qecNotebook.updateSequenceNum.isSet() && !CheckUpdateSequenceNumber(m_qecNotebook.updateSequenceNum)) {
-        errorDescription = QT_TR_NOOP("Notebook's update sequence number is invalid");
-        return false;
-    }
-
-    if (m_qecNotebook.name.isSet())
-    {
-        int nameSize = m_qecNotebook.name->size();
-        if ( (nameSize < qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN) ||
-             (nameSize > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX) )
-        {
-            errorDescription = QT_TR_NOOP("Notebook's name has invalid size");
-            return false;
-        }
-    }
-
-    if (m_qecNotebook.sharedNotebooks.isSet())
-    {
-        foreach(const qevercloud::SharedNotebook & sharedNotebook, m_qecNotebook.sharedNotebooks.ref())
-        {
-            if (!sharedNotebook.id.isSet()) {
-                errorDescription = QT_TR_NOOP("Notebook has shared notebook without share id set");
-                return false;
-            }
-
-            if (sharedNotebook.notebookGuid.isSet() && !CheckGuid(sharedNotebook.notebookGuid.ref())) {
-                errorDescription = QT_TR_NOOP("Notebook has shared notebook with invalid guid");
-                return false;
-            }
-        }
-    }
-
-    if (m_qecNotebook.businessNotebook.isSet())
-    {
-        if (m_qecNotebook.businessNotebook->notebookDescription.isSet())
-        {
-            int businessNotebookDescriptionSize = m_qecNotebook.businessNotebook->notebookDescription->size();
-
-            if ( (businessNotebookDescriptionSize < qevercloud::EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MIN) ||
-                 (businessNotebookDescriptionSize > qevercloud::EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MAX) )
-            {
-                errorDescription = QT_TR_NOOP("Description for business notebook has invalid size");
-                return false;
-            }
-        }
-    }
-
-    return true;
+    return d->checkParameters(errorDescription);
 }
 
 bool Notebook::hasName() const
 {
-    return m_qecNotebook.name.isSet();
+    return d->m_qecNotebook.name.isSet();
 }
 
 const QString & Notebook::name() const
 {
-    return m_qecNotebook.name;
+    return d->m_qecNotebook.name;
 }
 
 void Notebook::setName(const QString & name)
@@ -197,12 +148,12 @@ void Notebook::setName(const QString & name)
         return;
     }
 
-    m_qecNotebook.name = name;
+    d->m_qecNotebook.name = name;
 }
 
 bool Notebook::isDefaultNotebook() const
 {
-    return m_qecNotebook.defaultNotebook.isSet() && m_qecNotebook.defaultNotebook;
+    return d->m_qecNotebook.defaultNotebook.isSet() && d->m_qecNotebook.defaultNotebook;
 }
 
 void Notebook::setDefaultNotebook(const bool defaultNotebook)
@@ -212,32 +163,32 @@ void Notebook::setDefaultNotebook(const bool defaultNotebook)
         return;
     }
 
-    m_qecNotebook.defaultNotebook = defaultNotebook;
+    d->m_qecNotebook.defaultNotebook = defaultNotebook;
 }
 
 bool Notebook::hasCreationTimestamp() const
 {
-    return m_qecNotebook.serviceCreated.isSet();
+    return d->m_qecNotebook.serviceCreated.isSet();
 }
 
 qint64 Notebook::creationTimestamp() const
 {
-    return m_qecNotebook.serviceCreated;
+    return d->m_qecNotebook.serviceCreated;
 }
 
 void Notebook::setCreationTimestamp(const qint64 timestamp)
 {
-    m_qecNotebook.serviceCreated = timestamp;
+    d->m_qecNotebook.serviceCreated = timestamp;
 }
 
 bool Notebook::hasModificationTimestamp() const
 {
-    return m_qecNotebook.serviceUpdated.isSet();
+    return d->m_qecNotebook.serviceUpdated.isSet();
 }
 
 qint64 Notebook::modificationTimestamp() const
 {
-    return m_qecNotebook.serviceUpdated;
+    return d->m_qecNotebook.serviceUpdated;
 }
 
 void Notebook::setModificationTimestamp(const qint64 timestamp)
@@ -247,25 +198,25 @@ void Notebook::setModificationTimestamp(const qint64 timestamp)
         return;
     }
 
-    m_qecNotebook.serviceUpdated = timestamp;
+    d->m_qecNotebook.serviceUpdated = timestamp;
 }
 
 bool Notebook::hasPublishingUri() const
 {
-    return m_qecNotebook.publishing.isSet() && m_qecNotebook.publishing->uri.isSet();
+    return d->m_qecNotebook.publishing.isSet() && d->m_qecNotebook.publishing->uri.isSet();
 }
 
 const QString & Notebook::publishingUri() const
 {
-    return m_qecNotebook.publishing->uri;
+    return d->m_qecNotebook.publishing->uri;
 }
 
 #define CHECK_AND_SET_PUBLISHING \
-    if (!m_qecNotebook.publishing.isSet()) { \
-        m_qecNotebook.publishing = qevercloud::Publishing(); \
+    if (!d->m_qecNotebook.publishing.isSet()) { \
+        d->m_qecNotebook.publishing = qevercloud::Publishing(); \
     } \
-    if (!m_qecNotebook.published.isSet()) { \
-        m_qecNotebook.published = true; \
+    if (!d->m_qecNotebook.published.isSet()) { \
+        d->m_qecNotebook.published = true; \
     }
 
 void Notebook::setPublishingUri(const QString & uri)
@@ -279,17 +230,17 @@ void Notebook::setPublishingUri(const QString & uri)
         CHECK_AND_SET_PUBLISHING;
     }
 
-    m_qecNotebook.publishing->uri = uri;
+    d->m_qecNotebook.publishing->uri = uri;
 }
 
 bool Notebook::hasPublishingOrder() const
 {
-    return m_qecNotebook.publishing.isSet() && m_qecNotebook.publishing->order.isSet();
+    return d->m_qecNotebook.publishing.isSet() && d->m_qecNotebook.publishing->order.isSet();
 }
 
 qint8 Notebook::publishingOrder() const
 {
-    return static_cast<qint8>(m_qecNotebook.publishing->order);
+    return static_cast<qint8>(d->m_qecNotebook.publishing->order);
 }
 
 void Notebook::setPublishingOrder(const qint8 order)
@@ -301,21 +252,21 @@ void Notebook::setPublishingOrder(const qint8 order)
 
     if (order <= static_cast<qint8>(qevercloud::NoteSortOrder::TITLE)) {
         CHECK_AND_SET_PUBLISHING;
-        m_qecNotebook.publishing->order = static_cast<qevercloud::NoteSortOrder::type>(order);
+        d->m_qecNotebook.publishing->order = static_cast<qevercloud::NoteSortOrder::type>(order);
     }
-    else if (m_qecNotebook.publishing.isSet()) {
-        m_qecNotebook.publishing->order.clear();
+    else if (d->m_qecNotebook.publishing.isSet()) {
+        d->m_qecNotebook.publishing->order.clear();
     }
 }
 
 bool Notebook::hasPublishingAscending() const
 {
-    return m_qecNotebook.publishing.isSet() && m_qecNotebook.publishing->ascending.isSet();
+    return d->m_qecNotebook.publishing.isSet() && d->m_qecNotebook.publishing->ascending.isSet();
 }
 
 bool Notebook::isPublishingAscending() const
 {
-    return m_qecNotebook.publishing->ascending;
+    return d->m_qecNotebook.publishing->ascending;
 }
 
 void Notebook::setPublishingAscending(const bool ascending)
@@ -326,17 +277,17 @@ void Notebook::setPublishingAscending(const bool ascending)
     }
 
     CHECK_AND_SET_PUBLISHING;
-    m_qecNotebook.publishing->ascending = ascending;
+    d->m_qecNotebook.publishing->ascending = ascending;
 }
 
 bool Notebook::hasPublishingPublicDescription() const
 {
-    return m_qecNotebook.publishing.isSet() && m_qecNotebook.publishing->publicDescription.isSet();
+    return d->m_qecNotebook.publishing.isSet() && d->m_qecNotebook.publishing->publicDescription.isSet();
 }
 
 const QString & Notebook::publishingPublicDescription() const
 {
-    return m_qecNotebook.publishing->publicDescription;
+    return d->m_qecNotebook.publishing->publicDescription;
 }
 
 void Notebook::setPublishingPublicDescription(const QString & publicDescription)
@@ -350,19 +301,19 @@ void Notebook::setPublishingPublicDescription(const QString & publicDescription)
         CHECK_AND_SET_PUBLISHING;
     }
 
-    m_qecNotebook.publishing->publicDescription = publicDescription;
+    d->m_qecNotebook.publishing->publicDescription = publicDescription;
 }
 
 #undef CHECK_AND_SET_PUBLISHING
 
 bool Notebook::hasPublished() const
 {
-    return m_qecNotebook.published.isSet();
+    return d->m_qecNotebook.published.isSet();
 }
 
 bool Notebook::isPublished() const
 {
-    return m_qecNotebook.published.isSet();
+    return d->m_qecNotebook.published.isSet();
 }
 
 void Notebook::setPublished(const bool published)
@@ -372,17 +323,17 @@ void Notebook::setPublished(const bool published)
         return;
     }
 
-    m_qecNotebook.published = published;
+    d->m_qecNotebook.published = published;
 }
 
 bool Notebook::hasStack() const
 {
-    return m_qecNotebook.stack.isSet();
+    return d->m_qecNotebook.stack.isSet();
 }
 
 const QString & Notebook::stack() const
 {
-    return m_qecNotebook.stack;
+    return d->m_qecNotebook.stack;
 }
 
 void Notebook::setStack(const QString & stack)
@@ -392,23 +343,23 @@ void Notebook::setStack(const QString & stack)
         return;
     }
 
-    m_qecNotebook.stack = stack;
+    d->m_qecNotebook.stack = stack;
 }
 
 bool Notebook::hasSharedNotebooks()
 {
-    return m_qecNotebook.sharedNotebooks.isSet();
+    return d->m_qecNotebook.sharedNotebooks.isSet();
 }
 
 QList<SharedNotebookAdapter> Notebook::sharedNotebooks() const
 {
     QList<SharedNotebookAdapter> notebooks;
 
-    if (!m_qecNotebook.sharedNotebooks.isSet()) {
+    if (!d->m_qecNotebook.sharedNotebooks.isSet()) {
         return notebooks;
     }
 
-    const QList<qevercloud::SharedNotebook> & sharedNotebooks = m_qecNotebook.sharedNotebooks;
+    const QList<qevercloud::SharedNotebook> & sharedNotebooks = d->m_qecNotebook.sharedNotebooks;
     int numSharedNotebooks = sharedNotebooks.size();
     notebooks.reserve(qMax(numSharedNotebooks, 0));
     for(int i = 0; i < numSharedNotebooks; ++i) {
@@ -428,7 +379,7 @@ void Notebook::setSharedNotebooks(QList<qevercloud::SharedNotebook> sharedNotebo
         return;
     }
 
-    m_qecNotebook.sharedNotebooks = sharedNotebooks;
+    d->m_qecNotebook.sharedNotebooks = sharedNotebooks;
 }
 
 #define SHARED_NOTEBOOKS_SETTER(type) \
@@ -439,13 +390,13 @@ void Notebook::setSharedNotebooks(QList<qevercloud::SharedNotebook> sharedNotebo
             return; \
         } \
         \
-        if (!m_qecNotebook.sharedNotebooks.isSet()) { \
-            m_qecNotebook.sharedNotebooks = QList<qevercloud::SharedNotebook>(); \
+        if (!d->m_qecNotebook.sharedNotebooks.isSet()) { \
+            d->m_qecNotebook.sharedNotebooks = QList<qevercloud::SharedNotebook>(); \
         } \
         \
-        m_qecNotebook.sharedNotebooks->clear(); \
+        d->m_qecNotebook.sharedNotebooks->clear(); \
         foreach(const type & sharedNotebook, notebooks) { \
-            m_qecNotebook.sharedNotebooks.ref() << sharedNotebook.GetEnSharedNotebook(); \
+            d->m_qecNotebook.sharedNotebooks.ref() << sharedNotebook.GetEnSharedNotebook(); \
         } \
     }
 
@@ -461,11 +412,11 @@ void Notebook::addSharedNotebook(const ISharedNotebook & sharedNotebook)
         return;
     }
 
-    if (!m_qecNotebook.sharedNotebooks.isSet()) {
-        m_qecNotebook.sharedNotebooks = QList<qevercloud::SharedNotebook>();
+    if (!d->m_qecNotebook.sharedNotebooks.isSet()) {
+        d->m_qecNotebook.sharedNotebooks = QList<qevercloud::SharedNotebook>();
     }
 
-    QList<qevercloud::SharedNotebook> & sharedNotebooks = m_qecNotebook.sharedNotebooks;
+    QList<qevercloud::SharedNotebook> & sharedNotebooks = d->m_qecNotebook.sharedNotebooks;
     const auto & enSharedNotebook = sharedNotebook.GetEnSharedNotebook();
 
     if (sharedNotebooks.indexOf(enSharedNotebook) != -1) {
@@ -483,7 +434,7 @@ void Notebook::removeSharedNotebook(const ISharedNotebook & sharedNotebook)
         return;
     }
 
-    auto & sharedNotebooks = m_qecNotebook.sharedNotebooks;
+    auto & sharedNotebooks = d->m_qecNotebook.sharedNotebooks;
     const auto & enSharedNotebook = sharedNotebook.GetEnSharedNotebook();
 
     int index = sharedNotebooks->indexOf(enSharedNotebook);
@@ -497,17 +448,17 @@ void Notebook::removeSharedNotebook(const ISharedNotebook & sharedNotebook)
 
 bool Notebook::hasBusinessNotebookDescription() const
 {
-    return m_qecNotebook.businessNotebook.isSet() && m_qecNotebook.businessNotebook->notebookDescription.isSet();
+    return d->m_qecNotebook.businessNotebook.isSet() && d->m_qecNotebook.businessNotebook->notebookDescription.isSet();
 }
 
 const QString & Notebook::businessNotebookDescription() const
 {
-    return m_qecNotebook.businessNotebook->notebookDescription;
+    return d->m_qecNotebook.businessNotebook->notebookDescription;
 }
 
 #define CHECK_AND_SET_BUSINESS_NOTEBOOK \
-    if (!m_qecNotebook.businessNotebook.isSet()) { \
-        m_qecNotebook.businessNotebook = qevercloud::BusinessNotebook(); \
+    if (!d->m_qecNotebook.businessNotebook.isSet()) { \
+        d->m_qecNotebook.businessNotebook = qevercloud::BusinessNotebook(); \
     }
 
 void Notebook::setBusinessNotebookDescription(const QString & businessNotebookDescription)
@@ -521,17 +472,17 @@ void Notebook::setBusinessNotebookDescription(const QString & businessNotebookDe
         CHECK_AND_SET_BUSINESS_NOTEBOOK;
     }
 
-    m_qecNotebook.businessNotebook->notebookDescription = businessNotebookDescription;
+    d->m_qecNotebook.businessNotebook->notebookDescription = businessNotebookDescription;
 }
 
 bool Notebook::hasBusinessNotebookPrivilegeLevel() const
 {
-    return m_qecNotebook.businessNotebook.isSet() && m_qecNotebook.businessNotebook->privilege.isSet();
+    return d->m_qecNotebook.businessNotebook.isSet() && d->m_qecNotebook.businessNotebook->privilege.isSet();
 }
 
 qint8 Notebook::businessNotebookPrivilegeLevel() const
 {
-    return static_cast<qint8>(m_qecNotebook.businessNotebook->privilege);
+    return static_cast<qint8>(d->m_qecNotebook.businessNotebook->privilege);
 }
 
 void Notebook::setBusinessNotebookPrivilegeLevel(const qint8 privilegeLevel)
@@ -543,21 +494,21 @@ void Notebook::setBusinessNotebookPrivilegeLevel(const qint8 privilegeLevel)
 
     if (privilegeLevel <= static_cast<qint8>(qevercloud::SharedNotebookPrivilegeLevel::BUSINESS_FULL_ACCESS)) {
         CHECK_AND_SET_BUSINESS_NOTEBOOK;
-        m_qecNotebook.businessNotebook->privilege = static_cast<qevercloud::SharedNotebookPrivilegeLevel::type>(privilegeLevel);
+        d->m_qecNotebook.businessNotebook->privilege = static_cast<qevercloud::SharedNotebookPrivilegeLevel::type>(privilegeLevel);
     }
-    else if (m_qecNotebook.businessNotebook.isSet()) {
-        m_qecNotebook.businessNotebook->privilege.clear();
+    else if (d->m_qecNotebook.businessNotebook.isSet()) {
+        d->m_qecNotebook.businessNotebook->privilege.clear();
     }
 }
 
 bool Notebook::hasBusinessNotebookRecommended() const
 {
-    return m_qecNotebook.businessNotebook.isSet() && m_qecNotebook.businessNotebook->recommended.isSet();
+    return d->m_qecNotebook.businessNotebook.isSet() && d->m_qecNotebook.businessNotebook->recommended.isSet();
 }
 
 bool Notebook::isBusinessNotebookRecommended() const
 {
-    return m_qecNotebook.businessNotebook->recommended;
+    return d->m_qecNotebook.businessNotebook->recommended;
 }
 
 void Notebook::setBusinessNotebookRecommended(const bool recommended)
@@ -568,24 +519,24 @@ void Notebook::setBusinessNotebookRecommended(const bool recommended)
     }
 
     CHECK_AND_SET_BUSINESS_NOTEBOOK;
-    m_qecNotebook.businessNotebook->recommended = recommended;
+    d->m_qecNotebook.businessNotebook->recommended = recommended;
 }
 
 #undef CHECK_AND_SET_BUSINESS_NOTEBOOK
 
 bool Notebook::hasContact() const
 {
-    return m_qecNotebook.contact.isSet();
+    return d->m_qecNotebook.contact.isSet();
 }
 
 const UserAdapter Notebook::contact() const
 {
-    return std::move(UserAdapter(m_qecNotebook.contact));
+    return std::move(UserAdapter(d->m_qecNotebook.contact));
 }
 
 UserAdapter Notebook::contact()
 {
-    return std::move(UserAdapter(m_qecNotebook.contact));
+    return std::move(UserAdapter(d->m_qecNotebook.contact));
 }
 
 void Notebook::setContact(const IUser & contact)
@@ -595,289 +546,289 @@ void Notebook::setContact(const IUser & contact)
         return;
     }
 
-    m_qecNotebook.contact = contact.GetEnUser();
+    d->m_qecNotebook.contact = contact.GetEnUser();
 }
 
 bool Notebook::isLocal() const
 {
-    return m_isLocal;
+    return d->m_isLocal;
 }
 
 void Notebook::setLocal(const bool local)
 {
-    m_isLocal = local;
+    d->m_isLocal = local;
 }
 
 bool Notebook::isLastUsed() const
 {
-    return m_isLastUsed;
+    return d->m_isLastUsed;
 }
 
 void Notebook::setLastUsed(const bool lastUsed)
 {
-    m_isLastUsed = lastUsed;
+    d->m_isLastUsed = lastUsed;
 }
 
 bool Notebook::canReadNotes() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noReadNotes.isSet() &&
-             m_qecNotebook.restrictions->noReadNotes);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noReadNotes.isSet() &&
+             d->m_qecNotebook.restrictions->noReadNotes);
 }
 
 #define CHECK_AND_SET_NOTEBOOK_RESTRICTIONS \
-    if (!m_qecNotebook.restrictions.isSet()) { \
-        m_qecNotebook.restrictions = qevercloud::NotebookRestrictions(); \
+    if (!d->m_qecNotebook.restrictions.isSet()) { \
+        d->m_qecNotebook.restrictions = qevercloud::NotebookRestrictions(); \
     }
 
 void Notebook::setCanReadNotes(const bool canReadNotes)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noReadNotes = !canReadNotes;
+    d->m_qecNotebook.restrictions->noReadNotes = !canReadNotes;
 }
 
 bool Notebook::canCreateNotes() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noCreateNotes.isSet() &&
-             m_qecNotebook.restrictions->noCreateNotes);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noCreateNotes.isSet() &&
+             d->m_qecNotebook.restrictions->noCreateNotes);
 }
 
 void Notebook::setCanCreateNotes(const bool canCreateNotes)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noCreateNotes = !canCreateNotes;
+    d->m_qecNotebook.restrictions->noCreateNotes = !canCreateNotes;
 }
 
 bool Notebook::canUpdateNotes() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noUpdateNotes.isSet() &&
-             m_qecNotebook.restrictions->noUpdateNotes);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noUpdateNotes.isSet() &&
+             d->m_qecNotebook.restrictions->noUpdateNotes);
 }
 
 void Notebook::setCanUpdateNotes(const bool canUpdateNotes)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noUpdateNotes = !canUpdateNotes;
+    d->m_qecNotebook.restrictions->noUpdateNotes = !canUpdateNotes;
 }
 
 bool Notebook::canExpungeNotes() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noExpungeNotes.isSet() &&
-             m_qecNotebook.restrictions->noExpungeNotes);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noExpungeNotes.isSet() &&
+             d->m_qecNotebook.restrictions->noExpungeNotes);
 }
 
 void Notebook::setCanExpungeNotes(const bool canExpungeNotes)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noExpungeNotes = !canExpungeNotes;
+    d->m_qecNotebook.restrictions->noExpungeNotes = !canExpungeNotes;
 }
 
 bool Notebook::canShareNotes() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noShareNotes.isSet() &&
-             m_qecNotebook.restrictions->noShareNotes);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noShareNotes.isSet() &&
+             d->m_qecNotebook.restrictions->noShareNotes);
 }
 
 void Notebook::setCanShareNotes(const bool canShareNotes)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noShareNotes = !canShareNotes;
+    d->m_qecNotebook.restrictions->noShareNotes = !canShareNotes;
 }
 
 bool Notebook::canEmailNotes() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noEmailNotes.isSet() &&
-             m_qecNotebook.restrictions->noEmailNotes);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noEmailNotes.isSet() &&
+             d->m_qecNotebook.restrictions->noEmailNotes);
 }
 
 void Notebook::setCanEmailNotes(const bool canEmailNotes)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noEmailNotes = !canEmailNotes;
+    d->m_qecNotebook.restrictions->noEmailNotes = !canEmailNotes;
 }
 
 bool Notebook::canSendMessageToRecipients() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noSendMessageToRecipients.isSet() &&
-             m_qecNotebook.restrictions->noSendMessageToRecipients);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noSendMessageToRecipients.isSet() &&
+             d->m_qecNotebook.restrictions->noSendMessageToRecipients);
 }
 
 void Notebook::setCanSendMessageToRecipients(const bool canSendMessageToRecipients)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noSendMessageToRecipients = !canSendMessageToRecipients;
+    d->m_qecNotebook.restrictions->noSendMessageToRecipients = !canSendMessageToRecipients;
 }
 
 bool Notebook::canUpdateNotebook() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noUpdateNotebook.isSet() &&
-             m_qecNotebook.restrictions->noUpdateNotebook);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noUpdateNotebook.isSet() &&
+             d->m_qecNotebook.restrictions->noUpdateNotebook);
 }
 
 void Notebook::setCanUpdateNotebook(const bool canUpdateNotebook)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noUpdateNotebook = !canUpdateNotebook;
+    d->m_qecNotebook.restrictions->noUpdateNotebook = !canUpdateNotebook;
 }
 
 bool Notebook::canExpungeNotebook() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noExpungeNotebook.isSet() &&
-             m_qecNotebook.restrictions->noExpungeNotebook);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noExpungeNotebook.isSet() &&
+             d->m_qecNotebook.restrictions->noExpungeNotebook);
 }
 
 void Notebook::setCanExpungeNotebook(const bool canExpungeNotebook)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noExpungeNotebook = !canExpungeNotebook;
+    d->m_qecNotebook.restrictions->noExpungeNotebook = !canExpungeNotebook;
 }
 
 bool Notebook::canSetDefaultNotebook() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noSetDefaultNotebook.isSet() &&
-             m_qecNotebook.restrictions->noSetDefaultNotebook);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noSetDefaultNotebook.isSet() &&
+             d->m_qecNotebook.restrictions->noSetDefaultNotebook);
 }
 
 void Notebook::setCanSetDefaultNotebook(const bool canSetDefaultNotebook)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noSetDefaultNotebook = !canSetDefaultNotebook;
+    d->m_qecNotebook.restrictions->noSetDefaultNotebook = !canSetDefaultNotebook;
 }
 
 bool Notebook::canSetNotebookStack() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noSetNotebookStack.isSet() &&
-             m_qecNotebook.restrictions->noSetNotebookStack);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noSetNotebookStack.isSet() &&
+             d->m_qecNotebook.restrictions->noSetNotebookStack);
 }
 
 void Notebook::setCanSetNotebookStack(const bool canSetNotebookStack)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noSetNotebookStack = !canSetNotebookStack;
+    d->m_qecNotebook.restrictions->noSetNotebookStack = !canSetNotebookStack;
 }
 
 bool Notebook::canPublishToPublic() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noPublishToPublic.isSet() &&
-             m_qecNotebook.restrictions->noPublishToPublic);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noPublishToPublic.isSet() &&
+             d->m_qecNotebook.restrictions->noPublishToPublic);
 }
 
 void Notebook::setCanPublishToPublic(const bool canPublishToPublic)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noPublishToPublic = !canPublishToPublic;
+    d->m_qecNotebook.restrictions->noPublishToPublic = !canPublishToPublic;
 }
 
 bool Notebook::canPublishToBusinessLibrary() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noPublishToBusinessLibrary.isSet() &&
-             m_qecNotebook.restrictions->noPublishToBusinessLibrary);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noPublishToBusinessLibrary.isSet() &&
+             d->m_qecNotebook.restrictions->noPublishToBusinessLibrary);
 }
 
 void Notebook::setCanPublishToBusinessLibrary(const bool canPublishToBusinessLibrary)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noPublishToBusinessLibrary = !canPublishToBusinessLibrary;
+    d->m_qecNotebook.restrictions->noPublishToBusinessLibrary = !canPublishToBusinessLibrary;
 }
 
 bool Notebook::canCreateTags() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noCreateTags.isSet() &&
-             m_qecNotebook.restrictions->noCreateTags);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noCreateTags.isSet() &&
+             d->m_qecNotebook.restrictions->noCreateTags);
 }
 
 void Notebook::setCanCreateTags(const bool canCreateTags)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noCreateTags = !canCreateTags;
+    d->m_qecNotebook.restrictions->noCreateTags = !canCreateTags;
 }
 
 bool Notebook::canUpdateTags() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noUpdateTags.isSet() &&
-             m_qecNotebook.restrictions->noUpdateTags);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noUpdateTags.isSet() &&
+             d->m_qecNotebook.restrictions->noUpdateTags);
 }
 
 void Notebook::setCanUpdateTags(const bool canUpdateTags)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noUpdateTags = !canUpdateTags;
+    d->m_qecNotebook.restrictions->noUpdateTags = !canUpdateTags;
 }
 
 bool Notebook::canExpungeTags() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noExpungeTags.isSet() &&
-             m_qecNotebook.restrictions->noExpungeTags);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noExpungeTags.isSet() &&
+             d->m_qecNotebook.restrictions->noExpungeTags);
 }
 
 void Notebook::setCanExpungeTags(const bool canExpungeTags)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noExpungeTags = !canExpungeTags;
+    d->m_qecNotebook.restrictions->noExpungeTags = !canExpungeTags;
 }
 
 bool Notebook::canSetParentTag() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noSetParentTag.isSet() &&
-             m_qecNotebook.restrictions->noSetParentTag);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noSetParentTag.isSet() &&
+             d->m_qecNotebook.restrictions->noSetParentTag);
 }
 
 void Notebook::setCanSetParentTag(const bool canSetParentTag)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noSetParentTag = !canSetParentTag;
+    d->m_qecNotebook.restrictions->noSetParentTag = !canSetParentTag;
 }
 
 bool Notebook::canCreateSharedNotebooks() const
 {
-    return !(m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->noCreateSharedNotebooks.isSet() &&
-             m_qecNotebook.restrictions->noCreateSharedNotebooks);
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noCreateSharedNotebooks.isSet() &&
+             d->m_qecNotebook.restrictions->noCreateSharedNotebooks);
 }
 
 void Notebook::setCanCreateSharedNotebooks(const bool canCreateSharedNotebooks)
 {
     CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-    m_qecNotebook.restrictions->noCreateSharedNotebooks = !canCreateSharedNotebooks;
+    d->m_qecNotebook.restrictions->noCreateSharedNotebooks = !canCreateSharedNotebooks;
 }
 
 bool Notebook::hasUpdateWhichSharedNotebookRestrictions() const
 {
-    return m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions.isSet();
+    return d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions.isSet();
 }
 
 qint8 Notebook::updateWhichSharedNotebookRestrictions() const
 {
-    return static_cast<qint8>(m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions);
+    return static_cast<qint8>(d->m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions);
 }
 
 void Notebook::setUpdateWhichSharedNotebookRestrictions(const qint8 which)
 {
     if (which <= static_cast<qint8>(qevercloud::SharedNotebookInstanceRestrictions::ONLY_JOINED_OR_PREVIEW)) {
         CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-        m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions = static_cast<qevercloud::SharedNotebookInstanceRestrictions::type>(which);
+        d->m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions = static_cast<qevercloud::SharedNotebookInstanceRestrictions::type>(which);
     }
-    else if (m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions.isSet()) {
-        m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions.clear();
+    else if (d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions.isSet()) {
+        d->m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions.clear();
     }
 }
 
 bool Notebook::hasExpungeWhichSharedNotebookRestrictions() const
 {
-    return m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->expungeWhichSharedNotebookRestrictions.isSet();
+    return d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->expungeWhichSharedNotebookRestrictions.isSet();
 }
 
 qint8 Notebook::expungeWhichSharedNotebookRestrictions() const
 {
-    return static_cast<qint8>(m_qecNotebook.restrictions->expungeWhichSharedNotebookRestrictions);
+    return static_cast<qint8>(d->m_qecNotebook.restrictions->expungeWhichSharedNotebookRestrictions);
 }
 
 void Notebook::setExpungeWhichSharedNotebookRestrictions(const qint8 which)
 {
     if (which <= static_cast<qint8>(qevercloud::SharedNotebookInstanceRestrictions::ONLY_JOINED_OR_PREVIEW)) {
         CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
-        m_qecNotebook.restrictions->expungeWhichSharedNotebookRestrictions = static_cast<qevercloud::SharedNotebookInstanceRestrictions::type>(which);
+        d->m_qecNotebook.restrictions->expungeWhichSharedNotebookRestrictions = static_cast<qevercloud::SharedNotebookInstanceRestrictions::type>(which);
     }
-    else if (m_qecNotebook.restrictions.isSet() && m_qecNotebook.restrictions->expungeWhichSharedNotebookRestrictions.isSet()) {
-        m_qecNotebook.restrictions->expungeWhichSharedNotebookRestrictions.clear();
+    else if (d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->expungeWhichSharedNotebookRestrictions.isSet()) {
+        d->m_qecNotebook.restrictions->expungeWhichSharedNotebookRestrictions.clear();
     }
 }
 
@@ -885,12 +836,12 @@ void Notebook::setExpungeWhichSharedNotebookRestrictions(const qint8 which)
 
 bool Notebook::hasRestrictions() const
 {
-    return m_qecNotebook.restrictions.isSet();
+    return d->m_qecNotebook.restrictions.isSet();
 }
 
 const qevercloud::NotebookRestrictions & Notebook::restrictions() const
 {
-    return m_qecNotebook.restrictions;
+    return d->m_qecNotebook.restrictions;
 }
 
 QTextStream & Notebook::Print(QTextStream & strm) const
@@ -900,59 +851,59 @@ QTextStream & Notebook::Print(QTextStream & strm) const
 #define INSERT_DELIMITER \
     strm << "; \n"
 
-    if (m_qecNotebook.guid.isSet()) {
-        strm << "guid: " << m_qecNotebook.guid;
+    if (d->m_qecNotebook.guid.isSet()) {
+        strm << "guid: " << d->m_qecNotebook.guid;
     }
     else {
         strm << "guid is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNotebook.name.isSet()) {
-        strm << "name: " << m_qecNotebook.name;
+    if (d->m_qecNotebook.name.isSet()) {
+        strm << "name: " << d->m_qecNotebook.name;
     }
     else {
         strm << "name is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNotebook.updateSequenceNum.isSet()) {
-        strm << "updateSequenceNumber: " << m_qecNotebook.updateSequenceNum;
+    if (d->m_qecNotebook.updateSequenceNum.isSet()) {
+        strm << "updateSequenceNumber: " << d->m_qecNotebook.updateSequenceNum;
     }
     else {
         strm << "updateSequenceNumber is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNotebook.defaultNotebook.isSet()) {
-        strm << "defaultNotebook: " << (m_qecNotebook.defaultNotebook ? "true" : "false");
+    if (d->m_qecNotebook.defaultNotebook.isSet()) {
+        strm << "defaultNotebook: " << (d->m_qecNotebook.defaultNotebook ? "true" : "false");
     }
     else {
         strm << "defaultNotebook is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNotebook.serviceCreated.isSet()) {
-        strm << "creationTimestamp: " << m_qecNotebook.serviceCreated << ", datetime: "
-             << PrintableDateTimeFromTimestamp(m_qecNotebook.serviceCreated);
+    if (d->m_qecNotebook.serviceCreated.isSet()) {
+        strm << "creationTimestamp: " << d->m_qecNotebook.serviceCreated << ", datetime: "
+             << PrintableDateTimeFromTimestamp(d->m_qecNotebook.serviceCreated);
     }
     else {
         strm << "creationTimestamp is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNotebook.serviceUpdated.isSet()) {
-        strm << "modificationTimestamp: " << m_qecNotebook.serviceUpdated << ", datetime: "
-             << PrintableDateTimeFromTimestamp(m_qecNotebook.serviceUpdated);
+    if (d->m_qecNotebook.serviceUpdated.isSet()) {
+        strm << "modificationTimestamp: " << d->m_qecNotebook.serviceUpdated << ", datetime: "
+             << PrintableDateTimeFromTimestamp(d->m_qecNotebook.serviceUpdated);
     }
     else {
         strm << "modificationTimestamp is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNotebook.publishing.isSet())
+    if (d->m_qecNotebook.publishing.isSet())
     {
-        const qevercloud::Publishing & publishing = m_qecNotebook.publishing;
+        const qevercloud::Publishing & publishing = d->m_qecNotebook.publishing;
 
         if (publishing.uri.isSet()) {
             strm << "publishingUri: " << publishing.uri;
@@ -991,25 +942,25 @@ QTextStream & Notebook::Print(QTextStream & strm) const
         INSERT_DELIMITER;
     }
 
-    if (m_qecNotebook.published.isSet()) {
-        strm << "published: " << (m_qecNotebook.published ? "true" : "false");
+    if (d->m_qecNotebook.published.isSet()) {
+        strm << "published: " << (d->m_qecNotebook.published ? "true" : "false");
     }
     else {
         strm << "published is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNotebook.stack.isSet()) {
-        strm << "stack: " << m_qecNotebook.stack;
+    if (d->m_qecNotebook.stack.isSet()) {
+        strm << "stack: " << d->m_qecNotebook.stack;
     }
     else {
         strm << "stack is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNotebook.sharedNotebooks.isSet()) {
+    if (d->m_qecNotebook.sharedNotebooks.isSet()) {
         strm << "sharedNotebooks: \n";
-        foreach(const qevercloud::SharedNotebook & sharedNotebook, m_qecNotebook.sharedNotebooks.ref()) {
+        foreach(const qevercloud::SharedNotebook & sharedNotebook, d->m_qecNotebook.sharedNotebooks.ref()) {
             strm << SharedNotebookAdapter(sharedNotebook);
         }
     }
@@ -1018,9 +969,9 @@ QTextStream & Notebook::Print(QTextStream & strm) const
     }
     INSERT_DELIMITER;
 
-    if (m_qecNotebook.businessNotebook.isSet())
+    if (d->m_qecNotebook.businessNotebook.isSet())
     {
-        const qevercloud::BusinessNotebook & businessNotebook = m_qecNotebook.businessNotebook;
+        const qevercloud::BusinessNotebook & businessNotebook = d->m_qecNotebook.businessNotebook;
 
         if (businessNotebook.notebookDescription.isSet()) {
             strm << "businessNotebookDescription: " << businessNotebook.notebookDescription;
@@ -1051,17 +1002,17 @@ QTextStream & Notebook::Print(QTextStream & strm) const
         INSERT_DELIMITER;
     }
 
-    if (m_qecNotebook.contact.isSet()) {
+    if (d->m_qecNotebook.contact.isSet()) {
         strm << "contact: \n";
-        strm << UserAdapter(m_qecNotebook.contact);
+        strm << UserAdapter(d->m_qecNotebook.contact);
     }
     else {
         strm << "contact is not set";
     }
     INSERT_DELIMITER;
 
-    if (m_qecNotebook.restrictions.isSet()) {
-        strm << "restrictions: " << m_qecNotebook.restrictions;
+    if (d->m_qecNotebook.restrictions.isSet()) {
+        strm << "restrictions: " << d->m_qecNotebook.restrictions;
     }
     else {
         strm << "restrictions are not set";

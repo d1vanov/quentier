@@ -25,22 +25,22 @@ public:
     Note(const qevercloud::Note & other);
     Note & operator=(const qevercloud::Note & other);
 
-    virtual ~Note() final override;
+    virtual ~Note();
 
     bool operator==(const Note & other) const;
     bool operator!=(const Note & other) const;
 
-    virtual bool hasGuid() const final override;
-    virtual const QString & guid() const final override;
-    virtual void setGuid(const QString & guid) final override;
+    virtual bool hasGuid() const override;
+    virtual const QString & guid() const override;
+    virtual void setGuid(const QString & guid) override;
 
-    virtual bool hasUpdateSequenceNumber() const final override;
-    virtual qint32 updateSequenceNumber() const final override;
-    virtual void setUpdateSequenceNumber(const qint32 usn) final override;
+    virtual bool hasUpdateSequenceNumber() const override;
+    virtual qint32 updateSequenceNumber() const override;
+    virtual void setUpdateSequenceNumber(const qint32 usn) override;
 
     virtual void clear() final override;
 
-    virtual bool checkParameters(QString & errorDescription) const final override;
+    virtual bool checkParameters(QString & errorDescription) const override;
 
     bool hasTitle() const;
     const QString & title() const;
@@ -111,7 +111,7 @@ public:
     bool containsEncryption() const;
 
 private:
-    virtual QTextStream & Print(QTextStream & strm) const final override;
+    virtual QTextStream & Print(QTextStream & strm) const override;
 
     QSharedDataPointer<NoteData> d;
 };

@@ -39,6 +39,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/UserAdapterAccessException.h
     src/client/types/UserWrapper.h
     src/client/types/data/NoteData.h
+    src/client/types/data/NotebookData.h
     src/client/enml/ENMLConverter.h
     src/client/local_storage/IAsyncLocalStorageManager.h
     src/client/local_storage/DatabaseOpeningException.h
@@ -99,6 +100,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/UserAdapterAccessException.cpp
     src/client/types/UserWrapper.cpp
     src/client/types/data/NoteData.cpp
+    src/client/types/data/NotebookData.cpp
     src/client/enml/ENMLConverter.cpp
     src/client/local_storage/IAsyncLocalStorageManager.cpp
     src/client/local_storage/DatabaseOpeningException.cpp
