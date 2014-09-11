@@ -74,11 +74,12 @@ bool Notebook::operator==(const Notebook & other) const
     else if (isDirty() != other.isDirty()) {
         return false;
     }
-    else if ((d != other.d) && (*d != *other.d)) {
-        return false;
+    else if (d == other.d) {
+        return true;
     }
-
-    return true;
+    else {
+        return (*d == *(other.d));
+    }
 }
 
 bool Notebook::operator!=(const Notebook & other) const

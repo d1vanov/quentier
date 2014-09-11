@@ -192,12 +192,13 @@ void NotebookLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook not
         if (m_initialNotebook != notebook) {
             errorDescription = "Internal error in NotebookLocalStorageManagerAsyncTester: "
                                "notebook in onAddNotebookCompleted doesn't match the original Notebook";
-            QNWARNING(errorDescription);
+            QNWARNING(errorDescription << "; original notebook: " << m_initialNotebook
+                      << "\nFound notebook: " << notebook);
             emit failure(errorDescription);
             return;
         }
 
-        m_foundNotebook.clear();
+        m_foundNotebook = Notebook();
         m_foundNotebook.setLocalGuid(notebook.localGuid());
 
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
@@ -294,29 +295,24 @@ void NotebookLocalStorageManagerAsyncTester::onFindNotebookCompleted(Notebook no
 
     if (m_state == STATE_SENT_FIND_AFTER_ADD_REQUEST)
     {
-        if (m_foundNotebook != notebook) {
+        if (m_initialNotebook != notebook) {
             errorDescription = "Internal error in NotebookLocalStorageManagerAsyncTester: "
-                               "notebook pointer in onFindNotebookCompleted slot doesn't match "
-                               "the pointer to the original Notebook";
-            QNWARNING(errorDescription);
+                               "notebook in onFindNotebookCompleted slot doesn't match "
+                               "the original Notebook";
+            QNWARNING(errorDescription << "; original notebook: " << m_initialNotebook
+                      << "\nFound notebook: " << notebook);
             emit failure(errorDescription);
             return;
         }
 
-        if (m_foundNotebook != m_initialNotebook) {
-            errorDescription = "Added and found notebooks in local storage don't match";
-            QNWARNING(errorDescription << ": Notebook added to LocalStorageManager: " << m_initialNotebook
-                      << "\nNotebook found in LocalStorageManager: " << m_foundNotebook);
-            emit failure(errorDescription);
-            return;
-        }
+        m_foundNotebook = notebook;
 
         m_state = STATE_SENT_FIND_DEFAULT_NOTEBOOK_AFTER_ADD;
         emit findDefaultNotebookRequest(m_foundNotebook);
     }
     else if (m_state == STATE_SENT_FIND_AFTER_UPDATE_REQUEST)
     {
-        if (m_foundNotebook != notebook) {
+        if (m_modifiedNotebook != notebook) {
             errorDescription = "Internal error in NotebookLocalStorageManagerAsyncTester: "
                                "notebook pointer in onFindNotebookCompleted slot doesn't match "
                                "the pointer to the original modified Notebook";
@@ -325,12 +321,8 @@ void NotebookLocalStorageManagerAsyncTester::onFindNotebookCompleted(Notebook no
             return;
         }
 
-        if (m_foundNotebook != m_modifiedNotebook) {
-            errorDescription = "Updated and found notebooks in local storage don't match";
-            QNWARNING(errorDescription);
-            emit failure(errorDescription);
-            return;
-        }
+        m_modifiedNotebook = notebook;
+        m_foundNotebook = notebook;
 
         m_state = STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST;
         emit getNotebookCountRequest();

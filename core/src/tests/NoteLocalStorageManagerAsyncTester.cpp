@@ -229,7 +229,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Notebook 
             return;
         }
 
-        m_foundNote.clear();
+        m_foundNote = Note();
         m_foundNote.setLocalGuid(note.localGuid());
 
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
@@ -320,25 +320,20 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(Note note, bool wit
 
     if (m_state == STATE_SENT_FIND_AFTER_ADD_REQUEST)
     {
-        if (m_foundNote != note) {
+        if (m_initialNote != note) {
             errorDescription = "Internal error in NoteLocalStorageManagerAsyncTester: "
                                "note in onFindNoteCompleted slot doesn't match "
                                "the original Note";
-            QNWARNING(errorDescription);
+            QNWARNING(errorDescription << "; original note: " << m_initialNote
+                      << "\nFound note: " << note);
             emit failure(errorDescription);
             return;
         }
 
-        if (m_foundNote != m_initialNote) {
-            errorDescription = "Added and found notes in local storage don't match";
-            QNWARNING(errorDescription << ": Note added to LocalStorageManager: " << m_initialNote
-                      << "\nNote found in LocalStorageManager: " << m_foundNote);
-            emit failure(errorDescription);
-            return;
-        }
+        m_foundNote = note;
 
         // Ok, found note is good, updating it now
-        m_modifiedNote.clear();
+        m_modifiedNote = m_initialNote;
         m_modifiedNote.setUpdateSequenceNumber(m_initialNote.updateSequenceNumber() + 1);
         m_modifiedNote.setTitle(m_initialNote.title() + "_modified");
 
@@ -347,7 +342,7 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(Note note, bool wit
     }
     else if (m_state == STATE_SENT_FIND_AFTER_UPDATE_REQUEST)
     {
-        if (m_foundNote != note) {
+        if (m_modifiedNote != note) {
             errorDescription = "Internal error in NoteLocalStorageManagerAsyncTester: "
                                "not in onFindNoteCompleted slot doesn't match "
                                "the original modified Note";
@@ -356,13 +351,8 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(Note note, bool wit
             return;
         }
 
-        if (m_foundNote != m_modifiedNote) {
-            errorDescription = "Updated and found notes in local storage don't match";
-            QNWARNING(errorDescription << ": Note updated in LocalStorageManager: " << m_modifiedNote
-                      << "\nNote found in LocalStorageManager: " << m_foundNote);
-            emit failure(errorDescription);
-            return;
-        }
+        m_modifiedNote = note;
+        m_foundNote = note;
 
         m_state = STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST;
         emit getNoteCountRequest();
