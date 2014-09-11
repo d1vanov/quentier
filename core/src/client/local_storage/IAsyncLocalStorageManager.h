@@ -135,14 +135,14 @@ protected:
     virtual void updateTagComplete(QSharedPointer<Tag> tag) = 0;
     virtual void updateTagFailed(QSharedPointer<Tag> tag, QString errorDescription) = 0;
 
-    virtual void linkTagWithNoteComplete(QSharedPointer<Tag> tag, QSharedPointer<Note> note) = 0;
-    virtual void linkTagWithNoteFailed(QSharedPointer<Tag> tag, QSharedPointer<Note> note, QString errorDescription) = 0;
+    virtual void linkTagWithNoteComplete(QSharedPointer<Tag> tag, Note note) = 0;
+    virtual void linkTagWithNoteFailed(QSharedPointer<Tag> tag, Note note, QString errorDescription) = 0;
 
     virtual void findTagComplete(QSharedPointer<Tag> tag) = 0;
     virtual void findTagFailed(QSharedPointer<Tag> tag, QString errorDescription) = 0;
 
-    virtual void listAllTagsPerNoteComplete(QList<Tag> foundTags, QSharedPointer<Note> note) = 0;
-    virtual void listAllTagsPerNoteFailed(QSharedPointer<Note> note, QString errorDescription) = 0;
+    virtual void listAllTagsPerNoteComplete(QList<Tag> foundTags, Note note) = 0;
+    virtual void listAllTagsPerNoteFailed(Note note, QString errorDescription) = 0;
 
     virtual void listAllTagsComplete(QList<Tag> foundTags) = 0;
     virtual void listAllTagsFailed(QString errorDescription) = 0;
@@ -238,9 +238,9 @@ protected:
     virtual void onGetTagCountRequest() = 0;
     virtual void onAddTagRequest(QSharedPointer<Tag> tag) = 0;
     virtual void onUpdateTagRequest(QSharedPointer<Tag> tag) = 0;
-    virtual void onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, QSharedPointer<Note> note) = 0;
+    virtual void onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, Note note) = 0;
     virtual void onFindTagRequest(QSharedPointer<Tag> tag) = 0;
-    virtual void onListAllTagsPerNoteRequest(QSharedPointer<Note> note) = 0;
+    virtual void onListAllTagsPerNoteRequest(Note note) = 0;
     virtual void onListAllTagsRequest() = 0;
     virtual void onDeleteTagRequest(QSharedPointer<Tag> tag) = 0;
     virtual void onExpungeTagRequest(QSharedPointer<Tag> tag) = 0;

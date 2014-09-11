@@ -96,12 +96,12 @@ Q_SIGNALS:
     void addTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
     void updateTagComplete(QSharedPointer<Tag> tag);
     void updateTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
-    void linkTagWithNoteComplete(QSharedPointer<Tag> tag, QSharedPointer<Note> note);
-    void linkTagWithNoteFailed(QSharedPointer<Tag> tag, QSharedPointer<Note> note, QString errorDescription);
+    void linkTagWithNoteComplete(QSharedPointer<Tag> tag, Note note);
+    void linkTagWithNoteFailed(QSharedPointer<Tag> tag, Note note, QString errorDescription);
     void findTagComplete(QSharedPointer<Tag> tag);
     void findTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
-    void listAllTagsPerNoteComplete(QList<Tag> foundTags, QSharedPointer<Note> note);
-    void listAllTagsPerNoteFailed(QSharedPointer<Note> note, QString errorDescription);
+    void listAllTagsPerNoteComplete(QList<Tag> foundTags, Note note);
+    void listAllTagsPerNoteFailed(Note note, QString errorDescription);
     void listAllTagsComplete(QList<Tag> foundTags);
     void listAllTagsFailed(QString errorDescription);
     void deleteTagComplete(QSharedPointer<Tag> tag);
@@ -179,9 +179,9 @@ public Q_SLOTS:
     void onGetTagCountRequest();
     void onAddTagRequest(QSharedPointer<Tag> tag);
     void onUpdateTagRequest(QSharedPointer<Tag> tag);
-    void onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, QSharedPointer<Note> note);
+    void onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, Note note);
     void onFindTagRequest(QSharedPointer<Tag> tag);
-    void onListAllTagsPerNoteRequest(QSharedPointer<Note> note);
+    void onListAllTagsPerNoteRequest(Note note);
     void onListAllTagsRequest();
     void onDeleteTagRequest(QSharedPointer<Tag> tag);
     void onExpungeTagRequest(QSharedPointer<Tag> tag);

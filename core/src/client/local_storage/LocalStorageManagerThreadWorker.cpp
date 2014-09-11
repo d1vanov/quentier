@@ -545,7 +545,7 @@ void LocalStorageManagerThreadWorker::onUpdateTagRequest(QSharedPointer<Tag> tag
     emit updateTagComplete(tag);
 }
 
-void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, QSharedPointer<Note> note)
+void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, Note note)
 {
     QString errorDescription;
 
@@ -557,15 +557,7 @@ void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(QSharedPointer<Ta
         return;
     }
 
-    if (note.isNull()) {
-        errorDescription = "Internal error: detected null pointer to note "
-                           "on attempt to link tag with note in local storage";
-        QNCRITICAL(errorDescription);
-        emit linkTagWithNoteFailed(tag, note, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.LinkTagWithNote(*tag, *note, errorDescription);
+    bool res = m_localStorageManager.LinkTagWithNote(*tag, note, errorDescription);
     if (!res) {
         emit linkTagWithNoteFailed(tag, note, errorDescription);
         return;
@@ -595,19 +587,11 @@ void LocalStorageManagerThreadWorker::onFindTagRequest(QSharedPointer<Tag> tag)
     emit findTagComplete(tag);
 }
 
-void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(QSharedPointer<Note> note)
+void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note)
 {
     QString errorDescription;
 
-    if (note.isNull()) {
-        errorDescription = "Internal error: detected null pointer to note "
-                           "on attempt to list all tags per note in local storage";
-        QNCRITICAL(errorDescription);
-        emit listAllTagsPerNoteFailed(note, errorDescription);
-        return;
-    }
-
-    QList<Tag> tags = m_localStorageManager.ListAllTagsPerNote(*note, errorDescription);
+    QList<Tag> tags = m_localStorageManager.ListAllTagsPerNote(note, errorDescription);
     if (tags.isEmpty() && !errorDescription.isEmpty()) {
         emit listAllTagsPerNoteFailed(note, errorDescription);
         return;
