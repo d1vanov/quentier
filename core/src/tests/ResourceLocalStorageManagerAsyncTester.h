@@ -27,8 +27,8 @@ Q_SIGNALS:
     void failure(QString errorDescription);
 
 // private signals:
-    void addNotebookRequest(QSharedPointer<Notebook> notebook);
-    void addNoteRequest(Note note, QSharedPointer<Notebook> notebook);
+    void addNotebookRequest(Notebook notebook);
+    void addNoteRequest(Note note, Notebook notebook);
     void getResourceCountRequest();
     void addResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note);
     void updateResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note);
@@ -36,10 +36,10 @@ Q_SIGNALS:
     void expungeResourceRequest(QSharedPointer<ResourceWrapper> resource);
 
 private Q_SLOTS:
-    void onAddNotebookCompleted(QSharedPointer<Notebook> notebook);
-    void onAddNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void onAddNoteCompleted(Note note, QSharedPointer<Notebook> notebook);
-    void onAddNoteFailed(Note note, QSharedPointer<Notebook> notebook, QString errorDescription);
+    void onAddNotebookCompleted(Notebook notebook);
+    void onAddNotebookFailed(Notebook notebook, QString errorDescription);
+    void onAddNoteCompleted(Note note, Notebook notebook);
+    void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription);
     void onGetResourceCountCompleted(int count);
     void onGetResourceCountFailed(QString errorDescription);
     void onAddResourceCompleted(QSharedPointer<ResourceWrapper> resource);
@@ -72,7 +72,7 @@ private:
 
     State m_state;
     LocalStorageManagerThread * m_pLocalStorageManagerThread;
-    QSharedPointer<Notebook>    m_pNotebook;
+    Notebook                    m_notebook;
     Note                        m_note;
     QSharedPointer<ResourceWrapper> m_pInitialResource;
     QSharedPointer<ResourceWrapper> m_pFoundResource;
