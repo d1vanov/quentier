@@ -258,10 +258,10 @@ void LocalStorageManagerThread::createConnections()
 
     // Resource-related signal-slot connections:
     QObject::connect(this, SIGNAL(getResourceCountRequest()), m_pWorker, SLOT(onGetResourceCountRequest()));
-    QObject::connect(this, SIGNAL(addResourceRequest(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)),
-                     m_pWorker, SLOT(onAddResourceRequest(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)));
-    QObject::connect(this, SIGNAL(updateResourceRequest(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)),
-                     m_pWorker, SLOT(onUpdateResourceRequest(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)));
+    QObject::connect(this, SIGNAL(addResourceRequest(QSharedPointer<ResourceWrapper>,Note)),
+                     m_pWorker, SLOT(onAddResourceRequest(QSharedPointer<ResourceWrapper>,Note)));
+    QObject::connect(this, SIGNAL(updateResourceRequest(QSharedPointer<ResourceWrapper>,Note)),
+                     m_pWorker, SLOT(onUpdateResourceRequest(QSharedPointer<ResourceWrapper>,Note)));
     QObject::connect(this, SIGNAL(findResourceRequest(QSharedPointer<ResourceWrapper>,bool)),
                      m_pWorker, SLOT(onFindResourceRequest(QSharedPointer<ResourceWrapper>,bool)));
     QObject::connect(this, SIGNAL(expungeResourceRequest(QSharedPointer<ResourceWrapper>)),
@@ -270,14 +270,14 @@ void LocalStorageManagerThread::createConnections()
     // Resource-related signal-signal connections:
     QObject::connect(m_pWorker, SIGNAL(getResourceCountComplete(int)), this, SIGNAL(getResourceCountComplete(int)));
     QObject::connect(m_pWorker, SIGNAL(getResourceCountFailed(QString)), this, SIGNAL(getResourceCountFailed(QString)));
-    QObject::connect(m_pWorker, SIGNAL(addResourceComplete(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)),
-                     this, SIGNAL(addResourceComplete(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)));
-    QObject::connect(m_pWorker, SIGNAL(addResourceFailed(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>,QString)),
-                     this, SIGNAL(addResourceFailed(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(updateResourceComplete(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)),
-                     this, SIGNAL(updateResourceComplete(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)));
-    QObject::connect(m_pWorker, SIGNAL(updateResourceFailed(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>,QString)),
-                     this, SIGNAL(updateResourceFailed(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(addResourceComplete(QSharedPointer<ResourceWrapper>,Note)),
+                     this, SIGNAL(addResourceComplete(QSharedPointer<ResourceWrapper>,Note)));
+    QObject::connect(m_pWorker, SIGNAL(addResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)),
+                     this, SIGNAL(addResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)));
+    QObject::connect(m_pWorker, SIGNAL(updateResourceComplete(QSharedPointer<ResourceWrapper>,Note)),
+                     this, SIGNAL(updateResourceComplete(QSharedPointer<ResourceWrapper>,Note)));
+    QObject::connect(m_pWorker, SIGNAL(updateResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)),
+                     this, SIGNAL(updateResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)));
     QObject::connect(m_pWorker, SIGNAL(findResourceComplete(QSharedPointer<ResourceWrapper>,bool)),
                      this, SIGNAL(findResourceComplete(QSharedPointer<ResourceWrapper>,bool)));
     QObject::connect(m_pWorker, SIGNAL(findResourceFailed(QSharedPointer<ResourceWrapper>,bool,QString)),
@@ -532,12 +532,12 @@ void LocalStorageManagerThread::onGetResourceCountRequest()
     emit getResourceCountRequest();
 }
 
-void LocalStorageManagerThread::onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note)
+void LocalStorageManagerThread::onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note)
 {
     emit addResourceRequest(resource, note);
 }
 
-void LocalStorageManagerThread::onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note)
+void LocalStorageManagerThread::onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note)
 {
     emit updateResourceRequest(resource, note);
 }

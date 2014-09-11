@@ -667,7 +667,7 @@ void LocalStorageManagerThreadWorker::onGetResourceCountRequest()
     }
 }
 
-void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note)
+void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note)
 {
     QString errorDescription;
 
@@ -679,15 +679,7 @@ void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<Resour
         return;
     }
 
-    if (note.isNull()) {
-        errorDescription = "Internal error: detected null pointer to note "
-                           "on attempt to add resource to local storage";
-        QNCRITICAL(errorDescription);
-        emit addResourceFailed(resource, note, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.AddEnResource(*resource, *note, errorDescription);
+    bool res = m_localStorageManager.AddEnResource(*resource, note, errorDescription);
     if (!res) {
         emit addResourceFailed(resource, note, errorDescription);
         return;
@@ -696,7 +688,7 @@ void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<Resour
     emit addResourceComplete(resource, note);
 }
 
-void LocalStorageManagerThreadWorker::onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note)
+void LocalStorageManagerThreadWorker::onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note)
 {
     QString errorDescription;
 
@@ -708,15 +700,7 @@ void LocalStorageManagerThreadWorker::onUpdateResourceRequest(QSharedPointer<Res
         return;
     }
 
-    if (note.isNull()) {
-        errorDescription = "Internal error: detected null pointer to note "
-                           "on attempt to update resource in local storage";
-        QNCRITICAL(errorDescription);
-        emit updateResourceFailed(resource, note, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.UpdateEnResource(*resource, *note, errorDescription);
+    bool res = m_localStorageManager.UpdateEnResource(*resource, note, errorDescription);
     if (!res) {
         emit updateResourceFailed(resource, note, errorDescription);
         return;

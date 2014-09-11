@@ -157,12 +157,12 @@ protected:
     virtual void getResourceCountComplete(int resourceCount) = 0;
     virtual void getResourceCountFailed(QString errorDescription) = 0;
 
-    virtual void addResourceComplete(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note) = 0;
-    virtual void addResourceFailed(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note,
+    virtual void addResourceComplete(QSharedPointer<ResourceWrapper> resource, Note note) = 0;
+    virtual void addResourceFailed(QSharedPointer<ResourceWrapper> resource, Note note,
                                    QString errorDescription) = 0;
 
-    virtual void updateResourceComplete(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note) = 0;
-    virtual void updateResourceFailed(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note,
+    virtual void updateResourceComplete(QSharedPointer<ResourceWrapper> resource, Note note) = 0;
+    virtual void updateResourceFailed(QSharedPointer<ResourceWrapper> resource, Note note,
                                       QString errorDescription) = 0;
 
     virtual void findResourceComplete(QSharedPointer<ResourceWrapper> resource, bool withBinaryData) = 0;
@@ -247,8 +247,8 @@ protected:
 
     // Pure virtual prototypes for resource-related slots:
     virtual void onGetResourceCountRequest() = 0;
-    virtual void onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note) = 0;
-    virtual void onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note) = 0;
+    virtual void onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note) = 0;
+    virtual void onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note) = 0;
     virtual void onFindResourceRequest(QSharedPointer<ResourceWrapper> resource, bool withBinaryData) = 0;
     virtual void onExpungeResourceRequest(QSharedPointer<ResourceWrapper> resource) = 0;
 

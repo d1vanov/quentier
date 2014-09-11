@@ -10,7 +10,7 @@ ResourceLocalStorageManagerAsyncTester::ResourceLocalStorageManagerAsyncTester(Q
     m_state(STATE_UNINITIALIZED),
     m_pLocalStorageManagerThread(nullptr),
     m_pNotebook(),
-    m_pNote(),
+    m_note(),
     m_pInitialResource(),
     m_pFoundResource(),
     m_pModifiedResource()
@@ -90,18 +90,18 @@ void ResourceLocalStorageManagerAsyncTester::onAddNotebookCompleted(QSharedPoint
             return;
         }
 
-        m_pNote = QSharedPointer<Note>(new Note);
-        m_pNote->setGuid("00000000-0000-0000-c000-000000000048");
-        m_pNote->setUpdateSequenceNumber(1);
-        m_pNote->setTitle("Fake note");
-        m_pNote->setContent("<en-note><h1>Hello, world</h1></en-note>");
-        m_pNote->setCreationTimestamp(1);
-        m_pNote->setModificationTimestamp(1);
-        m_pNote->setNotebookGuid(m_pNotebook->guid());
-        m_pNote->setActive(true);
+        m_note = Note();
+        m_note.setGuid("00000000-0000-0000-c000-000000000048");
+        m_note.setUpdateSequenceNumber(1);
+        m_note.setTitle("Fake note");
+        m_note.setContent("<en-note><h1>Hello, world</h1></en-note>");
+        m_note.setCreationTimestamp(1);
+        m_note.setModificationTimestamp(1);
+        m_note.setNotebookGuid(m_pNotebook->guid());
+        m_note.setActive(true);
 
         m_state = STATE_SENT_ADD_NOTE_REQUEST;
-        emit addNoteRequest(m_pNote, m_pNotebook);
+        emit addNoteRequest(m_note, m_pNotebook);
     }
     HANDLE_WRONG_STATE();
 }
@@ -112,19 +112,16 @@ void ResourceLocalStorageManagerAsyncTester::onAddNotebookFailed(QSharedPointer<
     emit failure(errorDescription);
 }
 
-void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook)
+void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, QSharedPointer<Notebook> notebook)
 {
-    Q_ASSERT_X(!note.isNull(), "ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted slot",
-               "Found NULL shared pointer to Note");
-
     QString errorDescription;
 
     if (m_state == STATE_SENT_ADD_NOTE_REQUEST)
     {
-        if (m_pNote != note) {
+        if (m_note != note) {
             errorDescription = "Internal error in ResourceLocalStorageManagerAsyncTester: "
-                               "note pointer in onAddNoteCompleted slot doesn't match "
-                               "the pointer to the original Note";
+                               "note in onAddNoteCompleted slot doesn't match "
+                               "the original Note";
             QNWARNING(errorDescription);
             emit failure(errorDescription);
             return;
@@ -133,11 +130,11 @@ void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(QSharedPointer<N
         m_pInitialResource = QSharedPointer<ResourceWrapper>(new ResourceWrapper);
         m_pInitialResource->setGuid("00000000-0000-0000-c000-000000000048");
         m_pInitialResource->setUpdateSequenceNumber(1);
-        if (note->hasGuid()) {
-            m_pInitialResource->setNoteGuid(note->guid());
+        if (note.hasGuid()) {
+            m_pInitialResource->setNoteGuid(note.guid());
         }
-        if (!note->localGuid().isEmpty()) {
-            m_pInitialResource->setNoteLocalGuid(note->localGuid());
+        if (!note.localGuid().isEmpty()) {
+            m_pInitialResource->setNoteLocalGuid(note.localGuid());
         }
         m_pInitialResource->setIndexInNote(0);
         m_pInitialResource->setDataBody("Fake resource data body");
@@ -176,14 +173,14 @@ void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(QSharedPointer<N
         appData.fullMap->operator[]("key_3") = "value_3";
 
         m_state = STATE_SENT_ADD_REQUEST;
-        emit addResourceRequest(m_pInitialResource, m_pNote);
+        emit addResourceRequest(m_pInitialResource, m_note);
     }
     HANDLE_WRONG_STATE();
 }
 
-void ResourceLocalStorageManagerAsyncTester::onAddNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription)
+void ResourceLocalStorageManagerAsyncTester::onAddNoteFailed(Note note, QSharedPointer<Notebook> notebook, QString errorDescription)
 {
-    QNWARNING(errorDescription << ", Note: " << (note.isNull() ? QString("NULL") : note->ToQString())
+    QNWARNING(errorDescription << ", Note: " << note
               << ", Notebook: " << (notebook.isNull() ? QString("NULL") : notebook->ToQString()));
     emit failure(errorDescription);
 }
@@ -254,11 +251,10 @@ void ResourceLocalStorageManagerAsyncTester::onAddResourceCompleted(QSharedPoint
 }
 
 void ResourceLocalStorageManagerAsyncTester::onAddResourceFailed(QSharedPointer<ResourceWrapper> resource,
-                                                                 QSharedPointer<Note> note,
-                                                                 QString errorDescription)
+                                                                 Note note, QString errorDescription)
 {
     QNWARNING(errorDescription << ", Resource: " << (resource.isNull() ? QString("NULL") : resource->ToQString())
-              << ", Note: " << (note.isNull() ? QString("NULL") : note->ToQString()));
+              << ", Note: " << note);
     emit failure(errorDescription);
 }
 
@@ -291,11 +287,10 @@ void ResourceLocalStorageManagerAsyncTester::onUpdateResourceCompleted(QSharedPo
 }
 
 void ResourceLocalStorageManagerAsyncTester::onUpdateResourceFailed(QSharedPointer<ResourceWrapper> resource,
-                                                                    QSharedPointer<Note> note,
-                                                                    QString errorDescription)
+                                                                    Note note, QString errorDescription)
 {
     QNWARNING(errorDescription << ", Resource: " << (resource.isNull() ? QString("NULL") : resource->ToQString())
-              << ", Note: " << (note.isNull() ? QString("NULL") : note->ToQString()));
+              << ", Note: " << note);
     emit failure(errorDescription);
 }
 
@@ -338,7 +333,7 @@ void ResourceLocalStorageManagerAsyncTester::onFindResourceCompleted(QSharedPoin
         attributes.cameraModel.ref() += "_modified";
 
         m_state = STATE_SENT_UPDATE_REQUEST;
-        emit updateResourceRequest(m_pModifiedResource, m_pNote);
+        emit updateResourceRequest(m_pModifiedResource, m_note);
     }
     else if (m_state == STATE_SENT_FIND_AFTER_UPDATE_REQUEST)
     {
@@ -433,12 +428,12 @@ void ResourceLocalStorageManagerAsyncTester::createConnections()
     // Request --> slot connections
     QObject::connect(this, SIGNAL(addNotebookRequest(QSharedPointer<Notebook>)),
                      m_pLocalStorageManagerThread, SLOT(onAddNotebookRequest(QSharedPointer<Notebook>)));
-    QObject::connect(this, SIGNAL(addNoteRequest(QSharedPointer<Note>,QSharedPointer<Notebook>)),
-                     m_pLocalStorageManagerThread, SLOT(onAddNoteRequest(QSharedPointer<Note>,QSharedPointer<Notebook>)));
-    QObject::connect(this, SIGNAL(addResourceRequest(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)),
-                     m_pLocalStorageManagerThread, SLOT(onAddResourceRequest(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)));
-    QObject::connect(this, SIGNAL(updateResourceRequest(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)),
-                     m_pLocalStorageManagerThread, SLOT(onUpdateResourceRequest(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)));
+    QObject::connect(this, SIGNAL(addNoteRequest(Note,QSharedPointer<Notebook>)),
+                     m_pLocalStorageManagerThread, SLOT(onAddNoteRequest(Note,QSharedPointer<Notebook>)));
+    QObject::connect(this, SIGNAL(addResourceRequest(QSharedPointer<ResourceWrapper>,Note)),
+                     m_pLocalStorageManagerThread, SLOT(onAddResourceRequest(QSharedPointer<ResourceWrapper>,Note)));
+    QObject::connect(this, SIGNAL(updateResourceRequest(QSharedPointer<ResourceWrapper>,Note)),
+                     m_pLocalStorageManagerThread, SLOT(onUpdateResourceRequest(QSharedPointer<ResourceWrapper>,Note)));
     QObject::connect(this, SIGNAL(findResourceRequest(QSharedPointer<ResourceWrapper>,bool)),
                      m_pLocalStorageManagerThread, SLOT(onFindResourceRequest(QSharedPointer<ResourceWrapper>,bool)));
     QObject::connect(this, SIGNAL(getResourceCountRequest()), m_pLocalStorageManagerThread, SLOT(onGetResourceCountRequest()));
@@ -450,18 +445,18 @@ void ResourceLocalStorageManagerAsyncTester::createConnections()
                      this, SLOT(onAddNotebookCompleted(QSharedPointer<Notebook>)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNotebookFailed(QSharedPointer<Notebook>,QString)),
                      this, SLOT(onAddNotebookFailed(QSharedPointer<Notebook>,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNoteComplete(QSharedPointer<Note>,QSharedPointer<Notebook>)),
-                     this, SLOT(onAddNoteCompleted(QSharedPointer<Note>,QSharedPointer<Notebook>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)),
-                     this, SLOT(onAddNoteFailed(QSharedPointer<Note>,QSharedPointer<Notebook>,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addResourceComplete(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)),
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNoteComplete(Note,QSharedPointer<Notebook>)),
+                     this, SLOT(onAddNoteCompleted(Note,QSharedPointer<Notebook>)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNoteFailed(Note,QSharedPointer<Notebook>,QString)),
+                     this, SLOT(onAddNoteFailed(Note,QSharedPointer<Notebook>,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addResourceComplete(QSharedPointer<ResourceWrapper>,Note)),
                      this, SLOT(onAddResourceCompleted(QSharedPointer<ResourceWrapper>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addResourceFailed(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>,QString)),
-                     this, SLOT(onAddResourceFailed(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateResourceComplete(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>)),
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)),
+                     this, SLOT(onAddResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateResourceComplete(QSharedPointer<ResourceWrapper>,Note)),
                      this, SLOT(onUpdateResourceCompleted(QSharedPointer<ResourceWrapper>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateResourceFailed(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>,QString)),
-                     this, SLOT(onUpdateResourceFailed(QSharedPointer<ResourceWrapper>,QSharedPointer<Note>,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)),
+                     this, SLOT(onUpdateResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findResourceComplete(QSharedPointer<ResourceWrapper>,bool)),
                      this, SLOT(onFindResourceCompleted(QSharedPointer<ResourceWrapper>,bool)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findResourceFailed(QSharedPointer<ResourceWrapper>,bool,QString)),

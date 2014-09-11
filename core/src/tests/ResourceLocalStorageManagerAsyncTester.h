@@ -28,24 +28,24 @@ Q_SIGNALS:
 
 // private signals:
     void addNotebookRequest(QSharedPointer<Notebook> notebook);
-    void addNoteRequest(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
+    void addNoteRequest(Note note, QSharedPointer<Notebook> notebook);
     void getResourceCountRequest();
-    void addResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note);
-    void updateResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note);
+    void addResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note);
+    void updateResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note);
     void findResourceRequest(QSharedPointer<ResourceWrapper> resource, bool withBinaryData);
     void expungeResourceRequest(QSharedPointer<ResourceWrapper> resource);
 
 private Q_SLOTS:
     void onAddNotebookCompleted(QSharedPointer<Notebook> notebook);
     void onAddNotebookFailed(QSharedPointer<Notebook> notebook, QString errorDescription);
-    void onAddNoteCompleted(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook);
-    void onAddNoteFailed(QSharedPointer<Note> note, QSharedPointer<Notebook> notebook, QString errorDescription);
+    void onAddNoteCompleted(Note note, QSharedPointer<Notebook> notebook);
+    void onAddNoteFailed(Note note, QSharedPointer<Notebook> notebook, QString errorDescription);
     void onGetResourceCountCompleted(int count);
     void onGetResourceCountFailed(QString errorDescription);
     void onAddResourceCompleted(QSharedPointer<ResourceWrapper> resource);
-    void onAddResourceFailed(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note, QString errorDescription);
+    void onAddResourceFailed(QSharedPointer<ResourceWrapper> resource, Note note, QString errorDescription);
     void onUpdateResourceCompleted(QSharedPointer<ResourceWrapper> resource);
-    void onUpdateResourceFailed(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note, QString errorDescription);
+    void onUpdateResourceFailed(QSharedPointer<ResourceWrapper> resource, Note note, QString errorDescription);
     void onFindResourceCompleted(QSharedPointer<ResourceWrapper> resource, bool withBinaryData);
     void onFindResourceFailed(QSharedPointer<ResourceWrapper> resource, bool withBinaryData,
                               QString errorDescription);
@@ -73,7 +73,7 @@ private:
     State m_state;
     LocalStorageManagerThread * m_pLocalStorageManagerThread;
     QSharedPointer<Notebook>    m_pNotebook;
-    QSharedPointer<Note>        m_pNote;
+    Note                        m_note;
     QSharedPointer<ResourceWrapper> m_pInitialResource;
     QSharedPointer<ResourceWrapper> m_pFoundResource;
     QSharedPointer<ResourceWrapper> m_pModifiedResource;

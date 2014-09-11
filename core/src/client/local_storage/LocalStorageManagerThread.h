@@ -132,10 +132,10 @@ Q_SIGNALS:
     // Resource-related signals:
     void getResourceCountComplete(int resourceCount);
     void getResourceCountFailed(QString errorDescription);
-    void addResourceComplete(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note);
-    void addResourceFailed(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note, QString errorDescription);
-    void updateResourceComplete(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note);
-    void updateResourceFailed(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note, QString errorDescription);
+    void addResourceComplete(QSharedPointer<ResourceWrapper> resource, Note note);
+    void addResourceFailed(QSharedPointer<ResourceWrapper> resource, Note note, QString errorDescription);
+    void updateResourceComplete(QSharedPointer<ResourceWrapper> resource, Note note);
+    void updateResourceFailed(QSharedPointer<ResourceWrapper> resource, Note note, QString errorDescription);
     void findResourceComplete(QSharedPointer<ResourceWrapper> resource, bool withBinaryData);
     void findResourceFailed(QSharedPointer<ResourceWrapper> resource, bool withBinaryData, QString errorDescription);
     void expungeResourceComplete(QSharedPointer<ResourceWrapper> resource);
@@ -202,8 +202,8 @@ Q_SIGNALS:
     void expungeTagRequest(QSharedPointer<Tag> tag);
 
     void getResourceCountRequest();
-    void addResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note);
-    void updateResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note);
+    void addResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note);
+    void updateResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note);
     void findResourceRequest(QSharedPointer<ResourceWrapper> resource, bool withBinaryData);
     void expungeResourceRequest(QSharedPointer<ResourceWrapper> resource);
 
@@ -267,8 +267,8 @@ public Q_SLOTS:
 
     // Resource-related slots:
     void onGetResourceCountRequest();
-    void onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note);
-    void onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, QSharedPointer<Note> note);
+    void onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note);
+    void onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note);
     void onFindResourceRequest(QSharedPointer<ResourceWrapper> resource, bool withBinaryData);
     void onExpungeResourceRequest(QSharedPointer<ResourceWrapper> resource);
 
