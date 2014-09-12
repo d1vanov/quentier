@@ -3,8 +3,11 @@
 
 #include "DataElementWithShortcut.h"
 #include <QEverCloud.h>
+#include <QSharedDataPointer>
 
 namespace qute_note {
+
+QT_FORWARD_DECLARE_CLASS(SavedSearchData)
 
 class QUTE_NOTE_EXPORT SavedSearch final: public DataElementWithShortcut
 {
@@ -13,10 +16,10 @@ public:
     typedef qevercloud::SavedSearchScope  SavedSearchScope;
 
 public:
-    SavedSearch() = default;
-    SavedSearch(const SavedSearch & other) = default;
+    SavedSearch();
+    SavedSearch(const SavedSearch & other);
     SavedSearch(SavedSearch && other);
-    SavedSearch & operator=(const SavedSearch & other) = default;
+    SavedSearch & operator=(const SavedSearch & other);
     SavedSearch & operator=(SavedSearch && other);
 
     SavedSearch(const qevercloud::SavedSearch & search);
@@ -70,7 +73,7 @@ private:
     virtual QTextStream & Print(QTextStream & strm) const;
 
 private:
-    qevercloud::SavedSearch m_qecSearch;
+    QSharedDataPointer<SavedSearchData> d;
 };
 
 } // namespace qute_note
