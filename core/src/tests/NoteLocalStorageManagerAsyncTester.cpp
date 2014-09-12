@@ -330,8 +330,6 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(Note note, bool wit
             return;
         }
 
-        m_foundNote = note;
-
         // Ok, found note is good, updating it now
         m_modifiedNote = m_initialNote;
         m_modifiedNote.setUpdateSequenceNumber(m_initialNote.updateSequenceNumber() + 1);
@@ -352,7 +350,6 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(Note note, bool wit
         }
 
         m_modifiedNote = note;
-        m_foundNote = note;
 
         m_state = STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST;
         emit getNoteCountRequest();
