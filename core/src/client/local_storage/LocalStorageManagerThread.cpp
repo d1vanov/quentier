@@ -204,41 +204,41 @@ void LocalStorageManagerThread::createConnections()
 
     // Tag-related signal-slot connections:
     QObject::connect(this, SIGNAL(getTagCountRequest()), m_pWorker, SLOT(onGetTagCountRequest()));
-    QObject::connect(this, SIGNAL(addTagRequest(QSharedPointer<Tag>)),
-                     m_pWorker, SLOT(onAddTagRequest(QSharedPointer<Tag>)));
-    QObject::connect(this, SIGNAL(updateTagRequest(QSharedPointer<Tag>)),
-                     m_pWorker, SLOT(onUpdateTagRequest(QSharedPointer<Tag>)));
-    QObject::connect(this, SIGNAL(linkTagWithNoteRequest(QSharedPointer<Tag>,Note)),
-                     m_pWorker, SLOT(onLinkTagWithNoteRequest(QSharedPointer<Tag>,Note)));
-    QObject::connect(this, SIGNAL(findTagRequest(QSharedPointer<Tag>)),
-                     m_pWorker, SLOT(onFindTagRequest(QSharedPointer<Tag>)));
+    QObject::connect(this, SIGNAL(addTagRequest(Tag)),
+                     m_pWorker, SLOT(onAddTagRequest(Tag)));
+    QObject::connect(this, SIGNAL(updateTagRequest(Tag)),
+                     m_pWorker, SLOT(onUpdateTagRequest(Tag)));
+    QObject::connect(this, SIGNAL(linkTagWithNoteRequest(Tag,Note)),
+                     m_pWorker, SLOT(onLinkTagWithNoteRequest(Tag,Note)));
+    QObject::connect(this, SIGNAL(findTagRequest(Tag)),
+                     m_pWorker, SLOT(onFindTagRequest(Tag)));
     QObject::connect(this, SIGNAL(listAllTagsPerNoteRequest(Note)),
                      m_pWorker, SLOT(onListAllTagsPerNoteRequest(Note)));
     QObject::connect(this, SIGNAL(listAllTagsRequest()), m_pWorker, SLOT(onListAllTagsRequest()));
-    QObject::connect(this, SIGNAL(deleteTagRequest(QSharedPointer<Tag>)),
-                     m_pWorker, SLOT(onDeleteTagRequest(QSharedPointer<Tag>)));
-    QObject::connect(this, SIGNAL(expungeTagRequest(QSharedPointer<Tag>)),
-                     m_pWorker, SLOT(onExpungeTagRequest(QSharedPointer<Tag>)));
+    QObject::connect(this, SIGNAL(deleteTagRequest(Tag)),
+                     m_pWorker, SLOT(onDeleteTagRequest(Tag)));
+    QObject::connect(this, SIGNAL(expungeTagRequest(Tag)),
+                     m_pWorker, SLOT(onExpungeTagRequest(Tag)));
 
     // Tag-related signal-signal connections:
     QObject::connect(m_pWorker, SIGNAL(getTagCountComplete(int)), this, SIGNAL(getTagCountComplete(int)));
     QObject::connect(m_pWorker, SIGNAL(getTagCountFailed(QString)), this, SIGNAL(getTagCountFailed(QString)));
-    QObject::connect(m_pWorker, SIGNAL(addTagComplete(QSharedPointer<Tag>)),
-                     this, SIGNAL(addTagComplete(QSharedPointer<Tag>)));
-    QObject::connect(m_pWorker, SIGNAL(addTagFailed(QSharedPointer<Tag>,QString)),
-                     this, SIGNAL(addTagFailed(QSharedPointer<Tag>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(updateTagComplete(QSharedPointer<Tag>)),
-                     this, SIGNAL(updateTagComplete(QSharedPointer<Tag>)));
-    QObject::connect(m_pWorker, SIGNAL(updateTagFailed(QSharedPointer<Tag>,QString)),
-                     this, SIGNAL(updateTagFailed(QSharedPointer<Tag>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(linkTagWithNoteComplete(QSharedPointer<Tag>,Note)),
-                     this, SIGNAL(linkTagWithNoteComplete(QSharedPointer<Tag>,Note)));
-    QObject::connect(m_pWorker, SIGNAL(linkTagWithNoteFailed(QSharedPointer<Tag>,Note,QString)),
-                     this, SIGNAL(linkTagWithNoteFailed(QSharedPointer<Tag>,Note,QString)));
-    QObject::connect(m_pWorker, SIGNAL(findTagComplete(QSharedPointer<Tag>)),
-                     this, SIGNAL(findTagComplete(QSharedPointer<Tag>)));
-    QObject::connect(m_pWorker, SIGNAL(findTagFailed(QSharedPointer<Tag>,QString)),
-                     this, SIGNAL(findTagFailed(QSharedPointer<Tag>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(addTagComplete(Tag)),
+                     this, SIGNAL(addTagComplete(Tag)));
+    QObject::connect(m_pWorker, SIGNAL(addTagFailed(Tag,QString)),
+                     this, SIGNAL(addTagFailed(Tag,QString)));
+    QObject::connect(m_pWorker, SIGNAL(updateTagComplete(Tag)),
+                     this, SIGNAL(updateTagComplete(Tag)));
+    QObject::connect(m_pWorker, SIGNAL(updateTagFailed(Tag,QString)),
+                     this, SIGNAL(updateTagFailed(Tag,QString)));
+    QObject::connect(m_pWorker, SIGNAL(linkTagWithNoteComplete(Tag,Note)),
+                     this, SIGNAL(linkTagWithNoteComplete(Tag,Note)));
+    QObject::connect(m_pWorker, SIGNAL(linkTagWithNoteFailed(Tag,Note,QString)),
+                     this, SIGNAL(linkTagWithNoteFailed(Tag,Note,QString)));
+    QObject::connect(m_pWorker, SIGNAL(findTagComplete(Tag)),
+                     this, SIGNAL(findTagComplete(Tag)));
+    QObject::connect(m_pWorker, SIGNAL(findTagFailed(Tag,QString)),
+                     this, SIGNAL(findTagFailed(Tag,QString)));
     QObject::connect(m_pWorker, SIGNAL(listAllTagsPerNoteComplete(QList<Tag>,Note)),
                      this, SIGNAL(listAllTagsPerNoteComplete(QList<Tag>,Note)));
     QObject::connect(m_pWorker, SIGNAL(listAllTagsPerNoteFailed(Note,QString)),
@@ -247,14 +247,14 @@ void LocalStorageManagerThread::createConnections()
                      this, SIGNAL(listAllTagsComplete(QList<Tag>)));
     QObject::connect(m_pWorker, SIGNAL(listAllTagsFailed(QString)),
                      this, SIGNAL(listAllTagsFailed(QString)));
-    QObject::connect(m_pWorker, SIGNAL(deleteTagComplete(QSharedPointer<Tag>)),
-                     this, SIGNAL(deleteTagComplete(QSharedPointer<Tag>)));
-    QObject::connect(m_pWorker, SIGNAL(deleteTagFailed(QSharedPointer<Tag>,QString)),
-                     this, SIGNAL(deleteTagFailed(QSharedPointer<Tag>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(expungeTagComplete(QSharedPointer<Tag>)),
-                     this, SIGNAL(expungeTagComplete(QSharedPointer<Tag>)));
-    QObject::connect(m_pWorker, SIGNAL(expungeTagFailed(QSharedPointer<Tag>,QString)),
-                     this, SIGNAL(expungeTagFailed(QSharedPointer<Tag>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(deleteTagComplete(Tag)),
+                     this, SIGNAL(deleteTagComplete(Tag)));
+    QObject::connect(m_pWorker, SIGNAL(deleteTagFailed(Tag,QString)),
+                     this, SIGNAL(deleteTagFailed(Tag,QString)));
+    QObject::connect(m_pWorker, SIGNAL(expungeTagComplete(Tag)),
+                     this, SIGNAL(expungeTagComplete(Tag)));
+    QObject::connect(m_pWorker, SIGNAL(expungeTagFailed(Tag,QString)),
+                     this, SIGNAL(expungeTagFailed(Tag,QString)));
 
     // Resource-related signal-slot connections:
     QObject::connect(this, SIGNAL(getResourceCountRequest()), m_pWorker, SLOT(onGetResourceCountRequest()));
@@ -487,22 +487,22 @@ void LocalStorageManagerThread::onGetTagCountRequest()
     emit getTagCountRequest();
 }
 
-void LocalStorageManagerThread::onAddTagRequest(QSharedPointer<Tag> tag)
+void LocalStorageManagerThread::onAddTagRequest(Tag tag)
 {
     emit addTagRequest(tag);
 }
 
-void LocalStorageManagerThread::onUpdateTagRequest(QSharedPointer<Tag> tag)
+void LocalStorageManagerThread::onUpdateTagRequest(Tag tag)
 {
     emit updateTagRequest(tag);
 }
 
-void LocalStorageManagerThread::onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, Note note)
+void LocalStorageManagerThread::onLinkTagWithNoteRequest(Tag tag, Note note)
 {
     emit linkTagWithNoteRequest(tag, note);
 }
 
-void LocalStorageManagerThread::onFindTagRequest(QSharedPointer<Tag> tag)
+void LocalStorageManagerThread::onFindTagRequest(Tag tag)
 {
     emit findTagRequest(tag);
 }
@@ -517,12 +517,12 @@ void LocalStorageManagerThread::onListAllTagsRequest()
     emit listAllTagsRequest();
 }
 
-void LocalStorageManagerThread::onDeleteTagRequest(QSharedPointer<Tag> tag)
+void LocalStorageManagerThread::onDeleteTagRequest(Tag tag)
 {
     emit deleteTagRequest(tag);
 }
 
-void LocalStorageManagerThread::onExpungeTagRequest(QSharedPointer<Tag> tag)
+void LocalStorageManagerThread::onExpungeTagRequest(Tag tag)
 {
     emit expungeTagRequest(tag);
 }

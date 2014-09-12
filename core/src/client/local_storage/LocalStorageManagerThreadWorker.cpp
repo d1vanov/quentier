@@ -503,19 +503,11 @@ void LocalStorageManagerThreadWorker::onGetTagCountRequest()
     }
 }
 
-void LocalStorageManagerThreadWorker::onAddTagRequest(QSharedPointer<Tag> tag)
+void LocalStorageManagerThreadWorker::onAddTagRequest(Tag tag)
 {
     QString errorDescription;
 
-    if (tag.isNull()) {
-        errorDescription = "Internal error: detected null pointer to tag "
-                           "on attempt to add tag to local storage";
-        QNCRITICAL(errorDescription);
-        emit addTagFailed(tag, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.AddTag(*tag, errorDescription);
+    bool res = m_localStorageManager.AddTag(tag, errorDescription);
     if (!res) {
         emit addTagFailed(tag, errorDescription);
         return;
@@ -524,19 +516,11 @@ void LocalStorageManagerThreadWorker::onAddTagRequest(QSharedPointer<Tag> tag)
     emit addTagComplete(tag);
 }
 
-void LocalStorageManagerThreadWorker::onUpdateTagRequest(QSharedPointer<Tag> tag)
+void LocalStorageManagerThreadWorker::onUpdateTagRequest(Tag tag)
 {
     QString errorDescription;
 
-    if (tag.isNull()) {
-        errorDescription = "Internal error: detected null pointer to tag "
-                           "on attempt to update tag in local storage";
-        QNCRITICAL(errorDescription);
-        emit updateTagFailed(tag, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.UpdateTag(*tag, errorDescription);
+    bool res = m_localStorageManager.UpdateTag(tag, errorDescription);
     if (!res) {
         emit updateTagFailed(tag, errorDescription);
         return;
@@ -545,19 +529,11 @@ void LocalStorageManagerThreadWorker::onUpdateTagRequest(QSharedPointer<Tag> tag
     emit updateTagComplete(tag);
 }
 
-void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(QSharedPointer<Tag> tag, Note note)
+void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(Tag tag, Note note)
 {
     QString errorDescription;
 
-    if (tag.isNull()) {
-        errorDescription = "Internal error: detected null pointer to tag "
-                           "on attempt to link tag with note";
-        QNCRITICAL(errorDescription);
-        emit linkTagWithNoteFailed(tag, note, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.LinkTagWithNote(*tag, note, errorDescription);
+    bool res = m_localStorageManager.LinkTagWithNote(tag, note, errorDescription);
     if (!res) {
         emit linkTagWithNoteFailed(tag, note, errorDescription);
         return;
@@ -566,19 +542,11 @@ void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(QSharedPointer<Ta
     emit linkTagWithNoteComplete(tag, note);
 }
 
-void LocalStorageManagerThreadWorker::onFindTagRequest(QSharedPointer<Tag> tag)
+void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag)
 {
     QString errorDescription;
 
-    if (tag.isNull()) {
-        errorDescription = "Internal error: detected null pointer to tag "
-                           "on attempt to find tag in local storage";
-        QNCRITICAL(errorDescription);
-        emit findTagFailed(tag, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.FindTag(*tag, errorDescription);
+    bool res = m_localStorageManager.FindTag(tag, errorDescription);
     if (!res) {
         emit findTagFailed(tag, errorDescription);
         return;
@@ -613,19 +581,11 @@ void LocalStorageManagerThreadWorker::onListAllTagsRequest()
     emit listAllTagsComplete(tags);
 }
 
-void LocalStorageManagerThreadWorker::onDeleteTagRequest(QSharedPointer<Tag> tag)
+void LocalStorageManagerThreadWorker::onDeleteTagRequest(Tag tag)
 {
     QString errorDescription;
 
-    if (tag.isNull()) {
-        errorDescription = "Internal error: detected null pointet to tag "
-                           "on attempt to delete tag in local storage";
-        QNCRITICAL(errorDescription);
-        emit deleteTagFailed(tag, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.DeleteTag(*tag, errorDescription);
+    bool res = m_localStorageManager.DeleteTag(tag, errorDescription);
     if (!res) {
         emit deleteTagFailed(tag, errorDescription);
         return;
@@ -634,19 +594,11 @@ void LocalStorageManagerThreadWorker::onDeleteTagRequest(QSharedPointer<Tag> tag
     emit deleteTagComplete(tag);
 }
 
-void LocalStorageManagerThreadWorker::onExpungeTagRequest(QSharedPointer<Tag> tag)
+void LocalStorageManagerThreadWorker::onExpungeTagRequest(Tag tag)
 {
     QString errorDescription;
 
-    if (tag.isNull()) {
-        errorDescription = "Internal error: detected null pointer to tag "
-                           "on attempt to expunge tag from local storage";
-        QNCRITICAL(errorDescription);
-        emit expungeTagFailed(tag, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.ExpungeTag(*tag, errorDescription);
+    bool res = m_localStorageManager.ExpungeTag(tag, errorDescription);
     if (!res) {
         emit expungeTagFailed(tag, errorDescription);
         return;

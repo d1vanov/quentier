@@ -26,28 +26,28 @@ Q_SIGNALS:
 
 // private signals:
     void getTagCountRequest();
-    void addTagRequest(QSharedPointer<Tag> tag);
-    void updateTagRequest(QSharedPointer<Tag> tag);
-    void findTagRequest(QSharedPointer<Tag> tag);
+    void addTagRequest(Tag tag);
+    void updateTagRequest(Tag tag);
+    void findTagRequest(Tag tag);
     void listAllTagsRequest();
-    void deleteTagRequest(QSharedPointer<Tag> tag);
-    void expungeTagRequest(QSharedPointer<Tag> tag);
+    void deleteTagRequest(Tag tag);
+    void expungeTagRequest(Tag tag);
 
 private Q_SLOTS:
     void onGetTagCountCompleted(int count);
     void onGetTagCountFailed(QString errorDescription);
-    void onAddTagCompleted(QSharedPointer<Tag> tag);
-    void onAddTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
-    void onUpdateTagCompleted(QSharedPointer<Tag> tag);
-    void onUpdateTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
-    void onFindTagCompleted(QSharedPointer<Tag> tag);
-    void onFindTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
+    void onAddTagCompleted(Tag tag);
+    void onAddTagFailed(Tag tag, QString errorDescription);
+    void onUpdateTagCompleted(Tag tag);
+    void onUpdateTagFailed(Tag tag, QString errorDescription);
+    void onFindTagCompleted(Tag tag);
+    void onFindTagFailed(Tag tag, QString errorDescription);
     void onListAllTagsCompleted(QList<Tag> tags);
     void onListAllTagsFailed(QString errorDescription);
-    void onDeleteTagCompleted(QSharedPointer<Tag> tag);
-    void onDeleteTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
-    void onExpungeTagCompleted(QSharedPointer<Tag> tag);
-    void onExpungeTagFailed(QSharedPointer<Tag> tag, QString errorDescription);
+    void onDeleteTagCompleted(Tag tag);
+    void onDeleteTagFailed(Tag tag, QString errorDescription);
+    void onExpungeTagCompleted(Tag tag);
+    void onExpungeTagFailed(Tag tag, QString errorDescription);
 
 private:
     void createConnections();
@@ -71,9 +71,9 @@ private:
 
     State m_state;
     LocalStorageManagerThread * m_pLocalStorageManagerThread;
-    QSharedPointer<Tag>         m_pInitialTag;
-    QSharedPointer<Tag>         m_pFoundTag;
-    QSharedPointer<Tag>         m_pModifiedTag;
+    Tag         m_initialTag;
+    Tag         m_foundTag;
+    Tag         m_modifiedTag;
     QList<Tag>  m_initialTags;
 };
 

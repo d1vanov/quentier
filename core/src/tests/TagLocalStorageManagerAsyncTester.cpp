@@ -9,9 +9,9 @@ TagLocalStorageManagerAsyncTester::TagLocalStorageManagerAsyncTester(QObject * p
     QObject(parent),
     m_state(STATE_UNINITIALIZED),
     m_pLocalStorageManagerThread(nullptr),
-    m_pInitialTag(),
-    m_pFoundTag(),
-    m_pModifiedTag(),
+    m_initialTag(),
+    m_foundTag(),
+    m_modifiedTag(),
     m_initialTags()
 {}
 
@@ -37,20 +37,20 @@ void TagLocalStorageManagerAsyncTester::onInitTestCase()
     m_pLocalStorageManagerThread = new LocalStorageManagerThread(username, userId, startFromScratch, this);
     createConnections();
 
-    m_pInitialTag = QSharedPointer<Tag>(new Tag);
-    m_pInitialTag->setGuid("00000000-0000-0000-c000-000000000046");
-    m_pInitialTag->setUpdateSequenceNumber(3);
-    m_pInitialTag->setName("Fake tag name");
+    m_initialTag = Tag();
+    m_initialTag.setGuid("00000000-0000-0000-c000-000000000046");
+    m_initialTag.setUpdateSequenceNumber(3);
+    m_initialTag.setName("Fake tag name");
 
     QString errorDescription;
-    if (!m_pInitialTag->checkParameters(errorDescription)) {
-        QNWARNING("Found invalid Tag: " << *m_pInitialTag << ", error: " << errorDescription);
+    if (!m_initialTag.checkParameters(errorDescription)) {
+        QNWARNING("Found invalid Tag: " << m_initialTag << ", error: " << errorDescription);
         emit failure(errorDescription);
         return;
     }
 
     m_state = STATE_SENT_ADD_REQUEST;
-    emit addTagRequest(m_pInitialTag);
+    emit addTagRequest(m_initialTag);
 }
 
 void TagLocalStorageManagerAsyncTester::onGetTagCountCompleted(int count)
@@ -75,10 +75,10 @@ void TagLocalStorageManagerAsyncTester::onGetTagCountCompleted(int count)
             return;
         }
 
-        m_pModifiedTag->setLocal(false);
-        m_pModifiedTag->setDeleted(true);
+        m_modifiedTag.setLocal(false);
+        m_modifiedTag.setDeleted(true);
         m_state = STATE_SENT_DELETE_REQUEST;
-        emit deleteTagRequest(m_pModifiedTag);
+        emit deleteTagRequest(m_modifiedTag);
     }
     else if (m_state == STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST)
     {
@@ -90,10 +90,10 @@ void TagLocalStorageManagerAsyncTester::onGetTagCountCompleted(int count)
             return;
         }
 
-        QSharedPointer<Tag> extraTag = QSharedPointer<Tag>(new Tag);
-        extraTag->setGuid("00000000-0000-0000-c000-000000000001");
-        extraTag->setUpdateSequenceNumber(1);
-        extraTag->setName("Extra tag name one");
+        Tag extraTag;
+        extraTag.setGuid("00000000-0000-0000-c000-000000000001");
+        extraTag.setUpdateSequenceNumber(1);
+        extraTag.setName("Extra tag name one");
 
         m_state = STATE_SENT_ADD_EXTRA_TAG_ONE_REQUEST;
         emit addTagRequest(extraTag);
@@ -107,16 +107,13 @@ void TagLocalStorageManagerAsyncTester::onGetTagCountFailed(QString errorDescrip
     emit failure(errorDescription);
 }
 
-void TagLocalStorageManagerAsyncTester::onAddTagCompleted(QSharedPointer<Tag> tag)
+void TagLocalStorageManagerAsyncTester::onAddTagCompleted(Tag tag)
 {
-    Q_ASSERT_X(!tag.isNull(), "TagLocalStorageManagerAsyncTester::onAddTagCompleted slot",
-               "Found NULL shared pointer to Tag");
-
     QString errorDescription;
 
     if (m_state == STATE_SENT_ADD_REQUEST)
     {
-        if (m_pInitialTag != tag) {
+        if (m_initialTag != tag) {
             errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: "
                                "tag in onAddTagCompleted slot doesn't match the original Tag";
             QNWARNING(errorDescription);
@@ -124,28 +121,28 @@ void TagLocalStorageManagerAsyncTester::onAddTagCompleted(QSharedPointer<Tag> ta
             return;
         }
 
-        m_pFoundTag = QSharedPointer<Tag>(new Tag);
-        m_pFoundTag->setLocalGuid(tag->localGuid());
+        m_foundTag = Tag();
+        m_foundTag.setLocalGuid(tag.localGuid());
 
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
-        emit findTagRequest(m_pFoundTag);
+        emit findTagRequest(m_foundTag);
     }
     else if (m_state == STATE_SENT_ADD_EXTRA_TAG_ONE_REQUEST)
     {
-        m_initialTags << *tag;
+        m_initialTags << tag;
 
-        QSharedPointer<Tag> extraTag = QSharedPointer<Tag>(new Tag);
-        extraTag->setGuid("00000000-0000-0000-c000-000000000002");
-        extraTag->setUpdateSequenceNumber(2);
-        extraTag->setName("Extra tag name two");
-        extraTag->setParentGuid(tag->guid());
+        Tag extraTag;
+        extraTag.setGuid("00000000-0000-0000-c000-000000000002");
+        extraTag.setUpdateSequenceNumber(2);
+        extraTag.setName("Extra tag name two");
+        extraTag.setParentGuid(tag.guid());
 
         m_state = STATE_SENT_ADD_EXTRA_TAG_TWO_REQUEST;
         emit addTagRequest(extraTag);
     }
     else if (m_state == STATE_SENT_ADD_EXTRA_TAG_TWO_REQUEST)
     {
-        m_initialTags << *tag;
+        m_initialTags << tag;
 
         m_state = STATE_SENT_LIST_TAGS_REQUEST;
         emit listAllTagsRequest();
@@ -153,93 +150,67 @@ void TagLocalStorageManagerAsyncTester::onAddTagCompleted(QSharedPointer<Tag> ta
     HANDLE_WRONG_STATE();
 }
 
-void TagLocalStorageManagerAsyncTester::onAddTagFailed(QSharedPointer<Tag> tag, QString errorDescription)
+void TagLocalStorageManagerAsyncTester::onAddTagFailed(Tag tag, QString errorDescription)
 {
-    QNWARNING(errorDescription << ", Tag: " << (tag.isNull() ? QString("NULL") : tag->ToQString()));
+    QNWARNING(errorDescription << ", Tag: " << tag);
     emit failure(errorDescription);
 }
 
-void TagLocalStorageManagerAsyncTester::onUpdateTagCompleted(QSharedPointer<Tag> tag)
+void TagLocalStorageManagerAsyncTester::onUpdateTagCompleted(Tag tag)
 {
-    Q_ASSERT_X(!tag.isNull(), "TagLocalStorageManagerAsyncTester::onUpdateTagCompleted slot",
-               "Found NULL shared pointer to Tag");
-
     QString errorDescription;
 
     if (m_state == STATE_SENT_UPDATE_REQUEST)
     {
-        if (m_pModifiedTag != tag) {
+        if (m_modifiedTag != tag) {
             errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: "
-                               "tag pointer in onUpdateTagCompleted slot doesn't match "
-                               "the pointer to the original modified Tag";
+                               "tag in onUpdateTagCompleted slot doesn't match "
+                               "the original modified Tag";
             QNWARNING(errorDescription);
             emit failure(errorDescription);
             return;
         }
 
         m_state = STATE_SENT_FIND_AFTER_UPDATE_REQUEST;
-        emit findTagRequest(m_pFoundTag);
+        emit findTagRequest(m_foundTag);
     }
     HANDLE_WRONG_STATE();
 }
 
-void TagLocalStorageManagerAsyncTester::onUpdateTagFailed(QSharedPointer<Tag> tag, QString errorDescription)
+void TagLocalStorageManagerAsyncTester::onUpdateTagFailed(Tag tag, QString errorDescription)
 {
-    QNWARNING(errorDescription << ", tag: " << (tag.isNull() ? QString("NULL") : tag->ToQString()));
+    QNWARNING(errorDescription << ", tag: " << tag);
     emit failure(errorDescription);
 }
 
-void TagLocalStorageManagerAsyncTester::onFindTagCompleted(QSharedPointer<Tag> tag)
+void TagLocalStorageManagerAsyncTester::onFindTagCompleted(Tag tag)
 {
-    Q_ASSERT_X(!tag.isNull(), "TagLocalStorageManagerAsyncTester::onFindTagCompleted slot",
-               "Found NULL shared pointed to Tag");
-
     QString errorDescription;
 
     if (m_state == STATE_SENT_FIND_AFTER_ADD_REQUEST)
     {
-        if (m_pFoundTag != tag) {
-            errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: "
-                               "tag pointer in onFindTagCompleted slot doesn't match "
-                               "the pointer to the original Tag";
-            QNWARNING(errorDescription);
-            emit failure(errorDescription);
-            return;
-        }
-
-        Q_ASSERT(!m_pInitialTag.isNull());
-        if (*m_pFoundTag != *m_pInitialTag) {
+        if (tag != m_initialTag) {
             errorDescription = "Added and found tags in local storage don't match";
-            QNWARNING(errorDescription << ": Tag added to LocalStorageManager: " << *m_pInitialTag
-                      << "\nTag found in LocalStorageManager: " << *m_pFoundTag);
+            QNWARNING(errorDescription << ": Tag added to LocalStorageManager: " << m_initialTag
+                      << "\nTag found in LocalStorageManager: " << m_foundTag);
             emit failure(errorDescription);
             return;
         }
 
         // Ok, found tag is good, updating it now
-        m_pModifiedTag = QSharedPointer<Tag>(new Tag(*m_pInitialTag));
-        m_pModifiedTag->setUpdateSequenceNumber(m_pInitialTag->updateSequenceNumber() + 1);
-        m_pModifiedTag->setName(m_pInitialTag->name() + "_modified");
+        m_modifiedTag = m_initialTag;
+        m_modifiedTag.setUpdateSequenceNumber(m_initialTag.updateSequenceNumber() + 1);
+        m_modifiedTag.setName(m_initialTag.name() + "_modified");
 
         m_state = STATE_SENT_UPDATE_REQUEST;
-        emit updateTagRequest(m_pModifiedTag);
+        emit updateTagRequest(m_modifiedTag);
     }
     else if (m_state == STATE_SENT_FIND_AFTER_UPDATE_REQUEST)
     {
-        if (m_pFoundTag != tag) {
-            errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: "
-                               "tag pointer in onFindTagCompleted slot doesn't match "
-                               "the pointer to the original modified Tag";
-            QNWARNING(errorDescription);
-            emit failure(errorDescription);
-            return;
-        }
-
-        Q_ASSERT(!m_pModifiedTag.isNull());
-        if (*m_pFoundTag != *m_pModifiedTag) {
+        if (tag != m_modifiedTag) {
             errorDescription = "Updated and found tags in local storage don't match";
-            QNWARNING(errorDescription << ": Tag updated in LocalStorageManager: " << *m_pModifiedTag
-                      << "\nTag found in LocalStorageManager: " << *m_pFoundTag);
+            QNWARNING(errorDescription << ": Tag updated in LocalStorageManager: " << m_modifiedTag
+                      << "\nTag found in LocalStorageManager: " << m_foundTag);
             emit failure(errorDescription);
             return;
         }
@@ -249,17 +220,16 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(QSharedPointer<Tag> t
     }
     else if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST)
     {
-        Q_ASSERT(!m_pModifiedTag.isNull());
         errorDescription = "Found tag which should have been expunged from local storage";
-        QNWARNING(errorDescription << ": Tag expunged from LocalStorageManager: " << *m_pModifiedTag
-                  << "\nTag found in LocalStorageManager: " << *m_pFoundTag);
+        QNWARNING(errorDescription << ": Tag expunged from LocalStorageManager: " << m_modifiedTag
+                  << "\nTag found in LocalStorageManager: " << m_foundTag);
         emit failure(errorDescription);
         return;
     }
     HANDLE_WRONG_STATE();
 }
 
-void TagLocalStorageManagerAsyncTester::onFindTagFailed(QSharedPointer<Tag> tag, QString errorDescription)
+void TagLocalStorageManagerAsyncTester::onFindTagFailed(Tag tag, QString errorDescription)
 {
     if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST) {
         m_state = STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST;
@@ -267,7 +237,7 @@ void TagLocalStorageManagerAsyncTester::onFindTagFailed(QSharedPointer<Tag> tag,
         return;
     }
 
-    QNWARNING(errorDescription << ", tag: " << (tag.isNull() ? QString("NULL") : tag->ToQString()));
+    QNWARNING(errorDescription << ", tag: " << tag);
     emit failure(errorDescription);
 }
 
@@ -305,57 +275,50 @@ void TagLocalStorageManagerAsyncTester::onListAllTagsFailed(QString errorDescrip
     emit failure(errorDescription);
 }
 
-void TagLocalStorageManagerAsyncTester::onDeleteTagCompleted(QSharedPointer<Tag> tag)
+void TagLocalStorageManagerAsyncTester::onDeleteTagCompleted(Tag tag)
 {
-    Q_ASSERT_X(!tag.isNull(), "TagLocalStorageManagerAsyncTester::onDeleteTagCompleted slot",
-               "Found NULL pointer to Tag");
-
     QString errorDescription;
 
-    if (m_pModifiedTag != tag) {
+    if (m_modifiedTag != tag) {
         errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: "
-                           "tag pointer in onDeleteTagCompleted slot doesn't match "
-                           "the pointer to the original deleted Tag";
+                           "tag in onDeleteTagCompleted slot doesn't match "
+                           "the original deleted Tag";
         QNWARNING(errorDescription);
         emit failure(errorDescription);
         return;
     }
 
-    m_pModifiedTag->setLocal(true);
+    m_modifiedTag.setLocal(true);
     m_state = STATE_SENT_EXPUNGE_REQUEST;
-    emit expungeTagRequest(m_pModifiedTag);
+    emit expungeTagRequest(m_modifiedTag);
 }
 
-void TagLocalStorageManagerAsyncTester::onDeleteTagFailed(QSharedPointer<Tag> tag, QString errorDescription)
+void TagLocalStorageManagerAsyncTester::onDeleteTagFailed(Tag tag, QString errorDescription)
 {
-    QNWARNING(errorDescription  << ", tag: " << (tag.isNull() ? QString("NULL") : tag->ToQString()));
+    QNWARNING(errorDescription  << ", tag: " << tag);
     emit failure(errorDescription);
 }
 
-void TagLocalStorageManagerAsyncTester::onExpungeTagCompleted(QSharedPointer<Tag> tag)
+void TagLocalStorageManagerAsyncTester::onExpungeTagCompleted(Tag tag)
 {
-    Q_ASSERT_X(!tag.isNull(), "TagLocalStorageManagerAsyncTester::onExpungeTagCompleted slot",
-               "Found NULL pointer to Tag");
-
     QString errorDescription;
 
-    if (m_pModifiedTag != tag) {
+    if (m_modifiedTag != tag) {
         errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: "
-                           "tag pointer in onExpungeTagCompleted slot doesn't match "
-                           "the pointer to the original expunged Tag";
+                           "tag in onExpungeTagCompleted slot doesn't match "
+                           "the original expunged Tag";
         QNWARNING(errorDescription);
         emit failure(errorDescription);
         return;
     }
 
-    Q_ASSERT(!m_pFoundTag.isNull());
     m_state = STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST;
-    emit findTagRequest(m_pFoundTag);
+    emit findTagRequest(m_foundTag);
 }
 
-void TagLocalStorageManagerAsyncTester::onExpungeTagFailed(QSharedPointer<Tag> tag, QString errorDescription)
+void TagLocalStorageManagerAsyncTester::onExpungeTagFailed(Tag tag, QString errorDescription)
 {
-    QNWARNING(errorDescription << ", Tag: " << (tag.isNull() ? QString("NULL") : tag->ToQString()));
+    QNWARNING(errorDescription << ", Tag: " << tag);
     emit failure(errorDescription);
 }
 
@@ -364,48 +327,48 @@ void TagLocalStorageManagerAsyncTester::createConnections()
     // Request --> slot connections
     QObject::connect(this, SIGNAL(getTagCountRequest()), m_pLocalStorageManagerThread,
                      SLOT(onGetTagCountRequest()));
-    QObject::connect(this, SIGNAL(addTagRequest(QSharedPointer<Tag>)), m_pLocalStorageManagerThread,
-                     SLOT(onAddTagRequest(QSharedPointer<Tag>)));
-    QObject::connect(this, SIGNAL(updateTagRequest(QSharedPointer<Tag>)), m_pLocalStorageManagerThread,
-                     SLOT(onUpdateTagRequest(QSharedPointer<Tag>)));
-    QObject::connect(this, SIGNAL(findTagRequest(QSharedPointer<Tag>)), m_pLocalStorageManagerThread,
-                     SLOT(onFindTagRequest(QSharedPointer<Tag>)));
+    QObject::connect(this, SIGNAL(addTagRequest(Tag)), m_pLocalStorageManagerThread,
+                     SLOT(onAddTagRequest(Tag)));
+    QObject::connect(this, SIGNAL(updateTagRequest(Tag)), m_pLocalStorageManagerThread,
+                     SLOT(onUpdateTagRequest(Tag)));
+    QObject::connect(this, SIGNAL(findTagRequest(Tag)), m_pLocalStorageManagerThread,
+                     SLOT(onFindTagRequest(Tag)));
     QObject::connect(this, SIGNAL(listAllTagsRequest()), m_pLocalStorageManagerThread,
                      SLOT(onListAllTagsRequest()));
-    QObject::connect(this, SIGNAL(deleteTagRequest(QSharedPointer<Tag>)),
-                     m_pLocalStorageManagerThread, SLOT(onDeleteTagRequest(QSharedPointer<Tag>)));
-    QObject::connect(this, SIGNAL(expungeTagRequest(QSharedPointer<Tag>)),
-                     m_pLocalStorageManagerThread, SLOT(onExpungeTagRequest(QSharedPointer<Tag>)));
+    QObject::connect(this, SIGNAL(deleteTagRequest(Tag)),
+                     m_pLocalStorageManagerThread, SLOT(onDeleteTagRequest(Tag)));
+    QObject::connect(this, SIGNAL(expungeTagRequest(Tag)),
+                     m_pLocalStorageManagerThread, SLOT(onExpungeTagRequest(Tag)));
 
     // Slot <-- result connections
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(getTagCountComplete(int)),
                      this, SLOT(onGetTagCountCompleted(int)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(getTagCountFailed(QString)),
                      this, SLOT(onGetTagCountFailed(QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addTagComplete(QSharedPointer<Tag>)),
-                     this, SLOT(onAddTagCompleted(QSharedPointer<Tag>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addTagFailed(QSharedPointer<Tag>,QString)),
-                     this, SLOT(onAddTagFailed(QSharedPointer<Tag>,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateTagComplete(QSharedPointer<Tag>)),
-                     this, SLOT(onUpdateTagCompleted(QSharedPointer<Tag>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateTagFailed(QSharedPointer<Tag>,QString)),
-                     this, SLOT(onUpdateTagFailed(QSharedPointer<Tag>,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findTagComplete(QSharedPointer<Tag>)),
-                     this, SLOT(onFindTagCompleted(QSharedPointer<Tag>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findTagFailed(QSharedPointer<Tag>,QString)),
-                     this, SLOT(onFindTagFailed(QSharedPointer<Tag>,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addTagComplete(Tag)),
+                     this, SLOT(onAddTagCompleted(Tag)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addTagFailed(Tag,QString)),
+                     this, SLOT(onAddTagFailed(Tag,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateTagComplete(Tag)),
+                     this, SLOT(onUpdateTagCompleted(Tag)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateTagFailed(Tag,QString)),
+                     this, SLOT(onUpdateTagFailed(Tag,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findTagComplete(Tag)),
+                     this, SLOT(onFindTagCompleted(Tag)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findTagFailed(Tag,QString)),
+                     this, SLOT(onFindTagFailed(Tag,QString)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(listAllTagsComplete(QList<Tag>)),
                      this, SLOT(onListAllTagsCompleted(QList<Tag>)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(listAllTagsFailed(QString)),
                      this, SLOT(onListAllTagsFailed(QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(deleteTagComplete(QSharedPointer<Tag>)),
-                     this, SLOT(onDeleteTagCompleted(QSharedPointer<Tag>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(deleteTagFailed(QSharedPointer<Tag>,QString)),
-                     this, SLOT(onDeleteTagFailed(QSharedPointer<Tag>,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeTagComplete(QSharedPointer<Tag>)),
-                     this, SLOT(onExpungeTagCompleted(QSharedPointer<Tag>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeTagFailed(QSharedPointer<Tag>,QString)),
-                     this, SLOT(onExpungeTagFailed(QSharedPointer<Tag>,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(deleteTagComplete(Tag)),
+                     this, SLOT(onDeleteTagCompleted(Tag)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(deleteTagFailed(Tag,QString)),
+                     this, SLOT(onDeleteTagFailed(Tag,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeTagComplete(Tag)),
+                     this, SLOT(onExpungeTagCompleted(Tag)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeTagFailed(Tag,QString)),
+                     this, SLOT(onExpungeTagFailed(Tag,QString)));
 }
 
 #undef HANDLE_WRONG_STATE

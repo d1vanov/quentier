@@ -3,37 +3,40 @@
 
 #include "DataElementWithShortcut.h"
 #include <QEverCloud.h>
+#include <QSharedDataPointer>
 
 namespace qute_note {
 
-class QUTE_NOTE_EXPORT Tag final: public DataElementWithShortcut
+QT_FORWARD_DECLARE_CLASS(TagData)
+
+class QUTE_NOTE_EXPORT Tag: public DataElementWithShortcut
 {
 public:
     Tag();
-    Tag(const Tag & other) = default;
+    Tag(const Tag & other);
     Tag(Tag && other);
-    Tag & operator=(const Tag & other) = default;
+    Tag & operator=(const Tag & other);
     Tag & operator=(Tag && other);
 
     Tag(const qevercloud::Tag & other);
     Tag(qevercloud::Tag && other);
 
-    virtual ~Tag() final override;
+    virtual ~Tag();
 
     bool operator==(const Tag & other) const;
     bool operator!=(const Tag & other) const;
 
-    virtual void clear() final override;
+    virtual void clear() override;
 
-    virtual bool hasGuid() const final override;
-    virtual const QString & guid() const final override;
-    virtual void setGuid(const QString & guid) final override;
+    virtual bool hasGuid() const override;
+    virtual const QString & guid() const override;
+    virtual void setGuid(const QString & guid) override;
 
-    virtual bool hasUpdateSequenceNumber() const final override;
-    virtual qint32 updateSequenceNumber() const final override;
-    virtual void setUpdateSequenceNumber(const qint32 usn) final override;
+    virtual bool hasUpdateSequenceNumber() const override;
+    virtual qint32 updateSequenceNumber() const override;
+    virtual void setUpdateSequenceNumber(const qint32 usn) override;
 
-    virtual bool checkParameters(QString & errorDescription) const final override;
+    virtual bool checkParameters(QString & errorDescription) const override;
 
     bool isLocal() const;
     void setLocal(const bool local);
@@ -50,12 +53,10 @@ public:
     void setParentGuid(const QString & parentGuid);
 
 private:
-    virtual QTextStream & Print(QTextStream & strm) const final override;
+    virtual QTextStream & Print(QTextStream & strm) const override;
 
 private:
-    qevercloud::Tag m_qecTag;
-    bool m_isLocal;
-    bool m_isDeleted;
+    QSharedDataPointer<TagData> d;
 };
 
 } // namespace qute_note
