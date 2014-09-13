@@ -144,16 +144,16 @@ Q_SIGNALS:
     // Saved search-related signals:
     void getSavedSearchCountComplete(int savedSearchCount);
     void getSavedSearchCountFailed(QString errorDescription);
-    void addSavedSearchComplete(QSharedPointer<SavedSearch> search);
-    void addSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription);
-    void updateSavedSearchComplete(QSharedPointer<SavedSearch> search);
-    void updateSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription);
-    void findSavedSearchComplete(QSharedPointer<SavedSearch> search);
-    void findSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription);
+    void addSavedSearchComplete(SavedSearch search);
+    void addSavedSearchFailed(SavedSearch search, QString errorDescription);
+    void updateSavedSearchComplete(SavedSearch search);
+    void updateSavedSearchFailed(SavedSearch search, QString errorDescription);
+    void findSavedSearchComplete(SavedSearch search);
+    void findSavedSearchFailed(SavedSearch search, QString errorDescription);
     void listAllSavedSearchesComplete(QList<SavedSearch> foundSearches);
     void listAllSavedSearchesFailed(QString errorDescription);
-    void expungeSavedSearchComplete(QSharedPointer<SavedSearch> search);
-    void expungeSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription);
+    void expungeSavedSearchComplete(SavedSearch search);
+    void expungeSavedSearchFailed(SavedSearch search, QString errorDescription);
 
     // Signals for dealing with worker class:
     void getUserCountRequest();
@@ -208,11 +208,11 @@ Q_SIGNALS:
     void expungeResourceRequest(QSharedPointer<ResourceWrapper> resource);
 
     void getSavedSearchCountRequest();
-    void addSavedSearchRequest(QSharedPointer<SavedSearch> search);
-    void updateSavedSearchRequest(QSharedPointer<SavedSearch> search);
-    void findSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void addSavedSearchRequest(SavedSearch search);
+    void updateSavedSearchRequest(SavedSearch search);
+    void findSavedSearchRequest(SavedSearch search);
     void listAllSavedSearchesRequest();
-    void expungeSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void expungeSavedSearchRequest(SavedSearch search);
 
 public Q_SLOTS:
     // User-related slots:
@@ -274,11 +274,11 @@ public Q_SLOTS:
 
     // Saved search-related slots:
     void onGetSavedSearchCountRequest();
-    void onAddSavedSearchRequest(QSharedPointer<SavedSearch> search);
-    void onUpdateSavedSearchRequest(QSharedPointer<SavedSearch> search);
-    void onFindSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void onAddSavedSearchRequest(SavedSearch search);
+    void onUpdateSavedSearchRequest(SavedSearch search);
+    void onFindSavedSearchRequest(SavedSearch search);
     void onListAllSavedSearchesRequest();
-    void onExpungeSavedSearch(QSharedPointer<SavedSearch> search);
+    void onExpungeSavedSearch(SavedSearch search);
 
 private:
     LocalStorageManagerThread() = delete;

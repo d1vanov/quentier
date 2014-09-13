@@ -177,20 +177,20 @@ protected:
     virtual void getSavedSearchCountComplete(int savedSearchCount) = 0;
     virtual void getSavedSearchCountFailed(QString errorDescription) = 0;
 
-    virtual void addSavedSearchComplete(QSharedPointer<SavedSearch> search) = 0;
-    virtual void addSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription) = 0;
+    virtual void addSavedSearchComplete(SavedSearch search) = 0;
+    virtual void addSavedSearchFailed(SavedSearch search, QString errorDescription) = 0;
 
-    virtual void updateSavedSearchComplete(QSharedPointer<SavedSearch> search) = 0;
-    virtual void updateSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription) = 0;
+    virtual void updateSavedSearchComplete(SavedSearch search) = 0;
+    virtual void updateSavedSearchFailed(SavedSearch search, QString errorDescription) = 0;
 
-    virtual void findSavedSearchComplete(QSharedPointer<SavedSearch> search) = 0;
-    virtual void findSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription) = 0;
+    virtual void findSavedSearchComplete(SavedSearch search) = 0;
+    virtual void findSavedSearchFailed(SavedSearch search, QString errorDescription) = 0;
 
     virtual void listAllSavedSearchesComplete(QList<SavedSearch> foundSearches) = 0;
     virtual void listAllSavedSearchesFailed(QString errorDescription) = 0;
 
-    virtual void expungeSavedSearchComplete(QSharedPointer<SavedSearch> search) = 0;
-    virtual void expungeSavedSearchFailed(QSharedPointer<SavedSearch> search,
+    virtual void expungeSavedSearchComplete(SavedSearch search) = 0;
+    virtual void expungeSavedSearchFailed(SavedSearch search,
                                           QString errorDescription) = 0;
 
     // Pure virtual prototypes for slots to be invoked:
@@ -254,11 +254,11 @@ protected:
 
     // Pure virtual prototypes for saved search-related methods:
     virtual void onGetSavedSearchCountRequest() = 0;
-    virtual void onAddSavedSearchRequest(QSharedPointer<SavedSearch> search) = 0;
-    virtual void onUpdateSavedSearchRequest(QSharedPointer<SavedSearch> search) = 0;
-    virtual void onFindSavedSearchRequest(QSharedPointer<SavedSearch> search) = 0;
+    virtual void onAddSavedSearchRequest(SavedSearch search) = 0;
+    virtual void onUpdateSavedSearchRequest(SavedSearch search) = 0;
+    virtual void onFindSavedSearchRequest(SavedSearch search) = 0;
     virtual void onListAllSavedSearchesRequest() = 0;
-    virtual void onExpungeSavedSearch(QSharedPointer<SavedSearch> search) = 0;
+    virtual void onExpungeSavedSearch(SavedSearch search) = 0;
 };
 
 }

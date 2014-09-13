@@ -26,25 +26,25 @@ Q_SIGNALS:
 
 // private signals:
     void getSavedSearchCountRequest();
-    void addSavedSearchRequest(QSharedPointer<SavedSearch> search);
-    void updateSavedSearchRequest(QSharedPointer<SavedSearch> search);
-    void findSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void addSavedSearchRequest(SavedSearch search);
+    void updateSavedSearchRequest(SavedSearch search);
+    void findSavedSearchRequest(SavedSearch search);
     void listAllSavedSearchesRequest();
-    void expungeSavedSearchRequest(QSharedPointer<SavedSearch> search);
+    void expungeSavedSearchRequest(SavedSearch search);
 
 private Q_SLOTS:
     void onGetSavedSearchCountCompleted(int count);
     void onGetSavedSearchCountFailed(QString errorDescription);
-    void onAddSavedSearchCompleted(QSharedPointer<SavedSearch> search);
-    void onAddSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription);
-    void onUpdateSavedSearchCompleted(QSharedPointer<SavedSearch> search);
-    void onUpdateSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription);
-    void onFindSavedSearchCompleted(QSharedPointer<SavedSearch> search);
-    void onFindSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription);
+    void onAddSavedSearchCompleted(SavedSearch search);
+    void onAddSavedSearchFailed(SavedSearch search, QString errorDescription);
+    void onUpdateSavedSearchCompleted(SavedSearch search);
+    void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription);
+    void onFindSavedSearchCompleted(SavedSearch search);
+    void onFindSavedSearchFailed(SavedSearch search, QString errorDescription);
     void onListAllSavedSearchesCompleted(QList<SavedSearch> searches);
     void onListAllSavedSearchedFailed(QString errorDescription);
-    void onExpungeSavedSearchCompleted(QSharedPointer<SavedSearch> search);
-    void onExpungeSavedSearchFailed(QSharedPointer<SavedSearch> search, QString errorDescription);
+    void onExpungeSavedSearchCompleted(SavedSearch search);
+    void onExpungeSavedSearchFailed(SavedSearch search, QString errorDescription);
 
 private:
     void createConnections();
@@ -67,9 +67,9 @@ private:
 
     State   m_state;
     LocalStorageManagerThread   * m_pLocalStorageManagerThread;
-    QSharedPointer<SavedSearch>   m_pInitialSavedSearch;
-    QSharedPointer<SavedSearch>   m_pFoundSavedSearch;
-    QSharedPointer<SavedSearch>   m_pModifiedSavedSearch;
+    SavedSearch         m_initialSavedSearch;
+    SavedSearch         m_foundSavedSearch;
+    SavedSearch         m_modifiedSavedSearch;
     QList<SavedSearch>  m_initialSavedSearches;
 };
 
