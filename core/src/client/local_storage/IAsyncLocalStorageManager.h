@@ -35,20 +35,20 @@ protected:
     virtual void switchUserComplete(qint32 userId) = 0;
     virtual void switchUserFailed(qint32 userId, QString errorDescription) = 0;
 
-    virtual void addUserComplete(QSharedPointer<UserWrapper> user) = 0;
-    virtual void addUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription) = 0;
+    virtual void addUserComplete(UserWrapper user) = 0;
+    virtual void addUserFailed(UserWrapper user, QString errorDescription) = 0;
 
-    virtual void updateUserComplete(QSharedPointer<UserWrapper> user) = 0;
-    virtual void updateUserFailed(QSharedPointer<UserWrapper> user, QString errorDecription) = 0;
+    virtual void updateUserComplete(UserWrapper user) = 0;
+    virtual void updateUserFailed(UserWrapper user, QString errorDecription) = 0;
 
-    virtual void findUserComplete(QSharedPointer<UserWrapper> foundUser) = 0;
-    virtual void findUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription) = 0;
+    virtual void findUserComplete(UserWrapper foundUser) = 0;
+    virtual void findUserFailed(UserWrapper user, QString errorDescription) = 0;
 
-    virtual void deleteUserComplete(QSharedPointer<UserWrapper> user) = 0;
-    virtual void deleteUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription) = 0;
+    virtual void deleteUserComplete(UserWrapper user) = 0;
+    virtual void deleteUserFailed(UserWrapper user, QString errorDescription) = 0;
 
-    virtual void expungeUserComplete(QSharedPointer<UserWrapper> user) = 0;
-    virtual void expungeUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription) = 0;
+    virtual void expungeUserComplete(UserWrapper user) = 0;
+    virtual void expungeUserFailed(UserWrapper user, QString errorDescription) = 0;
 
     // Prototypes for notebook-related signals:
     virtual void getNotebookCountComplete(int notebookCount) = 0;
@@ -198,11 +198,11 @@ protected:
     // Pure virtual prototypes for user-related slots:
     virtual void onGetUserCountRequest() = 0;
     virtual void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch) = 0;
-    virtual void onAddUserRequest(QSharedPointer<UserWrapper> user) = 0;
-    virtual void onUpdateUserRequest(QSharedPointer<UserWrapper> user) = 0;
-    virtual void onFindUserRequest(QSharedPointer<UserWrapper> user) = 0;
-    virtual void onDeleteUserRequest(QSharedPointer<UserWrapper> user) = 0;
-    virtual void onExpungeUserRequest(QSharedPointer<UserWrapper> user) = 0;
+    virtual void onAddUserRequest(UserWrapper user) = 0;
+    virtual void onUpdateUserRequest(UserWrapper user) = 0;
+    virtual void onFindUserRequest(UserWrapper user) = 0;
+    virtual void onDeleteUserRequest(UserWrapper user) = 0;
+    virtual void onExpungeUserRequest(UserWrapper user) = 0;
 
     // Pure virtual prototypes for notebook-related slots:
     virtual void onGetNotebookCountRequest() = 0;

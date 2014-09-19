@@ -19,16 +19,16 @@ void LocalStorageManagerThread::createConnections()
     QObject::connect(this, SIGNAL(getUserCountRequest()), m_pWorker, SLOT(onGetUserCountRequest()));
     QObject::connect(this, SIGNAL(switchUserRequest(QString,qint32,bool)),
                      m_pWorker, SLOT(onSwitchUserRequest(QString,qint32,bool)));
-    QObject::connect(this, SIGNAL(addUserRequest(QSharedPointer<UserWrapper>)),
-                     m_pWorker, SLOT(onAddUserRequest(QSharedPointer<UserWrapper>)));
-    QObject::connect(this, SIGNAL(updateUserRequest(QSharedPointer<UserWrapper>)),
-                     m_pWorker, SLOT(onUpdateUserRequest(QSharedPointer<UserWrapper>)));
-    QObject::connect(this, SIGNAL(findUserRequest(QSharedPointer<UserWrapper>)),
-                     m_pWorker, SLOT(onFindUserRequest(QSharedPointer<UserWrapper>)));
-    QObject::connect(this, SIGNAL(deleteUserRequest(QSharedPointer<UserWrapper>)),
-                     m_pWorker, SLOT(onDeleteUserRequest(QSharedPointer<UserWrapper>)));
-    QObject::connect(this, SIGNAL(expungeUserRequest(QSharedPointer<UserWrapper>)),
-                     m_pWorker, SLOT(onExpungeUserRequest(QSharedPointer<UserWrapper>)));
+    QObject::connect(this, SIGNAL(addUserRequest(UserWrapper)),
+                     m_pWorker, SLOT(onAddUserRequest(UserWrapper)));
+    QObject::connect(this, SIGNAL(updateUserRequest(UserWrapper)),
+                     m_pWorker, SLOT(onUpdateUserRequest(UserWrapper)));
+    QObject::connect(this, SIGNAL(findUserRequest(UserWrapper)),
+                     m_pWorker, SLOT(onFindUserRequest(UserWrapper)));
+    QObject::connect(this, SIGNAL(deleteUserRequest(UserWrapper)),
+                     m_pWorker, SLOT(onDeleteUserRequest(UserWrapper)));
+    QObject::connect(this, SIGNAL(expungeUserRequest(UserWrapper)),
+                     m_pWorker, SLOT(onExpungeUserRequest(UserWrapper)));
 
     // User-related signal-signal connections:
     QObject::connect(m_pWorker, SIGNAL(getUserCountComplete(int)), this, SIGNAL(getUserCountComplete(int)));
@@ -37,26 +37,26 @@ void LocalStorageManagerThread::createConnections()
                      this, SIGNAL(switchUserComplete(qint32)));
     QObject::connect(m_pWorker, SIGNAL(switchUserFailed(qint32,QString)),
                      this, SIGNAL(switchUserFailed(qint32,QString)));
-    QObject::connect(m_pWorker, SIGNAL(addUserComplete(QSharedPointer<UserWrapper>)),
-                     this, SIGNAL(addUserComplete(QSharedPointer<UserWrapper>)));
-    QObject::connect(m_pWorker, SIGNAL(addUserFailed(QSharedPointer<UserWrapper>,QString)),
-                     this, SIGNAL(addUserFailed(QSharedPointer<UserWrapper>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(updateUserComplete(QSharedPointer<UserWrapper>)),
-                     this, SIGNAL(updateUserComplete(QSharedPointer<UserWrapper>)));
-    QObject::connect(m_pWorker, SIGNAL(updateUserFailed(QSharedPointer<UserWrapper>,QString)),
-                     this, SIGNAL(updateUserFailed(QSharedPointer<UserWrapper>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(findUserComplete(QSharedPointer<UserWrapper>)),
-                     this, SIGNAL(findUserComplete(QSharedPointer<UserWrapper>)));
-    QObject::connect(m_pWorker, SIGNAL(findUserFailed(QSharedPointer<UserWrapper>,QString)),
-                     this, SIGNAL(findUserFailed(QSharedPointer<UserWrapper>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(deleteUserComplete(QSharedPointer<UserWrapper>)),
-                     this, SIGNAL(deleteUserComplete(QSharedPointer<UserWrapper>)));
-    QObject::connect(m_pWorker, SIGNAL(deleteUserFailed(QSharedPointer<UserWrapper>,QString)),
-                     this, SIGNAL(deleteUserFailed(QSharedPointer<UserWrapper>,QString)));
-    QObject::connect(m_pWorker, SIGNAL(expungeUserComplete(QSharedPointer<UserWrapper>)),
-                     this, SIGNAL(expungeUserComplete(QSharedPointer<UserWrapper>)));
-    QObject::connect(m_pWorker, SIGNAL(expungeUserFailed(QSharedPointer<UserWrapper>,QString)),
-                     this, SIGNAL(expungeUserFailed(QSharedPointer<UserWrapper>,QString)));
+    QObject::connect(m_pWorker, SIGNAL(addUserComplete(UserWrapper)),
+                     this, SIGNAL(addUserComplete(UserWrapper)));
+    QObject::connect(m_pWorker, SIGNAL(addUserFailed(UserWrapper,QString)),
+                     this, SIGNAL(addUserFailed(UserWrapper,QString)));
+    QObject::connect(m_pWorker, SIGNAL(updateUserComplete(UserWrapper)),
+                     this, SIGNAL(updateUserComplete(UserWrapper)));
+    QObject::connect(m_pWorker, SIGNAL(updateUserFailed(UserWrapper,QString)),
+                     this, SIGNAL(updateUserFailed(UserWrapper,QString)));
+    QObject::connect(m_pWorker, SIGNAL(findUserComplete(UserWrapper)),
+                     this, SIGNAL(findUserComplete(UserWrapper)));
+    QObject::connect(m_pWorker, SIGNAL(findUserFailed(UserWrapper,QString)),
+                     this, SIGNAL(findUserFailed(UserWrapper,QString)));
+    QObject::connect(m_pWorker, SIGNAL(deleteUserComplete(UserWrapper)),
+                     this, SIGNAL(deleteUserComplete(UserWrapper)));
+    QObject::connect(m_pWorker, SIGNAL(deleteUserFailed(UserWrapper,QString)),
+                     this, SIGNAL(deleteUserFailed(UserWrapper,QString)));
+    QObject::connect(m_pWorker, SIGNAL(expungeUserComplete(UserWrapper)),
+                     this, SIGNAL(expungeUserComplete(UserWrapper)));
+    QObject::connect(m_pWorker, SIGNAL(expungeUserFailed(UserWrapper,QString)),
+                     this, SIGNAL(expungeUserFailed(UserWrapper,QString)));
 
     // Notebook-related signal-slot connections:
     QObject::connect(this, SIGNAL(getNotebookCountRequest()), m_pWorker, SLOT(onGetNotebookCountRequest()));
@@ -337,27 +337,27 @@ void LocalStorageManagerThread::onSwitchUserRequest(QString username, qint32 use
     emit switchUserRequest(username, userId, startFromScratch);
 }
 
-void LocalStorageManagerThread::onAddUserRequest(QSharedPointer<UserWrapper> user)
+void LocalStorageManagerThread::onAddUserRequest(UserWrapper user)
 {
     emit addUserRequest(user);
 }
 
-void LocalStorageManagerThread::onUpdateUserRequest(QSharedPointer<UserWrapper> user)
+void LocalStorageManagerThread::onUpdateUserRequest(UserWrapper user)
 {
     emit updateUserRequest(user);
 }
 
-void LocalStorageManagerThread::onFindUserRequest(QSharedPointer<UserWrapper> user)
+void LocalStorageManagerThread::onFindUserRequest(UserWrapper user)
 {
     emit findUserRequest(user);
 }
 
-void LocalStorageManagerThread::onDeleteUserRequest(QSharedPointer<UserWrapper> user)
+void LocalStorageManagerThread::onDeleteUserRequest(UserWrapper user)
 {
     emit deleteUserRequest(user);
 }
 
-void LocalStorageManagerThread::onExpungeUserRequest(QSharedPointer<UserWrapper> user)
+void LocalStorageManagerThread::onExpungeUserRequest(UserWrapper user)
 {
     emit expungeUserRequest(user);
 }

@@ -47,19 +47,11 @@ void LocalStorageManagerThreadWorker::onSwitchUserRequest(QString username, qint
     emit switchUserComplete(userId);
 }
 
-void LocalStorageManagerThreadWorker::onAddUserRequest(QSharedPointer<UserWrapper> user)
+void LocalStorageManagerThreadWorker::onAddUserRequest(UserWrapper user)
 {
     QString errorDescription;
 
-    if (user.isNull()) {
-        errorDescription = "Internal error: detected null pointer on attempt "
-                           "to add user to local storage";
-        QNCRITICAL(errorDescription);
-        emit addUserFailed(user, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.AddUser(*user, errorDescription);
+    bool res = m_localStorageManager.AddUser(user, errorDescription);
     if (!res) {
         emit addUserFailed(user, errorDescription);
         return;
@@ -68,19 +60,11 @@ void LocalStorageManagerThreadWorker::onAddUserRequest(QSharedPointer<UserWrappe
     emit addUserComplete(user);
 }
 
-void LocalStorageManagerThreadWorker::onUpdateUserRequest(QSharedPointer<UserWrapper> user)
+void LocalStorageManagerThreadWorker::onUpdateUserRequest(UserWrapper user)
 {
     QString errorDescription;
 
-    if (user.isNull()) {
-        errorDescription = "Internal error: detected null pointer on attempt "
-                           "to update user in local storage";
-        QNCRITICAL(errorDescription);
-        emit updateUserFailed(user, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.UpdateUser(*user, errorDescription);
+    bool res = m_localStorageManager.UpdateUser(user, errorDescription);
     if (!res) {
         emit updateUserFailed(user, errorDescription);
         return;
@@ -89,19 +73,11 @@ void LocalStorageManagerThreadWorker::onUpdateUserRequest(QSharedPointer<UserWra
     emit updateUserComplete(user);
 }
 
-void LocalStorageManagerThreadWorker::onFindUserRequest(QSharedPointer<UserWrapper> user)
+void LocalStorageManagerThreadWorker::onFindUserRequest(UserWrapper user)
 {
     QString errorDescription;
 
-    if (user.isNull()) {
-        errorDescription = "Internal error: detected null pointer "
-                           "on attempt to find user in local storage";
-        QNCRITICAL(errorDescription);
-        emit findUserFailed(user, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.FindUser(*user, errorDescription);
+    bool res = m_localStorageManager.FindUser(user, errorDescription);
     if (!res) {
         emit findUserFailed(user, errorDescription);
         return;
@@ -110,19 +86,11 @@ void LocalStorageManagerThreadWorker::onFindUserRequest(QSharedPointer<UserWrapp
     emit findUserComplete(user);
 }
 
-void LocalStorageManagerThreadWorker::onDeleteUserRequest(QSharedPointer<UserWrapper> user)
+void LocalStorageManagerThreadWorker::onDeleteUserRequest(UserWrapper user)
 {
     QString errorDescription;
 
-    if (user.isNull()) {
-        errorDescription = "Internal error: detected null pointer "
-                           "on attempt to delete user in local storage";
-        QNCRITICAL(errorDescription);
-        emit deleteUserFailed(user, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.DeleteUser(*user, errorDescription);
+    bool res = m_localStorageManager.DeleteUser(user, errorDescription);
     if (!res) {
         emit deleteUserFailed(user, errorDescription);
         return;
@@ -131,19 +99,11 @@ void LocalStorageManagerThreadWorker::onDeleteUserRequest(QSharedPointer<UserWra
     emit deleteUserComplete(user);
 }
 
-void LocalStorageManagerThreadWorker::onExpungeUserRequest(QSharedPointer<UserWrapper> user)
+void LocalStorageManagerThreadWorker::onExpungeUserRequest(UserWrapper user)
 {
     QString errorDescription;
 
-    if (user.isNull()) {
-        errorDescription = "Internal error: detected null pointer "
-                           "on attempt to expunge user from local storage";
-        QNCRITICAL(errorDescription);
-        emit expungeUserFailed(user, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.ExpungeUser(*user, errorDescription);
+    bool res = m_localStorageManager.ExpungeUser(user, errorDescription);
     if (!res) {
         emit expungeUserFailed(user, errorDescription);
         return;

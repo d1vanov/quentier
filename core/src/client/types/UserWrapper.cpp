@@ -8,6 +8,7 @@ UserWrapper::UserWrapper() :
 {}
 
 UserWrapper::UserWrapper(const UserWrapper & other) :
+    IUser(other),
     d(other.d)
 {}
 

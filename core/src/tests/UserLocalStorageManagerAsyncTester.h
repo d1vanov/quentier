@@ -26,25 +26,25 @@ Q_SIGNALS:
 
 // private signals:
     void getUserCountRequest();
-    void addUserRequest(QSharedPointer<UserWrapper> user);
-    void updateUserRequest(QSharedPointer<UserWrapper> user);
-    void findUserRequest(QSharedPointer<UserWrapper> user);
-    void deleteUserRequest(QSharedPointer<UserWrapper> user);
-    void expungeUserRequest(QSharedPointer<UserWrapper> user);
+    void addUserRequest(UserWrapper user);
+    void updateUserRequest(UserWrapper user);
+    void findUserRequest(UserWrapper user);
+    void deleteUserRequest(UserWrapper user);
+    void expungeUserRequest(UserWrapper user);
 
 private Q_SLOTS:
     void onGetUserCountCompleted(int count);
     void onGetUserCountFailed(QString errorDescription);
-    void onAddUserCompleted(QSharedPointer<UserWrapper> user);
-    void onAddUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
-    void onUpdateUserCompleted(QSharedPointer<UserWrapper> user);
-    void onUpdateUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
-    void onFindUserCompleted(QSharedPointer<UserWrapper> user);
-    void onFindUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
-    void onDeleteUserCompleted(QSharedPointer<UserWrapper> user);
-    void onDeleteUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
-    void onExpungeUserCompleted(QSharedPointer<UserWrapper> user);
-    void onExpungeUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
+    void onAddUserCompleted(UserWrapper user);
+    void onAddUserFailed(UserWrapper user, QString errorDescription);
+    void onUpdateUserCompleted(UserWrapper user);
+    void onUpdateUserFailed(UserWrapper user, QString errorDescription);
+    void onFindUserCompleted(UserWrapper user);
+    void onFindUserFailed(UserWrapper user, QString errorDescription);
+    void onDeleteUserCompleted(UserWrapper user);
+    void onDeleteUserFailed(UserWrapper user, QString errorDescription);
+    void onExpungeUserCompleted(UserWrapper user);
+    void onExpungeUserFailed(UserWrapper user, QString errorDescription);
 
 private:
     void createConnections();
@@ -65,9 +65,9 @@ private:
 
     State m_state;
     LocalStorageManagerThread * m_pLocalStorageManagerThread;
-    QSharedPointer<UserWrapper> m_pInitialUser;
-    QSharedPointer<UserWrapper> m_pFoundUser;
-    QSharedPointer<UserWrapper> m_pModifiedUser;
+    UserWrapper                 m_initialUser;
+    UserWrapper                 m_foundUser;
+    UserWrapper                 m_modifiedUser;
 };
 
 } // namespace test

@@ -209,7 +209,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookCompleted
         if (notebook != m_initialLinkedNotebook) {
             errorDescription = "Added and found linked notebooks in local storage don't match";
             QNWARNING(errorDescription << ": LinkedNotebook added to LocalStorageManager: " << m_initialLinkedNotebook
-                      << "\nLinkedNotebook found in LocalStorageManager: " << m_foundLinkedNotebook);
+                      << "\nLinkedNotebook found in LocalStorageManager: " << notebook);
             emit failure(errorDescription);
             return;
         }
@@ -230,7 +230,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookCompleted
             errorDescription = "Updated and found linked notebooks in local storage don't match";
             QNWARNING(errorDescription << ": LinkedNotebook updated in LocalStorageManager: "
                       << m_modifiedLinkedNotebook << "\nLinkedNotebook found in LocalStorageManager: "
-                      << m_foundLinkedNotebook);
+                      << notebook);
             emit failure(errorDescription);
             return;
         }
@@ -242,7 +242,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookCompleted
     {
         errorDescription = "Error: found linked notebook which should have been expunged from local storage";
         QNWARNING(errorDescription << ": LinkedNotebook expunged from LocalStorageManager: " << m_modifiedLinkedNotebook
-                  << "\nLinkedNotebook found in LocalStorageManager: " << m_foundLinkedNotebook);
+                  << "\nLinkedNotebook found in LocalStorageManager: " << notebook);
         emit failure(errorDescription);
         return;
     }

@@ -44,16 +44,16 @@ Q_SIGNALS:
     void getUserCountFailed(QString errorDescription);
     void switchUserComplete(qint32 userId);
     void switchUserFailed(qint32 userId, QString errorDescription);
-    void addUserComplete(QSharedPointer<UserWrapper> user);
-    void addUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
-    void updateUserComplete(QSharedPointer<UserWrapper> user);
-    void updateUserFailed(QSharedPointer<UserWrapper> user, QString errorDecription);
-    void findUserComplete(QSharedPointer<UserWrapper> foundUser);
-    void findUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
-    void deleteUserComplete(QSharedPointer<UserWrapper> user);
-    void deleteUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
-    void expungeUserComplete(QSharedPointer<UserWrapper> user);
-    void expungeUserFailed(QSharedPointer<UserWrapper> user, QString errorDescription);
+    void addUserComplete(UserWrapper user);
+    void addUserFailed(UserWrapper user, QString errorDescription);
+    void updateUserComplete(UserWrapper user);
+    void updateUserFailed(UserWrapper user, QString errorDecription);
+    void findUserComplete(UserWrapper foundUser);
+    void findUserFailed(UserWrapper user, QString errorDescription);
+    void deleteUserComplete(UserWrapper user);
+    void deleteUserFailed(UserWrapper user, QString errorDescription);
+    void expungeUserComplete(UserWrapper user);
+    void expungeUserFailed(UserWrapper user, QString errorDescription);
 
     // Notebook-related signals:
     void getNotebookCountComplete(int notebookCount);
@@ -158,11 +158,11 @@ Q_SIGNALS:
     // Signals for dealing with worker class:
     void getUserCountRequest();
     void switchUserRequest(QString username, qint32 userId, bool startFromScratch);
-    void addUserRequest(QSharedPointer<UserWrapper> user);
-    void updateUserRequest(QSharedPointer<UserWrapper> user);
-    void findUserRequest(QSharedPointer<UserWrapper> user);
-    void deleteUserRequest(QSharedPointer<UserWrapper> user);
-    void expungeUserRequest(QSharedPointer<UserWrapper> user);
+    void addUserRequest(UserWrapper user);
+    void updateUserRequest(UserWrapper user);
+    void findUserRequest(UserWrapper user);
+    void deleteUserRequest(UserWrapper user);
+    void expungeUserRequest(UserWrapper user);
 
     void getNotebookCountRequest();
     void addNotebookRequest(Notebook notebook);
@@ -218,11 +218,11 @@ public Q_SLOTS:
     // User-related slots:
     void onGetUserCountRequest();
     void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch);
-    void onAddUserRequest(QSharedPointer<UserWrapper> user);
-    void onUpdateUserRequest(QSharedPointer<UserWrapper> user);
-    void onFindUserRequest(QSharedPointer<UserWrapper> user);
-    void onDeleteUserRequest(QSharedPointer<UserWrapper> user);
-    void onExpungeUserRequest(QSharedPointer<UserWrapper> user);
+    void onAddUserRequest(UserWrapper user);
+    void onUpdateUserRequest(UserWrapper user);
+    void onFindUserRequest(UserWrapper user);
+    void onDeleteUserRequest(UserWrapper user);
+    void onExpungeUserRequest(UserWrapper user);
 
     // Notebook-related slots:
     void onGetNotebookCountRequest();
