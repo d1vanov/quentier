@@ -11,9 +11,9 @@ ResourceLocalStorageManagerAsyncTester::ResourceLocalStorageManagerAsyncTester(Q
     m_pLocalStorageManagerThread(nullptr),
     m_notebook(),
     m_note(),
-    m_pInitialResource(),
-    m_pFoundResource(),
-    m_pModifiedResource()
+    m_initialResource(),
+    m_foundResource(),
+    m_modifiedResource()
 {}
 
 ResourceLocalStorageManagerAsyncTester::~ResourceLocalStorageManagerAsyncTester()
@@ -124,29 +124,28 @@ void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Noteb
             return;
         }
 
-        m_pInitialResource = QSharedPointer<ResourceWrapper>(new ResourceWrapper);
-        m_pInitialResource->setGuid("00000000-0000-0000-c000-000000000048");
-        m_pInitialResource->setUpdateSequenceNumber(1);
+        m_initialResource.setGuid("00000000-0000-0000-c000-000000000048");
+        m_initialResource.setUpdateSequenceNumber(1);
         if (note.hasGuid()) {
-            m_pInitialResource->setNoteGuid(note.guid());
+            m_initialResource.setNoteGuid(note.guid());
         }
         if (!note.localGuid().isEmpty()) {
-            m_pInitialResource->setNoteLocalGuid(note.localGuid());
+            m_initialResource.setNoteLocalGuid(note.localGuid());
         }
-        m_pInitialResource->setIndexInNote(0);
-        m_pInitialResource->setDataBody("Fake resource data body");
-        m_pInitialResource->setDataSize(m_pInitialResource->dataBody().size());
-        m_pInitialResource->setDataHash("Fake hash      1");
+        m_initialResource.setIndexInNote(0);
+        m_initialResource.setDataBody("Fake resource data body");
+        m_initialResource.setDataSize(m_initialResource.dataBody().size());
+        m_initialResource.setDataHash("Fake hash      1");
 
-        m_pInitialResource->setRecognitionDataBody("Fake resource recognition data body");
-        m_pInitialResource->setRecognitionDataSize(m_pInitialResource->recognitionDataBody().size());
-        m_pInitialResource->setRecognitionDataHash("Fake hash      2");
+        m_initialResource.setRecognitionDataBody("Fake resource recognition data body");
+        m_initialResource.setRecognitionDataSize(m_initialResource.recognitionDataBody().size());
+        m_initialResource.setRecognitionDataHash("Fake hash      2");
 
-        m_pInitialResource->setMime("text/plain");
-        m_pInitialResource->setWidth(1);
-        m_pInitialResource->setHeight(1);
+        m_initialResource.setMime("text/plain");
+        m_initialResource.setWidth(1);
+        m_initialResource.setHeight(1);
 
-        qevercloud::ResourceAttributes & attributes = m_pInitialResource->resourceAttributes();
+        qevercloud::ResourceAttributes & attributes = m_initialResource.resourceAttributes();
 
         attributes.sourceURL = "Fake resource source URL";
         attributes.timestamp = 1;
@@ -170,7 +169,7 @@ void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Noteb
         appData.fullMap->operator[]("key_3") = "value_3";
 
         m_state = STATE_SENT_ADD_REQUEST;
-        emit addResourceRequest(m_pInitialResource, m_note);
+        emit addResourceRequest(m_initialResource, m_note);
     }
     HANDLE_WRONG_STATE();
 }
@@ -196,7 +195,7 @@ void ResourceLocalStorageManagerAsyncTester::onGetResourceCountCompleted(int cou
         }
 
         m_state = STATE_SENT_EXPUNGE_REQUEST;
-        emit expungeResourceRequest(m_pModifiedResource);
+        emit expungeResourceRequest(m_modifiedResource);
     }
     else if (m_state == STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST)
     {
@@ -219,145 +218,113 @@ void ResourceLocalStorageManagerAsyncTester::onGetResourceCountFailed(QString er
     emit failure(errorDescription);
 }
 
-void ResourceLocalStorageManagerAsyncTester::onAddResourceCompleted(QSharedPointer<ResourceWrapper> resource)
+void ResourceLocalStorageManagerAsyncTester::onAddResourceCompleted(ResourceWrapper resource)
 {
-    Q_ASSERT_X(!resource.isNull(), "ResourceLocalStorageManagerAsyncTester::onAddResourceCompleted slot",
-               "Found NULL shared pointer to ResourceWrapper");
-
     QString errorDescription;
     if (m_state == STATE_SENT_ADD_REQUEST)
     {
-        if (m_pInitialResource != resource) {
+        if (m_initialResource != resource) {
             errorDescription = "Internal error in ResourceLocalStorageManagerAsyncTester: "
-                               "resource pointer in onAddResourceCompleted doesn't match "
-                               "the pointer to the original Resource";
+                               "resource in onAddResourceCompleted doesn't match "
+                               "the original Resource";
             QNWARNING(errorDescription);
             emit failure(errorDescription);
             return;
         }
 
-        m_pFoundResource = QSharedPointer<ResourceWrapper>(new ResourceWrapper);
-        m_pFoundResource->setLocalGuid(m_pInitialResource->localGuid());
+        m_foundResource.clear();
+        m_foundResource.setLocalGuid(m_initialResource.localGuid());
 
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
         bool withBinaryData = true;
-        emit findResourceRequest(m_pFoundResource, withBinaryData);
+        emit findResourceRequest(m_foundResource, withBinaryData);
     }
     HANDLE_WRONG_STATE();
 }
 
-void ResourceLocalStorageManagerAsyncTester::onAddResourceFailed(QSharedPointer<ResourceWrapper> resource,
+void ResourceLocalStorageManagerAsyncTester::onAddResourceFailed(ResourceWrapper resource,
                                                                  Note note, QString errorDescription)
 {
-    QNWARNING(errorDescription << ", Resource: " << (resource.isNull() ? QString("NULL") : resource->ToQString())
-              << ", Note: " << note);
+    QNWARNING(errorDescription << ", Resource: " << resource << ", Note: " << note);
     emit failure(errorDescription);
 }
 
-void ResourceLocalStorageManagerAsyncTester::onUpdateResourceCompleted(QSharedPointer<ResourceWrapper> resource)
+void ResourceLocalStorageManagerAsyncTester::onUpdateResourceCompleted(ResourceWrapper resource)
 {
-    Q_ASSERT_X(!resource.isNull(), "ResourceLocalStorageManagerAsyncTester::onUpdateResourceCompleted slot",
-               "Found NULL shared pointer to ResourceWrapper");
-
     QString errorDescription;
 
     if (m_state == STATE_SENT_UPDATE_REQUEST)
     {
-        if (m_pModifiedResource != resource) {
+        if (m_modifiedResource != resource) {
             errorDescription = "Internal error in ResourceLocalStorageManagerAsyncTester: "
-                               "resource pointer in onUpdateResourceCompleted doesn't match "
-                               "the pointer to the original Resource";
+                               "resource in onUpdateResourceCompleted doesn't match "
+                               "the original Resource";
             QNWARNING(errorDescription);
             emit failure(errorDescription);
             return;
         }
 
-        m_pFoundResource = QSharedPointer<ResourceWrapper>(new ResourceWrapper);
-        m_pFoundResource->setLocalGuid(m_pModifiedResource->localGuid());
+        m_foundResource.clear();
+        m_foundResource.setLocalGuid(m_modifiedResource.localGuid());
 
         m_state = STATE_SENT_FIND_AFTER_UPDATE_REQUEST;
         bool withBinaryData = false;    // test find without binary data, for a change
-        emit findResourceRequest(m_pFoundResource, withBinaryData);
+        emit findResourceRequest(m_foundResource, withBinaryData);
     }
     HANDLE_WRONG_STATE();
 }
 
-void ResourceLocalStorageManagerAsyncTester::onUpdateResourceFailed(QSharedPointer<ResourceWrapper> resource,
+void ResourceLocalStorageManagerAsyncTester::onUpdateResourceFailed(ResourceWrapper resource,
                                                                     Note note, QString errorDescription)
 {
-    QNWARNING(errorDescription << ", Resource: " << (resource.isNull() ? QString("NULL") : resource->ToQString())
-              << ", Note: " << note);
+    QNWARNING(errorDescription << ", Resource: " << resource << ", Note: " << note);
     emit failure(errorDescription);
 }
 
-void ResourceLocalStorageManagerAsyncTester::onFindResourceCompleted(QSharedPointer<ResourceWrapper> resource,
+void ResourceLocalStorageManagerAsyncTester::onFindResourceCompleted(ResourceWrapper resource,
                                                                      bool withBinaryData)
 {
-    Q_ASSERT_X(!resource.isNull(), "ResourceLocalStorageManagerAsyncTester::onFindResourceCompleted slot",
-               "Found NULL shared pointer to Resource");
-
     QString errorDescription;
 
     if (m_state == STATE_SENT_FIND_AFTER_ADD_REQUEST)
     {
-        if (m_pFoundResource != resource) {
-            errorDescription = "Internal error in ResourceLocalStorageManagerAsyncTester: "
-                               "resource pointer in onFindResourceCompleted slot doesn't match "
-                               "the pointer to the original Resource";
-            QNWARNING(errorDescription);
-            emit failure(errorDescription);
-            return;
-        }
-
-        Q_ASSERT(!m_pInitialResource.isNull());
-        if (*m_pFoundResource != *m_pInitialResource) {
+        if (resource != m_initialResource) {
             errorDescription = "Added and found resources in local storage don't match";
-            QNWARNING(errorDescription << ": Resource added to LocalStorageManager: " << *m_pInitialResource
-                      << "\nResource found in LocalStorageManager: " << *m_pFoundResource);
+            QNWARNING(errorDescription << ": Resource added to LocalStorageManager: " << m_initialResource
+                      << "\nResource found in LocalStorageManager: " << resource);
             emit failure(errorDescription);
             return;
         }
 
         // Ok, found resource is good, updating it now
-        m_pModifiedResource = QSharedPointer<ResourceWrapper>(new ResourceWrapper(*m_pInitialResource));
-        m_pModifiedResource->setUpdateSequenceNumber(m_pInitialResource->updateSequenceNumber() + 1);
-        m_pModifiedResource->setHeight(m_pInitialResource->height() + 1);
-        m_pModifiedResource->setWidth(m_pInitialResource->width() + 1);
+        m_modifiedResource = m_initialResource;
+        m_modifiedResource.setUpdateSequenceNumber(m_initialResource.updateSequenceNumber() + 1);
+        m_modifiedResource.setHeight(m_initialResource.height() + 1);
+        m_modifiedResource.setWidth(m_initialResource.width() + 1);
 
-        qevercloud::ResourceAttributes & attributes = m_pModifiedResource->resourceAttributes();
+        qevercloud::ResourceAttributes & attributes = m_modifiedResource.resourceAttributes();
         attributes.cameraMake.ref() += "_modified";
         attributes.cameraModel.ref() += "_modified";
 
         m_state = STATE_SENT_UPDATE_REQUEST;
-        emit updateResourceRequest(m_pModifiedResource, m_note);
+        emit updateResourceRequest(m_modifiedResource, m_note);
     }
     else if (m_state == STATE_SENT_FIND_AFTER_UPDATE_REQUEST)
     {
-        if (m_pFoundResource != resource) {
-            errorDescription = "Internal error in ResourceLocalStorageManagerAsyncTester: "
-                               "resource pointer in onFindResourceCompleted slot doesn't match "
-                               "the pointer to the original modified Resource";
-            QNWARNING(errorDescription);
-            emit failure(errorDescription);
-            return;
-        }
-
-        Q_ASSERT(!m_pModifiedResource.isNull());
-
         // Find after update was called without binary data, so need to remove it from modified
         // resource prior to the comparison
-        if (m_pModifiedResource->hasDataBody()) {
-            m_pModifiedResource->setDataBody(QByteArray());
+        if (m_modifiedResource.hasDataBody()) {
+            m_modifiedResource.setDataBody(QByteArray());
         }
 
-        if (m_pModifiedResource->hasRecognitionDataBody()) {
-            m_pModifiedResource->setRecognitionDataBody(QByteArray());
+        if (m_modifiedResource.hasRecognitionDataBody()) {
+            m_modifiedResource.setRecognitionDataBody(QByteArray());
         }
 
-        if (*m_pFoundResource != *m_pModifiedResource) {
+        if (resource != m_modifiedResource) {
             errorDescription = "Updated and found resources in local storage don't match";
-            QNWARNING(errorDescription << ": Resource updated in LocalStorageManager: " << *m_pModifiedResource
-                      << "\nResource found in LocalStorageManager: " << *m_pFoundResource);
+            QNWARNING(errorDescription << ": Resource updated in LocalStorageManager: " << m_modifiedResource
+                      << "\nResource found in LocalStorageManager: " << resource);
             emit failure(errorDescription);
             return;
         }
@@ -367,17 +334,16 @@ void ResourceLocalStorageManagerAsyncTester::onFindResourceCompleted(QSharedPoin
     }
     else if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST)
     {
-        Q_ASSERT(!m_pModifiedResource.isNull());
         errorDescription = "Found resource which should have been expunged from local storage";
-        QNWARNING(errorDescription << ": Resource expunged from LocalStorageManager: " << *m_pModifiedResource
-                  << "\nResource fond in LocalStorageManager: " << *m_pFoundResource);
+        QNWARNING(errorDescription << ": Resource expunged from LocalStorageManager: " << m_modifiedResource
+                  << "\nResource fond in LocalStorageManager: " << resource);
         emit failure(errorDescription);
         return;
     }
     HANDLE_WRONG_STATE();
 }
 
-void ResourceLocalStorageManagerAsyncTester::onFindResourceFailed(QSharedPointer<ResourceWrapper> resource,
+void ResourceLocalStorageManagerAsyncTester::onFindResourceFailed(ResourceWrapper resource,
                                                                   bool withBinaryData, QString errorDescription)
 {
     if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST) {
@@ -386,36 +352,32 @@ void ResourceLocalStorageManagerAsyncTester::onFindResourceFailed(QSharedPointer
         return;
     }
 
-    QNWARNING(errorDescription << ", Resource: " << (resource.isNull() ? QString("NULL") : resource->ToQString())
-              << ", withBinaryData = " << (withBinaryData ? "true" : "false"));
+    QNWARNING(errorDescription << ", Resource: " << resource << ", withBinaryData = "
+              << (withBinaryData ? "true" : "false"));
     emit failure(errorDescription);
 }
 
-void ResourceLocalStorageManagerAsyncTester::onExpungeResourceCompleted(QSharedPointer<ResourceWrapper> resource)
+void ResourceLocalStorageManagerAsyncTester::onExpungeResourceCompleted(ResourceWrapper resource)
 {
-    Q_ASSERT_X(!resource.isNull(), "ResourceLocalStorageManagerAsyncTester::onExpungeResourceCompleted slot",
-               "Found NULL pointer to Resource");
-
     QString errorDescription;
 
-    if (m_pModifiedResource != resource) {
+    if (m_modifiedResource != resource) {
         errorDescription = "Internal error in ResourceLocalStorageManagerAsyncTester: "
-                           "resource pointer in onExpungeResourceCompleted slot doesn't match "
-                           "the pointer to the original expunged Resource";
+                           "resource in onExpungeResourceCompleted slot doesn't match "
+                           "the original expunged Resource";
         QNWARNING(errorDescription);
         emit failure(errorDescription);
         return;
     }
 
-    Q_ASSERT(!m_pFoundResource.isNull());
     m_state = STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST;
     bool withBinaryData = true;
-    emit findResourceRequest(m_pFoundResource, withBinaryData);
+    emit findResourceRequest(m_foundResource, withBinaryData);
 }
 
-void ResourceLocalStorageManagerAsyncTester::onExpungeResourceFailed(QSharedPointer<ResourceWrapper> resource, QString errorDescription)
+void ResourceLocalStorageManagerAsyncTester::onExpungeResourceFailed(ResourceWrapper resource, QString errorDescription)
 {
-    QNWARNING(errorDescription << ", Resource: " << (resource.isNull() ? QString("NULL") : resource->ToQString()));
+    QNWARNING(errorDescription << ", Resource: " << resource);
     emit failure(errorDescription);
 }
 
@@ -426,15 +388,15 @@ void ResourceLocalStorageManagerAsyncTester::createConnections()
                      m_pLocalStorageManagerThread, SLOT(onAddNotebookRequest(Notebook)));
     QObject::connect(this, SIGNAL(addNoteRequest(Note,Notebook)),
                      m_pLocalStorageManagerThread, SLOT(onAddNoteRequest(Note,Notebook)));
-    QObject::connect(this, SIGNAL(addResourceRequest(QSharedPointer<ResourceWrapper>,Note)),
-                     m_pLocalStorageManagerThread, SLOT(onAddResourceRequest(QSharedPointer<ResourceWrapper>,Note)));
-    QObject::connect(this, SIGNAL(updateResourceRequest(QSharedPointer<ResourceWrapper>,Note)),
-                     m_pLocalStorageManagerThread, SLOT(onUpdateResourceRequest(QSharedPointer<ResourceWrapper>,Note)));
-    QObject::connect(this, SIGNAL(findResourceRequest(QSharedPointer<ResourceWrapper>,bool)),
-                     m_pLocalStorageManagerThread, SLOT(onFindResourceRequest(QSharedPointer<ResourceWrapper>,bool)));
+    QObject::connect(this, SIGNAL(addResourceRequest(ResourceWrapper,Note)),
+                     m_pLocalStorageManagerThread, SLOT(onAddResourceRequest(ResourceWrapper,Note)));
+    QObject::connect(this, SIGNAL(updateResourceRequest(ResourceWrapper,Note)),
+                     m_pLocalStorageManagerThread, SLOT(onUpdateResourceRequest(ResourceWrapper,Note)));
+    QObject::connect(this, SIGNAL(findResourceRequest(ResourceWrapper,bool)),
+                     m_pLocalStorageManagerThread, SLOT(onFindResourceRequest(ResourceWrapper,bool)));
     QObject::connect(this, SIGNAL(getResourceCountRequest()), m_pLocalStorageManagerThread, SLOT(onGetResourceCountRequest()));
-    QObject::connect(this, SIGNAL(expungeResourceRequest(QSharedPointer<ResourceWrapper>)),
-                     m_pLocalStorageManagerThread, SLOT(onExpungeResourceRequest(QSharedPointer<ResourceWrapper>)));
+    QObject::connect(this, SIGNAL(expungeResourceRequest(ResourceWrapper)),
+                     m_pLocalStorageManagerThread, SLOT(onExpungeResourceRequest(ResourceWrapper)));
 
     // Slot <-- result connections
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNotebookComplete(Notebook)),
@@ -445,26 +407,26 @@ void ResourceLocalStorageManagerAsyncTester::createConnections()
                      this, SLOT(onAddNoteCompleted(Note,Notebook)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNoteFailed(Note,Notebook,QString)),
                      this, SLOT(onAddNoteFailed(Note,Notebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addResourceComplete(QSharedPointer<ResourceWrapper>,Note)),
-                     this, SLOT(onAddResourceCompleted(QSharedPointer<ResourceWrapper>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)),
-                     this, SLOT(onAddResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateResourceComplete(QSharedPointer<ResourceWrapper>,Note)),
-                     this, SLOT(onUpdateResourceCompleted(QSharedPointer<ResourceWrapper>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)),
-                     this, SLOT(onUpdateResourceFailed(QSharedPointer<ResourceWrapper>,Note,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findResourceComplete(QSharedPointer<ResourceWrapper>,bool)),
-                     this, SLOT(onFindResourceCompleted(QSharedPointer<ResourceWrapper>,bool)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findResourceFailed(QSharedPointer<ResourceWrapper>,bool,QString)),
-                     this, SLOT(onFindResourceFailed(QSharedPointer<ResourceWrapper>,bool,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addResourceComplete(ResourceWrapper,Note)),
+                     this, SLOT(onAddResourceCompleted(ResourceWrapper)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addResourceFailed(ResourceWrapper,Note,QString)),
+                     this, SLOT(onAddResourceFailed(ResourceWrapper,Note,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateResourceComplete(ResourceWrapper,Note)),
+                     this, SLOT(onUpdateResourceCompleted(ResourceWrapper)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateResourceFailed(ResourceWrapper,Note,QString)),
+                     this, SLOT(onUpdateResourceFailed(ResourceWrapper,Note,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findResourceComplete(ResourceWrapper,bool)),
+                     this, SLOT(onFindResourceCompleted(ResourceWrapper,bool)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findResourceFailed(ResourceWrapper,bool,QString)),
+                     this, SLOT(onFindResourceFailed(ResourceWrapper,bool,QString)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(getResourceCountComplete(int)),
                      this, SLOT(onGetResourceCountCompleted(int)));
     QObject::connect(m_pLocalStorageManagerThread, SIGNAL(getResourceCountFailed(QString)),
                      this, SLOT(onGetResourceCountFailed(QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeResourceComplete(QSharedPointer<ResourceWrapper>)),
-                     this, SLOT(onExpungeResourceCompleted(QSharedPointer<ResourceWrapper>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeResourceFailed(QSharedPointer<ResourceWrapper>,QString)),
-                     this, SLOT(onExpungeResourceFailed(QSharedPointer<ResourceWrapper>,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeResourceComplete(ResourceWrapper)),
+                     this, SLOT(onExpungeResourceCompleted(ResourceWrapper)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeResourceFailed(ResourceWrapper,QString)),
+                     this, SLOT(onExpungeResourceFailed(ResourceWrapper,QString)));
 }
 
 } // namespace test

@@ -157,20 +157,20 @@ protected:
     virtual void getResourceCountComplete(int resourceCount) = 0;
     virtual void getResourceCountFailed(QString errorDescription) = 0;
 
-    virtual void addResourceComplete(QSharedPointer<ResourceWrapper> resource, Note note) = 0;
-    virtual void addResourceFailed(QSharedPointer<ResourceWrapper> resource, Note note,
+    virtual void addResourceComplete(ResourceWrapper resource, Note note) = 0;
+    virtual void addResourceFailed(ResourceWrapper resource, Note note,
                                    QString errorDescription) = 0;
 
-    virtual void updateResourceComplete(QSharedPointer<ResourceWrapper> resource, Note note) = 0;
-    virtual void updateResourceFailed(QSharedPointer<ResourceWrapper> resource, Note note,
+    virtual void updateResourceComplete(ResourceWrapper resource, Note note) = 0;
+    virtual void updateResourceFailed(ResourceWrapper resource, Note note,
                                       QString errorDescription) = 0;
 
-    virtual void findResourceComplete(QSharedPointer<ResourceWrapper> resource, bool withBinaryData) = 0;
-    virtual void findResourceFailed(QSharedPointer<ResourceWrapper> resource, bool withBinaryData,
+    virtual void findResourceComplete(ResourceWrapper resource, bool withBinaryData) = 0;
+    virtual void findResourceFailed(ResourceWrapper resource, bool withBinaryData,
                                     QString errorDescription) = 0;
 
-    virtual void expungeResourceComplete(QSharedPointer<ResourceWrapper> resource) = 0;
-    virtual void expungeResourceFailed(QSharedPointer<ResourceWrapper> resource,
+    virtual void expungeResourceComplete(ResourceWrapper resource) = 0;
+    virtual void expungeResourceFailed(ResourceWrapper resource,
                                        QString errorDescription) = 0;
 
     // Prototypes for saved search-related signals:
@@ -247,10 +247,10 @@ protected:
 
     // Pure virtual prototypes for resource-related slots:
     virtual void onGetResourceCountRequest() = 0;
-    virtual void onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note) = 0;
-    virtual void onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note) = 0;
-    virtual void onFindResourceRequest(QSharedPointer<ResourceWrapper> resource, bool withBinaryData) = 0;
-    virtual void onExpungeResourceRequest(QSharedPointer<ResourceWrapper> resource) = 0;
+    virtual void onAddResourceRequest(ResourceWrapper resource, Note note) = 0;
+    virtual void onUpdateResourceRequest(ResourceWrapper resource, Note note) = 0;
+    virtual void onFindResourceRequest(ResourceWrapper resource, bool withBinaryData) = 0;
+    virtual void onExpungeResourceRequest(ResourceWrapper resource) = 0;
 
     // Pure virtual prototypes for saved search-related methods:
     virtual void onGetSavedSearchCountRequest() = 0;

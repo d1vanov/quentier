@@ -547,19 +547,11 @@ void LocalStorageManagerThreadWorker::onGetResourceCountRequest()
     }
 }
 
-void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note)
+void LocalStorageManagerThreadWorker::onAddResourceRequest(ResourceWrapper resource, Note note)
 {
     QString errorDescription;
 
-    if (resource.isNull()) {
-        errorDescription = "Internal error: detected null pointer to resource "
-                           "on attempt to add resource to local storage";
-        QNCRITICAL(errorDescription);
-        emit addResourceFailed(resource, note, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.AddEnResource(*resource, note, errorDescription);
+    bool res = m_localStorageManager.AddEnResource(resource, note, errorDescription);
     if (!res) {
         emit addResourceFailed(resource, note, errorDescription);
         return;
@@ -568,19 +560,11 @@ void LocalStorageManagerThreadWorker::onAddResourceRequest(QSharedPointer<Resour
     emit addResourceComplete(resource, note);
 }
 
-void LocalStorageManagerThreadWorker::onUpdateResourceRequest(QSharedPointer<ResourceWrapper> resource, Note note)
+void LocalStorageManagerThreadWorker::onUpdateResourceRequest(ResourceWrapper resource, Note note)
 {
     QString errorDescription;
 
-    if (resource.isNull()) {
-        errorDescription = "Internal error: detected null pointer to resource "
-                           "on attempt to update resource in local storage";
-        QNCRITICAL(errorDescription);
-        emit updateResourceFailed(resource, note, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.UpdateEnResource(*resource, note, errorDescription);
+    bool res = m_localStorageManager.UpdateEnResource(resource, note, errorDescription);
     if (!res) {
         emit updateResourceFailed(resource, note, errorDescription);
         return;
@@ -589,19 +573,11 @@ void LocalStorageManagerThreadWorker::onUpdateResourceRequest(QSharedPointer<Res
     emit updateResourceComplete(resource, note);
 }
 
-void LocalStorageManagerThreadWorker::onFindResourceRequest(QSharedPointer<ResourceWrapper> resource, bool withBinaryData)
+void LocalStorageManagerThreadWorker::onFindResourceRequest(ResourceWrapper resource, bool withBinaryData)
 {
     QString errorDescription;
 
-    if (resource.isNull()) {
-        errorDescription = "Internal error: detected null pointer to resource "
-                           "on attempt to find resource in local storage";
-        QNCRITICAL(errorDescription);
-        emit findResourceFailed(resource, withBinaryData, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.FindEnResource(*resource, errorDescription, withBinaryData);
+    bool res = m_localStorageManager.FindEnResource(resource, errorDescription, withBinaryData);
     if (!res) {
         emit findResourceFailed(resource, withBinaryData, errorDescription);
         return;
@@ -610,19 +586,11 @@ void LocalStorageManagerThreadWorker::onFindResourceRequest(QSharedPointer<Resou
     emit findResourceComplete(resource, withBinaryData);
 }
 
-void LocalStorageManagerThreadWorker::onExpungeResourceRequest(QSharedPointer<ResourceWrapper> resource)
+void LocalStorageManagerThreadWorker::onExpungeResourceRequest(ResourceWrapper resource)
 {
     QString errorDescription;
 
-    if (resource.isNull()) {
-        errorDescription = "Internal error: detected null pointer to resource "
-                           "on attempt to expunge resource from local storage";
-        QNCRITICAL(errorDescription);
-        emit expungeResourceFailed(resource, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.ExpungeEnResource(*resource, errorDescription);
+    bool res = m_localStorageManager.ExpungeEnResource(resource, errorDescription);
     if (!res) {
         emit expungeResourceFailed(resource, errorDescription);
         return;
