@@ -62,16 +62,16 @@ Q_SIGNALS:
     // Linked notebook-related signals:
     void getLinkedNotebookCountComplete(int linkedNotebookCount);
     void getLinkedNotebookCountFailed(QString errorDescription);
-    void addLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook);
-    void addLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription);
-    void updateLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook);
-    void updateLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription);
-    void findLinkedNotebookComplete(QSharedPointer<LinkedNotebook> foundLinkedNotebook);
-    void findLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription);
+    void addLinkedNotebookComplete(LinkedNotebook linkedNotebook);
+    void addLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription);
+    void updateLinkedNotebookComplete(LinkedNotebook linkedNotebook);
+    void updateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription);
+    void findLinkedNotebookComplete(LinkedNotebook foundLinkedNotebook);
+    void findLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription);
     void listAllLinkedNotebooksComplete(QList<LinkedNotebook> foundLinkedNotebooks);
     void listAllLinkedNotebooksFailed(QString errorDescription);
-    void expungeLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook);
-    void expungeLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription);
+    void expungeLinkedNotebookComplete(LinkedNotebook linkedNotebook);
+    void expungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription);
 
     // Note-related signals:
     void getNoteCountComplete(int noteCount);
@@ -160,11 +160,11 @@ public Q_SLOTS:
 
     // Linked notebook-related slots:
     void onGetLinkedNotebookCountRequest();
-    void onAddLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
-    void onUpdateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
-    void onFindLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void onAddLinkedNotebookRequest(LinkedNotebook linkedNotebook);
+    void onUpdateLinkedNotebookRequest(LinkedNotebook linkedNotebook);
+    void onFindLinkedNotebookRequest(LinkedNotebook linkedNotebook);
     void onListAllLinkedNotebooksRequest();
-    void onExpungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook);
+    void onExpungeLinkedNotebookRequest(LinkedNotebook linkedNotebook);
 
     // Note-related slots:
     void onGetNoteCountRequest();

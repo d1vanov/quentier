@@ -303,19 +303,11 @@ void LocalStorageManagerThreadWorker::onGetLinkedNotebookCountRequest()
     }
 }
 
-void LocalStorageManagerThreadWorker::onAddLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook)
+void LocalStorageManagerThreadWorker::onAddLinkedNotebookRequest(LinkedNotebook linkedNotebook)
 {
     QString errorDescription;
 
-    if (linkedNotebook.isNull()) {
-        errorDescription = "Internal error: detected null pointer "
-                           "on attempt to add linked notebook to local storage";
-        QNCRITICAL(errorDescription);
-        emit addLinkedNotebookFailed(linkedNotebook, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.AddLinkedNotebook(*linkedNotebook, errorDescription);
+    bool res = m_localStorageManager.AddLinkedNotebook(linkedNotebook, errorDescription);
     if (!res) {
         emit addLinkedNotebookFailed(linkedNotebook, errorDescription);
         return;
@@ -324,19 +316,11 @@ void LocalStorageManagerThreadWorker::onAddLinkedNotebookRequest(QSharedPointer<
     emit addLinkedNotebookComplete(linkedNotebook);
 }
 
-void LocalStorageManagerThreadWorker::onUpdateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook)
+void LocalStorageManagerThreadWorker::onUpdateLinkedNotebookRequest(LinkedNotebook linkedNotebook)
 {
     QString errorDescription;
 
-    if (linkedNotebook.isNull()) {
-        errorDescription = "Internal error: detected null pointer "
-                           "on attempt to update linked notebook in local storage";
-        QNCRITICAL(errorDescription);
-        emit updateLinkedNotebookFailed(linkedNotebook, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.UpdateLinkedNotebook(*linkedNotebook, errorDescription);
+    bool res = m_localStorageManager.UpdateLinkedNotebook(linkedNotebook, errorDescription);
     if (!res) {
         emit updateLinkedNotebookFailed(linkedNotebook, errorDescription);
         return;
@@ -345,19 +329,11 @@ void LocalStorageManagerThreadWorker::onUpdateLinkedNotebookRequest(QSharedPoint
     emit updateLinkedNotebookComplete(linkedNotebook);
 }
 
-void LocalStorageManagerThreadWorker::onFindLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook)
+void LocalStorageManagerThreadWorker::onFindLinkedNotebookRequest(LinkedNotebook linkedNotebook)
 {
     QString errorDescription;
 
-    if (linkedNotebook.isNull()) {
-        errorDescription = "Internal error: detected null pointer "
-                           "on attempt to find linked notebook in local storage";
-        QNCRITICAL(errorDescription);
-        emit findLinkedNotebookFailed(linkedNotebook, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.FindLinkedNotebook(*linkedNotebook, errorDescription);
+    bool res = m_localStorageManager.FindLinkedNotebook(linkedNotebook, errorDescription);
     if (!res) {
         emit findLinkedNotebookFailed(linkedNotebook, errorDescription);
         return;
@@ -378,19 +354,11 @@ void LocalStorageManagerThreadWorker::onListAllLinkedNotebooksRequest()
     emit listAllLinkedNotebooksComplete(linkedNotebooks);
 }
 
-void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook)
+void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(LinkedNotebook linkedNotebook)
 {
     QString errorDescription;
 
-    if (linkedNotebook.isNull()) {
-        errorDescription = "Internal error: detected null pointer "
-                           "on attempt to expunge linked notebook from local storage";
-        QNCRITICAL(errorDescription);
-        emit expungeLinkedNotebookFailed(linkedNotebook, errorDescription);
-        return;
-    }
-
-    bool res = m_localStorageManager.ExpungeLinkedNotebook(*linkedNotebook, errorDescription);
+    bool res = m_localStorageManager.ExpungeLinkedNotebook(linkedNotebook, errorDescription);
     if (!res) {
         emit expungeLinkedNotebookFailed(linkedNotebook, errorDescription);
         return;

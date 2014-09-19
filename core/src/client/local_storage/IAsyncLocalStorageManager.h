@@ -88,20 +88,20 @@ protected:
     virtual void getLinkedNotebookCountComplete(int linkedNotebookCount) = 0;
     virtual void getLinkedNotebookCountFailed(QString errorDescription) = 0;
 
-    virtual void addLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
-    virtual void addLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription) = 0;
+    virtual void addLinkedNotebookComplete(LinkedNotebook linkedNotebook) = 0;
+    virtual void addLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription) = 0;
 
-    virtual void updateLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
-    virtual void updateLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription) = 0;
+    virtual void updateLinkedNotebookComplete(LinkedNotebook linkedNotebook) = 0;
+    virtual void updateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription) = 0;
 
-    virtual void findLinkedNotebookComplete(QSharedPointer<LinkedNotebook> foundLinkedNotebook) = 0;
-    virtual void findLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription) = 0;
+    virtual void findLinkedNotebookComplete(LinkedNotebook foundLinkedNotebook) = 0;
+    virtual void findLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription) = 0;
 
     virtual void listAllLinkedNotebooksComplete(QList<LinkedNotebook> foundLinkedNotebooks) = 0;
     virtual void listAllLinkedNotebooksFailed(QString errorDescription) = 0;
 
-    virtual void expungeLinkedNotebookComplete(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
-    virtual void expungeLinkedNotebookFailed(QSharedPointer<LinkedNotebook> linkedNotebook, QString errorDescription) = 0;
+    virtual void expungeLinkedNotebookComplete(LinkedNotebook linkedNotebook) = 0;
+    virtual void expungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription) = 0;
 
     // Prototypes for note-related signals:
     virtual void getNoteCountComplete(int noteCount) = 0;
@@ -219,11 +219,11 @@ protected:
 
     // Pure virtual prototypes for linked notebook-related slots:
     virtual void onGetLinkedNotebookCountRequest() = 0;
-    virtual void onAddLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
-    virtual void onUpdateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
-    virtual void onFindLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
+    virtual void onAddLinkedNotebookRequest(LinkedNotebook linkedNotebook) = 0;
+    virtual void onUpdateLinkedNotebookRequest(LinkedNotebook linkedNotebook) = 0;
+    virtual void onFindLinkedNotebookRequest(LinkedNotebook linkedNotebook) = 0;
     virtual void onListAllLinkedNotebooksRequest() = 0;
-    virtual void onExpungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> linkedNotebook) = 0;
+    virtual void onExpungeLinkedNotebookRequest(LinkedNotebook linkedNotebook) = 0;
 
     // Pure virtual prototypes for note-related slots:
     virtual void onGetNoteCountRequest() = 0;

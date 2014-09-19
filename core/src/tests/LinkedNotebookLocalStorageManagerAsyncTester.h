@@ -26,25 +26,25 @@ Q_SIGNALS:
 
 // private signals:
     void getLinkedNotebookCountRequest();
-    void addLinkedNotebookRequest(QSharedPointer<LinkedNotebook> notebook);
-    void updateLinkedNotebookRequest(QSharedPointer<LinkedNotebook> notebook);
-    void findLinkedNotebookRequest(QSharedPointer<LinkedNotebook> notebook);
+    void addLinkedNotebookRequest(LinkedNotebook notebook);
+    void updateLinkedNotebookRequest(LinkedNotebook notebook);
+    void findLinkedNotebookRequest(LinkedNotebook notebook);
     void listAllLinkedNotebooksRequest();
-    void expungeLinkedNotebookRequest(QSharedPointer<LinkedNotebook> notebook);
+    void expungeLinkedNotebookRequest(LinkedNotebook notebook);
 
 private Q_SLOTS:
     void onGetLinkedNotebookCountCompleted(int count);
     void onGetLinkedNotebookCountFailed(QString errorDescription);
-    void onAddLinkedNotebookCompleted(QSharedPointer<LinkedNotebook> notebook);
-    void onAddLinkedNotebookFailed(QSharedPointer<LinkedNotebook> notebook, QString errorDescription);
-    void onUpdateLinkedNotebookCompleted(QSharedPointer<LinkedNotebook> notebook);
-    void onUpdateLinkedNotebookFailed(QSharedPointer<LinkedNotebook> notebook, QString errorDescription);
-    void onFindLinkedNotebookCompleted(QSharedPointer<LinkedNotebook> notebook);
-    void onFindLinkedNotebookFailed(QSharedPointer<LinkedNotebook> notebook, QString errorDescription);
+    void onAddLinkedNotebookCompleted(LinkedNotebook notebook);
+    void onAddLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription);
+    void onUpdateLinkedNotebookCompleted(LinkedNotebook notebook);
+    void onUpdateLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription);
+    void onFindLinkedNotebookCompleted(LinkedNotebook notebook);
+    void onFindLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription);
     void onListAllLinkedNotebooksCompleted(QList<LinkedNotebook> linkedNotebooks);
     void onLIstAllLinkedNotebooksFailed(QString errorDescription);
-    void onExpungeLinkedNotebookCompleted(QSharedPointer<LinkedNotebook> notebook);
-    void onExpungeLinkedNotebookFailed(QSharedPointer<LinkedNotebook> notebook, QString errorDescription);
+    void onExpungeLinkedNotebookCompleted(LinkedNotebook notebook);
+    void onExpungeLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription);
 
 private:
     void createConnections();
@@ -67,9 +67,9 @@ private:
 
     State   m_state;
     LocalStorageManagerThread     * m_pLocalStorageManagerThread;
-    QSharedPointer<LinkedNotebook>  m_pInitialLinkedNotebook;
-    QSharedPointer<LinkedNotebook>  m_pFoundLinkedNotebook;
-    QSharedPointer<LinkedNotebook>  m_pModifiedLinkedNotebook;
+    LinkedNotebook          m_initialLinkedNotebook;
+    LinkedNotebook          m_foundLinkedNotebook;
+    LinkedNotebook          m_modifiedLinkedNotebook;
     QList<LinkedNotebook>   m_initialLinkedNotebooks;
 };
 
