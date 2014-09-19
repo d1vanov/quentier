@@ -4,7 +4,6 @@
 #include <client/types/Notebook.h>
 #include <client/types/Note.h>
 #include <client/types/ResourceWrapper.h>
-#include <QSharedPointer>
 
 namespace qute_note {
 

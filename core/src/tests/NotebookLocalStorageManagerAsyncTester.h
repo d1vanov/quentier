@@ -3,7 +3,6 @@
 
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
-#include <QSharedPointer>
 
 namespace qute_note {
 

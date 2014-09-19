@@ -2,7 +2,6 @@
 #define __QUTE_NOTE__CORE__TESTS__USER_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H_H
 
 #include <client/types/UserWrapper.h>
-#include <QSharedPointer>
 
 namespace qute_note {
 

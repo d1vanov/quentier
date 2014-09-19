@@ -3,34 +3,37 @@
 
 #include "ISharedNotebook.h"
 #include <QEverCloud.h>
+#include <QSharedDataPointer>
 
 namespace qute_note {
+
+QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapperData)
 
 /**
  * @brief The SharedNotebookWrapper class creates and manages its own instance of
  * qevercloud::SharedNotebook object
  */
-class QUTE_NOTE_EXPORT SharedNotebookWrapper final: public ISharedNotebook
+class QUTE_NOTE_EXPORT SharedNotebookWrapper: public ISharedNotebook
 {
 public:
-    SharedNotebookWrapper() = default;
-    SharedNotebookWrapper(const SharedNotebookWrapper & other) = default;
+    SharedNotebookWrapper();
+    SharedNotebookWrapper(const SharedNotebookWrapper & other);
     SharedNotebookWrapper(SharedNotebookWrapper && other);
-    SharedNotebookWrapper & operator=(const SharedNotebookWrapper & other) = default;
+    SharedNotebookWrapper & operator=(const SharedNotebookWrapper & other);
     SharedNotebookWrapper & operator=(SharedNotebookWrapper && other);
 
     SharedNotebookWrapper(const qevercloud::SharedNotebook & other);
     SharedNotebookWrapper(qevercloud::SharedNotebook && other);
 
-    virtual ~SharedNotebookWrapper() final override;
+    virtual ~SharedNotebookWrapper() override;
 
-    virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const final override;
-    virtual qevercloud::SharedNotebook & GetEnSharedNotebook() final override;
+    virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const override;
+    virtual qevercloud::SharedNotebook & GetEnSharedNotebook() override;
 
 private:
-    virtual QTextStream & Print(QTextStream & strm) const final override;
+    virtual QTextStream & Print(QTextStream & strm) const override;
 
-    qevercloud::SharedNotebook m_qecSharedNotebook;
+    QSharedDataPointer<SharedNotebookWrapperData> d;
 };
 
 } // namespace qute_note

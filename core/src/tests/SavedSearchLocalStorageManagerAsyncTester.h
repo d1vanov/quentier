@@ -2,7 +2,6 @@
 #define __QUTE_NOTE__CORE__TESTS__SAVED_SEARCH_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <client/types/SavedSearch.h>
-#include <QSharedPointer>
 
 namespace qute_note {
 

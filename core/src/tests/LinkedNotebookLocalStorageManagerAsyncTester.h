@@ -2,7 +2,6 @@
 #define __QUTE_NOTE__CORE__TESTS__LINKED_NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <client/types/LinkedNotebook.h>
-#include <QSharedPointer>
 
 namespace qute_note {
 
