@@ -3,29 +3,31 @@
 
 #include "IUser.h"
 #include <QEverCloud.h>
+#include <QSharedDataPointer>
 
 namespace qute_note {
+
+QT_FORWARD_DECLARE_CLASS(UserWrapperData)
 
 /**
  * @brief The UserWrapper class creates and manages its own instance of
  * qevercloud::User object
  */
-class QUTE_NOTE_EXPORT UserWrapper final: public IUser
+class QUTE_NOTE_EXPORT UserWrapper: public IUser
 {
 public:
-    UserWrapper() = default;
-    UserWrapper(const UserWrapper & other) = default;
+    UserWrapper();
+    UserWrapper(const UserWrapper & other);
     UserWrapper(UserWrapper && other);
-    UserWrapper & operator=(const UserWrapper & other) = default;
+    UserWrapper & operator=(const UserWrapper & other);
     UserWrapper & operator=(UserWrapper && other);
-
     virtual ~UserWrapper() final override;
 
 private:
-    virtual const qevercloud::User & GetEnUser() const final override;
-    virtual qevercloud::User & GetEnUser() final override;
+    virtual const qevercloud::User & GetEnUser() const override;
+    virtual qevercloud::User & GetEnUser() override;
 
-    qevercloud::User m_qecUser;
+    QSharedDataPointer<UserWrapperData> d;
 };
 
 } // namespace qute_note

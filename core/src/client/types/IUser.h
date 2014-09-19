@@ -90,7 +90,7 @@ public:
 protected:
     IUser(const IUser & other);
     IUser(IUser && other);
-    IUser & operator=(const IUser & other) = default;
+    IUser & operator=(const IUser & other);
     IUser & operator=(IUser && other);
 
     virtual const qevercloud::User & GetEnUser() const = 0;

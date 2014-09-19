@@ -43,6 +43,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/data/NotebookData.h
     src/client/types/data/TagData.h
     src/client/types/data/SavedSearchData.h
+    src/client/types/data/UserWrapperData.h
     src/client/enml/ENMLConverter.h
     src/client/local_storage/IAsyncLocalStorageManager.h
     src/client/local_storage/DatabaseOpeningException.h
@@ -107,6 +108,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/data/NotebookData.cpp
     src/client/types/data/TagData.cpp
     src/client/types/data/SavedSearchData.cpp
+    src/client/types/data/UserWrapperData.cpp
     src/client/enml/ENMLConverter.cpp
     src/client/local_storage/IAsyncLocalStorageManager.cpp
     src/client/local_storage/DatabaseOpeningException.cpp

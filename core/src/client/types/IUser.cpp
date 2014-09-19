@@ -505,6 +505,16 @@ IUser::IUser(IUser && other) :
     m_isLocal(std::move(other.m_isLocal))
 {}
 
+IUser & IUser::operator=(const IUser & other)
+{
+    if (this != std::addressof(other)) {
+        m_isDirty = other.m_isDirty;
+        m_isLocal = other.m_isLocal;
+    }
+
+    return *this;
+}
+
 IUser & IUser::operator=(IUser && other)
 {
     if (this != std::addressof(other)) {
