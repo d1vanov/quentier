@@ -17,17 +17,17 @@ public:
     bool operator==(const IResource & other) const;
     bool operator!=(const IResource & other) const;
 
-    virtual void clear() final override;
+    virtual void clear() override;
 
-    virtual bool hasGuid() const final override;
-    virtual const QString & guid() const final override;
-    virtual void setGuid(const QString & guid) final override;
+    virtual bool hasGuid() const override;
+    virtual const QString & guid() const override;
+    virtual void setGuid(const QString & guid) override;
 
-    virtual bool hasUpdateSequenceNumber() const final override;
-    virtual qint32 updateSequenceNumber() const final override;
-    virtual void setUpdateSequenceNumber(const qint32 updateSequenceNumber) final override;
+    virtual bool hasUpdateSequenceNumber() const override;
+    virtual qint32 updateSequenceNumber() const override;
+    virtual void setUpdateSequenceNumber(const qint32 updateSequenceNumber) override;
 
-    virtual bool checkParameters(QString & errorDescription) const final override;
+    virtual bool checkParameters(QString & errorDescription) const override;
 
     bool isFreeAccount() const;
     void setFreeAccount(const bool isFreeAccount);
