@@ -41,6 +41,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/data/LinkedNotebookData.h
     src/client/types/data/NoteData.h
     src/client/types/data/NotebookData.h
+    src/client/types/data/ResourceWrapperData.h
     src/client/types/data/TagData.h
     src/client/types/data/SavedSearchData.h
     src/client/types/data/UserWrapperData.h
@@ -106,6 +107,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/data/LinkedNotebookData.cpp
     src/client/types/data/NoteData.cpp
     src/client/types/data/NotebookData.cpp
+    src/client/types/data/ResourceWrapperData.cpp
     src/client/types/data/TagData.cpp
     src/client/types/data/SavedSearchData.cpp
     src/client/types/data/UserWrapperData.cpp

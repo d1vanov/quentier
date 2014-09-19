@@ -1,33 +1,55 @@
 #include "ResourceWrapper.h"
+#include "data/ResourceWrapperData.h"
 
 namespace qute_note {
 
 ResourceWrapper::ResourceWrapper() :
     IResource(),
-    m_enResource()
+    d(new ResourceWrapperData)
 {}
 
 ResourceWrapper::ResourceWrapper(const IResource & other) :
     IResource(other),
-    m_enResource(other.GetEnResource())
+    d(new ResourceWrapperData(other.GetEnResource()))
+{}
+
+ResourceWrapper::ResourceWrapper(const ResourceWrapper & other) :
+    IResource(other),
+    d(other.d)
+{}
+
+ResourceWrapper::ResourceWrapper(ResourceWrapper && other) :
+    IResource(std::move(other)),
+    d(other.d)
 {}
 
 ResourceWrapper::ResourceWrapper(const qevercloud::Resource & other) :
     IResource(),
-    m_enResource(other)
+    d(new ResourceWrapperData(other))
 {}
 
 ResourceWrapper::ResourceWrapper(qevercloud::Resource && other) :
     IResource(),
-    m_enResource(std::move(other))
+    d(new ResourceWrapperData(other))
 {}
 
-ResourceWrapper & ResourceWrapper::operator=(const IResource & other)
+ResourceWrapper & ResourceWrapper::operator=(const ResourceWrapper & other)
 {
-    if (this != &other)
-    {
-        IResource::operator =(other);
-        m_enResource = other.GetEnResource();
+    IResource::operator=(other);
+
+    if (this != std::addressof(other)) {
+        d = other.d;
+    }
+
+    return *this;
+}
+
+ResourceWrapper & ResourceWrapper::operator=(ResourceWrapper && other)
+{
+    IResource::operator=(other);
+
+    if (this != std::addressof(other)) {
+        d = other.d;
     }
 
     return *this;
@@ -38,12 +60,12 @@ ResourceWrapper::~ResourceWrapper()
 
 const qevercloud::Resource & ResourceWrapper::GetEnResource() const
 {
-    return m_enResource;
+    return d->m_qecResource;
 }
 
 qevercloud::Resource & ResourceWrapper::GetEnResource()
 {
-    return m_enResource;
+    return d->m_qecResource;
 }
 
 QTextStream & ResourceWrapper::Print(QTextStream & strm) const
