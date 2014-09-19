@@ -3,22 +3,25 @@
 
 #include "NoteStoreDataElement.h"
 #include <QEverCloud.h>
+#include <QSharedDataPointer>
 
 namespace qute_note {
 
-class QUTE_NOTE_EXPORT LinkedNotebook final: public NoteStoreDataElement
+QT_FORWARD_DECLARE_CLASS(LinkedNotebookData)
+
+class QUTE_NOTE_EXPORT LinkedNotebook: public NoteStoreDataElement
 {
 public:
-    LinkedNotebook() = default;
-    LinkedNotebook(const LinkedNotebook & other) = default;
+    LinkedNotebook();
+    LinkedNotebook(const LinkedNotebook & other);
     LinkedNotebook(LinkedNotebook && other);
-    LinkedNotebook & operator=(const LinkedNotebook & other) = default;
+    LinkedNotebook & operator=(const LinkedNotebook & other);
     LinkedNotebook & operator=(LinkedNotebook && other);
 
     LinkedNotebook(const qevercloud::LinkedNotebook & linkedNotebook);
     LinkedNotebook(qevercloud::LinkedNotebook && linkedNotebook);
 
-    virtual ~LinkedNotebook() final override;
+    virtual ~LinkedNotebook() override;
 
     operator qevercloud::LinkedNotebook & ();
     operator const qevercloud::LinkedNotebook & () const;
@@ -28,15 +31,15 @@ public:
 
     virtual void clear();
 
-    virtual bool hasGuid() const final override;
-    virtual const QString & guid() const final override;
-    virtual void setGuid(const QString & guid) final override;
+    virtual bool hasGuid() const override;
+    virtual const QString & guid() const override;
+    virtual void setGuid(const QString & guid) override;
 
-    virtual bool hasUpdateSequenceNumber() const final override;
-    virtual qint32 updateSequenceNumber() const final override;
-    virtual void setUpdateSequenceNumber(const qint32 usn) final override;
+    virtual bool hasUpdateSequenceNumber() const override;
+    virtual qint32 updateSequenceNumber() const override;
+    virtual void setUpdateSequenceNumber(const qint32 usn) override;
 
-    virtual bool checkParameters(QString & errorDescription) const final override;
+    virtual bool checkParameters(QString & errorDescription) const override;
 
     bool hasShareName() const;
     const QString & shareName() const;
@@ -75,9 +78,9 @@ public:
     void setBusinessId(const qint32 businessId);
 
 private:
-    virtual QTextStream & Print(QTextStream & strm) const final override;
+    virtual QTextStream & Print(QTextStream & strm) const override;
 
-    qevercloud::LinkedNotebook m_qecLinkedNotebook;
+    QSharedDataPointer<LinkedNotebookData> d;
 };
 
 } // namespace qute_note

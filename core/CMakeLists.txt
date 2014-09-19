@@ -38,6 +38,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/UserAdapter.h
     src/client/types/UserAdapterAccessException.h
     src/client/types/UserWrapper.h
+    src/client/types/data/LinkedNotebookData.h
     src/client/types/data/NoteData.h
     src/client/types/data/NotebookData.h
     src/client/types/data/TagData.h
@@ -101,6 +102,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/UserAdapter.cpp
     src/client/types/UserAdapterAccessException.cpp
     src/client/types/UserWrapper.cpp
+    src/client/types/data/LinkedNotebookData.cpp
     src/client/types/data/NoteData.cpp
     src/client/types/data/NotebookData.cpp
     src/client/types/data/TagData.cpp
