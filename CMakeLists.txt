@@ -9,6 +9,7 @@ include("cmake/qt.cmake")
 include("cmake/libxml2.cmake")
 include("cmake/openssl.cmake")
 include("cmake/prepend.cmake")
+include("cmake/boost.cmake")
 
 enable_testing()
 

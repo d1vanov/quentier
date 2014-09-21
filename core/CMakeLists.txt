@@ -51,6 +51,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
     src/client/local_storage/LocalStorageCacheManager.h
+    src/client/local_storage/LocalStorageCacheManager_p.h
     src/client/local_storage/LocalStorageManager.h
     src/client/local_storage/LocalStorageManager_p.h
     src/client/local_storage/LocalStorageManagerThread.h
@@ -119,6 +120,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/DatabaseSqlErrorException.cpp
     src/client/local_storage/LocalStorageManager.cpp
     src/client/local_storage/LocalStorageManager_p.cpp
+    src/client/local_storage/LocalStorageCacheManager_p.cpp
     src/client/local_storage/LocalStorageManagerThread.cpp
     src/client/local_storage/LocalStorageManagerThreadWorker.cpp
     src/client/local_storage/NoteSearchQuery.cpp
