@@ -45,18 +45,15 @@ void LocalStorageCacheManagerPrivate::cacheNote(const Note & note)
     noteHolder.m_lastAccessTimestamp = QDateTime::currentMSecsSinceEpoch();
 
     // See whether the note is already in the cache
-
-    // FIXME: this gives weird compilation error, need to figure out what the heck is going on
-    /*
     typedef boost::multi_index::index<NotesCache,NoteHolder::ByLocalGuid>::type LocalGuidIndex;
     LocalGuidIndex & lgIndex = m_notesCache.get<NoteHolder::ByLocalGuid>();
     LocalGuidIndex::iterator it = lgIndex.find(note.localGuid());
     if (it != lgIndex.end()) {
-        lgIndex.modify(it, NoteHolder::Change(noteHolder));
+        // FIXME: this gives weird compilation error, need to figure out what the heck is going on
+        // lgIndex.modify(it, NoteHolder::Change(noteHolder));
         QNDEBUG("Updated note in the local storage cache: " << note);
         return;
     }
-    */
 
     // If got here, no existing note was found in the cache
     // FIXME: this gives a nasty compilation error as well

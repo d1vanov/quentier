@@ -54,6 +54,8 @@ private:
         Note    m_note;
         qint64  m_lastAccessTimestamp;
 
+        const QString localGuid() const { return m_note.localGuid(); }
+
         class Change
         {
         public:
@@ -101,7 +103,7 @@ private:
             >,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<NoteHolder::ByLocalGuid>,
-                boost::multi_index::const_mem_fun<LocalStorageDataElement,const QString,&LocalStorageDataElement::localGuid>
+                boost::multi_index::const_mem_fun<NoteHolder,const QString,&NoteHolder::localGuid>
             >,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<NoteHolder::ByGuid>,
