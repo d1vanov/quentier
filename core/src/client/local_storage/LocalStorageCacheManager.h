@@ -15,10 +15,20 @@ public:
     LocalStorageCacheManager();
     ~LocalStorageCacheManager();
 
+    typedef std::function<bool(const LocalStorageCacheManager &)> CacheExpiryFunction;
+
     size_t numCachedNotes() const;
     void cacheNote(const Note & note);
 
-    void installCacheExpiryFunction(const std::function<bool(const LocalStorageCacheManager &)> & function);
+    enum WhichGuid
+    {
+        LocalGuid,
+        Guid
+    };
+
+    const Note * findNote(const QString & guid, const WhichGuid wg) const;
+
+    void installCacheExpiryFunction(const CacheExpiryFunction & function);
 
 private:
     LocalStorageCacheManager(const LocalStorageCacheManager & other) = delete;
@@ -26,6 +36,7 @@ private:
     LocalStorageCacheManager & operator=(const LocalStorageCacheManager & other) = delete;
     LocalStorageCacheManager & operator=(LocalStorageCacheManager && other) = delete;
 
+    LocalStorageCacheManagerPrivate *   d_ptr;
     Q_DECLARE_PRIVATE(LocalStorageCacheManager)
 };
 
