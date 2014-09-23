@@ -9,19 +9,6 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 
-namespace std {
-
-template<>
-struct less<const QString>
-{
-   bool operator()(const QString lhs, const QString rhs) const
-   {
-       return (lhs < rhs);
-   }
-};
-
-} // namespace std
-
 namespace qute_note {
 
 class LocalStorageCacheManagerPrivate
@@ -55,23 +42,24 @@ private:
         qint64  m_lastAccessTimestamp;
 
         const QString localGuid() const { return m_note.localGuid(); }
+        const QString & guid() const { return m_note.guid(); }
 
-        class Change
+        class Modifier
         {
         public:
-            Change(const NoteHolder & noteHolder) :
+            Modifier(const NoteHolder & noteHolder) :
                 m_noteHolder(noteHolder)
             {}
 
-            Change(const Change & other) :
+            Modifier(const Modifier & other) :
                 m_noteHolder(other.m_noteHolder)
             {}
 
-            Change(Change && other) :
+            Modifier(Modifier && other) :
                 m_noteHolder(std::move(other.m_noteHolder))
             {}
 
-            ~Change() {}
+            ~Modifier() {}
 
             void operator()(NoteHolder & noteHolder)
             {
@@ -80,9 +68,9 @@ private:
             }
 
         private:
-            Change() = delete;
-            Change & operator=(const Change & other) = delete;
-            Change & operator=(Change && other) = delete;
+            Modifier() = delete;
+            Modifier & operator=(const Modifier & other) = delete;
+            Modifier & operator=(Modifier && other) = delete;
 
         private:
             const NoteHolder &    m_noteHolder;
@@ -91,7 +79,6 @@ private:
         struct ByLastAccessTimestamp{};
         struct ByLocalGuid{};
         struct ByGuid{};
-        struct Linear {};
     };
 
     typedef boost::multi_index_container<
@@ -107,15 +94,10 @@ private:
             >,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<NoteHolder::ByGuid>,
-                boost::multi_index::const_mem_fun<Note,const QString &,&Note::guid>
-            >,
-            boost::multi_index::sequenced<
-                boost::multi_index::tag<NoteHolder::Linear>
+                boost::multi_index::const_mem_fun<NoteHolder,const QString &,&NoteHolder::guid>
             >
         >
     > NotesCache;
-
-    typedef NotesCache::index<NoteHolder::Linear>::type LinearIndex;
 
     typedef LocalStorageCacheManager::CacheExpiryFunction CacheExpiryFunction;
 

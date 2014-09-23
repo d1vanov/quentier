@@ -18,7 +18,7 @@ LocalStorageCacheManagerPrivate::~LocalStorageCacheManagerPrivate()
 
 size_t LocalStorageCacheManagerPrivate::numCachedNotes() const
 {
-    const LinearIndex & index = m_notesCache.get<NoteHolder::Linear>();
+    const auto & index = m_notesCache.get<NoteHolder::ByLocalGuid>();
     return index.size();
 }
 
@@ -49,25 +49,21 @@ void LocalStorageCacheManagerPrivate::cacheNote(const Note & note)
     LocalGuidIndex & lgIndex = m_notesCache.get<NoteHolder::ByLocalGuid>();
     LocalGuidIndex::iterator it = lgIndex.find(note.localGuid());
     if (it != lgIndex.end()) {
-        // FIXME: this gives weird compilation error, need to figure out what the heck is going on
-        // lgIndex.modify(it, NoteHolder::Change(noteHolder));
+        lgIndex.modify(it, NoteHolder::Modifier(noteHolder));
         QNDEBUG("Updated note in the local storage cache: " << note);
         return;
     }
 
     // If got here, no existing note was found in the cache
-    // FIXME: this gives a nasty compilation error as well
-    /*
-    std::pair<NotesCache::iterator, bool> insertionResult = m_notesCache.insert(noteHolder);
+    auto insertionResult = m_notesCache.insert(noteHolder);
     if (!insertionResult.second) {
-        QNWARNING("Failed to insrrt note into the cache of local storage manager's notes: "
+        QNWARNING("Failed to insert note into the cache of local storage manager's notes: "
                   << note);
         // TODO: throw exception
         return;
     }
 
     QNDEBUG("Added note to the local storage cache: " << note);
-    */
 }
 
 } // namespace qute_note
