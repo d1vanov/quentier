@@ -49,7 +49,7 @@ void LocalStorageCacheManagerPrivate::cacheNote(const Note & note)
     LocalGuidIndex & lgIndex = m_notesCache.get<NoteHolder::ByLocalGuid>();
     LocalGuidIndex::iterator it = lgIndex.find(note.localGuid());
     if (it != lgIndex.end()) {
-        lgIndex.modify(it, NoteHolder::Modifier(noteHolder));
+        lgIndex.replace(it, noteHolder);
         QNDEBUG("Updated note in the local storage cache: " << note);
         return;
     }
@@ -64,6 +64,17 @@ void LocalStorageCacheManagerPrivate::cacheNote(const Note & note)
     }
 
     QNDEBUG("Added note to the local storage cache: " << note);
+}
+
+const QString LocalStorageCacheManagerPrivate::NoteHolder::guid() const
+{
+    // NOTE: This precaution is required for storage of local notes in the cache
+    if (m_note.hasGuid()) {
+        return m_note.guid();
+    }
+    else {
+        return QString();
+    }
 }
 
 } // namespace qute_note

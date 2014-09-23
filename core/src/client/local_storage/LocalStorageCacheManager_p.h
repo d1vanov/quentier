@@ -42,39 +42,7 @@ private:
         qint64  m_lastAccessTimestamp;
 
         const QString localGuid() const { return m_note.localGuid(); }
-        const QString & guid() const { return m_note.guid(); }
-
-        class Modifier
-        {
-        public:
-            Modifier(const NoteHolder & noteHolder) :
-                m_noteHolder(noteHolder)
-            {}
-
-            Modifier(const Modifier & other) :
-                m_noteHolder(other.m_noteHolder)
-            {}
-
-            Modifier(Modifier && other) :
-                m_noteHolder(std::move(other.m_noteHolder))
-            {}
-
-            ~Modifier() {}
-
-            void operator()(NoteHolder & noteHolder)
-            {
-                noteHolder.m_note = m_noteHolder.m_note;
-                noteHolder.m_lastAccessTimestamp = m_noteHolder.m_lastAccessTimestamp;
-            }
-
-        private:
-            Modifier() = delete;
-            Modifier & operator=(const Modifier & other) = delete;
-            Modifier & operator=(Modifier && other) = delete;
-
-        private:
-            const NoteHolder &    m_noteHolder;
-        };
+        const QString guid() const;
 
         struct ByLastAccessTimestamp{};
         struct ByLocalGuid{};
@@ -92,9 +60,9 @@ private:
                 boost::multi_index::tag<NoteHolder::ByLocalGuid>,
                 boost::multi_index::const_mem_fun<NoteHolder,const QString,&NoteHolder::localGuid>
             >,
-            boost::multi_index::ordered_unique<
+            boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<NoteHolder::ByGuid>,
-                boost::multi_index::const_mem_fun<NoteHolder,const QString &,&NoteHolder::guid>
+                boost::multi_index::const_mem_fun<NoteHolder,const QString,&NoteHolder::guid>
             >
         >
     > NotesCache;
