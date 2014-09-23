@@ -1,4 +1,5 @@
 #include "LocalStorageCacheManager_p.h"
+#include "DefaultLocalStorageCacheExpiryFunction.h"
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
 #include <QDateTime>
@@ -7,11 +8,9 @@ namespace qute_note {
 
 LocalStorageCacheManagerPrivate::LocalStorageCacheManagerPrivate(LocalStorageCacheManager & q) :
     q_ptr(&q),
-    m_pCacheExpiryFunction(nullptr),
+    m_cacheExpiryFunction(defaultLocalStorageCacheExpiryFunction),
     m_notesCache()
-{
-    // FIXME: install default cache expiry function
-}
+{}
 
 LocalStorageCacheManagerPrivate::~LocalStorageCacheManagerPrivate()
 {}
@@ -24,19 +23,23 @@ size_t LocalStorageCacheManagerPrivate::numCachedNotes() const
 
 void LocalStorageCacheManagerPrivate::cacheNote(const Note & note)
 {
-    QUTE_NOTE_CHECK_PTR(m_pCacheExpiryFunction);
+    QUTE_NOTE_CHECK_PTR(m_cacheExpiryFunction);
     Q_Q(LocalStorageCacheManager);
 
     typedef boost::multi_index::index<NotesCache,NoteHolder::ByLastAccessTimestamp>::type LastAccessTimestampIndex;
     LastAccessTimestampIndex & latIndex = m_notesCache.get<NoteHolder::ByLastAccessTimestamp>();
 
-    bool res = false;
-    while(!res && !latIndex.empty())
+    if (Q_LIKELY(m_cacheExpiryFunction))
     {
-        res = (*m_pCacheExpiryFunction)(*q);
-        if (!res) {
-            Q_UNUSED(m_notesCache.erase(latIndex.rbegin().base()));
-            continue;
+        bool res = false;
+        while(!res && !latIndex.empty())
+        {
+            res = m_cacheExpiryFunction(*q);
+            if (Q_UNLIKELY(!res)) {
+                // FIXME: this may have nothing to do with notes, need to figure this out somehow
+                Q_UNUSED(m_notesCache.erase(latIndex.rbegin().base()));
+                continue;
+            }
         }
     }
 
@@ -56,7 +59,7 @@ void LocalStorageCacheManagerPrivate::cacheNote(const Note & note)
 
     // If got here, no existing note was found in the cache
     auto insertionResult = m_notesCache.insert(noteHolder);
-    if (!insertionResult.second) {
+    if (Q_UNLIKELY(!insertionResult.second)) {
         QNWARNING("Failed to insert note into the cache of local storage manager's notes: "
                   << note);
         // TODO: throw exception
@@ -64,6 +67,25 @@ void LocalStorageCacheManagerPrivate::cacheNote(const Note & note)
     }
 
     QNDEBUG("Added note to the local storage cache: " << note);
+}
+
+const Note * LocalStorageCacheManagerPrivate::findNoteByLocalGuid(const QString & localGuid) const
+{
+    // TODO: implement
+    Q_UNUSED(localGuid)
+    return nullptr;
+}
+
+const Note * LocalStorageCacheManagerPrivate::findNoteByGuid(const QString & guid) const
+{
+    // TODO: implement
+    Q_UNUSED(guid)
+    return nullptr;
+}
+
+void LocalStorageCacheManagerPrivate::installCacheExpiryFunction(const LocalStorageCacheManager::CacheExpiryFunction & function)
+{
+    m_cacheExpiryFunction = function;
 }
 
 const QString LocalStorageCacheManagerPrivate::NoteHolder::guid() const

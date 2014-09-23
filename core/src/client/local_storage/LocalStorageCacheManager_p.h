@@ -70,7 +70,7 @@ private:
     typedef LocalStorageCacheManager::CacheExpiryFunction CacheExpiryFunction;
 
 private:
-    CacheExpiryFunction *       m_pCacheExpiryFunction;
+    CacheExpiryFunction         m_cacheExpiryFunction;
     NotesCache                  m_notesCache;
 };
 

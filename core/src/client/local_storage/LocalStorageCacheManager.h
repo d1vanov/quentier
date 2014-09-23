@@ -13,7 +13,7 @@ class LocalStorageCacheManager
 {
 public:
     LocalStorageCacheManager();
-    ~LocalStorageCacheManager();
+    virtual ~LocalStorageCacheManager();
 
     typedef std::function<bool(const LocalStorageCacheManager &)> CacheExpiryFunction;
 
@@ -28,7 +28,7 @@ public:
 
     const Note * findNote(const QString & guid, const WhichGuid wg) const;
 
-    void installCacheExpiryFunction(const CacheExpiryFunction & function);
+    void installCacheExpiryFunction(const CacheExpiryFunction &function);
 
 private:
     LocalStorageCacheManager(const LocalStorageCacheManager & other) = delete;

@@ -50,6 +50,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/IAsyncLocalStorageManager.h
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
+    src/client/local_storage/DefaultLocalStorageCacheExpiryFunction.h
     src/client/local_storage/LocalStorageCacheManager.h
     src/client/local_storage/LocalStorageCacheManager_p.h
     src/client/local_storage/LocalStorageManager.h
@@ -118,8 +119,10 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/IAsyncLocalStorageManager.cpp
     src/client/local_storage/DatabaseOpeningException.cpp
     src/client/local_storage/DatabaseSqlErrorException.cpp
+    src/client/local_storage/DefaultLocalStorageCacheExpiryFunction.cpp
     src/client/local_storage/LocalStorageManager.cpp
     src/client/local_storage/LocalStorageManager_p.cpp
+    src/client/local_storage/LocalStorageCacheManager.cpp
     src/client/local_storage/LocalStorageCacheManager_p.cpp
     src/client/local_storage/LocalStorageManagerThread.cpp
     src/client/local_storage/LocalStorageManagerThreadWorker.cpp
