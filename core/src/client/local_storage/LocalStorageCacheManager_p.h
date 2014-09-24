@@ -24,7 +24,7 @@ public:
     const Note * findNoteByLocalGuid(const QString & localGuid) const;
     const Note * findNoteByGuid(const QString & guid) const;
 
-    void installCacheExpiryFunction(const LocalStorageCacheManager::CacheExpiryFunction & function);
+    void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 
     LocalStorageCacheManager *  q_ptr;
 
@@ -67,10 +67,8 @@ private:
         >
     > NotesCache;
 
-    typedef LocalStorageCacheManager::CacheExpiryFunction CacheExpiryFunction;
-
 private:
-    CacheExpiryFunction         m_cacheExpiryFunction;
+    QScopedPointer<ILocalStorageCacheExpiryChecker>   m_cacheExpiryChecker;
     NotesCache                  m_notesCache;
 };
 

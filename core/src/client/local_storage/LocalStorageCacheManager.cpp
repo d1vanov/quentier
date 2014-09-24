@@ -1,5 +1,6 @@
 #include "LocalStorageCacheManager.h"
 #include "LocalStorageCacheManager_p.h"
+#include "ILocalStorageCacheExpiryChecker.h"
 #include <logging/QuteNoteLogger.h>
 
 namespace qute_note {
@@ -40,10 +41,10 @@ const Note * LocalStorageCacheManager::findNote(const QString & guid, const Loca
     }
 }
 
-void LocalStorageCacheManager::installCacheExpiryFunction(const CacheExpiryFunction & function)
+void LocalStorageCacheManager::installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker)
 {
     Q_D(LocalStorageCacheManager);
-    d->installCacheExpiryFunction(function);
+    d->installCacheExpiryFunction(checker);
 }
 
 } // namespace qute_note

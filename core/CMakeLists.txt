@@ -48,9 +48,10 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/data/UserWrapperData.h
     src/client/enml/ENMLConverter.h
     src/client/local_storage/IAsyncLocalStorageManager.h
+    src/client/local_storage/ILocalStorageCacheExpiryChecker.h
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
-    src/client/local_storage/DefaultLocalStorageCacheExpiryFunction.h
+    src/client/local_storage/DefaultLocalStorageCacheExpiryChecker.h
     src/client/local_storage/LocalStorageCacheManager.h
     src/client/local_storage/LocalStorageCacheManager_p.h
     src/client/local_storage/LocalStorageCacheManagerException.h
@@ -118,9 +119,10 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/data/UserWrapperData.cpp
     src/client/enml/ENMLConverter.cpp
     src/client/local_storage/IAsyncLocalStorageManager.cpp
+    src/client/local_storage/ILocalStorageCacheExpiryChecker.cpp
     src/client/local_storage/DatabaseOpeningException.cpp
     src/client/local_storage/DatabaseSqlErrorException.cpp
-    src/client/local_storage/DefaultLocalStorageCacheExpiryFunction.cpp
+    src/client/local_storage/DefaultLocalStorageCacheExpiryChecker.cpp
     src/client/local_storage/LocalStorageManager.cpp
     src/client/local_storage/LocalStorageManager_p.cpp
     src/client/local_storage/LocalStorageCacheManagerException.cpp

@@ -1,5 +1,5 @@
 #include "LocalStorageCacheManager_p.h"
-#include "DefaultLocalStorageCacheExpiryFunction.h"
+#include "DefaultLocalStorageCacheExpiryChecker.h"
 #include "LocalStorageCacheManagerException.h"
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
@@ -9,7 +9,7 @@ namespace qute_note {
 
 LocalStorageCacheManagerPrivate::LocalStorageCacheManagerPrivate(LocalStorageCacheManager & q) :
     q_ptr(&q),
-    m_cacheExpiryFunction(defaultLocalStorageCacheExpiryFunction),
+    m_cacheExpiryChecker(new DefaultLocalStorageCacheExpiryChecker(q)),
     m_notesCache()
 {}
 
@@ -24,20 +24,18 @@ size_t LocalStorageCacheManagerPrivate::numCachedNotes() const
 
 void LocalStorageCacheManagerPrivate::cacheNote(const Note & note)
 {
-    QUTE_NOTE_CHECK_PTR(m_cacheExpiryFunction);
-    Q_Q(LocalStorageCacheManager);
+    QUTE_NOTE_CHECK_PTR(m_cacheExpiryChecker.data());
 
     typedef boost::multi_index::index<NotesCache,NoteHolder::ByLastAccessTimestamp>::type LastAccessTimestampIndex;
     LastAccessTimestampIndex & latIndex = m_notesCache.get<NoteHolder::ByLastAccessTimestamp>();
 
-    if (Q_LIKELY(m_cacheExpiryFunction))
+    if (Q_LIKELY(!m_cacheExpiryChecker.isNull()))
     {
         bool res = false;
         while(!res && !latIndex.empty())
         {
-            res = m_cacheExpiryFunction(*q);
+            res = m_cacheExpiryChecker->checkNotes();
             if (Q_UNLIKELY(!res)) {
-                // FIXME: this may have nothing to do with notes, need to figure this out somehow
                 Q_UNUSED(m_notesCache.erase(latIndex.rbegin().base()));
                 continue;
             }
@@ -91,9 +89,9 @@ const Note * LocalStorageCacheManagerPrivate::findNoteByGuid(const QString & gui
     return &(it->m_note);
 }
 
-void LocalStorageCacheManagerPrivate::installCacheExpiryFunction(const LocalStorageCacheManager::CacheExpiryFunction & function)
+void LocalStorageCacheManagerPrivate::installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker)
 {
-    m_cacheExpiryFunction = function;
+    m_cacheExpiryChecker.reset(checker.clone());
 }
 
 const QString LocalStorageCacheManagerPrivate::NoteHolder::guid() const
