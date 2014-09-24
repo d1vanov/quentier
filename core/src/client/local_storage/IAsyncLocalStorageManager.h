@@ -19,6 +19,8 @@ class QUTE_NOTE_EXPORT IAsyncLocalStorageManager
 public:
     virtual ~IAsyncLocalStorageManager();
 
+    virtual void setUseCache(const bool useCache) = 0;
+
 protected:
     IAsyncLocalStorageManager() = default;
     IAsyncLocalStorageManager(const IAsyncLocalStorageManager & other) = default;

@@ -20,6 +20,7 @@ public:
 
     size_t numCachedNotes() const;
     void cacheNote(const Note & note);
+    void expungeNote(const Note & note);
 
     const Note * findNoteByLocalGuid(const QString & localGuid) const;
     const Note * findNoteByGuid(const QString & guid) const;

@@ -3,6 +3,10 @@
 
 #include <QScopedPointer>
 
+// TODO:
+// 1) provide indices by notebook's guid and local guid
+// 2) provide a way to list notes per notebook
+
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Note)
@@ -17,6 +21,7 @@ public:
 
     size_t numCachedNotes() const;
     void cacheNote(const Note & note);
+    void expungeNote(const Note & note);
 
     enum WhichGuid
     {

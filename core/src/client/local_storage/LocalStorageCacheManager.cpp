@@ -24,6 +24,12 @@ void LocalStorageCacheManager::cacheNote(const Note & note)
     d->cacheNote(note);
 }
 
+void LocalStorageCacheManager::expungeNote(const Note & note)
+{
+    Q_D(LocalStorageCacheManager);
+    d->expungeNote(note);
+}
+
 const Note * LocalStorageCacheManager::findNote(const QString & guid, const LocalStorageCacheManager::WhichGuid wg) const
 {
     Q_D(const LocalStorageCacheManager);

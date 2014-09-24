@@ -38,6 +38,8 @@ public:
                                        const bool startFromScratch, QObject * parent = nullptr);
     virtual ~LocalStorageManagerThread();
 
+    virtual void setUseCache(const bool useCache);
+
 Q_SIGNALS:
     // User-related signals:
     void getUserCountComplete(int userCount);

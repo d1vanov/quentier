@@ -327,6 +327,11 @@ void LocalStorageManagerThread::createConnections()
 LocalStorageManagerThread::~LocalStorageManagerThread()
 {}
 
+void LocalStorageManagerThread::setUseCache(const bool useCache)
+{
+    m_pWorker->setUseCache(useCache);
+}
+
 void LocalStorageManagerThread::onGetUserCountRequest()
 {
     emit getUserCountRequest();

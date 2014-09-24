@@ -3,6 +3,7 @@
 
 #include "IAsyncLocalStorageManager.h"
 #include "LocalStorageManager.h"
+#include "LocalStorageCacheManager.h"
 #include <QObject>
 
 namespace qute_note {
@@ -18,6 +19,8 @@ public:
                                              QObject * parent = nullptr);
     virtual ~LocalStorageManagerThreadWorker();
     
+    virtual void setUseCache(const bool useCache);
+
 Q_SIGNALS:
     // User-related signals:
     void getUserCountComplete(int userCount);
@@ -208,7 +211,9 @@ private:
     LocalStorageManagerThreadWorker & operator=(const LocalStorageManagerThreadWorker & other) = delete;
     LocalStorageManagerThreadWorker & operator=(LocalStorageManagerThreadWorker && other) = delete;
 
-    LocalStorageManager   m_localStorageManager;
+    LocalStorageManager         m_localStorageManager;
+    bool                        m_useCache;
+    LocalStorageCacheManager    m_localStorageCacheManager;
 };
 
 } // namespace qute_note

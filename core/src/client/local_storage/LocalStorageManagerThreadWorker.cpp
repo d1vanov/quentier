@@ -15,11 +15,18 @@ LocalStorageManagerThreadWorker::LocalStorageManagerThreadWorker(const QString &
                                                                  const qint32 userId,
                                                                  const bool startFromScratch, QObject * parent) :
     QObject(parent),
-    m_localStorageManager(username, userId, startFromScratch)
+    m_localStorageManager(username, userId, startFromScratch),
+    m_useCache(true),
+    m_localStorageCacheManager()
 {}
 
 LocalStorageManagerThreadWorker::~LocalStorageManagerThreadWorker()
 {}
+
+void LocalStorageManagerThreadWorker::setUseCache(const bool useCache)
+{
+    m_useCache = useCache;
+}
 
 void LocalStorageManagerThreadWorker::onGetUserCountRequest()
 {
@@ -349,6 +356,10 @@ void LocalStorageManagerThreadWorker::onAddNoteRequest(Note note, Notebook noteb
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheNote(note);
+    }
+
     emit addNoteComplete(note, notebook);
 }
 
@@ -362,6 +373,10 @@ void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, Notebook no
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheNote(note);
+    }
+
     emit updateNoteComplete(note, notebook);
 }
 
@@ -369,10 +384,27 @@ void LocalStorageManagerThreadWorker::onFindNoteRequest(Note note, bool withReso
 {
     QString errorDescription;
 
-    bool res = m_localStorageManager.FindNote(note, errorDescription, withResourceBinaryData);
-    if (!res) {
-        emit findNoteFailed(note, withResourceBinaryData, errorDescription);
-        return;
+    bool foundNoteInCache = false;
+    if (m_useCache)
+    {
+        bool noteHasGuid = note.hasGuid();
+        const QString guid = (noteHasGuid ? note.guid() : note.localGuid());
+        LocalStorageCacheManager::WhichGuid wg = (noteHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
+
+        const Note * pNote = m_localStorageCacheManager.findNote(guid, wg);
+        if (pNote) {
+            note = *pNote;
+            foundNoteInCache = true;
+        }
+    }
+
+    if (!foundNoteInCache)
+    {
+        bool res = m_localStorageManager.FindNote(note, errorDescription, withResourceBinaryData);
+        if (!res) {
+            emit findNoteFailed(note, withResourceBinaryData, errorDescription);
+            return;
+        }
     }
 
     emit findNoteComplete(note, withResourceBinaryData);
@@ -382,6 +414,8 @@ void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook 
                                                                        bool withResourceBinaryData)
 {
     QString errorDescription;
+
+    // TODO: employ cache
 
     QList<Note> notes = m_localStorageManager.ListAllNotesPerNotebook(notebook, errorDescription,
                                                                       withResourceBinaryData);
@@ -403,6 +437,10 @@ void LocalStorageManagerThreadWorker::onDeleteNoteRequest(Note note)
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheNote(note);
+    }
+
     emit deleteNoteComplete(note);
 }
 
@@ -414,6 +452,10 @@ void LocalStorageManagerThreadWorker::onExpungeNoteRequest(Note note)
     if (!res) {
         emit expungeNoteFailed(note, errorDescription);
         return;
+    }
+
+    if (m_useCache) {
+        m_localStorageCacheManager.expungeNote(note);
     }
 
     emit expungeNoteComplete(note);

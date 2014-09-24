@@ -67,6 +67,30 @@ void LocalStorageCacheManagerPrivate::cacheNote(const Note & note)
     QNDEBUG("Added note to the local storage cache: " << note);
 }
 
+void LocalStorageCacheManagerPrivate::expungeNote(const Note & note)
+{
+    bool noteHasGuid = note.hasGuid();
+    const QString guid = (noteHasGuid ? note.guid() : note.localGuid());
+
+#define CHECK_AND_EXPUNGE_NOTE(guidType) \
+    typedef boost::multi_index::index<NotesCache,NoteHolder::guidType>::type GuidIndex; \
+    GuidIndex & index = m_notesCache.get<NoteHolder::guidType>(); \
+    GuidIndex::iterator it = index.find(guid); \
+    if (it != index.end()) { \
+        index.erase(it); \
+        QNDEBUG("Expunged note from the local storage cache: " << note); \
+    }
+
+    if (noteHasGuid)  {
+        CHECK_AND_EXPUNGE_NOTE(ByGuid)
+    }
+    else {
+        CHECK_AND_EXPUNGE_NOTE(ByLocalGuid)
+    }
+
+#undef CHECK_AND_EXPUNGE_NOTE
+}
+
 const Note * LocalStorageCacheManagerPrivate::findNoteByLocalGuid(const QString & localGuid) const
 {
     const auto & index = m_notesCache.get<NoteHolder::ByLocalGuid>();
