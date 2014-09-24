@@ -53,6 +53,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/DefaultLocalStorageCacheExpiryFunction.h
     src/client/local_storage/LocalStorageCacheManager.h
     src/client/local_storage/LocalStorageCacheManager_p.h
+    src/client/local_storage/LocalStorageCacheManagerException.h
     src/client/local_storage/LocalStorageManager.h
     src/client/local_storage/LocalStorageManager_p.h
     src/client/local_storage/LocalStorageManagerThread.h
@@ -122,6 +123,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/DefaultLocalStorageCacheExpiryFunction.cpp
     src/client/local_storage/LocalStorageManager.cpp
     src/client/local_storage/LocalStorageManager_p.cpp
+    src/client/local_storage/LocalStorageCacheManagerException.cpp
     src/client/local_storage/LocalStorageCacheManager.cpp
     src/client/local_storage/LocalStorageCacheManager_p.cpp
     src/client/local_storage/LocalStorageManagerThread.cpp

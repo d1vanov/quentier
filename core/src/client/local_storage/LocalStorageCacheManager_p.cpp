@@ -1,5 +1,6 @@
 #include "LocalStorageCacheManager_p.h"
 #include "DefaultLocalStorageCacheExpiryFunction.h"
+#include "LocalStorageCacheManagerException.h"
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
 #include <QDateTime>
@@ -62,8 +63,7 @@ void LocalStorageCacheManagerPrivate::cacheNote(const Note & note)
     if (Q_UNLIKELY(!insertionResult.second)) {
         QNWARNING("Failed to insert note into the cache of local storage manager's notes: "
                   << note);
-        // TODO: throw exception
-        return;
+        throw LocalStorageCacheManagerException("Unable to insert note into the local storage cache");
     }
 
     QNDEBUG("Added note to the local storage cache: " << note);
@@ -71,16 +71,24 @@ void LocalStorageCacheManagerPrivate::cacheNote(const Note & note)
 
 const Note * LocalStorageCacheManagerPrivate::findNoteByLocalGuid(const QString & localGuid) const
 {
-    // TODO: implement
-    Q_UNUSED(localGuid)
-    return nullptr;
+    const auto & index = m_notesCache.get<NoteHolder::ByLocalGuid>();
+    auto it = index.find(localGuid);
+    if (it == index.end()) {
+        return nullptr;
+    }
+
+    return &(it->m_note);
 }
 
 const Note * LocalStorageCacheManagerPrivate::findNoteByGuid(const QString & guid) const
 {
-    // TODO: implement
-    Q_UNUSED(guid)
-    return nullptr;
+    const auto & index = m_notesCache.get<NoteHolder::ByGuid>();
+    auto it = index.find(guid);
+    if (it == index.end()) {
+        return nullptr;
+    }
+
+    return &(it->m_note);
 }
 
 void LocalStorageCacheManagerPrivate::installCacheExpiryFunction(const LocalStorageCacheManager::CacheExpiryFunction & function)
