@@ -415,13 +415,18 @@ void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook 
 {
     QString errorDescription;
 
-    // TODO: employ cache
-
     QList<Note> notes = m_localStorageManager.ListAllNotesPerNotebook(notebook, errorDescription,
                                                                       withResourceBinaryData);
     if (notes.isEmpty() && !errorDescription.isEmpty()) {
         emit listAllNotesPerNotebookFailed(notebook, withResourceBinaryData, errorDescription);
         return;
+    }
+
+    if (m_useCache)
+    {
+        foreach(const Note & note, notes) {
+            m_localStorageCacheManager.cacheNote(note);
+        }
     }
 
     emit listAllNotesPerNotebookComplete(notebook, withResourceBinaryData, notes);

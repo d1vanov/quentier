@@ -3,13 +3,10 @@
 
 #include <QScopedPointer>
 
-// TODO:
-// 1) provide indices by notebook's guid and local guid
-// 2) provide a way to list notes per notebook
-
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Note)
+QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(ILocalStorageCacheExpiryChecker)
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageCacheManagerPrivate)
@@ -30,6 +27,13 @@ public:
     };
 
     const Note * findNote(const QString & guid, const WhichGuid wg) const;
+
+
+    size_t numCachedNotebooks() const;
+    void cacheNotebook(const Notebook & notebook);
+    void expungeNotebook(const Notebook & notebook);
+
+    const Notebook * findNotebook(const QString & guid, const WhichGuid wg) const;
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 

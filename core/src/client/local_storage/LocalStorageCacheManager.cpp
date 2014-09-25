@@ -47,6 +47,41 @@ const Note * LocalStorageCacheManager::findNote(const QString & guid, const Loca
     }
 }
 
+size_t LocalStorageCacheManager::numCachedNotebooks() const
+{
+    Q_D(const LocalStorageCacheManager);
+    return d->numCachedNotebooks();
+}
+
+void LocalStorageCacheManager::cacheNotebook(const Notebook & notebook)
+{
+    Q_D(LocalStorageCacheManager);
+    d->cacheNotebook(notebook);
+}
+
+void LocalStorageCacheManager::expungeNotebook(const Notebook & notebook)
+{
+    Q_D(LocalStorageCacheManager);
+    d->expungeNotebook(notebook);
+}
+
+const Notebook * LocalStorageCacheManager::findNotebook(const QString & guid, const LocalStorageCacheManager::WhichGuid wg) const
+{
+    Q_D(const LocalStorageCacheManager);
+
+    switch(wg) {
+    case LocalGuid:
+        return d->findNotebookByLocalGuid(guid);
+    case Guid:
+        return d->findNotebookByGuid(guid);
+    default:
+    {
+        QNCRITICAL("Detected incorrect local/remote guid qualifier in local storage cache manager");
+        return nullptr;
+    }
+    }
+}
+
 void LocalStorageCacheManager::installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker)
 {
     Q_D(LocalStorageCacheManager);

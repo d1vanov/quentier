@@ -3,6 +3,7 @@
 
 #include "LocalStorageCacheManager.h"
 #include <client/types/Note.h>
+#include <client/types/Notebook.h>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
@@ -24,6 +25,14 @@ public:
 
     const Note * findNoteByLocalGuid(const QString & localGuid) const;
     const Note * findNoteByGuid(const QString & guid) const;
+
+
+    size_t numCachedNotebooks() const;
+    void cacheNotebook(const Notebook & notebook);
+    void expungeNotebook(const Notebook & notebook);
+
+    const Notebook * findNotebookByLocalGuid(const QString & localGuid) const;
+    const Notebook * findNotebookByGuid(const QString & guid) const;
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 
@@ -61,6 +70,7 @@ private:
                 boost::multi_index::tag<NoteHolder::ByLocalGuid>,
                 boost::multi_index::const_mem_fun<NoteHolder,const QString,&NoteHolder::localGuid>
             >,
+            /* NOTE: non-unique for proper support of empty guids */
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<NoteHolder::ByGuid>,
                 boost::multi_index::const_mem_fun<NoteHolder,const QString,&NoteHolder::guid>
@@ -68,9 +78,42 @@ private:
         >
     > NotesCache;
 
+    struct NotebookHolder
+    {
+        Notebook    m_notebook;
+        qint64      m_lastAccessTimestamp;
+
+        const QString localGuid() const { return m_notebook.localGuid(); }
+        const QString guid() const;
+
+        struct ByLastAccessTimestamp{};
+        struct ByLocalGuid{};
+        struct ByGuid{};
+    };
+
+    typedef boost::multi_index_container<
+        NotebookHolder,
+        boost::multi_index::indexed_by<
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<NotebookHolder::ByLastAccessTimestamp>,
+                boost::multi_index::member<NotebookHolder,qint64,&NotebookHolder::m_lastAccessTimestamp>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<NotebookHolder::ByLocalGuid>,
+                boost::multi_index::const_mem_fun<NotebookHolder,const QString,&NotebookHolder::localGuid>
+            >,
+            /* NOTE: non-unique for proper support of empty guids */
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<NotebookHolder::ByGuid>,
+                boost::multi_index::const_mem_fun<NotebookHolder,const QString,&NotebookHolder::guid>
+            >
+        >
+    > NotebooksCache;
+
 private:
     QScopedPointer<ILocalStorageCacheExpiryChecker>   m_cacheExpiryChecker;
-    NotesCache                  m_notesCache;
+    NotesCache      m_notesCache;
+    NotebooksCache  m_notebooksCache;
 };
 
 } // namespace qute_note

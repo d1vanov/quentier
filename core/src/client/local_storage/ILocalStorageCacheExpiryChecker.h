@@ -19,6 +19,7 @@ public:
     virtual ILocalStorageCacheExpiryChecker * clone() const = 0;
 
     virtual bool checkNotes() const = 0;
+    virtual bool checkNotebooks() const = 0;
 
 private:
     ILocalStorageCacheExpiryChecker() = delete;
