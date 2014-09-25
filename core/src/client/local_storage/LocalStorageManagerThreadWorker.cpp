@@ -141,6 +141,10 @@ void LocalStorageManagerThreadWorker::onAddNotebookRequest(Notebook notebook)
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheNotebook(notebook);
+    }
+
     emit addNotebookComplete(notebook);
 }
 
@@ -154,6 +158,10 @@ void LocalStorageManagerThreadWorker::onUpdateNotebookRequest(Notebook notebook)
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheNotebook(notebook);
+    }
+
     emit updateNotebookComplete(notebook);
 }
 
@@ -161,10 +169,27 @@ void LocalStorageManagerThreadWorker::onFindNotebookRequest(Notebook notebook)
 {
     QString errorDescription;
 
-    bool res = m_localStorageManager.FindNotebook(notebook, errorDescription);
-    if (!res) {
-        emit findNotebookFailed(notebook, errorDescription);
-        return;
+    bool foundNotebookInCache = false;
+    if (m_useCache)
+    {
+        bool notebookHasGuid = notebook.hasGuid();
+        const QString guid = (notebookHasGuid ? notebook.guid() : notebook.localGuid());
+        LocalStorageCacheManager::WhichGuid wg = (notebookHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
+
+        const Notebook * pNotebook = m_localStorageCacheManager.findNotebook(guid, wg);
+        if (pNotebook) {
+            notebook = *pNotebook;
+            foundNotebookInCache = true;
+        }
+    }
+
+    if (!foundNotebookInCache)
+    {
+        bool res = m_localStorageManager.FindNotebook(notebook, errorDescription);
+        if (!res) {
+            emit findNotebookFailed(notebook, errorDescription);
+            return;
+        }
     }
 
     emit findNotebookComplete(notebook);
@@ -173,6 +198,8 @@ void LocalStorageManagerThreadWorker::onFindNotebookRequest(Notebook notebook)
 void LocalStorageManagerThreadWorker::onFindDefaultNotebookRequest(Notebook notebook)
 {
     QString errorDescription;
+
+    // TODO: employ cache
 
     bool res = m_localStorageManager.FindDefaultNotebook(notebook, errorDescription);
     if (!res) {
@@ -187,6 +214,8 @@ void LocalStorageManagerThreadWorker::onFindLastUsedNotebookRequest(Notebook not
 {
     QString errorDescription;
 
+    // TODO: employ cache
+
     bool res = m_localStorageManager.FindLastUsedNotebook(notebook, errorDescription);
     if (!res) {
         emit findLastUsedNotebookFailed(notebook, errorDescription);
@@ -199,6 +228,8 @@ void LocalStorageManagerThreadWorker::onFindLastUsedNotebookRequest(Notebook not
 void LocalStorageManagerThreadWorker::onFindDefaultOrLastUsedNotebookRequest(Notebook notebook)
 {
     QString errorDescription;
+
+    // TODO: employ cache
 
     bool res = m_localStorageManager.FindDefaultOrLastUsedNotebook(notebook, errorDescription);
     if (!res) {
@@ -216,6 +247,13 @@ void LocalStorageManagerThreadWorker::onListAllNotebooksRequest()
     if (notebooks.isEmpty() && !errorDescription.isEmpty()) {
         emit listAllNotebooksFailed(errorDescription);
         return;
+    }
+
+    if (m_useCache)
+    {
+        foreach(const Notebook & notebook, notebooks) {
+            m_localStorageCacheManager.cacheNotebook(notebook);
+        }
     }
 
     emit listAllNotebooksComplete(notebooks);
@@ -253,6 +291,10 @@ void LocalStorageManagerThreadWorker::onExpungeNotebookRequest(Notebook notebook
     if (!res) {
         emit expungeNotebookFailed(notebook, errorDescription);
         return;
+    }
+
+    if (m_useCache) {
+        m_localStorageCacheManager.expungeNotebook(notebook);
     }
 
     emit expungeNotebookComplete(notebook);
