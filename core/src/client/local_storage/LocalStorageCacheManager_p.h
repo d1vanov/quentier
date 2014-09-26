@@ -4,6 +4,7 @@
 #include "LocalStorageCacheManager.h"
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
+#include <client/types/Tag.h>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
@@ -19,6 +20,7 @@ public:
     LocalStorageCacheManagerPrivate(LocalStorageCacheManager & q);
     virtual ~LocalStorageCacheManagerPrivate();
 
+    // Notes cache
     size_t numCachedNotes() const;
     void cacheNote(const Note & note);
     void expungeNote(const Note & note);
@@ -26,13 +28,22 @@ public:
     const Note * findNoteByLocalGuid(const QString & localGuid) const;
     const Note * findNoteByGuid(const QString & guid) const;
 
-
+    // Notebooks cache
     size_t numCachedNotebooks() const;
     void cacheNotebook(const Notebook & notebook);
     void expungeNotebook(const Notebook & notebook);
 
     const Notebook * findNotebookByLocalGuid(const QString & localGuid) const;
     const Notebook * findNotebookByGuid(const QString & guid) const;
+
+    // Tags cache
+    size_t numCachedTags() const;
+    void cacheTag(const Tag & tag);
+    void expungeTag(const Tag & tag);
+
+    const Tag * findTagByLocalGuid(const QString & localGuid) const;
+    const Tag * findTagByGuid(const QString & guid) const;
+
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 
@@ -110,10 +121,43 @@ private:
         >
     > NotebooksCache;
 
+    struct TagHolder
+    {
+        Tag     m_tag;
+        qint64  m_lastAccessTimestamp;
+
+        const QString localGuid() const { return m_tag.localGuid(); }
+        const QString guid() const;
+
+        struct ByLastAccessTimestamp{};
+        struct ByLocalGuid{};
+        struct ByGuid{};
+    };
+
+    typedef boost::multi_index_container<
+        TagHolder,
+        boost::multi_index::indexed_by<
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<TagHolder::ByLastAccessTimestamp>,
+                boost::multi_index::member<TagHolder,qint64,&TagHolder::m_lastAccessTimestamp>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<TagHolder::ByLocalGuid>,
+                boost::multi_index::const_mem_fun<TagHolder,const QString,&TagHolder::localGuid>
+            >,
+            /* NOTE: non-unique for proper support of empty guids */
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<TagHolder::ByGuid>,
+                boost::multi_index::const_mem_fun<TagHolder,const QString,&TagHolder::guid>
+            >
+        >
+    > TagsCache;
+
 private:
     QScopedPointer<ILocalStorageCacheExpiryChecker>   m_cacheExpiryChecker;
     NotesCache      m_notesCache;
     NotebooksCache  m_notebooksCache;
+    TagsCache       m_tagsCache;
 };
 
 } // namespace qute_note

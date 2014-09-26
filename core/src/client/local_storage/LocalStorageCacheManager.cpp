@@ -30,22 +30,29 @@ void LocalStorageCacheManager::expungeNote(const Note & note)
     d->expungeNote(note);
 }
 
-const Note * LocalStorageCacheManager::findNote(const QString & guid, const LocalStorageCacheManager::WhichGuid wg) const
-{
-    Q_D(const LocalStorageCacheManager);
-
-    switch(wg) {
-    case LocalGuid:
-        return d->findNoteByLocalGuid(guid);
-    case Guid:
-        return d->findNoteByGuid(guid);
-    default:
-    {
-        QNCRITICAL("Detected incorrect local/remote guid qualifier in local storage cache manager");
-        return nullptr;
-    }
-    }
+#define FIND_OBJECT(Type) \
+const Type * LocalStorageCacheManager::find##Type(const QString & guid, const LocalStorageCacheManager::WhichGuid wg) const \
+{ \
+    Q_D(const LocalStorageCacheManager); \
+    \
+    switch(wg) {    \
+    case LocalGuid: \
+        return d->find##Type##ByLocalGuid(guid); \
+    case Guid: \
+        return d->find##Type##ByGuid(guid); \
+    default: \
+    { \
+        QNCRITICAL("Detected incorrect local/remote guid qualifier in local storage cache manager"); \
+        return nullptr; \
+    } \
+    } \
 }
+
+FIND_OBJECT(Note)
+FIND_OBJECT(Notebook)
+FIND_OBJECT(Tag)
+
+#undef FIND_OBJECT
 
 size_t LocalStorageCacheManager::numCachedNotebooks() const
 {
@@ -65,21 +72,22 @@ void LocalStorageCacheManager::expungeNotebook(const Notebook & notebook)
     d->expungeNotebook(notebook);
 }
 
-const Notebook * LocalStorageCacheManager::findNotebook(const QString & guid, const LocalStorageCacheManager::WhichGuid wg) const
+size_t LocalStorageCacheManager::numCachedTags() const
 {
     Q_D(const LocalStorageCacheManager);
+    return d->numCachedTags();
+}
 
-    switch(wg) {
-    case LocalGuid:
-        return d->findNotebookByLocalGuid(guid);
-    case Guid:
-        return d->findNotebookByGuid(guid);
-    default:
-    {
-        QNCRITICAL("Detected incorrect local/remote guid qualifier in local storage cache manager");
-        return nullptr;
-    }
-    }
+void LocalStorageCacheManager::cacheTag(const Tag & tag)
+{
+    Q_D(LocalStorageCacheManager);
+    d->cacheTag(tag);
+}
+
+void LocalStorageCacheManager::expungeTag(const Tag &tag)
+{
+    Q_D(LocalStorageCacheManager);
+    d->expungeTag(tag);
 }
 
 void LocalStorageCacheManager::installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker)

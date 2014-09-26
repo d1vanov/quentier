@@ -3,6 +3,7 @@
 
 #define MAX_NOTES_TO_STORE 100
 #define MAX_NOTEBOOKS_TO_STORE 20
+#define MAX_TAGS_TO_STORE 200
 
 namespace qute_note {
 
@@ -30,6 +31,12 @@ bool DefaultLocalStorageCacheExpiryChecker::checkNotebooks() const
 {
     size_t numNotebooks = m_localStorageCacheManager.numCachedNotebooks();
     return (numNotebooks < MAX_NOTEBOOKS_TO_STORE);
+}
+
+bool DefaultLocalStorageCacheExpiryChecker::checkTags() const
+{
+    size_t numTags = m_localStorageCacheManager.numCachedTags();
+    return (numTags < MAX_TAGS_TO_STORE);
 }
 
 } // namespace qute_note

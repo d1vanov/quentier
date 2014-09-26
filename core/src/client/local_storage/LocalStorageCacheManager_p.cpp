@@ -11,7 +11,8 @@ LocalStorageCacheManagerPrivate::LocalStorageCacheManagerPrivate(LocalStorageCac
     q_ptr(&q),
     m_cacheExpiryChecker(new DefaultLocalStorageCacheExpiryChecker(q)),
     m_notesCache(),
-    m_notebooksCache()
+    m_notebooksCache(),
+    m_tagsCache()
 {}
 
 LocalStorageCacheManagerPrivate::~LocalStorageCacheManagerPrivate()
@@ -26,6 +27,7 @@ size_t LocalStorageCacheManagerPrivate::method_name() const \
 
 NUM_CACHED_OBJECTS(Note, numCachedNotes, m_notesCache)
 NUM_CACHED_OBJECTS(Notebook, numCachedNotebooks, m_notebooksCache)
+NUM_CACHED_OBJECTS(Tag, numCachedTags, m_tagsCache)
 
 #undef NUM_CACHED_OBJECTS
 
@@ -76,6 +78,7 @@ void LocalStorageCacheManagerPrivate::cache##Type(const Type & name) \
 
 CACHE_OBJECT(Note, note, NotesCache, m_notesCache, checkNotes)
 CACHE_OBJECT(Notebook, notebook, NotebooksCache, m_notebooksCache, checkNotebooks)
+CACHE_OBJECT(Tag, tag, TagsCache, m_tagsCache, checkTags)
 
 #undef CACHE_OBJECT
 
@@ -109,6 +112,7 @@ void LocalStorageCacheManagerPrivate::expunge##Type(const Type & name) \
 
 EXPUNGE_OBJECT(Note, note, NotesCache, m_notesCache)
 EXPUNGE_OBJECT(Notebook, notebook, NotebooksCache, m_notebooksCache)
+EXPUNGE_OBJECT(Tag, tag, TagsCache, m_tagsCache)
 
 #undef EXPUNGE_OBJECT
 
@@ -128,6 +132,8 @@ FIND_OBJECT(Note, note, ByLocalGuid, m_notesCache)
 FIND_OBJECT(Note, note, ByGuid, m_notesCache)
 FIND_OBJECT(Notebook, notebook, ByLocalGuid, m_notebooksCache)
 FIND_OBJECT(Notebook, notebook, ByGuid, m_notebooksCache)
+FIND_OBJECT(Tag, tag, ByLocalGuid, m_tagsCache)
+FIND_OBJECT(Tag, tag, ByGuid, m_tagsCache)
 
 #undef FIND_OBJECT
 
@@ -149,7 +155,8 @@ const QString LocalStorageCacheManagerPrivate::Type##Holder::guid() const \
 }
 
 GET_GUID(Note, note)
-GET_GUID(Notebook ,notebook)
+GET_GUID(Notebook, notebook)
+GET_GUID(Tag, tag)
 
 #undef GET_GUID
 

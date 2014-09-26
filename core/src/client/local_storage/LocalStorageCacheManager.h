@@ -7,6 +7,8 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Notebook)
+QT_FORWARD_DECLARE_CLASS(Tag)
+
 QT_FORWARD_DECLARE_CLASS(ILocalStorageCacheExpiryChecker)
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageCacheManagerPrivate)
@@ -16,24 +18,29 @@ public:
     LocalStorageCacheManager();
     virtual ~LocalStorageCacheManager();
 
-    size_t numCachedNotes() const;
-    void cacheNote(const Note & note);
-    void expungeNote(const Note & note);
-
     enum WhichGuid
     {
         LocalGuid,
         Guid
     };
 
+    // Notes cache
+    size_t numCachedNotes() const;
+    void cacheNote(const Note & note);
+    void expungeNote(const Note & note);
     const Note * findNote(const QString & guid, const WhichGuid wg) const;
 
-
+    // Notebooks cache
     size_t numCachedNotebooks() const;
     void cacheNotebook(const Notebook & notebook);
     void expungeNotebook(const Notebook & notebook);
-
     const Notebook * findNotebook(const QString & guid, const WhichGuid wg) const;
+
+    // Tags cache
+    size_t numCachedTags() const;
+    void cacheTag(const Tag & tag);
+    void expungeTag(const Tag & tag);
+    const Tag * findTag(const QString & guid, const WhichGuid wg) const;
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 

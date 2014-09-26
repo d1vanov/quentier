@@ -530,6 +530,10 @@ void LocalStorageManagerThreadWorker::onAddTagRequest(Tag tag)
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheTag(tag);
+    }
+
     emit addTagComplete(tag);
 }
 
@@ -541,6 +545,10 @@ void LocalStorageManagerThreadWorker::onUpdateTagRequest(Tag tag)
     if (!res) {
         emit updateTagFailed(tag, errorDescription);
         return;
+    }
+
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheTag(tag);
     }
 
     emit updateTagComplete(tag);
@@ -556,6 +564,10 @@ void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(Tag tag, Note not
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheTag(tag);
+    }
+
     emit linkTagWithNoteComplete(tag, note);
 }
 
@@ -563,10 +575,27 @@ void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag)
 {
     QString errorDescription;
 
-    bool res = m_localStorageManager.FindTag(tag, errorDescription);
-    if (!res) {
-        emit findTagFailed(tag, errorDescription);
-        return;
+    bool foundTagInCache = false;
+    if (m_useCache)
+    {
+        bool tagHasGuid = tag.hasGuid();
+        const QString guid = (tagHasGuid ? tag.guid() : tag.localGuid());
+        LocalStorageCacheManager::WhichGuid wg = (tagHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
+
+        const Tag * pTag = m_localStorageCacheManager.findTag(guid, wg);
+        if (pTag) {
+            tag = *pTag;
+            foundTagInCache = true;
+        }
+    }
+
+    if (!foundTagInCache)
+    {
+        bool res = m_localStorageManager.FindTag(tag, errorDescription);
+        if (!res) {
+            emit findTagFailed(tag, errorDescription);
+            return;
+        }
     }
 
     emit findTagComplete(tag);
@@ -582,6 +611,13 @@ void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note)
         return;
     }
 
+    if (m_useCache)
+    {
+        foreach(const Tag & tag, tags) {
+            m_localStorageCacheManager.cacheTag(tag);
+        }
+    }
+
     emit listAllTagsPerNoteComplete(tags, note);
 }
 
@@ -593,6 +629,13 @@ void LocalStorageManagerThreadWorker::onListAllTagsRequest()
     if (tags.isEmpty() && !errorDescription.isEmpty()) {
         emit listAllTagsFailed(errorDescription);
         return;
+    }
+
+    if (m_useCache)
+    {
+        foreach(const Tag & tag, tags) {
+            m_localStorageCacheManager.cacheTag(tag);
+        }
     }
 
     emit listAllTagsComplete(tags);
@@ -608,6 +651,10 @@ void LocalStorageManagerThreadWorker::onDeleteTagRequest(Tag tag)
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheTag(tag);
+    }
+
     emit deleteTagComplete(tag);
 }
 
@@ -619,6 +666,10 @@ void LocalStorageManagerThreadWorker::onExpungeTagRequest(Tag tag)
     if (!res) {
         emit expungeTagFailed(tag, errorDescription);
         return;
+    }
+
+    if (m_useCache) {
+        m_localStorageCacheManager.expungeTag(tag);
     }
 
     emit expungeTagComplete(tag);
