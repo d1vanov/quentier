@@ -25,6 +25,11 @@ LocalStorageManagerThreadWorker::~LocalStorageManagerThreadWorker()
 
 void LocalStorageManagerThreadWorker::setUseCache(const bool useCache)
 {
+    if (m_useCache) {
+        // Cache is being disabled - no point to store things in it anymore, it would get rotten pretty quick
+        m_localStorageCacheManager.clear();
+    }
+
     m_useCache = useCache;
 }
 
@@ -794,6 +799,10 @@ void LocalStorageManagerThreadWorker::onAddSavedSearchRequest(SavedSearch search
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheSavedSearch(search);
+    }
+
     emit addSavedSearchComplete(search);
 }
 
@@ -807,6 +816,10 @@ void LocalStorageManagerThreadWorker::onUpdateSavedSearchRequest(SavedSearch sea
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheSavedSearch(search);
+    }
+
     emit updateSavedSearchComplete(search);
 }
 
@@ -814,10 +827,27 @@ void LocalStorageManagerThreadWorker::onFindSavedSearchRequest(SavedSearch searc
 {
     QString errorDescription;
 
-    bool res = m_localStorageManager.FindSavedSearch(search, errorDescription);
-    if (!res) {
-        emit findSavedSearchFailed(search, errorDescription);
-        return;
+    bool foundCachedSavedSearch = false;
+    if (m_useCache)
+    {
+        bool searchHasGuid = search.hasGuid();
+        const QString guid = (searchHasGuid ? search.guid() : search.localGuid());
+        const LocalStorageCacheManager::WhichGuid wg = (searchHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
+
+        const SavedSearch * pSearch = m_localStorageCacheManager.findSavedSearch(guid, wg);
+        if (pSearch) {
+            search = *pSearch;
+            foundCachedSavedSearch = true;
+        }
+    }
+
+    if (!foundCachedSavedSearch)
+    {
+        bool res = m_localStorageManager.FindSavedSearch(search, errorDescription);
+        if (!res) {
+            emit findSavedSearchFailed(search, errorDescription);
+            return;
+        }
     }
 
     emit findSavedSearchComplete(search);
@@ -832,6 +862,13 @@ void LocalStorageManagerThreadWorker::onListAllSavedSearchesRequest()
         return;
     }
 
+    if (m_useCache)
+    {
+        foreach(const SavedSearch & search, searches) {
+            m_localStorageCacheManager.cacheSavedSearch(search);
+        }
+    }
+
     emit listAllSavedSearchesComplete(searches);
 }
 
@@ -843,6 +880,10 @@ void LocalStorageManagerThreadWorker::onExpungeSavedSearch(SavedSearch search)
     if (!res) {
         emit expungeSavedSearchFailed(search, errorDescription);
         return;
+    }
+
+    if (m_useCache) {
+        m_localStorageCacheManager.expungeSavedSearch(search);
     }
 
     emit expungeSavedSearchComplete(search);

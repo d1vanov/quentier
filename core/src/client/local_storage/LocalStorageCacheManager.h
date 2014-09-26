@@ -9,6 +9,7 @@ QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(Tag)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
+QT_FORWARD_DECLARE_CLASS(SavedSearch)
 
 QT_FORWARD_DECLARE_CLASS(ILocalStorageCacheExpiryChecker)
 
@@ -24,6 +25,9 @@ public:
         LocalGuid,
         Guid
     };
+
+    void clear();
+    bool empty() const;
 
     // Notes cache
     size_t numCachedNotes() const;
@@ -48,6 +52,12 @@ public:
     void cacheLinkedNotebook(const LinkedNotebook & linkedNotebook);
     void expungeLinkedNotebook(const LinkedNotebook & linkedNotebook);
     const LinkedNotebook * findLinkedNotebook(const QString & guid) const;
+
+    // Saved searches cache
+    size_t numCachedSavedSearches() const;
+    void cacheSavedSearch(const SavedSearch & savedSearch);
+    void expungeSavedSearch(const SavedSearch & savedSearch);
+    const SavedSearch * findSavedSearch(const QString & guid, const WhichGuid wg) const;
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 

@@ -13,11 +13,30 @@ LocalStorageCacheManagerPrivate::LocalStorageCacheManagerPrivate(LocalStorageCac
     m_notesCache(),
     m_notebooksCache(),
     m_tagsCache(),
-    m_linkedNotebooksCache()
+    m_linkedNotebooksCache(),
+    m_savedSearchesCache()
 {}
 
 LocalStorageCacheManagerPrivate::~LocalStorageCacheManagerPrivate()
 {}
+
+void LocalStorageCacheManagerPrivate::clear()
+{
+    m_notesCache.clear();
+    m_notebooksCache.clear();
+    m_tagsCache.clear();
+    m_linkedNotebooksCache.clear();
+    m_savedSearchesCache.clear();
+}
+
+bool LocalStorageCacheManagerPrivate::empty() const
+{
+    return (m_notesCache.empty() &&
+            m_notebooksCache.empty() &&
+            m_tagsCache.empty() &&
+            m_linkedNotebooksCache.empty() &&
+            m_savedSearchesCache.empty());
+}
 
 #define NUM_CACHED_OBJECTS(type, method_name, cache_name, IndexType) \
 size_t LocalStorageCacheManagerPrivate::method_name() const \
@@ -30,6 +49,7 @@ NUM_CACHED_OBJECTS(Note, numCachedNotes, m_notesCache, ByLocalGuid)
 NUM_CACHED_OBJECTS(Notebook, numCachedNotebooks, m_notebooksCache, ByLocalGuid)
 NUM_CACHED_OBJECTS(Tag, numCachedTags, m_tagsCache, ByLocalGuid)
 NUM_CACHED_OBJECTS(LinkedNotebook, numCachedLinkedNotebooks, m_linkedNotebooksCache, ByGuid)
+NUM_CACHED_OBJECTS(SavedSearch, numCachedSavedSearches, m_savedSearchesCache, ByLocalGuid)
 
 #undef NUM_CACHED_OBJECTS
 
@@ -83,6 +103,8 @@ CACHE_OBJECT(Notebook, notebook, NotebooksCache, m_notebooksCache, checkNotebook
 CACHE_OBJECT(Tag, tag, TagsCache, m_tagsCache, checkTags, ByLocalGuid, localGuid)
 CACHE_OBJECT(LinkedNotebook, linkedNotebook, LinkedNotebooksCache, m_linkedNotebooksCache,
              checkLinkedNotebooks, ByGuid, guid)
+CACHE_OBJECT(SavedSearch, savedSearch, SavedSearchesCache, m_savedSearchesCache,
+             checkSavedSearches, ByLocalGuid, localGuid)
 
 #undef CACHE_OBJECT
 
@@ -117,6 +139,7 @@ void LocalStorageCacheManagerPrivate::expunge##Type(const Type & name) \
 EXPUNGE_OBJECT(Note, note, NotesCache, m_notesCache)
 EXPUNGE_OBJECT(Notebook, notebook, NotebooksCache, m_notebooksCache)
 EXPUNGE_OBJECT(Tag, tag, TagsCache, m_tagsCache)
+EXPUNGE_OBJECT(SavedSearch, savedSearch, SavedSearchesCache, m_savedSearchesCache)
 
 #undef EXPUNGE_OBJECT
 
@@ -152,6 +175,8 @@ FIND_OBJECT(Notebook, notebook, ByGuid, m_notebooksCache)
 FIND_OBJECT(Tag, tag, ByLocalGuid, m_tagsCache)
 FIND_OBJECT(Tag, tag, ByGuid, m_tagsCache)
 FIND_OBJECT(LinkedNotebook, linkedNotebook, ByGuid, m_linkedNotebooksCache)
+FIND_OBJECT(SavedSearch, savedSearch, ByLocalGuid, m_savedSearchesCache)
+FIND_OBJECT(SavedSearch, savedSearch, ByGuid, m_savedSearchesCache)
 
 #undef FIND_OBJECT
 
@@ -176,6 +201,7 @@ GET_GUID(Note, note)
 GET_GUID(Notebook, notebook)
 GET_GUID(Tag, tag)
 GET_GUID(LinkedNotebook, linkedNotebook)
+GET_GUID(SavedSearch, savedSearch)
 
 #undef GET_GUID
 

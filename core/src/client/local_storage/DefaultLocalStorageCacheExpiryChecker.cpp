@@ -5,6 +5,7 @@
 #define MAX_NOTEBOOKS_TO_STORE 20
 #define MAX_TAGS_TO_STORE 200
 #define MAX_LINKED_NOTEBOOKS_TO_STORE 15
+#define MAX_SAVED_SEARCHES_TO_STORE 20
 
 namespace qute_note {
 
@@ -44,6 +45,12 @@ bool DefaultLocalStorageCacheExpiryChecker::checkLinkedNotebooks() const
 {
     size_t numCachedLinkedNotebooks = m_localStorageCacheManager.numCachedLinkedNotebooks();
     return (numCachedLinkedNotebooks < MAX_LINKED_NOTEBOOKS_TO_STORE);
+}
+
+bool DefaultLocalStorageCacheExpiryChecker::checkSavedSearches() const
+{
+    size_t numCachedSavedSearches = m_localStorageCacheManager.numCachedSavedSearches();
+    return (numCachedSavedSearches < MAX_SAVED_SEARCHES_TO_STORE);
 }
 
 } // namespace qute_note

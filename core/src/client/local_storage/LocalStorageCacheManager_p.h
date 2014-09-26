@@ -6,6 +6,7 @@
 #include <client/types/Notebook.h>
 #include <client/types/Tag.h>
 #include <client/types/LinkedNotebook.h>
+#include <client/types/SavedSearch.h>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
@@ -20,6 +21,9 @@ class LocalStorageCacheManagerPrivate
 public:
     LocalStorageCacheManagerPrivate(LocalStorageCacheManager & q);
     virtual ~LocalStorageCacheManagerPrivate();
+
+    void clear();
+    bool empty() const;
 
     // Notes cache
     size_t numCachedNotes() const;
@@ -51,6 +55,14 @@ public:
     void expungeLinkedNotebook(const LinkedNotebook & linkedNotebook);
 
     const LinkedNotebook * findLinkedNotebookByGuid(const QString & guid) const;
+
+    // Saved searches cache
+    size_t numCachedSavedSearches() const;
+    void cacheSavedSearch(const SavedSearch & savedSearch);
+    void expungeSavedSearch(const SavedSearch & savedSearch);
+
+    const SavedSearch * findSavedSearchByLocalGuid(const QString & localGuid) const;
+    const SavedSearch * findSavedSearchByGuid(const QString & guid) const;
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 
@@ -185,12 +197,45 @@ private:
         >
     > LinkedNotebooksCache;
 
+    struct SavedSearchHolder
+    {
+        SavedSearch     m_savedSearch;
+        qint64          m_lastAccessTimestamp;
+
+        const QString localGuid() const { return m_savedSearch.localGuid(); }
+        const QString guid() const;
+
+        struct ByLastAccessTimestamp{};
+        struct ByLocalGuid{};
+        struct ByGuid{};
+    };
+
+    typedef boost::multi_index_container<
+        SavedSearchHolder,
+        boost::multi_index::indexed_by<
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<SavedSearchHolder::ByLastAccessTimestamp>,
+                boost::multi_index::member<SavedSearchHolder,qint64,&SavedSearchHolder::m_lastAccessTimestamp>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<SavedSearchHolder::ByLocalGuid>,
+                boost::multi_index::const_mem_fun<SavedSearchHolder,const QString,&SavedSearchHolder::localGuid>
+            >,
+            /* NOTE: non-unique for proper support of empty guids */
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<SavedSearchHolder::ByGuid>,
+                boost::multi_index::const_mem_fun<SavedSearchHolder,const QString,&SavedSearchHolder::guid>
+            >
+        >
+    > SavedSearchesCache;
+
 private:
     QScopedPointer<ILocalStorageCacheExpiryChecker>   m_cacheExpiryChecker;
     NotesCache              m_notesCache;
     NotebooksCache          m_notebooksCache;
     TagsCache               m_tagsCache;
     LinkedNotebooksCache    m_linkedNotebooksCache;
+    SavedSearchesCache      m_savedSearchesCache;
 };
 
 } // namespace qute_note
