@@ -16,6 +16,7 @@ public:
     virtual bool checkNotes() const;
     virtual bool checkNotebooks() const;
     virtual bool checkTags() const;
+    virtual bool checkLinkedNotebooks() const;
 
 private:
     DefaultLocalStorageCacheExpiryChecker() = delete;

@@ -90,6 +90,30 @@ void LocalStorageCacheManager::expungeTag(const Tag &tag)
     d->expungeTag(tag);
 }
 
+size_t LocalStorageCacheManager::numCachedLinkedNotebooks() const
+{
+    Q_D(const LocalStorageCacheManager);
+    return d->numCachedLinkedNotebooks();
+}
+
+void LocalStorageCacheManager::cacheLinkedNotebook(const LinkedNotebook & linkedNotebook)
+{
+    Q_D(LocalStorageCacheManager);
+    d->cacheLinkedNotebook(linkedNotebook);
+}
+
+void LocalStorageCacheManager::expungeLinkedNotebook(const LinkedNotebook & linkedNotebook)
+{
+    Q_D(LocalStorageCacheManager);
+    d->expungeLinkedNotebook(linkedNotebook);
+}
+
+const LinkedNotebook * LocalStorageCacheManager::findLinkedNotebook(const QString & guid) const
+{
+    Q_D(const LocalStorageCacheManager);
+    return d->findLinkedNotebookByGuid(guid);
+}
+
 void LocalStorageCacheManager::installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker)
 {
     Q_D(LocalStorageCacheManager);

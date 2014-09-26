@@ -322,6 +322,10 @@ void LocalStorageManagerThreadWorker::onAddLinkedNotebookRequest(LinkedNotebook 
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheLinkedNotebook(linkedNotebook);
+    }
+
     emit addLinkedNotebookComplete(linkedNotebook);
 }
 
@@ -335,6 +339,10 @@ void LocalStorageManagerThreadWorker::onUpdateLinkedNotebookRequest(LinkedNotebo
         return;
     }
 
+    if (m_useCache) {
+        m_localStorageCacheManager.cacheLinkedNotebook(linkedNotebook);
+    }
+
     emit updateLinkedNotebookComplete(linkedNotebook);
 }
 
@@ -342,10 +350,24 @@ void LocalStorageManagerThreadWorker::onFindLinkedNotebookRequest(LinkedNotebook
 {
     QString errorDescription;
 
-    bool res = m_localStorageManager.FindLinkedNotebook(linkedNotebook, errorDescription);
-    if (!res) {
-        emit findLinkedNotebookFailed(linkedNotebook, errorDescription);
-        return;
+    bool foundLinkedNotebookInCache = false;
+    if (m_useCache && linkedNotebook.hasGuid())
+    {
+        const QString guid = linkedNotebook.guid();
+        const LinkedNotebook * pLinkedNotebook = m_localStorageCacheManager.findLinkedNotebook(guid);
+        if (pLinkedNotebook) {
+            linkedNotebook = *pLinkedNotebook;
+            foundLinkedNotebookInCache = true;
+        }
+    }
+
+    if (!foundLinkedNotebookInCache)
+    {
+        bool res = m_localStorageManager.FindLinkedNotebook(linkedNotebook, errorDescription);
+        if (!res) {
+            emit findLinkedNotebookFailed(linkedNotebook, errorDescription);
+            return;
+        }
     }
 
     emit findLinkedNotebookComplete(linkedNotebook);
@@ -360,6 +382,13 @@ void LocalStorageManagerThreadWorker::onListAllLinkedNotebooksRequest()
         return;
     }
 
+    if (m_useCache)
+    {
+        foreach(const LinkedNotebook & linkedNotebook, linkedNotebooks) {
+            m_localStorageCacheManager.cacheLinkedNotebook(linkedNotebook);
+        }
+    }
+
     emit listAllLinkedNotebooksComplete(linkedNotebooks);
 }
 
@@ -371,6 +400,10 @@ void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(LinkedNoteb
     if (!res) {
         emit expungeLinkedNotebookFailed(linkedNotebook, errorDescription);
         return;
+    }
+
+    if (m_useCache) {
+        m_localStorageCacheManager.expungeLinkedNotebook(linkedNotebook);
     }
 
     emit expungeLinkedNotebookComplete(linkedNotebook);

@@ -5,6 +5,7 @@
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
 #include <client/types/Tag.h>
+#include <client/types/LinkedNotebook.h>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
@@ -44,6 +45,12 @@ public:
     const Tag * findTagByLocalGuid(const QString & localGuid) const;
     const Tag * findTagByGuid(const QString & guid) const;
 
+    // Linked notebooks cache
+    size_t numCachedLinkedNotebooks() const;
+    void cacheLinkedNotebook(const LinkedNotebook & linkedNotebook);
+    void expungeLinkedNotebook(const LinkedNotebook & linkedNotebook);
+
+    const LinkedNotebook * findLinkedNotebookByGuid(const QString & guid) const;
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 
@@ -153,11 +160,37 @@ private:
         >
     > TagsCache;
 
+    struct LinkedNotebookHolder
+    {
+        LinkedNotebook  m_linkedNotebook;
+        qint64          m_lastAccessTimestamp;
+
+        const QString guid() const;
+
+        struct ByLastAccessTimestamp{};
+        struct ByGuid{};
+    };
+
+    typedef boost::multi_index_container<
+        LinkedNotebookHolder,
+        boost::multi_index::indexed_by<
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<LinkedNotebookHolder::ByLastAccessTimestamp>,
+                boost::multi_index::member<LinkedNotebookHolder,qint64,&LinkedNotebookHolder::m_lastAccessTimestamp>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<LinkedNotebookHolder::ByGuid>,
+                boost::multi_index::const_mem_fun<LinkedNotebookHolder,const QString,&LinkedNotebookHolder::guid>
+            >
+        >
+    > LinkedNotebooksCache;
+
 private:
     QScopedPointer<ILocalStorageCacheExpiryChecker>   m_cacheExpiryChecker;
-    NotesCache      m_notesCache;
-    NotebooksCache  m_notebooksCache;
-    TagsCache       m_tagsCache;
+    NotesCache              m_notesCache;
+    NotebooksCache          m_notebooksCache;
+    TagsCache               m_tagsCache;
+    LinkedNotebooksCache    m_linkedNotebooksCache;
 };
 
 } // namespace qute_note

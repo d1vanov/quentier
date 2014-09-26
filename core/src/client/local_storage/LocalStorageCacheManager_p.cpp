@@ -12,26 +12,28 @@ LocalStorageCacheManagerPrivate::LocalStorageCacheManagerPrivate(LocalStorageCac
     m_cacheExpiryChecker(new DefaultLocalStorageCacheExpiryChecker(q)),
     m_notesCache(),
     m_notebooksCache(),
-    m_tagsCache()
+    m_tagsCache(),
+    m_linkedNotebooksCache()
 {}
 
 LocalStorageCacheManagerPrivate::~LocalStorageCacheManagerPrivate()
 {}
 
-#define NUM_CACHED_OBJECTS(type, method_name, cache_name) \
+#define NUM_CACHED_OBJECTS(type, method_name, cache_name, IndexType) \
 size_t LocalStorageCacheManagerPrivate::method_name() const \
 { \
-    const auto & index = cache_name.get<type##Holder::ByLocalGuid>(); \
+    const auto & index = cache_name.get<type##Holder::IndexType>(); \
     return index.size(); \
 }
 
-NUM_CACHED_OBJECTS(Note, numCachedNotes, m_notesCache)
-NUM_CACHED_OBJECTS(Notebook, numCachedNotebooks, m_notebooksCache)
-NUM_CACHED_OBJECTS(Tag, numCachedTags, m_tagsCache)
+NUM_CACHED_OBJECTS(Note, numCachedNotes, m_notesCache, ByLocalGuid)
+NUM_CACHED_OBJECTS(Notebook, numCachedNotebooks, m_notebooksCache, ByLocalGuid)
+NUM_CACHED_OBJECTS(Tag, numCachedTags, m_tagsCache, ByLocalGuid)
+NUM_CACHED_OBJECTS(LinkedNotebook, numCachedLinkedNotebooks, m_linkedNotebooksCache, ByGuid)
 
 #undef NUM_CACHED_OBJECTS
 
-#define CACHE_OBJECT(Type, name, cache_type, cache_name, expiry_checker) \
+#define CACHE_OBJECT(Type, name, cache_type, cache_name, expiry_checker, IndexType, IndexAccessor) \
 void LocalStorageCacheManagerPrivate::cache##Type(const Type & name) \
 { \
     QUTE_NOTE_CHECK_PTR(m_cacheExpiryChecker.data()); \
@@ -57,11 +59,11 @@ void LocalStorageCacheManagerPrivate::cache##Type(const Type & name) \
     name##Holder.m_lastAccessTimestamp = QDateTime::currentMSecsSinceEpoch(); \
     \
     /* See whether the note is already in the cache */ \
-    typedef boost::multi_index::index<cache_type,Type##Holder::ByLocalGuid>::type LocalGuidIndex; \
-    LocalGuidIndex & lgIndex = cache_name.get<Type##Holder::ByLocalGuid>(); \
-    LocalGuidIndex::iterator it = lgIndex.find(name.localGuid()); \
-    if (it != lgIndex.end()) { \
-        lgIndex.replace(it, name##Holder); \
+    typedef boost::multi_index::index<cache_type,Type##Holder::IndexType>::type Index; \
+    Index & uniqueIndex = cache_name.get<Type##Holder::IndexType>(); \
+    Index::iterator it = uniqueIndex.find(name.IndexAccessor()); \
+    if (it != uniqueIndex.end()) { \
+        uniqueIndex.replace(it, name##Holder); \
         QNDEBUG("Updated " #name " in the local storage cache: " << name); \
         return; \
     } \
@@ -76,9 +78,11 @@ void LocalStorageCacheManagerPrivate::cache##Type(const Type & name) \
     QNDEBUG("Added " #name " to the local storage cache: " << name); \
 }
 
-CACHE_OBJECT(Note, note, NotesCache, m_notesCache, checkNotes)
-CACHE_OBJECT(Notebook, notebook, NotebooksCache, m_notebooksCache, checkNotebooks)
-CACHE_OBJECT(Tag, tag, TagsCache, m_tagsCache, checkTags)
+CACHE_OBJECT(Note, note, NotesCache, m_notesCache, checkNotes, ByLocalGuid, localGuid)
+CACHE_OBJECT(Notebook, notebook, NotebooksCache, m_notebooksCache, checkNotebooks, ByLocalGuid, localGuid)
+CACHE_OBJECT(Tag, tag, TagsCache, m_tagsCache, checkTags, ByLocalGuid, localGuid)
+CACHE_OBJECT(LinkedNotebook, linkedNotebook, LinkedNotebooksCache, m_linkedNotebooksCache,
+             checkLinkedNotebooks, ByGuid, guid)
 
 #undef CACHE_OBJECT
 
@@ -116,6 +120,19 @@ EXPUNGE_OBJECT(Tag, tag, TagsCache, m_tagsCache)
 
 #undef EXPUNGE_OBJECT
 
+void LocalStorageCacheManagerPrivate::expungeLinkedNotebook(const LinkedNotebook & linkedNotebook)
+{
+    const QString guid = linkedNotebook.guid();
+
+    typedef boost::multi_index::index<LinkedNotebooksCache,LinkedNotebookHolder::ByGuid>::type GuidIndex;
+    GuidIndex & index = m_linkedNotebooksCache.get<LinkedNotebookHolder::ByGuid>();
+    GuidIndex::iterator it = index.find(guid);
+    if (it != index.end()) {
+        index.erase(it);
+        QNDEBUG("Expunged linked notebook from the local storage cache: " << linkedNotebook);
+    }
+}
+
 #define FIND_OBJECT(Type, name, tag, cache_name) \
 const Type * LocalStorageCacheManagerPrivate::find##Type##tag(const QString & guid) const \
 { \
@@ -134,6 +151,7 @@ FIND_OBJECT(Notebook, notebook, ByLocalGuid, m_notebooksCache)
 FIND_OBJECT(Notebook, notebook, ByGuid, m_notebooksCache)
 FIND_OBJECT(Tag, tag, ByLocalGuid, m_tagsCache)
 FIND_OBJECT(Tag, tag, ByGuid, m_tagsCache)
+FIND_OBJECT(LinkedNotebook, linkedNotebook, ByGuid, m_linkedNotebooksCache)
 
 #undef FIND_OBJECT
 
@@ -157,6 +175,7 @@ const QString LocalStorageCacheManagerPrivate::Type##Holder::guid() const \
 GET_GUID(Note, note)
 GET_GUID(Notebook, notebook)
 GET_GUID(Tag, tag)
+GET_GUID(LinkedNotebook, linkedNotebook)
 
 #undef GET_GUID
 

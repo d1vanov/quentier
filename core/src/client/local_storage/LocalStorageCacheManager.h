@@ -8,6 +8,7 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(Tag)
+QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 
 QT_FORWARD_DECLARE_CLASS(ILocalStorageCacheExpiryChecker)
 
@@ -41,6 +42,12 @@ public:
     void cacheTag(const Tag & tag);
     void expungeTag(const Tag & tag);
     const Tag * findTag(const QString & guid, const WhichGuid wg) const;
+
+    // Linked notebooks cache
+    size_t numCachedLinkedNotebooks() const;
+    void cacheLinkedNotebook(const LinkedNotebook & linkedNotebook);
+    void expungeLinkedNotebook(const LinkedNotebook & linkedNotebook);
+    const LinkedNotebook * findLinkedNotebook(const QString & guid) const;
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 

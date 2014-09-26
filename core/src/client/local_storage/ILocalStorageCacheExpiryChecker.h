@@ -21,6 +21,7 @@ public:
     virtual bool checkNotes() const = 0;
     virtual bool checkNotebooks() const = 0;
     virtual bool checkTags() const = 0;
+    virtual bool checkLinkedNotebooks() const = 0;
 
 private:
     ILocalStorageCacheExpiryChecker() = delete;
