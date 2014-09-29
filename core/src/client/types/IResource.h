@@ -7,8 +7,13 @@
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(LocalStorageDataElementSharedData)
+
 class QUTE_NOTE_EXPORT IResource: public NoteStoreDataElement
 {
+public:
+    QN_DECLARE_LOCAL_GUID
+
 public:
     IResource();
     IResource(const bool isFreeAccount);
@@ -119,6 +124,8 @@ protected:
     virtual QTextStream & Print(QTextStream & strm) const;
 
 private:    
+    QSharedDataPointer<LocalStorageDataElementSharedData>  d;
+
     bool m_isFreeAccount;
     int  m_indexInNote;
     qevercloud::Optional<QString> m_noteLocalGuid;

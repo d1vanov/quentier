@@ -12,6 +12,9 @@ QT_FORWARD_DECLARE_CLASS(TagData)
 class QUTE_NOTE_EXPORT Tag: public DataElementWithShortcut
 {
 public:
+    QN_DECLARE_LOCAL_GUID
+
+public:
     Tag();
     Tag(const Tag & other);
     Tag(Tag && other);

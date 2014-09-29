@@ -6,6 +6,9 @@
 namespace qute_note {
 
 NoteData::NoteData() :
+    LocalStorageDataElementData(),
+    m_qecNote(),
+    m_resourcesAdditionalInfo(),
     m_isLocal(true),
     m_thumbnail(),
     m_lazyPlainText(),
@@ -17,26 +20,43 @@ NoteData::NoteData() :
     m_lazyContainsEncryption(-1)
 {}
 
-NoteData::NoteData(NoteData && other)
-{
-    m_lazyPlainText = other.m_lazyPlainText;
-    other.m_lazyPlainText.clear();
+NoteData::NoteData(const NoteData & other) :
+    LocalStorageDataElementData(other),
+    m_qecNote(other.m_qecNote),
+    m_resourcesAdditionalInfo(other.m_resourcesAdditionalInfo),
+    m_isLocal(other.m_isLocal),
+    m_thumbnail(other.m_thumbnail),
+    m_lazyPlainText(other.m_lazyPlainText),
+    m_lazyPlainTextIsValid(other.m_lazyPlainTextIsValid),
+    m_lazyListOfWords(other.m_lazyListOfWords),
+    m_lazyListOfWordsIsValid(other.m_lazyListOfWordsIsValid),
+    m_lazyContainsCheckedToDo(other.m_lazyContainsCheckedToDo),
+    m_lazyContainsUncheckedToDo(other.m_lazyContainsUncheckedToDo),
+    m_lazyContainsEncryption(other.m_lazyContainsEncryption)
+{}
 
-    m_lazyPlainTextIsValid = other.m_lazyPlainTextIsValid;
-    other.m_lazyPlainTextIsValid = false;
-
-    m_lazyListOfWords = other.m_lazyListOfWords;
-    other.m_lazyListOfWords.clear();
-
-    m_lazyListOfWordsIsValid = other.m_lazyListOfWordsIsValid;
-    other.m_lazyListOfWordsIsValid = false;
-}
+NoteData::NoteData(NoteData && other) :
+    LocalStorageDataElementData(std::move(other)),
+    m_qecNote(std::move(other.m_qecNote)),
+    m_resourcesAdditionalInfo(std::move(other.m_resourcesAdditionalInfo)),
+    m_isLocal(std::move(other.m_isLocal)),
+    m_thumbnail(std::move(other.m_thumbnail)),
+    m_lazyPlainText(std::move(other.m_lazyPlainText)),
+    m_lazyPlainTextIsValid(std::move(other.m_lazyPlainTextIsValid)),
+    m_lazyListOfWords(std::move(other.m_lazyListOfWords)),
+    m_lazyListOfWordsIsValid(std::move(other.m_lazyListOfWordsIsValid)),
+    m_lazyContainsCheckedToDo(std::move(other.m_lazyContainsCheckedToDo)),
+    m_lazyContainsUncheckedToDo(std::move(other.m_lazyContainsUncheckedToDo)),
+    m_lazyContainsEncryption(std::move(other.m_lazyContainsEncryption))
+{}
 
 NoteData::~NoteData()
 {}
 
 NoteData::NoteData(const qevercloud::Note & other) :
+    LocalStorageDataElementData(),
     m_qecNote(other),
+    m_resourcesAdditionalInfo(),
     m_isLocal(false),
     m_thumbnail(),
     m_lazyPlainText(),
@@ -48,9 +68,32 @@ NoteData::NoteData(const qevercloud::Note & other) :
     m_lazyContainsEncryption(-1)
 {}
 
+NoteData & NoteData::operator=(const NoteData & other)
+{
+    LocalStorageDataElementData::operator=(other);
+
+    if (this != std::addressof(other))
+    {
+        m_qecNote = other.m_qecNote;
+        m_resourcesAdditionalInfo = other.m_resourcesAdditionalInfo;
+        m_isLocal = other.m_isLocal;
+        m_thumbnail = other.m_thumbnail;
+        m_lazyPlainText = other.m_lazyPlainText;
+        m_lazyPlainTextIsValid = other.m_lazyPlainTextIsValid;
+        m_lazyListOfWords = other.m_lazyListOfWords;
+        m_lazyListOfWordsIsValid = other.m_lazyListOfWordsIsValid;
+        m_lazyContainsCheckedToDo = other.m_lazyContainsCheckedToDo;
+        m_lazyContainsUncheckedToDo = other.m_lazyContainsUncheckedToDo;
+        m_lazyContainsEncryption = other.m_lazyContainsEncryption;
+    }
+
+    return *this;
+}
+
 NoteData & NoteData::operator=(const qevercloud::Note & other)
 {
     m_qecNote = other;
+    m_resourcesAdditionalInfo.clear();
     m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
     m_lazyListOfWordsIsValid = false;
     m_lazyContainsCheckedToDo = -1;
@@ -61,27 +104,21 @@ NoteData & NoteData::operator=(const qevercloud::Note & other)
 
 NoteData & NoteData::operator=(NoteData && other)
 {
+    LocalStorageDataElementData::operator=(std::move(other));
+
     if (this != &other)
     {
-        m_qecNote = std::move(other.m_qecNote);
-        m_isLocal = std::move(other.m_isLocal);
+        m_qecNote   = std::move(other.m_qecNote);
+        m_resourcesAdditionalInfo = std::move(other.m_resourcesAdditionalInfo);
+        m_isLocal   = std::move(other.m_isLocal);
         m_thumbnail = std::move(other.m_thumbnail);
-
-        m_lazyPlainText = other.m_lazyPlainText;
-        other.m_lazyPlainText.clear();
-
-        m_lazyPlainTextIsValid = other.m_lazyPlainTextIsValid;
-        other.m_lazyPlainTextIsValid = false;
-
-        m_lazyListOfWords = other.m_lazyListOfWords;
-        other.m_lazyListOfWords.clear();
-
-        m_lazyListOfWordsIsValid = other.m_lazyListOfWordsIsValid;
-        other.m_lazyListOfWordsIsValid = false;
-
-        m_lazyContainsCheckedToDo   = other.m_lazyContainsCheckedToDo;
-        m_lazyContainsUncheckedToDo = other.m_lazyContainsUncheckedToDo;
-        m_lazyContainsEncryption    = other.m_lazyContainsEncryption;
+        m_lazyPlainText = std::move(other.m_lazyPlainText);
+        m_lazyPlainTextIsValid = std::move(other.m_lazyPlainTextIsValid);
+        m_lazyListOfWords = std::move(other.m_lazyListOfWords);
+        m_lazyListOfWordsIsValid = std::move(other.m_lazyListOfWordsIsValid);
+        m_lazyContainsCheckedToDo   = std::move(other.m_lazyContainsCheckedToDo);
+        m_lazyContainsUncheckedToDo = std::move(other.m_lazyContainsUncheckedToDo);
+        m_lazyContainsEncryption    = std::move(other.m_lazyContainsEncryption);
     }
 
     return *this;
@@ -93,7 +130,6 @@ bool NoteData::ResourceAdditionalInfo::operator==(const NoteData::ResourceAdditi
             (noteLocalGuid == other.noteLocalGuid) &&
             (isDirty == other.isDirty);
 }
-
 
 bool NoteData::containsToDoImpl(const bool checked) const
 {

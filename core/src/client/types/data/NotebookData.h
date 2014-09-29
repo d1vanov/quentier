@@ -1,12 +1,14 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__NOTEBOOK_DATA_H
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__NOTEBOOK_DATA_H
 
+#include "LocalStorageDataElementData.h"
 #include <QEverCloud.h>
 #include <QSharedData>
 
 namespace qute_note {
 
-class NotebookData: public QSharedData
+class NotebookData : public LocalStorageDataElementData,
+                     public QSharedData
 {
 public:
     NotebookData();

@@ -4,27 +4,34 @@
 namespace qute_note {
 
 LinkedNotebookData::LinkedNotebookData() :
+    LocalStorageDataElementData(),
     m_qecLinkedNotebook()
 {}
 
 LinkedNotebookData::LinkedNotebookData(const LinkedNotebookData & other) :
+    LocalStorageDataElementData(other),
     m_qecLinkedNotebook(other.m_qecLinkedNotebook)
 {}
 
 LinkedNotebookData::LinkedNotebookData(LinkedNotebookData && other) :
+    LocalStorageDataElementData(std::move(other)),
     m_qecLinkedNotebook(std::move(other.m_qecLinkedNotebook))
 {}
 
 LinkedNotebookData::LinkedNotebookData(const qevercloud::LinkedNotebook & other) :
+    LocalStorageDataElementData(),
     m_qecLinkedNotebook(other)
 {}
 
 LinkedNotebookData::LinkedNotebookData(qevercloud::LinkedNotebook && other) :
+    LocalStorageDataElementData(),
     m_qecLinkedNotebook(std::move(other))
 {}
 
 LinkedNotebookData & LinkedNotebookData::operator=(const LinkedNotebookData & other)
 {
+    LocalStorageDataElementData::operator=(other);
+
     if (this != std::addressof(other)) {
         m_qecLinkedNotebook = other.m_qecLinkedNotebook;
     }
@@ -34,6 +41,8 @@ LinkedNotebookData & LinkedNotebookData::operator=(const LinkedNotebookData & ot
 
 LinkedNotebookData & LinkedNotebookData::operator=(LinkedNotebookData && other)
 {
+    LocalStorageDataElementData::operator=(other);
+
     if (this != std::addressof(other)) {
         m_qecLinkedNotebook = std::move(other.m_qecLinkedNotebook);
     }
@@ -55,7 +64,7 @@ void LinkedNotebookData::clear()
     m_qecLinkedNotebook = qevercloud::LinkedNotebook();
 }
 
-bool LinkedNotebookData::checkParameters(QString &errorDescription) const
+bool LinkedNotebookData::checkParameters(QString & errorDescription) const
 {
     if (!m_qecLinkedNotebook.guid.isSet()) {
         errorDescription = QT_TR_NOOP("Linked notebook's guid is not set");

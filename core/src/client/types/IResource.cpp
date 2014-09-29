@@ -1,11 +1,44 @@
 #include "IResource.h"
 #include "QEverCloudHelpers.h"
+#include "data/LocalStorageDataElementData.h"
 #include <client/Utility.h>
 
 namespace qute_note {
 
+class LocalStorageDataElementSharedData: public LocalStorageDataElementData,
+                                         public QSharedData
+{
+public:
+    LocalStorageDataElementSharedData() :
+        LocalStorageDataElementData()
+    {}
+
+    LocalStorageDataElementSharedData(const LocalStorageDataElementSharedData & other) :
+        LocalStorageDataElementData(other)
+    {}
+
+    LocalStorageDataElementSharedData(LocalStorageDataElementSharedData && other) :
+        LocalStorageDataElementData(std::move(other))
+    {}
+
+    LocalStorageDataElementSharedData & operator=(const LocalStorageDataElementSharedData & other) {
+        LocalStorageDataElementData::operator=(other);
+        return *this;
+    }
+
+    LocalStorageDataElementSharedData & operator=(LocalStorageDataElementSharedData && other) {
+        LocalStorageDataElementData::operator=(std::move(other));
+        return *this;
+    }
+
+    virtual ~LocalStorageDataElementSharedData() {}
+};
+
+QN_DEFINE_LOCAL_GUID(IResource)
+
 IResource::IResource() :
     NoteStoreDataElement(),
+    d(new LocalStorageDataElementSharedData),
     m_isFreeAccount(true),
     m_indexInNote(-1),
     m_noteLocalGuid(),
@@ -14,6 +47,7 @@ IResource::IResource() :
 
 IResource::IResource(const bool isFreeAccount) :
     NoteStoreDataElement(),
+    d(new LocalStorageDataElementSharedData),
     m_isFreeAccount(isFreeAccount),
     m_indexInNote(-1),
     m_noteLocalGuid(),
@@ -635,6 +669,7 @@ void IResource::setResourceAttributes(qevercloud::ResourceAttributes && attribut
 
 IResource::IResource(const IResource & other) :
     NoteStoreDataElement(other),
+    d(other.d),
     m_isFreeAccount(other.m_isFreeAccount),
     m_indexInNote(other.indexInNote()),
     m_noteLocalGuid(other.m_noteLocalGuid),
@@ -646,6 +681,7 @@ IResource & IResource::operator=(const IResource & other)
     if (this != &other)
     {
         NoteStoreDataElement::operator =(other);
+        d = other.d;
         setFreeAccount(other.m_isFreeAccount);
         setIndexInNote(other.m_indexInNote);
         setNoteLocalGuid(other.m_noteLocalGuid.isSet() ? other.m_noteLocalGuid.ref() : QString());

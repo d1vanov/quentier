@@ -5,6 +5,8 @@
 
 namespace qute_note {
 
+QN_DEFINE_LOCAL_GUID(SavedSearch)
+
 SavedSearch::SavedSearch() :
     DataElementWithShortcut(),
     d(new SavedSearchData)

@@ -17,6 +17,9 @@ QT_FORWARD_DECLARE_CLASS(NotebookData)
 class QUTE_NOTE_EXPORT Notebook: public DataElementWithShortcut
 {
 public:
+    QN_DECLARE_LOCAL_GUID
+
+public:
     Notebook();
     Notebook(const Notebook & other);
     Notebook(Notebook && other);

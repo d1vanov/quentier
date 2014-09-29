@@ -1,20 +1,22 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__PRIVATE__NOTE_P_H
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__PRIVATE__NOTE_P_H
 
+#include "LocalStorageDataElementData.h"
 #include <QEverCloud.h>
 #include <QSharedData>
 #include <QImage>
 
 namespace qute_note {
 
-class NoteData : public QSharedData
+class NoteData : public LocalStorageDataElementData,
+                 public QSharedData
 {
 public:
     NoteData();
-    NoteData(const NoteData & other) = default;
+    NoteData(const NoteData & other);
     NoteData(NoteData && other);
     NoteData(const qevercloud::Note & other);
-    NoteData & operator=(const NoteData & other) = default;
+    NoteData & operator=(const NoteData & other);
     NoteData & operator=(NoteData && other);
     NoteData & operator=(const qevercloud::Note & other);
     virtual ~NoteData();

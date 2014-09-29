@@ -3,7 +3,6 @@
 namespace qute_note {
 
 NoteStoreDataElement::NoteStoreDataElement() :
-    LocalStorageDataElement(),
     Printable(),
     TypeWithError(),
     m_isDirty(true)
@@ -23,14 +22,12 @@ void NoteStoreDataElement::setDirty(const bool isDirty)
 }
 
 NoteStoreDataElement::NoteStoreDataElement(const NoteStoreDataElement & other) :
-    LocalStorageDataElement(other),
     Printable(),
     TypeWithError(other),
     m_isDirty(other.m_isDirty)
 {}
 
 NoteStoreDataElement::NoteStoreDataElement(NoteStoreDataElement && other) :
-    LocalStorageDataElement(std::move(other)),
     Printable(),
     TypeWithError(std::move(other)),
     m_isDirty(std::move(other.m_isDirty))
@@ -38,10 +35,9 @@ NoteStoreDataElement::NoteStoreDataElement(NoteStoreDataElement && other) :
 
 NoteStoreDataElement & NoteStoreDataElement::operator=(const NoteStoreDataElement & other)
 {
-    if (this != &other)
-    {
-        LocalStorageDataElement::operator=(other);
-        TypeWithError::operator =(other);
+    TypeWithError::operator =(other);
+
+    if (this != std::addressof(other)) {
         setDirty(other.m_isDirty);
     }
 
@@ -50,7 +46,6 @@ NoteStoreDataElement & NoteStoreDataElement::operator=(const NoteStoreDataElemen
 
 NoteStoreDataElement & NoteStoreDataElement::operator=(NoteStoreDataElement && other)
 {
-    LocalStorageDataElement::operator=(other);
     TypeWithError::operator=(other);
     setDirty(std::move(other.isDirty()));
 

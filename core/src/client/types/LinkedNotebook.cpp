@@ -4,6 +4,8 @@
 
 namespace qute_note {
 
+QN_DEFINE_LOCAL_GUID(LinkedNotebook)
+
 LinkedNotebook::LinkedNotebook() :
     d(new LinkedNotebookData)
 {}

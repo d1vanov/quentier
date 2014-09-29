@@ -16,6 +16,9 @@ QT_FORWARD_DECLARE_CLASS(NoteData)
 class QUTE_NOTE_EXPORT Note: public DataElementWithShortcut
 {
 public:
+    QN_DECLARE_LOCAL_GUID
+
+public:
     Note();
     Note(const Note & other);
     Note(Note && other);

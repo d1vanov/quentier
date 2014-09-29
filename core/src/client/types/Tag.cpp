@@ -4,6 +4,8 @@
 
 namespace qute_note {
 
+QN_DEFINE_LOCAL_GUID(Tag)
+
 Tag::Tag() :
     DataElementWithShortcut(),
     d(new TagData)

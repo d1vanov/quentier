@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__NOTE_STORE_DATA_ELEMENT_H
 #define __QUTE_NOTE__CLIENT__TYPES__NOTE_STORE_DATA_ELEMENT_H
 
-#include "LocalStorageDataElement.h"
+#include "ILocalStorageDataElement.h"
 #include <tools/Printable.h>
 #include <tools/TypeWithError.h>
 #include <QtGlobal>
@@ -9,7 +9,7 @@
 
 namespace qute_note {
 
-class QUTE_NOTE_EXPORT NoteStoreDataElement: public LocalStorageDataElement,
+class QUTE_NOTE_EXPORT NoteStoreDataElement: public ILocalStorageDataElement,
                                              public Printable,
                                              public TypeWithError
 {

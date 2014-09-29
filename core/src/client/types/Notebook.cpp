@@ -9,6 +9,8 @@
 
 namespace qute_note {
 
+QN_DEFINE_LOCAL_GUID(Notebook)
+
 Notebook::Notebook() :
     DataElementWithShortcut(),
     d(new NotebookData)

@@ -22,7 +22,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/IResource.h
     src/client/types/IUser.h
     src/client/types/LinkedNotebook.h
-    src/client/types/LocalStorageDataElement.h
+    src/client/types/ILocalStorageDataElement.h
     src/client/types/Note.h
     src/client/types/Notebook.h
     src/client/types/NoteStoreDataElement.h
@@ -38,6 +38,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/UserAdapter.h
     src/client/types/UserAdapterAccessException.h
     src/client/types/UserWrapper.h
+    src/client/types/data/LocalStorageDataElementData.h
     src/client/types/data/LinkedNotebookData.h
     src/client/types/data/NoteData.h
     src/client/types/data/NotebookData.h
@@ -93,7 +94,6 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/IResource.cpp
     src/client/types/IUser.cpp
     src/client/types/LinkedNotebook.cpp
-    src/client/types/LocalStorageDataElement.cpp
     src/client/types/Note.cpp
     src/client/types/Notebook.cpp
     src/client/types/NoteStoreDataElement.cpp
@@ -109,6 +109,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/UserAdapter.cpp
     src/client/types/UserAdapterAccessException.cpp
     src/client/types/UserWrapper.cpp
+    src/client/types/data/LocalStorageDataElementData.cpp
     src/client/types/data/LinkedNotebookData.cpp
     src/client/types/data/NoteData.cpp
     src/client/types/data/NotebookData.cpp

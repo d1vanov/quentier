@@ -10,6 +10,8 @@
 
 namespace qute_note {
 
+QN_DEFINE_LOCAL_GUID(Note)
+
 Note::Note() :
     DataElementWithShortcut(),
     d(new NoteData)
@@ -30,10 +32,11 @@ Note::Note(Note && other) :
     d(std::move(other.d))
 {}
 
-Note & Note::operator =(const Note & other)
+Note & Note::operator=(const Note & other)
 {
-    if (this != &other) {
-        NoteStoreDataElement::operator=(other);
+    NoteStoreDataElement::operator=(other);
+
+    if (this != std::addressof(other)) {
         d = other.d;
     }
 
@@ -48,9 +51,10 @@ Note & Note::operator=(const qevercloud::Note & other)
 
 Note & Note::operator=(Note && other)
 {
-    if (this != &other) {
-        NoteStoreDataElement::operator=(other);
-        d = other.d;
+    NoteStoreDataElement::operator=(std::move(other));
+
+    if (this != std::addressof(other)) {
+        d = std::move(other.d);
     }
 
     return *this;

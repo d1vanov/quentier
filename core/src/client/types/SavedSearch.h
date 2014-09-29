@@ -12,6 +12,9 @@ QT_FORWARD_DECLARE_CLASS(SavedSearchData)
 class QUTE_NOTE_EXPORT SavedSearch final: public DataElementWithShortcut
 {
 public:
+    QN_DECLARE_LOCAL_GUID
+
+public:
     typedef qevercloud::QueryFormat::type QueryFormat;
     typedef qevercloud::SavedSearchScope  SavedSearchScope;
 

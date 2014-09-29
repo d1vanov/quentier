@@ -12,6 +12,9 @@ QT_FORWARD_DECLARE_CLASS(LinkedNotebookData)
 class QUTE_NOTE_EXPORT LinkedNotebook: public NoteStoreDataElement
 {
 public:
+    QN_DECLARE_LOCAL_GUID
+
+public:
     LinkedNotebook();
     LinkedNotebook(const LinkedNotebook & other);
     LinkedNotebook(LinkedNotebook && other);
