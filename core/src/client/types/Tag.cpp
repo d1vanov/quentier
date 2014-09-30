@@ -5,6 +5,7 @@
 namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(Tag)
+QN_DEFINE_DIRTY(Tag)
 
 Tag::Tag() :
     DataElementWithShortcut(),

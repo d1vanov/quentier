@@ -1,12 +1,12 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__RESOURCE_WRAPPER_DATA_H
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__RESOURCE_WRAPPER_DATA_H
 
-#include "LocalStorageDataElementData.h"
+#include "NoteStoreDataElementData.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class ResourceWrapperData : public LocalStorageDataElementData
+class ResourceWrapperData : public NoteStoreDataElementData
 {
 public:
     ResourceWrapperData();

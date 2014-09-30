@@ -4,33 +4,33 @@
 namespace qute_note {
 
 LinkedNotebookData::LinkedNotebookData() :
-    LocalStorageDataElementData(),
+    NoteStoreDataElementData(),
     m_qecLinkedNotebook()
 {}
 
 LinkedNotebookData::LinkedNotebookData(const LinkedNotebookData & other) :
-    LocalStorageDataElementData(other),
+    NoteStoreDataElementData(other),
     m_qecLinkedNotebook(other.m_qecLinkedNotebook)
 {}
 
 LinkedNotebookData::LinkedNotebookData(LinkedNotebookData && other) :
-    LocalStorageDataElementData(std::move(other)),
+    NoteStoreDataElementData(std::move(other)),
     m_qecLinkedNotebook(std::move(other.m_qecLinkedNotebook))
 {}
 
 LinkedNotebookData::LinkedNotebookData(const qevercloud::LinkedNotebook & other) :
-    LocalStorageDataElementData(),
+    NoteStoreDataElementData(),
     m_qecLinkedNotebook(other)
 {}
 
 LinkedNotebookData::LinkedNotebookData(qevercloud::LinkedNotebook && other) :
-    LocalStorageDataElementData(),
+    NoteStoreDataElementData(),
     m_qecLinkedNotebook(std::move(other))
 {}
 
 LinkedNotebookData & LinkedNotebookData::operator=(const LinkedNotebookData & other)
 {
-    LocalStorageDataElementData::operator=(other);
+    NoteStoreDataElementData::operator=(other);
 
     if (this != std::addressof(other)) {
         m_qecLinkedNotebook = other.m_qecLinkedNotebook;
@@ -41,7 +41,7 @@ LinkedNotebookData & LinkedNotebookData::operator=(const LinkedNotebookData & ot
 
 LinkedNotebookData & LinkedNotebookData::operator=(LinkedNotebookData && other)
 {
-    LocalStorageDataElementData::operator=(other);
+    NoteStoreDataElementData::operator=(other);
 
     if (this != std::addressof(other)) {
         m_qecLinkedNotebook = std::move(other.m_qecLinkedNotebook);

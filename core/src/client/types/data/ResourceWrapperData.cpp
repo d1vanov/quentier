@@ -3,33 +3,33 @@
 namespace qute_note {
 
 ResourceWrapperData::ResourceWrapperData() :
-    LocalStorageDataElementData(),
+    NoteStoreDataElementData(),
     m_qecResource()
 {}
 
 ResourceWrapperData::ResourceWrapperData(const ResourceWrapperData & other) :
-    LocalStorageDataElementData(other),
+    NoteStoreDataElementData(other),
     m_qecResource(other.m_qecResource)
 {}
 
 ResourceWrapperData::ResourceWrapperData(ResourceWrapperData && other) :
-    LocalStorageDataElementData(std::move(other)),
+    NoteStoreDataElementData(std::move(other)),
     m_qecResource(std::move(other.m_qecResource))
 {}
 
 ResourceWrapperData::ResourceWrapperData(const qevercloud::Resource & other) :
-    LocalStorageDataElementData(),
+    NoteStoreDataElementData(),
     m_qecResource(other)
 {}
 
 ResourceWrapperData::ResourceWrapperData(qevercloud::Resource && other) :
-    LocalStorageDataElementData(),
+    NoteStoreDataElementData(),
     m_qecResource(std::move(other))
 {}
 
 ResourceWrapperData & ResourceWrapperData::operator=(const ResourceWrapperData & other)
 {
-    LocalStorageDataElementData::operator=(other);
+    NoteStoreDataElementData::operator=(other);
 
     if (this != std::addressof(other)) {
         m_qecResource = other.m_qecResource;
@@ -40,7 +40,7 @@ ResourceWrapperData & ResourceWrapperData::operator=(const ResourceWrapperData &
 
 ResourceWrapperData & ResourceWrapperData::operator=(ResourceWrapperData && other)
 {
-    LocalStorageDataElementData::operator=(std::move(other));
+    NoteStoreDataElementData::operator=(std::move(other));
 
     if (this != std::addressof(other)) {
         m_qecResource = std::move(other.m_qecResource);

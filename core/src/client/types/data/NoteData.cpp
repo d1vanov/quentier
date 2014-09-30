@@ -6,7 +6,7 @@
 namespace qute_note {
 
 NoteData::NoteData() :
-    LocalStorageDataElementData(),
+    NoteStoreDataElementData(),
     m_qecNote(),
     m_resourcesAdditionalInfo(),
     m_isLocal(true),
@@ -21,7 +21,7 @@ NoteData::NoteData() :
 {}
 
 NoteData::NoteData(const NoteData & other) :
-    LocalStorageDataElementData(other),
+    NoteStoreDataElementData(other),
     m_qecNote(other.m_qecNote),
     m_resourcesAdditionalInfo(other.m_resourcesAdditionalInfo),
     m_isLocal(other.m_isLocal),
@@ -36,7 +36,7 @@ NoteData::NoteData(const NoteData & other) :
 {}
 
 NoteData::NoteData(NoteData && other) :
-    LocalStorageDataElementData(std::move(other)),
+    NoteStoreDataElementData(std::move(other)),
     m_qecNote(std::move(other.m_qecNote)),
     m_resourcesAdditionalInfo(std::move(other.m_resourcesAdditionalInfo)),
     m_isLocal(std::move(other.m_isLocal)),
@@ -54,7 +54,7 @@ NoteData::~NoteData()
 {}
 
 NoteData::NoteData(const qevercloud::Note & other) :
-    LocalStorageDataElementData(),
+    NoteStoreDataElementData(),
     m_qecNote(other),
     m_resourcesAdditionalInfo(),
     m_isLocal(false),
@@ -70,7 +70,7 @@ NoteData::NoteData(const qevercloud::Note & other) :
 
 NoteData & NoteData::operator=(const NoteData & other)
 {
-    LocalStorageDataElementData::operator=(other);
+    NoteStoreDataElementData::operator=(other);
 
     if (this != std::addressof(other))
     {
@@ -104,7 +104,7 @@ NoteData & NoteData::operator=(const qevercloud::Note & other)
 
 NoteData & NoteData::operator=(NoteData && other)
 {
-    LocalStorageDataElementData::operator=(std::move(other));
+    NoteStoreDataElementData::operator=(std::move(other));
 
     if (this != &other)
     {

@@ -1,7 +1,6 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__SHARED_NOTEBOOK_WRAPPER_H
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__SHARED_NOTEBOOK_WRAPPER_H
 
-#include "LocalStorageDataElementData.h"
 #include <QEverCloud.h>
 #include <QSharedData>
 

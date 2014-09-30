@@ -9,14 +9,11 @@
 
 namespace qute_note {
 
-class QUTE_NOTE_EXPORT NoteStoreDataElement: public ILocalStorageDataElement,
-                                             public Printable,
-                                             public TypeWithError
+class QUTE_NOTE_EXPORT INoteStoreDataElement: public ILocalStorageDataElement,
+                                              public Printable,
+                                              public TypeWithError
 {
 public:
-    NoteStoreDataElement();
-    virtual ~NoteStoreDataElement();
-
     virtual void clear() = 0;
 
     virtual bool hasGuid() const = 0;
@@ -29,20 +26,36 @@ public:
 
     virtual bool checkParameters(QString & errorDescription) const = 0;
 
-    bool isDirty() const;
-    void setDirty(const bool isDirty);
+    virtual bool isDirty() const = 0;
+    virtual void setDirty(const bool isDirty) = 0;
 
 protected:
-    NoteStoreDataElement(const NoteStoreDataElement & other);
-    NoteStoreDataElement(NoteStoreDataElement && other);
-    NoteStoreDataElement & operator=(const NoteStoreDataElement & other);
-    NoteStoreDataElement & operator=(NoteStoreDataElement && other);
-
     virtual QTextStream & Print(QTextStream & strm) const = 0;
-
-private:
-    bool   m_isDirty;
 };
+
+#define _DECLARE_IS_DIRTY \
+    virtual bool isDirty() const;
+
+#define _DECLARE_SET_DIRTY \
+    virtual void setDirty(const bool isDirty);
+
+#define QN_DECLARE_DIRTY \
+    _DECLARE_IS_DIRTY \
+    _DECLARE_SET_DIRTY
+
+#define _DEFINE_IS_DIRTY(type) \
+    bool type::isDirty() const { \
+        return d->m_isDirty; \
+    }
+
+#define _DEFINE_SET_DIRTY(type) \
+    void type::setDirty(const bool isDirty) { \
+        d->m_isDirty = isDirty; \
+    }
+
+#define QN_DEFINE_DIRTY(type) \
+    _DEFINE_IS_DIRTY(type) \
+    _DEFINE_SET_DIRTY(type)
 
 } // namespace qute_note
 

@@ -1,12 +1,12 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__TAG_DATA_H
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__TAG_DATA_H
 
-#include "LocalStorageDataElementData.h"
+#include "NoteStoreDataElementData.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class TagData : public LocalStorageDataElementData
+class TagData : public NoteStoreDataElementData
 {
 public:
     TagData();

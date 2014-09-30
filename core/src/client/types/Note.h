@@ -17,6 +17,7 @@ class QUTE_NOTE_EXPORT Note: public DataElementWithShortcut
 {
 public:
     QN_DECLARE_LOCAL_GUID
+    QN_DECLARE_DIRTY
 
 public:
     Note();

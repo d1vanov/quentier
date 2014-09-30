@@ -13,6 +13,7 @@ class QUTE_NOTE_EXPORT SavedSearch final: public DataElementWithShortcut
 {
 public:
     QN_DECLARE_LOCAL_GUID
+    QN_DECLARE_DIRTY
 
 public:
     typedef qevercloud::QueryFormat::type QueryFormat;

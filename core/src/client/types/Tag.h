@@ -13,6 +13,7 @@ class QUTE_NOTE_EXPORT Tag: public DataElementWithShortcut
 {
 public:
     QN_DECLARE_LOCAL_GUID
+    QN_DECLARE_DIRTY
 
 public:
     Tag();

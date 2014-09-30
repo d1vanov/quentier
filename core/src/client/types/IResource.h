@@ -1,18 +1,19 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__IRESOURCE_H
 #define __QUTE_NOTE__CLIENT__TYPES__IRESOURCE_H
 
-#include "NoteStoreDataElement.h"
+#include "INoteStoreDataElement.h"
 #include "Note.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageDataElementData)
+QT_FORWARD_DECLARE_CLASS(NoteStoreDataElementData)
 
-class QUTE_NOTE_EXPORT IResource: public NoteStoreDataElement
+class QUTE_NOTE_EXPORT IResource: public INoteStoreDataElement
 {
 public:
     QN_DECLARE_LOCAL_GUID
+    QN_DECLARE_DIRTY
 
 public:
     IResource();
@@ -124,7 +125,7 @@ protected:
     virtual QTextStream & Print(QTextStream & strm) const;
 
 private:    
-    QSharedDataPointer<LocalStorageDataElementData>  d;
+    QSharedDataPointer<NoteStoreDataElementData>  d;
 
     bool m_isFreeAccount;
     int  m_indexInNote;

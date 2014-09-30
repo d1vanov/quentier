@@ -4,35 +4,35 @@
 namespace qute_note {
 
 NotebookData::NotebookData() :
-    LocalStorageDataElementData(),
+    NoteStoreDataElementData(),
     m_qecNotebook(),
     m_isLocal(true),
     m_isLastUsed(false)
 {}
 
 NotebookData::NotebookData(const NotebookData & other) :
-    LocalStorageDataElementData(other),
+    NoteStoreDataElementData(other),
     m_qecNotebook(other.m_qecNotebook),
     m_isLocal(other.m_isLocal),
     m_isLastUsed(other.m_isLastUsed)
 {}
 
 NotebookData::NotebookData(NotebookData && other) :
-    LocalStorageDataElementData(std::move(other)),
+    NoteStoreDataElementData(std::move(other)),
     m_qecNotebook(std::move(other.m_qecNotebook)),
     m_isLocal(std::move(other.m_isLocal)),
     m_isLastUsed(std::move(other.m_isLastUsed))
 {}
 
 NotebookData::NotebookData(const qevercloud::Notebook & other) :
-    LocalStorageDataElementData(),
+    NoteStoreDataElementData(),
     m_qecNotebook(other),
     m_isLocal(true),
     m_isLastUsed(false)
 {}
 
 NotebookData::NotebookData(qevercloud::Notebook && other) :
-    LocalStorageDataElementData(),
+    NoteStoreDataElementData(),
     m_qecNotebook(std::move(other)),
     m_isLocal(true),
     m_isLastUsed(false)
@@ -40,7 +40,7 @@ NotebookData::NotebookData(qevercloud::Notebook && other) :
 
 NotebookData & NotebookData::operator=(const NotebookData & other)
 {
-    LocalStorageDataElementData::operator=(other);
+    NoteStoreDataElementData::operator=(other);
 
     if (this != std::addressof(other)) {
         m_qecNotebook = other.m_qecNotebook;
@@ -53,7 +53,7 @@ NotebookData & NotebookData::operator=(const NotebookData & other)
 
 NotebookData & NotebookData::operator=(NotebookData && other)
 {
-    LocalStorageDataElementData::operator=(other);
+    NoteStoreDataElementData::operator=(other);
 
     if (this != std::addressof(other)) {
         m_qecNotebook = std::move(other.m_qecNotebook);

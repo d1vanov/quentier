@@ -18,6 +18,7 @@ class QUTE_NOTE_EXPORT Notebook: public DataElementWithShortcut
 {
 public:
     QN_DECLARE_LOCAL_GUID
+    QN_DECLARE_DIRTY
 
 public:
     Notebook();

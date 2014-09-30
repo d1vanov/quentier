@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__DATA_ELEMENT_WITH_SHORTCUT_H
 #define __QUTE_NOTE__CLIENT__TYPES__DATA_ELEMENT_WITH_SHORTCUT_H
 
-#include "NoteStoreDataElement.h"
+#include "INoteStoreDataElement.h"
 
 namespace qute_note {
 
@@ -10,7 +10,7 @@ namespace qute_note {
  * shortcut. Shortcut is basically a quick access link in application GUI. However,
  * the sign whether some note store data element is shortcutted is stored in local storage db.
  */
-class QUTE_NOTE_EXPORT DataElementWithShortcut : public NoteStoreDataElement
+class QUTE_NOTE_EXPORT DataElementWithShortcut : public INoteStoreDataElement
 {
 public:
     DataElementWithShortcut();
@@ -20,9 +20,9 @@ public:
     void setShortcut(const bool shortcut);
 
 protected:
-    DataElementWithShortcut(const DataElementWithShortcut & other) = default;
+    DataElementWithShortcut(const DataElementWithShortcut & other);
     DataElementWithShortcut(DataElementWithShortcut && other);
-    DataElementWithShortcut & operator=(const DataElementWithShortcut & other) = default;
+    DataElementWithShortcut & operator=(const DataElementWithShortcut & other);
     DataElementWithShortcut & operator=(DataElementWithShortcut && other);
 
 private:

@@ -1,15 +1,16 @@
 #include "IResource.h"
 #include "QEverCloudHelpers.h"
-#include "data/LocalStorageDataElementData.h"
+#include "data/NoteStoreDataElementData.h"
 #include <client/Utility.h>
 
 namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(IResource)
+QN_DEFINE_DIRTY(IResource)
 
 IResource::IResource() :
-    NoteStoreDataElement(),
-    d(new LocalStorageDataElementData),
+    INoteStoreDataElement(),
+    d(new NoteStoreDataElementData),
     m_isFreeAccount(true),
     m_indexInNote(-1),
     m_noteLocalGuid(),
@@ -17,8 +18,8 @@ IResource::IResource() :
 {}
 
 IResource::IResource(const bool isFreeAccount) :
-    NoteStoreDataElement(),
-    d(new LocalStorageDataElementData),
+    INoteStoreDataElement(),
+    d(new NoteStoreDataElementData),
     m_isFreeAccount(isFreeAccount),
     m_indexInNote(-1),
     m_noteLocalGuid(),
@@ -639,7 +640,7 @@ void IResource::setResourceAttributes(qevercloud::ResourceAttributes && attribut
 }
 
 IResource::IResource(const IResource & other) :
-    NoteStoreDataElement(other),
+    INoteStoreDataElement(other),
     d(other.d),
     m_isFreeAccount(other.m_isFreeAccount),
     m_indexInNote(other.indexInNote()),
@@ -649,9 +650,8 @@ IResource::IResource(const IResource & other) :
 
 IResource & IResource::operator=(const IResource & other)
 {
-    if (this != &other)
+    if (this != std::addressof(other))
     {
-        NoteStoreDataElement::operator =(other);
         d = other.d;
         setFreeAccount(other.m_isFreeAccount);
         setIndexInNote(other.m_indexInNote);

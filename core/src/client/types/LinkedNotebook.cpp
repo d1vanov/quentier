@@ -5,18 +5,19 @@
 namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(LinkedNotebook)
+QN_DEFINE_DIRTY(LinkedNotebook)
 
 LinkedNotebook::LinkedNotebook() :
     d(new LinkedNotebookData)
 {}
 
 LinkedNotebook::LinkedNotebook(const LinkedNotebook & other) :
-    NoteStoreDataElement(other),
+    INoteStoreDataElement(other),
     d(other.d)
 {}
 
 LinkedNotebook::LinkedNotebook(LinkedNotebook && other) :
-    NoteStoreDataElement(std::move(other)),
+    INoteStoreDataElement(std::move(other)),
     d(other.d)
 {}
 
@@ -39,12 +40,12 @@ LinkedNotebook & LinkedNotebook::operator=(LinkedNotebook && other)
 }
 
 LinkedNotebook::LinkedNotebook(const qevercloud::LinkedNotebook & linkedNotebook) :
-    NoteStoreDataElement(),
+    INoteStoreDataElement(),
     d(new LinkedNotebookData(linkedNotebook))
 {}
 
 LinkedNotebook::LinkedNotebook(qevercloud::LinkedNotebook && linkedNotebook) :
-    NoteStoreDataElement(),
+    INoteStoreDataElement(),
     d(new LinkedNotebookData(std::move(linkedNotebook)))
 {}
 

@@ -6,14 +6,25 @@ DataElementWithShortcut::DataElementWithShortcut() :
     m_hasShortcut(false)
 {}
 
+DataElementWithShortcut::DataElementWithShortcut(const DataElementWithShortcut & other) :
+    m_hasShortcut(other.m_hasShortcut)
+{}
+
 DataElementWithShortcut::DataElementWithShortcut(DataElementWithShortcut && other) :
-    NoteStoreDataElement(std::move(other)),
     m_hasShortcut(std::move(other.hasShortcut()))
 {}
 
+DataElementWithShortcut & DataElementWithShortcut::operator=(const DataElementWithShortcut & other)
+{
+    if (this != std::addressof(other)) {
+        m_hasShortcut = other.m_hasShortcut;
+    }
+
+    return *this;
+}
+
 DataElementWithShortcut & DataElementWithShortcut::operator=(DataElementWithShortcut && other)
 {
-    NoteStoreDataElement::operator=(std::move(other));
     m_hasShortcut = std::move(other.m_hasShortcut);
     return *this;
 }

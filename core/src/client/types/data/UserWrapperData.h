@@ -1,7 +1,6 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__USER_WRAPPER_DATA_H
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__USER_WRAPPER_DATA_H
 
-#include "LocalStorageDataElementData.h"
 #include <QEverCloud.h>
 #include <QSharedData>
 

@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__LINKED_NOTEBOOK_H
 #define __QUTE_NOTE__CLIENT__TYPES__LINKED_NOTEBOOK_H
 
-#include "NoteStoreDataElement.h"
+#include "INoteStoreDataElement.h"
 #include <QEverCloud.h>
 #include <QSharedDataPointer>
 
@@ -9,10 +9,11 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(LinkedNotebookData)
 
-class QUTE_NOTE_EXPORT LinkedNotebook: public NoteStoreDataElement
+class QUTE_NOTE_EXPORT LinkedNotebook: public INoteStoreDataElement
 {
 public:
     QN_DECLARE_LOCAL_GUID
+    QN_DECLARE_DIRTY
 
 public:
     LinkedNotebook();

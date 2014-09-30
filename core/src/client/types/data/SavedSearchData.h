@@ -1,12 +1,12 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__SAVED_SEARCH_H
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__SAVED_SEARCH_H
 
-#include "LocalStorageDataElementData.h"
+#include "NoteStoreDataElementData.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class SavedSearchData : public LocalStorageDataElementData
+class SavedSearchData : public NoteStoreDataElementData
 {
 public:
     SavedSearchData();
