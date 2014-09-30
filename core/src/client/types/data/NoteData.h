@@ -1,13 +1,13 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__PRIVATE__NOTE_P_H
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__PRIVATE__NOTE_P_H
 
-#include "NoteStoreDataElementData.h"
+#include "DataElementWithShortcutData.h"
 #include <QEverCloud.h>
 #include <QImage>
 
 namespace qute_note {
 
-class NoteData : public NoteStoreDataElementData
+class NoteData : public DataElementWithShortcutData
 {
 public:
     NoteData();

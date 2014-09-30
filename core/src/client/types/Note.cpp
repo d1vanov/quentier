@@ -12,24 +12,21 @@ namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(Note)
 QN_DEFINE_DIRTY(Note)
+QN_DEFINE_SHORTCUT(Note)
 
 Note::Note() :
-    DataElementWithShortcut(),
     d(new NoteData)
 {}
 
 Note::Note(const Note & other) :
-    DataElementWithShortcut(other),
     d(other.d)
 {}
 
 Note::Note(const qevercloud::Note & other) :
-    DataElementWithShortcut(),
     d(new NoteData(other))
 {}
 
 Note::Note(Note && other) :
-    DataElementWithShortcut(std::move(other)),
     d(std::move(other.d))
 {}
 

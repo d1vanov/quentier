@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__NOTE_H
 #define __QUTE_NOTE__CLIENT__TYPES__NOTE_H
 
-#include "DataElementWithShortcut.h"
+#include "IDataElementWithShortcut.h"
 #include <QEverCloud.h>
 #include <QImage>
 #include <QSharedDataPointer>
@@ -13,11 +13,12 @@ QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
 QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 QT_FORWARD_DECLARE_CLASS(NoteData)
 
-class QUTE_NOTE_EXPORT Note: public DataElementWithShortcut
+class QUTE_NOTE_EXPORT Note: public IDataElementWithShortcut
 {
 public:
     QN_DECLARE_LOCAL_GUID
     QN_DECLARE_DIRTY
+    QN_DECLARE_SHORTCUT
 
 public:
     Note();

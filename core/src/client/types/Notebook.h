@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__NOTEBOOK_H
 #define __QUTE_NOTE__CLIENT__TYPES__NOTEBOOK_H
 
-#include "DataElementWithShortcut.h"
+#include "IDataElementWithShortcut.h"
 #include <QEverCloud.h>
 #include <QSharedDataPointer>
 
@@ -14,11 +14,12 @@ QT_FORWARD_DECLARE_CLASS(IUser)
 QT_FORWARD_DECLARE_CLASS(UserAdapter)
 QT_FORWARD_DECLARE_CLASS(NotebookData)
 
-class QUTE_NOTE_EXPORT Notebook: public DataElementWithShortcut
+class QUTE_NOTE_EXPORT Notebook: public IDataElementWithShortcut
 {
 public:
     QN_DECLARE_LOCAL_GUID
     QN_DECLARE_DIRTY
+    QN_DECLARE_SHORTCUT
 
 public:
     Notebook();

@@ -6,26 +6,22 @@ namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(Tag)
 QN_DEFINE_DIRTY(Tag)
+QN_DEFINE_SHORTCUT(Tag)
 
 Tag::Tag() :
-    DataElementWithShortcut(),
     d(new TagData)
 {}
 
 Tag::Tag(const Tag & other) :
-    DataElementWithShortcut(other),
     d(other.d)
 {}
 
 Tag::Tag(Tag && other) :
-    DataElementWithShortcut(std::move(other)),
     d(std::move(other.d))
 {}
 
 Tag & Tag::operator=(Tag && other)
 {
-    DataElementWithShortcut::operator=(std::move(other));
-
     if (this != std::addressof(other)) {
         d = std::move(other.d);
     }
@@ -34,19 +30,15 @@ Tag & Tag::operator=(Tag && other)
 }
 
 Tag::Tag(const qevercloud::Tag & other) :
-    DataElementWithShortcut(),
     d(new TagData(other))
 {}
 
 Tag::Tag(qevercloud::Tag && other) :
-    DataElementWithShortcut(),
     d(new TagData(std::move(other)))
 {}
 
 Tag & Tag::operator=(const Tag & other)
 {
-    DataElementWithShortcut::operator=(other);
-
     if (this != std::addressof(other)) {
         d = other.d;
     }

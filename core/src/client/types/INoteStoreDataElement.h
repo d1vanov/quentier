@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CLIENT__TYPES__NOTE_STORE_DATA_ELEMENT_H
-#define __QUTE_NOTE__CLIENT__TYPES__NOTE_STORE_DATA_ELEMENT_H
+#ifndef __QUTE_NOTE__CLIENT__TYPES__I_NOTE_STORE_DATA_ELEMENT_H
+#define __QUTE_NOTE__CLIENT__TYPES__I_NOTE_STORE_DATA_ELEMENT_H
 
 #include "ILocalStorageDataElement.h"
 #include <tools/Printable.h>
@@ -59,4 +59,4 @@ protected:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CLIENT__TYPES__NOTE_STORE_DATA_ELEMENT_H
+#endif // __QUTE_NOTE__CLIENT__TYPES__I_NOTE_STORE_DATA_ELEMENT_H

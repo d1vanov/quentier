@@ -5,28 +5,28 @@
 namespace qute_note {
 
 TagData::TagData() :
-    NoteStoreDataElementData(),
+    DataElementWithShortcutData(),
     m_qecTag(),
     m_isLocal(true),
     m_isDeleted(false)
 {}
 
 TagData::TagData(const TagData & other) :
-    NoteStoreDataElementData(other),
+    DataElementWithShortcutData(other),
     m_qecTag(other.m_qecTag),
     m_isLocal(other.m_isLocal),
     m_isDeleted(other.m_isDeleted)
 {}
 
 TagData::TagData(TagData && other) :
-    NoteStoreDataElementData(std::move(other)),
+    DataElementWithShortcutData(std::move(other)),
     m_qecTag(std::move(other.m_qecTag)),
     m_isLocal(std::move(other.m_isLocal)),
     m_isDeleted(std::move(other.m_isDeleted))
 {}
 
 TagData::TagData(const qevercloud::Tag & other) :
-    NoteStoreDataElementData(),
+    DataElementWithShortcutData(),
     m_qecTag(other),
     m_isLocal(true),
     m_isDeleted(false)
@@ -34,7 +34,7 @@ TagData::TagData(const qevercloud::Tag & other) :
 
 TagData & TagData::operator=(const TagData & other)
 {
-    NoteStoreDataElementData::operator=(other);
+    DataElementWithShortcutData::operator=(other);
 
     if (this != std::addressof(other)) {
         m_qecTag  = other.m_qecTag;
@@ -47,7 +47,7 @@ TagData & TagData::operator=(const TagData & other)
 
 TagData & TagData::operator=(TagData && other)
 {
-    NoteStoreDataElementData::operator=(std::move(other));
+    DataElementWithShortcutData::operator=(std::move(other));
 
     if (this != std::addressof(other)) {
         m_qecTag = std::move(other.m_qecTag);

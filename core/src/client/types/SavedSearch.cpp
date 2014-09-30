@@ -7,26 +7,22 @@ namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(SavedSearch)
 QN_DEFINE_DIRTY(SavedSearch)
+QN_DEFINE_SHORTCUT(SavedSearch)
 
 SavedSearch::SavedSearch() :
-    DataElementWithShortcut(),
     d(new SavedSearchData)
 {}
 
 SavedSearch::SavedSearch(const SavedSearch & other) :
-    DataElementWithShortcut(other),
     d(other.d)
 {}
 
 SavedSearch::SavedSearch(SavedSearch && other) :
-    DataElementWithShortcut(std::move(other)),
     d(std::move(other.d))
 {}
 
 SavedSearch & SavedSearch::operator=(SavedSearch && other)
 {
-    DataElementWithShortcut::operator=(std::move(other));
-
     if (this != std::addressof(other)) {
         d = std::move(other.d);
     }
@@ -35,12 +31,10 @@ SavedSearch & SavedSearch::operator=(SavedSearch && other)
 }
 
 SavedSearch::SavedSearch(const qevercloud::SavedSearch & search) :
-    DataElementWithShortcut(),
     d(new SavedSearchData(search))
 {}
 
 SavedSearch::SavedSearch(qevercloud::SavedSearch && search) :
-    DataElementWithShortcut(),
     d(new SavedSearchData(std::move(search)))
 {}
 

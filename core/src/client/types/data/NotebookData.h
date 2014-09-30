@@ -1,12 +1,12 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__NOTEBOOK_DATA_H
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__NOTEBOOK_DATA_H
 
-#include "NoteStoreDataElementData.h"
+#include "DataElementWithShortcutData.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class NotebookData : public NoteStoreDataElementData
+class NotebookData : public DataElementWithShortcutData
 {
 public:
     NotebookData();

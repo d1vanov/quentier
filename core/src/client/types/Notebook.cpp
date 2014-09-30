@@ -11,31 +11,26 @@ namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(Notebook)
 QN_DEFINE_DIRTY(Notebook)
+QN_DEFINE_SHORTCUT(Notebook)
 
 Notebook::Notebook() :
-    DataElementWithShortcut(),
     d(new NotebookData)
 {}
 
 Notebook::Notebook(const Notebook & other) :
-    DataElementWithShortcut(other),
     d(other.d)
 {}
 
 Notebook::Notebook(const qevercloud::Notebook & other) :
-    DataElementWithShortcut(),
     d(new NotebookData(other))
 {}
 
 Notebook::Notebook(qevercloud::Notebook && other) :
-    DataElementWithShortcut(),
     d(new NotebookData(std::move(other)))
 {}
 
 Notebook & Notebook::operator=(const Notebook & other)
 {
-    DataElementWithShortcut::operator=(other);
-
     if (this != std::addressof(other)) {
         d = other.d;
     }
@@ -45,8 +40,6 @@ Notebook & Notebook::operator=(const Notebook & other)
 
 Notebook & Notebook::operator=(Notebook && other)
 {
-    DataElementWithShortcut::operator=(std::move(other));
-
     if (this != std::addressof(other)) {
         d = other.d;
     }

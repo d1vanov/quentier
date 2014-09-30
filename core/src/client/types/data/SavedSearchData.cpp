@@ -5,34 +5,34 @@
 namespace qute_note {
 
 SavedSearchData::SavedSearchData() :
-    NoteStoreDataElementData(),
+    DataElementWithShortcutData(),
     m_qecSearch()
 {
 }
 
 SavedSearchData::SavedSearchData(const SavedSearchData & other) :
-    NoteStoreDataElementData(other),
+    DataElementWithShortcutData(other),
     m_qecSearch(other.m_qecSearch)
 {}
 
 SavedSearchData::SavedSearchData(SavedSearchData && other) :
-    NoteStoreDataElementData(std::move(other)),
+    DataElementWithShortcutData(std::move(other)),
     m_qecSearch(std::move(other.m_qecSearch))
 {}
 
 SavedSearchData::SavedSearchData(const qevercloud::SavedSearch & other) :
-    NoteStoreDataElementData(),
+    DataElementWithShortcutData(),
     m_qecSearch(other)
 {}
 
 SavedSearchData::SavedSearchData(qevercloud::SavedSearch && other) :
-    NoteStoreDataElementData(),
+    DataElementWithShortcutData(),
     m_qecSearch(std::move(other))
 {}
 
 SavedSearchData & SavedSearchData::operator=(const SavedSearchData & other)
 {
-    NoteStoreDataElementData::operator=(other);
+    DataElementWithShortcutData::operator=(other);
 
     if (this != std::addressof(other)) {
         m_qecSearch = other.m_qecSearch;
@@ -43,7 +43,7 @@ SavedSearchData & SavedSearchData::operator=(const SavedSearchData & other)
 
 SavedSearchData & SavedSearchData::operator=(SavedSearchData && other)
 {
-    NoteStoreDataElementData::operator=(std::move(other));
+    DataElementWithShortcutData::operator=(std::move(other));
 
     if (this != std::addressof(other)) {
         m_qecSearch = std::move(other.m_qecSearch);

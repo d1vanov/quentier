@@ -17,7 +17,7 @@ set(${PROJECT_NAME}_QT_HEADERS
 
 set(${PROJECT_NAME}_HEADERS
     src/client/Utility.h
-    src/client/types/DataElementWithShortcut.h
+    src/client/types/IDataElementWithShortcut.h
     src/client/types/ISharedNotebook.h
     src/client/types/IResource.h
     src/client/types/IUser.h
@@ -38,6 +38,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/UserAdapter.h
     src/client/types/UserAdapterAccessException.h
     src/client/types/UserWrapper.h
+    src/client/types/data/DataElementWithShortcutData.h
     src/client/types/data/LocalStorageDataElementData.h
     src/client/types/data/LinkedNotebookData.h
     src/client/types/data/NoteStoreDataElementData.h
@@ -90,7 +91,6 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ResourceTextObject.cpp
     src/note_editor/ToDoCheckboxTextObject.cpp
     src/client/Utility.cpp
-    src/client/types/DataElementWithShortcut.cpp
     src/client/types/ISharedNotebook.cpp
     src/client/types/IResource.cpp
     src/client/types/IUser.cpp
@@ -109,6 +109,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/UserAdapter.cpp
     src/client/types/UserAdapterAccessException.cpp
     src/client/types/UserWrapper.cpp
+    src/client/types/data/DataElementWithShortcutData.cpp
     src/client/types/data/LocalStorageDataElementData.cpp
     src/client/types/data/LinkedNotebookData.cpp
     src/client/types/data/NoteStoreDataElementData.cpp
