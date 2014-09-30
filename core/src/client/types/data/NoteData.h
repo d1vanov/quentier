@@ -3,13 +3,11 @@
 
 #include "LocalStorageDataElementData.h"
 #include <QEverCloud.h>
-#include <QSharedData>
 #include <QImage>
 
 namespace qute_note {
 
-class NoteData : public LocalStorageDataElementData,
-                 public QSharedData
+class NoteData : public LocalStorageDataElementData
 {
 public:
     NoteData();

@@ -3,12 +3,10 @@
 
 #include "LocalStorageDataElementData.h"
 #include <QEverCloud.h>
-#include <QSharedData>
 
 namespace qute_note {
 
-class TagData : public LocalStorageDataElementData,
-                public QSharedData
+class TagData : public LocalStorageDataElementData
 {
 public:
     TagData();

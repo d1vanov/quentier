@@ -2,10 +2,11 @@
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__LOCAL_STORAGE_DATA_ELEMENT_DATA_H
 
 #include <QUuid>
+#include <QSharedData>
 
 namespace qute_note {
 
-class LocalStorageDataElementData
+class LocalStorageDataElementData: public QSharedData
 {
 public:
     LocalStorageDataElementData();

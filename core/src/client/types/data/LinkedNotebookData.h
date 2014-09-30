@@ -3,12 +3,10 @@
 
 #include "LocalStorageDataElementData.h"
 #include <QEverCloud.h>
-#include <QSharedData>
 
 namespace qute_note {
 
-class LinkedNotebookData : public LocalStorageDataElementData,
-                           public QSharedData
+class LinkedNotebookData : public LocalStorageDataElementData
 {
 public:
     LinkedNotebookData();

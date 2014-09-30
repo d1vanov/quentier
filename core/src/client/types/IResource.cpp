@@ -5,40 +5,11 @@
 
 namespace qute_note {
 
-class LocalStorageDataElementSharedData: public LocalStorageDataElementData,
-                                         public QSharedData
-{
-public:
-    LocalStorageDataElementSharedData() :
-        LocalStorageDataElementData()
-    {}
-
-    LocalStorageDataElementSharedData(const LocalStorageDataElementSharedData & other) :
-        LocalStorageDataElementData(other)
-    {}
-
-    LocalStorageDataElementSharedData(LocalStorageDataElementSharedData && other) :
-        LocalStorageDataElementData(std::move(other))
-    {}
-
-    LocalStorageDataElementSharedData & operator=(const LocalStorageDataElementSharedData & other) {
-        LocalStorageDataElementData::operator=(other);
-        return *this;
-    }
-
-    LocalStorageDataElementSharedData & operator=(LocalStorageDataElementSharedData && other) {
-        LocalStorageDataElementData::operator=(std::move(other));
-        return *this;
-    }
-
-    virtual ~LocalStorageDataElementSharedData() {}
-};
-
 QN_DEFINE_LOCAL_GUID(IResource)
 
 IResource::IResource() :
     NoteStoreDataElement(),
-    d(new LocalStorageDataElementSharedData),
+    d(new LocalStorageDataElementData),
     m_isFreeAccount(true),
     m_indexInNote(-1),
     m_noteLocalGuid(),
@@ -47,7 +18,7 @@ IResource::IResource() :
 
 IResource::IResource(const bool isFreeAccount) :
     NoteStoreDataElement(),
-    d(new LocalStorageDataElementSharedData),
+    d(new LocalStorageDataElementData),
     m_isFreeAccount(isFreeAccount),
     m_indexInNote(-1),
     m_noteLocalGuid(),
