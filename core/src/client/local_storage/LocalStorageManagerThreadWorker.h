@@ -19,7 +19,9 @@ public:
                                              QObject * parent = nullptr);
     virtual ~LocalStorageManagerThreadWorker();
     
-    virtual void setUseCache(const bool useCache);
+    virtual void setUseCache(const bool useCache) override;
+
+    virtual const LocalStorageCacheManager * localStorageCacheManager() const override;
 
 Q_SIGNALS:
     // User-related signals:

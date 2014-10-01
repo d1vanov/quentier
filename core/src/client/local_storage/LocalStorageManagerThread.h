@@ -38,7 +38,9 @@ public:
                                        const bool startFromScratch, QObject * parent = nullptr);
     virtual ~LocalStorageManagerThread();
 
-    virtual void setUseCache(const bool useCache);
+    virtual void setUseCache(const bool useCache) override;
+
+    virtual const LocalStorageCacheManager * localStorageCacheManager() const override;
 
 Q_SIGNALS:
     // User-related signals:

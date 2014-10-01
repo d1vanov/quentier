@@ -7,6 +7,7 @@
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(LocalStorageCacheManager)
 
 /**
  * @brief The IAsyncLocalStorageManager class defines the interfaces for signals and slots
@@ -20,6 +21,11 @@ public:
     virtual ~IAsyncLocalStorageManager();
 
     virtual void setUseCache(const bool useCache) = 0;
+
+    //! if cache is used, the method should return valid pointer to LocalStorageCacheManager,
+    //! otherwise it should return null pointer. Const pointer can be used by clients to query
+    //! some diagnostics from LocalStorageCacheManager
+    virtual const LocalStorageCacheManager * localStorageCacheManager() const = 0;
 
 protected:
     IAsyncLocalStorageManager() = default;

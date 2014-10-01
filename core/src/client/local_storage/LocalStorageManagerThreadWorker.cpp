@@ -33,6 +33,16 @@ void LocalStorageManagerThreadWorker::setUseCache(const bool useCache)
     m_useCache = useCache;
 }
 
+const LocalStorageCacheManager * LocalStorageManagerThreadWorker::localStorageCacheManager() const
+{
+    if (!m_useCache) {
+        return nullptr;
+    }
+    else {
+        return std::addressof(m_localStorageCacheManager);
+    }
+}
+
 void LocalStorageManagerThreadWorker::onGetUserCountRequest()
 {
     QString errorDescription;
