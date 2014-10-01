@@ -239,6 +239,13 @@ QTextStream & LocalStorageCacheManagerPrivate::Print(QTextStream & strm) const
 
     strm << "}; \n";
 
+    if (m_cacheExpiryChecker.isNull()) {
+        strm << "Cache expiry checker is null! \n";
+    }
+    else {
+        strm << *m_cacheExpiryChecker;
+    }
+
     strm << "}; \n";
     return strm;
 }
