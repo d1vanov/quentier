@@ -53,4 +53,19 @@ bool DefaultLocalStorageCacheExpiryChecker::checkSavedSearches() const
     return (numCachedSavedSearches < MAX_SAVED_SEARCHES_TO_STORE);
 }
 
+QTextStream & DefaultLocalStorageCacheExpiryChecker::Print(QTextStream & strm) const
+{
+    QString indent = "  ";
+
+    strm << "DefaultLocalStorageCacheExpiryChecker: {\n" ;
+    strm << indent << "max notes to store: " << MAX_NOTES_TO_STORE << ";\n";
+    strm << indent << "max notebooks to store: " << MAX_NOTEBOOKS_TO_STORE << ";\n";
+    strm << indent << "max tags to store: " << MAX_TAGS_TO_STORE << ";\n";
+    strm << indent << "max linked notebooks to store: " << MAX_LINKED_NOTEBOOKS_TO_STORE << ";\n";
+    strm << indent << "max saved searches to store: " << MAX_SAVED_SEARCHES_TO_STORE << "\n";
+    strm << "};\n";
+
+    return strm;
+}
+
 } // namespace qute_note

@@ -1,13 +1,13 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__I_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
 #define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__I_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
 
-#include <QtGlobal>
+#include <tools/Printable.h>
 
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageCacheManager)
 
-class ILocalStorageCacheExpiryChecker
+class ILocalStorageCacheExpiryChecker: public Printable
 {
 protected:
     ILocalStorageCacheExpiryChecker(const LocalStorageCacheManager & cacheManager);
@@ -23,6 +23,8 @@ public:
     virtual bool checkTags() const = 0;
     virtual bool checkLinkedNotebooks() const = 0;
     virtual bool checkSavedSearches() const = 0;
+
+    virtual QTextStream & Print(QTextStream & strm) const = 0;
 
 private:
     ILocalStorageCacheExpiryChecker() = delete;
