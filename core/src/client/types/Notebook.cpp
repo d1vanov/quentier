@@ -1045,6 +1045,7 @@ QTextStream & Notebook::Print(QTextStream & strm) const
 
 #undef INSERT_DELIMITER
 
+    strm << "}; \n";
     return strm;
 }
 

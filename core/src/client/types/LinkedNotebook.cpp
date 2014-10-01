@@ -322,6 +322,7 @@ QTextStream & LinkedNotebook::Print(QTextStream & strm) const
         strm << "businessId is not set" << "\n";
     }
 
+    strm << "}; \n";
     return strm;
 }
 

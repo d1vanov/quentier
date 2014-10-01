@@ -309,6 +309,7 @@ QTextStream & SavedSearch::Print(QTextStream & strm) const
 
     strm << "hasShortcut = " << (hasShortcut() ? "true" : "false") << "; \n";
 
+    strm << "}; \n";
     return strm;
 }
 

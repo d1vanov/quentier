@@ -15,7 +15,7 @@
 
 namespace qute_note {
 
-class LocalStorageCacheManagerPrivate
+class LocalStorageCacheManagerPrivate: public Printable
 {
     Q_DECLARE_PUBLIC(LocalStorageCacheManager)
 public:
@@ -68,6 +68,8 @@ public:
 
     LocalStorageCacheManager *  q_ptr;
 
+    virtual QTextStream & Print(QTextStream & strm) const override;
+
 private:
     LocalStorageCacheManagerPrivate() = delete;
     LocalStorageCacheManagerPrivate(const LocalStorageCacheManagerPrivate & other) = delete;
@@ -87,6 +89,13 @@ private:
         struct ByLastAccessTimestamp{};
         struct ByLocalGuid{};
         struct ByGuid{};
+
+        friend QTextStream & operator<<(QTextStream & strm, const NoteHolder & noteHolder)
+        {
+            strm << "NoteHolder: note = " << noteHolder.m_note << "last access timestamp = " << noteHolder.m_lastAccessTimestamp
+                 << " (" << QDateTime::fromMSecsSinceEpoch(noteHolder.m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
+            return strm;
+        }
     };
 
     typedef boost::multi_index_container<
@@ -119,6 +128,14 @@ private:
         struct ByLastAccessTimestamp{};
         struct ByLocalGuid{};
         struct ByGuid{};
+
+        friend QTextStream & operator<<(QTextStream & strm, const NotebookHolder & notebookHolder)
+        {
+            strm << "NotebookHolder: notebook = " << notebookHolder.m_notebook
+                 << "last access timestamp = " << notebookHolder.m_lastAccessTimestamp
+                 << " (" << QDateTime::fromMSecsSinceEpoch(notebookHolder.m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
+            return strm;
+        }
     };
 
     typedef boost::multi_index_container<
@@ -151,6 +168,13 @@ private:
         struct ByLastAccessTimestamp{};
         struct ByLocalGuid{};
         struct ByGuid{};
+
+        friend QTextStream & operator<<(QTextStream & strm, const TagHolder & tagHolder)
+        {
+            strm << "TagHolder: tag = " << tagHolder.m_tag << "last access timestamp = " << tagHolder.m_lastAccessTimestamp
+                 << " (" << QDateTime::fromMSecsSinceEpoch(tagHolder.m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
+            return strm;
+        }
     };
 
     typedef boost::multi_index_container<
@@ -181,6 +205,14 @@ private:
 
         struct ByLastAccessTimestamp{};
         struct ByGuid{};
+
+        friend QTextStream & operator<<(QTextStream & strm, const LinkedNotebookHolder & linkedNotebookHolder)
+        {
+            strm << "LinkedNotebookHolder: linked notebook = " << linkedNotebookHolder.m_linkedNotebook
+                 << "last access timestamp = " << linkedNotebookHolder.m_lastAccessTimestamp << " ("
+                 << QDateTime::fromMSecsSinceEpoch(linkedNotebookHolder.m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
+            return strm;
+        }
     };
 
     typedef boost::multi_index_container<
@@ -208,6 +240,14 @@ private:
         struct ByLastAccessTimestamp{};
         struct ByLocalGuid{};
         struct ByGuid{};
+
+        friend QTextStream & operator<<(QTextStream & strm, const SavedSearchHolder & savedSearchHolder)
+        {
+            strm << "SavedSearchHolder: saved search = " << savedSearchHolder.m_savedSearch
+                 << "last access timestamp = " << savedSearchHolder.m_lastAccessTimestamp
+                 << "( " << QDateTime::fromMSecsSinceEpoch(savedSearchHolder.m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
+            return strm;
+        }
     };
 
     typedef boost::multi_index_container<

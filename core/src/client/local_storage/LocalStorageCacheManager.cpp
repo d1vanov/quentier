@@ -151,4 +151,10 @@ void LocalStorageCacheManager::installCacheExpiryFunction(const ILocalStorageCac
     d->installCacheExpiryFunction(checker);
 }
 
+QTextStream & LocalStorageCacheManager::Print(QTextStream & strm) const
+{
+    Q_D(const LocalStorageCacheManager);
+    return d->Print(strm);
+}
+
 } // namespace qute_note

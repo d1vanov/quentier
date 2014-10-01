@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_CACHE_MANAGER_H
 #define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_CACHE_MANAGER_H
 
+#include <tools/Printable.h>
 #include <QScopedPointer>
 
 namespace qute_note {
@@ -14,7 +15,7 @@ QT_FORWARD_DECLARE_CLASS(SavedSearch)
 QT_FORWARD_DECLARE_CLASS(ILocalStorageCacheExpiryChecker)
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageCacheManagerPrivate)
-class LocalStorageCacheManager
+class LocalStorageCacheManager: public Printable
 {
 public:
     LocalStorageCacheManager();
@@ -60,6 +61,8 @@ public:
     const SavedSearch * findSavedSearch(const QString & guid, const WhichGuid wg) const;
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
+
+    virtual QTextStream & Print(QTextStream & strm) const override;
 
 private:
     LocalStorageCacheManager(const LocalStorageCacheManager & other) = delete;

@@ -185,6 +185,64 @@ void LocalStorageCacheManagerPrivate::installCacheExpiryFunction(const ILocalSto
     m_cacheExpiryChecker.reset(checker.clone());
 }
 
+QTextStream & LocalStorageCacheManagerPrivate::Print(QTextStream & strm) const
+{
+    strm << "LocalStorageCacheManager: {\n";
+    strm << "Notes cache: {\n";
+
+    const NotesCache::index<NoteHolder::ByLocalGuid>::type & notesCacheIndex = m_notesCache.get<NoteHolder::ByLocalGuid>();
+    typedef NotesCache::index<NoteHolder::ByLocalGuid>::type::const_iterator NotesConstIter;
+    NotesConstIter notesCacheEnd = notesCacheIndex.end();
+    for(NotesConstIter it = notesCacheIndex.begin(); it != notesCacheEnd; ++it) {
+        strm << *it;
+    }
+
+    strm << "}; \n";
+    strm << "Notebooks cache: {\n";
+
+    const NotebooksCache::index<NotebookHolder::ByLocalGuid>::type & notebooksCacheIndex = m_notebooksCache.get<NotebookHolder::ByLocalGuid>();
+    typedef NotebooksCache::index<NotebookHolder::ByLocalGuid>::type::const_iterator NotebooksConstIter;
+    NotebooksConstIter notebooksCacheEnd = notebooksCacheIndex.end();
+    for(NotebooksConstIter it = notebooksCacheIndex.begin(); it != notebooksCacheEnd; ++it) {
+        strm << *it;
+    }
+
+    strm << "}; \n";
+    strm << "Tags cache: {\n";
+
+    const TagsCache::index<TagHolder::ByLocalGuid>::type & tagsCacheIndex = m_tagsCache.get<TagHolder::ByLocalGuid>();
+    typedef TagsCache::index<TagHolder::ByLocalGuid>::type::const_iterator TagsConstIter;
+    TagsConstIter tagsCacheEnd = tagsCacheIndex.end();
+    for(TagsConstIter it = tagsCacheIndex.begin(); it != tagsCacheEnd; ++it) {
+        strm << *it;
+    }
+
+    strm << "}; \n";
+    strm << "Linked notebooks cache: {\n";
+
+    const LinkedNotebooksCache::index<LinkedNotebookHolder::ByGuid>::type & linkedNotebooksCacheIndex = m_linkedNotebooksCache.get<LinkedNotebookHolder::ByGuid>();
+    typedef LinkedNotebooksCache::index<LinkedNotebookHolder::ByGuid>::type::const_iterator LinkedNotebooksConstIter;
+    LinkedNotebooksConstIter linkedNotebooksCacheEnd = linkedNotebooksCacheIndex.end();
+    for(LinkedNotebooksConstIter it = linkedNotebooksCacheIndex.begin(); it != linkedNotebooksCacheEnd; ++it) {
+        strm << *it;
+    }
+
+    strm << "}; \n";
+    strm << "Saved searches cache: {\n";
+
+    const SavedSearchesCache::index<SavedSearchHolder::ByLocalGuid>::type & savedSearchesCacheIndex = m_savedSearchesCache.get<SavedSearchHolder::ByLocalGuid>();
+    typedef SavedSearchesCache::index<SavedSearchHolder::ByLocalGuid>::type::const_iterator SavedSearchesConstIter;
+    SavedSearchesConstIter savedSearchesCacheEnd = savedSearchesCacheIndex.end();
+    for(SavedSearchesConstIter it = savedSearchesCacheIndex.begin(); it != savedSearchesCacheEnd; ++it) {
+        strm << *it;
+    }
+
+    strm << "}; \n";
+
+    strm << "}; \n";
+    return strm;
+}
+
 #define GET_GUID(Type, name) \
 const QString LocalStorageCacheManagerPrivate::Type##Holder::guid() const \
 { \
