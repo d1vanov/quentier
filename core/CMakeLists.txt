@@ -179,6 +179,7 @@ target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB}
                       ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES} ${QEVERCLOUD_LIB})
 
 set(TEST_HEADERS
+    src/tests/LocalStorageCacheAsyncTester.h
     src/tests/LinkedNotebookLocalStorageManagerAsyncTester.h
     src/tests/NotebookLocalStorageManagerAsyncTester.h
     src/tests/NoteLocalStorageManagerAsyncTester.h
@@ -192,6 +193,7 @@ set(TEST_HEADERS
     src/tests/CoreTester.h)
 
 set(TEST_SOURCES
+    src/tests/LocalStorageCacheAsyncTester.cpp
     src/tests/LinkedNotebookLocalStorageManagerAsyncTester.cpp
     src/tests/NotebookLocalStorageManagerAsyncTester.cpp
     src/tests/NoteLocalStorageManagerAsyncTester.cpp
