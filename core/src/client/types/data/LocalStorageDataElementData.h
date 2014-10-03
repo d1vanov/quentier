@@ -14,10 +14,12 @@ public:
 
     LocalStorageDataElementData(const LocalStorageDataElementData & other);
     LocalStorageDataElementData(LocalStorageDataElementData && other);
-    LocalStorageDataElementData & operator=(const LocalStorageDataElementData & other);
-    LocalStorageDataElementData & operator=(LocalStorageDataElementData && other);
 
     QUuid m_localGuid;
+
+private:
+    LocalStorageDataElementData & operator=(const LocalStorageDataElementData & other) = delete;
+    LocalStorageDataElementData & operator=(LocalStorageDataElementData && other) = delete;
 };
 
 } // namespace qute_note

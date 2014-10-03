@@ -14,10 +14,7 @@ public:
     NotebookData(NotebookData && other);
     NotebookData(const qevercloud::Notebook & other);
     NotebookData(qevercloud::Notebook && other);
-    NotebookData & operator=(const NotebookData & other);
-    NotebookData & operator=(NotebookData && other);
-    NotebookData & operator=(const qevercloud::Notebook & other);
-    NotebookData & operator=(qevercloud::Notebook && other);
+
     virtual ~NotebookData();
 
     bool checkParameters(QString & errorDescription) const;
@@ -28,6 +25,10 @@ public:
     qevercloud::Notebook m_qecNotebook;
     bool   m_isLocal;
     bool   m_isLastUsed;
+
+private:
+    NotebookData & operator=(const NotebookData & other) = delete;
+    NotebookData & operator=(NotebookData && other) = delete;
 };
 
 } // namespace qute_note

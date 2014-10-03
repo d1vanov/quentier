@@ -12,11 +12,13 @@ public:
     UserWrapperData();
     UserWrapperData(const UserWrapperData & other);
     UserWrapperData(UserWrapperData && other);
-    UserWrapperData & operator=(const UserWrapperData & other);
-    UserWrapperData & operator=(UserWrapperData && other);
     virtual ~UserWrapperData();
 
     qevercloud::User    m_qecUser;
+
+private:
+    UserWrapperData & operator=(const UserWrapperData & other) = delete;
+    UserWrapperData & operator=(UserWrapperData && other) = delete;
 };
 
 } // namespace qute_note

@@ -14,9 +14,6 @@ public:
     SavedSearchData(SavedSearchData && other);
     SavedSearchData(const qevercloud::SavedSearch & other);
     SavedSearchData(qevercloud::SavedSearch && other);
-    SavedSearchData & operator=(const SavedSearchData & other);
-    SavedSearchData & operator=(SavedSearchData && other);
-    SavedSearchData & operator=(const qevercloud::SavedSearch & other);
     virtual ~SavedSearchData();
 
     void clear();
@@ -26,6 +23,10 @@ public:
     bool operator!=(const SavedSearchData & other) const;
 
     qevercloud::SavedSearch     m_qecSearch;
+
+private:
+    SavedSearchData & operator=(const SavedSearchData & other) = delete;
+    SavedSearchData & operator=(SavedSearchData && other) = delete;
 };
 
 } // namespace qute_note

@@ -10,6 +10,7 @@
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThread)
+QT_FORWARD_DECLARE_CLASS(LocalStorageCacheManager)
 
 namespace test {
 
@@ -31,8 +32,8 @@ Q_SIGNALS:
     void addNotebookRequest(Notebook notebook);
     void updateNotebookRequest(Notebook notebook);
 
-    void addNoteRequest(Note note);
-    void updateNoteRequest(Note note);
+    void addNoteRequest(Note note, Notebook notebook);
+    void updateNoteRequest(Note note, Notebook notebook);
 
     void addTagRequest(Tag tag);
     void updateTagRequest(Tag tag);
@@ -96,6 +97,7 @@ private:
 
     State   m_state;
     LocalStorageManagerThread * m_pLocalStorageManagerThread;
+    const LocalStorageCacheManager * m_pLocalStorageCacheManager;
 
     Notebook    m_firstNotebook;
     Notebook    m_secondNotebook;

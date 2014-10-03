@@ -41,7 +41,7 @@ Note & Note::operator=(const Note & other)
 
 Note & Note::operator=(const qevercloud::Note & other)
 {
-    d->operator=(other);
+    d = new NoteData(other);
     return *this;
 }
 

@@ -14,24 +14,6 @@ UserWrapperData::UserWrapperData(UserWrapperData && other) :
     m_qecUser(std::move(other.m_qecUser))
 {}
 
-UserWrapperData & UserWrapperData::operator=(const UserWrapperData & other)
-{
-    if (this != std::addressof(other)) {
-        m_qecUser = other.m_qecUser;
-    }
-
-    return *this;
-}
-
-UserWrapperData & UserWrapperData::operator=(UserWrapperData && other)
-{
-    if (this != std::addressof(other)) {
-        m_qecUser = std::move(other.m_qecUser);
-    }
-
-    return *this;
-}
-
 UserWrapperData::~UserWrapperData()
 {}
 

@@ -22,36 +22,6 @@ SharedNotebookWrapperData::SharedNotebookWrapperData(qevercloud::SharedNotebook 
     m_qecSharedNotebook(std::move(other))
 {}
 
-SharedNotebookWrapperData & SharedNotebookWrapperData::operator=(const SharedNotebookWrapperData & other)
-{
-    if (this != std::addressof(other)) {
-        m_qecSharedNotebook = other.m_qecSharedNotebook;
-    }
-
-    return *this;
-}
-
-SharedNotebookWrapperData & SharedNotebookWrapperData::operator=(SharedNotebookWrapperData && other)
-{
-    if (this != std::addressof(other)) {
-        m_qecSharedNotebook = std::move(other.m_qecSharedNotebook);
-    }
-
-    return *this;
-}
-
-SharedNotebookWrapperData & SharedNotebookWrapperData::operator=(const qevercloud::SharedNotebook & other)
-{
-    m_qecSharedNotebook = other;
-    return *this;
-}
-
-SharedNotebookWrapperData & SharedNotebookWrapperData::operator=(qevercloud::SharedNotebook && other)
-{
-    m_qecSharedNotebook = std::move(other);
-    return *this;
-}
-
 SharedNotebookWrapperData::~SharedNotebookWrapperData()
 {}
 

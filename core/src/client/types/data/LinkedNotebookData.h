@@ -14,9 +14,6 @@ public:
     LinkedNotebookData(LinkedNotebookData && other);
     LinkedNotebookData(const qevercloud::LinkedNotebook & other);
     LinkedNotebookData(qevercloud::LinkedNotebook && other);
-    LinkedNotebookData & operator=(const LinkedNotebookData & other);
-    LinkedNotebookData & operator=(LinkedNotebookData && other);
-    LinkedNotebookData & operator=(const qevercloud::LinkedNotebook & other);
     virtual ~LinkedNotebookData();
 
     void clear();
@@ -26,6 +23,10 @@ public:
     bool operator!=(const LinkedNotebookData & other) const;
 
     qevercloud::LinkedNotebook    m_qecLinkedNotebook;
+
+private:
+    LinkedNotebookData & operator=(const LinkedNotebookData & other) = delete;
+    LinkedNotebookData & operator=(LinkedNotebookData && other) = delete;
 };
 
 } // namespace qute_note

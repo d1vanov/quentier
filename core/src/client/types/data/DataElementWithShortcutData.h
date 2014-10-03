@@ -13,10 +13,12 @@ public:
 
     DataElementWithShortcutData(const DataElementWithShortcutData & other);
     DataElementWithShortcutData(DataElementWithShortcutData && other);
-    DataElementWithShortcutData & operator=(const DataElementWithShortcutData & other);
-    DataElementWithShortcutData & operator=(DataElementWithShortcutData && other);
 
     bool    m_hasShortcut;
+
+private:
+    DataElementWithShortcutData & operator=(const DataElementWithShortcutData & other) = delete;
+    DataElementWithShortcutData & operator=(DataElementWithShortcutData && other) = delete;
 };
 
 } // namespace qute_note

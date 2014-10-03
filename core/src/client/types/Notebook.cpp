@@ -49,13 +49,13 @@ Notebook & Notebook::operator=(Notebook && other)
 
 Notebook & Notebook::operator=(const qevercloud::Notebook & other)
 {
-    *d = other;
+    d = new NotebookData(other);
     return *this;
 }
 
 Notebook & Notebook::operator=(qevercloud::Notebook && other)
 {
-    *d = std::move(other);
+    d = new NotebookData(std::move(other));
     return *this;
 }
 

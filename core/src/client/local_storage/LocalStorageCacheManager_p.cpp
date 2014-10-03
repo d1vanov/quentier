@@ -78,7 +78,7 @@ void LocalStorageCacheManagerPrivate::cache##Type(const Type & name) \
     name##Holder.m_##name = name; \
     name##Holder.m_lastAccessTimestamp = QDateTime::currentMSecsSinceEpoch(); \
     \
-    /* See whether the note is already in the cache */ \
+    /* See whether the item is already in the cache */ \
     typedef boost::multi_index::index<cache_type,Type##Holder::IndexType>::type Index; \
     Index & uniqueIndex = cache_name.get<Type##Holder::IndexType>(); \
     Index::iterator it = uniqueIndex.find(name.IndexAccessor()); \
@@ -88,7 +88,7 @@ void LocalStorageCacheManagerPrivate::cache##Type(const Type & name) \
         return; \
     } \
     \
-    /* If got here, no existing note was found in the cache */ \
+    /* If got here, no existing item was found in the cache */ \
     auto insertionResult = cache_name.insert(name##Holder); \
     if (Q_UNLIKELY(!insertionResult.second)) { \
         QNWARNING("Failed to insert " #name " into the cache of local storage manager: " << name); \

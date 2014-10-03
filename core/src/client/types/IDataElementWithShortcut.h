@@ -15,6 +15,8 @@ class QUTE_NOTE_EXPORT IDataElementWithShortcut : public INoteStoreDataElement
 public:
     virtual bool hasShortcut() const = 0;
     virtual void setShortcut(const bool shortcut) = 0;
+
+    virtual ~IDataElementWithShortcut() = default;
 };
 
 #define _DECLARE_HAS_SHORTCUT \

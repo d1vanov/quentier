@@ -30,34 +30,6 @@ SavedSearchData::SavedSearchData(qevercloud::SavedSearch && other) :
     m_qecSearch(std::move(other))
 {}
 
-SavedSearchData & SavedSearchData::operator=(const SavedSearchData & other)
-{
-    DataElementWithShortcutData::operator=(other);
-
-    if (this != std::addressof(other)) {
-        m_qecSearch = other.m_qecSearch;
-    }
-
-    return *this;
-}
-
-SavedSearchData & SavedSearchData::operator=(SavedSearchData && other)
-{
-    DataElementWithShortcutData::operator=(std::move(other));
-
-    if (this != std::addressof(other)) {
-        m_qecSearch = std::move(other.m_qecSearch);
-    }
-
-    return *this;
-}
-
-SavedSearchData & SavedSearchData::operator=(const qevercloud::SavedSearch & other)
-{
-    m_qecSearch = other;
-    return *this;
-}
-
 SavedSearchData::~SavedSearchData()
 {}
 

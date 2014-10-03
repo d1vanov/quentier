@@ -14,13 +14,13 @@ public:
     SharedNotebookWrapperData(SharedNotebookWrapperData && other);
     SharedNotebookWrapperData(const qevercloud::SharedNotebook & other);
     SharedNotebookWrapperData(qevercloud::SharedNotebook && other);
-    SharedNotebookWrapperData & operator=(const SharedNotebookWrapperData & other);
-    SharedNotebookWrapperData & operator=(SharedNotebookWrapperData && other);
-    SharedNotebookWrapperData & operator=(const qevercloud::SharedNotebook & other);
-    SharedNotebookWrapperData & operator=(qevercloud::SharedNotebook && other);
     virtual ~SharedNotebookWrapperData();
 
     qevercloud::SharedNotebook    m_qecSharedNotebook;
+
+private:
+    SharedNotebookWrapperData & operator=(const SharedNotebookWrapperData & other) = delete;
+    SharedNotebookWrapperData & operator=(SharedNotebookWrapperData && other) = delete;
 };
 
 } // namespace qute_note

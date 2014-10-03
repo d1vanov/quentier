@@ -38,44 +38,6 @@ NotebookData::NotebookData(qevercloud::Notebook && other) :
     m_isLastUsed(false)
 {}
 
-NotebookData & NotebookData::operator=(const NotebookData & other)
-{
-    DataElementWithShortcutData::operator=(other);
-
-    if (this != std::addressof(other)) {
-        m_qecNotebook = other.m_qecNotebook;
-        m_isLocal = other.m_isLocal;
-        m_isLastUsed = other.m_isLastUsed;
-    }
-
-    return *this;
-}
-
-NotebookData & NotebookData::operator=(NotebookData && other)
-{
-    DataElementWithShortcutData::operator=(other);
-
-    if (this != std::addressof(other)) {
-        m_qecNotebook = std::move(other.m_qecNotebook);
-        m_isLocal = std::move(other.m_isLocal);
-        m_isLastUsed = std::move(other.m_isLastUsed);
-    }
-
-    return *this;
-}
-
-NotebookData & NotebookData::operator=(const qevercloud::Notebook & other)
-{
-    m_qecNotebook = other;
-    return *this;
-}
-
-NotebookData & NotebookData::operator=(qevercloud::Notebook && other)
-{
-    m_qecNotebook = std::move(other);
-    return *this;
-}
-
 NotebookData::~NotebookData()
 {}
 

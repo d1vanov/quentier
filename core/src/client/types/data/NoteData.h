@@ -14,9 +14,6 @@ public:
     NoteData(const NoteData & other);
     NoteData(NoteData && other);
     NoteData(const qevercloud::Note & other);
-    NoteData & operator=(const NoteData & other);
-    NoteData & operator=(NoteData && other);
-    NoteData & operator=(const qevercloud::Note & other);
     virtual ~NoteData();
 
     void clear();
@@ -54,6 +51,10 @@ public:
     mutable int  m_lazyContainsCheckedToDo;
     mutable int  m_lazyContainsUncheckedToDo;
     mutable int  m_lazyContainsEncryption;
+
+private:
+    NoteData & operator=(const NoteData & other) = delete;
+    NoteData & operator=(NoteData && other) = delete;
 };
 
 } // namespace qute_note

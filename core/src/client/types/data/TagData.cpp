@@ -32,38 +32,6 @@ TagData::TagData(const qevercloud::Tag & other) :
     m_isDeleted(false)
 {}
 
-TagData & TagData::operator=(const TagData & other)
-{
-    DataElementWithShortcutData::operator=(other);
-
-    if (this != std::addressof(other)) {
-        m_qecTag  = other.m_qecTag;
-        m_isLocal = other.m_isLocal;
-        m_isDeleted = other.m_isDeleted;
-    }
-
-    return *this;
-}
-
-TagData & TagData::operator=(TagData && other)
-{
-    DataElementWithShortcutData::operator=(std::move(other));
-
-    if (this != std::addressof(other)) {
-        m_qecTag = std::move(other.m_qecTag);
-        m_isLocal = std::move(other.m_isLocal);
-        m_isDeleted = std::move(other.m_isDeleted);
-    }
-
-    return *this;
-}
-
-TagData & TagData::operator=(const qevercloud::Tag & other)
-{
-    m_qecTag = other;
-    return *this;
-}
-
 TagData::~TagData()
 {}
 

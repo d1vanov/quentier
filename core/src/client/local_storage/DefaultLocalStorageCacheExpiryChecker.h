@@ -3,6 +3,12 @@
 
 #include "ILocalStorageCacheExpiryChecker.h"
 
+#define MAX_NOTES_TO_STORE 100
+#define MAX_NOTEBOOKS_TO_STORE 20
+#define MAX_TAGS_TO_STORE 200
+#define MAX_LINKED_NOTEBOOKS_TO_STORE 15
+#define MAX_SAVED_SEARCHES_TO_STORE 20
+
 namespace qute_note {
 
 class DefaultLocalStorageCacheExpiryChecker : public ILocalStorageCacheExpiryChecker

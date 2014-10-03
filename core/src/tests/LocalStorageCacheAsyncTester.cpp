@@ -1,5 +1,7 @@
 #include "LocalStorageCacheAsyncTester.h"
 #include <client/local_storage/LocalStorageManagerThread.h>
+#include <client/local_storage/DefaultLocalStorageCacheExpiryChecker.h>
+#include <client/local_storage/LocalStorageCacheManager.h>
 #include <logging/QuteNoteLogger.h>
 
 namespace qute_note {
@@ -9,6 +11,7 @@ LocalStorageCacheAsyncTester::LocalStorageCacheAsyncTester(QObject * parent) :
     QObject(parent),
     m_state(STATE_UNINITIALIZED),
     m_pLocalStorageManagerThread(nullptr),
+    m_pLocalStorageCacheManager(nullptr),
     m_firstNotebook(),
     m_secondNotebook(),
     m_currentNotebook(),
@@ -51,7 +54,14 @@ void LocalStorageCacheAsyncTester::onInitTestCase()
     m_state = STATE_UNINITIALIZED;
 
     m_pLocalStorageManagerThread = new LocalStorageManagerThread(username, userId, startFromScratch, this);
+
     createConnections();
+
+    m_pLocalStorageCacheManager = m_pLocalStorageManagerThread->localStorageCacheManager();
+    if (!m_pLocalStorageCacheManager) {
+        emit failure("Local storage cache is not enabled by default for unknown reason");
+        return;
+    }
 
     addNotebook();
 }
@@ -88,10 +98,22 @@ void LocalStorageCacheAsyncTester::onAddNotebookCompleted(Notebook notebook)
             m_secondNotebook = m_currentNotebook;
         }
 
-        // TODO: if m_addedNotebooksCount is strictly larger than the max number of notebooks
-        // stored in the local storage cache, need to ensure that the first notebook is no longer in the cache
+        if (m_addedNotebooksCount > MAX_NOTEBOOKS_TO_STORE)
+        {
+            const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(m_firstNotebook.localGuid(),
+                                                                                   LocalStorageCacheManager::LocalGuid);
+            if (pNotebook) {
+                emit failure("Found notebook which should not have been present in the local storage cache: "
+                             + pNotebook->ToQString());
+            }
+            else {
+                // TODO: proceed with notes
+                emit success();
+            }
 
-        // else do the following:
+            return;
+        }
+
         addNotebook();
     }
     HANDLE_WRONG_STATE()
@@ -99,9 +121,8 @@ void LocalStorageCacheAsyncTester::onAddNotebookCompleted(Notebook notebook)
 
 void LocalStorageCacheAsyncTester::onAddNotebookFailed(Notebook notebook, QString errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(notebook)
-    Q_UNUSED(errorDescription)
+    QNWARNING(errorDescription << ", notebook: " << notebook);
+    emit failure(errorDescription);
 }
 
 void LocalStorageCacheAsyncTester::onUpdateNotebookCompleted(Notebook notebook)
@@ -227,7 +248,69 @@ void LocalStorageCacheAsyncTester::onUpdateSavedSearchFailed(SavedSearch search,
 
 void LocalStorageCacheAsyncTester::createConnections()
 {
-    // TODO: implement
+    // Request --> slot connections
+    QObject::connect(this, SIGNAL(addNotebookRequest(Notebook)),
+                     m_pLocalStorageManagerThread, SLOT(onAddNotebookRequest(Notebook)));
+    QObject::connect(this, SIGNAL(updateNotebookRequest(Notebook)),
+                     m_pLocalStorageManagerThread, SLOT(onUpdateNotebookRequest(Notebook)));
+    QObject::connect(this, SIGNAL(addNoteRequest(Note,Notebook)),
+                     m_pLocalStorageManagerThread, SLOT(onAddNoteRequest(Note,Notebook)));
+    QObject::connect(this, SIGNAL(updateNoteRequest(Note,Notebook)),
+                     m_pLocalStorageManagerThread, SLOT(onUpdateNoteRequest(Note,Notebook)));
+    QObject::connect(this, SIGNAL(addTagRequest(Tag)),
+                     m_pLocalStorageManagerThread, SLOT(onAddTagRequest(Tag)));
+    QObject::connect(this, SIGNAL(updateTagRequest(Tag)),
+                     m_pLocalStorageManagerThread, SLOT(onUpdateTagRequest(Tag)));
+    QObject::connect(this, SIGNAL(addLinkedNotebook(LinkedNotebook)),
+                     m_pLocalStorageManagerThread, SLOT(onAddLinkedNotebookRequest(LinkedNotebook)));
+    QObject::connect(this, SIGNAL(updateLinkedNotebook(LinkedNotebook)),
+                     m_pLocalStorageManagerThread, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook)));
+    QObject::connect(this, SIGNAL(addSavedSearch(SavedSearch)),
+                     m_pLocalStorageManagerThread, SLOT(onAddSavedSearchRequest(SavedSearch)));
+    QObject::connect(this, SIGNAL(updateSavedSearch(SavedSearch)),
+                     m_pLocalStorageManagerThread, SLOT(onUpdateSavedSearchRequest(SavedSearch)));
+
+    // Slot <-- result connections
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNotebookComplete(Notebook)),
+                     this, SLOT(onAddNotebookCompleted(Notebook)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNotebookFailed(Notebook,QString)),
+                     this, SLOT(onAddNotebookFailed(Notebook,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateNotebookComplete(Notebook)),
+                     this, SLOT(onUpdateNotebookCompleted(Notebook)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateNotebookFailed(Notebook,QString)),
+                     this, SLOT(onUpdateNotebookFailed(Notebook,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNoteComplete(Note,Notebook)),
+                     this, SLOT(onAddNoteCompleted(Note,Notebook)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNoteFailed(Note,Notebook,QString)),
+                     this, SLOT(onAddNoteFailed(Note,Notebook,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateNoteComplete(Note,Notebook)),
+                     this, SLOT(onUpdateNoteCompleted(Note,Notebook)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateNoteFailed(Note,Notebook,QString)),
+                     this, SLOT(onUpdateNoteFailed(Note,Notebook,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addTagComplete(Tag)),
+                     this, SLOT(onAddTagCompleted(Tag)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addTagFailed(Tag,QString)),
+                     this, SLOT(onAddTagFailed(Tag,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateTagComplete(Tag)),
+                     this, SLOT(onUpdateTagCompleted(Tag)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateTagFailed(Tag,QString)),
+                     this, SLOT(onUpdateTagFailed(Tag,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addLinkedNotebookComplete(LinkedNotebook)),
+                     this, SLOT(onAddLinkedNotebookCompleted(LinkedNotebook)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addLinkedNotebookFailed(LinkedNotebook,QString)),
+                     this, SLOT(onAddLinkedNotebookFailed(LinkedNotebook,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateLinkedNotebookComplete(LinkedNotebook)),
+                     this, SLOT(onUpdateLinkedNotebookCompleted(LinkedNotebook)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateLinkedNotebookFailed(LinkedNotebook,QString)),
+                     this, SLOT(onUpdateLinkedNotebookFailed(LinkedNotebook,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addSavedSearchComplete(SavedSearch)),
+                     this, SLOT(onAddSavedSearchCompleted(SavedSearch)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addSavedSearchFailed(SavedSearch,QString)),
+                     this, SLOT(onAddSavedSearchFailed(SavedSearch,QString)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateSavedSearchComplete(SavedSearch)),
+                     this, SLOT(onUpdateSavedSearchCompleted(SavedSearch)));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateSavedSearchFailed(SavedSearch,QString)),
+                     this, SLOT(onUpdateSavedSearchFailed(SavedSearch,QString)));
 }
 
 void LocalStorageCacheAsyncTester::addNotebook()

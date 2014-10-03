@@ -13,10 +13,12 @@ public:
 
     NoteStoreDataElementData(const NoteStoreDataElementData & other);
     NoteStoreDataElementData(NoteStoreDataElementData && other);
-    NoteStoreDataElementData & operator=(const NoteStoreDataElementData & other);
-    NoteStoreDataElementData & operator=(NoteStoreDataElementData && other);
 
     bool    m_isDirty;
+
+private:
+    NoteStoreDataElementData & operator=(const NoteStoreDataElementData & other) = delete;
+    NoteStoreDataElementData & operator=(NoteStoreDataElementData && other) = delete;
 };
 
 } // namespace qute_note

@@ -13,9 +13,6 @@ public:
     TagData(const TagData & other);
     TagData(TagData && other);
     TagData(const qevercloud::Tag & other);
-    TagData & operator=(const TagData & other);
-    TagData & operator=(TagData && other);
-    TagData & operator=(const qevercloud::Tag & other);
     virtual ~TagData();
 
     void clear();
@@ -27,6 +24,10 @@ public:
     qevercloud::Tag     m_qecTag;
     bool                m_isLocal;
     bool                m_isDeleted;
+
+private:
+    TagData & operator=(const TagData & other) = delete;
+    TagData & operator=(TagData && other) = delete;
 };
 
 } // namespace qute_note

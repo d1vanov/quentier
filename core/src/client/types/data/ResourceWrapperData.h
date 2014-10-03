@@ -14,11 +14,13 @@ public:
     ResourceWrapperData(ResourceWrapperData && other);
     ResourceWrapperData(const qevercloud::Resource & other);
     ResourceWrapperData(qevercloud::Resource && other);
-    ResourceWrapperData & operator=(const ResourceWrapperData & other);
-    ResourceWrapperData & operator=(ResourceWrapperData && other);
     virtual ~ResourceWrapperData();
 
     qevercloud::Resource    m_qecResource;
+
+private:
+    ResourceWrapperData & operator=(const ResourceWrapperData & other) = delete;
+    ResourceWrapperData & operator=(ResourceWrapperData && other) = delete;
 };
 
 } // namespace qute_note

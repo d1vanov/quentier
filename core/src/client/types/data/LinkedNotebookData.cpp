@@ -28,34 +28,6 @@ LinkedNotebookData::LinkedNotebookData(qevercloud::LinkedNotebook && other) :
     m_qecLinkedNotebook(std::move(other))
 {}
 
-LinkedNotebookData & LinkedNotebookData::operator=(const LinkedNotebookData & other)
-{
-    NoteStoreDataElementData::operator=(other);
-
-    if (this != std::addressof(other)) {
-        m_qecLinkedNotebook = other.m_qecLinkedNotebook;
-    }
-
-    return *this;
-}
-
-LinkedNotebookData & LinkedNotebookData::operator=(LinkedNotebookData && other)
-{
-    NoteStoreDataElementData::operator=(other);
-
-    if (this != std::addressof(other)) {
-        m_qecLinkedNotebook = std::move(other.m_qecLinkedNotebook);
-    }
-
-    return *this;
-}
-
-LinkedNotebookData & LinkedNotebookData::operator=(const qevercloud::LinkedNotebook & other)
-{
-    m_qecLinkedNotebook = other;
-    return *this;
-}
-
 LinkedNotebookData::~LinkedNotebookData()
 {}
 

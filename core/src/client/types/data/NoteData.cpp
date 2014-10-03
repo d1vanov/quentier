@@ -68,62 +68,6 @@ NoteData::NoteData(const qevercloud::Note & other) :
     m_lazyContainsEncryption(-1)
 {}
 
-NoteData & NoteData::operator=(const NoteData & other)
-{
-    DataElementWithShortcutData::operator=(other);
-
-    if (this != std::addressof(other))
-    {
-        m_qecNote = other.m_qecNote;
-        m_resourcesAdditionalInfo = other.m_resourcesAdditionalInfo;
-        m_isLocal = other.m_isLocal;
-        m_thumbnail = other.m_thumbnail;
-        m_lazyPlainText = other.m_lazyPlainText;
-        m_lazyPlainTextIsValid = other.m_lazyPlainTextIsValid;
-        m_lazyListOfWords = other.m_lazyListOfWords;
-        m_lazyListOfWordsIsValid = other.m_lazyListOfWordsIsValid;
-        m_lazyContainsCheckedToDo = other.m_lazyContainsCheckedToDo;
-        m_lazyContainsUncheckedToDo = other.m_lazyContainsUncheckedToDo;
-        m_lazyContainsEncryption = other.m_lazyContainsEncryption;
-    }
-
-    return *this;
-}
-
-NoteData & NoteData::operator=(const qevercloud::Note & other)
-{
-    m_qecNote = other;
-    m_resourcesAdditionalInfo.clear();
-    m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
-    m_lazyListOfWordsIsValid = false;
-    m_lazyContainsCheckedToDo = -1;
-    m_lazyContainsUncheckedToDo = -1;
-    m_lazyContainsEncryption = -1;
-    return *this;
-}
-
-NoteData & NoteData::operator=(NoteData && other)
-{
-    DataElementWithShortcutData::operator=(std::move(other));
-
-    if (this != &other)
-    {
-        m_qecNote   = std::move(other.m_qecNote);
-        m_resourcesAdditionalInfo = std::move(other.m_resourcesAdditionalInfo);
-        m_isLocal   = std::move(other.m_isLocal);
-        m_thumbnail = std::move(other.m_thumbnail);
-        m_lazyPlainText = std::move(other.m_lazyPlainText);
-        m_lazyPlainTextIsValid = std::move(other.m_lazyPlainTextIsValid);
-        m_lazyListOfWords = std::move(other.m_lazyListOfWords);
-        m_lazyListOfWordsIsValid = std::move(other.m_lazyListOfWordsIsValid);
-        m_lazyContainsCheckedToDo   = std::move(other.m_lazyContainsCheckedToDo);
-        m_lazyContainsUncheckedToDo = std::move(other.m_lazyContainsUncheckedToDo);
-        m_lazyContainsEncryption    = std::move(other.m_lazyContainsEncryption);
-    }
-
-    return *this;
-}
-
 bool NoteData::ResourceAdditionalInfo::operator==(const NoteData::ResourceAdditionalInfo & other) const
 {
     return (localGuid == other.localGuid) &&
