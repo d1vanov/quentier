@@ -101,6 +101,7 @@ private:
     typedef boost::multi_index_container<
         NoteHolder,
         boost::multi_index::indexed_by<
+            boost::multi_index::sequenced<>,
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<NoteHolder::ByLastAccessTimestamp>,
                 boost::multi_index::member<NoteHolder,qint64,&NoteHolder::m_lastAccessTimestamp>
@@ -141,6 +142,7 @@ private:
     typedef boost::multi_index_container<
         NotebookHolder,
         boost::multi_index::indexed_by<
+            boost::multi_index::sequenced<>,
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<NotebookHolder::ByLastAccessTimestamp>,
                 boost::multi_index::member<NotebookHolder,qint64,&NotebookHolder::m_lastAccessTimestamp>
@@ -180,6 +182,7 @@ private:
     typedef boost::multi_index_container<
         TagHolder,
         boost::multi_index::indexed_by<
+            boost::multi_index::sequenced<>,
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<TagHolder::ByLastAccessTimestamp>,
                 boost::multi_index::member<TagHolder,qint64,&TagHolder::m_lastAccessTimestamp>
@@ -218,6 +221,7 @@ private:
     typedef boost::multi_index_container<
         LinkedNotebookHolder,
         boost::multi_index::indexed_by<
+            boost::multi_index::sequenced<>,
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<LinkedNotebookHolder::ByLastAccessTimestamp>,
                 boost::multi_index::member<LinkedNotebookHolder,qint64,&LinkedNotebookHolder::m_lastAccessTimestamp>
@@ -253,6 +257,7 @@ private:
     typedef boost::multi_index_container<
         SavedSearchHolder,
         boost::multi_index::indexed_by<
+            boost::multi_index::sequenced<>,
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<SavedSearchHolder::ByLastAccessTimestamp>,
                 boost::multi_index::member<SavedSearchHolder,qint64,&SavedSearchHolder::m_lastAccessTimestamp>

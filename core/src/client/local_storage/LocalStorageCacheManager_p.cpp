@@ -68,7 +68,11 @@ void LocalStorageCacheManagerPrivate::cache##Type(const Type & name) \
         { \
             res = m_cacheExpiryChecker->expiry_checker(); \
             if (Q_UNLIKELY(!res)) { \
-                Q_UNUSED(cache_name.erase(latIndex.rbegin().base())); \
+                auto latIndexReverseBegin = latIndex.rbegin(); \
+                ++latIndexReverseBegin; \
+                auto latIndexLast = latIndexReverseBegin.base(); \
+                auto sequenced_iterator = cache_name.project<0>(latIndexLast); \
+                Q_UNUSED(cache_name.erase(sequenced_iterator)); \
                 continue; \
             } \
         } \
@@ -89,7 +93,7 @@ void LocalStorageCacheManagerPrivate::cache##Type(const Type & name) \
     } \
     \
     /* If got here, no existing item was found in the cache */ \
-    auto insertionResult = cache_name.insert(name##Holder); \
+    auto insertionResult = cache_name.push_back(name##Holder); \
     if (Q_UNLIKELY(!insertionResult.second)) { \
         QNWARNING("Failed to insert " #name " into the cache of local storage manager: " << name); \
         throw LocalStorageCacheManagerException("Unable to insert " #name " into the local storage cache"); \
