@@ -59,7 +59,9 @@ void LocalStorageCacheAsyncTester::onInitTestCase()
 
     m_pLocalStorageCacheManager = m_pLocalStorageManagerThread->localStorageCacheManager();
     if (!m_pLocalStorageCacheManager) {
-        emit failure("Local storage cache is not enabled by default for unknown reason");
+        QString error = "Local storage cache is not enabled by default for unknown reason";
+        QNWARNING(error);
+        emit failure(error);
         return;
     }
 
@@ -103,8 +105,10 @@ void LocalStorageCacheAsyncTester::onAddNotebookCompleted(Notebook notebook)
             const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(m_firstNotebook.localGuid(),
                                                                                    LocalStorageCacheManager::LocalGuid);
             if (pNotebook) {
-                emit failure("Found notebook which should not have been present in the local storage cache: "
-                             + pNotebook->ToQString());
+                QString error = "Found notebook which should not have been present in the local storage cache: " +
+                                pNotebook->ToQString();
+                QNWARNING(error);
+                emit failure(error);
             }
             else {
                 // TODO: proceed with notes

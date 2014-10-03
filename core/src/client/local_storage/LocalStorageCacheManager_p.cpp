@@ -68,11 +68,9 @@ void LocalStorageCacheManagerPrivate::cache##Type(const Type & name) \
         { \
             res = m_cacheExpiryChecker->expiry_checker(); \
             if (Q_UNLIKELY(!res)) { \
-                auto latIndexReverseBegin = latIndex.rbegin(); \
-                ++latIndexReverseBegin; \
-                auto latIndexLast = latIndexReverseBegin.base(); \
-                auto sequenced_iterator = cache_name.project<0>(latIndexLast); \
-                Q_UNUSED(cache_name.erase(sequenced_iterator)); \
+                auto latIndexBegin = latIndex.begin(); \
+                QNDEBUG("Going to remove the object from local storage cache: " << *latIndexBegin); \
+                Q_UNUSED(latIndex.erase(latIndexBegin)); \
                 continue; \
             } \
         } \
@@ -93,7 +91,7 @@ void LocalStorageCacheManagerPrivate::cache##Type(const Type & name) \
     } \
     \
     /* If got here, no existing item was found in the cache */ \
-    auto insertionResult = cache_name.push_back(name##Holder); \
+    auto insertionResult = cache_name.insert(name##Holder); \
     if (Q_UNLIKELY(!insertionResult.second)) { \
         QNWARNING("Failed to insert " #name " into the cache of local storage manager: " << name); \
         throw LocalStorageCacheManagerException("Unable to insert " #name " into the local storage cache"); \
@@ -273,5 +271,93 @@ GET_GUID(LinkedNotebook, linkedNotebook)
 GET_GUID(SavedSearch, savedSearch)
 
 #undef GET_GUID
+
+QTextStream & LocalStorageCacheManagerPrivate::NoteHolder::Print(QTextStream & strm) const
+{
+    strm << "NoteHolder: note = " << m_note << "last access timestamp = " << m_lastAccessTimestamp
+         << " (" << QDateTime::fromMSecsSinceEpoch(m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
+    return strm;
+}
+
+QTextStream & LocalStorageCacheManagerPrivate::NotebookHolder::Print(QTextStream & strm) const
+{
+    strm << "NotebookHolder: notebook = " << m_notebook
+         << "last access timestamp = " << m_lastAccessTimestamp
+            << " (" << QDateTime::fromMSecsSinceEpoch(m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
+    return strm;
+}
+
+QTextStream & LocalStorageCacheManagerPrivate::TagHolder::Print(QTextStream & strm) const
+{
+    strm << "TagHolder: tag = " << m_tag << "last access timestamp = " << m_lastAccessTimestamp
+         << " (" << QDateTime::fromMSecsSinceEpoch(m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
+    return strm;
+}
+
+QTextStream & LocalStorageCacheManagerPrivate::LinkedNotebookHolder::Print(QTextStream & strm) const
+{
+    strm << "LinkedNotebookHolder: linked notebook = " << m_linkedNotebook
+         << "last access timestamp = " << m_lastAccessTimestamp << " ("
+         << QDateTime::fromMSecsSinceEpoch(m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
+    return strm;
+}
+
+QTextStream & LocalStorageCacheManagerPrivate::SavedSearchHolder::Print(QTextStream & strm) const
+{
+    strm << "SavedSearchHolder: saved search = " << m_savedSearch
+         << "last access timestamp = " << m_lastAccessTimestamp
+         << "( " << QDateTime::fromMSecsSinceEpoch(m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
+    return strm;
+}
+
+LocalStorageCacheManagerPrivate::NoteHolder & LocalStorageCacheManagerPrivate::NoteHolder::operator=(const LocalStorageCacheManagerPrivate::NoteHolder & other)
+{
+    if (this != std::addressof(other)) {
+        m_note = other.m_note;
+        m_lastAccessTimestamp = other.m_lastAccessTimestamp;
+    }
+
+    return *this;
+}
+
+LocalStorageCacheManagerPrivate::NotebookHolder & LocalStorageCacheManagerPrivate::NotebookHolder::operator=(const LocalStorageCacheManagerPrivate::NotebookHolder & other)
+{
+    if (this != std::addressof(other)) {
+        m_notebook = other.m_notebook;
+        m_lastAccessTimestamp = other.m_lastAccessTimestamp;
+    }
+
+    return *this;
+}
+
+LocalStorageCacheManagerPrivate::TagHolder & LocalStorageCacheManagerPrivate::TagHolder::operator=(const LocalStorageCacheManagerPrivate::TagHolder & other)
+{
+    if (this != std::addressof(other)) {
+        m_tag = other.m_tag;
+        m_lastAccessTimestamp = other.m_lastAccessTimestamp;
+    }
+
+    return *this;
+}
+
+LocalStorageCacheManagerPrivate::LinkedNotebookHolder & LocalStorageCacheManagerPrivate::LinkedNotebookHolder::operator=(const LocalStorageCacheManagerPrivate::LinkedNotebookHolder & other)
+{
+    if (this != std::addressof(other)) {
+        m_linkedNotebook = other.m_linkedNotebook;
+        m_lastAccessTimestamp = other.m_lastAccessTimestamp;
+    }
+
+    return *this;
+}
+
+LocalStorageCacheManagerPrivate::SavedSearchHolder & LocalStorageCacheManagerPrivate::SavedSearchHolder::operator=(const LocalStorageCacheManagerPrivate::SavedSearchHolder & other)
+{
+    if (this != std::addressof(other)) {
+        m_savedSearch = other.m_savedSearch;
+        m_lastAccessTimestamp = other.m_lastAccessTimestamp;
+    }
+
+    return *this;
+}
 
 } // namespace qute_note

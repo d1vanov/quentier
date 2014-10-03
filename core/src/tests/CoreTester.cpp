@@ -1430,7 +1430,6 @@ void CoreTester::localStorageManagerAsyncResourceTest()
     }
 }
 
-/*
 void CoreTester::localStorageCacheManagerTest()
 {
     int localStorageCacheAsyncTestResult = -1;
@@ -1465,7 +1464,6 @@ void CoreTester::localStorageCacheManagerTest()
         QFAIL("Local storage cache async tester failed to finish in time");
     }
 }
-*/
 
 #undef CATCH_EXCEPTION
 

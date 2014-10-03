@@ -848,6 +848,9 @@ QTextStream & Notebook::Print(QTextStream & strm) const
 #define INSERT_DELIMITER \
     strm << "; \n"
 
+    strm << "local guid: " << d->m_localGuid;
+    INSERT_DELIMITER;
+
     if (d->m_qecNotebook.guid.isSet()) {
         strm << "guid: " << d->m_qecNotebook.guid;
     }

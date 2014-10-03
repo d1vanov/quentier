@@ -49,7 +49,7 @@ private slots:
     void localStorageManagerAsyncNotesTest();
     void localStorageManagerAsyncResourceTest();
 
-    // void localStorageCacheManagerTest();
+    void localStorageCacheManagerTest();
 
 private:
     CoreTester(const CoreTester & other) = delete;
