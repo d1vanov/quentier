@@ -117,6 +117,17 @@ void LocalStorageCacheAsyncTester::onAddNotebookCompleted(Notebook notebook)
 
             return;
         }
+        else if (m_addedNotebooksCount > 1)
+        {
+            const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(m_firstNotebook.localGuid(),
+                                                                                   LocalStorageCacheManager::LocalGuid);
+            if (!pNotebook) {
+                QString error = "Notebook which should have been present in the local storage cache was not found there";
+                QNWARNING(error << ", first notebook: " << m_firstNotebook);
+                emit failure(error);
+                return;
+            }
+        }
 
         addNotebook();
     }
