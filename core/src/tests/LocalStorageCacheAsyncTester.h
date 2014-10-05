@@ -79,6 +79,9 @@ private:
     void createConnections();
 
     void addNotebook();
+    void updateNotebook();
+
+    void addNote();
 
     enum State
     {
