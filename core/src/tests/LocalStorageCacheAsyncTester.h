@@ -82,6 +82,7 @@ private:
     void updateNotebook();
 
     void addNote();
+    void updateNote();
 
     enum State
     {
