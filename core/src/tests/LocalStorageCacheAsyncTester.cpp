@@ -112,7 +112,6 @@ void LocalStorageCacheAsyncTester::onAddNotebookCompleted(Notebook notebook)
             }
             else {
                 updateNotebook();
-                return;
             }
 
             return;
@@ -122,9 +121,9 @@ void LocalStorageCacheAsyncTester::onAddNotebookCompleted(Notebook notebook)
             const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(m_firstNotebook.localGuid(),
                                                                                    LocalStorageCacheManager::LocalGuid);
             if (!pNotebook) {
-                QString error = "Notebook which should have been present in the local storage cache was not found there";
-                QNWARNING(error << ", first notebook: " << m_firstNotebook);
-                emit failure(error);
+                errorDescription = "Notebook which should have been present in the local storage cache was not found there";
+                QNWARNING(errorDescription << ", first notebook: " << m_firstNotebook);
+                emit failure(errorDescription);
                 return;
             }
         }
@@ -172,8 +171,7 @@ void LocalStorageCacheAsyncTester::onUpdateNotebookCompleted(Notebook notebook)
         }
 
         // Ok, updated notebook was cached correctly, moving to testing notes
-        // TODO: switch to testing notes
-        emit success();
+        addNote();
     }
     HANDLE_WRONG_STATE()
 }
@@ -186,17 +184,75 @@ void LocalStorageCacheAsyncTester::onUpdateNotebookFailed(Notebook notebook, QSt
 
 void LocalStorageCacheAsyncTester::onAddNoteCompleted(Note note, Notebook notebook)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(notebook)
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_NOTE_ADD_REQUEST)
+    {
+        if (m_currentNote != note) {
+            errorDescription = "Internal error in LocalStorageCacheAsyncTester: "
+                               "note in onAddNoteCompleted doesn't match the original note";
+            QNWARNING(errorDescription << "; original note: " << m_currentNote
+                      << "\nFound note: " << note);
+            emit failure(errorDescription);
+            return;
+        }
+
+        if (m_secondNotebook != notebook) {
+            errorDescription = "Internal error in LocalStorageCacheAsyncTester: "
+                               "notebook in onAddNoteCompleted doesn't match the original notebook";
+            QNWARNING(errorDescription << "; original notebook: " << m_secondNotebook
+                      << "\nFound notebook: " << notebook);
+            emit failure(errorDescription);
+            return;
+        }
+
+        ++m_addedNotesCount;
+
+        if (m_addedNotesCount == 1) {
+            m_firstNote = m_currentNote;
+        }
+        else if (m_addedNotesCount == 2) {
+            m_secondNote = m_currentNote;
+        }
+
+        if (m_addedNotesCount > MAX_NOTES_TO_STORE)
+        {
+            const Note * pNote = m_pLocalStorageCacheManager->findNote(m_firstNote.localGuid(),
+                                                                       LocalStorageCacheManager::LocalGuid);
+            if (pNote) {
+                errorDescription = "Found note which should not have been present in the local storage cache: " +
+                                   pNote->ToQString();
+                QNWARNING(errorDescription);
+                emit failure(errorDescription);
+            }
+            else {
+                // TODO: test update of note
+                emit success();
+            }
+
+            return;
+        }
+        else if (m_addedNotesCount > 1)
+        {
+            const Note * pNote = m_pLocalStorageCacheManager->findNote(m_firstNote.localGuid(),
+                                                                       LocalStorageCacheManager::LocalGuid);
+            if (!pNote) {
+                errorDescription = "Note which should have been present in the local storage cache was not found there";
+                QNWARNING(errorDescription << ", first note: " << m_firstNote);
+                emit failure(errorDescription);
+                return;
+            }
+        }
+
+        addNote();
+    }
+    HANDLE_WRONG_STATE()
 }
 
 void LocalStorageCacheAsyncTester::onAddNoteFailed(Note note, Notebook notebook, QString errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(notebook)
-    Q_UNUSED(errorDescription)
+    QNWARNING(errorDescription << ", note: " << note << "\nnotebook: " << notebook);
+    emit failure(errorDescription);
 }
 
 void LocalStorageCacheAsyncTester::onUpdateNoteCompleted(Note note, Notebook notebook)
@@ -386,7 +442,16 @@ void LocalStorageCacheAsyncTester::updateNotebook()
 
 void LocalStorageCacheAsyncTester::addNote()
 {
-    // TODO: implement
+    m_currentNote = Note();
+    m_currentNote.setUpdateSequenceNumber(m_addedNotesCount + 1);
+    m_currentNote.setTitle("Fake note #" + QString::number(m_addedNotesCount + 1));
+    m_currentNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    m_currentNote.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    m_currentNote.setActive(true);
+    m_currentNote.setContent("<en-note><h1>Hello, world</h1></en-note>");
+
+    m_state = STATE_SENT_NOTE_ADD_REQUEST;
+    emit addNoteRequest(m_currentNote, m_secondNotebook);
 }
 
 }
