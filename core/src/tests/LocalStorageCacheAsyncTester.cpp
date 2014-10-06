@@ -84,7 +84,7 @@ void LocalStorageCacheAsyncTester::onAddNotebookCompleted(Notebook notebook)
     {
         if (m_currentNotebook != notebook) {
             errorDescription = "Internal error in LocalStorageCacheAsyncTester: "
-                               "notebook in onAddNotebookCompleted doesn't match the original Notebook";
+                               "notebook in onAddNotebookCompleted doesn't match the original notebook";
             QNWARNING(errorDescription << "; original notebook: " << m_currentNotebook
                       << "\nFound notebook: " << notebook);
             emit failure(errorDescription);
@@ -105,9 +105,8 @@ void LocalStorageCacheAsyncTester::onAddNotebookCompleted(Notebook notebook)
             const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(m_firstNotebook.localGuid(),
                                                                                    LocalStorageCacheManager::LocalGuid);
             if (pNotebook) {
-                errorDescription = "Found notebook which should not have been present in the local storage cache: " +
-                                   pNotebook->ToQString();
-                QNWARNING(errorDescription);
+                errorDescription = "Found notebook which should not have been present in the local storage cache";
+                QNWARNING(errorDescription << ": " << pNotebook->ToQString());
                 emit failure(errorDescription);
             }
             else {
@@ -294,8 +293,7 @@ void LocalStorageCacheAsyncTester::onUpdateNoteCompleted(Note note, Notebook not
         }
 
         // Ok, updated note was cached correctly, moving to testing tags
-        // TODO: switch to testing tags
-        emit success();
+        addTag();
     }
     HANDLE_WRONG_STATE()
 }
@@ -310,28 +308,108 @@ void LocalStorageCacheAsyncTester::onUpdateNoteFailed(Note note, Notebook notebo
 
 void LocalStorageCacheAsyncTester::onAddTagCompleted(Tag tag)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_TAG_ADD_REQUEST)
+    {
+        if (m_currentTag != tag) {
+            errorDescription = "Internal error in LocalStorageCacheAsyncTester: "
+                               "tag in onAddTagCompleted doesn't match the original tag";
+            QNWARNING(errorDescription << "; original tag: " << m_currentTag
+                      << "\nFound tag: " << tag);
+            emit failure(errorDescription);
+            return;
+        }
+
+        ++m_addedTagsCount;
+
+        if (m_addedTagsCount == 1) {
+            m_firstTag = m_currentTag;
+        }
+        else if (m_addedTagsCount == 2) {
+            m_secondTag = m_currentTag;
+        }
+
+        if (m_addedTagsCount > MAX_TAGS_TO_STORE)
+        {
+            const Tag * pTag = m_pLocalStorageCacheManager->findTag(m_firstTag.localGuid(),
+                                                                    LocalStorageCacheManager::LocalGuid);
+            if (pTag) {
+                errorDescription = "Found tag which should not have been present in the local storage cache";
+                QNWARNING(errorDescription << ": " << pTag->ToQString());
+                emit failure(errorDescription);
+            }
+            else {
+                updateTag();
+            }
+
+            return;
+        }
+        else if (m_addedTagsCount > 1)
+        {
+            const Tag * pTag = m_pLocalStorageCacheManager->findTag(m_firstTag.localGuid(),
+                                                                    LocalStorageCacheManager::LocalGuid);
+            if (!pTag) {
+                errorDescription = "Tag which should have been present in the local storage cache was not found there";
+                QNWARNING(errorDescription << ", first tag: " << m_firstTag);
+                emit failure(errorDescription);
+                return;
+            }
+        }
+
+        addTag();
+    }
+    HANDLE_WRONG_STATE()
 }
 
 void LocalStorageCacheAsyncTester::onAddTagFailed(Tag tag, QString errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(errorDescription)
+    QNWARNING(errorDescription << ", tag: " << tag);
+    emit failure(errorDescription);
 }
 
 void LocalStorageCacheAsyncTester::onUpdateTagCompleted(Tag tag)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_TAG_UPDATE_REQUEST)
+    {
+        if (m_secondTag != tag) {
+            errorDescription = "Internal error in LocalStorageCacheAsyncTester: "
+                               "tag in onUpdateTagCompleted doesn't match the original tag";
+            QNWARNING(errorDescription << "; original tag: " << m_secondTag
+                      << "\nFound tag: " << tag);
+            emit failure(errorDescription);
+            return;
+        }
+
+        const Tag * pTag = m_pLocalStorageCacheManager->findTag(tag.localGuid(),
+                                                                LocalStorageCacheManager::LocalGuid);
+        if (!pTag) {
+            errorDescription = "Updated tag which should have been present in the local storage cache "
+                               "was not found there";
+            QNWARNING(errorDescription << ", tag: " << tag);
+            emit failure(errorDescription);
+            return;
+        }
+        else if (*pTag != tag) {
+            errorDescription = "Updated tag does not match the tag stored in the local storage cache";
+            QNWARNING(errorDescription << ", tag: " << tag);
+            emit failure(errorDescription);
+            return;
+        }
+
+        // Ok, updated tag was cached correctly, moving to testing linked notebooks
+        // TODO: switch to testing linked notebooks
+        emit success();
+    }
+    HANDLE_WRONG_STATE()
 }
 
 void LocalStorageCacheAsyncTester::onUpdateTagFailed(Tag tag, QString errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(errorDescription)
+    QNWARNING(errorDescription << ", tag: " << tag);
+    emit failure(errorDescription);
 }
 
 void LocalStorageCacheAsyncTester::onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook)
@@ -500,6 +578,25 @@ void LocalStorageCacheAsyncTester::updateNote()
 
     m_state = STATE_SENT_NOTE_UPDATE_REQUEST;
     emit updateNoteRequest(m_secondNote, m_secondNotebook);
+}
+
+void LocalStorageCacheAsyncTester::addTag()
+{
+    m_currentTag = Tag();
+    m_currentTag.setUpdateSequenceNumber(m_addedTagsCount + 1);
+    m_currentTag.setName("Fake tag #" + QString::number(m_addedTagsCount + 1));
+
+    m_state = STATE_SENT_TAG_ADD_REQUEST;
+    emit addTagRequest(m_currentTag);
+}
+
+void LocalStorageCacheAsyncTester::updateTag()
+{
+    m_secondTag.setUpdateSequenceNumber(m_secondTag.updateSequenceNumber() + 1);
+    m_secondTag.setName(m_secondTag.name() + "_modified");
+
+    m_state = STATE_SENT_TAG_UPDATE_REQUEST;
+    emit updateTagRequest(m_secondTag);
 }
 
 }

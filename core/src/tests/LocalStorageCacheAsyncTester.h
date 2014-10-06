@@ -84,6 +84,9 @@ private:
     void addNote();
     void updateNote();
 
+    void addTag();
+    void updateTag();
+
     enum State
     {
         STATE_UNINITIALIZED,
