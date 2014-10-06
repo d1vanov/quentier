@@ -38,11 +38,11 @@ Q_SIGNALS:
     void addTagRequest(Tag tag);
     void updateTagRequest(Tag tag);
 
-    void addLinkedNotebook(LinkedNotebook linkedNotebook);
-    void updateLinkedNotebook(LinkedNotebook linkedNotebook);
+    void addLinkedNotebookRequest(LinkedNotebook linkedNotebook);
+    void updateLinkedNotebookRequest(LinkedNotebook linkedNotebook);
 
-    void addSavedSearch(SavedSearch search);
-    void updateSavedSearch(SavedSearch search);
+    void addSavedSearchRequest(SavedSearch search);
+    void updateSavedSearchRequest(SavedSearch search);
 
 private Q_SLOTS:
     void onAddNotebookCompleted(Notebook notebook);
@@ -86,6 +86,9 @@ private:
 
     void addTag();
     void updateTag();
+
+    void addLinkedNotebook();
+    void updateLinkedNotebook();
 
     enum State
     {

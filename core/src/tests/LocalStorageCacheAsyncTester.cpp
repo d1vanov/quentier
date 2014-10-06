@@ -336,7 +336,7 @@ void LocalStorageCacheAsyncTester::onAddTagCompleted(Tag tag)
                                                                     LocalStorageCacheManager::LocalGuid);
             if (pTag) {
                 errorDescription = "Found tag which should not have been present in the local storage cache";
-                QNWARNING(errorDescription << ": " << pTag->ToQString());
+                QNWARNING(errorDescription << ": " << *pTag);
                 emit failure(errorDescription);
             }
             else {
@@ -400,8 +400,7 @@ void LocalStorageCacheAsyncTester::onUpdateTagCompleted(Tag tag)
         }
 
         // Ok, updated tag was cached correctly, moving to testing linked notebooks
-        // TODO: switch to testing linked notebooks
-        emit success();
+        addLinkedNotebook();
     }
     HANDLE_WRONG_STATE()
 }
@@ -414,28 +413,104 @@ void LocalStorageCacheAsyncTester::onUpdateTagFailed(Tag tag, QString errorDescr
 
 void LocalStorageCacheAsyncTester::onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook)
 {
-    // TODO: implement
-    Q_UNUSED(linkedNotebook)
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_LINKED_NOTEBOOK_ADD_REQUEST)
+    {
+        if (m_currentLinkedNotebook != linkedNotebook) {
+            errorDescription = "Internal error in LocalStorageCacheAsyncTester: "
+                               "linked notebook in onAddLinkedNotebookCompleted doesn't match the original linked notebook";
+            QNWARNING(errorDescription << "; original linked notebook: " << m_currentLinkedNotebook
+                      << "\nFound linked notebook: " << linkedNotebook);
+            emit failure(errorDescription);
+            return;
+        }
+
+        ++m_addedLinkedNotebooksCount;
+
+        if (m_addedLinkedNotebooksCount == 1) {
+            m_firstLinkedNotebook = m_currentLinkedNotebook;
+        }
+        else if (m_addedLinkedNotebooksCount == 2) {
+            m_secondLinkedNotebook = m_currentLinkedNotebook;
+        }
+
+        if (m_addedLinkedNotebooksCount > MAX_LINKED_NOTEBOOKS_TO_STORE)
+        {
+            const LinkedNotebook * pLinkedNotebook = m_pLocalStorageCacheManager->findLinkedNotebook(m_firstLinkedNotebook.guid());
+            if (pLinkedNotebook) {
+                errorDescription = "Found linked notebook which should not have been present in the local storage cache";
+                QNWARNING(errorDescription << ": " << *pLinkedNotebook);
+                emit failure(errorDescription);
+            }
+            else {
+                updateLinkedNotebook();
+            }
+
+            return;
+        }
+        else if (m_addedLinkedNotebooksCount > 1)
+        {
+            const LinkedNotebook * pLinkedNotebook = m_pLocalStorageCacheManager->findLinkedNotebook(m_firstLinkedNotebook.guid());
+            if (!pLinkedNotebook) {
+                errorDescription = "Linked notebook which should have been present in the local storage cache was not found there";
+                QNWARNING(errorDescription << ", first linked notebook: " << m_firstLinkedNotebook);
+                emit failure(errorDescription);
+                return;
+            }
+        }
+
+        addLinkedNotebook();
+    }
+    HANDLE_WRONG_STATE()
 }
 
 void LocalStorageCacheAsyncTester::onAddLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(linkedNotebook)
-    Q_UNUSED(errorDescription)
+    QNWARNING(errorDescription << ", linked notebook: " << linkedNotebook);
+    emit failure(errorDescription);
 }
 
 void LocalStorageCacheAsyncTester::onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook)
 {
-    // TODO: implement
-    Q_UNUSED(linkedNotebook)
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_LINKED_NOTEBOOK_UPDATE_REQUEST)
+    {
+        if (m_secondLinkedNotebook != linkedNotebook) {
+            errorDescription = "Internal error in LocalStorageCacheAsyncTester: "
+                               "linked notebook in onUpdateLinkedNotebookCompleted doesn't match the original linked notebook";
+            QNWARNING(errorDescription << "; original linked notebook: " << m_secondLinkedNotebook
+                      << "\nFound linked notebook: " << linkedNotebook);
+            emit failure(errorDescription);
+            return;
+        }
+
+        const LinkedNotebook * pLinkedNotebook = m_pLocalStorageCacheManager->findLinkedNotebook(linkedNotebook.guid());
+        if (!pLinkedNotebook) {
+            errorDescription = "Updated linked notebook which should have been present in the local storage cache "
+                               "was not found there";
+            QNWARNING(errorDescription << ", linked notebook: " << linkedNotebook);
+            emit failure(errorDescription);
+            return;
+        }
+        else if (*pLinkedNotebook != linkedNotebook) {
+            errorDescription = "Updated linked notebook does not match the linked notebook stored in the local storage cache";
+            QNWARNING(errorDescription << ", linked notebook: " << linkedNotebook);
+            emit failure(errorDescription);
+            return;
+        }
+
+        // Ok, updated linked notebook was cached correctly, moving to testing saved searches
+        // TODO: switch to testing saved searches
+        emit success();
+    }
+    HANDLE_WRONG_STATE()
 }
 
 void LocalStorageCacheAsyncTester::onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(linkedNotebook)
-    Q_UNUSED(errorDescription)
+    QNWARNING(errorDescription << ", linked notebook: " << linkedNotebook);
 }
 
 void LocalStorageCacheAsyncTester::onAddSavedSearchCompleted(SavedSearch search)
@@ -479,13 +554,13 @@ void LocalStorageCacheAsyncTester::createConnections()
                      m_pLocalStorageManagerThread, SLOT(onAddTagRequest(Tag)));
     QObject::connect(this, SIGNAL(updateTagRequest(Tag)),
                      m_pLocalStorageManagerThread, SLOT(onUpdateTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(addLinkedNotebook(LinkedNotebook)),
+    QObject::connect(this, SIGNAL(addLinkedNotebookRequest(LinkedNotebook)),
                      m_pLocalStorageManagerThread, SLOT(onAddLinkedNotebookRequest(LinkedNotebook)));
-    QObject::connect(this, SIGNAL(updateLinkedNotebook(LinkedNotebook)),
+    QObject::connect(this, SIGNAL(updateLinkedNotebookRequest(LinkedNotebook)),
                      m_pLocalStorageManagerThread, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook)));
-    QObject::connect(this, SIGNAL(addSavedSearch(SavedSearch)),
+    QObject::connect(this, SIGNAL(addSavedSearchRequest(SavedSearch)),
                      m_pLocalStorageManagerThread, SLOT(onAddSavedSearchRequest(SavedSearch)));
-    QObject::connect(this, SIGNAL(updateSavedSearch(SavedSearch)),
+    QObject::connect(this, SIGNAL(updateSavedSearchRequest(SavedSearch)),
                      m_pLocalStorageManagerThread, SLOT(onUpdateSavedSearchRequest(SavedSearch)));
 
     // Slot <-- result connections
@@ -599,5 +674,30 @@ void LocalStorageCacheAsyncTester::updateTag()
     emit updateTagRequest(m_secondTag);
 }
 
+void LocalStorageCacheAsyncTester::addLinkedNotebook()
+{
+    m_currentLinkedNotebook = LinkedNotebook();
+
+    QString guid = "00000000-0000-0000-c000-0000000000";
+    if (m_addedLinkedNotebooksCount < 9) {
+        guid += "0";
+    }
+    guid += QString::number(m_addedLinkedNotebooksCount + 1);
+
+    m_currentLinkedNotebook.setGuid(guid);
+    m_currentLinkedNotebook.setShareName("Fake linked notebook share name");
+
+    m_state = STATE_SENT_LINKED_NOTEBOOK_ADD_REQUEST;
+    emit addLinkedNotebookRequest(m_currentLinkedNotebook);
 }
+
+void LocalStorageCacheAsyncTester::updateLinkedNotebook()
+{
+    m_secondLinkedNotebook.setShareName(m_secondLinkedNotebook.shareName() + "_modified");
+
+    m_state = STATE_SENT_LINKED_NOTEBOOK_UPDATE_REQUEST;
+    emit updateLinkedNotebookRequest(m_secondLinkedNotebook);
+}
+
+} // namespace test
 } // namespace qute_note
