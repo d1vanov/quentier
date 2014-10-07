@@ -156,7 +156,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 endif()
 
 add_library(${PROJECT_NAME} SHARED
-            ${${PROJECT_NAME}_QT_HEADERS}
             ${${PROJECT_NAME}_HEADERS}
             ${${PROJECT_NAME}_SOURCES}
             ${${PROJECT_NAME}_QT_HEADERS_MOC})
