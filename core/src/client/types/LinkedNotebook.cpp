@@ -12,12 +12,10 @@ LinkedNotebook::LinkedNotebook() :
 {}
 
 LinkedNotebook::LinkedNotebook(const LinkedNotebook & other) :
-    INoteStoreDataElement(other),
     d(other.d)
 {}
 
 LinkedNotebook::LinkedNotebook(LinkedNotebook && other) :
-    INoteStoreDataElement(std::move(other)),
     d(other.d)
 {}
 
@@ -40,12 +38,10 @@ LinkedNotebook & LinkedNotebook::operator=(LinkedNotebook && other)
 }
 
 LinkedNotebook::LinkedNotebook(const qevercloud::LinkedNotebook & linkedNotebook) :
-    INoteStoreDataElement(),
     d(new LinkedNotebookData(linkedNotebook))
 {}
 
 LinkedNotebook::LinkedNotebook(qevercloud::LinkedNotebook && linkedNotebook) :
-    INoteStoreDataElement(),
     d(new LinkedNotebookData(std::move(linkedNotebook)))
 {}
 

@@ -56,9 +56,20 @@ bool LinkedNotebookData::checkParameters(QString & errorDescription) const
         }
         else
         {
-            QString simplifiedShareName = m_qecLinkedNotebook.shareName.ref();
-            simplifiedShareName.replace(" ", "");
-            if (simplifiedShareName.isEmpty()) {
+            QLatin1Char spaceChar(' ');
+            const QString & name = m_qecLinkedNotebook.shareName.ref();
+            const int size = name.size();
+
+            bool nonSpaceCharFound = false;
+            for(int i = 0; i < size; ++i)
+            {
+                if (name[i] != spaceChar) {
+                    nonSpaceCharFound = true;
+                    break;
+                }
+            }
+
+            if (!nonSpaceCharFound) {
                 errorDescription = QT_TR_NOOP("Linked notebook's custom name must contain non-space characters");
                 return false;
             }
