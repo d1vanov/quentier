@@ -43,16 +43,11 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
     }
 
     int numFoundNotes = foundNotes.size();
-    QVector<Note> foundNotesVec;
-    foundNotesVec.reserve(numFoundNotes);
-    for(int i = 0; i < numFoundNotes; ++i) {
-        foundNotesVec.push_back(*(foundNotes[i]));
-    }
 
     res = true;
     int numOriginalNotes = notes.size();
     for(int i = 0; i < numOriginalNotes; ++i) {
-        res &= (foundNotesVec.contains(notes[i]) == expectedContainedNotesIndices[i]);
+        res &= (foundNotes.contains(notes[i]) == expectedContainedNotesIndices[i]);
     }
 
     if (!res)
@@ -64,7 +59,7 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
             errorDescription += "foundNotes.contains(notes[";
             errorDescription += QString::number(i);
             errorDescription += "]) = ";
-            errorDescription += (foundNotesVec.contains(notes[i]) ? "true" : "false");
+            errorDescription += (foundNotes.contains(notes[i]) ? "true" : "false");
             errorDescription += "; expected: ";
             errorDescription += (expectedContainedNotesIndices[i] ? "true" : "false");
             errorDescription += "\n";
@@ -77,7 +72,7 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
 
         for(int i = 0; i < numFoundNotes; ++i)
         {
-            const Note & note = foundNotesVec[i];
+            const Note & note = foundNotes[i];
             errorDescription += "foundNotes[";
             errorDescription += QString::number(i);
             errorDescription += "]: ";

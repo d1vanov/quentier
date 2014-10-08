@@ -21,14 +21,14 @@ QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
 QT_FORWARD_DECLARE_CLASS(SavedSearch)
 
-typedef QVector<QSharedPointer<UserWrapper> >           UserList;
-typedef QVector<QSharedPointer<Notebook> >              NotebookList;
-typedef QVector<QSharedPointer<SharedNotebookWrapper> > SharedNotebookList;
-typedef QVector<QSharedPointer<LinkedNotebook> >        LinkedNotebookList;
-typedef QVector<QSharedPointer<Note> >                  NoteList;
-typedef QVector<QSharedPointer<Tag> >                   TagList;
-typedef QVector<QSharedPointer<ResourceWrapper> >       ResourceList;
-typedef QVector<QSharedPointer<SavedSearch> >           SavedSearchList;
+typedef QList<UserWrapper>            UserList;
+typedef QList<Notebook>               NotebookList;
+typedef QList<SharedNotebookWrapper>  SharedNotebookList;
+typedef QList<LinkedNotebook>         LinkedNotebookList;
+typedef QList<Note>                   NoteList;
+typedef QList<Tag>                    TagList;
+typedef QList<ResourceWrapper>        ResourceList;
+typedef QList<SavedSearch>            SavedSearchList;
 
 }
 

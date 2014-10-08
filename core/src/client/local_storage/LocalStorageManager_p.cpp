@@ -1641,8 +1641,8 @@ NoteList LocalStorageManagerPrivate::FindNotesWithSearchQuery(const NoteSearchQu
     errorDescription = QT_TR_NOOP("Can't perform post-processing when fetching notes per note search query: ");
     while(query.next())
     {
-        notes.push_back(QSharedPointer<Note>(new Note));
-        Note & note = *(notes.back());
+        notes.push_back(Note());
+        Note & note = notes.back();
         note.setLocalGuid(QString());
 
         QSqlRecord rec = query.record();
