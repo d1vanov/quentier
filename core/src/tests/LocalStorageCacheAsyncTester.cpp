@@ -300,10 +300,8 @@ void LocalStorageCacheAsyncTester::onUpdateNoteCompleted(Note note, Notebook not
 
 void LocalStorageCacheAsyncTester::onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(notebook)
-    Q_UNUSED(errorDescription)
+    QNWARNING(errorDescription << ", note: " << note << "\nnotebook: " << notebook);
+    emit failure(errorDescription);
 }
 
 void LocalStorageCacheAsyncTester::onAddTagCompleted(Tag tag)
@@ -502,8 +500,7 @@ void LocalStorageCacheAsyncTester::onUpdateLinkedNotebookCompleted(LinkedNoteboo
         }
 
         // Ok, updated linked notebook was cached correctly, moving to testing saved searches
-        // TODO: switch to testing saved searches
-        emit success();
+        addSavedSearch();
     }
     HANDLE_WRONG_STATE()
 }
@@ -511,32 +508,113 @@ void LocalStorageCacheAsyncTester::onUpdateLinkedNotebookCompleted(LinkedNoteboo
 void LocalStorageCacheAsyncTester::onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription)
 {
     QNWARNING(errorDescription << ", linked notebook: " << linkedNotebook);
+    emit failure(errorDescription);
 }
 
 void LocalStorageCacheAsyncTester::onAddSavedSearchCompleted(SavedSearch search)
 {
-    // TODO: implement
-    Q_UNUSED(search)
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_SAVED_SEARCH_ADD_REQUEEST)
+    {
+        if (m_currentSavedSearch != search) {
+            errorDescription = "Internal error in LocalStorageCacheAsyncTester: "
+                               "saved search in onAddSavedSearchCompleted doesn't match "
+                               "the original saved search";
+            QNWARNING(errorDescription << "; original saved search: " << m_currentSavedSearch
+                      << "\nFound saved search: " << search);
+            emit failure(errorDescription);
+            return;
+        }
+
+        ++m_addedSavedSearchesCount;
+
+        if (m_addedSavedSearchesCount == 1) {
+            m_firstSavedSearch = m_currentSavedSearch;
+        }
+        else if (m_addedSavedSearchesCount == 2) {
+            m_secondSavedSearch = m_currentSavedSearch;
+        }
+
+        if (m_addedSavedSearchesCount > MAX_SAVED_SEARCHES_TO_STORE)
+        {
+            const SavedSearch * pSavedSearch = m_pLocalStorageCacheManager->findSavedSearch(m_firstSavedSearch.localGuid(),
+                                                                                            LocalStorageCacheManager::LocalGuid);
+            if (pSavedSearch) {
+                errorDescription = "Found saved search which should not have been present in the local storage cache";
+                QNWARNING(errorDescription << ": " << *pSavedSearch);
+                emit failure(errorDescription);
+            }
+            else {
+                updateSavedSearch();
+            }
+
+            return;
+        }
+        else if (m_addedSavedSearchesCount > 1)
+        {
+            const SavedSearch * pSavedSearch = m_pLocalStorageCacheManager->findSavedSearch(m_firstSavedSearch.localGuid(),
+                                                                                            LocalStorageCacheManager::LocalGuid);
+            if (!pSavedSearch) {
+                errorDescription = "Saved search which should have been present in the local storage cache was not found there";
+                QNWARNING(errorDescription << ", first saved search: " << m_firstSavedSearch);
+                emit failure(errorDescription);
+                return;
+            }
+        }
+
+        addSavedSearch();
+    }
+    HANDLE_WRONG_STATE()
 }
 
 void LocalStorageCacheAsyncTester::onAddSavedSearchFailed(SavedSearch search, QString errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(search)
-    Q_UNUSED(errorDescription)
+    QNWARNING(errorDescription << ", saved search: " << search);
+    emit failure(errorDescription);
 }
 
 void LocalStorageCacheAsyncTester::onUpdateSavedSearchCompleted(SavedSearch search)
 {
-    // TODO: implement
-    Q_UNUSED(search)
+    QString errorDescription;
+
+    if (m_state == STATE_SENT_SAVED_SEARCH_UPDATE_REQUEST)
+    {
+        if (m_secondSavedSearch != search) {
+            errorDescription = "Internal error in LocalStorageCachesyncTester: "
+                               "saved search in onUpdateSavedSearchCompleted doesn't match the original saved search";
+            QNWARNING(errorDescription << "; original saved search: " << m_secondSavedSearch
+                      << "\nFound saved search: " << search);
+            emit failure(errorDescription);
+            return;
+        }
+
+        const SavedSearch * pSavedSearch = m_pLocalStorageCacheManager->findSavedSearch(search.localGuid(),
+                                                                                        LocalStorageCacheManager::LocalGuid);
+        if (!pSavedSearch) {
+            errorDescription = "Updated saved search which should have been present in the local storage cache "
+                               "was not found there";
+            QNWARNING(errorDescription << ", saved search: " << search);
+            emit failure(errorDescription);
+            return;
+        }
+        else if (*pSavedSearch != search) {
+            errorDescription = "Updated saved search does not match the saved search in the local storage cache";
+            QNWARNING(errorDescription << ", saved search: " << search);
+            emit failure(errorDescription);
+            return;
+        }
+
+        // Ok, updated saved search was cached correctly, can finally return successfully
+        emit success();
+    }
+    HANDLE_WRONG_STATE()
 }
 
 void LocalStorageCacheAsyncTester::onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(search)
-    Q_UNUSED(errorDescription)
+    QNWARNING(errorDescription << ", saved search: " << search);
+    emit failure(errorDescription);
 }
 
 void LocalStorageCacheAsyncTester::createConnections()
@@ -697,6 +775,29 @@ void LocalStorageCacheAsyncTester::updateLinkedNotebook()
 
     m_state = STATE_SENT_LINKED_NOTEBOOK_UPDATE_REQUEST;
     emit updateLinkedNotebookRequest(m_secondLinkedNotebook);
+}
+
+void LocalStorageCacheAsyncTester::addSavedSearch()
+{
+    m_currentSavedSearch = SavedSearch();
+
+    m_currentSavedSearch.setName("Saved search #" + QString::number(m_addedSavedSearchesCount + 1));
+    m_currentSavedSearch.setQuery("Fake saved search query #" + QString::number(m_addedSavedSearchesCount + 1));
+    m_currentSavedSearch.setUpdateSequenceNumber(m_addedSavedSearchesCount + 1);
+    m_currentSavedSearch.setQueryFormat(1);
+    m_currentSavedSearch.setIncludeAccount(true);
+
+    m_state = STATE_SENT_SAVED_SEARCH_ADD_REQUEEST;
+    emit addSavedSearchRequest(m_currentSavedSearch);
+
+}
+
+void LocalStorageCacheAsyncTester::updateSavedSearch()
+{
+    m_secondSavedSearch.setName(m_secondSavedSearch.name() + "_modified");
+
+    m_state = STATE_SENT_SAVED_SEARCH_UPDATE_REQUEST;
+    emit updateSavedSearchRequest(m_secondSavedSearch);
 }
 
 } // namespace test

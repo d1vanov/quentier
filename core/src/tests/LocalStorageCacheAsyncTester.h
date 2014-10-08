@@ -90,6 +90,9 @@ private:
     void addLinkedNotebook();
     void updateLinkedNotebook();
 
+    void addSavedSearch();
+    void updateSavedSearch();
+
     enum State
     {
         STATE_UNINITIALIZED,

@@ -3041,9 +3041,9 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  format                          INTEGER             DEFAULT NULL, "
                      "  updateSequenceNumber            INTEGER             DEFAULT NULL, "
                      "  isDirty                         INTEGER             NOT NULL, "
-                     "  includeAccount                  INTEGER             NOT NULL, "
-                     "  includePersonalLinkedNotebooks  INTEGER             NOT NULL, "
-                     "  includeBusinessLinkedNotebooks  INTEGER             NOT NULL, "
+                     "  includeAccount                  INTEGER             DEFAULT NULL, "
+                     "  includePersonalLinkedNotebooks  INTEGER             DEFAULT NULL, "
+                     "  includeBusinessLinkedNotebooks  INTEGER             DEFAULT NULL, "
                      "  hasShortcut                     INTEGER             NOT NULL, "
                      "  UNIQUE(localGuid, guid))");
     DATABASE_CHECK_AND_SET_ERROR("can't create SavedSearches table");
@@ -4307,9 +4307,15 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & 
                                               ? search.updateSequenceNumber()
                                               : nullValue));
     query.bindValue(":isDirty", (search.isDirty() ? 1 : 0));
-    query.bindValue(":includeAccount", (search.includeAccount() ? 1 : 0));
-    query.bindValue(":includePersonalLinkedNotebooks", (search.includePersonalLinkedNotebooks() ? 1 : 0));
-    query.bindValue(":includeBusinessLinkedNotebooks", (search.includeBusinessLinkedNotebooks() ? 1 : 0));
+    query.bindValue(":includeAccount", (search.hasIncludeAccount()
+                                        ? (search.includeAccount() ? 1 : 0)
+                                        : nullValue));
+    query.bindValue(":includePersonalLinkedNotebooks", (search.hasIncludePersonalLinkedNotebooks()
+                                                        ? (search.includePersonalLinkedNotebooks() ? 1 : 0)
+                                                        : nullValue));
+    query.bindValue(":includeBusinessLinkedNotebooks", (search.hasIncludeBusinessLinkedNotebooks()
+                                                        ? (search.includeBusinessLinkedNotebooks() ? 1 : 0)
+                                                        : nullValue));
     query.bindValue(":hasShortcut", (search.hasShortcut() ? 1 : 0));
 
     res = query.exec();
