@@ -16,6 +16,7 @@ namespace qute_note {
 
 LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username, const UserID userId,
                                          const bool startFromScratch) :
+    QObject(),
     // NOTE: don't initialize these! Otherwise SwitchUser won't work right
     m_currentUsername(),
     m_currentUserId(),
@@ -1425,7 +1426,7 @@ QList<Note> LocalStorageManagerPrivate::ListAllNotesPerNotebook(const Notebook &
 
     // Will run all the queries from this method and its sub-methods within a single transaction
     // to prevent multiple drops and re-obtainings of shared lock
-    Transaction transaction(m_sqlDatabase, Transaction::Selection);
+    Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
     Q_UNUSED(transaction)
 
     QString queryString = QString("SELECT * FROM Notes WHERE %1 = '%2'").arg(column).arg(guid);
@@ -1576,7 +1577,7 @@ NoteList LocalStorageManagerPrivate::FindNotesWithSearchQuery(const NoteSearchQu
 
     // Will run all the queries from this method and its sub-methods within a single transaction
     // to prevent multiple drops and re-obtainings of shared lock
-    Transaction transaction(m_sqlDatabase, Transaction::Selection);
+    Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
     Q_UNUSED(transaction)
 
     errorDescription = QT_TR_NOOP("Can't convert note search query string into SQL query string: ");
@@ -1972,7 +1973,7 @@ QList<Tag> LocalStorageManagerPrivate::ListAllTagsPerNote(const Note & note, QSt
 
     // Will run all the queries from this method and its sub-methods within a single transaction
     // to prevent multiple drops and re-obtainings of shared lock
-    Transaction transaction(m_sqlDatabase, Transaction::Selection);
+    Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
     Q_UNUSED(transaction)
 
     QString queryString = QString("SELECT localTag FROM NoteTags WHERE %1 = '%2'").arg(column).arg(guid);
@@ -2005,7 +2006,7 @@ QList<Tag> LocalStorageManagerPrivate::ListAllTags(QString & errorDescription) c
 
     // Will run all the queries from this method and its sub-methods within a single transaction
     // to prevent multiple drops and re-obtainings of shared lock
-    Transaction transaction(m_sqlDatabase, Transaction::Selection);
+    Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
     Q_UNUSED(transaction)
 
     QSqlQuery query(m_sqlDatabase);
@@ -2448,6 +2449,14 @@ bool LocalStorageManagerPrivate::ExpungeSavedSearch(const SavedSearch & search,
     DATABASE_CHECK_AND_SET_ERROR("can't delete saved search from \"SavedSearches\" table in SQL database");
 
     return true;
+}
+
+void LocalStorageManagerPrivate::ProcessPostTransactionException(QString message, QSqlError error) const
+{
+    QNCRITICAL(message << ": " << error);
+    message += ", last error: ";
+    message += error.text();
+    throw DatabaseSqlErrorException(message);
 }
 
 bool LocalStorageManagerPrivate::AddEnResource(const IResource & resource, const Note & note, QString & errorDescription)
@@ -3197,7 +3206,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
     QString values = ":id, :username, :email, :name, :timezone, :privilege, :userCreationTimestamp, "
                      ":userModificationTimestamp, :userIsDirty, :userIsLocal, :userIsActive, :userDeletionTimestamp";
 
-    Transaction transaction(m_sqlDatabase, Transaction::Exclusive);
+    Transaction transaction(m_sqlDatabase, *this, Transaction::Exclusive);
 
     QString queryString = QString("INSERT OR REPLACE INTO Users(%1) VALUES(%2)").arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
@@ -3555,7 +3564,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
                      ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
                      ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId";
 
-    Transaction transaction(m_sqlDatabase, Transaction::Exclusive);
+    Transaction transaction(m_sqlDatabase, *this, Transaction::Exclusive);
 
     QString queryString = QString("INSERT OR REPLACE INTO Notebooks(%1) VALUES(%2)").arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
@@ -3708,7 +3717,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                      ":applicationDataKeysOnly, :applicationDataKeysMap, "
                      ":applicationDataValues, :classificationKeys, :classificationValues";
 
-    Transaction transaction(m_sqlDatabase, Transaction::Exclusive);
+    Transaction transaction(m_sqlDatabase, *this, Transaction::Exclusive);
 
     QString queryString = QString("INSERT OR REPLACE INTO Notes(%1) VALUES(%2)").arg(columns).arg(values);
     QSqlQuery query(m_sqlDatabase);
@@ -4083,7 +4092,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
 
     QScopedPointer<Transaction> pTransaction;
     if (useSeparateTransaction) {
-        pTransaction.reset(new Transaction(m_sqlDatabase, Transaction::Exclusive));
+        pTransaction.reset(new Transaction(m_sqlDatabase, *this, Transaction::Exclusive));
     }
 
     QSqlQuery query(m_sqlDatabase);

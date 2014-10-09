@@ -23,8 +23,9 @@ namespace qute_note {
 typedef qevercloud::UserID UserID;
 QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
 
-class LocalStorageManagerPrivate
+class LocalStorageManagerPrivate: public QObject
 {
+    Q_OBJECT
 public:
     LocalStorageManagerPrivate(const QString & username, const UserID userId,
                                const bool startFromScratch);
@@ -94,6 +95,9 @@ public:
     bool FindSavedSearch(SavedSearch & search, QString & errorDescription) const;
     QList<SavedSearch> ListAllSavedSearches(QString & errorDescription) const;
     bool ExpungeSavedSearch(const SavedSearch & search, QString & errorDescription);
+
+public Q_SLOTS:
+    void ProcessPostTransactionException(QString message, QSqlError error) const;
 
 private:
     LocalStorageManagerPrivate() = delete;

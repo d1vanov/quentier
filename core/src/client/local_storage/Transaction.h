@@ -6,6 +6,8 @@
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerPrivate)
+
 class QUTE_NOTE_EXPORT Transaction
 {
 public:
@@ -16,7 +18,8 @@ public:
         Exclusive
     };
 
-    Transaction(const QSqlDatabase & db, TransactionType type = Default);
+    Transaction(const QSqlDatabase & db, const LocalStorageManagerPrivate & localStorageManager,
+                TransactionType type = Default);
     Transaction(Transaction && other);
     virtual ~Transaction();
 
@@ -32,6 +35,8 @@ private:
     void init();
 
     const QSqlDatabase & m_db;
+    const LocalStorageManagerPrivate & m_localStorageManager;
+
     TransactionType m_type;
     bool m_committed;
     bool m_ended;

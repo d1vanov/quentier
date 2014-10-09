@@ -1,4 +1,5 @@
 #include "Transaction.h"
+#include "LocalStorageManager_p.h"
 #include "DatabaseSqlErrorException.h"
 #include <logging/QuteNoteLogger.h>
 #include <QSqlQuery>
@@ -6,8 +7,10 @@
 
 namespace qute_note {
 
-Transaction::Transaction(const QSqlDatabase & db, TransactionType type) :
+Transaction::Transaction(const QSqlDatabase & db, const LocalStorageManagerPrivate &localStorageManager,
+                         TransactionType type) :
     m_db(db),
+    m_localStorageManager(localStorageManager),
     m_type(type),
     m_committed(false),
     m_ended(false)
@@ -17,6 +20,7 @@ Transaction::Transaction(const QSqlDatabase & db, TransactionType type) :
 
 Transaction::Transaction(Transaction && other) :
     m_db(other.m_db),
+    m_localStorageManager(other.m_localStorageManager),
     m_type(std::move(other.m_type)),
     m_committed(std::move(other.m_committed)),
     m_ended(std::move(other.m_ended))
@@ -31,8 +35,11 @@ Transaction::~Transaction()
         QSqlQuery query(m_db);
         bool res = query.exec("ROLLBACK");
         if (!res) {
-            QNCRITICAL("Error rolling back the SQL transaction: " << query.lastError());
-            throw DatabaseSqlErrorException("Can't rollback SQL transaction, last error: " + query.lastError().text());
+            QString errorMessage = QT_TR_NOOP("Can't rollback SQL transaction");
+            QSqlError error = query.lastError();
+            QMetaObject::invokeMethod(const_cast<LocalStorageManagerPrivate*>(&m_localStorageManager),
+                                      "ProcessPostTransactionException", Qt::QueuedConnection,
+                                      Q_ARG(QString, errorMessage), Q_ARG(QSqlError, error));
         }
     }
     else if ((m_type == Selection) && !m_ended)
@@ -40,8 +47,11 @@ Transaction::~Transaction()
         QSqlQuery query(m_db);
         bool res = query.exec("END");
         if (!res) {
-            QNCRITICAL("Error ending the SQL transaction of selection type: " << query.lastError());
-            throw DatabaseSqlErrorException("Can't end SQL transaction, last error: " + query.lastError().text());
+            QString errorMessage = QT_TR_NOOP("Can't end SQL transaction");
+            QSqlError error = query.lastError();
+            QMetaObject::invokeMethod(const_cast<LocalStorageManagerPrivate*>(&m_localStorageManager),
+                                      "ProcessPostTransactionException", Qt::QueuedConnection,
+                                      Q_ARG(QString, errorMessage), Q_ARG(QSqlError, error));
         }
     }
 }

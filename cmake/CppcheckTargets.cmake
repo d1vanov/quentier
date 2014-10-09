@@ -98,7 +98,6 @@ if("1.${CMAKE_VERSION}" VERSION_LESS "1.2.8.0")
 # Older than CMake 2.8.0
 add_test(${_targetname}_cppcheck_test
 "${CPPCHECK_EXECUTABLE}"
-"--suppress=exceptThrowInDestructor"
 ${CPPCHECK_TEMPLATE_ARG}
 ${_cppcheck_args}
 ${_files})
@@ -108,7 +107,6 @@ add_test(NAME
 ${_targetname}_cppcheck_test
 COMMAND
 "${CPPCHECK_EXECUTABLE}"
-"--suppress=exceptThrowInDestructor"
 ${CPPCHECK_TEMPLATE_ARG}
 ${_cppcheck_args}
 ${_files})
@@ -124,7 +122,6 @@ all_cppcheck
 PRE_BUILD
 COMMAND
 ${CPPCHECK_EXECUTABLE}
-"--suppress=exceptThrowInDestructor"
 ${CPPCHECK_QUIET_ARG}
 ${CPPCHECK_TEMPLATE_ARG}
 ${_cppcheck_args}
@@ -182,7 +179,6 @@ if("1.${CMAKE_VERSION}" VERSION_LESS "1.2.8.0")
 # Older than CMake 2.8.0
 add_test(${_name}_cppcheck_test
 "${CPPCHECK_EXECUTABLE}"
-"--suppress=exceptThrowInDestructor"
 ${CPPCHECK_TEMPLATE_ARG}
 ${_cppcheck_args}
 ${_files})
@@ -192,7 +188,6 @@ add_test(NAME
 ${_name}_cppcheck_test
 COMMAND
 "${CPPCHECK_EXECUTABLE}"
-"--suppress=exceptThrowInDestructor"
 ${CPPCHECK_TEMPLATE_ARG}
 ${_cppcheck_args}
 ${_files})
@@ -208,7 +203,6 @@ all_cppcheck
 PRE_BUILD
 COMMAND
 ${CPPCHECK_EXECUTABLE}
-"--suppress=exceptThrowInDestructor"
 ${CPPCHECK_QUIET_ARG}
 ${CPPCHECK_TEMPLATE_ARG}
 ${_cppcheck_args}
