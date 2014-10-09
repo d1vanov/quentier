@@ -12,8 +12,19 @@ add_subdirectory(QEverCloud)
 get_directory_property(QEVERCLOUD_LIB DIRECTORY QEverCloud DEFINITION PROJECT_NAME)
 get_directory_property(QEVERCLOUD_INCLUDE_DIRS DIRECTORY QEverCloud DEFINITION ${QEVERCLOUD_LIB}_INCLUDE_DIRS)
 
+if(NOT USE_QT5)
+  set(BUILD_WITH_QT4)
+endif()
+
+set(CMAKE_AUTOMOC OFF)
+add_subdirectory(qtkeychain)
+set(CMAKE_AUTOMOC ON)
+
+get_directory_property(QTKEYCHAIN_LIB Directory qtkeychain DEFINITION PROJECT_NAME)
+
 set(THIRDPARTY_INCLUDE_DIRS
     simplecrypt/src
-    QEverCloud/include)
+    QEverCloud/include
+    qtkeychain)
    
 prepend_path(THIRDPARTY_INCLUDE_DIRS "${THIRDPARTY_INCLUDE_DIRS}" ${CMAKE_CURRENT_SOURCE_DIR})

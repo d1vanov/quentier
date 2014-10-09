@@ -70,7 +70,8 @@ else()
                         ${QT_LIBRARIES})
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB} ${QUTE_NOTE_CORE_LIB} ${QEVERCLOUD_LIB})
+target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB} ${QUTE_NOTE_CORE_LIB}
+                      ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB})
 
 if(LIBCPP)
   target_link_libraries(${PROJECT_NAME} ${LIBCPP})
