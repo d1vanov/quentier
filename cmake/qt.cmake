@@ -16,17 +16,19 @@ if(USE_QT5)
   find_package(Qt5Xml REQUIRED)
   find_package(Qt5Sql REQUIRED)
   find_package(Qt5Test REQUIRED)
+  find_package(Qt5DBus REQUIRED)
+  find_package(Qt5LinguistTools REQUIRED)
   set(QT_INCLUDES "${Qt5Core_INCLUDES} ${Qt5Gui_INCLUDES} ${Qt5Network_INCLUDES}
                    ${Qt5Webkit_INCLUDES} ${Qt5Widgets_INCLUDES} ${Qt5WebkitWidgets_INCLUDES}
-                   ${Qt5Xml_INCLUDES} ${Qt5Sql_INCLUDES} ${Qt5Test_INCLUDES}")
+                   ${Qt5Xml_INCLUDES} ${Qt5Sql_INCLUDES} ${Qt5Test_INCLUDES} ${Qt5DBus_INCLUDES} ${Qt5LinguistTools_INCLUDES}")
   set(QT_LIBRARIES "${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Network_LIBRARIES}
                     ${Qt5Webkit_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5WebkitWidgets_LIBRARIES}
-                    ${Qt5Xml_LIBRARIES} ${Qt5Sql_LIBRARIES} ${Qt5Test_LIBRARIES}")
+                    ${Qt5Xml_LIBRARIES} ${Qt5Sql_LIBRARIES} ${Qt5Test_LIBRARIES} ${Qt5DBus_LIBRARIES} ${Qt5LinguistTools_LIBRARIES}")
   set(QT_DEFINITIONS "${Qt5Core_DEFINITIONS} ${Qt5Gui_DEFINITIONS} ${Qt5Network_DEFINITIONS}
                       ${Qt5Webkit_DEFINITIONS} ${Qt5Widgets_DEFINITIONS} ${Qt5WebkitWidgets_DEFINITIONS}
-                      ${Qt5Xml_DEFINITIONS} ${Qt5Sql_DEFINITIONS} ${Qt5Test_DEFINITIONS}")
+                      ${Qt5Xml_DEFINITIONS} ${Qt5Sql_DEFINITIONS} ${Qt5Test_DEFINITIONS} ${Qt5DBus_DEFINITIONS} ${Qt5LinguistTools_DEFINITIONS}")
 else()
-  find_package(Qt4 COMPONENTS QTCORE QTGUI QTNETWORK QTWEBKIT QTXML QTSQL QTTEST REQUIRED)
+  find_package(Qt4 COMPONENTS QTCORE QTGUI QTNETWORK QTWEBKIT QTXML QTSQL QTTEST QTDBUS REQUIRED)
   include(${QT_USE_FILE})
 endif()
 
