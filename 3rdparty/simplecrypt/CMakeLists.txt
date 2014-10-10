@@ -23,9 +23,6 @@ else()
   qt5_use_modules(${PROJECT_NAME} Core)
 endif()
 
-# include dirs for cppcheck
-set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src")
-
 # install shared library
 install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
 

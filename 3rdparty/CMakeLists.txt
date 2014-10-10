@@ -6,20 +6,11 @@ endif()
 add_subdirectory(simplecrypt)
 get_directory_property(SIMPLECRYPT_LIB DIRECTORY simplecrypt DEFINITION PROJECT_NAME)
 get_directory_property(SIMPLECRYPT_SOURCES DIRECTORY simplecrypt DEFINITION ${SIMPLECRYPT_LIB}_SOURCES)
-get_directory_property(SIMPLECRYPT_INCLUDE_DIRS DIRECTORY simplecrypt DEFINITION ${SIMPLECRYPT_LIB}_INCLUDE_DIRS)
 
 add_subdirectory(QEverCloud)
 get_directory_property(QEVERCLOUD_LIB DIRECTORY QEverCloud DEFINITION PROJECT_NAME)
-get_directory_property(QEVERCLOUD_INCLUDE_DIRS DIRECTORY QEverCloud DEFINITION ${QEVERCLOUD_LIB}_INCLUDE_DIRS)
 
-if(NOT USE_QT5)
-  set(BUILD_WITH_QT4)
-endif()
-
-set(CMAKE_AUTOMOC OFF)
 add_subdirectory(qtkeychain)
-set(CMAKE_AUTOMOC ON)
-
 get_directory_property(QTKEYCHAIN_LIB Directory qtkeychain DEFINITION PROJECT_NAME)
 
 set(THIRDPARTY_INCLUDE_DIRS

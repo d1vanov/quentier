@@ -6,8 +6,6 @@ project(qutenotecore)
 
 include_directories(${THIRDPARTY_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-set(CMAKE_AUTOMOC ON)
-
 set(${PROJECT_NAME}_QT_HEADERS
     src/note_editor/HorizontalLineExtraData.h
     src/note_editor/MediaResourceTextObject.h
