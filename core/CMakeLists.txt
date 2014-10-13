@@ -6,14 +6,12 @@ project(qutenotecore)
 
 include_directories(${THIRDPARTY_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-set(${PROJECT_NAME}_QT_HEADERS
+set(${PROJECT_NAME}_HEADERS
     src/note_editor/HorizontalLineExtraData.h
     src/note_editor/MediaResourceTextObject.h
     src/note_editor/QuteNoteTextEdit.h
     src/note_editor/ResourceTextObject.h
-    src/note_editor/ToDoCheckboxTextObject.h)
-
-set(${PROJECT_NAME}_HEADERS
+    src/note_editor/ToDoCheckboxTextObject.h
     src/client/Utility.h
     src/client/types/IDataElementWithShortcut.h
     src/client/types/ISharedNotebook.h
@@ -76,12 +74,6 @@ set(${PROJECT_NAME}_HEADERS
     src/tools/QuteNoteCheckPtr.h
     src/tools/QuteNoteNullPtrException.h
     src/tools/TypeWithError.h)
-
-if(USE_QT5)
-    qt5_wrap_cpp(${PROJECT_NAME}_HEADERS_MOC ${${PROJECT_NAME}_QT_HEADERS})
-else()
-    qt4_wrap_cpp(${PROJECT_NAME}_HEADERS_MOC ${${PROJECT_NAME}_QT_HEADERS})
-endif()
 
 set(${PROJECT_NAME}_SOURCES
     src/note_editor/HorizontalLineExtraData.cpp
@@ -155,8 +147,7 @@ endif()
 
 add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_HEADERS}
-            ${${PROJECT_NAME}_SOURCES}
-            ${${PROJECT_NAME}_QT_HEADERS_MOC})
+            ${${PROJECT_NAME}_SOURCES})
 
 if(USE_QT5)
   qt5_use_modules(${PROJECT_NAME} Core)

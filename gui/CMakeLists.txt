@@ -8,8 +8,6 @@ include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../core/src)
 
-set(CMAKE_AUTOMOC ON)
-
 set(${PROJECT_NAME}_HEADERS
     client/CredentialsModel.h
     client/EvernoteServiceManager.h
