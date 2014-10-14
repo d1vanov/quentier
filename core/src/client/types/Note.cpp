@@ -60,8 +60,10 @@ Note::~Note()
 
 bool Note::operator==(const Note & other) const
 {
-    return ((d->m_qecNote == other.d->m_qecNote) && (isDirty() == other.isDirty()) &&
-            (hasShortcut() == other.hasShortcut()));
+    return ((d->m_qecNote == other.d->m_qecNote) &&
+            (isDirty() == other.isDirty()) &&
+            (hasShortcut() == other.hasShortcut()) &&
+            (isSynchronizable() == other.isSynchronizable()));
     // NOTE: thumbnail doesn't take part in comparison because it's merely a helper
     // for note displaying widget, nothing more
 }

@@ -2807,6 +2807,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  updateSequenceNumber            INTEGER              DEFAULT NULL, "
                      "  isDirty                         INTEGER              NOT NULL, "
                      "  isLocal                         INTEGER              NOT NULL, "
+                     "  isSynchronizable                INTEGER              NOT NULL, "
                      "  hasShortcut                     INTEGER              NOT NULL, "
                      "  title                           TEXT                 DEFAULT NULL, "
                      "  content                         TEXT                 DEFAULT NULL, "
@@ -3695,7 +3696,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
 
     errorDescription += QT_TR_NOOP("can't insert or replace note into local storage database: ");
 
-    QString columns = "localGuid, guid, updateSequenceNumber, isDirty, isLocal, "
+    QString columns = "localGuid, guid, updateSequenceNumber, isDirty, isLocal, isSynchronizable, "
                       "hasShortcut, title, content, contentLength, contentHash, "
                       "contentPlainText, contentListOfWords, contentContainsFinishedToDo, "
                       "contentContainsUnfinishedToDo, contentContainsEncryption, creationTimestamp, "
@@ -3707,7 +3708,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                       "applicationDataKeysOnly, applicationDataKeysMap, "
                       "applicationDataValues, classificationKeys, classificationValues";
 
-    QString values = ":localGuid, :guid, :updateSequenceNumber, :isDirty, :isLocal, "
+    QString values = ":localGuid, :guid, :updateSequenceNumber, :isDirty, :isLocal, :isSynchronizable, "
                      ":hasShortcut, :title, :content, :contentLength, :contentHash, "
                      ":contentPlainText, :contentListOfWords, :contentContainsFinishedToDo, "
                      ":contentContainsUnfinishedToDo, :contentContainsEncryption, :creationTimestamp, "
@@ -3735,6 +3736,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     query.bindValue(":updateSequenceNumber", (note.hasUpdateSequenceNumber() ? note.updateSequenceNumber() : nullValue));
     query.bindValue(":isDirty", (note.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (note.isLocal() ? 1 : 0));
+    query.bindValue(":isSynchronizable", (note.isSynchronizable() ? 1 : 0));
     query.bindValue(":hasShortcut", (note.hasShortcut() ? 1 : 0));
     query.bindValue(":title", (note.hasTitle() ? note.title() : nullValue));
     query.bindValue(":content", (note.hasContent() ? note.content() : nullValue));
@@ -5003,6 +5005,7 @@ void LocalStorageManagerPrivate::FillNoteFromSqlRecord(const QSqlRecord & rec, N
 
     CHECK_AND_SET_NOTE_PROPERTY(isDirty, setDirty, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(isLocal, setLocal, int, bool);
+    CHECK_AND_SET_NOTE_PROPERTY(isSynchronizable, setSynchronizable, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(hasShortcut, setShortcut, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(localGuid, setLocalGuid, QString, QString);
 
