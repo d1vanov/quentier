@@ -6,7 +6,9 @@
 namespace qute_note {
 
 NoteData::NoteData() :
+    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
+    SynchronizableDataElementData(),
     m_qecNote(),
     m_resourcesAdditionalInfo(),
     m_isLocal(true),
@@ -21,7 +23,9 @@ NoteData::NoteData() :
 {}
 
 NoteData::NoteData(const NoteData & other) :
+    NoteStoreDataElementData(other),
     DataElementWithShortcutData(other),
+    SynchronizableDataElementData(other),
     m_qecNote(other.m_qecNote),
     m_resourcesAdditionalInfo(other.m_resourcesAdditionalInfo),
     m_isLocal(other.m_isLocal),
@@ -36,7 +40,9 @@ NoteData::NoteData(const NoteData & other) :
 {}
 
 NoteData::NoteData(NoteData && other) :
+    NoteStoreDataElementData(std::move(other)),
     DataElementWithShortcutData(std::move(other)),
+    SynchronizableDataElementData(std::move(other)),
     m_qecNote(std::move(other.m_qecNote)),
     m_resourcesAdditionalInfo(std::move(other.m_resourcesAdditionalInfo)),
     m_isLocal(std::move(other.m_isLocal)),
@@ -54,7 +60,9 @@ NoteData::~NoteData()
 {}
 
 NoteData::NoteData(const qevercloud::Note & other) :
+    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
+    SynchronizableDataElementData(),
     m_qecNote(other),
     m_resourcesAdditionalInfo(),
     m_isLocal(false),

@@ -2,11 +2,13 @@
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__SAVED_SEARCH_H
 
 #include "DataElementWithShortcutData.h"
+#include "SynchronizableDataElementData.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class SavedSearchData : public DataElementWithShortcutData
+class SavedSearchData: public DataElementWithShortcutData,
+                       public SynchronizableDataElementData
 {
 public:
     SavedSearchData();

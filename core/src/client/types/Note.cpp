@@ -13,6 +13,7 @@ namespace qute_note {
 QN_DEFINE_LOCAL_GUID(Note)
 QN_DEFINE_DIRTY(Note)
 QN_DEFINE_SHORTCUT(Note)
+QN_DEFINE_SYNCHRONIZABLE(Note)
 
 Note::Note() :
     d(new NoteData)

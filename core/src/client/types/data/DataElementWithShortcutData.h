@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-class DataElementWithShortcutData : public NoteStoreDataElementData
+class DataElementWithShortcutData: public virtual NoteStoreDataElementData
 {
 public:
     DataElementWithShortcutData();

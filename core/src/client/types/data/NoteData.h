@@ -2,12 +2,14 @@
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__PRIVATE__NOTE_P_H
 
 #include "DataElementWithShortcutData.h"
+#include "SynchronizableDataElementData.h"
 #include <QEverCloud.h>
 #include <QImage>
 
 namespace qute_note {
 
-class NoteData : public DataElementWithShortcutData
+class NoteData: public DataElementWithShortcutData,
+                public SynchronizableDataElementData
 {
 public:
     NoteData();

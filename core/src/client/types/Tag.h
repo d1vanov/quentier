@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CLIENT__TYPES__TAG_H
 
 #include "IDataElementWithShortcut.h"
+#include "ISynchronizableDataElement.h"
 #include <QEverCloud.h>
 #include <QSharedDataPointer>
 
@@ -9,12 +10,14 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(TagData)
 
-class QUTE_NOTE_EXPORT Tag: public IDataElementWithShortcut
+class QUTE_NOTE_EXPORT Tag: public IDataElementWithShortcut,
+                            public ISynchronizableDataElement
 {
 public:
     QN_DECLARE_LOCAL_GUID
     QN_DECLARE_DIRTY
     QN_DECLARE_SHORTCUT
+    QN_DECLARE_SYNCHRONIZABLE
 
 public:
     Tag();

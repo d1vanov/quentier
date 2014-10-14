@@ -10,7 +10,7 @@ namespace qute_note {
  * shortcut. Shortcut is basically a quick access link in application GUI. However,
  * the sign whether some note store data element is shortcutted is stored in local storage db.
  */
-class QUTE_NOTE_EXPORT IDataElementWithShortcut : public INoteStoreDataElement
+class QUTE_NOTE_EXPORT IDataElementWithShortcut : public virtual INoteStoreDataElement
 {
 public:
     virtual bool hasShortcut() const = 0;

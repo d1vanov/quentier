@@ -12,6 +12,7 @@ namespace qute_note {
 QN_DEFINE_LOCAL_GUID(Notebook)
 QN_DEFINE_DIRTY(Notebook)
 QN_DEFINE_SHORTCUT(Notebook)
+QN_DEFINE_SYNCHRONIZABLE(Notebook)
 
 Notebook::Notebook() :
     d(new NotebookData)

@@ -5,28 +5,36 @@
 namespace qute_note {
 
 TagData::TagData() :
+    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
+    SynchronizableDataElementData(),
     m_qecTag(),
     m_isLocal(true),
     m_isDeleted(false)
 {}
 
 TagData::TagData(const TagData & other) :
+    NoteStoreDataElementData(other),
     DataElementWithShortcutData(other),
+    SynchronizableDataElementData(other),
     m_qecTag(other.m_qecTag),
     m_isLocal(other.m_isLocal),
     m_isDeleted(other.m_isDeleted)
 {}
 
 TagData::TagData(TagData && other) :
+    NoteStoreDataElementData(std::move(other)),
     DataElementWithShortcutData(std::move(other)),
+    SynchronizableDataElementData(std::move(other)),
     m_qecTag(std::move(other.m_qecTag)),
     m_isLocal(std::move(other.m_isLocal)),
     m_isDeleted(std::move(other.m_isDeleted))
 {}
 
 TagData::TagData(const qevercloud::Tag & other) :
+    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
+    SynchronizableDataElementData(),
     m_qecTag(other),
     m_isLocal(true),
     m_isDeleted(false)

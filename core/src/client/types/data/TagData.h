@@ -2,11 +2,13 @@
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__TAG_DATA_H
 
 #include "DataElementWithShortcutData.h"
+#include "SynchronizableDataElementData.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class TagData : public DataElementWithShortcutData
+class TagData : public DataElementWithShortcutData,
+                public SynchronizableDataElementData
 {
 public:
     TagData();

@@ -2,11 +2,13 @@
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__NOTEBOOK_DATA_H
 
 #include "DataElementWithShortcutData.h"
+#include "SynchronizableDataElementData.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class NotebookData : public DataElementWithShortcutData
+class NotebookData: public DataElementWithShortcutData,
+                    public SynchronizableDataElementData
 {
 public:
     NotebookData();

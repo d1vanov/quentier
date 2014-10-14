@@ -8,6 +8,7 @@ namespace qute_note {
 QN_DEFINE_LOCAL_GUID(SavedSearch)
 QN_DEFINE_DIRTY(SavedSearch)
 QN_DEFINE_SHORTCUT(SavedSearch)
+QN_DEFINE_SYNCHRONIZABLE(SavedSearch)
 
 SavedSearch::SavedSearch() :
     d(new SavedSearchData)

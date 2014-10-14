@@ -7,6 +7,7 @@ namespace qute_note {
 QN_DEFINE_LOCAL_GUID(Tag)
 QN_DEFINE_DIRTY(Tag)
 QN_DEFINE_SHORTCUT(Tag)
+QN_DEFINE_SYNCHRONIZABLE(Tag)
 
 Tag::Tag() :
     d(new TagData)
