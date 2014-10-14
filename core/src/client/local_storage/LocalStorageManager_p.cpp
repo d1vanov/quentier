@@ -1931,7 +1931,7 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
     tag.clear();
 
     QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, name, parentGuid, isDirty, isLocal, "
-                                  "isDeleted, hasShortcut FROM Tags WHERE %1 = '%2'").arg(column).arg(guid);
+                                  "isSynchronizable, isDeleted, hasShortcut FROM Tags WHERE %1 = '%2'").arg(column).arg(guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select tag from \"Tags\" table in SQL database: ");
@@ -2991,6 +2991,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  parentGuid            TEXT                 DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
+                     "  isSynchronizable      INTEGER              NOT NULL, "
                      "  isDeleted             INTEGER              NOT NULL, "
                      "  hasShortcut           INTEGER              NOT NULL "
                      ")");
@@ -4042,10 +4043,10 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
     QString localGuid = (overrideLocalGuid.isEmpty() ? tag.localGuid() : overrideLocalGuid);
 
     QString columns = "localGuid, guid, updateSequenceNumber, name, nameUpper, parentGuid, "
-                      "isDirty, isLocal, isDeleted, hasShortcut";
+                      "isDirty, isLocal, isSynchronizable, isDeleted, hasShortcut";
 
     QString valuesString = ":localGuid, :guid, :updateSequenceNumber, :name, :nameUpper, :parentGuid, "
-                           ":isDirty, :isLocal, :isDeleted, :hasShortcut";
+                           ":isDirty, :isLocal, :isSynchronizable, :isDeleted, :hasShortcut";
 
     QString queryString = QString("INSERT OR REPLACE INTO Tags (%1) VALUES(%2)").arg(columns).arg(valuesString);
 
@@ -4064,6 +4065,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
     query.bindValue(":parentGuid", (tag.hasParentGuid() ? tag.parentGuid() : nullValue));
     query.bindValue(":isDirty", (tag.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (tag.isLocal() ? 1 : 0));
+    query.bindValue(":isSynchronizable", (tag.isSynchronizable() ? 1 : 0));
     query.bindValue(":isDeleted", (tag.isDeleted() ? 1 : 0));
     query.bindValue(":hasShortcut", (tag.hasShortcut() ? 1 : 0));
 
@@ -5388,6 +5390,7 @@ bool LocalStorageManagerPrivate::FillTagFromSqlRecord(const QSqlRecord & rec, Ta
     CHECK_AND_SET_TAG_PROPERTY(name, QString, QString, setName, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isDirty, int, bool, setDirty, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isLocal, int, bool, setLocal, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(isSynchronizable, int, bool, setSynchronizable, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isDeleted, int, bool, setDeleted, isRequired);
 
 #undef CHECK_AND_SET_TAG_PROPERTY

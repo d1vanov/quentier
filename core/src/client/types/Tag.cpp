@@ -55,6 +55,9 @@ bool Tag::operator==(const Tag & other) const
     if (hasShortcut() != other.hasShortcut()) {
         return false;
     }
+    else if (isSynchronizable() != other.isSynchronizable()) {
+        return false;
+    }
     else if (isDirty() != other.isDirty()) {
         return false;
     }
