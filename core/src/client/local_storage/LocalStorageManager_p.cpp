@@ -2708,6 +2708,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  modificationTimestamp           INTEGER           DEFAULT NULL, "
                      "  isDirty                         INTEGER           NOT NULL, "
                      "  isLocal                         INTEGER           NOT NULL, "
+                     "  isSynchronizable                INTEGER           NOT NULL, "
                      "  isDefault                       INTEGER           DEFAULT NULL UNIQUE, "
                      "  isLastUsed                      INTEGER           DEFAULT NULL UNIQUE, "
                      "  hasShortcut                     INTEGER           DEFAULT NULL, "
@@ -3553,13 +3554,13 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
     errorDescription = QT_TR_NOOP("Can't insert or replace notebook into local storage database: ");
 
     QString columns = "localGuid, guid, updateSequenceNumber, notebookName, creationTimestamp, "
-                      "modificationTimestamp, isDirty, isLocal, isDefault, isLastUsed, "
+                      "modificationTimestamp, isDirty, isLocal, isSynchronizable, isDefault, isLastUsed, "
                       "hasShortcut, publishingUri, publishingNoteSortOrder, publishingAscendingSort, "
                       "publicDescription, isPublished, stack, businessNotebookDescription, "
                       "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, contactId";
 
     QString values = ":localGuid, :guid, :updateSequenceNumber, :notebookName, :creationTimestamp, "
-                     ":modificationTimestamp, :isDirty, :isLocal, :isDefault, :isLastUsed, "
+                     ":modificationTimestamp, :isDirty, :isLocal, :isSynchronizable, :isDefault, :isLastUsed, "
                      ":hasShortcut, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
                      ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
                      ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId";
@@ -3584,6 +3585,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
     query.bindValue(":modificationTimestamp", (notebook.hasModificationTimestamp() ? notebook.modificationTimestamp() : nullValue));
     query.bindValue(":isDirty", (notebook.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (notebook.isLocal() ? 1 : 0));
+    query.bindValue(":isSynchronizable", (notebook.isSynchronizable() ? 1 : 0));
     query.bindValue(":isDefault", (notebook.isDefaultNotebook() ? 1 : nullValue));
     query.bindValue(":isLastUsed", (notebook.isLastUsed() ? 1 : nullValue));
     query.bindValue(":hasShortcut", (notebook.hasShortcut() ? 1 : 0));
@@ -5075,6 +5077,7 @@ bool LocalStorageManagerPrivate::FillNotebookFromSqlRecord(const QSqlRecord & re
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDirty, setDirty, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLocal, setLocal, int, bool, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isSynchronizable, setSynchronizable, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(localGuid, setLocalGuid, QString, QString, isRequired);
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(guid, setGuid, QString, QString, isRequired);
