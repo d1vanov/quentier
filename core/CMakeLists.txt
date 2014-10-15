@@ -168,7 +168,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB}
                       ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES}
-                      ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB})
+                      ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB} ${STACKTRACE_LIB})
 
 set(TEST_HEADERS
     src/tests/LocalStorageCacheAsyncTester.h

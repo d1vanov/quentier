@@ -12,7 +12,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
                          as it is required to build this application. Consider upgrading
                          your compiler to version 4.8 at least")
   endif()
-  add_definitions("-Wno-uninitialized")
+  add_definitions("-Wno-uninitialized -ldl -rdynamic")
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   execute_process(COMMAND ${CMAKE_C_COMPILER} --version OUTPUT_VARIABLE CLANG_VERSION)
   message(STATUS "Using LLVM/Clang C++ compiler, version info: ${CLANG_VERSION}")

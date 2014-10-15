@@ -52,6 +52,11 @@ qint64 SysInfo::GetTotalMemoryBytes()
     }
 }
 
+QString SysInfo::GetStackTrace()
+{
+    return "<stack trace obtaining is not implemented on Windows, patches are welcome>";
+}
+
 SysInfo::SysInfo() {}
 
 SysInfo::~SysInfo() {}

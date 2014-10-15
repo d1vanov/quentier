@@ -15,6 +15,8 @@ public:
     qint64 GetTotalMemoryBytes();
     qint64 GetFreeMemoryBytes();
 
+    QString GetStackTrace();
+
 private:
     SysInfo();
     SysInfo(const SysInfo & other) = delete;
