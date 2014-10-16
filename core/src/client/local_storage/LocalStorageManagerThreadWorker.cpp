@@ -8,6 +8,7 @@
 #include <client/types/ResourceWrapper.h>
 #include <client/types/SavedSearch.h>
 #include <logging/QuteNoteLogger.h>
+#include <tools/SysInfo.h>
 
 namespace qute_note {
 
@@ -43,16 +44,26 @@ const LocalStorageCacheManager * LocalStorageManagerThreadWorker::localStorageCa
     }
 }
 
+#define CATCH_EXCEPTION \
+    catch(const std::exception & e) { \
+        QNCRITICAL("Caught exception: " << e.what() << ", backtrace: " \
+                   << SysInfo::GetSingleton().GetStackTrace()); \
+    }
+
 void LocalStorageManagerThreadWorker::onGetUserCountRequest()
 {
-    QString errorDescription;
-    int count = m_localStorageManager.GetUserCount(errorDescription);
-    if (count < 0) {
-        emit getUserCountFailed(errorDescription);
+    try
+    {
+        QString errorDescription;
+        int count = m_localStorageManager.GetUserCount(errorDescription);
+        if (count < 0) {
+            emit getUserCountFailed(errorDescription);
+        }
+        else {
+            emit getUserCountComplete(count);
+        }
     }
-    else {
-        emit getUserCountComplete(count);
-    }
+    CATCH_EXCEPTION
 }
 
 void LocalStorageManagerThreadWorker::onSwitchUserRequest(QString username, qint32 userId,

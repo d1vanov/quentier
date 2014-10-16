@@ -54,9 +54,6 @@ QString SysInfo::GetStackTrace()
 
     stacktrace::displayCurrentStackTrace();
 
-    QFile file;
-    bool res = file.open(fd, QIODevice::ReadOnly);
-
     // revert stderr
     fflush(stderr);
     dup2(fd, fileno(stderr));
@@ -64,12 +61,15 @@ QString SysInfo::GetStackTrace()
     clearerr(stderr);
     fsetpos(stderr, &pos);
 
+    QFile file(tmpFile);
+    bool res = file.open(QIODevice::ReadOnly);
     if (!res) {
         return "<cannot open temporary file with stacktrace>";
     }
 
-    QByteArray output = file.readAll();
-    return QString(output);
+    QByteArray rawOutput = file.readAll();
+    QString output(rawOutput);
+    return output;
 }
 
 SysInfo::SysInfo() {}

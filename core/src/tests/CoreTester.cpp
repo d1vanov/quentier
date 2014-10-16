@@ -21,6 +21,7 @@
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/UserWrapper.h>
 #include <logging/QuteNoteLogger.h>
+#include <tools/SysInfo.h>
 #include <QApplication>
 #include <QTextStream>
 #include <QtTest/QTest>
@@ -63,7 +64,8 @@ void CoreTester::initTestCase()
 
 #define CATCH_EXCEPTION() \
     catch(const std::exception & exception) { \
-        QFAIL(qPrintable(QString("Caught exception: ") + QString(exception.what()))); \
+        QFAIL(qPrintable(QString("Caught exception: ") + QString(exception.what()) + \
+                         QString(", backtrace: ") + SysInfo::GetSingleton().GetStackTrace())); \
     }
 
 void CoreTester::resourceRecognitionIndicesTest()
