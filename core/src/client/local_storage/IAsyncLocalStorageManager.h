@@ -36,6 +36,9 @@ protected:
 
     // Pure virtual prototypes for signals to be emitted from subclasses:
 
+    // Prototype for generic failure signal (on exception or smth like that)
+    virtual void failure(QString errorDescription) = 0;
+
     // Prototypes for user-related signals:
     virtual void getUserCountComplete(int userCount) = 0;
     virtual void getUserCountFailed(QString errorDescription) = 0;

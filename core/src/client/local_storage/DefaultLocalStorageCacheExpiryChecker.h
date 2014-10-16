@@ -11,9 +11,9 @@
 // in either Qt or clang (or both). Anyway, not having the resources to deal with it
 // right now, I apply the following workaround
 #if defined(__clang__) & defined(__linux__)
-#define MAX_TAGS_TO_STORE 50
-#define MAX_LINKED_NOTEBOOKS_TO_STORE 8
-#define MAX_SAVED_SEARCHES_TO_STORE 8
+#define MAX_TAGS_TO_STORE 40
+#define MAX_LINKED_NOTEBOOKS_TO_STORE 5
+#define MAX_SAVED_SEARCHES_TO_STORE 5
 #else
 #define MAX_TAGS_TO_STORE 200
 #define MAX_LINKED_NOTEBOOKS_TO_STORE 20

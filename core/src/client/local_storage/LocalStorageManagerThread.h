@@ -43,6 +43,9 @@ public:
     virtual const LocalStorageCacheManager * localStorageCacheManager() const override;
 
 Q_SIGNALS:
+    // Generic failure signal
+    void failure(QString errorDescription);
+
     // User-related signals:
     void getUserCountComplete(int userCount);
     void getUserCountFailed(QString errorDescription);

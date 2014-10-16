@@ -46,8 +46,11 @@ const LocalStorageCacheManager * LocalStorageManagerThreadWorker::localStorageCa
 
 #define CATCH_EXCEPTION \
     catch(const std::exception & e) { \
-        QNCRITICAL("Caught exception: " << e.what() << ", backtrace: " \
-                   << SysInfo::GetSingleton().GetStackTrace()); \
+        QString error = "Caught exception: " + QString(e.what()) + \
+                        QString(", backtrace: ") + \
+                        SysInfo::GetSingleton().GetStackTrace(); \
+        QNCRITICAL(error); \
+        emit failure(error); \
     }
 
 void LocalStorageManagerThreadWorker::onGetUserCountRequest()

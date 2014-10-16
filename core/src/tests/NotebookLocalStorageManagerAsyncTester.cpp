@@ -624,6 +624,9 @@ void NotebookLocalStorageManagerAsyncTester::onExpungeNotebookFailed(Notebook no
 
 void NotebookLocalStorageManagerAsyncTester::createConnections()
 {
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(failure(QString)),
+                     this, SIGNAL(failure(QString)));
+
     // Request --> slot connections
     QObject::connect(this, SIGNAL(getNotebookCountRequest()), m_pLocalStorageManagerThread,
                      SLOT(onGetNotebookCountRequest()));

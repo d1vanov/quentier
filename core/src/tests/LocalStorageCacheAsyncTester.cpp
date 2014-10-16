@@ -619,6 +619,9 @@ void LocalStorageCacheAsyncTester::onUpdateSavedSearchFailed(SavedSearch search,
 
 void LocalStorageCacheAsyncTester::createConnections()
 {
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(failure(QString)),
+                     this, SIGNAL(failure(QString)));
+
     // Request --> slot connections
     QObject::connect(this, SIGNAL(addNotebookRequest(Notebook)),
                      m_pLocalStorageManagerThread, SLOT(onAddNotebookRequest(Notebook)));

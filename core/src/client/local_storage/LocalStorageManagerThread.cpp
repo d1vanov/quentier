@@ -14,7 +14,9 @@ LocalStorageManagerThread::LocalStorageManagerThread(const QString & username,
 }
 
 void LocalStorageManagerThread::createConnections()
-{
+{   
+    QObject::connect(m_pWorker, SIGNAL(failure(QString)), this, SIGNAL(failure(QString)));
+
     // User-related signal-slot connections:
     QObject::connect(this, SIGNAL(getUserCountRequest()), m_pWorker, SLOT(onGetUserCountRequest()));
     QObject::connect(this, SIGNAL(switchUserRequest(QString,qint32,bool)),

@@ -324,6 +324,9 @@ void TagLocalStorageManagerAsyncTester::onExpungeTagFailed(Tag tag, QString erro
 
 void TagLocalStorageManagerAsyncTester::createConnections()
 {
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(failure(QString)),
+                     this, SIGNAL(failure(QString)));
+
     // Request --> slot connections
     QObject::connect(this, SIGNAL(getTagCountRequest()), m_pLocalStorageManagerThread,
                      SLOT(onGetTagCountRequest()));

@@ -319,6 +319,9 @@ void SavedSearchLocalStorageManagerAsyncTester::onExpungeSavedSearchFailed(Saved
 
 void SavedSearchLocalStorageManagerAsyncTester::createConnections()
 {
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(failure(QString)),
+                     this, SIGNAL(failure(QString)));
+
     // Request --> slot connections
     QObject::connect(this, SIGNAL(getSavedSearchCountRequest()), m_pLocalStorageManagerThread,
                      SLOT(onGetSavedSearchCountRequest()));
