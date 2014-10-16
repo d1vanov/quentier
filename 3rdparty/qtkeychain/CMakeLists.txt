@@ -108,7 +108,12 @@ install(TARGETS ${QTKEYCHAIN_TARGET_NAME}
 )
 
 add_executable( testclient testclient.cpp )
-target_link_libraries( testclient ${QTKEYCHAIN_TARGET_NAME})
+
+if(LIBCPP)
+  target_link_libraries( testclient ${QTKEYCHAIN_TARGET_NAME} ${LIBCPP})
+else()
+  target_link_libraries( testclient ${QTKEYCHAIN_TARGET_NAME})
+endif()
 
 
 ###

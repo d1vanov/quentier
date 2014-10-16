@@ -201,7 +201,12 @@ set(TEST_SOURCES
 
 add_executable(test_${PROJECT_NAME} ${TEST_HEADERS} ${TEST_SOURCES})
 add_test(test_${PROJECT_NAME} test_${PROJECT_NAME})
-target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
+
+if(LIBCPP)
+  target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} ${LIBCPP})
+else()
+  target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
+endif()
 
 if(USE_QT5)
   qt5_use_modules(test_${PROJECT_NAME} Core)
