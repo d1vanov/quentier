@@ -23,7 +23,9 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_applicationPersistenceStoragePath(),
     m_sqlDatabase(),
     m_insertOrReplaceSavedSearchQuery(),
-    m_insertOrReplaceSavedSearchQueryPrepared(false)
+    m_insertOrReplaceSavedSearchQueryPrepared(false),
+    m_getSavedSearchCountQuery(),
+    m_getSavedSearchCountQueryPrepared(false)
 {
     SwitchUser(username, userId, startFromScratch);
 }
@@ -2199,8 +2201,17 @@ bool LocalStorageManagerPrivate::ExpungeEnResource(const IResource & resource, Q
 
 int LocalStorageManagerPrivate::GetSavedSearchCount(QString & errorDescription) const
 {
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT COUNT(*) FROM SavedSearches");
+    QSqlQuery & query = m_getSavedSearchCountQuery;
+    bool res = CheckAndPrepareGetSavedSearchCountQuery();
+    if (!res) {
+        errorDescription = QT_TR_NOOP("Internal error: can't prepare SQL query to get the number "
+                                      "of saved searches in local storage database: ");
+        QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return -1;
+    }
+
+    res = query.exec();
     if (!res) {
         errorDescription = QT_TR_NOOP("Internal error: can't get number of saved searches in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
@@ -4338,6 +4349,8 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceSavedSearchQuery(
 {
     if (!m_insertOrReplaceSavedSearchQueryPrepared)
     {
+        QNDEBUG("Preparing SQL query to insert or replace SavedSearch");
+
         QString columns = "localGuid, guid, name, nameUpper, query, format, updateSequenceNumber, isDirty, "
                           "isSynchronizable, includeAccount, includePersonalLinkedNotebooks, "
                           "includeBusinessLinkedNotebooks, hasShortcut";
@@ -4358,6 +4371,27 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceSavedSearchQuery(
         return res;
     }
     else {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareGetSavedSearchCountQuery() const
+{
+    if (!m_getSavedSearchCountQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to get the count of SavedSearches");
+
+        m_getSavedSearchCountQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_getSavedSearchCountQuery.prepare("SELECT COUNT(*) FROM SavedSearches");
+
+        if (res) {
+            m_getSavedSearchCountQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
         return true;
     }
 }
