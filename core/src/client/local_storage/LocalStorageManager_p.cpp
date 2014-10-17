@@ -20,7 +20,10 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     // NOTE: don't initialize these! Otherwise SwitchUser won't work right
     m_currentUsername(),
     m_currentUserId(),
-    m_applicationPersistenceStoragePath()
+    m_applicationPersistenceStoragePath(),
+    m_sqlDatabase(),
+    m_insertOrReplaceSavedSearchQuery(),
+    m_insertOrReplaceSavedSearchQueryPrepared(false)
 {
     SwitchUser(username, userId, startFromScratch);
 }
@@ -4289,25 +4292,15 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & 
 
     errorDescription = QT_TR_NOOP("Can't insert or replace saved search into local storage database: ");
 
-    QString columns = "localGuid, guid, name, nameUpper, query, format, updateSequenceNumber, isDirty, "
-                      "isSynchronizable, includeAccount, includePersonalLinkedNotebooks, "
-                      "includeBusinessLinkedNotebooks, hasShortcut";
-
-    QString valuesNames = ":localGuid, :guid, :name, :nameUpper, :query, :format, :updateSequenceNumber, :isDirty, "
-                          ":isSynchronizable, :includeAccount, :includePersonalLinkedNotebooks, "
-                          ":includeBusinessLinkedNotebooks, :hasShortcut";
-
-    QString queryString = QString("INSERT OR REPLACE INTO SavedSearches (%1) VALUES(%2)").arg(columns).arg(valuesNames);
-
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare(queryString);
+    bool res = CheckAndPrepareInsertOrReplaceSavedSearchQuery();
     if (!res) {
         errorDescription += QT_TR_NOOP("failed to prepare SQL query: ");
-        QNWARNING(errorDescription << query.lastError());
-        errorDescription += query.lastError().text();
+        QNWARNING(errorDescription << m_insertOrReplaceSavedSearchQuery.lastError());
+        errorDescription += m_insertOrReplaceSavedSearchQuery.lastError().text();
         return false;
     }
 
+    QSqlQuery & query = m_insertOrReplaceSavedSearchQuery;
     QVariant nullValue;
 
     query.bindValue(":localGuid", (overrideLocalGuid.isEmpty()
@@ -4339,6 +4332,34 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & 
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace saved search into \"SavedSearches\" table in SQL database");
 
     return true;
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceSavedSearchQuery()
+{
+    if (!m_insertOrReplaceSavedSearchQueryPrepared)
+    {
+        QString columns = "localGuid, guid, name, nameUpper, query, format, updateSequenceNumber, isDirty, "
+                          "isSynchronizable, includeAccount, includePersonalLinkedNotebooks, "
+                          "includeBusinessLinkedNotebooks, hasShortcut";
+
+        QString valuesNames = ":localGuid, :guid, :name, :nameUpper, :query, :format, :updateSequenceNumber, :isDirty, "
+                              ":isSynchronizable, :includeAccount, :includePersonalLinkedNotebooks, "
+                              ":includeBusinessLinkedNotebooks, :hasShortcut";
+
+        QString queryString = QString("INSERT OR REPLACE INTO SavedSearches (%1) VALUES(%2)").arg(columns).arg(valuesNames);
+
+        m_insertOrReplaceSavedSearchQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceSavedSearchQuery.prepare(queryString);
+
+        if (res) {
+            m_insertOrReplaceSavedSearchQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else {
+        return true;
+    }
 }
 
 void LocalStorageManagerPrivate::FillResourceFromSqlRecord(const QSqlRecord & rec, const bool withBinaryData,
