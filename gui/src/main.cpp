@@ -1,12 +1,10 @@
 #include "MainWindow.h"
 #include <logging/QuteNoteLogger.h>
-#include <QApplication>
-
-// TODO: install exception handler
+#include <tools/QuteNoteApplication.h>
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+    qute_note::QuteNoteApplication app(argc, argv);
     app.setOrganizationName("d1vanov");
     app.setApplicationName("QuteNote");
 

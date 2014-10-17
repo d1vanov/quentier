@@ -1,6 +1,6 @@
 #include "CoreTester.h"
 #include <logging/QuteNoteLogger.h>
-#include <QApplication>
+#include <tools/QuteNoteApplication.h>
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <QSqlDatabase>
@@ -9,7 +9,7 @@ using namespace qute_note::test;
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+    qute_note::QuteNoteApplication app(argc, argv);
     app.setApplicationName("QuteNoteCoreTests");
 
     QUTE_NOTE_INITIALIZE_LOGGING();

@@ -73,6 +73,7 @@ set(${PROJECT_NAME}_HEADERS
     src/tools/Linkage.h
     src/tools/SysInfo.h
     src/tools/Printable.h
+    src/tools/QuteNoteApplication.h
     src/tools/QuteNoteCheckPtr.h
     src/tools/QuteNoteNullPtrException.h
     src/tools/TypeWithError.h)
@@ -137,6 +138,7 @@ set(${PROJECT_NAME}_SOURCES
     src/tools/EventLoopWithExitStatus.cpp
     src/tools/IQuteNoteException.cpp
     src/tools/Printable.cpp
+    src/tools/QuteNoteApplication.cpp
     src/tools/QuteNoteNullPtrException.cpp
     src/tools/TypeWithError.cpp)
 
