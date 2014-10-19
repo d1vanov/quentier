@@ -1,5 +1,6 @@
 #include "../SysInfo.h"
 #include <QMutexLocker>
+#include <QString>
 #include <windows.h>
 
 namespace qute_note {
