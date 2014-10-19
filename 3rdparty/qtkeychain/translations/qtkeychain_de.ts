@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="de_DE">
+<TS version="2.1" language="de_DE">
 <context>
     <name>QKeychain::ReadPasswordJobPrivate</name>
     <message>
@@ -54,8 +54,8 @@
         <translation>Passwort nicht gefunden</translation>
     </message>
     <message>
-        <location filename="../keychain_unix.cpp" line="288"/>
         <location filename="../keychain_win.cpp" line="27"/>
+        <location filename="../keychain_unix.cpp" line="288"/>
         <source>Entry not found</source>
         <translation>Eintrag nicht gefunden</translation>
     </message>

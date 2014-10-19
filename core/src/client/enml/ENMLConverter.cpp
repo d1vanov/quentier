@@ -546,8 +546,8 @@ const QString ENMLConverter::domElementToRawXML(const QDomElement & elem) const
     xml += elemTagName;
 
     QDomNamedNodeMap attributes = elem.attributes();
-    size_t numAttributes = attributes.size();
-    for(size_t i = 0; i < numAttributes; ++i)
+    int numAttributes = attributes.size();
+    for(int i = 0; i < numAttributes; ++i)
     {
         QDomAttr attribute = attributes.item(i).toAttr();
         xml += QString::fromLatin1(" %0=\"%1\"").arg(attribute.name()).arg(attribute.value());

@@ -111,7 +111,7 @@ bool SavedSearchData::operator==(const SavedSearchData & other) const
 
 bool SavedSearchData::operator!=(const SavedSearchData & other) const
 {
-    return !(*this != other);
+    return !(*this == other);
 }
 
 } // namespace qute_note

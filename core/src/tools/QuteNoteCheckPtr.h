@@ -4,7 +4,7 @@
 #include "QuteNoteNullPtrException.h"
 
 #ifndef QUTE_NOTE_CHECK_PTR
-#define QUTE_NOTE_CHECK_PTR(pointer, X...) \
+#define QUTE_NOTE_CHECK_PTR(pointer, ...) \
 { \
     if (!pointer) \
     { \
@@ -14,7 +14,7 @@
         qute_note_null_ptr_error += " ("; \
         qute_note_null_ptr_error += QString::number(__LINE__); \
         qute_note_null_ptr_error += ") "; \
-        qute_note_null_ptr_error = qute_note_null_ptr_error.sprintf(qPrintable(qute_note_null_ptr_error), #X); \
+        qute_note_null_ptr_error = qute_note_null_ptr_error.sprintf(qPrintable(qute_note_null_ptr_error), ##__VA_ARGS__); \
         throw QuteNoteNullPtrException(qute_note_null_ptr_error); \
     } \
 }

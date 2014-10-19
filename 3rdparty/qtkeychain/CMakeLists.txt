@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
+if(POLICY CMP0020)
+  cmake_policy(SET CMP0020 NEW)
+endif()
 project(qtkeychain)
 
 set(QTKEYCHAIN_VERSION 0.4.90)
@@ -36,7 +39,10 @@ endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-list(APPEND qtkeychain_LIBRARIES ${QT_LIBRARIES})
+if(NOT USE_QT5)
+  list(APPEND qtkeychain_LIBRARIES ${QT_LIBRARIES})
+endif()
+  
 set(qtkeychain_SOURCES
     keychain.cpp
 )
@@ -84,6 +90,9 @@ if(NOT QTKEYCHAIN_STATIC)
     add_library(${QTKEYCHAIN_TARGET_NAME} SHARED ${qtkeychain_SOURCES} ${qtkeychain_QM_FILES})
     set_target_properties(${QTKEYCHAIN_TARGET_NAME} PROPERTIES COMPILE_DEFINITIONS QKEYCHAIN_BUILD_QKEYCHAIN_LIB)
     target_link_libraries(${QTKEYCHAIN_TARGET_NAME} ${qtkeychain_LIBRARIES})
+	if(USE_QT5)
+      qt5_use_modules(${QTKEYCHAIN_TARGET_NAME} Core)
+	endif()
 else()
     add_library(${QTKEYCHAIN_TARGET_NAME} STATIC ${qtkeychain_SOURCES} ${qtkeychain_QM_FILES})
     set_target_properties(${QTKEYCHAIN_TARGET_NAME} PROPERTIES COMPILE_DEFINITIONS QKEYCHAIN_STATICLIB)
