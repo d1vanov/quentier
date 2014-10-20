@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="ro_RO">
+<TS version="2.0" language="ro_RO">
 <context>
     <name>QKeychain::ReadPasswordJobPrivate</name>
     <message>
@@ -55,8 +55,8 @@
         <translation>Parola nu a fost găsită</translation>
     </message>
     <message>
-        <location filename="../keychain_win.cpp" line="27"/>
         <location filename="../keychain_unix.cpp" line="288"/>
+        <location filename="../keychain_win.cpp" line="27"/>
         <source>Entry not found</source>
         <translation>Înregistrarea nu a fost găsită</translation>
     </message>
