@@ -7,8 +7,6 @@ project(qtkeychain)
 set(QTKEYCHAIN_VERSION 0.4.90)
 set(QTKEYCHAIN_SOVERSION 0)
 
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${PROJECT_SOURCE_DIR}/cmake/Modules")
-
 if(USE_QT5)
   set(QTKEYCHAIN_VERSION_INFIX 5)
   if(UNIX AND NOT APPLE)
@@ -72,15 +70,17 @@ if(UNIX AND NOT APPLE)
 endif()
 
 set(qtkeychain_TR_FILES
-      translations/qtkeychain_de.ts
-      translations/qtkeychain_ro.ts
-)
+    translations/qtkeychain_de.ts
+    translations/qtkeychain_ro.ts)
 
 file(GLOB qtkeychain_TR_SOURCES *.cpp *.h *.ui)
-qt_create_translation(qtkeychain_MESSAGES ${qtkeychain_TR_SOURCES} ${qtkeychain_TR_FILES})
-qt_add_translation(qtkeychain_QM_FILES ${qtkeychain_TR_FILES})
-add_custom_target(messages DEPENDS ${qtkeychain_MESSAGES})
-add_custom_target(translations DEPENDS ${qtkeychain_QM_FILES})
+option (UPDATE_TRANSLATIONS "Update source translation translations/*.ts")
+if(UPDATE_TRANSLATIONS)
+  qt_create_translation(qtkeychain_MESSAGES ${qtkeychain_TR_SOURCES} ${qtkeychain_TR_FILES})
+  qt_add_translation(qtkeychain_QM_FILES ${qtkeychain_TR_FILES})
+  add_custom_target(messages DEPENDS ${qtkeychain_MESSAGES})
+  add_custom_target(translations DEPENDS ${qtkeychain_QM_FILES})
+endif()
 
 install(FILES ${qtkeychain_QM_FILES}
         DESTINATION translations)
