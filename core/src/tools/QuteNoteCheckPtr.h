@@ -14,7 +14,8 @@
         qute_note_null_ptr_error += " ("; \
         qute_note_null_ptr_error += QString::number(__LINE__); \
         qute_note_null_ptr_error += ") "; \
-        qute_note_null_ptr_error = qute_note_null_ptr_error.sprintf(qPrintable(qute_note_null_ptr_error), ##__VA_ARGS__); \
+        QString message(#__VA_ARGS__); \
+        qute_note_null_ptr_error += message; \
         throw QuteNoteNullPtrException(qute_note_null_ptr_error); \
     } \
 }
