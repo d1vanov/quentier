@@ -127,12 +127,15 @@ private:
     bool InsertOrReplaceNote(const Note & note, const Notebook & notebook,
                              const QString & overrideLocalGuid, QString & errorDescription);
     bool InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid, QString & errorDescription);
+
     bool InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
                                  const Note & note, const QString & overrideNoteLocalGuid,
                                  QString & errorDescription, const bool useSeparateTransaction = true);
     bool InsertOrReplaceResourceAttributes(const QString & localGuid, 
                                            const qevercloud::ResourceAttributes & attributes,
                                            QString & errorDescription);
+    bool CheckAndPrepareGetResourceCountQuery() const;
+
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, const QString & overrideLocalGuid, QString & errorDescription);
     bool CheckAndPrepareInsertOrReplaceSavedSearchQuery();
     bool CheckAndPrepareGetSavedSearchCountQuery() const;
@@ -192,6 +195,9 @@ private:
 
     QSqlQuery           m_expungeSavedSearchQuery;
     bool                m_expungeSavedSearchQueryPrepared;
+
+    mutable QSqlQuery   m_getResourceCountQuery;
+    mutable bool        m_getResourceCountQueryPrepared;
 };
 
 } // namespace qute_note

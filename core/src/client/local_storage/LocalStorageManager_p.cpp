@@ -27,7 +27,9 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getSavedSearchCountQuery(),
     m_getSavedSearchCountQueryPrepared(false),
     m_expungeSavedSearchQuery(),
-    m_expungeSavedSearchQueryPrepared(false)
+    m_expungeSavedSearchQueryPrepared(false),
+    m_getResourceCountQuery(),
+    m_getResourceCountQueryPrepared(false)
 {
     SwitchUser(username, userId, startFromScratch);
 }
@@ -2080,8 +2082,17 @@ bool LocalStorageManagerPrivate::ExpungeTag(const Tag & tag, QString & errorDesc
 
 int LocalStorageManagerPrivate::GetEnResourceCount(QString & errorDescription) const
 {
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT COUNT(*) FROM Resources");
+    bool res = CheckAndPrepareGetResourceCountQuery();
+    QSqlQuery & query = m_getResourceCountQuery;
+    if (!res) {
+        errorDescription = QT_TR_NOOP("Internal error: can't get number of resources in local storage database: "
+                                      "can't prepare SQL query: ");
+        QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return -1;
+    }
+
+    res = query.exec();
     if (!res) {
         errorDescription = QT_TR_NOOP("Internal error: can't get number of resources in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
@@ -4295,6 +4306,27 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
     }
 
     return true;
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareGetResourceCountQuery() const
+{
+    if (!m_getResourceCountQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to get the count of Resources");
+
+        m_getResourceCountQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_getResourceCountQuery.prepare("SELECT COUNT(*) FROM Resources");
+
+        if (res) {
+            m_getResourceCountQueryPrepared = res;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & search,
