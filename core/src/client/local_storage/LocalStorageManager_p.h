@@ -134,6 +134,7 @@ private:
     bool InsertOrReplaceResourceAttributes(const QString & localGuid, 
                                            const qevercloud::ResourceAttributes & attributes,
                                            QString & errorDescription);
+    bool CheckAndPrepareInsertOrReplaceResourceQuery();
     bool CheckAndPrepareGetResourceCountQuery() const;
 
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, const QString & overrideLocalGuid, QString & errorDescription);
@@ -195,6 +196,9 @@ private:
 
     QSqlQuery           m_expungeSavedSearchQuery;
     bool                m_expungeSavedSearchQueryPrepared;
+
+    QSqlQuery           m_insertOrReplaceResourceQuery;
+    bool                m_insertOrReplaceResourceQueryPrepared;
 
     mutable QSqlQuery   m_getResourceCountQuery;
     mutable bool        m_getResourceCountQueryPrepared;

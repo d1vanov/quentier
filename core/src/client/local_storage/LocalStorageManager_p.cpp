@@ -28,6 +28,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getSavedSearchCountQueryPrepared(false),
     m_expungeSavedSearchQuery(),
     m_expungeSavedSearchQueryPrepared(false),
+    m_insertOrReplaceResourceQuery(),
+    m_insertOrReplaceResourceQueryPrepared(false),
     m_getResourceCountQuery(),
     m_getResourceCountQueryPrepared(false)
 {
@@ -4113,63 +4115,53 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
 
     errorDescription = QT_TR_NOOP("Can't insert or replace resource into local storage database: ");
 
-    QString columns = "resourceGuid, noteGuid, dataBody, dataSize, dataHash, mime, "
-                      "width, height, recognitionDataBody, recognitionDataSize, "
-                      "recognitionDataHash, alternateDataBody, alternateDataSize, "
-                      "alternateDataHash, resourceUpdateSequenceNumber, resourceIsDirty, "
-                      "resourceIndexInNote, resourceLocalGuid";
-
-    QString values = ":resourceGuid, :noteGuid, :dataBody, :dataSize, :dataHash, :mime, "
-                     ":width, :height, :recognitionDataBody, :recognitionDataSize, "
-                     ":recognitionDataHash, :alternateDataBody, :alternateDataSize, "
-                     ":alternateDataHash, :resourceUpdateSequenceNumber, :resourceIsDirty, "
-                     ":resourceIndexInNote, :resourceLocalGuid";
-
     QScopedPointer<Transaction> pTransaction;
     if (useSeparateTransaction) {
         pTransaction.reset(new Transaction(m_sqlDatabase, *this, Transaction::Exclusive));
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    QString queryString = QString("INSERT OR REPLACE INTO Resources (%1) VALUES(%2)").arg(columns).arg(values);
-    bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database, "
-                                 "can't prepare SQL query");
-
-    QString resourceLocalGuid = (overrideResourceLocalGuid.isEmpty()
-                                 ? resource.localGuid() : overrideResourceLocalGuid);
-
     QVariant nullValue;
+    QString resourceLocalGuid = (overrideResourceLocalGuid.isEmpty()
+                                 ? resource.localGuid()
+                                 : overrideResourceLocalGuid);
 
-    query.bindValue(":resourceGuid", (resource.hasGuid() ? resource.guid() : nullValue));
-    query.bindValue(":noteGuid", (resource.hasNoteGuid() ? resource.noteGuid() : nullValue));
-    query.bindValue(":dataBody", (resource.hasDataBody() ? resource.dataBody() : nullValue));
-    query.bindValue(":dataSize", (resource.hasDataSize() ? resource.dataSize() : nullValue));
-    query.bindValue(":dataHash", (resource.hasDataHash() ? resource.dataHash() : nullValue));
-    query.bindValue(":mime", (resource.hasMime() ? resource.mime() : nullValue));
-    query.bindValue(":width", (resource.hasWidth() ? resource.width() : nullValue));
-    query.bindValue(":height", (resource.hasHeight() ? resource.height() : nullValue));
-    query.bindValue(":recognitionDataBody", (resource.hasRecognitionDataBody() ? resource.recognitionDataBody() : nullValue));
-    query.bindValue(":recognitionDataSize", (resource.hasRecognitionDataSize() ? resource.recognitionDataSize() : nullValue));
-    query.bindValue(":recognitionDataHash", (resource.hasRecognitionDataHash() ? resource.recognitionDataHash() : nullValue));
-    query.bindValue(":alternateDataBody", (resource.hasAlternateDataBody() ? resource.alternateDataBody() : nullValue));
-    query.bindValue(":alternateDataSize", (resource.hasAlternateDataSize() ? resource.alternateDataSize() : nullValue));
-    query.bindValue(":alternateDataHash", (resource.hasAlternateDataHash() ? resource.alternateDataHash() : nullValue));
-    query.bindValue(":resourceUpdateSequenceNumber", (resource.hasUpdateSequenceNumber() ? resource.updateSequenceNumber() : nullValue));
-    query.bindValue(":resourceIsDirty", (resource.isDirty() ? 1 : 0));
-    query.bindValue(":resourceIndexInNote", resource.indexInNote());
-    query.bindValue(":resourceLocalGuid", resourceLocalGuid);
+    {
+        bool res = CheckAndPrepareInsertOrReplaceResourceQuery();
+        QSqlQuery & query = m_insertOrReplaceResourceQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database, "
+                                     "can't prepare SQL query");
 
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database");
+        query.bindValue(":resourceGuid", (resource.hasGuid() ? resource.guid() : nullValue));
+        query.bindValue(":noteGuid", (resource.hasNoteGuid() ? resource.noteGuid() : nullValue));
+        query.bindValue(":dataBody", (resource.hasDataBody() ? resource.dataBody() : nullValue));
+        query.bindValue(":dataSize", (resource.hasDataSize() ? resource.dataSize() : nullValue));
+        query.bindValue(":dataHash", (resource.hasDataHash() ? resource.dataHash() : nullValue));
+        query.bindValue(":mime", (resource.hasMime() ? resource.mime() : nullValue));
+        query.bindValue(":width", (resource.hasWidth() ? resource.width() : nullValue));
+        query.bindValue(":height", (resource.hasHeight() ? resource.height() : nullValue));
+        query.bindValue(":recognitionDataBody", (resource.hasRecognitionDataBody() ? resource.recognitionDataBody() : nullValue));
+        query.bindValue(":recognitionDataSize", (resource.hasRecognitionDataSize() ? resource.recognitionDataSize() : nullValue));
+        query.bindValue(":recognitionDataHash", (resource.hasRecognitionDataHash() ? resource.recognitionDataHash() : nullValue));
+        query.bindValue(":alternateDataBody", (resource.hasAlternateDataBody() ? resource.alternateDataBody() : nullValue));
+        query.bindValue(":alternateDataSize", (resource.hasAlternateDataSize() ? resource.alternateDataSize() : nullValue));
+        query.bindValue(":alternateDataHash", (resource.hasAlternateDataHash() ? resource.alternateDataHash() : nullValue));
+        query.bindValue(":resourceUpdateSequenceNumber", (resource.hasUpdateSequenceNumber() ? resource.updateSequenceNumber() : nullValue));
+        query.bindValue(":resourceIsDirty", (resource.isDirty() ? 1 : 0));
+        query.bindValue(":resourceIndexInNote", resource.indexInNote());
+        query.bindValue(":resourceLocalGuid", resourceLocalGuid);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database");
+    }
 
     // Updating connections between note and resource in NoteResources table
 
-    columns = "localNote, note, localResource, resource";
-    values = ":localNote, :note, :localResource, :resource";
-    queryString = QString("INSERT OR REPLACE INTO NoteResources (%1) VALUES(%2)")
-                          .arg(columns).arg(values);
-    res = query.prepare(queryString);
+    QSqlQuery query(m_sqlDatabase);
+    QString columns = "localNote, note, localResource, resource";
+    QString values = ":localNote, :note, :localResource, :resource";
+    QString queryString = QString("INSERT OR REPLACE INTO NoteResources (%1) VALUES(%2)")
+                                  .arg(columns).arg(values);
+    bool res = query.prepare(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database, "
                                  "can't prepare SQL query");
 
@@ -4306,6 +4298,36 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
     }
 
     return true;
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceResourceQuery()
+{
+    if (!m_insertOrReplaceResourceQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace the resource");
+
+        m_insertOrReplaceResourceQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceResourceQuery.prepare("INSERT OR REPLACE INTO Resources (resourceGuid, "
+                                                          "noteGuid, dataBody, dataSize, dataHash, mime, "
+                                                          "width, height, recognitionDataBody, recognitionDataSize, "
+                                                          "recognitionDataHash, alternateDataBody, alternateDataSize, "
+                                                          "alternateDataHash, resourceUpdateSequenceNumber, "
+                                                          "resourceIsDirty, resourceIndexInNote, resourceLocalGuid) "
+                                                          "VALUES(:resourceGuid, :noteGuid, :dataBody, :dataSize, :dataHash, :mime, "
+                                                          ":width, :height, :recognitionDataBody, :recognitionDataSize, "
+                                                          ":recognitionDataHash, :alternateDataBody, :alternateDataSize, "
+                                                          ":alternateDataHash, :resourceUpdateSequenceNumber, :resourceIsDirty, "
+                                                          ":resourceIndexInNote, :resourceLocalGuid)");
+        if (res) {
+            m_insertOrReplaceResourceQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 bool LocalStorageManagerPrivate::CheckAndPrepareGetResourceCountQuery() const
