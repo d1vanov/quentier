@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-class QuteNoteNullPtrException: public IQuteNoteException
+class QUTE_NOTE_EXPORT QuteNoteNullPtrException: public IQuteNoteException
 {
 public:
     explicit QuteNoteNullPtrException(const QString & message);

@@ -15,7 +15,7 @@ QT_FORWARD_DECLARE_CLASS(SavedSearch)
 QT_FORWARD_DECLARE_CLASS(ILocalStorageCacheExpiryChecker)
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageCacheManagerPrivate)
-class LocalStorageCacheManager: public Printable
+class QUTE_NOTE_EXPORT LocalStorageCacheManager: public Printable
 {
 public:
     LocalStorageCacheManager();

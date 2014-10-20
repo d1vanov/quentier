@@ -11,7 +11,7 @@ add_subdirectory(QEverCloud)
 get_directory_property(QEVERCLOUD_LIB DIRECTORY QEverCloud DEFINITION PROJECT_NAME)
 
 add_subdirectory(qtkeychain)
-get_directory_property(QTKEYCHAIN_LIB DIRECTORY qtkeychain DEFINITION PROJECT_NAME)
+get_directory_property(QTKEYCHAIN_LIB DIRECTORY qtkeychain DEFINITION QTKEYCHAIN_TARGET_NAME)
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   add_subdirectory(stacktrace)

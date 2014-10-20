@@ -6,8 +6,8 @@
 
 namespace qute_note {
 
-class IQuteNoteException: public Printable,
-                          public std::exception
+class QUTE_NOTE_EXPORT IQuteNoteException: public Printable,
+                                           public std::exception
 {
 public:
     explicit IQuteNoteException(const QString & message);

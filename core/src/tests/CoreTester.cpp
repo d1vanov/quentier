@@ -811,10 +811,10 @@ void CoreTester::localStorageManagerListAllTagsTest()
 
         QString error;
 
-        size_t nTags = 5;
+        int nTags = 5;
         std::vector<Tag> tags;
-        tags.reserve(nTags);
-        for(size_t i = 0; i < nTags; ++i)
+        tags.reserve(static_cast<size_t>(nTags));
+        for(int i = 0; i < nTags; ++i)
         {
             tags.push_back(Tag());
             Tag & tag = tags.back();
@@ -835,14 +835,14 @@ void CoreTester::localStorageManagerListAllTagsTest()
         QList<Tag> foundTags = localStorageManager.ListAllTags(error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
-        size_t numFoundTags = foundTags.size();
+        int numFoundTags = foundTags.size();
         if (numFoundTags != nTags) {
             QFAIL(qPrintable("Error: number of tags in the result of LocalStorageManager::ListAllTags (" +
                              QString::number(numFoundTags) + ") does not match the original number of added tags (" +
                              QString::number(nTags) + ")"));
         }
 
-        for(size_t i = 0; i < numFoundTags; ++i)
+        for(int i = 0; i < numFoundTags; ++i)
         {
             const Tag & foundTag = foundTags.at(i);
             const auto it = std::find(tags.cbegin(), tags.cend(), foundTag);
@@ -954,10 +954,10 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         res = localStorageManager.AddNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
-        size_t numTags = 5;
+        int numTags = 5;
         QList<Tag> tags;
         tags.reserve(numTags);
-        for(size_t i = 0; i < numTags; ++i)
+        for(int i = 0; i < numTags; ++i)
         {
             tags << Tag();
             Tag & tag = tags.back();
@@ -992,7 +992,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
                              QString::number(numTags) + ")"));
         }
 
-        for(size_t i = 0; i < numFoundTags; ++i)
+        for(int i = 0; i < numFoundTags; ++i)
         {
             const Tag & foundTag = foundTags.at(i);
             if (!tags.contains(foundTag)) {
@@ -1061,14 +1061,14 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
         QList<Note> foundNotes = localStorageManager.ListAllNotesPerNotebook(notebook, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
-        size_t numFoundNotes = foundNotes.size();
+        int numFoundNotes = foundNotes.size();
         if (numFoundNotes != numNotes) {
             QFAIL(qPrintable("Error: number of notes in the result of LocalStorageManager::ListAllNotesPerNotebook (" +
                              QString::number(numFoundNotes) + ") does not match the original number of added notes (" +
                              QString::number(numNotes) + ")"));
         }
 
-        for(size_t i = 0; i < numFoundNotes; ++i)
+        for(int i = 0; i < numFoundNotes; ++i)
         {
             const Note & foundNote = foundNotes.at(i);
             if (!notes.contains(foundNote)) {
