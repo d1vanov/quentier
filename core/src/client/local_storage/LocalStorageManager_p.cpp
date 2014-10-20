@@ -25,7 +25,9 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceSavedSearchQuery(),
     m_insertOrReplaceSavedSearchQueryPrepared(false),
     m_getSavedSearchCountQuery(),
-    m_getSavedSearchCountQueryPrepared(false)
+    m_getSavedSearchCountQueryPrepared(false),
+    m_expungeSavedSearchQuery(),
+    m_expungeSavedSearchQueryPrepared(false)
 {
     SwitchUser(username, userId, startFromScratch);
 }
@@ -2455,11 +2457,12 @@ bool LocalStorageManagerPrivate::ExpungeSavedSearch(const SavedSearch & search,
         return false;
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("DELETE FROM SavedSearches WHERE localGuid = ?");
-    query.addBindValue(localGuid);
+    bool res = CheckAndPrepareExpungeSavedSearchQuery();
+    QSqlQuery & query = m_expungeSavedSearchQuery;
+    DATABASE_CHECK_AND_SET_ERROR("can't delete saved search from SQL database: can't prepare SQL query");
 
-    bool res = query.exec();
+    query.bindValue(":localGuid", localGuid);
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete saved search from \"SavedSearches\" table in SQL database");
 
     return true;
@@ -4386,6 +4389,27 @@ bool LocalStorageManagerPrivate::CheckAndPrepareGetSavedSearchCountQuery() const
 
         if (res) {
             m_getSavedSearchCountQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeSavedSearchQuery()
+{
+    if (!m_expungeSavedSearchQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge SavedSearch");
+
+        m_expungeSavedSearchQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeSavedSearchQuery.prepare("DELETE FROM SavedSearches WHERE localGuid = :localGuid");
+
+        if (res) {
+            m_expungeSavedSearchQueryPrepared = res;
         }
 
         return res;

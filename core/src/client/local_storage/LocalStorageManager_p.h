@@ -136,6 +136,7 @@ private:
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, const QString & overrideLocalGuid, QString & errorDescription);
     bool CheckAndPrepareInsertOrReplaceSavedSearchQuery();
     bool CheckAndPrepareGetSavedSearchCountQuery() const;
+    bool CheckAndPrepareExpungeSavedSearchQuery();
 
     void FillResourceFromSqlRecord(const QSqlRecord & rec, const bool withBinaryData, IResource & resource) const;
     bool FillResourceAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
@@ -188,6 +189,9 @@ private:
 
     mutable QSqlQuery   m_getSavedSearchCountQuery;
     mutable bool        m_getSavedSearchCountQueryPrepared;
+
+    QSqlQuery           m_expungeSavedSearchQuery;
+    bool                m_expungeSavedSearchQueryPrepared;
 };
 
 } // namespace qute_note
