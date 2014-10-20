@@ -30,6 +30,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_expungeSavedSearchQueryPrepared(false),
     m_insertOrReplaceResourceQuery(),
     m_insertOrReplaceResourceQueryPrepared(false),
+    m_insertOrReplaceNoteResourceQuery(),
+    m_insertOrReplaceNoteResourceQueryPrepared(false),
     m_getResourceCountQuery(),
     m_getResourceCountQueryPrepared(false)
 {
@@ -4125,6 +4127,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
                                  ? resource.localGuid()
                                  : overrideResourceLocalGuid);
 
+    // Updating common resource information in Resources table
     {
         bool res = CheckAndPrepareInsertOrReplaceResourceQuery();
         QSqlQuery & query = m_insertOrReplaceResourceQuery;
@@ -4155,31 +4158,30 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
     }
 
     // Updating connections between note and resource in NoteResources table
+    {
+        bool res = CheckAndPrepareInsertOrReplaceNoteResourceQuery();
+        QSqlQuery & query = m_insertOrReplaceNoteResourceQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database, "
+                                     "can't prepare SQL query");
+
+        QString noteLocalGuid = (overrideNoteLocalGuid.isEmpty()
+                                 ? note.localGuid() : overrideNoteLocalGuid);
+
+        query.bindValue(":localNote", (noteLocalGuid.isEmpty() ? nullValue : noteLocalGuid));
+        query.bindValue(":note", (note.hasGuid() ? note.guid() : nullValue));
+        query.bindValue(":localResource", resourceLocalGuid);
+        query.bindValue(":resource", (resource.hasGuid() ? resource.guid() : nullValue));
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database");
+    }
 
     QSqlQuery query(m_sqlDatabase);
-    QString columns = "localNote, note, localResource, resource";
-    QString values = ":localNote, :note, :localResource, :resource";
-    QString queryString = QString("INSERT OR REPLACE INTO NoteResources (%1) VALUES(%2)")
-                                  .arg(columns).arg(values);
-    bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database, "
-                                 "can't prepare SQL query");
-
-    QString noteLocalGuid = (overrideNoteLocalGuid.isEmpty()
-                             ? note.localGuid() : overrideNoteLocalGuid);
-
-    query.bindValue(":localNote", (noteLocalGuid.isEmpty() ? nullValue : noteLocalGuid));
-    query.bindValue(":note", (note.hasGuid() ? note.guid() : nullValue));
-    query.bindValue(":localResource", resourceLocalGuid);
-    query.bindValue(":resource", (resource.hasGuid() ? resource.guid() : nullValue));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database");
-
     // Updating resource's recognition types
 
-    queryString = QString("DELETE FROM ResourceRecognitionTypes WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
-    res = query.exec(queryString);
+    QString queryString = QString("DELETE FROM ResourceRecognitionTypes WHERE resourceLocalGuid = '%1'")
+                                  .arg(resourceLocalGuid);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionTypes table");
 
     QStringList recognitionTypes = resource.recognitionTypes();
@@ -4187,8 +4189,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
     {
         foreach(const QString & recognitionType, recognitionTypes)
         {
-            columns = "resourceLocalGuid, recognitionType";
-            values = ":resourceLocalGuid, :recognitionType";
+            QString columns = "resourceLocalGuid, recognitionType";
+            QString values = ":resourceLocalGuid, :recognitionType";
 
             queryString = QString("INSERT OR REPLACE INTO ResourceRecognitionTypes(%1) VALUES(%2)").arg(columns).arg(values);
             res = query.prepare(queryString);
@@ -4328,6 +4330,29 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceResourceQuery()
     {
         return true;
     }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNoteResourceQuery()
+{
+    if (!m_insertOrReplaceNoteResourceQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace resource into NoteResources table");
+
+        m_insertOrReplaceNoteResourceQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceNoteResourceQuery.prepare("INSERT OR REPLACE INTO NoteResources "
+                                                              "(localNote, note, localResource, resource) "
+                                                              "VALUES(:localNote, :note, :localResource, :resource)");
+        if (res) {
+            m_insertOrReplaceNoteResourceQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+
 }
 
 bool LocalStorageManagerPrivate::CheckAndPrepareGetResourceCountQuery() const
