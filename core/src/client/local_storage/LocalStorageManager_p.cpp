@@ -36,6 +36,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_deleteResourceFromResourceRecognitionTypesQueryPrepared(false),
     m_insertOrReplaceIntoResourceRecognitionTypesQuery(),
     m_insertOrReplaceIntoResourceRecognitionTypesQueryPrepared(false),
+    m_deleteResourceFromResourceAttributesQuery(),
+    m_deleteResourceFromResourceAttributesQueryPrepared(false),
     m_getResourceCountQuery(),
     m_getResourceCountQueryPrepared(false)
 {
@@ -4213,13 +4215,23 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
         }
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    QString queryString = QString("DELETE FROM ResourceAttributes WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
-    bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributes table");
+    // Removing resource from ResourceAttributes table
+    {
+        bool res = CheckAndPrepareDeleteResourceFromResourceAttributesQuery();
+        QSqlQuery & query = m_deleteResourceFromResourceAttributesQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributes table: "
+                                     "can't prepare SQL query");
 
-    queryString = QString("DELETE FROM ResourceAttributesApplicationDataKeysOnly WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
-    res = query.exec(queryString);
+        query.bindValue(":resourceLocalGuid", resourceLocalGuid);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributes table");
+    }
+
+    QSqlQuery query(m_sqlDatabase);
+
+    QString queryString = QString("DELETE FROM ResourceAttributesApplicationDataKeysOnly WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributesApplicationDataKeysOnly table");
 
     queryString = QString("DELETE FROM ResourceAttributesApplicationDataFullMap WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
@@ -4399,6 +4411,27 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceIntoResourceRecog
 
         if (res) {
             m_insertOrReplaceIntoResourceRecognitionTypesQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareDeleteResourceFromResourceAttributesQuery()
+{
+    if (!m_deleteResourceFromResourceAttributesQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to delete resource from ResourceAttributes table");
+
+        m_deleteResourceFromResourceAttributesQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_deleteResourceFromResourceAttributesQuery.prepare("DELETE FROM ResourceAttributes WHERE resourceLocalGuid = :resourceLocalGuid");
+
+        if (res) {
+            m_deleteResourceFromResourceAttributesQueryPrepared = true;
         }
 
         return res;
