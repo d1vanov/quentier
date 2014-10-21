@@ -1,4 +1,7 @@
 find_path(Boost_MULTI_INDEX_INCLUDE_PATH boost/multi_index_container.hpp REQUIRED)
-if(Boost_MULTI_INDEX_INCLUDE_PATH_FOUND)
+if(Boost_MULTI_INDEX_INCLUDE_PATH-NOTFOUND)
+  message(FATAL_ERROR "Boost multi_index was not found. It is required to build the project")
+else()
+  message(STATUS "Found boost multi_index: ${Boost_MULTI_INDEX_INCLUDE_PATH}/boost/multi_index_container.hpp")
   include_directories(SYSTEM ${Boost_MULTI_INDEX_INCLUDE_PATH})
 endif()
