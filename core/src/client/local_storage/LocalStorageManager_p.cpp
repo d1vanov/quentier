@@ -42,6 +42,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQueryPrepared(false),
     m_deleteResourceFromResourceAttributesApplicationDataFullMapQuery(),
     m_deleteResourceFromResourceAttributesApplicationDataFullMapQueryPrepared(false),
+    m_insertOrReplaceResourceAttributesQuery(),
+    m_insertOrReplaceResourceAttributesQueryPrepared(false),
     m_getResourceCountQuery(),
     m_getResourceCountQueryPrepared(false)
 {
@@ -4279,50 +4281,45 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
                                                                    const qevercloud::ResourceAttributes & attributes,
                                                                    QString & errorDescription)
 {
-    QString columns = "resourceLocalGuid, resourceSourceURL, timestamp, resourceLatitude, "
-                      "resourceLongitude, resourceAltitude, cameraMake, cameraModel, "
-                      "clientWillIndex, fileName, attachment";
-
-    QString values = ":resourceLocalGuid, :resourceSourceURL, :timestamp, :resourceLatitude, "
-                     ":resourceLongitude, :resourceAltitude, :cameraMake, :cameraModel, "
-                     ":clientWillIndex, :fileName, :attachment";
-
-    QString queryString = QString("INSERT OR REPLACE INTO ResourceAttributes(%1) VALUES(%2)")
-                                  .arg(columns).arg(values);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database, "
-                                 "can't prepare SQL query");
-
     QVariant nullValue;
 
-    query.bindValue(":resourceLocalGuid", localGuid);
-    query.bindValue(":resourceSourceURL", (attributes.sourceURL.isSet() ? attributes.sourceURL.ref() : nullValue));
-    query.bindValue(":timestamp", (attributes.timestamp.isSet() ? attributes.timestamp.ref() : nullValue));
-    query.bindValue(":resourceLatitude", (attributes.latitude.isSet() ? attributes.latitude.ref() : nullValue));
-    query.bindValue(":resourceLongitude", (attributes.longitude.isSet() ? attributes.longitude.ref() : nullValue));
-    query.bindValue(":resourceAltitude", (attributes.altitude.isSet() ? attributes.altitude.ref() : nullValue));
-    query.bindValue(":cameraMake", (attributes.cameraMake.isSet() ? attributes.cameraMake.ref() : nullValue));
-    query.bindValue(":cameraModel", (attributes.cameraModel.isSet() ? attributes.cameraModel.ref() : nullValue));
-    query.bindValue(":clientWillIndex", (attributes.clientWillIndex.isSet() ? (attributes.clientWillIndex.ref() ? 1 : 0) : nullValue));
-    query.bindValue(":fileName", (attributes.fileName.isSet() ? attributes.fileName.ref() : nullValue));
-    query.bindValue(":attachment", (attributes.attachment.isSet() ? (attributes.attachment.ref() ? 1 : 0) : nullValue));
+    // Insert or replace attributes into ResourceAttributes table
+    {
+        bool res = CheckAndPrepareInsertOrReplaceResourceAttributesQuery();
+        QSqlQuery & query = m_insertOrReplaceResourceAttributesQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database, "
+                                     "can't prepare SQL query");
 
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
+        query.bindValue(":resourceLocalGuid", localGuid);
+        query.bindValue(":resourceSourceURL", (attributes.sourceURL.isSet() ? attributes.sourceURL.ref() : nullValue));
+        query.bindValue(":timestamp", (attributes.timestamp.isSet() ? attributes.timestamp.ref() : nullValue));
+        query.bindValue(":resourceLatitude", (attributes.latitude.isSet() ? attributes.latitude.ref() : nullValue));
+        query.bindValue(":resourceLongitude", (attributes.longitude.isSet() ? attributes.longitude.ref() : nullValue));
+        query.bindValue(":resourceAltitude", (attributes.altitude.isSet() ? attributes.altitude.ref() : nullValue));
+        query.bindValue(":cameraMake", (attributes.cameraMake.isSet() ? attributes.cameraMake.ref() : nullValue));
+        query.bindValue(":cameraModel", (attributes.cameraModel.isSet() ? attributes.cameraModel.ref() : nullValue));
+        query.bindValue(":clientWillIndex", (attributes.clientWillIndex.isSet() ? (attributes.clientWillIndex.ref() ? 1 : 0) : nullValue));
+        query.bindValue(":fileName", (attributes.fileName.isSet() ? attributes.fileName.ref() : nullValue));
+        query.bindValue(":attachment", (attributes.attachment.isSet() ? (attributes.attachment.ref() ? 1 : 0) : nullValue));
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
+    }
 
     // Special treatment for ResourceAttributes.applicationData: keysOnly + fullMap
 
     if (attributes.applicationData.isSet())
     {
+        QSqlQuery query(m_sqlDatabase);
+
         if (attributes.applicationData->keysOnly.isSet())
         {
             const QSet<QString> & keysOnly = attributes.applicationData->keysOnly.ref();
             foreach(const QString & key, keysOnly) {
-                queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataKeysOnly"
-                                      "(resourceLocalGuid, resourceKey) VALUES('%1', '%2')")
-                                     .arg(localGuid).arg(key);
-                res = query.exec(queryString);
+                QString queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataKeysOnly"
+                                              "(resourceLocalGuid, resourceKey) VALUES('%1', '%2')")
+                                              .arg(localGuid).arg(key);
+                bool res = query.exec(queryString);
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataKeysOnly\" table in SQL database");
             }
         }
@@ -4331,10 +4328,10 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
         {
             const QMap<QString, QString> & fullMap = attributes.applicationData->fullMap.ref();
             foreach(const QString & key, fullMap.keys()) {
-                queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataFullMap"
-                                      "(resourceLocalGuid, resourceMapKey, resourceValue) VALUES('%1', '%2', '%3')")
-                                     .arg(localGuid).arg(key).arg(fullMap.value(key));
-                res = query.exec(queryString);
+                QString queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataFullMap"
+                                              "(resourceLocalGuid, resourceMapKey, resourceValue) VALUES('%1', '%2', '%3')")
+                                              .arg(localGuid).arg(key).arg(fullMap.value(key));
+                bool res = query.exec(queryString);
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataFullMap\" table in SQL database");
 
             }
@@ -4494,6 +4491,32 @@ bool LocalStorageManagerPrivate::CheckAndPrepareDeleteResourceFromResourceAttrib
                                                                                              "WHERE resourceLocalGuid = :resourceLocalGuid");
         if (res) {
             m_deleteResourceFromResourceAttributesApplicationDataFullMapQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceResourceAttributesQuery()
+{
+    if (!m_insertOrReplaceResourceAttributesQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace ResourceAttributes");
+
+        m_insertOrReplaceResourceAttributesQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceResourceAttributesQuery.prepare("INSERT OR REPLACE INTO ResourceAttributes"
+                                                                    "(resourceLocalGuid, resourceSourceURL, timestamp, resourceLatitude, "
+                                                                    "resourceLongitude, resourceAltitude, cameraMake, cameraModel, "
+                                                                    "clientWillIndex, fileName, attachment) "
+                                                                    "VALUES(:resourceLocalGuid, :resourceSourceURL, :timestamp, :resourceLatitude, "
+                                                                    ":resourceLongitude, :resourceAltitude, :cameraMake, :cameraModel, "
+                                                                    ":clientWillIndex, :fileName, :attachment)");
+        if (res) {
+            m_insertOrReplaceResourceAttributesQueryPrepared = true;
         }
 
         return res;
