@@ -38,6 +38,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceIntoResourceRecognitionTypesQueryPrepared(false),
     m_deleteResourceFromResourceAttributesQuery(),
     m_deleteResourceFromResourceAttributesQueryPrepared(false),
+    m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery(),
+    m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQueryPrepared(false),
     m_getResourceCountQuery(),
     m_getResourceCountQueryPrepared(false)
 {
@@ -4228,14 +4230,23 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
         DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributes table");
     }
 
+    // Removing resource from ResourceAttributesApplicationDataKeysOnly table
+    {
+        bool res = CheckAndPrepareDeleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery();
+        QSqlQuery & query = m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributesApplicationDataKeysOnly table: "
+                                     "can't prepare SQL query");
+
+        query.bindValue(":resourceLocalGuid", resourceLocalGuid);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributesApplicationDataKeysOnly table");
+    }
+
     QSqlQuery query(m_sqlDatabase);
 
-    QString queryString = QString("DELETE FROM ResourceAttributesApplicationDataKeysOnly WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
+    QString queryString = QString("DELETE FROM ResourceAttributesApplicationDataFullMap WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
     bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributesApplicationDataKeysOnly table");
-
-    queryString = QString("DELETE FROM ResourceAttributesApplicationDataFullMap WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
-    res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributesApplicationDataFullMap");
 
     if (resource.hasResourceAttributes())
@@ -4432,6 +4443,27 @@ bool LocalStorageManagerPrivate::CheckAndPrepareDeleteResourceFromResourceAttrib
 
         if (res) {
             m_deleteResourceFromResourceAttributesQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareDeleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery()
+{
+    if (!m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to delete Resource from ResourceAttributesApplicationDataKeysOnly table");
+
+        m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery.prepare("DELETE FROM ResourceAttributesApplicationDataKeysOnly "
+                                                                                              "WHERE resourceLocalGuid = :resourceLocalGuid");
+        if (res) {
+            m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQueryPrepared = true;
         }
 
         return res;
