@@ -32,6 +32,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceResourceQueryPrepared(false),
     m_insertOrReplaceNoteResourceQuery(),
     m_insertOrReplaceNoteResourceQueryPrepared(false),
+    m_deleteResourceFromResourceRecognitionTypesQuery(),
+    m_deleteResourceFromResourceRecognitionTypesQueryPrepared(false),
     m_getResourceCountQuery(),
     m_getResourceCountQueryPrepared(false)
 {
@@ -4176,13 +4178,21 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database");
     }
 
+    // Removing resource's local guid from ResourceRecognitionTypes table
+    {
+        bool res = CheckAndPrepareDeleteResourceFromResourceRecognitionTypesQuery();
+        QSqlQuery & query = m_deleteResourceFromResourceRecognitionTypesQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionTypes table: "
+                                     "can't prepare SQL query");
+
+        query.addBindValue(resourceLocalGuid);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionTypes table");
+    }
+
     QSqlQuery query(m_sqlDatabase);
     // Updating resource's recognition types
-
-    QString queryString = QString("DELETE FROM ResourceRecognitionTypes WHERE resourceLocalGuid = '%1'")
-                                  .arg(resourceLocalGuid);
-    bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionTypes table");
 
     QStringList recognitionTypes = resource.recognitionTypes();
     if (!recognitionTypes.isEmpty())
@@ -4192,8 +4202,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
             QString columns = "resourceLocalGuid, recognitionType";
             QString values = ":resourceLocalGuid, :recognitionType";
 
-            queryString = QString("INSERT OR REPLACE INTO ResourceRecognitionTypes(%1) VALUES(%2)").arg(columns).arg(values);
-            res = query.prepare(queryString);
+            QString queryString = QString("INSERT OR REPLACE INTO ResourceRecognitionTypes(%1) VALUES(%2)").arg(columns).arg(values);
+            bool res = query.prepare(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceRecognitionTypes\" table in SQL database, "
                                          "can't prepare SQL query");
             query.bindValue(":resourceLocalGuid", resourceLocalGuid);
@@ -4204,8 +4214,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
         }
     }
 
-    queryString = QString("DELETE FROM ResourceAttributes WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
-    res = query.exec(queryString);
+    QString queryString = QString("DELETE FROM ResourceAttributes WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributes table");
 
     queryString = QString("DELETE FROM ResourceAttributesApplicationDataKeysOnly WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
@@ -4353,6 +4363,27 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNoteResourceQuery
         return true;
     }
 
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareDeleteResourceFromResourceRecognitionTypesQuery()
+{
+    if (!m_deleteResourceFromResourceRecognitionTypesQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to delete resource from ResourceRecognitionTypes table");
+
+        m_deleteResourceFromResourceRecognitionTypesQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_deleteResourceFromResourceRecognitionTypesQuery.prepare("DELETE FROM ResourceRecognitionTypes "
+                                                                             "WHERE resourceLocalGuid = ?");
+        if (res) {
+            m_deleteResourceFromResourceRecognitionTypesQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 bool LocalStorageManagerPrivate::CheckAndPrepareGetResourceCountQuery() const

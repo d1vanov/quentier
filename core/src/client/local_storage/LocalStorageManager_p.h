@@ -136,6 +136,7 @@ private:
                                            QString & errorDescription);
     bool CheckAndPrepareInsertOrReplaceResourceQuery();
     bool CheckAndPrepareInsertOrReplaceNoteResourceQuery();
+    bool CheckAndPrepareDeleteResourceFromResourceRecognitionTypesQuery();
     bool CheckAndPrepareGetResourceCountQuery() const;
 
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, const QString & overrideLocalGuid, QString & errorDescription);
@@ -203,6 +204,9 @@ private:
 
     QSqlQuery           m_insertOrReplaceNoteResourceQuery;
     bool                m_insertOrReplaceNoteResourceQueryPrepared;
+
+    QSqlQuery           m_deleteResourceFromResourceRecognitionTypesQuery;
+    bool                m_deleteResourceFromResourceRecognitionTypesQueryPrepared;
 
     mutable QSqlQuery   m_getResourceCountQuery;
     mutable bool        m_getResourceCountQueryPrepared;
