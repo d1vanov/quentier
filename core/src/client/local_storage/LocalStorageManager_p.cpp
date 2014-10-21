@@ -34,6 +34,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceNoteResourceQueryPrepared(false),
     m_deleteResourceFromResourceRecognitionTypesQuery(),
     m_deleteResourceFromResourceRecognitionTypesQueryPrepared(false),
+    m_insertOrReplaceIntoResourceRecognitionTypesQuery(),
+    m_insertOrReplaceIntoResourceRecognitionTypesQueryPrepared(false),
     m_getResourceCountQuery(),
     m_getResourceCountQueryPrepared(false)
 {
@@ -4191,21 +4193,18 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
         DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionTypes table");
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    // Updating resource's recognition types
-
     QStringList recognitionTypes = resource.recognitionTypes();
     if (!recognitionTypes.isEmpty())
     {
+        // Updating resource's recognition types
+
+        bool res = CheckAndPrepareInsertOrReplaceIntoResourceRecognitionTypesQuery();
+        QSqlQuery & query = m_insertOrReplaceIntoResourceRecognitionTypesQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceRecognitionTypes\" table in SQL database, "
+                                     "can't prepare SQL query");
+
         foreach(const QString & recognitionType, recognitionTypes)
         {
-            QString columns = "resourceLocalGuid, recognitionType";
-            QString values = ":resourceLocalGuid, :recognitionType";
-
-            QString queryString = QString("INSERT OR REPLACE INTO ResourceRecognitionTypes(%1) VALUES(%2)").arg(columns).arg(values);
-            bool res = query.prepare(queryString);
-            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceRecognitionTypes\" table in SQL database, "
-                                         "can't prepare SQL query");
             query.bindValue(":resourceLocalGuid", resourceLocalGuid);
             query.bindValue(":recognitionType", recognitionType);
 
@@ -4214,6 +4213,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
         }
     }
 
+    QSqlQuery query(m_sqlDatabase);
     QString queryString = QString("DELETE FROM ResourceAttributes WHERE resourceLocalGuid = '%1'").arg(resourceLocalGuid);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributes table");
@@ -4376,6 +4376,29 @@ bool LocalStorageManagerPrivate::CheckAndPrepareDeleteResourceFromResourceRecogn
                                                                              "WHERE resourceLocalGuid = ?");
         if (res) {
             m_deleteResourceFromResourceRecognitionTypesQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceIntoResourceRecognitionTypesQuery()
+{
+    if (!m_insertOrReplaceIntoResourceRecognitionTypesQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace resource into ResourceRecognitionTypes table");
+
+        m_insertOrReplaceIntoResourceRecognitionTypesQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceIntoResourceRecognitionTypesQuery.prepare("INSERT OR REPLACE INTO ResourceRecognitionTypes"
+                                                                              "(resourceLocalGuid, recognitionType) "
+                                                                              "VALUES(:resourceLocalGuid, :recognitionType)");
+
+        if (res) {
+            m_insertOrReplaceIntoResourceRecognitionTypesQueryPrepared = true;
         }
 
         return res;
