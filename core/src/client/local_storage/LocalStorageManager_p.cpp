@@ -44,6 +44,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_deleteResourceFromResourceAttributesApplicationDataFullMapQueryPrepared(false),
     m_insertOrReplaceResourceAttributesQuery(),
     m_insertOrReplaceResourceAttributesQueryPrepared(false),
+    m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQuery(),
+    m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQueryPrepared(false),
     m_getResourceCountQuery(),
     m_getResourceCountQueryPrepared(false)
 {
@@ -4310,22 +4312,26 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
 
     if (attributes.applicationData.isSet())
     {
-        QSqlQuery query(m_sqlDatabase);
-
         if (attributes.applicationData->keysOnly.isSet())
         {
+            bool res = CheckAndPrepareInsertOrReplaceResourceAttributesApplicationDataKeysOnlyQuery();
+            QSqlQuery & query = m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQuery;
+            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataKeysOnly\" "
+                                         "table in SQL database: can't prepare SQL query");
+
+            query.bindValue(":resourceLocalGuid", localGuid);
+
             const QSet<QString> & keysOnly = attributes.applicationData->keysOnly.ref();
             foreach(const QString & key, keysOnly) {
-                QString queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataKeysOnly"
-                                              "(resourceLocalGuid, resourceKey) VALUES('%1', '%2')")
-                                              .arg(localGuid).arg(key);
-                bool res = query.exec(queryString);
+                query.bindValue(":resourceKey", key);
+                res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataKeysOnly\" table in SQL database");
             }
         }
 
         if (attributes.applicationData->fullMap.isSet())
         {
+            QSqlQuery query(m_sqlDatabase);
             const QMap<QString, QString> & fullMap = attributes.applicationData->fullMap.ref();
             foreach(const QString & key, fullMap.keys()) {
                 QString queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataFullMap"
@@ -4517,6 +4523,27 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceResourceAttribute
                                                                     ":clientWillIndex, :fileName, :attachment)");
         if (res) {
             m_insertOrReplaceResourceAttributesQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceResourceAttributesApplicationDataKeysOnlyQuery()
+{
+    if (!m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace resource attribute application data (keys only)");
+
+        m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQuery.prepare("INSERT OR REPLACE INTO ResourceAttributesApplicationDataKeysOnly"
+                                                                                          "(resourceLocalGuid, resourceKey) VALUES(:resourceLocalGuid, :resourceKey)");
+        if (res) {
+            m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQueryPrepared = true;
         }
 
         return res;

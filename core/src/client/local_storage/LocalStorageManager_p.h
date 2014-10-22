@@ -142,6 +142,7 @@ private:
     bool CheckAndPrepareDeleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery();
     bool CheckAndPrepareDeleteResourceFromResourceAttributesApplicationDataFullMapQuery();
     bool CheckAndPrepareInsertOrReplaceResourceAttributesQuery();
+    bool CheckAndPrepareInsertOrReplaceResourceAttributesApplicationDataKeysOnlyQuery();
     bool CheckAndPrepareGetResourceCountQuery() const;
 
     bool InsertOrReplaceSavedSearch(const SavedSearch & search, const QString & overrideLocalGuid, QString & errorDescription);
@@ -227,6 +228,9 @@ private:
 
     QSqlQuery           m_insertOrReplaceResourceAttributesQuery;
     bool                m_insertOrReplaceResourceAttributesQueryPrepared;
+
+    QSqlQuery           m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQuery;
+    bool                m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQueryPrepared;
 
     mutable QSqlQuery   m_getResourceCountQuery;
     mutable bool        m_getResourceCountQueryPrepared;
