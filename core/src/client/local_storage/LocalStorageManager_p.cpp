@@ -46,6 +46,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceResourceAttributesQueryPrepared(false),
     m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQuery(),
     m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQueryPrepared(false),
+    m_insertOrReplaceResourceAttributeApplicationDataFullMapQuery(),
+    m_insertOrReplaceResourceAttributeApplicationDataFullMapQueryPrepared(false),
     m_getResourceCountQuery(),
     m_getResourceCountQueryPrepared(false)
 {
@@ -4331,15 +4333,19 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResourceAttributes(const QString
 
         if (attributes.applicationData->fullMap.isSet())
         {
-            QSqlQuery query(m_sqlDatabase);
+            bool res = CheckAndPrepareInsertOrReplaceResourceAttributesApplicationDataFullMapQuery();
+            QSqlQuery & query = m_insertOrReplaceResourceAttributeApplicationDataFullMapQuery;
+            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataFullMap\" "
+                                         "table in SQL database: can't prepare SQL query");
+
+            query.bindValue(":resourceLocalGuid", localGuid);
+
             const QMap<QString, QString> & fullMap = attributes.applicationData->fullMap.ref();
             foreach(const QString & key, fullMap.keys()) {
-                QString queryString = QString("INSERT OR REPLACE INTO ResourceAttributesApplicationDataFullMap"
-                                              "(resourceLocalGuid, resourceMapKey, resourceValue) VALUES('%1', '%2', '%3')")
-                                              .arg(localGuid).arg(key).arg(fullMap.value(key));
-                bool res = query.exec(queryString);
+                query.bindValue(":resourceMapKey", key);
+                query.bindValue(":resourceValue", fullMap.value(key));
+                res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataFullMap\" table in SQL database");
-
             }
         }
     }
@@ -4544,6 +4550,28 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceResourceAttribute
                                                                                           "(resourceLocalGuid, resourceKey) VALUES(:resourceLocalGuid, :resourceKey)");
         if (res) {
             m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceResourceAttributesApplicationDataFullMapQuery()
+{
+    if (!m_insertOrReplaceResourceAttributeApplicationDataFullMapQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace resource attributes application data (full map)");
+
+        m_insertOrReplaceResourceAttributeApplicationDataFullMapQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceResourceAttributeApplicationDataFullMapQuery.prepare("INSERT OR REPLACE INTO ResourceAttributesApplicationDataFullMap"
+                                                                                         "(resourceLocalGuid, resourceMapKey, resourceValue) "
+                                                                                         "VALUES(:resourceLocalGuid, :resourceMapKey, :resourceValue)");
+        if (res) {
+            m_insertOrReplaceResourceAttributeApplicationDataFullMapQueryPrepared = true;
         }
 
         return res;
