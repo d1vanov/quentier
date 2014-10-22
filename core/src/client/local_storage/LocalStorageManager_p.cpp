@@ -49,7 +49,13 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceResourceAttributeApplicationDataFullMapQuery(),
     m_insertOrReplaceResourceAttributeApplicationDataFullMapQueryPrepared(false),
     m_getResourceCountQuery(),
-    m_getResourceCountQueryPrepared(false)
+    m_getResourceCountQueryPrepared(false),
+    m_getTagsCountQuery(),
+    m_getTagsCountQueryPrepared(false),
+    m_deleteTagQuery(),
+    m_deleteTagQueryPrepared(false),
+    m_expungeTagQuery(),
+    m_expungeTagQueryPrepared(false)
 {
     SwitchUser(username, userId, startFromScratch);
 }
@@ -1708,8 +1714,17 @@ NoteList LocalStorageManagerPrivate::FindNotesWithSearchQuery(const NoteSearchQu
 
 int LocalStorageManagerPrivate::GetTagCount(QString & errorDescription) const
 {
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT COUNT(*) FROM Tags WHERE isDeleted = 0");
+    bool res = CheckAndPrepareGetTagCountQuery();
+    QSqlQuery & query = m_getTagsCountQuery;
+    if (!res) {
+        errorDescription = QT_TR_NOOP("Internal error: can't get number of tags in local storage database, "
+                                      "can't prepare SQL query: ");
+        QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return -1;
+    }
+
+    res = query.exec();
     if (!res) {
         errorDescription = QT_TR_NOOP("Internal error: can't get number of tags in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
@@ -2070,10 +2085,13 @@ bool LocalStorageManagerPrivate::DeleteTag(const Tag & tag, QString & errorDescr
         return false;
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("UPDATE Tags SET isDeleted = 1, isDirty = 1 WHERE localGuid = ?");
-    query.addBindValue(tag.localGuid());
-    bool res = query.exec();
+    bool res = CheckAndPrepareDeleteTagQuery();
+    QSqlQuery & query = m_deleteTagQuery;
+    DATABASE_CHECK_AND_SET_ERROR("can't mark tag deleted in \"Tags\" table: "
+                                 "can't prepare SQL query");
+
+    query.bindValue(":localGuid", tag.localGuid());
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't mark tag deleted in \"Tags\" table in SQL database");
 
     return true;
@@ -2090,11 +2108,14 @@ bool LocalStorageManagerPrivate::ExpungeTag(const Tag & tag, QString & errorDesc
         return false;
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("DELETE FROM Tags WHERE localGuid = ?");
-    query.addBindValue(tag.localGuid());
+    bool res = CheckAndPrepareExpungeTagQuery();
+    QSqlQuery & query = m_expungeTagQuery;
+    DATABASE_CHECK_AND_SET_ERROR("can't delete tag from \"Tags\" table: "
+                                 "can't prepare SQL query");
 
-    bool res = query.exec();
+    query.bindValue(":localGuid", tag.localGuid());
+
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete tag from \"Tags\" table in SQL database");
 
     return true;
@@ -4122,6 +4143,62 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace tag into \"Tags\" table in SQL database");
 
     return true;
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareGetTagCountQuery() const
+{
+    if (!m_getTagsCountQueryPrepared)
+    {
+        m_getTagsCountQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_getTagsCountQuery.prepare("SELECT COUNT(*) FROM Tags WHERE isDeleted = 0");
+        if (res) {
+            m_getTagsCountQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareDeleteTagQuery()
+{
+    if (!m_deleteTagQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to delete tag");
+
+        m_deleteTagQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_deleteTagQuery.prepare("UPDATE Tags SET isDeleted = 1, isDirty = 1 WHERE localGuid = :localGuid");
+        if (res) {
+            m_deleteTagQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeTagQuery()
+{
+    if (!m_expungeTagQueryPrepared)
+    {
+        m_expungeTagQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeTagQuery.prepare("DELETE FROM Tags WHERE localGuid = :localGuid");
+        if (res) {
+            m_expungeTagQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
