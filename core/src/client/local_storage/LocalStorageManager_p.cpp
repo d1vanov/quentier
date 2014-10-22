@@ -59,7 +59,9 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_expungeTagQuery(),
     m_expungeTagQueryPrepared(false),
     m_getNoteCountQuery(),
-    m_getNoteCountQueryPrepared(false)
+    m_getNoteCountQueryPrepared(false),
+    m_insertOrReplaceLinkedNotebookQuery(),
+    m_insertOrReplaceLinkedNotebookQueryPrepared(false)
 {
     SwitchUser(username, userId, startFromScratch);
 }
@@ -3739,15 +3741,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceLinkedNotebook(const LinkedNoteb
     errorDescription += QT_TR_NOOP("can't insert or replace linked notebook into "
                                    "local storage database");
 
-    QString columns = "guid, updateSequenceNumber, shareName, username, shardId, shareKey, "
-                      "uri, noteStoreUrl, webApiUrlPrefix, stack, businessId, isDirty";
-
-    QString values = ":guid, :updateSequenceNumber, :shareName, :username, :shardId, :shareKey, "
-                     ":uri, :noteStoreUrl, :webApiUrlPrefix, :stack, :businessId, :isDirty";
-
-    QString queryString = QString("INSERT OR REPLACE INTO LinkedNotebooks (%1) VALUES(%2)").arg(columns).arg(values);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare(queryString);
+    bool res = CheckAndPrepareInsertOrReplaceLinkedNotebookQuery();
+    QSqlQuery & query = m_insertOrReplaceLinkedNotebookQuery;
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"LinkedNotebooks\" table in SQL database, "
                                  "can't prepare SQL query");
 
@@ -3770,6 +3765,39 @@ bool LocalStorageManagerPrivate::InsertOrReplaceLinkedNotebook(const LinkedNoteb
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook into \"LinkedNotebooks\" table in SQL database");
 
     return true;
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceLinkedNotebookQuery()
+{
+    if (!m_insertOrReplaceLinkedNotebookQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace linked notebook");
+
+        QString columns = "guid, updateSequenceNumber, shareName, username, shardId, shareKey, "
+                          "uri, noteStoreUrl, webApiUrlPrefix, stack, businessId, isDirty";
+
+        QString values = ":guid, :updateSequenceNumber, :shareName, :username, :shardId, :shareKey, "
+                         ":uri, :noteStoreUrl, :webApiUrlPrefix, :stack, :businessId, :isDirty";
+
+        QString queryString = QString("INSERT OR REPLACE INTO LinkedNotebooks (%1) VALUES(%2)").arg(columns).arg(values);
+        QSqlQuery query(m_sqlDatabase);
+
+        m_insertOrReplaceLinkedNotebookQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceLinkedNotebookQuery.prepare("INSERT OR REPLACE INTO LinkedNotebooks "
+                                                                "(guid, updateSequenceNumber, shareName, username, shardId, shareKey, "
+                                                                "uri, noteStoreUrl, webApiUrlPrefix, stack, businessId, isDirty) "
+                                                                "VALUES(:guid, :updateSequenceNumber, :shareName, :username, :shardId, :shareKey, "
+                                                                ":uri, :noteStoreUrl, :webApiUrlPrefix, :stack, :businessId, :isDirty)");
+        if (res) {
+            m_insertOrReplaceLinkedNotebookQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const Notebook & notebook,
