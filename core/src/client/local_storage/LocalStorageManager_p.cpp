@@ -52,6 +52,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getResourceCountQueryPrepared(false),
     m_getTagCountQuery(),
     m_getTagCountQueryPrepared(false),
+    m_insertOrReplaceTagQuery(),
+    m_insertOrReplaceTagQueryPrepared(false),
     m_deleteTagQuery(),
     m_deleteTagQueryPrepared(false),
     m_expungeTagQuery(),
@@ -4143,17 +4145,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
 
     QString localGuid = (overrideLocalGuid.isEmpty() ? tag.localGuid() : overrideLocalGuid);
 
-    QString columns = "localGuid, guid, updateSequenceNumber, name, nameUpper, parentGuid, "
-                      "isDirty, isLocal, isSynchronizable, isDeleted, hasShortcut";
-
-    QString valuesString = ":localGuid, :guid, :updateSequenceNumber, :name, :nameUpper, :parentGuid, "
-                           ":isDirty, :isLocal, :isSynchronizable, :isDeleted, :hasShortcut";
-
-    QString queryString = QString("INSERT OR REPLACE INTO Tags (%1) VALUES(%2)").arg(columns).arg(valuesString);
-
-    QSqlQuery query(m_sqlDatabase);
-
-    bool res = query.prepare(queryString);
+    bool res = CheckAndPrepareInsertOrReplaceTagQuery();
+    QSqlQuery & query = m_insertOrReplaceTagQuery;
     DATABASE_CHECK_AND_SET_ERROR("can't prepare SQL query to insert or replace tag into \"Tags\" table in SQL database");
 
     QVariant nullValue;
@@ -4184,6 +4177,30 @@ bool LocalStorageManagerPrivate::CheckAndPrepareGetTagCountQuery() const
         bool res = m_getTagCountQuery.prepare("SELECT COUNT(*) FROM Tags WHERE isDeleted = 0");
         if (res) {
             m_getTagCountQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceTagQuery()
+{
+    if (!m_insertOrReplaceTagQueryPrepared)
+    {
+        m_insertOrReplaceTagQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceTagQuery.prepare("INSERT OR REPLACE INTO Tags "
+                                                     "(localGuid, guid, updateSequenceNumber, "
+                                                     "name, nameUpper, parentGuid, isDirty, "
+                                                     "isLocal, isSynchronizable, isDeleted, hasShortcut) "
+                                                     "VALUES(:localGuid, :guid, :updateSequenceNumber, "
+                                                     ":name, :nameUpper, :parentGuid, :isDirty, :isLocal, "
+                                                     ":isSynchronizable, :isDeleted, :hasShortcut)");
+        if (res) {
+            m_insertOrReplaceTagQueryPrepared = true;
         }
 
         return res;

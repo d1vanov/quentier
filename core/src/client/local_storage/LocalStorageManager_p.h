@@ -131,6 +131,7 @@ private:
 
     bool InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid, QString & errorDescription);
     bool CheckAndPrepareGetTagCountQuery() const;
+    bool CheckAndPrepareInsertOrReplaceTagQuery();
     bool CheckAndPrepareDeleteTagQuery();
     bool CheckAndPrepareExpungeTagQuery();
 
@@ -247,6 +248,9 @@ private:
 
     mutable QSqlQuery   m_getTagCountQuery;
     mutable bool        m_getTagCountQueryPrepared;
+
+    QSqlQuery           m_insertOrReplaceTagQuery;
+    bool                m_insertOrReplaceTagQueryPrepared;
 
     QSqlQuery           m_deleteTagQuery;
     bool                m_deleteTagQueryPrepared;
