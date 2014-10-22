@@ -50,12 +50,14 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceResourceAttributeApplicationDataFullMapQueryPrepared(false),
     m_getResourceCountQuery(),
     m_getResourceCountQueryPrepared(false),
-    m_getTagsCountQuery(),
-    m_getTagsCountQueryPrepared(false),
+    m_getTagCountQuery(),
+    m_getTagCountQueryPrepared(false),
     m_deleteTagQuery(),
     m_deleteTagQueryPrepared(false),
     m_expungeTagQuery(),
-    m_expungeTagQueryPrepared(false)
+    m_expungeTagQueryPrepared(false),
+    m_getNoteCountQuery(),
+    m_getNoteCountQueryPrepared(false)
 {
     SwitchUser(username, userId, startFromScratch);
 }
@@ -1100,8 +1102,17 @@ bool LocalStorageManagerPrivate::ExpungeLinkedNotebook(const LinkedNotebook & li
 
 int LocalStorageManagerPrivate::GetNoteCount(QString & errorDescription) const
 {
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT COUNT(*) FROM Notes WHERE deletionTimestamp IS NULL");
+    bool res = CheckAndPrepareGetNoteCountQuery();
+    QSqlQuery & query = m_getNoteCountQuery;
+    if (!res) {
+        errorDescription = QT_TR_NOOP("Internal error: can't get number of notes in local storage database: "
+                                      "can't prepare SQL query");
+        QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return -1;
+    }
+
+    res = query.exec();
     if (!res) {
         errorDescription = QT_TR_NOOP("Internal error: can't get number of notes in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
@@ -1715,7 +1726,7 @@ NoteList LocalStorageManagerPrivate::FindNotesWithSearchQuery(const NoteSearchQu
 int LocalStorageManagerPrivate::GetTagCount(QString & errorDescription) const
 {
     bool res = CheckAndPrepareGetTagCountQuery();
-    QSqlQuery & query = m_getTagsCountQuery;
+    QSqlQuery & query = m_getTagCountQuery;
     if (!res) {
         errorDescription = QT_TR_NOOP("Internal error: can't get number of tags in local storage database, "
                                       "can't prepare SQL query: ");
@@ -4102,6 +4113,26 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     return transaction.commit(errorDescription);
 }
 
+bool LocalStorageManagerPrivate::CheckAndPrepareGetNoteCountQuery() const
+{
+    if (!m_getNoteCountQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to get the count of notes");
+
+        m_getNoteCountQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_getNoteCountQuery.prepare("SELECT COUNT(*) FROM Notes WHERE deletionTimestamp IS NULL");
+        if (res) {
+            m_getNoteCountQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
 bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid,
                                                     QString & errorDescription)
 {
@@ -4147,12 +4178,12 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
 
 bool LocalStorageManagerPrivate::CheckAndPrepareGetTagCountQuery() const
 {
-    if (!m_getTagsCountQueryPrepared)
+    if (!m_getTagCountQueryPrepared)
     {
-        m_getTagsCountQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_getTagsCountQuery.prepare("SELECT COUNT(*) FROM Tags WHERE isDeleted = 0");
+        m_getTagCountQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_getTagCountQuery.prepare("SELECT COUNT(*) FROM Tags WHERE isDeleted = 0");
         if (res) {
-            m_getTagsCountQueryPrepared = true;
+            m_getTagCountQueryPrepared = true;
         }
 
         return res;

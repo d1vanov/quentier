@@ -124,8 +124,10 @@ private:
                                        QString & errorDescription);
     bool InsertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalGuid, QString & errorDescription);
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
+
     bool InsertOrReplaceNote(const Note & note, const Notebook & notebook,
                              const QString & overrideLocalGuid, QString & errorDescription);
+    bool CheckAndPrepareGetNoteCountQuery() const;
 
     bool InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid, QString & errorDescription);
     bool CheckAndPrepareGetTagCountQuery() const;
@@ -243,14 +245,17 @@ private:
     mutable QSqlQuery   m_getResourceCountQuery;
     mutable bool        m_getResourceCountQueryPrepared;
 
-    mutable QSqlQuery   m_getTagsCountQuery;
-    mutable bool        m_getTagsCountQueryPrepared;
+    mutable QSqlQuery   m_getTagCountQuery;
+    mutable bool        m_getTagCountQueryPrepared;
 
     QSqlQuery           m_deleteTagQuery;
     bool                m_deleteTagQueryPrepared;
 
     QSqlQuery           m_expungeTagQuery;
     bool                m_expungeTagQueryPrepared;
+
+    mutable QSqlQuery   m_getNoteCountQuery;
+    mutable bool        m_getNoteCountQueryPrepared;
 };
 
 } // namespace qute_note
