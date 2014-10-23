@@ -122,6 +122,7 @@ private:
                                    QString & errorDescription);
     bool InsertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
                                        QString & errorDescription);
+    bool CheckAndPrepareGetUserCountQuery() const;
 
     bool InsertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalGuid, QString & errorDescription);
     bool CheckAndPrepareGetNotebookCountQuery() const;
@@ -294,6 +295,9 @@ private:
 
     mutable QSqlQuery   m_getNotebookCountQuery;
     mutable bool        m_getNotebookCountQueryPrepared;
+
+    mutable QSqlQuery   m_getUserCountQuery;
+    mutable bool        m_getUserCountQueryPrepared;
 };
 
 } // namespace qute_note

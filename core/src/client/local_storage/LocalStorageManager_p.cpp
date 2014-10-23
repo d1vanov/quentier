@@ -75,7 +75,9 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_expungeLinkedNotebookQuery(),
     m_expungeLinkedNotebookQueryPrepared(false),
     m_getNotebookCountQuery(),
-    m_getNotebookCountQueryPrepared(false)
+    m_getNotebookCountQueryPrepared(false),
+    m_getUserCountQuery(),
+    m_getUserCountQueryPrepared(false)
 {
     SwitchUser(username, userId, startFromScratch);
 }
@@ -394,8 +396,17 @@ void LocalStorageManagerPrivate::SwitchUser(const QString & username, const User
 
 int LocalStorageManagerPrivate::GetUserCount(QString & errorDescription) const
 {
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT COUNT(*) FROM Users WHERE userDeletionTimestamp IS NULL");
+    bool res = CheckAndPrepareGetUserCountQuery();
+    QSqlQuery & query = m_getUserCountQuery;
+    if (!res) {
+        errorDescription = QT_TR_NOOP("Internal error: can't get number of users: "
+                                      "can't prepare SQL query");
+        QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return -1;
+    }
+
+    res = query.exec();
     if (!res) {
         errorDescription = QT_TR_NOOP("Internal error: can't get number of users in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
@@ -3664,6 +3675,26 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, 
     }
 
     return true;
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareGetUserCountQuery() const
+{
+    if (!m_getUserCountQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to get the count of users");
+
+        m_getUserCountQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_getUserCountQuery.prepare("SELECT COUNT(*) FROM Users WHERE userDeletionTimestamp IS NULL");
+        if (res) {
+            m_getUserCountQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebook,
