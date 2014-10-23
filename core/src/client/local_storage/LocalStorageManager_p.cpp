@@ -4408,7 +4408,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceResource(const IResource & resou
         DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionTypes table: "
                                      "can't prepare SQL query");
 
-        query.addBindValue(resourceLocalGuid);
+        query.bindValue(":resourceLocalGuid", resourceLocalGuid);
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionTypes table");
@@ -4623,7 +4623,7 @@ bool LocalStorageManagerPrivate::CheckAndPrepareDeleteResourceFromResourceRecogn
 
         m_deleteResourceFromResourceRecognitionTypesQuery = QSqlQuery(m_sqlDatabase);
         bool res = m_deleteResourceFromResourceRecognitionTypesQuery.prepare("DELETE FROM ResourceRecognitionTypes "
-                                                                             "WHERE resourceLocalGuid = ?");
+                                                                             "WHERE resourceLocalGuid = :resourceLocalGuid");
         if (res) {
             m_deleteResourceFromResourceRecognitionTypesQueryPrepared = true;
         }
