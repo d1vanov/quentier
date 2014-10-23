@@ -62,6 +62,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getNoteCountQueryPrepared(false),
     m_insertOrReplaceNoteQuery(),
     m_insertOrReplaceNoteQueryPrepared(false),
+    m_expungeNoteFromNoteTagsQuery(),
+    m_expungeNoteFromNoteTagsQueryPrepared(false),
     m_getLinkedNotebookCountQuery(),
     m_getLinkedNotebookCountQueryPrepared(false),
     m_insertOrReplaceLinkedNotebookQuery(),
@@ -4088,10 +4090,16 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     }
 
     // Clear note-to-tag binding first, update them second
-    QString queryString = QString("DELETE From NoteTags WHERE localNote = '%1'").arg(localGuid);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't clear note's tags when updating note");
+    {
+        bool res = CheckAndPrepareExpungeNoteFromNoteTagsQuery();
+        QSqlQuery & query = m_expungeNoteFromNoteTagsQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't clear note's tags when updating note: can't prepare SQL query");
+
+        query.bindValue(":localNote", localGuid);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't clear note's tags when updating note");
+    }
 
     if (note.hasTagGuids())
     {
@@ -4100,6 +4108,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
         QStringList tagGuids;
         note.tagGuids(tagGuids);
         int numTagGuids = tagGuids.size();
+
+        QSqlQuery query(m_sqlDatabase);
 
         for(int i = 0; i < numTagGuids; ++i)
         {
@@ -4121,7 +4131,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
             QString columns = "localNote, note, localTag, tag, tagIndexInNote";
             QString values = ":localNote, :note, :localTag, :tag, :tagIndexInNote";
 
-            queryString = QString("INSERT OR REPLACE INTO NoteTags(%1) VALUES(%2)").arg(columns).arg(values);
+            QString queryString = QString("INSERT OR REPLACE INTO NoteTags(%1) VALUES(%2)").arg(columns).arg(values);
 
             res = query.prepare(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table: can't prepare SQL query");
@@ -4143,8 +4153,9 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
     // Clear note's resources first and insert new ones second
     // FIXME: it can be inefficient; need to figure out some partial update approach
 
-    queryString = QString("DELETE FROM Resources WHERE noteLocalGuid = '%1'").arg(localGuid);
-    res = query.exec(queryString);
+    QString queryString = QString("DELETE FROM Resources WHERE noteLocalGuid = '%1'").arg(localGuid);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't clear resources when updating note");
 
     if (note.hasResources())
@@ -4236,6 +4247,26 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNoteQuery()
         bool res = m_insertOrReplaceNoteQuery.prepare(queryString);
         if (res) {
             m_insertOrReplaceNoteQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeNoteFromNoteTagsQuery()
+{
+    if (!m_expungeNoteFromNoteTagsQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge note from NoteTags table");
+
+        m_expungeNoteFromNoteTagsQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeNoteFromNoteTagsQuery.prepare("DELETE From NoteTags WHERE localNote = :localNote");
+        if (res) {
+            m_expungeNoteFromNoteTagsQueryPrepared = true;
         }
 
         return res;
