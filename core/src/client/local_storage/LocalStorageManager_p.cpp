@@ -66,6 +66,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_expungeNoteFromNoteTagsQueryPrepared(false),
     m_insertOrReplaceNoteIntoNoteTagsQuery(),
     m_insertOrReplaceNoteIntoNoteTagsQueryPrepared(false),
+    m_expungeResourceByNoteQuery(),
+    m_expungeResourceByNoteQueryPrepared(false),
     m_getLinkedNotebookCountQuery(),
     m_getLinkedNotebookCountQueryPrepared(false),
     m_insertOrReplaceLinkedNotebookQuery(),
@@ -4149,11 +4151,17 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
 
     // Clear note's resources first and insert new ones second
     // FIXME: it can be inefficient; need to figure out some partial update approach
+    {
+        bool res = CheckAndPrepareExpungeResourcesByNoteQuery();
+        QSqlQuery & query = m_expungeResourceByNoteQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't clear resources when updating note: "
+                                     "can't prepare SQL query");
 
-    QString queryString = QString("DELETE FROM Resources WHERE noteLocalGuid = '%1'").arg(localGuid);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't clear resources when updating note");
+        query.bindValue(":noteLocalGuid", localGuid);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't clear resources when updating note");
+    }
 
     if (note.hasResources())
     {
@@ -4164,7 +4172,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
             const ResourceAdapter & resource = resources[i];
 
             QString error;
-            res = resource.checkParameters(error);
+            bool res = resource.checkParameters(error);
             if (!res) {
                 errorDescription += QT_TR_NOOP("found invalid resource linked with note: ");
                 errorDescription += error;
@@ -4286,6 +4294,26 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNoteIntoNoteTagsQ
                                                                   "VALUES(:localNote, :note, :localTag, :tag, :tagIndexInNote)");
         if (res) {
             m_insertOrReplaceNoteIntoNoteTagsQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeResourcesByNoteQuery()
+{
+    if (!m_expungeResourceByNoteQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge resource by note");
+
+        m_expungeResourceByNoteQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeResourceByNoteQuery.prepare("DELETE FROM Resources WHERE noteLocalGuid = :noteLocalGuid");
+        if (res) {
+            m_expungeResourceByNoteQueryPrepared = true;
         }
 
         return res;

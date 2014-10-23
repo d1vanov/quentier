@@ -135,6 +135,7 @@ private:
     bool CheckAndPrepareInsertOrReplaceNoteQuery();
     bool CheckAndPrepareExpungeNoteFromNoteTagsQuery();
     bool CheckAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery();
+    bool CheckAndPrepareExpungeResourcesByNoteQuery();
 
     bool InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid, QString & errorDescription);
     bool CheckAndPrepareGetTagCountQuery() const;
@@ -276,6 +277,9 @@ private:
 
     QSqlQuery           m_insertOrReplaceNoteIntoNoteTagsQuery;
     bool                m_insertOrReplaceNoteIntoNoteTagsQueryPrepared;
+
+    QSqlQuery           m_expungeResourceByNoteQuery;
+    bool                m_expungeResourceByNoteQueryPrepared;
 
     mutable QSqlQuery   m_getLinkedNotebookCountQuery;
     mutable bool        m_getLinkedNotebookCountQueryPrepared;
