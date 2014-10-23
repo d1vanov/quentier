@@ -122,7 +122,9 @@ private:
                                    QString & errorDescription);
     bool InsertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
                                        QString & errorDescription);
+
     bool InsertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalGuid, QString & errorDescription);
+    bool CheckAndPrepareGetNotebookCountQuery() const;
 
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool CheckAndPrepareGetLinkedNotebookCountQuery() const;
@@ -289,6 +291,9 @@ private:
 
     QSqlQuery           m_expungeLinkedNotebookQuery;
     bool                m_expungeLinkedNotebookQueryPrepared;
+
+    mutable QSqlQuery   m_getNotebookCountQuery;
+    mutable bool        m_getNotebookCountQueryPrepared;
 };
 
 } // namespace qute_note
