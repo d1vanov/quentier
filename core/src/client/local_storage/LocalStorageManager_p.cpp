@@ -60,6 +60,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_expungeTagQueryPrepared(false),
     m_getNoteCountQuery(),
     m_getNoteCountQueryPrepared(false),
+    m_getLinkedNotebookCountQuery(),
+    m_getLinkedNotebookCountQueryPrepared(false),
     m_insertOrReplaceLinkedNotebookQuery(),
     m_insertOrReplaceLinkedNotebookQueryPrepared(false)
 {
@@ -908,8 +910,17 @@ bool LocalStorageManagerPrivate::ExpungeNotebook(const Notebook & notebook, QStr
 
 int LocalStorageManagerPrivate::GetLinkedNotebookCount(QString & errorDescription) const
 {
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT COUNT(*) FROM LinkedNotebooks");
+    bool res = CheckAndPrepareGetLinkedNotebookCountQuery();
+    QSqlQuery & query = m_getLinkedNotebookCountQuery;
+    if (!res) {
+        errorDescription = QT_TR_NOOP("Internal error: can't get number of linked notebooks: "
+                                      "can't prepare SQL query");
+        QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return -1;
+    }
+
+    res = query.exec();
     if (!res) {
         errorDescription = QT_TR_NOOP("Internal error: can't get number of linked notebooks in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
@@ -3765,6 +3776,26 @@ bool LocalStorageManagerPrivate::InsertOrReplaceLinkedNotebook(const LinkedNoteb
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook into \"LinkedNotebooks\" table in SQL database");
 
     return true;
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareGetLinkedNotebookCountQuery() const
+{
+    if (!m_getLinkedNotebookCountQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to get the count of linked notebooks");
+
+        m_getLinkedNotebookCountQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_getLinkedNotebookCountQuery.prepare("SELECT COUNT(*) FROM LinkedNotebooks");
+        if (res) {
+            m_getLinkedNotebookCountQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceLinkedNotebookQuery()
