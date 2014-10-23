@@ -63,7 +63,9 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getLinkedNotebookCountQuery(),
     m_getLinkedNotebookCountQueryPrepared(false),
     m_insertOrReplaceLinkedNotebookQuery(),
-    m_insertOrReplaceLinkedNotebookQueryPrepared(false)
+    m_insertOrReplaceLinkedNotebookQueryPrepared(false),
+    m_expungeLinkedNotebookQuery(),
+    m_expungeLinkedNotebookQueryPrepared(false)
 {
     SwitchUser(username, userId, startFromScratch);
 }
@@ -1105,11 +1107,14 @@ bool LocalStorageManagerPrivate::ExpungeLinkedNotebook(const LinkedNotebook & li
         return false;
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("DELETE FROM LinkedNotebooks WHERE guid = ?");
-    query.addBindValue(QVariant(linkedNotebookGuid));
+    bool res = CheckAndPrepareExpungeLinkedNotebookQuery();
+    QSqlQuery & query = m_expungeLinkedNotebookQuery;
+    DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"LinkedNotebooks\" table: "
+                                 "can't prepare SQL query");
 
-    bool res = query.exec();
+    query.bindValue(":guid", linkedNotebookGuid);
+
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"LinkedNotebooks\" table in SQL database");
 
     return true;
@@ -3821,6 +3826,26 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceLinkedNotebookQue
                                                                 ":uri, :noteStoreUrl, :webApiUrlPrefix, :stack, :businessId, :isDirty)");
         if (res) {
             m_insertOrReplaceLinkedNotebookQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeLinkedNotebookQuery()
+{
+    if (!m_expungeLinkedNotebookQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge linked notebook");
+
+        m_expungeLinkedNotebookQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeLinkedNotebookQuery.prepare("DELETE FROM LinkedNotebooks WHERE guid = :guid");
+        if (res) {
+            m_expungeLinkedNotebookQueryPrepared = true;
         }
 
         return res;

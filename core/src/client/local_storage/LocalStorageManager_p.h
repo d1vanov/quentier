@@ -127,7 +127,7 @@ private:
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool CheckAndPrepareGetLinkedNotebookCountQuery() const;
     bool CheckAndPrepareInsertOrReplaceLinkedNotebookQuery();
-
+    bool CheckAndPrepareExpungeLinkedNotebookQuery();
 
     bool InsertOrReplaceNote(const Note & note, const Notebook & notebook,
                              const QString & overrideLocalGuid, QString & errorDescription);
@@ -270,6 +270,9 @@ private:
 
     QSqlQuery           m_insertOrReplaceLinkedNotebookQuery;
     bool                m_insertOrReplaceLinkedNotebookQueryPrepared;
+
+    QSqlQuery           m_expungeLinkedNotebookQuery;
+    bool                m_expungeLinkedNotebookQueryPrepared;
 };
 
 } // namespace qute_note
