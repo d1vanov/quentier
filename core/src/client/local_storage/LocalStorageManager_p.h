@@ -132,6 +132,7 @@ private:
     bool InsertOrReplaceNote(const Note & note, const Notebook & notebook,
                              const QString & overrideLocalGuid, QString & errorDescription);
     bool CheckAndPrepareGetNoteCountQuery() const;
+    bool CheckAndPrepareInsertOrReplaceNoteQuery();
 
     bool InsertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid, QString & errorDescription);
     bool CheckAndPrepareGetTagCountQuery() const;
@@ -264,6 +265,9 @@ private:
 
     mutable QSqlQuery   m_getNoteCountQuery;
     mutable bool        m_getNoteCountQueryPrepared;
+
+    QSqlQuery           m_insertOrReplaceNoteQuery;
+    bool                m_insertOrReplaceNoteQueryPrepared;
 
     mutable QSqlQuery   m_getLinkedNotebookCountQuery;
     mutable bool        m_getLinkedNotebookCountQueryPrepared;
