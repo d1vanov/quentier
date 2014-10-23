@@ -64,6 +64,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceNoteQueryPrepared(false),
     m_expungeNoteFromNoteTagsQuery(),
     m_expungeNoteFromNoteTagsQueryPrepared(false),
+    m_insertOrReplaceNoteIntoNoteTagsQuery(),
+    m_insertOrReplaceNoteIntoNoteTagsQueryPrepared(false),
     m_getLinkedNotebookCountQuery(),
     m_getLinkedNotebookCountQueryPrepared(false),
     m_insertOrReplaceLinkedNotebookQuery(),
@@ -4109,7 +4111,10 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
         note.tagGuids(tagGuids);
         int numTagGuids = tagGuids.size();
 
-        QSqlQuery query(m_sqlDatabase);
+        bool res = CheckAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery();
+        QSqlQuery & query = m_insertOrReplaceNoteIntoNoteTagsQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table: "
+                                     "can't prepare SQL query");
 
         for(int i = 0; i < numTagGuids; ++i)
         {
@@ -4127,14 +4132,6 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                 QNCRITICAL(errorDescription);
                 return false;
             }
-
-            QString columns = "localNote, note, localTag, tag, tagIndexInNote";
-            QString values = ":localNote, :note, :localTag, :tag, :tagIndexInNote";
-
-            QString queryString = QString("INSERT OR REPLACE INTO NoteTags(%1) VALUES(%2)").arg(columns).arg(values);
-
-            res = query.prepare(queryString);
-            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table: can't prepare SQL query");
 
             query.bindValue(":localNote", localGuid);
             query.bindValue(":note", (note.hasGuid() ? note.guid() : nullValue));
@@ -4267,6 +4264,28 @@ bool LocalStorageManagerPrivate::CheckAndPrepareExpungeNoteFromNoteTagsQuery()
         bool res = m_expungeNoteFromNoteTagsQuery.prepare("DELETE From NoteTags WHERE localNote = :localNote");
         if (res) {
             m_expungeNoteFromNoteTagsQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery()
+{
+    if (!m_insertOrReplaceNoteIntoNoteTagsQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace note into NoteTags table");
+
+        m_insertOrReplaceNoteIntoNoteTagsQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceNoteIntoNoteTagsQuery.prepare("INSERT OR REPLACE INTO NoteTags"
+                                                                  "(localNote, note, localTag, tag, tagIndexInNote) "
+                                                                  "VALUES(:localNote, :note, :localTag, :tag, :tagIndexInNote)");
+        if (res) {
+            m_insertOrReplaceNoteIntoNoteTagsQueryPrepared = true;
         }
 
         return res;
