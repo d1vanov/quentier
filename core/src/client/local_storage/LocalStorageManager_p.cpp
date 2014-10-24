@@ -78,6 +78,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getNotebookCountQueryPrepared(false),
     m_insertOrReplaceNotebookQuery(),
     m_insertOrReplaceNotebookQueryPrepared(false),
+    m_expungeNotebookFromNotebookRestrictionsQuery(),
+    m_expungeNotebookFromNotebookRestrictionsQueryPrepared(false),
     m_getUserCountQuery(),
     m_getUserCountQueryPrepared(false)
 {
@@ -3758,9 +3760,14 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
     }
     else
     {
-        QString queryString = QString("DELETE FROM NotebookRestrictions WHERE localGuid = '%1'").arg(localGuid);
-        QSqlQuery query(m_sqlDatabase);
-        bool res = query.exec(queryString);
+        bool res = CheckAndPrepareExpungeNotebookFromNotebookRestrictionsQuery();
+        QSqlQuery & query = m_expungeNotebookFromNotebookRestrictionsQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't clear notebook restrictions when updating notebook: "
+                                     "can't prepare SQL query");
+
+        query.bindValue(":localGuid", localGuid);
+
+        res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't clear notebook restrictions when updating notebook");
     }
 
@@ -3835,6 +3842,26 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNotebookQuery()
                                                           ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId)");
         if (res) {
             m_insertOrReplaceNotebookQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeNotebookFromNotebookRestrictionsQuery()
+{
+    if (!m_expungeNotebookFromNotebookRestrictionsQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge notebook from notebook restrictions table");
+
+        m_expungeNotebookFromNotebookRestrictionsQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeNotebookFromNotebookRestrictionsQuery.prepare("DELETE FROM NotebookRestrictions WHERE localGuid = :localGuid");
+        if (res) {
+            m_expungeNotebookFromNotebookRestrictionsQueryPrepared = true;
         }
 
         return res;

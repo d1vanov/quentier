@@ -127,6 +127,7 @@ private:
     bool InsertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalGuid, QString & errorDescription);
     bool CheckAndPrepareGetNotebookCountQuery() const;
     bool CheckAndPrepareInsertOrReplaceNotebookQuery();
+    bool CheckAndPrepareExpungeNotebookFromNotebookRestrictionsQuery();
 
     bool InsertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool CheckAndPrepareGetLinkedNotebookCountQuery() const;
@@ -299,6 +300,9 @@ private:
 
     QSqlQuery           m_insertOrReplaceNotebookQuery;
     bool                m_insertOrReplaceNotebookQueryPrepared;
+
+    QSqlQuery           m_expungeNotebookFromNotebookRestrictionsQuery;
+    bool                m_expungeNotebookFromNotebookRestrictionsQueryPrepared;
 
     mutable QSqlQuery   m_getUserCountQuery;
     mutable bool        m_getUserCountQueryPrepared;
