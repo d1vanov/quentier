@@ -76,6 +76,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_expungeLinkedNotebookQueryPrepared(false),
     m_getNotebookCountQuery(),
     m_getNotebookCountQueryPrepared(false),
+    m_insertOrReplaceNotebookQuery(),
+    m_insertOrReplaceNotebookQueryPrepared(false),
     m_getUserCountQuery(),
     m_getUserCountQueryPrepared(false)
 {
@@ -3706,60 +3708,49 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
 
     errorDescription = QT_TR_NOOP("Can't insert or replace notebook into local storage database: ");
 
-    QString columns = "localGuid, guid, updateSequenceNumber, notebookName, creationTimestamp, "
-                      "modificationTimestamp, isDirty, isLocal, isSynchronizable, isDefault, isLastUsed, "
-                      "hasShortcut, publishingUri, publishingNoteSortOrder, publishingAscendingSort, "
-                      "publicDescription, isPublished, stack, businessNotebookDescription, "
-                      "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, contactId";
-
-    QString values = ":localGuid, :guid, :updateSequenceNumber, :notebookName, :creationTimestamp, "
-                     ":modificationTimestamp, :isDirty, :isLocal, :isSynchronizable, :isDefault, :isLastUsed, "
-                     ":hasShortcut, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
-                     ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
-                     ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId";
-
     Transaction transaction(m_sqlDatabase, *this, Transaction::Exclusive);
 
-    QString queryString = QString("INSERT OR REPLACE INTO Notebooks(%1) VALUES(%2)").arg(columns).arg(values);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Notebooks\" table of SQL database: "
-                                 "can't prepare SQL query");
-
     QString localGuid = (overrideLocalGuid.isEmpty() ? notebook.localGuid() : overrideLocalGuid);
-
     QVariant nullValue;
 
-    query.bindValue(":localGuid", localGuid);
-    query.bindValue(":guid", (notebook.hasGuid() ? notebook.guid() : nullValue));
-    query.bindValue(":updateSequenceNumber", (notebook.hasUpdateSequenceNumber() ? notebook.updateSequenceNumber() : nullValue));
-    query.bindValue(":notebookName", (notebook.hasName() ? notebook.name() : nullValue));
-    query.bindValue(":creationTimestamp", (notebook.hasCreationTimestamp() ? notebook.creationTimestamp() : nullValue));
-    query.bindValue(":modificationTimestamp", (notebook.hasModificationTimestamp() ? notebook.modificationTimestamp() : nullValue));
-    query.bindValue(":isDirty", (notebook.isDirty() ? 1 : 0));
-    query.bindValue(":isLocal", (notebook.isLocal() ? 1 : 0));
-    query.bindValue(":isSynchronizable", (notebook.isSynchronizable() ? 1 : 0));
-    query.bindValue(":isDefault", (notebook.isDefaultNotebook() ? 1 : nullValue));
-    query.bindValue(":isLastUsed", (notebook.isLastUsed() ? 1 : nullValue));
-    query.bindValue(":hasShortcut", (notebook.hasShortcut() ? 1 : 0));
-    query.bindValue(":publishingUri", (notebook.hasPublishingUri() ? notebook.publishingUri() : nullValue));
-    query.bindValue(":publishingNoteSortOrder", (notebook.hasPublishingOrder() ? notebook.publishingOrder() : nullValue));
-    query.bindValue(":publishingAscendingSort", (notebook.hasPublishingAscending() ? (notebook.isPublishingAscending() ? 1 : 0) : nullValue));
-    query.bindValue(":publicDescription", (notebook.hasPublishingPublicDescription() ? notebook.publishingPublicDescription() : nullValue));
-    query.bindValue(":isPublished", (notebook.hasPublished() ? (notebook.isPublished() ? 1 : 0) : nullValue));
-    query.bindValue(":stack", (notebook.hasStack() ? notebook.stack() : nullValue));
-    query.bindValue(":businessNotebookDescription", (notebook.hasBusinessNotebookDescription() ? notebook.businessNotebookDescription() : nullValue));
-    query.bindValue(":businessNotebookPrivilegeLevel", (notebook.hasBusinessNotebookPrivilegeLevel() ? notebook.businessNotebookPrivilegeLevel() : nullValue));
-    query.bindValue(":businessNotebookIsRecommended", (notebook.hasBusinessNotebookRecommended() ? (notebook.isBusinessNotebookRecommended() ? 1 : 0) : nullValue));
-    query.bindValue(":contactId", (notebook.hasContact() && notebook.contact().hasId() ? notebook.contact().id() : nullValue));
+    // Insert or replace common Notebook data
+    {
+        bool res = CheckAndPrepareInsertOrReplaceNotebookQuery();
+        QSqlQuery & query = m_insertOrReplaceNotebookQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Notebooks\" table of SQL database: "
+                                     "can't prepare SQL query");
 
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Notebooks\" table in SQL database");
+        query.bindValue(":localGuid", localGuid);
+        query.bindValue(":guid", (notebook.hasGuid() ? notebook.guid() : nullValue));
+        query.bindValue(":updateSequenceNumber", (notebook.hasUpdateSequenceNumber() ? notebook.updateSequenceNumber() : nullValue));
+        query.bindValue(":notebookName", (notebook.hasName() ? notebook.name() : nullValue));
+        query.bindValue(":creationTimestamp", (notebook.hasCreationTimestamp() ? notebook.creationTimestamp() : nullValue));
+        query.bindValue(":modificationTimestamp", (notebook.hasModificationTimestamp() ? notebook.modificationTimestamp() : nullValue));
+        query.bindValue(":isDirty", (notebook.isDirty() ? 1 : 0));
+        query.bindValue(":isLocal", (notebook.isLocal() ? 1 : 0));
+        query.bindValue(":isSynchronizable", (notebook.isSynchronizable() ? 1 : 0));
+        query.bindValue(":isDefault", (notebook.isDefaultNotebook() ? 1 : nullValue));
+        query.bindValue(":isLastUsed", (notebook.isLastUsed() ? 1 : nullValue));
+        query.bindValue(":hasShortcut", (notebook.hasShortcut() ? 1 : 0));
+        query.bindValue(":publishingUri", (notebook.hasPublishingUri() ? notebook.publishingUri() : nullValue));
+        query.bindValue(":publishingNoteSortOrder", (notebook.hasPublishingOrder() ? notebook.publishingOrder() : nullValue));
+        query.bindValue(":publishingAscendingSort", (notebook.hasPublishingAscending() ? (notebook.isPublishingAscending() ? 1 : 0) : nullValue));
+        query.bindValue(":publicDescription", (notebook.hasPublishingPublicDescription() ? notebook.publishingPublicDescription() : nullValue));
+        query.bindValue(":isPublished", (notebook.hasPublished() ? (notebook.isPublished() ? 1 : 0) : nullValue));
+        query.bindValue(":stack", (notebook.hasStack() ? notebook.stack() : nullValue));
+        query.bindValue(":businessNotebookDescription", (notebook.hasBusinessNotebookDescription() ? notebook.businessNotebookDescription() : nullValue));
+        query.bindValue(":businessNotebookPrivilegeLevel", (notebook.hasBusinessNotebookPrivilegeLevel() ? notebook.businessNotebookPrivilegeLevel() : nullValue));
+        query.bindValue(":businessNotebookIsRecommended", (notebook.hasBusinessNotebookRecommended() ? (notebook.isBusinessNotebookRecommended() ? 1 : 0) : nullValue));
+        query.bindValue(":contactId", (notebook.hasContact() && notebook.contact().hasId() ? notebook.contact().id() : nullValue));
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Notebooks\" table in SQL database");
+    }
 
     if (notebook.hasRestrictions())
     {
         QString error;
-        res = InsertOrReplaceNotebookRestrictions(notebook.restrictions(), localGuid, error);
+        bool res = InsertOrReplaceNotebookRestrictions(notebook.restrictions(), localGuid, error);
         if (!res) {
             errorDescription += error;
             return res;
@@ -3767,15 +3758,17 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
     }
     else
     {
-        queryString = QString("DELETE FROM NotebookRestrictions WHERE localGuid = '%1'").arg(localGuid);
-        res = query.exec(queryString);
+        QString queryString = QString("DELETE FROM NotebookRestrictions WHERE localGuid = '%1'").arg(localGuid);
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't clear notebook restrictions when updating notebook");
     }
 
     if (notebook.hasGuid())
     {
-        queryString = QString("DELETE FROM SharedNotebooks WHERE notebookGuid = '%1'").arg(notebook.guid());
-        res = query.exec(queryString);
+        QString queryString = QString("DELETE FROM SharedNotebooks WHERE notebookGuid = '%1'").arg(notebook.guid());
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't clear shared notebooks before the insertion");
 
         QList<SharedNotebookAdapter> sharedNotebooks = notebook.sharedNotebooks();
@@ -3808,6 +3801,40 @@ bool LocalStorageManagerPrivate::CheckAndPrepareGetNotebookCountQuery() const
         bool res = m_getNotebookCountQuery.prepare("SELECT COUNT(*) FROM Notebooks");
         if (res) {
             m_getNotebookCountQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNotebookQuery()
+{
+    if (!m_insertOrReplaceNotebookQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace notebook");
+
+        m_insertOrReplaceNotebookQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceNotebookQuery.prepare("INSERT OR REPLACE INTO Notebooks"
+                                                          "(localGuid, guid, updateSequenceNumber, "
+                                                          "notebookName, creationTimestamp, "
+                                                          "modificationTimestamp, isDirty, isLocal, "
+                                                          "isSynchronizable, isDefault, isLastUsed, "
+                                                          "hasShortcut, publishingUri, publishingNoteSortOrder, "
+                                                          "publishingAscendingSort, publicDescription, "
+                                                          "isPublished, stack, businessNotebookDescription, "
+                                                          "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, "
+                                                          "contactId) "
+                                                          "VALUES(:localGuid, :guid, :updateSequenceNumber, :notebookName, :creationTimestamp, "
+                                                          ":modificationTimestamp, :isDirty, :isLocal, :isSynchronizable, :isDefault, :isLastUsed, "
+                                                          ":hasShortcut, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
+                                                          ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
+                                                          ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId)");
+        if (res) {
+            m_insertOrReplaceNotebookQueryPrepared = true;
         }
 
         return res;
