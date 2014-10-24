@@ -80,6 +80,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceNotebookQueryPrepared(false),
     m_expungeNotebookFromNotebookRestrictionsQuery(),
     m_expungeNotebookFromNotebookRestrictionsQueryPrepared(false),
+    m_insertOrReplaceNotebookRestrictionsQuery(),
+    m_insertOrReplaceNotebookRestrictionsQueryPrepared(false),
     m_getUserCountQuery(),
     m_getUserCountQueryPrepared(false)
 {
@@ -3203,25 +3205,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebookRestrictions(const qever
 {
     errorDescription = QT_TR_NOOP("Can't insert or replace notebook restrictions: ");
 
-    QString columns = "localGuid, noReadNotes, noCreateNotes, noUpdateNotes, "
-                      "noExpungeNotes, noShareNotes, noEmailNotes, noSendMessageToRecipients, "
-                      "noUpdateNotebook, noExpungeNotebook, noSetDefaultNotebook, "
-                      "noSetNotebookStack, noPublishToPublic, noPublishToBusinessLibrary, "
-                      "noCreateTags, noUpdateTags, noExpungeTags, noSetParentTag, "
-                      "noCreateSharedNotebooks, updateWhichSharedNotebookRestrictions, "
-                      "expungeWhichSharedNotebookRestrictions";
-
-    QString values = ":localGuid, :noReadNotes, :noCreateNotes, :noUpdateNotes, "
-                     ":noExpungeNotes, :noShareNotes, :noEmailNotes, :noSendMessageToRecipients, "
-                     ":noUpdateNotebook, :noExpungeNotebook, :noSetDefaultNotebook, "
-                     ":noSetNotebookStack, :noPublishToPublic, :noPublishToBusinessLibrary, "
-                     ":noCreateTags, :noUpdateTags, :noExpungeTags, :noSetParentTag, "
-                     ":noCreateSharedNotebooks, :updateWhichSharedNotebookRestrictions, "
-                     ":expungeWhichSharedNotebookRestrictions";
-
-    QString queryString = QString("INSERT OR REPLACE INTO NotebookRestrictions(%1) VALUES(%2)").arg(columns).arg(values);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare(queryString);
+    bool res = CheckAndPrepareInsertOrReplaceNotebookRestrictionsQuery();
+    QSqlQuery & query = m_insertOrReplaceNotebookRestrictionsQuery;
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NotebookRestrictions\" table in SQL database: "
                                  "can't prepare SQL query");
 
@@ -3862,6 +3847,40 @@ bool LocalStorageManagerPrivate::CheckAndPrepareExpungeNotebookFromNotebookRestr
         bool res = m_expungeNotebookFromNotebookRestrictionsQuery.prepare("DELETE FROM NotebookRestrictions WHERE localGuid = :localGuid");
         if (res) {
             m_expungeNotebookFromNotebookRestrictionsQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNotebookRestrictionsQuery()
+{
+    if (!m_insertOrReplaceNotebookRestrictionsQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace notebook restrictions");
+
+        m_insertOrReplaceNotebookRestrictionsQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceNotebookRestrictionsQuery.prepare("INSERT OR REPLACE INTO NotebookRestrictions"
+                                                                      "(localGuid, noReadNotes, noCreateNotes, noUpdateNotes, "
+                                                                      "noExpungeNotes, noShareNotes, noEmailNotes, noSendMessageToRecipients, "
+                                                                      "noUpdateNotebook, noExpungeNotebook, noSetDefaultNotebook, "
+                                                                      "noSetNotebookStack, noPublishToPublic, noPublishToBusinessLibrary, "
+                                                                      "noCreateTags, noUpdateTags, noExpungeTags, noSetParentTag, "
+                                                                      "noCreateSharedNotebooks, updateWhichSharedNotebookRestrictions, "
+                                                                      "expungeWhichSharedNotebookRestrictions) "
+                                                                      "VALUES(:localGuid, :noReadNotes, :noCreateNotes, :noUpdateNotes, "
+                                                                      ":noExpungeNotes, :noShareNotes, :noEmailNotes, :noSendMessageToRecipients, "
+                                                                      ":noUpdateNotebook, :noExpungeNotebook, :noSetDefaultNotebook, "
+                                                                      ":noSetNotebookStack, :noPublishToPublic, :noPublishToBusinessLibrary, "
+                                                                      ":noCreateTags, :noUpdateTags, :noExpungeTags, :noSetParentTag, "
+                                                                      ":noCreateSharedNotebooks, :updateWhichSharedNotebookRestrictions, "
+                                                                      ":expungeWhichSharedNotebookRestrictions)");
+        if (res) {
+            m_insertOrReplaceNotebookRestrictionsQueryPrepared = true;
         }
 
         return res;
