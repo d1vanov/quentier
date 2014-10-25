@@ -489,7 +489,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
         if (i != (numNotes-1))
         {
-            size_t k = 0;
+            int k = 0;
             while( ((i+k) < numTags) && (k < 3) ) {
                 note.addTagGuid(tags[i+k].guid());
                 ++k;

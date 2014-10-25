@@ -985,7 +985,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         QList<Tag> foundTags = localStorageManager.ListAllTagsPerNote(note, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
-        size_t numFoundTags = foundTags.size();
+        int numFoundTags = foundTags.size();
         if (numFoundTags != numTags) {
             QFAIL(qPrintable("Error: number of tags in the result of LocalStorageManager::ListAllTagsPerNote (" +
                              QString::number(numFoundTags) + ") does not match the original number of added tags (" +
