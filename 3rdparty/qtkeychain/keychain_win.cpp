@@ -55,7 +55,7 @@ void ReadPasswordJobPrivate::scheduledStart() {
 void WritePasswordJobPrivate::scheduledStart() {
     if ( mode == Delete ) {
         //Use settings member if there, create local settings object if not
-        std::auto_ptr<QSettings> local( !q->settings() ? new QSettings( q->service() ) : 0 );
+        std::unique_ptr<QSettings> local( !q->settings() ? new QSettings( q->service() ) : 0 );
         QSettings* actual = q->settings() ? q->settings() : local.get();
         actual->remove( key );
         actual->sync();
@@ -90,7 +90,7 @@ void WritePasswordJobPrivate::scheduledStart() {
     LocalFree( blob_out.pbData );
 
     //Use settings member if there, create local settings object if not
-    std::auto_ptr<QSettings> local( !q->settings() ? new QSettings( q->service() ) : 0 );
+    std::unique_ptr<QSettings> local( !q->settings() ? new QSettings( q->service() ) : 0 );
     QSettings* actual = q->settings() ? q->settings() : local.get();
     actual->setValue( key, encrypted );
     actual->sync();
