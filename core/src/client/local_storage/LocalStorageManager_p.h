@@ -123,6 +123,7 @@ private:
     bool InsertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
                                        QString & errorDescription);
     bool CheckAndPrepareGetUserCountQuery() const;
+    bool CheckAndPrepareExpungeUserQuery();
 
     bool InsertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalGuid, QString & errorDescription);
     bool CheckAndPrepareGetNotebookCountQuery() const;
@@ -310,14 +311,17 @@ private:
     QSqlQuery           m_insertOrReplaceNotebookRestrictionsQuery;
     bool                m_insertOrReplaceNotebookRestrictionsQueryPrepared;
 
-    QSqlQuery		m_expungeSharedNotebooksQuery;
-    bool		m_expungeSharedNotebooksQueryPrepared;
+    QSqlQuery		    m_expungeSharedNotebooksQuery;
+    bool		        m_expungeSharedNotebooksQueryPrepared;
 
-    QSqlQuery		m_insertOrReplaceSharedNotebookQuery;
-    bool		m_insertOrReplaceSharedNotebookQueryPrepared;
+    QSqlQuery		    m_insertOrReplaceSharedNotebookQuery;
+    bool		        m_insertOrReplaceSharedNotebookQueryPrepared;
 
     mutable QSqlQuery   m_getUserCountQuery;
     mutable bool        m_getUserCountQueryPrepared;
+
+    QSqlQuery           m_expungeUserQuery;
+    bool                m_expungeUserQueryPrepared;
 };
 
 } // namespace qute_note

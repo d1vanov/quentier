@@ -87,7 +87,9 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceSharedNotebookQuery(),
     m_insertOrReplaceSharedNotebookQueryPrepared(false),
     m_getUserCountQuery(),
-    m_getUserCountQueryPrepared(false)
+    m_getUserCountQueryPrepared(false),
+    m_expungeUserQuery(),
+    m_expungeUserQueryPrepared(false)
 {
     SwitchUser(username, userId, startFromScratch);
 }
@@ -263,11 +265,13 @@ bool LocalStorageManagerPrivate::ExpungeUser(const IUser & user, QString & error
         return false;
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("DELETE FROM Users WHERE id = ?");
-    query.addBindValue(QString::number(user.id()));
+    bool res = CheckAndPrepareExpungeUserQuery();
+    QSqlQuery & query = m_expungeUserQuery;
+    DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Users\" table in SQL database: can't prepare SQL query");
 
-    bool res = query.exec();
+    query.bindValue(":id", user.id());
+
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Users\" table in SQL database");
 
     return true;
@@ -3669,6 +3673,26 @@ bool LocalStorageManagerPrivate::CheckAndPrepareGetUserCountQuery() const
         bool res = m_getUserCountQuery.prepare("SELECT COUNT(*) FROM Users WHERE userDeletionTimestamp IS NULL");
         if (res) {
             m_getUserCountQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeUserQuery()
+{
+    if (!m_expungeUserQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge user");
+
+        m_expungeUserQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeUserQuery.prepare("DELETE FROM Users WHERE id = :id");
+        if (res) {
+            m_expungeUserQueryPrepared = true;
         }
 
         return res;
