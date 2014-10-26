@@ -88,6 +88,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceSharedNotebookQueryPrepared(false),
     m_getUserCountQuery(),
     m_getUserCountQueryPrepared(false),
+    m_insertOrReplaceUserQuery(),
+    m_insertOrReplaceUserQueryPrepared(false),
     m_deleteUserQuery(),
     m_deleteUserQueryPrepared(false),
     m_expungeUserQuery(),
@@ -3326,50 +3328,48 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
 
     errorDescription += QT_TR_NOOP("Can't insert or replace User into local storage database: ");
 
-    QString columns = "id, username, email, name, timezone, privilege, userCreationTimestamp, "
-                      "userModificationTimestamp, userIsDirty, userIsLocal, userIsActive, userDeletionTimestamp";
-    QString values = ":id, :username, :email, :name, :timezone, :privilege, :userCreationTimestamp, "
-                     ":userModificationTimestamp, :userIsDirty, :userIsLocal, :userIsActive, :userDeletionTimestamp";
-
     Transaction transaction(m_sqlDatabase, *this, Transaction::Exclusive);
 
-    QString queryString = QString("INSERT OR REPLACE INTO Users(%1) VALUES(%2)").arg(columns).arg(values);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Users\" table in SQL database: "
-                                 "can't prepare SQL query");
-
     QString userId = QString::number(user.id());
-
     QVariant nullValue;
 
-    query.bindValue(":id", user.id());
-    query.bindValue(":username", (user.hasUsername() ? user.username() : nullValue));
-    query.bindValue(":email", (user.hasEmail() ? user.email() : nullValue));
-    query.bindValue(":name", (user.hasName() ? user.name() : nullValue));
-    query.bindValue(":timezone", (user.hasTimezone() ? user.timezone() : nullValue));
-    query.bindValue(":privilege", (user.hasPrivilegeLevel() ? user.privilegeLevel() : nullValue));
-    query.bindValue(":userCreationTimestamp", (user.hasCreationTimestamp() ? user.creationTimestamp() : nullValue));
-    query.bindValue(":userModificationTimestamp", (user.hasModificationTimestamp() ? user.modificationTimestamp() : nullValue));
-    query.bindValue(":userIsDirty", (user.isDirty() ? 1 : 0));
-    query.bindValue(":userIsLocal", (user.isLocal() ? 1 : 0));
-    query.bindValue(":userIsActive", (user.hasActive() ? (user.active() ? 1 : 0) : nullValue));
-    query.bindValue(":userDeletionTimestamp", (user.hasDeletionTimestamp() ? user.deletionTimestamp() : nullValue));
+    // Insert or replace common user data
+    {
+        bool res = CheckAndPrepareInsertOrReplaceUserQuery();
+        QSqlQuery & query = m_insertOrReplaceUserQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Users\" table in SQL database: "
+                                     "can't prepare SQL query");
 
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Users\" table in SQL database");
+        query.bindValue(":id", userId);
+        query.bindValue(":username", (user.hasUsername() ? user.username() : nullValue));
+        query.bindValue(":email", (user.hasEmail() ? user.email() : nullValue));
+        query.bindValue(":name", (user.hasName() ? user.name() : nullValue));
+        query.bindValue(":timezone", (user.hasTimezone() ? user.timezone() : nullValue));
+        query.bindValue(":privilege", (user.hasPrivilegeLevel() ? user.privilegeLevel() : nullValue));
+        query.bindValue(":userCreationTimestamp", (user.hasCreationTimestamp() ? user.creationTimestamp() : nullValue));
+        query.bindValue(":userModificationTimestamp", (user.hasModificationTimestamp() ? user.modificationTimestamp() : nullValue));
+        query.bindValue(":userIsDirty", (user.isDirty() ? 1 : 0));
+        query.bindValue(":userIsLocal", (user.isLocal() ? 1 : 0));
+        query.bindValue(":userIsActive", (user.hasActive() ? (user.active() ? 1 : 0) : nullValue));
+        query.bindValue(":userDeletionTimestamp", (user.hasDeletionTimestamp() ? user.deletionTimestamp() : nullValue));
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Users\" table in SQL database");
+    }
 
     if (user.hasUserAttributes())
     {
-        res = InsertOrReplaceUserAttributes(user.id(), user.userAttributes(), errorDescription);   
+        bool res = InsertOrReplaceUserAttributes(user.id(), user.userAttributes(), errorDescription);
         if (!res) {
             return false;
         }
     }
     else
     {
-        queryString = QString("DELETE FROM UserAttributes WHERE id = %1").arg(userId);
-        res = query.exec(queryString);
+        QSqlQuery query(m_sqlDatabase);
+
+        QString queryString = QString("DELETE FROM UserAttributes WHERE id = %1").arg(userId);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributes when updating user");
 
         queryString = QString("DELETE FROM UserAttributesViewedPromotions WHERE id = %1").arg(userId);
@@ -3383,43 +3383,49 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
 
     if (user.hasAccounting())
     {
-        res = InsertOrReplaceAccounting(user.id(), user.accounting(), errorDescription);
+        bool res = InsertOrReplaceAccounting(user.id(), user.accounting(), errorDescription);
         if (!res) {
             return false;
         }
     }
     else
     {
-        queryString = QString("DELETE FROM Accounting WHERE id = %1").arg(userId);
-        res = query.exec(queryString);
+        QSqlQuery query(m_sqlDatabase);
+
+        QString queryString = QString("DELETE FROM Accounting WHERE id = %1").arg(userId);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't clear Accounting when updating user");
     }
 
     if (user.hasPremiumInfo())
     {
-        res = InsertOrReplacePremiumInfo(user.id(), user.premiumInfo(), errorDescription);
+        bool res = InsertOrReplacePremiumInfo(user.id(), user.premiumInfo(), errorDescription);
         if (!res) {
             return false;
         }
     }
     else
     {
-        queryString = QString("DELETE FROM PremiumInfo WHERE id = %1").arg(userId);
-        res = query.exec(queryString);
+        QSqlQuery query(m_sqlDatabase);
+
+        QString queryString = QString("DELETE FROM PremiumInfo WHERE id = %1").arg(userId);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't clear PremiumInfo when updating user");
     }
 
     if (user.hasBusinessUserInfo())
     {
-        res = InsertOrReplaceBusinesUserInfo(user.id(), user.businessUserInfo(), errorDescription);
+        bool res = InsertOrReplaceBusinesUserInfo(user.id(), user.businessUserInfo(), errorDescription);
         if (!res) {
             return false;
         }
     }
     else
     {
-        queryString = QString("DELETE FROM BusinessUserInfo WHERE id = %1").arg(userId);
-        res = query.exec(queryString);
+        QSqlQuery query(m_sqlDatabase);
+
+        QString queryString = QString("DELETE FROM BusinessUserInfo WHERE id = %1").arg(userId);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't clear BusinesUserInfo when updating user");
     }
 
@@ -3678,6 +3684,34 @@ bool LocalStorageManagerPrivate::CheckAndPrepareGetUserCountQuery() const
         bool res = m_getUserCountQuery.prepare("SELECT COUNT(*) FROM Users WHERE userDeletionTimestamp IS NULL");
         if (res) {
             m_getUserCountQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceUserQuery()
+{
+    if (!m_insertOrReplaceUserQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace user");
+
+        m_insertOrReplaceUserQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceUserQuery.prepare("INSERT OR REPLACE INTO Users"
+                                                      "(id, username, email, name, timezone, "
+                                                      "privilege, userCreationTimestamp, "
+                                                      "userModificationTimestamp, userIsDirty, "
+                                                      "userIsLocal, userIsActive, userDeletionTimestamp)"
+                                                      "VALUES(:id, :username, :email, :name, :timezone, "
+                                                      ":privilege, :userCreationTimestamp, "
+                                                      ":userModificationTimestamp, :userIsDirty, "
+                                                      ":userIsLocal, :userIsActive, :userDeletionTimestamp)");
+        if (res) {
+            m_insertOrReplaceUserQueryPrepared = true;
         }
 
         return res;
