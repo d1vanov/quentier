@@ -94,6 +94,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceUserAttributesQueryPrepared(false),
     m_expungeUserAttributesViewedPromotionsQuery(),
     m_expungeUserAttributesViewedPromotionsQueryPrepared(false),
+    m_insertOrReplaceUserAttributesViewedPromotionsQuery(),
+    m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared(false),
     m_deleteUserQuery(),
     m_deleteUserQueryPrepared(false),
     m_expungeUserQuery(),
@@ -3654,11 +3656,16 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, 
 
     if (attributes.viewedPromotions.isSet())
     {
-        QSqlQuery query(m_sqlDatabase);
+        bool res = CheckAndPrepareInsertOrReplaceUserAttributesViewedPromotionsQuery();
+        QSqlQuery & query = m_insertOrReplaceUserAttributesViewedPromotionsQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" "
+                                     "table in SQL database: can't prepare SQL query");
+
+        query.bindValue(":id", id);
+
         foreach(const QString & promotion, attributes.viewedPromotions.ref()) {
-            QString queryString = QString("INSERT OR REPLACE INTO UserAttributesViewedPromotions (id, promotion) VALUES('%1', '%2')")
-                                          .arg(id).arg(promotion);
-            bool res = query.exec(queryString);
+            query.bindValue(":promotion", promotion);
+            res = query.exec();
             DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" table in SQL database");
         }
     }
@@ -3786,6 +3793,27 @@ bool LocalStorageManagerPrivate::CheckAndPrepareExpungeUserAttributesViewedPromo
         bool res = m_expungeUserAttributesViewedPromotionsQuery.prepare("DELETE FROM UserAttributesViewedPromotions WHERE id = :id");
         if (res) {
             m_expungeUserAttributesViewedPromotionsQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceUserAttributesViewedPromotionsQuery()
+{
+    if (!m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace user attributes viewed promotions");
+
+        m_insertOrReplaceUserAttributesViewedPromotionsQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceUserAttributesViewedPromotionsQuery.prepare("INSERT OR REPLACE INTO UserAttributesViewedPromotions"
+                                                                                "(id, promotion) VALUES(:id, :promotion)");
+        if (res) {
+            m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared = true;
         }
 
         return res;

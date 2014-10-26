@@ -126,6 +126,7 @@ private:
     bool CheckAndPrepareInsertOrReplaceUserQuery();
     bool CheckAndPrepareInsertOrReplaceUserAttributesQuery();
     bool CheckAndPrepareExpungeUserAttributesViewedPromotionsQuery();
+    bool CheckAndPrepareInsertOrReplaceUserAttributesViewedPromotionsQuery();
     bool CheckAndPrepareDeleteUserQuery();
     bool CheckAndPrepareExpungeUserQuery();
 
@@ -332,6 +333,9 @@ private:
 
     QSqlQuery           m_expungeUserAttributesViewedPromotionsQuery;
     bool                m_expungeUserAttributesViewedPromotionsQueryPrepared;
+
+    QSqlQuery           m_insertOrReplaceUserAttributesViewedPromotionsQuery;
+    bool                m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared;
 
     QSqlQuery           m_deleteUserQuery;
     bool                m_deleteUserQueryPrepared;
