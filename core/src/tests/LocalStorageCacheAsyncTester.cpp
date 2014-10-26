@@ -691,7 +691,7 @@ void LocalStorageCacheAsyncTester::addNotebook()
 {
     m_currentNotebook = Notebook();
 
-    m_currentNotebook.setUpdateSequenceNumber(m_addedNotebooksCount + 1);
+    m_currentNotebook.setUpdateSequenceNumber(static_cast<qint32>(m_addedNotebooksCount + 1));
     m_currentNotebook.setName("Fake notebook #" + QString::number(m_addedNotebooksCount + 1));
     m_currentNotebook.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
     m_currentNotebook.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
@@ -715,7 +715,7 @@ void LocalStorageCacheAsyncTester::updateNotebook()
 void LocalStorageCacheAsyncTester::addNote()
 {
     m_currentNote = Note();
-    m_currentNote.setUpdateSequenceNumber(m_addedNotesCount + 1);
+    m_currentNote.setUpdateSequenceNumber(static_cast<qint32>(m_addedNotesCount + 1));
     m_currentNote.setTitle("Fake note #" + QString::number(m_addedNotesCount + 1));
     m_currentNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
     m_currentNote.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
@@ -739,7 +739,7 @@ void LocalStorageCacheAsyncTester::updateNote()
 void LocalStorageCacheAsyncTester::addTag()
 {
     m_currentTag = Tag();
-    m_currentTag.setUpdateSequenceNumber(m_addedTagsCount + 1);
+    m_currentTag.setUpdateSequenceNumber(static_cast<qint32>(m_addedTagsCount + 1));
     m_currentTag.setName("Fake tag #" + QString::number(m_addedTagsCount + 1));
 
     m_state = STATE_SENT_TAG_ADD_REQUEST;
@@ -786,7 +786,7 @@ void LocalStorageCacheAsyncTester::addSavedSearch()
 
     m_currentSavedSearch.setName("Saved search #" + QString::number(m_addedSavedSearchesCount + 1));
     m_currentSavedSearch.setQuery("Fake saved search query #" + QString::number(m_addedSavedSearchesCount + 1));
-    m_currentSavedSearch.setUpdateSequenceNumber(m_addedSavedSearchesCount + 1);
+    m_currentSavedSearch.setUpdateSequenceNumber(static_cast<qint32>(m_addedSavedSearchesCount + 1));
     m_currentSavedSearch.setQueryFormat(1);
     m_currentSavedSearch.setIncludeAccount(true);
 

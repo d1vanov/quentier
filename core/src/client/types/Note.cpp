@@ -294,7 +294,7 @@ void Note::tagGuids(QStringList & guids) const
     }
 
     const QList<QString> & localTagGuids = d->m_qecNote.tagGuids;
-    size_t numTagGuids = localTagGuids.size();
+    int numTagGuids = localTagGuids.size();
     if (numTagGuids == 0) {
         QNDEBUG("Note::tagGuids: no tags");
         return;

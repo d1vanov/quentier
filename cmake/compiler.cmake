@@ -39,7 +39,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
       add_definitions("-stdlib=libc++ -DHAVELIBCPP")
     endif()
   endif()
-else()
+elseif(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC12")
   message(WARNING "Your C++ compiler is not officially supported for building of this application.
                    If you'd get any compilation errors, consider upgrading to a compiler version
                    which fully supports the C++11 standard.")
