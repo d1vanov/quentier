@@ -84,6 +84,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceNotebookRestrictionsQueryPrepared(false),
     m_expungeSharedNotebooksQuery(),
     m_expungeSharedNotebooksQueryPrepared(false),
+    m_insertOrReplaceSharedNotebookQuery(),
+    m_insertOrReplaceSharedNotebookQueryPrepared(false),
     m_getUserCountQuery(),
     m_getUserCountQueryPrepared(false)
 {
@@ -3256,19 +3258,8 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSharedNotebook(const ISharedNote
 {
     // NOTE: this method is expected to be called after the sanity check of sharedNotebook object!
 
-    QString columns = "shareId, userId, notebookGuid, sharedNotebookEmail, sharedNotebookCreationTimestamp, "
-                      "sharedNotebookModificationTimestamp, shareKey, sharedNotebookUsername, "
-                      "sharedNotebookPrivilegeLevel, allowPreview, recipientReminderNotifyEmail, "
-                      "recipientReminderNotifyInApp, indexInNotebook";
-
-    QString values = ":shareId, :userId, :notebookGuid, :sharedNotebookEmail, :sharedNotebookCreationTimestamp, "
-                     ":sharedNotebookModificationTimestamp, :shareKey, :sharedNotebookUsername, "
-                     ":sharedNotebookPrivilegeLevel, :allowPreview, :recipientReminderNotifyEmail, "
-                     ":recipientReminderNotifyInApp, :indexInNotebook";
-
-    QString queryString = QString("INSERT OR REPLACE INTO SharedNotebooks(%1) VALUES(%2)").arg(columns).arg(values);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare(queryString);
+    bool res = CheckAndPrepareInsertOrReplaceSharedNotebokQuery();
+    QSqlQuery & query = m_insertOrReplaceSharedNotebookQuery;
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"SharedNotebooks\" table in SQL database: "
                                  "can't prepare SQL query");
 
@@ -3907,6 +3898,35 @@ bool LocalStorageManagerPrivate::CheckAndPrepareExpungeSharedNotebooksQuery()
         bool res = m_expungeSharedNotebooksQuery.prepare("DELETE FROM SharedNotebooks WHERE notebookGuid = :notebookGuid");
         if (res) {
             m_expungeSharedNotebooksQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceSharedNotebokQuery()
+{
+    if (!m_insertOrReplaceSharedNotebookQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace shared notebook");
+
+        m_insertOrReplaceSharedNotebookQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceSharedNotebookQuery.prepare("INSERT OR REPLACE INTO SharedNotebooks"
+                                                                "(shareId, userId, notebookGuid, sharedNotebookEmail, "
+                                                                "sharedNotebookCreationTimestamp, sharedNotebookModificationTimestamp, "
+                                                                "shareKey, sharedNotebookUsername, sharedNotebookPrivilegeLevel, "
+                                                                "allowPreview, recipientReminderNotifyEmail, "
+                                                                "recipientReminderNotifyInApp, indexInNotebook)"
+                                                                "VALUES(:shareId, :userId, :notebookGuid, :sharedNotebookEmail, "
+                                                                ":sharedNotebookCreationTimestamp, :sharedNotebookModificationTimestamp, "
+                                                                ":shareKey, :sharedNotebookUsername, :sharedNotebookPrivilegeLevel, :allowPreview, "
+                                                                ":recipientReminderNotifyEmail, :recipientReminderNotifyInApp, :indexInNotebook)");
+        if (res) {
+            m_insertOrReplaceSharedNotebookQueryPrepared = true;
         }
 
         return res;
