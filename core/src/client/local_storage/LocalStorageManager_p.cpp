@@ -82,6 +82,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_expungeNotebookFromNotebookRestrictionsQueryPrepared(false),
     m_insertOrReplaceNotebookRestrictionsQuery(),
     m_insertOrReplaceNotebookRestrictionsQueryPrepared(false),
+    m_expungeSharedNotebooksQuery(),
+    m_expungeSharedNotebooksQueryPrepared(false),
     m_getUserCountQuery(),
     m_getUserCountQueryPrepared(false)
 {
@@ -3758,9 +3760,13 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
 
     if (notebook.hasGuid())
     {
-        QString queryString = QString("DELETE FROM SharedNotebooks WHERE notebookGuid = '%1'").arg(notebook.guid());
-        QSqlQuery query(m_sqlDatabase);
-        bool res = query.exec(queryString);
+        bool res = CheckAndPrepareExpungeSharedNotebooksQuery();
+        QSqlQuery & query = m_expungeSharedNotebooksQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't clear shared notebooks before the insertion: can't prepare SQL query");
+
+        query.bindValue(":notebookGuid", notebook.guid());
+
+        res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't clear shared notebooks before the insertion");
 
         QList<SharedNotebookAdapter> sharedNotebooks = notebook.sharedNotebooks();
@@ -3881,6 +3887,26 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNotebookRestricti
                                                                       ":expungeWhichSharedNotebookRestrictions)");
         if (res) {
             m_insertOrReplaceNotebookRestrictionsQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeSharedNotebooksQuery()
+{
+    if (!m_expungeSharedNotebooksQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge shared notebooks per notebook guid");
+
+        m_expungeSharedNotebooksQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeSharedNotebooksQuery.prepare("DELETE FROM SharedNotebooks WHERE notebookGuid = :notebookGuid");
+        if (res) {
+            m_expungeSharedNotebooksQueryPrepared = true;
         }
 
         return res;
