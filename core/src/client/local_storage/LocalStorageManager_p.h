@@ -123,6 +123,7 @@ private:
     bool InsertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
                                        QString & errorDescription);
     bool CheckAndPrepareGetUserCountQuery() const;
+    bool CheckAndPrepareDeleteUserQuery();
     bool CheckAndPrepareExpungeUserQuery();
 
     bool InsertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalGuid, QString & errorDescription);
@@ -319,6 +320,9 @@ private:
 
     mutable QSqlQuery   m_getUserCountQuery;
     mutable bool        m_getUserCountQueryPrepared;
+
+    QSqlQuery           m_deleteUserQuery;
+    bool                m_deleteUserQueryPrepared;
 
     QSqlQuery           m_expungeUserQuery;
     bool                m_expungeUserQueryPrepared;

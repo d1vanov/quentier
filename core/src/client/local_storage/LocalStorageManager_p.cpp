@@ -88,6 +88,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceSharedNotebookQueryPrepared(false),
     m_getUserCountQuery(),
     m_getUserCountQueryPrepared(false),
+    m_deleteUserQuery(),
+    m_deleteUserQueryPrepared(false),
     m_expungeUserQuery(),
     m_expungeUserQueryPrepared(false)
 {
@@ -242,13 +244,16 @@ bool LocalStorageManagerPrivate::DeleteUser(const IUser & user, QString & errorD
         return false;
     }
 
-    QSqlQuery query(m_sqlDatabase);
-    query.prepare("UPDATE Users SET userDeletionTimestamp = ?, userIsLocal = ? WHERE id = ?");
-    query.addBindValue(user.deletionTimestamp());
-    query.addBindValue(user.isLocal() ? 1 : 0);
-    query.addBindValue(user.id());
+    bool res = CheckAndPrepareDeleteUserQuery();
+    QSqlQuery & query = m_deleteUserQuery;
+    DATABASE_CHECK_AND_SET_ERROR("can't update deletion timestamp in \"Users\" table in SQL database: "
+                                 "can't prepare SQL query");
 
-    bool res = query.exec();
+    query.bindValue(":userDeletionTimestamp", user.deletionTimestamp());
+    query.bindValue(":userIsLocal", (user.isLocal() ? 1 : 0));
+    query.bindValue(":id", user.id());
+
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't update deletion timestamp in \"Users\" table in SQL database");
 
     return true;
@@ -3673,6 +3678,27 @@ bool LocalStorageManagerPrivate::CheckAndPrepareGetUserCountQuery() const
         bool res = m_getUserCountQuery.prepare("SELECT COUNT(*) FROM Users WHERE userDeletionTimestamp IS NULL");
         if (res) {
             m_getUserCountQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareDeleteUserQuery()
+{
+    if (!m_deleteUserQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to mark user deleted");
+
+        m_deleteUserQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_deleteUserQuery.prepare("UPDATE Users SET userDeletionTimestamp = :userDeletionTimestamp, "
+                                             "userIsLocal = :userIsLocal WHERE id = :id");
+        if (res) {
+            m_deleteUserQueryPrepared = true;
         }
 
         return res;
