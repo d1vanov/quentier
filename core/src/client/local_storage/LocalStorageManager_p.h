@@ -124,6 +124,7 @@ private:
                                        QString & errorDescription);
     bool CheckAndPrepareGetUserCountQuery() const;
     bool CheckAndPrepareInsertOrReplaceUserQuery();
+    bool CheckAndPrepareInsertOrReplaceUserAttributesQuery();
     bool CheckAndPrepareDeleteUserQuery();
     bool CheckAndPrepareExpungeUserQuery();
 
@@ -324,6 +325,9 @@ private:
 
     QSqlQuery           m_insertOrReplaceUserQuery;
     bool                m_insertOrReplaceUserQueryPrepared;
+
+    QSqlQuery           m_insertOrReplaceUserAttributesQuery;
+    bool                m_insertOrReplaceUserAttributesQueryPrepared;
 
     QSqlQuery           m_deleteUserQuery;
     bool                m_deleteUserQueryPrepared;

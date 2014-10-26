@@ -90,6 +90,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getUserCountQueryPrepared(false),
     m_insertOrReplaceUserQuery(),
     m_insertOrReplaceUserQueryPrepared(false),
+    m_insertOrReplaceUserAttributesQuery(),
+    m_insertOrReplaceUserAttributesQueryPrepared(false),
     m_deleteUserQuery(),
     m_deleteUserQueryPrepared(false),
     m_expungeUserQuery(),
@@ -3569,80 +3571,68 @@ bool LocalStorageManagerPrivate::InsertOrReplaceAccounting(const UserID id, cons
 bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
                                                                QString & errorDescription)
 {
-    QString columns = "id, defaultLocationName, defaultLatitude, defaultLongitude, preactivation, "
-                      "incomingEmailAddress, comments, dateAgreedToTermsOfService, maxReferrals, "
-                      "referralCount, refererCode, sentEmailDate, sentEmailCount, dailyEmailLimit, "
-                      "emailOptOutDate, partnerEmailOptInDate, preferredLanguage, preferredCountry, "
-                      "clipFullPage, twitterUserName, twitterId, groupName, recognitionLanguage, "
-                      "referralProof, educationalDiscount, businessAddress, hideSponsorBilling, "
-                      "taxExempt, useEmailAutoFiling, reminderEmailConfig";
-
-    QString values = ":id, :defaultLocationName, :defaultLatitude, :defaultLongitude, :preactivation, "
-                     ":incomingEmailAddress, :comments, :dateAgreedToTermsOfService, :maxReferrals, "
-                     ":referralCount, :refererCode, :sentEmailDate, :sentEmailCount, :dailyEmailLimit, "
-                     ":emailOptOutDate, :partnerEmailOptInDate, :preferredLanguage, :preferredCountry, "
-                     ":clipFullPage, :twitterUserName, :twitterId, :groupName, :recognitionLanguage, "
-                     ":referralProof, :educationalDiscount, :businessAddress, :hideSponsorBilling, "
-                     ":taxExempt, :useEmailAutoFiling, :reminderEmailConfig";
-
-    QString queryString = QString("INSERT OR REPLACE INTO UserAttributes (%1) VALUES(%2)")
-                                  .arg(columns).arg(values);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributes\" table in SQL database");
-
-    query.bindValue(":id", id);
-
     QVariant nullValue;
+
+    // Insert or replace common user attributes data
+    {
+        bool res = CheckAndPrepareInsertOrReplaceUserAttributesQuery();
+        QSqlQuery & query = m_insertOrReplaceUserAttributesQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributes\" table in SQL database: "
+                                     "can't prepare SQL query");
+
+        query.bindValue(":id", id);
 
 #define CHECK_AND_BIND_VALUE(name) \
     query.bindValue(":" #name, (attributes.name.isSet() ? attributes.name.ref() : nullValue))
 
-    CHECK_AND_BIND_VALUE(defaultLocationName);
-    CHECK_AND_BIND_VALUE(defaultLatitude);
-    CHECK_AND_BIND_VALUE(defaultLongitude);
-    CHECK_AND_BIND_VALUE(incomingEmailAddress);
-    CHECK_AND_BIND_VALUE(comments);
-    CHECK_AND_BIND_VALUE(dateAgreedToTermsOfService);
-    CHECK_AND_BIND_VALUE(maxReferrals);
-    CHECK_AND_BIND_VALUE(referralCount);
-    CHECK_AND_BIND_VALUE(refererCode);
-    CHECK_AND_BIND_VALUE(sentEmailDate);
-    CHECK_AND_BIND_VALUE(sentEmailCount);
-    CHECK_AND_BIND_VALUE(dailyEmailLimit);
-    CHECK_AND_BIND_VALUE(emailOptOutDate);
-    CHECK_AND_BIND_VALUE(partnerEmailOptInDate);
-    CHECK_AND_BIND_VALUE(preferredLanguage);
-    CHECK_AND_BIND_VALUE(preferredCountry);
-    CHECK_AND_BIND_VALUE(twitterUserName);
-    CHECK_AND_BIND_VALUE(twitterId);
-    CHECK_AND_BIND_VALUE(groupName);
-    CHECK_AND_BIND_VALUE(recognitionLanguage);
-    CHECK_AND_BIND_VALUE(referralProof);
-    CHECK_AND_BIND_VALUE(businessAddress);
-    CHECK_AND_BIND_VALUE(reminderEmailConfig);
+        CHECK_AND_BIND_VALUE(defaultLocationName);
+        CHECK_AND_BIND_VALUE(defaultLatitude);
+        CHECK_AND_BIND_VALUE(defaultLongitude);
+        CHECK_AND_BIND_VALUE(incomingEmailAddress);
+        CHECK_AND_BIND_VALUE(comments);
+        CHECK_AND_BIND_VALUE(dateAgreedToTermsOfService);
+        CHECK_AND_BIND_VALUE(maxReferrals);
+        CHECK_AND_BIND_VALUE(referralCount);
+        CHECK_AND_BIND_VALUE(refererCode);
+        CHECK_AND_BIND_VALUE(sentEmailDate);
+        CHECK_AND_BIND_VALUE(sentEmailCount);
+        CHECK_AND_BIND_VALUE(dailyEmailLimit);
+        CHECK_AND_BIND_VALUE(emailOptOutDate);
+        CHECK_AND_BIND_VALUE(partnerEmailOptInDate);
+        CHECK_AND_BIND_VALUE(preferredLanguage);
+        CHECK_AND_BIND_VALUE(preferredCountry);
+        CHECK_AND_BIND_VALUE(twitterUserName);
+        CHECK_AND_BIND_VALUE(twitterId);
+        CHECK_AND_BIND_VALUE(groupName);
+        CHECK_AND_BIND_VALUE(recognitionLanguage);
+        CHECK_AND_BIND_VALUE(referralProof);
+        CHECK_AND_BIND_VALUE(businessAddress);
+        CHECK_AND_BIND_VALUE(reminderEmailConfig);
 
 #undef CHECK_AND_BIND_VALUE
 
 #define CHECK_AND_BIND_BOOLEAN_VALUE(name) \
     query.bindValue(":" #name, (attributes.name.isSet() ? (attributes.name.ref() ? 1 : 0) : nullValue))
 
-    CHECK_AND_BIND_BOOLEAN_VALUE(preactivation);
-    CHECK_AND_BIND_BOOLEAN_VALUE(clipFullPage);
-    CHECK_AND_BIND_BOOLEAN_VALUE(educationalDiscount);
-    CHECK_AND_BIND_BOOLEAN_VALUE(hideSponsorBilling);
-    CHECK_AND_BIND_BOOLEAN_VALUE(taxExempt);
-    CHECK_AND_BIND_BOOLEAN_VALUE(useEmailAutoFiling);
+        CHECK_AND_BIND_BOOLEAN_VALUE(preactivation);
+        CHECK_AND_BIND_BOOLEAN_VALUE(clipFullPage);
+        CHECK_AND_BIND_BOOLEAN_VALUE(educationalDiscount);
+        CHECK_AND_BIND_BOOLEAN_VALUE(hideSponsorBilling);
+        CHECK_AND_BIND_BOOLEAN_VALUE(taxExempt);
+        CHECK_AND_BIND_BOOLEAN_VALUE(useEmailAutoFiling);
 
 #undef CHECK_AND_BIND_BOOLEAN_VALUE
 
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributes\" table in SQL database");
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributes\" table in SQL database");
+    }
+
+    QSqlQuery query(m_sqlDatabase);
 
     // Clean viewed promotions first, then re-insert
 
-    queryString = QString("DELETE FROM UserAttributesViewedPromotions WHERE id = %1").arg(QString::number(id));
-    res = query.exec(queryString);
+    QString queryString = QString("DELETE FROM UserAttributesViewedPromotions WHERE id = %1").arg(QString::number(id));
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" table in SQL database");
 
     if (attributes.viewedPromotions.isSet())
@@ -3712,6 +3702,52 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceUserQuery()
                                                       ":userIsLocal, :userIsActive, :userDeletionTimestamp)");
         if (res) {
             m_insertOrReplaceUserQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceUserAttributesQuery()
+{
+    if (!m_insertOrReplaceUserAttributesQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace user attributes");
+
+        m_insertOrReplaceUserAttributesQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceUserAttributesQuery.prepare("INSERT OR REPLACE INTO UserAttributes"
+                                                                "(id, defaultLocationName, defaultLatitude, "
+                                                                "defaultLongitude, preactivation, "
+                                                                "incomingEmailAddress, comments, "
+                                                                "dateAgreedToTermsOfService, maxReferrals, "
+                                                                "referralCount, refererCode, sentEmailDate, "
+                                                                "sentEmailCount, dailyEmailLimit, "
+                                                                "emailOptOutDate, partnerEmailOptInDate, "
+                                                                "preferredLanguage, preferredCountry, "
+                                                                "clipFullPage, twitterUserName, twitterId, "
+                                                                "groupName, recognitionLanguage, "
+                                                                "referralProof, educationalDiscount, "
+                                                                "businessAddress, hideSponsorBilling, "
+                                                                "taxExempt, useEmailAutoFiling, reminderEmailConfig) "
+                                                                "VALUES(:id, :defaultLocationName, :defaultLatitude, "
+                                                                ":defaultLongitude, :preactivation, "
+                                                                ":incomingEmailAddress, :comments, "
+                                                                ":dateAgreedToTermsOfService, :maxReferrals, "
+                                                                ":referralCount, :refererCode, :sentEmailDate, "
+                                                                ":sentEmailCount, :dailyEmailLimit, "
+                                                                ":emailOptOutDate, :partnerEmailOptInDate, "
+                                                                ":preferredLanguage, :preferredCountry, "
+                                                                ":clipFullPage, :twitterUserName, :twitterId, "
+                                                                ":groupName, :recognitionLanguage, "
+                                                                ":referralProof, :educationalDiscount, "
+                                                                ":businessAddress, :hideSponsorBilling, "
+                                                                ":taxExempt, :useEmailAutoFiling, :reminderEmailConfig)");
+        if (res) {
+            m_insertOrReplaceUserAttributesQueryPrepared = true;
         }
 
         return res;
