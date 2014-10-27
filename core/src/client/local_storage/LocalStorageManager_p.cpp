@@ -94,6 +94,10 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_expungeUserAttributesQueryPrepared(false),
     m_insertOrReplaceUserAttributesQuery(),
     m_insertOrReplaceUserAttributesQueryPrepared(false),
+    m_expungeBusinessUserInfoQuery(),
+    m_expungeBusinessUserInfoQueryPrepared(false),
+    m_insertOrReplaceBusinessUserInfoQuery(),
+    m_insertOrReplaceBusinessUserInfoQueryPrepared(false),
     m_expungeUserAttributesViewedPromotionsQuery(),
     m_expungeUserAttributesViewedPromotionsQueryPrepared(false),
     m_insertOrReplaceUserAttributesViewedPromotionsQuery(),
@@ -3459,10 +3463,14 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
     }
     else
     {
-        QSqlQuery query(m_sqlDatabase);
+        bool res = CheckAndPrepareExpungeBusinessUserInfoQuery();
+        QSqlQuery & query = m_expungeBusinessUserInfoQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't clear BusinesUserInfo when updating user: "
+                                     "can't prepare SQL query");
 
-        QString queryString = QString("DELETE FROM BusinessUserInfo WHERE id = %1").arg(userId);
-        bool res = query.exec(queryString);
+        query.bindValue(":id", userId);
+
+        res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't clear BusinesUserInfo when updating user");
     }
 
@@ -3472,14 +3480,10 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
 bool LocalStorageManagerPrivate::InsertOrReplaceBusinesUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
                                                                 QString & errorDescription)
 {
-    QString columns = "id, businessId, businessName, role, businessInfoEmail";
-    QString values = ":id, :businessId, :businessName, :role, :businessInfoEmail";
-
-    QString queryString = QString("INSERT OR REPLACE INTO BusinessUserInfo (%1) VALUES(%2)")
-                                  .arg(columns).arg(values);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't set user's business info into \"BusinessUserInfo\" table in SQL database");
+    bool res = CheckAndPrepareInsertOrReplaceBusinessUserInfoQuery();
+    QSqlQuery & query = m_insertOrReplaceBusinessUserInfoQuery;
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's business info into \"BusinessUserInfo\" table in SQL database: "
+                                 "can't prepare SQL query");
 
     QVariant nullValue;
 
@@ -3761,6 +3765,48 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceUserQuery()
                                                       ":userIsLocal, :userIsActive, :userDeletionTimestamp)");
         if (res) {
             m_insertOrReplaceUserQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeBusinessUserInfoQuery()
+{
+    if (!m_expungeBusinessUserInfoQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge business user info");
+
+        m_expungeBusinessUserInfoQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeBusinessUserInfoQuery.prepare("DELETE FROM BusinessUserInfo WHERE id = :id");
+        if (res) {
+            m_expungeBusinessUserInfoQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceBusinessUserInfoQuery()
+{
+    if (!m_insertOrReplaceBusinessUserInfoQueryPrepared)
+    {
+        QNDEBUG("Preparing SQl query to insert or replace business user info");
+
+        m_insertOrReplaceBusinessUserInfoQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceBusinessUserInfoQuery.prepare("INSERT OR REPLACE INTO BusinessUserInfo"
+                                                                  "(id, businessId, businessName, role, businessInfoEmail) "
+                                                                  "VALUES(:id, :businessId, :businessName, :role, :businessInfoEmail)");
+        if (res) {
+            m_insertOrReplaceBusinessUserInfoQueryPrepared = true;
         }
 
         return res;
