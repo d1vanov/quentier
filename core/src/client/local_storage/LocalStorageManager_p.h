@@ -127,6 +127,7 @@ private:
     bool CheckAndPrepareInsertOrReplaceUserAttributesQuery();
     bool CheckAndPrepareExpungeUserAttributesViewedPromotionsQuery();
     bool CheckAndPrepareInsertOrReplaceUserAttributesViewedPromotionsQuery();
+    bool CheckAndPrepareExpungeUserAttributesRecentMailedAddressesQuery();
     bool CheckAndPrepareDeleteUserQuery();
     bool CheckAndPrepareExpungeUserQuery();
 
@@ -316,11 +317,11 @@ private:
     QSqlQuery           m_insertOrReplaceNotebookRestrictionsQuery;
     bool                m_insertOrReplaceNotebookRestrictionsQueryPrepared;
 
-    QSqlQuery		    m_expungeSharedNotebooksQuery;
-    bool		        m_expungeSharedNotebooksQueryPrepared;
+    QSqlQuery		m_expungeSharedNotebooksQuery;
+    bool		m_expungeSharedNotebooksQueryPrepared;
 
-    QSqlQuery		    m_insertOrReplaceSharedNotebookQuery;
-    bool		        m_insertOrReplaceSharedNotebookQueryPrepared;
+    QSqlQuery		m_insertOrReplaceSharedNotebookQuery;
+    bool		m_insertOrReplaceSharedNotebookQueryPrepared;
 
     mutable QSqlQuery   m_getUserCountQuery;
     mutable bool        m_getUserCountQueryPrepared;
@@ -336,6 +337,9 @@ private:
 
     QSqlQuery           m_insertOrReplaceUserAttributesViewedPromotionsQuery;
     bool                m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared;
+
+    QSqlQuery           m_expungeUserAttributesRecentMailedAddressesQuery;
+    bool                m_expungeUserAttributesRecentMailedAddressesQueryPrepared;
 
     QSqlQuery           m_deleteUserQuery;
     bool                m_deleteUserQueryPrepared;

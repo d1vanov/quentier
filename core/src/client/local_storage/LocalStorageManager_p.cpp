@@ -96,6 +96,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_expungeUserAttributesViewedPromotionsQueryPrepared(false),
     m_insertOrReplaceUserAttributesViewedPromotionsQuery(),
     m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared(false),
+    m_expungeUserAttributesRecentMailedAddressesQuery(),
+    m_expungeUserAttributesRecentMailedAddressesQueryPrepared(false),
     m_deleteUserQuery(),
     m_deleteUserQueryPrepared(false),
     m_expungeUserQuery(),
@@ -3372,7 +3374,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
     }
     else
     {
-        // Clear entries from UserAttributesViewedPromotions table
+        // Clean entries from UserAttributesViewedPromotions table
         {
             bool res = CheckAndPrepareExpungeUserAttributesViewedPromotionsQuery();
             QSqlQuery & query = m_expungeUserAttributesViewedPromotionsQuery;
@@ -3385,15 +3387,24 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
             DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesViewedPromotions when updating user");
         }
 
+        // Clean entries from UserAttributesRecentMailedAddresses table
+        {
+            bool res = CheckAndPrepareExpungeUserAttributesRecentMailedAddressesQuery();
+            QSqlQuery & query = m_expungeUserAttributesRecentMailedAddressesQuery;
+            DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesRecentMailedAddresses when updating user: "
+                                         "can't prepare SQL query");
+
+            query.bindValue(":id", userId);
+
+            res = query.exec();
+            DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesRecentMailedAddresses when updating user");
+        }
+
         QSqlQuery query(m_sqlDatabase);
 
         QString queryString = QString("DELETE FROM UserAttributes WHERE id = %1").arg(userId);
         bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributes when updating user");
-
-        queryString = QString("DELETE FROM UserAttributesRecentMailedAddresses WHERE id = %1").arg(userId);
-        res = query.exec(queryString);
-        DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesRecentMailedAddresses when updating user");
     }
 
     if (user.hasAccounting())
@@ -3640,7 +3651,6 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, 
         DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributes\" table in SQL database");
     }
 
-
     // Clean viewed promotions first, then re-insert
     {
         bool res = CheckAndPrepareExpungeUserAttributesViewedPromotionsQuery();
@@ -3671,17 +3681,25 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, 
     }
 
     // Clean recent mailed addresses first, then re-insert
-    QSqlQuery query(m_sqlDatabase);
-    QString queryString = QString("DELETE FROM UserAttributesRecentMailedAddresses WHERE id = %1").arg(QString::number(id));
-    bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
+    {
+        bool res = CheckAndPrepareExpungeUserAttributesRecentMailedAddressesQuery();
+        QSqlQuery & query = m_expungeUserAttributesRecentMailedAddressesQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database: "
+                                     "can't prepare SQL query");
+
+        query.bindValue(":id", id);
+
+        res = query.exec();
+        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
+    }
 
     if (attributes.recentMailedAddresses.isSet())
     {
+        QSqlQuery query(m_sqlDatabase);
         foreach(const QString & address, attributes.recentMailedAddresses.ref()) {
-            queryString = QString("INSERT OR REPLACE INTO UserAttributesRecentMailedAddresses (id, address) VALUES('%1', '%2')")
-                                  .arg(id).arg(address);
-            res = query.exec(queryString);
+            QString queryString = QString("INSERT OR REPLACE INTO UserAttributesRecentMailedAddresses (id, address) VALUES('%1', '%2')")
+                                          .arg(id).arg(address);
+            bool res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
         }
     }
@@ -3814,6 +3832,26 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceUserAttributesVie
                                                                                 "(id, promotion) VALUES(:id, :promotion)");
         if (res) {
             m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeUserAttributesRecentMailedAddressesQuery()
+{
+    if (!m_expungeUserAttributesRecentMailedAddressesQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge user attributes recent mailed addresses");
+
+        m_expungeUserAttributesRecentMailedAddressesQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeUserAttributesRecentMailedAddressesQuery.prepare("DELETE FROM UserAttributesRecentMailedAddresses WHERE id = :id");
+        if (res) {
+            m_expungeUserAttributesRecentMailedAddressesQueryPrepared = true;
         }
 
         return res;
