@@ -124,6 +124,7 @@ private:
                                        QString & errorDescription);
     bool CheckAndPrepareGetUserCountQuery() const;
     bool CheckAndPrepareInsertOrReplaceUserQuery();
+    bool CheckAndPrepareExpungeUserAttributesQuery();
     bool CheckAndPrepareInsertOrReplaceUserAttributesQuery();
     bool CheckAndPrepareExpungeUserAttributesViewedPromotionsQuery();
     bool CheckAndPrepareInsertOrReplaceUserAttributesViewedPromotionsQuery();
@@ -329,6 +330,9 @@ private:
 
     QSqlQuery           m_insertOrReplaceUserQuery;
     bool                m_insertOrReplaceUserQueryPrepared;
+
+    QSqlQuery           m_expungeUserAttributesQuery;
+    bool                m_expungeUserAttributesQueryPrepared;
 
     QSqlQuery           m_insertOrReplaceUserAttributesQuery;
     bool                m_insertOrReplaceUserAttributesQueryPrepared;

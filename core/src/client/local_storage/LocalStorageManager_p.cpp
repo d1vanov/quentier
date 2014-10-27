@@ -90,6 +90,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getUserCountQueryPrepared(false),
     m_insertOrReplaceUserQuery(),
     m_insertOrReplaceUserQueryPrepared(false),
+    m_expungeUserAttributesQuery(),
+    m_expungeUserAttributesQueryPrepared(false),
     m_insertOrReplaceUserAttributesQuery(),
     m_insertOrReplaceUserAttributesQueryPrepared(false),
     m_expungeUserAttributesViewedPromotionsQuery(),
@@ -3402,11 +3404,18 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
             DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesRecentMailedAddresses when updating user");
         }
 
-        QSqlQuery query(m_sqlDatabase);
+        // Clean entries from UserAttributes table
+        {
+            bool res = CheckAndPrepareExpungeUserAttributesQuery();
+            QSqlQuery & query = m_expungeUserAttributesQuery;
+            DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributes when updating user: "
+                                         "can't prepare SQL query");
 
-        QString queryString = QString("DELETE FROM UserAttributes WHERE id = %1").arg(userId);
-        bool res = query.exec(queryString);
-        DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributes when updating user");
+            query.bindValue(":id", userId);
+
+            res = query.exec();
+            DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributes when updating user");
+        }
     }
 
     if (user.hasAccounting())
@@ -3752,6 +3761,26 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceUserQuery()
                                                       ":userIsLocal, :userIsActive, :userDeletionTimestamp)");
         if (res) {
             m_insertOrReplaceUserQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeUserAttributesQuery()
+{
+    if (!m_expungeUserAttributesQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge user attributes");
+
+        m_expungeUserAttributesQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeUserAttributesQuery.prepare("DELETE FROM UserAttributes WHERE id = :id");
+        if (res) {
+            m_expungeUserAttributesQueryPrepared = true;
         }
 
         return res;
