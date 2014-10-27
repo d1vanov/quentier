@@ -128,6 +128,7 @@ private:
     bool CheckAndPrepareExpungeUserAttributesViewedPromotionsQuery();
     bool CheckAndPrepareInsertOrReplaceUserAttributesViewedPromotionsQuery();
     bool CheckAndPrepareExpungeUserAttributesRecentMailedAddressesQuery();
+    bool CheckAndPrepareInsertOrReplaceUserAttributesRecentMailedAddressesQuery();
     bool CheckAndPrepareDeleteUserQuery();
     bool CheckAndPrepareExpungeUserQuery();
 
@@ -340,6 +341,9 @@ private:
 
     QSqlQuery           m_expungeUserAttributesRecentMailedAddressesQuery;
     bool                m_expungeUserAttributesRecentMailedAddressesQueryPrepared;
+
+    QSqlQuery           m_insertOrReplaceUserAttributesRecentMailedAddressesQuery;
+    bool                m_insertOrReplaceUserAttributesRecentMailedAddressesQueryPrepared;
 
     QSqlQuery           m_deleteUserQuery;
     bool                m_deleteUserQueryPrepared;

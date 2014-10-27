@@ -98,6 +98,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared(false),
     m_expungeUserAttributesRecentMailedAddressesQuery(),
     m_expungeUserAttributesRecentMailedAddressesQueryPrepared(false),
+    m_insertOrReplaceUserAttributesRecentMailedAddressesQuery(),
+    m_insertOrReplaceUserAttributesRecentMailedAddressesQueryPrepared(false),
     m_deleteUserQuery(),
     m_deleteUserQueryPrepared(false),
     m_expungeUserQuery(),
@@ -3695,11 +3697,16 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUserAttributes(const UserID id, 
 
     if (attributes.recentMailedAddresses.isSet())
     {
-        QSqlQuery query(m_sqlDatabase);
+        bool res = CheckAndPrepareInsertOrReplaceUserAttributesRecentMailedAddressesQuery();
+        QSqlQuery & query = m_insertOrReplaceUserAttributesRecentMailedAddressesQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database: "
+                                     "can't prepare SQL query");
+
+        query.bindValue(":id", id);
+
         foreach(const QString & address, attributes.recentMailedAddresses.ref()) {
-            QString queryString = QString("INSERT OR REPLACE INTO UserAttributesRecentMailedAddresses (id, address) VALUES('%1', '%2')")
-                                          .arg(id).arg(address);
-            bool res = query.exec(queryString);
+            query.bindValue(":address", address);
+            res = query.exec();
             DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
         }
     }
@@ -3852,6 +3859,27 @@ bool LocalStorageManagerPrivate::CheckAndPrepareExpungeUserAttributesRecentMaile
         bool res = m_expungeUserAttributesRecentMailedAddressesQuery.prepare("DELETE FROM UserAttributesRecentMailedAddresses WHERE id = :id");
         if (res) {
             m_expungeUserAttributesRecentMailedAddressesQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceUserAttributesRecentMailedAddressesQuery()
+{
+    if (!m_insertOrReplaceUserAttributesRecentMailedAddressesQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace user attributes recent mailed addresses");
+
+        m_insertOrReplaceUserAttributesRecentMailedAddressesQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceUserAttributesRecentMailedAddressesQuery.prepare("INSERT OR REPLACE INTO UserAttributesRecentMailedAddresses"
+                                                                                     "(id, address) VALUES(:id, :address)");
+        if (res) {
+            m_insertOrReplaceUserAttributesRecentMailedAddressesQueryPrepared = true;
         }
 
         return res;
