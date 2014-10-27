@@ -94,6 +94,10 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_expungeUserAttributesQueryPrepared(false),
     m_insertOrReplaceUserAttributesQuery(),
     m_insertOrReplaceUserAttributesQueryPrepared(false),
+    m_expungeAccountingQuery(),
+    m_expungeAccountingQueryPrepared(false),
+    m_insertOrReplaceAccountingQuery(),
+    m_insertOrReplaceAccountingQueryPrepared(false),
     m_expungeBusinessUserInfoQuery(),
     m_expungeBusinessUserInfoQueryPrepared(false),
     m_insertOrReplaceBusinessUserInfoQuery(),
@@ -3431,10 +3435,14 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
     }
     else
     {
-        QSqlQuery query(m_sqlDatabase);
+        bool res = CheckAndPrepareExpungeAccountingQuery();
+        QSqlQuery & query = m_expungeAccountingQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't clear Accounting when updating user: "
+                                     "can't prepare SQL query");
 
-        QString queryString = QString("DELETE FROM Accounting WHERE id = %1").arg(userId);
-        bool res = query.exec(queryString);
+        query.bindValue(":id", userId);
+
+        res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't clear Accounting when updating user");
     }
 
@@ -3540,27 +3548,10 @@ bool LocalStorageManagerPrivate::InsertOrReplacePremiumInfo(const UserID id, con
 bool LocalStorageManagerPrivate::InsertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
                                                            QString & errorDescription)
 {
-    QString columns = "id, uploadLimit, uploadLimitEnd, uploadLimitNextMonth, "
-                      "premiumServiceStatus, premiumOrderNumber, premiumCommerceService, "
-                      "premiumServiceStart, premiumServiceSKU, lastSuccessfulCharge, "
-                      "lastFailedCharge, lastFailedChargeReason, nextPaymentDue, premiumLockUntil, "
-                      "updated, premiumSubscriptionNumber, lastRequestedCharge, currency, "
-                      "unitPrice, unitDiscount, nextChargeDate, accountingBusinessId, "
-                      "accountingBusinessName, accountingBusinessRole";
-
-    QString values = ":id, :uploadLimit, :uploadLimitEnd, :uploadLimitNextMonth, "
-                     ":premiumServiceStatus, :premiumOrderNumber, :premiumCommerceService, "
-                     ":premiumServiceStart, :premiumServiceSKU, :lastSuccessfulCharge, "
-                     ":lastFailedCharge, :lastFailedChargeReason, :nextPaymentDue, :premiumLockUntil, "
-                     ":updated, :premiumSubscriptionNumber, :lastRequestedCharge, :currency, "
-                     ":unitPrice, :unitDiscount, :nextChargeDate, :accountingBusinessId, "
-                     ":accountingBusinessName, :accountingBusinessRole";
-
-    QString queryString = QString("INSERT OR REPLACE INTO Accounting (%1) VALUES(%2)")
-                                  .arg(columns).arg(values);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't set user's acconting into \"Accounting\" table in SQL database");
+    bool res = CheckAndPrepareInsertOrReplaceAccountingQuery();
+    QSqlQuery & query = m_insertOrReplaceAccountingQuery;
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's acconting into \"Accounting\" table in SQL database: "
+                                 "can't prepare SQL query");
 
     query.bindValue(":id", id);
 
@@ -3765,6 +3756,60 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceUserQuery()
                                                       ":userIsLocal, :userIsActive, :userDeletionTimestamp)");
         if (res) {
             m_insertOrReplaceUserQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungeAccountingQuery()
+{
+    if (!m_expungeAccountingQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge accounting");
+
+        m_expungeAccountingQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungeAccountingQuery.prepare("DELETE FROM Accounting WHERE id = :id");
+        if (res) {
+            m_expungeAccountingQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceAccountingQuery()
+{
+    if (!m_insertOrReplaceAccountingQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace accounting");
+
+        m_insertOrReplaceAccountingQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceAccountingQuery.prepare("INSERT OR REPLACE INTO Accounting"
+                                                            "(id, uploadLimit, uploadLimitEnd, uploadLimitNextMonth, "
+                                                            "premiumServiceStatus, premiumOrderNumber, premiumCommerceService, "
+                                                            "premiumServiceStart, premiumServiceSKU, lastSuccessfulCharge, "
+                                                            "lastFailedCharge, lastFailedChargeReason, nextPaymentDue, premiumLockUntil, "
+                                                            "updated, premiumSubscriptionNumber, lastRequestedCharge, currency, "
+                                                            "unitPrice, unitDiscount, nextChargeDate, accountingBusinessId, "
+                                                            "accountingBusinessName, accountingBusinessRole) "
+                                                            "VALUES(:id, :uploadLimit, :uploadLimitEnd, :uploadLimitNextMonth, "
+                                                            ":premiumServiceStatus, :premiumOrderNumber, :premiumCommerceService, "
+                                                            ":premiumServiceStart, :premiumServiceSKU, :lastSuccessfulCharge, "
+                                                            ":lastFailedCharge, :lastFailedChargeReason, :nextPaymentDue, :premiumLockUntil, "
+                                                            ":updated, :premiumSubscriptionNumber, :lastRequestedCharge, :currency, "
+                                                            ":unitPrice, :unitDiscount, :nextChargeDate, :accountingBusinessId, "
+                                                            ":accountingBusinessName, :accountingBusinessRole)");
+        if (res) {
+            m_insertOrReplaceAccountingQueryPrepared = true;
         }
 
         return res;
