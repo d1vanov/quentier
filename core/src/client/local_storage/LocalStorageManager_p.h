@@ -126,6 +126,8 @@ private:
     bool CheckAndPrepareInsertOrReplaceUserQuery();
     bool CheckAndPrepareExpungeAccountingQuery();
     bool CheckAndPrepareInsertOrReplaceAccountingQuery();
+    bool CheckAndPrepareExpungePremiumUserInfoQuery();
+    bool CheckAndPrepareInsertOrReplacePremiumUserInfoQuery();
     bool CheckAndPrepareExpungeBusinessUserInfoQuery();
     bool CheckAndPrepareInsertOrReplaceBusinessUserInfoQuery();
     bool CheckAndPrepareExpungeUserAttributesQuery();
@@ -346,6 +348,12 @@ private:
 
     QSqlQuery           m_insertOrReplaceAccountingQuery;
     bool                m_insertOrReplaceAccountingQueryPrepared;
+
+    QSqlQuery           m_expungePremiumUserInfoQuery;
+    bool                m_expungePremiumUserInfoQueryPrepared;
+
+    QSqlQuery           m_insertOrReplacePremiumUserInfoQuery;
+    bool                m_insertOrReplacePremiumUserInfoQueryPrepared;
 
     QSqlQuery           m_expungeBusinessUserInfoQuery;
     bool                m_expungeBusinessUserInfoQueryPrepared;

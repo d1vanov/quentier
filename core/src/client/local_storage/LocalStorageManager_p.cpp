@@ -98,6 +98,10 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_expungeAccountingQueryPrepared(false),
     m_insertOrReplaceAccountingQuery(),
     m_insertOrReplaceAccountingQueryPrepared(false),
+    m_expungePremiumUserInfoQuery(),
+    m_expungePremiumUserInfoQueryPrepared(false),
+    m_insertOrReplacePremiumUserInfoQuery(),
+    m_insertOrReplacePremiumUserInfoQueryPrepared(false),
     m_expungeBusinessUserInfoQuery(),
     m_expungeBusinessUserInfoQueryPrepared(false),
     m_insertOrReplaceBusinessUserInfoQuery(),
@@ -3455,10 +3459,14 @@ bool LocalStorageManagerPrivate::InsertOrReplaceUser(const IUser & user, QString
     }
     else
     {
-        QSqlQuery query(m_sqlDatabase);
+        bool res = CheckAndPrepareExpungePremiumUserInfoQuery();
+        QSqlQuery & query = m_expungePremiumUserInfoQuery;
+        DATABASE_CHECK_AND_SET_ERROR("can't clear PremiumInfo when updating user: "
+                                     "can't prepare SQL query");
 
-        QString queryString = QString("DELETE FROM PremiumInfo WHERE id = %1").arg(userId);
-        bool res = query.exec(queryString);
+        query.bindValue(":id", userId);
+
+        res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't clear PremiumInfo when updating user");
     }
 
@@ -3510,18 +3518,10 @@ bool LocalStorageManagerPrivate::InsertOrReplaceBusinesUserInfo(const UserID id,
 bool LocalStorageManagerPrivate::InsertOrReplacePremiumInfo(const UserID id, const qevercloud::PremiumInfo & info,
                                                             QString & errorDescription)
 {
-    QString columns = "id, currentTime, premium, premiumRecurring, premiumExtendable, "
-                      "premiumPending, premiumCancellationPending, canPurchaseUploadAllowance, "
-                      "premiumExpirationDate, sponsoredGroupName, sponsoredGroupRole, premiumUpgradable";
-    QString valuesString = ":id, :currentTime, :premium, :premiumRecurring, :premiumExtendable, "
-                           ":premiumPending, :premiumCancellationPending, :canPurchaseUploadAllowance, "
-                           ":premiumExpirationDate, :sponsoredGroupName, :sponsoredGroupRole, :premiumUpgradable";
-
-    QString queryString = QString("INSERT OR REPLACE INTO PremiumInfo (%1) VALUES(%2)")
-                                  .arg(columns).arg(valuesString);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.prepare(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't set user's premium info into \"PremiumInfo\" table in SQL database");
+    bool res = CheckAndPrepareInsertOrReplacePremiumUserInfoQuery();
+    QSqlQuery & query = m_insertOrReplacePremiumUserInfoQuery;
+    DATABASE_CHECK_AND_SET_ERROR("can't set user's premium info into \"PremiumInfo\" table in SQL database: "
+                                 "can't prepare SQL query");
 
     query.bindValue(":id", id);
     query.bindValue(":currentTime", info.currentTime);
@@ -3810,6 +3810,52 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceAccountingQuery()
                                                             ":accountingBusinessName, :accountingBusinessRole)");
         if (res) {
             m_insertOrReplaceAccountingQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareExpungePremiumUserInfoQuery()
+{
+    if (!m_expungePremiumUserInfoQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to expunge premium user info");
+
+        m_expungePremiumUserInfoQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_expungePremiumUserInfoQuery.prepare("DELETE FROM PremiumInfo WHERE id = :id");
+        if (res) {
+            m_expungePremiumUserInfoQueryPrepared = true;
+        }
+
+        return res;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplacePremiumUserInfoQuery()
+{
+    if (!m_insertOrReplacePremiumUserInfoQueryPrepared)
+    {
+        QNDEBUG("Preparing SQL query to insert or replace premium user info");
+
+        m_insertOrReplacePremiumUserInfoQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplacePremiumUserInfoQuery.prepare("INSERT OR REPLACE INTO PremiumInfo"
+                                                                 "(id, currentTime, premium, premiumRecurring, premiumExtendable, "
+                                                                 "premiumPending, premiumCancellationPending, canPurchaseUploadAllowance, "
+                                                                 "premiumExpirationDate, sponsoredGroupName, sponsoredGroupRole, premiumUpgradable) "
+                                                                 "VALUES(:id, :currentTime, :premium, :premiumRecurring, :premiumExtendable, "
+                                                                 ":premiumPending, :premiumCancellationPending, :canPurchaseUploadAllowance, "
+                                                                 ":premiumExpirationDate, :sponsoredGroupName, :sponsoredGroupRole, :premiumUpgradable)");
+        if (res) {
+            m_insertOrReplacePremiumUserInfoQueryPrepared = true;
         }
 
         return res;
