@@ -17,7 +17,7 @@ namespace qute_note {
  *
  * @see SharedNotebookAdapterAccessException
  */
-class QUTE_NOTE_EXPORT SharedNotebookAdapter final: public ISharedNotebook
+class QUTE_NOTE_EXPORT SharedNotebookAdapter: public ISharedNotebook
 {
 public:
     SharedNotebookAdapter(qevercloud::SharedNotebook & sharedNotebook);

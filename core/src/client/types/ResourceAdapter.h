@@ -16,7 +16,7 @@ namespace qute_note {
  *
  * @see ResourceAdapterAccessException
  */
-class QUTE_NOTE_EXPORT ResourceAdapter final: public IResource
+class QUTE_NOTE_EXPORT ResourceAdapter : public IResource
 {
 public:
     ResourceAdapter(qevercloud::Resource & externalEnResource);
@@ -24,13 +24,13 @@ public:
     ResourceAdapter(const ResourceAdapter & other);
     ResourceAdapter(ResourceAdapter && other);
     ResourceAdapter & operator=(const ResourceAdapter & other);
-    virtual ~ResourceAdapter() final Q_DECL_OVERRIDE;
+    virtual ~ResourceAdapter() Q_DECL_OVERRIDE;
 
     friend class Note;
 
 private:
-    virtual const qevercloud::Resource & GetEnResource() const final Q_DECL_OVERRIDE;
-    virtual qevercloud::Resource & GetEnResource() final Q_DECL_OVERRIDE;
+    virtual const qevercloud::Resource & GetEnResource() const Q_DECL_OVERRIDE;
+    virtual qevercloud::Resource & GetEnResource() Q_DECL_OVERRIDE;
 
     virtual QTextStream & Print(QTextStream & strm) const;
 

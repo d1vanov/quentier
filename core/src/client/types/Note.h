@@ -46,7 +46,7 @@ public:
     virtual qint32 updateSequenceNumber() const Q_DECL_OVERRIDE;
     virtual void setUpdateSequenceNumber(const qint32 usn) Q_DECL_OVERRIDE;
 
-    virtual void clear() final Q_DECL_OVERRIDE;
+    virtual void clear() Q_DECL_OVERRIDE;
 
     virtual bool checkParameters(QString & errorDescription) const Q_DECL_OVERRIDE;
 

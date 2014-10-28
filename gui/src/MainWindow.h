@@ -26,7 +26,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 public:
     explicit MainWindow(QWidget * pParentWidget = nullptr);
-    virtual ~MainWindow() final;
+    virtual ~MainWindow();
 
     EvernoteOAuthBrowser * OAuthBrowser();
 

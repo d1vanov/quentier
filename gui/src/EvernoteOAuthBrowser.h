@@ -20,7 +20,7 @@ class EvernoteOAuthBrowser: public QWebView
     Q_OBJECT
 public:
     explicit EvernoteOAuthBrowser(QWidget * parent, EvernoteServiceManager & manager);
-    virtual ~EvernoteOAuthBrowser() final;
+    virtual ~EvernoteOAuthBrowser();
 
 public slots:
     void authSuccessful();
