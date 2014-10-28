@@ -32,7 +32,7 @@ SharedNotebookWrapper & SharedNotebookWrapper::operator=(const SharedNotebookWra
 {
     ISharedNotebook::operator=(other);
 
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 
@@ -43,7 +43,7 @@ SharedNotebookWrapper & SharedNotebookWrapper::operator=(SharedNotebookWrapper &
 {
     ISharedNotebook::operator=(std::move(other));
 
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 

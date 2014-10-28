@@ -37,7 +37,7 @@ ResourceWrapper & ResourceWrapper::operator=(const ResourceWrapper & other)
 {
     IResource::operator=(other);
 
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 
@@ -48,7 +48,7 @@ ResourceWrapper & ResourceWrapper::operator=(ResourceWrapper && other)
 {
     IResource::operator=(other);
 
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 

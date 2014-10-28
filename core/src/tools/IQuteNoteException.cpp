@@ -7,7 +7,13 @@ IQuteNoteException::IQuteNoteException(const QString & message) :
     m_message(message)
 {}
 
+#ifdef _MSC_VER
 IQuteNoteException::~IQuteNoteException()
+#elif __cplusplus >= 201103L
+IQuteNoteException::~IQuteNoteException() noexcept
+#else
+IQuteNoteException::~IQuteNoteException() throw()
+#endif
 {}
 
 const QString IQuteNoteException::errorMessage() const
@@ -17,8 +23,10 @@ const QString IQuteNoteException::errorMessage() const
 
 #if defined(_MSC_VER)
 const char * IQuteNoteException::what() const
-#else
+#elif __cplusplus >= 201103L
 const char * IQuteNoteException::what() const noexcept
+#else
+const char * IQuteNoteException::what() const throw()
 #endif
 {
     return qPrintable(m_message);

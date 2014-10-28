@@ -32,7 +32,7 @@ Notebook::Notebook(qevercloud::Notebook && other) :
 
 Notebook & Notebook::operator=(const Notebook & other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 
@@ -41,7 +41,7 @@ Notebook & Notebook::operator=(const Notebook & other)
 
 Notebook & Notebook::operator=(Notebook && other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 

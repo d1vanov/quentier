@@ -21,7 +21,7 @@ UserWrapper & UserWrapper::operator=(const UserWrapper & other)
 {
     IUser::operator=(other);
 
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 
@@ -32,7 +32,7 @@ UserWrapper & UserWrapper::operator=(UserWrapper && other)
 {
     IUser::operator=(std::move(other));
 
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 

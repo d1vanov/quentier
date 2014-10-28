@@ -15,7 +15,7 @@ public:
     virtual bool isSynchronizable() const = 0;
     virtual void setSynchronizable(const bool synchronizable) = 0;
 
-    virtual ~ISynchronizableDataElement() = default;
+    virtual ~ISynchronizableDataElement() {}
 };
 
 #define _DECLARE_IS_SYNCHRONIZABLE \

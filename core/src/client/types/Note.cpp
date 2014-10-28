@@ -33,7 +33,7 @@ Note::Note(Note && other) :
 
 Note & Note::operator=(const Note & other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 
@@ -48,7 +48,7 @@ Note & Note::operator=(const qevercloud::Note & other)
 
 Note & Note::operator=(Note && other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = std::move(other.d);
     }
 

@@ -28,11 +28,9 @@ public:
     virtual const LocalStorageCacheManager * localStorageCacheManager() const = 0;
 
 protected:
-    IAsyncLocalStorageManager() = default;
-    IAsyncLocalStorageManager(const IAsyncLocalStorageManager & other) = default;
-    IAsyncLocalStorageManager(IAsyncLocalStorageManager && other);
-    IAsyncLocalStorageManager & operator=(const IAsyncLocalStorageManager & other) = default;
-    IAsyncLocalStorageManager & operator=(IAsyncLocalStorageManager && other);
+    IAsyncLocalStorageManager() {}
+    IAsyncLocalStorageManager(const IAsyncLocalStorageManager & other) {}
+    IAsyncLocalStorageManager & operator=(const IAsyncLocalStorageManager & ) { return *this; }
 
     // Pure virtual prototypes for signals to be emitted from subclasses:
 

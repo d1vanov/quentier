@@ -277,7 +277,7 @@ ISharedNotebook & ISharedNotebook::operator=(ISharedNotebook && other)
 {
     TypeWithError::operator=(std::move(other));
 
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         m_indexInNotebook = std::move(other.m_indexInNotebook);
     }
 

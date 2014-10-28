@@ -6,7 +6,13 @@ LocalStorageCacheManagerException::LocalStorageCacheManagerException(const QStri
     IQuteNoteException(message)
 {}
 
+#ifdef _MSC_VER
 LocalStorageCacheManagerException::~LocalStorageCacheManagerException()
+#elif __cplusplus >= 201103L
+LocalStorageCacheManagerException::~LocalStorageCacheManagerException() noexcept
+#else
+LocalStorageCacheManagerException::~LocalStorageCacheManagerException() throw()
+#endif
 {}
 
 const QString LocalStorageCacheManagerException::exceptionDisplayName() const

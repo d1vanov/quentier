@@ -46,7 +46,7 @@ TypeWithError & TypeWithError::operator =(const TypeWithError & other)
 
 TypeWithError & TypeWithError::operator=(TypeWithError && other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         m_error = std::move(other.m_error);
     }
 

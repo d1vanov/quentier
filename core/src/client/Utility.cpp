@@ -1,4 +1,5 @@
 #include "Utility.h"
+#include <limits>
 #include <QDateTime>
 
 namespace qute_note {

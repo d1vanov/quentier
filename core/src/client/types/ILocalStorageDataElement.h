@@ -14,7 +14,7 @@ public:
     virtual void setLocalGuid(const QString & guid) = 0;
     virtual void unsetLocalGuid() = 0;
 
-    virtual ~ILocalStorageDataElement() = default;
+    virtual ~ILocalStorageDataElement() {}
 };
 
 #define _DEFINE_LOCAL_GUID_GETTER(type) \

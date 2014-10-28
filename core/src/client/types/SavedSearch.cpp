@@ -24,7 +24,7 @@ SavedSearch::SavedSearch(SavedSearch && other) :
 
 SavedSearch & SavedSearch::operator=(SavedSearch && other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = std::move(other.d);
     }
 
@@ -41,7 +41,7 @@ SavedSearch::SavedSearch(qevercloud::SavedSearch && search) :
 
 SavedSearch & SavedSearch::operator=(const SavedSearch & other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 

@@ -40,7 +40,7 @@ const LocalStorageCacheManager * LocalStorageManagerThreadWorker::localStorageCa
         return nullptr;
     }
     else {
-        return std::addressof(m_localStorageCacheManager);
+        return &m_localStorageCacheManager;
     }
 }
 

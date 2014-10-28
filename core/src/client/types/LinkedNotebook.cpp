@@ -21,7 +21,7 @@ LinkedNotebook::LinkedNotebook(LinkedNotebook && other) :
 
 LinkedNotebook & LinkedNotebook::operator=(const LinkedNotebook & other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 
@@ -30,7 +30,7 @@ LinkedNotebook & LinkedNotebook::operator=(const LinkedNotebook & other)
 
 LinkedNotebook & LinkedNotebook::operator=(LinkedNotebook && other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 

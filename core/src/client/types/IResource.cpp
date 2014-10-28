@@ -650,7 +650,7 @@ IResource::IResource(const IResource & other) :
 
 IResource & IResource::operator=(const IResource & other)
 {
-    if (this != std::addressof(other))
+    if (this != &other)
     {
         d = other.d;
         setFreeAccount(other.m_isFreeAccount);

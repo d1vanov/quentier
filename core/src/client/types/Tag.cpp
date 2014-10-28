@@ -23,7 +23,7 @@ Tag::Tag(Tag && other) :
 
 Tag & Tag::operator=(Tag && other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = std::move(other.d);
     }
 
@@ -40,7 +40,7 @@ Tag::Tag(qevercloud::Tag && other) :
 
 Tag & Tag::operator=(const Tag & other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         d = other.d;
     }
 

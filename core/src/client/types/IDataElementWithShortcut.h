@@ -16,7 +16,7 @@ public:
     virtual bool hasShortcut() const = 0;
     virtual void setShortcut(const bool shortcut) = 0;
 
-    virtual ~IDataElementWithShortcut() = default;
+    virtual ~IDataElementWithShortcut() {}
 };
 
 #define _DECLARE_HAS_SHORTCUT \

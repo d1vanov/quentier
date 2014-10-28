@@ -312,7 +312,7 @@ QTextStream & LocalStorageCacheManagerPrivate::SavedSearchHolder::Print(QTextStr
 
 LocalStorageCacheManagerPrivate::NoteHolder & LocalStorageCacheManagerPrivate::NoteHolder::operator=(const LocalStorageCacheManagerPrivate::NoteHolder & other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         m_note = other.m_note;
         m_lastAccessTimestamp = other.m_lastAccessTimestamp;
     }
@@ -322,7 +322,7 @@ LocalStorageCacheManagerPrivate::NoteHolder & LocalStorageCacheManagerPrivate::N
 
 LocalStorageCacheManagerPrivate::NotebookHolder & LocalStorageCacheManagerPrivate::NotebookHolder::operator=(const LocalStorageCacheManagerPrivate::NotebookHolder & other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         m_notebook = other.m_notebook;
         m_lastAccessTimestamp = other.m_lastAccessTimestamp;
     }
@@ -332,7 +332,7 @@ LocalStorageCacheManagerPrivate::NotebookHolder & LocalStorageCacheManagerPrivat
 
 LocalStorageCacheManagerPrivate::TagHolder & LocalStorageCacheManagerPrivate::TagHolder::operator=(const LocalStorageCacheManagerPrivate::TagHolder & other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         m_tag = other.m_tag;
         m_lastAccessTimestamp = other.m_lastAccessTimestamp;
     }
@@ -342,7 +342,7 @@ LocalStorageCacheManagerPrivate::TagHolder & LocalStorageCacheManagerPrivate::Ta
 
 LocalStorageCacheManagerPrivate::LinkedNotebookHolder & LocalStorageCacheManagerPrivate::LinkedNotebookHolder::operator=(const LocalStorageCacheManagerPrivate::LinkedNotebookHolder & other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         m_linkedNotebook = other.m_linkedNotebook;
         m_lastAccessTimestamp = other.m_lastAccessTimestamp;
     }
@@ -352,7 +352,7 @@ LocalStorageCacheManagerPrivate::LinkedNotebookHolder & LocalStorageCacheManager
 
 LocalStorageCacheManagerPrivate::SavedSearchHolder & LocalStorageCacheManagerPrivate::SavedSearchHolder::operator=(const LocalStorageCacheManagerPrivate::SavedSearchHolder & other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         m_savedSearch = other.m_savedSearch;
         m_lastAccessTimestamp = other.m_lastAccessTimestamp;
     }

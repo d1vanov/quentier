@@ -14,7 +14,7 @@ namespace qute_note {
 class QUTE_NOTE_EXPORT QuteNoteLogger
 {
 public:
-    enum class Level
+    enum Level
     {
         LEVEL_FATAL,
         LEVEL_CRITICAL,

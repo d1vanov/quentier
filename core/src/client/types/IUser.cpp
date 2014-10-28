@@ -507,7 +507,7 @@ IUser::IUser(IUser && other) :
 
 IUser & IUser::operator=(const IUser & other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         m_isDirty = other.m_isDirty;
         m_isLocal = other.m_isLocal;
     }
@@ -517,7 +517,7 @@ IUser & IUser::operator=(const IUser & other)
 
 IUser & IUser::operator=(IUser && other)
 {
-    if (this != std::addressof(other)) {
+    if (this != &other) {
         m_isDirty = std::move(other.m_isDirty);
         m_isLocal = std::move(other.m_isLocal);
     }

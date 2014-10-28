@@ -29,7 +29,7 @@ public:
     virtual bool isDirty() const = 0;
     virtual void setDirty(const bool isDirty) = 0;
 
-    virtual ~INoteStoreDataElement() = default;
+    virtual ~INoteStoreDataElement() {}
 
 protected:
     virtual QTextStream & Print(QTextStream & strm) const = 0;

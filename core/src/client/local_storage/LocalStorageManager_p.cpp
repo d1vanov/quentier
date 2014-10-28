@@ -373,7 +373,7 @@ void LocalStorageManagerPrivate::SwitchUser(const QString & username, const User
     {
         QString error = "SQL driver " + sqlDriverName + " is not available. Available drivers: ";
         const QStringList drivers = QSqlDatabase::drivers();
-        for(const QString & driver: drivers) {
+        foreach(const QString & driver, drivers) {
             error += "{" + driver + "} ";
         }
         throw DatabaseSqlErrorException(error);
@@ -933,9 +933,7 @@ QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::ListEnSharedNotebo
         }
     }
 
-    qSort(sharedNotebookAdapters.begin(), sharedNotebookAdapters.end(),
-          [](const SharedNotebookAdapter & lhs, const SharedNotebookAdapter & rhs)
-          { return lhs.indexInNotebook() < rhs.indexInNotebook(); });
+    qSort(sharedNotebookAdapters.begin(), sharedNotebookAdapters.end(), SharedNotebookAdapterCompareByIndex());
 
     foreach(const SharedNotebookAdapter & sharedNotebookAdapter, sharedNotebookAdapters) {
         sharedNotebooks << sharedNotebookAdapter.GetEnSharedNotebook();
@@ -1507,15 +1505,13 @@ bool LocalStorageManagerPrivate::FindNote(Note & note, QString & errorDescriptio
 
     int numResources = resources.size();
     if (numResources > 0) {
-        qSort(resources.begin(), resources.end(), [](const ResourceWrapper & lhs, const ResourceWrapper & rhs)
-                                                    { return lhs.indexInNote() < rhs.indexInNote(); });
+        qSort(resources.begin(), resources.end(), ResourceWrapperCompareByIndex());
         note.setResources(resources);
     }
 
     int numTags = tagGuidsAndIndices.size();
     if (numTags > 0) {
-        qSort(tagGuidsAndIndices.begin(), tagGuidsAndIndices.end(), [](const QPair<QString, int> & lhs, const QPair<QString, int> & rhs)
-                                                                       { return lhs.second < rhs.second; });
+        qSort(tagGuidsAndIndices.begin(), tagGuidsAndIndices.end(), QStringIntPairCompareByInt());
         QStringList tagGuids;
         tagGuids.reserve(numTags);
         for(int i = 0; i < numTags; ++i) {
@@ -6865,8 +6861,7 @@ bool LocalStorageManagerPrivate::FindAndSetResourcesPerNote(Note & note, QString
                 << " for note with local guid " << noteLocalGuid);
     }
 
-    qSort(resources.begin(), resources.end(), [](const ResourceWrapper & lhs, const ResourceWrapper & rhs)
-                                              { return lhs.indexInNote() < rhs.indexInNote(); });
+    qSort(resources.begin(), resources.end(), ResourceWrapperCompareByIndex());
     note.setResources(resources);
 
     return true;
@@ -6881,9 +6876,7 @@ void LocalStorageManagerPrivate::SortSharedNotebooks(Notebook & notebook) const
     // Sort shared notebooks to ensure the correct order for proper work of comparison operators
     QList<SharedNotebookAdapter> sharedNotebookAdapters = notebook.sharedNotebooks();
 
-    qSort(sharedNotebookAdapters.begin(), sharedNotebookAdapters.end(),
-          [](const SharedNotebookAdapter & lhs, const SharedNotebookAdapter & rhs)
-          { return lhs.indexInNotebook() < rhs.indexInNotebook(); });
+    qSort(sharedNotebookAdapters.begin(), sharedNotebookAdapters.end(), SharedNotebookAdapterCompareByIndex());
 }
 
 bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & noteSearchQuery,
@@ -7804,6 +7797,24 @@ bool LocalStorageManagerPrivate::resourceRecognitionTypesToResourceLocalGuids(co
     }
 
     return true;
+}
+
+bool LocalStorageManagerPrivate::SharedNotebookAdapterCompareByIndex::operator()(const SharedNotebookAdapter & lhs,
+                                                                                 const SharedNotebookAdapter & rhs) const
+{
+    return (lhs.indexInNotebook() < rhs.indexInNotebook());
+}
+
+bool LocalStorageManagerPrivate::ResourceWrapperCompareByIndex::operator()(const ResourceWrapper & lhs,
+                                                                           const ResourceWrapper & rhs) const
+{
+    return (lhs.indexInNote() < rhs.indexInNote());
+}
+
+bool LocalStorageManagerPrivate::QStringIntPairCompareByInt::operator()(const QPair<QString, int> & lhs,
+                                                                        const QPair<QString, int> & rhs) const
+{
+    return (lhs.second < rhs.second);
 }
 
 #undef CHECK_AND_SET_RESOURCE_PROPERTY

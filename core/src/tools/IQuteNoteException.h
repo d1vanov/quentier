@@ -11,13 +11,23 @@ class QUTE_NOTE_EXPORT IQuteNoteException: public Printable,
 {
 public:
     explicit IQuteNoteException(const QString & message);
+
+#ifdef _MSC_VER
     virtual ~IQuteNoteException();
+#elif __cplusplus >= 201103L
+    virtual ~IQuteNoteException() noexcept;
+#else
+    virtual ~IQuteNoteException() throw();
+#endif
 
     const QString errorMessage() const;
+
 #ifdef _MSC_VER
     virtual const char * what() const Q_DECL_OVERRIDE;
-#else
+#elif __cplusplus >= 201103L
     virtual const char * what() const noexcept Q_DECL_OVERRIDE;
+#else
+    virtual const char * what() const Q_DECL_OVERRIDE throw();
 #endif
 
     virtual QTextStream & Print(QTextStream & strm) const;

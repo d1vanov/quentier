@@ -230,6 +230,21 @@ private:
                                                       QStringList & resourceLocalGuids,
                                                       QString & errorDescription) const;
 
+    struct SharedNotebookAdapterCompareByIndex
+    {
+        bool operator()(const SharedNotebookAdapter & lhs, const SharedNotebookAdapter & rhs) const;
+    };
+
+    struct ResourceWrapperCompareByIndex
+    {
+        bool operator()(const ResourceWrapper & lhs, const ResourceWrapper & rhs) const;
+    };
+
+    struct QStringIntPairCompareByInt
+    {
+        bool operator()(const QPair<QString, int> & lhs, const QPair<QString, int> & rhs) const;
+    };
+
     QString             m_currentUsername;
     qevercloud::UserID  m_currentUserId;
     QString             m_applicationPersistenceStoragePath;
