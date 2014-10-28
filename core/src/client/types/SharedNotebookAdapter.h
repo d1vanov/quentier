@@ -35,7 +35,7 @@ public:
 private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
-    SharedNotebookAdapter() = delete;
+    SharedNotebookAdapter() Q_DECL_DELETE;
 
     qevercloud::SharedNotebook * m_pEnSharedNotebook;
     bool m_isConst;

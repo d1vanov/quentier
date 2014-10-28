@@ -17,8 +17,8 @@ public:
     bool m_synchronizable;
 
 private:
-    SynchronizableDataElementData & operator=(const SynchronizableDataElementData & other) = delete;
-    SynchronizableDataElementData & operator=(SynchronizableDataElementData && other) = delete;
+    SynchronizableDataElementData & operator=(const SynchronizableDataElementData & other) Q_DECL_DELETE;
+    SynchronizableDataElementData & operator=(SynchronizableDataElementData && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__TRANSACTION_H
 
 #include <tools/Linkage.h>
+#include <tools/qt4helper.h>
 #include <QSqlDatabase>
 
 namespace qute_note {
@@ -27,10 +28,10 @@ public:
     bool end(QString & errorDescription);
 
 private:
-    Transaction() = delete;
-    Transaction(const Transaction & other) = delete;
-    Transaction & operator=(const Transaction & other) = delete;
-    Transaction & operator=(Transaction && other) = delete;
+    Transaction() Q_DECL_DELETE;
+    Transaction(const Transaction & other) Q_DECL_DELETE;
+    Transaction & operator=(const Transaction & other) Q_DECL_DELETE;
+    Transaction & operator=(Transaction && other) Q_DECL_DELETE;
 
     void init();
 

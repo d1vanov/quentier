@@ -288,11 +288,11 @@ public Q_SLOTS:
     void onExpungeSavedSearch(SavedSearch search);
 
 private:
-    LocalStorageManagerThread() = delete;
-    LocalStorageManagerThread(const LocalStorageManagerThread & other) = delete;
-    LocalStorageManagerThread(LocalStorageManagerThread && other) = delete;
-    LocalStorageManagerThread & operator=(const LocalStorageManagerThread & other) = delete;
-    LocalStorageManagerThread & operator=(LocalStorageManagerThread && other) = delete;
+    LocalStorageManagerThread() Q_DECL_DELETE;
+    LocalStorageManagerThread(const LocalStorageManagerThread & other) Q_DECL_DELETE;
+    LocalStorageManagerThread(LocalStorageManagerThread && other) Q_DECL_DELETE;
+    LocalStorageManagerThread & operator=(const LocalStorageManagerThread & other) Q_DECL_DELETE;
+    LocalStorageManagerThread & operator=(LocalStorageManagerThread && other) Q_DECL_DELETE;
 
     void createConnections();
 

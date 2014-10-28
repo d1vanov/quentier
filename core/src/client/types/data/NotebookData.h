@@ -29,8 +29,8 @@ public:
     bool   m_isLastUsed;
 
 private:
-    NotebookData & operator=(const NotebookData & other) = delete;
-    NotebookData & operator=(NotebookData && other) = delete;
+    NotebookData & operator=(const NotebookData & other) Q_DECL_DELETE;
+    NotebookData & operator=(NotebookData && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

@@ -31,7 +31,7 @@ public:
                                  const QTextFormat & format) Q_DECL_OVERRIDE;
 
 private:
-    ResourceTextObject() = delete;
+    ResourceTextObject() Q_DECL_DELETE;
 
     const QScopedPointer<qevercloud::Resource> m_pResource;
     QImage m_resourceImage;

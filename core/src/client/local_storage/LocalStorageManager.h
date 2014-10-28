@@ -3,6 +3,7 @@
 
 #include "Lists.h"
 #include <tools/Linkage.h>
+#include <tools/qt4helper.h>
 #include <QString>
 #include <QSharedPointer>
 #include <cstdint>
@@ -587,9 +588,9 @@ public:
     bool ExpungeSavedSearch(const SavedSearch & search, QString & errorDescription);
 
 private:
-    LocalStorageManager() = delete;
-    LocalStorageManager(const LocalStorageManager & other) = delete;
-    LocalStorageManager & operator=(const LocalStorageManager & other) = delete;
+    LocalStorageManager() Q_DECL_DELETE;
+    LocalStorageManager(const LocalStorageManager & other) Q_DECL_DELETE;
+    LocalStorageManager & operator=(const LocalStorageManager & other) Q_DECL_DELETE;
 
     LocalStorageManagerPrivate * const d_ptr;
     Q_DECLARE_PRIVATE(LocalStorageManager)

@@ -25,8 +25,8 @@ public:
     qevercloud::LinkedNotebook    m_qecLinkedNotebook;
 
 private:
-    LinkedNotebookData & operator=(const LinkedNotebookData & other) = delete;
-    LinkedNotebookData & operator=(LinkedNotebookData && other) = delete;
+    LinkedNotebookData & operator=(const LinkedNotebookData & other) Q_DECL_DELETE;
+    LinkedNotebookData & operator=(LinkedNotebookData && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

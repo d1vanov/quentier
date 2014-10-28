@@ -34,7 +34,7 @@ private:
 
     virtual QTextStream & Print(QTextStream & strm) const;
 
-    ResourceAdapter() = delete;
+    ResourceAdapter() Q_DECL_DELETE;
 
     qevercloud::Resource * m_pEnResource;
     bool m_isConst;

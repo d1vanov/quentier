@@ -16,11 +16,11 @@ public:
     void setValue(const QString & key, const QVariant & value, const QString & keyGroup = QString());
 
 private:
-    ApplicationSettings() = delete;
-    ApplicationSettings(const ApplicationSettings & other) = delete;
-    ApplicationSettings(ApplicationSettings && other) = delete;
-    ApplicationSettings & operator=(const ApplicationSettings & other) = delete;
-    ApplicationSettings & operator=(ApplicationSettings && other) = delete;
+    ApplicationSettings() Q_DECL_DELETE;
+    ApplicationSettings(const ApplicationSettings & other) Q_DECL_DELETE;
+    ApplicationSettings(ApplicationSettings && other) Q_DECL_DELETE;
+    ApplicationSettings & operator=(const ApplicationSettings & other) Q_DECL_DELETE;
+    ApplicationSettings & operator=(ApplicationSettings && other) Q_DECL_DELETE;
 
     ApplicationSettings(const QString & orgName, const QString & appName);
     ~ApplicationSettings();

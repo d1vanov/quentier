@@ -19,8 +19,8 @@ public:
     qevercloud::SharedNotebook    m_qecSharedNotebook;
 
 private:
-    SharedNotebookWrapperData & operator=(const SharedNotebookWrapperData & other) = delete;
-    SharedNotebookWrapperData & operator=(SharedNotebookWrapperData && other) = delete;
+    SharedNotebookWrapperData & operator=(const SharedNotebookWrapperData & other) Q_DECL_DELETE;
+    SharedNotebookWrapperData & operator=(SharedNotebookWrapperData && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

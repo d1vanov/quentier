@@ -17,8 +17,8 @@ public:
     bool    m_isDirty;
 
 private:
-    NoteStoreDataElementData & operator=(const NoteStoreDataElementData & other) = delete;
-    NoteStoreDataElementData & operator=(NoteStoreDataElementData && other) = delete;
+    NoteStoreDataElementData & operator=(const NoteStoreDataElementData & other) Q_DECL_DELETE;
+    NoteStoreDataElementData & operator=(NoteStoreDataElementData && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

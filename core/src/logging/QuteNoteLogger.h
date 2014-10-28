@@ -1,7 +1,8 @@
 #ifndef __QUTE_NOTE__CORE__LOGGING__QUTE_NOTE_LOGGER_H
 #define __QUTE_NOTE__CORE__LOGGING__QUTE_NOTE_LOGGER_H
 
-#include "../tools/Linkage.h"
+#include <tools/Linkage.h>
+#include <tools/qt4helper.h>
 #include <QString>
 #include <QTextStream>
 #include <QFile>
@@ -32,9 +33,9 @@ private:
     QuteNoteLogger(const QString & name, const Level level = QuteNoteLogger::Level::LEVEL_WARNING);
     virtual ~QuteNoteLogger();
 
-    QuteNoteLogger() = delete;
-    QuteNoteLogger(const QuteNoteLogger & other) = delete;
-    QuteNoteLogger & operator=(const QuteNoteLogger & other) = delete;
+    QuteNoteLogger() Q_DECL_DELETE;
+    QuteNoteLogger(const QuteNoteLogger & other) Q_DECL_DELETE;
+    QuteNoteLogger & operator=(const QuteNoteLogger & other) Q_DECL_DELETE;
 
     QString m_loggerName;
     QFile   m_logFile;

@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__TESTS__CORE_TESTER_H
 #define __QUTE_NOTE__CORE__TESTS__CORE_TESTER_H
 
+#include <tools/qt4helper.h>
 #include <QObject>
 
 namespace qute_note {
@@ -52,8 +53,8 @@ private slots:
     void localStorageCacheManagerTest();
 
 private:
-    CoreTester(const CoreTester & other) = delete;
-    CoreTester & operator=(const CoreTester & other) = delete;
+    CoreTester(const CoreTester & other) Q_DECL_DELETE;
+    CoreTester & operator=(const CoreTester & other) Q_DECL_DELETE;
 
 };
 

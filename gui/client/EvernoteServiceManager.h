@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__EVERNOTE_SERVICE_MANAGER_H
 #define __QUTE_NOTE__CLIENT__EVERNOTE_SERVICE_MANAGER_H
 
+#include <tools/qt4helper.h>
 #include <QObject>
 #include <QString>
 #include <QUrl>
@@ -65,8 +66,8 @@ public slots:
     void onUserNameAndPasswordSet(QString name, QString password);
 
 private:
-    EvernoteServiceManager(const EvernoteServiceManager & other) = delete;
-    EvernoteServiceManager & operator=(const EvernoteServiceManager & other) = delete;
+    EvernoteServiceManager(const EvernoteServiceManager & other) Q_DECL_DELETE;
+    EvernoteServiceManager & operator=(const EvernoteServiceManager & other) Q_DECL_DELETE;
 
 private:
     enum EAuthorizationState

@@ -29,7 +29,7 @@ protected:
     virtual const QString exceptionDisplayName() const = 0;
 
 private:
-    IQuteNoteException() = delete;
+    IQuteNoteException() Q_DECL_DELETE;
 
     QString m_message;
 };

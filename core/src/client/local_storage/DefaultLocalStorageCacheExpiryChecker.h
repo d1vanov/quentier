@@ -39,11 +39,11 @@ public:
 private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
-    DefaultLocalStorageCacheExpiryChecker() = delete;
-    DefaultLocalStorageCacheExpiryChecker(const DefaultLocalStorageCacheExpiryChecker & other) = delete;
-    DefaultLocalStorageCacheExpiryChecker(DefaultLocalStorageCacheExpiryChecker && other) = delete;
-    DefaultLocalStorageCacheExpiryChecker & operator=(const DefaultLocalStorageCacheExpiryChecker & other) = delete;
-    DefaultLocalStorageCacheExpiryChecker & operator=(DefaultLocalStorageCacheExpiryChecker && other) = delete;
+    DefaultLocalStorageCacheExpiryChecker() Q_DECL_DELETE;
+    DefaultLocalStorageCacheExpiryChecker(const DefaultLocalStorageCacheExpiryChecker & other) Q_DECL_DELETE;
+    DefaultLocalStorageCacheExpiryChecker(DefaultLocalStorageCacheExpiryChecker && other) Q_DECL_DELETE;
+    DefaultLocalStorageCacheExpiryChecker & operator=(const DefaultLocalStorageCacheExpiryChecker & other) Q_DECL_DELETE;
+    DefaultLocalStorageCacheExpiryChecker & operator=(DefaultLocalStorageCacheExpiryChecker && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

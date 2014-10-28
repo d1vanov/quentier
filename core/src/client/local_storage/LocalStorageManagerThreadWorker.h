@@ -210,11 +210,11 @@ public Q_SLOTS:
     void onExpungeSavedSearch(SavedSearch search);
 
 private:
-    LocalStorageManagerThreadWorker() = delete;
-    LocalStorageManagerThreadWorker(const LocalStorageManagerThreadWorker & other) = delete;
-    LocalStorageManagerThreadWorker(LocalStorageManagerThreadWorker && other) = delete;
-    LocalStorageManagerThreadWorker & operator=(const LocalStorageManagerThreadWorker & other) = delete;
-    LocalStorageManagerThreadWorker & operator=(LocalStorageManagerThreadWorker && other) = delete;
+    LocalStorageManagerThreadWorker() Q_DECL_DELETE;
+    LocalStorageManagerThreadWorker(const LocalStorageManagerThreadWorker & other) Q_DECL_DELETE;
+    LocalStorageManagerThreadWorker(LocalStorageManagerThreadWorker && other) Q_DECL_DELETE;
+    LocalStorageManagerThreadWorker & operator=(const LocalStorageManagerThreadWorker & other) Q_DECL_DELETE;
+    LocalStorageManagerThreadWorker & operator=(LocalStorageManagerThreadWorker && other) Q_DECL_DELETE;
 
     LocalStorageManager         m_localStorageManager;
     bool                        m_useCache;

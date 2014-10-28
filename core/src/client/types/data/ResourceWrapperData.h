@@ -19,8 +19,8 @@ public:
     qevercloud::Resource    m_qecResource;
 
 private:
-    ResourceWrapperData & operator=(const ResourceWrapperData & other) = delete;
-    ResourceWrapperData & operator=(ResourceWrapperData && other) = delete;
+    ResourceWrapperData & operator=(const ResourceWrapperData & other) Q_DECL_DELETE;
+    ResourceWrapperData & operator=(ResourceWrapperData && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

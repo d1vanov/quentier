@@ -17,8 +17,8 @@ public:
     qevercloud::User    m_qecUser;
 
 private:
-    UserWrapperData & operator=(const UserWrapperData & other) = delete;
-    UserWrapperData & operator=(UserWrapperData && other) = delete;
+    UserWrapperData & operator=(const UserWrapperData & other) Q_DECL_DELETE;
+    UserWrapperData & operator=(UserWrapperData && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

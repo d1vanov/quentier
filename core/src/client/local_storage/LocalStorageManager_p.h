@@ -100,9 +100,9 @@ public Q_SLOTS:
     void ProcessPostTransactionException(QString message, QSqlError error) const;
 
 private:
-    LocalStorageManagerPrivate() = delete;
-    LocalStorageManagerPrivate(const LocalStorageManagerPrivate & other) = delete;
-    LocalStorageManagerPrivate & operator=(const LocalStorageManagerPrivate & other) = delete;
+    LocalStorageManagerPrivate() Q_DECL_DELETE;
+    LocalStorageManagerPrivate(const LocalStorageManagerPrivate & other) Q_DECL_DELETE;
+    LocalStorageManagerPrivate & operator=(const LocalStorageManagerPrivate & other) Q_DECL_DELETE;
 
     bool CreateTables(QString & errorDescription);
     bool InsertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,

@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__DATA_ELEMENT_WITH_SHORTCUT_DATA_H
 
 #include "NoteStoreDataElementData.h"
+#include <tools/qt4helper.h>
 
 namespace qute_note {
 
@@ -17,8 +18,8 @@ public:
     bool    m_hasShortcut;
 
 private:
-    DataElementWithShortcutData & operator=(const DataElementWithShortcutData & other) = delete;
-    DataElementWithShortcutData & operator=(DataElementWithShortcutData && other) = delete;
+    DataElementWithShortcutData & operator=(const DataElementWithShortcutData & other) Q_DECL_DELETE;
+    DataElementWithShortcutData & operator=(DataElementWithShortcutData && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

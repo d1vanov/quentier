@@ -27,8 +27,8 @@ public:
     qevercloud::SavedSearch     m_qecSearch;
 
 private:
-    SavedSearchData & operator=(const SavedSearchData & other) = delete;
-    SavedSearchData & operator=(SavedSearchData && other) = delete;
+    SavedSearchData & operator=(const SavedSearchData & other) Q_DECL_DELETE;
+    SavedSearchData & operator=(SavedSearchData && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

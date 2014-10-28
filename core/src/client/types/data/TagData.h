@@ -28,8 +28,8 @@ public:
     bool                m_isDeleted;
 
 private:
-    TagData & operator=(const TagData & other) = delete;
-    TagData & operator=(TagData && other) = delete;
+    TagData & operator=(const TagData & other) Q_DECL_DELETE;
+    TagData & operator=(TagData && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

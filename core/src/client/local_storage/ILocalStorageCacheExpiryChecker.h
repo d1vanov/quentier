@@ -27,11 +27,11 @@ public:
     virtual QTextStream & Print(QTextStream & strm) const = 0;
 
 private:
-    ILocalStorageCacheExpiryChecker() = delete;
-    ILocalStorageCacheExpiryChecker(const ILocalStorageCacheExpiryChecker & other) = delete;
-    ILocalStorageCacheExpiryChecker(ILocalStorageCacheExpiryChecker && other) = delete;
-    ILocalStorageCacheExpiryChecker & operator=(const ILocalStorageCacheExpiryChecker & other) = delete;
-    ILocalStorageCacheExpiryChecker & operator=(ILocalStorageCacheExpiryChecker && other) = delete;
+    ILocalStorageCacheExpiryChecker() Q_DECL_DELETE;
+    ILocalStorageCacheExpiryChecker(const ILocalStorageCacheExpiryChecker & other) Q_DECL_DELETE;
+    ILocalStorageCacheExpiryChecker(ILocalStorageCacheExpiryChecker && other) Q_DECL_DELETE;
+    ILocalStorageCacheExpiryChecker & operator=(const ILocalStorageCacheExpiryChecker & other) Q_DECL_DELETE;
+    ILocalStorageCacheExpiryChecker & operator=(ILocalStorageCacheExpiryChecker && other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note
