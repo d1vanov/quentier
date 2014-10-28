@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__TOOLS_PRINTABLE_H
 
 #include "Linkage.h"
+#include <tools/qt4helper.h>
 #include <QString>
 #include <QTextStream>
 #include <QDebug>
@@ -25,12 +26,12 @@ public:
     friend QUTE_NOTE_EXPORT QDebug & operator << (QDebug & debug,
                                                   const Printable & printable);
 protected:
-    Printable() = default;
-    Printable(const Printable & other) = default;
-    virtual ~Printable() = default;
+    Printable();
+    Printable(const Printable & other);
+    virtual ~Printable();
 
 private:
-    Printable & operator=(const Printable & other) = delete;
+    Printable & operator=(const Printable & other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

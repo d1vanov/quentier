@@ -76,7 +76,8 @@ set(${PROJECT_NAME}_HEADERS
     src/tools/QuteNoteApplication.h
     src/tools/QuteNoteCheckPtr.h
     src/tools/QuteNoteNullPtrException.h
-    src/tools/TypeWithError.h)
+    src/tools/TypeWithError.h
+    src/tools/qt4helper.h)
 
 set(${PROJECT_NAME}_SOURCES
     src/note_editor/HorizontalLineExtraData.cpp

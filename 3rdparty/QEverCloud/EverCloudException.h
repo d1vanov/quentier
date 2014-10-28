@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QString>
 #include <QSharedPointer>
-#include "qt4helper.h"
+#include <tools/qt4helper.h>
 #include <exception>
 
 namespace qevercloud {

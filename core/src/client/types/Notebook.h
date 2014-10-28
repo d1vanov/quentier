@@ -41,17 +41,17 @@ public:
     bool operator==(const Notebook & other) const;
     bool operator!=(const Notebook & other) const;
 
-    virtual void clear() final override;
+    virtual void clear() Q_DECL_OVERRIDE;
 
-    virtual bool hasGuid() const override;
-    virtual const QString & guid() const override;
-    virtual void setGuid(const QString & guid) override;
+    virtual bool hasGuid() const Q_DECL_OVERRIDE;
+    virtual const QString & guid() const Q_DECL_OVERRIDE;
+    virtual void setGuid(const QString & guid) Q_DECL_OVERRIDE;
 
-    virtual bool hasUpdateSequenceNumber() const override;
-    virtual qint32 updateSequenceNumber() const override;
-    virtual void setUpdateSequenceNumber(const qint32 usn) override;
+    virtual bool hasUpdateSequenceNumber() const Q_DECL_OVERRIDE;
+    virtual qint32 updateSequenceNumber() const Q_DECL_OVERRIDE;
+    virtual void setUpdateSequenceNumber(const qint32 usn) Q_DECL_OVERRIDE;
 
-    virtual bool checkParameters(QString & errorDescription) const override;
+    virtual bool checkParameters(QString & errorDescription) const Q_DECL_OVERRIDE;
 
     bool hasName() const;
     const QString & name() const;
@@ -190,7 +190,7 @@ public:
     const qevercloud::NotebookRestrictions & restrictions() const;
 
 private:
-    virtual QTextStream & Print(QTextStream & strm) const override;
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     QSharedDataPointer<NotebookData> d;
 };

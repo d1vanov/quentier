@@ -10,6 +10,15 @@ const QString Printable::ToQString() const
     return str;
 }
 
+Printable::Printable()
+{}
+
+Printable::Printable(const Printable &other)
+{}
+
+Printable::~Printable()
+{}
+
 QDebug & operator <<(QDebug & debug, const Printable & printable)
 {
     debug << printable.ToQString();

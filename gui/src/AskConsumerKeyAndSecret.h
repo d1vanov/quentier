@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__GUI__ASK_CONSUMER_KEY_AND_SECRET_H
 #define __QUTE_NOTE__GUI__ASK_CONSUMER_KEY_AND_SECRET_H
 
+#include <tools/qt4helper.h>
 #include <QWidget>
 #include <QString>
 
@@ -24,7 +25,7 @@ public slots:
     void onCancelButtonPressed();
 
 protected:
-    virtual void keyPressEvent(QKeyEvent * pEvent) final override;
+    virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     Ui::AskConsumerKeyAndSecret * m_pUI;

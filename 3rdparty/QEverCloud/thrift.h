@@ -5,7 +5,7 @@
 #include <QtEndian>
 #include <cstring>
 #include "exceptions.h"
-#include "qt4helper.h"
+#include <tools/qt4helper.h>
 #include <limits>
 
 namespace qevercloud {

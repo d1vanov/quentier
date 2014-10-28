@@ -7,6 +7,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
       add_definitions("-fPIC")
     endif()
+    add_definitions("-DCPP11_COMPLIANT=1")
   else()
     message(FATAL_ERROR "Your compiler is known to not support C++ standard as much
                          as it is required to build this application. Consider upgrading
@@ -21,6 +22,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   message(STATUS "Using LLVM/Clang C++ compiler, version info: ${CLANG_VERSION}")
   if(NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.1)
     message(STATUS "Your compiler supports C++11 standard.")
+    add_definitions("-DCPP11_COMPLIANT=1")
   else()
     message(WARNING "Your compiler may not support all the necessary C++11 standard features
                      to build this application. If you'd get any compilation errors, consider
@@ -39,7 +41,10 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
       add_definitions("-stdlib=libc++ -DHAVELIBCPP")
     endif()
   endif()
-elseif(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC12")
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC12")
+  message(STATUS "Visual C++ 2013 compiler supports C++11 standard.")
+  add_definitions("-DCPP11_COMPLIANT=1")
+else()
   message(WARNING "Your C++ compiler is not officially supported for building of this application.
                    If you'd get any compilation errors, consider upgrading to a compiler version
                    which fully supports the C++11 standard.")

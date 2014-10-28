@@ -62,13 +62,13 @@ public:
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 
-    virtual QTextStream & Print(QTextStream & strm) const override;
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
-    LocalStorageCacheManager(const LocalStorageCacheManager & other) = delete;
-    LocalStorageCacheManager(LocalStorageCacheManager && other) = delete;
-    LocalStorageCacheManager & operator=(const LocalStorageCacheManager & other) = delete;
-    LocalStorageCacheManager & operator=(LocalStorageCacheManager && other) = delete;
+    LocalStorageCacheManager(const LocalStorageCacheManager & other) Q_DECL_DELETE;
+    LocalStorageCacheManager(LocalStorageCacheManager && other) Q_DECL_DELETE;
+    LocalStorageCacheManager & operator=(const LocalStorageCacheManager & other) Q_DECL_DELETE;
+    LocalStorageCacheManager & operator=(LocalStorageCacheManager && other) Q_DECL_DELETE;
 
     LocalStorageCacheManagerPrivate *   d_ptr;
     Q_DECLARE_PRIVATE(LocalStorageCacheManager)

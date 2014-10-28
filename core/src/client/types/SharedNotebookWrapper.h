@@ -25,13 +25,13 @@ public:
     SharedNotebookWrapper(const qevercloud::SharedNotebook & other);
     SharedNotebookWrapper(qevercloud::SharedNotebook && other);
 
-    virtual ~SharedNotebookWrapper() override;
+    virtual ~SharedNotebookWrapper() Q_DECL_OVERRIDE;
 
-    virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const override;
-    virtual qevercloud::SharedNotebook & GetEnSharedNotebook() override;
+    virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const Q_DECL_OVERRIDE;
+    virtual qevercloud::SharedNotebook & GetEnSharedNotebook() Q_DECL_OVERRIDE;
 
 private:
-    virtual QTextStream & Print(QTextStream & strm) const override;
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     QSharedDataPointer<SharedNotebookWrapperData> d;
 };

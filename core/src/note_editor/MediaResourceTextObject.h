@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__MEDIA_RESOURCE_TEXT_OBJECT_H
 
 #include <tools/Linkage.h>
+#include <tools/qt4helper.h>
 #include <QTextObjectInterface>
 
 class QUTE_NOTE_EXPORT MediaResourceTextObject : public QObject, public QTextObjectInterface
@@ -11,7 +12,7 @@ class QUTE_NOTE_EXPORT MediaResourceTextObject : public QObject, public QTextObj
 
 public:
     explicit MediaResourceTextObject() {}
-    virtual ~MediaResourceTextObject() override {}
+    virtual ~MediaResourceTextObject() Q_DECL_OVERRIDE {}
     
 public:
     // QTextObjectInterface

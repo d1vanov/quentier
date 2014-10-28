@@ -23,7 +23,6 @@ set(${PROJECT_NAME}_HEADERS
     Optional.h
     EventLoopFinisher.h
     EverCloudException.h
-    qt4helper.h
     generated/constants.h
     generated/services.h
     generated/types.h

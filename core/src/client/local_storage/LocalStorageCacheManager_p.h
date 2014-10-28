@@ -68,7 +68,7 @@ public:
 
     LocalStorageCacheManager *  q_ptr;
 
-    virtual QTextStream & Print(QTextStream & strm) const override;
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
     LocalStorageCacheManagerPrivate() = delete;
@@ -93,7 +93,7 @@ private:
         struct ByLocalGuid{};
         struct ByGuid{};
 
-        virtual QTextStream & Print(QTextStream & strm) const override;
+        virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
     };
 
     typedef boost::multi_index_container<
@@ -130,7 +130,7 @@ private:
         struct ByLocalGuid{};
         struct ByGuid{};
 
-        virtual QTextStream & Print(QTextStream & strm) const override;
+        virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
     };
 
     typedef boost::multi_index_container<
@@ -167,7 +167,7 @@ private:
         struct ByLocalGuid{};
         struct ByGuid{};
 
-        virtual QTextStream & Print(QTextStream & strm) const override;
+        virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
     };
 
     typedef boost::multi_index_container<
@@ -202,7 +202,7 @@ private:
         struct ByLastAccessTimestamp{};
         struct ByGuid{};
 
-        virtual QTextStream & Print(QTextStream & strm) const override;
+        virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
     };
 
     typedef boost::multi_index_container<
@@ -234,7 +234,7 @@ private:
         struct ByLocalGuid{};
         struct ByGuid{};
 
-        virtual QTextStream & Print(QTextStream & strm) const override;
+        virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
     };
 
     typedef boost::multi_index_container<

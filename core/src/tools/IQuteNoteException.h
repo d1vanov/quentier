@@ -15,9 +15,9 @@ public:
 
     const QString errorMessage() const;
 #ifdef _MSC_VER
-    virtual const char * what() const override;
+    virtual const char * what() const Q_DECL_OVERRIDE;
 #else
-    virtual const char * what() const noexcept override;
+    virtual const char * what() const noexcept Q_DECL_OVERRIDE;
 #endif
 
     virtual QTextStream & Print(QTextStream & strm) const;

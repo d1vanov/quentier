@@ -23,15 +23,15 @@ public:
     UserAdapter(const qevercloud::User & externalEnUser);
     UserAdapter(const UserAdapter & other);
     UserAdapter(UserAdapter && other);
-    virtual ~UserAdapter() final override;
+    virtual ~UserAdapter() Q_DECL_OVERRIDE;
 
 private:
-    virtual const qevercloud::User & GetEnUser() const final override;
-    virtual qevercloud::User & GetEnUser() final override;
+    virtual const qevercloud::User & GetEnUser() const Q_DECL_OVERRIDE;
+    virtual qevercloud::User & GetEnUser() Q_DECL_OVERRIDE;
 
-    UserAdapter() = delete;
-    UserAdapter & operator=(const UserAdapter & other) = delete;
-    UserAdapter & operator=(UserAdapter && other) = delete;
+    UserAdapter() Q_DECL_DELETE;
+    UserAdapter & operator=(const UserAdapter & other) Q_DECL_DELETE;
+    UserAdapter & operator=(UserAdapter && other) Q_DECL_DELETE;
 
     qevercloud::User * m_pEnUser;
     bool m_isConst;

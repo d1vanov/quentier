@@ -21,11 +21,11 @@ public:
     UserWrapper(UserWrapper && other);
     UserWrapper & operator=(const UserWrapper & other);
     UserWrapper & operator=(UserWrapper && other);
-    virtual ~UserWrapper() final override;
+    virtual ~UserWrapper() Q_DECL_OVERRIDE;
 
 private:
-    virtual const qevercloud::User & GetEnUser() const override;
-    virtual qevercloud::User & GetEnUser() override;
+    virtual const qevercloud::User & GetEnUser() const Q_DECL_OVERRIDE;
+    virtual qevercloud::User & GetEnUser() Q_DECL_OVERRIDE;
 
     QSharedDataPointer<UserWrapperData> d;
 };

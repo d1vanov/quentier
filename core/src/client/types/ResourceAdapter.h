@@ -24,13 +24,13 @@ public:
     ResourceAdapter(const ResourceAdapter & other);
     ResourceAdapter(ResourceAdapter && other);
     ResourceAdapter & operator=(const ResourceAdapter & other);
-    virtual ~ResourceAdapter() final override;
+    virtual ~ResourceAdapter() final Q_DECL_OVERRIDE;
 
     friend class Note;
 
 private:
-    virtual const qevercloud::Resource & GetEnResource() const final override;
-    virtual qevercloud::Resource & GetEnResource() final override;
+    virtual const qevercloud::Resource & GetEnResource() const final Q_DECL_OVERRIDE;
+    virtual qevercloud::Resource & GetEnResource() final Q_DECL_OVERRIDE;
 
     virtual QTextStream & Print(QTextStream & strm) const;
 

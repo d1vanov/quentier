@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__QUTE_NOTE_TEXT_EDIT_H
 
 #include <tools/Linkage.h>
+#include <tools/qt4helper.h>
 #include <client/enml/ENMLConverter.h>
 #include <QTextEdit>
 
@@ -13,7 +14,7 @@ class QUTE_NOTE_EXPORT QuteNoteTextEdit: public QTextEdit
     Q_OBJECT
 public:
     explicit QuteNoteTextEdit(QWidget * parent = nullptr);
-    virtual ~QuteNoteTextEdit() final override;
+    virtual ~QuteNoteTextEdit() Q_DECL_OVERRIDE;
 
     enum ECustomTextObjectTextFormat {
         TODO_CHKBOX_TXT_FMT_UNCHECKED = QTextFormat::UserObject + 1,
@@ -27,8 +28,8 @@ public:
         MEDIA_RESOURCE_TXT_DATA        = 3
     };
 
-    virtual bool canInsertFromMimeData(const QMimeData * source) const final override;
-    virtual void insertFromMimeData(const QMimeData * source) final override;
+    virtual bool canInsertFromMimeData(const QMimeData * source) const Q_DECL_OVERRIDE;
+    virtual void insertFromMimeData(const QMimeData * source) Q_DECL_OVERRIDE;
 
     void changeIndentation(const bool increase);
     void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
@@ -39,9 +40,9 @@ public:
     void insertUncheckedToDoCheckboxAtCursor(QTextCursor cursor);
 
 protected:
-    virtual void keyPressEvent(QKeyEvent * pEvent) final override;
-    virtual void mousePressEvent(QMouseEvent * pEvent) final override;
-    virtual void mouseMoveEvent(QMouseEvent * pEvent) final override;
+    virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void mousePressEvent(QMouseEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void mouseMoveEvent(QMouseEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     void dropImage(const QUrl & url, const QImage & image);

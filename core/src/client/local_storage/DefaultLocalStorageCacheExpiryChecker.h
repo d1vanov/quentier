@@ -37,7 +37,7 @@ public:
     virtual bool checkSavedSearches() const;
 
 private:
-    virtual QTextStream & Print(QTextStream & strm) const override;
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     DefaultLocalStorageCacheExpiryChecker() = delete;
     DefaultLocalStorageCacheExpiryChecker(const DefaultLocalStorageCacheExpiryChecker & other) = delete;

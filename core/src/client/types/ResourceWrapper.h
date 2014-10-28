@@ -23,13 +23,13 @@ public:
     ResourceWrapper(const qevercloud::Resource & other);
     ResourceWrapper & operator=(const ResourceWrapper & other);
     ResourceWrapper & operator=(ResourceWrapper && other);
-    virtual ~ResourceWrapper() override;
+    virtual ~ResourceWrapper() Q_DECL_OVERRIDE;
 
     friend class Note;
 
 private:
-    virtual const qevercloud::Resource & GetEnResource() const override;
-    virtual qevercloud::Resource & GetEnResource() override;
+    virtual const qevercloud::Resource & GetEnResource() const Q_DECL_OVERRIDE;
+    virtual qevercloud::Resource & GetEnResource() Q_DECL_OVERRIDE;
 
     virtual QTextStream & Print(QTextStream & strm) const;
 

@@ -83,7 +83,7 @@ protected:
     virtual qevercloud::SharedNotebook & GetEnSharedNotebook() = 0;
     virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const = 0;
 
-    virtual QTextStream & Print(QTextStream & strm) const override;
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
     int  m_indexInNotebook;

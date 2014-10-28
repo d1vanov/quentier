@@ -27,13 +27,13 @@ public:
     SharedNotebookAdapter & operator=(const SharedNotebookAdapter & other);
     SharedNotebookAdapter & operator=(SharedNotebookAdapter && other);
 
-    virtual ~SharedNotebookAdapter() final override;
+    virtual ~SharedNotebookAdapter() Q_DECL_OVERRIDE;
 
-    virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const final override;
-    virtual qevercloud::SharedNotebook & GetEnSharedNotebook() final override;
+    virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const Q_DECL_OVERRIDE;
+    virtual qevercloud::SharedNotebook & GetEnSharedNotebook() Q_DECL_OVERRIDE;
 
 private:
-    virtual QTextStream & Print(QTextStream & strm) const final override;
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     SharedNotebookAdapter() = delete;
 

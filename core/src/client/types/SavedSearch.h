@@ -33,7 +33,7 @@ public:
     SavedSearch(const qevercloud::SavedSearch & search);
     SavedSearch(qevercloud::SavedSearch && search);
 
-    virtual ~SavedSearch() final override;
+    virtual ~SavedSearch() Q_DECL_OVERRIDE;
 
     operator qevercloud::SavedSearch & ();
     operator const qevercloud::SavedSearch & () const;
@@ -41,17 +41,17 @@ public:
     bool operator==(const SavedSearch & other) const;
     bool operator!=(const SavedSearch & other) const;
 
-    virtual void clear() final override;
+    virtual void clear() Q_DECL_OVERRIDE;
 
-    virtual bool hasGuid() const final override;
-    virtual const QString & guid() const final override;
-    virtual void setGuid(const QString & guid) final override;
+    virtual bool hasGuid() const Q_DECL_OVERRIDE;
+    virtual const QString & guid() const Q_DECL_OVERRIDE;
+    virtual void setGuid(const QString & guid) Q_DECL_OVERRIDE;
 
-    virtual bool hasUpdateSequenceNumber() const final override;
-    virtual qint32 updateSequenceNumber() const final override;
-    virtual void setUpdateSequenceNumber(const qint32 usn) final override;
+    virtual bool hasUpdateSequenceNumber() const Q_DECL_OVERRIDE;
+    virtual qint32 updateSequenceNumber() const Q_DECL_OVERRIDE;
+    virtual void setUpdateSequenceNumber(const qint32 usn) Q_DECL_OVERRIDE;
 
-    virtual bool checkParameters(QString & errorDescription) const final override;
+    virtual bool checkParameters(QString & errorDescription) const Q_DECL_OVERRIDE;
 
     bool hasName() const;
     const QString & name() const;
