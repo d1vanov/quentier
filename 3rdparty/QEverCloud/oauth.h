@@ -193,11 +193,19 @@ public:
      * @return
      *   QDialog::Accepted on a succesful authentication.
      */
+#if QT_VERSION < 0x050000
     int exec();
+#else
+    virtual int exec() Q_DECL_OVERRIDE
+#endif
 
     /** Shows the dialog as a window modal dialog, returning immediately.
      */
+#if QT_VERSION < 0x050000
     void open();
+#else
+    virtual void open() Q_DECL_OVERRIDE
+#endif
 
 private:
    EvernoteOAuthWebView* webView_;
