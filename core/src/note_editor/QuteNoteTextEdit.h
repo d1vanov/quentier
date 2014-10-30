@@ -14,7 +14,7 @@ class QUTE_NOTE_EXPORT QuteNoteTextEdit: public QTextEdit
     Q_OBJECT
 public:
     explicit QuteNoteTextEdit(QWidget * parent = nullptr);
-    virtual ~QuteNoteTextEdit() Q_DECL_OVERRIDE;
+    virtual ~QuteNoteTextEdit();
 
     enum ECustomTextObjectTextFormat {
         TODO_CHKBOX_TXT_FMT_UNCHECKED = QTextFormat::UserObject + 1,

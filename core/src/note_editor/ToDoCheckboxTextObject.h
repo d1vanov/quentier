@@ -14,7 +14,7 @@ class QUTE_NOTE_EXPORT ToDoCheckboxTextObjectUnchecked: public QObject, public Q
 
 public:
     explicit ToDoCheckboxTextObjectUnchecked() {}
-    virtual ~ToDoCheckboxTextObjectUnchecked() Q_DECL_OVERRIDE {}
+    virtual ~ToDoCheckboxTextObjectUnchecked() {}
 
 public:
     // QTextObjectInterface
@@ -32,7 +32,7 @@ class QUTE_NOTE_EXPORT ToDoCheckboxTextObjectChecked: public QObject, public QTe
 
 public:
     explicit ToDoCheckboxTextObjectChecked() {}
-    virtual ~ToDoCheckboxTextObjectChecked() Q_DECL_OVERRIDE {}
+    virtual ~ToDoCheckboxTextObjectChecked() {}
 
 public:
     // QTextObjectInterface

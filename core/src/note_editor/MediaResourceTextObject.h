@@ -12,7 +12,7 @@ class QUTE_NOTE_EXPORT MediaResourceTextObject : public QObject, public QTextObj
 
 public:
     explicit MediaResourceTextObject() {}
-    virtual ~MediaResourceTextObject() Q_DECL_OVERRIDE {}
+    virtual ~MediaResourceTextObject() {}
     
 public:
     // QTextObjectInterface

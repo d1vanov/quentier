@@ -25,7 +25,7 @@ public:
     SharedNotebookWrapper(const qevercloud::SharedNotebook & other);
     SharedNotebookWrapper(qevercloud::SharedNotebook && other);
 
-    virtual ~SharedNotebookWrapper() Q_DECL_OVERRIDE;
+    virtual ~SharedNotebookWrapper();
 
     virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const Q_DECL_OVERRIDE;
     virtual qevercloud::SharedNotebook & GetEnSharedNotebook() Q_DECL_OVERRIDE;

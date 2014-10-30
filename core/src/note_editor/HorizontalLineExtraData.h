@@ -9,7 +9,7 @@ class QUTE_NOTE_EXPORT HorizontalLineExtraData : public QTextBlockUserData
 {
 public:
     HorizontalLineExtraData();
-    virtual ~HorizontalLineExtraData() Q_DECL_OVERRIDE;
+    virtual ~HorizontalLineExtraData();
 };
 
 #endif // __QUTE_NOTE__CORE__NOTE_EDITOR__HORIZONTAL_LINE_EXTRA_DATA_H
