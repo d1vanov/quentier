@@ -21,7 +21,7 @@ public:
     UserWrapper(UserWrapper && other);
     UserWrapper & operator=(const UserWrapper & other);
     UserWrapper & operator=(UserWrapper && other);
-    virtual ~UserWrapper() Q_DECL_OVERRIDE;
+    virtual ~UserWrapper();
 
 private:
     virtual const qevercloud::User & GetEnUser() const Q_DECL_OVERRIDE;

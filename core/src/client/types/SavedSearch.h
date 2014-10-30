@@ -33,7 +33,7 @@ public:
     SavedSearch(const qevercloud::SavedSearch & search);
     SavedSearch(qevercloud::SavedSearch && search);
 
-    virtual ~SavedSearch() Q_DECL_OVERRIDE;
+    virtual ~SavedSearch();
 
     operator qevercloud::SavedSearch & ();
     operator const qevercloud::SavedSearch & () const;

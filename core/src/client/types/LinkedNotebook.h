@@ -25,7 +25,7 @@ public:
     LinkedNotebook(const qevercloud::LinkedNotebook & linkedNotebook);
     LinkedNotebook(qevercloud::LinkedNotebook && linkedNotebook);
 
-    virtual ~LinkedNotebook() Q_DECL_OVERRIDE;
+    virtual ~LinkedNotebook();
 
     operator qevercloud::LinkedNotebook & ();
     operator const qevercloud::LinkedNotebook & () const;

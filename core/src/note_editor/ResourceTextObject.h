@@ -19,7 +19,7 @@ public:
     explicit ResourceTextObject(const qevercloud::Resource & resource);
     ResourceTextObject(const ResourceTextObject & other);
     ResourceTextObject & operator =(const ResourceTextObject & other);
-    virtual ~ResourceTextObject() Q_DECL_OVERRIDE;
+    virtual ~ResourceTextObject();
 
     bool isValid() const;
 

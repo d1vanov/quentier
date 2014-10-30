@@ -27,7 +27,7 @@ public:
     SharedNotebookAdapter & operator=(const SharedNotebookAdapter & other);
     SharedNotebookAdapter & operator=(SharedNotebookAdapter && other);
 
-    virtual ~SharedNotebookAdapter() Q_DECL_OVERRIDE;
+    virtual ~SharedNotebookAdapter();
 
     virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const Q_DECL_OVERRIDE;
     virtual qevercloud::SharedNotebook & GetEnSharedNotebook() Q_DECL_OVERRIDE;

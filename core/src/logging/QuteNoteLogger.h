@@ -30,7 +30,7 @@ public:
     void logMessage(const QString & message, const QuteNoteLogger::Level level);
 
 private:
-    QuteNoteLogger(const QString & name, const Level level = QuteNoteLogger::Level::LEVEL_WARNING);
+    QuteNoteLogger(const QString & name, const Level level = QuteNoteLogger::LEVEL_WARNING);
     virtual ~QuteNoteLogger();
 
     QuteNoteLogger() Q_DECL_DELETE;

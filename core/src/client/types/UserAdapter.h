@@ -23,7 +23,7 @@ public:
     UserAdapter(const qevercloud::User & externalEnUser);
     UserAdapter(const UserAdapter & other);
     UserAdapter(UserAdapter && other);
-    virtual ~UserAdapter() Q_DECL_OVERRIDE;
+    virtual ~UserAdapter();
 
 private:
     virtual const qevercloud::User & GetEnUser() const Q_DECL_OVERRIDE;

@@ -40,16 +40,16 @@ QTextStream & operator <<(QTextStream & strm, const QuteNoteLogger::Level level)
 {
     switch(level)
     {
-    case QuteNoteLogger::Level::LEVEL_FATAL:
+    case QuteNoteLogger::LEVEL_FATAL:
         strm << "<FATAL>";
         break;
-    case QuteNoteLogger::Level::LEVEL_CRITICAL:
+    case QuteNoteLogger::LEVEL_CRITICAL:
         strm << "<CRITICAL>";
         break;
-    case QuteNoteLogger::Level::LEVEL_WARNING:
+    case QuteNoteLogger::LEVEL_WARNING:
         strm << "<WARNING>";
         break;
-    case QuteNoteLogger::Level::LEVEL_DEBUG:
+    case QuteNoteLogger::LEVEL_DEBUG:
         strm << "<DEBUG>";
         break;
     default:
@@ -109,16 +109,16 @@ void messageHandler(QtMsgType type, const QMessageLogContext & context, const QS
 
     switch (type) {
     case QtDebugMsg:
-        logger.logMessage(contextMessage, QuteNoteLogger::Level::LEVEL_DEBUG);
+        logger.logMessage(contextMessage, QuteNoteLogger::LEVEL_DEBUG);
         break;
     case QtWarningMsg:
-        logger.logMessage(contextMessage, QuteNoteLogger::Level::LEVEL_WARNING);
+        logger.logMessage(contextMessage, QuteNoteLogger::LEVEL_WARNING);
         break;
     case QtCriticalMsg:
-        logger.logMessage(contextMessage, QuteNoteLogger::Level::LEVEL_CRITICAL);
+        logger.logMessage(contextMessage, QuteNoteLogger::LEVEL_CRITICAL);
         break;
     case QtFatalMsg:
-        logger.logMessage(contextMessage, QuteNoteLogger::Level::LEVEL_FATAL);
+        logger.logMessage(contextMessage, QuteNoteLogger::LEVEL_FATAL);
         abort();
     }
 }

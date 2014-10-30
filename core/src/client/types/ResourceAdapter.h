@@ -24,7 +24,7 @@ public:
     ResourceAdapter(const ResourceAdapter & other);
     ResourceAdapter(ResourceAdapter && other);
     ResourceAdapter & operator=(const ResourceAdapter & other);
-    virtual ~ResourceAdapter() Q_DECL_OVERRIDE;
+    virtual ~ResourceAdapter();
 
     friend class Note;
 

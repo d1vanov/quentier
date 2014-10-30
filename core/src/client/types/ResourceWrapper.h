@@ -23,7 +23,7 @@ public:
     ResourceWrapper(const qevercloud::Resource & other);
     ResourceWrapper & operator=(const ResourceWrapper & other);
     ResourceWrapper & operator=(ResourceWrapper && other);
-    virtual ~ResourceWrapper() Q_DECL_OVERRIDE;
+    virtual ~ResourceWrapper();
 
     friend class Note;
 
