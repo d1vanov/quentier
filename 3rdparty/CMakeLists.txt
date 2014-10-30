@@ -23,6 +23,7 @@ endif()
 set(THIRDPARTY_INCLUDE_DIRS
     simplecrypt/src
     QEverCloud/include
+    QEverCloud
     qtkeychain
     stacktrace)
    

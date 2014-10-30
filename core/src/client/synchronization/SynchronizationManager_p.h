@@ -3,6 +3,7 @@
 
 #include <tools/qt4helper.h>
 #include <QEverCloud.h>
+#include <oauth.h>
 #include <QObject>
 
 namespace qute_note {
@@ -18,6 +19,14 @@ public:
 
     void synchronize();
 
+Q_SIGNALS:
+    void notifyError(QString errorDescription);
+
+private Q_SLOTS:
+    void onOAuthSuccess();
+    void onOAuthFailure();
+    void onOAuthResult(bool result);
+
 private:
     SynchronizationManagerPrivate() Q_DECL_DELETE;
     SynchronizationManagerPrivate(const SynchronizationManagerPrivate & other) Q_DECL_DELETE;
@@ -26,8 +35,12 @@ private:
     void connect(LocalStorageManagerThread & localStorageManagerThread);
     void authenticate();
 
+    void launchOAuth();
+
 private:
     QScopedPointer<qevercloud::SyncState>   m_pLastSyncState;
+    QScopedPointer<qevercloud::EvernoteOAuthWebView>    m_pOAuthWebView;
+    QScopedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
 };
 
 } // namespace qute_note
