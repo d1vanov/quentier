@@ -37,10 +37,18 @@ private:
 
     void launchOAuth();
 
+    void launchSync();
+    void launchFullSync();
+    void launchIncrementalSync();
+    void sendChanges();
+
+    bool storeOAuthResult();
+
 private:
-    QScopedPointer<qevercloud::SyncState>   m_pLastSyncState;
+    QScopedPointer<qevercloud::SyncState>               m_pLastSyncState;
     QScopedPointer<qevercloud::EvernoteOAuthWebView>    m_pOAuthWebView;
     QScopedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
+    QScopedPointer<qevercloud::NoteStore>               m_pNoteStore;
 };
 
 } // namespace qute_note

@@ -2,15 +2,23 @@
 #include <keychain.h>
 #include <client/local_storage/LocalStorageManagerThread.h>
 #include <logging/QuteNoteLogger.h>
+#include <tools/ApplicationSettings.h>
+#include <tools/QuteNoteCheckPtr.h>
 #include <Simplecrypt.h>
 #include <QApplication>
+
+#define EXPIRATION_TIMESTAMP_KEY "ExpirationTimestamp"
+#define NOTE_STORE_URL_KEY "NoteStoreUrl"
+#define USER_ID_KEY "UserId"
+#define WEB_API_URL_PREFIX_KEY "WebApiUrlPrefix"
 
 namespace qute_note {
 
 SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManagerThread & localStorageManagerThread) :
     m_pLastSyncState(),
     m_pOAuthWebView(new qevercloud::EvernoteOAuthWebView),
-    m_pOAuthResult()
+    m_pOAuthResult(),
+    m_pNoteStore()
 {
     connect(localStorageManagerThread);
     // TODO: implement
@@ -34,30 +42,12 @@ void SynchronizationManagerPrivate::onOAuthSuccess()
         *m_pOAuthResult = m_pOAuthWebView->oauthResult();
     }
 
-    // Store authentication token in the keychain
-    QKeychain::WritePasswordJob writePasswordJob(QApplication::applicationName() + "_authenticationToken");
-    writePasswordJob.setAutoDelete(false);
-    writePasswordJob.setKey(QApplication::applicationName());
-    writePasswordJob.setTextData(m_pOAuthResult->authenticationToken);
-
-    QEventLoop loop;
-    writePasswordJob.connect(&writePasswordJob, SIGNAL(finished(QKeychain::Job*)), &loop, SLOT(quit()));
-    writePasswordJob.start();
-    loop.exec();
-
-    QKeychain::Error error = writePasswordJob.error();
-    if (error == QKeychain::NoError) {
-        QNDEBUG("Successfully wrote authentication token to the keychain");
-        // TODO: continue the synchronization after authentication
+    bool res = storeOAuthResult();
+    if (!res) {
         return;
     }
-    else {
-        QNWARNING("Attempt to write autnehtication token failed with error: error code = " << error
-                  << ", " << writePasswordJob.errorString());
-        emit notifyError(writePasswordJob.errorString());
-    }
 
-    // TODO: store the expiraton time of the token in some simple place like QSettings
+    launchSync();
 }
 
 void SynchronizationManagerPrivate::onOAuthFailure()
@@ -87,15 +77,35 @@ void SynchronizationManagerPrivate::connect(LocalStorageManagerThread & localSto
 
 void SynchronizationManagerPrivate::authenticate()
 {
-    // TODO: implement
-    // Plan:
-    // 1) Check with qtkeychain whether the authentication token is available
-    // 2) If not, manually call the slot which should continue the synchronization procedure
-    // 3) Otherwise, initialize OAuth authentication using QEverCloud facilities
+    QNDEBUG("Trying to restore persistent authentication settings...");
 
-    // TODO: retrieve the persistently stored autentication token expiration time,
-    // see whether the token stored previously would still be valid, if not,
-    // launch the OAuth procedure right away
+    ApplicationSettings & appSettings = ApplicationSettings::instance();
+    QString keyGroup = "Authentication";
+
+    QVariant tokenExpirationValue = appSettings.value(EXPIRATION_TIMESTAMP_KEY, keyGroup);
+    if (tokenExpirationValue.isNull()) {
+        QNDEBUG("Failed to restore authentication token's expiration timestamp, "
+                "launching OAuth procedure");
+        launchOAuth();
+        return;
+    }
+
+    bool conversionResult = false;
+    qevercloud::Timestamp tokenExpirationTimestamp = tokenExpirationValue.toLongLong(&conversionResult);
+    if (!conversionResult) {
+        QString error = QT_TR_NOOP("Failed to convert QVariant with authentication token expiration timestamp "
+                                   "to actual timestamp");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    qevercloud::Timestamp currentTimestamp = QDateTime::currentMSecsSinceEpoch();
+    if (currentTimestamp > tokenExpirationTimestamp) {
+        QNDEBUG("Authentication token has already expired, launching OAuth procedure");
+        launchOAuth();
+        return;
+    }
 
     QNDEBUG("Trying to restore the authentication token...");
 
@@ -110,18 +120,88 @@ void SynchronizationManagerPrivate::authenticate()
 
     QKeychain::Error error = readPasswordJob.error();
     if (error == QKeychain::EntryNotFound) {
-        QNDEBUG("Failed to restore the authentication token, launching the OAuth authorization procedure");
-        // TODO: launch the OAuth authorization procedure
+        QNDEBUG("Failed to restore the authentication token, launching OAuth procedure");
+        launchOAuth();
+        return;
     }
-    else if (error == QKeychain::NoError) {
-        QNDEBUG("Successfully restored the autnehtication token");
-        // TODO: manually invoke the slot which should continue the synchronization process
-    }
-    else {
+    else if (error != QKeychain::NoError) {
         QNWARNING("Attempt to read authentication token returned with error: error code " << error
                   << ", " << readPasswordJob.errorString());
         emit notifyError(readPasswordJob.errorString());
+        return;
     }
+
+    QNDEBUG("Successfully restored the autnehtication token");
+
+    if (m_pOAuthResult.isNull()) {
+        m_pOAuthResult.reset(new qevercloud::EvernoteOAuthWebView::OAuthResult);
+    }
+
+    m_pOAuthResult->authenticationToken = readPasswordJob.textData();
+    m_pOAuthResult->expires = tokenExpirationTimestamp;
+
+    QNDEBUG("Restoring persistent note store url");
+
+    QVariant noteStoreUrlValue = appSettings.value(NOTE_STORE_URL_KEY, keyGroup);
+    if (noteStoreUrlValue.isNull()) {
+        QString error = QT_TR_NOOP("Persistent note store url is unexpectedly empty");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QString noteStoreUrl = noteStoreUrlValue.toString();
+    if (noteStoreUrl.isEmpty()) {
+        QString error = QT_TR_NOOP("Can't convert note store url from QVariant to QString");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    m_pOAuthResult->noteStoreUrl = noteStoreUrl;
+
+    QNDEBUG("Restoring persistent user id");
+
+    QVariant userIdValue = appSettings.value(USER_ID_KEY, keyGroup);
+    if (userIdValue.isNull()) {
+        QString error = QT_TR_NOOP("Persistent user id is unexpectedly empty");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    conversionResult = false;
+    qevercloud::UserID userId = userIdValue.toInt(&conversionResult);
+    if (!conversionResult) {
+        QString error = QT_TR_NOOP("Can't convert user id from QVariant to qint32");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    m_pOAuthResult->userId = userId;
+
+    QNDEBUG("Restoring persistent web api url prefix");
+
+    QVariant webApiUrlPrefixValue = appSettings.value(WEB_API_URL_PREFIX_KEY, keyGroup);
+    if (webApiUrlPrefixValue.isNull()) {
+        QString error = QT_TR_NOOP("Persistent web api url prefix is unexpectedly empty");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QString webApiUrlPrefix = webApiUrlPrefixValue.toString();
+    if (webApiUrlPrefix.isEmpty()) {
+        QString error = QT_TR_NOOP("Can't convert web api url prefix from QVariant to QString");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    m_pOAuthResult->webApiUrlPrefix = webApiUrlPrefix;
+
+    launchSync();
 }
 
 void SynchronizationManagerPrivate::launchOAuth()
@@ -163,6 +243,97 @@ void SynchronizationManagerPrivate::launchOAuth()
     }
 
     m_pOAuthWebView->authenticate("sandox.evernote.com", consumerKey, consumerSecret);
+}
+
+void SynchronizationManagerPrivate::launchSync()
+{
+    QUTE_NOTE_CHECK_PTR(m_pOAuthResult);
+
+    m_pNoteStore.reset(new qevercloud::NoteStore(m_pOAuthResult->noteStoreUrl,
+                                                 m_pOAuthResult->authenticationToken));
+
+    if (m_pLastSyncState.isNull()) {
+        QNDEBUG("The client has never synchronized with the remote service, "
+                "performing full sync");
+        launchFullSync();
+        return;
+    }
+
+    qevercloud::SyncState syncState = m_pNoteStore->getSyncState(m_pOAuthResult->authenticationToken);
+    if (syncState.fullSyncBefore > m_pLastSyncState->currentTime) {
+        QNDEBUG("Server's current sync state's fullSyncBefore is larger that the timestamp of last sync "
+                "(" << syncState.fullSyncBefore << " > " << m_pLastSyncState->currentTime << "), "
+                "continue with full sync");
+        launchFullSync();
+        return;
+    }
+
+    if (syncState.updateCount == m_pLastSyncState->updateCount) {
+        QNDEBUG("Server's current sync state's updateCount is equal to the one from the last sync "
+                "(" << syncState.updateCount << "), the server has no updates, sending changes");
+        sendChanges();
+        return;
+    }
+
+    QNDEBUG("Performing incremental sync");
+    launchIncrementalSync();
+}
+
+void SynchronizationManagerPrivate::launchFullSync()
+{
+    // TODO: implement
+}
+
+void SynchronizationManagerPrivate::launchIncrementalSync()
+{
+    // TODO: implement
+}
+
+void SynchronizationManagerPrivate::sendChanges()
+{
+    // TODO: implement
+}
+
+bool SynchronizationManagerPrivate::storeOAuthResult()
+{
+    QUTE_NOTE_CHECK_PTR(m_pOAuthResult);
+
+    // Store authentication token in the keychain
+    QKeychain::WritePasswordJob writePasswordJob(QApplication::applicationName() + "_authenticationToken");
+    writePasswordJob.setAutoDelete(false);
+    writePasswordJob.setKey(QApplication::applicationName());
+    writePasswordJob.setTextData(m_pOAuthResult->authenticationToken);
+
+    QEventLoop loop;
+    writePasswordJob.connect(&writePasswordJob, SIGNAL(finished(QKeychain::Job*)), &loop, SLOT(quit()));
+    writePasswordJob.start();
+    loop.exec();
+
+    QKeychain::Error error = writePasswordJob.error();
+    if (error != QKeychain::NoError) {
+        QNWARNING("Attempt to write autnehtication token failed with error: error code = " << error
+                  << ", " << writePasswordJob.errorString());
+        emit notifyError(writePasswordJob.errorString());
+        return false;
+    }
+
+    QNDEBUG("Successfully wrote the authentication token to the system keychain");
+
+    ApplicationSettings & appSettings = ApplicationSettings::instance();
+    QString keyGroup = "Authentication";
+
+    appSettings.setValue(NOTE_STORE_URL_KEY, m_pOAuthResult->noteStoreUrl, keyGroup);
+    appSettings.setValue(EXPIRATION_TIMESTAMP_KEY, m_pOAuthResult->expires, keyGroup);
+    appSettings.setValue(USER_ID_KEY, m_pOAuthResult->userId, keyGroup);
+    appSettings.setValue(WEB_API_URL_PREFIX_KEY, m_pOAuthResult->webApiUrlPrefix, keyGroup);
+
+    QNDEBUG("Successfully wrote other authentication result info to the application settings. "
+            "Token expiration timestamp = " << m_pOAuthResult->expires << " ("
+            << QDateTime::fromMSecsSinceEpoch(m_pOAuthResult->expires).toString(Qt::ISODate) << "), "
+            << ", user id = " << m_pOAuthResult->userId << ", web API url prefix = "
+            << m_pOAuthResult->webApiUrlPrefix);
+
+    return true;
 }
 
 } // namespace qute_note
