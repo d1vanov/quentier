@@ -6,14 +6,14 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThread)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 QT_FORWARD_DECLARE_CLASS(SynchronizationManagerPrivate)
 
 class SynchronizationManager: public QObject
 {
     Q_OBJECT
 public:
-    SynchronizationManager(LocalStorageManagerThread & localStorageManagerThread);
+    SynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     virtual ~SynchronizationManager();
 
     void synchronize();

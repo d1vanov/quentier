@@ -15,13 +15,13 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThread)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
 class SynchronizationManagerPrivate: public QObject
 {
     Q_OBJECT
 public:
-    SynchronizationManagerPrivate(LocalStorageManagerThread & localStorageManagerThread);
+    SynchronizationManagerPrivate(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     virtual ~SynchronizationManagerPrivate();
 
     void synchronize();
@@ -39,7 +39,7 @@ private:
     SynchronizationManagerPrivate(const SynchronizationManagerPrivate & other) Q_DECL_DELETE;
     SynchronizationManagerPrivate & operator=(const SynchronizationManagerPrivate & other) Q_DECL_DELETE;
 
-    void connect(LocalStorageManagerThread & localStorageManagerThread);
+    void connect(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
 
     void authenticate();
 

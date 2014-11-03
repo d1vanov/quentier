@@ -1,11 +1,11 @@
 #include "SynchronizationManager.h"
 #include "SynchronizationManager_p.h"
-#include <client/local_storage/LocalStorageManagerThread.h>
+#include <client/local_storage/LocalStorageManagerThreadWorker.h>
 
 namespace qute_note {
 
-SynchronizationManager::SynchronizationManager(LocalStorageManagerThread & localStorageManagerThread) :
-    d_ptr(new SynchronizationManagerPrivate(localStorageManagerThread))
+SynchronizationManager::SynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker) :
+    d_ptr(new SynchronizationManagerPrivate(localStorageManagerThreadWorker))
 {}
 
 SynchronizationManager::~SynchronizationManager()
