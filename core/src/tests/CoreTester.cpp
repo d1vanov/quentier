@@ -20,6 +20,7 @@
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/UserWrapper.h>
+#include <client/types/RegisterMetatypes.h>
 #include <logging/QuteNoteLogger.h>
 #include <tools/SysInfo.h>
 #include <QApplication>
@@ -55,6 +56,8 @@ void nullMessageHandler(QtMsgType type, const char * message) {
 
 void CoreTester::initTestCase()
 {
+    registerMetatypes();
+
 #if QT_VERSION >= 0x050000
     qInstallMessageHandler(nullMessageHandler);
 #else

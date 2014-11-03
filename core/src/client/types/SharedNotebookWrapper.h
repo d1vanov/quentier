@@ -38,4 +38,6 @@ private:
 
 } // namespace qute_note
 
+Q_DECLARE_METATYPE(qute_note::SharedNotebookWrapper)
+
 #endif // __QUTE_NOTE__CLIENT__TYPES__SHARED_NOTEBOOK_WRAPPER_H

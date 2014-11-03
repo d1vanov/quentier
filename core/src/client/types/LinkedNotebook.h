@@ -89,4 +89,6 @@ private:
 
 } // namespace qute_note
 
+Q_DECLARE_METATYPE(qute_note::LinkedNotebook)
+
 #endif // __QUTE_NOTE__CLIENT__TYPES__LINKED_NOTEBOOK_H

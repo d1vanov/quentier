@@ -69,4 +69,6 @@ private:
 
 } // namespace qute_note
 
+Q_DECLARE_METATYPE(qute_note::Tag)
+
 #endif // __QUTE_NOTE__CLIENT__TYPES__TAG_H

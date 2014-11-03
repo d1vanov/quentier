@@ -3,6 +3,7 @@
 #include <client/local_storage/DefaultLocalStorageCacheExpiryChecker.h>
 #include <client/local_storage/LocalStorageCacheManager.h>
 #include <logging/QuteNoteLogger.h>
+#include <QThread>
 
 namespace qute_note {
 namespace test {
@@ -12,6 +13,7 @@ LocalStorageCacheAsyncTester::LocalStorageCacheAsyncTester(QObject * parent) :
     m_state(STATE_UNINITIALIZED),
     m_pLocalStorageManagerThreadWorker(nullptr),
     m_pLocalStorageCacheManager(nullptr),
+    m_pLocalStorageManagerThread(nullptr),
     m_firstNotebook(),
     m_secondNotebook(),
     m_currentNotebook(),
@@ -38,6 +40,11 @@ LocalStorageCacheAsyncTester::~LocalStorageCacheAsyncTester()
 {
     // NOTE: shouldn't attempt to delete m_pLocalStorageManagerThread as Qt's parent-child system
     // should take care of that
+
+    if (m_pLocalStorageManagerThread) {
+        m_pLocalStorageManagerThread->quit();
+        m_pLocalStorageManagerThread->wait();
+    }
 }
 
 void LocalStorageCacheAsyncTester::onInitTestCase()
@@ -46,18 +53,29 @@ void LocalStorageCacheAsyncTester::onInitTestCase()
     qint32 userId = 12;
     bool startFromScratch = true;
 
-    if (m_pLocalStorageManagerThreadWorker != nullptr) {
+    if (m_pLocalStorageManagerThreadWorker) {
         delete m_pLocalStorageManagerThreadWorker;
         m_pLocalStorageManagerThreadWorker = nullptr;
     }
 
+    if (m_pLocalStorageManagerThread) {
+        delete m_pLocalStorageManagerThread;
+        m_pLocalStorageManagerThread = nullptr;
+    }
+
     m_state = STATE_UNINITIALIZED;
 
-    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch, this);
-    m_pLocalStorageManagerThreadWorker->init();
+    m_pLocalStorageManagerThread = new QThread(this);
+    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch);
+    m_pLocalStorageManagerThreadWorker->moveToThread(m_pLocalStorageManagerThread);
 
     createConnections();
 
+    m_pLocalStorageManagerThread->start();
+}
+
+void LocalStorageCacheAsyncTester::onWorkerInitialized()
+{
     m_pLocalStorageCacheManager = m_pLocalStorageManagerThreadWorker->localStorageCacheManager();
     if (!m_pLocalStorageCacheManager) {
         QString error = "Local storage cache is not enabled by default for unknown reason";
@@ -620,8 +638,12 @@ void LocalStorageCacheAsyncTester::onUpdateSavedSearchFailed(SavedSearch search,
 
 void LocalStorageCacheAsyncTester::createConnections()
 {
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(failure(QString)),
-                     this, SIGNAL(failure(QString)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(failure(QString)), this, SIGNAL(failure(QString)));
+
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(started()), m_pLocalStorageManagerThreadWorker, SLOT(init()));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(finished()), m_pLocalStorageManagerThread, SLOT(deleteLater()));
+
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(initialized()), this, SLOT(onWorkerInitialized()));
 
     // Request --> slot connections
     QObject::connect(this, SIGNAL(addNotebookRequest(Notebook)),

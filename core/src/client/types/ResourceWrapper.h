@@ -38,4 +38,6 @@ private:
 
 } // namespace qute_note
 
+Q_DECLARE_METATYPE(qute_note::ResourceWrapper)
+
 #endif // __QUTE_NOTE__CLIENT__TYPES__RESOURCE_WRAPPER_H

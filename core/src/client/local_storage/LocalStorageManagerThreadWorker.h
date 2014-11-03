@@ -27,6 +27,9 @@ Q_SIGNALS:
     // Generic failure signal
     void failure(QString errorDescription);
 
+    // Sent when the initialization is complete
+    void initialized();
+
     // User-related signals:
     void getUserCountComplete(int userCount);
     void getUserCountFailed(QString errorDescription);

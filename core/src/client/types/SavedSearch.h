@@ -86,4 +86,6 @@ private:
 
 } // namespace qute_note
 
+Q_DECLARE_METATYPE(qute_note::SavedSearch)
+
 #endif // __QUTE_NOTE__CLIENT__TYPES__SAVED_SEARCH_H

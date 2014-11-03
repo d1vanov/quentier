@@ -35,6 +35,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/UserAdapter.h
     src/client/types/UserAdapterAccessException.h
     src/client/types/UserWrapper.h
+    src/client/types/RegisterMetatypes.h
     src/client/types/data/DataElementWithShortcutData.h
     src/client/types/data/SynchronizableDataElementData.h
     src/client/types/data/LocalStorageDataElementData.h
@@ -105,6 +106,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/UserAdapter.cpp
     src/client/types/UserAdapterAccessException.cpp
     src/client/types/UserWrapper.cpp
+    src/client/types/RegisterMetatypes.cpp
     src/client/types/data/DataElementWithShortcutData.cpp
     src/client/types/data/SynchronizableDataElementData.cpp
     src/client/types/data/LocalStorageDataElementData.cpp

@@ -45,6 +45,8 @@ Q_SIGNALS:
     void updateSavedSearchRequest(SavedSearch search);
 
 private Q_SLOTS:
+    void onWorkerInitialized();
+
     void onAddNotebookCompleted(Notebook notebook);
     void onAddNotebookFailed(Notebook notebook, QString errorDescription);
 
@@ -109,8 +111,9 @@ private:
     };
 
     State   m_state;
-    LocalStorageManagerThreadWorker * m_pLocalStorageManagerThreadWorker;
-    const LocalStorageCacheManager * m_pLocalStorageCacheManager;
+    LocalStorageManagerThreadWorker *   m_pLocalStorageManagerThreadWorker;
+    const LocalStorageCacheManager *    m_pLocalStorageCacheManager;
+    QThread *                           m_pLocalStorageManagerThread;
 
     Notebook    m_firstNotebook;
     Notebook    m_secondNotebook;

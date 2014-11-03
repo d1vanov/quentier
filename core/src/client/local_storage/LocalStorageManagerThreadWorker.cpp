@@ -68,6 +68,8 @@ void LocalStorageManagerThreadWorker::init()
     }
 
     m_pLocalStorageCacheManager = new LocalStorageCacheManager();
+
+    emit initialized();
 }
 
 #define CATCH_EXCEPTION \
