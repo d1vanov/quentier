@@ -1,5 +1,5 @@
 #include "LocalStorageCacheAsyncTester.h"
-#include <client/local_storage/LocalStorageManagerThread.h>
+#include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <client/local_storage/DefaultLocalStorageCacheExpiryChecker.h>
 #include <client/local_storage/LocalStorageCacheManager.h>
 #include <logging/QuteNoteLogger.h>
@@ -10,7 +10,7 @@ namespace test {
 LocalStorageCacheAsyncTester::LocalStorageCacheAsyncTester(QObject * parent) :
     QObject(parent),
     m_state(STATE_UNINITIALIZED),
-    m_pLocalStorageManagerThread(nullptr),
+    m_pLocalStorageManagerThreadWorker(nullptr),
     m_pLocalStorageCacheManager(nullptr),
     m_firstNotebook(),
     m_secondNotebook(),
@@ -46,18 +46,19 @@ void LocalStorageCacheAsyncTester::onInitTestCase()
     qint32 userId = 12;
     bool startFromScratch = true;
 
-    if (m_pLocalStorageManagerThread != nullptr) {
-        delete m_pLocalStorageManagerThread;
-        m_pLocalStorageManagerThread = nullptr;
+    if (m_pLocalStorageManagerThreadWorker != nullptr) {
+        delete m_pLocalStorageManagerThreadWorker;
+        m_pLocalStorageManagerThreadWorker = nullptr;
     }
 
     m_state = STATE_UNINITIALIZED;
 
-    m_pLocalStorageManagerThread = new LocalStorageManagerThread(username, userId, startFromScratch, this);
+    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch, this);
+    m_pLocalStorageManagerThreadWorker->init();
 
     createConnections();
 
-    m_pLocalStorageCacheManager = m_pLocalStorageManagerThread->localStorageCacheManager();
+    m_pLocalStorageCacheManager = m_pLocalStorageManagerThreadWorker->localStorageCacheManager();
     if (!m_pLocalStorageCacheManager) {
         QString error = "Local storage cache is not enabled by default for unknown reason";
         QNWARNING(error);
@@ -619,71 +620,71 @@ void LocalStorageCacheAsyncTester::onUpdateSavedSearchFailed(SavedSearch search,
 
 void LocalStorageCacheAsyncTester::createConnections()
 {
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(failure(QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(failure(QString)),
                      this, SIGNAL(failure(QString)));
 
     // Request --> slot connections
     QObject::connect(this, SIGNAL(addNotebookRequest(Notebook)),
-                     m_pLocalStorageManagerThread, SLOT(onAddNotebookRequest(Notebook)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddNotebookRequest(Notebook)));
     QObject::connect(this, SIGNAL(updateNotebookRequest(Notebook)),
-                     m_pLocalStorageManagerThread, SLOT(onUpdateNotebookRequest(Notebook)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateNotebookRequest(Notebook)));
     QObject::connect(this, SIGNAL(addNoteRequest(Note,Notebook)),
-                     m_pLocalStorageManagerThread, SLOT(onAddNoteRequest(Note,Notebook)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddNoteRequest(Note,Notebook)));
     QObject::connect(this, SIGNAL(updateNoteRequest(Note,Notebook)),
-                     m_pLocalStorageManagerThread, SLOT(onUpdateNoteRequest(Note,Notebook)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook)));
     QObject::connect(this, SIGNAL(addTagRequest(Tag)),
-                     m_pLocalStorageManagerThread, SLOT(onAddTagRequest(Tag)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddTagRequest(Tag)));
     QObject::connect(this, SIGNAL(updateTagRequest(Tag)),
-                     m_pLocalStorageManagerThread, SLOT(onUpdateTagRequest(Tag)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateTagRequest(Tag)));
     QObject::connect(this, SIGNAL(addLinkedNotebookRequest(LinkedNotebook)),
-                     m_pLocalStorageManagerThread, SLOT(onAddLinkedNotebookRequest(LinkedNotebook)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddLinkedNotebookRequest(LinkedNotebook)));
     QObject::connect(this, SIGNAL(updateLinkedNotebookRequest(LinkedNotebook)),
-                     m_pLocalStorageManagerThread, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook)));
     QObject::connect(this, SIGNAL(addSavedSearchRequest(SavedSearch)),
-                     m_pLocalStorageManagerThread, SLOT(onAddSavedSearchRequest(SavedSearch)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddSavedSearchRequest(SavedSearch)));
     QObject::connect(this, SIGNAL(updateSavedSearchRequest(SavedSearch)),
-                     m_pLocalStorageManagerThread, SLOT(onUpdateSavedSearchRequest(SavedSearch)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateSavedSearchRequest(SavedSearch)));
 
     // Slot <-- result connections
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNotebookComplete(Notebook)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNotebookComplete(Notebook)),
                      this, SLOT(onAddNotebookCompleted(Notebook)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNotebookFailed(Notebook,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNotebookFailed(Notebook,QString)),
                      this, SLOT(onAddNotebookFailed(Notebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateNotebookComplete(Notebook)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNotebookComplete(Notebook)),
                      this, SLOT(onUpdateNotebookCompleted(Notebook)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateNotebookFailed(Notebook,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNotebookFailed(Notebook,QString)),
                      this, SLOT(onUpdateNotebookFailed(Notebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNoteComplete(Note,Notebook)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteComplete(Note,Notebook)),
                      this, SLOT(onAddNoteCompleted(Note,Notebook)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNoteFailed(Note,Notebook,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString)),
                      this, SLOT(onAddNoteFailed(Note,Notebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateNoteComplete(Note,Notebook)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteComplete(Note,Notebook)),
                      this, SLOT(onUpdateNoteCompleted(Note,Notebook)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateNoteFailed(Note,Notebook,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,QString)),
                      this, SLOT(onUpdateNoteFailed(Note,Notebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addTagComplete(Tag)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addTagComplete(Tag)),
                      this, SLOT(onAddTagCompleted(Tag)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addTagFailed(Tag,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addTagFailed(Tag,QString)),
                      this, SLOT(onAddTagFailed(Tag,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateTagComplete(Tag)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateTagComplete(Tag)),
                      this, SLOT(onUpdateTagCompleted(Tag)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateTagFailed(Tag,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateTagFailed(Tag,QString)),
                      this, SLOT(onUpdateTagFailed(Tag,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addLinkedNotebookComplete(LinkedNotebook)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addLinkedNotebookComplete(LinkedNotebook)),
                      this, SLOT(onAddLinkedNotebookCompleted(LinkedNotebook)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addLinkedNotebookFailed(LinkedNotebook,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addLinkedNotebookFailed(LinkedNotebook,QString)),
                      this, SLOT(onAddLinkedNotebookFailed(LinkedNotebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateLinkedNotebookComplete(LinkedNotebook)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateLinkedNotebookComplete(LinkedNotebook)),
                      this, SLOT(onUpdateLinkedNotebookCompleted(LinkedNotebook)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateLinkedNotebookFailed(LinkedNotebook,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateLinkedNotebookFailed(LinkedNotebook,QString)),
                      this, SLOT(onUpdateLinkedNotebookFailed(LinkedNotebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addSavedSearchComplete(SavedSearch)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addSavedSearchComplete(SavedSearch)),
                      this, SLOT(onAddSavedSearchCompleted(SavedSearch)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addSavedSearchFailed(SavedSearch,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addSavedSearchFailed(SavedSearch,QString)),
                      this, SLOT(onAddSavedSearchFailed(SavedSearch,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateSavedSearchComplete(SavedSearch)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateSavedSearchComplete(SavedSearch)),
                      this, SLOT(onUpdateSavedSearchCompleted(SavedSearch)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateSavedSearchFailed(SavedSearch,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateSavedSearchFailed(SavedSearch,QString)),
                      this, SLOT(onUpdateSavedSearchFailed(SavedSearch,QString)));
 }
 

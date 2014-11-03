@@ -9,7 +9,7 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThread)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 QT_FORWARD_DECLARE_CLASS(LocalStorageCacheManager)
 
 namespace test {
@@ -109,7 +109,7 @@ private:
     };
 
     State   m_state;
-    LocalStorageManagerThread * m_pLocalStorageManagerThread;
+    LocalStorageManagerThreadWorker * m_pLocalStorageManagerThreadWorker;
     const LocalStorageCacheManager * m_pLocalStorageCacheManager;
 
     Notebook    m_firstNotebook;

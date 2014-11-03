@@ -11,6 +11,7 @@ LocalStorageManagerThread::LocalStorageManagerThread(const QString & username,
     m_pWorker(new LocalStorageManagerThreadWorker(username, userId, startFromScratch, this))
 {
     createConnections();
+    m_pWorker->init();
 }
 
 void LocalStorageManagerThread::createConnections()

@@ -144,6 +144,8 @@ Q_SIGNALS:
     void expungeSavedSearchFailed(SavedSearch search, QString errorDescription);
     
 public Q_SLOTS:
+    void init();
+
     // User-related slots:
     void onGetUserCountRequest();
     void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch);
@@ -216,9 +218,12 @@ private:
     LocalStorageManagerThreadWorker & operator=(const LocalStorageManagerThreadWorker & other) Q_DECL_DELETE;
     LocalStorageManagerThreadWorker & operator=(LocalStorageManagerThreadWorker && other) Q_DECL_DELETE;
 
-    LocalStorageManager         m_localStorageManager;
+    QString                     m_username;
+    qint32                      m_userId;
+    bool                        m_startFromScratch;
+    LocalStorageManager *       m_pLocalStorageManager;
     bool                        m_useCache;
-    LocalStorageCacheManager    m_localStorageCacheManager;
+    LocalStorageCacheManager *  m_pLocalStorageCacheManager;
 };
 
 } // namespace qute_note
