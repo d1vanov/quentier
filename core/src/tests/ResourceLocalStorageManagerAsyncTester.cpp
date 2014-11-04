@@ -1,6 +1,7 @@
 #include "ResourceLocalStorageManagerAsyncTester.h"
-#include <client/local_storage/LocalStorageManagerThread.h>
+#include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <logging/QuteNoteLogger.h>
+#include <QThread>
 
 namespace qute_note {
 namespace test {
@@ -8,6 +9,7 @@ namespace test {
 ResourceLocalStorageManagerAsyncTester::ResourceLocalStorageManagerAsyncTester(QObject * parent) :
     QObject(parent),
     m_state(STATE_UNINITIALIZED),
+    m_pLocalStorageManagerThreadWorker(nullptr),
     m_pLocalStorageManagerThread(nullptr),
     m_notebook(),
     m_note(),
@@ -17,7 +19,16 @@ ResourceLocalStorageManagerAsyncTester::ResourceLocalStorageManagerAsyncTester(Q
 {}
 
 ResourceLocalStorageManagerAsyncTester::~ResourceLocalStorageManagerAsyncTester()
-{}
+{
+    if (m_pLocalStorageManagerThread) {
+        m_pLocalStorageManagerThread->quit();
+        m_pLocalStorageManagerThread->wait();
+    }
+
+    if (m_pLocalStorageManagerThreadWorker) {
+        delete m_pLocalStorageManagerThreadWorker;
+    }
+}
 
 void ResourceLocalStorageManagerAsyncTester::onInitTestCase()
 {
@@ -25,16 +36,29 @@ void ResourceLocalStorageManagerAsyncTester::onInitTestCase()
     qint32 userId = 6;
     bool startFromScratch = true;
 
-    if (m_pLocalStorageManagerThread != nullptr) {
+    if (m_pLocalStorageManagerThread) {
         delete m_pLocalStorageManagerThread;
         m_pLocalStorageManagerThread = nullptr;
     }
 
+    if (m_pLocalStorageManagerThreadWorker) {
+        delete m_pLocalStorageManagerThreadWorker;
+        m_pLocalStorageManagerThreadWorker = nullptr;
+    }
+
     m_state = STATE_UNINITIALIZED;
 
-    m_pLocalStorageManagerThread = new LocalStorageManagerThread(username, userId, startFromScratch, this);
+    m_pLocalStorageManagerThread = new QThread(this);
+    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch);
+    m_pLocalStorageManagerThreadWorker->moveToThread(m_pLocalStorageManagerThread);
+
     createConnections();
 
+    m_pLocalStorageManagerThread->start();
+}
+
+void ResourceLocalStorageManagerAsyncTester::onWorkerInitialized()
+{
     m_notebook = Notebook();
     m_notebook.setGuid("00000000-0000-0000-c000-000000000047");
     m_notebook.setUpdateSequenceNumber(1);
@@ -383,52 +407,57 @@ void ResourceLocalStorageManagerAsyncTester::onExpungeResourceFailed(ResourceWra
 
 void ResourceLocalStorageManagerAsyncTester::createConnections()
 {
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(failure(QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(failure(QString)),
                      this, SIGNAL(failure(QString)));
+
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(started()), m_pLocalStorageManagerThreadWorker, SLOT(init()));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(finished()), m_pLocalStorageManagerThread, SLOT(deleteLater()));
+
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(initialized()), this, SLOT(onWorkerInitialized()));
 
     // Request --> slot connections
     QObject::connect(this, SIGNAL(addNotebookRequest(Notebook)),
-                     m_pLocalStorageManagerThread, SLOT(onAddNotebookRequest(Notebook)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddNotebookRequest(Notebook)));
     QObject::connect(this, SIGNAL(addNoteRequest(Note,Notebook)),
-                     m_pLocalStorageManagerThread, SLOT(onAddNoteRequest(Note,Notebook)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddNoteRequest(Note,Notebook)));
     QObject::connect(this, SIGNAL(addResourceRequest(ResourceWrapper,Note)),
-                     m_pLocalStorageManagerThread, SLOT(onAddResourceRequest(ResourceWrapper,Note)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddResourceRequest(ResourceWrapper,Note)));
     QObject::connect(this, SIGNAL(updateResourceRequest(ResourceWrapper,Note)),
-                     m_pLocalStorageManagerThread, SLOT(onUpdateResourceRequest(ResourceWrapper,Note)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateResourceRequest(ResourceWrapper,Note)));
     QObject::connect(this, SIGNAL(findResourceRequest(ResourceWrapper,bool)),
-                     m_pLocalStorageManagerThread, SLOT(onFindResourceRequest(ResourceWrapper,bool)));
-    QObject::connect(this, SIGNAL(getResourceCountRequest()), m_pLocalStorageManagerThread, SLOT(onGetResourceCountRequest()));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onFindResourceRequest(ResourceWrapper,bool)));
+    QObject::connect(this, SIGNAL(getResourceCountRequest()), m_pLocalStorageManagerThreadWorker, SLOT(onGetResourceCountRequest()));
     QObject::connect(this, SIGNAL(expungeResourceRequest(ResourceWrapper)),
-                     m_pLocalStorageManagerThread, SLOT(onExpungeResourceRequest(ResourceWrapper)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onExpungeResourceRequest(ResourceWrapper)));
 
     // Slot <-- result connections
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNotebookComplete(Notebook)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNotebookComplete(Notebook)),
                      this, SLOT(onAddNotebookCompleted(Notebook)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNotebookFailed(Notebook,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNotebookFailed(Notebook,QString)),
                      this, SLOT(onAddNotebookFailed(Notebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNoteComplete(Note,Notebook)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteComplete(Note,Notebook)),
                      this, SLOT(onAddNoteCompleted(Note,Notebook)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addNoteFailed(Note,Notebook,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString)),
                      this, SLOT(onAddNoteFailed(Note,Notebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addResourceComplete(ResourceWrapper,Note)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addResourceComplete(ResourceWrapper,Note)),
                      this, SLOT(onAddResourceCompleted(ResourceWrapper)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addResourceFailed(ResourceWrapper,Note,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addResourceFailed(ResourceWrapper,Note,QString)),
                      this, SLOT(onAddResourceFailed(ResourceWrapper,Note,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateResourceComplete(ResourceWrapper,Note)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateResourceComplete(ResourceWrapper,Note)),
                      this, SLOT(onUpdateResourceCompleted(ResourceWrapper)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateResourceFailed(ResourceWrapper,Note,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateResourceFailed(ResourceWrapper,Note,QString)),
                      this, SLOT(onUpdateResourceFailed(ResourceWrapper,Note,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findResourceComplete(ResourceWrapper,bool)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findResourceComplete(ResourceWrapper,bool)),
                      this, SLOT(onFindResourceCompleted(ResourceWrapper,bool)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findResourceFailed(ResourceWrapper,bool,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findResourceFailed(ResourceWrapper,bool,QString)),
                      this, SLOT(onFindResourceFailed(ResourceWrapper,bool,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(getResourceCountComplete(int)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getResourceCountComplete(int)),
                      this, SLOT(onGetResourceCountCompleted(int)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(getResourceCountFailed(QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getResourceCountFailed(QString)),
                      this, SLOT(onGetResourceCountFailed(QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeResourceComplete(ResourceWrapper)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeResourceComplete(ResourceWrapper)),
                      this, SLOT(onExpungeResourceCompleted(ResourceWrapper)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeResourceFailed(ResourceWrapper,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeResourceFailed(ResourceWrapper,QString)),
                      this, SLOT(onExpungeResourceFailed(ResourceWrapper,QString)));
 }
 
