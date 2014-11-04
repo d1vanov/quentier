@@ -19,6 +19,14 @@ void registerMetatypes()
     qRegisterMetaType<UserWrapper>("UserWrapper");
     qRegisterMetaType<LinkedNotebook>("LinkedNotebook");
     qRegisterMetaType<SavedSearch>("SavedSearch");
+
+    qRegisterMetaType< QList<Notebook> >("QList<Notebook>");
+    qRegisterMetaType< QList<Note> >("QList<Note>");
+    qRegisterMetaType< QList<Tag> >("QList<Tag>");
+    qRegisterMetaType< QList<ResourceWrapper> >("QList<ResourceWrapper>");
+    qRegisterMetaType< QList<UserWrapper> >("QList<UserWrapper>");
+    qRegisterMetaType< QList<LinkedNotebook> >("QList<LinkedNotebook>");
+    qRegisterMetaType< QList<SavedSearch> >("QList<SavedSearch>");
 }
 
 } // namespace qute_note
