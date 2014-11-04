@@ -45,6 +45,10 @@ LocalStorageCacheAsyncTester::~LocalStorageCacheAsyncTester()
         m_pLocalStorageManagerThread->quit();
         m_pLocalStorageManagerThread->wait();
     }
+
+    if (m_pLocalStorageManagerThreadWorker) {
+        delete m_pLocalStorageManagerThreadWorker;
+    }
 }
 
 void LocalStorageCacheAsyncTester::onInitTestCase()
