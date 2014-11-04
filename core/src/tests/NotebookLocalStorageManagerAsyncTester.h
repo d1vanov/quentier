@@ -6,7 +6,7 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThread)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
 namespace test {
 
@@ -38,6 +38,7 @@ Q_SIGNALS:
     void expungeNotebookRequest(Notebook notebook);
 
 private Q_SLOTS:
+    void onWorkerInitialized();
     void onGetNotebookCountCompleted(int count);
     void onGetNotebookCountFailed(QString errorDescription);
     void onAddNotebookCompleted(Notebook notebook);
@@ -90,7 +91,10 @@ private:
     };
 
     State m_state;
-    LocalStorageManagerThread * m_pLocalStorageManagerThread;
+
+    LocalStorageManagerThreadWorker *   m_pLocalStorageManagerThreadWorker;
+    QThread *                   m_pLocalStorageManagerThread;
+
     Notebook                    m_initialNotebook;
     Notebook                    m_foundNotebook;
     Notebook                    m_modifiedNotebook;

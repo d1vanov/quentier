@@ -57,14 +57,14 @@ void LocalStorageCacheAsyncTester::onInitTestCase()
     qint32 userId = 12;
     bool startFromScratch = true;
 
-    if (m_pLocalStorageManagerThreadWorker) {
-        delete m_pLocalStorageManagerThreadWorker;
-        m_pLocalStorageManagerThreadWorker = nullptr;
-    }
-
     if (m_pLocalStorageManagerThread) {
         delete m_pLocalStorageManagerThread;
         m_pLocalStorageManagerThread = nullptr;
+    }
+
+    if (m_pLocalStorageManagerThreadWorker) {
+        delete m_pLocalStorageManagerThreadWorker;
+        m_pLocalStorageManagerThreadWorker = nullptr;
     }
 
     m_state = STATE_UNINITIALIZED;

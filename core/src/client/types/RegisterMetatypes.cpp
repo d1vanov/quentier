@@ -6,6 +6,7 @@
 #include "UserWrapper.h"
 #include "LinkedNotebook.h"
 #include "SavedSearch.h"
+#include "SharedNotebookWrapper.h"
 #include <QMetaType>
 
 namespace qute_note {
@@ -27,6 +28,8 @@ void registerMetatypes()
     qRegisterMetaType< QList<UserWrapper> >("QList<UserWrapper>");
     qRegisterMetaType< QList<LinkedNotebook> >("QList<LinkedNotebook>");
     qRegisterMetaType< QList<SavedSearch> >("QList<SavedSearch>");
+
+    qRegisterMetaType< QList<SharedNotebookWrapper> >("QList<SharedNotebookWrapper>");
 }
 
 } // namespace qute_note
