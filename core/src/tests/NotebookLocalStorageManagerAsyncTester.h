@@ -95,6 +95,8 @@ private:
     LocalStorageManagerThreadWorker *   m_pLocalStorageManagerThreadWorker;
     QThread *                   m_pLocalStorageManagerThread;
 
+    qint32                      m_userId;
+
     Notebook                    m_initialNotebook;
     Notebook                    m_foundNotebook;
     Notebook                    m_modifiedNotebook;

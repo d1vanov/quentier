@@ -11,6 +11,7 @@ NotebookLocalStorageManagerAsyncTester::NotebookLocalStorageManagerAsyncTester(Q
     m_state(STATE_UNINITIALIZED),
     m_pLocalStorageManagerThreadWorker(nullptr),
     m_pLocalStorageManagerThread(nullptr),
+    m_userId(4),
     m_initialNotebook(),
     m_foundNotebook(),
     m_modifiedNotebook(),
@@ -34,7 +35,6 @@ NotebookLocalStorageManagerAsyncTester::~NotebookLocalStorageManagerAsyncTester(
 void NotebookLocalStorageManagerAsyncTester::onInitTestCase()
 {
     QString username = "NotebookLocalStorageManagerAsyncTester";
-    qint32 userId = 4;
     bool startFromScratch = true;
 
     if (m_pLocalStorageManagerThread) {
@@ -50,7 +50,7 @@ void NotebookLocalStorageManagerAsyncTester::onInitTestCase()
     m_state = STATE_UNINITIALIZED;
 
     m_pLocalStorageManagerThread = new QThread(this);
-    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch);
+    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, m_userId, startFromScratch);
     m_pLocalStorageManagerThreadWorker->moveToThread(m_pLocalStorageManagerThread);
 
     createConnections();
@@ -80,7 +80,7 @@ void NotebookLocalStorageManagerAsyncTester::onWorkerInitialized()
 
     SharedNotebookWrapper sharedNotebook;
     sharedNotebook.setId(1);
-    sharedNotebook.setUserId(4);
+    sharedNotebook.setUserId(m_userId);
     sharedNotebook.setNotebookGuid(m_initialNotebook.guid());
     sharedNotebook.setEmail("Fake shared notebook email");
     sharedNotebook.setCreationTimestamp(1);
