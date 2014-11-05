@@ -64,6 +64,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/Transaction.h
     src/client/synchronization/SynchronizationManager.h
     src/client/synchronization/SynchronizationManager_p.h
+    src/client/synchronization/FullSynchronizationManager.h
     src/logging/QuteNoteLogger.h
     src/logging/LoggerInitializationException.h
     src/tools/ApplicationSettings.h
@@ -133,7 +134,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/Transaction.cpp
     src/client/synchronization/SynchronizationManager.cpp
     src/client/synchronization/SynchronizationManager_p.cpp
-    src/client/synchronization/FullSynchronization.cpp
+    src/client/synchronization/FullSynchronizationManager.cpp
     src/logging/QuteNoteLogger.cpp
     src/logging/LoggerInitializationException.cpp
     src/tools/ApplicationSettings.cpp

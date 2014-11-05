@@ -21,7 +21,7 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_pOAuthResult(),
     m_pNoteStore()
 {
-    connect(localStorageManagerThreadWorker);
+    createConnecttions(localStorageManagerThreadWorker);
 }
 
 SynchronizationManagerPrivate::~SynchronizationManagerPrivate()
@@ -70,72 +70,12 @@ void SynchronizationManagerPrivate::onOAuthResult(bool result)
     }
 }
 
-void SynchronizationManagerPrivate::connect(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
+void SynchronizationManagerPrivate::createConnecttions(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
 {
     QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationFinished(bool)), this, SLOT(onOAuthResult(bool)));
     QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationSuceeded), this, SLOT(onOAuthSuccess()));
     QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationFailed), this, SLOT(onOAuthFailure()));
 
-    // Connect local signals with localStorageManagerThread's slots
-    QObject::connect(this, SIGNAL(addUser(UserWrapper)), &localStorageManagerThreadWorker, SLOT(onAddUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(updateUser(UserWrapper)), &localStorageManagerThreadWorker, SLOT(onUpdateUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(findUser(UserWrapper)), &localStorageManagerThreadWorker, SLOT(onFindUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(deleteUser(UserWrapper)), &localStorageManagerThreadWorker, SLOT(onDeleteUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(expungeUser(UserWrapper)), &localStorageManagerThreadWorker, SLOT(onExpungeUserRequest(UserWrapper)));
-
-    QObject::connect(this, SIGNAL(addNotebook(Notebook)), &localStorageManagerThreadWorker, SLOT(onAddNotebookRequest(Notebook)));
-    QObject::connect(this, SIGNAL(updateNotebook(Notebook)), &localStorageManagerThreadWorker, SLOT(onUpdateNotebookRequest(Notebook)));
-    QObject::connect(this, SIGNAL(findNotebook(Notebook)), &localStorageManagerThreadWorker, SLOT(onFindNotebookRequest(Notebook)));
-    QObject::connect(this, SIGNAL(expungeNotebook(Notebook)), &localStorageManagerThreadWorker, SLOT(onExpungeNotebookRequest(Notebook)));
-
-    QObject::connect(this, SIGNAL(addNote(Note,Notebook)), &localStorageManagerThreadWorker, SLOT(onAddNoteRequest(Note,Notebook)));
-    QObject::connect(this, SIGNAL(updateNote(Note,Notebook)), &localStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook)));
-    QObject::connect(this, SIGNAL(findNote(Note,bool)), &localStorageManagerThreadWorker, SLOT(onFindNoteRequest(Note,bool)));
-    QObject::connect(this, SIGNAL(deleteNote(Note)), &localStorageManagerThreadWorker, SLOT(onDeleteNoteRequest(Note)));
-    QObject::connect(this, SIGNAL(expungeNote(Note)), &localStorageManagerThreadWorker, SLOT(onExpungeNoteRequest(Note)));
-
-    QObject::connect(this, SIGNAL(addTag(Tag)), &localStorageManagerThreadWorker, SLOT(onAddTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(updateTag(Tag)), &localStorageManagerThreadWorker, SLOT(onUpdateTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(findTag(Tag)), &localStorageManagerThreadWorker, SLOT(onFindTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(deleteTag(Tag)), &localStorageManagerThreadWorker, SLOT(onDeleteTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(expungeTag(Tag)), &localStorageManagerThreadWorker, SLOT(onExpungeTagRequest(Tag)));
-
-    QObject::connect(this, SIGNAL(addResource(ResourceWrapper,Note)), &localStorageManagerThreadWorker, SLOT(onAddResourceRequest(ResourceWrapper,Note)));
-    QObject::connect(this, SIGNAL(updateResource(ResourceWrapper,Note)), &localStorageManagerThreadWorker, SLOT(onUpdateResourceRequest(ResourceWrapper,Note)));
-    QObject::connect(this, SIGNAL(findResource(ResourceWrapper,bool)), &localStorageManagerThreadWorker, SLOT(onFindResourceRequest(ResourceWrapper,bool)));
-    QObject::connect(this, SIGNAL(expungeResource(ResourceWrapper)), &localStorageManagerThreadWorker, SLOT(onExpungeResourceRequest(ResourceWrapper)));
-
-    QObject::connect(this, SIGNAL(addLinkedNotebook(LinkedNotebook)), &localStorageManagerThreadWorker, SLOT(onAddLinkedNotebookRequest(LinkedNotebook)));
-    QObject::connect(this, SIGNAL(updateLinkedNotebook(LinkedNotebook)), &localStorageManagerThreadWorker, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook)));
-    QObject::connect(this, SIGNAL(findLinkedNotebook(LinkedNotebook)), &localStorageManagerThreadWorker, SLOT(onFindLinkedNotebookRequest(LinkedNotebook)));
-    QObject::connect(this, SIGNAL(expungeLinkedNotebook(LinkedNotebook)), &localStorageManagerThreadWorker, SLOT(onExpungeLinkedNotebookRequest(LinkedNotebook)));
-
-    QObject::connect(this, SIGNAL(addSavedSearch(SavedSearch)), &localStorageManagerThreadWorker, SLOT(onAddSavedSearchRequest(SavedSearch)));
-    QObject::connect(this, SIGNAL(updateSavedSearch(SavedSearch)), &localStorageManagerThreadWorker, SLOT(onUpdateSavedSearchRequest(SavedSearch)));
-    QObject::connect(this, SIGNAL(findSavedSearch(SavedSearch)), &localStorageManagerThreadWorker, SLOT(onFindSavedSearchRequest(SavedSearch)));
-    QObject::connect(this, SIGNAL(expungeSavedSearch(SavedSearch)), &localStorageManagerThreadWorker, SLOT(onExpungeSavedSearch(SavedSearch)));
-
-    // Connect localStorageManagerThread's signals to local slots
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findUserComplete(UserWrapper)), this, SLOT(onFindUserCompleted(UserWrapper)));
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findUserFailed(UserWrapper,QString)), this, SLOT(onFindUserFailed(UserWrapper)));
-
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findNotebookComplete(Notebook)), this, SLOT(onFindNotebookCompleted(Notebook)));
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findNotebookFailed(Notebook,QString)), this, SLOT(onFindNotebookFailed(Notebook)));
-
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findNoteComplete(Note,bool)), this, SLOT(onFindNoteCompleted(Note)));
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findNoteFailed(Note,bool,QString)), this, SLOT(onFindNoteFailed(Note)));
-
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findTagComplete(Tag)), this, SLOT(onFindTagCompleted(Tag)));
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findTagFailed(Tag,QString)), this, SLOT(onFindTagFailed(Tag)));
-
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findResourceComplete(ResourceWrapper,bool)), this, SLOT(onFindResourceCompleted(ResourceWrapper)));
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findResourceFailed(ResourceWrapper,bool,QString)), this, SLOT(onFindResourceFailed(ResourceWrapper)));
-
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findLinkedNotebookComplete(LinkedNotebook)), this, SLOT(onFindLinkedNotebookCompleted(LinkedNotebook)));
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findLinkedNotebookFailed(LinkedNotebook,QString)), this, SLOT(onFindLinkedNotebookFailed(LinkedNotebook)));
-
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findSavedSearchComplete(SavedSearch)), this, SLOT(onFindSavedSearchCompleted(SavedSearch)));
-    QObject::connect(&localStorageManagerThreadWorker, SIGNAL(findSavedSearchFailed(SavedSearch,QString)), this, SLOT(onFindSavedSearchFailed(SavedSearch)));
 }
 
 void SynchronizationManagerPrivate::authenticate()
@@ -342,6 +282,33 @@ void SynchronizationManagerPrivate::launchSync()
     launchIncrementalSync();
 }
 
+void SynchronizationManagerPrivate::launchFullSync()
+{
+    QNDEBUG("SynchronizationManagerPrivate::launchFullSync");
+
+    QUTE_NOTE_CHECK_PTR(m_pNoteStore.data());
+    QUTE_NOTE_CHECK_PTR(m_pOAuthResult.data());
+
+    qint32 afterUsn = 0;
+    std::vector<qevercloud::SyncChunk> syncChunks;
+    qevercloud::SyncChunk * pSyncChunk = nullptr;
+
+    while(!pSyncChunk || (pSyncChunk->chunkHighUSN < pSyncChunk->updateCount))
+    {
+        if (pSyncChunk) {
+            afterUsn = pSyncChunk->chunkHighUSN;
+        }
+
+        syncChunks.push_back(qevercloud::SyncChunk());
+        pSyncChunk = &(syncChunks.back());
+        *pSyncChunk = m_pNoteStore->getSyncChunk(afterUsn, m_maxSyncChunkEntries, true,
+                                                 m_pOAuthResult->authenticationToken);
+        QNDEBUG("Received sync chunk: " << *pSyncChunk);
+    }
+
+    // TODO: continue from here
+}
+
 void SynchronizationManagerPrivate::launchIncrementalSync()
 {
     // TODO: implement
@@ -392,76 +359,6 @@ bool SynchronizationManagerPrivate::storeOAuthResult()
             << m_pOAuthResult->webApiUrlPrefix);
 
     return true;
-}
-
-void SynchronizationManagerPrivate::onFindUserCompleted(UserWrapper user)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindUserFailed(UserWrapper user)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindNotebookCompleted(Notebook notebook)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindNotebookFailed(Notebook notebook)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindNoteCompleted(Note note)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindNoteFailed(Note note)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindTagCompleted(Tag tag)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindTagFailed(Tag tag)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindResourceCompleted(ResourceWrapper resource)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindResourceFailed(ResourceWrapper resource)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindSavedSearchCompleted(SavedSearch savedSearch)
-{
-    // TODO: implement
-}
-
-void SynchronizationManagerPrivate::onFindSavedSearchFailed(SavedSearch savedSearch)
-{
-    // TODO: implement
 }
 
 } // namespace qute_note
