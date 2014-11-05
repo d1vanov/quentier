@@ -1,12 +1,4 @@
 #include "LocalStorageManagerThreadWorker.h"
-#include <client/types/UserWrapper.h>
-#include <client/types/Notebook.h>
-#include <client/types/SharedNotebookWrapper.h>
-#include <client/types/LinkedNotebook.h>
-#include <client/types/Note.h>
-#include <client/types/Tag.h>
-#include <client/types/ResourceWrapper.h>
-#include <client/types/SavedSearch.h>
 #include <logging/QuteNoteLogger.h>
 #include <tools/SysInfo.h>
 

@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThread)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
 namespace test {
 
@@ -33,6 +33,7 @@ Q_SIGNALS:
     void expungeTagRequest(Tag tag);
 
 private Q_SLOTS:
+    void onWorkerInitialized();
     void onGetTagCountCompleted(int count);
     void onGetTagCountFailed(QString errorDescription);
     void onAddTagCompleted(Tag tag);
@@ -69,7 +70,10 @@ private:
     };
 
     State m_state;
-    LocalStorageManagerThread * m_pLocalStorageManagerThread;
+
+    LocalStorageManagerThreadWorker * m_pLocalStorageManagerThreadWorker;
+    QThread *   m_pLocalStorageManagerThread;
+
     Tag         m_initialTag;
     Tag         m_foundTag;
     Tag         m_modifiedTag;

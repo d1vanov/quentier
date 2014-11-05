@@ -49,7 +49,6 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/data/SavedSearchData.h
     src/client/types/data/UserWrapperData.h
     src/client/enml/ENMLConverter.h
-    src/client/local_storage/IAsyncLocalStorageManager.h
     src/client/local_storage/ILocalStorageCacheExpiryChecker.h
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
@@ -59,7 +58,6 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/LocalStorageCacheManagerException.h
     src/client/local_storage/LocalStorageManager.h
     src/client/local_storage/LocalStorageManager_p.h
-    src/client/local_storage/LocalStorageManagerThread.h
     src/client/local_storage/LocalStorageManagerThreadWorker.h
     src/client/local_storage/NoteSearchQuery.h
     src/client/local_storage/NoteSearchQuery_p.h
@@ -120,7 +118,6 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/data/SavedSearchData.cpp
     src/client/types/data/UserWrapperData.cpp
     src/client/enml/ENMLConverter.cpp
-    src/client/local_storage/IAsyncLocalStorageManager.cpp
     src/client/local_storage/ILocalStorageCacheExpiryChecker.cpp
     src/client/local_storage/DatabaseOpeningException.cpp
     src/client/local_storage/DatabaseSqlErrorException.cpp
@@ -130,7 +127,6 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/LocalStorageCacheManagerException.cpp
     src/client/local_storage/LocalStorageCacheManager.cpp
     src/client/local_storage/LocalStorageCacheManager_p.cpp
-    src/client/local_storage/LocalStorageManagerThread.cpp
     src/client/local_storage/LocalStorageManagerThreadWorker.cpp
     src/client/local_storage/NoteSearchQuery.cpp
     src/client/local_storage/NoteSearchQuery_p.cpp

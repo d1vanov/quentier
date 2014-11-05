@@ -1,15 +1,21 @@
 #ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
 #define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
 
-#include "IAsyncLocalStorageManager.h"
 #include "LocalStorageManager.h"
 #include "LocalStorageCacheManager.h"
+#include <client/types/UserWrapper.h>
+#include <client/types/Notebook.h>
+#include <client/types/SharedNotebookWrapper.h>
+#include <client/types/LinkedNotebook.h>
+#include <client/types/Note.h>
+#include <client/types/Tag.h>
+#include <client/types/ResourceWrapper.h>
+#include <client/types/SavedSearch.h>
 #include <QObject>
 
 namespace qute_note {
 
-class QUTE_NOTE_EXPORT LocalStorageManagerThreadWorker: public QObject,
-                                                        public IAsyncLocalStorageManager
+class QUTE_NOTE_EXPORT LocalStorageManagerThreadWorker: public QObject
 {
     Q_OBJECT
 public:
@@ -19,9 +25,9 @@ public:
                                              QObject * parent = nullptr);
     virtual ~LocalStorageManagerThreadWorker();
     
-    virtual void setUseCache(const bool useCache) Q_DECL_OVERRIDE;
+    void setUseCache(const bool useCache);
 
-    virtual const LocalStorageCacheManager * localStorageCacheManager() const Q_DECL_OVERRIDE;
+    const LocalStorageCacheManager * localStorageCacheManager() const;
 
 Q_SIGNALS:
     // Generic failure signal

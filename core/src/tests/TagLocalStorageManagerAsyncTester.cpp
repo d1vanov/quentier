@@ -1,6 +1,7 @@
 #include "TagLocalStorageManagerAsyncTester.h"
-#include <client/local_storage/LocalStorageManagerThread.h>
+#include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <logging/QuteNoteLogger.h>
+#include <QThread>
 
 namespace qute_note {
 namespace test {
@@ -8,6 +9,7 @@ namespace test {
 TagLocalStorageManagerAsyncTester::TagLocalStorageManagerAsyncTester(QObject * parent) :
     QObject(parent),
     m_state(STATE_UNINITIALIZED),
+    m_pLocalStorageManagerThreadWorker(nullptr),
     m_pLocalStorageManagerThread(nullptr),
     m_initialTag(),
     m_foundTag(),
@@ -19,6 +21,14 @@ TagLocalStorageManagerAsyncTester::~TagLocalStorageManagerAsyncTester()
 {
     // NOTE: shouldn't attempt to delete m_pLocalStorageManagerThread as Qt's parent-child system
     // should take care of that
+    if (m_pLocalStorageManagerThread) {
+        m_pLocalStorageManagerThread->quit();
+        m_pLocalStorageManagerThread->wait();
+    }
+
+    if (m_pLocalStorageManagerThreadWorker) {
+        delete m_pLocalStorageManagerThreadWorker;
+    }
 }
 
 void TagLocalStorageManagerAsyncTester::onInitTestCase()
@@ -27,16 +37,24 @@ void TagLocalStorageManagerAsyncTester::onInitTestCase()
     qint32 userId = 2;
     bool startFromScratch = true;
 
-    if (m_pLocalStorageManagerThread != nullptr) {
-        delete m_pLocalStorageManagerThread;
-        m_pLocalStorageManagerThread = nullptr;
+    if (m_pLocalStorageManagerThreadWorker != nullptr) {
+        delete m_pLocalStorageManagerThreadWorker;
+        m_pLocalStorageManagerThreadWorker = nullptr;
     }
 
     m_state = STATE_UNINITIALIZED;
 
-    m_pLocalStorageManagerThread = new LocalStorageManagerThread(username, userId, startFromScratch, this);
+    m_pLocalStorageManagerThread = new QThread(this);
+    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch);
+    m_pLocalStorageManagerThreadWorker->moveToThread(m_pLocalStorageManagerThread);
+
     createConnections();
 
+    m_pLocalStorageManagerThread->start();
+}
+
+void TagLocalStorageManagerAsyncTester::onWorkerInitialized()
+{
     m_initialTag = Tag();
     m_initialTag.setGuid("00000000-0000-0000-c000-000000000046");
     m_initialTag.setUpdateSequenceNumber(3);
@@ -324,53 +342,58 @@ void TagLocalStorageManagerAsyncTester::onExpungeTagFailed(Tag tag, QString erro
 
 void TagLocalStorageManagerAsyncTester::createConnections()
 {
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(failure(QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(failure(QString)),
                      this, SIGNAL(failure(QString)));
 
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(started()), m_pLocalStorageManagerThreadWorker, SLOT(init()));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(finished()), m_pLocalStorageManagerThread, SLOT(deleteLater()));
+
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(initialized()), this, SLOT(onWorkerInitialized()));
+
     // Request --> slot connections
-    QObject::connect(this, SIGNAL(getTagCountRequest()), m_pLocalStorageManagerThread,
+    QObject::connect(this, SIGNAL(getTagCountRequest()), m_pLocalStorageManagerThreadWorker,
                      SLOT(onGetTagCountRequest()));
-    QObject::connect(this, SIGNAL(addTagRequest(Tag)), m_pLocalStorageManagerThread,
+    QObject::connect(this, SIGNAL(addTagRequest(Tag)), m_pLocalStorageManagerThreadWorker,
                      SLOT(onAddTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(updateTagRequest(Tag)), m_pLocalStorageManagerThread,
+    QObject::connect(this, SIGNAL(updateTagRequest(Tag)), m_pLocalStorageManagerThreadWorker,
                      SLOT(onUpdateTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(findTagRequest(Tag)), m_pLocalStorageManagerThread,
+    QObject::connect(this, SIGNAL(findTagRequest(Tag)), m_pLocalStorageManagerThreadWorker,
                      SLOT(onFindTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(listAllTagsRequest()), m_pLocalStorageManagerThread,
+    QObject::connect(this, SIGNAL(listAllTagsRequest()), m_pLocalStorageManagerThreadWorker,
                      SLOT(onListAllTagsRequest()));
     QObject::connect(this, SIGNAL(deleteTagRequest(Tag)),
-                     m_pLocalStorageManagerThread, SLOT(onDeleteTagRequest(Tag)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onDeleteTagRequest(Tag)));
     QObject::connect(this, SIGNAL(expungeTagRequest(Tag)),
-                     m_pLocalStorageManagerThread, SLOT(onExpungeTagRequest(Tag)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onExpungeTagRequest(Tag)));
 
     // Slot <-- result connections
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(getTagCountComplete(int)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getTagCountComplete(int)),
                      this, SLOT(onGetTagCountCompleted(int)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(getTagCountFailed(QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getTagCountFailed(QString)),
                      this, SLOT(onGetTagCountFailed(QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addTagComplete(Tag)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addTagComplete(Tag)),
                      this, SLOT(onAddTagCompleted(Tag)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addTagFailed(Tag,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addTagFailed(Tag,QString)),
                      this, SLOT(onAddTagFailed(Tag,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateTagComplete(Tag)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateTagComplete(Tag)),
                      this, SLOT(onUpdateTagCompleted(Tag)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateTagFailed(Tag,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateTagFailed(Tag,QString)),
                      this, SLOT(onUpdateTagFailed(Tag,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findTagComplete(Tag)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findTagComplete(Tag)),
                      this, SLOT(onFindTagCompleted(Tag)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findTagFailed(Tag,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findTagFailed(Tag,QString)),
                      this, SLOT(onFindTagFailed(Tag,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(listAllTagsComplete(QList<Tag>)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllTagsComplete(QList<Tag>)),
                      this, SLOT(onListAllTagsCompleted(QList<Tag>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(listAllTagsFailed(QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllTagsFailed(QString)),
                      this, SLOT(onListAllTagsFailed(QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(deleteTagComplete(Tag)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteTagComplete(Tag)),
                      this, SLOT(onDeleteTagCompleted(Tag)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(deleteTagFailed(Tag,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteTagFailed(Tag,QString)),
                      this, SLOT(onDeleteTagFailed(Tag,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeTagComplete(Tag)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeTagComplete(Tag)),
                      this, SLOT(onExpungeTagCompleted(Tag)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeTagFailed(Tag,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeTagFailed(Tag,QString)),
                      this, SLOT(onExpungeTagFailed(Tag,QString)));
 }
 

@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThread)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
 namespace test {
 
@@ -32,6 +32,7 @@ Q_SIGNALS:
     void expungeUserRequest(UserWrapper user);
 
 private Q_SLOTS:
+    void onWorkerInitialized();
     void onGetUserCountCompleted(int count);
     void onGetUserCountFailed(QString errorDescription);
     void onAddUserCompleted(UserWrapper user);
@@ -63,7 +64,12 @@ private:
     };
 
     State m_state;
-    LocalStorageManagerThread * m_pLocalStorageManagerThread;
+
+    LocalStorageManagerThreadWorker * m_pLocalStorageManagerThreadWorker;
+    QThread *                   m_pLocalStorageManagerThread;
+
+    qint32                      m_userId;
+
     UserWrapper                 m_initialUser;
     UserWrapper                 m_foundUser;
     UserWrapper                 m_modifiedUser;
