@@ -15,6 +15,7 @@
 namespace qute_note {
 
 SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker) :
+    m_maxSyncChunkEntries(50),
     m_pLastSyncState(),
     m_pOAuthWebView(new qevercloud::EvernoteOAuthWebView),
     m_pOAuthResult(),
@@ -339,11 +340,6 @@ void SynchronizationManagerPrivate::launchSync()
 
     QNDEBUG("Performing incremental sync");
     launchIncrementalSync();
-}
-
-void SynchronizationManagerPrivate::launchFullSync()
-{
-    // TODO: implement
 }
 
 void SynchronizationManagerPrivate::launchIncrementalSync()

@@ -108,6 +108,8 @@ private Q_SLOTS:
     void onFindSavedSearchFailed(SavedSearch savedSearch);
 
 private:
+    qint32      m_maxSyncChunkEntries;
+
     QScopedPointer<qevercloud::SyncState>               m_pLastSyncState;
     QScopedPointer<qevercloud::EvernoteOAuthWebView>    m_pOAuthWebView;
     QScopedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;

@@ -68,5 +68,6 @@ __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NotebookRestrictions)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookInstanceRestrictions::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::ResourceAttributes)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Resource)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SyncChunk)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

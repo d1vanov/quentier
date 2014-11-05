@@ -133,6 +133,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/Transaction.cpp
     src/client/synchronization/SynchronizationManager.cpp
     src/client/synchronization/SynchronizationManager_p.cpp
+    src/client/synchronization/FullSynchronization.cpp
     src/logging/QuteNoteLogger.cpp
     src/logging/LoggerInitializationException.cpp
     src/tools/ApplicationSettings.cpp

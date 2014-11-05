@@ -753,3 +753,53 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::Resource & resou
 
     return strm;
 }
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::SyncChunk & syncChunk)
+{
+    strm << "qevercloud::SyncChunk: { \n";
+    QString indent = "  ";
+
+    strm << indent << "chunkHighUSN = " << syncChunk.chunkHighUSN << "; \n";
+    strm << indent << "currentTime = " << syncChunk.currentTime << " ("
+         << QDateTime::fromMSecsSinceEpoch(syncChunk.currentTime).toString(Qt::ISODate) << "); \n";
+    strm << indent << "updateCount = " << syncChunk.updateCount << "; \n";
+
+    if (syncChunk.expungedLinkedNotebooks.isSet())
+    {
+        foreach(const qevercloud::Guid & guid, syncChunk.expungedLinkedNotebooks.ref()) {
+            strm << indent << "expunged linked notebook guid = " << guid << "; \n";
+        }
+    }
+
+    if (syncChunk.expungedNotebooks.isSet())
+    {
+        foreach(const qevercloud::Guid & guid, syncChunk.expungedNotebooks.ref()) {
+            strm << indent << "expunged notebook guid = " << guid << "; \n";
+        }
+    }
+
+    if (syncChunk.expungedNotes.isSet())
+    {
+        foreach(const qevercloud::Guid & guid, syncChunk.expungedNotes.ref()) {
+            strm << indent << "expunged note guid = " << guid << "; \n";
+        }
+    }
+
+    if (syncChunk.expungedSearches.isSet())
+    {
+        foreach(const qevercloud::Guid & guid, syncChunk.expungedSearches.ref()) {
+            strm << indent << "expunged search guid = " << guid << "; \n";
+        }
+    }
+
+    if (syncChunk.expungedTags.isSet())
+    {
+        foreach(const qevercloud::Guid & guid, syncChunk.expungedTags.ref()) {
+            strm << indent << "expunged tag guid = " << guid << "; \n";
+        }
+    }
+
+    // TODO: continue from here
+
+    return strm;
+}
