@@ -1,6 +1,7 @@
 #include "SavedSearchLocalStorageManagerAsyncTester.h"
-#include <client/local_storage/LocalStorageManagerThread.h>
+#include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <logging/QuteNoteLogger.h>
+#include <QThread>
 
 namespace qute_note {
 namespace test {
@@ -8,6 +9,7 @@ namespace test {
 SavedSearchLocalStorageManagerAsyncTester::SavedSearchLocalStorageManagerAsyncTester(QObject * parent) :
     QObject(parent),
     m_state(STATE_UNINITIALIZED),
+    m_pLocalStorageManagerThreadWorker(nullptr),
     m_pLocalStorageManagerThread(nullptr),
     m_initialSavedSearch(),
     m_foundSavedSearch(),
@@ -19,6 +21,14 @@ SavedSearchLocalStorageManagerAsyncTester::~SavedSearchLocalStorageManagerAsyncT
 {
     // NOTE: shouldn't attempt to delete m_pLocalStorageManagerThread as Qt's parent-child system
     // should take care of that
+    if (m_pLocalStorageManagerThread) {
+        m_pLocalStorageManagerThread->quit();
+        m_pLocalStorageManagerThread->wait();
+    }
+
+    if (m_pLocalStorageManagerThreadWorker) {
+        delete m_pLocalStorageManagerThreadWorker;
+    }
 }
 
 void SavedSearchLocalStorageManagerAsyncTester::onInitTestCase()
@@ -27,16 +37,29 @@ void SavedSearchLocalStorageManagerAsyncTester::onInitTestCase()
     qint32 userId = 0;
     bool startFromScratch = true;
 
-    if (m_pLocalStorageManagerThread != nullptr) {
+    if (m_pLocalStorageManagerThread) {
         delete m_pLocalStorageManagerThread;
         m_pLocalStorageManagerThread = nullptr;
     }
 
+    if (m_pLocalStorageManagerThreadWorker) {
+        delete m_pLocalStorageManagerThreadWorker;
+        m_pLocalStorageManagerThreadWorker = nullptr;
+    }
+
     m_state = STATE_UNINITIALIZED;
 
-    m_pLocalStorageManagerThread = new LocalStorageManagerThread(username, userId, startFromScratch, this);
+    m_pLocalStorageManagerThread = new QThread(this);
+    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch);
+    m_pLocalStorageManagerThreadWorker->moveToThread(m_pLocalStorageManagerThread);
+
     createConnections();
 
+    m_pLocalStorageManagerThread->start();
+}
+
+void SavedSearchLocalStorageManagerAsyncTester::onWorkerInitialized()
+{
     m_initialSavedSearch = SavedSearch();
     m_initialSavedSearch.setGuid("00000000-0000-0000-c000-000000000046");
     m_initialSavedSearch.setUpdateSequenceNumber(1);
@@ -319,47 +342,52 @@ void SavedSearchLocalStorageManagerAsyncTester::onExpungeSavedSearchFailed(Saved
 
 void SavedSearchLocalStorageManagerAsyncTester::createConnections()
 {
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(failure(QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(failure(QString)),
                      this, SIGNAL(failure(QString)));
 
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(started()), m_pLocalStorageManagerThreadWorker, SLOT(init()));
+    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(finished()), m_pLocalStorageManagerThread, SLOT(deleteLater()));
+
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(initialized()), this, SLOT(onWorkerInitialized()));
+
     // Request --> slot connections
-    QObject::connect(this, SIGNAL(getSavedSearchCountRequest()), m_pLocalStorageManagerThread,
+    QObject::connect(this, SIGNAL(getSavedSearchCountRequest()), m_pLocalStorageManagerThreadWorker,
                      SLOT(onGetSavedSearchCountRequest()));
     QObject::connect(this, SIGNAL(addSavedSearchRequest(SavedSearch)),
-                     m_pLocalStorageManagerThread, SLOT(onAddSavedSearchRequest(SavedSearch)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddSavedSearchRequest(SavedSearch)));
     QObject::connect(this, SIGNAL(updateSavedSearchRequest(SavedSearch)),
-                     m_pLocalStorageManagerThread, SLOT(onUpdateSavedSearchRequest(SavedSearch)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateSavedSearchRequest(SavedSearch)));
     QObject::connect(this, SIGNAL(findSavedSearchRequest(SavedSearch)),
-                     m_pLocalStorageManagerThread, SLOT(onFindSavedSearchRequest(SavedSearch)));
-    QObject::connect(this, SIGNAL(listAllSavedSearchesRequest()), m_pLocalStorageManagerThread,
+                     m_pLocalStorageManagerThreadWorker, SLOT(onFindSavedSearchRequest(SavedSearch)));
+    QObject::connect(this, SIGNAL(listAllSavedSearchesRequest()), m_pLocalStorageManagerThreadWorker,
                      SLOT(onListAllSavedSearchesRequest()));
     QObject::connect(this, SIGNAL(expungeSavedSearchRequest(SavedSearch)),
-                     m_pLocalStorageManagerThread, SLOT(onExpungeSavedSearch(SavedSearch)));
+                     m_pLocalStorageManagerThreadWorker, SLOT(onExpungeSavedSearch(SavedSearch)));
 
     // Slot <-- result connections
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(getSavedSearchCountComplete(int)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getSavedSearchCountComplete(int)),
                      this, SLOT(onGetSavedSearchCountCompleted(int)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(getSavedSearchCountFailed(QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getSavedSearchCountFailed(QString)),
                      this, SLOT(onGetSavedSearchCountFailed(QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addSavedSearchComplete(SavedSearch)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addSavedSearchComplete(SavedSearch)),
                      this, SLOT(onAddSavedSearchCompleted(SavedSearch)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(addSavedSearchFailed(SavedSearch,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addSavedSearchFailed(SavedSearch,QString)),
                      this, SLOT(onAddSavedSearchFailed(SavedSearch,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateSavedSearchComplete(SavedSearch)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateSavedSearchComplete(SavedSearch)),
                      this, SLOT(onUpdateSavedSearchCompleted(SavedSearch)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(updateSavedSearchFailed(SavedSearch,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateSavedSearchFailed(SavedSearch,QString)),
                      this, SLOT(onUpdateSavedSearchFailed(SavedSearch,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findSavedSearchComplete(SavedSearch)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findSavedSearchComplete(SavedSearch)),
                      this, SLOT(onFindSavedSearchCompleted(SavedSearch)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(findSavedSearchFailed(SavedSearch,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findSavedSearchFailed(SavedSearch,QString)),
                      this, SLOT(onFindSavedSearchFailed(SavedSearch,QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(listAllSavedSearchesComplete(QList<SavedSearch>)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllSavedSearchesComplete(QList<SavedSearch>)),
                      this, SLOT(onListAllSavedSearchesCompleted(QList<SavedSearch>)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(listAllSavedSearchesFailed(QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllSavedSearchesFailed(QString)),
                      this, SLOT(onListAllSavedSearchedFailed(QString)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeSavedSearchComplete(SavedSearch)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeSavedSearchComplete(SavedSearch)),
                      this, SLOT(onExpungeSavedSearchCompleted(SavedSearch)));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(expungeSavedSearchFailed(SavedSearch,QString)),
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeSavedSearchFailed(SavedSearch,QString)),
                      this, SLOT(onExpungeSavedSearchFailed(SavedSearch,QString)));
 }
 

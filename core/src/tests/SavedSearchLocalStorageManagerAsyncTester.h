@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThread)
+QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
 namespace test {
 
@@ -32,6 +32,7 @@ Q_SIGNALS:
     void expungeSavedSearchRequest(SavedSearch search);
 
 private Q_SLOTS:
+    void onWorkerInitialized();
     void onGetSavedSearchCountCompleted(int count);
     void onGetSavedSearchCountFailed(QString errorDescription);
     void onAddSavedSearchCompleted(SavedSearch search);
@@ -65,7 +66,10 @@ private:
     };
 
     State   m_state;
-    LocalStorageManagerThread   * m_pLocalStorageManagerThread;
+
+    LocalStorageManagerThreadWorker   * m_pLocalStorageManagerThreadWorker;
+    QThread *           m_pLocalStorageManagerThread;
+
     SavedSearch         m_initialSavedSearch;
     SavedSearch         m_foundSavedSearch;
     SavedSearch         m_modifiedSavedSearch;
