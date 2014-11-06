@@ -19,9 +19,10 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_pLastSyncState(),
     m_pOAuthWebView(new qevercloud::EvernoteOAuthWebView),
     m_pOAuthResult(),
-    m_pNoteStore()
+    m_pNoteStore(),
+    m_fullSyncManager(localStorageManagerThreadWorker, m_pNoteStore, m_pOAuthResult)
 {
-    createConnecttions(localStorageManagerThreadWorker);
+    createConnecttions();
 }
 
 SynchronizationManagerPrivate::~SynchronizationManagerPrivate()
@@ -41,7 +42,7 @@ void SynchronizationManagerPrivate::onOAuthSuccess()
 {
     // Store OAuth result for future usage within the session
     if (m_pOAuthResult.isNull()) {
-        m_pOAuthResult.reset(new qevercloud::EvernoteOAuthWebView::OAuthResult(m_pOAuthWebView->oauthResult()));
+        m_pOAuthResult = QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>(new qevercloud::EvernoteOAuthWebView::OAuthResult(m_pOAuthWebView->oauthResult()));
     }
     else {
         *m_pOAuthResult = m_pOAuthWebView->oauthResult();
@@ -70,12 +71,21 @@ void SynchronizationManagerPrivate::onOAuthResult(bool result)
     }
 }
 
-void SynchronizationManagerPrivate::createConnecttions(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
+void SynchronizationManagerPrivate::onFullSyncFinished()
 {
+    // TODO: implement
+}
+
+void SynchronizationManagerPrivate::createConnecttions()
+{
+    // Connections with OAuth handler
     QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationFinished(bool)), this, SLOT(onOAuthResult(bool)));
     QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationSuceeded), this, SLOT(onOAuthSuccess()));
     QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationFailed), this, SLOT(onOAuthFailure()));
 
+    // Connections with full synchronization manager
+    QObject::connect(&m_fullSyncManager, SIGNAL(error(QString)), this, SIGNAL(notifyError(QString)));
+    QObject::connect(&m_fullSyncManager, SIGNAL(finished()), this, SLOT(onFullSyncFinished()));
 }
 
 void SynchronizationManagerPrivate::authenticate()
@@ -137,7 +147,7 @@ void SynchronizationManagerPrivate::authenticate()
     QNDEBUG("Successfully restored the autnehtication token");
 
     if (m_pOAuthResult.isNull()) {
-        m_pOAuthResult.reset(new qevercloud::EvernoteOAuthWebView::OAuthResult);
+        m_pOAuthResult = QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>(new qevercloud::EvernoteOAuthWebView::OAuthResult);
     }
 
     m_pOAuthResult->authenticationToken = readPasswordJob.textData();
@@ -252,8 +262,7 @@ void SynchronizationManagerPrivate::launchSync()
 {
     QUTE_NOTE_CHECK_PTR(m_pOAuthResult);
 
-    m_pNoteStore.reset(new qevercloud::NoteStore(m_pOAuthResult->noteStoreUrl,
-                                                 m_pOAuthResult->authenticationToken));
+    m_pNoteStore = QSharedPointer<qevercloud::NoteStore>(new qevercloud::NoteStore(m_pOAuthResult->noteStoreUrl, m_pOAuthResult->authenticationToken));
 
     if (m_pLastSyncState.isNull()) {
         QNDEBUG("The client has never synchronized with the remote service, "
@@ -285,28 +294,8 @@ void SynchronizationManagerPrivate::launchSync()
 void SynchronizationManagerPrivate::launchFullSync()
 {
     QNDEBUG("SynchronizationManagerPrivate::launchFullSync");
+    m_fullSyncManager.start();
 
-    QUTE_NOTE_CHECK_PTR(m_pNoteStore.data());
-    QUTE_NOTE_CHECK_PTR(m_pOAuthResult.data());
-
-    qint32 afterUsn = 0;
-    std::vector<qevercloud::SyncChunk> syncChunks;
-    qevercloud::SyncChunk * pSyncChunk = nullptr;
-
-    while(!pSyncChunk || (pSyncChunk->chunkHighUSN < pSyncChunk->updateCount))
-    {
-        if (pSyncChunk) {
-            afterUsn = pSyncChunk->chunkHighUSN;
-        }
-
-        syncChunks.push_back(qevercloud::SyncChunk());
-        pSyncChunk = &(syncChunks.back());
-        *pSyncChunk = m_pNoteStore->getSyncChunk(afterUsn, m_maxSyncChunkEntries, true,
-                                                 m_pOAuthResult->authenticationToken);
-        QNDEBUG("Received sync chunk: " << *pSyncChunk);
-    }
-
-    // TODO: continue from here
 }
 
 void SynchronizationManagerPrivate::launchIncrementalSync()

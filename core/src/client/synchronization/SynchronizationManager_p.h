@@ -1,14 +1,13 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__SYNCHRONIZATION_MANAGER_PRIVATE_H
 #define __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__SYNCHRONIZATION_MANAGER_PRIVATE_H
 
+#include "FullSynchronizationManager.h"
 #include <tools/qt4helper.h>
 #include <QEverCloud.h>
 #include <oauth.h>
 #include <QObject>
 
 namespace qute_note {
-
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
 class SynchronizationManagerPrivate: public QObject
 {
@@ -27,12 +26,14 @@ private Q_SLOTS:
     void onOAuthFailure();
     void onOAuthResult(bool result);
 
+    void onFullSyncFinished();
+
 private:
     SynchronizationManagerPrivate() Q_DECL_DELETE;
     SynchronizationManagerPrivate(const SynchronizationManagerPrivate & other) Q_DECL_DELETE;
     SynchronizationManagerPrivate & operator=(const SynchronizationManagerPrivate & other) Q_DECL_DELETE;
 
-    void createConnecttions(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void createConnecttions();
 
     void authenticate();
 
@@ -50,8 +51,11 @@ private:
 
     QScopedPointer<qevercloud::SyncState>               m_pLastSyncState;
     QScopedPointer<qevercloud::EvernoteOAuthWebView>    m_pOAuthWebView;
-    QScopedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
-    QScopedPointer<qevercloud::NoteStore>               m_pNoteStore;
+
+    QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
+    QSharedPointer<qevercloud::NoteStore>               m_pNoteStore;
+
+    FullSynchronizationManager      m_fullSyncManager;
 };
 
 } // namespace qute_note

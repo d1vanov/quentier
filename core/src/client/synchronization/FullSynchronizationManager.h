@@ -30,7 +30,7 @@ Q_SIGNALS:
     void finished();
 
 public Q_SLOTS:
-    void init();
+    void start();
 
 // private signals
 Q_SIGNALS:
@@ -89,15 +89,21 @@ private Q_SLOTS:
     void onFindSavedSearchFailed(SavedSearch savedSearch);
 
 private:
-    void createConnections(qute_note::LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void createConnections();
+
+    void launchTagsSync();
 
 private:
     FullSynchronizationManager() Q_DECL_DELETE;
 
 private:
+    LocalStorageManagerThreadWorker &                               m_localStorageManagerThreadWorker;
     QSharedPointer<qevercloud::NoteStore>                           m_pNoteStore;
     QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
     qint32                                                          m_maxSyncChunkEntries;
+
+    QVector<qevercloud::SyncChunk>  m_syncChunks;
+    QList<qevercloud::Tag>          m_tags;
 };
 } // namespace qute_note
 
