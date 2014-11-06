@@ -2069,7 +2069,15 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
             return false;
         }
     }
-    else if (tag.localGuid().isEmpty()) {
+    else if (tag.localGuid().isEmpty())
+    {
+        if (!tag.hasName()) {
+            errorDescription = errorPrefix + QT_TR_NOOP("can't find tag: need either guid "
+                                                        "or local guid or name as search criteria");
+            QNWARNING(errorDescription);
+            return false;
+        }
+
         column = "nameUpper";
         value = tag.name().toUpper();
     }

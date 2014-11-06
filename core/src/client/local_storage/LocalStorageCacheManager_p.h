@@ -48,6 +48,7 @@ public:
 
     const Tag * findTagByLocalGuid(const QString & localGuid) const;
     const Tag * findTagByGuid(const QString & guid) const;
+    const Tag * findTagByName(const QString & name) const;
 
     // Linked notebooks cache
     size_t numCachedLinkedNotebooks() const;
@@ -162,10 +163,14 @@ private:
 
         const QString localGuid() const { return m_tag.localGuid(); }
         const QString guid() const;
+        const QString nameUpper() const { return (m_tag.hasName()
+                                                  ? m_tag.name().toUpper()
+                                                  : QString()); }
 
         struct ByLastAccessTimestamp{};
         struct ByLocalGuid{};
         struct ByGuid{};
+        struct ByName{};
 
         virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
     };
@@ -185,6 +190,11 @@ private:
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<TagHolder::ByGuid>,
                 boost::multi_index::const_mem_fun<TagHolder,const QString,&TagHolder::guid>
+            >,
+            /* NOTE: non-unique for proper support of empty names */
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<TagHolder::ByName>,
+                boost::multi_index::const_mem_fun<TagHolder,const QString,&TagHolder::nameUpper>
             >
         >
     > TagsCache;

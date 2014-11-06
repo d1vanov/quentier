@@ -47,6 +47,7 @@ public:
     void cacheTag(const Tag & tag);
     void expungeTag(const Tag & tag);
     const Tag * findTag(const QString & guid, const WhichGuid wg) const;
+    const Tag * findTagByName(const QString & name) const;
 
     // Linked notebooks cache
     size_t numCachedLinkedNotebooks() const;

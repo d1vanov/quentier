@@ -376,6 +376,15 @@ void LocalStorageCacheAsyncTester::onAddTagCompleted(Tag tag)
                 emit failure(errorDescription);
                 return;
             }
+
+            // Check that we can also find the tag by name in the cache
+            pTag = m_pLocalStorageCacheManager->findTagByName(m_firstTag.name());
+            if (!pTag) {
+                errorDescription = "Tag present in the local storage cache could not be found by tag name";
+                QNWARNING(errorDescription << ", first tag: " << m_firstTag);
+                emit failure(errorDescription);
+                return;
+            }
         }
 
         addTag();

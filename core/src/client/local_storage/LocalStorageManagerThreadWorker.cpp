@@ -789,13 +789,25 @@ void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag)
         if (m_useCache)
         {
             bool tagHasGuid = tag.hasGuid();
-            const QString guid = (tagHasGuid ? tag.guid() : tag.localGuid());
-            LocalStorageCacheManager::WhichGuid wg = (tagHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
+            if (tagHasGuid || !tag.localGuid().isEmpty())
+            {
+                const QString guid = (tagHasGuid ? tag.guid() : tag.localGuid());
+                LocalStorageCacheManager::WhichGuid wg = (tagHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
 
-            const Tag * pTag = m_pLocalStorageCacheManager->findTag(guid, wg);
-            if (pTag) {
-                tag = *pTag;
-                foundTagInCache = true;
+                const Tag * pTag = m_pLocalStorageCacheManager->findTag(guid, wg);
+                if (pTag) {
+                    tag = *pTag;
+                    foundTagInCache = true;
+                }
+            }
+            else if (!tag.name().isEmpty())
+            {
+                const QString tagName = tag.name();
+                const Tag * pTag = m_pLocalStorageCacheManager->findTagByName(tagName);
+                if (pTag) {
+                    tag = *pTag;
+                    foundTagInCache = true;
+                }
             }
         }
 

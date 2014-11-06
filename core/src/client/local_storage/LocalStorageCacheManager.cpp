@@ -67,6 +67,12 @@ FIND_OBJECT(SavedSearch)
 
 #undef FIND_OBJECT
 
+const Tag * LocalStorageCacheManager::findTagByName(const QString & name) const
+{
+    Q_D(const LocalStorageCacheManager);
+    return d->findTagByName(name.toUpper());
+}
+
 size_t LocalStorageCacheManager::numCachedNotebooks() const
 {
     Q_D(const LocalStorageCacheManager);
