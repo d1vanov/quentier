@@ -215,6 +215,24 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(Tag tag)
             return;
         }
 
+        // Attempt to find tag by name now
+        Tag tagToFindByName;
+        tagToFindByName.unsetLocalGuid();
+        tagToFindByName.setName(m_initialTag.name());
+
+        m_state = STATE_SENT_FIND_BY_NAME_AFTER_ADD_REQUEST;
+        emit findTagRequest(tagToFindByName);
+    }
+    else if (m_state == STATE_SENT_FIND_BY_NAME_AFTER_ADD_REQUEST)
+    {
+        if (tag != m_initialTag) {
+            errorDescription = "Added and found by name tags in local storage don't match";
+            QNWARNING(errorDescription << ": Tag added to LocalStorageManager: " << m_initialTag
+                      << "\nTag found in LocalStorageManager: " << m_foundTag);
+            emit failure(errorDescription);
+            return;
+        }
+
         // Ok, found tag is good, updating it now
         m_modifiedTag = m_initialTag;
         m_modifiedTag.setUpdateSequenceNumber(m_initialTag.updateSequenceNumber() + 1);

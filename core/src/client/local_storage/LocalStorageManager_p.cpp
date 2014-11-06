@@ -2056,28 +2056,32 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
 
     QString errorPrefix = QT_TR_NOOP("Can't find tag in local storage database: ");
 
-    QString column, guid;
+    QString column, value;
     bool tagHasGuid = tag.hasGuid();
     if (tagHasGuid) {
         column = "guid";
-        guid = tag.guid();
+        value = tag.guid();
 
-        if (!CheckGuid(guid)) {
+        if (!CheckGuid(value)) {
             // TRANSLATION explaining why tag cannot be found in local storage
             errorDescription = errorPrefix + QT_TR_NOOP("requested tag guid is invalid");
             QNWARNING(errorDescription);
             return false;
         }
     }
+    else if (tag.localGuid().isEmpty()) {
+        column = "nameUpper";
+        value = tag.name().toUpper();
+    }
     else {
         column = "localGuid";
-        guid = tag.localGuid();
+        value = tag.localGuid();
     }
 
     tag.clear();
 
     QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, name, parentGuid, isDirty, isLocal, "
-                                  "isSynchronizable, isDeleted, hasShortcut FROM Tags WHERE %1 = '%2'").arg(column).arg(guid);
+                                  "isSynchronizable, isDeleted, hasShortcut FROM Tags WHERE %1 = '%2'").arg(column).arg(value);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select tag from \"Tags\" table in SQL database: ");
@@ -6655,7 +6659,7 @@ bool LocalStorageManagerPrivate::FillSavedSearchFromSqlRecord(const QSqlRecord &
 }
 
 bool LocalStorageManagerPrivate::FillTagFromSqlRecord(const QSqlRecord & rec, Tag & tag,
-                                               QString & errorDescription) const
+                                                      QString & errorDescription) const
 {
 #define CHECK_AND_SET_TAG_PROPERTY(property, type, localType, setter, isRequired) \
     { \

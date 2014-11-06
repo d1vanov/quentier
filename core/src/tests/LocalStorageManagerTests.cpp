@@ -243,6 +243,21 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
+    // ========== Check Find by name ==========
+    Tag foundByNameTag;
+    foundByNameTag.unsetLocalGuid();
+    foundByNameTag.setName(tag.name());
+    res = localStorageManager.FindTag(foundByNameTag, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (tag != foundByNameTag) {
+        errorDescription = "Tag found by name in local storage doesn't match the original tag";
+        QNWARNING(errorDescription << ": Tag found by name: " << foundByNameTag << "\nOriginal tag: " << tag);
+        return false;
+    }
+
     // ========== Check Update + Find ==========
     Tag modifiedTag(tag);
     modifiedTag.setUpdateSequenceNumber(tag.updateSequenceNumber() + 1);
