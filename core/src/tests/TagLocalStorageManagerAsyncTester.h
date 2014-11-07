@@ -26,7 +26,7 @@ Q_SIGNALS:
 // private signals:
     void getTagCountRequest();
     void addTagRequest(Tag tag, QUuid requestId = QUuid());
-    void updateTagRequest(Tag tag);
+    void updateTagRequest(Tag tag, QUuid requestId = QUuid());
     void findTagRequest(Tag tag);
     void listAllTagsRequest();
     void deleteTagRequest(Tag tag);
@@ -38,8 +38,8 @@ private Q_SLOTS:
     void onGetTagCountFailed(QString errorDescription);
     void onAddTagCompleted(Tag tag, QUuid requestId);
     void onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId);
-    void onUpdateTagCompleted(Tag tag);
-    void onUpdateTagFailed(Tag tag, QString errorDescription);
+    void onUpdateTagCompleted(Tag tag, QUuid requestId);
+    void onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId);
     void onFindTagCompleted(Tag tag);
     void onFindTagFailed(Tag tag, QString errorDescription);
     void onListAllTagsCompleted(QList<Tag> tags);
