@@ -29,8 +29,8 @@ Q_SIGNALS:
     void updateTagRequest(Tag tag, QUuid requestId = QUuid());
     void findTagRequest(Tag tag, QUuid requestId = QUuid());
     void listAllTagsRequest(QUuid requestId = QUuid());
-    void deleteTagRequest(Tag tag);
-    void expungeTagRequest(Tag tag);
+    void deleteTagRequest(Tag tag, QUuid requestId = QUuid());
+    void expungeTagRequest(Tag tag, QUuid requestId = QUuid());
 
 private Q_SLOTS:
     void onWorkerInitialized();
@@ -44,10 +44,10 @@ private Q_SLOTS:
     void onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId);
     void onListAllTagsCompleted(QList<Tag> tags, QUuid requestId);
     void onListAllTagsFailed(QString errorDescription, QUuid requestId);
-    void onDeleteTagCompleted(Tag tag);
-    void onDeleteTagFailed(Tag tag, QString errorDescription);
-    void onExpungeTagCompleted(Tag tag);
-    void onExpungeTagFailed(Tag tag, QString errorDescription);
+    void onDeleteTagCompleted(Tag tag, QUuid requestId);
+    void onDeleteTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+    void onExpungeTagCompleted(Tag tag, QUuid requestId);
+    void onExpungeTagFailed(Tag tag, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();

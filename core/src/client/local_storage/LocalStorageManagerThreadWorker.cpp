@@ -873,7 +873,7 @@ void LocalStorageManagerThreadWorker::onListAllTagsRequest(QUuid requestId)
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onDeleteTagRequest(Tag tag)
+void LocalStorageManagerThreadWorker::onDeleteTagRequest(Tag tag, QUuid requestId)
 {
     try
     {
@@ -881,7 +881,7 @@ void LocalStorageManagerThreadWorker::onDeleteTagRequest(Tag tag)
 
         bool res = m_pLocalStorageManager->DeleteTag(tag, errorDescription);
         if (!res) {
-            emit deleteTagFailed(tag, errorDescription);
+            emit deleteTagFailed(tag, errorDescription, requestId);
             return;
         }
 
@@ -889,12 +889,12 @@ void LocalStorageManagerThreadWorker::onDeleteTagRequest(Tag tag)
             m_pLocalStorageCacheManager->cacheTag(tag);
         }
 
-        emit deleteTagComplete(tag);
+        emit deleteTagComplete(tag, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onExpungeTagRequest(Tag tag)
+void LocalStorageManagerThreadWorker::onExpungeTagRequest(Tag tag, QUuid requestId)
 {
     try
     {
@@ -902,7 +902,7 @@ void LocalStorageManagerThreadWorker::onExpungeTagRequest(Tag tag)
 
         bool res = m_pLocalStorageManager->ExpungeTag(tag, errorDescription);
         if (!res) {
-            emit expungeTagFailed(tag, errorDescription);
+            emit expungeTagFailed(tag, errorDescription, requestId);
             return;
         }
 
@@ -910,7 +910,7 @@ void LocalStorageManagerThreadWorker::onExpungeTagRequest(Tag tag)
             m_pLocalStorageCacheManager->expungeTag(tag);
         }
 
-        emit expungeTagComplete(tag);
+        emit expungeTagComplete(tag, requestId);
     }
     CATCH_EXCEPTION
 }

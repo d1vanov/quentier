@@ -121,10 +121,10 @@ Q_SIGNALS:
     void listAllTagsPerNoteFailed(Note note, QString errorDescription, QUuid requestId = QUuid());
     void listAllTagsComplete(QList<Tag> foundTags, QUuid requestId = QUuid());
     void listAllTagsFailed(QString errorDescription, QUuid requestId = QUuid());
-    void deleteTagComplete(Tag tag);
-    void deleteTagFailed(Tag tag, QString errorDescription);
-    void expungeTagComplete(Tag tag);
-    void expungeTagFailed(Tag tag, QString errorDescription);
+    void deleteTagComplete(Tag tag, QUuid requestId = QUuid());
+    void deleteTagFailed(Tag tag, QString errorDescription, QUuid requestId = QUuid());
+    void expungeTagComplete(Tag tag, QUuid requestId = QUuid());
+    void expungeTagFailed(Tag tag, QString errorDescription, QUuid requestId = QUuid());
 
     // Resource-related signals:
     void getResourceCountComplete(int resourceCount);
@@ -202,8 +202,8 @@ public Q_SLOTS:
     void onFindTagRequest(Tag tag, QUuid requestId);
     void onListAllTagsPerNoteRequest(Note note, QUuid requestId);
     void onListAllTagsRequest(QUuid requestId);
-    void onDeleteTagRequest(Tag tag);
-    void onExpungeTagRequest(Tag tag);
+    void onDeleteTagRequest(Tag tag, QUuid requestId);
+    void onExpungeTagRequest(Tag tag, QUuid requestId);
 
     // Resource-related slots:
     void onGetResourceCountRequest();
