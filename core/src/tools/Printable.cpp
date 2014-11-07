@@ -759,8 +759,10 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SyncChunk & syncC
     strm << "qevercloud::SyncChunk: { \n";
     QString indent = "  ";
 
-    strm << indent << "chunkHighUSN = " << syncChunk.chunkHighUSN << "; \n";
-    strm << indent << "currentTime = " << syncChunk.currentTime << " ("
+    strm << indent << "chunkHighUSN = "
+         << (syncChunk.chunkHighUSN.isSet() ? QString::number(syncChunk.chunkHighUSN.ref()) : "<empty>") << "; \n";
+    strm << indent << "currentTime = "
+         << syncChunk.currentTime << " ("
          << QDateTime::fromMSecsSinceEpoch(syncChunk.currentTime).toString(Qt::ISODate) << "); \n";
     strm << indent << "updateCount = " << syncChunk.updateCount << "; \n";
 
@@ -800,6 +802,23 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SyncChunk & syncC
     }
 
     // TODO: continue from here
+
+    return strm;
+}
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::Tag & tag)
+{
+    strm << "qevercloud::Tag: { \n";
+    QString indent = "  ";
+
+    strm << indent << "guid = " << (tag.guid.isSet() ? tag.guid.ref() : "<empty>") << "; \n";
+    strm << indent << "name = " << (tag.name.isSet() ? tag.name.ref() : "<empty>") << "; \n";
+    strm << indent << "parentGuid = " << (tag.parentGuid.isSet() ? tag.parentGuid.ref() : "<empty>") << "; \n";
+    strm << indent << "updateSequenceNum = " << (tag.updateSequenceNum.isSet()
+                                                 ? QString::number(tag.updateSequenceNum.ref())
+                                                 : "<empty>") << "; \n";
+
+    strm << "}; \n";
 
     return strm;
 }

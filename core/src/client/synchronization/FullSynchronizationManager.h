@@ -94,7 +94,22 @@ private:
     void launchTagsSync();
 
 private:
+    typedef QList<qevercloud::Tag> TagsList;
+    TagsList::iterator findTagInList(const QString & name);
+
+private:
     FullSynchronizationManager() Q_DECL_DELETE;
+
+private:
+    class CompareTagByName
+    {
+    public:
+        CompareTagByName(const QString & name) : m_name(name) {}
+        bool operator()(const qevercloud::Tag & tag) const;
+
+    private:
+        const QString m_name;
+    };
 
 private:
     LocalStorageManagerThreadWorker &                               m_localStorageManagerThreadWorker;
@@ -103,8 +118,10 @@ private:
     qint32                                                          m_maxSyncChunkEntries;
 
     QVector<qevercloud::SyncChunk>  m_syncChunks;
-    QList<qevercloud::Tag>          m_tags;
+
+    TagsList    m_tags;
 };
+
 } // namespace qute_note
 
 #endif // __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__FULL_SYNCHRONIZATION_MANAGER_H

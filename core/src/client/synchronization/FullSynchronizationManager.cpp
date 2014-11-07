@@ -2,6 +2,7 @@
 #include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
+#include <algorithm>
 
 namespace qute_note {
 
@@ -84,15 +85,96 @@ void FullSynchronizationManager::onFindNoteFailed(Note note)
 
 void FullSynchronizationManager::onFindTagCompleted(Tag tag)
 {
-    // TODO: implement
+    QNDEBUG("FullSynchronizationManager::onFindTagCompleted: tag = " << tag);
+
+    // Attempt to find this tag by name within the list of tags waiting for processing;
+    // first simply try the front tag from the list to avoid the costly lookup
+    if (!tag.hasName()) {
+        return;
+    }
+
+    TagsList::iterator it = findTagInList(tag.name());
+    if (it == m_tags.end()) {
+        QNDEBUG("Unable to find tag within the list of tags waiting for processing");
+        return;
+    }
+
+    // The tag exists both in the client and in the server
+    const qevercloud::Tag & remoteTag = *it;
+    if (!remoteTag.updateSequenceNum.isSet()) {
+        QString errorDescription = QT_TR_NOOP("Found tag from sync chunk without the update sequence number");
+        QNWARNING(errorDescription << ": " << remoteTag);
+        emit error(errorDescription);
+    }
+
+    if (!tag.hasUpdateSequenceNumber() || (remoteTag.updateSequenceNum.ref() > tag.updateSequenceNumber()))
+    {
+        if (!tag.isDirty())
+        {
+            // Remote tag is more recent, need to update the tag existing in local storage
+            Tag updatedTag(remoteTag);
+            updatedTag.unsetLocalGuid();
+            emit updateTag(updatedTag);
+        }
+        else
+        {
+            // Remote tag is more recent but the local one has been modified;
+            // Evernote's synchronization protocol description suggests trying
+            // to do field-by-field merge but it's overcomplicated and error-prone;
+            // it's much easier to rename the existing local tag to make it clear
+            // it has a conflict with its remote counterpart and mark dirty so that
+            // it would be sent to the server along with other local changes
+            QString currentDateTime = QDateTime::currentDateTime().toString(Qt::ISODate);
+
+            tag.setGuid("");
+            tag.setName(QObject::tr("Conflicted tag ") + tag.name() + "(" + currentDateTime + ")");
+            tag.setLocal(true);
+
+            // Using event loop should ensure the update of local conflicting tag would be finished properly
+            // before we add the remote tag with the same guid
+            QEventLoop loop;
+            QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagComplete(Tag)), &loop, SLOT(quit()));
+            QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagFailed(Tag,QString)), &loop, SLOT(quit()));
+            emit updateTag(tag);
+            loop.exec();
+
+            Tag newTag(remoteTag);
+            emit addTag(newTag);
+        }
+    }
+
+    m_tags.erase(it);
+    if (m_tags.empty()) {
+        // TODO: done with tags, launch the sync of saved searches
+    }
 }
 
 void FullSynchronizationManager::onFindTagFailed(Tag tag)
 {
-    // Plan: attempt to find this tag by name or by guid within the current list of tags;
-    // first simply try the front tag from the list to avoid the costly lookup
+    QNDEBUG("FullSynchronizationManager::onFindTagFailed: tag = " << tag);
 
-    // TODO: implement
+    // Attempt to find this tag by name within the list of tags waiting for processing;
+    // first simply try the front tag from the list to avoid the costly lookup
+    if (!tag.hasName()) {
+        return;
+    }
+
+    // Ok, this tag wasn't found in the local storage, need to add it there
+    // also removing the tag from the list of tags waiting for processing
+    TagsList::iterator it = findTagInList(tag.name());
+    if (it == m_tags.end()) {
+        QNDEBUG("Unable to find tag within the list of tags waiting for processing");
+        return;
+    }
+
+    Tag newTag;
+    newTag.setName(tag.name());
+    emit addTag(newTag);
+
+    m_tags.erase(it);
+    if (m_tags.empty()) {
+        // TODO: done with tags, launch the sync of saved searches
+    }
 }
 
 void FullSynchronizationManager::onFindResourceCompleted(ResourceWrapper resource)
@@ -218,13 +300,36 @@ void FullSynchronizationManager::launchTagsSync()
     }
     else {
         QString errorDescription = QT_TR_NOOP("Can't synchronize remote tag: no guid and no name");
-        // TODO: write print for qevercloud::Tag
-        // QNWARNING(errorDescription << ": " << frontTag);
+        QNWARNING(errorDescription << ": " << frontTag);
         emit error(errorDescription);
         return;
     }
 
     emit findTag(tagToFind);
+}
+
+FullSynchronizationManager::TagsList::iterator FullSynchronizationManager::findTagInList(const QString & name)
+{
+    // Try the front tag first, in most cases it should be it
+
+    const qevercloud::Tag & frontTag = m_tags.front();
+    TagsList::iterator it = m_tags.begin();
+
+    if (!frontTag.name.isSet() || (frontTag.name.ref() != name)) {
+        it = std::find_if(m_tags.begin(), m_tags.end(), CompareTagByName(name));
+    }
+
+    return it;
+}
+
+bool FullSynchronizationManager::CompareTagByName::operator()(const qevercloud::Tag & tag) const
+{
+    if (tag.name.isSet()) {
+        return (m_name == tag.name.ref());
+    }
+    else {
+        return false;
+    }
 }
 
 } // namespace qute_note
