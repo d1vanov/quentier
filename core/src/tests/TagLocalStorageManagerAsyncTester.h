@@ -24,7 +24,7 @@ Q_SIGNALS:
     void failure(QString errorDescription);
 
 // private signals:
-    void getTagCountRequest();
+    void getTagCountRequest(QUuid requestId = QUuid());
     void addTagRequest(Tag tag, QUuid requestId = QUuid());
     void updateTagRequest(Tag tag, QUuid requestId = QUuid());
     void findTagRequest(Tag tag);
@@ -34,8 +34,8 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onWorkerInitialized();
-    void onGetTagCountCompleted(int count);
-    void onGetTagCountFailed(QString errorDescription);
+    void onGetTagCountCompleted(int count, QUuid requestId);
+    void onGetTagCountFailed(QString errorDescription, QUuid requestId);
     void onAddTagCompleted(Tag tag, QUuid requestId);
     void onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId);
     void onUpdateTagCompleted(Tag tag, QUuid requestId);

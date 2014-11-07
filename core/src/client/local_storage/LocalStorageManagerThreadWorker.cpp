@@ -700,17 +700,17 @@ void LocalStorageManagerThreadWorker::onExpungeNoteRequest(Note note)
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onGetTagCountRequest()
+void LocalStorageManagerThreadWorker::onGetTagCountRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         int count = m_pLocalStorageManager->GetTagCount(errorDescription);
         if (count < 0) {
-            emit getTagCountFailed(errorDescription);
+            emit getTagCountFailed(errorDescription, requestId);
         }
         else {
-            emit getTagCountComplete(count);
+            emit getTagCountComplete(count, requestId);
         }
     }
     CATCH_EXCEPTION

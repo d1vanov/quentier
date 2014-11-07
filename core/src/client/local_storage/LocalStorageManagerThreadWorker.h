@@ -107,8 +107,8 @@ Q_SIGNALS:
     void expungeNoteFailed(Note note, QString errorDescription);
 
     // Tag-related signals:
-    void getTagCountComplete(int tagCount);
-    void getTagCountFailed(QString errorDescription);
+    void getTagCountComplete(int tagCount, QUuid requestId = QUuid());
+    void getTagCountFailed(QString errorDescription, QUuid requestId = QUuid());
     void addTagComplete(Tag tag, QUuid requestId = QUuid());
     void addTagFailed(Tag tag, QString errorDescription, QUuid requestId = QUuid());
     void updateTagComplete(Tag tag, QUuid requestId = QUuid());
@@ -195,7 +195,7 @@ public Q_SLOTS:
     void onExpungeNoteRequest(Note note);
 
     // Tag-related slots:
-    void onGetTagCountRequest();
+    void onGetTagCountRequest(QUuid requestId);
     void onAddTagRequest(Tag tag, QUuid requestId);
     void onUpdateTagRequest(Tag tag, QUuid requestId);
     void onLinkTagWithNoteRequest(Tag tag, Note note);
