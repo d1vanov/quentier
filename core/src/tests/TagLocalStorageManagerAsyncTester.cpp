@@ -207,8 +207,10 @@ void TagLocalStorageManagerAsyncTester::onUpdateTagFailed(Tag tag, QString error
     emit failure(errorDescription);
 }
 
-void TagLocalStorageManagerAsyncTester::onFindTagCompleted(Tag tag)
+void TagLocalStorageManagerAsyncTester::onFindTagCompleted(Tag tag, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_state == STATE_SENT_FIND_AFTER_ADD_REQUEST)
@@ -271,7 +273,7 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(Tag tag)
     HANDLE_WRONG_STATE();
 }
 
-void TagLocalStorageManagerAsyncTester::onFindTagFailed(Tag tag, QString errorDescription)
+void TagLocalStorageManagerAsyncTester::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
     if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST) {
         m_state = STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST;
@@ -279,7 +281,7 @@ void TagLocalStorageManagerAsyncTester::onFindTagFailed(Tag tag, QString errorDe
         return;
     }
 
-    QNWARNING(errorDescription << ", tag: " << tag);
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", tag: " << tag);
     emit failure(errorDescription);
 }
 
@@ -381,8 +383,8 @@ void TagLocalStorageManagerAsyncTester::createConnections()
                      SLOT(onAddTagRequest(Tag,QUuid)));
     QObject::connect(this, SIGNAL(updateTagRequest(Tag,QUuid)), m_pLocalStorageManagerThreadWorker,
                      SLOT(onUpdateTagRequest(Tag,QUuid)));
-    QObject::connect(this, SIGNAL(findTagRequest(Tag)), m_pLocalStorageManagerThreadWorker,
-                     SLOT(onFindTagRequest(Tag)));
+    QObject::connect(this, SIGNAL(findTagRequest(Tag,QUuid)), m_pLocalStorageManagerThreadWorker,
+                     SLOT(onFindTagRequest(Tag,QUuid)));
     QObject::connect(this, SIGNAL(listAllTagsRequest()), m_pLocalStorageManagerThreadWorker,
                      SLOT(onListAllTagsRequest()));
     QObject::connect(this, SIGNAL(deleteTagRequest(Tag)),
@@ -403,10 +405,10 @@ void TagLocalStorageManagerAsyncTester::createConnections()
                      this, SLOT(onUpdateTagCompleted(Tag,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateTagFailed(Tag,QString,QUuid)),
                      this, SLOT(onUpdateTagFailed(Tag,QString,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findTagComplete(Tag)),
-                     this, SLOT(onFindTagCompleted(Tag)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findTagFailed(Tag,QString)),
-                     this, SLOT(onFindTagFailed(Tag,QString)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findTagComplete(Tag,QUuid)),
+                     this, SLOT(onFindTagCompleted(Tag,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findTagFailed(Tag,QString,QUuid)),
+                     this, SLOT(onFindTagFailed(Tag,QString,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllTagsComplete(QList<Tag>)),
                      this, SLOT(onListAllTagsCompleted(QList<Tag>)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllTagsFailed(QString)),

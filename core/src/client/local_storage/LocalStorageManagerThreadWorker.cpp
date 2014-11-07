@@ -779,7 +779,7 @@ void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(Tag tag, Note not
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag)
+void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag, QUuid requestId)
 {
     try
     {
@@ -815,12 +815,12 @@ void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag)
         {
             bool res = m_pLocalStorageManager->FindTag(tag, errorDescription);
             if (!res) {
-                emit findTagFailed(tag, errorDescription);
+                emit findTagFailed(tag, errorDescription, requestId);
                 return;
             }
         }
 
-        emit findTagComplete(tag);
+        emit findTagComplete(tag, requestId);
     }
     CATCH_EXCEPTION
 }
