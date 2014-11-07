@@ -825,7 +825,7 @@ void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag, QUuid requestId)
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note)
+void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note, QUuid requestId)
 {
     try
     {
@@ -833,7 +833,7 @@ void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note)
 
         QList<Tag> tags = m_pLocalStorageManager->ListAllTagsPerNote(note, errorDescription);
         if (tags.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllTagsPerNoteFailed(note, errorDescription);
+            emit listAllTagsPerNoteFailed(note, errorDescription, requestId);
             return;
         }
 
@@ -844,7 +844,7 @@ void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note)
             }
         }
 
-        emit listAllTagsPerNoteComplete(tags, note);
+        emit listAllTagsPerNoteComplete(tags, note, requestId);
     }
     CATCH_EXCEPTION
 }

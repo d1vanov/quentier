@@ -117,8 +117,8 @@ Q_SIGNALS:
     void linkTagWithNoteFailed(Tag tag, Note note, QString errorDescription, QUuid requestId = QUuid());
     void findTagComplete(Tag tag, QUuid requestId = QUuid());
     void findTagFailed(Tag tag, QString errorDescription, QUuid requestId = QUuid());
-    void listAllTagsPerNoteComplete(QList<Tag> foundTags, Note note);
-    void listAllTagsPerNoteFailed(Note note, QString errorDescription);
+    void listAllTagsPerNoteComplete(QList<Tag> foundTags, Note note, QUuid requestId = QUuid());
+    void listAllTagsPerNoteFailed(Note note, QString errorDescription, QUuid requestId = QUuid());
     void listAllTagsComplete(QList<Tag> foundTags);
     void listAllTagsFailed(QString errorDescription);
     void deleteTagComplete(Tag tag);
@@ -200,7 +200,7 @@ public Q_SLOTS:
     void onUpdateTagRequest(Tag tag, QUuid requestId);
     void onLinkTagWithNoteRequest(Tag tag, Note note, QUuid requestId);
     void onFindTagRequest(Tag tag, QUuid requestId);
-    void onListAllTagsPerNoteRequest(Note note);
+    void onListAllTagsPerNoteRequest(Note note, QUuid requestId);
     void onListAllTagsRequest();
     void onDeleteTagRequest(Tag tag);
     void onExpungeTagRequest(Tag tag);
