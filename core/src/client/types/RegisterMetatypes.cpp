@@ -30,6 +30,8 @@ void registerMetatypes()
     qRegisterMetaType< QList<SavedSearch> >("QList<SavedSearch>");
 
     qRegisterMetaType< QList<SharedNotebookWrapper> >("QList<SharedNotebookWrapper>");
+
+    qRegisterMetaType<QUuid>("QUuid");
 }
 
 } // namespace qute_note

@@ -109,8 +109,8 @@ Q_SIGNALS:
     // Tag-related signals:
     void getTagCountComplete(int tagCount);
     void getTagCountFailed(QString errorDescription);
-    void addTagComplete(Tag tag);
-    void addTagFailed(Tag tag, QString errorDescription);
+    void addTagComplete(Tag tag, QUuid requestId = QUuid());
+    void addTagFailed(Tag tag, QString errorDescription, QUuid requestId = QUuid());
     void updateTagComplete(Tag tag);
     void updateTagFailed(Tag tag, QString errorDescription);
     void linkTagWithNoteComplete(Tag tag, Note note);
@@ -196,7 +196,7 @@ public Q_SLOTS:
 
     // Tag-related slots:
     void onGetTagCountRequest();
-    void onAddTagRequest(Tag tag);
+    void onAddTagRequest(Tag tag, QUuid requestId);
     void onUpdateTagRequest(Tag tag);
     void onLinkTagWithNoteRequest(Tag tag, Note note);
     void onFindTagRequest(Tag tag);

@@ -327,8 +327,10 @@ void LocalStorageCacheAsyncTester::onUpdateNoteFailed(Note note, Notebook notebo
     emit failure(errorDescription);
 }
 
-void LocalStorageCacheAsyncTester::onAddTagCompleted(Tag tag)
+void LocalStorageCacheAsyncTester::onAddTagCompleted(Tag tag, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_state == STATE_SENT_TAG_ADD_REQUEST)
@@ -392,9 +394,9 @@ void LocalStorageCacheAsyncTester::onAddTagCompleted(Tag tag)
     HANDLE_WRONG_STATE()
 }
 
-void LocalStorageCacheAsyncTester::onAddTagFailed(Tag tag, QString errorDescription)
+void LocalStorageCacheAsyncTester::onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", tag: " << tag);
+    QNWARNING(errorDescription << ", request id = " << requestId << ", tag: " << tag);
     emit failure(errorDescription);
 }
 
@@ -667,8 +669,8 @@ void LocalStorageCacheAsyncTester::createConnections()
                      m_pLocalStorageManagerThreadWorker, SLOT(onAddNoteRequest(Note,Notebook)));
     QObject::connect(this, SIGNAL(updateNoteRequest(Note,Notebook)),
                      m_pLocalStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook)));
-    QObject::connect(this, SIGNAL(addTagRequest(Tag)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onAddTagRequest(Tag)));
+    QObject::connect(this, SIGNAL(addTagRequest(Tag,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddTagRequest(Tag,QUuid)));
     QObject::connect(this, SIGNAL(updateTagRequest(Tag)),
                      m_pLocalStorageManagerThreadWorker, SLOT(onUpdateTagRequest(Tag)));
     QObject::connect(this, SIGNAL(addLinkedNotebookRequest(LinkedNotebook)),
@@ -697,10 +699,10 @@ void LocalStorageCacheAsyncTester::createConnections()
                      this, SLOT(onUpdateNoteCompleted(Note,Notebook)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,QString)),
                      this, SLOT(onUpdateNoteFailed(Note,Notebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addTagComplete(Tag)),
-                     this, SLOT(onAddTagCompleted(Tag)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addTagFailed(Tag,QString)),
-                     this, SLOT(onAddTagFailed(Tag,QString)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addTagComplete(Tag,QUuid)),
+                     this, SLOT(onAddTagCompleted(Tag,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addTagFailed(Tag,QString,QUuid)),
+                     this, SLOT(onAddTagFailed(Tag,QString,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateTagComplete(Tag)),
                      this, SLOT(onUpdateTagCompleted(Tag)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateTagFailed(Tag,QString)),

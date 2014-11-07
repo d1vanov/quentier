@@ -716,7 +716,7 @@ void LocalStorageManagerThreadWorker::onGetTagCountRequest()
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onAddTagRequest(Tag tag)
+void LocalStorageManagerThreadWorker::onAddTagRequest(Tag tag, QUuid requestId)
 {
     try
     {
@@ -724,7 +724,7 @@ void LocalStorageManagerThreadWorker::onAddTagRequest(Tag tag)
 
         bool res = m_pLocalStorageManager->AddTag(tag, errorDescription);
         if (!res) {
-            emit addTagFailed(tag, errorDescription);
+            emit addTagFailed(tag, errorDescription, requestId);
             return;
         }
 
@@ -732,7 +732,7 @@ void LocalStorageManagerThreadWorker::onAddTagRequest(Tag tag)
             m_pLocalStorageCacheManager->cacheTag(tag);
         }
 
-        emit addTagComplete(tag);
+        emit addTagComplete(tag, requestId);
     }
     CATCH_EXCEPTION
 }

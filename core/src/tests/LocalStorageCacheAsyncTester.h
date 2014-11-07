@@ -35,7 +35,7 @@ Q_SIGNALS:
     void addNoteRequest(Note note, Notebook notebook);
     void updateNoteRequest(Note note, Notebook notebook);
 
-    void addTagRequest(Tag tag);
+    void addTagRequest(Tag tag, QUuid requestId = QUuid());
     void updateTagRequest(Tag tag);
 
     void addLinkedNotebookRequest(LinkedNotebook linkedNotebook);
@@ -59,8 +59,8 @@ private Q_SLOTS:
     void onUpdateNoteCompleted(Note note, Notebook notebook);
     void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription);
 
-    void onAddTagCompleted(Tag tag);
-    void onAddTagFailed(Tag tag, QString errorDescription);
+    void onAddTagCompleted(Tag tag, QUuid requestId);
+    void onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId);
 
     void onUpdateTagCompleted(Tag tag);
     void onUpdateTagFailed(Tag tag, QString errorDescription);
