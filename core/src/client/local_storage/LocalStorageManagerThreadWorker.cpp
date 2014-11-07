@@ -758,7 +758,7 @@ void LocalStorageManagerThreadWorker::onUpdateTagRequest(Tag tag, QUuid requestI
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(Tag tag, Note note)
+void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(Tag tag, Note note, QUuid requestId)
 {
     try
     {
@@ -766,7 +766,7 @@ void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(Tag tag, Note not
 
         bool res = m_pLocalStorageManager->LinkTagWithNote(tag, note, errorDescription);
         if (!res) {
-            emit linkTagWithNoteFailed(tag, note, errorDescription);
+            emit linkTagWithNoteFailed(tag, note, errorDescription, requestId);
             return;
         }
 
@@ -774,7 +774,7 @@ void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(Tag tag, Note not
             m_pLocalStorageCacheManager->cacheTag(tag);
         }
 
-        emit linkTagWithNoteComplete(tag, note);
+        emit linkTagWithNoteComplete(tag, note, requestId);
     }
     CATCH_EXCEPTION
 }
