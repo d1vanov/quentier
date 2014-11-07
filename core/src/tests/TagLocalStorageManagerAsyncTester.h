@@ -28,7 +28,7 @@ Q_SIGNALS:
     void addTagRequest(Tag tag, QUuid requestId = QUuid());
     void updateTagRequest(Tag tag, QUuid requestId = QUuid());
     void findTagRequest(Tag tag, QUuid requestId = QUuid());
-    void listAllTagsRequest();
+    void listAllTagsRequest(QUuid requestId = QUuid());
     void deleteTagRequest(Tag tag);
     void expungeTagRequest(Tag tag);
 
@@ -42,8 +42,8 @@ private Q_SLOTS:
     void onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId);
     void onFindTagCompleted(Tag tag, QUuid requestId);
     void onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId);
-    void onListAllTagsCompleted(QList<Tag> tags);
-    void onListAllTagsFailed(QString errorDescription);
+    void onListAllTagsCompleted(QList<Tag> tags, QUuid requestId);
+    void onListAllTagsFailed(QString errorDescription, QUuid requestId);
     void onDeleteTagCompleted(Tag tag);
     void onDeleteTagFailed(Tag tag, QString errorDescription);
     void onExpungeTagCompleted(Tag tag);
