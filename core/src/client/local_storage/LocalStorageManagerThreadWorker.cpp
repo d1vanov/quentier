@@ -999,23 +999,23 @@ void LocalStorageManagerThreadWorker::onExpungeResourceRequest(ResourceWrapper r
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onGetSavedSearchCountRequest()
+void LocalStorageManagerThreadWorker::onGetSavedSearchCountRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         int count = m_pLocalStorageManager->GetSavedSearchCount(errorDescription);
         if (count < 0) {
-            emit getSavedSearchCountFailed(errorDescription);
+            emit getSavedSearchCountFailed(errorDescription, requestId);
         }
         else {
-            emit getSavedSearchCountComplete(count);
+            emit getSavedSearchCountComplete(count, requestId);
         }
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onAddSavedSearchRequest(SavedSearch search)
+void LocalStorageManagerThreadWorker::onAddSavedSearchRequest(SavedSearch search, QUuid requestId)
 {
     try
     {
@@ -1023,7 +1023,7 @@ void LocalStorageManagerThreadWorker::onAddSavedSearchRequest(SavedSearch search
 
         bool res = m_pLocalStorageManager->AddSavedSearch(search, errorDescription);
         if (!res) {
-            emit addSavedSearchFailed(search, errorDescription);
+            emit addSavedSearchFailed(search, errorDescription, requestId);
             return;
         }
 
@@ -1031,12 +1031,12 @@ void LocalStorageManagerThreadWorker::onAddSavedSearchRequest(SavedSearch search
             m_pLocalStorageCacheManager->cacheSavedSearch(search);
         }
 
-        emit addSavedSearchComplete(search);
+        emit addSavedSearchComplete(search, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onUpdateSavedSearchRequest(SavedSearch search)
+void LocalStorageManagerThreadWorker::onUpdateSavedSearchRequest(SavedSearch search, QUuid requestId)
 {
     try
     {
@@ -1044,7 +1044,7 @@ void LocalStorageManagerThreadWorker::onUpdateSavedSearchRequest(SavedSearch sea
 
         bool res = m_pLocalStorageManager->UpdateSavedSearch(search, errorDescription);
         if (!res) {
-            emit updateSavedSearchFailed(search, errorDescription);
+            emit updateSavedSearchFailed(search, errorDescription, requestId);
             return;
         }
 
@@ -1052,12 +1052,12 @@ void LocalStorageManagerThreadWorker::onUpdateSavedSearchRequest(SavedSearch sea
             m_pLocalStorageCacheManager->cacheSavedSearch(search);
         }
 
-        emit updateSavedSearchComplete(search);
+        emit updateSavedSearchComplete(search, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindSavedSearchRequest(SavedSearch search)
+void LocalStorageManagerThreadWorker::onFindSavedSearchRequest(SavedSearch search, QUuid requestId)
 {
     try
     {
@@ -1081,24 +1081,24 @@ void LocalStorageManagerThreadWorker::onFindSavedSearchRequest(SavedSearch searc
         {
             bool res = m_pLocalStorageManager->FindSavedSearch(search, errorDescription);
             if (!res) {
-                emit findSavedSearchFailed(search, errorDescription);
+                emit findSavedSearchFailed(search, errorDescription, requestId);
                 return;
             }
         }
 
-        emit findSavedSearchComplete(search);
+        emit findSavedSearchComplete(search, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListAllSavedSearchesRequest()
+void LocalStorageManagerThreadWorker::onListAllSavedSearchesRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         QList<SavedSearch> searches = m_pLocalStorageManager->ListAllSavedSearches(errorDescription);
         if (searches.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllSavedSearchesFailed(errorDescription);
+            emit listAllSavedSearchesFailed(errorDescription, requestId);
             return;
         }
 
@@ -1109,12 +1109,12 @@ void LocalStorageManagerThreadWorker::onListAllSavedSearchesRequest()
             }
         }
 
-        emit listAllSavedSearchesComplete(searches);
+        emit listAllSavedSearchesComplete(searches, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onExpungeSavedSearch(SavedSearch search)
+void LocalStorageManagerThreadWorker::onExpungeSavedSearch(SavedSearch search, QUuid requestId)
 {
     try
     {
@@ -1122,7 +1122,7 @@ void LocalStorageManagerThreadWorker::onExpungeSavedSearch(SavedSearch search)
 
         bool res = m_pLocalStorageManager->ExpungeSavedSearch(search, errorDescription);
         if (!res) {
-            emit expungeSavedSearchFailed(search, errorDescription);
+            emit expungeSavedSearchFailed(search, errorDescription, requestId);
             return;
         }
 
@@ -1130,7 +1130,7 @@ void LocalStorageManagerThreadWorker::onExpungeSavedSearch(SavedSearch search)
             m_pLocalStorageCacheManager->expungeSavedSearch(search);
         }
 
-        emit expungeSavedSearchComplete(search);
+        emit expungeSavedSearchComplete(search, requestId);
     }
     CATCH_EXCEPTION
 }

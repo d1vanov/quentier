@@ -41,8 +41,8 @@ Q_SIGNALS:
     void addLinkedNotebookRequest(LinkedNotebook linkedNotebook);
     void updateLinkedNotebookRequest(LinkedNotebook linkedNotebook);
 
-    void addSavedSearchRequest(SavedSearch search);
-    void updateSavedSearchRequest(SavedSearch search);
+    void addSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
+    void updateSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
 
 private Q_SLOTS:
     void onWorkerInitialized();
@@ -71,11 +71,11 @@ private Q_SLOTS:
     void onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook);
     void onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription);
 
-    void onAddSavedSearchCompleted(SavedSearch search);
-    void onAddSavedSearchFailed(SavedSearch search, QString errorDescription);
+    void onAddSavedSearchCompleted(SavedSearch search, QUuid requestId);
+    void onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
 
-    void onUpdateSavedSearchCompleted(SavedSearch search);
-    void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription);
+    void onUpdateSavedSearchCompleted(SavedSearch search, QUuid requestId);
+    void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();

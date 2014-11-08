@@ -139,18 +139,18 @@ Q_SIGNALS:
     void expungeResourceFailed(ResourceWrapper resource, QString errorDescription);
 
     // Saved search-related signals:
-    void getSavedSearchCountComplete(int savedSearchCount);
-    void getSavedSearchCountFailed(QString errorDescription);
-    void addSavedSearchComplete(SavedSearch search);
-    void addSavedSearchFailed(SavedSearch search, QString errorDescription);
-    void updateSavedSearchComplete(SavedSearch search);
-    void updateSavedSearchFailed(SavedSearch search, QString errorDescription);
-    void findSavedSearchComplete(SavedSearch search);
-    void findSavedSearchFailed(SavedSearch search, QString errorDescription);
-    void listAllSavedSearchesComplete(QList<SavedSearch> foundSearches);
-    void listAllSavedSearchesFailed(QString errorDescription);
-    void expungeSavedSearchComplete(SavedSearch search);
-    void expungeSavedSearchFailed(SavedSearch search, QString errorDescription);
+    void getSavedSearchCountComplete(int savedSearchCount, QUuid requestId = QUuid());
+    void getSavedSearchCountFailed(QString errorDescription, QUuid requestId = QUuid());
+    void addSavedSearchComplete(SavedSearch search, QUuid requestId = QUuid());
+    void addSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId = QUuid());
+    void updateSavedSearchComplete(SavedSearch search, QUuid requestId = QUuid());
+    void updateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId = QUuid());
+    void findSavedSearchComplete(SavedSearch search, QUuid requestId = QUuid());
+    void findSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId = QUuid());
+    void listAllSavedSearchesComplete(QList<SavedSearch> foundSearches, QUuid requestId = QUuid());
+    void listAllSavedSearchesFailed(QString errorDescription, QUuid requestId = QUuid());
+    void expungeSavedSearchComplete(SavedSearch search, QUuid requestId = QUuid());
+    void expungeSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId = QUuid());
     
 public Q_SLOTS:
     void init();
@@ -213,12 +213,12 @@ public Q_SLOTS:
     void onExpungeResourceRequest(ResourceWrapper resource);
 
     // Saved search-related slots:
-    void onGetSavedSearchCountRequest();
-    void onAddSavedSearchRequest(SavedSearch search);
-    void onUpdateSavedSearchRequest(SavedSearch search);
-    void onFindSavedSearchRequest(SavedSearch search);
-    void onListAllSavedSearchesRequest();
-    void onExpungeSavedSearch(SavedSearch search);
+    void onGetSavedSearchCountRequest(QUuid requestId);
+    void onAddSavedSearchRequest(SavedSearch search, QUuid requestId);
+    void onUpdateSavedSearchRequest(SavedSearch search, QUuid requestId);
+    void onFindSavedSearchRequest(SavedSearch search, QUuid requestId);
+    void onListAllSavedSearchesRequest(QUuid requestId);
+    void onExpungeSavedSearch(SavedSearch search, QUuid requestId);
 
 private:
     LocalStorageManagerThreadWorker() Q_DECL_DELETE;

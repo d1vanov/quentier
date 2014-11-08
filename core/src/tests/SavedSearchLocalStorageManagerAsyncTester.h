@@ -24,27 +24,27 @@ Q_SIGNALS:
     void failure(QString errorDescription);
 
 // private signals:
-    void getSavedSearchCountRequest();
-    void addSavedSearchRequest(SavedSearch search);
-    void updateSavedSearchRequest(SavedSearch search);
-    void findSavedSearchRequest(SavedSearch search);
-    void listAllSavedSearchesRequest();
-    void expungeSavedSearchRequest(SavedSearch search);
+    void getSavedSearchCountRequest(QUuid requestId = QUuid());
+    void addSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
+    void updateSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
+    void findSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
+    void listAllSavedSearchesRequest(QUuid requestId = QUuid());
+    void expungeSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
 
 private Q_SLOTS:
     void onWorkerInitialized();
-    void onGetSavedSearchCountCompleted(int count);
-    void onGetSavedSearchCountFailed(QString errorDescription);
-    void onAddSavedSearchCompleted(SavedSearch search);
-    void onAddSavedSearchFailed(SavedSearch search, QString errorDescription);
-    void onUpdateSavedSearchCompleted(SavedSearch search);
-    void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription);
-    void onFindSavedSearchCompleted(SavedSearch search);
-    void onFindSavedSearchFailed(SavedSearch search, QString errorDescription);
-    void onListAllSavedSearchesCompleted(QList<SavedSearch> searches);
-    void onListAllSavedSearchedFailed(QString errorDescription);
-    void onExpungeSavedSearchCompleted(SavedSearch search);
-    void onExpungeSavedSearchFailed(SavedSearch search, QString errorDescription);
+    void onGetSavedSearchCountCompleted(int count, QUuid requestId);
+    void onGetSavedSearchCountFailed(QString errorDescription, QUuid requestId);
+    void onAddSavedSearchCompleted(SavedSearch search, QUuid requestId);
+    void onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+    void onUpdateSavedSearchCompleted(SavedSearch search, QUuid requestId);
+    void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+    void onFindSavedSearchCompleted(SavedSearch search, QUuid requestId);
+    void onFindSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+    void onListAllSavedSearchesCompleted(QList<SavedSearch> searches, QUuid requestId);
+    void onListAllSavedSearchedFailed(QString errorDescription, QUuid requestId);
+    void onExpungeSavedSearchCompleted(SavedSearch search, QUuid requestId);
+    void onExpungeSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();
