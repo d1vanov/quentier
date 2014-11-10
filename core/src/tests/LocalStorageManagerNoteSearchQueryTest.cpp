@@ -80,6 +80,16 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
             errorDescription += "\n";
         }
 
+        for(int i = 0; i < numOriginalNotes; ++i)
+        {
+            const Note & note = notes[i];
+            errorDescription += "originalNotes[";
+            errorDescription += QString::number(i);
+            errorDescription += "]: ";
+            errorDescription += note.ToQString();
+            errorDescription += "\n";
+        }
+
         return false;
     }
 

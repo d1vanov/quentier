@@ -3313,7 +3313,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSharedNotebook(const ISharedNote
     query.bindValue(":notebookGuid", (sharedNotebook.hasNotebookGuid() ? sharedNotebook.notebookGuid() : nullValue));
     query.bindValue(":sharedNotebookEmail", (sharedNotebook.hasEmail() ? sharedNotebook.email() : nullValue));
     query.bindValue(":sharedNotebookCreationTimestamp", (sharedNotebook.hasCreationTimestamp() ? sharedNotebook.creationTimestamp() : nullValue));
-    query.bindValue(":sharedNotebokModificationTimestamp", (sharedNotebook.hasModificationTimestamp() ? sharedNotebook.modificationTimestamp() : nullValue));
+    query.bindValue(":sharedNotebookModificationTimestamp", (sharedNotebook.hasModificationTimestamp() ? sharedNotebook.modificationTimestamp() : nullValue));
     query.bindValue(":shareKey", (sharedNotebook.hasShareKey() ? sharedNotebook.shareKey() : nullValue));
     query.bindValue(":sharedNotebookUsername", (sharedNotebook.hasUsername() ? sharedNotebook.username() : nullValue));
     query.bindValue(":sharedNotebookPrivilegeLevel", (sharedNotebook.hasPrivilegeLevel() ? sharedNotebook.privilegeLevel() : nullValue));
@@ -6798,12 +6798,19 @@ bool LocalStorageManagerPrivate::FindAndSetTagGuidsPerNote(Note & note, QString 
     }
 
     int numTagGuids = tagGuidsAndIndices.size();
-    QStringList tagGuids;
-    tagGuids.reserve(std::max(numTagGuids, 0));
+    QList<QPair<QString, int> > tagGuidIndexPairs;
+    tagGuidIndexPairs.reserve(std::max(numTagGuids, 0));
     for(QMultiHash<int, QString>::ConstIterator it = tagGuidsAndIndices.constBegin();
         it != tagGuidsAndIndices.constEnd(); ++it)
     {
-        tagGuids << it.value();
+        tagGuidIndexPairs << QPair<QString, int>(it.value(), it.key());
+    }
+
+    qSort(tagGuidIndexPairs.begin(), tagGuidIndexPairs.end(), QStringIntPairCompareByInt());
+    QStringList tagGuids;
+    tagGuids.reserve(std::max(numTagGuids, 0));
+    for(int i = 0; i < numTagGuids; ++i) {
+        tagGuids << tagGuidIndexPairs[i].first;
     }
 
     note.setTagGuids(tagGuids);

@@ -795,7 +795,6 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     modifiedNotebook.setCanEmailNotes(false);
     modifiedNotebook.setCanPublishToPublic(false);
     modifiedNotebook.setShortcut(true);
-    modifiedNotebook.unsetLocalGuid();
 
     res = localStorageManager.UpdateNotebook(modifiedNotebook, errorDescription);
     if (!res) {

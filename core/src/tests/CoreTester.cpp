@@ -535,8 +535,6 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
 
         notebook.addSharedNotebook(sharedNotebook);
 
-        notebook.unsetLocalGuid();
-
         QString error;
         bool res = localStorageManager.AddNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));

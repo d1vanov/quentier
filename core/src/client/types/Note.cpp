@@ -301,7 +301,8 @@ void Note::tagGuids(QStringList & guids) const
     }
 
     guids.reserve(numTagGuids);
-    foreach(const QString & guid, localTagGuids) {
+    for(int i = 0; i < numTagGuids; ++i) {
+        const QString & guid = localTagGuids[i];
         guids << guid;
     }
 }
