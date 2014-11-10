@@ -24,27 +24,27 @@ Q_SIGNALS:
     void failure(QString errorDescription);
 
 // private signals:
-    void getLinkedNotebookCountRequest();
-    void addLinkedNotebookRequest(LinkedNotebook notebook);
-    void updateLinkedNotebookRequest(LinkedNotebook notebook);
-    void findLinkedNotebookRequest(LinkedNotebook notebook);
-    void listAllLinkedNotebooksRequest();
-    void expungeLinkedNotebookRequest(LinkedNotebook notebook);
+    void getLinkedNotebookCountRequest(QUuid requestId = QUuid());
+    void addLinkedNotebookRequest(LinkedNotebook notebook, QUuid requestId = QUuid());
+    void updateLinkedNotebookRequest(LinkedNotebook notebook, QUuid requestId = QUuid());
+    void findLinkedNotebookRequest(LinkedNotebook notebook, QUuid requestId = QUuid());
+    void listAllLinkedNotebooksRequest(QUuid requestId = QUuid());
+    void expungeLinkedNotebookRequest(LinkedNotebook notebook, QUuid requestId = QUuid());
 
 private Q_SLOTS:
     void onWorkerInitialized();
-    void onGetLinkedNotebookCountCompleted(int count);
-    void onGetLinkedNotebookCountFailed(QString errorDescription);
-    void onAddLinkedNotebookCompleted(LinkedNotebook notebook);
-    void onAddLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription);
-    void onUpdateLinkedNotebookCompleted(LinkedNotebook notebook);
-    void onUpdateLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription);
-    void onFindLinkedNotebookCompleted(LinkedNotebook notebook);
-    void onFindLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription);
-    void onListAllLinkedNotebooksCompleted(QList<LinkedNotebook> linkedNotebooks);
-    void onLIstAllLinkedNotebooksFailed(QString errorDescription);
-    void onExpungeLinkedNotebookCompleted(LinkedNotebook notebook);
-    void onExpungeLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription);
+    void onGetLinkedNotebookCountCompleted(int count, QUuid requestId);
+    void onGetLinkedNotebookCountFailed(QString errorDescription, QUuid requestId);
+    void onAddLinkedNotebookCompleted(LinkedNotebook notebook, QUuid requestId);
+    void onAddLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateLinkedNotebookCompleted(LinkedNotebook notebook, QUuid requestId);
+    void onUpdateLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription, QUuid requestId);
+    void onFindLinkedNotebookCompleted(LinkedNotebook notebook, QUuid requestId);
+    void onFindLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription, QUuid requestId);
+    void onListAllLinkedNotebooksCompleted(QList<LinkedNotebook> linkedNotebooks, QUuid requestId);
+    void onListAllLinkedNotebooksFailed(QString errorDescription, QUuid requestId);
+    void onExpungeLinkedNotebookCompleted(LinkedNotebook notebook, QUuid requestId);
+    void onExpungeLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();

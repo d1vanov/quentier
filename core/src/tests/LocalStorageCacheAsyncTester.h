@@ -38,8 +38,8 @@ Q_SIGNALS:
     void addTagRequest(Tag tag, QUuid requestId = QUuid());
     void updateTagRequest(Tag tag, QUuid requestId = QUuid());
 
-    void addLinkedNotebookRequest(LinkedNotebook linkedNotebook);
-    void updateLinkedNotebookRequest(LinkedNotebook linkedNotebook);
+    void addLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
+    void updateLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
 
     void addSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
     void updateSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
@@ -65,11 +65,11 @@ private Q_SLOTS:
     void onUpdateTagCompleted(Tag tag, QUuid requestId);
     void onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId);
 
-    void onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook);
-    void onAddLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription);
+    void onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onAddLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
 
-    void onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook);
-    void onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription);
+    void onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
 
     void onAddSavedSearchCompleted(SavedSearch search, QUuid requestId);
     void onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);

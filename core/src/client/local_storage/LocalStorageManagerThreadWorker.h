@@ -77,18 +77,18 @@ Q_SIGNALS:
     void expungeNotebookFailed(Notebook notebook, QString errorDescription);
 
     // Linked notebook-related signals:
-    void getLinkedNotebookCountComplete(int linkedNotebookCount);
-    void getLinkedNotebookCountFailed(QString errorDescription);
-    void addLinkedNotebookComplete(LinkedNotebook linkedNotebook);
-    void addLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription);
-    void updateLinkedNotebookComplete(LinkedNotebook linkedNotebook);
-    void updateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription);
-    void findLinkedNotebookComplete(LinkedNotebook foundLinkedNotebook);
-    void findLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription);
-    void listAllLinkedNotebooksComplete(QList<LinkedNotebook> foundLinkedNotebooks);
-    void listAllLinkedNotebooksFailed(QString errorDescription);
-    void expungeLinkedNotebookComplete(LinkedNotebook linkedNotebook);
-    void expungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription);
+    void getLinkedNotebookCountComplete(int linkedNotebookCount, QUuid requestId = QUuid());
+    void getLinkedNotebookCountFailed(QString errorDescription, QUuid requestId = QUuid());
+    void addLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
+    void addLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId = QUuid());
+    void updateLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
+    void updateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId = QUuid());
+    void findLinkedNotebookComplete(LinkedNotebook foundLinkedNotebook, QUuid requestId = QUuid());
+    void findLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId = QUuid());
+    void listAllLinkedNotebooksComplete(QList<LinkedNotebook> foundLinkedNotebooks, QUuid requestId = QUuid());
+    void listAllLinkedNotebooksFailed(QString errorDescription, QUuid requestId = QUuid());
+    void expungeLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
+    void expungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId = QUuid());
 
     // Note-related signals:
     void getNoteCountComplete(int noteCount);
@@ -178,12 +178,12 @@ public Q_SLOTS:
     void onExpungeNotebookRequest(Notebook notebook);
 
     // Linked notebook-related slots:
-    void onGetLinkedNotebookCountRequest();
-    void onAddLinkedNotebookRequest(LinkedNotebook linkedNotebook);
-    void onUpdateLinkedNotebookRequest(LinkedNotebook linkedNotebook);
-    void onFindLinkedNotebookRequest(LinkedNotebook linkedNotebook);
-    void onListAllLinkedNotebooksRequest();
-    void onExpungeLinkedNotebookRequest(LinkedNotebook linkedNotebook);
+    void onGetLinkedNotebookCountRequest(QUuid requestId);
+    void onAddLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onUpdateLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onFindLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onListAllLinkedNotebooksRequest(QUuid requestId);
+    void onExpungeLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId);
 
     // Note-related slots:
     void onGetNoteCountRequest();

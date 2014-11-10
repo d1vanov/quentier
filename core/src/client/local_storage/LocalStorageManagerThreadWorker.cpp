@@ -407,23 +407,23 @@ void LocalStorageManagerThreadWorker::onExpungeNotebookRequest(Notebook notebook
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onGetLinkedNotebookCountRequest()
+void LocalStorageManagerThreadWorker::onGetLinkedNotebookCountRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         int count = m_pLocalStorageManager->GetLinkedNotebookCount(errorDescription);
         if (count < 0) {
-            emit getLinkedNotebookCountFailed(errorDescription);
+            emit getLinkedNotebookCountFailed(errorDescription, requestId);
         }
         else {
-            emit getLinkedNotebookCountComplete(count);
+            emit getLinkedNotebookCountComplete(count, requestId);
         }
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onAddLinkedNotebookRequest(LinkedNotebook linkedNotebook)
+void LocalStorageManagerThreadWorker::onAddLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId)
 {
     try
     {
@@ -431,7 +431,7 @@ void LocalStorageManagerThreadWorker::onAddLinkedNotebookRequest(LinkedNotebook 
 
         bool res = m_pLocalStorageManager->AddLinkedNotebook(linkedNotebook, errorDescription);
         if (!res) {
-            emit addLinkedNotebookFailed(linkedNotebook, errorDescription);
+            emit addLinkedNotebookFailed(linkedNotebook, errorDescription, requestId);
             return;
         }
 
@@ -439,12 +439,12 @@ void LocalStorageManagerThreadWorker::onAddLinkedNotebookRequest(LinkedNotebook 
             m_pLocalStorageCacheManager->cacheLinkedNotebook(linkedNotebook);
         }
 
-        emit addLinkedNotebookComplete(linkedNotebook);
+        emit addLinkedNotebookComplete(linkedNotebook, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onUpdateLinkedNotebookRequest(LinkedNotebook linkedNotebook)
+void LocalStorageManagerThreadWorker::onUpdateLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId)
 {
     try
     {
@@ -452,7 +452,7 @@ void LocalStorageManagerThreadWorker::onUpdateLinkedNotebookRequest(LinkedNotebo
 
         bool res = m_pLocalStorageManager->UpdateLinkedNotebook(linkedNotebook, errorDescription);
         if (!res) {
-            emit updateLinkedNotebookFailed(linkedNotebook, errorDescription);
+            emit updateLinkedNotebookFailed(linkedNotebook, errorDescription, requestId);
             return;
         }
 
@@ -460,12 +460,12 @@ void LocalStorageManagerThreadWorker::onUpdateLinkedNotebookRequest(LinkedNotebo
             m_pLocalStorageCacheManager->cacheLinkedNotebook(linkedNotebook);
         }
 
-        emit updateLinkedNotebookComplete(linkedNotebook);
+        emit updateLinkedNotebookComplete(linkedNotebook, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindLinkedNotebookRequest(LinkedNotebook linkedNotebook)
+void LocalStorageManagerThreadWorker::onFindLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId)
 {
     try
     {
@@ -486,24 +486,24 @@ void LocalStorageManagerThreadWorker::onFindLinkedNotebookRequest(LinkedNotebook
         {
             bool res = m_pLocalStorageManager->FindLinkedNotebook(linkedNotebook, errorDescription);
             if (!res) {
-                emit findLinkedNotebookFailed(linkedNotebook, errorDescription);
+                emit findLinkedNotebookFailed(linkedNotebook, errorDescription, requestId);
                 return;
             }
         }
 
-        emit findLinkedNotebookComplete(linkedNotebook);
+        emit findLinkedNotebookComplete(linkedNotebook, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListAllLinkedNotebooksRequest()
+void LocalStorageManagerThreadWorker::onListAllLinkedNotebooksRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         QList<LinkedNotebook> linkedNotebooks = m_pLocalStorageManager->ListAllLinkedNotebooks(errorDescription);
         if (linkedNotebooks.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllLinkedNotebooksFailed(errorDescription);
+            emit listAllLinkedNotebooksFailed(errorDescription, requestId);
             return;
         }
 
@@ -514,12 +514,12 @@ void LocalStorageManagerThreadWorker::onListAllLinkedNotebooksRequest()
             }
         }
 
-        emit listAllLinkedNotebooksComplete(linkedNotebooks);
+        emit listAllLinkedNotebooksComplete(linkedNotebooks, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(LinkedNotebook linkedNotebook)
+void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId)
 {
     try
     {
@@ -527,7 +527,7 @@ void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(LinkedNoteb
 
         bool res = m_pLocalStorageManager->ExpungeLinkedNotebook(linkedNotebook, errorDescription);
         if (!res) {
-            emit expungeLinkedNotebookFailed(linkedNotebook, errorDescription);
+            emit expungeLinkedNotebookFailed(linkedNotebook, errorDescription, requestId);
             return;
         }
 
@@ -535,7 +535,7 @@ void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(LinkedNoteb
             m_pLocalStorageCacheManager->expungeLinkedNotebook(linkedNotebook);
         }
 
-        emit expungeLinkedNotebookComplete(linkedNotebook);
+        emit expungeLinkedNotebookComplete(linkedNotebook, requestId);
     }
     CATCH_EXCEPTION
 }
