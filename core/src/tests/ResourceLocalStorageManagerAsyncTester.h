@@ -28,11 +28,11 @@ Q_SIGNALS:
 // private signals:
     void addNotebookRequest(Notebook notebook);
     void addNoteRequest(Note note, Notebook notebook);
-    void getResourceCountRequest();
-    void addResourceRequest(ResourceWrapper resource, Note note);
-    void updateResourceRequest(ResourceWrapper resource, Note note);
-    void findResourceRequest(ResourceWrapper resource, bool withBinaryData);
-    void expungeResourceRequest(ResourceWrapper resource);
+    void getResourceCountRequest(QUuid requestId = QUuid());
+    void addResourceRequest(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
+    void updateResourceRequest(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
+    void findResourceRequest(ResourceWrapper resource, bool withBinaryData, QUuid requestId = QUuid());
+    void expungeResourceRequest(ResourceWrapper resource, QUuid requestId = QUuid());
 
 private Q_SLOTS:
     void onWorkerInitialized();
@@ -40,17 +40,17 @@ private Q_SLOTS:
     void onAddNotebookFailed(Notebook notebook, QString errorDescription);
     void onAddNoteCompleted(Note note, Notebook notebook);
     void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription);
-    void onGetResourceCountCompleted(int count);
-    void onGetResourceCountFailed(QString errorDescription);
-    void onAddResourceCompleted(ResourceWrapper resource);
-    void onAddResourceFailed(ResourceWrapper resource, Note note, QString errorDescription);
-    void onUpdateResourceCompleted(ResourceWrapper resource);
-    void onUpdateResourceFailed(ResourceWrapper resource, Note note, QString errorDescription);
-    void onFindResourceCompleted(ResourceWrapper resource, bool withBinaryData);
+    void onGetResourceCountCompleted(int count, QUuid requestId);
+    void onGetResourceCountFailed(QString errorDescription, QUuid requestId);
+    void onAddResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId);
+    void onAddResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId);
+    void onUpdateResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId);
+    void onUpdateResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId);
+    void onFindResourceCompleted(ResourceWrapper resource, bool withBinaryData, QUuid requestId);
     void onFindResourceFailed(ResourceWrapper resource, bool withBinaryData,
-                              QString errorDescription);
-    void onExpungeResourceCompleted(ResourceWrapper resource);
-    void onExpungeResourceFailed(ResourceWrapper resource, QString errorDescription);
+                              QString errorDescription, QUuid requestId);
+    void onExpungeResourceCompleted(ResourceWrapper resource, QUuid requestId);
+    void onExpungeResourceFailed(ResourceWrapper resource, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();

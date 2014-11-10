@@ -915,23 +915,23 @@ void LocalStorageManagerThreadWorker::onExpungeTagRequest(Tag tag, QUuid request
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onGetResourceCountRequest()
+void LocalStorageManagerThreadWorker::onGetResourceCountRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         int count = m_pLocalStorageManager->GetEnResourceCount(errorDescription);
         if (count < 0) {
-            emit getResourceCountFailed(errorDescription);
+            emit getResourceCountFailed(errorDescription, requestId);
         }
         else {
-            emit getResourceCountComplete(count);
+            emit getResourceCountComplete(count, requestId);
         }
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onAddResourceRequest(ResourceWrapper resource, Note note)
+void LocalStorageManagerThreadWorker::onAddResourceRequest(ResourceWrapper resource, Note note, QUuid requestId)
 {
     try
     {
@@ -939,16 +939,16 @@ void LocalStorageManagerThreadWorker::onAddResourceRequest(ResourceWrapper resou
 
         bool res = m_pLocalStorageManager->AddEnResource(resource, note, errorDescription);
         if (!res) {
-            emit addResourceFailed(resource, note, errorDescription);
+            emit addResourceFailed(resource, note, errorDescription, requestId);
             return;
         }
 
-        emit addResourceComplete(resource, note);
+        emit addResourceComplete(resource, note, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onUpdateResourceRequest(ResourceWrapper resource, Note note)
+void LocalStorageManagerThreadWorker::onUpdateResourceRequest(ResourceWrapper resource, Note note, QUuid requestId)
 {
     try
     {
@@ -956,16 +956,16 @@ void LocalStorageManagerThreadWorker::onUpdateResourceRequest(ResourceWrapper re
 
         bool res = m_pLocalStorageManager->UpdateEnResource(resource, note, errorDescription);
         if (!res) {
-            emit updateResourceFailed(resource, note, errorDescription);
+            emit updateResourceFailed(resource, note, errorDescription, requestId);
             return;
         }
 
-        emit updateResourceComplete(resource, note);
+        emit updateResourceComplete(resource, note, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindResourceRequest(ResourceWrapper resource, bool withBinaryData)
+void LocalStorageManagerThreadWorker::onFindResourceRequest(ResourceWrapper resource, bool withBinaryData, QUuid requestId)
 {
     try
     {
@@ -973,16 +973,16 @@ void LocalStorageManagerThreadWorker::onFindResourceRequest(ResourceWrapper reso
 
         bool res = m_pLocalStorageManager->FindEnResource(resource, errorDescription, withBinaryData);
         if (!res) {
-            emit findResourceFailed(resource, withBinaryData, errorDescription);
+            emit findResourceFailed(resource, withBinaryData, errorDescription, requestId);
             return;
         }
 
-        emit findResourceComplete(resource, withBinaryData);
+        emit findResourceComplete(resource, withBinaryData, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onExpungeResourceRequest(ResourceWrapper resource)
+void LocalStorageManagerThreadWorker::onExpungeResourceRequest(ResourceWrapper resource, QUuid requestId)
 {
     try
     {
@@ -990,11 +990,11 @@ void LocalStorageManagerThreadWorker::onExpungeResourceRequest(ResourceWrapper r
 
         bool res = m_pLocalStorageManager->ExpungeEnResource(resource, errorDescription);
         if (!res) {
-            emit expungeResourceFailed(resource, errorDescription);
+            emit expungeResourceFailed(resource, errorDescription, requestId);
             return;
         }
 
-        emit expungeResourceComplete(resource);
+        emit expungeResourceComplete(resource, requestId);
     }
     CATCH_EXCEPTION
 }

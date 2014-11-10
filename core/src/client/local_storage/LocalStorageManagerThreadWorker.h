@@ -127,16 +127,16 @@ Q_SIGNALS:
     void expungeTagFailed(Tag tag, QString errorDescription, QUuid requestId = QUuid());
 
     // Resource-related signals:
-    void getResourceCountComplete(int resourceCount);
-    void getResourceCountFailed(QString errorDescription);
-    void addResourceComplete(ResourceWrapper resource, Note note);
-    void addResourceFailed(ResourceWrapper resource, Note note, QString errorDescription);
-    void updateResourceComplete(ResourceWrapper resource, Note note);
-    void updateResourceFailed(ResourceWrapper resource, Note note, QString errorDescription);
-    void findResourceComplete(ResourceWrapper resource, bool withBinaryData);
-    void findResourceFailed(ResourceWrapper resource, bool withBinaryData, QString errorDescription);
-    void expungeResourceComplete(ResourceWrapper resource);
-    void expungeResourceFailed(ResourceWrapper resource, QString errorDescription);
+    void getResourceCountComplete(int resourceCount, QUuid requestId = QUuid());
+    void getResourceCountFailed(QString errorDescription, QUuid requestId = QUuid());
+    void addResourceComplete(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
+    void addResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId = QUuid());
+    void updateResourceComplete(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
+    void updateResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId = QUuid());
+    void findResourceComplete(ResourceWrapper resource, bool withBinaryData, QUuid requestId = QUuid());
+    void findResourceFailed(ResourceWrapper resource, bool withBinaryData, QString errorDescription, QUuid requestId = QUuid());
+    void expungeResourceComplete(ResourceWrapper resource, QUuid requestId = QUuid());
+    void expungeResourceFailed(ResourceWrapper resource, QString errorDescription, QUuid requestId = QUuid());
 
     // Saved search-related signals:
     void getSavedSearchCountComplete(int savedSearchCount, QUuid requestId = QUuid());
@@ -206,11 +206,11 @@ public Q_SLOTS:
     void onExpungeTagRequest(Tag tag, QUuid requestId);
 
     // Resource-related slots:
-    void onGetResourceCountRequest();
-    void onAddResourceRequest(ResourceWrapper resource, Note note);
-    void onUpdateResourceRequest(ResourceWrapper resource, Note note);
-    void onFindResourceRequest(ResourceWrapper resource, bool withBinaryData);
-    void onExpungeResourceRequest(ResourceWrapper resource);
+    void onGetResourceCountRequest(QUuid requestId);
+    void onAddResourceRequest(ResourceWrapper resource, Note note, QUuid requestId);
+    void onUpdateResourceRequest(ResourceWrapper resource, Note note, QUuid requestId);
+    void onFindResourceRequest(ResourceWrapper resource, bool withBinaryData, QUuid requestId);
+    void onExpungeResourceRequest(ResourceWrapper resource, QUuid requestId);
 
     // Saved search-related slots:
     void onGetSavedSearchCountRequest(QUuid requestId);
