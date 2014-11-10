@@ -73,37 +73,37 @@ void LocalStorageManagerThreadWorker::init()
         emit failure(error); \
     }
 
-void LocalStorageManagerThreadWorker::onGetUserCountRequest()
+void LocalStorageManagerThreadWorker::onGetUserCountRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         int count = m_pLocalStorageManager->GetUserCount(errorDescription);
         if (count < 0) {
-            emit getUserCountFailed(errorDescription);
+            emit getUserCountFailed(errorDescription, requestId);
         }
         else {
-            emit getUserCountComplete(count);
+            emit getUserCountComplete(count, requestId);
         }
     }
     CATCH_EXCEPTION
 }
 
 void LocalStorageManagerThreadWorker::onSwitchUserRequest(QString username, qint32 userId,
-                                                          bool startFromScratch)
+                                                          bool startFromScratch, QUuid requestId)
 {
     try {
         m_pLocalStorageManager->SwitchUser(username, userId, startFromScratch);
     }
     catch(const std::exception & exception) {
-        emit switchUserFailed(userId, QString(exception.what()));
+        emit switchUserFailed(userId, QString(exception.what()), requestId);
         return;
     }
 
-    emit switchUserComplete(userId);
+    emit switchUserComplete(userId, requestId);
 }
 
-void LocalStorageManagerThreadWorker::onAddUserRequest(UserWrapper user)
+void LocalStorageManagerThreadWorker::onAddUserRequest(UserWrapper user, QUuid requestId)
 {
     try
     {
@@ -111,16 +111,16 @@ void LocalStorageManagerThreadWorker::onAddUserRequest(UserWrapper user)
 
         bool res = m_pLocalStorageManager->AddUser(user, errorDescription);
         if (!res) {
-            emit addUserFailed(user, errorDescription);
+            emit addUserFailed(user, errorDescription, requestId);
             return;
         }
 
-        emit addUserComplete(user);
+        emit addUserComplete(user, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onUpdateUserRequest(UserWrapper user)
+void LocalStorageManagerThreadWorker::onUpdateUserRequest(UserWrapper user, QUuid requestId)
 {
     try
     {
@@ -128,16 +128,16 @@ void LocalStorageManagerThreadWorker::onUpdateUserRequest(UserWrapper user)
 
         bool res = m_pLocalStorageManager->UpdateUser(user, errorDescription);
         if (!res) {
-            emit updateUserFailed(user, errorDescription);
+            emit updateUserFailed(user, errorDescription, requestId);
             return;
         }
 
-        emit updateUserComplete(user);
+        emit updateUserComplete(user, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindUserRequest(UserWrapper user)
+void LocalStorageManagerThreadWorker::onFindUserRequest(UserWrapper user, QUuid requestId)
 {
     try
     {
@@ -145,16 +145,16 @@ void LocalStorageManagerThreadWorker::onFindUserRequest(UserWrapper user)
 
         bool res = m_pLocalStorageManager->FindUser(user, errorDescription);
         if (!res) {
-            emit findUserFailed(user, errorDescription);
+            emit findUserFailed(user, errorDescription, requestId);
             return;
         }
 
-        emit findUserComplete(user);
+        emit findUserComplete(user, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onDeleteUserRequest(UserWrapper user)
+void LocalStorageManagerThreadWorker::onDeleteUserRequest(UserWrapper user, QUuid requestId)
 {
     try
     {
@@ -162,16 +162,16 @@ void LocalStorageManagerThreadWorker::onDeleteUserRequest(UserWrapper user)
 
         bool res = m_pLocalStorageManager->DeleteUser(user, errorDescription);
         if (!res) {
-            emit deleteUserFailed(user, errorDescription);
+            emit deleteUserFailed(user, errorDescription, requestId);
             return;
         }
 
-        emit deleteUserComplete(user);
+        emit deleteUserComplete(user, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onExpungeUserRequest(UserWrapper user)
+void LocalStorageManagerThreadWorker::onExpungeUserRequest(UserWrapper user, QUuid requestId)
 {
     try
     {
@@ -179,11 +179,11 @@ void LocalStorageManagerThreadWorker::onExpungeUserRequest(UserWrapper user)
 
         bool res = m_pLocalStorageManager->ExpungeUser(user, errorDescription);
         if (!res) {
-            emit expungeUserFailed(user, errorDescription);
+            emit expungeUserFailed(user, errorDescription, requestId);
             return;
         }
 
-        emit expungeUserComplete(user);
+        emit expungeUserComplete(user, requestId);
     }
     CATCH_EXCEPTION
 }

@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__TESTS__USER_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H_H
 
 #include <client/types/UserWrapper.h>
+#include <QUuid>
 
 namespace qute_note {
 
@@ -24,27 +25,27 @@ Q_SIGNALS:
     void failure(QString errorDescription);
 
 // private signals:
-    void getUserCountRequest();
-    void addUserRequest(UserWrapper user);
-    void updateUserRequest(UserWrapper user);
-    void findUserRequest(UserWrapper user);
-    void deleteUserRequest(UserWrapper user);
-    void expungeUserRequest(UserWrapper user);
+    void getUserCountRequest(QUuid requestId = QUuid());
+    void addUserRequest(UserWrapper user, QUuid requestId = QUuid());
+    void updateUserRequest(UserWrapper user, QUuid requestId = QUuid());
+    void findUserRequest(UserWrapper user, QUuid requestId = QUuid());
+    void deleteUserRequest(UserWrapper user, QUuid requestId = QUuid());
+    void expungeUserRequest(UserWrapper user, QUuid requestId = QUuid());
 
 private Q_SLOTS:
     void onWorkerInitialized();
-    void onGetUserCountCompleted(int count);
-    void onGetUserCountFailed(QString errorDescription);
-    void onAddUserCompleted(UserWrapper user);
-    void onAddUserFailed(UserWrapper user, QString errorDescription);
-    void onUpdateUserCompleted(UserWrapper user);
-    void onUpdateUserFailed(UserWrapper user, QString errorDescription);
-    void onFindUserCompleted(UserWrapper user);
-    void onFindUserFailed(UserWrapper user, QString errorDescription);
-    void onDeleteUserCompleted(UserWrapper user);
-    void onDeleteUserFailed(UserWrapper user, QString errorDescription);
-    void onExpungeUserCompleted(UserWrapper user);
-    void onExpungeUserFailed(UserWrapper user, QString errorDescription);
+    void onGetUserCountCompleted(int count, QUuid requestId);
+    void onGetUserCountFailed(QString errorDescription, QUuid requestId);
+    void onAddUserCompleted(UserWrapper user, QUuid requestId);
+    void onAddUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
+    void onUpdateUserCompleted(UserWrapper user, QUuid requestId);
+    void onUpdateUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
+    void onFindUserCompleted(UserWrapper user, QUuid requestId);
+    void onFindUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
+    void onDeleteUserCompleted(UserWrapper user, QUuid requestId);
+    void onDeleteUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
+    void onExpungeUserCompleted(UserWrapper user, QUuid requestId);
+    void onExpungeUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();

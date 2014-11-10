@@ -80,8 +80,10 @@ void UserLocalStorageManagerAsyncTester::onWorkerInitialized()
     emit addUserRequest(m_initialUser);
 }
 
-void UserLocalStorageManagerAsyncTester::onGetUserCountCompleted(int count)
+void UserLocalStorageManagerAsyncTester::onGetUserCountCompleted(int count, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
 #define HANDLE_WRONG_STATE() \
@@ -119,14 +121,16 @@ void UserLocalStorageManagerAsyncTester::onGetUserCountCompleted(int count)
     HANDLE_WRONG_STATE();
 }
 
-void UserLocalStorageManagerAsyncTester::onGetUserCountFailed(QString errorDescription)
+void UserLocalStorageManagerAsyncTester::onGetUserCountFailed(QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription);
+    QNWARNING(errorDescription << ", requestId = " << requestId);
     emit failure(errorDescription);
 }
 
-void UserLocalStorageManagerAsyncTester::onAddUserCompleted(UserWrapper user)
+void UserLocalStorageManagerAsyncTester::onAddUserCompleted(UserWrapper user, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_state == STATE_SENT_ADD_REQUEST)
@@ -148,14 +152,16 @@ void UserLocalStorageManagerAsyncTester::onAddUserCompleted(UserWrapper user)
     HANDLE_WRONG_STATE();
 }
 
-void UserLocalStorageManagerAsyncTester::onAddUserFailed(UserWrapper user, QString errorDescription)
+void UserLocalStorageManagerAsyncTester::onAddUserFailed(UserWrapper user, QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", UserWrapper: " << user);
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", user: " << user);
     emit failure(errorDescription);
 }
 
-void UserLocalStorageManagerAsyncTester::onUpdateUserCompleted(UserWrapper user)
+void UserLocalStorageManagerAsyncTester::onUpdateUserCompleted(UserWrapper user, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_state == STATE_SENT_UPDATE_REQUEST)
@@ -175,14 +181,16 @@ void UserLocalStorageManagerAsyncTester::onUpdateUserCompleted(UserWrapper user)
     HANDLE_WRONG_STATE();
 }
 
-void UserLocalStorageManagerAsyncTester::onUpdateUserFailed(UserWrapper user, QString errorDescription)
+void UserLocalStorageManagerAsyncTester::onUpdateUserFailed(UserWrapper user, QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", user: " << user);
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", user: " << user);
     emit failure(errorDescription);
 }
 
-void UserLocalStorageManagerAsyncTester::onFindUserCompleted(UserWrapper user)
+void UserLocalStorageManagerAsyncTester::onFindUserCompleted(UserWrapper user, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_state == STATE_SENT_FIND_AFTER_ADD_REQUEST)
@@ -227,7 +235,7 @@ void UserLocalStorageManagerAsyncTester::onFindUserCompleted(UserWrapper user)
     HANDLE_WRONG_STATE();
 }
 
-void UserLocalStorageManagerAsyncTester::onFindUserFailed(UserWrapper user, QString errorDescription)
+void UserLocalStorageManagerAsyncTester::onFindUserFailed(UserWrapper user, QString errorDescription, QUuid requestId)
 {
     if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST) {
         m_state = STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST;
@@ -235,12 +243,14 @@ void UserLocalStorageManagerAsyncTester::onFindUserFailed(UserWrapper user, QStr
         return;
     }
 
-    QNWARNING(errorDescription << ", user: " << user);
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", user: " << user);
     emit failure(errorDescription);
 }
 
-void UserLocalStorageManagerAsyncTester::onDeleteUserCompleted(UserWrapper user)
+void UserLocalStorageManagerAsyncTester::onDeleteUserCompleted(UserWrapper user, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_modifiedUser != user) {
@@ -257,14 +267,16 @@ void UserLocalStorageManagerAsyncTester::onDeleteUserCompleted(UserWrapper user)
     emit expungeUserRequest(m_modifiedUser);
 }
 
-void UserLocalStorageManagerAsyncTester::onDeleteUserFailed(UserWrapper user, QString errorDescription)
+void UserLocalStorageManagerAsyncTester::onDeleteUserFailed(UserWrapper user, QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", user: " << user);
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", user: " << user);
     emit failure(errorDescription);
 }
 
-void UserLocalStorageManagerAsyncTester::onExpungeUserCompleted(UserWrapper user)
+void UserLocalStorageManagerAsyncTester::onExpungeUserCompleted(UserWrapper user, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_modifiedUser != user) {
@@ -279,9 +291,9 @@ void UserLocalStorageManagerAsyncTester::onExpungeUserCompleted(UserWrapper user
     emit findUserRequest(m_foundUser);
 }
 
-void UserLocalStorageManagerAsyncTester::onExpungeUserFailed(UserWrapper user, QString errorDescription)
+void UserLocalStorageManagerAsyncTester::onExpungeUserFailed(UserWrapper user, QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", UserWrapper: " << user);
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", user: " << user);
     emit failure(errorDescription);
 }
 
@@ -296,44 +308,44 @@ void UserLocalStorageManagerAsyncTester::createConnections()
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(initialized()), this, SLOT(onWorkerInitialized()));
 
     // Request --> slot connections
-    QObject::connect(this, SIGNAL(getUserCountRequest()), m_pLocalStorageManagerThreadWorker,
-                     SLOT(onGetUserCountRequest()));
-    QObject::connect(this, SIGNAL(addUserRequest(UserWrapper)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onAddUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(updateUserRequest(UserWrapper)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(findUserRequest(UserWrapper)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onFindUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(deleteUserRequest(UserWrapper)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onDeleteUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(expungeUserRequest(UserWrapper)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onExpungeUserRequest(UserWrapper)));
+    QObject::connect(this, SIGNAL(getUserCountRequest(QUuid)), m_pLocalStorageManagerThreadWorker,
+                     SLOT(onGetUserCountRequest(QUuid)));
+    QObject::connect(this, SIGNAL(addUserRequest(UserWrapper,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddUserRequest(UserWrapper,QUuid)));
+    QObject::connect(this, SIGNAL(updateUserRequest(UserWrapper,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateUserRequest(UserWrapper,QUuid)));
+    QObject::connect(this, SIGNAL(findUserRequest(UserWrapper,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onFindUserRequest(UserWrapper,QUuid)));
+    QObject::connect(this, SIGNAL(deleteUserRequest(UserWrapper,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onDeleteUserRequest(UserWrapper,QUuid)));
+    QObject::connect(this, SIGNAL(expungeUserRequest(UserWrapper,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onExpungeUserRequest(UserWrapper,QUuid)));
 
     // Slot <-- result connections
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getUserCountComplete(int)),
-                     this, SLOT(onGetUserCountCompleted(int)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getUserCountFailed(QString)),
-                     this, SLOT(onGetUserCountFailed(QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addUserComplete(UserWrapper)),
-                     this, SLOT(onAddUserCompleted(UserWrapper)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addUserFailed(UserWrapper,QString)),
-                     this, SLOT(onAddUserFailed(UserWrapper,QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateUserComplete(UserWrapper)),
-                     this, SLOT(onUpdateUserCompleted(UserWrapper)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateUserFailed(UserWrapper,QString)),
-                     this, SLOT(onUpdateUserFailed(UserWrapper,QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findUserComplete(UserWrapper)),
-                     this, SLOT(onFindUserCompleted(UserWrapper)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findUserFailed(UserWrapper,QString)),
-                     this, SLOT(onFindUserFailed(UserWrapper,QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteUserComplete(UserWrapper)),
-                     this, SLOT(onDeleteUserCompleted(UserWrapper)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteUserFailed(UserWrapper,QString)),
-                     this, SLOT(onDeleteUserFailed(UserWrapper,QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeUserComplete(UserWrapper)),
-                     this, SLOT(onExpungeUserCompleted(UserWrapper)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeUserFailed(UserWrapper,QString)),
-                     this, SLOT(onExpungeUserFailed(UserWrapper,QString)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getUserCountComplete(int,QUuid)),
+                     this, SLOT(onGetUserCountCompleted(int,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getUserCountFailed(QString,QUuid)),
+                     this, SLOT(onGetUserCountFailed(QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addUserComplete(UserWrapper,QUuid)),
+                     this, SLOT(onAddUserCompleted(UserWrapper,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addUserFailed(UserWrapper,QString,QUuid)),
+                     this, SLOT(onAddUserFailed(UserWrapper,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateUserComplete(UserWrapper,QUuid)),
+                     this, SLOT(onUpdateUserCompleted(UserWrapper,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateUserFailed(UserWrapper,QString,QUuid)),
+                     this, SLOT(onUpdateUserFailed(UserWrapper,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findUserComplete(UserWrapper,QUuid)),
+                     this, SLOT(onFindUserCompleted(UserWrapper,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findUserFailed(UserWrapper,QString,QUuid)),
+                     this, SLOT(onFindUserFailed(UserWrapper,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteUserComplete(UserWrapper,QUuid)),
+                     this, SLOT(onDeleteUserCompleted(UserWrapper,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteUserFailed(UserWrapper,QString,QUuid)),
+                     this, SLOT(onDeleteUserFailed(UserWrapper,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeUserComplete(UserWrapper,QUuid)),
+                     this, SLOT(onExpungeUserCompleted(UserWrapper,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeUserFailed(UserWrapper,QString,QUuid)),
+                     this, SLOT(onExpungeUserFailed(UserWrapper,QString,QUuid)));
 }
 
 #undef HANDLE_WRONG_STATE

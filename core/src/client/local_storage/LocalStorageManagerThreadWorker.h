@@ -37,20 +37,20 @@ Q_SIGNALS:
     void initialized();
 
     // User-related signals:
-    void getUserCountComplete(int userCount);
-    void getUserCountFailed(QString errorDescription);
-    void switchUserComplete(qint32 userId);
-    void switchUserFailed(qint32 userId, QString errorDescription);
-    void addUserComplete(UserWrapper user);
-    void addUserFailed(UserWrapper user, QString errorDescription);
-    void updateUserComplete(UserWrapper user);
-    void updateUserFailed(UserWrapper user, QString errorDecription);
-    void findUserComplete(UserWrapper foundUser);
-    void findUserFailed(UserWrapper user, QString errorDescription);
-    void deleteUserComplete(UserWrapper user);
-    void deleteUserFailed(UserWrapper user, QString errorDescription);
-    void expungeUserComplete(UserWrapper user);
-    void expungeUserFailed(UserWrapper user, QString errorDescription);
+    void getUserCountComplete(int userCount, QUuid requestId = QUuid());
+    void getUserCountFailed(QString errorDescription, QUuid requestId = QUuid());
+    void switchUserComplete(qint32 userId, QUuid requestId = QUuid());
+    void switchUserFailed(qint32 userId, QString errorDescription, QUuid requestId = QUuid());
+    void addUserComplete(UserWrapper user, QUuid requestId = QUuid());
+    void addUserFailed(UserWrapper user, QString errorDescription, QUuid requestId = QUuid());
+    void updateUserComplete(UserWrapper user, QUuid requestId = QUuid());
+    void updateUserFailed(UserWrapper user, QString errorDecription, QUuid requestId = QUuid());
+    void findUserComplete(UserWrapper foundUser, QUuid requestId = QUuid());
+    void findUserFailed(UserWrapper user, QString errorDescription, QUuid requestId = QUuid());
+    void deleteUserComplete(UserWrapper user, QUuid requestId = QUuid());
+    void deleteUserFailed(UserWrapper user, QString errorDescription, QUuid requestId = QUuid());
+    void expungeUserComplete(UserWrapper user, QUuid requestId = QUuid());
+    void expungeUserFailed(UserWrapper user, QString errorDescription, QUuid requestId = QUuid());
 
     // Notebook-related signals:
     void getNotebookCountComplete(int notebookCount);
@@ -156,13 +156,13 @@ public Q_SLOTS:
     void init();
 
     // User-related slots:
-    void onGetUserCountRequest();
-    void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch);
-    void onAddUserRequest(UserWrapper user);
-    void onUpdateUserRequest(UserWrapper user);
-    void onFindUserRequest(UserWrapper user);
-    void onDeleteUserRequest(UserWrapper user);
-    void onExpungeUserRequest(UserWrapper user);
+    void onGetUserCountRequest(QUuid requestId);
+    void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch, QUuid requestId);
+    void onAddUserRequest(UserWrapper user, QUuid requestId);
+    void onUpdateUserRequest(UserWrapper user, QUuid requestId);
+    void onFindUserRequest(UserWrapper user, QUuid requestId);
+    void onDeleteUserRequest(UserWrapper user, QUuid requestId);
+    void onExpungeUserRequest(UserWrapper user, QUuid requestId);
 
     // Notebook-related slots:
     void onGetNotebookCountRequest();
