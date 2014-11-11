@@ -188,23 +188,23 @@ void LocalStorageManagerThreadWorker::onExpungeUserRequest(UserWrapper user, QUu
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onGetNotebookCountRequest()
+void LocalStorageManagerThreadWorker::onGetNotebookCountRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         int count = m_pLocalStorageManager->GetNotebookCount(errorDescription);
         if (count < 0) {
-            emit getNotebookCountFailed(errorDescription);
+            emit getNotebookCountFailed(errorDescription, requestId);
         }
         else {
-            emit getNotebookCountComplete(count);
+            emit getNotebookCountComplete(count, requestId);
         }
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onAddNotebookRequest(Notebook notebook)
+void LocalStorageManagerThreadWorker::onAddNotebookRequest(Notebook notebook, QUuid requestId)
 {
     try
     {
@@ -212,7 +212,7 @@ void LocalStorageManagerThreadWorker::onAddNotebookRequest(Notebook notebook)
 
         bool res = m_pLocalStorageManager->AddNotebook(notebook, errorDescription);
         if (!res) {
-            emit addNotebookFailed(notebook, errorDescription);
+            emit addNotebookFailed(notebook, errorDescription, requestId);
             return;
         }
 
@@ -220,12 +220,12 @@ void LocalStorageManagerThreadWorker::onAddNotebookRequest(Notebook notebook)
             m_pLocalStorageCacheManager->cacheNotebook(notebook);
         }
 
-        emit addNotebookComplete(notebook);
+        emit addNotebookComplete(notebook, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onUpdateNotebookRequest(Notebook notebook)
+void LocalStorageManagerThreadWorker::onUpdateNotebookRequest(Notebook notebook, QUuid requestId)
 {
     try
     {
@@ -233,7 +233,7 @@ void LocalStorageManagerThreadWorker::onUpdateNotebookRequest(Notebook notebook)
 
         bool res = m_pLocalStorageManager->UpdateNotebook(notebook, errorDescription);
         if (!res) {
-            emit updateNotebookFailed(notebook, errorDescription);
+            emit updateNotebookFailed(notebook, errorDescription, requestId);
             return;
         }
 
@@ -241,12 +241,12 @@ void LocalStorageManagerThreadWorker::onUpdateNotebookRequest(Notebook notebook)
             m_pLocalStorageCacheManager->cacheNotebook(notebook);
         }
 
-        emit updateNotebookComplete(notebook);
+        emit updateNotebookComplete(notebook, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindNotebookRequest(Notebook notebook)
+void LocalStorageManagerThreadWorker::onFindNotebookRequest(Notebook notebook, QUuid requestId)
 {
     try
     {
@@ -270,17 +270,17 @@ void LocalStorageManagerThreadWorker::onFindNotebookRequest(Notebook notebook)
         {
             bool res = m_pLocalStorageManager->FindNotebook(notebook, errorDescription);
             if (!res) {
-                emit findNotebookFailed(notebook, errorDescription);
+                emit findNotebookFailed(notebook, errorDescription, requestId);
                 return;
             }
         }
 
-        emit findNotebookComplete(notebook);
+        emit findNotebookComplete(notebook, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindDefaultNotebookRequest(Notebook notebook)
+void LocalStorageManagerThreadWorker::onFindDefaultNotebookRequest(Notebook notebook, QUuid requestId)
 {
     try
     {
@@ -288,16 +288,16 @@ void LocalStorageManagerThreadWorker::onFindDefaultNotebookRequest(Notebook note
 
         bool res = m_pLocalStorageManager->FindDefaultNotebook(notebook, errorDescription);
         if (!res) {
-            emit findDefaultNotebookFailed(notebook, errorDescription);
+            emit findDefaultNotebookFailed(notebook, errorDescription, requestId);
             return;
         }
 
-        emit findDefaultNotebookComplete(notebook);
+        emit findDefaultNotebookComplete(notebook, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindLastUsedNotebookRequest(Notebook notebook)
+void LocalStorageManagerThreadWorker::onFindLastUsedNotebookRequest(Notebook notebook, QUuid requestId)
 {
     try
     {
@@ -305,16 +305,16 @@ void LocalStorageManagerThreadWorker::onFindLastUsedNotebookRequest(Notebook not
 
         bool res = m_pLocalStorageManager->FindLastUsedNotebook(notebook, errorDescription);
         if (!res) {
-            emit findLastUsedNotebookFailed(notebook, errorDescription);
+            emit findLastUsedNotebookFailed(notebook, errorDescription, requestId);
             return;
         }
 
-        emit findLastUsedNotebookComplete(notebook);
+        emit findLastUsedNotebookComplete(notebook, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindDefaultOrLastUsedNotebookRequest(Notebook notebook)
+void LocalStorageManagerThreadWorker::onFindDefaultOrLastUsedNotebookRequest(Notebook notebook, QUuid requestId)
 {
     try
     {
@@ -322,23 +322,23 @@ void LocalStorageManagerThreadWorker::onFindDefaultOrLastUsedNotebookRequest(Not
 
         bool res = m_pLocalStorageManager->FindDefaultOrLastUsedNotebook(notebook, errorDescription);
         if (!res) {
-            emit findDefaultOrLastUsedNotebookFailed(notebook, errorDescription);
+            emit findDefaultOrLastUsedNotebookFailed(notebook, errorDescription, requestId);
             return;
         }
 
-        emit findDefaultOrLastUsedNotebookComplete(notebook);
+        emit findDefaultOrLastUsedNotebookComplete(notebook, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListAllNotebooksRequest()
+void LocalStorageManagerThreadWorker::onListAllNotebooksRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         QList<Notebook> notebooks = m_pLocalStorageManager->ListAllNotebooks(errorDescription);
         if (notebooks.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllNotebooksFailed(errorDescription);
+            emit listAllNotebooksFailed(errorDescription, requestId);
             return;
         }
 
@@ -349,44 +349,44 @@ void LocalStorageManagerThreadWorker::onListAllNotebooksRequest()
             }
         }
 
-        emit listAllNotebooksComplete(notebooks);
+        emit listAllNotebooksComplete(notebooks, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListAllSharedNotebooksRequest()
+void LocalStorageManagerThreadWorker::onListAllSharedNotebooksRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         QList<SharedNotebookWrapper> sharedNotebooks = m_pLocalStorageManager->ListAllSharedNotebooks(errorDescription);
         if (sharedNotebooks.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllSharedNotebooksFailed(errorDescription);
+            emit listAllSharedNotebooksFailed(errorDescription, requestId);
             return;
         }
 
-        emit listAllSharedNotebooksComplete(sharedNotebooks);
+        emit listAllSharedNotebooksComplete(sharedNotebooks, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListSharedNotebooksPerNotebookGuidRequest(QString notebookGuid)
+void LocalStorageManagerThreadWorker::onListSharedNotebooksPerNotebookGuidRequest(QString notebookGuid, QUuid requestId)
 {
     try
     {
         QString errorDescription;
         QList<SharedNotebookWrapper> sharedNotebooks = m_pLocalStorageManager->ListSharedNotebooksPerNotebookGuid(notebookGuid, errorDescription);
         if (sharedNotebooks.isEmpty() && !errorDescription.isEmpty()) {
-            emit listSharedNotebooksPerNotebookGuidFailed(notebookGuid, errorDescription);
+            emit listSharedNotebooksPerNotebookGuidFailed(notebookGuid, errorDescription, requestId);
             return;
         }
 
-        emit listSharedNotebooksPerNotebookGuidComplete(notebookGuid, sharedNotebooks);
+        emit listSharedNotebooksPerNotebookGuidComplete(notebookGuid, sharedNotebooks, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onExpungeNotebookRequest(Notebook notebook)
+void LocalStorageManagerThreadWorker::onExpungeNotebookRequest(Notebook notebook, QUuid requestId)
 {
     try
     {
@@ -394,7 +394,7 @@ void LocalStorageManagerThreadWorker::onExpungeNotebookRequest(Notebook notebook
 
         bool res = m_pLocalStorageManager->ExpungeNotebook(notebook, errorDescription);
         if (!res) {
-            emit expungeNotebookFailed(notebook, errorDescription);
+            emit expungeNotebookFailed(notebook, errorDescription, requestId);
             return;
         }
 
@@ -402,7 +402,7 @@ void LocalStorageManagerThreadWorker::onExpungeNotebookRequest(Notebook notebook
             m_pLocalStorageCacheManager->expungeNotebook(notebook);
         }
 
-        emit expungeNotebookComplete(notebook);
+        emit expungeNotebookComplete(notebook, requestId);
     }
     CATCH_EXCEPTION
 }

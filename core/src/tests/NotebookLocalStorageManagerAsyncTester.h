@@ -25,42 +25,43 @@ Q_SIGNALS:
     void failure(QString errorDescription);
 
 // private signals:
-    void getNotebookCountRequest();
-    void addNotebookRequest(Notebook notebook);
-    void updateNotebookRequest(Notebook notebook);
-    void findNotebookRequest(Notebook notebook);
-    void findDefaultNotebookRequest(Notebook notebook);
-    void findLastUsedNotebookRequest(Notebook notebook);
-    void findDefaultOrLastUsedNotebookRequest(Notebook notebook);
-    void listAllNotebooksRequest();
-    void listAllSharedNotebooksRequest();
-    void listSharedNotebooksPerNotebookRequest(QString notebookGuid);
-    void expungeNotebookRequest(Notebook notebook);
+    void getNotebookCountRequest(QUuid requestId = QUuid());
+    void addNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
+    void updateNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
+    void findNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
+    void findDefaultNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
+    void findLastUsedNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
+    void findDefaultOrLastUsedNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
+    void listAllNotebooksRequest(QUuid requestId = QUuid());
+    void listAllSharedNotebooksRequest(QUuid requestId = QUuid());
+    void listSharedNotebooksPerNotebookRequest(QString notebookGuid, QUuid requestId = QUuid());
+    void expungeNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
 
 private Q_SLOTS:
     void onWorkerInitialized();
-    void onGetNotebookCountCompleted(int count);
-    void onGetNotebookCountFailed(QString errorDescription);
-    void onAddNotebookCompleted(Notebook notebook);
-    void onAddNotebookFailed(Notebook notebook, QString errorDescription);
-    void onUpdateNotebookCompleted(Notebook notebook);
-    void onUpdateNotebookFailed(Notebook notebook, QString errorDescription);
-    void onFindNotebookCompleted(Notebook notebook);
-    void onFindNotebookFailed(Notebook notebook, QString errorDescription);
-    void onFindDefaultNotebookCompleted(Notebook notebook);
-    void onFindDefaultNotebookFailed(Notebook notebook, QString errorDescription);
-    void onFindLastUsedNotebookCompleted(Notebook notebook);
-    void onFindLastUsedNotebookFailed(Notebook notebook, QString errorDescription);
-    void onFindDefaultOrLastUsedNotebookCompleted(Notebook notebook);
-    void onFindDefaultOrLastUsedNotebookFailed(Notebook notebook, QString errorDescription);
-    void onListAllNotebooksCompleted(QList<Notebook> notebooks);
-    void onListAllNotebooksFailed(QString errorDescription);
-    void onListAllSharedNotebooksCompleted(QList<SharedNotebookWrapper> sharedNotebooks);
-    void onListAllSharedNotebooksFailed(QString errorDescription);
-    void onListSharedNotebooksPerNotebookGuidCompleted(QString notebookGuid, QList<SharedNotebookWrapper> sharedNotebooks);
-    void onListSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, QString errorDescription);
-    void onExpungeNotebookCompleted(Notebook notebook);
-    void onExpungeNotebookFailed(Notebook notebook, QString errorDescription);
+    void onGetNotebookCountCompleted(int count, QUuid requestId);
+    void onGetNotebookCountFailed(QString errorDescription, QUuid requestId);
+    void onAddNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindDefaultNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onFindDefaultNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindLastUsedNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onFindLastUsedNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindDefaultOrLastUsedNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onFindDefaultOrLastUsedNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onListAllNotebooksCompleted(QList<Notebook> notebooks, QUuid requestId);
+    void onListAllNotebooksFailed(QString errorDescription, QUuid requestId);
+    void onListAllSharedNotebooksCompleted(QList<SharedNotebookWrapper> sharedNotebooks, QUuid requestId);
+    void onListAllSharedNotebooksFailed(QString errorDescription, QUuid requestId);
+    void onListSharedNotebooksPerNotebookGuidCompleted(QString notebookGuid, QList<SharedNotebookWrapper> sharedNotebooks,
+                                                       QUuid requestId);
+    void onListSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, QString errorDescription, QUuid requestId);
+    void onExpungeNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onExpungeNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();

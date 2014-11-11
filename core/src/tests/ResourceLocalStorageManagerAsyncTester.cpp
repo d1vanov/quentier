@@ -88,8 +88,10 @@ void ResourceLocalStorageManagerAsyncTester::onWorkerInitialized()
     emit addNotebookRequest(m_notebook);
 }
 
-void ResourceLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook notebook)
+void ResourceLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook notebook, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
 #define HANDLE_WRONG_STATE() \
@@ -127,9 +129,9 @@ void ResourceLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook not
     HANDLE_WRONG_STATE();
 }
 
-void ResourceLocalStorageManagerAsyncTester::onAddNotebookFailed(Notebook notebook, QString errorDescription)
+void ResourceLocalStorageManagerAsyncTester::onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", Notebook: " << notebook);
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", Notebook: " << notebook);
     emit failure(errorDescription);
 }
 
@@ -430,8 +432,8 @@ void ResourceLocalStorageManagerAsyncTester::createConnections()
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(initialized()), this, SLOT(onWorkerInitialized()));
 
     // Request --> slot connections
-    QObject::connect(this, SIGNAL(addNotebookRequest(Notebook)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onAddNotebookRequest(Notebook)));
+    QObject::connect(this, SIGNAL(addNotebookRequest(Notebook,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddNotebookRequest(Notebook,QUuid)));
     QObject::connect(this, SIGNAL(addNoteRequest(Note,Notebook,QUuid)),
                      m_pLocalStorageManagerThreadWorker, SLOT(onAddNoteRequest(Note,Notebook,QUuid)));
     QObject::connect(this, SIGNAL(addResourceRequest(ResourceWrapper,Note,QUuid)),
@@ -445,10 +447,10 @@ void ResourceLocalStorageManagerAsyncTester::createConnections()
                      m_pLocalStorageManagerThreadWorker, SLOT(onExpungeResourceRequest(ResourceWrapper,QUuid)));
 
     // Slot <-- result connections
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNotebookComplete(Notebook)),
-                     this, SLOT(onAddNotebookCompleted(Notebook)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNotebookFailed(Notebook,QString)),
-                     this, SLOT(onAddNotebookFailed(Notebook,QString)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNotebookComplete(Notebook,QUuid)),
+                     this, SLOT(onAddNotebookCompleted(Notebook,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNotebookFailed(Notebook,QString,QUuid)),
+                     this, SLOT(onAddNotebookFailed(Notebook,QString,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteComplete(Note,Notebook,QUuid)),
                      this, SLOT(onAddNoteCompleted(Note,Notebook,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString,QUuid)),
