@@ -27,7 +27,7 @@ Q_SIGNALS:
 
 // private signals:
     void addNotebookRequest(Notebook notebook);
-    void addNoteRequest(Note note, Notebook notebook);
+    void addNoteRequest(Note note, Notebook notebook, QUuid requestId = QUuid());
     void getResourceCountRequest(QUuid requestId = QUuid());
     void addResourceRequest(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
     void updateResourceRequest(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
@@ -38,8 +38,8 @@ private Q_SLOTS:
     void onWorkerInitialized();
     void onAddNotebookCompleted(Notebook notebook);
     void onAddNotebookFailed(Notebook notebook, QString errorDescription);
-    void onAddNoteCompleted(Note note, Notebook notebook);
-    void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription);
+    void onAddNoteCompleted(Note note, Notebook notebook, QUuid requestId);
+    void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
     void onGetResourceCountCompleted(int count, QUuid requestId);
     void onGetResourceCountFailed(QString errorDescription, QUuid requestId);
     void onAddResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId);

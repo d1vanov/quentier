@@ -152,8 +152,10 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookFailed(Notebook notebook, 
     emit failure(errorDescription);
 }
 
-void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count)
+void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_state == STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST)
@@ -233,14 +235,16 @@ void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count)
     HANDLE_WRONG_STATE();
 }
 
-void NoteLocalStorageManagerAsyncTester::onGetNoteCountFailed(QString errorDescription)
+void NoteLocalStorageManagerAsyncTester::onGetNoteCountFailed(QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription);
+    QNWARNING(errorDescription << ", requestId = " << requestId);
     emit failure(errorDescription);
 }
 
-void NoteLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Notebook notebook)
+void NoteLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Notebook notebook, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_state == STATE_SENT_ADD_REQUEST)
@@ -305,14 +309,16 @@ void NoteLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Notebook 
     HANDLE_WRONG_STATE();
 }
 
-void NoteLocalStorageManagerAsyncTester::onAddNoteFailed(Note note, Notebook notebook, QString errorDescription)
+void NoteLocalStorageManagerAsyncTester::onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", Note: " << note << ", Notebook: " << notebook);
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", Note: " << note << ", Notebook: " << notebook);
     emit failure(errorDescription);
 }
 
-void NoteLocalStorageManagerAsyncTester::onUpdateNoteCompleted(Note note, Notebook notebook)
+void NoteLocalStorageManagerAsyncTester::onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_state == STATE_SENT_UPDATE_REQUEST)
@@ -333,14 +339,16 @@ void NoteLocalStorageManagerAsyncTester::onUpdateNoteCompleted(Note note, Notebo
     HANDLE_WRONG_STATE();
 }
 
-void NoteLocalStorageManagerAsyncTester::onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription)
+void NoteLocalStorageManagerAsyncTester::onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", Note: " << note << ", Notebook: " << notebook);
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", Note: " << note << ", Notebook: " << notebook);
     emit failure(errorDescription);
 }
 
-void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(Note note, bool withResourceBinaryData)
+void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_state == STATE_SENT_FIND_AFTER_ADD_REQUEST)
@@ -390,7 +398,7 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(Note note, bool wit
     HANDLE_WRONG_STATE();
 }
 
-void NoteLocalStorageManagerAsyncTester::onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription)
+void NoteLocalStorageManagerAsyncTester::onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId)
 {
     if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST) {
         m_state = STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST;
@@ -398,13 +406,15 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteFailed(Note note, bool withRe
         return;
     }
 
-    QNWARNING(errorDescription << ", Note: " << note << ", withResourceBinaryData = "
-              << (withResourceBinaryData ? "true" : "false"));
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", Note: " << note
+              << ", withResourceBinaryData = " << (withResourceBinaryData ? "true" : "false"));
     emit failure(errorDescription);
 }
 
-void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(Notebook notebook, bool withResourceBinaryData, QList<Note> notes)
+void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(Notebook notebook, bool withResourceBinaryData, QList<Note> notes, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_state == STATE_SENT_LIST_ALL_NOTES_PER_NOTEBOOK_ONE_REQUEST)
@@ -456,15 +466,17 @@ void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(Note
     emit success();
 }
 
-void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData, QString errorDescription)
+void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData, QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", Notebook: " << notebook
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", Notebook: " << notebook
               << ", withResourceBinaryData = " << (withResourceBinaryData ? "true" : "false"));
     emit failure(errorDescription);
 }
 
-void NoteLocalStorageManagerAsyncTester::onDeleteNoteCompleted(Note note)
+void NoteLocalStorageManagerAsyncTester::onDeleteNoteCompleted(Note note, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_modifiedNote != note) {
@@ -481,14 +493,16 @@ void NoteLocalStorageManagerAsyncTester::onDeleteNoteCompleted(Note note)
     emit expungeNoteRequest(m_modifiedNote);
 }
 
-void NoteLocalStorageManagerAsyncTester::onDeleteNoteFailed(Note note, QString errorDescription)
+void NoteLocalStorageManagerAsyncTester::onDeleteNoteFailed(Note note, QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", Note: " << note);
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", Note: " << note);
     emit failure(errorDescription);
 }
 
-void NoteLocalStorageManagerAsyncTester::onExpungeNoteCompleted(Note note)
+void NoteLocalStorageManagerAsyncTester::onExpungeNoteCompleted(Note note, QUuid requestId)
 {
+    Q_UNUSED(requestId)
+
     QString errorDescription;
 
     if (m_modifiedNote != note) {
@@ -505,9 +519,9 @@ void NoteLocalStorageManagerAsyncTester::onExpungeNoteCompleted(Note note)
     emit findNoteRequest(m_foundNote, withResourceBinaryData);
 }
 
-void NoteLocalStorageManagerAsyncTester::onExpungeNoteFailed(Note note, QString errorDescription)
+void NoteLocalStorageManagerAsyncTester::onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", Note: " << note);
+    QNWARNING(errorDescription << ", requestId = " << requestId << ", Note: " << note);
     emit failure(errorDescription);
 }
 
@@ -524,54 +538,54 @@ void NoteLocalStorageManagerAsyncTester::createConnections()
     // Request --> slot connections
     QObject::connect(this, SIGNAL(addNotebookRequest(Notebook)),
                      m_pLocalStorageManagerThreadWorker, SLOT(onAddNotebookRequest(Notebook)));
-    QObject::connect(this, SIGNAL(getNoteCountRequest()), m_pLocalStorageManagerThreadWorker,
-                     SLOT(onGetNoteCountRequest()));
-    QObject::connect(this, SIGNAL(addNoteRequest(Note,Notebook)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onAddNoteRequest(Note,Notebook)));
-    QObject::connect(this, SIGNAL(updateNoteRequest(Note,Notebook)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook)));
-    QObject::connect(this, SIGNAL(findNoteRequest(Note,bool)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onFindNoteRequest(Note,bool)));
-    QObject::connect(this, SIGNAL(listAllNotesPerNotebookRequest(Notebook,bool)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onListAllNotesPerNotebookRequest(Notebook,bool)));
-    QObject::connect(this, SIGNAL(deleteNoteRequest(Note)), m_pLocalStorageManagerThreadWorker,
-                     SLOT(onDeleteNoteRequest(Note)));
-    QObject::connect(this, SIGNAL(expungeNoteRequest(Note)), m_pLocalStorageManagerThreadWorker,
-                     SLOT(onExpungeNoteRequest(Note)));
+    QObject::connect(this, SIGNAL(getNoteCountRequest(QUuid)), m_pLocalStorageManagerThreadWorker,
+                     SLOT(onGetNoteCountRequest(QUuid)));
+    QObject::connect(this, SIGNAL(addNoteRequest(Note,Notebook,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onAddNoteRequest(Note,Notebook,QUuid)));
+    QObject::connect(this, SIGNAL(updateNoteRequest(Note,Notebook,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook,QUuid)));
+    QObject::connect(this, SIGNAL(findNoteRequest(Note,bool,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onFindNoteRequest(Note,bool,QUuid)));
+    QObject::connect(this, SIGNAL(listAllNotesPerNotebookRequest(Notebook,bool,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onListAllNotesPerNotebookRequest(Notebook,bool,QUuid)));
+    QObject::connect(this, SIGNAL(deleteNoteRequest(Note,QUuid)), m_pLocalStorageManagerThreadWorker,
+                     SLOT(onDeleteNoteRequest(Note,QUuid)));
+    QObject::connect(this, SIGNAL(expungeNoteRequest(Note,QUuid)), m_pLocalStorageManagerThreadWorker,
+                     SLOT(onExpungeNoteRequest(Note,QUuid)));
 
     // Slot <-- result connections
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNotebookComplete(Notebook)),
                      this, SLOT(onAddNotebookCompleted(Notebook)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNotebookFailed(Notebook,QString)),
                      this, SLOT(onAddNotebookFailed(Notebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getNoteCountComplete(int)),
-                     this, SLOT(onGetNoteCountCompleted(int)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getNoteCountFailed(QString)),
-                     this, SLOT(onGetNoteCountFailed(QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteComplete(Note,Notebook)),
-                     this, SLOT(onAddNoteCompleted(Note,Notebook)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString)),
-                     this, SLOT(onAddNoteFailed(Note,Notebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteComplete(Note,Notebook)),
-                     this, SLOT(onUpdateNoteCompleted(Note,Notebook)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,QString)),
-                     this, SLOT(onUpdateNoteFailed(Note,Notebook,QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findNoteComplete(Note,bool)),
-                     this, SLOT(onFindNoteCompleted(Note,bool)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findNoteFailed(Note,bool,QString)),
-                     this, SLOT(onFindNoteFailed(Note,bool,QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllNotesPerNotebookComplete(Notebook,bool,QList<Note>)),
-                     this, SLOT(onListAllNotesPerNotebookCompleted(Notebook,bool,QList<Note>)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllNotesPerNotebookFailed(Notebook,bool,QString)),
-                     this, SLOT(onListAllNotesPerNotebookFailed(Notebook,bool,QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteNoteComplete(Note)),
-                     this, SLOT(onDeleteNoteCompleted(Note)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteNoteFailed(Note,QString)),
-                     this, SLOT(onDeleteNoteFailed(Note,QString)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeNoteComplete(Note)),
-                     this, SLOT(onExpungeNoteCompleted(Note)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeNoteFailed(Note,QString)),
-                     this, SLOT(onExpungeNoteFailed(Note,QString)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getNoteCountComplete(int,QUuid)),
+                     this, SLOT(onGetNoteCountCompleted(int,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getNoteCountFailed(QString,QUuid)),
+                     this, SLOT(onGetNoteCountFailed(QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteComplete(Note,Notebook,QUuid)),
+                     this, SLOT(onAddNoteCompleted(Note,Notebook,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString,QUuid)),
+                     this, SLOT(onAddNoteFailed(Note,Notebook,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteComplete(Note,Notebook,QUuid)),
+                     this, SLOT(onUpdateNoteCompleted(Note,Notebook,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,QString,QUuid)),
+                     this, SLOT(onUpdateNoteFailed(Note,Notebook,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findNoteComplete(Note,bool,QUuid)),
+                     this, SLOT(onFindNoteCompleted(Note,bool,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findNoteFailed(Note,bool,QString,QUuid)),
+                     this, SLOT(onFindNoteFailed(Note,bool,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllNotesPerNotebookComplete(Notebook,bool,QList<Note>,QUuid)),
+                     this, SLOT(onListAllNotesPerNotebookCompleted(Notebook,bool,QList<Note>,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllNotesPerNotebookFailed(Notebook,bool,QString,QUuid)),
+                     this, SLOT(onListAllNotesPerNotebookFailed(Notebook,bool,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteNoteComplete(Note,QUuid)),
+                     this, SLOT(onDeleteNoteCompleted(Note,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteNoteFailed(Note,QString,QUuid)),
+                     this, SLOT(onDeleteNoteFailed(Note,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeNoteComplete(Note,QUuid)),
+                     this, SLOT(onExpungeNoteCompleted(Note,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeNoteFailed(Note,QString,QUuid)),
+                     this, SLOT(onExpungeNoteFailed(Note,QString,QUuid)));
 }
 
 } // namespace qute_note

@@ -540,23 +540,23 @@ void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(LinkedNoteb
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onGetNoteCountRequest()
+void LocalStorageManagerThreadWorker::onGetNoteCountRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         int count = m_pLocalStorageManager->GetNoteCount(errorDescription);
         if (count < 0) {
-            emit getNoteCountFailed(errorDescription);
+            emit getNoteCountFailed(errorDescription, requestId);
         }
         else {
-            emit getNoteCountComplete(count);
+            emit getNoteCountComplete(count, requestId);
         }
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onAddNoteRequest(Note note, Notebook notebook)
+void LocalStorageManagerThreadWorker::onAddNoteRequest(Note note, Notebook notebook, QUuid requestId)
 {
     try
     {
@@ -564,7 +564,7 @@ void LocalStorageManagerThreadWorker::onAddNoteRequest(Note note, Notebook noteb
 
         bool res = m_pLocalStorageManager->AddNote(note, notebook, errorDescription);
         if (!res) {
-            emit addNoteFailed(note, notebook, errorDescription);
+            emit addNoteFailed(note, notebook, errorDescription, requestId);
             return;
         }
 
@@ -572,12 +572,12 @@ void LocalStorageManagerThreadWorker::onAddNoteRequest(Note note, Notebook noteb
             m_pLocalStorageCacheManager->cacheNote(note);
         }
 
-        emit addNoteComplete(note, notebook);
+        emit addNoteComplete(note, notebook, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, Notebook notebook)
+void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, Notebook notebook, QUuid requestId)
 {
     try
     {
@@ -585,7 +585,7 @@ void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, Notebook no
 
         bool res = m_pLocalStorageManager->UpdateNote(note, notebook, errorDescription);
         if (!res) {
-            emit updateNoteFailed(note, notebook, errorDescription);
+            emit updateNoteFailed(note, notebook, errorDescription, requestId);
             return;
         }
 
@@ -593,12 +593,12 @@ void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, Notebook no
             m_pLocalStorageCacheManager->cacheNote(note);
         }
 
-        emit updateNoteComplete(note, notebook);
+        emit updateNoteComplete(note, notebook, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindNoteRequest(Note note, bool withResourceBinaryData)
+void LocalStorageManagerThreadWorker::onFindNoteRequest(Note note, bool withResourceBinaryData, QUuid requestId)
 {
     try
     {
@@ -622,18 +622,18 @@ void LocalStorageManagerThreadWorker::onFindNoteRequest(Note note, bool withReso
         {
             bool res = m_pLocalStorageManager->FindNote(note, errorDescription, withResourceBinaryData);
             if (!res) {
-                emit findNoteFailed(note, withResourceBinaryData, errorDescription);
+                emit findNoteFailed(note, withResourceBinaryData, errorDescription, requestId);
                 return;
             }
         }
 
-        emit findNoteComplete(note, withResourceBinaryData);
+        emit findNoteComplete(note, withResourceBinaryData, requestId);
     }
     CATCH_EXCEPTION
 }
 
 void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook notebook,
-                                                                       bool withResourceBinaryData)
+                                                                       bool withResourceBinaryData, QUuid requestId)
 {
     try
     {
@@ -642,7 +642,7 @@ void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook 
         QList<Note> notes = m_pLocalStorageManager->ListAllNotesPerNotebook(notebook, errorDescription,
                                                                           withResourceBinaryData);
         if (notes.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllNotesPerNotebookFailed(notebook, withResourceBinaryData, errorDescription);
+            emit listAllNotesPerNotebookFailed(notebook, withResourceBinaryData, errorDescription, requestId);
             return;
         }
 
@@ -653,12 +653,12 @@ void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook 
             }
         }
 
-        emit listAllNotesPerNotebookComplete(notebook, withResourceBinaryData, notes);
+        emit listAllNotesPerNotebookComplete(notebook, withResourceBinaryData, notes, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onDeleteNoteRequest(Note note)
+void LocalStorageManagerThreadWorker::onDeleteNoteRequest(Note note, QUuid requestId)
 {
     try
     {
@@ -666,7 +666,7 @@ void LocalStorageManagerThreadWorker::onDeleteNoteRequest(Note note)
 
         bool res = m_pLocalStorageManager->DeleteNote(note, errorDescription);
         if (!res) {
-            emit deleteNoteFailed(note, errorDescription);
+            emit deleteNoteFailed(note, errorDescription, requestId);
             return;
         }
 
@@ -674,12 +674,12 @@ void LocalStorageManagerThreadWorker::onDeleteNoteRequest(Note note)
             m_pLocalStorageCacheManager->cacheNote(note);
         }
 
-        emit deleteNoteComplete(note);
+        emit deleteNoteComplete(note, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onExpungeNoteRequest(Note note)
+void LocalStorageManagerThreadWorker::onExpungeNoteRequest(Note note, QUuid requestId)
 {
     try
     {
@@ -687,7 +687,7 @@ void LocalStorageManagerThreadWorker::onExpungeNoteRequest(Note note)
 
         bool res = m_pLocalStorageManager->ExpungeNote(note, errorDescription);
         if (!res) {
-            emit expungeNoteFailed(note, errorDescription);
+            emit expungeNoteFailed(note, errorDescription, requestId);
             return;
         }
 
@@ -695,7 +695,7 @@ void LocalStorageManagerThreadWorker::onExpungeNoteRequest(Note note)
             m_pLocalStorageCacheManager->expungeNote(note);
         }
 
-        emit expungeNoteComplete(note);
+        emit expungeNoteComplete(note, requestId);
     }
     CATCH_EXCEPTION
 }

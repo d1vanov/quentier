@@ -91,20 +91,22 @@ Q_SIGNALS:
     void expungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId = QUuid());
 
     // Note-related signals:
-    void getNoteCountComplete(int noteCount);
-    void getNoteCountFailed(QString errorDescription);
-    void addNoteComplete(Note note, Notebook notebook);
-    void addNoteFailed(Note note, Notebook notebook, QString errorDescription);
-    void updateNoteComplete(Note note, Notebook notebook);
-    void updateNoteFailed(Note note, Notebook notebook, QString errorDescription);
-    void findNoteComplete(Note foundNote, bool withResourceBinaryData);
-    void findNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription);
-    void listAllNotesPerNotebookComplete(Notebook notebook, bool withResourceBinaryData, QList<Note> foundNotes);
-    void listAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData, QString errorDescription);
-    void deleteNoteComplete(Note note);
-    void deleteNoteFailed(Note note, QString errorDescription);
-    void expungeNoteComplete(Note note);
-    void expungeNoteFailed(Note note, QString errorDescription);
+    void getNoteCountComplete(int noteCount, QUuid requestId = QUuid());
+    void getNoteCountFailed(QString errorDescription, QUuid requestId = QUuid());
+    void addNoteComplete(Note note, Notebook notebook, QUuid requestId = QUuid());
+    void addNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId = QUuid());
+    void updateNoteComplete(Note note, Notebook notebook, QUuid requestId = QUuid());
+    void updateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId = QUuid());
+    void findNoteComplete(Note foundNote, bool withResourceBinaryData, QUuid requestId = QUuid());
+    void findNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId = QUuid());
+    void listAllNotesPerNotebookComplete(Notebook notebook, bool withResourceBinaryData,
+                                         QList<Note> foundNotes, QUuid requestId = QUuid());
+    void listAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData,
+                                       QString errorDescription, QUuid requestId = QUuid());
+    void deleteNoteComplete(Note note, QUuid requestId = QUuid());
+    void deleteNoteFailed(Note note, QString errorDescription, QUuid requestId = QUuid());
+    void expungeNoteComplete(Note note, QUuid requestId = QUuid());
+    void expungeNoteFailed(Note note, QString errorDescription, QUuid requestId = QUuid());
 
     // Tag-related signals:
     void getTagCountComplete(int tagCount, QUuid requestId = QUuid());
@@ -186,13 +188,13 @@ public Q_SLOTS:
     void onExpungeLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId);
 
     // Note-related slots:
-    void onGetNoteCountRequest();
-    void onAddNoteRequest(Note note, Notebook notebook);
-    void onUpdateNoteRequest(Note note, Notebook notebook);
-    void onFindNoteRequest(Note note, bool withResourceBinaryData);
-    void onListAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData);
-    void onDeleteNoteRequest(Note note);
-    void onExpungeNoteRequest(Note note);
+    void onGetNoteCountRequest(QUuid requestId);
+    void onAddNoteRequest(Note note, Notebook notebook, QUuid requestId);
+    void onUpdateNoteRequest(Note note, Notebook notebook, QUuid requestId);
+    void onFindNoteRequest(Note note, bool withResourceBinaryData, QUuid requestId);
+    void onListAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData, QUuid requestId);
+    void onDeleteNoteRequest(Note note, QUuid requestId);
+    void onExpungeNoteRequest(Note note, QUuid requestId);
 
     // Tag-related slots:
     void onGetTagCountRequest(QUuid requestId);

@@ -27,33 +27,32 @@ Q_SIGNALS:
     
 // private signals
     void addNotebookRequest(Notebook notebook);
-    void getNoteCountRequest();
-    void addNoteRequest(Note note, Notebook notebook);
-    void updateNoteRequest(Note note, Notebook notebook);
-    void findNoteRequest(Note note, bool withResourceBinaryData);
-    void listAllNotesPerNotebookRequest(Notebook notebook,
-                                        bool withResourceBinaryData);
-    void deleteNoteRequest(Note note);
-    void expungeNoteRequest(Note note);
+    void getNoteCountRequest(QUuid requestId = QUuid());
+    void addNoteRequest(Note note, Notebook notebook, QUuid requestId = QUuid());
+    void updateNoteRequest(Note note, Notebook notebook, QUuid requestId = QUuid());
+    void findNoteRequest(Note note, bool withResourceBinaryData, QUuid requestId = QUuid());
+    void listAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData, QUuid requestId = QUuid());
+    void deleteNoteRequest(Note note, QUuid requestId = QUuid());
+    void expungeNoteRequest(Note note, QUuid requestId = QUuid());
 
 private Q_SLOTS:
     void onWorkerInitialized();
     void onAddNotebookCompleted(Notebook notebook);
     void onAddNotebookFailed(Notebook notebook, QString errorDescription);
-    void onGetNoteCountCompleted(int count);
-    void onGetNoteCountFailed(QString errorDescription);
-    void onAddNoteCompleted(Note note, Notebook notebook);
-    void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription);
-    void onUpdateNoteCompleted(Note note, Notebook notebook);
-    void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription);
-    void onFindNoteCompleted(Note note, bool withResourceBinaryData);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription);
-    void onListAllNotesPerNotebookCompleted(Notebook notebook, bool withResourceBinaryData, QList<Note> notes);
-    void onListAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData, QString errorDescription);
-    void onDeleteNoteCompleted(Note note);
-    void onDeleteNoteFailed(Note note, QString errorDescription);
-    void onExpungeNoteCompleted(Note note);
-    void onExpungeNoteFailed(Note note, QString errorDescription);
+    void onGetNoteCountCompleted(int count, QUuid requestId);
+    void onGetNoteCountFailed(QString errorDescription, QUuid requestId);
+    void onAddNoteCompleted(Note note, Notebook notebook, QUuid requestId);
+    void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId);
+    void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId);
+    void onListAllNotesPerNotebookCompleted(Notebook notebook, bool withResourceBinaryData, QList<Note> notes, QUuid requestId);
+    void onListAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData, QString errorDescription, QUuid requestId);
+    void onDeleteNoteCompleted(Note note, QUuid requestId);
+    void onDeleteNoteFailed(Note note, QString errorDescription, QUuid requestId);
+    void onExpungeNoteCompleted(Note note, QUuid requestId);
+    void onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();
