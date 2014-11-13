@@ -26,7 +26,7 @@ public:
                                          QObject * parent = nullptr);
 
 Q_SIGNALS:
-    void error(QString errorDescription);
+    void failure(QString errorDescription);
     void finished();
 
 public Q_SLOTS:
@@ -34,59 +34,65 @@ public Q_SLOTS:
 
 // private signals
 Q_SIGNALS:
-    void addUser(UserWrapper user);
-    void updateUser(UserWrapper user);
-    void findUser(UserWrapper user);
-    void deleteUser(UserWrapper user);
-    void expungeUser(UserWrapper user);
+    void addUser(UserWrapper user, QUuid requestId = QUuid());
+    void updateUser(UserWrapper user, QUuid requestId = QUuid());
+    void findUser(UserWrapper user, QUuid requestId = QUuid());
+    void deleteUser(UserWrapper user, QUuid requestId = QUuid());
+    void expungeUser(UserWrapper user, QUuid requestId = QUuid());
 
-    void addNotebook(Notebook notebook);
-    void updateNotebook(Notebook notebook);
-    void findNotebook(Notebook notebook);
-    void expungeNotebook(Notebook notebook);
+    void addNotebook(Notebook notebook, QUuid requestId = QUuid());
+    void updateNotebook(Notebook notebook, QUuid requestId = QUuid());
+    void findNotebook(Notebook notebook, QUuid requestId = QUuid());
+    void expungeNotebook(Notebook notebook, QUuid requestId = QUuid());
 
-    void addNote(Note note, Notebook notebook);
-    void updateNote(Note note, Notebook notebook);
-    void findNote(Note note, bool withResourceBinaryData);
-    void deleteNote(Note note);
-    void expungeNote(Note note);
+    void addNote(Note note, Notebook notebook, QUuid requestId = QUuid());
+    void updateNote(Note note, Notebook notebook, QUuid requestId = QUuid());
+    void findNote(Note note, bool withResourceBinaryData, QUuid requestId = QUuid());
+    void deleteNote(Note note, QUuid requestId = QUuid());
+    void expungeNote(Note note, QUuid requestId = QUuid());
 
-    void addTag(Tag tag);
-    void updateTag(Tag tag);
-    void findTag(Tag tag);
-    void deleteTag(Tag tag);
-    void expungeTag(Tag tag);
+    void addTag(Tag tag, QUuid requestId = QUuid());
+    void updateTag(Tag tag, QUuid requestId = QUuid());
+    void findTag(Tag tag, QUuid requestId = QUuid());
+    void deleteTag(Tag tag, QUuid requestId = QUuid());
+    void expungeTag(Tag tag, QUuid requestId = QUuid());
 
-    void addResource(ResourceWrapper resource, Note note);
-    void updateResource(ResourceWrapper resource, Note note);
-    void findResource(ResourceWrapper resource, bool withBinaryData);
-    void expungeResource(ResourceWrapper resource);
+    void addResource(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
+    void updateResource(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
+    void findResource(ResourceWrapper resource, bool withBinaryData, QUuid requestId = QUuid());
+    void expungeResource(ResourceWrapper resource, QUuid requestId = QUuid());
 
-    void addLinkedNotebook(LinkedNotebook notebook);
-    void updateLinkedNotebook(LinkedNotebook notebook);
-    void findLinkedNotebook(LinkedNotebook linkedNotebook);
-    void expungeLinkedNotebook(LinkedNotebook notebook);
+    void addLinkedNotebook(LinkedNotebook notebook, QUuid requestId = QUuid());
+    void updateLinkedNotebook(LinkedNotebook notebook, QUuid requestId = QUuid());
+    void findLinkedNotebook(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
+    void expungeLinkedNotebook(LinkedNotebook notebook, QUuid requestId = QUuid());
 
-    void addSavedSearch(SavedSearch savedSearch);
-    void updateSavedSearch(SavedSearch savedSearch);
-    void findSavedSearch(SavedSearch savedSearch);
-    void expungeSavedSearch(SavedSearch savedSearch);
+    void addSavedSearch(SavedSearch savedSearch, QUuid requestId = QUuid());
+    void updateSavedSearch(SavedSearch savedSearch, QUuid requestId = QUuid());
+    void findSavedSearch(SavedSearch savedSearch, QUuid requestId = QUuid());
+    void expungeSavedSearch(SavedSearch savedSearch, QUuid requestId = QUuid());
 
 private Q_SLOTS:
-    void onFindUserCompleted(UserWrapper user);
-    void onFindUserFailed(UserWrapper user);
-    void onFindNotebookCompleted(Notebook notebook);
-    void onFindNotebookFailed(Notebook notebook);
-    void onFindNoteCompleted(Note note);
-    void onFindNoteFailed(Note note);
-    void onFindTagCompleted(Tag tag);
-    void onFindTagFailed(Tag tag);
-    void onFindResourceCompleted(ResourceWrapper resource);
-    void onFindResourceFailed(ResourceWrapper resource);
-    void onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook);
-    void onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook);
-    void onFindSavedSearchCompleted(SavedSearch savedSearch);
-    void onFindSavedSearchFailed(SavedSearch savedSearch);
+    void onFindUserCompleted(UserWrapper user, QUuid requestId);
+    void onFindUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
+    void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId);
+    void onFindTagCompleted(Tag tag, QUuid requestId);
+    void onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+    void onFindResourceCompleted(ResourceWrapper resource, bool withResourceBinaryData, QUuid requestId);
+    void onFindResourceFailed(ResourceWrapper resource, bool withResourceBinaryData,
+                              QString errorDescription, QUuid requestId);
+    void onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
+    void onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId);
+    void onFindSavedSearchFailed(SavedSearch savedSearch, QString errorDescription, QUuid requestId);
+
+    void onAddTagCompleted(Tag tag, QUuid requestId);
+    void onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+    void onUpdateTagCompleted(Tag tag, QUuid requestId);
+    void onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();
@@ -120,6 +126,8 @@ private:
     QVector<qevercloud::SyncChunk>  m_syncChunks;
 
     TagsList    m_tags;
+    QHash<QUuid,Tag>    m_tagsToAddPerRenamingUpdateRequestId;
+    QUuid       m_findTagRequestId;
 };
 
 } // namespace qute_note

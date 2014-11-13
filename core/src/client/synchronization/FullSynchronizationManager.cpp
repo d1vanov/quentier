@@ -16,7 +16,9 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_pOAuthResult(pOAuthResult),
     m_maxSyncChunkEntries(50),
     m_syncChunks(),
-    m_tags()
+    m_tags(),
+    m_tagsToAddPerRenamingUpdateRequestId(),
+    m_findTagRequestId()
 {
     createConnections();
 }
@@ -53,49 +55,60 @@ void FullSynchronizationManager::start()
     // TODO: continue from here
 }
 
-void FullSynchronizationManager::onFindUserCompleted(UserWrapper user)
+void FullSynchronizationManager::onFindUserCompleted(UserWrapper user, QUuid requestId)
 {
     // TODO: implement
 }
 
-void FullSynchronizationManager::onFindUserFailed(UserWrapper user)
+void FullSynchronizationManager::onFindUserFailed(UserWrapper user, QString errorDescription, QUuid requestId)
 {
     // TODO: implement
 }
 
-void FullSynchronizationManager::onFindNotebookCompleted(Notebook notebook)
+void FullSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUuid requestId)
 {
     // TODO: implement
 }
 
-void FullSynchronizationManager::onFindNotebookFailed(Notebook notebook)
+void FullSynchronizationManager::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
     // TODO: implement
 }
 
-void FullSynchronizationManager::onFindNoteCompleted(Note note)
+void FullSynchronizationManager::onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId)
 {
     // TODO: implement
 }
 
-void FullSynchronizationManager::onFindNoteFailed(Note note)
+void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId)
 {
     // TODO: implement
 }
 
-void FullSynchronizationManager::onFindTagCompleted(Tag tag)
+void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
 {
-    QNDEBUG("FullSynchronizationManager::onFindTagCompleted: tag = " << tag);
+    QNDEBUG("FullSynchronizationManager::onFindTagCompleted: tag = " << tag
+            << ", requestId = " << requestId);
+
+    if (requestId != m_findTagRequestId) {
+        QNDEBUG("Request id doesn't match, exiting");
+        return;
+    }
 
     // Attempt to find this tag by name within the list of tags waiting for processing;
     // first simply try the front tag from the list to avoid the costly lookup
     if (!tag.hasName()) {
+        QString errorDescription = QT_TR_NOOP("Found tag with empty name in local storage");
+        QNWARNING(errorDescription << ": tag = " << tag);
+        emit failure(errorDescription);
         return;
     }
 
     TagsList::iterator it = findTagInList(tag.name());
     if (it == m_tags.end()) {
-        QNDEBUG("Unable to find tag within the list of tags waiting for processing");
+        QString errorDescription = QT_TR_NOOP("Can't find tag by name within the list of remote tags waiting for processing");
+        QNWARNING(errorDescription << ": tag = " << tag);
+        emit failure(errorDescription);
         return;
     }
 
@@ -104,7 +117,7 @@ void FullSynchronizationManager::onFindTagCompleted(Tag tag)
     if (!remoteTag.updateSequenceNum.isSet()) {
         QString errorDescription = QT_TR_NOOP("Found tag from sync chunk without the update sequence number");
         QNWARNING(errorDescription << ": " << remoteTag);
-        emit error(errorDescription);
+        emit failure(errorDescription);
     }
 
     if (!tag.hasUpdateSequenceNumber() || (remoteTag.updateSequenceNum.ref() > tag.updateSequenceNumber()))
@@ -130,16 +143,11 @@ void FullSynchronizationManager::onFindTagCompleted(Tag tag)
             tag.setName(QObject::tr("Conflicted tag ") + tag.name() + "(" + currentDateTime + ")");
             tag.setLocal(true);
 
-            // Using event loop should ensure the update of local conflicting tag would be finished properly
-            // before we add the remote tag with the same guid
-            QEventLoop loop;
-            QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagComplete(Tag)), &loop, SLOT(quit()));
-            QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagFailed(Tag,QString)), &loop, SLOT(quit()));
-            emit updateTag(tag);
-            loop.exec();
-
+            QUuid updateRequestId = QUuid::createUuid();
             Tag newTag(remoteTag);
-            emit addTag(newTag);
+            m_tagsToAddPerRenamingUpdateRequestId[updateRequestId] = newTag;
+
+            emit updateTag(tag, updateRequestId);
         }
     }
 
@@ -149,26 +157,37 @@ void FullSynchronizationManager::onFindTagCompleted(Tag tag)
     }
 }
 
-void FullSynchronizationManager::onFindTagFailed(Tag tag)
+void FullSynchronizationManager::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    QNDEBUG("FullSynchronizationManager::onFindTagFailed: tag = " << tag);
+    QNDEBUG("FullSynchronizationManager::onFindTagFailed: tag = " << tag
+            << ", errorDescription = " << errorDescription << ", requestId = " << requestId);
+
+    if (requestId != m_findTagRequestId) {
+        QNDEBUG("Request id doesn't match, exiting");
+        return;
+    }
 
     // Attempt to find this tag by name within the list of tags waiting for processing;
     // first simply try the front tag from the list to avoid the costly lookup
     if (!tag.hasName()) {
+        QString errorDescription = QT_TR_NOOP("Found tag with empty name in local storage");
+        QNWARNING(errorDescription << ": tag = " << tag);
+        emit failure(errorDescription);
+        return;
+    }
+
+    TagsList::iterator it = findTagInList(tag.name());
+    if (it == m_tags.end()) {
+        QString errorDescription = QT_TR_NOOP("Can't find tag by name within the list of remote tags waiting for processing");
+        QNWARNING(errorDescription << ": tag = " << tag);
+        emit failure(errorDescription);
         return;
     }
 
     // Ok, this tag wasn't found in the local storage, need to add it there
     // also removing the tag from the list of tags waiting for processing
-    TagsList::iterator it = findTagInList(tag.name());
-    if (it == m_tags.end()) {
-        QNDEBUG("Unable to find tag within the list of tags waiting for processing");
-        return;
-    }
 
-    Tag newTag;
-    newTag.setName(tag.name());
+    Tag newTag(*it);
     emit addTag(newTag);
 
     m_tags.erase(it);
@@ -177,98 +196,144 @@ void FullSynchronizationManager::onFindTagFailed(Tag tag)
     }
 }
 
-void FullSynchronizationManager::onFindResourceCompleted(ResourceWrapper resource)
+void FullSynchronizationManager::onFindResourceCompleted(ResourceWrapper resource, bool withResourceBinaryData, QUuid requestId)
 {
     // TODO: implement
 }
 
-void FullSynchronizationManager::onFindResourceFailed(ResourceWrapper resource)
+void FullSynchronizationManager::onFindResourceFailed(ResourceWrapper resource, bool withResourceBinaryData, QString errorDescription, QUuid requestId)
 {
     // TODO: implement
 }
 
-void FullSynchronizationManager::onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook)
+void FullSynchronizationManager::onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
 {
     // TODO: implement
 }
 
-void FullSynchronizationManager::onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook)
+void FullSynchronizationManager::onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId)
 {
     // TODO: implement
 }
 
-void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSearch)
+void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId)
 {
     // TODO: implement
 }
 
-void FullSynchronizationManager::onFindSavedSearchFailed(SavedSearch savedSearch)
+void FullSynchronizationManager::onFindSavedSearchFailed(SavedSearch savedSearch, QString errorDescription, QUuid requestId)
 {
     // TODO: implement
+}
+
+void FullSynchronizationManager::onAddTagCompleted(Tag tag, QUuid requestId)
+{
+    // TODO: implement
+}
+
+void FullSynchronizationManager::onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+{
+    // TODO: implement
+}
+
+void FullSynchronizationManager::onUpdateTagCompleted(Tag tag, QUuid requestId)
+{
+    QNDEBUG("FullSynchronizationManager::onUpdateTagCompleted: tag = " << tag
+            << ", requestId = " << requestId);
+
+    QHash<QUuid,Tag>::iterator it = m_tagsToAddPerRenamingUpdateRequestId.find(requestId);
+    if (it != m_tagsToAddPerRenamingUpdateRequestId.end())
+    {
+        Tag tagToAdd = it.value();
+        Q_UNUSED(m_tagsToAddPerRenamingUpdateRequestId.erase(it));
+
+        QNDEBUG("Adding new tag after renaming the dirty local duplicate: " << tagToAdd);
+        emit addTag(tagToAdd);
+    }
+}
+
+void FullSynchronizationManager::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+{
+    QNDEBUG("FullSynchronizationManager::onUpdateTagFailed: tag = " << tag << ", errorDescription = "
+            << errorDescription << ", requestId = " << requestId);
+
+    QHash<QUuid,Tag>::iterator it = m_tagsToAddPerRenamingUpdateRequestId.find(requestId);
+    if (it != m_tagsToAddPerRenamingUpdateRequestId.end())
+    {
+        QString error = QT_TR_NOOP("Can't rename local dirty duplicate tag in local storage: ");
+        error += errorDescription;
+        emit failure(error);
+    }
 }
 
 void FullSynchronizationManager::createConnections()
 {
     // Connect local signals with localStorageManagerThread's slots
-    QObject::connect(this, SIGNAL(addUser(UserWrapper)), &m_localStorageManagerThreadWorker, SLOT(onAddUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(updateUser(UserWrapper)), &m_localStorageManagerThreadWorker, SLOT(onUpdateUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(findUser(UserWrapper)), &m_localStorageManagerThreadWorker, SLOT(onFindUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(deleteUser(UserWrapper)), &m_localStorageManagerThreadWorker, SLOT(onDeleteUserRequest(UserWrapper)));
-    QObject::connect(this, SIGNAL(expungeUser(UserWrapper)), &m_localStorageManagerThreadWorker, SLOT(onExpungeUserRequest(UserWrapper)));
+    QObject::connect(this, SIGNAL(addUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddUserRequest(UserWrapper,QUuid)));
+    QObject::connect(this, SIGNAL(updateUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateUserRequest(UserWrapper,QUuid)));
+    QObject::connect(this, SIGNAL(findUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindUserRequest(UserWrapper,QUuid)));
+    QObject::connect(this, SIGNAL(deleteUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onDeleteUserRequest(UserWrapper,QUuid)));
+    QObject::connect(this, SIGNAL(expungeUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeUserRequest(UserWrapper,QUuid)));
 
-    QObject::connect(this, SIGNAL(addNotebook(Notebook)), &m_localStorageManagerThreadWorker, SLOT(onAddNotebookRequest(Notebook)));
-    QObject::connect(this, SIGNAL(updateNotebook(Notebook)), &m_localStorageManagerThreadWorker, SLOT(onUpdateNotebookRequest(Notebook)));
-    QObject::connect(this, SIGNAL(findNotebook(Notebook)), &m_localStorageManagerThreadWorker, SLOT(onFindNotebookRequest(Notebook)));
-    QObject::connect(this, SIGNAL(expungeNotebook(Notebook)), &m_localStorageManagerThreadWorker, SLOT(onExpungeNotebookRequest(Notebook)));
+    QObject::connect(this, SIGNAL(addNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddNotebookRequest(Notebook,QUuid)));
+    QObject::connect(this, SIGNAL(updateNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateNotebookRequest(Notebook,QUuid)));
+    QObject::connect(this, SIGNAL(findNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindNotebookRequest(Notebook,QUuid)));
+    QObject::connect(this, SIGNAL(expungeNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeNotebookRequest(Notebook,QUuid)));
 
-    QObject::connect(this, SIGNAL(addNote(Note,Notebook)), &m_localStorageManagerThreadWorker, SLOT(onAddNoteRequest(Note,Notebook)));
-    QObject::connect(this, SIGNAL(updateNote(Note,Notebook)), &m_localStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook)));
-    QObject::connect(this, SIGNAL(findNote(Note,bool)), &m_localStorageManagerThreadWorker, SLOT(onFindNoteRequest(Note,bool)));
-    QObject::connect(this, SIGNAL(deleteNote(Note)), &m_localStorageManagerThreadWorker, SLOT(onDeleteNoteRequest(Note)));
-    QObject::connect(this, SIGNAL(expungeNote(Note)), &m_localStorageManagerThreadWorker, SLOT(onExpungeNoteRequest(Note)));
+    QObject::connect(this, SIGNAL(addNote(Note,Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddNoteRequest(Note,Notebook,QUuid)));
+    QObject::connect(this, SIGNAL(updateNote(Note,Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook,QUuid)));
+    QObject::connect(this, SIGNAL(findNote(Note,bool,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindNoteRequest(Note,bool,QUuid)));
+    QObject::connect(this, SIGNAL(deleteNote(Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onDeleteNoteRequest(Note,QUuid)));
+    QObject::connect(this, SIGNAL(expungeNote(Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeNoteRequest(Note,QUuid)));
 
-    QObject::connect(this, SIGNAL(addTag(Tag)), &m_localStorageManagerThreadWorker, SLOT(onAddTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(updateTag(Tag)), &m_localStorageManagerThreadWorker, SLOT(onUpdateTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(findTag(Tag)), &m_localStorageManagerThreadWorker, SLOT(onFindTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(deleteTag(Tag)), &m_localStorageManagerThreadWorker, SLOT(onDeleteTagRequest(Tag)));
-    QObject::connect(this, SIGNAL(expungeTag(Tag)), &m_localStorageManagerThreadWorker, SLOT(onExpungeTagRequest(Tag)));
+    QObject::connect(this, SIGNAL(addTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddTagRequest(Tag,QUuid)));
+    QObject::connect(this, SIGNAL(updateTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateTagRequest(Tag,QUuid)));
+    QObject::connect(this, SIGNAL(findTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindTagRequest(Tag,QUuid)));
+    QObject::connect(this, SIGNAL(deleteTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onDeleteTagRequest(Tag,QUuid)));
+    QObject::connect(this, SIGNAL(expungeTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeTagRequest(Tag,QUuid)));
 
-    QObject::connect(this, SIGNAL(addResource(ResourceWrapper,Note)), &m_localStorageManagerThreadWorker, SLOT(onAddResourceRequest(ResourceWrapper,Note)));
-    QObject::connect(this, SIGNAL(updateResource(ResourceWrapper,Note)), &m_localStorageManagerThreadWorker, SLOT(onUpdateResourceRequest(ResourceWrapper,Note)));
-    QObject::connect(this, SIGNAL(findResource(ResourceWrapper,bool)), &m_localStorageManagerThreadWorker, SLOT(onFindResourceRequest(ResourceWrapper,bool)));
-    QObject::connect(this, SIGNAL(expungeResource(ResourceWrapper)), &m_localStorageManagerThreadWorker, SLOT(onExpungeResourceRequest(ResourceWrapper)));
+    QObject::connect(this, SIGNAL(addResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddResourceRequest(ResourceWrapper,Note,QUuid)));
+    QObject::connect(this, SIGNAL(updateResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateResourceRequest(ResourceWrapper,Note,QUuid)));
+    QObject::connect(this, SIGNAL(findResource(ResourceWrapper,bool,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindResourceRequest(ResourceWrapper,bool,QUuid)));
+    QObject::connect(this, SIGNAL(expungeResource(ResourceWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeResourceRequest(ResourceWrapper,QUuid)));
 
-    QObject::connect(this, SIGNAL(addLinkedNotebook(LinkedNotebook)), &m_localStorageManagerThreadWorker, SLOT(onAddLinkedNotebookRequest(LinkedNotebook)));
-    QObject::connect(this, SIGNAL(updateLinkedNotebook(LinkedNotebook)), &m_localStorageManagerThreadWorker, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook)));
-    QObject::connect(this, SIGNAL(findLinkedNotebook(LinkedNotebook)), &m_localStorageManagerThreadWorker, SLOT(onFindLinkedNotebookRequest(LinkedNotebook)));
-    QObject::connect(this, SIGNAL(expungeLinkedNotebook(LinkedNotebook)), &m_localStorageManagerThreadWorker, SLOT(onExpungeLinkedNotebookRequest(LinkedNotebook)));
+    QObject::connect(this, SIGNAL(addLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddLinkedNotebookRequest(LinkedNotebook,QUuid)));
+    QObject::connect(this, SIGNAL(updateLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook,QUuid)));
+    QObject::connect(this, SIGNAL(findLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindLinkedNotebookRequest(LinkedNotebook,QUuid)));
+    QObject::connect(this, SIGNAL(expungeLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeLinkedNotebookRequest(LinkedNotebook,QUuid)));
 
-    QObject::connect(this, SIGNAL(addSavedSearch(SavedSearch)), &m_localStorageManagerThreadWorker, SLOT(onAddSavedSearchRequest(SavedSearch)));
-    QObject::connect(this, SIGNAL(updateSavedSearch(SavedSearch)), &m_localStorageManagerThreadWorker, SLOT(onUpdateSavedSearchRequest(SavedSearch)));
-    QObject::connect(this, SIGNAL(findSavedSearch(SavedSearch)), &m_localStorageManagerThreadWorker, SLOT(onFindSavedSearchRequest(SavedSearch)));
-    QObject::connect(this, SIGNAL(expungeSavedSearch(SavedSearch)), &m_localStorageManagerThreadWorker, SLOT(onExpungeSavedSearch(SavedSearch)));
+    QObject::connect(this, SIGNAL(addSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddSavedSearchRequest(SavedSearch,QUuid)));
+    QObject::connect(this, SIGNAL(updateSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateSavedSearchRequest(SavedSearch,QUuid)));
+    QObject::connect(this, SIGNAL(findSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindSavedSearchRequest(SavedSearch,QUuid)));
+    QObject::connect(this, SIGNAL(expungeSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeSavedSearch(SavedSearch,QUuid)));
 
     // Connect localStorageManagerThread's signals to local slots
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findUserComplete(UserWrapper)), this, SLOT(onFindUserCompleted(UserWrapper)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findUserFailed(UserWrapper,QString)), this, SLOT(onFindUserFailed(UserWrapper)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findUserComplete(UserWrapper,QUuid)), this, SLOT(onFindUserCompleted(UserWrapper,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findUserFailed(UserWrapper,QString,QUuid)), this, SLOT(onFindUserFailed(UserWrapper,QString,QUuid)));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findNotebookComplete(Notebook)), this, SLOT(onFindNotebookCompleted(Notebook)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findNotebookFailed(Notebook,QString)), this, SLOT(onFindNotebookFailed(Notebook)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findNotebookComplete(Notebook,QUuid)), this, SLOT(onFindNotebookCompleted(Notebook,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onFindNotebookFailed(Notebook,QString,QUuid)));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findNoteComplete(Note,bool)), this, SLOT(onFindNoteCompleted(Note)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findNoteFailed(Note,bool,QString)), this, SLOT(onFindNoteFailed(Note)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findNoteComplete(Note,bool,QUuid)), this, SLOT(onFindNoteCompleted(Note,bool,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findNoteFailed(Note,bool,QString,QUuid)), this, SLOT(onFindNoteFailed(Note,bool,QString,QUuid)));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findTagComplete(Tag)), this, SLOT(onFindTagCompleted(Tag)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findTagFailed(Tag,QString)), this, SLOT(onFindTagFailed(Tag)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findTagComplete(Tag,QUuid)), this, SLOT(onFindTagCompleted(Tag,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findTagFailed(Tag,QString,QUuid)), this, SLOT(onFindTagFailed(Tag,QString,QUuid)));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findResourceComplete(ResourceWrapper,bool)), this, SLOT(onFindResourceCompleted(ResourceWrapper)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findResourceFailed(ResourceWrapper,bool,QString)), this, SLOT(onFindResourceFailed(ResourceWrapper)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findResourceComplete(ResourceWrapper,bool,QUuid)), this, SLOT(onFindResourceCompleted(ResourceWrapper,bool,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findResourceFailed(ResourceWrapper,bool,QString,QUuid)), this, SLOT(onFindResourceFailed(ResourceWrapper,bool,QString,QUuid)));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findLinkedNotebookComplete(LinkedNotebook)), this, SLOT(onFindLinkedNotebookCompleted(LinkedNotebook)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findLinkedNotebookFailed(LinkedNotebook,QString)), this, SLOT(onFindLinkedNotebookFailed(LinkedNotebook)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findLinkedNotebookComplete(LinkedNotebook,QUuid)), this, SLOT(onFindLinkedNotebookCompleted(LinkedNotebook,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findLinkedNotebookFailed(LinkedNotebook,QString,QUuid)), this, SLOT(onFindLinkedNotebookFailed(LinkedNotebook,QString,QUuid)));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findSavedSearchComplete(SavedSearch)), this, SLOT(onFindSavedSearchCompleted(SavedSearch)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findSavedSearchFailed(SavedSearch,QString)), this, SLOT(onFindSavedSearchFailed(SavedSearch)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findSavedSearchComplete(SavedSearch,QUuid)), this, SLOT(onFindSavedSearchCompleted(SavedSearch,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findSavedSearchFailed(SavedSearch,QString,QUuid)), this, SLOT(onFindSavedSearchFailed(SavedSearch,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addTagComplete(Tag,QUuid)), this, SLOT(onAddTagCompleted(Tag,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addTagFailed(Tag,QString,QUuid)), this, SLOT(onAddTagFailed(Tag,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagComplete(Tag,QUuid)), this, SLOT(onUpdateTagCompleted(Tag,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagFailed(Tag,QString,QUuid)), this, SLOT(onUpdateTagFailed(Tag,QString,QUuid)));
 }
 
 void FullSynchronizationManager::launchTagsSync()
@@ -288,30 +353,38 @@ void FullSynchronizationManager::launchTagsSync()
         return;
     }
 
-    Tag tagToFind;
-    tagToFind.unsetLocalGuid();
+    int numTags = m_tags.size();
+    for(int i = 0; i < numTags; ++i)
+    {
+        Tag tagToFind;
+        tagToFind.unsetLocalGuid();
 
-    const qevercloud::Tag & frontTag = m_tags.front();
-    if (frontTag.name.isSet() && !frontTag.name->isEmpty()) {
-        tagToFind.setName(frontTag.name.ref());
-    }
-    else if (frontTag.guid.isSet() && !frontTag.guid->isEmpty()) {
-        tagToFind.setGuid(frontTag.guid.ref());
-    }
-    else {
-        QString errorDescription = QT_TR_NOOP("Can't synchronize remote tag: no guid and no name");
-        QNWARNING(errorDescription << ": " << frontTag);
-        emit error(errorDescription);
-        return;
-    }
+        const qevercloud::Tag & remoteTag = m_tags[i];
+        if (remoteTag.name.isSet() && !remoteTag.name->isEmpty()) {
+            tagToFind.setName(remoteTag.name.ref());
+        }
+        else if (remoteTag.guid.isSet() && !remoteTag.guid->isEmpty()) {
+            tagToFind.setGuid(remoteTag.guid.ref());
+        }
+        else {
+            QString errorDescription = QT_TR_NOOP("Can't synchronize remote tag: no guid and no name");
+            QNWARNING(errorDescription << ": " << remoteTag);
+            emit failure(errorDescription);
+            return;
+        }
 
-    emit findTag(tagToFind);
+        m_findTagRequestId = QUuid::createUuid();
+        emit findTag(tagToFind, m_findTagRequestId);
+    }
 }
 
 FullSynchronizationManager::TagsList::iterator FullSynchronizationManager::findTagInList(const QString & name)
 {
-    // Try the front tag first, in most cases it should be it
+    if (m_tags.empty()) {
+        return m_tags.end();
+    }
 
+    // Try the front tag first, in most cases it should be it
     const qevercloud::Tag & frontTag = m_tags.front();
     TagsList::iterator it = m_tags.begin();
 
