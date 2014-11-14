@@ -18,7 +18,9 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_syncChunks(),
     m_tags(),
     m_tagsToAddPerRenamingUpdateRequestId(),
-    m_findTagRequestId()
+    m_findTagRequestId(),
+    m_addTagRequestIds(),
+    m_updateTagRequestIds()
 {
     createConnections();
 }
@@ -127,7 +129,9 @@ void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
             // Remote tag is more recent, need to update the tag existing in local storage
             Tag updatedTag(remoteTag);
             updatedTag.unsetLocalGuid();
-            emit updateTag(updatedTag);
+            QUuid updateTagRequestId = QUuid::createUuid();
+            Q_UNUSED(m_updateTagRequestIds.insert(updateTagRequestId));
+            emit updateTag(updatedTag, updateTagRequestId);
         }
         else
         {
@@ -143,11 +147,12 @@ void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
             tag.setName(QObject::tr("Conflicted tag ") + tag.name() + "(" + currentDateTime + ")");
             tag.setLocal(true);
 
-            QUuid updateRequestId = QUuid::createUuid();
+            QUuid updateTagRequestId = QUuid::createUuid();
             Tag newTag(remoteTag);
-            m_tagsToAddPerRenamingUpdateRequestId[updateRequestId] = newTag;
+            m_tagsToAddPerRenamingUpdateRequestId[updateTagRequestId] = newTag;
+            Q_UNUSED(m_updateTagRequestIds.insert(updateTagRequestId));
 
-            emit updateTag(tag, updateRequestId);
+            emit updateTag(tag, updateTagRequestId);
         }
     }
 
@@ -188,7 +193,9 @@ void FullSynchronizationManager::onFindTagFailed(Tag tag, QString errorDescripti
     // also removing the tag from the list of tags waiting for processing
 
     Tag newTag(*it);
-    emit addTag(newTag);
+    QUuid addTagRequestId = QUuid::createUuid();
+    Q_UNUSED(m_addTagRequestIds.insert(addTagRequestId));
+    emit addTag(newTag, addTagRequestId);
 
     m_tags.erase(it);
     if (m_tags.empty()) {
@@ -228,41 +235,80 @@ void FullSynchronizationManager::onFindSavedSearchFailed(SavedSearch savedSearch
 
 void FullSynchronizationManager::onAddTagCompleted(Tag tag, QUuid requestId)
 {
-    // TODO: implement
+    QSet<QUuid>::iterator it = m_addTagRequestIds.find(requestId);
+    if (it != m_addTagRequestIds.end())
+    {
+        QNDEBUG("FullSynchronizationManager::onAddTagCompleted: tag = " << tag
+                << ", requestId = " << requestId);
+        Q_UNUSED(m_addTagRequestIds.erase(it));
+    }
 }
 
 void FullSynchronizationManager::onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
+    QSet<QUuid>::iterator it = m_addTagRequestIds.find(requestId);
+    if (it != m_addTagRequestIds.end())
+    {
+        QNWARNING("FullSynchronizationManager::onAddTagFailed: tag = " << tag
+                  << ", error description = " << errorDescription << ", requestId = " << requestId);
+
+        Q_UNUSED(m_addTagRequestIds.erase(it));
+
+        QString error = QT_TR_NOOP("Can't add remote tag to local storage: ");
+        error += errorDescription;
+        emit failure(error);
+    }
 }
 
 void FullSynchronizationManager::onUpdateTagCompleted(Tag tag, QUuid requestId)
 {
-    QNDEBUG("FullSynchronizationManager::onUpdateTagCompleted: tag = " << tag
-            << ", requestId = " << requestId);
-
-    QHash<QUuid,Tag>::iterator it = m_tagsToAddPerRenamingUpdateRequestId.find(requestId);
-    if (it != m_tagsToAddPerRenamingUpdateRequestId.end())
+    QSet<QUuid>::iterator it = m_updateTagRequestIds.find(requestId);
+    if (it != m_updateTagRequestIds.end())
     {
-        Tag tagToAdd = it.value();
-        Q_UNUSED(m_tagsToAddPerRenamingUpdateRequestId.erase(it));
+        QNDEBUG("FullSynchronizationManager::onUpdateTagCompleted: tag = " << tag
+                << ", requestId = " << requestId);
 
-        QNDEBUG("Adding new tag after renaming the dirty local duplicate: " << tagToAdd);
-        emit addTag(tagToAdd);
+        Q_UNUSED(m_updateTagRequestIds.erase(it));
+
+        QHash<QUuid,Tag>::iterator addIt = m_tagsToAddPerRenamingUpdateRequestId.find(requestId);
+        if (addIt != m_tagsToAddPerRenamingUpdateRequestId.end())
+        {
+            Tag tagToAdd = addIt.value();
+            Q_UNUSED(m_tagsToAddPerRenamingUpdateRequestId.erase(addIt));
+
+            QNDEBUG("Adding new tag after renaming the dirty local duplicate: " << tagToAdd);
+            QUuid addTagRequestId = QUuid::createUuid();
+            Q_UNUSED(m_addTagRequestIds.insert(addTagRequestId));
+            emit addTag(tagToAdd, addTagRequestId);
+        }
     }
 }
 
 void FullSynchronizationManager::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    QNDEBUG("FullSynchronizationManager::onUpdateTagFailed: tag = " << tag << ", errorDescription = "
-            << errorDescription << ", requestId = " << requestId);
-
-    QHash<QUuid,Tag>::iterator it = m_tagsToAddPerRenamingUpdateRequestId.find(requestId);
-    if (it != m_tagsToAddPerRenamingUpdateRequestId.end())
+    QSet<QUuid>::iterator it = m_updateTagRequestIds.find(requestId);
+    if (it != m_updateTagRequestIds.end())
     {
-        QString error = QT_TR_NOOP("Can't rename local dirty duplicate tag in local storage: ");
-        error += errorDescription;
-        emit failure(error);
+        QNWARNING("FullSynchronizationManager::onUpdateTagFailed: tag = " << tag << ", errorDescription = "
+                  << errorDescription << ", requestId = " << requestId);
+
+        Q_UNUSED(m_updateTagRequestIds.erase(it));
+
+        QHash<QUuid,Tag>::iterator addIt = m_tagsToAddPerRenamingUpdateRequestId.find(requestId);
+        if (addIt != m_tagsToAddPerRenamingUpdateRequestId.end())
+        {
+            Q_UNUSED(m_tagsToAddPerRenamingUpdateRequestId.erase(addIt));
+
+            QString error = QT_TR_NOOP("Can't rename local dirty duplicate tag in local storage: ");
+            error += errorDescription;
+            emit failure(error);
+        }
+        else
+        {
+            QString error = QT_TR_NOOP("Can't update remote tag in local storage: ");
+            error += errorDescription;
+            emit failure(error);
+        }
     }
 }
 

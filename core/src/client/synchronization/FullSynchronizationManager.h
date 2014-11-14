@@ -125,9 +125,11 @@ private:
 
     QVector<qevercloud::SyncChunk>  m_syncChunks;
 
-    TagsList    m_tags;
+    TagsList            m_tags;
     QHash<QUuid,Tag>    m_tagsToAddPerRenamingUpdateRequestId;
-    QUuid       m_findTagRequestId;
+    QUuid               m_findTagRequestId;
+    QSet<QUuid>         m_addTagRequestIds;
+    QSet<QUuid>         m_updateTagRequestIds;
 };
 
 } // namespace qute_note
