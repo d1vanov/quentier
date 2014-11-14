@@ -822,3 +822,57 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::Tag & tag)
 
     return strm;
 }
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::SavedSearch & savedSearch)
+{
+    strm << "qevercloud::SavedSearch: { \n";
+    QString indent = "  ";
+
+    strm << indent << "guid = " << (savedSearch.guid.isSet() ? savedSearch.guid.ref() : "<empty>") << "; \n";
+    strm << indent << "name = " << (savedSearch.name.isSet() ? savedSearch.name.ref() : "<empty>") << "; \n";
+    strm << indent << "query = " << (savedSearch.query.isSet() ? savedSearch.query.ref() : "<empty>") << "; \n";
+
+    strm << indent << "format = ";
+    if (savedSearch.format.isSet())
+    {
+        switch(savedSearch.format.ref())
+        {
+        case qevercloud::QueryFormat::USER:
+            strm << "USER";
+            break;
+        case qevercloud::QueryFormat::SEXP:
+            strm << "SEXP";
+            break;
+        default:
+            strm << "UNKNOWN";
+            break;
+        }
+    }
+    else
+    {
+        strm << "<empty>";
+    }
+
+    strm << "; \n";
+
+    strm << indent << "updateSequenceNum = " << (savedSearch.updateSequenceNum.isSet()
+                                                 ? QString::number(savedSearch.updateSequenceNum.ref())
+                                                 : "<empty>");
+    strm << indent << "SavedSearchScope = ";
+    if (savedSearch.scope.isSet())
+    {
+        strm << "{ \n";
+        strm << indent << indent << "includeAccount = " << (savedSearch.scope->includeAccount ? "true" : "false") << "; \n";
+        strm << indent << indent << "includePersonalLinkedNotebooks = " << (savedSearch.scope->includePersonalLinkedNotebooks ? "true" : "false") << "; \n";
+        strm << indent << indent << "includeBusinessLinkedNotebooks = " << (savedSearch.scope->includeBusinessLinkedNotebooks ? "true" : "false") << "; \n";
+        strm << indent << "}; \n";
+    }
+    else
+    {
+        strm << "<empty>; \n";
+    }
+
+    strm << "}; \n";
+
+    return strm;
+}

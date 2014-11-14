@@ -98,20 +98,29 @@ private:
     void createConnections();
 
     void launchTagsSync();
+    void launchSavedSearchSync();
 
 private:
     typedef QList<qevercloud::Tag> TagsList;
     TagsList::iterator findTagInList(const QString & name);
 
+    typedef QList<qevercloud::SavedSearch> SavedSearchesList;
+    SavedSearchesList::iterator findSavedSearchInList(const QString & name);
+
+    template <class ContainerType, class Predicate>
+    typename ContainerType::iterator findItemByName(ContainerType & container,
+                                                    const QString & name);
+
 private:
     FullSynchronizationManager() Q_DECL_DELETE;
 
 private:
-    class CompareTagByName
+    template <class T>
+    class CompareItemByName
     {
     public:
-        CompareTagByName(const QString & name) : m_name(name) {}
-        bool operator()(const qevercloud::Tag & tag) const;
+        CompareItemByName(const QString & name) : m_name(name) {}
+        bool operator()(const T & item) const;
 
     private:
         const QString m_name;
@@ -127,9 +136,12 @@ private:
 
     TagsList            m_tags;
     QHash<QUuid,Tag>    m_tagsToAddPerRenamingUpdateRequestId;
-    QUuid               m_findTagRequestId;
+    QSet<QUuid>         m_findTagRequestIds;
     QSet<QUuid>         m_addTagRequestIds;
     QSet<QUuid>         m_updateTagRequestIds;
+
+    SavedSearchesList   m_savedSearches;
+    QSet<QUuid>         m_findSavedSearchRequestIds;
 };
 
 } // namespace qute_note

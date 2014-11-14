@@ -70,5 +70,6 @@ __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::ResourceAttributes)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Resource)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SyncChunk)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Tag)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SavedSearch)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

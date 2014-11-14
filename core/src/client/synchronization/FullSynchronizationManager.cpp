@@ -18,9 +18,11 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_syncChunks(),
     m_tags(),
     m_tagsToAddPerRenamingUpdateRequestId(),
-    m_findTagRequestId(),
+    m_findTagRequestIds(),
     m_addTagRequestIds(),
-    m_updateTagRequestIds()
+    m_updateTagRequestIds(),
+    m_savedSearches(),
+    m_findSavedSearchRequestIds()
 {
     createConnections();
 }
@@ -53,6 +55,8 @@ void FullSynchronizationManager::start()
 
     QNDEBUG("Done. Processing tags from buffered sync chunks");
 
+    launchTagsSync();
+    launchSavedSearchSync();
 
     // TODO: continue from here
 }
@@ -89,13 +93,13 @@ void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBi
 
 void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
 {
-    QNDEBUG("FullSynchronizationManager::onFindTagCompleted: tag = " << tag
-            << ", requestId = " << requestId);
-
-    if (requestId != m_findTagRequestId) {
-        QNDEBUG("Request id doesn't match, exiting");
+    QSet<QUuid>::iterator rit = m_findTagRequestIds.find(requestId);
+    if (rit == m_findTagRequestIds.end()) {
         return;
     }
+
+    QNDEBUG("FullSynchronizationManager::onFindTagCompleted: tag = " << tag
+            << ", requestId = " << requestId);
 
     // Attempt to find this tag by name within the list of tags waiting for processing;
     // first simply try the front tag from the list to avoid the costly lookup
@@ -156,21 +160,18 @@ void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
         }
     }
 
-    m_tags.erase(it);
-    if (m_tags.empty()) {
-        // TODO: done with tags, launch the sync of saved searches
-    }
+    Q_UNUSED(m_tags.erase(it));
 }
 
 void FullSynchronizationManager::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    QNDEBUG("FullSynchronizationManager::onFindTagFailed: tag = " << tag
-            << ", errorDescription = " << errorDescription << ", requestId = " << requestId);
-
-    if (requestId != m_findTagRequestId) {
-        QNDEBUG("Request id doesn't match, exiting");
+    QSet<QUuid>::iterator rit = m_findTagRequestIds.find(requestId);
+    if (rit == m_findTagRequestIds.end()) {
         return;
     }
+
+    QNDEBUG("FullSynchronizationManager::onFindTagFailed: tag = " << tag
+            << ", errorDescription = " << errorDescription << ", requestId = " << requestId);
 
     // Attempt to find this tag by name within the list of tags waiting for processing;
     // first simply try the front tag from the list to avoid the costly lookup
@@ -197,10 +198,7 @@ void FullSynchronizationManager::onFindTagFailed(Tag tag, QString errorDescripti
     Q_UNUSED(m_addTagRequestIds.insert(addTagRequestId));
     emit addTag(newTag, addTagRequestId);
 
-    m_tags.erase(it);
-    if (m_tags.empty()) {
-        // TODO: done with tags, launch the sync of saved searches
-    }
+    Q_UNUSED(m_tags.erase(it));
 }
 
 void FullSynchronizationManager::onFindResourceCompleted(ResourceWrapper resource, bool withResourceBinaryData, QUuid requestId)
@@ -387,15 +385,17 @@ void FullSynchronizationManager::launchTagsSync()
     QNDEBUG("FullSynchronizationManager::launchTagsSync");
 
     m_tags.clear();
-    foreach(const qevercloud::SyncChunk & syncChunk, m_syncChunks)
+    int numSyncChunks = m_syncChunks.size();
+    for(int i = 0; i < numSyncChunks; ++i)
     {
+        const qevercloud::SyncChunk & syncChunk = m_syncChunks[i];
+
         if (syncChunk.tags.isSet()) {
             m_tags.append(syncChunk.tags.ref());
         }
     }
 
     if (m_tags.empty()) {
-        // TODO: nothing to synchronize, launch the sync of saved searches
         return;
     }
 
@@ -419,32 +419,91 @@ void FullSynchronizationManager::launchTagsSync()
             return;
         }
 
-        m_findTagRequestId = QUuid::createUuid();
-        emit findTag(tagToFind, m_findTagRequestId);
+        QUuid findTagRequestId = QUuid::createUuid();
+        Q_UNUSED(m_findTagRequestIds.insert(findTagRequestId));
+        emit findTag(tagToFind, findTagRequestId);
+    }
+}
+
+void FullSynchronizationManager::launchSavedSearchSync()
+{
+    QNDEBUG("FullSynchronizationManager::launchSavedSearchSync");
+
+    m_savedSearches.clear();
+    int numSyncChunks = m_syncChunks.size();
+    for(int i = 0; i < numSyncChunks; ++i)
+    {
+        const qevercloud::SyncChunk & syncChunk = m_syncChunks[i];
+
+        if (syncChunk.searches.isSet()) {
+            m_savedSearches.append(syncChunk.searches.ref());
+        }
+    }
+
+    if (m_savedSearches.empty()) {
+        return;
+    }
+
+    int numSavedSearches = m_savedSearches.size();
+    for(int i = 0; i < numSavedSearches; ++i)
+    {
+        SavedSearch searchToFind;
+        searchToFind.unsetLocalGuid();
+
+        const qevercloud::SavedSearch & remoteSearch = m_savedSearches[i];
+        if (remoteSearch.name.isSet() && !remoteSearch.name->isEmpty()) {
+            searchToFind.setName(remoteSearch.name.ref());
+        }
+        else if (remoteSearch.guid.isSet() && !remoteSearch.guid->isEmpty()) {
+            searchToFind.setGuid(remoteSearch.guid.ref());
+        }
+        else {
+            QString errorDescription = QT_TR_NOOP("Can't synchronize remote saved search: no guid and no name");
+            QNWARNING(errorDescription << ": " << remoteSearch);
+            emit failure(errorDescription);
+            return;
+        }
+
+        QUuid findSavedSearchRequestId = QUuid::createUuid();
+        Q_UNUSED(m_findSavedSearchRequestIds.insert(findSavedSearchRequestId));
+        emit findSavedSearch(searchToFind, findSavedSearchRequestId);
     }
 }
 
 FullSynchronizationManager::TagsList::iterator FullSynchronizationManager::findTagInList(const QString & name)
 {
-    if (m_tags.empty()) {
-        return m_tags.end();
+    return findItemByName<TagsList, CompareItemByName<qevercloud::Tag> >(m_tags, name);
+}
+
+FullSynchronizationManager::SavedSearchesList::iterator FullSynchronizationManager::findSavedSearchInList(const QString & name)
+{
+    return findItemByName<SavedSearchesList, CompareItemByName<qevercloud::SavedSearch> >(m_savedSearches, name);
+}
+
+template <class ContainerType, class Predicate>
+typename ContainerType::iterator FullSynchronizationManager::findItemByName(ContainerType & container,
+                                                                            const QString & name)
+{
+    if (container.empty()) {
+        return container.end();
     }
 
-    // Try the front tag first, in most cases it should be it
-    const qevercloud::Tag & frontTag = m_tags.front();
-    TagsList::iterator it = m_tags.begin();
+    // Try the front element first, in most cases it should be it
+    const auto & frontItem = container.front();
+    typename ContainerType::iterator it = container.begin();
 
-    if (!frontTag.name.isSet() || (frontTag.name.ref() != name)) {
-        it = std::find_if(m_tags.begin(), m_tags.end(), CompareTagByName(name));
+    if (!frontItem.name.isSet() || (frontItem.name.ref() != name)) {
+        it = std::find_if(container.begin(), container.end(), Predicate(name));
     }
 
     return it;
 }
 
-bool FullSynchronizationManager::CompareTagByName::operator()(const qevercloud::Tag & tag) const
+template <class T>
+bool FullSynchronizationManager::CompareItemByName<T>::operator()(const T & item) const
 {
-    if (tag.name.isSet()) {
-        return (m_name == tag.name.ref());
+    if (item.name.isSet()) {
+        return (m_name == item.name.ref());
     }
     else {
         return false;
