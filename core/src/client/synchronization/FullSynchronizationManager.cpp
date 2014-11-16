@@ -383,90 +383,30 @@ void FullSynchronizationManager::createConnections()
 void FullSynchronizationManager::launchTagsSync()
 {
     QNDEBUG("FullSynchronizationManager::launchTagsSync");
-
-    m_tags.clear();
-    int numSyncChunks = m_syncChunks.size();
-    for(int i = 0; i < numSyncChunks; ++i)
-    {
-        const qevercloud::SyncChunk & syncChunk = m_syncChunks[i];
-
-        if (syncChunk.tags.isSet()) {
-            m_tags.append(syncChunk.tags.ref());
-        }
-    }
-
-    if (m_tags.empty()) {
-        return;
-    }
-
-    int numTags = m_tags.size();
-    for(int i = 0; i < numTags; ++i)
-    {
-        Tag tagToFind;
-        tagToFind.unsetLocalGuid();
-
-        const qevercloud::Tag & remoteTag = m_tags[i];
-        if (remoteTag.name.isSet() && !remoteTag.name->isEmpty()) {
-            tagToFind.setName(remoteTag.name.ref());
-        }
-        else if (remoteTag.guid.isSet() && !remoteTag.guid->isEmpty()) {
-            tagToFind.setGuid(remoteTag.guid.ref());
-        }
-        else {
-            QString errorDescription = QT_TR_NOOP("Can't synchronize remote tag: no guid and no name");
-            QNWARNING(errorDescription << ": " << remoteTag);
-            emit failure(errorDescription);
-            return;
-        }
-
-        QUuid findTagRequestId = QUuid::createUuid();
-        Q_UNUSED(m_findTagRequestIds.insert(findTagRequestId));
-        emit findTag(tagToFind, findTagRequestId);
-    }
+    launchDataElementSync<TagsList, Tag>("Tag", m_tags);
 }
 
 void FullSynchronizationManager::launchSavedSearchSync()
 {
     QNDEBUG("FullSynchronizationManager::launchSavedSearchSync");
+    launchDataElementSync<SavedSearchesList, SavedSearch>("Saved search", m_savedSearches);
+}
 
-    m_savedSearches.clear();
-    int numSyncChunks = m_syncChunks.size();
-    for(int i = 0; i < numSyncChunks; ++i)
-    {
-        const qevercloud::SyncChunk & syncChunk = m_syncChunks[i];
-
-        if (syncChunk.searches.isSet()) {
-            m_savedSearches.append(syncChunk.searches.ref());
-        }
+template <>
+void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<FullSynchronizationManager::TagsList>(const qevercloud::SyncChunk & syncChunk,
+                                                                                                                  FullSynchronizationManager::TagsList & container)
+{
+    if (syncChunk.tags.isSet()) {
+        container.append(syncChunk.tags.ref());
     }
+}
 
-    if (m_savedSearches.empty()) {
-        return;
-    }
-
-    int numSavedSearches = m_savedSearches.size();
-    for(int i = 0; i < numSavedSearches; ++i)
-    {
-        SavedSearch searchToFind;
-        searchToFind.unsetLocalGuid();
-
-        const qevercloud::SavedSearch & remoteSearch = m_savedSearches[i];
-        if (remoteSearch.name.isSet() && !remoteSearch.name->isEmpty()) {
-            searchToFind.setName(remoteSearch.name.ref());
-        }
-        else if (remoteSearch.guid.isSet() && !remoteSearch.guid->isEmpty()) {
-            searchToFind.setGuid(remoteSearch.guid.ref());
-        }
-        else {
-            QString errorDescription = QT_TR_NOOP("Can't synchronize remote saved search: no guid and no name");
-            QNWARNING(errorDescription << ": " << remoteSearch);
-            emit failure(errorDescription);
-            return;
-        }
-
-        QUuid findSavedSearchRequestId = QUuid::createUuid();
-        Q_UNUSED(m_findSavedSearchRequestIds.insert(findSavedSearchRequestId));
-        emit findSavedSearch(searchToFind, findSavedSearchRequestId);
+template <>
+void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<FullSynchronizationManager::SavedSearchesList>(const qevercloud::SyncChunk & syncChunk,
+                                                                                                                           FullSynchronizationManager::SavedSearchesList & container)
+{
+    if (syncChunk.searches.isSet()) {
+        container.append(syncChunk.searches.ref());
     }
 }
 
@@ -508,6 +448,62 @@ bool FullSynchronizationManager::CompareItemByName<T>::operator()(const T & item
     else {
         return false;
     }
+}
+
+template <class ContainerType, class LocalType>
+void FullSynchronizationManager::launchDataElementSync(const QString & typeName,
+                                                       ContainerType & container)
+{
+    container.clear();
+    int numSyncChunks = m_syncChunks.size();
+    for(int i = 0; i < numSyncChunks; ++i) {
+        const qevercloud::SyncChunk & syncChunk = m_syncChunks[i];
+        appendDataElementsFromSyncChunkToContainer<ContainerType>(syncChunk, container);
+    }
+
+    if (container.empty()) {
+        return;
+    }
+
+    int numElements = container.size();
+    for(int i = 0; i < numElements; ++i)
+    {
+        LocalType elementToFind;
+        elementToFind.unsetLocalGuid();
+
+        const typename ContainerType::value_type & remoteElement = container[i];
+        if (remoteElement.name.isSet() && !remoteElement.name->isEmpty()) {
+            elementToFind.setName(remoteElement.name.ref());
+        }
+        else if (remoteElement.guid.isSet() && !remoteElement.guid->isEmpty()) {
+            elementToFind.setGuid(remoteElement.guid.ref());
+        }
+        else {
+            QString errorDescription = QT_TR_NOOP("Can't synchronize remote " + typeName +
+                                                  ": no guid and no name");
+            QNWARNING(errorDescription << ": " << remoteElement);
+            emit failure(errorDescription);
+            return;
+        }
+
+        emitFindRequest<LocalType>(elementToFind);
+    }
+}
+
+template <>
+void FullSynchronizationManager::emitFindRequest<Tag>(const Tag & tag)
+{
+    QUuid findElementRequestId = QUuid::createUuid();
+    Q_UNUSED(m_findTagRequestIds.insert(findElementRequestId));
+    emit findTag(tag, findElementRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitFindRequest<SavedSearch>(const SavedSearch & search)
+{
+    QUuid findElementRequestId = QUuid::createUuid();
+    Q_UNUSED(m_findSavedSearchRequestIds.insert(findElementRequestId));
+    emit findSavedSearch(search, findElementRequestId);
 }
 
 } // namespace qute_note

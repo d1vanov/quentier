@@ -100,6 +100,16 @@ private:
     void launchTagsSync();
     void launchSavedSearchSync();
 
+    template <class ContainerType, class LocalType>
+    void launchDataElementSync(const QString & typeName, ContainerType & container);
+
+    template <class ContainerType>
+    void appendDataElementsFromSyncChunkToContainer(const qevercloud::SyncChunk & syncChunk,
+                                                    ContainerType & container);
+
+    template <class ElementType>
+    void emitFindRequest(const ElementType & elementToFind);
+
 private:
     typedef QList<qevercloud::Tag> TagsList;
     TagsList::iterator findTagInList(const QString & name);
