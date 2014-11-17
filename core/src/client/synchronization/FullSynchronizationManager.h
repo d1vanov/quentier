@@ -110,6 +110,26 @@ private:
     template <class ElementType>
     void emitFindRequest(const ElementType & elementToFind);
 
+    template <class ContainerType, class ElementType, class RemoteElementType>
+    void onFindDataElementCompleted(ElementType element, const QUuid & requestId,
+                                    const QString & typeName, ContainerType & container,
+                                    QSet<QUuid> & findElementRequestIds);
+
+    template <class ContainerType, class ElementType, class RemoteElementType>
+    void onFindDataElementFailed(ElementType element, const QUuid & requestId,
+                                 const QString & errorDescription,
+                                 const QString & typeName, ContainerType & container,
+                                 QSet<QUuid> & findElementRequestIds);
+
+    template <class ElementType>
+    void emitAddRequest(const ElementType & elementToAdd);
+
+    template <class ElementType>
+    void emitUpdateRequest(const ElementType & elementToUpdate,
+                           const ElementType * elementToAddLater = nullptr);
+
+
+
 private:
     typedef QList<qevercloud::Tag> TagsList;
     TagsList::iterator findTagInList(const QString & name);
@@ -144,14 +164,17 @@ private:
 
     QVector<qevercloud::SyncChunk>  m_syncChunks;
 
-    TagsList            m_tags;
-    QHash<QUuid,Tag>    m_tagsToAddPerRenamingUpdateRequestId;
-    QSet<QUuid>         m_findTagRequestIds;
-    QSet<QUuid>         m_addTagRequestIds;
-    QSet<QUuid>         m_updateTagRequestIds;
+    TagsList                    m_tags;
+    QHash<QUuid,Tag>            m_tagsToAddPerRenamingUpdateRequestId;
+    QSet<QUuid>                 m_findTagRequestIds;
+    QSet<QUuid>                 m_addTagRequestIds;
+    QSet<QUuid>                 m_updateTagRequestIds;
 
-    SavedSearchesList   m_savedSearches;
-    QSet<QUuid>         m_findSavedSearchRequestIds;
+    SavedSearchesList           m_savedSearches;
+    QHash<QUuid,SavedSearch>    m_savedSearchesToAddPerRenamingUpdateRequestId;
+    QSet<QUuid>                 m_findSavedSearchRequestIds;
+    QSet<QUuid>                 m_addSavedSearchRequestIds;
+    QSet<QUuid>                 m_updateSavedSearchRequestIds;
 };
 
 } // namespace qute_note

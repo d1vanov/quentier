@@ -22,7 +22,10 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_addTagRequestIds(),
     m_updateTagRequestIds(),
     m_savedSearches(),
-    m_findSavedSearchRequestIds()
+    m_savedSearchesToAddPerRenamingUpdateRequestId(),
+    m_findSavedSearchRequestIds(),
+    m_addSavedSearchRequestIds(),
+    m_updateSavedSearchRequestIds()
 {
     createConnections();
 }
@@ -93,112 +96,14 @@ void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBi
 
 void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
 {
-    QSet<QUuid>::iterator rit = m_findTagRequestIds.find(requestId);
-    if (rit == m_findTagRequestIds.end()) {
-        return;
-    }
-
-    QNDEBUG("FullSynchronizationManager::onFindTagCompleted: tag = " << tag
-            << ", requestId = " << requestId);
-
-    // Attempt to find this tag by name within the list of tags waiting for processing;
-    // first simply try the front tag from the list to avoid the costly lookup
-    if (!tag.hasName()) {
-        QString errorDescription = QT_TR_NOOP("Found tag with empty name in local storage");
-        QNWARNING(errorDescription << ": tag = " << tag);
-        emit failure(errorDescription);
-        return;
-    }
-
-    TagsList::iterator it = findTagInList(tag.name());
-    if (it == m_tags.end()) {
-        QString errorDescription = QT_TR_NOOP("Can't find tag by name within the list of remote tags waiting for processing");
-        QNWARNING(errorDescription << ": tag = " << tag);
-        emit failure(errorDescription);
-        return;
-    }
-
-    // The tag exists both in the client and in the server
-    const qevercloud::Tag & remoteTag = *it;
-    if (!remoteTag.updateSequenceNum.isSet()) {
-        QString errorDescription = QT_TR_NOOP("Found tag from sync chunk without the update sequence number");
-        QNWARNING(errorDescription << ": " << remoteTag);
-        emit failure(errorDescription);
-    }
-
-    if (!tag.hasUpdateSequenceNumber() || (remoteTag.updateSequenceNum.ref() > tag.updateSequenceNumber()))
-    {
-        if (!tag.isDirty())
-        {
-            // Remote tag is more recent, need to update the tag existing in local storage
-            Tag updatedTag(remoteTag);
-            updatedTag.unsetLocalGuid();
-            QUuid updateTagRequestId = QUuid::createUuid();
-            Q_UNUSED(m_updateTagRequestIds.insert(updateTagRequestId));
-            emit updateTag(updatedTag, updateTagRequestId);
-        }
-        else
-        {
-            // Remote tag is more recent but the local one has been modified;
-            // Evernote's synchronization protocol description suggests trying
-            // to do field-by-field merge but it's overcomplicated and error-prone;
-            // it's much easier to rename the existing local tag to make it clear
-            // it has a conflict with its remote counterpart and mark dirty so that
-            // it would be sent to the server along with other local changes
-            QString currentDateTime = QDateTime::currentDateTime().toString(Qt::ISODate);
-
-            tag.setGuid("");
-            tag.setName(QObject::tr("Conflicted tag ") + tag.name() + "(" + currentDateTime + ")");
-            tag.setLocal(true);
-
-            QUuid updateTagRequestId = QUuid::createUuid();
-            Tag newTag(remoteTag);
-            m_tagsToAddPerRenamingUpdateRequestId[updateTagRequestId] = newTag;
-            Q_UNUSED(m_updateTagRequestIds.insert(updateTagRequestId));
-
-            emit updateTag(tag, updateTagRequestId);
-        }
-    }
-
-    Q_UNUSED(m_tags.erase(it));
+    onFindDataElementCompleted<TagsList, Tag, qevercloud::Tag>(tag, requestId, "Tag",
+                                                               m_tags, m_findTagRequestIds);
 }
 
 void FullSynchronizationManager::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    QSet<QUuid>::iterator rit = m_findTagRequestIds.find(requestId);
-    if (rit == m_findTagRequestIds.end()) {
-        return;
-    }
-
-    QNDEBUG("FullSynchronizationManager::onFindTagFailed: tag = " << tag
-            << ", errorDescription = " << errorDescription << ", requestId = " << requestId);
-
-    // Attempt to find this tag by name within the list of tags waiting for processing;
-    // first simply try the front tag from the list to avoid the costly lookup
-    if (!tag.hasName()) {
-        QString errorDescription = QT_TR_NOOP("Found tag with empty name in local storage");
-        QNWARNING(errorDescription << ": tag = " << tag);
-        emit failure(errorDescription);
-        return;
-    }
-
-    TagsList::iterator it = findTagInList(tag.name());
-    if (it == m_tags.end()) {
-        QString errorDescription = QT_TR_NOOP("Can't find tag by name within the list of remote tags waiting for processing");
-        QNWARNING(errorDescription << ": tag = " << tag);
-        emit failure(errorDescription);
-        return;
-    }
-
-    // Ok, this tag wasn't found in the local storage, need to add it there
-    // also removing the tag from the list of tags waiting for processing
-
-    Tag newTag(*it);
-    QUuid addTagRequestId = QUuid::createUuid();
-    Q_UNUSED(m_addTagRequestIds.insert(addTagRequestId));
-    emit addTag(newTag, addTagRequestId);
-
-    Q_UNUSED(m_tags.erase(it));
+    onFindDataElementFailed<TagsList, Tag, qevercloud::Tag>(tag, requestId, errorDescription,
+                                                            "Tag", m_tags, m_findTagRequestIds);
 }
 
 void FullSynchronizationManager::onFindResourceCompleted(ResourceWrapper resource, bool withResourceBinaryData, QUuid requestId)
@@ -223,12 +128,14 @@ void FullSynchronizationManager::onFindLinkedNotebookFailed(LinkedNotebook linke
 
 void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId)
 {
-    // TODO: implement
+    onFindDataElementCompleted<SavedSearchesList, SavedSearch, qevercloud::SavedSearch>(savedSearch, requestId, "SavedSearch",
+                                                                                        m_savedSearches, m_findSavedSearchRequestIds);
 }
 
 void FullSynchronizationManager::onFindSavedSearchFailed(SavedSearch savedSearch, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
+    onFindDataElementFailed<SavedSearchesList, SavedSearch, qevercloud::SavedSearch>(savedSearch, requestId, errorDescription,
+                                                                                     "SavedSearch", m_savedSearches, m_findSavedSearchRequestIds);
 }
 
 void FullSynchronizationManager::onAddTagCompleted(Tag tag, QUuid requestId)
@@ -504,6 +411,171 @@ void FullSynchronizationManager::emitFindRequest<SavedSearch>(const SavedSearch 
     QUuid findElementRequestId = QUuid::createUuid();
     Q_UNUSED(m_findSavedSearchRequestIds.insert(findElementRequestId));
     emit findSavedSearch(search, findElementRequestId);
+}
+
+template <class ContainerType, class ElementType, class RemoteElementType>
+void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
+                                                            const QUuid & requestId,
+                                                            const QString & typeName,
+                                                            ContainerType & container,
+                                                            QSet<QUuid> & findElementRequestIds)
+{
+    QSet<QUuid>::iterator rit = findElementRequestIds.find(requestId);
+    if (rit == findElementRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("FullSynchronizationManager::onFindDataElementCompleted<" << typeName << ">: "
+            << typeName << " = " << element << ", requestId  = " << requestId);
+
+    // Attempt to find this data element by name within the list of elements waiting for processing;
+    // first simply try the front element from the list to avoid the costly lookup
+    if (!element.hasName()) {
+        QString errorDescription = QT_TR_NOOP("Found " + typeName + " with empty name in local storage");
+        QNWARNING(errorDescription << ": " << typeName << " = " << element);
+        emit failure(errorDescription);
+        return;
+    }
+
+    typename ContainerType::iterator it = findItemByName<ContainerType, CompareItemByName<RemoteElementType> >(container, element.name());
+    if (it == container.end()) {
+        QString errorDescription = QT_TR_NOOP("Can't find " + typeName + " by name within the list "
+                                              "of remote elements waiting for processing");
+        QNWARNING(errorDescription << ": " + typeName + " = " << element);
+        emit failure(errorDescription);
+        return;
+    }
+
+    // The element exists both in the client and in the server
+    const RemoteElementType & remoteElement = *it;
+    if (!remoteElement.updateSequenceNum.isSet()) {
+        QString errorDescription = QT_TR_NOOP("Found " + typeName + " from sync chunk without the update sequence number");
+        QNWARNING(errorDescription << ": " << remoteElement);
+        emit failure(errorDescription);
+    }
+
+    if (!element.hasUpdateSequenceNumber() || (remoteElement.updateSequenceNum.ref() > element.updateSequenceNumber()))
+    {
+        if (!element.isDirty())
+        {
+            // Remote element is more recent, need to update the element existing in local storage
+            ElementType updatedElement(remoteElement);
+            updatedElement.unsetLocalGuid();
+            emitUpdateRequest(updatedElement);
+        }
+        else
+        {
+            // Remote element is more recent but the local one has been modified;
+            // Evernote's synchronization protocol description suggests trying
+            // to do field-by-field merge but it's overcomplicated and error-prone;
+            // it's much easier to rename the existing local element to make it clear
+            // it has a conflict with its remote counterpart and mark it dirty so that
+            // it would be sent to the server along with other local changes
+            QString currentDateTime = QDateTime::currentDateTime().toString(Qt::ISODate);
+
+            element.setGuid("");
+            element.setName(QObject::tr("Conflicted ") + typeName + element.name() + "(" + currentDateTime + ")");
+            element.setDirty(true);
+
+            ElementType newElement(remoteElement);
+            emitUpdateRequest(element, &newElement);
+        }
+    }
+
+    Q_UNUSED(container.erase(it));
+    Q_UNUSED(findElementRequestIds.erase(rit));
+}
+
+template <class ContainerType, class ElementType, class RemoteElementType>
+void FullSynchronizationManager::onFindDataElementFailed(ElementType element, const QUuid & requestId,
+                                                         const QString & errorDescription,
+                                                         const QString & typeName, ContainerType & container,
+                                                         QSet<QUuid> & findElementRequestIds)
+{
+    QSet<QUuid>::iterator rit = findElementRequestIds.find(requestId);
+    if (rit == findElementRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("FullSynchronizationManager::onFindDataElementFailed<" << typeName << ">: "
+            << typeName << " = " << element << ", errorDescription = " << errorDescription
+            << ", requestId = " << requestId);
+
+    // Attempt to find this data element within the list of elements waiting for processing;
+    // first simply try the front element from the list to avoid the costly lookup
+    if (!element.hasName()) {
+        QString error = QT_TR_NOOP("Found " + typeName + " with empty name in local storage");
+        QNWARNING(error << ": " << typeName << " = " << element);
+        emit failure(error);
+        return;
+    }
+
+    typename ContainerType::iterator it = findItemByName<ContainerType, CompareItemByName<RemoteElementType> >(container, element.name());
+    if (it == container.end()) {
+        QString error = QT_TR_NOOP("Can't find " + typeName + " by name within the list "
+                                   "of remote elements waiting for processing");
+        QNWARNING(error << ": " << typeName << " = " << element);
+        emit failure(error);
+        return;
+    }
+
+    // Ok, this element wasn't found in the local storage, need to add it there
+    // also removing the element from the list of ones waiting for processing
+    ElementType newElement(*it);
+    emitAddRequest(newElement);
+
+    Q_UNUSED(container.erase(it));
+    Q_UNUSED(findElementRequestIds.erase(rit));
+}
+
+template <>
+void FullSynchronizationManager::emitAddRequest<Tag>(const Tag & tag)
+{
+    QUuid addTagRequestId = QUuid::createUuid();
+    Q_UNUSED(m_addTagRequestIds.insert(addTagRequestId));
+    emit addTag(tag, addTagRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitAddRequest<SavedSearch>(const SavedSearch & search)
+{
+    QUuid addSavedSearchRequestId = QUuid::createUuid();
+    Q_UNUSED(m_addSavedSearchRequestIds.insert(addSavedSearchRequestId));
+    emit addSavedSearch(search, addSavedSearchRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitUpdateRequest<Tag>(const Tag & tag,
+                                                        const Tag * tagToAddLater)
+{
+    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Tag>: tag = " << tag
+            << ", tagToAddLater = " << (tagToAddLater ? tagToAddLater->ToQString() : "<null>"));
+
+    QUuid updateTagRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateTagRequestIds.insert(updateTagRequestId));
+
+    if (tagToAddLater) {
+        m_tagsToAddPerRenamingUpdateRequestId[updateTagRequestId] = *tagToAddLater;
+    }
+
+    emit updateTag(tag, updateTagRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitUpdateRequest<SavedSearch>(const SavedSearch & search,
+                                                                const SavedSearch * searchToAddLater)
+{
+    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<SavedSearch>: search = " << search
+            << ", searchToAddLater = " << (searchToAddLater ? searchToAddLater->ToQString() : "<null>"));
+
+    QUuid updateSavedSearchRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateSavedSearchRequestIds.insert(updateSavedSearchRequestId));
+
+    if (searchToAddLater) {
+        m_savedSearchesToAddPerRenamingUpdateRequestId[updateSavedSearchRequestId] = *searchToAddLater;
+    }
+
+    emit updateSavedSearch(search, updateSavedSearchRequestId);
 }
 
 } // namespace qute_note
