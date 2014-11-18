@@ -138,83 +138,148 @@ void FullSynchronizationManager::onFindSavedSearchFailed(SavedSearch savedSearch
                                                             "SavedSearch", m_savedSearches, m_findSavedSearchRequestIds);
 }
 
-void FullSynchronizationManager::onAddTagCompleted(Tag tag, QUuid requestId)
+template <class ElementType>
+void FullSynchronizationManager::onAddDataElementCompleted(const ElementType & element,
+                                                           const QUuid & requestId,
+                                                           const QString & typeName,
+                                                           QSet<QUuid> & addElementRequestIds)
 {
-    QSet<QUuid>::iterator it = m_addTagRequestIds.find(requestId);
-    if (it != m_addTagRequestIds.end())
+    QSet<QUuid>::iterator it = addElementRequestIds.find(requestId);
+    if (it != addElementRequestIds.end())
     {
-        QNDEBUG("FullSynchronizationManager::onAddTagCompleted: tag = " << tag
-                << ", requestId = " << requestId);
-        Q_UNUSED(m_addTagRequestIds.erase(it));
+        QNDEBUG("FullSynchronizationManager::onAddDataElementCompleted<" << typeName
+                << ">: " << typeName << " = " << element << ", requestId = " << requestId);
+
+        Q_UNUSED(addElementRequestIds.erase(it));
     }
 }
 
-void FullSynchronizationManager::onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+void FullSynchronizationManager::onAddTagCompleted(Tag tag, QUuid requestId)
 {
-    QSet<QUuid>::iterator it = m_addTagRequestIds.find(requestId);
-    if (it != m_addTagRequestIds.end())
+    onAddDataElementCompleted<Tag>(tag, requestId, "Tag", m_addTagRequestIds);
+}
+
+void FullSynchronizationManager::onAddSavedSearchCompleted(SavedSearch search, QUuid requestId)
+{
+    onAddDataElementCompleted<SavedSearch>(search, requestId, "SavedSearch", m_addSavedSearchRequestIds);
+}
+
+template <class ElementType>
+void FullSynchronizationManager::onAddDataElementFailed(const ElementType & element, const QUuid & requestId,
+                                                        const QString & errorDescription, const QString & typeName,
+                                                        QSet<QUuid> & addElementRequestIds)
+{
+    QSet<QUuid>::iterator it = addElementRequestIds.find(requestId);
+    if (it != addElementRequestIds.end())
     {
-        QNWARNING("FullSynchronizationManager::onAddTagFailed: tag = " << tag
-                  << ", error description = " << errorDescription << ", requestId = " << requestId);
+        QNWARNING("FullSyncronizationManager::onAddDataElementFailed<" << typeName
+                  << ">: " << typeName << " = " << element << ", error description = "
+                  << errorDescription << ", requestId = " << requestId);
 
-        Q_UNUSED(m_addTagRequestIds.erase(it));
+        Q_UNUSED(addElementRequestIds.erase(it));
 
-        QString error = QT_TR_NOOP("Can't add remote tag to local storage: ");
+        QString error = QT_TR_NOOP("Can't add remote " + typeName + " to local storage: ");
         error += errorDescription;
         emit failure(error);
     }
 }
 
+void FullSynchronizationManager::onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+{
+    onAddDataElementFailed<Tag>(tag, requestId, errorDescription, "Tag", m_addTagRequestIds);
+}
+
+void FullSynchronizationManager::onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
+{
+    onAddDataElementFailed<SavedSearch>(search, requestId, errorDescription, "SavedSearch", m_addSavedSearchRequestIds);
+}
+
+template <class ElementType, class ElementsToAddByUuid>
+void FullSynchronizationManager::onUpdateDataElementCompleted(const ElementType & element,
+                                                              const QUuid & requestId,
+                                                              const QString & typeName,
+                                                              QSet<QUuid> & updateElementRequestIds,
+                                                              ElementsToAddByUuid & elementsToAddByUuid)
+{
+    QSet<QUuid>::iterator it = updateElementRequestIds.find(requestId);
+    if (it != updateElementRequestIds.end())
+    {
+        QNDEBUG("FullSynchronizartionManager::onUpdateDataElementCompleted<" << typeName
+                << ">: " << typeName << " = " << element << ", requestId = " << requestId);
+
+        Q_UNUSED(updateElementRequestIds.erase(it));
+
+        typename ElementsToAddByUuid::iterator addIt = elementsToAddByUuid.find(requestId);
+        if (addIt != elementsToAddByUuid.end())
+        {
+            ElementType elementToAdd = addIt.value();
+            Q_UNUSED(elementsToAddByUuid.erase(addIt));
+
+            QNDEBUG("Adding new " << typeName << " after renaming the dirty local duplicate: " << elementToAdd);
+            emitAddRequest(elementToAdd);
+        }
+    }
+}
+
 void FullSynchronizationManager::onUpdateTagCompleted(Tag tag, QUuid requestId)
 {
-    QSet<QUuid>::iterator it = m_updateTagRequestIds.find(requestId);
-    if (it != m_updateTagRequestIds.end())
+    onUpdateDataElementCompleted<Tag, QHash<QUuid, Tag> >(tag, requestId, "Tag", m_updateTagRequestIds,
+                                                          m_tagsToAddPerRenamingUpdateRequestId);
+}
+
+void FullSynchronizationManager::onUpdateSavedSearchCompleted(SavedSearch search, QUuid requestId)
+{
+    onUpdateDataElementCompleted<SavedSearch, QHash<QUuid, SavedSearch> >(search, requestId, "SavedSearch",
+                                                                          m_updateSavedSearchRequestIds,
+                                                                          m_savedSearchesToAddPerRenamingUpdateRequestId);
+}
+
+template <class ElementType, class ElementsToAddByUuid>
+void FullSynchronizationManager::onUpdateDataElementFailed(const ElementType & element, const QUuid & requestId,
+                                                           const QString & errorDescription, const QString & typeName,
+                                                           QSet<QUuid> & updateElementRequestIds,
+                                                           ElementsToAddByUuid & elementsToAddByUuid)
+{
+    QSet<QUuid>::iterator it = updateElementRequestIds.find(requestId);
+    if (it != updateElementRequestIds.end())
     {
-        QNDEBUG("FullSynchronizationManager::onUpdateTagCompleted: tag = " << tag
-                << ", requestId = " << requestId);
+        QNWARNING("FullSynchronizationManager::onUpdateDataElementFailed<" << typeName
+                  << ">: " << typeName << " = " << element << ", errorDescription = "
+                  << errorDescription << ", requestId = " << requestId);
 
-        Q_UNUSED(m_updateTagRequestIds.erase(it));
+        Q_UNUSED(updateElementRequestIds.erase(it));
 
-        QHash<QUuid,Tag>::iterator addIt = m_tagsToAddPerRenamingUpdateRequestId.find(requestId);
-        if (addIt != m_tagsToAddPerRenamingUpdateRequestId.end())
+        typename ElementsToAddByUuid::iterator addIt = elementsToAddByUuid.find(requestId);
+        if (addIt != elementsToAddByUuid.end())
         {
-            Tag tagToAdd = addIt.value();
-            Q_UNUSED(m_tagsToAddPerRenamingUpdateRequestId.erase(addIt));
+            Q_UNUSED(elementsToAddByUuid.erase(addIt));
 
-            QNDEBUG("Adding new tag after renaming the dirty local duplicate: " << tagToAdd);
-            QUuid addTagRequestId = QUuid::createUuid();
-            Q_UNUSED(m_addTagRequestIds.insert(addTagRequestId));
-            emit addTag(tagToAdd, addTagRequestId);
+            QString error = QT_TR_NOOP("Can't rename local dirty duplicate " + typeName +
+                                       " in local storage: ");
+            error += errorDescription;
+            emit failure(error);
+        }
+        else
+        {
+            QString error = QT_TR_NOOP("Can't update remote " + typeName + " in local storage: ");
+            error += errorDescription;
+            emit failure(error);
         }
     }
 }
 
 void FullSynchronizationManager::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    QSet<QUuid>::iterator it = m_updateTagRequestIds.find(requestId);
-    if (it != m_updateTagRequestIds.end())
-    {
-        QNWARNING("FullSynchronizationManager::onUpdateTagFailed: tag = " << tag << ", errorDescription = "
-                  << errorDescription << ", requestId = " << requestId);
+    onUpdateDataElementFailed<Tag, QHash<QUuid, Tag> >(tag, requestId, errorDescription,
+                                                       "Tag", m_updateTagRequestIds,
+                                                       m_tagsToAddPerRenamingUpdateRequestId);
+}
 
-        Q_UNUSED(m_updateTagRequestIds.erase(it));
-
-        QHash<QUuid,Tag>::iterator addIt = m_tagsToAddPerRenamingUpdateRequestId.find(requestId);
-        if (addIt != m_tagsToAddPerRenamingUpdateRequestId.end())
-        {
-            Q_UNUSED(m_tagsToAddPerRenamingUpdateRequestId.erase(addIt));
-
-            QString error = QT_TR_NOOP("Can't rename local dirty duplicate tag in local storage: ");
-            error += errorDescription;
-            emit failure(error);
-        }
-        else
-        {
-            QString error = QT_TR_NOOP("Can't update remote tag in local storage: ");
-            error += errorDescription;
-            emit failure(error);
-        }
-    }
+void FullSynchronizationManager::onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
+{
+    onUpdateDataElementFailed<SavedSearch, QHash<QUuid, SavedSearch> >(search, requestId, errorDescription,
+                                                                       "SavedSearch", m_updateSavedSearchRequestIds,
+                                                                       m_savedSearchesToAddPerRenamingUpdateRequestId);
 }
 
 void FullSynchronizationManager::createConnections()
@@ -285,6 +350,12 @@ void FullSynchronizationManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagComplete(Tag,QUuid)), this, SLOT(onUpdateTagCompleted(Tag,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagFailed(Tag,QString,QUuid)), this, SLOT(onUpdateTagFailed(Tag,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addSavedSearchComplete(SavedSearch,QUuid)), this, SLOT(onAddSavedSearchCompleted(SavedSearch,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addSavedSearchFailed(SavedSearch,QString,QUuid)), this, SLOT(onAddSavedSearchFailed(SavedSearch,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateSavedSearchComplete(SavedSearch,QUuid)), this, SLOT(onUpdateSavedSearchCompleted(SavedSearch,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateSavedSearchFailed(SavedSearch,QString,QUuid)), this, SLOT(onUpdateSavedSearchFailed(SavedSearch,QString,QUuid)));
 }
 
 void FullSynchronizationManager::launchTagsSync()
@@ -393,8 +464,31 @@ void FullSynchronizationManager::launchDataElementSync(const QString & typeName,
             return;
         }
 
-        emitFindRequest<LocalType>(elementToFind);
+        emitFindRequest(elementToFind);
     }
+}
+
+template <class ElementType>
+void setConflictedBase(const QString & typeName, ElementType & element)
+{
+    QString currentDateTime = QDateTime::currentDateTime().toString(Qt::ISODate);
+
+    element.setGuid("");
+    element.setName(QObject::tr("Conflicted ") + typeName + element.name() + "(" + currentDateTime + ")");
+    element.setDirty(true);
+}
+
+template <class ElementType>
+void FullSynchronizationManager::setConflicted(const QString & typeName, ElementType & element)
+{
+    setConflictedBase(typeName, element);
+}
+
+template <>
+void FullSynchronizationManager::setConflicted<Tag>(const QString & typeName, Tag & tag)
+{
+    setConflictedBase(typeName, tag);
+    tag.setLocal(true);
 }
 
 template <>
@@ -471,14 +565,10 @@ void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
             // it's much easier to rename the existing local element to make it clear
             // it has a conflict with its remote counterpart and mark it dirty so that
             // it would be sent to the server along with other local changes
-            QString currentDateTime = QDateTime::currentDateTime().toString(Qt::ISODate);
+            setConflicted(typeName, element);
 
-            element.setGuid("");
-            element.setName(QObject::tr("Conflicted ") + typeName + element.name() + "(" + currentDateTime + ")");
-            element.setDirty(true);
-
-            ElementType newElement(remoteElement);
-            emitUpdateRequest(element, &newElement);
+            ElementType elementToAddLater(remoteElement);
+            emitUpdateRequest(element, &elementToAddLater);
         }
     }
 

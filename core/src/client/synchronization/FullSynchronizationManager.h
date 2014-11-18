@@ -94,6 +94,11 @@ private Q_SLOTS:
     void onUpdateTagCompleted(Tag tag, QUuid requestId);
     void onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId);
 
+    void onAddSavedSearchCompleted(SavedSearch search, QUuid requestId);
+    void onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+    void onUpdateSavedSearchCompleted(SavedSearch search, QUuid requestId);
+    void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+
 private:
     void createConnections();
 
@@ -102,6 +107,9 @@ private:
 
     template <class ContainerType, class LocalType>
     void launchDataElementSync(const QString & typeName, ContainerType & container);
+
+    template <class ElementType>
+    void setConflicted(const QString & typeName, ElementType & element);
 
     template <class ContainerType>
     void appendDataElementsFromSyncChunkToContainer(const qevercloud::SyncChunk & syncChunk,
@@ -125,8 +133,28 @@ private:
     void emitAddRequest(const ElementType & elementToAdd);
 
     template <class ElementType>
+    void onAddDataElementCompleted(const ElementType & element, const QUuid & requestId,
+                                   const QString & typeName, QSet<QUuid> & addElementRequestIds);
+
+    template <class ElementType>
+    void onAddDataElementFailed(const ElementType & element, const QUuid & requestId,
+                                const QString & errorDescription, const QString & typeName,
+                                QSet<QUuid> & addElementRequestIds);
+
+    template <class ElementType>
     void emitUpdateRequest(const ElementType & elementToUpdate,
                            const ElementType * elementToAddLater = nullptr);
+
+    template <class ElementType, class ElementsToAddByUuid>
+    void onUpdateDataElementCompleted(const ElementType & element, const QUuid & requestId,
+                                      const QString & typeName, QSet<QUuid> & updateElementRequestIds,
+                                      ElementsToAddByUuid & elementsToAddByUuid);
+
+    template <class ElementType, class ElementsToAddByUuid>
+    void onUpdateDataElementFailed(const ElementType & element, const QUuid & requestId,
+                                   const QString & errorDescription, const QString & typeName,
+                                   QSet<QUuid> & updateElementRequestIds,
+                                   ElementsToAddByUuid & elementsToAddByUuid);
 
 private:
     typedef QList<qevercloud::Tag> TagsList;
