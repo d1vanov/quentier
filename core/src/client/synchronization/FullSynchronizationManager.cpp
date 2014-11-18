@@ -96,14 +96,14 @@ void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBi
 
 void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
 {
-    onFindDataElementCompleted<TagsList, Tag, qevercloud::Tag>(tag, requestId, "Tag",
-                                                               m_tags, m_findTagRequestIds);
+    onFindDataElementCompleted<TagsList, Tag>(tag, requestId, "Tag",
+                                              m_tags, m_findTagRequestIds);
 }
 
 void FullSynchronizationManager::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    onFindDataElementFailed<TagsList, Tag, qevercloud::Tag>(tag, requestId, errorDescription,
-                                                            "Tag", m_tags, m_findTagRequestIds);
+    onFindDataElementFailed<TagsList, Tag>(tag, requestId, errorDescription,
+                                           "Tag", m_tags, m_findTagRequestIds);
 }
 
 void FullSynchronizationManager::onFindResourceCompleted(ResourceWrapper resource, bool withResourceBinaryData, QUuid requestId)
@@ -128,14 +128,14 @@ void FullSynchronizationManager::onFindLinkedNotebookFailed(LinkedNotebook linke
 
 void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId)
 {
-    onFindDataElementCompleted<SavedSearchesList, SavedSearch, qevercloud::SavedSearch>(savedSearch, requestId, "SavedSearch",
-                                                                                        m_savedSearches, m_findSavedSearchRequestIds);
+    onFindDataElementCompleted<SavedSearchesList, SavedSearch>(savedSearch, requestId, "SavedSearch",
+                                                               m_savedSearches, m_findSavedSearchRequestIds);
 }
 
 void FullSynchronizationManager::onFindSavedSearchFailed(SavedSearch savedSearch, QString errorDescription, QUuid requestId)
 {
-    onFindDataElementFailed<SavedSearchesList, SavedSearch, qevercloud::SavedSearch>(savedSearch, requestId, errorDescription,
-                                                                                     "SavedSearch", m_savedSearches, m_findSavedSearchRequestIds);
+    onFindDataElementFailed<SavedSearchesList, SavedSearch>(savedSearch, requestId, errorDescription,
+                                                            "SavedSearch", m_savedSearches, m_findSavedSearchRequestIds);
 }
 
 void FullSynchronizationManager::onAddTagCompleted(Tag tag, QUuid requestId)
@@ -413,7 +413,7 @@ void FullSynchronizationManager::emitFindRequest<SavedSearch>(const SavedSearch 
     emit findSavedSearch(search, findElementRequestId);
 }
 
-template <class ContainerType, class ElementType, class RemoteElementType>
+template <class ContainerType, class ElementType>
 void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
                                                             const QUuid & requestId,
                                                             const QString & typeName,
@@ -437,7 +437,7 @@ void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
         return;
     }
 
-    typename ContainerType::iterator it = findItemByName<ContainerType, CompareItemByName<RemoteElementType> >(container, element.name());
+    typename ContainerType::iterator it = findItemByName<ContainerType, CompareItemByName<typename ContainerType::value_type> >(container, element.name());
     if (it == container.end()) {
         QString errorDescription = QT_TR_NOOP("Can't find " + typeName + " by name within the list "
                                               "of remote elements waiting for processing");
@@ -447,7 +447,7 @@ void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
     }
 
     // The element exists both in the client and in the server
-    const RemoteElementType & remoteElement = *it;
+    const typename ContainerType::value_type & remoteElement = *it;
     if (!remoteElement.updateSequenceNum.isSet()) {
         QString errorDescription = QT_TR_NOOP("Found " + typeName + " from sync chunk without the update sequence number");
         QNWARNING(errorDescription << ": " << remoteElement);
@@ -486,7 +486,7 @@ void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
     Q_UNUSED(findElementRequestIds.erase(rit));
 }
 
-template <class ContainerType, class ElementType, class RemoteElementType>
+template <class ContainerType, class ElementType>
 void FullSynchronizationManager::onFindDataElementFailed(ElementType element, const QUuid & requestId,
                                                          const QString & errorDescription,
                                                          const QString & typeName, ContainerType & container,
@@ -510,7 +510,7 @@ void FullSynchronizationManager::onFindDataElementFailed(ElementType element, co
         return;
     }
 
-    typename ContainerType::iterator it = findItemByName<ContainerType, CompareItemByName<RemoteElementType> >(container, element.name());
+    typename ContainerType::iterator it = findItemByName<ContainerType, CompareItemByName<typename ContainerType::value_type> >(container, element.name());
     if (it == container.end()) {
         QString error = QT_TR_NOOP("Can't find " + typeName + " by name within the list "
                                    "of remote elements waiting for processing");

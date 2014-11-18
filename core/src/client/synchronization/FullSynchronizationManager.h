@@ -110,12 +110,12 @@ private:
     template <class ElementType>
     void emitFindRequest(const ElementType & elementToFind);
 
-    template <class ContainerType, class ElementType, class RemoteElementType>
+    template <class ContainerType, class ElementType>
     void onFindDataElementCompleted(ElementType element, const QUuid & requestId,
                                     const QString & typeName, ContainerType & container,
                                     QSet<QUuid> & findElementRequestIds);
 
-    template <class ContainerType, class ElementType, class RemoteElementType>
+    template <class ContainerType, class ElementType>
     void onFindDataElementFailed(ElementType element, const QUuid & requestId,
                                  const QString & errorDescription,
                                  const QString & typeName, ContainerType & container,
@@ -127,8 +127,6 @@ private:
     template <class ElementType>
     void emitUpdateRequest(const ElementType & elementToUpdate,
                            const ElementType * elementToAddLater = nullptr);
-
-
 
 private:
     typedef QList<qevercloud::Tag> TagsList;
