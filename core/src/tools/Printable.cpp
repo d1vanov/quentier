@@ -876,3 +876,28 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SavedSearch & sav
 
     return strm;
 }
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::LinkedNotebook & linkedNotebook)
+{
+    strm << "qevercloud::LinkedNotebook: { \n";
+    QString indent = "  ";
+
+    strm << indent << "shareName = " << (linkedNotebook.shareName.isSet() ? linkedNotebook.shareName.ref() : "<empty>") << "; \n";
+    strm << indent << "username = " << (linkedNotebook.username.isSet() ? linkedNotebook.username.ref() : "<empty>") << "; \n";
+    strm << indent << "shardId = " << (linkedNotebook.shardId.isSet() ? linkedNotebook.shardId.ref() : "<empty>") << "; \n";
+    strm << indent << "shareKey = " << (linkedNotebook.shareKey.isSet() ? linkedNotebook.shareKey.ref() : "<empty>") << "; \n";
+    strm << indent << "uri = " << (linkedNotebook.uri.isSet() ? linkedNotebook.uri.ref() : "<empty>") << "; \n";
+    strm << indent << "guid = " << (linkedNotebook.guid.isSet() ? linkedNotebook.guid.ref() : "<empty>") << "; \n";
+    strm << indent << "updateSequenceNum = " << (linkedNotebook.updateSequenceNum.isSet()
+                                                 ? QString::number(linkedNotebook.updateSequenceNum.ref())
+                                                 : "<empty>") << "; \n";
+    strm << indent << "noteStoreUrl = " << (linkedNotebook.noteStoreUrl.isSet() ? linkedNotebook.noteStoreUrl.ref() : "<empty>") << "; \n";
+    strm << indent << "webApiUrlPrefix = " << (linkedNotebook.webApiUrlPrefix.isSet() ? linkedNotebook.webApiUrlPrefix.ref() : "<empty>") << "; \n";
+    strm << indent << "stack = " << (linkedNotebook.stack.isSet() ? linkedNotebook.stack.ref() : "<empty>") << "; \n";
+    strm << indent << "businessId = " << (linkedNotebook.businessId.isSet()
+                                          ? QString::number(linkedNotebook.businessId.ref())
+                                          : "<empty>") << "; \n";
+    strm << "}; \n";
+
+    return strm;
+}

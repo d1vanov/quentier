@@ -111,6 +111,10 @@ private:
     template <class ElementType>
     void setConflicted(const QString & typeName, ElementType & element);
 
+    template <class ElementType, class RemoteElementType>
+    void processConflictedElement(const RemoteElementType & remoteElement,
+                                  const QString & typeName, ElementType & element);
+
     template <class ContainerType>
     void appendDataElementsFromSyncChunkToContainer(const qevercloud::SyncChunk & syncChunk,
                                                     ContainerType & container);
@@ -156,16 +160,14 @@ private:
                                    QSet<QUuid> & updateElementRequestIds,
                                    ElementsToAddByUuid & elementsToAddByUuid);
 
-private:
-    typedef QList<qevercloud::Tag> TagsList;
-    TagsList::iterator findTagInList(const QString & name);
-
-    typedef QList<qevercloud::SavedSearch> SavedSearchesList;
-    SavedSearchesList::iterator findSavedSearchInList(const QString & name);
-
     template <class ContainerType, class Predicate>
     typename ContainerType::iterator findItemByName(ContainerType & container,
                                                     const QString & name);
+
+    template <class ContainerType, class ElementType>
+    typename ContainerType::iterator findItem(ContainerType & container,
+                                              const ElementType & element,
+                                              const QString & typeName);
 
 private:
     FullSynchronizationManager() Q_DECL_DELETE;
@@ -181,6 +183,21 @@ private:
     private:
         const QString m_name;
     };
+
+    template <class T>
+    class CompareItemByGuid
+    {
+    public:
+        CompareItemByGuid(const QString & guid) : m_guid(guid) {}
+        bool operator()(const T & item) const;
+
+    private:
+        const QString m_guid;
+    };
+
+    typedef QList<qevercloud::Tag> TagsList;
+    typedef QList<qevercloud::SavedSearch> SavedSearchesList;
+    typedef QList<qevercloud::LinkedNotebook> LinkedNotebooksList;
 
 private:
     LocalStorageManagerThreadWorker &                               m_localStorageManagerThreadWorker;
@@ -201,6 +218,11 @@ private:
     QSet<QUuid>                 m_findSavedSearchRequestIds;
     QSet<QUuid>                 m_addSavedSearchRequestIds;
     QSet<QUuid>                 m_updateSavedSearchRequestIds;
+
+    LinkedNotebooksList         m_linkedNotebooks;
+    QSet<QUuid>                 m_findLinkedNotebookRequestIds;
+    QSet<QUuid>                 m_addLinkedNotebookRequestIds;
+    QSet<QUuid>                 m_updateLinkedNotebookRequestIds;
 };
 
 } // namespace qute_note

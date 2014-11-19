@@ -25,7 +25,11 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_savedSearchesToAddPerRenamingUpdateRequestId(),
     m_findSavedSearchRequestIds(),
     m_addSavedSearchRequestIds(),
-    m_updateSavedSearchRequestIds()
+    m_updateSavedSearchRequestIds(),
+    m_linkedNotebooks(),
+    m_findLinkedNotebookRequestIds(),
+    m_addLinkedNotebookRequestIds(),
+    m_updateLinkedNotebookRequestIds()
 {
     createConnections();
 }
@@ -118,12 +122,16 @@ void FullSynchronizationManager::onFindResourceFailed(ResourceWrapper resource, 
 
 void FullSynchronizationManager::onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
 {
-    // TODO: implement
+    onFindDataElementCompleted<LinkedNotebooksList, LinkedNotebook>(linkedNotebook, requestId, "LinkedNotebook",
+                                                                    m_linkedNotebooks, m_findLinkedNotebookRequestIds);
 }
 
-void FullSynchronizationManager::onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId)
+void FullSynchronizationManager::onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook,
+                                                            QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
+    onFindDataElementFailed<LinkedNotebooksList, LinkedNotebook>(linkedNotebook, requestId, errorDescription,
+                                                                 "LinkedNotebook", m_linkedNotebooks,
+                                                                 m_findLinkedNotebookRequestIds);
 }
 
 void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId)
@@ -388,16 +396,6 @@ void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<Full
     }
 }
 
-FullSynchronizationManager::TagsList::iterator FullSynchronizationManager::findTagInList(const QString & name)
-{
-    return findItemByName<TagsList, CompareItemByName<qevercloud::Tag> >(m_tags, name);
-}
-
-FullSynchronizationManager::SavedSearchesList::iterator FullSynchronizationManager::findSavedSearchInList(const QString & name)
-{
-    return findItemByName<SavedSearchesList, CompareItemByName<qevercloud::SavedSearch> >(m_savedSearches, name);
-}
-
 template <class ContainerType, class Predicate>
 typename ContainerType::iterator FullSynchronizationManager::findItemByName(ContainerType & container,
                                                                             const QString & name)
@@ -417,11 +415,67 @@ typename ContainerType::iterator FullSynchronizationManager::findItemByName(Cont
     return it;
 }
 
+template <class ContainerType, class ElementType>
+typename ContainerType::iterator FullSynchronizationManager::findItem(ContainerType & container,
+                                                                      const ElementType &element,
+                                                                      const QString & typeName)
+{
+    QNDEBUG("FullSynchronizationManager::findItem<" << typeName << ">");
+
+    // Attempt to find this data element by name within the list of elements waiting for processing;
+    // first simply try the front element from the list to avoid the costly lookup
+    if (!element.hasName()) {
+        QString errorDescription = QT_TR_NOOP("Found " + typeName + " with empty name in local storage");
+        QNWARNING(errorDescription << ": " << typeName << " = " << element);
+        emit failure(errorDescription);
+        return container.end();
+    }
+
+    typename ContainerType::iterator it = findItemByName<ContainerType, CompareItemByName<typename ContainerType::value_type> >(container, element.name());
+    if (it == container.end()) {
+        QString errorDescription = QT_TR_NOOP("Can't find " + typeName + " by name within the list "
+                                              "of remote elements waiting for processing");
+        QNWARNING(errorDescription << ": " + typeName + " = " << element);
+        emit failure(errorDescription);
+        return container.end();
+    }
+
+    return it;
+}
+
+template <>
+FullSynchronizationManager::LinkedNotebooksList::iterator FullSynchronizationManager::findItem(LinkedNotebooksList & linkedNotebooks,
+                                                                                               const LinkedNotebook & linkedNotebook,
+                                                                                               const QString & )
+{
+    QNDEBUG("FullSynchronizationManager::findItem<LinkedNotebook>, full template specialization");
+
+    if (!linkedNotebook.hasGuid()) {
+        QString errorDescription = QT_TR_NOOP("Found linked notebook with empty guid in local storage");
+        QNWARNING(errorDescription << ": linked notebook = " << linkedNotebook);
+        emit failure(errorDescription);
+        return linkedNotebooks.end();
+    }
+
+    LinkedNotebooksList::iterator it = std::find_if(linkedNotebooks.begin(),
+                                                    linkedNotebooks.end(),
+                                                    CompareItemByGuid<qevercloud::LinkedNotebook>(linkedNotebook.guid()));
+    if (it == linkedNotebooks.end()) {
+        QString errorDescription = QT_TR_NOOP("Can't find linked notebook by guid within the list "
+                                              "of remote linked notebooks waiting for processing");
+        QNWARNING(errorDescription << ": linked notebook = " << linkedNotebook);
+        emit failure(errorDescription);
+        return linkedNotebooks.end();
+    }
+
+    return it;
+}
+
 template <class T>
 bool FullSynchronizationManager::CompareItemByName<T>::operator()(const T & item) const
 {
     if (item.name.isSet()) {
-        return (m_name == item.name.ref());
+        return (m_name.toUpper() == item.name.ref().toUpper());
     }
     else {
         return false;
@@ -522,21 +576,8 @@ void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
     QNDEBUG("FullSynchronizationManager::onFindDataElementCompleted<" << typeName << ">: "
             << typeName << " = " << element << ", requestId  = " << requestId);
 
-    // Attempt to find this data element by name within the list of elements waiting for processing;
-    // first simply try the front element from the list to avoid the costly lookup
-    if (!element.hasName()) {
-        QString errorDescription = QT_TR_NOOP("Found " + typeName + " with empty name in local storage");
-        QNWARNING(errorDescription << ": " << typeName << " = " << element);
-        emit failure(errorDescription);
-        return;
-    }
-
-    typename ContainerType::iterator it = findItemByName<ContainerType, CompareItemByName<typename ContainerType::value_type> >(container, element.name());
+    typename ContainerType::iterator it = findItem(container, element, typeName);
     if (it == container.end()) {
-        QString errorDescription = QT_TR_NOOP("Can't find " + typeName + " by name within the list "
-                                              "of remote elements waiting for processing");
-        QNWARNING(errorDescription << ": " + typeName + " = " << element);
-        emit failure(errorDescription);
         return;
     }
 
@@ -565,10 +606,7 @@ void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
             // it's much easier to rename the existing local element to make it clear
             // it has a conflict with its remote counterpart and mark it dirty so that
             // it would be sent to the server along with other local changes
-            setConflicted(typeName, element);
-
-            ElementType elementToAddLater(remoteElement);
-            emitUpdateRequest(element, &elementToAddLater);
+            processConflictedElement(remoteElement, typeName, element);
         }
     }
 
@@ -591,21 +629,8 @@ void FullSynchronizationManager::onFindDataElementFailed(ElementType element, co
             << typeName << " = " << element << ", errorDescription = " << errorDescription
             << ", requestId = " << requestId);
 
-    // Attempt to find this data element within the list of elements waiting for processing;
-    // first simply try the front element from the list to avoid the costly lookup
-    if (!element.hasName()) {
-        QString error = QT_TR_NOOP("Found " + typeName + " with empty name in local storage");
-        QNWARNING(error << ": " << typeName << " = " << element);
-        emit failure(error);
-        return;
-    }
-
-    typename ContainerType::iterator it = findItemByName<ContainerType, CompareItemByName<typename ContainerType::value_type> >(container, element.name());
+    typename ContainerType::iterator it = findItem(container, element, typeName);
     if (it == container.end()) {
-        QString error = QT_TR_NOOP("Can't find " + typeName + " by name within the list "
-                                   "of remote elements waiting for processing");
-        QNWARNING(error << ": " << typeName << " = " << element);
-        emit failure(error);
         return;
     }
 
@@ -632,6 +657,14 @@ void FullSynchronizationManager::emitAddRequest<SavedSearch>(const SavedSearch &
     QUuid addSavedSearchRequestId = QUuid::createUuid();
     Q_UNUSED(m_addSavedSearchRequestIds.insert(addSavedSearchRequestId));
     emit addSavedSearch(search, addSavedSearchRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitAddRequest<LinkedNotebook>(const LinkedNotebook & linkedNotebook)
+{
+    QUuid addLinkedNotebookRequestId = QUuid::createUuid();
+    Q_UNUSED(m_addLinkedNotebookRequestIds.insert(addLinkedNotebookRequestId));
+    emit addLinkedNotebook(linkedNotebook, addLinkedNotebookRequestId);
 }
 
 template <>
@@ -666,6 +699,54 @@ void FullSynchronizationManager::emitUpdateRequest<SavedSearch>(const SavedSearc
     }
 
     emit updateSavedSearch(search, updateSavedSearchRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitUpdateRequest<LinkedNotebook>(const LinkedNotebook & linkedNotebook,
+                                                                   const LinkedNotebook *)
+{
+    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<LinkedNotebook>: linked notebook = "
+            << linkedNotebook);
+
+    QUuid updateLinkedNotebookRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateLinkedNotebookRequestIds.insert(updateLinkedNotebookRequestId));
+    emit updateLinkedNotebook(linkedNotebook, updateLinkedNotebookRequestId);
+}
+
+template <class T>
+bool FullSynchronizationManager::CompareItemByGuid<T>::operator()(const T & item) const
+{
+    if (item.guid.isSet()) {
+        return (m_guid == item.guid.ref());
+    }
+    else {
+        return false;
+    }
+}
+
+template <class ElementType, class RemoteElementType>
+void FullSynchronizationManager::processConflictedElement(const RemoteElementType & remoteElement,
+                                                          const QString & typeName, ElementType & element)
+{
+    setConflicted(typeName, element);
+
+    ElementType elementToAdd(remoteElement);
+    emitUpdateRequest(element, &elementToAdd);
+}
+
+template <>
+void FullSynchronizationManager::processConflictedElement(const qevercloud::LinkedNotebook & remoteLinkedNotebook,
+                                                          const QString &, LinkedNotebook & linkedNotebook)
+{
+    // Linked notebook itself is simply a pointer to another user's account;
+    // The data it points to would have a separate synchronization procedure
+    // including the synchronization for Notebook, Notes and Tags from another user's account
+    // The linked notebook as a pointer to all this data would simply be overridden
+    // by the server's version of it
+    linkedNotebook = LinkedNotebook(remoteLinkedNotebook);
+    QUuid updateRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateLinkedNotebookRequestIds.insert(updateRequestId));
+    emit updateLinkedNotebook(linkedNotebook, updateRequestId);
 }
 
 } // namespace qute_note
