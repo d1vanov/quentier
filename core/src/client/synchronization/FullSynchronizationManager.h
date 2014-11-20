@@ -99,11 +99,21 @@ private Q_SLOTS:
     void onUpdateSavedSearchCompleted(SavedSearch search, QUuid requestId);
     void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
 
+    void onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onAddLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
+    void onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
+
 private:
     void createConnections();
 
     void launchTagsSync();
     void launchSavedSearchSync();
+    void launchLinkedNotebookSync();
+
+    template <class ElementType, class RemoteElementType>
+    bool setupElementToFind(const RemoteElementType & remoteElement,
+                            const QString & typeName, ElementType & element);
 
     template <class ContainerType, class LocalType>
     void launchDataElementSync(const QString & typeName, ContainerType & container);

@@ -64,6 +64,7 @@ void FullSynchronizationManager::start()
 
     launchTagsSync();
     launchSavedSearchSync();
+    launchLinkedNotebookSync();
 
     // TODO: continue from here
 }
@@ -290,6 +291,44 @@ void FullSynchronizationManager::onUpdateSavedSearchFailed(SavedSearch search, Q
                                                                        m_savedSearchesToAddPerRenamingUpdateRequestId);
 }
 
+void FullSynchronizationManager::onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
+{
+    onAddDataElementCompleted<LinkedNotebook>(linkedNotebook, requestId, "LinkedNotebook", m_addLinkedNotebookRequestIds);
+}
+
+void FullSynchronizationManager::onAddLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId)
+{
+    onAddDataElementFailed<LinkedNotebook>(linkedNotebook, requestId, errorDescription,
+                                           "LinkedNotebook", m_addLinkedNotebookRequestIds);
+}
+
+void FullSynchronizationManager::onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
+{
+    QSet<QUuid>::iterator it = m_updateLinkedNotebookRequestIds.find(requestId);
+    if (it != m_updateLinkedNotebookRequestIds.end())
+    {
+        QNDEBUG("FullSynchronizationManager::onUpdateLinkedNotebookCompleted: linkedNotebook = "
+                << linkedNotebook << ", requestId = " << requestId);
+
+        Q_UNUSED(m_updateLinkedNotebookRequestIds.erase(it));
+    }
+}
+
+void FullSynchronizationManager::onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId)
+{
+    QSet<QUuid>::iterator it = m_updateLinkedNotebookRequestIds.find(requestId);
+    if (it != m_updateLinkedNotebookRequestIds.end())
+    {
+        QNDEBUG("FullSynchronizationManager::onUpdateLinkedNotebookFailed: linkedNotebook = "
+                << linkedNotebook << ", errorDescription = " << errorDescription
+                << ", requestId = " << requestId);
+
+        QString error = QT_TR_NOOP("Can't update linked notebook in local storage: ");
+        error += errorDescription;
+        emit failure(error);
+    }
+}
+
 void FullSynchronizationManager::createConnections()
 {
     // Connect local signals with localStorageManagerThread's slots
@@ -364,6 +403,12 @@ void FullSynchronizationManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateSavedSearchComplete(SavedSearch,QUuid)), this, SLOT(onUpdateSavedSearchCompleted(SavedSearch,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateSavedSearchFailed(SavedSearch,QString,QUuid)), this, SLOT(onUpdateSavedSearchFailed(SavedSearch,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addLinkedNotebookComplete(LinkedNotebook,QUuid)), this, SLOT(onAddLinkedNotebookCompleted(LinkedNotebook,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addLinkedNotebookFailed(LinkedNotebook,QString,QUuid)), this, SLOT(onAddLinkedNotebookFailed(LinkedNotebook,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateLinkedNotebookComplete(LinkedNotebook,QUuid)), this, SLOT(onUpdateLinkedNotebookCompleted(LinkedNotebook,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateLinkedNotebookFailed(LinkedNotebook,QString,QUuid)), this, SLOT(onUpdateLinkedNotebookFailed(LinkedNotebook,QString,QUuid)));
 }
 
 void FullSynchronizationManager::launchTagsSync()
@@ -376,6 +421,12 @@ void FullSynchronizationManager::launchSavedSearchSync()
 {
     QNDEBUG("FullSynchronizationManager::launchSavedSearchSync");
     launchDataElementSync<SavedSearchesList, SavedSearch>("Saved search", m_savedSearches);
+}
+
+void FullSynchronizationManager::launchLinkedNotebookSync()
+{
+    QNDEBUG("FullSynchronizationManager::launchLinkedNotebookSync");
+    launchDataElementSync<LinkedNotebooksList, LinkedNotebook>("Linked notebook", m_linkedNotebooks);
 }
 
 template <>
@@ -393,6 +444,15 @@ void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<Full
 {
     if (syncChunk.searches.isSet()) {
         container.append(syncChunk.searches.ref());
+    }
+}
+
+template <>
+void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<FullSynchronizationManager::LinkedNotebooksList>(const qevercloud::SyncChunk & syncChunk,
+                                                                                                                             FullSynchronizationManager::LinkedNotebooksList & container)
+{
+    if (syncChunk.linkedNotebooks.isSet()) {
+        container.append(syncChunk.linkedNotebooks.ref());
     }
 }
 
@@ -482,7 +542,45 @@ bool FullSynchronizationManager::CompareItemByName<T>::operator()(const T & item
     }
 }
 
-template <class ContainerType, class LocalType>
+template <class ElementType, class RemoteElementType>
+bool FullSynchronizationManager::setupElementToFind(const RemoteElementType & remoteElement,
+                                                    const QString & typeName, ElementType & elementToFind)
+{
+    if (remoteElement.name.isSet() && !remoteElement.name->isEmpty()) {
+        elementToFind.setName(remoteElement.name.ref());
+    }
+    else if (remoteElement.guid.isSet() && !remoteElement.guid->isEmpty()) {
+        elementToFind.setGuid(remoteElement.guid.ref());
+    }
+    else {
+        QString errorDescription = QT_TR_NOOP("Can't synchronize remote " + typeName +
+                                              ": no guid and no name");
+        QNWARNING(errorDescription << ": " << remoteElement);
+        emit failure(errorDescription);
+        return false;
+    }
+
+    return true;
+}
+
+template <>
+bool FullSynchronizationManager::setupElementToFind(const qevercloud::LinkedNotebook & remoteElement,
+                                                    const QString &, LinkedNotebook & elementToFind)
+{
+    if (remoteElement.guid.isSet() && !remoteElement.guid->isEmpty()) {
+        elementToFind.setGuid(remoteElement.guid.ref());
+    }
+    else {
+        QString errorDescription = QT_TR_NOOP("Can't synchronize remote LinkedNotebook: no guid");
+        QNWARNING(errorDescription << ": " << remoteElement);
+        emit failure(errorDescription);
+        return false;
+    }
+
+    return true;
+}
+
+template <class ContainerType, class ElementType>
 void FullSynchronizationManager::launchDataElementSync(const QString & typeName,
                                                        ContainerType & container)
 {
@@ -500,21 +598,11 @@ void FullSynchronizationManager::launchDataElementSync(const QString & typeName,
     int numElements = container.size();
     for(int i = 0; i < numElements; ++i)
     {
-        LocalType elementToFind;
+        ElementType elementToFind;
         elementToFind.unsetLocalGuid();
 
         const typename ContainerType::value_type & remoteElement = container[i];
-        if (remoteElement.name.isSet() && !remoteElement.name->isEmpty()) {
-            elementToFind.setName(remoteElement.name.ref());
-        }
-        else if (remoteElement.guid.isSet() && !remoteElement.guid->isEmpty()) {
-            elementToFind.setGuid(remoteElement.guid.ref());
-        }
-        else {
-            QString errorDescription = QT_TR_NOOP("Can't synchronize remote " + typeName +
-                                                  ": no guid and no name");
-            QNWARNING(errorDescription << ": " << remoteElement);
-            emit failure(errorDescription);
+        if (!setupElementToFind(remoteElement, typeName, elementToFind)) {
             return;
         }
 
@@ -559,6 +647,14 @@ void FullSynchronizationManager::emitFindRequest<SavedSearch>(const SavedSearch 
     QUuid findElementRequestId = QUuid::createUuid();
     Q_UNUSED(m_findSavedSearchRequestIds.insert(findElementRequestId));
     emit findSavedSearch(search, findElementRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitFindRequest<LinkedNotebook>(const LinkedNotebook & linkedNotebook)
+{
+    QUuid findElementRequestId = QUuid::createUuid();
+    Q_UNUSED(m_findLinkedNotebookRequestIds.insert(findElementRequestId));
+    emit findLinkedNotebook(linkedNotebook, findElementRequestId);
 }
 
 template <class ContainerType, class ElementType>
@@ -743,7 +839,10 @@ void FullSynchronizationManager::processConflictedElement(const qevercloud::Link
     // including the synchronization for Notebook, Notes and Tags from another user's account
     // The linked notebook as a pointer to all this data would simply be overridden
     // by the server's version of it
+    QString localGuid = linkedNotebook.localGuid();
     linkedNotebook = LinkedNotebook(remoteLinkedNotebook);
+    linkedNotebook.setLocalGuid(localGuid);
+
     QUuid updateRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateLinkedNotebookRequestIds.insert(updateRequestId));
     emit updateLinkedNotebook(linkedNotebook, updateRequestId);
