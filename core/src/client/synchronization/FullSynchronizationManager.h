@@ -106,6 +106,8 @@ private Q_SLOTS:
 
     void onAddNotebookCompleted(Notebook notebook, QUuid requestId);
     void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();

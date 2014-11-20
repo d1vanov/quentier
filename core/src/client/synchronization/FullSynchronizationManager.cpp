@@ -346,6 +346,32 @@ void FullSynchronizationManager::onAddNotebookFailed(Notebook notebook, QString 
                                      m_addNotebookRequestIds);
 }
 
+void FullSynchronizationManager::onUpdateNotebookCompleted(Notebook notebook, QUuid requestId)
+{
+    QSet<QUuid>::iterator it = m_updateNotebookRequestIds.find(requestId);
+    if (it != m_updateNotebookRequestIds.end())
+    {
+        QNDEBUG("FullSynchronizationManager::onUpdateNotebookCompleted: notebook = " << notebook
+                << ", requestId = " << requestId);
+
+        Q_UNUSED(m_updateNotebookRequestIds.erase(it));
+    }
+}
+
+void FullSynchronizationManager::onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
+{
+    QSet<QUuid>::iterator it = m_updateNotebookRequestIds.find(requestId);
+    if (it != m_updateNotebookRequestIds.end())
+    {
+        QNDEBUG("FullSynchronizationManager::onUpdateNotebookFailed: notebook = " << notebook
+                << ", requestId = " << requestId);
+
+        QString error = QT_TR_NOOP("Can't update notebook in local storage: ");
+        error += errorDescription;
+        emit failure(error);
+    }
+}
+
 void FullSynchronizationManager::createConnections()
 {
     // Connect local signals with localStorageManagerThread's slots
@@ -426,6 +452,12 @@ void FullSynchronizationManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateLinkedNotebookComplete(LinkedNotebook,QUuid)), this, SLOT(onUpdateLinkedNotebookCompleted(LinkedNotebook,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateLinkedNotebookFailed(LinkedNotebook,QString,QUuid)), this, SLOT(onUpdateLinkedNotebookFailed(LinkedNotebook,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNotebookComplete(Notebook,QUuid)), this, SLOT(onAddNotebookCompleted(Notebook,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onAddNotebookFailed(Notebook,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNotebookComplete(Notebook,QUuid)), this, SLOT(onUpdateNotebookCompleted(Notebook,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onUpdateNotebookFailed(Notebook,QString,QUuid)));
 }
 
 void FullSynchronizationManager::launchTagsSync()

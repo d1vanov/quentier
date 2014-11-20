@@ -1,4 +1,5 @@
 #include "Printable.h"
+#include <client/Utility.h>
 
 namespace qute_note {
 
@@ -299,6 +300,8 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::SharedNotebookPr
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteSortOrder::type & order)
 {
+    strm << "qevercloud::NoteSortOrder: ";
+
     switch(order)
     {
     case qevercloud::NoteSortOrder::CREATED:
@@ -916,12 +919,123 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::Notebook & notebo
                                                ? (notebook.defaultNotebook.ref() ? "true" : "false")
                                                : "<empty>") << "; \n";
     strm << indent << "serviceCreated = " << (notebook.serviceCreated.isSet()
-                                              ? (QString::number(notebook.serviceCreated.ref()) + QString(" (") +
-                                                 QDateTime::fromMSecsSinceEpoch(notebook.serviceCreated.ref()).toString(Qt::ISODate) +
-                                                 QString(")"))
+                                              ? qute_note::PrintableDateTimeFromTimestamp(notebook.serviceCreated.ref())
+                                              : "<empty>") << "; \n";
+    strm << indent << "serviceUpdated = " << (notebook.serviceUpdated.isSet()
+                                              ? qute_note::PrintableDateTimeFromTimestamp(notebook.serviceUpdated.ref())
                                               : "<empty>") << "; \n";
 
-    // TODO: continue from here
+    strm << indent << "publishing = ";
+    if (notebook.publishing.isSet()) {
+        strm << notebook.publishing.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
 
+    strm << indent << "published = " << (notebook.published.isSet()
+                                         ? (notebook.published.ref() ? "true" : "false")
+                                         : "<empty>") << "; \n";
+    strm << indent << "stack = " << (notebook.stack.isSet() ? notebook.stack.ref() : "<empty>") << "; \n";
+
+    if (notebook.sharedNotebooks.isSet())
+    {
+        strm << indent << "sharedNotebooks: { \n";
+
+        const QList<qevercloud::SharedNotebook> & sharedNotebooks = notebook.sharedNotebooks.ref();
+        typedef QList<qevercloud::SharedNotebook>::const_iterator CIter;
+        CIter sharedNotebooksEnd = sharedNotebooks.end();
+        for(CIter it = sharedNotebooks.begin(); it != sharedNotebooksEnd; ++it) {
+            strm << indent << indent << *it;
+        }
+
+        strm << indent << "}; \n";
+    }
+
+    strm << indent << "businessNotebook = ";
+    if (notebook.businessNotebook.isSet()) {
+        strm << notebook.businessNotebook.ref();
+    }
+    else {
+         strm << "<empty>";
+    }
+    strm << "; \n";
+
+    strm << indent << "contact = ";
+    if (notebook.contact.isSet()) {
+        strm << notebook.contact.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
+
+    if (notebook.restrictions.isSet()) {
+        strm << notebook.restrictions.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
+
+    strm << "}; \n";
+    return strm;
+}
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::Publishing & publishing)
+{
+    strm << "qevercloud::Publishing: { \n";
+    QString indent = "  ";
+
+    strm << indent << "uri = " << (publishing.uri.isSet() ? publishing.uri.ref() : "<empty>") << "; \n";
+
+    strm << indent << "order = ";
+    if (publishing.order.isSet()) {
+        strm << publishing.order.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
+
+    strm << indent << "ascending = " << (publishing.ascending.isSet()
+                                         ? (publishing.ascending.ref() ? "true" : "false")
+                                         : "<empty>") << "; \n";
+    strm << indent << "publicDescription = " << (publishing.publicDescription.isSet()
+                                                 ? publishing.publicDescription.ref()
+                                                 : "<empty>") << "; \n";
+
+    strm << "}; \n";
+    return strm;
+}
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebook & sharedNotebook)
+{
+    strm << "qevercloud::SharedNotebook: { \n";
+
+    // TODO: implement
+
+    strm << "}; \n";
+    return strm;
+}
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::BusinessNotebook & businessNotebook)
+{
+    strm << "qevercloud::BusinessNotebook: { \n";
+
+    // TODO: implement
+
+    strm << "}; \n";
+    return strm;
+}
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::User & user)
+{
+    strm << "qeverloud::User: { \n";
+
+    // TODO: implement
+
+    strm << "}; \n";
     return strm;
 }
