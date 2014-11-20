@@ -72,5 +72,6 @@ __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SyncChunk)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Tag)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SavedSearch)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::LinkedNotebook)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Notebook)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

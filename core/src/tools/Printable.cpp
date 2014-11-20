@@ -901,3 +901,27 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::LinkedNotebook & 
 
     return strm;
 }
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::Notebook & notebook)
+{
+    strm << "qevercloud::Notebook: { \n";
+    QString indent = "  ";
+
+    strm << indent << "guid = " << (notebook.guid.isSet() ? notebook.guid.ref() : "<empty>") << "; \n";
+    strm << indent << "name = " << (notebook.name.isSet() ? notebook.name.ref() : "<empty>") << "; \n";
+    strm << indent << "updateSequenceNum = " << (notebook.updateSequenceNum.isSet()
+                                                 ? QString::number(notebook.updateSequenceNum.ref())
+                                                 : "<empty>") << "; \n";
+    strm << indent << "defaultNotebook = " << (notebook.defaultNotebook.isSet()
+                                               ? (notebook.defaultNotebook.ref() ? "true" : "false")
+                                               : "<empty>") << "; \n";
+    strm << indent << "serviceCreated = " << (notebook.serviceCreated.isSet()
+                                              ? (QString::number(notebook.serviceCreated.ref()) + QString(" (") +
+                                                 QDateTime::fromMSecsSinceEpoch(notebook.serviceCreated.ref()).toString(Qt::ISODate) +
+                                                 QString(")"))
+                                              : "<empty>") << "; \n";
+
+    // TODO: continue from here
+
+    return strm;
+}

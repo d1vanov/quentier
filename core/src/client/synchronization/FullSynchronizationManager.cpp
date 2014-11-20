@@ -29,7 +29,11 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_linkedNotebooks(),
     m_findLinkedNotebookRequestIds(),
     m_addLinkedNotebookRequestIds(),
-    m_updateLinkedNotebookRequestIds()
+    m_updateLinkedNotebookRequestIds(),
+    m_notebooks(),
+    m_findNotebookRequestIds(),
+    m_addNotebookRequestIds(),
+    m_updateNotebookRequestIds()
 {
     createConnections();
 }
@@ -81,12 +85,14 @@ void FullSynchronizationManager::onFindUserFailed(UserWrapper user, QString erro
 
 void FullSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUuid requestId)
 {
-    // TODO: implement
+    onFindDataElementCompleted<NotebooksList, Notebook>(notebook, requestId, "Notebook",
+                                                        m_notebooks, m_findNotebookRequestIds);
 }
 
 void FullSynchronizationManager::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
+    onFindDataElementFailed<NotebooksList, Notebook>(notebook, requestId, errorDescription,
+                                                     "Notebook", m_notebooks, m_findNotebookRequestIds);
 }
 
 void FullSynchronizationManager::onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId)
@@ -329,6 +335,17 @@ void FullSynchronizationManager::onUpdateLinkedNotebookFailed(LinkedNotebook lin
     }
 }
 
+void FullSynchronizationManager::onAddNotebookCompleted(Notebook notebook, QUuid requestId)
+{
+    onAddDataElementCompleted<Notebook>(notebook, requestId, "Notebook", m_addNotebookRequestIds);
+}
+
+void FullSynchronizationManager::onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
+{
+    onAddDataElementFailed<Notebook>(notebook, requestId, errorDescription, "Notebook",
+                                     m_addNotebookRequestIds);
+}
+
 void FullSynchronizationManager::createConnections()
 {
     // Connect local signals with localStorageManagerThread's slots
@@ -429,6 +446,12 @@ void FullSynchronizationManager::launchLinkedNotebookSync()
     launchDataElementSync<LinkedNotebooksList, LinkedNotebook>("Linked notebook", m_linkedNotebooks);
 }
 
+void FullSynchronizationManager::launchNotebookSync()
+{
+    QNDEBUG("FullSynchronizationManager::launchNotebookSync");
+    launchDataElementSync<NotebooksList, Notebook>("Notebook", m_notebooks);
+}
+
 template <>
 void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<FullSynchronizationManager::TagsList>(const qevercloud::SyncChunk & syncChunk,
                                                                                                                   FullSynchronizationManager::TagsList & container)
@@ -453,6 +476,15 @@ void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<Full
 {
     if (syncChunk.linkedNotebooks.isSet()) {
         container.append(syncChunk.linkedNotebooks.ref());
+    }
+}
+
+template <>
+void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<FullSynchronizationManager::NotebooksList>(const qevercloud::SyncChunk & syncChunk,
+                                                                                                                       FullSynchronizationManager::NotebooksList & container)
+{
+    if (syncChunk.notebooks.isSet()) {
+        container.append(syncChunk.notebooks.ref());
     }
 }
 
@@ -657,6 +689,14 @@ void FullSynchronizationManager::emitFindRequest<LinkedNotebook>(const LinkedNot
     emit findLinkedNotebook(linkedNotebook, findElementRequestId);
 }
 
+template <>
+void FullSynchronizationManager::emitFindRequest<Notebook>(const Notebook & notebook)
+{
+    QUuid findElementRequestId = QUuid::createUuid();
+    Q_UNUSED(m_findNotebookRequestIds.insert(findElementRequestId));
+    emit findNotebook(notebook, findElementRequestId);
+}
+
 template <class ContainerType, class ElementType>
 void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
                                                             const QUuid & requestId,
@@ -764,6 +804,14 @@ void FullSynchronizationManager::emitAddRequest<LinkedNotebook>(const LinkedNote
 }
 
 template <>
+void FullSynchronizationManager::emitAddRequest<Notebook>(const Notebook & notebook)
+{
+    QUuid addNotebookRequestId = QUuid::createUuid();
+    Q_UNUSED(m_addNotebookRequestIds.insert(addNotebookRequestId));
+    emit addNotebook(notebook, addNotebookRequestId);
+}
+
+template <>
 void FullSynchronizationManager::emitUpdateRequest<Tag>(const Tag & tag,
                                                         const Tag * tagToAddLater)
 {
@@ -809,6 +857,17 @@ void FullSynchronizationManager::emitUpdateRequest<LinkedNotebook>(const LinkedN
     emit updateLinkedNotebook(linkedNotebook, updateLinkedNotebookRequestId);
 }
 
+template <>
+void FullSynchronizationManager::emitUpdateRequest<Notebook>(const Notebook & notebook,
+                                                             const Notebook *)
+{
+    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Notebook>: notebook = " << notebook);
+
+    QUuid updateNotebookRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateNotebookRequestIds.insert(updateNotebookRequestId));
+    emit updateNotebook(notebook, updateNotebookRequestId);
+}
+
 template <class T>
 bool FullSynchronizationManager::CompareItemByGuid<T>::operator()(const T & item) const
 {
@@ -846,6 +905,26 @@ void FullSynchronizationManager::processConflictedElement(const qevercloud::Link
     QUuid updateRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateLinkedNotebookRequestIds.insert(updateRequestId));
     emit updateLinkedNotebook(linkedNotebook, updateRequestId);
+}
+
+template <>
+void FullSynchronizationManager::processConflictedElement(const qevercloud::Notebook & remoteNotebook,
+                                                          const QString &, Notebook & notebook)
+{
+    // It is too costly to process the conflicting notebook the default way of creating
+    // a local conflicting one because Notebook is a "parent" for all notes it contains;
+    // notes are "parents" to resources, can be linked with tags etc. Therefore, it is better
+    // to attempt to "merge" the remote changes into the conflicting notebook.
+    // The simplest form of merge would be "discard local changes and replace them
+    // with their remote counterparts". After all, it is the notebook, it doesn't
+    // make much sense to change its settings locally and then attempting to synchronize
+    QString localGuid = notebook.localGuid();
+    notebook = Notebook(remoteNotebook);
+    notebook.setLocalGuid(localGuid);
+
+    QUuid updateRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateNotebookRequestIds.insert(updateRequestId));
+    emit updateNotebook(notebook, updateRequestId);
 }
 
 } // namespace qute_note

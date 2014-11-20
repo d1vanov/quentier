@@ -104,12 +104,16 @@ private Q_SLOTS:
     void onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
     void onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
 
+    void onAddNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+
 private:
     void createConnections();
 
     void launchTagsSync();
     void launchSavedSearchSync();
     void launchLinkedNotebookSync();
+    void launchNotebookSync();
 
     template <class ElementType, class RemoteElementType>
     bool setupElementToFind(const RemoteElementType & remoteElement,
@@ -208,6 +212,7 @@ private:
     typedef QList<qevercloud::Tag> TagsList;
     typedef QList<qevercloud::SavedSearch> SavedSearchesList;
     typedef QList<qevercloud::LinkedNotebook> LinkedNotebooksList;
+    typedef QList<qevercloud::Notebook> NotebooksList;
 
 private:
     LocalStorageManagerThreadWorker &                               m_localStorageManagerThreadWorker;
@@ -233,6 +238,11 @@ private:
     QSet<QUuid>                 m_findLinkedNotebookRequestIds;
     QSet<QUuid>                 m_addLinkedNotebookRequestIds;
     QSet<QUuid>                 m_updateLinkedNotebookRequestIds;
+
+    NotebooksList               m_notebooks;
+    QSet<QUuid>                 m_findNotebookRequestIds;
+    QSet<QUuid>                 m_addNotebookRequestIds;
+    QSet<QUuid>                 m_updateNotebookRequestIds;
 };
 
 } // namespace qute_note
