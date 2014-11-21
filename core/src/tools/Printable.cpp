@@ -503,6 +503,8 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NotebookRestrict
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::SharedNotebookInstanceRestrictions::type & restrictions)
 {
+    strm << "qevercloud::SharedNotebookInstanceRestrictions: ";
+
     switch(restrictions)
     {
     case qevercloud::SharedNotebookInstanceRestrictions::NO_SHARED_NOTEBOOKS:
@@ -512,7 +514,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::SharedNotebookIn
         strm << "ONLY_JOINED_OR_PREVIEW";
         break;
     default:
-        strm << "UNKNOWN";
+        strm << "Unknown";
         break;
     }
 
@@ -1013,8 +1015,40 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::Publishing & publ
 QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebook & sharedNotebook)
 {
     strm << "qevercloud::SharedNotebook: { \n";
+    QString indent = "  ";
 
-    // TODO: implement
+    strm << indent << "id = " << (sharedNotebook.id.isSet() ? QString::number(sharedNotebook.id.ref()) : "<empty>") << "; \n";
+    strm << indent << "userId = " << (sharedNotebook.userId.isSet() ? QString::number(sharedNotebook.userId.ref()) : "<empty>") << "; \n";
+    strm << indent << "notebookGuid = " << (sharedNotebook.notebookGuid.isSet() ? sharedNotebook.notebookGuid.ref() : "<empty>") << "; \n";
+    strm << indent << "email = " << (sharedNotebook.email.isSet() ? sharedNotebook.email.ref() : "<empty>") << "; \n";
+    strm << indent << "serviceCreated = " << (sharedNotebook.serviceCreated.isSet()
+                                              ? qute_note::PrintableDateTimeFromTimestamp(sharedNotebook.serviceCreated.ref())
+                                              : "<empty>") << "; \n";
+    strm << indent << "serviceUpdated = " << (sharedNotebook.serviceUpdated.isSet()
+                                              ? qute_note::PrintableDateTimeFromTimestamp(sharedNotebook.serviceUpdated.ref())
+                                              : "<empty>") << "; \n";
+
+    strm << indent << "privilege = ";
+    if (sharedNotebook.privilege.isSet()) {
+        strm << sharedNotebook.privilege.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
+
+    strm << indent << "allowPreview = " << (sharedNotebook.allowPreview.isSet()
+                                            ? (sharedNotebook.allowPreview.ref() ? "true" : "false")
+                                            : "<empty>") << "; \n";
+
+    strm << indent << "recipientSettings = ";
+    if (sharedNotebook.recipientSettings.isSet()) {
+        strm << sharedNotebook.recipientSettings.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
 
     strm << "}; \n";
     return strm;
@@ -1035,6 +1069,22 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::User & user)
     strm << "qeverloud::User: { \n";
 
     // TODO: implement
+
+    strm << "}; \n";
+    return strm;
+}
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebookRecipientSettings & settings)
+{
+    strm << "qevercloud::SharedNotebookRecipientSettings: { \n";
+    QString indent = "  ";
+
+    strm << indent << "reminderNotifyEmail = " << (settings.reminderNotifyEmail.isSet()
+                                                   ? (settings.reminderNotifyEmail.ref() ? "true" : "false")
+                                                   : "<empty>") << "; \n";
+    strm << indent << "reminderNotifyInApp = " << (settings.reminderNotifyInApp.isSet()
+                                                   ? (settings.reminderNotifyInApp.ref() ? "true" : "false")
+                                                   : "<empty>") << "; \n";
 
     strm << "}; \n";
     return strm;

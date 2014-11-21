@@ -77,5 +77,6 @@ __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Publishing)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebook)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessNotebook)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::User)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookRecipientSettings)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H
