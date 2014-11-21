@@ -185,53 +185,135 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::Accounting & acc
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::UserAttributes & attributes)
 {
-    strm << "UserAttributes: {\n";
+    strm << "qevercloud::UserAttributes: {\n";
+    QString indent = "  ";
 
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, defaultLocationName);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, defaultLatitude);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, defaultLongitude);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, preactivation);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, incomingEmailAddress);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, comments);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, dateAgreedToTermsOfService, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, maxReferrals);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, referralCount);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, refererCode);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, sentEmailDate, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, sentEmailCount);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, dailyEmailLimit);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, emailOptOutDate, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, partnerEmailOptInDate, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, preferredLanguage);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, preferredCountry);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, clipFullPage);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, twitterUserName);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, twitterId);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, groupName);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, recognitionLanguage);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, referralProof);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, educationalDiscount);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, businessAddress);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, hideSponsorBilling);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, taxExempt);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, useEmailAutoFiling);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderEmailConfig, static_cast<quint8>);
-
-    if (attributes.viewedPromotions.isSet()) {
-        strm << "viewedPromotions: { \n";
-        foreach(const QString & promotion, attributes.viewedPromotions.ref()) {
-            strm << promotion << "\n";
+    strm << indent << "defaultLocationName = " << (attributes.defaultLocationName.isSet()
+                                                   ? attributes.defaultLocationName.ref()
+                                                   : "<empty>") << "; \n";
+    strm << indent << "defaultLatitude = " << (attributes.defaultLatitude.isSet()
+                                               ? QString::number(attributes.defaultLatitude.ref())
+                                               : "<empty>") << "; \n";
+    strm << indent << "defaultLongitude = " << (attributes.defaultLongitude.isSet()
+                                                ? QString::number(attributes.defaultLongitude.ref())
+                                                : "<empty>") << "; \n";
+    strm << indent << "preactivation = " << (attributes.preactivation.isSet()\
+                                             ? (attributes.preactivation.ref() ? "true" : "false")
+                                             : "<empty>") << "; \n";
+    strm << indent << "viewedPromotions";
+    if (attributes.viewedPromotions.isSet())
+    {
+        strm << ": { \n";
+        const QStringList & viewedPromotions = attributes.viewedPromotions.ref();
+        const int numViewedPromotions = viewedPromotions.size();
+        for(int i = 0; i < numViewedPromotions; ++i) {
+            strm << indent << indent << "[" << i << "]: " << viewedPromotions[i] << "; \n";
         }
-        strm << "}; \n";
+
+        strm << indent << "}; \n";
+    }
+    else
+    {
+        strm << " = <empty>; \n";
     }
 
-    if (attributes.recentMailedAddresses.isSet()) {
-        strm << "recentMailedAddresses: { \n";
-        foreach(const QString & address, attributes.recentMailedAddresses.ref()) {
-            strm << address << "\n";
+    strm << indent << "incomingEmailAddress = " << (attributes.incomingEmailAddress.isSet()
+                                                    ? attributes.incomingEmailAddress.ref()
+                                                    : "<empty>") << "; \n";
+
+    strm << indent << "recentMailedAddresses";
+    if (attributes.recentMailedAddresses.isSet())
+    {
+        strm << ": { \n";
+        const QStringList & recentMailedAddresses = attributes.recentMailedAddresses.ref();
+        const int numRecentMailedAddresses = recentMailedAddresses.size();
+        for(int i = 0; i < numRecentMailedAddresses; ++i) {
+            strm << indent << indent << "[" << i << "]: " << recentMailedAddresses[i] << "; \n";
         }
-        strm << "}; \n";
+
+        strm << indent << "}; \n";
     }
+    else
+    {
+        strm << " = <empty>; \n";
+    }
+
+    strm << indent << "comments = " << (attributes.comments.isSet() ? attributes.comments.ref() : "<empty>") << "; \n";
+
+    strm << indent << "dateAgreedToTermsOfService = " << (attributes.dateAgreedToTermsOfService.isSet()
+                                                          ? qute_note::PrintableDateTimeFromTimestamp(attributes.dateAgreedToTermsOfService.ref())
+                                                          : "<empty>") << "; \n";
+    strm << indent << "maxReferrals = " << (attributes.maxReferrals.isSet()
+                                            ? QString::number(attributes.maxReferrals.ref())
+                                            : "<empty>") << "; \n";
+    strm << indent << "referralCount = " << (attributes.referralCount.isSet()
+                                             ? QString::number(attributes.referralCount.ref())
+                                             : "<empty>") << "; \n";
+    strm << indent << "refererCode = " << (attributes.refererCode.isSet()
+                                           ? attributes.refererCode.ref()
+                                           : "<empty>") << "; \n";
+    strm << indent << "sentEmailDate = " << (attributes.sentEmailDate.isSet()
+                                             ? qute_note::PrintableDateTimeFromTimestamp(attributes.sentEmailDate.ref())
+                                             : "<empty>") << "; \n";
+    strm << indent << "sentEmailCount = " << (attributes.sentEmailCount.isSet()
+                                              ? QString::number(attributes.sentEmailCount.ref())
+                                              : "<empty>") << "; \n";
+    strm << indent << "dailyEmailLimit = " << (attributes.dailyEmailLimit.isSet()
+                                               ? QString::number(attributes.dailyEmailLimit.ref())
+                                               : "<empty>") << "; \n";
+    strm << indent << "emailOptOutDate = " << (attributes.emailOptOutDate.isSet()
+                                               ? qute_note::PrintableDateTimeFromTimestamp(attributes.emailOptOutDate.ref())
+                                               : "<empty>") << "; \n";
+    strm << indent << "partnerEmailOptInDate = " << (attributes.partnerEmailOptInDate.isSet()
+                                                     ? qute_note::PrintableDateTimeFromTimestamp(attributes.partnerEmailOptInDate.ref())
+                                                     : "<empty>") << "; \n";
+    strm << indent << "preferredLanguage = " << (attributes.preferredLanguage.isSet()
+                                                 ? attributes.preferredLanguage.ref()
+                                                 : "<empty>") << "; \n";
+    strm << indent << "preferredCountry = " << (attributes.preferredCountry.isSet()
+                                                ? attributes.preferredCountry.ref()
+                                                : "<empty>") << "; \n";
+    strm << indent << "clipFullPage = " << (attributes.clipFullPage.isSet()
+                                            ? (attributes.clipFullPage.ref() ? "true" : "false")
+                                            : "<empty>") << "; \n";
+    strm << indent << "twitterUserName = " << (attributes.twitterUserName.isSet()
+                                               ? attributes.twitterUserName.ref()
+                                               : "<empty>") << "; \n";
+    strm << indent << "twitterId = " << (attributes.twitterId.isSet()
+                                         ? attributes.twitterId.ref()
+                                         : "<empty>") << "; \n";
+    strm << indent << "groupName = " << (attributes.groupName.isSet()
+                                         ? attributes.groupName.ref()
+                                         : "<empty>") << "; \n";
+    strm << indent << "recognitionLanguage = " << (attributes.recognitionLanguage.isSet()
+                                                   ? attributes.recognitionLanguage.ref()
+                                                   : "<empty>") << "; \n";
+    strm << indent << "referralProof = " << (attributes.referralProof.isSet()
+                                             ? attributes.referralProof.ref()
+                                             : "<empty>") << "; \n";
+    strm << indent << "educationalDiscount = " << (attributes.educationalDiscount.isSet()
+                                                   ? (attributes.educationalDiscount.ref() ? "true" : "false")
+                                                   : "<empty>") << "; \n";
+    strm << indent << "businessAddress = " << (attributes.businessAddress.isSet()
+                                               ? attributes.businessAddress.ref()
+                                               : "<empty>") << "; \n";
+    strm << indent << "hideSponsorBilling = " << (attributes.hideSponsorBilling.isSet()
+                                                  ? (attributes.hideSponsorBilling.ref() ? "true" : "false")
+                                                  : "<empty>") << "; \n";
+    strm << indent << "taxExempt = " << (attributes.taxExempt.isSet()
+                                         ? (attributes.taxExempt.ref() ? "true" : "false")
+                                         : "<empty>") << "; \n";
+    strm << indent << "useEmailAutoFiling = " << (attributes.useEmailAutoFiling.isSet()
+                                                  ? (attributes.useEmailAutoFiling.ref() ? "true" : "false")
+                                                  : "<empty>") << "; \n";
+    strm << indent << "reminderEmailConfig = ";
+    if (attributes.reminderEmailConfig.isSet()) {
+        strm << attributes.reminderEmailConfig.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
 
     strm << "}; \n";
     return strm;
