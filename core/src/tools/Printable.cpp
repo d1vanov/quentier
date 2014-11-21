@@ -1245,9 +1245,68 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::BusinessNotebook 
 
 QTextStream & operator<<(QTextStream & strm, const qevercloud::User & user)
 {
-    strm << "qeverloud::User: { \n";
+    strm << "qevercloud::User: { \n";
+    QString indent = "  ";
 
-    // TODO: implement
+    strm << indent << "id = " << (user.id.isSet() ? QString::number(user.id.ref()) : "<empty>") << "; \n";
+    strm << indent << "username = " << (user.username.isSet() ? user.username.ref() : "<empty>") << "; \n";
+    strm << indent << "email = " << (user.email.isSet() ? user.email.ref() : "<empty>") << "; \n";
+    strm << indent << "name = " << (user.name.isSet() ? user.name.ref() : "<empty>") << "; \n";
+    strm << indent << "timezone = " << (user.timezone.isSet() ? user.timezone.ref() : "<empty>") << "; \n";
+
+    strm << indent << "privilege = ";
+    if (user.privilege.isSet()) {
+        strm << user.privilege.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
+
+    strm << indent << "created = " << (user.created.isSet()
+                                       ? qute_note::PrintableDateTimeFromTimestamp(user.created.ref())
+                                       : "<empty>") << "; \n";
+    strm << indent << "updated = " << (user.updated.isSet()
+                                       ? qute_note::PrintableDateTimeFromTimestamp(user.updated.ref())
+                                       : "<empty>") << "; \n";
+    strm << indent << "deleted = " << (user.deleted.isSet()
+                                       ? qute_note::PrintableDateTimeFromTimestamp(user.deleted.ref())
+                                       : "<empty>") << "; \n";
+    strm << indent << "active = " << (user.active.isSet()
+                                      ? (user.active.ref() ? "true" : "false")
+                                      : "<empty>") << "; \n";
+
+    strm << indent << "attributes";
+    if (user.attributes.isSet()) {
+        strm << ": \n" << user.attributes.ref();
+    }
+    else {
+        strm << " = <empty>; \n";
+    }
+
+    strm << indent << "accounting";
+    if (user.accounting.isSet()) {
+        strm << ": \n" << user.accounting.ref();
+    }
+    else {
+        strm << " = empty>; \n";
+    }
+
+    strm << indent << "premiumInfo";
+    if (user.premiumInfo.isSet()) {
+        strm << ": \n" << user.premiumInfo.ref();
+    }
+    else {
+        strm << " = <empty>; \n";
+    }
+
+    strm << indent << "businessUserInfo";
+    if (user.businessUserInfo.isSet()) {
+        strm << ": \n" << user.businessUserInfo.ref();
+    }
+    else {
+        strm << " = <empty>; \n";
+    }
 
     strm << "}; \n";
     return strm;
@@ -1363,3 +1422,4 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SponsoredGroupRol
 
     return strm;
 }
+
