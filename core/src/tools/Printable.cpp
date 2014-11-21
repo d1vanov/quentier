@@ -43,12 +43,25 @@ QTextStream & operator <<(QTextStream & strm,
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::BusinessUserInfo & info)
 {
-    strm << "BusinessUserInfo: {\n";
+    strm << "qevercloud::BusinessUserInfo: {\n";
+    QString indent = "  ";
 
-    CHECK_AND_PRINT_ATTRIBUTE(info, businessId);
-    CHECK_AND_PRINT_ATTRIBUTE(info, businessName);
-    CHECK_AND_PRINT_ATTRIBUTE(info, role, static_cast<quint8>);
-    CHECK_AND_PRINT_ATTRIBUTE(info, email);
+    strm << indent << "businessId = " << (info.businessId.isSet()
+                                          ? QString::number(info.businessId.ref())
+                                          : "<empty>") << "; \n";
+    strm << indent << "businessName = " << (info.businessName.isSet()
+                                            ? info.businessName.ref()
+                                            : "<empty>") << "; \n";
+    strm << indent << "role = ";
+    if (info.role.isSet()) {
+        strm << info.role.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
+
+    strm << indent << "email = " << (info.email.isSet() ? info.email.ref() : "<empty>") << "; \n";
 
     strm << "}; \n";
     return strm;
@@ -56,17 +69,32 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::BusinessUserInfo
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::PremiumInfo & info)
 {
-    strm << "PremiumUserInfo {\n";
+    strm << "qevercloud::PremiumUserInfo {\n";
+    QString indent = "  ";
 
-    CHECK_AND_PRINT_ATTRIBUTE(info, premiumExpirationDate, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(info, sponsoredGroupName);
-    CHECK_AND_PRINT_ATTRIBUTE(info, sponsoredGroupRole, static_cast<quint8>);
-    CHECK_AND_PRINT_ATTRIBUTE(info, premiumUpgradable);
+    strm << indent << "premiumExpirationDate = " << (info.premiumExpirationDate.isSet()
+                                                     ? qute_note::PrintableDateTimeFromTimestamp(info.premiumExpirationDate.ref())
+                                                     : "<empty>") << "; \n";
+    strm << indent << "sponsoredGroupName = " << (info.sponsoredGroupName.isSet()
+                                                  ? info.sponsoredGroupName.ref()
+                                                  : "<empty>") << "; \n";
+    strm << indent << "sponsoredGroupRole = ";
+    if (info.sponsoredGroupRole.isSet()) {
+        strm << info.sponsoredGroupRole.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
 
-    strm << "premiumExtendable = " << info.premiumExtendable << "\n";
-    strm << "premiumPending = " << info.premiumPending << "\n";
-    strm << "premiumCancellationPending = " << info.premiumCancellationPending << "\n";
-    strm << "canPurchaseUploadAllowance = " << info.canPurchaseUploadAllowance << "\n";
+    strm << indent << "premiumUpgradable = " << (info.premiumUpgradable.isSet()
+                                                 ? (info.premiumUpgradable.ref() ? "true" : "false")
+                                                 : "<empty>") << "; \n";
+
+    strm << indent << "premiumExtendable = " << (info.premiumExtendable ? "true" : "false") << "\n";
+    strm << indent << "premiumPending = " << (info.premiumPending ? "true" : "false") << "\n";
+    strm << indent << "premiumCancellationPending = " << (info.premiumCancellationPending ? "true" : "false") << "\n";
+    strm << indent << "canPurchaseUploadAllowance = " << (info.canPurchaseUploadAllowance ? "true" : "false") << "\n";
 
     strm << "}; \n";
     return strm;
@@ -74,31 +102,82 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::PremiumInfo & in
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::Accounting & accounting)
 {
-    strm << "Accounting: {\n";
+    strm << "qevercloud::Accounting: { \n";
+    QString indent = "  ";
 
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, uploadLimit, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, uploadLimitEnd, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, uploadLimitNextMonth, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumServiceStatus, static_cast<quint8>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumOrderNumber);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumCommerceService);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumServiceStart, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumServiceSKU);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastSuccessfulCharge, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastFailedCharge, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastFailedChargeReason);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, nextPaymentDue, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumLockUntil, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, updated, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, premiumSubscriptionNumber);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, lastRequestedCharge, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, currency);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, unitPrice, static_cast<qint32>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, businessId, static_cast<qint32>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, businessName);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, businessRole, static_cast<quint8>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, unitDiscount, static_cast<qint32>);
-    CHECK_AND_PRINT_ATTRIBUTE(accounting, nextChargeDate, static_cast<qint64>);
+    strm << indent << "uploadLimit = " << (accounting.uploadLimit.isSet()
+                                           ? QString::number(accounting.uploadLimit.ref())
+                                           : "<empty>") << "; \n";
+    strm << indent << "uploadLimitEnd = " << (accounting.uploadLimitEnd.isSet()
+                                              ? qute_note::PrintableDateTimeFromTimestamp(accounting.uploadLimitEnd.ref())
+                                              : "<empty>") << "; \n";
+    strm << indent << "uploadLimitNextMonth = " << (accounting.uploadLimitNextMonth.isSet()
+                                                    ? QString::number(accounting.uploadLimitNextMonth.ref())
+                                                    : "<empty>") << "; \n";
+    strm << indent << "premiumServiceStatus = ";
+    if (accounting.premiumServiceStatus.isSet()) {
+        strm << accounting.premiumServiceStatus.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
+
+    strm << indent << "premiumOrderNumber = " << (accounting.premiumOrderNumber.isSet()
+                                                  ? accounting.premiumOrderNumber.ref()
+                                                  : "<empty>") << "; \n";
+    strm << indent << "premiumCommerceService = " << (accounting.premiumCommerceService.isSet()
+                                                      ? accounting.premiumCommerceService.ref()
+                                                      : "<empty>") << "; \n";
+    strm << indent << "premiumServiceStart = " << (accounting.premiumServiceStart.isSet()
+                                                   ? qute_note::PrintableDateTimeFromTimestamp(accounting.premiumServiceStart.ref())
+                                                   : "<empty>") << "; \n";
+    strm << indent << "premiumServiceSKU = " << (accounting.premiumServiceSKU.isSet()
+                                                 ? accounting.premiumServiceSKU.ref()
+                                                 : "<empty>") << "; \n";
+    strm << indent << "lastSuccessfulCharge = " << (accounting.lastSuccessfulCharge.isSet()
+                                                    ? qute_note::PrintableDateTimeFromTimestamp(accounting.lastSuccessfulCharge.ref())
+                                                    : "<empty>") << "; \n";
+    strm << indent << "lastFailedCharge = " << (accounting.lastFailedCharge.isSet()
+                                                ? qute_note::PrintableDateTimeFromTimestamp(accounting.lastFailedCharge.ref())
+                                                : "<empty>") << "; \n";
+    strm << indent << "lastFailedChargeReason = " << (accounting.lastFailedChargeReason.isSet()
+                                                      ? accounting.lastFailedChargeReason.ref()
+                                                      : "<empty>") << "; \n";
+    strm << indent << "nextPaymentDue = " << (accounting.nextPaymentDue.isSet()
+                                              ? qute_note::PrintableDateTimeFromTimestamp(accounting.nextPaymentDue.ref())
+                                              : "<empty>") << "; \n";
+    strm << indent << "premiumLockUntil = " << (accounting.premiumLockUntil.isSet()
+                                                ? qute_note::PrintableDateTimeFromTimestamp(accounting.premiumLockUntil.ref())
+                                                : "<empty>") << "; \n";
+    strm << indent << "updated = " << (accounting.updated.isSet()
+                                       ? qute_note::PrintableDateTimeFromTimestamp(accounting.updated.ref())
+                                       : "<empty>") << "; \n";
+    strm << indent << "premiumSubscriptionNumber = " << (accounting.premiumSubscriptionNumber.isSet()
+                                                         ? accounting.premiumSubscriptionNumber.ref()
+                                                         : "<empty>") << "; \n";
+    strm << indent << "lastRequestedCharge = " << (accounting.lastRequestedCharge.isSet()
+                                                   ? qute_note::PrintableDateTimeFromTimestamp(accounting.lastRequestedCharge.ref())
+                                                   : "<empty>") << "; \n";
+    strm << indent << "currency = " << (accounting.currency.isSet() ? accounting.currency.ref() : "<empty>") << "; \n";
+    strm << indent << "unitPrice = " << (accounting.unitPrice.isSet() ? QString::number(accounting.unitPrice.ref()) : "<empty>") << "; \n";
+    strm << indent << "businessId = " << (accounting.businessId.isSet() ? QString::number(accounting.businessId.ref()) : "<empty>") << "; \n";
+
+    strm << indent << "businessRole = ";
+    if (accounting.businessRole.isSet()) {
+        strm << accounting.businessRole.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
+
+    strm << indent << "unitDiscount = " << (accounting.unitDiscount.isSet()
+                                            ? QString::number(accounting.unitDiscount.ref())
+                                            : "<empty>") << "; \n";
+    strm << indent << "nextChargeDate = " << (accounting.nextChargeDate.isSet()
+                                              ? qute_note::PrintableDateTimeFromTimestamp(accounting.nextChargeDate.ref())
+                                              : "<empty>") << "; \n";
 
     strm << "}; \n";
     return strm;
@@ -220,7 +299,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes &
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::PrivilegeLevel::type & level)
 {
-    strm << "PrivilegeLevel: ";
+    strm << "qevercloud::PrivilegeLevel: ";
 
     switch (level)
     {
@@ -243,7 +322,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::PrivilegeLevel::
         strm << "ADMIN";
         break;
     default:
-        strm << "UNKNOWN";
+        strm << "Unknown";
         break;
     }
 
@@ -270,6 +349,8 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::QueryFormat::typ
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::SharedNotebookPrivilegeLevel::type & privilege)
 {
+    strm << "qevercloud::SharedNotebookPrivilegeLevel: ";
+
     switch(privilege)
     {
     case qevercloud::SharedNotebookPrivilegeLevel::READ_NOTEBOOK:
@@ -291,7 +372,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::SharedNotebookPr
         strm << "BUSINESS_FULL_ACCESS";
         break;
     default:
-        strm << "UNKNOWN";
+        strm << "Unknown";
         break;
     }
 
@@ -1057,8 +1138,24 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebook & 
 QTextStream & operator<<(QTextStream & strm, const qevercloud::BusinessNotebook & businessNotebook)
 {
     strm << "qevercloud::BusinessNotebook: { \n";
+    QString indent = "  ";
 
-    // TODO: implement
+    strm << indent << "notebookDescription = " << (businessNotebook.notebookDescription.isSet()
+                                                   ? businessNotebook.notebookDescription.ref()
+                                                   : "<empty>") << "; \n";
+
+    strm << indent << "privilege = ";
+    if (businessNotebook.privilege.isSet()) {
+        strm << businessNotebook.privilege.ref();
+    }
+    else {
+        strm << "<empty>";
+    }
+    strm << "; \n";
+
+    strm << indent << "recommended = " << (businessNotebook.recommended.isSet()
+                                           ? (businessNotebook.recommended.ref() ? "true" : "false")
+                                           : "<empty>") << "; \n";
 
     strm << "}; \n";
     return strm;
@@ -1087,5 +1184,100 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebookRec
                                                    : "<empty>") << "; \n";
 
     strm << "}; \n";
+    return strm;
+}
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::ReminderEmailConfig::type & config)
+{
+    strm << "qevercloud::ReminderEmailConfig: ";
+
+    switch(config)
+    {
+    case qevercloud::ReminderEmailConfig::DO_NOT_SEND:
+        strm << "DO_NOT_SEND";
+        break;
+    case qevercloud::ReminderEmailConfig::SEND_DAILY_EMAIL:
+        strm << "SEND_DAILY_EMAIL";
+        break;
+    default:
+        strm << "Unknown";
+        break;
+    }
+
+    return strm;
+}
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::PremiumOrderStatus::type & status)
+{
+    strm << "qevercloud::PremiumOrderStatus: ";
+
+    switch(status)
+    {
+    case qevercloud::PremiumOrderStatus::NONE:
+        strm << "NONE";
+        break;
+    case qevercloud::PremiumOrderStatus::PENDING:
+        strm << "PENDING";
+        break;
+    case qevercloud::PremiumOrderStatus::ACTIVE:
+        strm << "ACTIVE";
+        break;
+    case qevercloud::PremiumOrderStatus::FAILED:
+        strm << "FAILED";
+        break;
+    case qevercloud::PremiumOrderStatus::CANCELLATION_PENDING:
+        strm << "CANCELLATION_PENDING";
+        break;
+    case qevercloud::PremiumOrderStatus::CANCELED:
+        strm << "CANCELED";
+        break;
+    default:
+        strm << "Unknown";
+        break;
+    }
+
+    return strm;
+}
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::BusinessUserRole::type & role)
+{
+    strm << "qevercloud::BusinessUserRole: ";
+
+    switch(role)
+    {
+    case qevercloud::BusinessUserRole::ADMIN:
+        strm << "ADMIN";
+        break;
+    case qevercloud::BusinessUserRole::NORMAL:
+        strm << "NORMAL";
+        break;
+    default:
+        strm << "Unknown";
+        break;
+    }
+
+    return strm;
+}
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::SponsoredGroupRole::type & role)
+{
+    strm << "qevercloud::SponsoredGroupRole: ";
+
+    switch (role)
+    {
+    case qevercloud::SponsoredGroupRole::GROUP_MEMBER:
+        strm << "GROUP_MEMBER";
+        break;
+    case qevercloud::SponsoredGroupRole::GROUP_ADMIN:
+        strm << "GROUP_ADMIN";
+        break;
+    case qevercloud::SponsoredGroupRole::GROUP_OWNER:
+        strm << "GROUP_OWNER";
+        break;
+    default:
+        strm << "Unknown";
+        break;
+    }
+
     return strm;
 }

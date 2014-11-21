@@ -78,5 +78,9 @@ __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebook)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessNotebook)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::User)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookRecipientSettings)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::ReminderEmailConfig::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PremiumOrderStatus::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessUserRole::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SponsoredGroupRole::type)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H
