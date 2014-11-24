@@ -815,7 +815,7 @@ bool FullSynchronizationManager::onFindDataElementByNameCompleted(ElementType el
 
     typename ContainerType::iterator it = findItemByName(container, element, typeName);
     if (it == container.end()) {
-        return false;
+        return true;
     }
 
     // The element exists both in the client and in the server
@@ -824,7 +824,7 @@ bool FullSynchronizationManager::onFindDataElementByNameCompleted(ElementType el
         QString errorDescription = QT_TR_NOOP("Found " + typeName + " from sync chunk without the update sequence number");
         QNWARNING(errorDescription << ": " << remoteElement);
         emit failure(errorDescription);
-        return false;
+        return true;
     }
 
     if (!element.hasUpdateSequenceNumber() || (remoteElement.updateSequenceNum.ref() > element.updateSequenceNumber()))
@@ -871,7 +871,7 @@ bool FullSynchronizationManager::onFindDataElementByNameFailed(ElementType eleme
 
     typename ContainerType::iterator it = findItemByName(container, element, typeName);
     if (it == container.end()) {
-        return false;
+        return true;
     }
 
     // Ok, this element wasn't found in the local storage, need to add it there
