@@ -321,25 +321,54 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::UserAttributes &
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes & attributes)
 {
-    strm << "NoteAttributes: {\n";
+    strm << "qevercloud::NoteAttributes: {\n";
+    QString indent = "  ";
 
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, subjectDate, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, latitude);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, longitude);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, altitude);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, author);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, source);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceURL);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, sourceApplication);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, shareDate, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderOrder, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderDoneTime, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, reminderTime, static_cast<qint64>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, placeName);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, contentClass);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, lastEditedBy);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, creatorId, static_cast<qint32>);
-    CHECK_AND_PRINT_ATTRIBUTE(attributes, lastEditorId, static_cast<qint32>);
+    strm << indent << "subjectDate = " << (attributes.subjectDate.isSet()
+                                           ? qute_note::PrintableDateTimeFromTimestamp(attributes.subjectDate.ref())
+                                           : "<empty>") << "; \n";
+    strm << indent << "latitude = " << (attributes.latitude.isSet()
+                                        ? QString::number(attributes.latitude.ref())
+                                        : "<empty>") << "; \n";
+    strm << indent << "longitude = " << (attributes.longitude.isSet()
+                                         ? QString::number(attributes.longitude.ref())
+                                         : "<empty>") << "; \n";
+    strm << indent << "altitude = " << (attributes.altitude.isSet()
+                                        ? QString::number(attributes.altitude.ref())
+                                        : "<empty>") << "; \n";
+    strm << indent << "author = " << (attributes.author.isSet()
+                                      ? attributes.author.ref() : "<empty>") << "; \n";
+    strm << indent << "source = " << (attributes.source.isSet()
+                                      ? attributes.source.ref() : "<empty>") << "; \n";
+    strm << indent << "sourceURL = " << (attributes.sourceURL.isSet()
+                                         ? attributes.sourceURL.ref() : "<empty>") << "; \n";
+    strm << indent << "sourceApplication = " << (attributes.sourceApplication.isSet()
+                                                 ? attributes.sourceApplication.ref()
+                                                 : "<empty>") << "; \n";
+    strm << indent << "shareDate = " << (attributes.shareDate.isSet()
+                                         ? qute_note::PrintableDateTimeFromTimestamp(attributes.shareDate.ref())
+                                         : "<empty>") << "; \n";
+    strm << indent << "reminderOrder = " << (attributes.reminderOrder.isSet()
+                                             ? QString::number(attributes.reminderOrder.ref())
+                                             : "<empty>") << "; \n";
+    strm << indent << "reminderDoneTime = " << (attributes.reminderDoneTime.isSet()
+                                                ? qute_note::PrintableDateTimeFromTimestamp(attributes.reminderDoneTime.ref())
+                                                : "<empty>") << "; \n";
+    strm << indent << "reminderTime = " << (attributes.reminderTime.isSet()
+                                            ? qute_note::PrintableDateTimeFromTimestamp(attributes.reminderTime.ref())
+                                            : "<empty>") << "; \n";
+    strm << indent << "placeName = " << (attributes.placeName.isSet()
+                                         ? attributes.placeName.ref() : "<empty>") << "; \n";
+    strm << indent << "contentClass = " << (attributes.contentClass.isSet()
+                                            ? attributes.contentClass.ref() : "<empty>") << "; \n";
+    strm << indent << "lastEditedBy = " << (attributes.lastEditedBy.isSet()
+                                            ? attributes.lastEditedBy.ref() : "<empty>") << "; \n";
+    strm << indent << "creatorId = " << (attributes.creatorId.isSet()
+                                         ? QString::number(attributes.creatorId.ref())
+                                         : "<empty>") << "; \n";
+    strm << indent << "lastEditorId = " << (attributes.lastEditorId.isSet()
+                                            ? QString::number(attributes.lastEditorId.ref())
+                                            : "<empty>") << "; \n";
 
     if (attributes.applicationData.isSet())
     {
@@ -347,7 +376,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes &
 
         if (applicationData.keysOnly.isSet()) {
             const QSet<QString> & keysOnly = applicationData.keysOnly;
-            strm << "ApplicationData: keys only: \n";
+            strm << indent << "ApplicationData: keys only: \n";
             foreach(const QString & key, keysOnly) {
                 strm << key << "; ";
             }
@@ -356,7 +385,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes &
 
         if (applicationData.fullMap.isSet()) {
             const QMap<QString, QString> & fullMap = applicationData.fullMap;
-            strm << "ApplicationData: full map: \n";
+            strm << indent << "ApplicationData: full map: \n";
             foreach(const QString & key, fullMap.keys()) {
                 strm << "[" << key << "] = " << fullMap.value(key) << "; ";
             }
@@ -366,6 +395,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes &
 
     if (attributes.classifications.isSet())
     {
+        strm << indent << "Classifications: ";
         const QMap<QString, QString> & classifications = attributes.classifications;
         foreach(const QString & key, classifications) {
             strm << "[" << key << "] = " << classifications.value(key) << "; ";
@@ -376,8 +406,6 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes &
     strm << "}; \n";
     return strm;
 }
-
-#undef CHECK_AND_PRINT_ATTRIBUTE
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::PrivilegeLevel::type & level)
 {
