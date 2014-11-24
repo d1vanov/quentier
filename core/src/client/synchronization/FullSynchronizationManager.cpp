@@ -88,14 +88,26 @@ void FullSynchronizationManager::onFindUserFailed(UserWrapper user, QString erro
 
 void FullSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUuid requestId)
 {
-    onFindDataElementCompleted<NotebooksList, Notebook>(notebook, requestId, "Notebook",
-                                                        m_notebooks, m_findNotebookByNameRequestIds);
+    bool foundByName = onFindDataElementByNameCompleted<NotebooksList, Notebook>(notebook, requestId, "Notebook",
+                                                                                 m_notebooks, m_findNotebookByNameRequestIds);
+    if (foundByName) {
+        return;
+    }
+
+    // TODO: continue from here: it is not the response on find by name request;
+    // perhaps it's the response to the attempt to find by guid?
 }
 
 void FullSynchronizationManager::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
-    onFindDataElementFailed<NotebooksList, Notebook>(notebook, requestId, errorDescription,
-                                                     "Notebook", m_notebooks, m_findNotebookByNameRequestIds);
+    bool failedToFindByName = onFindDataElementByNameFailed<NotebooksList, Notebook>(notebook, requestId, errorDescription, "Notebook",
+                                                                                     m_notebooks, m_findNotebookByNameRequestIds);
+    if (failedToFindByName) {
+        return;
+    }
+
+    // TODO: continue from here: it is not the response on find by name request;
+    // perhaps it's the response to the attempt to find by guid?
 }
 
 void FullSynchronizationManager::onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId)
@@ -110,14 +122,26 @@ void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBi
 
 void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
 {
-    onFindDataElementCompleted<TagsList, Tag>(tag, requestId, "Tag",
-                                              m_tags, m_findTagByNameRequestIds);
+    bool foundByName = onFindDataElementByNameCompleted<TagsList, Tag>(tag, requestId, "Tag", m_tags,
+                                                                       m_findTagByNameRequestIds);
+    if (foundByName) {
+        return;
+    }
+
+    // TODO: continue from here: it is not the response on find by name request;
+    // perhaps it's the response to the attempt to find by guid?
 }
 
 void FullSynchronizationManager::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    onFindDataElementFailed<TagsList, Tag>(tag, requestId, errorDescription,
-                                           "Tag", m_tags, m_findTagByNameRequestIds);
+    bool failedToFindByName = onFindDataElementByNameFailed<TagsList, Tag>(tag, requestId, errorDescription, "Tag",
+                                                                           m_tags, m_findTagByNameRequestIds);
+    if (failedToFindByName) {
+        return;
+    }
+
+    // TODO: continue from here: it is not the response on find by name request;
+    // perhaps it's the response to the attempt to find by guid?
 }
 
 void FullSynchronizationManager::onFindResourceCompleted(ResourceWrapper resource, bool withResourceBinaryData, QUuid requestId)
@@ -132,28 +156,37 @@ void FullSynchronizationManager::onFindResourceFailed(ResourceWrapper resource, 
 
 void FullSynchronizationManager::onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
 {
-    onFindDataElementCompleted<LinkedNotebooksList, LinkedNotebook>(linkedNotebook, requestId, "LinkedNotebook",
-                                                                    m_linkedNotebooks, m_findLinkedNotebookRequestIds);
+    // TODO: implement, call onFindDataElementByGuidCompleted
 }
 
 void FullSynchronizationManager::onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook,
                                                             QString errorDescription, QUuid requestId)
 {
-    onFindDataElementFailed<LinkedNotebooksList, LinkedNotebook>(linkedNotebook, requestId, errorDescription,
-                                                                 "LinkedNotebook", m_linkedNotebooks,
-                                                                 m_findLinkedNotebookRequestIds);
+    // TODO: implement, call onFindDataElementByGuidFailed
 }
 
 void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId)
 {
-    onFindDataElementCompleted<SavedSearchesList, SavedSearch>(savedSearch, requestId, "SavedSearch",
-                                                               m_savedSearches, m_findSavedSearchByNameRequestIds);
+    bool foundByName = onFindDataElementByNameCompleted<SavedSearchesList, SavedSearch>(savedSearch, requestId, "SavedSearch",
+                                                                                        m_savedSearches, m_findSavedSearchByNameRequestIds);
+    if (foundByName) {
+        return;
+    }
+
+    // TODO: continue from here: it is not the response on find by name request;
+    // perhaps it's the response to the attempt to find by guid?
 }
 
 void FullSynchronizationManager::onFindSavedSearchFailed(SavedSearch savedSearch, QString errorDescription, QUuid requestId)
 {
-    onFindDataElementFailed<SavedSearchesList, SavedSearch>(savedSearch, requestId, errorDescription,
-                                                            "SavedSearch", m_savedSearches, m_findSavedSearchByNameRequestIds);
+    bool failedToFindByName = onFindDataElementByNameFailed<SavedSearchesList, SavedSearch>(savedSearch, requestId, errorDescription, "SavedSearch",
+                                                                                            m_savedSearches, m_findSavedSearchByNameRequestIds);
+    if (failedToFindByName) {
+        return;
+    }
+
+    // TODO: continue from here: it is not the response on find by name request;
+    // perhaps it's the response to the attempt to find by guid?
 }
 
 template <class ElementType>
@@ -559,31 +592,12 @@ void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<Full
     }
 }
 
-template <class ContainerType, class Predicate>
-typename ContainerType::iterator FullSynchronizationManager::findItemByName(ContainerType & container,
-                                                                            const QString & name)
-{
-    if (container.empty()) {
-        return container.end();
-    }
-
-    // Try the front element first, in most cases it should be it
-    const auto & frontItem = container.front();
-    typename ContainerType::iterator it = container.begin();
-
-    if (!frontItem.name.isSet() || (frontItem.name.ref() != name)) {
-        it = std::find_if(container.begin(), container.end(), Predicate(name));
-    }
-
-    return it;
-}
-
 template <class ContainerType, class ElementType>
-typename ContainerType::iterator FullSynchronizationManager::findItem(ContainerType & container,
-                                                                      const ElementType &element,
-                                                                      const QString & typeName)
+typename ContainerType::iterator FullSynchronizationManager::findItemByName(ContainerType & container,
+                                                                            const ElementType & element,
+                                                                            const QString & typeName)
 {
-    QNDEBUG("FullSynchronizationManager::findItem<" << typeName << ">");
+    QNDEBUG("FullSynchronizationManager::findItemByName<" << typeName << ">");
 
     // Attempt to find this data element by name within the list of elements waiting for processing;
     // first simply try the front element from the list to avoid the costly lookup
@@ -594,22 +608,39 @@ typename ContainerType::iterator FullSynchronizationManager::findItem(ContainerT
         return container.end();
     }
 
-    typename ContainerType::iterator it = findItemByName<ContainerType, CompareItemByName<typename ContainerType::value_type> >(container, element.name());
-    if (it == container.end()) {
-        QString errorDescription = QT_TR_NOOP("Can't find " + typeName + " by name within the list "
-                                              "of remote elements waiting for processing");
-        QNWARNING(errorDescription << ": " + typeName + " = " << element);
+    if (container.empty()) {
+        QString errorDescription = QT_TR_NOOP("Internal error: detected attempt to find the element within the list "
+                                              "of elements waiting for processing but that list is empty");
+        QNWARNING(errorDescription << ": " << typeName << " = " << element);
         emit failure(errorDescription);
         return container.end();
+    }
+
+    // Try the front element first, in most cases it should be it
+    const auto & frontItem = container.front();
+    typename ContainerType::iterator it = container.begin();
+    if (!frontItem.name.isSet() || (frontItem.name.ref() != element.name()))
+    {
+        it = std::find_if(container.begin(), container.end(),
+                          CompareItemByName<typename ContainerType::value_type>(element.name()));
+        if (it == container.end()) {
+            QString errorDescription = QT_TR_NOOP("Can't find " + typeName + " by name within the list "
+                                                                             "of remote elements waiting for processing");
+            QNWARNING(errorDescription << ": " << typeName + " = " << element);
+            emit failure(errorDescription);
+            return container.end();
+        }
     }
 
     return it;
 }
 
+// FIXME: rebrand as "findItemByGuid"
+/*
 template <>
-FullSynchronizationManager::LinkedNotebooksList::iterator FullSynchronizationManager::findItem(LinkedNotebooksList & linkedNotebooks,
-                                                                                               const LinkedNotebook & linkedNotebook,
-                                                                                               const QString & )
+FullSynchronizationManager::LinkedNotebooksList::iterator FullSynchronizationManager::findItemByName(LinkedNotebooksList & linkedNotebooks,
+                                                                                                     const LinkedNotebook & linkedNotebook,
+                                                                                                     const QString & )
 {
     QNDEBUG("FullSynchronizationManager::findItem<LinkedNotebook>, full template specialization");
 
@@ -633,6 +664,7 @@ FullSynchronizationManager::LinkedNotebooksList::iterator FullSynchronizationMan
 
     return it;
 }
+*/
 
 template <class T>
 bool FullSynchronizationManager::CompareItemByName<T>::operator()(const T & item) const
@@ -769,23 +801,21 @@ void FullSynchronizationManager::emitFindRequest<Notebook>(const Notebook & note
 }
 
 template <class ContainerType, class ElementType>
-void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
-                                                            const QUuid & requestId,
-                                                            const QString & typeName,
-                                                            ContainerType & container,
-                                                            QSet<QUuid> & findElementRequestIds)
+bool FullSynchronizationManager::onFindDataElementByNameCompleted(ElementType element, const QUuid & requestId,
+                                                                  const QString & typeName, ContainerType & container,
+                                                                  QSet<QUuid> & findElementByNameRequestIds)
 {
-    QSet<QUuid>::iterator rit = findElementRequestIds.find(requestId);
-    if (rit == findElementRequestIds.end()) {
-        return;
+    QSet<QUuid>::iterator rit = findElementByNameRequestIds.find(requestId);
+    if (rit == findElementByNameRequestIds.end()) {
+        return false;
     }
 
-    QNDEBUG("FullSynchronizationManager::onFindDataElementCompleted<" << typeName << ">: "
+    QNDEBUG("FullSynchronizationManager::onFindDataElementByNameCompleted<" << typeName << ">: "
             << typeName << " = " << element << ", requestId  = " << requestId);
 
-    typename ContainerType::iterator it = findItem(container, element, typeName);
+    typename ContainerType::iterator it = findItemByName(container, element, typeName);
     if (it == container.end()) {
-        return;
+        return false;
     }
 
     // The element exists both in the client and in the server
@@ -794,6 +824,7 @@ void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
         QString errorDescription = QT_TR_NOOP("Found " + typeName + " from sync chunk without the update sequence number");
         QNWARNING(errorDescription << ": " << remoteElement);
         emit failure(errorDescription);
+        return false;
     }
 
     if (!element.hasUpdateSequenceNumber() || (remoteElement.updateSequenceNum.ref() > element.updateSequenceNumber()))
@@ -818,27 +849,29 @@ void FullSynchronizationManager::onFindDataElementCompleted(ElementType element,
     }
 
     Q_UNUSED(container.erase(it));
-    Q_UNUSED(findElementRequestIds.erase(rit));
+    Q_UNUSED(findElementByNameRequestIds.erase(rit));
+
+    return true;
 }
 
 template <class ContainerType, class ElementType>
-void FullSynchronizationManager::onFindDataElementFailed(ElementType element, const QUuid & requestId,
-                                                         const QString & errorDescription,
-                                                         const QString & typeName, ContainerType & container,
-                                                         QSet<QUuid> & findElementRequestIds)
+bool FullSynchronizationManager::onFindDataElementByNameFailed(ElementType element, const QUuid & requestId,
+                                                               const QString & errorDescription,
+                                                               const QString & typeName, ContainerType & container,
+                                                               QSet<QUuid> & findElementByNameRequestIds)
 {
-    QSet<QUuid>::iterator rit = findElementRequestIds.find(requestId);
-    if (rit == findElementRequestIds.end()) {
-        return;
+    QSet<QUuid>::iterator rit = findElementByNameRequestIds.find(requestId);
+    if (rit == findElementByNameRequestIds.end()) {
+        return false;
     }
 
     QNDEBUG("FullSynchronizationManager::onFindDataElementFailed<" << typeName << ">: "
             << typeName << " = " << element << ", errorDescription = " << errorDescription
             << ", requestId = " << requestId);
 
-    typename ContainerType::iterator it = findItem(container, element, typeName);
+    typename ContainerType::iterator it = findItemByName(container, element, typeName);
     if (it == container.end()) {
-        return;
+        return false;
     }
 
     // Ok, this element wasn't found in the local storage, need to add it there
@@ -847,7 +880,9 @@ void FullSynchronizationManager::onFindDataElementFailed(ElementType element, co
     emitAddRequest(newElement);
 
     Q_UNUSED(container.erase(it));
-    Q_UNUSED(findElementRequestIds.erase(rit));
+    Q_UNUSED(findElementByNameRequestIds.erase(rit));
+
+    return true;
 }
 
 template <>

@@ -139,15 +139,15 @@ private:
     void emitFindRequest(const ElementType & elementToFind);
 
     template <class ContainerType, class ElementType>
-    void onFindDataElementCompleted(ElementType element, const QUuid & requestId,
-                                    const QString & typeName, ContainerType & container,
-                                    QSet<QUuid> & findElementRequestIds);
+    bool onFindDataElementByNameCompleted(ElementType element, const QUuid & requestId,
+                                          const QString & typeName, ContainerType & container,
+                                          QSet<QUuid> & findElementByNameRequestIds);
 
     template <class ContainerType, class ElementType>
-    void onFindDataElementFailed(ElementType element, const QUuid & requestId,
-                                 const QString & errorDescription,
-                                 const QString & typeName, ContainerType & container,
-                                 QSet<QUuid> & findElementRequestIds);
+    bool onFindDataElementByNameFailed(ElementType element, const QUuid & requestId,
+                                       const QString & errorDescription,
+                                       const QString & typeName, ContainerType & container,
+                                       QSet<QUuid> & findElementByNameRequestIds);
 
     template <class ElementType>
     void emitAddRequest(const ElementType & elementToAdd);
@@ -179,14 +179,10 @@ private:
     template <class ElementType>
     void emitFindByGuidRequest(const QString & guid);
 
-    template <class ContainerType, class Predicate>
-    typename ContainerType::iterator findItemByName(ContainerType & container,
-                                                    const QString & name);
-
     template <class ContainerType, class ElementType>
-    typename ContainerType::iterator findItem(ContainerType & container,
-                                              const ElementType & element,
-                                              const QString & typeName);
+    typename ContainerType::iterator findItemByName(ContainerType & container,
+                                                    const ElementType & element,
+                                                    const QString & typeName);
 
 private:
     FullSynchronizationManager() Q_DECL_DELETE;
