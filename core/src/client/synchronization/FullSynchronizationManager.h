@@ -176,6 +176,9 @@ private:
                                    QSet<QUuid> & updateElementRequestIds,
                                    ElementsToAddByUuid & elementsToAddByUuid);
 
+    template <class ElementType>
+    void emitFindByGuidRequest(const QString & guid);
+
     template <class ContainerType, class Predicate>
     typename ContainerType::iterator findItemByName(ContainerType & container,
                                                     const QString & name);
@@ -226,13 +229,15 @@ private:
 
     TagsList                    m_tags;
     QHash<QUuid,Tag>            m_tagsToAddPerRenamingUpdateRequestId;
-    QSet<QUuid>                 m_findTagRequestIds;
+    QSet<QUuid>                 m_findTagByNameRequestIds;
+    QSet<QUuid>                 m_findTagByGuidRequestIds;
     QSet<QUuid>                 m_addTagRequestIds;
     QSet<QUuid>                 m_updateTagRequestIds;
 
     SavedSearchesList           m_savedSearches;
     QHash<QUuid,SavedSearch>    m_savedSearchesToAddPerRenamingUpdateRequestId;
-    QSet<QUuid>                 m_findSavedSearchRequestIds;
+    QSet<QUuid>                 m_findSavedSearchByNameRequestIds;
+    QSet<QUuid>                 m_findSavedSearchByGuidRequestIds;
     QSet<QUuid>                 m_addSavedSearchRequestIds;
     QSet<QUuid>                 m_updateSavedSearchRequestIds;
 
@@ -242,7 +247,8 @@ private:
     QSet<QUuid>                 m_updateLinkedNotebookRequestIds;
 
     NotebooksList               m_notebooks;
-    QSet<QUuid>                 m_findNotebookRequestIds;
+    QSet<QUuid>                 m_findNotebookByNameRequestIds;
+    QSet<QUuid>                 m_findNotebookByGuidRequestIds;
     QSet<QUuid>                 m_addNotebookRequestIds;
     QSet<QUuid>                 m_updateNotebookRequestIds;
 };
