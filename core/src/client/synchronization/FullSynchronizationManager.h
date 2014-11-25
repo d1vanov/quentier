@@ -143,6 +143,10 @@ private:
                                           const QString & typeName, ContainerType & container,
                                           QSet<QUuid> & findElementByNameRequestIds);
 
+    template <class ElementType, class RemoteElementType>
+    bool onFindDataElementByGuidCompleted(ElementType element, const QUuid & requestId,
+                                          const QString & typeName, QHash<QUuid, RemoteElementType> & elementsToAddPerRequestId);
+
     template <class ContainerType, class ElementType>
     bool onFindDataElementByNameFailed(ElementType element, const QUuid & requestId,
                                        const QString & errorDescription,
@@ -161,9 +165,9 @@ private:
                                 const QString & errorDescription, const QString & typeName,
                                 QSet<QUuid> & addElementRequestIds);
 
-    template <class ElementType>
+    template <class ElementType, class RemoteElementType>
     void emitUpdateRequest(const ElementType & elementToUpdate,
-                           const ElementType * elementToAddLater = nullptr);
+                           const RemoteElementType * elementToAddLater = nullptr);
 
     template <class ElementType, class ElementsToAddByUuid>
     void onUpdateDataElementCompleted(const ElementType & element, const QUuid & requestId,
@@ -177,7 +181,7 @@ private:
                                    ElementsToAddByUuid & elementsToAddByUuid);
 
     template <class ElementType>
-    void emitFindByGuidRequest(const QString & guid);
+    QUuid emitFindByGuidRequest(const QString & guid);
 
     template <class ContainerType, class ElementType>
     typename ContainerType::iterator findItemByName(ContainerType & container,
@@ -221,32 +225,32 @@ private:
     QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
     qint32                                                          m_maxSyncChunkEntries;
 
-    QVector<qevercloud::SyncChunk>  m_syncChunks;
+    QVector<qevercloud::SyncChunk>          m_syncChunks;
 
-    TagsList                    m_tags;
-    QHash<QUuid,Tag>            m_tagsToAddPerRenamingUpdateRequestId;
-    QSet<QUuid>                 m_findTagByNameRequestIds;
-    QSet<QUuid>                 m_findTagByGuidRequestIds;
-    QSet<QUuid>                 m_addTagRequestIds;
-    QSet<QUuid>                 m_updateTagRequestIds;
+    TagsList                                m_tags;
+    QHash<QUuid,qevercloud::Tag>            m_tagsToAddPerRequestId;
+    QSet<QUuid>                             m_findTagByNameRequestIds;
+    QSet<QUuid>                             m_findTagByGuidRequestIds;
+    QSet<QUuid>                             m_addTagRequestIds;
+    QSet<QUuid>                             m_updateTagRequestIds;
 
-    SavedSearchesList           m_savedSearches;
-    QHash<QUuid,SavedSearch>    m_savedSearchesToAddPerRenamingUpdateRequestId;
-    QSet<QUuid>                 m_findSavedSearchByNameRequestIds;
-    QSet<QUuid>                 m_findSavedSearchByGuidRequestIds;
-    QSet<QUuid>                 m_addSavedSearchRequestIds;
-    QSet<QUuid>                 m_updateSavedSearchRequestIds;
+    SavedSearchesList                       m_savedSearches;
+    QHash<QUuid,qevercloud::SavedSearch>    m_savedSearchesToAddPerRequestId;
+    QSet<QUuid>                             m_findSavedSearchByNameRequestIds;
+    QSet<QUuid>                             m_findSavedSearchByGuidRequestIds;
+    QSet<QUuid>                             m_addSavedSearchRequestIds;
+    QSet<QUuid>                             m_updateSavedSearchRequestIds;
 
-    LinkedNotebooksList         m_linkedNotebooks;
-    QSet<QUuid>                 m_findLinkedNotebookRequestIds;
-    QSet<QUuid>                 m_addLinkedNotebookRequestIds;
-    QSet<QUuid>                 m_updateLinkedNotebookRequestIds;
+    LinkedNotebooksList                     m_linkedNotebooks;
+    QSet<QUuid>                             m_findLinkedNotebookRequestIds;
+    QSet<QUuid>                             m_addLinkedNotebookRequestIds;
+    QSet<QUuid>                             m_updateLinkedNotebookRequestIds;
 
-    NotebooksList               m_notebooks;
-    QSet<QUuid>                 m_findNotebookByNameRequestIds;
-    QSet<QUuid>                 m_findNotebookByGuidRequestIds;
-    QSet<QUuid>                 m_addNotebookRequestIds;
-    QSet<QUuid>                 m_updateNotebookRequestIds;
+    NotebooksList                           m_notebooks;
+    QSet<QUuid>                             m_findNotebookByNameRequestIds;
+    QSet<QUuid>                             m_findNotebookByGuidRequestIds;
+    QSet<QUuid>                             m_addNotebookRequestIds;
+    QSet<QUuid>                             m_updateNotebookRequestIds;
 };
 
 } // namespace qute_note
