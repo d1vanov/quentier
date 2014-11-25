@@ -128,8 +128,8 @@ void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
         return;
     }
 
-    bool foundByGuid = onFindDataElementByGuidCompleted<Tag, qevercloud::Tag>(tag, requestId, "Tag",
-                                                                              m_tagsToAddPerRequestId);
+    bool foundByGuid = onFindDataElementByGuidCompleted<Tag>(tag, requestId, "Tag",
+                                                             m_tagsToAddPerRequestId);
     if (foundByGuid) {
         return;
     }
@@ -176,8 +176,8 @@ void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSea
         return;
     }
 
-    bool foundByGuid = onFindDataElementByGuidCompleted<SavedSearch, qevercloud::SavedSearch>(savedSearch, requestId, "SavedSearch",
-                                                                                              m_savedSearchesToAddPerRequestId);
+    bool foundByGuid = onFindDataElementByGuidCompleted<SavedSearch>(savedSearch, requestId, "SavedSearch",
+                                                                     m_savedSearchesToAddPerRequestId);
     if (foundByGuid) {
         return;
     }
@@ -269,8 +269,8 @@ void FullSynchronizationManager::onUpdateDataElementCompleted(const ElementType 
         typename ElementsToAddByUuid::iterator addIt = elementsToAddByUuid.find(requestId);
         if (addIt != elementsToAddByUuid.end())
         {
-            const typename ElementsToAddByUuid::mapped_type & elementToAdd = addIt.value();
-            if (!elementToAdd.guid.isSet()) {
+            const ElementType & elementToAdd = addIt.value();
+            if (!elementToAdd.hasGuid()) {
                 QString errorDescription = QT_TR_NOOP("detected element to be added to local storage from remote storage without guid set");
                 QNWARNING(errorDescription << ": " << elementToAdd);
                 emit failure(errorDescription);
@@ -279,7 +279,7 @@ void FullSynchronizationManager::onUpdateDataElementCompleted(const ElementType 
 
             // Before attempting to add the element waiting for processing to the local storage,
             // need to verify that this element cannot be found in the local storage by guid
-            QUuid requestId = emitFindByGuidRequest<ElementType>(elementToAdd.guid.ref());
+            QUuid requestId = emitFindByGuidRequest<ElementType>(elementToAdd.guid());
             Q_UNUSED(elementsToAddByUuid.erase(addIt));
             elementsToAddByUuid[requestId] = elementToAdd;
 
@@ -294,15 +294,15 @@ void FullSynchronizationManager::onUpdateDataElementCompleted(const ElementType 
 
 void FullSynchronizationManager::onUpdateTagCompleted(Tag tag, QUuid requestId)
 {
-    onUpdateDataElementCompleted<Tag, QHash<QUuid, qevercloud::Tag> >(tag, requestId, "Tag", m_updateTagRequestIds,
-                                                                      m_tagsToAddPerRequestId);
+    onUpdateDataElementCompleted<Tag, QHash<QUuid, Tag> >(tag, requestId, "Tag", m_updateTagRequestIds,
+                                                          m_tagsToAddPerRequestId);
 }
 
 void FullSynchronizationManager::onUpdateSavedSearchCompleted(SavedSearch search, QUuid requestId)
 {
-    onUpdateDataElementCompleted<SavedSearch, QHash<QUuid, qevercloud::SavedSearch> >(search, requestId, "SavedSearch",
-                                                                                      m_updateSavedSearchRequestIds,
-                                                                                      m_savedSearchesToAddPerRequestId);
+    onUpdateDataElementCompleted<SavedSearch, QHash<QUuid, SavedSearch> >(search, requestId, "SavedSearch",
+                                                                          m_updateSavedSearchRequestIds,
+                                                                          m_savedSearchesToAddPerRequestId);
 }
 
 template <class ElementType, class ElementsToAddByUuid>
@@ -341,16 +341,16 @@ void FullSynchronizationManager::onUpdateDataElementFailed(const ElementType & e
 
 void FullSynchronizationManager::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    onUpdateDataElementFailed<Tag, QHash<QUuid, qevercloud::Tag> >(tag, requestId, errorDescription,
-                                                                   "Tag", m_updateTagRequestIds,
-                                                                   m_tagsToAddPerRequestId);
+    onUpdateDataElementFailed<Tag, QHash<QUuid, Tag> >(tag, requestId, errorDescription,
+                                                       "Tag", m_updateTagRequestIds,
+                                                       m_tagsToAddPerRequestId);
 }
 
 void FullSynchronizationManager::onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
 {
-    onUpdateDataElementFailed<SavedSearch, QHash<QUuid, qevercloud::SavedSearch> >(search, requestId, errorDescription,
-                                                                                   "SavedSearch", m_updateSavedSearchRequestIds,
-                                                                                   m_savedSearchesToAddPerRequestId);
+    onUpdateDataElementFailed<SavedSearch, QHash<QUuid, SavedSearch> >(search, requestId, errorDescription,
+                                                                       "SavedSearch", m_updateSavedSearchRequestIds,
+                                                                       m_savedSearchesToAddPerRequestId);
 }
 
 template <>
@@ -858,7 +858,56 @@ bool FullSynchronizationManager::onFindDataElementByNameCompleted(ElementType el
             // Remote element is more recent, need to update the element existing in local storage
             ElementType updatedElement(remoteElement);
             updatedElement.unsetLocalGuid();
-            emitUpdateRequest<ElementType, RemoteElementType>(updatedElement);
+            emitUpdateRequest(updatedElement);
+        }
+        else
+        {
+            // Remote element is more recent but the local one has been modified;
+            // Evernote's synchronization protocol description suggests trying
+            // to do field-by-field merge but it's overcomplicated and error-prone;
+            // it's much easier to rename the existing local element to make it clear
+            // it has a conflict with its remote counterpart and mark it dirty so that
+            // it would be sent to the server along with other local changes
+            ElementType elementToAddLater(remoteElement);
+            processConflictedElement(elementToAddLater, typeName, element);
+        }
+    }
+
+    Q_UNUSED(container.erase(it));
+    Q_UNUSED(findElementByNameRequestIds.erase(rit));
+
+    return true;
+}
+
+template <class ElementType>
+bool FullSynchronizationManager::onFindDataElementByGuidCompleted(ElementType element, const QUuid & requestId, const QString & typeName,
+                                                                  QHash<QUuid, ElementType> & elementsToAddPerRequestId)
+{
+    typename QHash<QUuid, ElementType>::iterator it = elementsToAddPerRequestId.find(requestId);
+    if (it == elementsToAddPerRequestId.end()) {
+        return false;
+    }
+
+    QNDEBUG("onFindDataElementByGuidCompleted<" << typeName << ">: "
+            << typeName << " = " << element << ", requestId = " << requestId);
+
+    const ElementType & remoteElement = it.value();
+    if (!remoteElement.hasUpdateSequenceNumber()) {
+        QString errorDescription = QT_TR_NOOP("Found " + typeName + " within the elements to be added to local storage "
+                                              "from remote storage without update sequence number set");
+        QNWARNING(errorDescription << ": " << remoteElement);
+        emit failure(errorDescription);
+        return true;
+    }
+
+    if (!element.hasUpdateSequenceNumber() || (remoteElement.updateSequenceNumber() > element.updateSequenceNumber()))
+    {
+        if (!element.isDirty())
+        {
+            // Remote element is more recent, need to update the element existing in local storage
+            ElementType updatedElement(remoteElement);
+            updatedElement.unsetLocalGuid();
+            emitUpdateRequest(updatedElement);
         }
         else
         {
@@ -869,54 +918,6 @@ bool FullSynchronizationManager::onFindDataElementByNameCompleted(ElementType el
             // it has a conflict with its remote counterpart and mark it dirty so that
             // it would be sent to the server along with other local changes
             processConflictedElement(remoteElement, typeName, element);
-        }
-    }
-
-    Q_UNUSED(container.erase(it));
-    Q_UNUSED(findElementByNameRequestIds.erase(rit));
-
-    return true;
-}
-
-template <class ElementType, class RemoteElementType>
-bool FullSynchronizationManager::onFindDataElementByGuidCompleted(ElementType element, const QUuid & requestId, const QString & typeName,
-                                                                  QHash<QUuid, RemoteElementType> & elementsToAddPerRequestId)
-{
-    typename QHash<QUuid, RemoteElementType>::iterator it = elementsToAddPerRequestId.find(requestId);
-    if (it == elementsToAddPerRequestId.end()) {
-        return false;
-    }
-
-    QNDEBUG("onFindDataElementByGuidCompleted<" << typeName << ">: "
-            << typeName << " = " << element << ", requestId = " << requestId);
-
-    const RemoteElementType & elementToAdd = it.value();
-    if (!elementToAdd.updateSequenceNum.isSet()) {
-        QString errorDescription = QT_TR_NOOP("Found " + typeName + " within the elements to be added to local storage "
-                                              "from remote storage without update sequence number set");
-        QNWARNING(errorDescription << ": " << elementToAdd);
-        emit failure(errorDescription);
-        return true;
-    }
-
-    if (!element.hasUpdateSequenceNumber() || (elementToAdd.updateSequenceNum.ref() > element.updateSequenceNumber()))
-    {
-        if (!element.isDirty())
-        {
-            // Remote element is more recent, need to update the element existing in local storage
-            ElementType updatedElement(elementToAdd);
-            updatedElement.unsetLocalGuid();
-            emitUpdateRequest<ElementType, RemoteElementType>(updatedElement);
-        }
-        else
-        {
-            // Remote element is more recent but the local one has been modified;
-            // Evernote's synchronization protocol description suggests trying
-            // to do field-by-field merge but it's overcomplicated and error-prone;
-            // it's much easier to rename the existing local element to make it clear
-            // it has a conflict with its remote counterpart and mark it dirty so that
-            // it would be sent to the server along with other local changes
-            processConflictedElement(elementToAdd, typeName, element);
         }
     }
 
@@ -989,11 +990,11 @@ void FullSynchronizationManager::emitAddRequest<Notebook>(const Notebook & noteb
 }
 
 template <>
-void FullSynchronizationManager::emitUpdateRequest<Tag, qevercloud::Tag>(const Tag & tag,
-                                                                         const qevercloud::Tag * tagToAddLater)
+void FullSynchronizationManager::emitUpdateRequest<Tag>(const Tag & tag,
+                                                        const Tag * tagToAddLater)
 {
     QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Tag>: tag = " << tag
-            << ", tagToAddLater = " << (tagToAddLater ? ToQString(*tagToAddLater) : "<null>"));
+            << ", tagToAddLater = " << (tagToAddLater ? tagToAddLater->ToQString() : "<null>"));
 
     QUuid updateTagRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateTagRequestIds.insert(updateTagRequestId));
@@ -1006,11 +1007,11 @@ void FullSynchronizationManager::emitUpdateRequest<Tag, qevercloud::Tag>(const T
 }
 
 template <>
-void FullSynchronizationManager::emitUpdateRequest<SavedSearch, qevercloud::SavedSearch>(const SavedSearch & search,
-                                                                                         const qevercloud::SavedSearch * searchToAddLater)
+void FullSynchronizationManager::emitUpdateRequest<SavedSearch>(const SavedSearch & search,
+                                                                const SavedSearch * searchToAddLater)
 {
     QNDEBUG("FullSynchronizationManager::emitUpdateRequest<SavedSearch>: search = " << search
-            << ", searchToAddLater = " << (searchToAddLater ? ToQString(*searchToAddLater) : "<null>"));
+            << ", searchToAddLater = " << (searchToAddLater ? searchToAddLater->ToQString() : "<null>"));
 
     QUuid updateSavedSearchRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateSavedSearchRequestIds.insert(updateSavedSearchRequestId));
@@ -1023,8 +1024,8 @@ void FullSynchronizationManager::emitUpdateRequest<SavedSearch, qevercloud::Save
 }
 
 template <>
-void FullSynchronizationManager::emitUpdateRequest<LinkedNotebook, qevercloud::LinkedNotebook>(const LinkedNotebook & linkedNotebook,
-                                                                                               const qevercloud::LinkedNotebook *)
+void FullSynchronizationManager::emitUpdateRequest<LinkedNotebook>(const LinkedNotebook & linkedNotebook,
+                                                                   const LinkedNotebook *)
 {
     QNDEBUG("FullSynchronizationManager::emitUpdateRequest<LinkedNotebook>: linked notebook = "
             << linkedNotebook);
@@ -1035,8 +1036,8 @@ void FullSynchronizationManager::emitUpdateRequest<LinkedNotebook, qevercloud::L
 }
 
 template <>
-void FullSynchronizationManager::emitUpdateRequest<Notebook, qevercloud::Notebook>(const Notebook & notebook,
-                                                                                   const qevercloud::Notebook *)
+void FullSynchronizationManager::emitUpdateRequest<Notebook>(const Notebook & notebook,
+                                                             const Notebook *)
 {
     QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Notebook>: notebook = " << notebook);
 
@@ -1056,8 +1057,8 @@ bool FullSynchronizationManager::CompareItemByGuid<T>::operator()(const T & item
     }
 }
 
-template <class ElementType, class RemoteElementType>
-void FullSynchronizationManager::processConflictedElement(const RemoteElementType & remoteElement,
+template <class ElementType>
+void FullSynchronizationManager::processConflictedElement(const ElementType & remoteElement,
                                                           const QString & typeName, ElementType & element)
 {
     setConflicted(typeName, element);
@@ -1066,7 +1067,7 @@ void FullSynchronizationManager::processConflictedElement(const RemoteElementTyp
 }
 
 template <>
-void FullSynchronizationManager::processConflictedElement(const qevercloud::LinkedNotebook & remoteLinkedNotebook,
+void FullSynchronizationManager::processConflictedElement(const LinkedNotebook & remoteLinkedNotebook,
                                                           const QString &, LinkedNotebook & linkedNotebook)
 {
     // Linked notebook itself is simply a pointer to another user's account;
@@ -1074,9 +1075,7 @@ void FullSynchronizationManager::processConflictedElement(const qevercloud::Link
     // including the synchronization for Notebook, Notes and Tags from another user's account
     // The linked notebook as a pointer to all this data would simply be overridden
     // by the server's version of it
-    QString localGuid = linkedNotebook.localGuid();
-    linkedNotebook = LinkedNotebook(remoteLinkedNotebook);
-    linkedNotebook.setLocalGuid(localGuid);
+    linkedNotebook = remoteLinkedNotebook;
 
     QUuid updateRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateLinkedNotebookRequestIds.insert(updateRequestId));
@@ -1084,7 +1083,7 @@ void FullSynchronizationManager::processConflictedElement(const qevercloud::Link
 }
 
 template <>
-void FullSynchronizationManager::processConflictedElement(const qevercloud::Notebook & remoteNotebook,
+void FullSynchronizationManager::processConflictedElement(const Notebook & remoteNotebook,
                                                           const QString &, Notebook & notebook)
 {
     // It is too costly to process the conflicting notebook the default way of creating
@@ -1094,9 +1093,7 @@ void FullSynchronizationManager::processConflictedElement(const qevercloud::Note
     // The simplest form of merge would be "discard local changes and replace them
     // with their remote counterparts". After all, it is the notebook, it doesn't
     // make much sense to change its settings locally and then attempting to synchronize
-    QString localGuid = notebook.localGuid();
-    notebook = Notebook(remoteNotebook);
-    notebook.setLocalGuid(localGuid);
+    notebook = remoteNotebook;
 
     QUuid updateRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateNotebookRequestIds.insert(updateRequestId));

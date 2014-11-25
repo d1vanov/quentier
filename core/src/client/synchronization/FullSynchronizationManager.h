@@ -127,8 +127,8 @@ private:
     template <class ElementType>
     void setConflicted(const QString & typeName, ElementType & element);
 
-    template <class ElementType, class RemoteElementType>
-    void processConflictedElement(const RemoteElementType & remoteElement,
+    template <class ElementType>
+    void processConflictedElement(const ElementType & remoteElement,
                                   const QString & typeName, ElementType & element);
 
     template <class ContainerType>
@@ -143,9 +143,9 @@ private:
                                           const QString & typeName, ContainerType & container,
                                           QSet<QUuid> & findElementByNameRequestIds);
 
-    template <class ElementType, class RemoteElementType>
-    bool onFindDataElementByGuidCompleted(ElementType element, const QUuid & requestId,
-                                          const QString & typeName, QHash<QUuid, RemoteElementType> & elementsToAddPerRequestId);
+    template <class ElementType>
+    bool onFindDataElementByGuidCompleted(ElementType element, const QUuid & requestId, const QString & typeName,
+                                          QHash<QUuid, ElementType> & elementsToAddPerRequestId);
 
     template <class ContainerType, class ElementType>
     bool onFindDataElementByNameFailed(ElementType element, const QUuid & requestId,
@@ -165,9 +165,9 @@ private:
                                 const QString & errorDescription, const QString & typeName,
                                 QSet<QUuid> & addElementRequestIds);
 
-    template <class ElementType, class RemoteElementType>
+    template <class ElementType>
     void emitUpdateRequest(const ElementType & elementToUpdate,
-                           const RemoteElementType * elementToAddLater = nullptr);
+                           const ElementType * elementToAddLater = nullptr);
 
     template <class ElementType, class ElementsToAddByUuid>
     void onUpdateDataElementCompleted(const ElementType & element, const QUuid & requestId,
@@ -228,14 +228,14 @@ private:
     QVector<qevercloud::SyncChunk>          m_syncChunks;
 
     TagsList                                m_tags;
-    QHash<QUuid,qevercloud::Tag>            m_tagsToAddPerRequestId;
+    QHash<QUuid,Tag>                        m_tagsToAddPerRequestId;
     QSet<QUuid>                             m_findTagByNameRequestIds;
     QSet<QUuid>                             m_findTagByGuidRequestIds;
     QSet<QUuid>                             m_addTagRequestIds;
     QSet<QUuid>                             m_updateTagRequestIds;
 
     SavedSearchesList                       m_savedSearches;
-    QHash<QUuid,qevercloud::SavedSearch>    m_savedSearchesToAddPerRequestId;
+    QHash<QUuid,SavedSearch>                m_savedSearchesToAddPerRequestId;
     QSet<QUuid>                             m_findSavedSearchByNameRequestIds;
     QSet<QUuid>                             m_findSavedSearchByGuidRequestIds;
     QSet<QUuid>                             m_addSavedSearchRequestIds;
