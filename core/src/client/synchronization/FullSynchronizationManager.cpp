@@ -88,8 +88,8 @@ void FullSynchronizationManager::onFindUserFailed(UserWrapper user, QString erro
 
 void FullSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUuid requestId)
 {
-    bool foundByName = onFindDataElementByNameCompleted<NotebooksList, Notebook>(notebook, requestId, "Notebook",
-                                                                                 m_notebooks, m_findNotebookByNameRequestIds);
+    bool foundByName = onFoundDuplicateByUniqueKey(notebook, requestId, "Notebook",
+                                                        m_notebooks, m_findNotebookByNameRequestIds);
     if (foundByName) {
         return;
     }
@@ -100,7 +100,7 @@ void FullSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUui
 
 void FullSynchronizationManager::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
-    bool failedToFindByName = onFindDataElementByNameFailed<NotebooksList, Notebook>(notebook, requestId, errorDescription, "Notebook",
+    bool failedToFindByName = onNoDuplicateByUniqueKey<NotebooksList, Notebook>(notebook, requestId, errorDescription, "Notebook",
                                                                                      m_notebooks, m_findNotebookByNameRequestIds);
     if (failedToFindByName) {
         return;
@@ -122,22 +122,20 @@ void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBi
 
 void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
 {
-    bool foundByName = onFindDataElementByNameCompleted<TagsList, Tag>(tag, requestId, "Tag", m_tags,
-                                                                       m_findTagByNameRequestIds);
-    if (foundByName) {
+    bool foundByGuid = onFoundDuplicateByGuid(tag, requestId, "Tag", m_tagsToAddPerRequestId);
+    if (foundByGuid) {
         return;
     }
 
-    bool foundByGuid = onFindDataElementByGuidCompleted<Tag>(tag, requestId, "Tag",
-                                                             m_tagsToAddPerRequestId);
-    if (foundByGuid) {
+    bool foundByName = onFoundDuplicateByUniqueKey(tag, requestId, "Tag", m_tags, m_findTagByNameRequestIds);
+    if (foundByName) {
         return;
     }
 }
 
 void FullSynchronizationManager::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    bool failedToFindByName = onFindDataElementByNameFailed<TagsList, Tag>(tag, requestId, errorDescription, "Tag",
+    bool failedToFindByName = onNoDuplicateByUniqueKey<TagsList, Tag>(tag, requestId, errorDescription, "Tag",
                                                                            m_tags, m_findTagByNameRequestIds);
     if (failedToFindByName) {
         return;
@@ -170,22 +168,21 @@ void FullSynchronizationManager::onFindLinkedNotebookFailed(LinkedNotebook linke
 
 void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId)
 {
-    bool foundByName = onFindDataElementByNameCompleted<SavedSearchesList, SavedSearch>(savedSearch, requestId, "SavedSearch",
-                                                                                        m_savedSearches, m_findSavedSearchByNameRequestIds);
-    if (foundByName) {
+    bool foundByGuid = onFoundDuplicateByGuid(savedSearch, requestId, "SavedSearch", m_savedSearchesToAddPerRequestId);
+    if (foundByGuid) {
         return;
     }
 
-    bool foundByGuid = onFindDataElementByGuidCompleted<SavedSearch>(savedSearch, requestId, "SavedSearch",
-                                                                     m_savedSearchesToAddPerRequestId);
-    if (foundByGuid) {
+    bool foundByName = onFoundDuplicateByUniqueKey(savedSearch, requestId, "SavedSearch",
+                                                   m_savedSearches, m_findSavedSearchByNameRequestIds);
+    if (foundByName) {
         return;
     }
 }
 
 void FullSynchronizationManager::onFindSavedSearchFailed(SavedSearch savedSearch, QString errorDescription, QUuid requestId)
 {
-    bool failedToFindByName = onFindDataElementByNameFailed<SavedSearchesList, SavedSearch>(savedSearch, requestId, errorDescription, "SavedSearch",
+    bool failedToFindByName = onNoDuplicateByUniqueKey<SavedSearchesList, SavedSearch>(savedSearch, requestId, errorDescription, "SavedSearch",
                                                                                             m_savedSearches, m_findSavedSearchByNameRequestIds);
     if (failedToFindByName) {
         return;
@@ -389,6 +386,19 @@ QUuid FullSynchronizationManager::emitFindByGuidRequest<Notebook>(const QString 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_findNotebookByGuidRequestIds.insert(requestId));
     emit findNotebook(notebook, requestId);
+    return requestId;
+}
+
+template <>
+QUuid FullSynchronizationManager::emitFindByGuidRequest<LinkedNotebook>(const QString & guid)
+{
+    LinkedNotebook linkedNotebook;
+    linkedNotebook.unsetLocalGuid();
+    linkedNotebook.setGuid(guid);
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_findLinkedNotebookRequestIds.insert(requestId));
+    emit findLinkedNotebook(linkedNotebook, requestId);
     return requestId;
 }
 
@@ -756,15 +766,17 @@ void FullSynchronizationManager::launchDataElementSync(const QString & typeName,
     int numElements = container.size();
     for(int i = 0; i < numElements; ++i)
     {
-        ElementType elementToFind;
-        elementToFind.unsetLocalGuid();
-
         const typename ContainerType::value_type & remoteElement = container[i];
-        if (!setupElementToFind(remoteElement, typeName, elementToFind)) {
+        if (!remoteElement.guid.isSet()) {
+            QString errorDescription = QT_TR_NOOP("found " + typeName + " from the remote storage "
+                                                  "without guid set");
+            QNWARNING(errorDescription << ": " << remoteElement);
+            emit failure(errorDescription);
             return;
         }
 
-        emitFindRequest(elementToFind);
+        // FIXME: correct when the method is changed to return void
+        Q_UNUSED(emitFindByGuidRequest<ElementType>(remoteElement.guid.ref()));
     }
 }
 
@@ -824,16 +836,16 @@ void FullSynchronizationManager::emitFindRequest<Notebook>(const Notebook & note
 }
 
 template <class ContainerType, class ElementType>
-bool FullSynchronizationManager::onFindDataElementByNameCompleted(ElementType element, const QUuid & requestId,
-                                                                  const QString & typeName, ContainerType & container,
-                                                                  QSet<QUuid> & findElementByNameRequestIds)
+bool FullSynchronizationManager::onFoundDuplicateByUniqueKey(ElementType element, const QUuid & requestId,
+                                                             const QString & typeName, ContainerType & container,
+                                                             QSet<QUuid> & findElementRequestIds)
 {
-    QSet<QUuid>::iterator rit = findElementByNameRequestIds.find(requestId);
-    if (rit == findElementByNameRequestIds.end()) {
+    QSet<QUuid>::iterator rit = findElementRequestIds.find(requestId);
+    if (rit == findElementRequestIds.end()) {
         return false;
     }
 
-    QNDEBUG("FullSynchronizationManager::onFindDataElementByNameCompleted<" << typeName << ">: "
+    QNDEBUG("FullSynchronizationManager::onFoundDuplicateByUniqueKey<" << typeName << ">: "
             << typeName << " = " << element << ", requestId  = " << requestId);
 
     typename ContainerType::iterator it = findItemByName(container, element, typeName);
@@ -851,44 +863,26 @@ bool FullSynchronizationManager::onFindDataElementByNameCompleted(ElementType el
         return true;
     }
 
-    if (!element.hasUpdateSequenceNumber() || (remoteElement.updateSequenceNum.ref() > element.updateSequenceNumber()))
-    {
-        if (!element.isDirty())
-        {
-            // Remote element is more recent, need to update the element existing in local storage
-            ElementType updatedElement(remoteElement);
-            updatedElement.unsetLocalGuid();
-            emitUpdateRequest(updatedElement);
-        }
-        else
-        {
-            // Remote element is more recent but the local one has been modified;
-            // Evernote's synchronization protocol description suggests trying
-            // to do field-by-field merge but it's overcomplicated and error-prone;
-            // it's much easier to rename the existing local element to make it clear
-            // it has a conflict with its remote counterpart and mark it dirty so that
-            // it would be sent to the server along with other local changes
-            ElementType elementToAddLater(remoteElement);
-            processConflictedElement(elementToAddLater, typeName, element);
-        }
-    }
+    ElementType remoteElementAdapter(remoteElement);
+    checkUpdateSequenceNumbersAndProcessConflictedElements(remoteElementAdapter, typeName, element);
 
     Q_UNUSED(container.erase(it));
-    Q_UNUSED(findElementByNameRequestIds.erase(rit));
+    Q_UNUSED(findElementRequestIds.erase(rit));
 
     return true;
 }
 
 template <class ElementType>
-bool FullSynchronizationManager::onFindDataElementByGuidCompleted(ElementType element, const QUuid & requestId, const QString & typeName,
-                                                                  QHash<QUuid, ElementType> & elementsToAddPerRequestId)
+bool FullSynchronizationManager::onFoundDuplicateByGuid(ElementType element, const QUuid & requestId,
+                                                        const QString & typeName,
+                                                        QHash<QUuid, ElementType> & elementsToAddPerRequestId)
 {
     typename QHash<QUuid, ElementType>::iterator it = elementsToAddPerRequestId.find(requestId);
     if (it == elementsToAddPerRequestId.end()) {
         return false;
     }
 
-    QNDEBUG("onFindDataElementByGuidCompleted<" << typeName << ">: "
+    QNDEBUG("onFoundDuplicateByGuid<" << typeName << ">: "
             << typeName << " = " << element << ", requestId = " << requestId);
 
     const ElementType & remoteElement = it.value();
@@ -900,26 +894,7 @@ bool FullSynchronizationManager::onFindDataElementByGuidCompleted(ElementType el
         return true;
     }
 
-    if (!element.hasUpdateSequenceNumber() || (remoteElement.updateSequenceNumber() > element.updateSequenceNumber()))
-    {
-        if (!element.isDirty())
-        {
-            // Remote element is more recent, need to update the element existing in local storage
-            ElementType updatedElement(remoteElement);
-            updatedElement.unsetLocalGuid();
-            emitUpdateRequest(updatedElement);
-        }
-        else
-        {
-            // Remote element is more recent but the local one has been modified;
-            // Evernote's synchronization protocol description suggests trying
-            // to do field-by-field merge but it's overcomplicated and error-prone;
-            // it's much easier to rename the existing local element to make it clear
-            // it has a conflict with its remote counterpart and mark it dirty so that
-            // it would be sent to the server along with other local changes
-            processConflictedElement(remoteElement, typeName, element);
-        }
-    }
+    checkUpdateSequenceNumbersAndProcessConflictedElements(remoteElement, typeName, element);
 
     Q_UNUSED(elementsToAddPerRequestId.erase(it));
 
@@ -927,17 +902,17 @@ bool FullSynchronizationManager::onFindDataElementByGuidCompleted(ElementType el
 }
 
 template <class ContainerType, class ElementType>
-bool FullSynchronizationManager::onFindDataElementByNameFailed(ElementType element, const QUuid & requestId,
-                                                               const QString & errorDescription,
-                                                               const QString & typeName, ContainerType & container,
-                                                               QSet<QUuid> & findElementByNameRequestIds)
+bool FullSynchronizationManager::onNoDuplicateByUniqueKey(ElementType element, const QUuid & requestId,
+                                                          const QString & errorDescription,
+                                                          const QString & typeName, ContainerType & container,
+                                                          QSet<QUuid> & findElementRequestIds)
 {
-    QSet<QUuid>::iterator rit = findElementByNameRequestIds.find(requestId);
-    if (rit == findElementByNameRequestIds.end()) {
+    QSet<QUuid>::iterator rit = findElementRequestIds.find(requestId);
+    if (rit == findElementRequestIds.end()) {
         return false;
     }
 
-    QNDEBUG("FullSynchronizationManager::onFindDataElementFailed<" << typeName << ">: "
+    QNDEBUG("FullSynchronizationManager::onNoDuplicateByUniqueKey<" << typeName << ">: "
             << typeName << " = " << element << ", errorDescription = " << errorDescription
             << ", requestId = " << requestId);
 
@@ -946,13 +921,14 @@ bool FullSynchronizationManager::onFindDataElementByNameFailed(ElementType eleme
         return true;
     }
 
-    // Ok, this element wasn't found in the local storage, need to add it there
-    // also removing the element from the list of ones waiting for processing
+    // This element wasn't found in the local storage by unique key, however, need to check
+    // whether the element with the same guid exists in the local storage
     ElementType newElement(*it);
     emitAddRequest(newElement);
 
+    // also removing the element from the list of ones waiting for processing
     Q_UNUSED(container.erase(it));
-    Q_UNUSED(findElementByNameRequestIds.erase(rit));
+    Q_UNUSED(findElementRequestIds.erase(rit));
 
     return true;
 }
@@ -1098,6 +1074,34 @@ void FullSynchronizationManager::processConflictedElement(const Notebook & remot
     QUuid updateRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateNotebookRequestIds.insert(updateRequestId));
     emit updateNotebook(notebook, updateRequestId);
+}
+
+template <class ElementType>
+void FullSynchronizationManager::checkUpdateSequenceNumbersAndProcessConflictedElements(const ElementType & remoteElement,
+                                                                                        const QString & typeName,
+                                                                                        ElementType & localElement)
+{
+    if ( !localElement.hasUpdateSequenceNumber() ||
+         (remoteElement.updateSequenceNumber() > localElement.updateSequenceNumber()) )
+    {
+        if (!localElement.isDirty())
+        {
+            // Remote element is more recent, need to update the element existing in local storage
+            ElementType elementToUpdate(remoteElement);
+            elementToUpdate.unsetLocalGuid();
+            emitUpdateRequest(elementToUpdate);
+        }
+        else
+        {
+            // Remote element is more recent but the local one has been modified;
+            // Evernote's synchronization protocol description suggests trying
+            // to do field-by-field merge but it's overcomplicated and error-prone;
+            // it's much easier to rename the existing local element to make it clear
+            // it has a conflict with its remote counterpart and mark it dirty so that
+            // it would be sent to the server along with other local changes
+            processConflictedElement(remoteElement, typeName, localElement);
+        }
+    }
 }
 
 } // namespace qute_note

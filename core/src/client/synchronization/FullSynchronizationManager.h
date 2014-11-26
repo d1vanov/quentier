@@ -131,6 +131,11 @@ private:
     void processConflictedElement(const ElementType & remoteElement,
                                   const QString & typeName, ElementType & element);
 
+    template <class ElementType>
+    void checkUpdateSequenceNumbersAndProcessConflictedElements(const ElementType & remoteElement,
+                                                                const QString & typeName,
+                                                                ElementType & localElement);
+
     template <class ContainerType>
     void appendDataElementsFromSyncChunkToContainer(const qevercloud::SyncChunk & syncChunk,
                                                     ContainerType & container);
@@ -139,19 +144,21 @@ private:
     void emitFindRequest(const ElementType & elementToFind);
 
     template <class ContainerType, class ElementType>
-    bool onFindDataElementByNameCompleted(ElementType element, const QUuid & requestId,
-                                          const QString & typeName, ContainerType & container,
-                                          QSet<QUuid> & findElementByNameRequestIds);
+    bool onFoundDuplicateByUniqueKey(ElementType element, const QUuid & requestId,
+                                     const QString & typeName, ContainerType & container,
+                                     QSet<QUuid> & findElementRequestIds);
 
+    // FIXME: change the input parameter from the hash to QSet<QUuid>; the container type is to be used here,
+    // the elements will need to be found by guid there
     template <class ElementType>
-    bool onFindDataElementByGuidCompleted(ElementType element, const QUuid & requestId, const QString & typeName,
-                                          QHash<QUuid, ElementType> & elementsToAddPerRequestId);
+    bool onFoundDuplicateByGuid(ElementType element, const QUuid & requestId, const QString & typeName,
+                                QHash<QUuid, ElementType> & elementsToAddPerRequestId);
 
     template <class ContainerType, class ElementType>
-    bool onFindDataElementByNameFailed(ElementType element, const QUuid & requestId,
-                                       const QString & errorDescription,
-                                       const QString & typeName, ContainerType & container,
-                                       QSet<QUuid> & findElementByNameRequestIds);
+    bool onNoDuplicateByUniqueKey(ElementType element, const QUuid & requestId,
+                                  const QString & errorDescription,
+                                  const QString & typeName, ContainerType & container,
+                                  QSet<QUuid> & findElementRequestIds);
 
     template <class ElementType>
     void emitAddRequest(const ElementType & elementToAdd);
