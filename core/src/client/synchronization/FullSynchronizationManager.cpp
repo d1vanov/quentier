@@ -89,26 +89,32 @@ void FullSynchronizationManager::onFindUserFailed(UserWrapper user, QString erro
 
 void FullSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUuid requestId)
 {
-    bool foundByName = onFoundDuplicateByName(notebook, requestId, "Notebook",
-                                                        m_notebooks, m_findNotebookByNameRequestIds);
-    if (foundByName) {
+    bool foundByGuid = onFoundDuplicateByGuid(notebook, requestId, "Notebook",
+                                              m_notebooks, m_findNotebookByGuidRequestIds);
+    if (foundByGuid) {
         return;
     }
 
-    // TODO: continue from here: it is not the response on find by name request;
-    // perhaps it's the response to the attempt to find by guid?
+    bool foundByName = onFoundDuplicateByName(notebook, requestId, "Notebook",
+                                              m_notebooks, m_findNotebookByNameRequestIds);
+    if (foundByName) {
+        return;
+    }
 }
 
 void FullSynchronizationManager::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
-    bool failedToFindByName = onNoDuplicateByName<NotebooksList, Notebook>(notebook, requestId, errorDescription, "Notebook",
-                                                                                     m_notebooks, m_findNotebookByNameRequestIds);
-    if (failedToFindByName) {
+    bool failedToFindByGuid = onNoDuplicateByGuid(notebook, requestId, errorDescription, "Notebook",
+                                                  m_notebooks, m_findNotebookByGuidRequestIds);
+    if (failedToFindByGuid) {
         return;
     }
 
-    // TODO: continue from here: it is not the response on find by name request;
-    // perhaps it's the response to the attempt to find by guid?
+    bool failedToFindByName = onNoDuplicateByName(notebook, requestId, errorDescription, "Notebook",
+                                                  m_notebooks, m_findNotebookByNameRequestIds);
+    if (failedToFindByName) {
+        return;
+    }
 }
 
 void FullSynchronizationManager::onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId)
@@ -136,14 +142,17 @@ void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
 
 void FullSynchronizationManager::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    bool failedToFindByName = onNoDuplicateByName<TagsList, Tag>(tag, requestId, errorDescription, "Tag",
-                                                                           m_tags, m_findTagByNameRequestIds);
-    if (failedToFindByName) {
+    bool failedToFindByGuid = onNoDuplicateByGuid(tag, requestId, errorDescription, "Tag",
+                                                  m_tags, m_findTagByGuidRequestIds);
+    if (failedToFindByGuid) {
         return;
     }
 
-    // TODO: continue from here: it is not the response on find by name request;
-    // perhaps it's the response to the attempt to find by guid?
+    bool failedToFindByName = onNoDuplicateByName(tag, requestId, errorDescription, "Tag",
+                                                  m_tags, m_findTagByNameRequestIds);
+    if (failedToFindByName) {
+        return;
+    }
 }
 
 void FullSynchronizationManager::onFindResourceCompleted(ResourceWrapper resource, bool withResourceBinaryData, QUuid requestId)
@@ -158,13 +167,14 @@ void FullSynchronizationManager::onFindResourceFailed(ResourceWrapper resource, 
 
 void FullSynchronizationManager::onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
 {
-    // TODO: implement, call the overload of onFindDataElementByGuidCompleted accepting the set of request ids
+    Q_UNUSED(onFoundDuplicateByGuid(linkedNotebook, requestId, "LinkedNotebook",
+                                    m_linkedNotebooks, m_findLinkedNotebookRequestIds));
 }
 
 void FullSynchronizationManager::onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook,
                                                             QString errorDescription, QUuid requestId)
 {
-    // TODO: implement, call onFindDataElementByGuidFailed
+    // TODO: implement manually
 }
 
 void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId)
@@ -184,14 +194,17 @@ void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSea
 
 void FullSynchronizationManager::onFindSavedSearchFailed(SavedSearch savedSearch, QString errorDescription, QUuid requestId)
 {
-    bool failedToFindByName = onNoDuplicateByName<SavedSearchesList, SavedSearch>(savedSearch, requestId, errorDescription, "SavedSearch",
-                                                                                            m_savedSearches, m_findSavedSearchByNameRequestIds);
-    if (failedToFindByName) {
+    bool failedToFindByGuid = onNoDuplicateByGuid(savedSearch, requestId, errorDescription, "SavedSearch",
+                                                  m_savedSearches, m_findSavedSearchByGuidRequestIds);
+    if (failedToFindByGuid) {
         return;
     }
 
-    // TODO: continue from here: it is not the response on find by name request;
-    // perhaps it's the response to the attempt to find by guid?
+    bool failedToFindByName = onNoDuplicateByName(savedSearch, requestId, errorDescription, "SavedSearch",
+                                                  m_savedSearches, m_findSavedSearchByNameRequestIds);
+    if (failedToFindByName) {
+        return;
+    }
 }
 
 template <class ElementType>
@@ -829,13 +842,6 @@ void FullSynchronizationManager::emitFindByNameRequest<SavedSearch>(const SavedS
 }
 
 template <>
-void FullSynchronizationManager::emitFindByNameRequest<LinkedNotebook>(const LinkedNotebook & linkedNotebook)
-{
-    // It makes no sense to search for the linked notebook by name in the local storage,
-    // the linked notebook doesn't have the notion unique name; so, doing nothing here
-}
-
-template <>
 void FullSynchronizationManager::emitFindByNameRequest<Notebook>(const Notebook & notebook)
 {
     if (!notebook.hasName()) {
@@ -931,6 +937,33 @@ bool FullSynchronizationManager::onFoundDuplicateByGuid(ElementType element, con
 }
 
 template <class ContainerType, class ElementType>
+bool FullSynchronizationManager::onNoDuplicateByGuid(ElementType element, const QUuid & requestId,
+                                                     const QString & errorDescription,
+                                                     const QString & typeName, ContainerType & container,
+                                                     QSet<QUuid> & findElementRequestIds)
+{
+    QSet<QUuid>::iterator rit = findElementRequestIds.find(requestId);
+    if (rit == findElementRequestIds.end()) {
+        return false;
+    }
+
+    QNDEBUG("FullSynchronizationManager::onNoDuplicateByGuid<" << typeName << ">: " << element
+            << ", errorDescription = " << errorDescription << ", requestId = " << requestId);
+
+    Q_UNUSED(findElementRequestIds.erase(rit));
+
+    typename ContainerType::iterator it = findItemByGuid(container, element, typeName);
+    if (it == container.end()) {
+        return true;
+    }
+
+    // This element wasn't found in the local storage by guid, need to check whether
+    // the element with similar name exists
+    ElementType elementToFindByName(*it);
+    emitFindByNameRequest(elementToFindByName);
+}
+
+template <class ContainerType, class ElementType>
 bool FullSynchronizationManager::onNoDuplicateByName(ElementType element, const QUuid & requestId,
                                                      const QString & errorDescription,
                                                      const QString & typeName, ContainerType & container,
@@ -941,9 +974,8 @@ bool FullSynchronizationManager::onNoDuplicateByName(ElementType element, const 
         return false;
     }
 
-    QNDEBUG("FullSynchronizationManager::onNoDuplicateByUniqueKey<" << typeName << ">: "
-            << typeName << " = " << element << ", errorDescription = " << errorDescription
-            << ", requestId = " << requestId);
+    QNDEBUG("FullSynchronizationManager::onNoDuplicateByUniqueKey<" << typeName << ">: " << element
+            << ", errorDescription = " << errorDescription << ", requestId = " << requestId);
 
     Q_UNUSED(findElementRequestIds.erase(rit));
 
@@ -952,8 +984,7 @@ bool FullSynchronizationManager::onNoDuplicateByName(ElementType element, const 
         return true;
     }
 
-    // This element wasn't found in the local storage by unique key, however, need to check
-    // whether the element with the same guid exists in the local storage
+    // This element wasn't found in the local storage by name, adding it to local storage
     ElementType newElement(*it);
     emitAddRequest(newElement);
 

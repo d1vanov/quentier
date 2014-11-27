@@ -136,8 +136,23 @@ private:
     void appendDataElementsFromSyncChunkToContainer(const qevercloud::SyncChunk & syncChunk,
                                                     ContainerType & container);
 
+    // ========= Find by guid helpers ===========
+
     template <class ElementType>
     void emitFindByGuidRequest(const QString & guid);
+
+    template <class ElementType, class ContainerType>
+    bool onFoundDuplicateByGuid(ElementType element, const QUuid & requestId,
+                                const QString & typeName, ContainerType & container,
+                                QSet<QUuid> & findByGuidRequestIds);
+
+    template <class ContainerType, class ElementType>
+    bool onNoDuplicateByGuid(ElementType element, const QUuid & requestId,
+                             const QString & errorDescription,
+                             const QString & typeName, ContainerType & container,
+                             QSet<QUuid> & findElementRequestIds);
+
+    // ========= Find by name helpers ===========
 
     template <class ElementType>
     void emitFindByNameRequest(const ElementType & elementToFind);
@@ -147,16 +162,13 @@ private:
                                 const QString & typeName, ContainerType & container,
                                 QSet<QUuid> & findElementRequestIds);
 
-    template <class ElementType, class ContainerType>
-    bool onFoundDuplicateByGuid(ElementType element, const QUuid & requestId,
-                                const QString & typeName, ContainerType & container,
-                                QSet<QUuid> & findByGuidRequestIds);
-
     template <class ContainerType, class ElementType>
     bool onNoDuplicateByName(ElementType element, const QUuid & requestId,
                              const QString & errorDescription,
                              const QString & typeName, ContainerType & container,
                              QSet<QUuid> & findElementRequestIds);
+
+    // ========= Add helpers ============
 
     template <class ElementType>
     void emitAddRequest(const ElementType & elementToAdd);
@@ -169,6 +181,8 @@ private:
     void onAddDataElementFailed(const ElementType & element, const QUuid & requestId,
                                 const QString & errorDescription, const QString & typeName,
                                 QSet<QUuid> & addElementRequestIds);
+
+    // ========== Update helpers ===========
 
     template <class ElementType>
     void emitUpdateRequest(const ElementType & elementToUpdate,
@@ -185,6 +199,7 @@ private:
                                    QSet<QUuid> & updateElementRequestIds,
                                    ElementsToAddByUuid & elementsToAddByRenameRequestId);
 
+    // ========= Find in blocks from sync chunk helpers ===========
 
     template <class ContainerType, class ElementType>
     typename ContainerType::iterator findItemByName(ContainerType & container,
