@@ -117,10 +117,6 @@ private:
     void launchLinkedNotebookSync();
     void launchNotebookSync();
 
-    template <class ElementType, class RemoteElementType>
-    bool setupElementToFind(const RemoteElementType & remoteElement,
-                            const QString & typeName, ElementType & element);
-
     template <class ContainerType, class LocalType>
     void launchDataElementSync(const QString & typeName, ContainerType & container);
 
@@ -141,24 +137,26 @@ private:
                                                     ContainerType & container);
 
     template <class ElementType>
-    void emitFindRequest(const ElementType & elementToFind);
+    void emitFindByGuidRequest(const QString & guid);
 
-    template <class ContainerType, class ElementType>
-    bool onFoundDuplicateByUniqueKey(ElementType element, const QUuid & requestId,
-                                     const QString & typeName, ContainerType & container,
-                                     QSet<QUuid> & findElementRequestIds);
-
-    // FIXME: change the input parameter from the hash to QSet<QUuid>; the container type is to be used here,
-    // the elements will need to be found by guid there
     template <class ElementType>
-    bool onFoundDuplicateByGuid(ElementType element, const QUuid & requestId, const QString & typeName,
-                                QHash<QUuid, ElementType> & elementsToAddPerRequestId);
+    void emitFindByNameRequest(const ElementType & elementToFind);
 
     template <class ContainerType, class ElementType>
-    bool onNoDuplicateByUniqueKey(ElementType element, const QUuid & requestId,
-                                  const QString & errorDescription,
-                                  const QString & typeName, ContainerType & container,
-                                  QSet<QUuid> & findElementRequestIds);
+    bool onFoundDuplicateByName(ElementType element, const QUuid & requestId,
+                                const QString & typeName, ContainerType & container,
+                                QSet<QUuid> & findElementRequestIds);
+
+    template <class ElementType, class ContainerType>
+    bool onFoundDuplicateByGuid(ElementType element, const QUuid & requestId,
+                                const QString & typeName, ContainerType & container,
+                                QSet<QUuid> & findByGuidRequestIds);
+
+    template <class ContainerType, class ElementType>
+    bool onNoDuplicateByName(ElementType element, const QUuid & requestId,
+                             const QString & errorDescription,
+                             const QString & typeName, ContainerType & container,
+                             QSet<QUuid> & findElementRequestIds);
 
     template <class ElementType>
     void emitAddRequest(const ElementType & elementToAdd);
@@ -179,19 +177,22 @@ private:
     template <class ElementType, class ElementsToAddByUuid>
     void onUpdateDataElementCompleted(const ElementType & element, const QUuid & requestId,
                                       const QString & typeName, QSet<QUuid> & updateElementRequestIds,
-                                      ElementsToAddByUuid & elementsToAddByUuid);
+                                      ElementsToAddByUuid & elementsToAddByRenameRequestId);
 
     template <class ElementType, class ElementsToAddByUuid>
     void onUpdateDataElementFailed(const ElementType & element, const QUuid & requestId,
                                    const QString & errorDescription, const QString & typeName,
                                    QSet<QUuid> & updateElementRequestIds,
-                                   ElementsToAddByUuid & elementsToAddByUuid);
+                                   ElementsToAddByUuid & elementsToAddByRenameRequestId);
 
-    template <class ElementType>
-    QUuid emitFindByGuidRequest(const QString & guid);
 
     template <class ContainerType, class ElementType>
     typename ContainerType::iterator findItemByName(ContainerType & container,
+                                                    const ElementType & element,
+                                                    const QString & typeName);
+
+    template <class ContainerType, class ElementType>
+    typename ContainerType::iterator findItemByGuid(ContainerType & container,
                                                     const ElementType & element,
                                                     const QString & typeName);
 
@@ -258,6 +259,8 @@ private:
     QSet<QUuid>                             m_findNotebookByGuidRequestIds;
     QSet<QUuid>                             m_addNotebookRequestIds;
     QSet<QUuid>                             m_updateNotebookRequestIds;
+
+    QSet<QString>                           m_localGuidsOfElementsAlreadyAttemptedToFindByName;
 };
 
 } // namespace qute_note

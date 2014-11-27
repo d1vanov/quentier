@@ -36,7 +36,8 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_findNotebookByNameRequestIds(),
     m_findNotebookByGuidRequestIds(),
     m_addNotebookRequestIds(),
-    m_updateNotebookRequestIds()
+    m_updateNotebookRequestIds(),
+    m_localGuidsOfElementsAlreadyAttemptedToFindByName()
 {
     createConnections();
 }
@@ -88,7 +89,7 @@ void FullSynchronizationManager::onFindUserFailed(UserWrapper user, QString erro
 
 void FullSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUuid requestId)
 {
-    bool foundByName = onFoundDuplicateByUniqueKey(notebook, requestId, "Notebook",
+    bool foundByName = onFoundDuplicateByName(notebook, requestId, "Notebook",
                                                         m_notebooks, m_findNotebookByNameRequestIds);
     if (foundByName) {
         return;
@@ -100,7 +101,7 @@ void FullSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUui
 
 void FullSynchronizationManager::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
-    bool failedToFindByName = onNoDuplicateByUniqueKey<NotebooksList, Notebook>(notebook, requestId, errorDescription, "Notebook",
+    bool failedToFindByName = onNoDuplicateByName<NotebooksList, Notebook>(notebook, requestId, errorDescription, "Notebook",
                                                                                      m_notebooks, m_findNotebookByNameRequestIds);
     if (failedToFindByName) {
         return;
@@ -122,12 +123,12 @@ void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBi
 
 void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
 {
-    bool foundByGuid = onFoundDuplicateByGuid(tag, requestId, "Tag", m_tagsToAddPerRequestId);
+    bool foundByGuid = onFoundDuplicateByGuid(tag, requestId, "Tag", m_tags, m_findTagByGuidRequestIds);
     if (foundByGuid) {
         return;
     }
 
-    bool foundByName = onFoundDuplicateByUniqueKey(tag, requestId, "Tag", m_tags, m_findTagByNameRequestIds);
+    bool foundByName = onFoundDuplicateByName(tag, requestId, "Tag", m_tags, m_findTagByNameRequestIds);
     if (foundByName) {
         return;
     }
@@ -135,7 +136,7 @@ void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
 
 void FullSynchronizationManager::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    bool failedToFindByName = onNoDuplicateByUniqueKey<TagsList, Tag>(tag, requestId, errorDescription, "Tag",
+    bool failedToFindByName = onNoDuplicateByName<TagsList, Tag>(tag, requestId, errorDescription, "Tag",
                                                                            m_tags, m_findTagByNameRequestIds);
     if (failedToFindByName) {
         return;
@@ -168,13 +169,14 @@ void FullSynchronizationManager::onFindLinkedNotebookFailed(LinkedNotebook linke
 
 void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId)
 {
-    bool foundByGuid = onFoundDuplicateByGuid(savedSearch, requestId, "SavedSearch", m_savedSearchesToAddPerRequestId);
+    bool foundByGuid = onFoundDuplicateByGuid(savedSearch, requestId, "SavedSearch",
+                                              m_savedSearches, m_findSavedSearchByGuidRequestIds);
     if (foundByGuid) {
         return;
     }
 
-    bool foundByName = onFoundDuplicateByUniqueKey(savedSearch, requestId, "SavedSearch",
-                                                   m_savedSearches, m_findSavedSearchByNameRequestIds);
+    bool foundByName = onFoundDuplicateByName(savedSearch, requestId, "SavedSearch",
+                                              m_savedSearches, m_findSavedSearchByNameRequestIds);
     if (foundByName) {
         return;
     }
@@ -182,7 +184,7 @@ void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSea
 
 void FullSynchronizationManager::onFindSavedSearchFailed(SavedSearch savedSearch, QString errorDescription, QUuid requestId)
 {
-    bool failedToFindByName = onNoDuplicateByUniqueKey<SavedSearchesList, SavedSearch>(savedSearch, requestId, errorDescription, "SavedSearch",
+    bool failedToFindByName = onNoDuplicateByName<SavedSearchesList, SavedSearch>(savedSearch, requestId, errorDescription, "SavedSearch",
                                                                                             m_savedSearches, m_findSavedSearchByNameRequestIds);
     if (failedToFindByName) {
         return;
@@ -253,39 +255,48 @@ void FullSynchronizationManager::onUpdateDataElementCompleted(const ElementType 
                                                               const QUuid & requestId,
                                                               const QString & typeName,
                                                               QSet<QUuid> & updateElementRequestIds,
-                                                              ElementsToAddByUuid & elementsToAddByUuid)
+                                                              ElementsToAddByUuid & elementsToAddByRenameRequestId)
 {
-    QSet<QUuid>::iterator it = updateElementRequestIds.find(requestId);
-    if (it != updateElementRequestIds.end())
+    QSet<QUuid>::iterator rit = updateElementRequestIds.find(requestId);
+    if (rit == updateElementRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("FullSynchronizartionManager::onUpdateDataElementCompleted<" << typeName
+            << ">: " << typeName << " = " << element << ", requestId = " << requestId);
+
+    Q_UNUSED(updateElementRequestIds.erase(rit));
+
+    typename ElementsToAddByUuid::iterator addIt = elementsToAddByRenameRequestId.find(requestId);
+    if (addIt != elementsToAddByRenameRequestId.end())
     {
-        QNDEBUG("FullSynchronizartionManager::onUpdateDataElementCompleted<" << typeName
-                << ">: " << typeName << " = " << element << ", requestId = " << requestId);
-
-        Q_UNUSED(updateElementRequestIds.erase(it));
-
-        typename ElementsToAddByUuid::iterator addIt = elementsToAddByUuid.find(requestId);
-        if (addIt != elementsToAddByUuid.end())
-        {
-            const ElementType & elementToAdd = addIt.value();
-            if (!elementToAdd.hasGuid()) {
-                QString errorDescription = QT_TR_NOOP("detected element to be added to local storage from remote storage without guid set");
-                QNWARNING(errorDescription << ": " << elementToAdd);
-                emit failure(errorDescription);
-                return;
-            }
-
-            // Before attempting to add the element waiting for processing to the local storage,
-            // need to verify that this element cannot be found in the local storage by guid
-            QUuid requestId = emitFindByGuidRequest<ElementType>(elementToAdd.guid());
-            Q_UNUSED(elementsToAddByUuid.erase(addIt));
-            elementsToAddByUuid[requestId] = elementToAdd;
-
-            // FIXME: move elsewhere
-            /*
-            QNDEBUG("Adding new " << typeName << " after renaming the dirty local duplicate: " << elementToAdd);
-            emitAddRequest(elementToAdd);
-            */
+        ElementType & elementToAdd = addIt.value();
+        const QString localGuid = elementToAdd.localGuid();
+        if (localGuid.isEmpty()) {
+            QString errorDescription = QT_TR_NOOP("detected " + typeName + " from local storage "
+                                                  "with empty local guid");
+            QNWARNING(errorDescription << ": " << elementToAdd);
+            emit failure(errorDescription);
+            return;
         }
+
+        QSet<QString>::iterator git = m_localGuidsOfElementsAlreadyAttemptedToFindByName.find(localGuid);
+        if (git == m_localGuidsOfElementsAlreadyAttemptedToFindByName.end())
+        {
+            QNDEBUG("Checking whether " << typeName << " with the same name already exists in local storage");
+            Q_UNUSED(m_localGuidsOfElementsAlreadyAttemptedToFindByName.insert(localGuid));
+
+            elementToAdd.unsetLocalGuid();
+            elementToAdd.setGuid("");
+            emitFindByNameRequest(elementToAdd);
+        }
+        else
+        {
+            QNDEBUG("Adding " << typeName << " to local storage");
+            emitAddRequest(elementToAdd);
+        }
+
+        Q_UNUSED(elementsToAddByRenameRequestId.erase(addIt));
     }
 }
 
@@ -306,33 +317,34 @@ template <class ElementType, class ElementsToAddByUuid>
 void FullSynchronizationManager::onUpdateDataElementFailed(const ElementType & element, const QUuid & requestId,
                                                            const QString & errorDescription, const QString & typeName,
                                                            QSet<QUuid> & updateElementRequestIds,
-                                                           ElementsToAddByUuid & elementsToAddByUuid)
+                                                           ElementsToAddByUuid & elementsToAddByRenameRequestId)
 {
     QSet<QUuid>::iterator it = updateElementRequestIds.find(requestId);
-    if (it != updateElementRequestIds.end())
+    if (it == updateElementRequestIds.end()) {
+        return;
+    }
+
+    QNWARNING("FullSynchronizationManager::onUpdateDataElementFailed<" << typeName
+              << ">: " << typeName << " = " << element << ", errorDescription = "
+              << errorDescription << ", requestId = " << requestId);
+
+    Q_UNUSED(updateElementRequestIds.erase(it));
+
+    typename ElementsToAddByUuid::iterator addIt = elementsToAddByRenameRequestId.find(requestId);
+    if (addIt != elementsToAddByRenameRequestId.end())
     {
-        QNWARNING("FullSynchronizationManager::onUpdateDataElementFailed<" << typeName
-                  << ">: " << typeName << " = " << element << ", errorDescription = "
-                  << errorDescription << ", requestId = " << requestId);
+        Q_UNUSED(elementsToAddByRenameRequestId.erase(addIt));
 
-        Q_UNUSED(updateElementRequestIds.erase(it));
-
-        typename ElementsToAddByUuid::iterator addIt = elementsToAddByUuid.find(requestId);
-        if (addIt != elementsToAddByUuid.end())
-        {
-            Q_UNUSED(elementsToAddByUuid.erase(addIt));
-
-            QString error = QT_TR_NOOP("Can't rename local dirty duplicate " + typeName +
-                                       " in local storage: ");
-            error += errorDescription;
-            emit failure(error);
-        }
-        else
-        {
-            QString error = QT_TR_NOOP("Can't update remote " + typeName + " in local storage: ");
-            error += errorDescription;
-            emit failure(error);
-        }
+        QString error = QT_TR_NOOP("Can't rename local dirty duplicate " + typeName +
+                                   " in local storage: ");
+        error += errorDescription;
+        emit failure(error);
+    }
+    else
+    {
+        QString error = QT_TR_NOOP("Can't update remote " + typeName + " in local storage: ");
+        error += errorDescription;
+        emit failure(error);
     }
 }
 
@@ -351,7 +363,7 @@ void FullSynchronizationManager::onUpdateSavedSearchFailed(SavedSearch search, Q
 }
 
 template <>
-QUuid FullSynchronizationManager::emitFindByGuidRequest<Tag>(const QString & guid)
+void FullSynchronizationManager::emitFindByGuidRequest<Tag>(const QString & guid)
 {
     Tag tag;
     tag.unsetLocalGuid();
@@ -360,11 +372,10 @@ QUuid FullSynchronizationManager::emitFindByGuidRequest<Tag>(const QString & gui
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_findTagByGuidRequestIds.insert(requestId));
     emit findTag(tag, requestId);
-    return requestId;
 }
 
 template <>
-QUuid FullSynchronizationManager::emitFindByGuidRequest<SavedSearch>(const QString & guid)
+void FullSynchronizationManager::emitFindByGuidRequest<SavedSearch>(const QString & guid)
 {
     SavedSearch search;
     search.unsetLocalGuid();
@@ -373,11 +384,10 @@ QUuid FullSynchronizationManager::emitFindByGuidRequest<SavedSearch>(const QStri
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_findSavedSearchByGuidRequestIds.insert(requestId));
     emit findSavedSearch(search, requestId);
-    return requestId;
 }
 
 template <>
-QUuid FullSynchronizationManager::emitFindByGuidRequest<Notebook>(const QString & guid)
+void FullSynchronizationManager::emitFindByGuidRequest<Notebook>(const QString & guid)
 {
     Notebook notebook;
     notebook.unsetLocalGuid();
@@ -386,11 +396,10 @@ QUuid FullSynchronizationManager::emitFindByGuidRequest<Notebook>(const QString 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_findNotebookByGuidRequestIds.insert(requestId));
     emit findNotebook(notebook, requestId);
-    return requestId;
 }
 
 template <>
-QUuid FullSynchronizationManager::emitFindByGuidRequest<LinkedNotebook>(const QString & guid)
+void FullSynchronizationManager::emitFindByGuidRequest<LinkedNotebook>(const QString & guid)
 {
     LinkedNotebook linkedNotebook;
     linkedNotebook.unsetLocalGuid();
@@ -399,7 +408,6 @@ QUuid FullSynchronizationManager::emitFindByGuidRequest<LinkedNotebook>(const QS
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_findLinkedNotebookRequestIds.insert(requestId));
     emit findLinkedNotebook(linkedNotebook, requestId);
-    return requestId;
 }
 
 void FullSynchronizationManager::onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
@@ -642,9 +650,9 @@ typename ContainerType::iterator FullSynchronizationManager::findItemByName(Cont
     }
 
     if (container.empty()) {
-        QString errorDescription = QT_TR_NOOP("Internal error: detected attempt to find the element within the list "
-                                              "of elements waiting for processing but that list is empty");
-        QNWARNING(errorDescription << ": " << typeName << " = " << element);
+        QString errorDescription = QT_TR_NOOP("detected attempt to find the element within the list "
+                                              "of remote elements waiting for processing but that list is empty");
+        QNWARNING(errorDescription << ": " << element);
         emit failure(errorDescription);
         return container.end();
     }
@@ -658,8 +666,8 @@ typename ContainerType::iterator FullSynchronizationManager::findItemByName(Cont
                           CompareItemByName<typename ContainerType::value_type>(element.name()));
         if (it == container.end()) {
             QString errorDescription = QT_TR_NOOP("Can't find " + typeName + " by name within the list "
-                                                                             "of remote elements waiting for processing");
-            QNWARNING(errorDescription << ": " << typeName + " = " << element);
+                                                  "of remote elements waiting for processing");
+            QNWARNING(errorDescription << ": " << element);
             emit failure(errorDescription);
             return container.end();
         }
@@ -668,36 +676,48 @@ typename ContainerType::iterator FullSynchronizationManager::findItemByName(Cont
     return it;
 }
 
-// FIXME: rebrand as "findItemByGuid"
-/*
-template <>
-FullSynchronizationManager::LinkedNotebooksList::iterator FullSynchronizationManager::findItemByName(LinkedNotebooksList & linkedNotebooks,
-                                                                                                     const LinkedNotebook & linkedNotebook,
-                                                                                                     const QString & )
+template <class ContainerType, class ElementType>
+typename ContainerType::iterator FullSynchronizationManager::findItemByGuid(ContainerType & container,
+                                                                            const ElementType & element,
+                                                                            const QString & typeName)
 {
-    QNDEBUG("FullSynchronizationManager::findItem<LinkedNotebook>, full template specialization");
+    QNDEBUG("FullSynchronizationManager::findItemByGuid<" << typeName << ">");
 
-    if (!linkedNotebook.hasGuid()) {
-        QString errorDescription = QT_TR_NOOP("Found linked notebook with empty guid in local storage");
-        QNWARNING(errorDescription << ": linked notebook = " << linkedNotebook);
+    // Attempt to find this data element by guid within the list of elements waiting for processing;
+    // first simply try the front element from the list to avoid the costly lookup
+    if (!element.hasGuid()) {
+        QString errorDescription = QT_TR_NOOP("Found " + typeName + " with empty guid in local storage");
+        QNWARNING(errorDescription << ": " << typeName << " = " << element);
         emit failure(errorDescription);
-        return linkedNotebooks.end();
+        return container.end();
     }
 
-    LinkedNotebooksList::iterator it = std::find_if(linkedNotebooks.begin(),
-                                                    linkedNotebooks.end(),
-                                                    CompareItemByGuid<qevercloud::LinkedNotebook>(linkedNotebook.guid()));
-    if (it == linkedNotebooks.end()) {
-        QString errorDescription = QT_TR_NOOP("Can't find linked notebook by guid within the list "
-                                              "of remote linked notebooks waiting for processing");
-        QNWARNING(errorDescription << ": linked notebook = " << linkedNotebook);
+    if (container.empty()) {
+        QString errorDescription = QT_TR_NOOP("detected attempt to find the element within the list "
+                                              "of remote elements waiting for processing but that list is empty");
+        QNWARNING(errorDescription << ": " << element);
         emit failure(errorDescription);
-        return linkedNotebooks.end();
+        return container.end();
+    }
+
+    // Try the front element first, in most cases it should be it
+    const auto & frontItem = container.front();
+    typename ContainerType::iterator it = container.begin();
+    if (!frontItem.guid.isSet() || (frontItem.guid.ref() != element.guid()))
+    {
+        it = std::find_if(container.begin(), container.end(),
+                          CompareItemByGuid<typename ContainerType::value_type>(element.guid()));
+        if (it == container.end()) {
+            QString errorDescription = QT_TR_NOOP("can't find " + typeName + " by guid within the list "
+                                                  "of elements from the remote storage waiting for processing");
+            QNWARNING(errorDescription << ": " << element);
+            emit failure(errorDescription);
+            return container.end();
+        }
     }
 
     return it;
 }
-*/
 
 template <class T>
 bool FullSynchronizationManager::CompareItemByName<T>::operator()(const T & item) const
@@ -710,42 +730,15 @@ bool FullSynchronizationManager::CompareItemByName<T>::operator()(const T & item
     }
 }
 
-template <class ElementType, class RemoteElementType>
-bool FullSynchronizationManager::setupElementToFind(const RemoteElementType & remoteElement,
-                                                    const QString & typeName, ElementType & elementToFind)
+template <class T>
+bool FullSynchronizationManager::CompareItemByGuid<T>::operator()(const T & item) const
 {
-    if (remoteElement.name.isSet() && !remoteElement.name->isEmpty()) {
-        elementToFind.setName(remoteElement.name.ref());
-    }
-    else if (remoteElement.guid.isSet() && !remoteElement.guid->isEmpty()) {
-        elementToFind.setGuid(remoteElement.guid.ref());
+    if (item.guid.isSet()) {
+        return (m_guid == item.guid.ref());
     }
     else {
-        QString errorDescription = QT_TR_NOOP("Can't synchronize remote " + typeName +
-                                              ": no guid and no name");
-        QNWARNING(errorDescription << ": " << remoteElement);
-        emit failure(errorDescription);
         return false;
     }
-
-    return true;
-}
-
-template <>
-bool FullSynchronizationManager::setupElementToFind(const qevercloud::LinkedNotebook & remoteElement,
-                                                    const QString &, LinkedNotebook & elementToFind)
-{
-    if (remoteElement.guid.isSet() && !remoteElement.guid->isEmpty()) {
-        elementToFind.setGuid(remoteElement.guid.ref());
-    }
-    else {
-        QString errorDescription = QT_TR_NOOP("Can't synchronize remote LinkedNotebook: no guid");
-        QNWARNING(errorDescription << ": " << remoteElement);
-        emit failure(errorDescription);
-        return false;
-    }
-
-    return true;
 }
 
 template <class ContainerType, class ElementType>
@@ -775,8 +768,7 @@ void FullSynchronizationManager::launchDataElementSync(const QString & typeName,
             return;
         }
 
-        // FIXME: correct when the method is changed to return void
-        Q_UNUSED(emitFindByGuidRequest<ElementType>(remoteElement.guid.ref()));
+        emitFindByGuidRequest<ElementType>(remoteElement.guid.ref());
     }
 }
 
@@ -804,49 +796,75 @@ void FullSynchronizationManager::setConflicted<Tag>(const QString & typeName, Ta
 }
 
 template <>
-void FullSynchronizationManager::emitFindRequest<Tag>(const Tag & tag)
+void FullSynchronizationManager::emitFindByNameRequest<Tag>(const Tag & tag)
 {
+    if (!tag.hasName()) {
+        QString errorDescription = QT_TR_NOOP("detected tag from remote storage which is "
+                                              "to be searched by name in local storage but "
+                                              "it has no name set");
+        QNWARNING(errorDescription << ": " << tag);
+        emit failure(errorDescription);
+        return;
+    }
+
     QUuid findElementRequestId = QUuid::createUuid();
     Q_UNUSED(m_findTagByNameRequestIds.insert(findElementRequestId));
     emit findTag(tag, findElementRequestId);
 }
 
 template <>
-void FullSynchronizationManager::emitFindRequest<SavedSearch>(const SavedSearch & search)
+void FullSynchronizationManager::emitFindByNameRequest<SavedSearch>(const SavedSearch & search)
 {
+    if (!search.hasName()) {
+        QString errorDescription = QT_TR_NOOP("detected saved search from remote storage which is "
+                                              "to be searched by name in local storage but "
+                                              "it has no name set");
+        QNWARNING(errorDescription << ": " << search);
+        emit failure(errorDescription);
+    }
+
     QUuid findElementRequestId = QUuid::createUuid();
     Q_UNUSED(m_findSavedSearchByNameRequestIds.insert(findElementRequestId));
     emit findSavedSearch(search, findElementRequestId);
 }
 
 template <>
-void FullSynchronizationManager::emitFindRequest<LinkedNotebook>(const LinkedNotebook & linkedNotebook)
+void FullSynchronizationManager::emitFindByNameRequest<LinkedNotebook>(const LinkedNotebook & linkedNotebook)
 {
-    QUuid findElementRequestId = QUuid::createUuid();
-    Q_UNUSED(m_findLinkedNotebookRequestIds.insert(findElementRequestId));
-    emit findLinkedNotebook(linkedNotebook, findElementRequestId);
+    // It makes no sense to search for the linked notebook by name in the local storage,
+    // the linked notebook doesn't have the notion unique name; so, doing nothing here
 }
 
 template <>
-void FullSynchronizationManager::emitFindRequest<Notebook>(const Notebook & notebook)
+void FullSynchronizationManager::emitFindByNameRequest<Notebook>(const Notebook & notebook)
 {
+    if (!notebook.hasName()) {
+        QString errorDescription = QT_TR_NOOP("detected notebook from remote storage which is "
+                                              "to be searched by name in local storage but "
+                                              "it has no name set");
+        QNWARNING(errorDescription << ": " << notebook);
+        emit failure(errorDescription);
+    }
+
     QUuid findElementRequestId = QUuid::createUuid();
     Q_UNUSED(m_findNotebookByNameRequestIds.insert(findElementRequestId));
     emit findNotebook(notebook, findElementRequestId);
 }
 
 template <class ContainerType, class ElementType>
-bool FullSynchronizationManager::onFoundDuplicateByUniqueKey(ElementType element, const QUuid & requestId,
-                                                             const QString & typeName, ContainerType & container,
-                                                             QSet<QUuid> & findElementRequestIds)
+bool FullSynchronizationManager::onFoundDuplicateByName(ElementType element, const QUuid & requestId,
+                                                        const QString & typeName, ContainerType & container,
+                                                        QSet<QUuid> & findElementRequestIds)
 {
     QSet<QUuid>::iterator rit = findElementRequestIds.find(requestId);
     if (rit == findElementRequestIds.end()) {
         return false;
     }
 
-    QNDEBUG("FullSynchronizationManager::onFoundDuplicateByUniqueKey<" << typeName << ">: "
+    QNDEBUG("FullSynchronizationManager::onFoundDuplicateByName<" << typeName << ">: "
             << typeName << " = " << element << ", requestId  = " << requestId);
+
+    Q_UNUSED(findElementRequestIds.erase(rit));
 
     typename ContainerType::iterator it = findItemByName(container, element, typeName);
     if (it == container.end()) {
@@ -867,45 +885,56 @@ bool FullSynchronizationManager::onFoundDuplicateByUniqueKey(ElementType element
     checkUpdateSequenceNumbersAndProcessConflictedElements(remoteElementAdapter, typeName, element);
 
     Q_UNUSED(container.erase(it));
-    Q_UNUSED(findElementRequestIds.erase(rit));
 
     return true;
 }
 
-template <class ElementType>
+template <class ElementType, class ContainerType>
 bool FullSynchronizationManager::onFoundDuplicateByGuid(ElementType element, const QUuid & requestId,
-                                                        const QString & typeName,
-                                                        QHash<QUuid, ElementType> & elementsToAddPerRequestId)
+                                                        const QString & typeName, ContainerType & container,
+                                                        QSet<QUuid> & findByGuidRequestIds)
 {
-    typename QHash<QUuid, ElementType>::iterator it = elementsToAddPerRequestId.find(requestId);
-    if (it == elementsToAddPerRequestId.end()) {
+    typename QSet<QUuid>::iterator rit = findByGuidRequestIds.find(requestId);
+    if (rit == findByGuidRequestIds.end()) {
         return false;
     }
 
     QNDEBUG("onFoundDuplicateByGuid<" << typeName << ">: "
             << typeName << " = " << element << ", requestId = " << requestId);
 
-    const ElementType & remoteElement = it.value();
-    if (!remoteElement.hasUpdateSequenceNumber()) {
-        QString errorDescription = QT_TR_NOOP("Found " + typeName + " within the elements to be added to local storage "
-                                              "from remote storage without update sequence number set");
+    typename ContainerType::iterator it = findItemByGuid(container, element, typeName);
+    if (it == container.end()) {
+        QString errorDescription = QT_TR_NOOP("could not find the remote " + typeName + " by guid "
+                                              "when reported of duplicate by guid in the local storage");
+        QNWARNING(errorDescription << ": " << element);
+        emit failure(errorDescription);
+        return true;
+    }
+
+    typedef typename ContainerType::value_type RemoteElementType;
+    const RemoteElementType & remoteElement = *it;
+    if (!remoteElement.updateSequenceNum.isSet()) {
+        QString errorDescription = QT_TR_NOOP("found " + typeName + " from remote storage without "
+                                              "the update sequence number set");
         QNWARNING(errorDescription << ": " << remoteElement);
         emit failure(errorDescription);
         return true;
     }
 
-    checkUpdateSequenceNumbersAndProcessConflictedElements(remoteElement, typeName, element);
+    ElementType remoteElementAdapter(remoteElement);
+    checkUpdateSequenceNumbersAndProcessConflictedElements(remoteElementAdapter, typeName, element);
 
-    Q_UNUSED(elementsToAddPerRequestId.erase(it));
+    Q_UNUSED(container.erase(it));
+    Q_UNUSED(findByGuidRequestIds.erase(rit));
 
     return true;
 }
 
 template <class ContainerType, class ElementType>
-bool FullSynchronizationManager::onNoDuplicateByUniqueKey(ElementType element, const QUuid & requestId,
-                                                          const QString & errorDescription,
-                                                          const QString & typeName, ContainerType & container,
-                                                          QSet<QUuid> & findElementRequestIds)
+bool FullSynchronizationManager::onNoDuplicateByName(ElementType element, const QUuid & requestId,
+                                                     const QString & errorDescription,
+                                                     const QString & typeName, ContainerType & container,
+                                                     QSet<QUuid> & findElementRequestIds)
 {
     QSet<QUuid>::iterator rit = findElementRequestIds.find(requestId);
     if (rit == findElementRequestIds.end()) {
@@ -915,6 +944,8 @@ bool FullSynchronizationManager::onNoDuplicateByUniqueKey(ElementType element, c
     QNDEBUG("FullSynchronizationManager::onNoDuplicateByUniqueKey<" << typeName << ">: "
             << typeName << " = " << element << ", errorDescription = " << errorDescription
             << ", requestId = " << requestId);
+
+    Q_UNUSED(findElementRequestIds.erase(rit));
 
     typename ContainerType::iterator it = findItemByName(container, element, typeName);
     if (it == container.end()) {
@@ -928,7 +959,6 @@ bool FullSynchronizationManager::onNoDuplicateByUniqueKey(ElementType element, c
 
     // also removing the element from the list of ones waiting for processing
     Q_UNUSED(container.erase(it));
-    Q_UNUSED(findElementRequestIds.erase(rit));
 
     return true;
 }
@@ -1022,17 +1052,6 @@ void FullSynchronizationManager::emitUpdateRequest<Notebook>(const Notebook & no
     emit updateNotebook(notebook, updateNotebookRequestId);
 }
 
-template <class T>
-bool FullSynchronizationManager::CompareItemByGuid<T>::operator()(const T & item) const
-{
-    if (item.guid.isSet()) {
-        return (m_guid == item.guid.ref());
-    }
-    else {
-        return false;
-    }
-}
-
 template <class ElementType>
 void FullSynchronizationManager::processConflictedElement(const ElementType & remoteElement,
                                                           const QString & typeName, ElementType & element)
@@ -1103,5 +1122,6 @@ void FullSynchronizationManager::checkUpdateSequenceNumbersAndProcessConflictedE
         }
     }
 }
+
 
 } // namespace qute_note
