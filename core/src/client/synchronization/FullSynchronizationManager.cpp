@@ -1106,6 +1106,8 @@ bool FullSynchronizationManager::onNoDuplicateByGuid(ElementType element, const 
     // the element with similar name exists
     ElementType elementToFindByName(*it);
     emitFindByNameRequest(elementToFindByName);
+
+    return true;
 }
 
 template <class ContainerType, class ElementType>
@@ -1239,7 +1241,11 @@ void FullSynchronizationManager::checkUpdateSequenceNumbersAndProcessConflictedE
             // Remote element is more recent, need to update the element existing in local storage
             ElementType elementToUpdate(remoteElement);
             elementToUpdate.unsetLocalGuid();
-            emitUpdateRequest(elementToUpdate);
+
+            // NOTE: the hack with static_cast to pointer type below is required to get the stupid MSVC compiler
+            // to instantiate the template method correctly. If Linus called gcc-4.9 pure and utter crap,
+            // I don't know what to say about MSVC 2013...
+            emitUpdateRequest<ElementType>(elementToUpdate, static_cast<const ElementType*>(nullptr));
         }
         else
         {
