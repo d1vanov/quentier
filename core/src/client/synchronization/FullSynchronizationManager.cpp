@@ -77,6 +77,38 @@ void FullSynchronizationManager::start()
     // TODO: continue from here
 }
 
+template <>
+void FullSynchronizationManager::emitAddRequest<Tag>(const Tag & tag)
+{
+    QUuid addTagRequestId = QUuid::createUuid();
+    Q_UNUSED(m_addTagRequestIds.insert(addTagRequestId));
+    emit addTag(tag, addTagRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitAddRequest<SavedSearch>(const SavedSearch & search)
+{
+    QUuid addSavedSearchRequestId = QUuid::createUuid();
+    Q_UNUSED(m_addSavedSearchRequestIds.insert(addSavedSearchRequestId));
+    emit addSavedSearch(search, addSavedSearchRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitAddRequest<LinkedNotebook>(const LinkedNotebook & linkedNotebook)
+{
+    QUuid addLinkedNotebookRequestId = QUuid::createUuid();
+    Q_UNUSED(m_addLinkedNotebookRequestIds.insert(addLinkedNotebookRequestId));
+    emit addLinkedNotebook(linkedNotebook, addLinkedNotebookRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitAddRequest<Notebook>(const Notebook & notebook)
+{
+    QUuid addNotebookRequestId = QUuid::createUuid();
+    Q_UNUSED(m_addNotebookRequestIds.insert(addNotebookRequestId));
+    emit addNotebook(notebook, addNotebookRequestId);
+}
+
 void FullSynchronizationManager::onFindUserCompleted(UserWrapper user, QUuid requestId)
 {
     // TODO: implement
@@ -174,7 +206,23 @@ void FullSynchronizationManager::onFindLinkedNotebookCompleted(LinkedNotebook li
 void FullSynchronizationManager::onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook,
                                                             QString errorDescription, QUuid requestId)
 {
-    // TODO: implement manually
+    QSet<QUuid>::iterator rit = m_findLinkedNotebookRequestIds.find(requestId);
+    if (rit == m_findLinkedNotebookRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("FullSynchronizationManager::onFindLinkedNotebookFailed: " << linkedNotebook
+            << ", errorDescription = " << errorDescription << ", requestId = " << requestId);
+
+    Q_UNUSED(m_findLinkedNotebookRequestIds.erase(rit));
+
+    LinkedNotebooksList::iterator it = findItemByGuid(m_linkedNotebooks, linkedNotebook, "LinkedNotebook");
+    if (it == m_linkedNotebooks.end()) {
+        return;
+    }
+
+    // This linked notebook was not found in the local storage by guid, adding it there
+    emitAddRequest(linkedNotebook);
 }
 
 void FullSynchronizationManager::onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId)
@@ -225,12 +273,12 @@ void FullSynchronizationManager::onAddDataElementCompleted(const ElementType & e
 
 void FullSynchronizationManager::onAddTagCompleted(Tag tag, QUuid requestId)
 {
-    onAddDataElementCompleted<Tag>(tag, requestId, "Tag", m_addTagRequestIds);
+    onAddDataElementCompleted(tag, requestId, "Tag", m_addTagRequestIds);
 }
 
 void FullSynchronizationManager::onAddSavedSearchCompleted(SavedSearch search, QUuid requestId)
 {
-    onAddDataElementCompleted<SavedSearch>(search, requestId, "SavedSearch", m_addSavedSearchRequestIds);
+    onAddDataElementCompleted(search, requestId, "SavedSearch", m_addSavedSearchRequestIds);
 }
 
 template <class ElementType>
@@ -255,12 +303,12 @@ void FullSynchronizationManager::onAddDataElementFailed(const ElementType & elem
 
 void FullSynchronizationManager::onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    onAddDataElementFailed<Tag>(tag, requestId, errorDescription, "Tag", m_addTagRequestIds);
+    onAddDataElementFailed(tag, requestId, errorDescription, "Tag", m_addTagRequestIds);
 }
 
 void FullSynchronizationManager::onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
 {
-    onAddDataElementFailed<SavedSearch>(search, requestId, errorDescription, "SavedSearch", m_addSavedSearchRequestIds);
+    onAddDataElementFailed(search, requestId, errorDescription, "SavedSearch", m_addSavedSearchRequestIds);
 }
 
 template <class ElementType, class ElementsToAddByUuid>
@@ -315,15 +363,13 @@ void FullSynchronizationManager::onUpdateDataElementCompleted(const ElementType 
 
 void FullSynchronizationManager::onUpdateTagCompleted(Tag tag, QUuid requestId)
 {
-    onUpdateDataElementCompleted<Tag, QHash<QUuid, Tag> >(tag, requestId, "Tag", m_updateTagRequestIds,
-                                                          m_tagsToAddPerRequestId);
+    onUpdateDataElementCompleted(tag, requestId, "Tag", m_updateTagRequestIds, m_tagsToAddPerRequestId);
 }
 
 void FullSynchronizationManager::onUpdateSavedSearchCompleted(SavedSearch search, QUuid requestId)
 {
-    onUpdateDataElementCompleted<SavedSearch, QHash<QUuid, SavedSearch> >(search, requestId, "SavedSearch",
-                                                                          m_updateSavedSearchRequestIds,
-                                                                          m_savedSearchesToAddPerRequestId);
+    onUpdateDataElementCompleted(search, requestId, "SavedSearch", m_updateSavedSearchRequestIds,
+                                 m_savedSearchesToAddPerRequestId);
 }
 
 template <class ElementType, class ElementsToAddByUuid>
@@ -363,16 +409,14 @@ void FullSynchronizationManager::onUpdateDataElementFailed(const ElementType & e
 
 void FullSynchronizationManager::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    onUpdateDataElementFailed<Tag, QHash<QUuid, Tag> >(tag, requestId, errorDescription,
-                                                       "Tag", m_updateTagRequestIds,
-                                                       m_tagsToAddPerRequestId);
+    onUpdateDataElementFailed(tag, requestId, errorDescription, "Tag", m_updateTagRequestIds,
+                              m_tagsToAddPerRequestId);
 }
 
 void FullSynchronizationManager::onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
 {
-    onUpdateDataElementFailed<SavedSearch, QHash<QUuid, SavedSearch> >(search, requestId, errorDescription,
-                                                                       "SavedSearch", m_updateSavedSearchRequestIds,
-                                                                       m_savedSearchesToAddPerRequestId);
+    onUpdateDataElementFailed(search, requestId, errorDescription, "SavedSearch", m_updateSavedSearchRequestIds,
+                              m_savedSearchesToAddPerRequestId);
 }
 
 template <>
@@ -425,13 +469,13 @@ void FullSynchronizationManager::emitFindByGuidRequest<LinkedNotebook>(const QSt
 
 void FullSynchronizationManager::onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
 {
-    onAddDataElementCompleted<LinkedNotebook>(linkedNotebook, requestId, "LinkedNotebook", m_addLinkedNotebookRequestIds);
+    onAddDataElementCompleted(linkedNotebook, requestId, "LinkedNotebook", m_addLinkedNotebookRequestIds);
 }
 
 void FullSynchronizationManager::onAddLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId)
 {
-    onAddDataElementFailed<LinkedNotebook>(linkedNotebook, requestId, errorDescription,
-                                           "LinkedNotebook", m_addLinkedNotebookRequestIds);
+    onAddDataElementFailed(linkedNotebook, requestId, errorDescription,
+                           "LinkedNotebook", m_addLinkedNotebookRequestIds);
 }
 
 void FullSynchronizationManager::onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
@@ -463,13 +507,13 @@ void FullSynchronizationManager::onUpdateLinkedNotebookFailed(LinkedNotebook lin
 
 void FullSynchronizationManager::onAddNotebookCompleted(Notebook notebook, QUuid requestId)
 {
-    onAddDataElementCompleted<Notebook>(notebook, requestId, "Notebook", m_addNotebookRequestIds);
+    onAddDataElementCompleted(notebook, requestId, "Notebook", m_addNotebookRequestIds);
 }
 
 void FullSynchronizationManager::onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
-    onAddDataElementFailed<Notebook>(notebook, requestId, errorDescription, "Notebook",
-                                     m_addNotebookRequestIds);
+    onAddDataElementFailed(notebook, requestId, errorDescription, "Notebook",
+                           m_addNotebookRequestIds);
 }
 
 void FullSynchronizationManager::onUpdateNotebookCompleted(Notebook notebook, QUuid requestId)
@@ -992,38 +1036,6 @@ bool FullSynchronizationManager::onNoDuplicateByName(ElementType element, const 
     Q_UNUSED(container.erase(it));
 
     return true;
-}
-
-template <>
-void FullSynchronizationManager::emitAddRequest<Tag>(const Tag & tag)
-{
-    QUuid addTagRequestId = QUuid::createUuid();
-    Q_UNUSED(m_addTagRequestIds.insert(addTagRequestId));
-    emit addTag(tag, addTagRequestId);
-}
-
-template <>
-void FullSynchronizationManager::emitAddRequest<SavedSearch>(const SavedSearch & search)
-{
-    QUuid addSavedSearchRequestId = QUuid::createUuid();
-    Q_UNUSED(m_addSavedSearchRequestIds.insert(addSavedSearchRequestId));
-    emit addSavedSearch(search, addSavedSearchRequestId);
-}
-
-template <>
-void FullSynchronizationManager::emitAddRequest<LinkedNotebook>(const LinkedNotebook & linkedNotebook)
-{
-    QUuid addLinkedNotebookRequestId = QUuid::createUuid();
-    Q_UNUSED(m_addLinkedNotebookRequestIds.insert(addLinkedNotebookRequestId));
-    emit addLinkedNotebook(linkedNotebook, addLinkedNotebookRequestId);
-}
-
-template <>
-void FullSynchronizationManager::emitAddRequest<Notebook>(const Notebook & notebook)
-{
-    QUuid addNotebookRequestId = QUuid::createUuid();
-    Q_UNUSED(m_addNotebookRequestIds.insert(addNotebookRequestId));
-    emit addNotebook(notebook, addNotebookRequestId);
 }
 
 template <>
