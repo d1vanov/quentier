@@ -199,6 +199,9 @@ private:
                                    QSet<QUuid> & updateElementRequestIds,
                                    ElementsToAddByUuid & elementsToAddByRenameRequestId);
 
+    template<class ElementType>
+    void performPostAddOrUpdateChecks();
+
     // ========= Find in blocks from sync chunk helpers ===========
 
     template <class ContainerType, class ElementType>
@@ -210,6 +213,21 @@ private:
     typename ContainerType::iterator findItemByGuid(ContainerType & container,
                                                     const ElementType & element,
                                                     const QString & typeName);
+
+    // ========= Helpers launching the sync of dependent data elements ==========
+    void checkNotebooksAndTagsSyncAndLaunchNotesSync();
+    void launchNotesSync();
+
+    // Helpers launching the sync of content from someone else's shared notebooks, to be used
+    // when LinkedNotebook representing pointers to content from someone else's account are in sync
+    void checkLinkedNotebooksSyncAndLaunchLinkedNotebookContentSync();
+    void checkLinkedNotebooksNotebooksAndTagsSyncAndLaynchLinkedNotebookNotesSync();
+
+    void launchLinkedNotebookTagsSync();
+    void launchLinkedNotebookNotebooksSync();
+    void launchLinkedNotebookNotesSync();
+
+    void clear();
 
 private:
     FullSynchronizationManager() Q_DECL_DELETE;
@@ -270,6 +288,7 @@ private:
     QSet<QUuid>                             m_updateLinkedNotebookRequestIds;
 
     NotebooksList                           m_notebooks;
+    QHash<QUuid,Notebook>                   m_notebooksToAddPerRequestId;
     QSet<QUuid>                             m_findNotebookByNameRequestIds;
     QSet<QUuid>                             m_findNotebookByGuidRequestIds;
     QSet<QUuid>                             m_addNotebookRequestIds;
