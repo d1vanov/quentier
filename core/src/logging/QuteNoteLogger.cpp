@@ -133,17 +133,17 @@ void messageHandler(QtMsgType type, const char * msg)
 
     switch (type) {
     case QtDebugMsg:
-        logger.logMessage(QString(msg), QuteNoteLogger::Level::LEVEL_DEBUG);
+        logger.logMessage(QString(msg), QuteNoteLogger::LEVEL_DEBUG);
         break;
     case QtWarningMsg:
-        logger.logMessage(QString(msg), QuteNoteLogger::Level::LEVEL_WARNING);
+        logger.logMessage(QString(msg), QuteNoteLogger::LEVEL_WARNING);
         break;
     case QtCriticalMsg:
-        logger.logMessage(QString(msg), QuteNoteLogger::Level::LEVEL_CRITICAL);
+        logger.logMessage(QString(msg), QuteNoteLogger::LEVEL_CRITICAL);
         break;
     case QtFatalMsg:
     default:
-        logger.logMessage(QString(msg), QuteNoteLogger::Level::LEVEL_FATAL);
+        logger.logMessage(QString(msg), QuteNoteLogger::LEVEL_FATAL);
         abort();
     }
 }
