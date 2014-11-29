@@ -1451,3 +1451,80 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SponsoredGroupRol
     return strm;
 }
 
+QTextStream & operator<<(QTextStream & strm, const qevercloud::Note & note)
+{
+    strm << "qevercloud::Note { \n";
+    QString indent = "  ";
+
+    strm << indent << "guid = " << (note.guid.isSet() ? note.guid.ref() : "<empty>") << "; \n";
+    strm << indent << "title = " << (note.title.isSet() ? note.title.ref() : "<empty>") << "; \n";
+    strm << indent << "content = " << (note.content.isSet() ? note.content.ref() : "<empty>") << "; \n";
+    strm << indent << "contentHash = " << (note.contentHash.isSet() ? note.contentHash.ref() : "<empty>") << "; \n";
+    strm << indent << "created = " << (note.created.isSet()
+                                       ? qute_note::PrintableDateTimeFromTimestamp(note.created.ref())
+                                       : "<empty>") << "; \n";
+    strm << indent << "updated = " << (note.updated.isSet()
+                                       ? qute_note::PrintableDateTimeFromTimestamp(note.updated.ref())
+                                       : "<empty>") << "; \n";
+    strm << indent << "deleted = " << (note.deleted.isSet()
+                                       ? qute_note::PrintableDateTimeFromTimestamp(note.deleted.ref())
+                                       : "<empty>") << "; \n";
+    strm << indent << "active = " << (note.active.isSet()
+                                      ? (note.active.ref() ? "true" : "false")
+                                      : "<empty>") << "; \n";
+    strm << indent << "updateSequenceNum = " << (note.updateSequenceNum.isSet()
+                                                 ? QString::number(note.updateSequenceNum.ref())
+                                                 : "<empty>") << "; \n";
+    strm << indent << "notebookGuid = " << (note.notebookGuid.isSet() ? note.notebookGuid.ref() : "<empty>") << "; \n";
+
+    strm << indent << "tagGuids = ";
+    if (note.tagGuids.isSet())
+    {
+        strm << "\n";
+        const auto & tagGuids = note.tagGuids.ref();
+        const int numTagGuids = tagGuids.size();
+        for(int i = 0; i < numTagGuids; ++i) {
+            strm << "tagGuid[" << i << "] = " << tagGuids[i] << "; ";
+        }
+        strm << "\n";
+    }
+    else
+    {
+        strm << "<empty>; \n";
+    }
+
+    strm << indent << "resources = ";
+    if (note.resources.isSet())
+    {
+        strm << "\n";
+        const auto & resources = note.resources.ref();
+        const int numResources = resources.size();
+        for(int i = 0; i < numResources; ++i) {
+            strm << "resource[" << i << "] = " << resources[i] << "; ";
+        }
+        strm << "\n";
+    }
+    else
+    {
+        strm << "<empty>; \n";
+    }
+
+    strm << indent << "attributes = " << (note.attributes.isSet() ? ToQString(note.attributes.ref()) : "<empty>") << "; \n";
+
+    strm << indent << "tagNames = ";
+    if (note.tagNames.isSet())
+    {
+        strm << "\n";
+        const QStringList & tagNames = note.tagNames.ref();
+        const int numTagNames = tagNames.size();
+        for(int i = 0; i < numTagNames; ++i) {
+            strm << "tagName[" << i << "] = " << tagNames[i] << "; ";
+        }
+        strm << "\n";
+    }
+    else {
+        strm << "<empty>; \n";
+    }
+
+    return strm;
+}

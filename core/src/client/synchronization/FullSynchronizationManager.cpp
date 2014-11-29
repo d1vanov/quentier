@@ -38,6 +38,12 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_findNotebookByGuidRequestIds(),
     m_addNotebookRequestIds(),
     m_updateNotebookRequestIds(),
+    m_notes(),
+    m_notesToAddPerRequestId(),
+    m_findNoteByNameRequestIds(),
+    m_findNoteByGuidRequestIds(),
+    m_addNoteRequestIds(),
+    m_updateNoteRequestIds(),
     m_localGuidsOfElementsAlreadyAttemptedToFindByName()
 {
     createConnections();
@@ -65,8 +71,25 @@ void FullSynchronizationManager::start()
 
         m_syncChunks.push_back(qevercloud::SyncChunk());
         pSyncChunk = &(m_syncChunks.back());
-        *pSyncChunk = m_pNoteStore->getSyncChunk(afterUsn, m_maxSyncChunkEntries, true,
-                                                 m_pOAuthResult->authenticationToken);
+
+        try {
+            *pSyncChunk = m_pNoteStore->getSyncChunk(afterUsn, m_maxSyncChunkEntries, true,
+                                                     m_pOAuthResult->authenticationToken);
+        }
+        catch(const qevercloud::EvernoteException & exception)
+        {
+            QString errorDescription = QT_TR_NOOP("Can't perform full synchronization, "
+                                                  "can't download the sync chunks: caught exception: " +
+                                                  QString(exception.what()));
+            const QSharedPointer<qevercloud::EverCloudExceptionData> exceptionData = exception.exceptionData();
+            if (!exceptionData.isNull()) {
+                errorDescription += ", " + exceptionData->errorMessage;
+            }
+            QNWARNING(errorDescription);
+            emit failure(errorDescription);
+            return;
+        }
+
         QNDEBUG("Received sync chunk: " << *pSyncChunk);
     }
 
@@ -75,8 +98,7 @@ void FullSynchronizationManager::start()
     launchTagsSync();
     launchSavedSearchSync();
     launchLinkedNotebookSync();
-
-    // TODO: continue from here
+    launchNotebookSync();
 }
 
 template <>
@@ -492,6 +514,19 @@ void FullSynchronizationManager::emitFindByGuidRequest<LinkedNotebook>(const QSt
     emit findLinkedNotebook(linkedNotebook, requestId);
 }
 
+template <>
+void FullSynchronizationManager::emitFindByGuidRequest<Note>(const QString & guid)
+{
+    Note note;
+    note.unsetLocalGuid();
+    note.setGuid(guid);
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_findNoteByGuidRequestIds.insert(requestId));
+    bool withResourceDataOption = false;
+    emit findNote(note, withResourceDataOption, requestId);
+}
+
 void FullSynchronizationManager::onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
 {
     onAddDataElementCompleted(linkedNotebook, requestId, "LinkedNotebook", m_addLinkedNotebookRequestIds);
@@ -678,7 +713,7 @@ void FullSynchronizationManager::checkNotebooksAndTagsSyncAndLaunchNotesSync()
 
 void FullSynchronizationManager::launchNotesSync()
 {
-    // TODO: implement
+    launchDataElementSync<NotesList, Note>("Note", m_notes);
 }
 
 void FullSynchronizationManager::checkLinkedNotebooksSyncAndLaunchLinkedNotebookContentSync()
@@ -788,6 +823,15 @@ void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<Full
 {
     if (syncChunk.notebooks.isSet()) {
         container.append(syncChunk.notebooks.ref());
+    }
+}
+
+template <>
+void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<FullSynchronizationManager::NotesList>(const qevercloud::SyncChunk & syncChunk,
+                                                                                                                   FullSynchronizationManager::NotesList & container)
+{
+    if (syncChunk.notes.isSet()) {
+        container.append(syncChunk.notes.ref());
     }
 }
 

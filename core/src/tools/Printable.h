@@ -82,5 +82,6 @@ __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::ReminderEmailConfig::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PremiumOrderStatus::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessUserRole::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SponsoredGroupRole::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Note)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

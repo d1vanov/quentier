@@ -259,6 +259,7 @@ private:
     typedef QList<qevercloud::SavedSearch> SavedSearchesList;
     typedef QList<qevercloud::LinkedNotebook> LinkedNotebooksList;
     typedef QList<qevercloud::Notebook> NotebooksList;
+    typedef QList<qevercloud::Note> NotesList;
 
 private:
     LocalStorageManagerThreadWorker &                               m_localStorageManagerThreadWorker;
@@ -293,6 +294,13 @@ private:
     QSet<QUuid>                             m_findNotebookByGuidRequestIds;
     QSet<QUuid>                             m_addNotebookRequestIds;
     QSet<QUuid>                             m_updateNotebookRequestIds;
+
+    NotesList                               m_notes;
+    QHash<QUuid,Note>                       m_notesToAddPerRequestId;
+    QSet<QUuid>                             m_findNoteByNameRequestIds;
+    QSet<QUuid>                             m_findNoteByGuidRequestIds;
+    QSet<QUuid>                             m_addNoteRequestIds;
+    QSet<QUuid>                             m_updateNoteRequestIds;
 
     QSet<QString>                           m_localGuidsOfElementsAlreadyAttemptedToFindByName;
 };
