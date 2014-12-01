@@ -302,6 +302,11 @@ private:
     QSet<QUuid>                             m_addNoteRequestIds;
     QSet<QUuid>                             m_updateNoteRequestIds;
 
+    typedef QHash<QUuid,QPair<Note,QUuid> > NoteDataPerFindNotebookRequestId;
+    NoteDataPerFindNotebookRequestId        m_notesWithFindRequestIdsPerFindNotebookRequestId;
+
+    QHash<QPair<QString,QString>,Notebook>  m_notebooksPerNoteGuids;
+
     QSet<QString>                           m_localGuidsOfElementsAlreadyAttemptedToFindByName;
 };
 

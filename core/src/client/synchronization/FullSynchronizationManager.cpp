@@ -44,6 +44,8 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_findNoteByGuidRequestIds(),
     m_addNoteRequestIds(),
     m_updateNoteRequestIds(),
+    m_notesWithFindRequestIdsPerFindNotebookRequestId(),
+    m_notebooksPerNoteGuids(),
     m_localGuidsOfElementsAlreadyAttemptedToFindByName()
 {
     createConnections();
@@ -156,6 +158,36 @@ void FullSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUui
     if (foundByName) {
         return;
     }
+
+    NoteDataPerFindNotebookRequestId::iterator rit = m_notesWithFindRequestIdsPerFindNotebookRequestId.find(requestId);
+    if (rit != m_notesWithFindRequestIdsPerFindNotebookRequestId.end())
+    {
+        const QPair<Note,QUuid> & noteWithFindRequestId = rit.value();
+        const Note & note = noteWithFindRequestId.first;
+        const QUuid & findNoteRequestId = noteWithFindRequestId.second;
+
+        QString noteGuid = (note.hasGuid() ? note.guid() : QString());
+        QString noteLocalGuid = note.localGuid();
+
+        QPair<QString,QString> key(noteGuid, noteLocalGuid);
+
+        // NOTE: notebook for notes is only required for its pair of guid + local guid,
+        // it shouldn't prohibit the creation or update of the notes during the synchronization procedure
+        notebook.setCanCreateNotes(true);
+        notebook.setCanUpdateNotes(true);
+
+        m_notebooksPerNoteGuids[key] = notebook;
+
+        bool foundByGuid = onFoundDuplicateByGuid(note, findNoteRequestId, "Note", m_notes, m_findNoteByGuidRequestIds);
+        if (foundByGuid) {
+            return;
+        }
+
+        bool foundByName = onFoundDuplicateByName(note, findNoteRequestId, "Note", m_notes, m_findNoteByNameRequestIds);
+        if (foundByName) {
+            return;
+        }
+    }
 }
 
 void FullSynchronizationManager::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
@@ -171,11 +203,47 @@ void FullSynchronizationManager::onFindNotebookFailed(Notebook notebook, QString
     if (failedToFindByName) {
         return;
     }
+
+    NoteDataPerFindNotebookRequestId::iterator rit = m_notesWithFindRequestIdsPerFindNotebookRequestId.find(requestId);
+    if (rit != m_notesWithFindRequestIdsPerFindNotebookRequestId.end())
+    {
+        QString errorDescription = QT_TR_NOOP("Failed to find notebook in local storage for one of processed notes");
+        QNWARNING(errorDescription << ": " << notebook);
+        emit failure(errorDescription);
+        return;
+    }
 }
 
 void FullSynchronizationManager::onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId)
 {
-    // TODO: implement
+    Q_UNUSED(withResourceBinaryData);
+
+    bool foundDuplicate = m_findNoteByGuidRequestIds.contains(requestId);
+    if (!foundDuplicate) {
+        foundDuplicate = m_findNotebookByNameRequestIds.contains(requestId);
+    }
+
+    if (foundDuplicate)
+    {
+        // Need to find Notebook corresponding to the note in order to proceed
+        if (!note.hasNotebookGuid()) {
+            QString errorDescription = QT_TR_NOOP("Found duplicate note in local storage which doesn't have notebook guid set");
+            QNWARNING(errorDescription << ": " << note);
+            emit failure(errorDescription);
+            return;
+        }
+
+        QUuid findNotebookPerNoteRequestId = QUuid::createUuid();
+        m_notesWithFindRequestIdsPerFindNotebookRequestId[findNotebookPerNoteRequestId] =
+                QPair<Note,QUuid>(note, requestId);
+
+        Notebook notebookToFind;
+        notebookToFind.unsetLocalGuid();
+        notebookToFind.setGuid(note.notebookGuid());
+
+        emit findNotebook(notebookToFind, findNotebookPerNoteRequestId);
+        return;
+    }
 }
 
 void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId)
@@ -878,6 +946,49 @@ typename ContainerType::iterator FullSynchronizationManager::findItemByName(Cont
     return it;
 }
 
+template<>
+FullSynchronizationManager::NotesList::iterator FullSynchronizationManager::findItemByName<FullSynchronizationManager::NotesList, Note>(NotesList & container,
+                                                                                                                                        const Note & element,
+                                                                                                                                        const QString & typeName)
+{
+    QNDEBUG("FullSynchronizationManager::findItemByName<" << typeName << ">");
+
+    // Attempt to find this data element by name within the list of elements waiting for processing;
+    // first simply try the front element from the list to avoid the costly lookup
+    if (!element.hasTitle()) {
+        QString errorDescription = QT_TR_NOOP("Found " + typeName + " with empty name in local storage");
+        QNWARNING(errorDescription << ": " << typeName << " = " << element);
+        emit failure(errorDescription);
+        return container.end();
+    }
+
+    if (container.empty()) {
+        QString errorDescription = QT_TR_NOOP("detected attempt to find the element within the list "
+                                              "of remote elements waiting for processing but that list is empty");
+        QNWARNING(errorDescription << ": " << element);
+        emit failure(errorDescription);
+        return container.end();
+    }
+
+    // Try the front element first, in most cases it should be it
+    const auto & frontItem = container.front();
+    NotesList::iterator it = container.begin();
+    if (!frontItem.title.isSet() || (frontItem.title.ref() != element.title()))
+    {
+        it = std::find_if(container.begin(), container.end(),
+                          CompareItemByName<qevercloud::Note>(element.title()));
+        if (it == container.end()) {
+            QString errorDescription = QT_TR_NOOP("Can't find " + typeName + " by name within the list "
+                                                  "of remote elements waiting for processing");
+            QNWARNING(errorDescription << ": " << element);
+            emit failure(errorDescription);
+            return container.end();
+        }
+    }
+
+    return it;
+}
+
 template <class ContainerType, class ElementType>
 typename ContainerType::iterator FullSynchronizationManager::findItemByGuid(ContainerType & container,
                                                                             const ElementType & element,
@@ -932,6 +1043,17 @@ bool FullSynchronizationManager::CompareItemByName<T>::operator()(const T & item
     }
 }
 
+template <>
+bool FullSynchronizationManager::CompareItemByName<qevercloud::Note>::operator()(const qevercloud::Note & item) const
+{
+    if (item.title.isSet()) {
+        return (m_name.toUpper() == item.title->toUpper());
+    }
+    else {
+        return false;
+    }
+}
+
 template <class T>
 bool FullSynchronizationManager::CompareItemByGuid<T>::operator()(const T & item) const
 {
@@ -979,9 +1101,20 @@ void setConflictedBase(const QString & typeName, ElementType & element)
 {
     QString currentDateTime = QDateTime::currentDateTime().toString(Qt::ISODate);
 
-    element.setGuid("");
-    element.setName(QObject::tr("Conflicted ") + typeName + element.name() + "(" + currentDateTime + ")");
+    element.setGuid(QString());
+    element.setName(QObject::tr("Conflicted ") + typeName + element.name() + " (" + currentDateTime + ")");
     element.setDirty(true);
+}
+
+template <>
+void setConflictedBase<Note>(const QString & typeName, Note & element)
+{
+    QString currentDateTime = QDateTime::currentDateTime().toString(Qt::ISODate);
+
+    element.setGuid(QString());
+    element.setTitle(QObject::tr("Conflicted ") + typeName + element.title() + " (" + currentDateTime + ")");
+    element.setDirty(true);
+    element.setLocal(true);
 }
 
 template <class ElementType>
@@ -1235,7 +1368,8 @@ template <>
 void FullSynchronizationManager::emitUpdateRequest<Notebook>(const Notebook & notebook,
                                                              const Notebook * notebookToAddLater)
 {
-    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Notebook>: notebook = " << notebook);
+    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Notebook>: notebook = " << notebook
+            << ", notebook to add later = " << (notebookToAddLater ? notebookToAddLater->ToQString() : "null"));
 
     QUuid updateNotebookRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateNotebookRequestIds.insert(updateNotebookRequestId));
@@ -1245,6 +1379,37 @@ void FullSynchronizationManager::emitUpdateRequest<Notebook>(const Notebook & no
     }
 
     emit updateNotebook(notebook, updateNotebookRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitUpdateRequest<Note>(const Note & note,
+                                                         const Note * noteToAddLater)
+{
+    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Note>: note = " << note
+            << ", note to add later = " << (noteToAddLater ? noteToAddLater->ToQString() : "null"));
+
+    QString noteGuid = (note.hasGuid() ? note.guid() : QString());
+    QString noteLocalGuid = note.localGuid();
+
+    QPair<QString,QString> key(noteGuid, noteLocalGuid);
+    QHash<QPair<QString,QString>,Notebook>::const_iterator cit = m_notebooksPerNoteGuids.find(key);
+    if (cit == m_notebooksPerNoteGuids.end()) {
+        QString errorDescription = QT_TR_NOOP("Detected attempt to update note in local storage before its notebook is found");
+        QNWARNING(errorDescription << ": " << note);
+        emit failure(errorDescription);
+        return;
+    }
+
+    const Notebook & notebook = cit.value();
+
+    QUuid updateNoteRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateNoteRequestIds.insert(updateNoteRequestId));
+
+    if (noteToAddLater) {
+        m_notesToAddPerRequestId[updateNoteRequestId] = *noteToAddLater;
+    }
+
+    emit updateNote(note, notebook, updateNoteRequestId);
 }
 
 template <class ElementType>
