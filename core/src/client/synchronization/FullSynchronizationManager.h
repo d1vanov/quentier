@@ -297,7 +297,6 @@ private:
 
     NotesList                               m_notes;
     QHash<QUuid,Note>                       m_notesToAddPerRequestId;
-    QSet<QUuid>                             m_findNoteByNameRequestIds;
     QSet<QUuid>                             m_findNoteByGuidRequestIds;
     QSet<QUuid>                             m_addNoteRequestIds;
     QSet<QUuid>                             m_updateNoteRequestIds;

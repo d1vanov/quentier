@@ -40,7 +40,6 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_updateNotebookRequestIds(),
     m_notes(),
     m_notesToAddPerRequestId(),
-    m_findNoteByNameRequestIds(),
     m_findNoteByGuidRequestIds(),
     m_addNoteRequestIds(),
     m_updateNoteRequestIds(),
@@ -135,6 +134,28 @@ void FullSynchronizationManager::emitAddRequest<Notebook>(const Notebook & noteb
     emit addNotebook(notebook, addNotebookRequestId);
 }
 
+template <>
+void FullSynchronizationManager::emitAddRequest<Note>(const Note & note)
+{
+    QString noteGuid = (note.hasGuid() ? note.guid() : QString());
+    QString noteLocalGuid = note.localGuid();
+    QPair<QString,QString> key(noteGuid, noteLocalGuid);
+
+    auto it = m_notebooksPerNoteGuids.find(key);
+    if (it == m_notebooksPerNoteGuids.end()) {
+        QString errorDescription = QT_TR_NOOP("detected attempt to add note for which no notebook was found in local storage");
+        QNWARNING(errorDescription << ": " << note);
+        emit failure(errorDescription);
+        return;
+    }
+
+    const Notebook & notebook = it.value();
+
+    QUuid addNoteRequestId = QUuid::createUuid();
+    Q_UNUSED(m_addNoteRequestIds.insert(addNoteRequestId));
+    emit addNote(note, notebook, addNoteRequestId);
+}
+
 void FullSynchronizationManager::onFindUserCompleted(UserWrapper user, QUuid requestId)
 {
     // TODO: implement
@@ -178,15 +199,7 @@ void FullSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUui
 
         m_notebooksPerNoteGuids[key] = notebook;
 
-        bool foundByGuid = onFoundDuplicateByGuid(note, findNoteRequestId, "Note", m_notes, m_findNoteByGuidRequestIds);
-        if (foundByGuid) {
-            return;
-        }
-
-        bool foundByName = onFoundDuplicateByName(note, findNoteRequestId, "Note", m_notes, m_findNoteByNameRequestIds);
-        if (foundByName) {
-            return;
-        }
+        Q_UNUSED(onFoundDuplicateByGuid(note, findNoteRequestId, "Note", m_notes, m_findNoteByGuidRequestIds));
     }
 }
 
@@ -219,10 +232,6 @@ void FullSynchronizationManager::onFindNoteCompleted(Note note, bool withResourc
     Q_UNUSED(withResourceBinaryData);
 
     bool foundDuplicate = m_findNoteByGuidRequestIds.contains(requestId);
-    if (!foundDuplicate) {
-        foundDuplicate = m_findNotebookByNameRequestIds.contains(requestId);
-    }
-
     if (foundDuplicate)
     {
         // Need to find Notebook corresponding to the note in order to proceed
@@ -248,7 +257,27 @@ void FullSynchronizationManager::onFindNoteCompleted(Note note, bool withResourc
 
 void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
+    Q_UNUSED(withResourceBinaryData);
+
+    QSet<QUuid>::iterator rit = m_findNoteByGuidRequestIds.find(requestId);
+    if (rit != m_findNoteByGuidRequestIds.end())
+    {
+        QNDEBUG("FullSynchronizationManager::onFindNoteFailed: note = " << note << ", requestId = " << requestId);
+
+        Q_UNUSED(m_findNoteByGuidRequestIds.erase(rit));
+
+        auto it = findItemByGuid(m_notes, note, "Note");
+        if (it == m_notes.end()) {
+            return;
+        }
+
+        // Note duplicates by title are completely allowed, so can add the note as is,
+        // without any conflict by title resolution
+        emitAddRequest(note);
+
+        // Also removing the note from the list of notes waiting for processing
+        Q_UNUSED(m_notes.erase(it));
+    }
 }
 
 void FullSynchronizationManager::onFindTagCompleted(Tag tag, QUuid requestId)
