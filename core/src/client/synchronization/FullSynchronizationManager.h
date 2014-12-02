@@ -229,6 +229,10 @@ private:
 
     void clear();
 
+    void timerEvent(QTimerEvent * pEvent);
+
+    qint32 tryToGetNoteContent(Note & note);
+
 private:
     FullSynchronizationManager() Q_DECL_DELETE;
 
@@ -307,6 +311,9 @@ private:
     QHash<QPair<QString,QString>,Notebook>  m_notebooksPerNoteGuids;
 
     QSet<QString>                           m_localGuidsOfElementsAlreadyAttemptedToFindByName;
+
+    QHash<int,Note>                         m_notesToAddPerAPICallPostponeTimerId;
+    QHash<int,QPair<Note,QSharedPointer<Note> > >    m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId;
 };
 
 } // namespace qute_note

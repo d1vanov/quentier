@@ -45,7 +45,9 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_updateNoteRequestIds(),
     m_notesWithFindRequestIdsPerFindNotebookRequestId(),
     m_notebooksPerNoteGuids(),
-    m_localGuidsOfElementsAlreadyAttemptedToFindByName()
+    m_localGuidsOfElementsAlreadyAttemptedToFindByName(),
+    m_notesToAddPerAPICallPostponeTimerId(),
+    m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId()
 {
     createConnections();
 }
@@ -271,12 +273,22 @@ void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBi
             return;
         }
 
+        // Removing the note from the list of notes waiting for processing
+        Q_UNUSED(m_notes.erase(it));
+
+        qint32 postponeAPICallSeconds = tryToGetNoteContent(note);
+        if (postponeAPICallSeconds < 0) {
+            return;
+        }
+        else if (postponeAPICallSeconds > 0) {
+            int timerId = startTimer(postponeAPICallSeconds);
+            m_notesToAddPerAPICallPostponeTimerId[timerId] = note;
+            return;
+        }
+
         // Note duplicates by title are completely allowed, so can add the note as is,
         // without any conflict by title resolution
         emitAddRequest(note);
-
-        // Also removing the note from the list of notes waiting for processing
-        Q_UNUSED(m_notes.erase(it));
     }
 }
 
@@ -885,6 +897,138 @@ void FullSynchronizationManager::clear()
     m_updateNotebookRequestIds.clear();
 
     m_localGuidsOfElementsAlreadyAttemptedToFindByName.clear();
+
+    auto notesToAddPerAPICallPostponeTimerIdEnd = m_notesToAddPerAPICallPostponeTimerId.end();
+    for(auto it = m_notesToAddPerAPICallPostponeTimerId.begin(); it != notesToAddPerAPICallPostponeTimerIdEnd; ++it) {
+        int key = it.key();
+        killTimer(key);
+    }
+    m_notesToAddPerAPICallPostponeTimerId.clear();
+
+    auto notesToUpdateAndToAddLaterPerAPICallPostponeTimerIdEnd = m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.end();
+    for(auto it = m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.begin(); it != notesToUpdateAndToAddLaterPerAPICallPostponeTimerIdEnd; ++it) {
+        int key = it.key();
+        killTimer(key);
+    }
+    m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.clear();
+}
+
+void FullSynchronizationManager::timerEvent(QTimerEvent * pEvent)
+{
+    if (!pEvent) {
+        QString errorDescription = QT_TR_NOOP("Qt error: detected null pointer to QTimerEvent");
+        QNWARNING(errorDescription);
+        emit failure(errorDescription);
+        return;
+    }
+
+    int timerId = pEvent->timerId();
+    killTimer(timerId);
+
+    auto noteToAddIt = m_notesToAddPerAPICallPostponeTimerId.find(timerId);
+    if (noteToAddIt != m_notesToAddPerAPICallPostponeTimerId.end())
+    {
+        Note note = noteToAddIt.value();
+
+        Q_UNUSED(m_notesToAddPerAPICallPostponeTimerId.erase(noteToAddIt));
+
+        int postponeAPICallSeconds = tryToGetNoteContent(note);
+        if (postponeAPICallSeconds < 0) {
+            return;
+        }
+        else if (postponeAPICallSeconds > 0) {
+            int timerId = startTimer(postponeAPICallSeconds);
+            m_notesToAddPerAPICallPostponeTimerId[timerId] = note;
+        }
+        else {
+            emitAddRequest(note);
+        }
+
+        return;
+    }
+
+    auto noteToUpdateAndAddLaterIt = m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.find(timerId);
+    if (noteToUpdateAndAddLaterIt != m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.end())
+    {
+        QPair<Note, QSharedPointer<Note> > pair = noteToUpdateAndAddLaterIt.value();
+
+        Q_UNUSED(m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.erase(noteToUpdateAndAddLaterIt));
+
+        Note & noteToUpdate = pair.first;
+        int postponeAPICallSeconds = tryToGetNoteContent(noteToUpdate);
+        if (postponeAPICallSeconds < 0) {
+            return;
+        }
+        else if (postponeAPICallSeconds > 0) {
+            int timerId = startTimer(postponeAPICallSeconds);
+            m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId[timerId] = pair;
+        }
+        else {
+            // TODO: try to find notebook, emit update request and add note to add later to the list
+            // of notes waiting for processing
+        }
+
+        return;
+    }
+}
+
+qint32 FullSynchronizationManager::tryToGetNoteContent(Note & note)
+{
+    if (!note.hasGuid()) {
+        QString errorDescription = QT_TR_NOOP("detected attempt to get note content for note without guid");
+        QNWARNING(errorDescription << ": " << note);
+        emit failure(errorDescription);
+        return -1;
+    }
+
+    if (m_pNoteStore.isNull()) {
+        QString errorDescription = QT_TR_NOOP("detected null pointer to NoteStore when attempting to get note content");
+        QNWARNING(errorDescription << ": " << note);
+        emit failure(errorDescription);
+        return -2;
+    }
+
+    try
+    {
+        QString content = m_pNoteStore->getNoteContent(note.guid());
+        note.setContent(content);
+    }
+    catch(const qevercloud::EDAMSystemException & systemException)
+    {
+        if (systemException.errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+        {
+            if (!systemException.rateLimitDuration.isSet()) {
+                QString errorDescription = QT_TR_NOOP("QEverCloud error: caught EDAMSystemException with error code of RATE_LIMIT_REACHED "
+                                                      "but no rateLimitDuration is set");
+                QNWARNING(errorDescription);
+                emit failure(errorDescription);
+                return -3;
+            }
+
+            qint32 secondsToWait = systemException.rateLimitDuration.ref();
+            return secondsToWait;
+        }
+    }
+    catch(const qevercloud::EvernoteException & exception)
+    {
+        const auto exceptionData = exception.exceptionData();
+        if (exceptionData.isNull()) {
+            QString errorDescription = QT_TR_NOOP("QEverCloud error: caught EvernoteException when attempting to "
+                                                  "get note content but exception data pointer is null");
+            QNWARNING(errorDescription);
+            emit failure(errorDescription);
+            return -4;
+        }
+
+        QString what = exceptionData->errorMessage;
+        QString errorDescription = QT_TR_NOOP("Caught exception when attempting to get note content: ");
+        errorDescription += what;
+        QNWARNING(errorDescription);
+        emit failure(errorDescription);
+        return -5;
+    }
+
+    return 0;
 }
 
 template <>
@@ -1431,6 +1575,27 @@ void FullSynchronizationManager::emitUpdateRequest<Note>(const Note & note,
 
     const Notebook & notebook = cit.value();
 
+    // Dealing with separate Evernote API call for getting the content of note to be updated
+    Note localNote = note;
+    qint32 postponeAPICallSeconds = tryToGetNoteContent(localNote);
+    if (postponeAPICallSeconds < 0)
+    {
+        return;
+    }
+    else if (postponeAPICallSeconds > 0)
+    {
+        QSharedPointer<Note> localNoteToAddLater;
+        if (noteToAddLater) {
+            localNoteToAddLater = QSharedPointer<Note>(new Note(*noteToAddLater));
+        }
+
+        QPair<Note,QSharedPointer<Note> > pair(localNote, localNoteToAddLater);
+
+        int timerId = startTimer(postponeAPICallSeconds);
+        m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId[timerId] = pair;
+        return;
+    }
+
     QUuid updateNoteRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateNoteRequestIds.insert(updateNoteRequestId));
 
@@ -1438,7 +1603,7 @@ void FullSynchronizationManager::emitUpdateRequest<Note>(const Note & note,
         m_notesToAddPerRequestId[updateNoteRequestId] = *noteToAddLater;
     }
 
-    emit updateNote(note, notebook, updateNoteRequestId);
+    emit updateNote(localNote, notebook, updateNoteRequestId);
 }
 
 template <class ElementType>
