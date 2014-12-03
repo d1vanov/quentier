@@ -231,7 +231,7 @@ private:
 
     void timerEvent(QTimerEvent * pEvent);
 
-    qint32 tryToGetNoteContent(Note & note);
+    qint32 tryToGetFullNoteData(Note & note);
 
 private:
     FullSynchronizationManager() Q_DECL_DELETE;

@@ -276,7 +276,7 @@ void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBi
         // Removing the note from the list of notes waiting for processing
         Q_UNUSED(m_notes.erase(it));
 
-        qint32 postponeAPICallSeconds = tryToGetNoteContent(note);
+        qint32 postponeAPICallSeconds = tryToGetFullNoteData(note);
         if (postponeAPICallSeconds < 0) {
             return;
         }
@@ -932,7 +932,7 @@ void FullSynchronizationManager::timerEvent(QTimerEvent * pEvent)
 
         Q_UNUSED(m_notesToAddPerAPICallPostponeTimerId.erase(noteToAddIt));
 
-        int postponeAPICallSeconds = tryToGetNoteContent(note);
+        int postponeAPICallSeconds = tryToGetFullNoteData(note);
         if (postponeAPICallSeconds < 0) {
             return;
         }
@@ -955,7 +955,7 @@ void FullSynchronizationManager::timerEvent(QTimerEvent * pEvent)
         Q_UNUSED(m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.erase(noteToUpdateAndAddLaterIt));
 
         Note & noteToUpdate = pair.first;
-        int postponeAPICallSeconds = tryToGetNoteContent(noteToUpdate);
+        int postponeAPICallSeconds = tryToGetFullNoteData(noteToUpdate);
         if (postponeAPICallSeconds < 0) {
             return;
         }
@@ -972,17 +972,17 @@ void FullSynchronizationManager::timerEvent(QTimerEvent * pEvent)
     }
 }
 
-qint32 FullSynchronizationManager::tryToGetNoteContent(Note & note)
+qint32 FullSynchronizationManager::tryToGetFullNoteData(Note & note)
 {
     if (!note.hasGuid()) {
-        QString errorDescription = QT_TR_NOOP("detected attempt to get note content for note without guid");
+        QString errorDescription = QT_TR_NOOP("detected attempt to get full note's data for note without guid");
         QNWARNING(errorDescription << ": " << note);
         emit failure(errorDescription);
         return -1;
     }
 
     if (m_pNoteStore.isNull()) {
-        QString errorDescription = QT_TR_NOOP("detected null pointer to NoteStore when attempting to get note content");
+        QString errorDescription = QT_TR_NOOP("detected null pointer to NoteStore when attempting to get full note's data");
         QNWARNING(errorDescription << ": " << note);
         emit failure(errorDescription);
         return -2;
@@ -990,8 +990,15 @@ qint32 FullSynchronizationManager::tryToGetNoteContent(Note & note)
 
     try
     {
-        QString content = m_pNoteStore->getNoteContent(note.guid());
-        note.setContent(content);
+        bool withContent = true;
+        bool withResourceData = true;
+        bool withResourceRecognition = true;
+        bool withResourceAlternateData = true;
+        qevercloud::Note bulkNote = m_pNoteStore->getNote(note.guid(), withContent,
+                                                          withResourceData,
+                                                          withResourceRecognition,
+                                                          withResourceAlternateData);
+        note = bulkNote;
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
@@ -1014,14 +1021,14 @@ qint32 FullSynchronizationManager::tryToGetNoteContent(Note & note)
         const auto exceptionData = exception.exceptionData();
         if (exceptionData.isNull()) {
             QString errorDescription = QT_TR_NOOP("QEverCloud error: caught EvernoteException when attempting to "
-                                                  "get note content but exception data pointer is null");
+                                                  "get full note's data but exception data pointer is null");
             QNWARNING(errorDescription);
             emit failure(errorDescription);
             return -4;
         }
 
         QString what = exceptionData->errorMessage;
-        QString errorDescription = QT_TR_NOOP("Caught exception when attempting to get note content: ");
+        QString errorDescription = QT_TR_NOOP("Caught exception when attempting to get full note's data: ");
         errorDescription += what;
         QNWARNING(errorDescription);
         emit failure(errorDescription);
@@ -1577,7 +1584,7 @@ void FullSynchronizationManager::emitUpdateRequest<Note>(const Note & note,
 
     // Dealing with separate Evernote API call for getting the content of note to be updated
     Note localNote = note;
-    qint32 postponeAPICallSeconds = tryToGetNoteContent(localNote);
+    qint32 postponeAPICallSeconds = tryToGetFullNoteData(localNote);
     if (postponeAPICallSeconds < 0)
     {
         return;
