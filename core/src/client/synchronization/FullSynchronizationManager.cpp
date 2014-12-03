@@ -1013,6 +1013,7 @@ qint32 FullSynchronizationManager::tryToGetFullNoteData(Note & note)
             }
 
             qint32 secondsToWait = systemException.rateLimitDuration.ref();
+            emit rateLimitExceeded(secondsToWait);
             return secondsToWait;
         }
     }

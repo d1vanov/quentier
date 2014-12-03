@@ -28,6 +28,7 @@ public:
 Q_SIGNALS:
     void failure(QString errorDescription);
     void finished();
+    void rateLimitExceeded(qint32 secondsToWait);
 
 public Q_SLOTS:
     void start();
