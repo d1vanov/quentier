@@ -39,7 +39,6 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_addNotebookRequestIds(),
     m_updateNotebookRequestIds(),
     m_notes(),
-    m_notesToAddPerRequestId(),
     m_findNoteByGuidRequestIds(),
     m_addNoteRequestIds(),
     m_updateNoteRequestIds(),
@@ -47,7 +46,7 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_notebooksPerNoteGuids(),
     m_localGuidsOfElementsAlreadyAttemptedToFindByName(),
     m_notesToAddPerAPICallPostponeTimerId(),
-    m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId()
+    m_notesToUpdatePerAPICallPostponeTimerId()
 {
     createConnections();
 }
@@ -97,6 +96,9 @@ void FullSynchronizationManager::start()
     }
 
     QNDEBUG("Done. Processing tags from buffered sync chunks");
+
+    // FIXME: first process *all* expunged elements from all sync chunks,
+    // only when this step is over launch the sync of new and/or updated elements
 
     launchTagsSync();
     launchSavedSearchSync();
@@ -156,6 +158,103 @@ void FullSynchronizationManager::emitAddRequest<Note>(const Note & note)
     QUuid addNoteRequestId = QUuid::createUuid();
     Q_UNUSED(m_addNoteRequestIds.insert(addNoteRequestId));
     emit addNote(note, notebook, addNoteRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitUpdateRequest<Tag>(const Tag & tag,
+                                                        const Tag * tagToAddLater)
+{
+    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Tag>: tag = " << tag
+            << ", tagToAddLater = " << (tagToAddLater ? tagToAddLater->ToQString() : "<null>"));
+
+    QUuid updateTagRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateTagRequestIds.insert(updateTagRequestId));
+
+    if (tagToAddLater) {
+        m_tagsToAddPerRequestId[updateTagRequestId] = *tagToAddLater;
+    }
+
+    emit updateTag(tag, updateTagRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitUpdateRequest<SavedSearch>(const SavedSearch & search,
+                                                                const SavedSearch * searchToAddLater)
+{
+    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<SavedSearch>: search = " << search
+            << ", searchToAddLater = " << (searchToAddLater ? searchToAddLater->ToQString() : "<null>"));
+
+    QUuid updateSavedSearchRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateSavedSearchRequestIds.insert(updateSavedSearchRequestId));
+
+    if (searchToAddLater) {
+        m_savedSearchesToAddPerRequestId[updateSavedSearchRequestId] = *searchToAddLater;
+    }
+
+    emit updateSavedSearch(search, updateSavedSearchRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitUpdateRequest<LinkedNotebook>(const LinkedNotebook & linkedNotebook,
+                                                                   const LinkedNotebook *)
+{
+    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<LinkedNotebook>: linked notebook = "
+            << linkedNotebook);
+
+    QUuid updateLinkedNotebookRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateLinkedNotebookRequestIds.insert(updateLinkedNotebookRequestId));
+    emit updateLinkedNotebook(linkedNotebook, updateLinkedNotebookRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitUpdateRequest<Notebook>(const Notebook & notebook,
+                                                             const Notebook * notebookToAddLater)
+{
+    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Notebook>: notebook = " << notebook
+            << ", notebook to add later = " << (notebookToAddLater ? notebookToAddLater->ToQString() : "null"));
+
+    QUuid updateNotebookRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateNotebookRequestIds.insert(updateNotebookRequestId));
+
+    if (notebookToAddLater) {
+        m_notebooksToAddPerRequestId[updateNotebookRequestId] = *notebookToAddLater;
+    }
+
+    emit updateNotebook(notebook, updateNotebookRequestId);
+}
+
+template <>
+void FullSynchronizationManager::emitUpdateRequest<Note>(const Note & note,
+                                                         const Note *)
+{
+    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Note>: note = " << note);
+
+    const Notebook * pNotebook = getNotebookPerNote(note);
+    if (!pNotebook) {
+        QString errorDescription = QT_TR_NOOP("Detected attempt to update note in local storage before its notebook is found");
+        QNWARNING(errorDescription << ": " << note);
+        emit failure(errorDescription);
+        return;
+    }
+
+    // Dealing with separate Evernote API call for getting the content of note to be updated
+    Note localNote = note;
+    qint32 postponeAPICallSeconds = tryToGetFullNoteData(localNote);
+    if (postponeAPICallSeconds < 0)
+    {
+        return;
+    }
+    else if (postponeAPICallSeconds > 0)
+    {
+        int timerId = startTimer(postponeAPICallSeconds);
+        m_notesToUpdatePerAPICallPostponeTimerId[timerId] = localNote;
+        return;
+    }
+
+    QUuid updateNoteRequestId = QUuid::createUuid();
+    Q_UNUSED(m_updateNoteRequestIds.insert(updateNoteRequestId));
+
+    emit updateNote(localNote, *pNotebook, updateNoteRequestId);
 }
 
 void FullSynchronizationManager::onFindUserCompleted(UserWrapper user, QUuid requestId)
@@ -696,6 +795,45 @@ void FullSynchronizationManager::onUpdateNotebookFailed(Notebook notebook, QStri
                               m_updateNotebookRequestIds, m_notebooksToAddPerRequestId);
 }
 
+void FullSynchronizationManager::onAddNoteCompleted(Note note, Notebook notebook, QUuid requestId)
+{
+    Q_UNUSED(notebook)
+    onAddDataElementCompleted(note, requestId, "Note", m_addNoteRequestIds);
+}
+
+void FullSynchronizationManager::onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)
+{
+    Q_UNUSED(notebook)
+    onAddDataElementFailed(note, requestId, errorDescription, "Note", m_addNoteRequestIds);
+}
+
+void FullSynchronizationManager::onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId)
+{
+    QSet<QUuid>::iterator it = m_updateNoteRequestIds.find(requestId);
+    if (it != m_updateNoteRequestIds.end())
+    {
+        QNDEBUG("FullSynchronizationManager::onUpdateNoteCompleted: note = " << note
+                << "\nnotebook = " << notebook << "\nrequestId = " << requestId);
+
+        Q_UNUSED(m_updateNoteRequestIds.erase(it));
+    }
+}
+
+void FullSynchronizationManager::onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)
+{
+    QSet<QUuid>::iterator it = m_updateNoteRequestIds.find(requestId);
+    if (it != m_updateNoteRequestIds.end())
+    {
+        QNDEBUG("FullSynchronizationManager::onUpdateNoteFailed: note = " << note
+                << "\nnotebook = " << notebook << "\nerrorDescription = " << errorDescription
+                << "\nrequestId = " << requestId);
+
+        QString error = QT_TR_NOOP("Can't update note in local storage: ");
+        error += errorDescription;
+        emit failure(error);
+    }
+}
+
 void FullSynchronizationManager::createConnections()
 {
     // Connect local signals with localStorageManagerThread's slots
@@ -782,6 +920,12 @@ void FullSynchronizationManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNotebookComplete(Notebook,QUuid)), this, SLOT(onUpdateNotebookCompleted(Notebook,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onUpdateNotebookFailed(Notebook,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNoteComplete(Note,Notebook,QUuid)), this, SLOT(onUpdateNoteCompleted(Note,Notebook,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,QString,QUuid)), this, SLOT(onUpdateNoteFailed(Note,Notebook,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNoteComplete(Note,Notebook,QUuid)), this, SLOT(onAddNoteCompleted(Note,Notebook,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString,QUuid)), this, SLOT(onAddNoteFailed(Note,Notebook,QString,QUuid)));
 }
 
 void FullSynchronizationManager::launchTagsSync()
@@ -864,6 +1008,11 @@ void FullSynchronizationManager::launchLinkedNotebookNotesSync()
     // TODO: implement
 }
 
+void FullSynchronizationManager::checkServerDataMergeCompletion()
+{
+    // TODO: implement: see whether there are any remaining tags, saved searches, notebooks or notes to be synched
+}
+
 void FullSynchronizationManager::clear()
 {
     QNDEBUG("FullSynchronizationManager::clear");
@@ -905,12 +1054,12 @@ void FullSynchronizationManager::clear()
     }
     m_notesToAddPerAPICallPostponeTimerId.clear();
 
-    auto notesToUpdateAndToAddLaterPerAPICallPostponeTimerIdEnd = m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.end();
-    for(auto it = m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.begin(); it != notesToUpdateAndToAddLaterPerAPICallPostponeTimerIdEnd; ++it) {
+    auto notesToUpdateAndToAddLaterPerAPICallPostponeTimerIdEnd = m_notesToUpdatePerAPICallPostponeTimerId.end();
+    for(auto it = m_notesToUpdatePerAPICallPostponeTimerId.begin(); it != notesToUpdateAndToAddLaterPerAPICallPostponeTimerIdEnd; ++it) {
         int key = it.key();
         killTimer(key);
     }
-    m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.clear();
+    m_notesToUpdatePerAPICallPostponeTimerId.clear();
 }
 
 void FullSynchronizationManager::timerEvent(QTimerEvent * pEvent)
@@ -947,25 +1096,23 @@ void FullSynchronizationManager::timerEvent(QTimerEvent * pEvent)
         return;
     }
 
-    auto noteToUpdateAndAddLaterIt = m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.find(timerId);
-    if (noteToUpdateAndAddLaterIt != m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.end())
+    auto noteToUpdateIt = m_notesToUpdatePerAPICallPostponeTimerId.find(timerId);
+    if (noteToUpdateIt != m_notesToUpdatePerAPICallPostponeTimerId.end())
     {
-        QPair<Note, QSharedPointer<Note> > pair = noteToUpdateAndAddLaterIt.value();
+        Note noteToUpdate = noteToUpdateIt.value();
 
-        Q_UNUSED(m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId.erase(noteToUpdateAndAddLaterIt));
+        Q_UNUSED(m_notesToUpdatePerAPICallPostponeTimerId.erase(noteToUpdateIt));
 
-        Note & noteToUpdate = pair.first;
         int postponeAPICallSeconds = tryToGetFullNoteData(noteToUpdate);
         if (postponeAPICallSeconds < 0) {
             return;
         }
         else if (postponeAPICallSeconds > 0) {
             int timerId = startTimer(postponeAPICallSeconds);
-            m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId[timerId] = pair;
+            m_notesToUpdatePerAPICallPostponeTimerId[timerId] = noteToUpdate;
         }
         else {
-            // TODO: try to find notebook, emit update request and add note to add later to the list
-            // of notes waiting for processing
+            emitUpdateRequest(noteToUpdate);
         }
 
         return;
@@ -1037,6 +1184,23 @@ qint32 FullSynchronizationManager::tryToGetFullNoteData(Note & note)
     }
 
     return 0;
+}
+
+const Notebook * FullSynchronizationManager::getNotebookPerNote(const Note & note) const
+{
+    QNDEBUG("FullSynchronizationManager::getNotebookPerNote: note = " << note);
+
+    QString noteGuid = (note.hasGuid() ? note.guid() : QString());
+    QString noteLocalGuid = note.localGuid();
+
+    QPair<QString,QString> key(noteGuid, noteLocalGuid);
+    QHash<QPair<QString,QString>,Notebook>::const_iterator cit = m_notebooksPerNoteGuids.find(key);
+    if (cit == m_notebooksPerNoteGuids.end()) {
+        return nullptr;
+    }
+    else {
+        return &(cit.value());
+    }
 }
 
 template <>
@@ -1497,121 +1661,6 @@ bool FullSynchronizationManager::onNoDuplicateByName(ElementType element, const 
     Q_UNUSED(container.erase(it));
 
     return true;
-}
-
-template <>
-void FullSynchronizationManager::emitUpdateRequest<Tag>(const Tag & tag,
-                                                        const Tag * tagToAddLater)
-{
-    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Tag>: tag = " << tag
-            << ", tagToAddLater = " << (tagToAddLater ? tagToAddLater->ToQString() : "<null>"));
-
-    QUuid updateTagRequestId = QUuid::createUuid();
-    Q_UNUSED(m_updateTagRequestIds.insert(updateTagRequestId));
-
-    if (tagToAddLater) {
-        m_tagsToAddPerRequestId[updateTagRequestId] = *tagToAddLater;
-    }
-
-    emit updateTag(tag, updateTagRequestId);
-}
-
-template <>
-void FullSynchronizationManager::emitUpdateRequest<SavedSearch>(const SavedSearch & search,
-                                                                const SavedSearch * searchToAddLater)
-{
-    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<SavedSearch>: search = " << search
-            << ", searchToAddLater = " << (searchToAddLater ? searchToAddLater->ToQString() : "<null>"));
-
-    QUuid updateSavedSearchRequestId = QUuid::createUuid();
-    Q_UNUSED(m_updateSavedSearchRequestIds.insert(updateSavedSearchRequestId));
-
-    if (searchToAddLater) {
-        m_savedSearchesToAddPerRequestId[updateSavedSearchRequestId] = *searchToAddLater;
-    }
-
-    emit updateSavedSearch(search, updateSavedSearchRequestId);
-}
-
-template <>
-void FullSynchronizationManager::emitUpdateRequest<LinkedNotebook>(const LinkedNotebook & linkedNotebook,
-                                                                   const LinkedNotebook *)
-{
-    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<LinkedNotebook>: linked notebook = "
-            << linkedNotebook);
-
-    QUuid updateLinkedNotebookRequestId = QUuid::createUuid();
-    Q_UNUSED(m_updateLinkedNotebookRequestIds.insert(updateLinkedNotebookRequestId));
-    emit updateLinkedNotebook(linkedNotebook, updateLinkedNotebookRequestId);
-}
-
-template <>
-void FullSynchronizationManager::emitUpdateRequest<Notebook>(const Notebook & notebook,
-                                                             const Notebook * notebookToAddLater)
-{
-    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Notebook>: notebook = " << notebook
-            << ", notebook to add later = " << (notebookToAddLater ? notebookToAddLater->ToQString() : "null"));
-
-    QUuid updateNotebookRequestId = QUuid::createUuid();
-    Q_UNUSED(m_updateNotebookRequestIds.insert(updateNotebookRequestId));
-
-    if (notebookToAddLater) {
-        m_notebooksToAddPerRequestId[updateNotebookRequestId] = *notebookToAddLater;
-    }
-
-    emit updateNotebook(notebook, updateNotebookRequestId);
-}
-
-template <>
-void FullSynchronizationManager::emitUpdateRequest<Note>(const Note & note,
-                                                         const Note * noteToAddLater)
-{
-    QNDEBUG("FullSynchronizationManager::emitUpdateRequest<Note>: note = " << note
-            << ", note to add later = " << (noteToAddLater ? noteToAddLater->ToQString() : "null"));
-
-    QString noteGuid = (note.hasGuid() ? note.guid() : QString());
-    QString noteLocalGuid = note.localGuid();
-
-    QPair<QString,QString> key(noteGuid, noteLocalGuid);
-    QHash<QPair<QString,QString>,Notebook>::const_iterator cit = m_notebooksPerNoteGuids.find(key);
-    if (cit == m_notebooksPerNoteGuids.end()) {
-        QString errorDescription = QT_TR_NOOP("Detected attempt to update note in local storage before its notebook is found");
-        QNWARNING(errorDescription << ": " << note);
-        emit failure(errorDescription);
-        return;
-    }
-
-    const Notebook & notebook = cit.value();
-
-    // Dealing with separate Evernote API call for getting the content of note to be updated
-    Note localNote = note;
-    qint32 postponeAPICallSeconds = tryToGetFullNoteData(localNote);
-    if (postponeAPICallSeconds < 0)
-    {
-        return;
-    }
-    else if (postponeAPICallSeconds > 0)
-    {
-        QSharedPointer<Note> localNoteToAddLater;
-        if (noteToAddLater) {
-            localNoteToAddLater = QSharedPointer<Note>(new Note(*noteToAddLater));
-        }
-
-        QPair<Note,QSharedPointer<Note> > pair(localNote, localNoteToAddLater);
-
-        int timerId = startTimer(postponeAPICallSeconds);
-        m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId[timerId] = pair;
-        return;
-    }
-
-    QUuid updateNoteRequestId = QUuid::createUuid();
-    Q_UNUSED(m_updateNoteRequestIds.insert(updateNoteRequestId));
-
-    if (noteToAddLater) {
-        m_notesToAddPerRequestId[updateNoteRequestId] = *noteToAddLater;
-    }
-
-    emit updateNote(localNote, notebook, updateNoteRequestId);
 }
 
 template <class ElementType>

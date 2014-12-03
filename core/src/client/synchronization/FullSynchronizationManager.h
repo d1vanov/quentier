@@ -110,6 +110,11 @@ private Q_SLOTS:
     void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
     void onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
 
+    void onAddNoteCompleted(Note note, Notebook notebook, QUuid requestId);
+    void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId);
+    void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
+
 private:
     void createConnections();
 
@@ -228,11 +233,15 @@ private:
     void launchLinkedNotebookNotebooksSync();
     void launchLinkedNotebookNotesSync();
 
+    void checkServerDataMergeCompletion();
+
     void clear();
 
     void timerEvent(QTimerEvent * pEvent);
 
     qint32 tryToGetFullNoteData(Note & note);
+
+    const Notebook * getNotebookPerNote(const Note & note) const;
 
 private:
     FullSynchronizationManager() Q_DECL_DELETE;
@@ -301,7 +310,6 @@ private:
     QSet<QUuid>                             m_updateNotebookRequestIds;
 
     NotesList                               m_notes;
-    QHash<QUuid,Note>                       m_notesToAddPerRequestId;
     QSet<QUuid>                             m_findNoteByGuidRequestIds;
     QSet<QUuid>                             m_addNoteRequestIds;
     QSet<QUuid>                             m_updateNoteRequestIds;
@@ -314,7 +322,7 @@ private:
     QSet<QString>                           m_localGuidsOfElementsAlreadyAttemptedToFindByName;
 
     QHash<int,Note>                         m_notesToAddPerAPICallPostponeTimerId;
-    QHash<int,QPair<Note,QSharedPointer<Note> > >    m_notesToUpdateAndToAddLaterPerAPICallPostponeTimerId;
+    QHash<int,Note>                         m_notesToUpdatePerAPICallPostponeTimerId;
 };
 
 } // namespace qute_note
