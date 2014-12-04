@@ -97,9 +97,6 @@ void FullSynchronizationManager::start()
 
     QNDEBUG("Done. Processing tags from buffered sync chunks");
 
-    // FIXME: first process *all* expunged elements from all sync chunks,
-    // only when this step is over launch the sync of new and/or updated elements
-
     launchTagsSync();
     launchSavedSearchSync();
     launchLinkedNotebookSync();
@@ -1210,6 +1207,20 @@ void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<Full
     if (syncChunk.tags.isSet()) {
         container.append(syncChunk.tags.ref());
     }
+
+    if (syncChunk.expungedTags.isSet())
+    {
+        const auto & expungedTags = syncChunk.expungedTags.ref();
+        const auto expungedTagsEnd = expungedTags.end();
+        for(auto eit = expungedTags.begin(); eit != expungedTagsEnd; ++eit)
+        {
+            TagsList::iterator it = std::find_if(container.begin(), container.end(),
+                                                 CompareItemByGuid<qevercloud::Tag>(*eit));
+            if (it != container.end()) {
+                Q_UNUSED(container.erase(it));
+            }
+        }
+    }
 }
 
 template <>
@@ -1218,6 +1229,20 @@ void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<Full
 {
     if (syncChunk.searches.isSet()) {
         container.append(syncChunk.searches.ref());
+    }
+
+    if (syncChunk.expungedSearches.isSet())
+    {
+        const auto & expungedSearches = syncChunk.expungedSearches.ref();
+        const auto expungedSearchesEnd = expungedSearches.end();
+        for(auto eit = expungedSearches.begin(); eit != expungedSearchesEnd; ++eit)
+        {
+            SavedSearchesList::iterator it = std::find_if(container.begin(), container.end(),
+                                                          CompareItemByGuid<qevercloud::SavedSearch>(*eit));
+            if (it != container.end()) {
+                Q_UNUSED(container.erase(it));
+            }
+        }
     }
 }
 
@@ -1228,6 +1253,20 @@ void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<Full
     if (syncChunk.linkedNotebooks.isSet()) {
         container.append(syncChunk.linkedNotebooks.ref());
     }
+
+    if (syncChunk.expungedLinkedNotebooks.isSet())
+    {
+        const auto & expungedLinkedNotebooks = syncChunk.expungedLinkedNotebooks.ref();
+        const auto expungedLinkedNotebooksEnd = expungedLinkedNotebooks.end();
+        for(auto eit = expungedLinkedNotebooks.begin(); eit != expungedLinkedNotebooksEnd; ++eit)
+        {
+            LinkedNotebooksList::iterator it = std::find_if(container.begin(), container.end(),
+                                                            CompareItemByGuid<qevercloud::LinkedNotebook>(*eit));
+            if (it != container.end()) {
+                Q_UNUSED(container.erase(it));
+            }
+        }
+    }
 }
 
 template <>
@@ -1237,6 +1276,20 @@ void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<Full
     if (syncChunk.notebooks.isSet()) {
         container.append(syncChunk.notebooks.ref());
     }
+
+    if (syncChunk.expungedNotebooks.isSet())
+    {
+        const auto & expungedNotebooks = syncChunk.expungedNotebooks.ref();
+        const auto expungedNotebooksEnd = expungedNotebooks.end();
+        for(auto eit = expungedNotebooks.begin(); eit != expungedNotebooksEnd; ++eit)
+        {
+            NotebooksList::iterator it = std::find_if(container.begin(), container.end(),
+                                                      CompareItemByGuid<qevercloud::Notebook>(*eit));
+            if (it != container.end()) {
+                Q_UNUSED(container.erase(it));
+            }
+        }
+    }
 }
 
 template <>
@@ -1245,6 +1298,41 @@ void FullSynchronizationManager::appendDataElementsFromSyncChunkToContainer<Full
 {
     if (syncChunk.notes.isSet()) {
         container.append(syncChunk.notes.ref());
+    }
+
+    if (syncChunk.expungedNotes.isSet())
+    {
+        const auto & expungedNotes = syncChunk.expungedNotes.ref();
+        const auto expungedNotesEnd = expungedNotes.end();
+        for(auto eit = expungedNotes.begin(); eit != expungedNotesEnd; ++eit)
+        {
+            NotesList::iterator it = std::find_if(container.begin(), container.end(),
+                                                  CompareItemByGuid<qevercloud::Note>(*eit));
+            if (it != container.end()) {
+                Q_UNUSED(container.erase(it));
+            }
+        }
+    }
+
+    if (syncChunk.expungedNotebooks.isSet())
+    {
+        const auto & expungedNotebooks = syncChunk.expungedNotebooks.ref();
+        const auto expungedNotebooksEnd = expungedNotebooks.end();
+        for(auto eit = expungedNotebooks.begin(); eit != expungedNotebooksEnd; ++eit)
+        {
+            const QString & expungedNotebookGuid = *eit;
+
+            for(auto it = container.begin(); it != container.end();)
+            {
+                qevercloud::Note & note = *it;
+                if (note.notebookGuid.isSet() && (note.notebookGuid.ref() == expungedNotebookGuid)) {
+                    it = container.erase(it);
+                }
+                else {
+                    ++it;
+                }
+            }
+        }
     }
 }
 
