@@ -234,6 +234,7 @@ private:
     void launchLinkedNotebookNotesSync();
 
     void checkServerDataMergeCompletion();
+    void requestLocalUnsynchronizedData();
 
     void clear();
 

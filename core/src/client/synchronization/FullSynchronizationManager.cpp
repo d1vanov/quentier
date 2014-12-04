@@ -499,6 +499,8 @@ void FullSynchronizationManager::onAddDataElementCompleted(const ElementType & e
         Q_UNUSED(addElementRequestIds.erase(it));
 
         performPostAddOrUpdateChecks<ElementType>();
+
+        checkServerDataMergeCompletion();
     }
 }
 
@@ -589,10 +591,12 @@ void FullSynchronizationManager::onUpdateDataElementCompleted(const ElementType 
         }
 
         Q_UNUSED(elementsToAddByRenameRequestId.erase(addIt));
-        return;
+    }
+    else {
+        performPostAddOrUpdateChecks<ElementType>();
     }
 
-    performPostAddOrUpdateChecks<ElementType>();
+    checkServerDataMergeCompletion();
 }
 
 void FullSynchronizationManager::onUpdateTagCompleted(Tag tag, QUuid requestId)
@@ -752,6 +756,8 @@ void FullSynchronizationManager::onUpdateLinkedNotebookCompleted(LinkedNotebook 
                 << linkedNotebook << ", requestId = " << requestId);
 
         Q_UNUSED(m_updateLinkedNotebookRequestIds.erase(it));
+
+        checkServerDataMergeCompletion();
     }
 }
 
@@ -813,6 +819,8 @@ void FullSynchronizationManager::onUpdateNoteCompleted(Note note, Notebook noteb
                 << "\nnotebook = " << notebook << "\nrequestId = " << requestId);
 
         Q_UNUSED(m_updateNoteRequestIds.erase(it));
+
+        checkServerDataMergeCompletion();
     }
 }
 
@@ -1007,7 +1015,55 @@ void FullSynchronizationManager::launchLinkedNotebookNotesSync()
 
 void FullSynchronizationManager::checkServerDataMergeCompletion()
 {
-    // TODO: implement: see whether there are any remaining tags, saved searches, notebooks or notes to be synched
+    QNDEBUG("FullSynchronizationManager::checkServerDataMergeCompletion");
+
+    // Need to check whether we are still waiting for the response from some add or update request
+    bool tagsReady = m_updateTagRequestIds.empty() && m_addTagRequestIds.empty();
+    if (!tagsReady) {
+        QNDEBUG("Tags are not ready, pending response for " << m_updateTagRequestIds.size()
+                << " tag update requests and/or " << m_addTagRequestIds.size() << " tag add requests");
+        return;
+    }
+
+    bool searchesReady = m_updateSavedSearchRequestIds.empty() && m_addSavedSearchRequestIds.empty();
+    if (!searchesReady) {
+        QNDEBUG("Saved searches are not ready, pending response for " << m_updateSavedSearchRequestIds.size()
+                << " saved search update requests and/or " << m_addSavedSearchRequestIds.size()
+                << " saved search add requests");
+        return;
+    }
+
+    bool linkedNotebooksReady = m_updateLinkedNotebookRequestIds.empty() && m_addLinkedNotebookRequestIds.empty();
+    if (!linkedNotebooksReady) {
+        QNDEBUG("Linked notebooks are not ready, pending response for " << m_updateLinkedNotebookRequestIds.size()
+                << " linked notebook update requests and/or " << m_addLinkedNotebookRequestIds.size()
+                << " linked notebook add requests");
+        return;
+    }
+
+    bool notebooksReady = m_updateNotebookRequestIds.empty() && m_addNotebookRequestIds.empty();
+    if (!notebooksReady) {
+        QNDEBUG("Notebooks are not ready, pending response for " << m_updateNotebookRequestIds.size()
+                << " and/or " << m_addNotebookRequestIds.size() << " notebook add requests");
+        return;
+    }
+
+    bool notesReady = m_updateNoteRequestIds.empty() && m_addNoteRequestIds.empty();
+    if (!notesReady) {
+        QNDEBUG("Notes are not ready, pending response for " << m_updateNoteRequestIds.size()
+                << " and/or " << m_addNoteRequestIds.size() << " note add requests");
+        return;
+    }
+
+    // TODO: don't forget to account for content related to linked notebooks when its sync is implemented
+
+    QNDEBUG("All server side data elements are processed, proceeding to sending local changes");
+    requestLocalUnsynchronizedData();
+}
+
+void FullSynchronizationManager::requestLocalUnsynchronizedData()
+{
+    // TODO: implement;
 }
 
 void FullSynchronizationManager::clear()
