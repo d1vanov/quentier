@@ -11,9 +11,9 @@ namespace qute_note {
 const QString GetApplicationPersistentStoragePath()
 {
 #if QT_VERSION >= 0x050000
-    return std::move(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+    return QStandardPaths::writableLocation(QStandardPaths::DataLocation);
 #else
-    return std::move(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+    return QDesktopServices::storageLocation(QDesktopServices::DataLocation);
 #endif
 }
 

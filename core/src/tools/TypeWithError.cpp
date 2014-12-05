@@ -5,7 +5,7 @@ namespace qute_note {
 
 const QString TypeWithError::error() const
 {
-    return std::move(m_error);
+    return m_error;
 }
 
 void TypeWithError::setError(const QString & error)

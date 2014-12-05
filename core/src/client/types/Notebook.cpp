@@ -532,12 +532,7 @@ bool Notebook::hasContact() const
 
 const UserAdapter Notebook::contact() const
 {
-    return std::move(UserAdapter(d->m_qecNotebook.contact));
-}
-
-UserAdapter Notebook::contact()
-{
-    return std::move(UserAdapter(d->m_qecNotebook.contact));
+    return UserAdapter(d->m_qecNotebook.contact);
 }
 
 void Notebook::setContact(const IUser & contact)

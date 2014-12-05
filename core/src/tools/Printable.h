@@ -44,7 +44,7 @@ const QString ToQString(const T & object)
     QString str;
     QTextStream strm(&str, QIODevice::WriteOnly);
     strm << object;
-    return std::move(str);
+    return str;
 }
 
 #define __QUTE_NOTE_DECLARE_PRINTABLE(type) \
