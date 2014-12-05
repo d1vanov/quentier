@@ -1,7 +1,9 @@
 #include "NoteData.h"
 #include "../../Utility.h"
+#include <client/enml/ENMLConverter.h>
 #include <logging/QuteNoteLogger.h>
 #include <QDomDocument>
+#include <QMutexLocker>
 
 namespace qute_note {
 
@@ -85,6 +87,9 @@ bool NoteData::ResourceAdditionalInfo::operator==(const NoteData::ResourceAdditi
 
 bool NoteData::containsToDoImpl(const bool checked) const
 {
+    QMutex mutex;
+    QMutexLocker mutexLocker(&mutex);
+
     int & refLazyContainsToDo = (checked ? m_lazyContainsCheckedToDo : m_lazyContainsUncheckedToDo);
     if (refLazyContainsToDo > (-1)) {
         if (refLazyContainsToDo == 0) {
@@ -139,6 +144,59 @@ bool NoteData::containsToDoImpl(const bool checked) const
     }
 
     refLazyContainsToDo = 0;
+    return false;
+}
+
+bool NoteData::containsEncryption() const
+{
+    QMutex mutex;
+    QMutexLocker mutexLocker(&mutex);
+
+    if (m_lazyContainsEncryption > (-1)) {
+        if (m_lazyContainsEncryption == 0) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    if (!m_qecNote.content.isSet()) {
+        m_lazyContainsEncryption = 0;
+        return false;
+    }
+
+    QDomDocument enXmlDomDoc;
+    int errorLine = -1, errorColumn = -1;
+    QString errorMessage;
+    bool res = enXmlDomDoc.setContent(m_qecNote.content.ref(), &errorMessage, &errorLine, &errorColumn);
+    if (!res) {
+        // TRANSLATOR Explaining the error of XML parsing
+        errorMessage += QT_TR_NOOP(". Error happened at line ") +
+                        QString::number(errorLine) + QT_TR_NOOP(", at column ") +
+                        QString::number(errorColumn);
+        QNWARNING("Note content parsing error: " << errorMessage);
+        m_lazyContainsEncryption = 0;
+        return false;
+    }
+
+    QDomElement docElem = enXmlDomDoc.documentElement();
+    QDomNode nextNode = docElem.firstChild();
+    while (!nextNode.isNull())
+    {
+        QDomElement element = nextNode.toElement();
+        if (!element.isNull())
+        {
+            QString tagName = element.tagName();
+            if (tagName == "en-crypt") {
+                m_lazyContainsEncryption = 1;
+                return true;
+            }
+        }
+        nextNode = nextNode.nextSibling();
+    }
+
+    m_lazyContainsEncryption = 0;
     return false;
 }
 
@@ -334,6 +392,76 @@ bool NoteData::checkParameters(QString & errorDescription) const
     }
 
     return true;
+}
+
+QString NoteData::plainText(QString * errorMessage) const
+{
+    QMutex mutex;
+    QMutexLocker mutexLocker(&mutex);
+
+    if (m_lazyPlainTextIsValid) {
+        return m_lazyPlainText;
+    }
+
+    if (!m_qecNote.content.isSet()) {
+        if (errorMessage) {
+            *errorMessage = "Note content is not set";
+        }
+        return QString();
+    }
+
+    ENMLConverter converter;
+    QString error;
+    bool res = converter.noteContentToPlainText(m_qecNote.content.ref(),
+                                                m_lazyPlainText, error);
+    if (!res) {
+        QNWARNING(error);
+        if (errorMessage) {
+            *errorMessage = error;
+        }
+        return QString();
+    }
+
+    m_lazyPlainTextIsValid = true;
+
+    return m_lazyPlainText;
+}
+
+QStringList NoteData::listOfWords(QString * errorMessage) const
+{
+    QMutex mutex;
+    QMutexLocker mutexLocker(&mutex);
+
+    if (m_lazyListOfWordsIsValid) {
+        return m_lazyListOfWords;
+    }
+
+    if (m_lazyPlainTextIsValid) {
+        m_lazyListOfWords = ENMLConverter::plainTextToListOfWords(m_lazyPlainText);
+        m_lazyListOfWordsIsValid = true;
+        return m_lazyListOfWords;
+    }
+
+    // If still not returned, there's no plain text available so will get the list of words
+    // from Note's content instead
+
+    ENMLConverter converter;
+    QString error;
+    bool res = converter.noteContentToListOfWords(m_qecNote.content.ref(),
+                                                  m_lazyListOfWords,
+                                                  error, &m_lazyPlainText);
+    if (!res) {
+        QNWARNING(error);
+        if (errorMessage) {
+            *errorMessage = error;
+        }
+        return QStringList();
+    }
+
+    m_lazyPlainTextIsValid = true;
+    m_lazyListOfWordsIsValid = true;
+
+    return m_lazyListOfWords;
 }
 
 } // namespace qute_note
