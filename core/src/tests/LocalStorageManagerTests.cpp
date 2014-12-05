@@ -46,6 +46,22 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         return false;
     }
 
+    // ========= Check Find by name =============
+    SavedSearch foundByNameSearch;
+    foundByNameSearch.unsetLocalGuid();
+    foundByNameSearch.setName(search.name());
+    res = localStorageManager.FindSavedSearch(foundByNameSearch, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (search != foundByNameSearch) {
+        errorDescription = "Added and found by name saved searches in local storage don't match";
+        QNWARNING(errorDescription << ": SavedSearch added to LocalStorageManager: " << search
+                  << "\nSaved search found by name in LocalStorageManager: " << foundByNameSearch);
+        return false;
+    }
+
     // ========= Check Update + Find =============
     SavedSearch modifiedSearch(search);
     modifiedSearch.setUpdateSequenceNumber(search.updateSequenceNumber() + 1);

@@ -181,6 +181,7 @@ FIND_OBJECT(Tag, tag, ByName, m_tagsCache)
 FIND_OBJECT(LinkedNotebook, linkedNotebook, ByGuid, m_linkedNotebooksCache)
 FIND_OBJECT(SavedSearch, savedSearch, ByLocalGuid, m_savedSearchesCache)
 FIND_OBJECT(SavedSearch, savedSearch, ByGuid, m_savedSearchesCache)
+FIND_OBJECT(SavedSearch, savedSearch, ByName, m_savedSearchesCache)
 
 #undef FIND_OBJECT
 

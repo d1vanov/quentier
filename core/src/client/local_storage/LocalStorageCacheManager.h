@@ -61,6 +61,7 @@ public:
     void cacheSavedSearch(const SavedSearch & savedSearch);
     void expungeSavedSearch(const SavedSearch & savedSearch);
     const SavedSearch * findSavedSearch(const QString & guid, const WhichGuid wg) const;
+    const SavedSearch * findSavedSearchByName(const QString & name) const;
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 

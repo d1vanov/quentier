@@ -65,6 +65,7 @@ public:
 
     const SavedSearch * findSavedSearchByLocalGuid(const QString & localGuid) const;
     const SavedSearch * findSavedSearchByGuid(const QString & guid) const;
+    const SavedSearch * findSavedSearchByName(const QString & name) const;
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);
 
@@ -249,10 +250,14 @@ private:
 
         const QString localGuid() const { return m_savedSearch.localGuid(); }
         const QString guid() const;
+        const QString nameUpper() const { return (m_savedSearch.hasName()
+                                                  ? m_savedSearch.name().toUpper()
+                                                  : QString()); }
 
         struct ByLastAccessTimestamp{};
         struct ByLocalGuid{};
         struct ByGuid{};
+        struct ByName{};
 
         virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
     };
@@ -272,6 +277,11 @@ private:
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<SavedSearchHolder::ByGuid>,
                 boost::multi_index::const_mem_fun<SavedSearchHolder,const QString,&SavedSearchHolder::guid>
+            >,
+            /* NOTE: non-unique for proper support of empty names */
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<SavedSearchHolder::ByName>,
+                boost::multi_index::const_mem_fun<SavedSearchHolder,const QString,&SavedSearchHolder::nameUpper>
             >
         >
     > SavedSearchesCache;

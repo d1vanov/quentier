@@ -1079,13 +1079,25 @@ void LocalStorageManagerThreadWorker::onFindSavedSearchRequest(SavedSearch searc
         if (m_useCache)
         {
             bool searchHasGuid = search.hasGuid();
-            const QString guid = (searchHasGuid ? search.guid() : search.localGuid());
-            const LocalStorageCacheManager::WhichGuid wg = (searchHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
+            if (searchHasGuid || !search.localGuid().isEmpty())
+            {
+                const QString guid = (searchHasGuid ? search.guid() : search.localGuid());
+                const LocalStorageCacheManager::WhichGuid wg = (searchHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
 
-            const SavedSearch * pSearch = m_pLocalStorageCacheManager->findSavedSearch(guid, wg);
-            if (pSearch) {
-                search = *pSearch;
-                foundCachedSavedSearch = true;
+                const SavedSearch * pSearch = m_pLocalStorageCacheManager->findSavedSearch(guid, wg);
+                if (pSearch) {
+                    search = *pSearch;
+                    foundCachedSavedSearch = true;
+                }
+            }
+            else if (search.hasName() && !search.name().isEmpty())
+            {
+                const QString searchName = search.name();
+                const SavedSearch * pSearch = m_pLocalStorageCacheManager->findSavedSearchByName(searchName);
+                if (pSearch) {
+                    search = *pSearch;
+                    foundCachedSavedSearch = true;
+                }
             }
         }
 

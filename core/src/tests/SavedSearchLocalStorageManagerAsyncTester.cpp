@@ -241,6 +241,24 @@ void SavedSearchLocalStorageManagerAsyncTester::onFindSavedSearchCompleted(Saved
             return;
         }
 
+        // Attempt to find saved search by name now
+        SavedSearch searchToFindByName;
+        searchToFindByName.unsetLocalGuid();
+        searchToFindByName.setName(search.name());
+
+        m_state = STATE_SENT_FIND_BY_NAME_AFTER_ADD_REQUEST;
+        emit findSavedSearchRequest(searchToFindByName);
+    }
+    else if (m_state == STATE_SENT_FIND_BY_NAME_AFTER_ADD_REQUEST)
+    {
+        if (search != m_initialSavedSearch) {
+            errorDescription = "Added and found by name saved searches in local storage don't match";
+            QNWARNING(errorDescription << ": SavedSearch added to LocalStorageManager: " << m_initialSavedSearch
+                      << "\nSavedSearch found by name in LocalStorageManager: " << search);
+            emit failure(errorDescription);
+            return;
+        }
+
         // Ok, found search is good, updating it now
         m_modifiedSavedSearch = m_initialSavedSearch;
         m_modifiedSavedSearch.setUpdateSequenceNumber(m_initialSavedSearch.updateSequenceNumber() + 1);

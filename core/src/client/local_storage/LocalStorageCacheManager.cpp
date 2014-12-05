@@ -73,10 +73,16 @@ const Tag * LocalStorageCacheManager::findTagByName(const QString & name) const
     return d->findTagByName(name.toUpper());
 }
 
-const Notebook *LocalStorageCacheManager::findNotebookByName(const QString &name) const
+const Notebook * LocalStorageCacheManager::findNotebookByName(const QString & name) const
 {
     Q_D(const LocalStorageCacheManager);
     return d->findNotebookByName(name.toUpper());
+}
+
+const SavedSearch * LocalStorageCacheManager::findSavedSearchByName(const QString & name) const
+{
+    Q_D(const LocalStorageCacheManager);
+    return d->findSavedSearchByName(name.toUpper());
 }
 
 size_t LocalStorageCacheManager::numCachedNotebooks() const

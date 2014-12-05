@@ -2545,27 +2545,41 @@ bool LocalStorageManagerPrivate::FindSavedSearch(SavedSearch & search, QString &
 
     errorDescription = QT_TR_NOOP("Can't find saved search in local storage database: ");
 
-    QString column, guid;
+    QString column, value;
     bool searchHasGuid = search.hasGuid();
-    if (searchHasGuid) {
+    if (searchHasGuid)
+    {
         column = "guid";
-        guid = search.guid();
+        value = search.guid();
 
-        if (!CheckGuid(guid)) {
+        if (!CheckGuid(value)) {
             errorDescription += QT_TR_NOOP("requested saved search guid is invalid");
             return false;
         }
     }
-    else {
+    else if (search.localGuid().isEmpty())
+    {
+        if (!search.hasName()) {
+            errorDescription += QT_TR_NOOP("can't find saved search: need either guid "
+                                           "or local guid or name as search criteria");
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        column = "nameUpper";
+        value = search.name().toUpper();
+    }
+    else
+    {
         column = "localGuid";
-        guid = search.localGuid();
+        value = search.localGuid();
     }
 
     search.clear();
 
     QString queryString = QString("SELECT localGuid, guid, name, query, format, updateSequenceNumber, isDirty, isSynchronizable, "
                                   "includeAccount, includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks, "
-                                  "hasShortcut FROM SavedSearches WHERE %1 = '%2'").arg(column).arg(guid);
+                                  "hasShortcut FROM SavedSearches WHERE %1 = '%2'").arg(column).arg(value);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find saved search in \"SavedSearches\" table in SQL database");
