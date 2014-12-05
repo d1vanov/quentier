@@ -13,7 +13,12 @@ bool CheckUpdateSequenceNumber(const int32_t updateSequenceNumber)
 
 const QString PrintableDateTimeFromTimestamp(const qint64 timestamp)
 {
-    return std::move(QDateTime::fromMSecsSinceEpoch(timestamp).toString(Qt::ISODate));
+    QString result = QString::number(timestamp);
+    result += " (";
+    result += QDateTime::fromMSecsSinceEpoch(timestamp).toString(Qt::ISODate);
+    result += ")";
+
+    return result;
 }
 
 } // namespace qute_note
