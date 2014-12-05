@@ -41,6 +41,7 @@ public:
     void cacheNotebook(const Notebook & notebook);
     void expungeNotebook(const Notebook & notebook);
     const Notebook * findNotebook(const QString & guid, const WhichGuid wg) const;
+    const Notebook * findNotebookByName(const QString & name) const;
 
     // Tags cache
     size_t numCachedTags() const;

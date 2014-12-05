@@ -600,21 +600,35 @@ bool LocalStorageManagerPrivate::FindNotebook(Notebook & notebook, QString & err
 {
     errorDescription = QT_TR_NOOP("Can't find notebook in local storage database: ");
 
-    QString column, guid;
+    QString column, value;
     bool notebookHasGuid = notebook.hasGuid();
-    if (notebookHasGuid) {
+    if (notebookHasGuid)
+    {
         column = "guid";
-        guid = notebook.guid();
-        if (!CheckGuid(guid)) {
+        value = notebook.guid();
+        if (!CheckGuid(value)) {
             // TRANSLATOR explaining the reason of error
             errorDescription += QT_TR_NOOP("requested guid is invalid");
             QNWARNING(errorDescription);
             return false;
         }
     }
-    else { // whichGuid == WhichGuid::EverCloudGuid
+    else if (notebook.localGuid().isEmpty())
+    {
+        if (!notebook.hasName()) {
+            errorDescription += QT_TR_NOOP("can't find notebook: need either guid "
+                                           "or local guid or name as search criteria");
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        column = "notebookNameUpper";
+        value = notebook.name().toUpper();
+    }
+    else
+    {
         column = "localGuid";
-        guid = notebook.localGuid();
+        value = notebook.localGuid();
     }
 
     notebook = Notebook();
@@ -629,7 +643,7 @@ bool LocalStorageManagerPrivate::FindNotebook(Notebook & notebook, QString & err
                                   "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
                                   "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
                                   "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
-                                  "WHERE Notebooks.%1 = '%2'").arg(column).arg(guid);
+                                  "WHERE Notebooks.%1 = '%2'").arg(column).arg(value);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find notebook in SQL database by guid");
@@ -2058,7 +2072,8 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
 
     QString column, value;
     bool tagHasGuid = tag.hasGuid();
-    if (tagHasGuid) {
+    if (tagHasGuid)
+    {
         column = "guid";
         value = tag.guid();
 
@@ -2081,7 +2096,8 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
         column = "nameUpper";
         value = tag.name().toUpper();
     }
-    else {
+    else
+    {
         column = "localGuid";
         value = tag.localGuid();
     }
@@ -2886,7 +2902,8 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  localGuid                       TEXT PRIMARY KEY  NOT NULL UNIQUE, "
                      "  guid                            TEXT              DEFAULT NULL UNIQUE, "
                      "  updateSequenceNumber            INTEGER           DEFAULT NULL, "
-                     "  notebookName                    TEXT              DEFAULT NULL UNIQUE, "
+                     "  notebookName                    TEXT              DEFAULT NULL, "
+                     "  notebookNameUpper               TEXT              DEFAULT NULL UNIQUE, "
                      "  creationTimestamp               INTEGER           DEFAULT NULL, "
                      "  modificationTimestamp           INTEGER           DEFAULT NULL, "
                      "  isDirty                         INTEGER           NOT NULL, "
@@ -4130,6 +4147,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
         query.bindValue(":guid", (notebook.hasGuid() ? notebook.guid() : nullValue));
         query.bindValue(":updateSequenceNumber", (notebook.hasUpdateSequenceNumber() ? notebook.updateSequenceNumber() : nullValue));
         query.bindValue(":notebookName", (notebook.hasName() ? notebook.name() : nullValue));
+        query.bindValue(":notebookNameUpper", (notebook.hasName() ? notebook.name().toUpper() : nullValue));
         query.bindValue(":creationTimestamp", (notebook.hasCreationTimestamp() ? notebook.creationTimestamp() : nullValue));
         query.bindValue(":modificationTimestamp", (notebook.hasModificationTimestamp() ? notebook.modificationTimestamp() : nullValue));
         query.bindValue(":isDirty", (notebook.isDirty() ? 1 : 0));
@@ -4235,7 +4253,7 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNotebookQuery()
         m_insertOrReplaceNotebookQuery = QSqlQuery(m_sqlDatabase);
         bool res = m_insertOrReplaceNotebookQuery.prepare("INSERT OR REPLACE INTO Notebooks"
                                                           "(localGuid, guid, updateSequenceNumber, "
-                                                          "notebookName, creationTimestamp, "
+                                                          "notebookName, notebookNameUpper, creationTimestamp, "
                                                           "modificationTimestamp, isDirty, isLocal, "
                                                           "isSynchronizable, isDefault, isLastUsed, "
                                                           "hasShortcut, publishingUri, publishingNoteSortOrder, "
@@ -4243,7 +4261,7 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNotebookQuery()
                                                           "isPublished, stack, businessNotebookDescription, "
                                                           "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, "
                                                           "contactId) "
-                                                          "VALUES(:localGuid, :guid, :updateSequenceNumber, :notebookName, :creationTimestamp, "
+                                                          "VALUES(:localGuid, :guid, :updateSequenceNumber, :notebookName, :notebookNameUpper, :creationTimestamp, "
                                                           ":modificationTimestamp, :isDirty, :isLocal, :isSynchronizable, :isDefault, :isLastUsed, "
                                                           ":hasShortcut, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
                                                           ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "

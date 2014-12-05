@@ -337,6 +337,24 @@ void NotebookLocalStorageManagerAsyncTester::onFindNotebookCompleted(Notebook no
             return;
         }
 
+        // Attempt to find notebook by name now
+        Notebook notebookToFindByName;
+        notebookToFindByName.unsetLocalGuid();
+        notebookToFindByName.setName(m_initialNotebook.name());
+
+        m_state = STATE_SENT_FIND_BY_NAME_AFTER_ADD_REQUEST;
+        emit findNotebookRequest(notebook);
+    }
+    else if (m_state == STATE_SENT_FIND_BY_NAME_AFTER_ADD_REQUEST)
+    {
+        if (m_initialNotebook != notebook) {
+            errorDescription = "Added and found by name notebooks in local storage don't match";
+            QNWARNING(errorDescription << ": Notebook added to LocalStorageManager: " << m_initialNotebook
+                      << "\nNotebook found in LocalStorageManager: " << notebook);
+            emit failure(errorDescription);
+            return;
+        }
+
         m_foundNotebook = notebook;
 
         m_state = STATE_SENT_FIND_DEFAULT_NOTEBOOK_AFTER_ADD;

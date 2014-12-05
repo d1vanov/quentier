@@ -40,6 +40,7 @@ public:
 
     const Notebook * findNotebookByLocalGuid(const QString & localGuid) const;
     const Notebook * findNotebookByGuid(const QString & guid) const;
+    const Notebook * findNotebookByName(const QString & name) const;
 
     // Tags cache
     size_t numCachedTags() const;
@@ -126,10 +127,14 @@ private:
 
         const QString localGuid() const { return m_notebook.localGuid(); }
         const QString guid() const;
+        const QString nameUpper() const { return (m_notebook.hasName()
+                                                  ? m_notebook.name().toUpper()
+                                                  : QString()); }
 
         struct ByLastAccessTimestamp{};
         struct ByLocalGuid{};
         struct ByGuid{};
+        struct ByName{};
 
         virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
     };
@@ -149,6 +154,11 @@ private:
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<NotebookHolder::ByGuid>,
                 boost::multi_index::const_mem_fun<NotebookHolder,const QString,&NotebookHolder::guid>
+            >,
+            /* NOTE: non-unique for proper support of empty names */
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<NotebookHolder::ByName>,
+                boost::multi_index::const_mem_fun<NotebookHolder,const QString,&NotebookHolder::nameUpper>
             >
         >
     > NotebooksCache;

@@ -256,13 +256,25 @@ void LocalStorageManagerThreadWorker::onFindNotebookRequest(Notebook notebook, Q
         if (m_useCache)
         {
             bool notebookHasGuid = notebook.hasGuid();
-            const QString guid = (notebookHasGuid ? notebook.guid() : notebook.localGuid());
-            LocalStorageCacheManager::WhichGuid wg = (notebookHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
+            if (notebookHasGuid || !notebook.localGuid().isEmpty())
+            {
+                const QString guid = (notebookHasGuid ? notebook.guid() : notebook.localGuid());
+                LocalStorageCacheManager::WhichGuid wg = (notebookHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
 
-            const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(guid, wg);
-            if (pNotebook) {
-                notebook = *pNotebook;
-                foundNotebookInCache = true;
+                const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(guid, wg);
+                if (pNotebook) {
+                    notebook = *pNotebook;
+                    foundNotebookInCache = true;
+                }
+            }
+            else if (notebook.hasName() && !notebook.name().isEmpty())
+            {
+                const QString notebookName = notebook.name();
+                const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebookByName(notebookName);
+                if (pNotebook) {
+                    notebook = *pNotebook;
+                    foundNotebookInCache = true;
+                }
             }
         }
 
@@ -800,7 +812,7 @@ void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag, QUuid requestId)
                     foundTagInCache = true;
                 }
             }
-            else if (!tag.name().isEmpty())
+            else if (tag.hasName() && !tag.name().isEmpty())
             {
                 const QString tagName = tag.name();
                 const Tag * pTag = m_pLocalStorageCacheManager->findTagByName(tagName);

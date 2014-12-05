@@ -746,6 +746,22 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
         return false;
     }
 
+    // ========== Check Find by name ===========
+    Notebook foundByNameNotebook;
+    foundByNameNotebook.unsetLocalGuid();
+    foundByNameNotebook.setName(notebook.name());
+    res = localStorageManager.FindNotebook(foundByNameNotebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (notebook != foundByNameNotebook) {
+        errorDescription = "Notebook found by name in local storage doesn't match the original notebook";
+        QNWARNING(errorDescription << ": Notebook found by name: " << foundByNameNotebook
+                  << "\nOriginal notebook: " << notebook);
+        return false;
+    }
+
     // ========== Check FindDefaultNotebook =========
     Notebook defaultNotebook;
     res = localStorageManager.FindDefaultNotebook(defaultNotebook, errorDescription);
