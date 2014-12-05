@@ -6,7 +6,6 @@
 #include "../Utility.h"
 #include <client/enml/ENMLConverter.h>
 #include <logging/QuteNoteLogger.h>
-#include <QDomDocument>
 
 namespace qute_note {
 
@@ -555,65 +554,12 @@ void Note::setThumbnail(const QImage & thumbnail)
 
 QString Note::plainText(QString * errorMessage) const
 {
-    if (d->m_lazyPlainTextIsValid) {
-        return d->m_lazyPlainText;
-    }
-
-    if (!d->m_qecNote.content.isSet()) {
-        if (errorMessage) {
-            *errorMessage = "Note content is not set";
-        }
-        return QString();
-    }
-
-    ENMLConverter converter;
-    QString error;
-    bool res = converter.noteContentToPlainText(d->m_qecNote.content.ref(),
-                                                d->m_lazyPlainText, error);
-    if (!res) {
-        QNWARNING(error);
-        if (errorMessage) {
-            *errorMessage = error;
-        }
-        return QString();
-    }
-
-    d->m_lazyPlainTextIsValid = true;
-
-    return d->m_lazyPlainText;
+    return d->plainText(errorMessage);
 }
 
 QStringList Note::listOfWords(QString * errorMessage) const
 {
-    if (d->m_lazyListOfWordsIsValid) {
-        return d->m_lazyListOfWords;
-    }
-
-    if (d->m_lazyPlainTextIsValid) {
-        d->m_lazyListOfWords = ENMLConverter::plainTextToListOfWords(d->m_lazyPlainText);
-        d->m_lazyListOfWordsIsValid = true;
-        return d->m_lazyListOfWords;
-    }
-
-    // If still not returned, there's no plain text available so will get the list of words
-    // from Note's content instead
-
-    ENMLConverter converter;
-    QString error;
-    bool res = converter.noteContentToListOfWords(d->m_qecNote.content.ref(),
-                                                  d->m_lazyListOfWords,
-                                                  error, &(d->m_lazyPlainText));
-    if (!res) {
-        QNWARNING(error);
-        if (errorMessage) {
-            *errorMessage = error;
-        }
-        return QStringList();
-    }
-
-    d->m_lazyPlainTextIsValid = true;
-    d->m_lazyListOfWordsIsValid = true;
-    return d->m_lazyListOfWords;
+    return d->listOfWords(errorMessage);
 }
 
 bool Note::containsCheckedTodo() const
@@ -633,52 +579,7 @@ bool Note::containsTodo() const
 
 bool Note::containsEncryption() const
 {
-    if (d->m_lazyContainsEncryption > (-1)) {
-        if (d->m_lazyContainsEncryption == 0) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-
-    if (!d->m_qecNote.content.isSet()) {
-        d->m_lazyContainsEncryption = 0;
-        return false;
-    }
-
-    QDomDocument enXmlDomDoc;
-    int errorLine = -1, errorColumn = -1;
-    QString errorMessage;
-    bool res = enXmlDomDoc.setContent(d->m_qecNote.content.ref(), &errorMessage, &errorLine, &errorColumn);
-    if (!res) {
-        // TRANSLATOR Explaining the error of XML parsing
-        errorMessage += QT_TR_NOOP(". Error happened at line ") +
-                        QString::number(errorLine) + QT_TR_NOOP(", at column ") +
-                        QString::number(errorColumn);
-        QNWARNING("Note content parsing error: " << errorMessage);
-        d->m_lazyContainsEncryption = 0;
-        return false;
-    }
-
-    QDomElement docElem = enXmlDomDoc.documentElement();
-    QDomNode nextNode = docElem.firstChild();
-    while (!nextNode.isNull())
-    {
-        QDomElement element = nextNode.toElement();
-        if (!element.isNull())
-        {
-            QString tagName = element.tagName();
-            if (tagName == "en-crypt") {
-                d->m_lazyContainsEncryption = 1;
-                return true;
-            }
-        }
-        nextNode = nextNode.nextSibling();
-    }
-
-    d->m_lazyContainsEncryption = 0;
-    return false;
+    return d->containsEncryption();
 }
 
 QTextStream & Note::Print(QTextStream & strm) const

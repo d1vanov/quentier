@@ -21,7 +21,11 @@ public:
     void clear();
     bool checkParameters(QString & errorDescription) const;
 
+    QString plainText(QString * errorMessage) const;
+    QStringList listOfWords(QString * errorMessage) const;
+
     bool containsToDoImpl(const bool checked) const;
+    bool containsEncryption() const;
 
     void setContent(const QString & content);
 
