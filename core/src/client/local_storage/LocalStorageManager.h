@@ -42,6 +42,22 @@ public:
     virtual ~LocalStorageManager();
 
     /**
+     * @brief The ListObjectsOption enum is the base enum for QFlags which allows to specify
+     * the desired local stortage elements in calls to methods listing them from local storage:
+     * for example, one can either list all available elements of certain kind from local storage
+     * or only elements marked as dirty (modified locally) or elements never synchronized with
+     * the remote storage or elements which are synchronizable with the remote storage etc.
+     */
+    enum ListObjectsOption {
+        ListAll                     = 1,
+        ListDirty                   = 2,
+        ListLocal                   = 4,
+        ListSynchronizable          = 8,
+        ListElementsWithShortcuts   = 16
+    };
+    Q_DECLARE_FLAGS(ListObjectsOptions, ListObjectsOption)
+
+    /**
      * @brief SwitchUser - switches to another local database file associated with passed in
      * username and user id. If optional "startFromScratch" parameter is set to true (it is false
      * by default), the database file would be erased and only then - opened
@@ -179,6 +195,17 @@ public:
     QList<Notebook> ListAllNotebooks(QString & errorDescription) const;
 
     /**
+     * @brief ListNotebooks - attempts to list notebooks within the account according to
+     * the specified input flag
+     * @param flag - input parameter used to set the filter for the desired notebooks to be listed
+     * @param errorDescription - error description if notebooks within the account could not be listed;
+     * if no error happens, this parameter is untouched
+     * @return either list of notebooks within the account conforming to the filter or empty list
+     * in cases of error or no notebooks conforming to the filter exist within the account
+     */
+    QList<Notebook> ListNotebooks(const ListObjectsOptions flag, QString & errorDescription) const;
+
+    /**
      * @brief ListAllSharedNotebooks - attempts to list all shared notebooks within the account
      * @param errorDescription - error description if shared notebooks could not be listed;
      * if no error happens, this parameter is untouched
@@ -262,6 +289,17 @@ public:
     QList<LinkedNotebook> ListAllLinkedNotebooks(QString & errorDescription) const;
 
     /**
+     * @brief ListLinkedNotebooks - attempts to list linked notebooks within the account
+     * according to the specified input flag
+     * @param flag - input parameter used to set the filter for the desired linked notebooks to be listed
+     * @param errorDescription - error description if linked notebooks within the account could not be listed;
+     * if no error happens, this parameter is untouched
+     * @return either list of linked notebooks within the account conforming to the filter or empty list
+     * in cases of error or no linked notebooks conforming to the filter exist within the account
+     */
+    QList<LinkedNotebook> ListLinkedNotebooks(const ListObjectsOptions flag, QString & errorDescription) const;
+
+    /**
      * @brief ExpungeLinkedNotebook - permanently deletes specified linked notebook from local storage.
      * Evernote API doesn't allow to delete linked notebooks from remote storage, it can
      * only be done by official desktop client or web GUI. So this method should be called
@@ -341,6 +379,22 @@ public:
      */
     QList<Note> ListAllNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
                                         const bool withResourceBinaryData = true) const;
+
+    /**
+     * @brief ListNotes - attempts to list notes within the account according to the specified input flag
+     * @param flag - input parameter used to set the filter for the desired notes to be listed
+     * @param errorDescription - error description if notes within the account could not be listed;
+     * if no error happens, this parameter is untouched
+     * @param withResourceBinaryData - optional boolean parameter defining whether found notes
+     * should be filled with all the contents of their respective attached resources.
+     * By default this parameter is true which means the whole contents of all resources
+     * would be filled. If it's false, dataBody, recognitionBody or alternateDataBody
+     * won't be present within each found note's resources
+     * @return either list of notes within the account conforming to the filter or empty list
+     * in cases of error or no notes conforming to the filter exist within the account
+     */
+    QList<Note> ListNotes(const ListObjectsOptions flag, QString & errorDescription,
+                          const bool withResourceBinaryData = true) const;
 
     /**
      * @brief FindNotesWithSearchQuery - attempt to find notes corresponding to passed in
@@ -454,6 +508,16 @@ public:
      * @return the list of found tags within the account
      */
     QList<Tag> ListAllTags(QString & errorDescription) const;
+
+    /**
+     * @brief ListTags - attempts to list tags within the account according to the specified input flag
+     * @param flag - input parameter used to set the filter for the desired tags to be listed
+     * @param errorDescription - error description if notes within the account could not be listed;
+     * if no error happens, this parameter is untouched
+     * @return either list of tags within the account conforming to the filter or empty list
+     * in cases of error or no tags conforming to the filter exist within the account
+     */
+    QList<Tag> ListTags(const ListObjectsOptions flag, QString & errorDescription) const;
 
     /**
      * @brief DeleteTag - marks tag as deleted in local storage.
@@ -575,6 +639,17 @@ public:
      */
     QList<SavedSearch> ListAllSavedSearches(QString & errorDescription) const;
 
+    /**
+     * @brief ListSavedSearches - attempts to list saved searches within the account
+     * according to the specified input flag
+     * @param flag - input parameter used to set the filter for the desired saved searches to be listed
+     * @param errorDescription - error description if saved searches within the account could not be listed;
+     * if no error happens, this parameter is untouched
+     * @return either list of saved searches within the account conforming to the filter or empty list
+     * in cases of error or no saved searches conforming to the filter exist within the account
+     */
+    QList<SavedSearch> ListSavedSearches(const ListObjectsOptions flag, QString & errorDescription) const;
+
     // NOTE: there is no 'DeleteSearch' method for a reason: saved searches are deleted automatically
     // in remote storage so there's no need to mark some saved search as deleted for synchronization procedure.
 
@@ -595,6 +670,8 @@ private:
     LocalStorageManagerPrivate * const d_ptr;
     Q_DECLARE_PRIVATE(LocalStorageManager)
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(LocalStorageManager::ListObjectsOptions)
 
 } // namespace qute_note
 

@@ -109,6 +109,12 @@ QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription
     return d->ListAllNotebooks(errorDescription);
 }
 
+QList<Notebook> LocalStorageManager::ListNotebooks(const ListObjectsOptions flag, QString & errorDescription) const
+{
+    Q_D(const LocalStorageManager);
+    return d->ListNotebooks(flag, errorDescription);
+}
+
 QList<SharedNotebookWrapper> LocalStorageManager::ListAllSharedNotebooks(QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
@@ -160,6 +166,13 @@ QList<LinkedNotebook> LocalStorageManager::ListAllLinkedNotebooks(QString & erro
     return d->ListAllLinkedNotebooks(errorDescription);
 }
 
+QList<LinkedNotebook> LocalStorageManager::ListLinkedNotebooks(const ListObjectsOptions flag,
+                                                               QString & errorDescription) const
+{
+    Q_D(const LocalStorageManager);
+    return d->ListLinkedNotebooks(flag, errorDescription);
+}
+
 bool LocalStorageManager::ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
                                                 QString & errorDescription)
 {
@@ -198,6 +211,13 @@ QList<Note> LocalStorageManager::ListAllNotesPerNotebook(const Notebook & notebo
 {
     Q_D(const LocalStorageManager);
     return d->ListAllNotesPerNotebook(notebook, errorDescription, withResourceBinaryData);
+}
+
+QList<Note> LocalStorageManager::ListNotes(const ListObjectsOptions flag, QString & errorDescription,
+                                           const bool withResourceBinaryData) const
+{
+    Q_D(const LocalStorageManager);
+    return d->ListNotes(flag, errorDescription, withResourceBinaryData);
 }
 
 NoteList LocalStorageManager::FindNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
@@ -261,6 +281,12 @@ QList<Tag> LocalStorageManager::ListAllTags(QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
     return d->ListAllTags(errorDescription);
+}
+
+QList<Tag> LocalStorageManager::ListTags(const ListObjectsOptions flag, QString &errorDescription) const
+{
+    Q_D(const LocalStorageManager);
+    return d->ListTags(flag, errorDescription);
 }
 
 bool LocalStorageManager::DeleteTag(const Tag & tag, QString & errorDescription)
@@ -335,6 +361,13 @@ QList<SavedSearch> LocalStorageManager::ListAllSavedSearches(QString & errorDesc
 {
     Q_D(const LocalStorageManager);
     return d->ListAllSavedSearches(errorDescription);
+}
+
+QList<SavedSearch> LocalStorageManager::ListSavedSearches(const ListObjectsOptions flag,
+                                                          QString & errorDescription) const
+{
+    Q_D(const LocalStorageManager);
+    return d->ListSavedSearches(flag, errorDescription);
 }
 
 bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,

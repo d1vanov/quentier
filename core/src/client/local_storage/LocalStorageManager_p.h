@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_PRIVATE_H
 
 #include "Lists.h"
+#include "LocalStorageManager.h"
 #include <client/types/IUser.h>
 #include <client/types/UserAdapter.h>
 #include <client/types/UserWrapper.h>
@@ -47,6 +48,7 @@ public:
     bool FindLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
     bool FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
     QList<Notebook> ListAllNotebooks(QString & errorDescription) const;
+    QList<Notebook> ListNotebooks(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription) const;
     QList<SharedNotebookWrapper> ListAllSharedNotebooks(QString & errorDescription) const;
     QList<SharedNotebookWrapper> ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                     QString & errorDescription) const;
@@ -57,6 +59,8 @@ public:
     bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool FindLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const;
     QList<LinkedNotebook> ListAllLinkedNotebooks(QString & errorDescription) const;
+    QList<LinkedNotebook> ListLinkedNotebooks(const LocalStorageManager::ListObjectsOptions flag,
+                                              QString & errorDescription) const;
     bool ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     int GetNoteCount(QString & errorDescription) const;
@@ -66,6 +70,8 @@ public:
                   const bool withResourceBinaryData = true) const;
     QList<Note> ListAllNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
                                         const bool withResourceBinaryData = true) const;
+    QList<Note> ListNotes(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
+                          const bool withResourceBinaryData = true) const;
     bool DeleteNote(const Note & note, QString & errorDescription);
     bool ExpungeNote(const Note & note, QString & errorDescription);
 
@@ -80,6 +86,7 @@ public:
     bool FindTag(Tag & tag, QString & errorDescription) const;
     QList<Tag> ListAllTagsPerNote(const Note & note, QString & errorDescription) const;
     QList<Tag> ListAllTags(QString & errorDescription) const;
+    QList<Tag> ListTags(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription) const;
     bool DeleteTag(const Tag & tag, QString & errorDescription);
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
@@ -94,6 +101,8 @@ public:
     bool UpdateSavedSearch(const SavedSearch & search, QString & errorDescription);
     bool FindSavedSearch(SavedSearch & search, QString & errorDescription) const;
     QList<SavedSearch> ListAllSavedSearches(QString & errorDescription) const;
+    QList<SavedSearch> ListSavedSearches(const LocalStorageManager::ListObjectsOptions flag,
+                                         QString & errorDescription) const;
     bool ExpungeSavedSearch(const SavedSearch & search, QString & errorDescription);
 
 public Q_SLOTS:

@@ -834,6 +834,15 @@ QList<Notebook> LocalStorageManagerPrivate::ListAllNotebooks(QString & errorDesc
     return notebooks;
 }
 
+QList<Notebook> LocalStorageManagerPrivate::ListNotebooks(const LocalStorageManager::ListObjectsOptions flag,
+                                                          QString & errorDescription) const
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(errorDescription)
+    return QList<Notebook>();
+}
+
 QList<SharedNotebookWrapper> LocalStorageManagerPrivate::ListAllSharedNotebooks(QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllSharedNotebooks");
@@ -1163,6 +1172,15 @@ QList<LinkedNotebook> LocalStorageManagerPrivate::ListAllLinkedNotebooks(QString
     QNDEBUG("found " << notebooks.size() << " notebooks");
 
     return notebooks;
+}
+
+QList<LinkedNotebook> LocalStorageManagerPrivate::ListLinkedNotebooks(const LocalStorageManager::ListObjectsOptions flag,
+                                                                      QString & errorDescription) const
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(errorDescription)
+    return QList<LinkedNotebook>();
 }
 
 bool LocalStorageManagerPrivate::ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
@@ -1629,6 +1647,17 @@ QList<Note> LocalStorageManagerPrivate::ListAllNotesPerNotebook(const Notebook &
     }
 
     return notes;
+}
+
+QList<Note> LocalStorageManagerPrivate::ListNotes(const LocalStorageManager::ListObjectsOptions flag,
+                                                  QString & errorDescription,
+                                                  const bool withResourceBinaryData) const
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(errorDescription)
+    Q_UNUSED(withResourceBinaryData)
+    return QList<Note>();
 }
 
 bool LocalStorageManagerPrivate::DeleteNote(const Note & note, QString & errorDescription)
@@ -2204,6 +2233,15 @@ QList<Tag> LocalStorageManagerPrivate::ListAllTags(QString & errorDescription) c
     return tags;
 }
 
+QList<Tag> LocalStorageManagerPrivate::ListTags(const LocalStorageManager::ListObjectsOptions flag,
+                                                QString & errorDescription) const
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(errorDescription)
+    return QList<Tag>();
+}
+
 bool LocalStorageManagerPrivate::DeleteTag(const Tag & tag, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't delete tag from local storage database: ");
@@ -2632,6 +2670,15 @@ QList<SavedSearch> LocalStorageManagerPrivate::ListAllSavedSearches(QString & er
     QNDEBUG("found " << searches.size() << " saved searches");
 
     return searches;
+}
+
+QList<SavedSearch> LocalStorageManagerPrivate::ListSavedSearches(const LocalStorageManager::ListObjectsOptions flag,
+                                                                 QString & errorDescription) const
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(errorDescription)
+    return QList<SavedSearch>();
 }
 
 bool LocalStorageManagerPrivate::ExpungeSavedSearch(const SavedSearch & search,
