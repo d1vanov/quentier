@@ -2650,7 +2650,7 @@ QList<SavedSearch> LocalStorageManagerPrivate::ListAllSavedSearches(QString & er
         return searches;
     }
 
-    searches.reserve(qMax(query.size(), 0));
+    searches.reserve(std::max(query.size(), 0));
 
     while(query.next())
     {
@@ -2675,14 +2675,82 @@ QList<SavedSearch> LocalStorageManagerPrivate::ListAllSavedSearches(QString & er
 QList<SavedSearch> LocalStorageManagerPrivate::ListSavedSearches(const LocalStorageManager::ListObjectsOptions flag,
                                                                  QString & errorDescription) const
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(errorDescription)
-    return QList<SavedSearch>();
+    QNDEBUG("LocalStorageManagerPrivate::ListSavedSearches: flag = " << flag);
+
+    bool listAll = flag.testFlag(LocalStorageManager::ListAll);
+    if (listAll) {
+        return ListAllSavedSearches(errorDescription);
+    }
+
+    bool listDirty = flag.testFlag(LocalStorageManager::ListDirty);
+    bool listLocal = flag.testFlag(LocalStorageManager::ListLocal);
+    bool listUnsynchronizable = flag.testFlag(LocalStorageManager::ListUnsynchronizable);
+    bool listElementsWithShortcuts = flag.testFlag(LocalStorageManager::ListElementsWithShortcuts);
+
+    if (!listDirty && !listLocal && !listUnsynchronizable && !listElementsWithShortcuts) {
+        errorDescription = QT_TR_NOOP("can't list saved searches: detected incorrect filter flag: ");
+        errorDescription += QString::number(static_cast<int>(flag));
+        return QList<SavedSearch>();
+    }
+
+    QString queryString = "SELECT * FROM SavedSearches WHERE ";
+
+    if (listDirty) {
+        queryString += "isDirty=1 ";
+    }
+
+    if (listLocal) {
+        // FIXME: add corresponding part to the query string after adding the locality for saved searches
+    }
+
+    if (listUnsynchronizable) {
+        queryString += "isSynchronizable=1 ";
+    }
+
+    if (listElementsWithShortcuts) {
+        queryString += "hasShortcut=1 ";
+    }
+
+    queryString = queryString.trimmed();
+
+    QList<SavedSearch> searches;
+
+    QString errorPrefix = QT_TR_NOOP("Can't list saved searches in local storage by filter");
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
+    if (!res) {
+        errorDescription = errorPrefix + QT_TR_NOOP("can't list saved searches by filter from "
+                                                    "\"SavedSearches\" table in SQL database: ");
+        QNCRITICAL(errorDescription << "last error = " << query.lastError()
+                   << ", last error = " << query.lastError());
+        errorDescription += query.lastError().text();
+        return searches;
+    }
+
+    searches.reserve(std::max(query.size(), 0));
+
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+
+        searches << SavedSearch();
+        SavedSearch & search = searches.back();
+
+        res = FillSavedSearchFromSqlRecord(rec, search, errorDescription);
+        if (!res) {
+            errorDescription.prepend(errorPrefix);
+            searches.clear();
+            return searches;
+        }
+    }
+
+    QNDEBUG("found " << searches.size() << " saved searches");
+
+    return searches;
 }
 
 bool LocalStorageManagerPrivate::ExpungeSavedSearch(const SavedSearch & search,
-                                             QString & errorDescription)
+                                                    QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't expunge saved search from local storage database: ");
 
@@ -3305,6 +3373,9 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
 
     // NOTE: reasoning for existence and unique constraint for nameUpper, citing Evernote API reference:
     // "The account may only contain one search with a given name (case-insensitive compare)"
+
+    // FIXME: add the notion of locality to SavedSearches
+
     res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
                      "  localGuid                       TEXT PRIMARY KEY    NOT NULL UNIQUE, "
                      "  guid                            TEXT                DEFAULT NULL UNIQUE, "

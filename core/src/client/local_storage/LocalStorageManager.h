@@ -52,7 +52,7 @@ public:
         ListAll                     = 1,
         ListDirty                   = 2,
         ListLocal                   = 4,
-        ListSynchronizable          = 8,
+        ListUnsynchronizable        = 8,
         ListElementsWithShortcuts   = 16
     };
     Q_DECLARE_FLAGS(ListObjectsOptions, ListObjectsOption)
