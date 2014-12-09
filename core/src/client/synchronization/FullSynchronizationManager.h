@@ -208,6 +208,9 @@ private:
     template<class ElementType>
     void performPostAddOrUpdateChecks();
 
+    template <class ElementType>
+    void unsetLocalGuid(ElementType & element);
+
     // ========= Find in blocks from sync chunk helpers ===========
 
     template <class ContainerType, class ElementType>

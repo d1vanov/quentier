@@ -7,8 +7,8 @@ namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(SavedSearch)
 QN_DEFINE_DIRTY(SavedSearch)
+QN_DEFINE_LOCAL(SavedSearch)
 QN_DEFINE_SHORTCUT(SavedSearch)
-QN_DEFINE_SYNCHRONIZABLE(SavedSearch)
 
 SavedSearch::SavedSearch() :
     d(new SavedSearchData)
@@ -66,7 +66,7 @@ bool SavedSearch::operator==(const SavedSearch & other) const
     if (hasShortcut() != other.hasShortcut()) {
         return false;
     }
-    else if (isSynchronizable() != other.isSynchronizable()) {
+    else if (isLocal() != other.isLocal()) {
         return false;
     }
     else if (isDirty() != other.isDirty()) {

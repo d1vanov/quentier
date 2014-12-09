@@ -2,7 +2,6 @@
 #define __QUTE_NOTE__CLIENT__TYPES__NOTE_H
 
 #include "IDataElementWithShortcut.h"
-#include "ISynchronizableDataElement.h"
 #include <QEverCloud.h>
 #include <QImage>
 #include <QSharedDataPointer>
@@ -14,14 +13,13 @@ QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
 QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 QT_FORWARD_DECLARE_CLASS(NoteData)
 
-class QUTE_NOTE_EXPORT Note: public IDataElementWithShortcut,
-                             public ISynchronizableDataElement
+class QUTE_NOTE_EXPORT Note: public IDataElementWithShortcut
 {
 public:
     QN_DECLARE_LOCAL_GUID
     QN_DECLARE_DIRTY
     QN_DECLARE_SHORTCUT
-    QN_DECLARE_SYNCHRONIZABLE
+    QN_DECLARE_LOCAL
 
 public:
     Note();
@@ -103,9 +101,6 @@ public:
     bool hasNoteAttributes() const;
     const qevercloud::NoteAttributes & noteAttributes() const;
     qevercloud::NoteAttributes & noteAttributes();
-
-    bool isLocal() const;
-    void setLocal(const bool local);
 
     QImage thumbnail() const;
     void setThumbnail(const QImage & thumbnail);

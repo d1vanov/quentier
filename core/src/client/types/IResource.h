@@ -14,6 +14,7 @@ class QUTE_NOTE_EXPORT IResource: public INoteStoreDataElement
 public:
     QN_DECLARE_LOCAL_GUID
     QN_DECLARE_DIRTY
+    QN_DECLARE_LOCAL
 
 public:
     IResource();

@@ -1,12 +1,12 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__LINKED_NOTEBOOK_H
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__LINKED_NOTEBOOK_H
 
-#include "NoteStoreDataElementData.h"
+#include <QSharedData>
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class LinkedNotebookData : public NoteStoreDataElementData
+class LinkedNotebookData : public QSharedData
 {
 public:
     LinkedNotebookData();
@@ -23,6 +23,7 @@ public:
     bool operator!=(const LinkedNotebookData & other) const;
 
     qevercloud::LinkedNotebook    m_qecLinkedNotebook;
+    bool                          m_isDirty;
 
 private:
     LinkedNotebookData & operator=(const LinkedNotebookData & other) Q_DECL_DELETE;

@@ -15,6 +15,7 @@ public:
     NoteStoreDataElementData(NoteStoreDataElementData && other);
 
     bool    m_isDirty;
+    bool    m_isLocal;
 
 private:
     NoteStoreDataElementData & operator=(const NoteStoreDataElementData & other) Q_DECL_DELETE;

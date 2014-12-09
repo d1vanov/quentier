@@ -675,6 +675,18 @@ void FullSynchronizationManager::performPostAddOrUpdateChecks<Notebook>()
     checkNotebooksAndTagsSyncAndLaunchNotesSync();
 }
 
+template <class ElementType>
+void FullSynchronizationManager::unsetLocalGuid(ElementType & element)
+{
+    element.unsetLocalGuid();
+}
+
+template <>
+void FullSynchronizationManager::unsetLocalGuid<LinkedNotebook>(LinkedNotebook &)
+{
+    // do nothing, local guid doesn't make any sense to linked notebook
+}
+
 template <>
 void FullSynchronizationManager::emitFindByGuidRequest<Tag>(const QString & guid)
 {
@@ -715,7 +727,6 @@ template <>
 void FullSynchronizationManager::emitFindByGuidRequest<LinkedNotebook>(const QString & guid)
 {
     LinkedNotebook linkedNotebook;
-    linkedNotebook.unsetLocalGuid();
     linkedNotebook.setGuid(guid);
 
     QUuid requestId = QUuid::createUuid();
@@ -1844,7 +1855,7 @@ void FullSynchronizationManager::checkUpdateSequenceNumbersAndProcessConflictedE
         {
             // Remote element is more recent, need to update the element existing in local storage
             ElementType elementToUpdate(remoteElement);
-            elementToUpdate.unsetLocalGuid();
+            unsetLocalGuid(elementToUpdate);
 
             // NOTE: the hack with static_cast to pointer type below is required to get the stupid MSVC compiler
             // to instantiate the template method correctly. If Linus called gcc-4.9 pure and utter crap,

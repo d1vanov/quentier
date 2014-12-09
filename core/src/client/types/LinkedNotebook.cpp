@@ -4,7 +4,6 @@
 
 namespace qute_note {
 
-QN_DEFINE_LOCAL_GUID(LinkedNotebook)
 QN_DEFINE_DIRTY(LinkedNotebook)
 
 LinkedNotebook::LinkedNotebook() :

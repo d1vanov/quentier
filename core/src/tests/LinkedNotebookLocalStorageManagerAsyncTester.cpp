@@ -161,7 +161,6 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onAddLinkedNotebookCompleted(
         }
 
         m_foundLinkedNotebook = LinkedNotebook();
-        m_foundLinkedNotebook.setLocalGuid(notebook.localGuid());
         m_foundLinkedNotebook.setGuid(notebook.guid());
 
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;

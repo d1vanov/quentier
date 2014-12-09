@@ -5,38 +5,28 @@
 namespace qute_note {
 
 SavedSearchData::SavedSearchData() :
-    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
-    SynchronizableDataElementData(),
     m_qecSearch()
 {
 }
 
 SavedSearchData::SavedSearchData(const SavedSearchData & other) :
-    NoteStoreDataElementData(other),
     DataElementWithShortcutData(other),
-    SynchronizableDataElementData(other),
     m_qecSearch(other.m_qecSearch)
 {}
 
 SavedSearchData::SavedSearchData(SavedSearchData && other) :
-    NoteStoreDataElementData(std::move(other)),
     DataElementWithShortcutData(std::move(other)),
-    SynchronizableDataElementData(std::move(other)),
     m_qecSearch(std::move(other.m_qecSearch))
 {}
 
 SavedSearchData::SavedSearchData(const qevercloud::SavedSearch & other) :
-    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
-    SynchronizableDataElementData(),
     m_qecSearch(other)
 {}
 
 SavedSearchData::SavedSearchData(qevercloud::SavedSearch && other) :
-    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
-    SynchronizableDataElementData(),
     m_qecSearch(std::move(other))
 {}
 

@@ -4,28 +4,33 @@
 namespace qute_note {
 
 LinkedNotebookData::LinkedNotebookData() :
-    NoteStoreDataElementData(),
-    m_qecLinkedNotebook()
+    QSharedData(),
+    m_qecLinkedNotebook(),
+    m_isDirty(true)
 {}
 
 LinkedNotebookData::LinkedNotebookData(const LinkedNotebookData & other) :
-    NoteStoreDataElementData(other),
-    m_qecLinkedNotebook(other.m_qecLinkedNotebook)
+    QSharedData(other),
+    m_qecLinkedNotebook(other.m_qecLinkedNotebook),
+    m_isDirty(other.m_isDirty)
 {}
 
 LinkedNotebookData::LinkedNotebookData(LinkedNotebookData && other) :
-    NoteStoreDataElementData(std::move(other)),
-    m_qecLinkedNotebook(std::move(other.m_qecLinkedNotebook))
+    QSharedData(std::move(other)),
+    m_qecLinkedNotebook(std::move(other.m_qecLinkedNotebook)),
+    m_isDirty(std::move(other.m_isDirty))
 {}
 
 LinkedNotebookData::LinkedNotebookData(const qevercloud::LinkedNotebook & other) :
-    NoteStoreDataElementData(),
-    m_qecLinkedNotebook(other)
+    QSharedData(),
+    m_qecLinkedNotebook(other),
+    m_isDirty(true)
 {}
 
 LinkedNotebookData::LinkedNotebookData(qevercloud::LinkedNotebook && other) :
-    NoteStoreDataElementData(),
-    m_qecLinkedNotebook(std::move(other))
+    QSharedData(),
+    m_qecLinkedNotebook(std::move(other)),
+    m_isDirty(true)
 {}
 
 LinkedNotebookData::~LinkedNotebookData()
@@ -81,7 +86,7 @@ bool LinkedNotebookData::checkParameters(QString & errorDescription) const
 
 bool LinkedNotebookData::operator==(const LinkedNotebookData & other) const
 {
-    return (m_qecLinkedNotebook == other.m_qecLinkedNotebook);
+    return (m_qecLinkedNotebook == other.m_qecLinkedNotebook) && (m_isDirty == other.m_isDirty);
 }
 
 bool LinkedNotebookData::operator!=(const LinkedNotebookData & other) const

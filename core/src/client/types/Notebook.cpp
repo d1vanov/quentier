@@ -11,8 +11,8 @@ namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(Notebook)
 QN_DEFINE_DIRTY(Notebook)
+QN_DEFINE_LOCAL(Notebook)
 QN_DEFINE_SHORTCUT(Notebook)
-QN_DEFINE_SYNCHRONIZABLE(Notebook)
 
 Notebook::Notebook() :
     d(new NotebookData)
@@ -68,7 +68,7 @@ bool Notebook::operator==(const Notebook & other) const
     if (hasShortcut() != other.hasShortcut()) {
         return false;
     }
-    else if (isSynchronizable() != other.isSynchronizable()) {
+    else if (isLocal() != other.isLocal()) {
         return false;
     }
     else if (isDirty() != other.isDirty()) {
@@ -543,16 +543,6 @@ void Notebook::setContact(const IUser & contact)
     }
 
     d->m_qecNotebook.contact = contact.GetEnUser();
-}
-
-bool Notebook::isLocal() const
-{
-    return d->m_isLocal;
-}
-
-void Notebook::setLocal(const bool local)
-{
-    d->m_isLocal = local;
 }
 
 bool Notebook::isLastUsed() const

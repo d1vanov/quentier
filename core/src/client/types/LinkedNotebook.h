@@ -12,7 +12,6 @@ QT_FORWARD_DECLARE_CLASS(LinkedNotebookData)
 class QUTE_NOTE_EXPORT LinkedNotebook: public INoteStoreDataElement
 {
 public:
-    QN_DECLARE_LOCAL_GUID
     QN_DECLARE_DIRTY
 
 public:
@@ -83,6 +82,14 @@ public:
 
 private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
+    // hide useless methods inherited from the base class from the public interface
+    virtual const QString localGuid() const { return QString(); }
+    virtual void setLocalGuid(const QString &) {}
+    virtual void unsetLocalGuid() {}
+
+    virtual bool isLocal() const { return false; }
+    virtual void setLocal(const bool) {}
 
     QSharedDataPointer<LinkedNotebookData> d;
 };
