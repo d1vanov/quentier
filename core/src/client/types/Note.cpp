@@ -11,8 +11,8 @@ namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(Note)
 QN_DEFINE_DIRTY(Note)
+QN_DEFINE_LOCAL(Note)
 QN_DEFINE_SHORTCUT(Note)
-QN_DEFINE_SYNCHRONIZABLE(Note)
 
 Note::Note() :
     d(new NoteData)
@@ -59,10 +59,10 @@ Note::~Note()
 
 bool Note::operator==(const Note & other) const
 {
-    return ((d->m_qecNote == other.d->m_qecNote) &&
-            (isDirty() == other.isDirty()) &&
-            (hasShortcut() == other.hasShortcut()) &&
-            (isSynchronizable() == other.isSynchronizable()));
+    return ( (d->m_qecNote == other.d->m_qecNote) &&
+             (isDirty() == other.isDirty()) &&
+             (isLocal() == other.isLocal()) &&
+             (hasShortcut() == other.hasShortcut()) );
     // NOTE: thumbnail doesn't take part in comparison because it's merely a helper
     // for note displaying widget, nothing more
 }
@@ -531,16 +531,6 @@ qevercloud::NoteAttributes & Note::noteAttributes()
     }
 
     return d->m_qecNote.attributes;
-}
-
-bool Note::isLocal() const
-{
-    return d->m_isLocal;
-}
-
-void Note::setLocal(const bool local)
-{
-    d->m_isLocal = local;
 }
 
 QImage Note::thumbnail() const

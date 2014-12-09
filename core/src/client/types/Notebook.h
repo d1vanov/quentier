@@ -2,7 +2,6 @@
 #define __QUTE_NOTE__CLIENT__TYPES__NOTEBOOK_H
 
 #include "IDataElementWithShortcut.h"
-#include "ISynchronizableDataElement.h"
 #include <QEverCloud.h>
 #include <QSharedDataPointer>
 
@@ -15,14 +14,13 @@ QT_FORWARD_DECLARE_CLASS(IUser)
 QT_FORWARD_DECLARE_CLASS(UserAdapter)
 QT_FORWARD_DECLARE_CLASS(NotebookData)
 
-class QUTE_NOTE_EXPORT Notebook: public IDataElementWithShortcut,
-                                 public ISynchronizableDataElement
+class QUTE_NOTE_EXPORT Notebook: public IDataElementWithShortcut
 {
 public:
     QN_DECLARE_LOCAL_GUID
     QN_DECLARE_DIRTY
+    QN_DECLARE_LOCAL
     QN_DECLARE_SHORTCUT
-    QN_DECLARE_SYNCHRONIZABLE
 
 public:
     Notebook();
@@ -115,9 +113,6 @@ public:
     bool hasContact() const;
     const UserAdapter contact() const;
     void setContact(const IUser & contact);
-
-    bool isLocal() const;
-    void setLocal(const bool local);
 
     bool isLastUsed() const;
     void setLastUsed(const bool lastUsed);

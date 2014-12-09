@@ -27,7 +27,10 @@ public:
     virtual bool checkParameters(QString & errorDescription) const = 0;
 
     virtual bool isDirty() const = 0;
-    virtual void setDirty(const bool isDirty) = 0;
+    virtual void setDirty(const bool dirty) = 0;
+
+    virtual bool isLocal() const = 0;
+    virtual void setLocal(const bool local) = 0;
 
     virtual ~INoteStoreDataElement() {}
 
@@ -51,13 +54,37 @@ protected:
     }
 
 #define _DEFINE_SET_DIRTY(type) \
-    void type::setDirty(const bool isDirty) { \
-        d->m_isDirty = isDirty; \
+    void type::setDirty(const bool dirty) { \
+        d->m_isDirty = dirty; \
     }
 
 #define QN_DEFINE_DIRTY(type) \
     _DEFINE_IS_DIRTY(type) \
     _DEFINE_SET_DIRTY(type)
+
+#define _DECLARE_IS_LOCAL \
+    virtual bool isLocal() const;
+
+#define _DECLARE_SET_LOCAL \
+    virtual void setLocal(const bool isLocal);
+
+#define QN_DECLARE_LOCAL \
+    _DECLARE_IS_LOCAL \
+    _DECLARE_SET_LOCAL
+
+#define _DEFINE_IS_LOCAL(type) \
+    bool type::isLocal() const { \
+        return d->m_isLocal; \
+    }
+
+#define _DEFINE_SET_LOCAL(type) \
+    void type::setLocal(const bool local) { \
+        d->m_isLocal = local; \
+    }
+
+#define QN_DEFINE_LOCAL(type) \
+    _DEFINE_IS_LOCAL(type) \
+    _DEFINE_SET_LOCAL(type)
 
 } // namespace qute_note
 

@@ -22,7 +22,6 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/Note.h
     src/client/types/Notebook.h
     src/client/types/INoteStoreDataElement.h
-    src/client/types/ISynchronizableDataElement.h
     src/client/types/QEverCloudHelpers.h
     src/client/types/ResourceWrapper.h
     src/client/types/ResourceAdapter.h
@@ -37,7 +36,6 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/UserWrapper.h
     src/client/types/RegisterMetatypes.h
     src/client/types/data/DataElementWithShortcutData.h
-    src/client/types/data/SynchronizableDataElementData.h
     src/client/types/data/LocalStorageDataElementData.h
     src/client/types/data/LinkedNotebookData.h
     src/client/types/data/NoteStoreDataElementData.h
@@ -107,7 +105,6 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/UserWrapper.cpp
     src/client/types/RegisterMetatypes.cpp
     src/client/types/data/DataElementWithShortcutData.cpp
-    src/client/types/data/SynchronizableDataElementData.cpp
     src/client/types/data/LocalStorageDataElementData.cpp
     src/client/types/data/LinkedNotebookData.cpp
     src/client/types/data/NoteStoreDataElementData.cpp

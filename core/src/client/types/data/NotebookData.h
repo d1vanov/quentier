@@ -2,13 +2,11 @@
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__NOTEBOOK_DATA_H
 
 #include "DataElementWithShortcutData.h"
-#include "SynchronizableDataElementData.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class NotebookData: public DataElementWithShortcutData,
-                    public SynchronizableDataElementData
+class NotebookData: public DataElementWithShortcutData
 {
 public:
     NotebookData();
@@ -24,9 +22,8 @@ public:
     bool operator==(const NotebookData & other) const;
     bool operator!=(const NotebookData & other) const;
 
-    qevercloud::Notebook m_qecNotebook;
-    bool   m_isLocal;
-    bool   m_isLastUsed;
+    qevercloud::Notebook    m_qecNotebook;
+    bool                    m_isLastUsed;
 
 private:
     NotebookData & operator=(const NotebookData & other) Q_DECL_DELETE;

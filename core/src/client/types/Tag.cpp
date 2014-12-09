@@ -6,8 +6,8 @@ namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(Tag)
 QN_DEFINE_DIRTY(Tag)
+QN_DEFINE_LOCAL(Tag)
 QN_DEFINE_SHORTCUT(Tag)
-QN_DEFINE_SYNCHRONIZABLE(Tag)
 
 Tag::Tag() :
     d(new TagData)
@@ -55,7 +55,7 @@ bool Tag::operator==(const Tag & other) const
     if (hasShortcut() != other.hasShortcut()) {
         return false;
     }
-    else if (isSynchronizable() != other.isSynchronizable()) {
+    else if (isLocal() != other.isLocal()) {
         return false;
     }
     else if (isDirty() != other.isDirty()) {
@@ -117,16 +117,6 @@ bool Tag::checkParameters(QString & errorDescription) const
     }
 
     return d->checkParameters(errorDescription);
-}
-
-bool Tag::isLocal() const
-{
-    return d->m_isLocal;
-}
-
-void Tag::setLocal(const bool local)
-{
-    d->m_isLocal = local;
 }
 
 bool Tag::isDeleted() const

@@ -4,47 +4,32 @@
 namespace qute_note {
 
 NotebookData::NotebookData() :
-    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
-    SynchronizableDataElementData(),
     m_qecNotebook(),
-    m_isLocal(true),
     m_isLastUsed(false)
 {}
 
 NotebookData::NotebookData(const NotebookData & other) :
-    NoteStoreDataElementData(other),
     DataElementWithShortcutData(other),
-    SynchronizableDataElementData(other),
     m_qecNotebook(other.m_qecNotebook),
-    m_isLocal(other.m_isLocal),
     m_isLastUsed(other.m_isLastUsed)
 {}
 
 NotebookData::NotebookData(NotebookData && other) :
-    NoteStoreDataElementData(std::move(other)),
     DataElementWithShortcutData(std::move(other)),
-    SynchronizableDataElementData(std::move(other)),
     m_qecNotebook(std::move(other.m_qecNotebook)),
-    m_isLocal(std::move(other.m_isLocal)),
     m_isLastUsed(std::move(other.m_isLastUsed))
 {}
 
 NotebookData::NotebookData(const qevercloud::Notebook & other) :
-    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
-    SynchronizableDataElementData(),
     m_qecNotebook(other),
-    m_isLocal(true),
     m_isLastUsed(false)
 {}
 
 NotebookData::NotebookData(qevercloud::Notebook && other) :
-    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
-    SynchronizableDataElementData(),
     m_qecNotebook(std::move(other)),
-    m_isLocal(true),
     m_isLastUsed(false)
 {}
 
@@ -111,6 +96,12 @@ bool NotebookData::checkParameters(QString &errorDescription) const
 bool NotebookData::operator==(const NotebookData & other) const
 {
     if (m_isLocal != other.m_isLocal) {
+        return false;
+    }
+    else if (m_isDirty != other.m_isDirty) {
+        return false;
+    }
+    else if (m_hasShortcut != other.m_hasShortcut) {
         return false;
     }
     else if (m_isLastUsed != other.m_isLastUsed) {

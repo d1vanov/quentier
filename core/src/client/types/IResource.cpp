@@ -7,6 +7,7 @@ namespace qute_note {
 
 QN_DEFINE_LOCAL_GUID(IResource)
 QN_DEFINE_DIRTY(IResource)
+QN_DEFINE_LOCAL(IResource)
 
 IResource::IResource() :
     INoteStoreDataElement(),

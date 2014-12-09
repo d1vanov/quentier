@@ -2105,7 +2105,7 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
     tag.clear();
 
     QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, name, parentGuid, isDirty, isLocal, "
-                                  "isSynchronizable, isDeleted, hasShortcut FROM Tags WHERE %1 = '%2'").arg(column).arg(value);
+                                  "isLocal, isDeleted, hasShortcut FROM Tags WHERE %1 = '%2'").arg(column).arg(value);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select tag from \"Tags\" table in SQL database: ");
@@ -2577,7 +2577,7 @@ bool LocalStorageManagerPrivate::FindSavedSearch(SavedSearch & search, QString &
 
     search.clear();
 
-    QString queryString = QString("SELECT localGuid, guid, name, query, format, updateSequenceNumber, isDirty, isSynchronizable, "
+    QString queryString = QString("SELECT localGuid, guid, name, query, format, updateSequenceNumber, isDirty, isLocal, "
                                   "includeAccount, includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks, "
                                   "hasShortcut FROM SavedSearches WHERE %1 = '%2'").arg(column).arg(value);
     QSqlQuery query(m_sqlDatabase);
@@ -2922,7 +2922,6 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  modificationTimestamp           INTEGER           DEFAULT NULL, "
                      "  isDirty                         INTEGER           NOT NULL, "
                      "  isLocal                         INTEGER           NOT NULL, "
-                     "  isSynchronizable                INTEGER           NOT NULL, "
                      "  isDefault                       INTEGER           DEFAULT NULL UNIQUE, "
                      "  isLastUsed                      INTEGER           DEFAULT NULL UNIQUE, "
                      "  hasShortcut                     INTEGER           DEFAULT NULL, "
@@ -3021,7 +3020,6 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  updateSequenceNumber            INTEGER              DEFAULT NULL, "
                      "  isDirty                         INTEGER              NOT NULL, "
                      "  isLocal                         INTEGER              NOT NULL, "
-                     "  isSynchronizable                INTEGER              NOT NULL, "
                      "  hasShortcut                     INTEGER              NOT NULL, "
                      "  title                           TEXT                 DEFAULT NULL, "
                      "  content                         TEXT                 DEFAULT NULL, "
@@ -3205,7 +3203,6 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  parentGuid            TEXT                 DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
-                     "  isSynchronizable      INTEGER              NOT NULL, "
                      "  isDeleted             INTEGER              NOT NULL, "
                      "  hasShortcut           INTEGER              NOT NULL "
                      ")");
@@ -3267,7 +3264,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  format                          INTEGER             DEFAULT NULL, "
                      "  updateSequenceNumber            INTEGER             DEFAULT NULL, "
                      "  isDirty                         INTEGER             NOT NULL, "
-                     "  isSynchronizable                INTEGER             NOT NULL, "
+                     "  isLocal                         INTEGER             NOT NULL, "
                      "  includeAccount                  INTEGER             DEFAULT NULL, "
                      "  includePersonalLinkedNotebooks  INTEGER             DEFAULT NULL, "
                      "  includeBusinessLinkedNotebooks  INTEGER             DEFAULT NULL, "
@@ -4166,7 +4163,6 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
         query.bindValue(":modificationTimestamp", (notebook.hasModificationTimestamp() ? notebook.modificationTimestamp() : nullValue));
         query.bindValue(":isDirty", (notebook.isDirty() ? 1 : 0));
         query.bindValue(":isLocal", (notebook.isLocal() ? 1 : 0));
-        query.bindValue(":isSynchronizable", (notebook.isSynchronizable() ? 1 : 0));
         query.bindValue(":isDefault", (notebook.isDefaultNotebook() ? 1 : nullValue));
         query.bindValue(":isLastUsed", (notebook.isLastUsed() ? 1 : nullValue));
         query.bindValue(":hasShortcut", (notebook.hasShortcut() ? 1 : 0));
@@ -4269,14 +4265,12 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNotebookQuery()
                                                           "(localGuid, guid, updateSequenceNumber, "
                                                           "notebookName, notebookNameUpper, creationTimestamp, "
                                                           "modificationTimestamp, isDirty, isLocal, "
-                                                          "isSynchronizable, isDefault, isLastUsed, "
-                                                          "hasShortcut, publishingUri, publishingNoteSortOrder, "
-                                                          "publishingAscendingSort, publicDescription, "
-                                                          "isPublished, stack, businessNotebookDescription, "
-                                                          "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, "
-                                                          "contactId) "
+                                                          "isDefault, isLastUsed, hasShortcut, publishingUri, "
+                                                          "publishingNoteSortOrder, publishingAscendingSort, "
+                                                          "publicDescription, isPublished, stack, businessNotebookDescription, "
+                                                          "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, contactId) "
                                                           "VALUES(:localGuid, :guid, :updateSequenceNumber, :notebookName, :notebookNameUpper, :creationTimestamp, "
-                                                          ":modificationTimestamp, :isDirty, :isLocal, :isSynchronizable, :isDefault, :isLastUsed, "
+                                                          ":modificationTimestamp, :isDirty, :isLocal, :isDefault, :isLastUsed, "
                                                           ":hasShortcut, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
                                                           ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
                                                           ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId)");
@@ -4527,7 +4521,6 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
         query.bindValue(":updateSequenceNumber", (note.hasUpdateSequenceNumber() ? note.updateSequenceNumber() : nullValue));
         query.bindValue(":isDirty", (note.isDirty() ? 1 : 0));
         query.bindValue(":isLocal", (note.isLocal() ? 1 : 0));
-        query.bindValue(":isSynchronizable", (note.isSynchronizable() ? 1 : 0));
         query.bindValue(":hasShortcut", (note.hasShortcut() ? 1 : 0));
         query.bindValue(":title", (note.hasTitle() ? note.title() : nullValue));
         query.bindValue(":content", (note.hasContent() ? note.content() : nullValue));
@@ -4862,7 +4855,7 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNoteQuery()
 
         m_insertOrReplaceNoteQuery = QSqlQuery(m_sqlDatabase);
 
-        QString columns = "localGuid, guid, updateSequenceNumber, isDirty, isLocal, isSynchronizable, "
+        QString columns = "localGuid, guid, updateSequenceNumber, isDirty, isLocal, "
                           "hasShortcut, title, content, contentLength, contentHash, "
                           "contentPlainText, contentListOfWords, contentContainsFinishedToDo, "
                           "contentContainsUnfinishedToDo, contentContainsEncryption, creationTimestamp, "
@@ -4874,7 +4867,7 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNoteQuery()
                           "applicationDataKeysOnly, applicationDataKeysMap, "
                           "applicationDataValues, classificationKeys, classificationValues";
 
-        QString values = ":localGuid, :guid, :updateSequenceNumber, :isDirty, :isLocal, :isSynchronizable, "
+        QString values = ":localGuid, :guid, :updateSequenceNumber, :isDirty, :isLocal, "
                          ":hasShortcut, :title, :content, :contentLength, :contentHash, "
                          ":contentPlainText, :contentListOfWords, :contentContainsFinishedToDo, "
                          ":contentContainsUnfinishedToDo, :contentContainsEncryption, :creationTimestamp, "
@@ -4987,7 +4980,6 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
     query.bindValue(":parentGuid", (tag.hasParentGuid() ? tag.parentGuid() : nullValue));
     query.bindValue(":isDirty", (tag.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (tag.isLocal() ? 1 : 0));
-    query.bindValue(":isSynchronizable", (tag.isSynchronizable() ? 1 : 0));
     query.bindValue(":isDeleted", (tag.isDeleted() ? 1 : 0));
     query.bindValue(":hasShortcut", (tag.hasShortcut() ? 1 : 0));
 
@@ -5023,10 +5015,10 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceTagQuery()
         bool res = m_insertOrReplaceTagQuery.prepare("INSERT OR REPLACE INTO Tags "
                                                      "(localGuid, guid, updateSequenceNumber, "
                                                      "name, nameUpper, parentGuid, isDirty, "
-                                                     "isLocal, isSynchronizable, isDeleted, hasShortcut) "
+                                                     "isLocal, isDeleted, hasShortcut) "
                                                      "VALUES(:localGuid, :guid, :updateSequenceNumber, "
                                                      ":name, :nameUpper, :parentGuid, :isDirty, :isLocal, "
-                                                     ":isSynchronizable, :isDeleted, :hasShortcut)");
+                                                     ":isDeleted, :hasShortcut)");
         if (res) {
             m_insertOrReplaceTagQueryPrepared = true;
         }
@@ -5589,7 +5581,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceSavedSearch(const SavedSearch & 
                                               ? search.updateSequenceNumber()
                                               : nullValue));
     query.bindValue(":isDirty", (search.isDirty() ? 1 : 0));
-    query.bindValue(":isSynchronizable", (search.isSynchronizable() ? 1 : 0));
+    query.bindValue(":isLocal", (search.isLocal() ? 1 : 0));
     query.bindValue(":includeAccount", (search.hasIncludeAccount()
                                         ? (search.includeAccount() ? 1 : 0)
                                         : nullValue));
@@ -5614,11 +5606,11 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceSavedSearchQuery(
         QNDEBUG("Preparing SQL query to insert or replace SavedSearch");
 
         QString columns = "localGuid, guid, name, nameUpper, query, format, updateSequenceNumber, isDirty, "
-                          "isSynchronizable, includeAccount, includePersonalLinkedNotebooks, "
+                          "isLocal, includeAccount, includePersonalLinkedNotebooks, "
                           "includeBusinessLinkedNotebooks, hasShortcut";
 
         QString valuesNames = ":localGuid, :guid, :name, :nameUpper, :query, :format, :updateSequenceNumber, :isDirty, "
-                              ":isSynchronizable, :includeAccount, :includePersonalLinkedNotebooks, "
+                              ":isLocal, :includeAccount, :includePersonalLinkedNotebooks, "
                               ":includeBusinessLinkedNotebooks, :hasShortcut";
 
         QString queryString = QString("INSERT OR REPLACE INTO SavedSearches (%1) VALUES(%2)").arg(columns).arg(valuesNames);
@@ -6347,7 +6339,6 @@ void LocalStorageManagerPrivate::FillNoteFromSqlRecord(const QSqlRecord & rec, N
 
     CHECK_AND_SET_NOTE_PROPERTY(isDirty, setDirty, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(isLocal, setLocal, int, bool);
-    CHECK_AND_SET_NOTE_PROPERTY(isSynchronizable, setSynchronizable, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(hasShortcut, setShortcut, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(localGuid, setLocalGuid, QString, QString);
 
@@ -6422,7 +6413,6 @@ bool LocalStorageManagerPrivate::FillNotebookFromSqlRecord(const QSqlRecord & re
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDirty, setDirty, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLocal, setLocal, int, bool, isRequired);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isSynchronizable, setSynchronizable, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(localGuid, setLocalGuid, QString, QString, isRequired);
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(guid, setGuid, QString, QString, isRequired);
@@ -6684,7 +6674,7 @@ bool LocalStorageManagerPrivate::FillSavedSearchFromSqlRecord(const QSqlRecord &
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(updateSequenceNumber, qint32, qint32,
                                         setUpdateSequenceNumber, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isDirty, int, bool, setDirty, isRequired);
-    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isSynchronizable, int, bool, setSynchronizable, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isLocal, int, bool, setLocal, isRequired);
 
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(includeAccount, int, bool, setIncludeAccount,
                                         isRequired);
@@ -6731,7 +6721,6 @@ bool LocalStorageManagerPrivate::FillTagFromSqlRecord(const QSqlRecord & rec, Ta
     CHECK_AND_SET_TAG_PROPERTY(name, QString, QString, setName, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isDirty, int, bool, setDirty, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isLocal, int, bool, setLocal, isRequired);
-    CHECK_AND_SET_TAG_PROPERTY(isSynchronizable, int, bool, setSynchronizable, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isDeleted, int, bool, setDeleted, isRequired);
 
 #undef CHECK_AND_SET_TAG_PROPERTY

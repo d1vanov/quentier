@@ -8,12 +8,9 @@
 namespace qute_note {
 
 NoteData::NoteData() :
-    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
-    SynchronizableDataElementData(),
     m_qecNote(),
     m_resourcesAdditionalInfo(),
-    m_isLocal(true),
     m_thumbnail(),
     m_lazyPlainText(),
     m_lazyPlainTextIsValid(false),
@@ -25,12 +22,9 @@ NoteData::NoteData() :
 {}
 
 NoteData::NoteData(const NoteData & other) :
-    NoteStoreDataElementData(other),
     DataElementWithShortcutData(other),
-    SynchronizableDataElementData(other),
     m_qecNote(other.m_qecNote),
     m_resourcesAdditionalInfo(other.m_resourcesAdditionalInfo),
-    m_isLocal(other.m_isLocal),
     m_thumbnail(other.m_thumbnail),
     m_lazyPlainText(other.m_lazyPlainText),
     m_lazyPlainTextIsValid(other.m_lazyPlainTextIsValid),
@@ -42,12 +36,9 @@ NoteData::NoteData(const NoteData & other) :
 {}
 
 NoteData::NoteData(NoteData && other) :
-    NoteStoreDataElementData(std::move(other)),
     DataElementWithShortcutData(std::move(other)),
-    SynchronizableDataElementData(std::move(other)),
     m_qecNote(std::move(other.m_qecNote)),
     m_resourcesAdditionalInfo(std::move(other.m_resourcesAdditionalInfo)),
-    m_isLocal(std::move(other.m_isLocal)),
     m_thumbnail(std::move(other.m_thumbnail)),
     m_lazyPlainText(std::move(other.m_lazyPlainText)),
     m_lazyPlainTextIsValid(std::move(other.m_lazyPlainTextIsValid)),
@@ -62,12 +53,9 @@ NoteData::~NoteData()
 {}
 
 NoteData::NoteData(const qevercloud::Note & other) :
-    NoteStoreDataElementData(),
     DataElementWithShortcutData(),
-    SynchronizableDataElementData(),
     m_qecNote(other),
     m_resourcesAdditionalInfo(),
-    m_isLocal(false),
     m_thumbnail(),
     m_lazyPlainText(),
     m_lazyPlainTextIsValid(false),
