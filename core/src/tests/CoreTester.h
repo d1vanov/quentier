@@ -34,7 +34,7 @@ private slots:
 
     void localStorageManagerSequentialUpdatesTest();
 
-    void localStorageManagerListAllSavedSearchesTest();
+    void localStorageManagerListSavedSearchesTest();
     void localStorageManagerListAllLinkedNotebooksTest();
     void localStorageManagerListAllTagsTest();
     void localStorageManagerListAllSharedNotebooksTest();

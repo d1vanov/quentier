@@ -2683,11 +2683,18 @@ QList<SavedSearch> LocalStorageManagerPrivate::ListSavedSearches(const LocalStor
     }
 
     bool listDirty = flag.testFlag(LocalStorageManager::ListDirty);
-    bool listLocal = flag.testFlag(LocalStorageManager::ListLocal);
-    bool listUnsynchronizable = flag.testFlag(LocalStorageManager::ListUnsynchronizable);
-    bool listElementsWithShortcuts = flag.testFlag(LocalStorageManager::ListElementsWithShortcuts);
+    bool listNonDirty = flag.testFlag(LocalStorageManager::ListNonDirty);
 
-    if (!listDirty && !listLocal && !listUnsynchronizable && !listElementsWithShortcuts) {
+    bool listElementsWithoutGuid = flag.testFlag(LocalStorageManager::ListElementsWithoutGuid);
+    bool listElementsWithGuid = flag.testFlag(LocalStorageManager::ListElementsWithGuid);
+
+    bool listLocal = flag.testFlag(LocalStorageManager::ListLocal);
+    bool listNonLocal = flag.testFlag(LocalStorageManager::ListNonLocal);
+
+    bool listElementsWithShortcuts = flag.testFlag(LocalStorageManager::ListElementsWithShortcuts);
+    bool listElementsWithoutShortcuts = flag.testFlag(LocalStorageManager::ListElementsWithoutShortcuts);
+
+    if (!listDirty && !listElementsWithoutGuid && !listLocal && !listElementsWithShortcuts) {
         errorDescription = QT_TR_NOOP("can't list saved searches: detected incorrect filter flag: ");
         errorDescription += QString::number(static_cast<int>(flag));
         return QList<SavedSearch>();
@@ -2695,23 +2702,60 @@ QList<SavedSearch> LocalStorageManagerPrivate::ListSavedSearches(const LocalStor
 
     QString queryString = "SELECT * FROM SavedSearches WHERE ";
 
-    if (listDirty) {
-        queryString += "isDirty=1 ";
+    if (!(listDirty && listNonDirty))
+    {
+        if (listDirty) {
+            queryString += "(isDirty=1) AND ";
+        }
+
+        if (listNonDirty) {
+            queryString += "(isDirty=0) AND ";
+        }
     }
 
-    if (listLocal) {
-        // FIXME: add corresponding part to the query string after adding the locality for saved searches
+    if (!(listElementsWithoutGuid && listElementsWithGuid))
+    {
+        if (listElementsWithoutGuid) {
+            queryString += "(guid IS NULL) AND ";
+        }
+
+        if (listElementsWithGuid) {
+            queryString += "(guid IS NOT NULL) AND ";
+        }
     }
 
-    if (listUnsynchronizable) {
-        queryString += "isSynchronizable=1 ";
+    if (!(listLocal && listNonLocal))
+    {
+        if (listLocal) {
+            queryString += "(isLocal=1) AND ";
+        }
+
+        if (listNonLocal) {
+            queryString += "(isLocal=0) AND ";
+        }
     }
 
-    if (listElementsWithShortcuts) {
-        queryString += "hasShortcut=1 ";
+    if (!(listElementsWithShortcuts && listElementsWithoutShortcuts))
+    {
+        if (listElementsWithShortcuts) {
+            queryString += "(hasShortcut=1) AND ";
+        }
+
+        if (listElementsWithoutShortcuts) {
+            queryString += "(hasShortcut=0) AND ";
+        }
     }
 
-    queryString = queryString.trimmed();
+    if (queryString.endsWith("WHERE ")) {
+        // It is a fancy way to tell "list all saved searches" but whatever
+        queryString.chop(7);
+    }
+    else {
+        // query string ends with " AND ", need to remove that
+        queryString.chop(5);
+    }
+
+    QNDEBUG("SQL query string: " << queryString);
 
     QList<SavedSearch> searches;
 
@@ -3370,8 +3414,6 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
 
     // NOTE: reasoning for existence and unique constraint for nameUpper, citing Evernote API reference:
     // "The account may only contain one search with a given name (case-insensitive compare)"
-
-    // FIXME: add the notion of locality to SavedSearches
 
     res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
                      "  localGuid                       TEXT PRIMARY KEY    NOT NULL UNIQUE, "

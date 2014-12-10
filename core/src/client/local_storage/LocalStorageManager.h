@@ -49,11 +49,15 @@ public:
      * the remote storage or elements which are synchronizable with the remote storage etc.
      */
     enum ListObjectsOption {
-        ListAll                     = 1,
-        ListDirty                   = 2,
-        ListLocal                   = 4,
-        ListUnsynchronizable        = 8,
-        ListElementsWithShortcuts   = 16
+        ListAll                      = 0,
+        ListDirty                    = 1,
+        ListNonDirty                 = 2,
+        ListElementsWithoutGuid      = 4,
+        ListElementsWithGuid         = 8,
+        ListLocal                    = 16,
+        ListNonLocal                 = 32,
+        ListElementsWithShortcuts    = 64,
+        ListElementsWithoutShortcuts = 128
     };
     Q_DECLARE_FLAGS(ListObjectsOptions, ListObjectsOption)
 

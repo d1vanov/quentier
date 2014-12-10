@@ -694,7 +694,7 @@ void CoreTester::localStorageManagerSequentialUpdatesTest()
     CATCH_EXCEPTION();
 }
 
-void CoreTester::localStorageManagerListAllSavedSearchesTest()
+void CoreTester::localStorageManagerListSavedSearchesTest()
 {
     try
     {
@@ -711,7 +711,10 @@ void CoreTester::localStorageManagerListAllSavedSearchesTest()
             searches << SavedSearch();
             SavedSearch & search = searches.back();
 
-            search.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            if (i > 1) {
+                search.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            }
+
             search.setUpdateSequenceNumber(i);
             search.setName("SavedSearch #" + QString::number(i));
             search.setQuery("Fake saved search query #" + QString::number(i));
@@ -720,9 +723,32 @@ void CoreTester::localStorageManagerListAllSavedSearchesTest()
             search.setIncludeBusinessLinkedNotebooks(true);
             search.setIncludePersonalLinkedNotebooks(true);
 
+            if (i > 2) {
+                search.setDirty(true);
+            }
+            else {
+                search.setDirty(false);
+            }
+
+            if (i < 3) {
+                search.setLocal(true);
+            }
+            else {
+                search.setLocal(false);
+            }
+
+            if ((i == 0) || (i == 4)) {
+                search.setShortcut(true);
+            }
+            else {
+                search.setShortcut(false);
+            }
+
             bool res = localStorageManager.AddSavedSearch(search, error);
             QVERIFY2(res == true, qPrintable(error));
         }
+
+        // 1) Test method listing all saved searches
 
         error.clear();
         QList<SavedSearch> foundSearches = localStorageManager.ListAllSavedSearches(error);
@@ -743,6 +769,67 @@ void CoreTester::localStorageManagerListAllSavedSearchesTest()
                       "was not found in the list of original searches");
             }
         }
+
+        // 2) Test method listing saved searches with flag set to list all saved searches
+
+        error.clear();
+        foundSearches = localStorageManager.ListSavedSearches(LocalStorageManager::ListAll, error);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
+
+        numFoundSearches = foundSearches.size();
+        if (numFoundSearches != nSearches) {
+            QFAIL(qPrintable("Error: number of saved searches in the result of LocalStorageManager::ListSavedSearches with flag "
+                             "ListAll (" + QString::number(numFoundSearches) + ") does not match the original number of added saved searches (" +
+                             QString::number(nSearches) + ")"));
+        }
+
+        for(int i = 0; i < numFoundSearches; ++i)
+        {
+            const SavedSearch & foundSearch = foundSearches.at(i);
+            if (!searches.contains(foundSearch)) {
+                QFAIL("One of saved searches from the result of LocalStorageManager::ListSavedSearches with flag ListAll "
+                      "was not found in the list of original searches");
+            }
+        }
+
+#define CHECK_LIST_SAVED_SEARCHES_BY_FLAG(flag, flag_name, true_condition, false_condition) \
+        error.clear(); \
+        foundSearches = localStorageManager.ListSavedSearches(flag, error); \
+        QVERIFY2(error.isEmpty(), qPrintable(error)); \
+        \
+        for(int i = 0; i < nSearches; ++i) \
+        { \
+            const SavedSearch & search = searches.at(i); \
+            bool res = foundSearches.contains(search); \
+            if ((true_condition) && !res) { \
+                QNWARNING("Not found saved search: " << search); \
+                QFAIL("One of " flag_name " SavedSearches was not found by LocalStorageManager::ListSavedSearches"); \
+            } \
+            else if ((false_condition) && res) { \
+                QNWARNING("Found irrelevant saved search: " << search); \
+                QFAIL("LocalStorageManager::ListSavedSearches with flag " flag_name " returned incorrect saved search"); \
+            } \
+        }
+
+        // 3) Test method listing only dirty saved searches
+        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListDirty, "dirty", i > 2, i <= 2);
+
+        // 4) Test method listing only local saved searches
+        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListLocal, "local", i < 3, i >= 3);
+
+        // 5) Test method listing only saved searches without guid
+        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListElementsWithoutGuid, "guidless", i <= 1, i > 1);
+
+        // 6) Test method listing only saved searches with shortcut
+        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListElementsWithShortcuts, "having shortcut", (i == 0) || (i == 4), (i != 0) && (i != 4));
+
+        // 7) Test method listing dirty saved searches with guid and with shortcut
+        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListElementsWithShortcuts,
+                                          "dirty, having guid, having shortcut", i == 4, i != 4);
+
+        // 8) Test method listing local saved searches having shortcut
+        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
+                                          "local, having shortcut", i == 0, i != 0);
     }
     CATCH_EXCEPTION();
 }
