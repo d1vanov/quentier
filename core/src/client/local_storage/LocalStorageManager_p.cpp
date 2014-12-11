@@ -2682,70 +2682,14 @@ QList<SavedSearch> LocalStorageManagerPrivate::ListSavedSearches(const LocalStor
         return ListAllSavedSearches(errorDescription);
     }
 
-    bool listDirty = flag.testFlag(LocalStorageManager::ListDirty);
-    bool listNonDirty = flag.testFlag(LocalStorageManager::ListNonDirty);
-
-    bool listElementsWithoutGuid = flag.testFlag(LocalStorageManager::ListElementsWithoutGuid);
-    bool listElementsWithGuid = flag.testFlag(LocalStorageManager::ListElementsWithGuid);
-
-    bool listLocal = flag.testFlag(LocalStorageManager::ListLocal);
-    bool listNonLocal = flag.testFlag(LocalStorageManager::ListNonLocal);
-
-    bool listElementsWithShortcuts = flag.testFlag(LocalStorageManager::ListElementsWithShortcuts);
-    bool listElementsWithoutShortcuts = flag.testFlag(LocalStorageManager::ListElementsWithoutShortcuts);
-
-    if (!listDirty && !listElementsWithoutGuid && !listLocal && !listElementsWithShortcuts) {
-        errorDescription = QT_TR_NOOP("can't list saved searches: detected incorrect filter flag: ");
-        errorDescription += QString::number(static_cast<int>(flag));
+    QString flagError;
+    QString sqlQueryConditions = listObjectsOptionsToSqlQueryConditions(flag, flagError);
+    if (sqlQueryConditions.isEmpty() && !flagError.isEmpty()) {
+        errorDescription = flagError;
         return QList<SavedSearch>();
     }
 
-    QString queryString = "SELECT * FROM SavedSearches WHERE ";
-
-    if (!(listDirty && listNonDirty))
-    {
-        if (listDirty) {
-            queryString += "(isDirty=1) AND ";
-        }
-
-        if (listNonDirty) {
-            queryString += "(isDirty=0) AND ";
-        }
-    }
-
-    if (!(listElementsWithoutGuid && listElementsWithGuid))
-    {
-        if (listElementsWithoutGuid) {
-            queryString += "(guid IS NULL) AND ";
-        }
-
-        if (listElementsWithGuid) {
-            queryString += "(guid IS NOT NULL) AND ";
-        }
-    }
-
-    if (!(listLocal && listNonLocal))
-    {
-        if (listLocal) {
-            queryString += "(isLocal=1) AND ";
-        }
-
-        if (listNonLocal) {
-            queryString += "(isLocal=0) AND ";
-        }
-    }
-
-    if (!(listElementsWithShortcuts && listElementsWithoutShortcuts))
-    {
-        if (listElementsWithShortcuts) {
-            queryString += "(hasShortcut=1) AND ";
-        }
-
-        if (listElementsWithoutShortcuts) {
-            queryString += "(hasShortcut=0) AND ";
-        }
-    }
-
+    QString queryString = "SELECT * FROM SavedSearches WHERE " + sqlQueryConditions;
     if (queryString.endsWith("WHERE ")) {
         // It is a fancy way to tell "list all saved searches" but whatever
         queryString.chop(7);
@@ -6800,8 +6744,8 @@ bool LocalStorageManagerPrivate::FillLinkedNotebookFromSqlRecord(const QSqlRecor
 }
 
 bool LocalStorageManagerPrivate::FillSavedSearchFromSqlRecord(const QSqlRecord & rec,
-                                                       SavedSearch & search,
-                                                       QString & errorDescription) const
+                                                              SavedSearch & search,
+                                                              QString & errorDescription) const
 {
 #define CHECK_AND_SET_SAVED_SEARCH_PROPERTY(property, type, localType, setter, isRequired) \
     { \
@@ -7997,6 +7941,77 @@ bool LocalStorageManagerPrivate::resourceRecognitionTypesToResourceLocalGuids(co
     }
 
     return true;
+}
+
+QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const LocalStorageManager::ListObjectsOptions & options,
+                                                                           QString & errorDescription) const
+{
+    QString result;
+    errorDescription.clear();
+
+    bool listDirty = options.testFlag(LocalStorageManager::ListDirty);
+    bool listNonDirty = options.testFlag(LocalStorageManager::ListNonDirty);
+
+    bool listElementsWithoutGuid = options.testFlag(LocalStorageManager::ListElementsWithoutGuid);
+    bool listElementsWithGuid = options.testFlag(LocalStorageManager::ListElementsWithGuid);
+
+    bool listLocal = options.testFlag(LocalStorageManager::ListLocal);
+    bool listNonLocal = options.testFlag(LocalStorageManager::ListNonLocal);
+
+    bool listElementsWithShortcuts = options.testFlag(LocalStorageManager::ListElementsWithShortcuts);
+    bool listElementsWithoutShortcuts = options.testFlag(LocalStorageManager::ListElementsWithoutShortcuts);
+
+    if (!listDirty && !listElementsWithoutGuid && !listLocal && !listElementsWithShortcuts) {
+        errorDescription = QT_TR_NOOP("can't list saved searches: detected incorrect filter flag: ");
+        errorDescription += QString::number(static_cast<int>(options));
+        return result;
+    }
+
+    if (!(listDirty && listNonDirty))
+    {
+        if (listDirty) {
+            result += "(isDirty=1) AND ";
+        }
+
+        if (listNonDirty) {
+            result += "(isDirty=0) AND ";
+        }
+    }
+
+    if (!(listElementsWithoutGuid && listElementsWithGuid))
+    {
+        if (listElementsWithoutGuid) {
+            result += "(guid IS NULL) AND ";
+        }
+
+        if (listElementsWithGuid) {
+            result += "(guid IS NOT NULL) AND ";
+        }
+    }
+
+    if (!(listLocal && listNonLocal))
+    {
+        if (listLocal) {
+            result += "(isLocal=1) AND ";
+        }
+
+        if (listNonLocal) {
+            result += "(isLocal=0) AND ";
+        }
+    }
+
+    if (!(listElementsWithShortcuts && listElementsWithoutShortcuts))
+    {
+        if (listElementsWithShortcuts) {
+            result += "(hasShortcut=1) AND ";
+        }
+
+        if (listElementsWithoutShortcuts) {
+            result += "(hasShortcut=0) AND ";
+        }
+    }
+
+    return result;
 }
 
 bool LocalStorageManagerPrivate::SharedNotebookAdapterCompareByIndex::operator()(const SharedNotebookAdapter & lhs,

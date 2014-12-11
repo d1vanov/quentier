@@ -239,6 +239,9 @@ private:
                                                       QStringList & resourceLocalGuids,
                                                       QString & errorDescription) const;
 
+    QString listObjectsOptionsToSqlQueryConditions(const LocalStorageManager::ListObjectsOptions & flag,
+                                                   QString & errorDescription) const;
+
     struct SharedNotebookAdapterCompareByIndex
     {
         bool operator()(const SharedNotebookAdapter & lhs, const SharedNotebookAdapter & rhs) const;
