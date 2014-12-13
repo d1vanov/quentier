@@ -890,7 +890,7 @@ void CoreTester::localStorageManagerListAllLinkedNotebooksTest()
     CATCH_EXCEPTION();
 }
 
-void CoreTester::localStorageManagerListAllTagsTest()
+void CoreTester::localStorageManagerListTagsTest()
 {
     try
     {
@@ -900,24 +900,50 @@ void CoreTester::localStorageManagerListAllTagsTest()
         QString error;
 
         int nTags = 5;
-        std::vector<Tag> tags;
+        QList<Tag> tags;
         tags.reserve(static_cast<size_t>(nTags));
         for(int i = 0; i < nTags; ++i)
         {
             tags.push_back(Tag());
             Tag & tag = tags.back();
 
-            tag.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            if (i > 1) {
+                tag.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            }
+
             tag.setUpdateSequenceNumber(i);
             tag.setName("Tag name #" + QString::number(i));
 
-            if (i != 0) {
+            if (i > 2) {
                 tag.setParentGuid(tags.at(i-1).guid());
+            }
+
+            if (i > 2) {
+                tag.setDirty(true);
+            }
+            else {
+                tag.setDirty(false);
+            }
+
+            if (i < 3) {
+                tag.setLocal(true);
+            }
+            else {
+                tag.setLocal(false);
+            }
+
+            if ((i == 0) || (i == 4)) {
+                tag.setShortcut(true);
+            }
+            else {
+                tag.setShortcut(false);
             }
 
             bool res = localStorageManager.AddTag(tag, error);
             QVERIFY2(res == true, qPrintable(error));
         }
+
+        // 1) Test method listing all tags
 
         error.clear();
         QList<Tag> foundTags = localStorageManager.ListAllTags(error);
@@ -933,12 +959,72 @@ void CoreTester::localStorageManagerListAllTagsTest()
         for(int i = 0; i < numFoundTags; ++i)
         {
             const Tag & foundTag = foundTags.at(i);
-            const auto it = std::find(tags.cbegin(), tags.cend(), foundTag);
-            if (it == tags.cend()) {
+            if (!tags.contains(foundTag)) {
                 QFAIL("One of tags from the result of LocalStorageManager::ListAllTags "
                       "was not found in the list of original tags");
             }
         }
+
+        // 2) Test method listing tags with flag set to list all tags
+
+        error.clear();
+        foundTags = localStorageManager.ListTags(LocalStorageManager::ListAll, error);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
+
+        numFoundTags = foundTags.size();
+        if (numFoundTags != nTags) {
+            QFAIL(qPrintable("Error: number of tags in the result of LocalStorageManager::ListTags with flag "
+                             "ListAll (" + QString::number(numFoundTags) + ") does not match the original number of addeed tags (" +
+                             QString::number(nTags) + ")"));
+        }
+
+        for(int i = 0; i < numFoundTags; ++i)
+        {
+            const Tag & foundTag = foundTags.at(i);
+            if (!tags.contains(foundTag)) {
+                QFAIL("One of tags from the result of LocalStorageManager::ListAllTags "
+                      "was not found in the list of original tags");
+            }
+        }
+
+#define CHECK_LIST_TAGS_BY_FLAG(flag, flag_name, true_condition, false_condition) \
+        error.clear(); \
+        foundTags = localStorageManager.ListTags(flag, error); \
+        QVERIFY2(error.isEmpty(), qPrintable(error)); \
+        \
+        for(int i = 0; i < nTags; ++i) \
+        { \
+            const Tag & tag = tags.at(i); \
+            bool res = foundTags.contains(tag); \
+            if ((true_condition) && !res) { \
+                QNWARNING("Not found tag: " << tag); \
+                QFAIL("One of " flag_name " Tags was not found by LocalStorageManager::ListTags"); \
+            } \
+            else if ((false_condition) && res) { \
+                QNWARNING("Found irrelevant tag: " << tag); \
+                QFAIL("LocalStorageManager::ListTags with flag " flag_name " returned incorrect tag"); \
+            } \
+        }
+
+        // 3) Test method listing only dirty tags
+        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListDirty, "dirty", i > 2, i <= 2);
+
+        // 4) Test method listing only local tags
+        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListLocal, "local", i < 3, i >= 3);
+
+        // 5) Test method listing only tags without guid
+        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListElementsWithoutGuid, "guidless", i <= 1, i > 1);
+
+        // 6) Test method listing only tags with shortcut
+        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListElementsWithShortcuts, "having shortcut", (i == 0) || (i == 4), (i != 0) && (i != 4));
+
+        // 7) Test method listing dirty tags with guid and with shortcut
+        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListElementsWithShortcuts,
+                                "dirty, having guid, having shortcut", i == 4, i != 4);
+
+        // 8) Test method listing local tags having shortcut
+        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
+                                "local, having shortcut", i == 0, i != 0);
     }
     CATCH_EXCEPTION();
 }

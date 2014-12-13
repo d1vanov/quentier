@@ -2236,10 +2236,64 @@ QList<Tag> LocalStorageManagerPrivate::ListAllTags(QString & errorDescription) c
 QList<Tag> LocalStorageManagerPrivate::ListTags(const LocalStorageManager::ListObjectsOptions flag,
                                                 QString & errorDescription) const
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(errorDescription)
-    return QList<Tag>();
+    QNDEBUG("LocalStorageManagerPrivate::ListTags: flag = " << flag);
+
+    bool listAll = flag.testFlag(LocalStorageManager::ListAll);
+    if (listAll) {
+        return ListAllTags(errorDescription);
+    }
+
+    QString flagError;
+    QString sqlQueryConditions = listObjectsOptionsToSqlQueryConditions(flag, flagError);
+    if (sqlQueryConditions.isEmpty() && !flagError.isEmpty()) {
+        errorDescription = flagError;
+        return QList<Tag>();
+    }
+
+    QString queryString = "SELECT * FROM Tags WHERE " + sqlQueryConditions;
+    if (queryString.endsWith("WHERE ")) {
+        // It is a fancy way to tell "list all tags" but whatever
+        queryString.chop(7);
+    }
+    else {
+        // query string ends with " AND ", need to remove that
+        queryString.chop(5);
+    }
+
+    QNDEBUG("SQL query string: " << queryString);
+
+    QList<Tag> tags;
+
+    QString errorPrefix = QT_TR_NOOP("Can't list tags in local storage by filter");
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
+    if (!res) {
+        errorDescription = errorPrefix + QT_TR_NOOP("can't list tags by filter from \"Tags\" table in SQL database: ");
+        QNCRITICAL(errorDescription << "last query = " << query.lastQuery() << ", last error = " << query.lastError());
+        errorDescription += query.lastError().text();
+        return tags;
+    }
+
+    tags.reserve(std::max(query.size(), 0));
+
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+
+        tags << Tag();
+        Tag & tag = tags.back();
+
+        res = FillTagFromSqlRecord(rec, tag, errorDescription);
+        if (!res) {
+            errorDescription.prepend(errorPrefix);
+            tags.clear();
+            return tags;
+        }
+    }
+
+    QNDEBUG("found " << tags.size() << " tags");
+
+    return tags;
 }
 
 bool LocalStorageManagerPrivate::DeleteTag(const Tag & tag, QString & errorDescription)
@@ -2709,8 +2763,7 @@ QList<SavedSearch> LocalStorageManagerPrivate::ListSavedSearches(const LocalStor
     if (!res) {
         errorDescription = errorPrefix + QT_TR_NOOP("can't list saved searches by filter from "
                                                     "\"SavedSearches\" table in SQL database: ");
-        QNCRITICAL(errorDescription << "last error = " << query.lastError()
-                   << ", last error = " << query.lastError());
+        QNCRITICAL(errorDescription << "last query = " << query.lastQuery() << ", last error = " << query.lastError());
         errorDescription += query.lastError().text();
         return searches;
     }
