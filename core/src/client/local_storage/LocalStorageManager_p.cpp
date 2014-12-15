@@ -1177,10 +1177,75 @@ QList<LinkedNotebook> LocalStorageManagerPrivate::ListAllLinkedNotebooks(QString
 QList<LinkedNotebook> LocalStorageManagerPrivate::ListLinkedNotebooks(const LocalStorageManager::ListObjectsOptions flag,
                                                                       QString & errorDescription) const
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(errorDescription)
-    return QList<LinkedNotebook>();
+    QNDEBUG("LocalStorageManagerPrivate::ListLinkedNotebooks: flag = " << flag);
+
+    bool listAll = flag.testFlag(LocalStorageManager::ListAll);
+    if (listAll) {
+        return ListAllLinkedNotebooks(errorDescription);
+    }
+
+    bool listDirty = flag.testFlag(LocalStorageManager::ListDirty);
+    bool listNonDirty = flag.testFlag(LocalStorageManager::ListNonDirty);
+
+    if (!listDirty && !listNonDirty) {
+        errorDescription = QT_TR_NOOP("can't list linked notebooks by filter: detected incorrect filter flag: ");
+        errorDescription += QString::number(static_cast<int>(flag));
+        return QList<LinkedNotebook>();
+    }
+
+    QString sqlQueryConditions;
+    if (!(listDirty && listNonDirty))
+    {
+        if (listDirty) {
+            sqlQueryConditions += "(isDirty=1)";
+        }
+
+        if (listNonDirty) {
+            sqlQueryConditions += "(isDirty=0)";
+        }
+    }
+
+    QString queryString = "SELECT * FROM LinkedNotebooks WHERE " + sqlQueryConditions;
+    if (queryString.endsWith("WHERE ")) {
+        // Is is a fancy way to tell "list all linked notebooks" but whatever
+        queryString.chop(7);
+    }
+
+    QNDEBUG("SQL query string: " << queryString);
+
+    QList<LinkedNotebook> linkedNotebooks;
+
+    QString errorPrefix = QT_TR_NOOP("Can't list linked notebooks in local storage by filter: ");
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
+    if (!res) {
+        errorDescription = errorPrefix + QT_TR_NOOP("can't list linked notebooks by filter from "
+                                                    "\"LinkedNotebooks\" table in SQL database: ");
+        QNCRITICAL(errorDescription << "last query = " << query.lastQuery() << ", last error = " << query.lastError());
+        errorDescription += query.lastError().text();
+        return linkedNotebooks;
+    }
+
+    linkedNotebooks.reserve(std::max(query.size(), 0));
+
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+
+        linkedNotebooks << LinkedNotebook();
+        LinkedNotebook & linkedNotebook = linkedNotebooks.back();
+
+        res = FillLinkedNotebookFromSqlRecord(rec, linkedNotebook, errorDescription);
+        if (!res) {
+            errorDescription.prepend(errorPrefix);
+            linkedNotebooks.clear();
+            return linkedNotebooks;
+        }
+    }
+
+    QNDEBUG("found " << linkedNotebooks.size() << " linked notebooks");
+
+    return linkedNotebooks;
 }
 
 bool LocalStorageManagerPrivate::ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
@@ -2264,7 +2329,7 @@ QList<Tag> LocalStorageManagerPrivate::ListTags(const LocalStorageManager::ListO
 
     QList<Tag> tags;
 
-    QString errorPrefix = QT_TR_NOOP("Can't list tags in local storage by filter");
+    QString errorPrefix = QT_TR_NOOP("Can't list tags in local storage by filter: ");
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     if (!res) {
@@ -2757,7 +2822,7 @@ QList<SavedSearch> LocalStorageManagerPrivate::ListSavedSearches(const LocalStor
 
     QList<SavedSearch> searches;
 
-    QString errorPrefix = QT_TR_NOOP("Can't list saved searches in local storage by filter");
+    QString errorPrefix = QT_TR_NOOP("Can't list saved searches in local storage by filter: ");
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     if (!res) {
@@ -8014,8 +8079,10 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const
     bool listElementsWithShortcuts = options.testFlag(LocalStorageManager::ListElementsWithShortcuts);
     bool listElementsWithoutShortcuts = options.testFlag(LocalStorageManager::ListElementsWithoutShortcuts);
 
-    if (!listDirty && !listElementsWithoutGuid && !listLocal && !listElementsWithShortcuts) {
-        errorDescription = QT_TR_NOOP("can't list saved searches: detected incorrect filter flag: ");
+    if (!listDirty && !listNonDirty && !listElementsWithoutGuid && !listElementsWithGuid &&
+        !listLocal && !listNonLocal && !listElementsWithShortcuts && !listElementsWithoutShortcuts)
+    {
+        errorDescription = QT_TR_NOOP("can't list objects by filter: detected incorrect filter flag: ");
         errorDescription += QString::number(static_cast<int>(options));
         return result;
     }

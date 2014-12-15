@@ -834,7 +834,7 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
     CATCH_EXCEPTION();
 }
 
-void CoreTester::localStorageManagerListAllLinkedNotebooksTest()
+void CoreTester::localStorageManagerListLinkedNotebooksTest()
 {
     try
     {
@@ -863,9 +863,18 @@ void CoreTester::localStorageManagerListAllLinkedNotebooksTest()
             linkedNotebook.setStack("Linked notebook stack #" + QString::number(i));
             linkedNotebook.setBusinessId(1);
 
+            if (i > 2) {
+                linkedNotebook.setDirty(true);
+            }
+            else {
+                linkedNotebook.setDirty(false);
+            }
+
             bool res = localStorageManager.AddLinkedNotebook(linkedNotebook, error);
             QVERIFY2(res == true, qPrintable(error));
         }
+
+        // 1) Test method listing all linked notebooks
 
         error.clear();
         QList<LinkedNotebook> foundLinkedNotebooks = localStorageManager.ListAllLinkedNotebooks(error);
@@ -884,6 +893,47 @@ void CoreTester::localStorageManagerListAllLinkedNotebooksTest()
             if (!linkedNotebooks.contains(foundLinkedNotebook)) {
                 QFAIL("One of linked notebooks from the result of LocalStorageManager::ListAllLinkedNotebooks "
                       "was not found in the list of original linked notebooks");
+            }
+        }
+
+        // 2) Test method listing linked notebooks with flag set to list all linked notebooks
+
+        error.clear();
+        foundLinkedNotebooks = localStorageManager.ListLinkedNotebooks(LocalStorageManager::ListAll, error);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
+
+        numFoundLinkedNotebooks = foundLinkedNotebooks.size();
+        if (numFoundLinkedNotebooks != nLinkedNotebooks) {
+            QFAIL(qPrintable("Error: number of linked notebooks in the result of LocalStorageManager::ListLinkedNotebooks with flag ListAll (" +
+                             QString::number(numFoundLinkedNotebooks) + ") does not match the original number of added linked notebooks (" +
+                             QString::number(nLinkedNotebooks) + ")"));
+        }
+
+        for(int i = 0; i < numFoundLinkedNotebooks; ++i)
+        {
+            const LinkedNotebook & foundLinkedNotebook = foundLinkedNotebooks.at(i);
+            if (!linkedNotebooks.contains(foundLinkedNotebook)) {
+                QFAIL("One of linked notebooks from the result of LocalStorageManager::ListLinkedNotebooks with flag ListAll "
+                      "was not found in the list of original linked notebooks");
+            }
+        }
+
+        // 3) Test method listing only dirty linked notebooks
+        error.clear();
+        foundLinkedNotebooks = localStorageManager.ListLinkedNotebooks(LocalStorageManager::ListDirty, error);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
+
+        for(int i = 0; i < nLinkedNotebooks; ++i)
+        {
+            const LinkedNotebook & linkedNotebook = linkedNotebooks.at(i);
+            bool res = foundLinkedNotebooks.contains(linkedNotebook);
+            if ((i > 2) && !res) {
+                QNWARNING("Not found linked notebook: " << linkedNotebook);
+                QFAIL("One of dirty linked notebooks was not found by LocalStorageManager::ListLinkedNotebooks");
+            }
+            else if ((i <= 2) && res) {
+                QNWARNING("Found irrelevant linked notebook: " << linkedNotebook);
+                QFAIL("LocalStorageManager::ListLinkedNotebooks with flag ListDirty returned incorrect linked notebook");
             }
         }
     }
