@@ -1248,7 +1248,7 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
     CATCH_EXCEPTION();
 }
 
-void CoreTester::localStorageManagerListAllNotebooksTest()
+void CoreTester::localStorageManagerListNotebooksTest()
 {
     try
     {
@@ -1264,7 +1264,10 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
             notebooks << Notebook();
             Notebook & notebook = notebooks.back();
 
-            notebook.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            if (i > 1) {
+                notebook.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            }
+
             notebook.setUpdateSequenceNumber(i+1);
             notebook.setName("Fake notebook name #" + QString::number(i+1));
             notebook.setCreationTimestamp(i+1);
@@ -1303,25 +1306,50 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
             notebook.setUpdateWhichSharedNotebookRestrictions(1);
             notebook.setExpungeWhichSharedNotebookRestrictions(1);
 
-            SharedNotebookWrapper sharedNotebook;
-            sharedNotebook.setId(i+1);
-            sharedNotebook.setUserId(i+1);
-            sharedNotebook.setNotebookGuid(notebook.guid());
-            sharedNotebook.setEmail("Fake shared notebook email #" + QString::number(i+1));
-            sharedNotebook.setCreationTimestamp(i+1);
-            sharedNotebook.setModificationTimestamp(i+1);
-            sharedNotebook.setShareKey("Fake shared notebook share key #" + QString::number(i+1));
-            sharedNotebook.setUsername("Fake shared notebook username #" + QString::number(i+1));
-            sharedNotebook.setPrivilegeLevel(1);
-            sharedNotebook.setAllowPreview(true);
-            sharedNotebook.setReminderNotifyEmail(true);
-            sharedNotebook.setReminderNotifyApp(false);
+            if (i > 2) {
+                notebook.setDirty(true);
+            }
+            else {
+                notebook.setDirty(false);
+            }
 
-            notebook.addSharedNotebook(sharedNotebook);
+            if (i < 3) {
+                notebook.setLocal(true);
+            }
+            else {
+                notebook.setLocal(false);
+            }
+
+            if ((i == 0) || (i == 4)) {
+                notebook.setShortcut(true);
+            }
+            else {
+                notebook.setShortcut(false);
+            }
+
+            if (i > 1) {
+                SharedNotebookWrapper sharedNotebook;
+                sharedNotebook.setId(i+1);
+                sharedNotebook.setUserId(i+1);
+                sharedNotebook.setNotebookGuid(notebook.guid());
+                sharedNotebook.setEmail("Fake shared notebook email #" + QString::number(i+1));
+                sharedNotebook.setCreationTimestamp(i+1);
+                sharedNotebook.setModificationTimestamp(i+1);
+                sharedNotebook.setShareKey("Fake shared notebook share key #" + QString::number(i+1));
+                sharedNotebook.setUsername("Fake shared notebook username #" + QString::number(i+1));
+                sharedNotebook.setPrivilegeLevel(1);
+                sharedNotebook.setAllowPreview(true);
+                sharedNotebook.setReminderNotifyEmail(true);
+                sharedNotebook.setReminderNotifyApp(false);
+
+                notebook.addSharedNotebook(sharedNotebook);
+            }
 
             bool res = localStorageManager.AddNotebook(notebook, error);
             QVERIFY2(res == true, qPrintable(error));
         }
+
+        // 1) Test method listing all notebooks
 
         QList<Notebook> foundNotebooks = localStorageManager.ListAllNotebooks(error);
         QVERIFY2(!foundNotebooks.isEmpty(), qPrintable(error));
@@ -1341,6 +1369,46 @@ void CoreTester::localStorageManagerListAllNotebooksTest()
                       "was not found in the list of original notebooks");
             }
         }
+
+#define CHECK_LIST_NOTEBOOKS_BY_FLAG(flag, flag_name, true_condition, false_condition) \
+        error.clear(); \
+        foundNotebooks = localStorageManager.ListNotebooks(flag, error); \
+        QVERIFY2(error.isEmpty(), qPrintable(error)); \
+        \
+        for(int i = 0; i < numNotebooks; ++i) \
+        { \
+            const Notebook & notebook = notebooks.at(i); \
+            bool res = foundNotebooks.contains(notebook); \
+            if ((true_condition) && !res) { \
+                QNWARNING("Not found notebook: " << notebook); \
+                QFAIL("One of " flag_name " notebooks was not found by LocalStorageManager::ListNotebooks"); \
+            } \
+            else if ((false_condition) && res) { \
+                QNWARNING("Found irrelevant notebook: " << notebook); \
+                QFAIL("LocalStorageManager::ListNotebooks with flag " flag_name " returned incorrect notebook"); \
+            } \
+        }
+
+        // 2) Test method listing only dirty notebooks
+        CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListDirty, "dirty", i > 2, i <= 2);
+
+        // 3) Test method listing only local notebooks
+        CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListLocal, "local", i < 3, i >= 3);
+
+        // 4) Test method listing only notebooks without guid
+        CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListElementsWithoutGuid, "guidless", i <= 1, i > 1);
+
+        // 5) Test method listing only notebooks with shortcut
+        CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListElementsWithShortcuts, "having shortcut", (i == 0) || (i == 4), (i != 0) && (i != 4));
+
+        // 6) Test method listing dirty notebooks with guid and with shortcut
+        CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid |
+                                     LocalStorageManager::ListElementsWithShortcuts,
+                                     "dirty, having guid, having shortcut", i == 4, i != 4);
+
+        // 7) Test method listing local notebooks having shortcut
+        CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
+                                     "local, having shortcut", i == 0, i != 0);
     }
     CATCH_EXCEPTION();
 }
