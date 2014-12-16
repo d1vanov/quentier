@@ -758,89 +758,14 @@ bool LocalStorageManagerPrivate::FindDefaultOrLastUsedNotebook(Notebook & notebo
 QList<Notebook> LocalStorageManagerPrivate::ListAllNotebooks(QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllNotebooks");
-
-    QList<Notebook> notebooks;
-    errorDescription = QT_TR_NOOP("Can't list all notebooks in local storage database: ");
-
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
-                          "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
-                          "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
-                          "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
-                          "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
-                          "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
-                          "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
-                          "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
-                          "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
-                          "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id");
-    if (!res) {
-        // TRANSLATOR explaining the reason of error
-        errorDescription += QT_TR_NOOP("can't select all notebooks from SQL database: ");
-        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
-        errorDescription += query.lastError().text();
-        return notebooks;
-    }
-
-    QMap<QString, int> indexForLocalGuid;
-
-    while(query.next())
-    {
-        QSqlRecord rec = query.record();
-
-        int localGuidIndex = rec.indexOf("localGuid");
-        if (localGuidIndex < 0) {
-            errorDescription += QT_TR_NOOP("Internal error: no localGuid field in SQL record");
-            QNWARNING(errorDescription);
-            notebooks.clear();
-            return notebooks;
-        }
-
-        QVariant localGuidValue = rec.value(localGuidIndex);
-        QString localGuid = localGuidValue.toString();
-        if (localGuid.isEmpty()) {
-            errorDescription += QT_TR_NOOP("Internal error: found empty localGuid field for Notebook");
-            QNWARNING(errorDescription);
-            notebooks.clear();
-            return notebooks;
-        }
-
-        auto it = indexForLocalGuid.find(localGuid);
-        bool notFound = (it == indexForLocalGuid.end());
-        if (notFound) {
-            indexForLocalGuid[localGuid] = notebooks.size();
-            notebooks << Notebook();
-        }
-
-        Notebook & notebook = (notFound ? notebooks.back() : notebooks[it.value()]);
-
-        res = FillNotebookFromSqlRecord(rec, notebook, errorDescription);
-        if (!res) {
-            notebooks.clear();
-            return notebooks;
-        }
-
-        SortSharedNotebooks(notebook);
-    }
-
-    int numNotebooks = notebooks.size();
-    QNDEBUG("found " << numNotebooks << " notebooks");
-
-    if (numNotebooks <= 0) {
-        // TRANSLATOR explaining the reason of error
-        errorDescription += QT_TR_NOOP("no notebooks exist in local storage");
-        QNDEBUG(errorDescription);
-    }
-
-    return notebooks;
+    return ListNotebooks(LocalStorageManager::ListAll, errorDescription);
 }
 
 QList<Notebook> LocalStorageManagerPrivate::ListNotebooks(const LocalStorageManager::ListObjectsOptions flag,
                                                           QString & errorDescription) const
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(errorDescription)
-    return QList<Notebook>();
+    QNDEBUG("LocalStorageManagerPrivate::ListNotebooks: flag = " << flag);
+    return listObjects<Notebook>(flag, errorDescription);
 }
 
 QList<SharedNotebookWrapper> LocalStorageManagerPrivate::ListAllSharedNotebooks(QString & errorDescription) const
@@ -1139,113 +1064,14 @@ bool LocalStorageManagerPrivate::FindLinkedNotebook(LinkedNotebook & linkedNoteb
 QList<LinkedNotebook> LocalStorageManagerPrivate::ListAllLinkedNotebooks(QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllLinkedNotebooks");
-
-    QList<LinkedNotebook> notebooks;
-    QString errorPrefix = QT_TR_NOOP("Can't list all linked notebooks in local storage database: ");
-
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT * FROM LinkedNotebooks");
-    if (!res) {
-        // TRANSLATOR explaining the reason of error
-        errorDescription = errorPrefix + QT_TR_NOOP("can't select all linked notebooks from SQL database: ");
-        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
-        errorDescription += query.lastError().text();
-        return notebooks;
-    }
-
-    notebooks.reserve(qMax(query.size(), 0));
-    while(query.next())
-    {
-        QSqlRecord rec = query.record();
-
-        notebooks << LinkedNotebook();
-        LinkedNotebook & notebook = notebooks.back();
-
-        res = FillLinkedNotebookFromSqlRecord(rec, notebook, errorDescription);
-        if (!res) {
-            errorDescription.prepend(errorPrefix);
-            notebooks.clear();
-            return notebooks;
-        }
-    }
-
-    QNDEBUG("found " << notebooks.size() << " notebooks");
-
-    return notebooks;
+    return ListLinkedNotebooks(LocalStorageManager::ListAll, errorDescription);
 }
 
 QList<LinkedNotebook> LocalStorageManagerPrivate::ListLinkedNotebooks(const LocalStorageManager::ListObjectsOptions flag,
                                                                       QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListLinkedNotebooks: flag = " << flag);
-
-    bool listAll = flag.testFlag(LocalStorageManager::ListAll);
-    if (listAll) {
-        return ListAllLinkedNotebooks(errorDescription);
-    }
-
-    bool listDirty = flag.testFlag(LocalStorageManager::ListDirty);
-    bool listNonDirty = flag.testFlag(LocalStorageManager::ListNonDirty);
-
-    if (!listDirty && !listNonDirty) {
-        errorDescription = QT_TR_NOOP("can't list linked notebooks by filter: detected incorrect filter flag: ");
-        errorDescription += QString::number(static_cast<int>(flag));
-        return QList<LinkedNotebook>();
-    }
-
-    QString sqlQueryConditions;
-    if (!(listDirty && listNonDirty))
-    {
-        if (listDirty) {
-            sqlQueryConditions += "(isDirty=1)";
-        }
-
-        if (listNonDirty) {
-            sqlQueryConditions += "(isDirty=0)";
-        }
-    }
-
-    QString queryString = "SELECT * FROM LinkedNotebooks WHERE " + sqlQueryConditions;
-    if (queryString.endsWith("WHERE ")) {
-        // Is is a fancy way to tell "list all linked notebooks" but whatever
-        queryString.chop(7);
-    }
-
-    QNDEBUG("SQL query string: " << queryString);
-
-    QList<LinkedNotebook> linkedNotebooks;
-
-    QString errorPrefix = QT_TR_NOOP("Can't list linked notebooks in local storage by filter: ");
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(queryString);
-    if (!res) {
-        errorDescription = errorPrefix + QT_TR_NOOP("can't list linked notebooks by filter from "
-                                                    "\"LinkedNotebooks\" table in SQL database: ");
-        QNCRITICAL(errorDescription << "last query = " << query.lastQuery() << ", last error = " << query.lastError());
-        errorDescription += query.lastError().text();
-        return linkedNotebooks;
-    }
-
-    linkedNotebooks.reserve(std::max(query.size(), 0));
-
-    while(query.next())
-    {
-        QSqlRecord rec = query.record();
-
-        linkedNotebooks << LinkedNotebook();
-        LinkedNotebook & linkedNotebook = linkedNotebooks.back();
-
-        res = FillLinkedNotebookFromSqlRecord(rec, linkedNotebook, errorDescription);
-        if (!res) {
-            errorDescription.prepend(errorPrefix);
-            linkedNotebooks.clear();
-            return linkedNotebooks;
-        }
-    }
-
-    QNDEBUG("found " << linkedNotebooks.size() << " linked notebooks");
-
-    return linkedNotebooks;
+    return listObjects<LinkedNotebook>(flag, errorDescription);
 }
 
 bool LocalStorageManagerPrivate::ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
@@ -2268,97 +2094,14 @@ QList<Tag> LocalStorageManagerPrivate::ListAllTagsPerNote(const Note & note, QSt
 QList<Tag> LocalStorageManagerPrivate::ListAllTags(QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllTags");
-
-    QList<Tag> tags;
-    QString errorPrefix = QT_TR_NOOP("Can't list all tags from local storage database: ");
-
-    // Will run all the queries from this method and its sub-methods within a single transaction
-    // to prevent multiple drops and re-obtainings of shared lock
-    Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
-    Q_UNUSED(transaction)
-
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT localGuid FROM Tags");
-    if (!res) {
-        // TRANSLATOR explaining why all tag from local storage cannot be listed
-        errorDescription = errorPrefix + QT_TR_NOOP("can't select tag guids from SQL database: ");
-        QNWARNING(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
-        errorDescription += query.lastError().text();
-        return tags;
-    }
-
-    tags = FillTagsFromSqlQuery(query, errorDescription);
-    if (tags.isEmpty() && !errorDescription.isEmpty()) {
-        errorDescription.prepend(errorPrefix);
-        QNWARNING(errorDescription);
-    }
-
-    QNDEBUG("found " << tags.size() << " tags");
-
-    return tags;
+    return ListTags(LocalStorageManager::ListAll, errorDescription);
 }
 
 QList<Tag> LocalStorageManagerPrivate::ListTags(const LocalStorageManager::ListObjectsOptions flag,
                                                 QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListTags: flag = " << flag);
-
-    bool listAll = flag.testFlag(LocalStorageManager::ListAll);
-    if (listAll) {
-        return ListAllTags(errorDescription);
-    }
-
-    QString flagError;
-    QString sqlQueryConditions = listObjectsOptionsToSqlQueryConditions(flag, flagError);
-    if (sqlQueryConditions.isEmpty() && !flagError.isEmpty()) {
-        errorDescription = flagError;
-        return QList<Tag>();
-    }
-
-    QString queryString = "SELECT * FROM Tags WHERE " + sqlQueryConditions;
-    if (queryString.endsWith("WHERE ")) {
-        // It is a fancy way to tell "list all tags" but whatever
-        queryString.chop(7);
-    }
-    else {
-        // query string ends with " AND ", need to remove that
-        queryString.chop(5);
-    }
-
-    QNDEBUG("SQL query string: " << queryString);
-
-    QList<Tag> tags;
-
-    QString errorPrefix = QT_TR_NOOP("Can't list tags in local storage by filter: ");
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(queryString);
-    if (!res) {
-        errorDescription = errorPrefix + QT_TR_NOOP("can't list tags by filter from \"Tags\" table in SQL database: ");
-        QNCRITICAL(errorDescription << "last query = " << query.lastQuery() << ", last error = " << query.lastError());
-        errorDescription += query.lastError().text();
-        return tags;
-    }
-
-    tags.reserve(std::max(query.size(), 0));
-
-    while(query.next())
-    {
-        QSqlRecord rec = query.record();
-
-        tags << Tag();
-        Tag & tag = tags.back();
-
-        res = FillTagFromSqlRecord(rec, tag, errorDescription);
-        if (!res) {
-            errorDescription.prepend(errorPrefix);
-            tags.clear();
-            return tags;
-        }
-    }
-
-    QNDEBUG("found " << tags.size() << " tags");
-
-    return tags;
+    return listObjects<Tag>(flag, errorDescription);
 }
 
 bool LocalStorageManagerPrivate::DeleteTag(const Tag & tag, QString & errorDescription)
@@ -2754,105 +2497,14 @@ bool LocalStorageManagerPrivate::FindSavedSearch(SavedSearch & search, QString &
 QList<SavedSearch> LocalStorageManagerPrivate::ListAllSavedSearches(QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllSavedSearches");
-
-    QList<SavedSearch> searches;
-
-    QString errorPrefix = QT_TR_NOOP("Can't list all saved searches in local storage database");
-
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT * FROM SavedSearches");
-    if (!res) {
-        errorDescription = errorPrefix + QT_TR_NOOP("can't select all saved searches from "
-                                                    "\"SavedSearches\" table in SQL database: ");
-        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last error = " << query.lastError());
-        errorDescription += query.lastError().text();
-        return searches;
-    }
-
-    searches.reserve(std::max(query.size(), 0));
-
-    while(query.next())
-    {
-        QSqlRecord rec = query.record();
-
-        searches << SavedSearch();
-        SavedSearch & search = searches.back();
-
-        res = FillSavedSearchFromSqlRecord(rec, search, errorDescription);
-        if (!res) {
-            errorDescription.prepend(errorPrefix);
-            searches.clear();
-            return searches;
-        }
-    }
-
-    QNDEBUG("found " << searches.size() << " saved searches");
-
-    return searches;
+    return ListSavedSearches(LocalStorageManager::ListAll, errorDescription);
 }
 
 QList<SavedSearch> LocalStorageManagerPrivate::ListSavedSearches(const LocalStorageManager::ListObjectsOptions flag,
                                                                  QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListSavedSearches: flag = " << flag);
-
-    bool listAll = flag.testFlag(LocalStorageManager::ListAll);
-    if (listAll) {
-        return ListAllSavedSearches(errorDescription);
-    }
-
-    QString flagError;
-    QString sqlQueryConditions = listObjectsOptionsToSqlQueryConditions(flag, flagError);
-    if (sqlQueryConditions.isEmpty() && !flagError.isEmpty()) {
-        errorDescription = flagError;
-        return QList<SavedSearch>();
-    }
-
-    QString queryString = "SELECT * FROM SavedSearches WHERE " + sqlQueryConditions;
-    if (queryString.endsWith("WHERE ")) {
-        // It is a fancy way to tell "list all saved searches" but whatever
-        queryString.chop(7);
-    }
-    else {
-        // query string ends with " AND ", need to remove that
-        queryString.chop(5);
-    }
-
-    QNDEBUG("SQL query string: " << queryString);
-
-    QList<SavedSearch> searches;
-
-    QString errorPrefix = QT_TR_NOOP("Can't list saved searches in local storage by filter: ");
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(queryString);
-    if (!res) {
-        errorDescription = errorPrefix + QT_TR_NOOP("can't list saved searches by filter from "
-                                                    "\"SavedSearches\" table in SQL database: ");
-        QNCRITICAL(errorDescription << "last query = " << query.lastQuery() << ", last error = " << query.lastError());
-        errorDescription += query.lastError().text();
-        return searches;
-    }
-
-    searches.reserve(std::max(query.size(), 0));
-
-    while(query.next())
-    {
-        QSqlRecord rec = query.record();
-
-        searches << SavedSearch();
-        SavedSearch & search = searches.back();
-
-        res = FillSavedSearchFromSqlRecord(rec, search, errorDescription);
-        if (!res) {
-            errorDescription.prepend(errorPrefix);
-            searches.clear();
-            return searches;
-        }
-    }
-
-    QNDEBUG("found " << searches.size() << " saved searches");
-
-    return searches;
+    return listObjects<SavedSearch>(flag, errorDescription);
 }
 
 bool LocalStorageManagerPrivate::ExpungeSavedSearch(const SavedSearch & search,
@@ -8061,11 +7713,14 @@ bool LocalStorageManagerPrivate::resourceRecognitionTypesToResourceLocalGuids(co
     return true;
 }
 
+template <class T>
 QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const LocalStorageManager::ListObjectsOptions & options,
                                                                            QString & errorDescription) const
 {
     QString result;
     errorDescription.clear();
+
+    bool listAll = options.testFlag(LocalStorageManager::ListAll);
 
     bool listDirty = options.testFlag(LocalStorageManager::ListDirty);
     bool listNonDirty = options.testFlag(LocalStorageManager::ListNonDirty);
@@ -8079,7 +7734,7 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const
     bool listElementsWithShortcuts = options.testFlag(LocalStorageManager::ListElementsWithShortcuts);
     bool listElementsWithoutShortcuts = options.testFlag(LocalStorageManager::ListElementsWithoutShortcuts);
 
-    if (!listDirty && !listNonDirty && !listElementsWithoutGuid && !listElementsWithGuid &&
+    if (!listAll && !listDirty && !listNonDirty && !listElementsWithoutGuid && !listElementsWithGuid &&
         !listLocal && !listNonLocal && !listElementsWithShortcuts && !listElementsWithoutShortcuts)
     {
         errorDescription = QT_TR_NOOP("can't list objects by filter: detected incorrect filter flag: ");
@@ -8132,6 +7787,225 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const
     }
 
     return result;
+}
+
+template<>
+QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions<LinkedNotebook>(const LocalStorageManager::ListObjectsOptions & flag,
+                                                                                           QString & errorDescription) const
+{
+    QString result;
+    errorDescription.clear();
+
+    bool listAll = flag.testFlag(LocalStorageManager::ListAll);
+    bool listDirty = flag.testFlag(LocalStorageManager::ListDirty);
+    bool listNonDirty = flag.testFlag(LocalStorageManager::ListNonDirty);
+
+    if (!listAll && !listDirty && !listNonDirty) {
+        errorDescription = QT_TR_NOOP("can't list linked notebooks by filter: detected incorrect filter flag: ");
+        errorDescription += QString::number(static_cast<int>(flag));
+        return result;
+    }
+
+    if (!(listDirty && listNonDirty))
+    {
+        if (listDirty) {
+            result += "(isDirty=1)";
+        }
+
+        if (listNonDirty) {
+            result += "(isDirty=0)";
+        }
+    }
+
+    return result;
+}
+
+template <>
+QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<SavedSearch>() const
+{
+    QString result = "SELECT * FROM SavedSearches";
+    return result;
+}
+
+template <>
+QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<Tag>() const
+{
+    QString result = "SELECT * FROM Tags";
+    return result;
+}
+
+template <>
+QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<LinkedNotebook>() const
+{
+    QString result = "SELECT * FROM LinkedNotebooks";
+    return result;
+}
+
+template <>
+QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<Notebook>() const
+{
+    QString result = "SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
+                     "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
+                     "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
+                     "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
+                     "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
+                     "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
+                     "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
+                     "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
+                     "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
+                     "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id";
+    return result;
+}
+
+template <class T>
+bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<T> & objects, QString & errorDescription) const
+{
+    objects.reserve(std::max(query.size(), 0));
+
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+
+        objects << T();
+        T & object = objects.back();
+
+        bool res = fillObjectFromSqlRecord(rec, object, errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template <>
+bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery<Notebook>(QSqlQuery query, QList<Notebook> & notebooks,
+                                                                   QString & errorDescription) const
+{
+    QMap<QString, int> indexForLocalGuid;
+
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+
+        int localGuidIndex = rec.indexOf("localGuid");
+        if (localGuidIndex < 0) {
+            errorDescription += QT_TR_NOOP("Internal error: no localGuid field in SQL record");
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        QVariant localGuidValue = rec.value(localGuidIndex);
+        QString localGuid = localGuidValue.toString();
+        if (localGuid.isEmpty()) {
+            errorDescription += QT_TR_NOOP("Internal error: found empty localGuid field for Notebook");
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        auto it = indexForLocalGuid.find(localGuid);
+        bool notFound = (it == indexForLocalGuid.end());
+        if (notFound) {
+            indexForLocalGuid[localGuid] = notebooks.size();
+            notebooks << Notebook();
+        }
+
+        Notebook & notebook = (notFound ? notebooks.back() : notebooks[it.value()]);
+
+        bool res = FillNotebookFromSqlRecord(rec, notebook, errorDescription);
+        if (!res) {
+            return false;
+        }
+
+        SortSharedNotebooks(notebook);
+    }
+
+    return true;
+}
+
+template<>
+bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<SavedSearch>(const QSqlRecord & rec, SavedSearch & search,
+                                                                      QString & errorDescription) const
+{
+    return FillSavedSearchFromSqlRecord(rec, search, errorDescription);
+}
+
+template<>
+bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Tag>(const QSqlRecord & rec, Tag & tag,
+                                                              QString & errorDescription) const
+{
+    return FillTagFromSqlRecord(rec, tag, errorDescription);
+}
+
+template<>
+bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<LinkedNotebook>(const QSqlRecord & rec, LinkedNotebook & linkedNotebook,
+                                                                         QString & errorDescription) const
+{
+    return FillLinkedNotebookFromSqlRecord(rec, linkedNotebook, errorDescription);
+}
+
+template <>
+bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Notebook>(const QSqlRecord & rec, Notebook & notebook,
+                                                                   QString & errorDescription) const
+{
+    return FillNotebookFromSqlRecord(rec, notebook, errorDescription);
+}
+
+template<>
+bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Note>(const QSqlRecord & rec, Note & note,
+                                                               QString & errorDescription) const
+{
+    Q_UNUSED(errorDescription);
+    FillNoteFromSqlRecord(rec, note);
+    return true;
+}
+
+template <class T>
+QList<T> LocalStorageManagerPrivate::listObjects(const LocalStorageManager::ListObjectsOptions & flag,
+                                                 QString & errorDescription) const
+{
+    QString flagError;
+    QString sqlQueryConditions = listObjectsOptionsToSqlQueryConditions<T>(flag, flagError);
+    if (sqlQueryConditions.isEmpty() && !flagError.isEmpty()) {
+        errorDescription = flagError;
+        return QList<T>();
+    }
+
+    QString queryString = listObjectsGenericSqlQuery<T>();
+    if (!sqlQueryConditions.isEmpty())
+    {
+        queryString += " WHERE ";
+        queryString += sqlQueryConditions;
+
+        if (queryString.endsWith(" AND ")) {
+            queryString.chop(5);
+        }
+    }
+
+    QNDEBUG("SQL query string: " << queryString);
+
+    QList<T> objects;
+
+    QString errorPrefix = QT_TR_NOOP("Can't list objects in local storage by filter: ");
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
+    if (!res) {
+        errorDescription = errorPrefix + QT_TR_NOOP("can't list objects by filter from SQL database: ");
+        QNCRITICAL(errorDescription << "last query = " << query.lastQuery() << ", last error = " << query.lastError());
+        errorDescription += query.lastError().text();
+        return objects;
+    }
+
+    res = fillObjectsFromSqlQuery(query, objects, errorDescription);
+    if (!res) {
+        errorDescription.prepend(errorPrefix);
+        objects.clear();
+        return objects;
+    }
+
+    QNDEBUG("found " << objects.size() << " objects");
+
+    return objects;
 }
 
 bool LocalStorageManagerPrivate::SharedNotebookAdapterCompareByIndex::operator()(const SharedNotebookAdapter & lhs,

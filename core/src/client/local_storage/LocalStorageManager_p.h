@@ -239,8 +239,22 @@ private:
                                                       QStringList & resourceLocalGuids,
                                                       QString & errorDescription) const;
 
+    template <class T>
     QString listObjectsOptionsToSqlQueryConditions(const LocalStorageManager::ListObjectsOptions & flag,
                                                    QString & errorDescription) const;
+
+    template <class T>
+    QList<T> listObjects(const LocalStorageManager::ListObjectsOptions & flag,
+                         QString & errorDescription) const;
+
+    template <class T>
+    QString listObjectsGenericSqlQuery() const;
+
+    template <class T>
+    bool fillObjectsFromSqlQuery(QSqlQuery query, QList<T> & objects, QString & errorDescription) const;
+
+    template <class T>
+    bool fillObjectFromSqlRecord(const QSqlRecord & record, T & object, QString & errorDescription) const;
 
     struct SharedNotebookAdapterCompareByIndex
     {
