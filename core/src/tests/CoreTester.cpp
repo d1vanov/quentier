@@ -770,28 +770,6 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
             }
         }
 
-        // 2) Test method listing saved searches with flag set to list all saved searches
-
-        error.clear();
-        foundSearches = localStorageManager.ListSavedSearches(LocalStorageManager::ListAll, error);
-        QVERIFY2(error.isEmpty(), qPrintable(error));
-
-        numFoundSearches = foundSearches.size();
-        if (numFoundSearches != nSearches) {
-            QFAIL(qPrintable("Error: number of saved searches in the result of LocalStorageManager::ListSavedSearches with flag "
-                             "ListAll (" + QString::number(numFoundSearches) + ") does not match the original number of added saved searches (" +
-                             QString::number(nSearches) + ")"));
-        }
-
-        for(int i = 0; i < numFoundSearches; ++i)
-        {
-            const SavedSearch & foundSearch = foundSearches.at(i);
-            if (!searches.contains(foundSearch)) {
-                QFAIL("One of saved searches from the result of LocalStorageManager::ListSavedSearches with flag ListAll "
-                      "was not found in the list of original searches");
-            }
-        }
-
 #define CHECK_LIST_SAVED_SEARCHES_BY_FLAG(flag, flag_name, true_condition, false_condition) \
         error.clear(); \
         foundSearches = localStorageManager.ListSavedSearches(flag, error); \
@@ -811,23 +789,23 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
             } \
         }
 
-        // 3) Test method listing only dirty saved searches
+        // 2) Test method listing only dirty saved searches
         CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListDirty, "dirty", i > 2, i <= 2);
 
-        // 4) Test method listing only local saved searches
+        // 3) Test method listing only local saved searches
         CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListLocal, "local", i < 3, i >= 3);
 
-        // 5) Test method listing only saved searches without guid
+        // 4) Test method listing only saved searches without guid
         CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListElementsWithoutGuid, "guidless", i <= 1, i > 1);
 
-        // 6) Test method listing only saved searches with shortcut
+        // 5) Test method listing only saved searches with shortcut
         CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListElementsWithShortcuts, "having shortcut", (i == 0) || (i == 4), (i != 0) && (i != 4));
 
-        // 7) Test method listing dirty saved searches with guid and with shortcut
+        // 6) Test method listing dirty saved searches with guid and with shortcut
         CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListElementsWithShortcuts,
                                           "dirty, having guid, having shortcut", i == 4, i != 4);
 
-        // 8) Test method listing local saved searches having shortcut
+        // 7) Test method listing local saved searches having shortcut
         CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
                                           "local, having shortcut", i == 0, i != 0);
     }
@@ -896,29 +874,7 @@ void CoreTester::localStorageManagerListLinkedNotebooksTest()
             }
         }
 
-        // 2) Test method listing linked notebooks with flag set to list all linked notebooks
-
-        error.clear();
-        foundLinkedNotebooks = localStorageManager.ListLinkedNotebooks(LocalStorageManager::ListAll, error);
-        QVERIFY2(error.isEmpty(), qPrintable(error));
-
-        numFoundLinkedNotebooks = foundLinkedNotebooks.size();
-        if (numFoundLinkedNotebooks != nLinkedNotebooks) {
-            QFAIL(qPrintable("Error: number of linked notebooks in the result of LocalStorageManager::ListLinkedNotebooks with flag ListAll (" +
-                             QString::number(numFoundLinkedNotebooks) + ") does not match the original number of added linked notebooks (" +
-                             QString::number(nLinkedNotebooks) + ")"));
-        }
-
-        for(int i = 0; i < numFoundLinkedNotebooks; ++i)
-        {
-            const LinkedNotebook & foundLinkedNotebook = foundLinkedNotebooks.at(i);
-            if (!linkedNotebooks.contains(foundLinkedNotebook)) {
-                QFAIL("One of linked notebooks from the result of LocalStorageManager::ListLinkedNotebooks with flag ListAll "
-                      "was not found in the list of original linked notebooks");
-            }
-        }
-
-        // 3) Test method listing only dirty linked notebooks
+        // 2) Test method listing only dirty linked notebooks
         error.clear();
         foundLinkedNotebooks = localStorageManager.ListLinkedNotebooks(LocalStorageManager::ListDirty, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
@@ -1015,28 +971,6 @@ void CoreTester::localStorageManagerListTagsTest()
             }
         }
 
-        // 2) Test method listing tags with flag set to list all tags
-
-        error.clear();
-        foundTags = localStorageManager.ListTags(LocalStorageManager::ListAll, error);
-        QVERIFY2(error.isEmpty(), qPrintable(error));
-
-        numFoundTags = foundTags.size();
-        if (numFoundTags != nTags) {
-            QFAIL(qPrintable("Error: number of tags in the result of LocalStorageManager::ListTags with flag "
-                             "ListAll (" + QString::number(numFoundTags) + ") does not match the original number of addeed tags (" +
-                             QString::number(nTags) + ")"));
-        }
-
-        for(int i = 0; i < numFoundTags; ++i)
-        {
-            const Tag & foundTag = foundTags.at(i);
-            if (!tags.contains(foundTag)) {
-                QFAIL("One of tags from the result of LocalStorageManager::ListAllTags "
-                      "was not found in the list of original tags");
-            }
-        }
-
 #define CHECK_LIST_TAGS_BY_FLAG(flag, flag_name, true_condition, false_condition) \
         error.clear(); \
         foundTags = localStorageManager.ListTags(flag, error); \
@@ -1056,23 +990,23 @@ void CoreTester::localStorageManagerListTagsTest()
             } \
         }
 
-        // 3) Test method listing only dirty tags
+        // 2) Test method listing only dirty tags
         CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListDirty, "dirty", i > 2, i <= 2);
 
-        // 4) Test method listing only local tags
+        // 3) Test method listing only local tags
         CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListLocal, "local", i < 3, i >= 3);
 
-        // 5) Test method listing only tags without guid
+        // 4) Test method listing only tags without guid
         CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListElementsWithoutGuid, "guidless", i <= 1, i > 1);
 
-        // 6) Test method listing only tags with shortcut
+        // 5) Test method listing only tags with shortcut
         CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListElementsWithShortcuts, "having shortcut", (i == 0) || (i == 4), (i != 0) && (i != 4));
 
-        // 7) Test method listing dirty tags with guid and with shortcut
+        // 6) Test method listing dirty tags with guid and with shortcut
         CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListElementsWithShortcuts,
                                 "dirty, having guid, having shortcut", i == 4, i != 4);
 
-        // 8) Test method listing local tags having shortcut
+        // 7) Test method listing local tags having shortcut
         CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
                                 "local, having shortcut", i == 0, i != 0);
     }
