@@ -1544,11 +1544,53 @@ QList<Note> LocalStorageManagerPrivate::ListNotes(const LocalStorageManager::Lis
                                                   QString & errorDescription,
                                                   const bool withResourceBinaryData) const
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(withResourceBinaryData)
-    return QList<Note>();
+    QNDEBUG("LocalStorageManagerPrivate::ListNotes: flag = " << flag << ", withResourceBinaryData = "
+            << (withResourceBinaryData ? "true" : "false"));
+
+    // Will run all the queries from this method and its sub-methods within a single transaction
+    // to prevent multiple drops and re-obtainings of shared lock
+    Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
+    Q_UNUSED(transaction)
+
+    QList<Note> notes = listObjects<Note>(flag, errorDescription);
+    if (notes.isEmpty()) {
+        return notes;
+    }
+
+    const int numNotes = notes.size();
+    QString error;
+    for(int i = 0; i < numNotes; ++i)
+    {
+        Note & note = notes[i];
+
+        bool res = FindAndSetTagGuidsPerNote(note, error);
+        if (!res) {
+            errorDescription += error;
+            QNWARNING(errorDescription);
+            notes.clear();
+            return notes;
+        }
+
+        error.clear();
+        res = FindAndSetResourcesPerNote(note, error, withResourceBinaryData);
+        if (!res) {
+            errorDescription += error;
+            QNWARNING(errorDescription);
+            notes.clear();
+            return notes;
+        }
+
+        res = note.checkParameters(error);
+        if (!res) {
+            errorDescription += QT_TR_NOOP("found note is invalid: ");
+            errorDescription += error;
+            QNWARNING(errorDescription);
+            notes.clear();
+            return notes;
+        }
+    }
+
+    return notes;
 }
 
 bool LocalStorageManagerPrivate::DeleteNote(const Note & note, QString & errorDescription)
@@ -7854,6 +7896,13 @@ QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<Notebook>() const
                      "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
                      "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
                      "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id";
+    return result;
+}
+
+template <>
+QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<Note>() const
+{
+    QString result = "SELECT * FROM Notes";
     return result;
 }
 
