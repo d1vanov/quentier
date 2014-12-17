@@ -11,6 +11,7 @@ include("cmake/openssl.cmake")
 include("cmake/prepend.cmake")
 include("cmake/boost.cmake")
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 enable_testing()
 
 add_subdirectory(3rdparty)
