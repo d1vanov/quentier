@@ -48,7 +48,8 @@ public:
     bool FindLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
     bool FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
     QList<Notebook> ListAllNotebooks(QString & errorDescription) const;
-    QList<Notebook> ListNotebooks(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription) const;
+    QList<Notebook> ListNotebooks(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
+                                  const size_t limit = 0, const size_t offset = 0, const QString & orderBy = QString()) const;
     QList<SharedNotebookWrapper> ListAllSharedNotebooks(QString & errorDescription) const;
     QList<SharedNotebookWrapper> ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                     QString & errorDescription) const;
@@ -60,7 +61,8 @@ public:
     bool FindLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const;
     QList<LinkedNotebook> ListAllLinkedNotebooks(QString & errorDescription) const;
     QList<LinkedNotebook> ListLinkedNotebooks(const LocalStorageManager::ListObjectsOptions flag,
-                                              QString & errorDescription) const;
+                                              QString & errorDescription, const size_t limit = 0,
+                                              const size_t offset = 0, const QString & orderBy = QString()) const;
     bool ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     int GetNoteCount(QString & errorDescription) const;
@@ -71,7 +73,8 @@ public:
     QList<Note> ListAllNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
                                         const bool withResourceBinaryData = true) const;
     QList<Note> ListNotes(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
-                          const bool withResourceBinaryData = true) const;
+                          const bool withResourceBinaryData = true, const size_t limit = 0,
+                          const size_t offset = 0, const LocalStorageManager::ListNotesOrder::type & order = LocalStorageManager::ListNotesOrder::NoOrder) const;
     bool DeleteNote(const Note & note, QString & errorDescription);
     bool ExpungeNote(const Note & note, QString & errorDescription);
 
@@ -86,7 +89,8 @@ public:
     bool FindTag(Tag & tag, QString & errorDescription) const;
     QList<Tag> ListAllTagsPerNote(const Note & note, QString & errorDescription) const;
     QList<Tag> ListAllTags(QString & errorDescription) const;
-    QList<Tag> ListTags(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription) const;
+    QList<Tag> ListTags(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
+                        const size_t limit = 0, const size_t offset = 0, const QString & orderBy = QString()) const;
     bool DeleteTag(const Tag & tag, QString & errorDescription);
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
@@ -102,7 +106,8 @@ public:
     bool FindSavedSearch(SavedSearch & search, QString & errorDescription) const;
     QList<SavedSearch> ListAllSavedSearches(QString & errorDescription) const;
     QList<SavedSearch> ListSavedSearches(const LocalStorageManager::ListObjectsOptions flag,
-                                         QString & errorDescription) const;
+                                         QString & errorDescription, const size_t limit = 0,
+                                         const size_t offset = 0, const QString & orderBy = QString()) const;
     bool ExpungeSavedSearch(const SavedSearch & search, QString & errorDescription);
 
 public Q_SLOTS:
@@ -243,12 +248,16 @@ private:
     QString listObjectsOptionsToSqlQueryConditions(const LocalStorageManager::ListObjectsOptions & flag,
                                                    QString & errorDescription) const;
 
-    template <class T>
+    template <class T, class TOrderBy>
     QList<T> listObjects(const LocalStorageManager::ListObjectsOptions & flag,
-                         QString & errorDescription) const;
+                         QString & errorDescription, const size_t limit,
+                         const size_t offset, const TOrderBy & orderBy) const;
 
     template <class T>
     QString listObjectsGenericSqlQuery() const;
+
+    template <class TOrderBy>
+    QString orderByToSqlTableColumn(const TOrderBy & orderBy) const;
 
     template <class T>
     bool fillObjectsFromSqlQuery(QSqlQuery query, QList<T> & objects, QString & errorDescription) const;

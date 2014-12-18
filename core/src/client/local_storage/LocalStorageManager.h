@@ -368,6 +368,28 @@ public:
                   const bool withResourceBinaryData = true) const;
 
     /**
+     * @brief The ListNotesOrder struct is a C++98-style scoped enum which allows to specify the ordering
+     * of the results of methods listing notes from local storage
+     */
+    struct ListNotesOrder
+    {
+        enum type
+        {
+            ByUpdateSequenceNumber,
+            ByTitle,
+            ByCreationTimestamp,
+            ByModificationTimestamp,
+            ByDeletionTimestamp,
+            ByAuthor,
+            BySource,
+            BySourceApplication,
+            ByReminderTime,
+            ByPlaceName,
+            NoOrder
+        };
+    };
+
+    /**
      * @brief ListAllNotesPerNotebook - attempts to list all notes per given notebook
      * @param notebook - notebook for which list of notes is requested. If it has
      * "remote" Evernote service's guid set, it would be used to identify the notebook
