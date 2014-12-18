@@ -39,7 +39,7 @@ private slots:
     void localStorageManagerListTagsTest();
     void localStorageManagerListAllSharedNotebooksTest();
     void localStorageManagerListAllTagsPerNoteTest();
-    void localStorageManagerListAllNotesPerNotebookTest();
+    void localStorageManagerListNotesTest();
     void localStorageManagerListNotebooksTest();
 
     void localStorageManagerAsyncSavedSearchesTest();

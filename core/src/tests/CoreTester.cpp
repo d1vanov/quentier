@@ -1166,7 +1166,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
     CATCH_EXCEPTION();
 }
 
-void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
+void CoreTester::localStorageManagerListNotesTest()
 {
     try
     {
@@ -1202,7 +1202,31 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
             notes << Note();
             Note & note = notes.back();
 
-            note.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            if (i > 1) {
+                note.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            }
+
+            if (i > 2) {
+                note.setDirty(true);
+            }
+            else {
+                note.setDirty(false);
+            }
+
+            if (i < 3) {
+                note.setLocal(true);
+            }
+            else {
+                note.setLocal(false);
+            }
+
+            if ((i == 0) || (i == 4)) {
+                note.setShortcut(true);
+            }
+            else {
+                note.setShortcut(false);
+            }
+
             note.setUpdateSequenceNumber(i+1);
             note.setTitle("Fake note title #" + QString::number(i));
             note.setContent("<en-note><h1>Hello, world #" + QString::number(i) + "</h1></en-note>");
@@ -1214,6 +1238,8 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
             res = localStorageManager.AddNote(note, notebook, error);
             QVERIFY2(res == true, qPrintable(error));
         }
+
+        // 1) Test method listing all notes per notebook
 
         error.clear();
         QList<Note> foundNotes = localStorageManager.ListAllNotesPerNotebook(notebook, error);
@@ -1235,6 +1261,8 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
             }
         }
 
+        // 2) Ensure the method listing notes per notebook actually checks the notebook
+
         error.clear();
         foundNotes = localStorageManager.ListAllNotesPerNotebook(notebookNotLinkedWithNotes, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
@@ -1244,6 +1272,66 @@ void CoreTester::localStorageManagerListAllNotesPerNotebookTest()
                              "called with guid of notebook not containing any notes (found " +
                              QString::number(foundNotes.size()) + " notes)"));
         }
+
+        // 3) Test method listing all notes
+        error.clear();
+        foundNotes = localStorageManager.ListNotes(LocalStorageManager::ListAll, error);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
+
+        numFoundNotes = foundNotes.size();
+        if (numFoundNotes != numNotes) {
+            QFAIL(qPrintable("Error number of notes in the result of LocalStorageManager::ListNotes with flag ListAll (" +
+                             QString::number(numFoundNotes) + ") does not match the original number of added notes (" +
+                             QString::number(numNotes) + ")"));
+        }
+
+        for(int i = 0; i < numFoundNotes; ++i)
+        {
+            const Note & foundNote = foundNotes[i];
+            if (!notes.contains(foundNote)) {
+                QFAIL("One of notes from the result of LocalStorageManager::ListNotes with flag ListAll "
+                      "was not found in the list of original notes");
+            }
+        }
+
+#define CHECK_LIST_NOTES_BY_FLAG(flag, flag_name, true_condition, false_condition) \
+        error.clear(); \
+        foundNotes = localStorageManager.ListNotes(flag, error); \
+        QVERIFY2(error.isEmpty(), qPrintable(error)); \
+        \
+        for(int i = 0; i < numNotes; ++i) \
+        { \
+            const Note & note = notes[i]; \
+            bool res = foundNotes.contains(note); \
+            if ((true_condition) && !res) { \
+                QNWARNING("Not found note: " << note); \
+                QFAIL("One of " flag_name " notes was not found by LocalStorageManager::ListNotes"); \
+            } \
+            else if ((false_condition) && res) { \
+                QNWARNING("Found irrelevant note: " << note); \
+                QFAIL("LocalStorageManager::ListNotes with flag " flag_name " returned incorrect note"); \
+            } \
+        }
+
+        // 4) Test method listing only dirty notes
+        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListDirty, "dirty", i > 2, i <= 2);
+
+        // 5) Test method listing only local notes
+        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListLocal, "local", i < 3, i >= 3);
+
+        // 6) Test method listing only notes without guid
+        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListElementsWithoutGuid, "guidless", i <= 1, i > 1);
+
+        // 7) Test method listing only notes with shortcut
+        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListElementsWithShortcuts, "having shortcut", (i == 0) || (i == 4), (i != 0) && (i != 4));
+
+        // 8) Test method listing dirty notes with guid and with shortcut
+        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListElementsWithShortcuts,
+                                 "dirty, having guid, having shortcut", i == 4, i != 4);
+
+        // 9) Test method listing local notes having shortcut
+        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
+                                 "local, having shortcut", i == 0, i != 0);
     }
     CATCH_EXCEPTION();
 }
