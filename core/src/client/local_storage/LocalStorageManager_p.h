@@ -90,9 +90,10 @@ public:
     bool LinkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
     bool FindTag(Tag & tag, QString & errorDescription) const;
     QList<Tag> ListAllTagsPerNote(const Note & note, QString & errorDescription) const;
-    QList<Tag> ListAllTags(QString & errorDescription) const;
+    QList<Tag> ListAllTags(QString & errorDescription, const size_t limit,
+                           const size_t offset, const LocalStorageManager::ListTagsOrder::type & order) const;
     QList<Tag> ListTags(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
-                        const size_t limit = 0, const size_t offset = 0, const QString & orderBy = QString()) const;
+                        const size_t limit, const size_t offset, const LocalStorageManager::ListTagsOrder::type & order) const;
     bool DeleteTag(const Tag & tag, QString & errorDescription);
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 

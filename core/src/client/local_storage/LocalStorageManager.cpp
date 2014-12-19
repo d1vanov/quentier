@@ -281,16 +281,19 @@ QList<Tag> LocalStorageManager::ListAllTagsPerNote(const Note & note, QString & 
     return d->ListAllTagsPerNote(note, errorDescription);
 }
 
-QList<Tag> LocalStorageManager::ListAllTags(QString & errorDescription) const
+QList<Tag> LocalStorageManager::ListAllTags(QString & errorDescription, const size_t limit,
+                                            const size_t offset, const ListTagsOrder::type order) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllTags(errorDescription);
+    return d->ListAllTags(errorDescription, limit, offset, order);
 }
 
-QList<Tag> LocalStorageManager::ListTags(const ListObjectsOptions flag, QString &errorDescription) const
+QList<Tag> LocalStorageManager::ListTags(const ListObjectsOptions flag, QString & errorDescription,
+                                         const size_t limit, const size_t offset,
+                                         const ListTagsOrder::type & order) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListTags(flag, errorDescription);
+    return d->ListTags(flag, errorDescription, limit, offset, order);
 }
 
 bool LocalStorageManager::DeleteTag(const Tag & tag, QString & errorDescription)

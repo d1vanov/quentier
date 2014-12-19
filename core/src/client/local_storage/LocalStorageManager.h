@@ -222,7 +222,7 @@ public:
      * if no error happens, this parameter is untouched
      * @param limit - limit for the max number of notebooks in the result, zero by default which means no limit is set
      * @param offset - number of notebooks to skip in the beginning of the result, zero by default
-     * @param order - allows to specify particular ordering of the notebooks in the result, NoOrder by default
+     * @param order - allows to specify particular ordering of notebooks in the result, NoOrder by default
      * @return either list of notebooks within the account conforming to the filter or empty list
      * in cases of error or no notebooks conforming to the filter exist within the account
      */
@@ -464,7 +464,7 @@ public:
      * won't be present within each found note's resources
      * @param limit - limit for the max number of notes in the result, zero by default which means no limit is set
      * @param offset - number of notes to skip in the beginning of the result, zero by default
-     * @param order - allows to specify particular ordering of the notes in the result, NoOrder by default
+     * @param order - allows to specify particular ordering of notes in the result, NoOrder by default
      * @return either list of notes within the account conforming to the filter or empty list
      * in cases of error or no notes conforming to the filter exist within the account
      */
@@ -562,6 +562,17 @@ public:
      */
     bool FindTag(Tag & tag, QString & errorDescription) const;
 
+    struct ListTagsOrder
+    {
+        enum type
+        {
+            ByUpdateSequenceNumber,
+            ByName,
+            NoOrder
+        };
+    };
+
+    // TODO: adopt using limit, offset and order in this method
     /**
      * @brief ListAllTagsPerNote - lists all tags per given note
      * @param note - note for which the list of tags is requested. If it has "remote"
@@ -581,19 +592,28 @@ public:
      * In such case the returned list of tags would be empty and error description won't be empty.
      * However, if, for example, the list of tags is empty and error description is empty too,
      * it means the current account does not have any tags created.
+     * @param limit - limit for the max number of tags in the result, zero by default which means no limit is set
+     * @param offset - number of tags to skip in the beginning of the result, zero by default
+     * @param order - allows to specify particular ordering of tags in the result, NoOrder by default
      * @return the list of found tags within the account
      */
-    QList<Tag> ListAllTags(QString & errorDescription) const;
+    QList<Tag> ListAllTags(QString & errorDescription, const size_t limit = 0,
+                           const size_t offset = 0, const ListTagsOrder::type order = ListTagsOrder::NoOrder) const;
 
     /**
      * @brief ListTags - attempts to list tags within the account according to the specified input flag
      * @param flag - input parameter used to set the filter for the desired tags to be listed
      * @param errorDescription - error description if notes within the account could not be listed;
      * if no error happens, this parameter is untouched
+     * @param limit - limit for the max number of tags in the result, zero by default which means no limit is set
+     * @param offset - number of tags to skip in the beginning of the result, zero by default
+     * @param order - allows to specify particular ordering of tags in the result, NoOrder by default
      * @return either list of tags within the account conforming to the filter or empty list
      * in cases of error or no tags conforming to the filter exist within the account
      */
-    QList<Tag> ListTags(const ListObjectsOptions flag, QString & errorDescription) const;
+    QList<Tag> ListTags(const ListObjectsOptions flag, QString & errorDescription,
+                        const size_t limit = 0, const size_t offset = 0,
+                        const ListTagsOrder::type & order = ListTagsOrder::NoOrder) const;
 
     /**
      * @brief DeleteTag - marks tag as deleted in local storage.

@@ -2138,18 +2138,19 @@ QList<Tag> LocalStorageManagerPrivate::ListAllTagsPerNote(const Note & note, QSt
     return tags;
 }
 
-QList<Tag> LocalStorageManagerPrivate::ListAllTags(QString & errorDescription) const
+QList<Tag> LocalStorageManagerPrivate::ListAllTags(QString & errorDescription, const size_t limit, const size_t offset,
+                                                   const LocalStorageManager::ListTagsOrder::type & order) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllTags");
-    return ListTags(LocalStorageManager::ListAll, errorDescription);
+    return ListTags(LocalStorageManager::ListAll, errorDescription, limit, offset, order);
 }
 
 QList<Tag> LocalStorageManagerPrivate::ListTags(const LocalStorageManager::ListObjectsOptions flag,
-                                                QString & errorDescription, const size_t limit,
-                                                const size_t offset, const QString & orderBy) const
+                                                QString & errorDescription, const size_t limit, const size_t offset,
+                                                const LocalStorageManager::ListTagsOrder::type & order) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListTags: flag = " << flag);
-    return listObjects<Tag, QString>(flag, errorDescription, limit, offset, orderBy);
+    return listObjects<Tag, LocalStorageManager::ListTagsOrder::type>(flag, errorDescription, limit, offset, order);
 }
 
 bool LocalStorageManagerPrivate::DeleteTag(const Tag & tag, QString & errorDescription)
@@ -8005,6 +8006,26 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
         break;
     case LocalStorageManager::ListLinkedNotebooksOrder::ByUsername:
         result = "username";
+        break;
+    default:
+        break;
+    }
+
+    return result;
+}
+
+template <>
+QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager::ListTagsOrder::type>(const LocalStorageManager::ListTagsOrder::type & order) const
+{
+    QString result;
+
+    switch(order)
+    {
+    case LocalStorageManager::ListTagsOrder::ByUpdateSequenceNumber:
+        result = "updateSequenceNumber";
+        break;
+    case LocalStorageManager::ListTagsOrder::ByName:
+        result = "nameUpper";
         break;
     default:
         break;
