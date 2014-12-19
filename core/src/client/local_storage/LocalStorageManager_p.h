@@ -48,8 +48,9 @@ public:
     bool FindLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
     bool FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
     QList<Notebook> ListAllNotebooks(QString & errorDescription) const;
-    QList<Notebook> ListNotebooks(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
-                                  const size_t limit = 0, const size_t offset = 0, const QString & orderBy = QString()) const;
+    QList<Notebook> ListNotebooks(const LocalStorageManager::ListObjectsOptions flag,
+                                  QString & errorDescription, const size_t limit, const size_t offset,
+                                  const LocalStorageManager::ListNotebooksOrder::type & order) const;
     QList<SharedNotebookWrapper> ListAllSharedNotebooks(QString & errorDescription) const;
     QList<SharedNotebookWrapper> ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                     QString & errorDescription) const;
@@ -73,8 +74,8 @@ public:
     QList<Note> ListAllNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
                                         const bool withResourceBinaryData = true) const;
     QList<Note> ListNotes(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
-                          const bool withResourceBinaryData = true, const size_t limit = 0,
-                          const size_t offset = 0, const LocalStorageManager::ListNotesOrder::type & order = LocalStorageManager::ListNotesOrder::NoOrder) const;
+                          const bool withResourceBinaryData, const size_t limit,
+                          const size_t offset, const LocalStorageManager::ListNotesOrder::type & order) const;
     bool DeleteNote(const Note & note, QString & errorDescription);
     bool ExpungeNote(const Note & note, QString & errorDescription);
 

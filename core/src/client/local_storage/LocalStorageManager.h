@@ -199,6 +199,22 @@ public:
     QList<Notebook> ListAllNotebooks(QString & errorDescription) const;
 
     /**
+     * @brief The ListNotebooksOrder struct is a C++98 style scoped enum which allows to specify the ordering
+     * of the results of methods listing notebooks from local storage
+     */
+    struct ListNotebooksOrder
+    {
+        enum type
+        {
+            ByUpdateSequenceNumber = 0,
+            ByNotebookName,
+            ByCreationTimestamp,
+            ByModificationTimestamp,
+            NoOrder
+        };
+    };
+
+    /**
      * @brief ListNotebooks - attempts to list notebooks within the account according to
      * the specified input flag
      * @param flag - input parameter used to set the filter for the desired notebooks to be listed
@@ -207,7 +223,9 @@ public:
      * @return either list of notebooks within the account conforming to the filter or empty list
      * in cases of error or no notebooks conforming to the filter exist within the account
      */
-    QList<Notebook> ListNotebooks(const ListObjectsOptions flag, QString & errorDescription) const;
+    QList<Notebook> ListNotebooks(const ListObjectsOptions flag, QString & errorDescription,
+                                  const size_t limit = 0, const size_t offset = 0,
+                                  const ListNotebooksOrder::type order = ListNotebooksOrder::NoOrder) const;
 
     /**
      * @brief ListAllSharedNotebooks - attempts to list all shared notebooks within the account
@@ -224,7 +242,7 @@ public:
      * the one used by Evernote service, not the local guid!
      * @param notebookGuid - remote Evernote service's guid of notebook for which
      * shared notebooks are requested
-     * @param errorDescription - errir description if shared notebooks per notebook guid
+     * @param errorDescription - error description if shared notebooks per notebook guid
      * could not be listed; if no error happens, this parameter is untouched
      * @return either list of shared notebooks per notebook guid or empy list
      * in case of error of no shared notebooks presence per given notebook guid
@@ -375,7 +393,7 @@ public:
     {
         enum type
         {
-            ByUpdateSequenceNumber,
+            ByUpdateSequenceNumber = 0,
             ByTitle,
             ByCreationTimestamp,
             ByModificationTimestamp,
@@ -420,7 +438,8 @@ public:
      * in cases of error or no notes conforming to the filter exist within the account
      */
     QList<Note> ListNotes(const ListObjectsOptions flag, QString & errorDescription,
-                          const bool withResourceBinaryData = true) const;
+                          const bool withResourceBinaryData = true, const size_t limit = 0,
+                          const size_t offset = 0, const ListNotesOrder::type order = ListNotesOrder::NoOrder) const;
 
     /**
      * @brief FindNotesWithSearchQuery - attempt to find notes corresponding to passed in

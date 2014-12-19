@@ -758,15 +758,16 @@ bool LocalStorageManagerPrivate::FindDefaultOrLastUsedNotebook(Notebook & notebo
 QList<Notebook> LocalStorageManagerPrivate::ListAllNotebooks(QString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllNotebooks");
-    return ListNotebooks(LocalStorageManager::ListAll, errorDescription);
+    return ListNotebooks(LocalStorageManager::ListAll, errorDescription, /* limit = */ 0,
+                         /* offset = */ 0, LocalStorageManager::ListNotebooksOrder::NoOrder);
 }
 
 QList<Notebook> LocalStorageManagerPrivate::ListNotebooks(const LocalStorageManager::ListObjectsOptions flag,
                                                           QString & errorDescription, const size_t limit,
-                                                          const size_t offset, const QString & orderBy) const
+                                                          const size_t offset, const LocalStorageManager::ListNotebooksOrder::type & order) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListNotebooks: flag = " << flag);
-    return listObjects<Notebook, QString>(flag, errorDescription, limit, offset, orderBy);
+    return listObjects<Notebook, LocalStorageManager::ListNotebooksOrder::type>(flag, errorDescription, limit, offset, order);
 }
 
 QList<SharedNotebookWrapper> LocalStorageManagerPrivate::ListAllSharedNotebooks(QString & errorDescription) const
@@ -7954,6 +7955,32 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
         break;
     case LocalStorageManager::ListNotesOrder::ByPlaceName:
         result = "placeName";
+        break;
+    default:
+        break;
+    }
+
+    return result;
+}
+
+template <>
+QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager::ListNotebooksOrder::type>(const LocalStorageManager::ListNotebooksOrder::type & order) const
+{
+    QString result;
+
+    switch(order)
+    {
+    case LocalStorageManager::ListNotebooksOrder::ByUpdateSequenceNumber:
+        result = "updateSequenceNumber";
+        break;
+    case LocalStorageManager::ListNotebooksOrder::ByNotebookName:
+        result = "notebookNameUpper";
+        break;
+    case LocalStorageManager::ListNotebooksOrder::ByCreationTimestamp:
+        result = "creationTimestamp";
+        break;
+    case LocalStorageManager::ListNotebooksOrder::ByModificationTimestamp:
+        result = "modificationTimestamp";
         break;
     default:
         break;

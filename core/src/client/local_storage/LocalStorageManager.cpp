@@ -109,10 +109,12 @@ QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription
     return d->ListAllNotebooks(errorDescription);
 }
 
-QList<Notebook> LocalStorageManager::ListNotebooks(const ListObjectsOptions flag, QString & errorDescription) const
+QList<Notebook> LocalStorageManager::ListNotebooks(const ListObjectsOptions flag, QString & errorDescription,
+                                                   const size_t limit, const size_t offset,
+                                                   const ListNotebooksOrder::type order) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListNotebooks(flag, errorDescription);
+    return d->ListNotebooks(flag, errorDescription, limit, offset, order);
 }
 
 QList<SharedNotebookWrapper> LocalStorageManager::ListAllSharedNotebooks(QString & errorDescription) const
@@ -214,10 +216,11 @@ QList<Note> LocalStorageManager::ListAllNotesPerNotebook(const Notebook & notebo
 }
 
 QList<Note> LocalStorageManager::ListNotes(const ListObjectsOptions flag, QString & errorDescription,
-                                           const bool withResourceBinaryData) const
+                                           const bool withResourceBinaryData, const size_t limit,
+                                           const size_t offset, const ListNotesOrder::type order) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListNotes(flag, errorDescription, withResourceBinaryData);
+    return d->ListNotes(flag, errorDescription, withResourceBinaryData, limit, offset, order);
 }
 
 NoteList LocalStorageManager::FindNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
