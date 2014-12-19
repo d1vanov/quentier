@@ -162,17 +162,18 @@ bool LocalStorageManager::FindLinkedNotebook(LinkedNotebook & linkedNotebook, QS
     return d->FindLinkedNotebook(linkedNotebook, errorDescription);
 }
 
-QList<LinkedNotebook> LocalStorageManager::ListAllLinkedNotebooks(QString & errorDescription) const
+QList<LinkedNotebook> LocalStorageManager::ListAllLinkedNotebooks(QString & errorDescription, const size_t limit,
+                                                                  const size_t offset, const ListLinkedNotebooksOrder::type order) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllLinkedNotebooks(errorDescription);
+    return d->ListAllLinkedNotebooks(errorDescription, limit, offset, order);
 }
 
-QList<LinkedNotebook> LocalStorageManager::ListLinkedNotebooks(const ListObjectsOptions flag,
-                                                               QString & errorDescription) const
+QList<LinkedNotebook> LocalStorageManager::ListLinkedNotebooks(const ListObjectsOptions flag, QString & errorDescription, const size_t limit,
+                                                               const size_t offset, const ListLinkedNotebooksOrder::type order) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListLinkedNotebooks(flag, errorDescription);
+    return d->ListLinkedNotebooks(flag, errorDescription, limit, offset, order);
 }
 
 bool LocalStorageManager::ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,

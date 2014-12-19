@@ -60,10 +60,11 @@ public:
     bool AddLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool FindLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const;
-    QList<LinkedNotebook> ListAllLinkedNotebooks(QString & errorDescription) const;
+    QList<LinkedNotebook> ListAllLinkedNotebooks(QString & errorDescription, const size_t limit, const size_t offset,
+                                                 const LocalStorageManager::ListLinkedNotebooksOrder::type order) const;
     QList<LinkedNotebook> ListLinkedNotebooks(const LocalStorageManager::ListObjectsOptions flag,
-                                              QString & errorDescription, const size_t limit = 0,
-                                              const size_t offset = 0, const QString & orderBy = QString()) const;
+                                              QString & errorDescription, const size_t limit, const size_t offset,
+                                              const LocalStorageManager::ListLinkedNotebooksOrder::type & order) const;
     bool ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     int GetNoteCount(QString & errorDescription) const;

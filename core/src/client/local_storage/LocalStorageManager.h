@@ -220,6 +220,9 @@ public:
      * @param flag - input parameter used to set the filter for the desired notebooks to be listed
      * @param errorDescription - error description if notebooks within the account could not be listed;
      * if no error happens, this parameter is untouched
+     * @param limit - limit for the max number of notebooks in the result, zero by default which means no limit is set
+     * @param offset - number of notebooks to skip in the beginning of the result, zero by default
+     * @param order - allows to specify particular ordering of the notebooks in the result, NoOrder by default
      * @return either list of notebooks within the account conforming to the filter or empty list
      * in cases of error or no notebooks conforming to the filter exist within the account
      */
@@ -302,13 +305,32 @@ public:
     bool FindLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const;
 
     /**
+     * @brief The ListLinkedNotebooksOrder struct is a C++98-style scoped enum which allows to specify ordering
+     * of the results of methods listing linked notebooks from local storage
+     */
+    struct ListLinkedNotebooksOrder
+    {
+        enum type
+        {
+            ByUpdateSequenceNumber = 0,
+            ByShareName,
+            ByUsername,
+            NoOrder
+        };
+    };
+
+    /**
      * @brief ListAllLinkedNotebooks - attempts to list all linked notebooks within the account
      * @param errorDescription - error description if linked notebooks could not be listed,
      * otherwise this parameter is untouched
+     * @param limit - limit for the max number of linked notebooks in the result, zero by default which means no limit is set
+     * @param offset - number of linked notebooks to skip in the beginning of the result, zero by default
+     * @param order - allows to specify particular ordering of linked notebooks in the result, NoOrder by default
      * @return either list of all linked notebooks or empty list in case of error or
      * no linked notebooks presence within the account
      */
-    QList<LinkedNotebook> ListAllLinkedNotebooks(QString & errorDescription) const;
+    QList<LinkedNotebook> ListAllLinkedNotebooks(QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
+                                                 const ListLinkedNotebooksOrder::type order = ListLinkedNotebooksOrder::NoOrder) const;
 
     /**
      * @brief ListLinkedNotebooks - attempts to list linked notebooks within the account
@@ -316,10 +338,15 @@ public:
      * @param flag - input parameter used to set the filter for the desired linked notebooks to be listed
      * @param errorDescription - error description if linked notebooks within the account could not be listed;
      * if no error happens, this parameter is untouched
+     * @param limit - limit for the max number of linked notebooks in the result, zero by default which means no limit is set
+     * @param offset - number of linked notebooks to skip in the beginning of the result, zero by default
+     * @param order - allows to specify particular ordering of linked notebooks in the result, NoOrder by default
      * @return either list of linked notebooks within the account conforming to the filter or empty list
      * in cases of error or no linked notebooks conforming to the filter exist within the account
      */
-    QList<LinkedNotebook> ListLinkedNotebooks(const ListObjectsOptions flag, QString & errorDescription) const;
+    QList<LinkedNotebook> ListLinkedNotebooks(const ListObjectsOptions flag, QString & errorDescription,
+                                              const size_t limit = 0, const size_t offset = 0,
+                                              const ListLinkedNotebooksOrder::type order = ListLinkedNotebooksOrder::NoOrder) const;
 
     /**
      * @brief ExpungeLinkedNotebook - permanently deletes specified linked notebook from local storage.
@@ -407,6 +434,7 @@ public:
         };
     };
 
+    // TODO: adopt limit, offset and order for this method as well
     /**
      * @brief ListAllNotesPerNotebook - attempts to list all notes per given notebook
      * @param notebook - notebook for which list of notes is requested. If it has
@@ -434,6 +462,9 @@ public:
      * By default this parameter is true which means the whole contents of all resources
      * would be filled. If it's false, dataBody, recognitionBody or alternateDataBody
      * won't be present within each found note's resources
+     * @param limit - limit for the max number of notes in the result, zero by default which means no limit is set
+     * @param offset - number of notes to skip in the beginning of the result, zero by default
+     * @param order - allows to specify particular ordering of the notes in the result, NoOrder by default
      * @return either list of notes within the account conforming to the filter or empty list
      * in cases of error or no notes conforming to the filter exist within the account
      */

@@ -1063,18 +1063,19 @@ bool LocalStorageManagerPrivate::FindLinkedNotebook(LinkedNotebook & linkedNoteb
     return FillLinkedNotebookFromSqlRecord(rec, linkedNotebook, errorDescription);
 }
 
-QList<LinkedNotebook> LocalStorageManagerPrivate::ListAllLinkedNotebooks(QString & errorDescription) const
+QList<LinkedNotebook> LocalStorageManagerPrivate::ListAllLinkedNotebooks(QString & errorDescription, const size_t limit, const size_t offset,
+                                                                         const LocalStorageManager::ListLinkedNotebooksOrder::type order) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllLinkedNotebooks");
-    return ListLinkedNotebooks(LocalStorageManager::ListAll, errorDescription);
+    return ListLinkedNotebooks(LocalStorageManager::ListAll, errorDescription, limit, offset, order);
 }
 
 QList<LinkedNotebook> LocalStorageManagerPrivate::ListLinkedNotebooks(const LocalStorageManager::ListObjectsOptions flag,
-                                                                      QString & errorDescription, const size_t limit,
-                                                                      const size_t offset, const QString & orderBy) const
+                                                                      QString & errorDescription, const size_t limit, const size_t offset,
+                                                                      const LocalStorageManager::ListLinkedNotebooksOrder::type & order) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListLinkedNotebooks: flag = " << flag);
-    return listObjects<LinkedNotebook, QString>(flag, errorDescription, limit, offset, orderBy);
+    return listObjects<LinkedNotebook, LocalStorageManager::ListLinkedNotebooksOrder::type>(flag, errorDescription, limit, offset, order);
 }
 
 bool LocalStorageManagerPrivate::ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
@@ -7981,6 +7982,29 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
         break;
     case LocalStorageManager::ListNotebooksOrder::ByModificationTimestamp:
         result = "modificationTimestamp";
+        break;
+    default:
+        break;
+    }
+
+    return result;
+}
+
+template <>
+QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager::ListLinkedNotebooksOrder::type>(const LocalStorageManager::ListLinkedNotebooksOrder::type & order) const
+{
+    QString result;
+
+    switch(order)
+    {
+    case LocalStorageManager::ListLinkedNotebooksOrder::ByUpdateSequenceNumber:
+        result = "updateSequenceNumber";
+        break;
+    case LocalStorageManager::ListLinkedNotebooksOrder::ByShareName:
+        result = "shareName";
+        break;
+    case LocalStorageManager::ListLinkedNotebooksOrder::ByUsername:
+        result = "username";
         break;
     default:
         break;
