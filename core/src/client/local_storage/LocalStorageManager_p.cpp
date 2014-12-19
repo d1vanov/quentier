@@ -2543,18 +2543,19 @@ bool LocalStorageManagerPrivate::FindSavedSearch(SavedSearch & search, QString &
     return FillSavedSearchFromSqlRecord(rec, search, errorDescription);
 }
 
-QList<SavedSearch> LocalStorageManagerPrivate::ListAllSavedSearches(QString & errorDescription) const
+QList<SavedSearch> LocalStorageManagerPrivate::ListAllSavedSearches(QString & errorDescription, const size_t limit, const size_t offset,
+                                                                    const LocalStorageManager::ListSavedSearchesOrder::type & order) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllSavedSearches");
-    return ListSavedSearches(LocalStorageManager::ListAll, errorDescription);
+    return ListSavedSearches(LocalStorageManager::ListAll, errorDescription, limit, offset, order);
 }
 
 QList<SavedSearch> LocalStorageManagerPrivate::ListSavedSearches(const LocalStorageManager::ListObjectsOptions flag,
-                                                                 QString & errorDescription, const size_t limit,
-                                                                 const size_t offset, const QString & orderBy) const
+                                                                 QString & errorDescription, const size_t limit, const size_t offset,
+                                                                 const LocalStorageManager::ListSavedSearchesOrder::type & order) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListSavedSearches: flag = " << flag);
-    return listObjects<SavedSearch, QString>(flag, errorDescription, limit, offset, orderBy);
+    return listObjects<SavedSearch, LocalStorageManager::ListSavedSearchesOrder::type>(flag, errorDescription, limit, offset, order);
 }
 
 bool LocalStorageManagerPrivate::ExpungeSavedSearch(const SavedSearch & search,
@@ -7914,13 +7915,6 @@ QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<Note>() const
     return result;
 }
 
-// FIXME: remove that once all partial template specializations are implemented
-template <class TOrderBy>
-QString LocalStorageManagerPrivate::orderByToSqlTableColumn(const TOrderBy &) const
-{
-    return QString();
-}
-
 template <>
 QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager::ListNotesOrder::type>(const LocalStorageManager::ListNotesOrder::type & order) const
 {
@@ -8026,6 +8020,29 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
         break;
     case LocalStorageManager::ListTagsOrder::ByName:
         result = "nameUpper";
+        break;
+    default:
+        break;
+    }
+
+    return result;
+}
+
+template <>
+QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager::ListSavedSearchesOrder::type>(const LocalStorageManager::ListSavedSearchesOrder::type & order) const
+{
+    QString result;
+
+    switch(order)
+    {
+    case LocalStorageManager::ListSavedSearchesOrder::ByUpdateSequenceNumber:
+        result = "updateSequenceNumber";
+        break;
+    case LocalStorageManager::ListSavedSearchesOrder::ByName:
+        result = "nameUpper";
+        break;
+    case LocalStorageManager::ListSavedSearchesOrder::ByFormat:
+        result = "format";
         break;
     default:
         break;

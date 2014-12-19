@@ -364,17 +364,19 @@ bool LocalStorageManager::FindSavedSearch(SavedSearch & search, QString & errorD
     return d->FindSavedSearch(search, errorDescription);
 }
 
-QList<SavedSearch> LocalStorageManager::ListAllSavedSearches(QString & errorDescription) const
+QList<SavedSearch> LocalStorageManager::ListAllSavedSearches(QString & errorDescription, const size_t limit, const size_t offset,
+                                                             const ListSavedSearchesOrder::type order) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllSavedSearches(errorDescription);
+    return d->ListAllSavedSearches(errorDescription, limit, offset, order);
 }
 
-QList<SavedSearch> LocalStorageManager::ListSavedSearches(const ListObjectsOptions flag,
-                                                          QString & errorDescription) const
+QList<SavedSearch> LocalStorageManager::ListSavedSearches(const ListObjectsOptions flag, QString & errorDescription,
+                                                          const size_t limit, const size_t offset,
+                                                          const ListSavedSearchesOrder::type order) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListSavedSearches(flag, errorDescription);
+    return d->ListSavedSearches(flag, errorDescription, limit, offset, order);
 }
 
 bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,

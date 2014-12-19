@@ -107,10 +107,11 @@ public:
     bool AddSavedSearch(const SavedSearch & search, QString & errorDescription);
     bool UpdateSavedSearch(const SavedSearch & search, QString & errorDescription);
     bool FindSavedSearch(SavedSearch & search, QString & errorDescription) const;
-    QList<SavedSearch> ListAllSavedSearches(QString & errorDescription) const;
+    QList<SavedSearch> ListAllSavedSearches(QString & errorDescription, const size_t limit, const size_t offset,
+                                            const LocalStorageManager::ListSavedSearchesOrder::type & order) const;
     QList<SavedSearch> ListSavedSearches(const LocalStorageManager::ListObjectsOptions flag,
-                                         QString & errorDescription, const size_t limit = 0,
-                                         const size_t offset = 0, const QString & orderBy = QString()) const;
+                                         QString & errorDescription, const size_t limit,
+                                         const size_t offset, const LocalStorageManager::ListSavedSearchesOrder::type & order) const;
     bool ExpungeSavedSearch(const SavedSearch & search, QString & errorDescription);
 
 public Q_SLOTS:

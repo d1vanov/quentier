@@ -727,13 +727,32 @@ public:
     bool FindSavedSearch(SavedSearch & search, QString & errorDescription) const;
 
     /**
+     * @brief The ListSavedSearchesOrder struct is a C++98-style scoped enum which allows to specify the ordering
+     * of the results of methods listing saved searches from local storage
+     */
+    struct ListSavedSearchesOrder
+    {
+        enum type
+        {
+            ByUpdateSequenceNumber = 0,
+            ByName,
+            ByFormat,
+            NoOrder
+        };
+    };
+
+    /**
      * @brief ListAllSavedSearches - lists all saved searches within the account
      * @param errorDescription - error description if all saved searches could not be listed;
      * otherwise this parameter is untouched
+     * @param limit - limit for the max number of saved searches in the result, zero by default which means no limit is set
+     * @param offset - number of saved searches to skip in the beginning of the result, zero by default
+     * @param order - allows to specify particular ordering of saved searches in the result, NoOrder by default
      * @return either the list of all saved searches within the account or empty list
      * in case of error or if there are no saved searches within the account
      */
-    QList<SavedSearch> ListAllSavedSearches(QString & errorDescription) const;
+    QList<SavedSearch> ListAllSavedSearches(QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
+                                            const ListSavedSearchesOrder::type order = ListSavedSearchesOrder::NoOrder) const;
 
     /**
      * @brief ListSavedSearches - attempts to list saved searches within the account
@@ -741,10 +760,14 @@ public:
      * @param flag - input parameter used to set the filter for the desired saved searches to be listed
      * @param errorDescription - error description if saved searches within the account could not be listed;
      * if no error happens, this parameter is untouched
+     * @param limit - limit for the max number of saved searches in the result, zero by default which means no limit is set
+     * @param offset - number of saved searches to skip in the beginning of the result, zero by default
+     * @param order - allows to specify particular ordering of saved searches in the result, NoOrder by default
      * @return either list of saved searches within the account conforming to the filter or empty list
      * in cases of error or no saved searches conforming to the filter exist within the account
      */
-    QList<SavedSearch> ListSavedSearches(const ListObjectsOptions flag, QString & errorDescription) const;
+    QList<SavedSearch> ListSavedSearches(const ListObjectsOptions flag, QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
+                                            const ListSavedSearchesOrder::type order = ListSavedSearchesOrder::NoOrder) const;
 
     // NOTE: there is no 'DeleteSearch' method for a reason: saved searches are deleted automatically
     // in remote storage so there's no need to mark some saved search as deleted for synchronization procedure.
