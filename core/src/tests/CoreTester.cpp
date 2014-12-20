@@ -808,6 +808,38 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
         // 7) Test method listing local saved searches having shortcut
         CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
                                           "local, having shortcut", i == 0, i != 0);
+
+        // 8) Test method listing saved searches with guid set also specifying limit, offset and order
+        size_t limit = 2;
+        size_t offset = 1;
+        LocalStorageManager::ListSavedSearchesOrder::type order = LocalStorageManager::ListSavedSearchesOrder::ByUpdateSequenceNumber;
+
+        error.clear();
+        foundSearches = localStorageManager.ListSavedSearches(LocalStorageManager::ListElementsWithGuid, error, limit, offset, order);
+        QVERIFY2(error.isEmpty(), qPrintable(error));
+
+        if (foundSearches.size() != limit) {
+            QFAIL(qPrintable("Unexpected number of found saved searches not corresponding to the specified limit: limit = " +
+                             QString::number(limit) + ", number of searches found is " + QString::number(foundSearches.size())));
+        }
+
+        const SavedSearch & firstSearch = foundSearches[0];
+        const SavedSearch & secondSearch = foundSearches[1];
+
+        if (!firstSearch.hasUpdateSequenceNumber() || !secondSearch.hasUpdateSequenceNumber()) {
+            QFAIL(qPrintable("One of found saved searches doesn't have the update sequence number which is unexpected: first search: " +
+                             firstSearch.ToQString() + "\nSecond search: " + secondSearch.ToQString()));
+        }
+
+        if (firstSearch.updateSequenceNumber() != 3) {
+            QFAIL(qPrintable("First saved search was expected to have update sequence number of 3, instead it is " +
+                             QString::number(firstSearch.updateSequenceNumber())));
+        }
+
+        if (secondSearch.updateSequenceNumber() != 4) {
+            QFAIL(qPrintable("Second saved search was expected to have update sequence number of 4, instead it is " +
+                             QString::number(secondSearch.updateSequenceNumber())));
+        }
     }
     CATCH_EXCEPTION();
 }

@@ -111,10 +111,11 @@ QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription
 
 QList<Notebook> LocalStorageManager::ListNotebooks(const ListObjectsOptions flag, QString & errorDescription,
                                                    const size_t limit, const size_t offset,
-                                                   const ListNotebooksOrder::type order) const
+                                                   const ListNotebooksOrder::type order,
+                                                   const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListNotebooks(flag, errorDescription, limit, offset, order);
+    return d->ListNotebooks(flag, errorDescription, limit, offset, order, orderDirection);
 }
 
 QList<SharedNotebookWrapper> LocalStorageManager::ListAllSharedNotebooks(QString & errorDescription) const
@@ -163,17 +164,19 @@ bool LocalStorageManager::FindLinkedNotebook(LinkedNotebook & linkedNotebook, QS
 }
 
 QList<LinkedNotebook> LocalStorageManager::ListAllLinkedNotebooks(QString & errorDescription, const size_t limit,
-                                                                  const size_t offset, const ListLinkedNotebooksOrder::type order) const
+                                                                  const size_t offset, const ListLinkedNotebooksOrder::type order,
+                                                                  const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllLinkedNotebooks(errorDescription, limit, offset, order);
+    return d->ListAllLinkedNotebooks(errorDescription, limit, offset, order, orderDirection);
 }
 
 QList<LinkedNotebook> LocalStorageManager::ListLinkedNotebooks(const ListObjectsOptions flag, QString & errorDescription, const size_t limit,
-                                                               const size_t offset, const ListLinkedNotebooksOrder::type order) const
+                                                               const size_t offset, const ListLinkedNotebooksOrder::type order,
+                                                               const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListLinkedNotebooks(flag, errorDescription, limit, offset, order);
+    return d->ListLinkedNotebooks(flag, errorDescription, limit, offset, order, orderDirection);
 }
 
 bool LocalStorageManager::ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
@@ -218,10 +221,11 @@ QList<Note> LocalStorageManager::ListAllNotesPerNotebook(const Notebook & notebo
 
 QList<Note> LocalStorageManager::ListNotes(const ListObjectsOptions flag, QString & errorDescription,
                                            const bool withResourceBinaryData, const size_t limit,
-                                           const size_t offset, const ListNotesOrder::type order) const
+                                           const size_t offset, const ListNotesOrder::type order,
+                                           const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListNotes(flag, errorDescription, withResourceBinaryData, limit, offset, order);
+    return d->ListNotes(flag, errorDescription, withResourceBinaryData, limit, offset, order, orderDirection);
 }
 
 NoteList LocalStorageManager::FindNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
@@ -282,18 +286,20 @@ QList<Tag> LocalStorageManager::ListAllTagsPerNote(const Note & note, QString & 
 }
 
 QList<Tag> LocalStorageManager::ListAllTags(QString & errorDescription, const size_t limit,
-                                            const size_t offset, const ListTagsOrder::type order) const
+                                            const size_t offset, const ListTagsOrder::type order,
+                                            const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllTags(errorDescription, limit, offset, order);
+    return d->ListAllTags(errorDescription, limit, offset, order, orderDirection);
 }
 
 QList<Tag> LocalStorageManager::ListTags(const ListObjectsOptions flag, QString & errorDescription,
                                          const size_t limit, const size_t offset,
-                                         const ListTagsOrder::type & order) const
+                                         const ListTagsOrder::type & order,
+                                         const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListTags(flag, errorDescription, limit, offset, order);
+    return d->ListTags(flag, errorDescription, limit, offset, order, orderDirection);
 }
 
 bool LocalStorageManager::DeleteTag(const Tag & tag, QString & errorDescription)
@@ -365,18 +371,20 @@ bool LocalStorageManager::FindSavedSearch(SavedSearch & search, QString & errorD
 }
 
 QList<SavedSearch> LocalStorageManager::ListAllSavedSearches(QString & errorDescription, const size_t limit, const size_t offset,
-                                                             const ListSavedSearchesOrder::type order) const
+                                                             const ListSavedSearchesOrder::type order,
+                                                             const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllSavedSearches(errorDescription, limit, offset, order);
+    return d->ListAllSavedSearches(errorDescription, limit, offset, order, orderDirection);
 }
 
 QList<SavedSearch> LocalStorageManager::ListSavedSearches(const ListObjectsOptions flag, QString & errorDescription,
                                                           const size_t limit, const size_t offset,
-                                                          const ListSavedSearchesOrder::type order) const
+                                                          const ListSavedSearchesOrder::type order,
+                                                          const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListSavedSearches(flag, errorDescription, limit, offset, order);
+    return d->ListSavedSearches(flag, errorDescription, limit, offset, order, orderDirection);
 }
 
 bool LocalStorageManager::ExpungeSavedSearch(const SavedSearch & search,

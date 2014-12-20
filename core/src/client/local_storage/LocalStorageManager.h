@@ -199,6 +199,19 @@ public:
     QList<Notebook> ListAllNotebooks(QString & errorDescription) const;
 
     /**
+     * @brief The OrderDirection struct is a C++98 style scoped enum which specifies the direction of ordering
+     * of the results of methods listing objects from local storage
+     */
+    struct OrderDirection
+    {
+        enum type
+        {
+            Ascending = 0,
+            Descending
+        };
+    };
+
+    /**
      * @brief The ListNotebooksOrder struct is a C++98 style scoped enum which allows to specify the ordering
      * of the results of methods listing notebooks from local storage
      */
@@ -223,12 +236,15 @@ public:
      * @param limit - limit for the max number of notebooks in the result, zero by default which means no limit is set
      * @param offset - number of notebooks to skip in the beginning of the result, zero by default
      * @param order - allows to specify particular ordering of notebooks in the result, NoOrder by default
+     * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
+     * this parameter has no meaning if order is equal to NoOrder
      * @return either list of notebooks within the account conforming to the filter or empty list
      * in cases of error or no notebooks conforming to the filter exist within the account
      */
     QList<Notebook> ListNotebooks(const ListObjectsOptions flag, QString & errorDescription,
                                   const size_t limit = 0, const size_t offset = 0,
-                                  const ListNotebooksOrder::type order = ListNotebooksOrder::NoOrder) const;
+                                  const ListNotebooksOrder::type order = ListNotebooksOrder::NoOrder,
+                                  const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
      * @brief ListAllSharedNotebooks - attempts to list all shared notebooks within the account
@@ -326,11 +342,14 @@ public:
      * @param limit - limit for the max number of linked notebooks in the result, zero by default which means no limit is set
      * @param offset - number of linked notebooks to skip in the beginning of the result, zero by default
      * @param order - allows to specify particular ordering of linked notebooks in the result, NoOrder by default
+     * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
+     * this parameter has no meaning if order is equal to NoOrder
      * @return either list of all linked notebooks or empty list in case of error or
      * no linked notebooks presence within the account
      */
     QList<LinkedNotebook> ListAllLinkedNotebooks(QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
-                                                 const ListLinkedNotebooksOrder::type order = ListLinkedNotebooksOrder::NoOrder) const;
+                                                 const ListLinkedNotebooksOrder::type order = ListLinkedNotebooksOrder::NoOrder,
+                                                 const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
      * @brief ListLinkedNotebooks - attempts to list linked notebooks within the account
@@ -341,12 +360,15 @@ public:
      * @param limit - limit for the max number of linked notebooks in the result, zero by default which means no limit is set
      * @param offset - number of linked notebooks to skip in the beginning of the result, zero by default
      * @param order - allows to specify particular ordering of linked notebooks in the result, NoOrder by default
+     * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
+     * this parameter has no meaning if order is equal to NoOrder
      * @return either list of linked notebooks within the account conforming to the filter or empty list
      * in cases of error or no linked notebooks conforming to the filter exist within the account
      */
     QList<LinkedNotebook> ListLinkedNotebooks(const ListObjectsOptions flag, QString & errorDescription,
                                               const size_t limit = 0, const size_t offset = 0,
-                                              const ListLinkedNotebooksOrder::type order = ListLinkedNotebooksOrder::NoOrder) const;
+                                              const ListLinkedNotebooksOrder::type order = ListLinkedNotebooksOrder::NoOrder,
+                                              const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
      * @brief ExpungeLinkedNotebook - permanently deletes specified linked notebook from local storage.
@@ -465,12 +487,15 @@ public:
      * @param limit - limit for the max number of notes in the result, zero by default which means no limit is set
      * @param offset - number of notes to skip in the beginning of the result, zero by default
      * @param order - allows to specify particular ordering of notes in the result, NoOrder by default
+     * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
+     * this parameter has no meaning if order is equal to NoOrder
      * @return either list of notes within the account conforming to the filter or empty list
      * in cases of error or no notes conforming to the filter exist within the account
      */
     QList<Note> ListNotes(const ListObjectsOptions flag, QString & errorDescription,
                           const bool withResourceBinaryData = true, const size_t limit = 0,
-                          const size_t offset = 0, const ListNotesOrder::type order = ListNotesOrder::NoOrder) const;
+                          const size_t offset = 0, const ListNotesOrder::type order = ListNotesOrder::NoOrder,
+                          const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
      * @brief FindNotesWithSearchQuery - attempt to find notes corresponding to passed in
@@ -595,10 +620,13 @@ public:
      * @param limit - limit for the max number of tags in the result, zero by default which means no limit is set
      * @param offset - number of tags to skip in the beginning of the result, zero by default
      * @param order - allows to specify particular ordering of tags in the result, NoOrder by default
+     * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
+     * this parameter has no meaning if order is equal to NoOrder
      * @return the list of found tags within the account
      */
     QList<Tag> ListAllTags(QString & errorDescription, const size_t limit = 0,
-                           const size_t offset = 0, const ListTagsOrder::type order = ListTagsOrder::NoOrder) const;
+                           const size_t offset = 0, const ListTagsOrder::type order = ListTagsOrder::NoOrder,
+                           const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
      * @brief ListTags - attempts to list tags within the account according to the specified input flag
@@ -608,12 +636,15 @@ public:
      * @param limit - limit for the max number of tags in the result, zero by default which means no limit is set
      * @param offset - number of tags to skip in the beginning of the result, zero by default
      * @param order - allows to specify particular ordering of tags in the result, NoOrder by default
+     * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
+     * this parameter has no meaning if order is equal to NoOrder
      * @return either list of tags within the account conforming to the filter or empty list
      * in cases of error or no tags conforming to the filter exist within the account
      */
     QList<Tag> ListTags(const ListObjectsOptions flag, QString & errorDescription,
                         const size_t limit = 0, const size_t offset = 0,
-                        const ListTagsOrder::type & order = ListTagsOrder::NoOrder) const;
+                        const ListTagsOrder::type & order = ListTagsOrder::NoOrder,
+                        const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
      * @brief DeleteTag - marks tag as deleted in local storage.
@@ -748,11 +779,14 @@ public:
      * @param limit - limit for the max number of saved searches in the result, zero by default which means no limit is set
      * @param offset - number of saved searches to skip in the beginning of the result, zero by default
      * @param order - allows to specify particular ordering of saved searches in the result, NoOrder by default
+     * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
+     * this parameter has no meaning if order is equal to NoOrder
      * @return either the list of all saved searches within the account or empty list
      * in case of error or if there are no saved searches within the account
      */
     QList<SavedSearch> ListAllSavedSearches(QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
-                                            const ListSavedSearchesOrder::type order = ListSavedSearchesOrder::NoOrder) const;
+                                            const ListSavedSearchesOrder::type order = ListSavedSearchesOrder::NoOrder,
+                                            const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
      * @brief ListSavedSearches - attempts to list saved searches within the account
@@ -763,11 +797,14 @@ public:
      * @param limit - limit for the max number of saved searches in the result, zero by default which means no limit is set
      * @param offset - number of saved searches to skip in the beginning of the result, zero by default
      * @param order - allows to specify particular ordering of saved searches in the result, NoOrder by default
+     * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
+     * this parameter has no meaning if order is equal to NoOrder
      * @return either list of saved searches within the account conforming to the filter or empty list
      * in cases of error or no saved searches conforming to the filter exist within the account
      */
     QList<SavedSearch> ListSavedSearches(const ListObjectsOptions flag, QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
-                                            const ListSavedSearchesOrder::type order = ListSavedSearchesOrder::NoOrder) const;
+                                         const ListSavedSearchesOrder::type order = ListSavedSearchesOrder::NoOrder,
+                                         const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     // NOTE: there is no 'DeleteSearch' method for a reason: saved searches are deleted automatically
     // in remote storage so there's no need to mark some saved search as deleted for synchronization procedure.

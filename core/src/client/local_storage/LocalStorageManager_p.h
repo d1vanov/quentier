@@ -50,7 +50,8 @@ public:
     QList<Notebook> ListAllNotebooks(QString & errorDescription) const;
     QList<Notebook> ListNotebooks(const LocalStorageManager::ListObjectsOptions flag,
                                   QString & errorDescription, const size_t limit, const size_t offset,
-                                  const LocalStorageManager::ListNotebooksOrder::type & order) const;
+                                  const LocalStorageManager::ListNotebooksOrder::type & order,
+                                  const LocalStorageManager::OrderDirection::type & orderDirection) const;
     QList<SharedNotebookWrapper> ListAllSharedNotebooks(QString & errorDescription) const;
     QList<SharedNotebookWrapper> ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                     QString & errorDescription) const;
@@ -61,10 +62,12 @@ public:
     bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool FindLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const;
     QList<LinkedNotebook> ListAllLinkedNotebooks(QString & errorDescription, const size_t limit, const size_t offset,
-                                                 const LocalStorageManager::ListLinkedNotebooksOrder::type order) const;
+                                                 const LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                                 const LocalStorageManager::OrderDirection::type & orderDirection) const;
     QList<LinkedNotebook> ListLinkedNotebooks(const LocalStorageManager::ListObjectsOptions flag,
                                               QString & errorDescription, const size_t limit, const size_t offset,
-                                              const LocalStorageManager::ListLinkedNotebooksOrder::type & order) const;
+                                              const LocalStorageManager::ListLinkedNotebooksOrder::type & order,
+                                              const LocalStorageManager::OrderDirection::type & orderDirection) const;
     bool ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     int GetNoteCount(QString & errorDescription) const;
@@ -76,7 +79,8 @@ public:
                                         const bool withResourceBinaryData = true) const;
     QList<Note> ListNotes(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
                           const bool withResourceBinaryData, const size_t limit,
-                          const size_t offset, const LocalStorageManager::ListNotesOrder::type & order) const;
+                          const size_t offset, const LocalStorageManager::ListNotesOrder::type & order,
+                          const LocalStorageManager::OrderDirection::type & orderDirection) const;
     bool DeleteNote(const Note & note, QString & errorDescription);
     bool ExpungeNote(const Note & note, QString & errorDescription);
 
@@ -91,9 +95,11 @@ public:
     bool FindTag(Tag & tag, QString & errorDescription) const;
     QList<Tag> ListAllTagsPerNote(const Note & note, QString & errorDescription) const;
     QList<Tag> ListAllTags(QString & errorDescription, const size_t limit,
-                           const size_t offset, const LocalStorageManager::ListTagsOrder::type & order) const;
+                           const size_t offset, const LocalStorageManager::ListTagsOrder::type & order,
+                           const LocalStorageManager::OrderDirection::type & orderDirection) const;
     QList<Tag> ListTags(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
-                        const size_t limit, const size_t offset, const LocalStorageManager::ListTagsOrder::type & order) const;
+                        const size_t limit, const size_t offset, const LocalStorageManager::ListTagsOrder::type & order,
+                        const LocalStorageManager::OrderDirection::type & orderDirection) const;
     bool DeleteTag(const Tag & tag, QString & errorDescription);
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
@@ -108,10 +114,12 @@ public:
     bool UpdateSavedSearch(const SavedSearch & search, QString & errorDescription);
     bool FindSavedSearch(SavedSearch & search, QString & errorDescription) const;
     QList<SavedSearch> ListAllSavedSearches(QString & errorDescription, const size_t limit, const size_t offset,
-                                            const LocalStorageManager::ListSavedSearchesOrder::type & order) const;
+                                            const LocalStorageManager::ListSavedSearchesOrder::type & order,
+                                            const LocalStorageManager::OrderDirection::type & orderDirection) const;
     QList<SavedSearch> ListSavedSearches(const LocalStorageManager::ListObjectsOptions flag,
                                          QString & errorDescription, const size_t limit,
-                                         const size_t offset, const LocalStorageManager::ListSavedSearchesOrder::type & order) const;
+                                         const size_t offset, const LocalStorageManager::ListSavedSearchesOrder::type & order,
+                                         const LocalStorageManager::OrderDirection::type & orderDirection) const;
     bool ExpungeSavedSearch(const SavedSearch & search, QString & errorDescription);
 
 public Q_SLOTS:
@@ -255,7 +263,8 @@ private:
     template <class T, class TOrderBy>
     QList<T> listObjects(const LocalStorageManager::ListObjectsOptions & flag,
                          QString & errorDescription, const size_t limit,
-                         const size_t offset, const TOrderBy & orderBy) const;
+                         const size_t offset, const TOrderBy & orderBy,
+                         const LocalStorageManager::OrderDirection::type & orderDirection) const;
 
     template <class T>
     QString listObjectsGenericSqlQuery() const;
