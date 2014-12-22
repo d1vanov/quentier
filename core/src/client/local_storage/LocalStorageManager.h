@@ -467,11 +467,11 @@ public:
      * By default this parameter is true which means the whole contents of all resources
      * would be filled. If it's false, dataBody, recognitionBody or alternateDataBody
      * won't be present within each found note's resources
-     * @param flag - input parameter used to set the filter for the desired linked notes to be listed
+     * @param flag - input parameter used to set the filter for the desired notes to be listed
      * @param limit - limit for the max number of notes in the result, zero by default which means no limit is set
      * @param offset - number of notes to skip in the beginning of the result, zero by default
      * @param order - allows to specify particular ordering of notes in the result, NoOrder by default
-     * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
+     * @param orderDirection - specifies the direction of ordering, by default ascending direction is used;
      * @return either list of notes per notebook or empty list in case of error or
      * no notes presence in the given notebook
      */
@@ -605,7 +605,6 @@ public:
         };
     };
 
-    // TODO: adopt using limit, offset and order in this method
     /**
      * @brief ListAllTagsPerNote - lists all tags per given note
      * @param note - note for which the list of tags is requested. If it has "remote"
@@ -615,9 +614,18 @@ public:
      * In such case the returned list of tags would be empty and error description won't be empty.
      * However, if, for example, the list of tags is empty and error description is empty too,
      * it means the provided note does not have any tags assigned to it.
+     * @param flag - input parameter used to set the filter for the desired tags to be listed
+     * @param limit - limit for the max number of tags in the result, zero by default which means no limit is set
+     * @param offset - number of tags to skip in the beginning of the result, zero by default
+     * @param order - allows to specify particular ordering of tags in the result, NoOrder by default
+     * @param orderDirection - specifies the direction of ordering, by default ascending direction is used;
      * @return the list of found tags per note
      */
-    QList<Tag> ListAllTagsPerNote(const Note & note, QString & errorDescription) const;
+    QList<Tag> ListAllTagsPerNote(const Note & note, QString & errorDescription,
+                                  const ListObjectsOptions & flag = ListAll,
+                                  const size_t limit = 0, const size_t offset = 0,
+                                  const ListTagsOrder::type & order = ListTagsOrder::NoOrder,
+                                  const OrderDirection::type & orderDirection = OrderDirection::Ascending) const;
 
     /**
      * @brief ListAllTags - lists all tags within current user's account

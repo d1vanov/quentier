@@ -1156,6 +1156,13 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
             tag.setUpdateSequenceNumber(i);
             tag.setName("Tag name #" + QString::number(i));
 
+            if (i > 1) {
+                tag.setDirty(true);
+            }
+            else {
+                tag.setDirty(false);
+            }
+
             res = localStorageManager.AddTag(tag, error);
             QVERIFY2(res == true, qPrintable(error));
 
@@ -1170,6 +1177,8 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
 
         res = localStorageManager.AddTag(tagNotLinkedWithNote, error);
         QVERIFY2(res == true, qPrintable(error));
+
+        // 1) Test method listing all tags per given note without any additional conditions
 
         error.clear();
         QList<Tag> foundTags = localStorageManager.ListAllTagsPerNote(note, error);
@@ -1193,6 +1202,38 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
 
         if (foundTags.contains(tagNotLinkedWithNote)) {
             QFAIL("Found tag not linked with testing note in the result of LocalStorageManager::ListAllTagsPerNote");
+        }
+
+        // 2) Test method listing all tags per note consideting only dirty ones + with limit, offset,
+        // specific order and order direction
+
+        error.clear();
+        const size_t limit = 2;
+        const size_t offset = 1;
+        const LocalStorageManager::ListObjectsOptions flag = LocalStorageManager::ListDirty;
+        const LocalStorageManager::ListTagsOrder::type order = LocalStorageManager::ListTagsOrder::ByUpdateSequenceNumber;
+        const LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Descending;
+        foundTags = localStorageManager.ListAllTagsPerNote(note, error, flag, limit, offset,
+                                                           order, orderDirection);
+        if (foundTags.size() != limit) {
+            QFAIL(qPrintable("Found unexpected amount of tags: expected to find " + QString::number(limit) +
+                             " tags, found " + QString::number(foundTags.size()) + " tags"));
+        }
+
+        const Tag & firstTag = foundTags[0];
+        const Tag & secondTag = foundTags[1];
+
+        if (!firstTag.hasUpdateSequenceNumber()) {
+            QFAIL("First of found tags doesn't have the update sequence number set");
+        }
+
+        if (!secondTag.hasUpdateSequenceNumber()) {
+            QFAIL("Second of found tags doesn't have the update sequence number set");
+        }
+
+        if ((firstTag.updateSequenceNumber() != 3) || (secondTag.updateSequenceNumber() != 2)) {
+            QFAIL(qPrintable("Unexpected order of found tags by update sequence number: first tag: " +
+                             firstTag.ToQString() + "\nSecond tag: " + secondTag.ToQString()));
         }
     }
     CATCH_EXCEPTION();
@@ -1305,7 +1346,7 @@ void CoreTester::localStorageManagerListNotesTest()
                              QString::number(foundNotes.size()) + " notes)"));
         }
 
-        // 3) Test method listing all notebooks considering only the notes with guid + with limit, offset,
+        // 3) Test method listing all notes per notebook considering only the notes with guid + with limit, offset,
         // specific order and order direction
 
         error.clear();
@@ -1317,7 +1358,7 @@ void CoreTester::localStorageManagerListNotesTest()
                                                                  LocalStorageManager::ListElementsWithGuid, limit, offset,
                                                                  order, orderDirection);
         if (foundNotes.size() != limit) {
-            QFAIL(qPrintable("Found unexpected amoung of notes: expected to find " + QString::number(limit) +
+            QFAIL(qPrintable("Found unexpected amount of notes: expected to find " + QString::number(limit) +
                              " notes, found " + QString::number(foundNotes.size()) + " notes"));
         }
 

@@ -1501,18 +1501,25 @@ QList<Note> LocalStorageManagerPrivate::ListAllNotesPerNotebook(const Notebook &
     Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
     Q_UNUSED(transaction)
 
+    QString error;
     QString notebookGuidSqlQueryCondition = QString("%1 = '%2'").arg(column).arg(guid);
-    notes = listObjects<Note, LocalStorageManager::ListNotesOrder::type>(flag, errorDescription, limit, offset, order,
+    notes = listObjects<Note, LocalStorageManager::ListNotesOrder::type>(flag, error, limit, offset, order,
                                                                          orderDirection, notebookGuidSqlQueryCondition);
     const int numNotes = notes.size();
-    QString error;
+    if ((numNotes == 0) && !error.isEmpty()) {
+        errorDescription = errorPrefix + error;
+        QNWARNING(errorDescription);
+        return notes;
+    }
+
     for(int i = 0; i < numNotes; ++i)
     {
         Note & note = notes[i];
 
+        error.clear();
         bool res = FindAndSetTagGuidsPerNote(note, error);
         if (!res) {
-            errorDescription += error;
+            errorDescription = errorPrefix + error;
             QNWARNING(errorDescription);
             notes.clear();
             return notes;
@@ -1521,7 +1528,7 @@ QList<Note> LocalStorageManagerPrivate::ListAllNotesPerNotebook(const Notebook &
         error.clear();
         res = FindAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
-            errorDescription += error;
+            errorDescription = errorPrefix + error;
             QNWARNING(errorDescription);
             notes.clear();
             return notes;
@@ -2084,7 +2091,11 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
     return FillTagFromSqlRecord(record, tag, errorDescription);
 }
 
-QList<Tag> LocalStorageManagerPrivate::ListAllTagsPerNote(const Note & note, QString & errorDescription) const
+QList<Tag> LocalStorageManagerPrivate::ListAllTagsPerNote(const Note & note, QString & errorDescription,
+                                                          const LocalStorageManager::ListObjectsOptions & flag,
+                                                          const size_t limit, const size_t offset,
+                                                          const LocalStorageManager::ListTagsOrder::type & order,
+                                                          const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllTagsPerNote");
 
@@ -2124,15 +2135,40 @@ QList<Tag> LocalStorageManagerPrivate::ListAllTagsPerNote(const Note & note, QSt
         return tags;
     }
 
-    tags = FillTagsFromSqlQuery(query, errorDescription);
-    if (tags.isEmpty() && !errorDescription.isEmpty()) {
-        errorDescription.prepend(errorPrefix);
-        QNWARNING(errorDescription);
+    if (query.size() == 0) {
+        QNDEBUG("No tags for this note were found");
+        return tags;
     }
 
-    QNDEBUG("found " << tags.size() << " tags");
+    QStringList tagLocalGuids;
+    tagLocalGuids.reserve(std::max(query.size(), 0));
 
-    return tags;
+    while(query.next())
+    {
+        tagLocalGuids << QString();
+        QString & tagLocalGuid = tagLocalGuids.back();
+        tagLocalGuid = query.value(0).toString();
+
+        if (tagLocalGuid.isEmpty()) {
+            errorDescription = QT_TR_NOOP("Internal error: no tag's local guid in the result of SQL query");
+            tags.clear();
+            return tags;
+        }
+    }
+
+    QString noteGuidSqlQueryCondition = "localGuid IN (";
+    const int numTagLocalGuids = tagLocalGuids.size();
+    for(int i = 0; i < numTagLocalGuids; ++i)
+    {
+        noteGuidSqlQueryCondition += QString("'%1'").arg(tagLocalGuids[i]);
+        if (i != (numTagLocalGuids - 1)) {
+            noteGuidSqlQueryCondition += ", ";
+        }
+    }
+    noteGuidSqlQueryCondition += ")";
+
+    return listObjects<Tag, LocalStorageManager::ListTagsOrder::type>(flag, errorDescription, limit, offset, order,
+                                                                      orderDirection, noteGuidSqlQueryCondition);
 }
 
 QList<Tag> LocalStorageManagerPrivate::ListAllTags(QString & errorDescription, const size_t limit, const size_t offset,

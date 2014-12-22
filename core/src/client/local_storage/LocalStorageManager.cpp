@@ -284,10 +284,13 @@ bool LocalStorageManager::FindTag(Tag & tag, QString & errorDescription) const
     return d->FindTag(tag, errorDescription);
 }
 
-QList<Tag> LocalStorageManager::ListAllTagsPerNote(const Note & note, QString & errorDescription) const
+QList<Tag> LocalStorageManager::ListAllTagsPerNote(const Note & note, QString & errorDescription,
+                                                   const ListObjectsOptions & flag, const size_t limit,
+                                                   const size_t offset, const ListTagsOrder::type & order,
+                                                   const OrderDirection::type & orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllTagsPerNote(note, errorDescription);
+    return d->ListAllTagsPerNote(note, errorDescription, flag, limit, offset, order, orderDirection);
 }
 
 QList<Tag> LocalStorageManager::ListAllTags(QString & errorDescription, const size_t limit,

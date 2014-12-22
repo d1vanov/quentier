@@ -97,7 +97,11 @@ public:
     bool UpdateTag(const Tag & tag, QString & errorDescription);
     bool LinkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
     bool FindTag(Tag & tag, QString & errorDescription) const;
-    QList<Tag> ListAllTagsPerNote(const Note & note, QString & errorDescription) const;
+    QList<Tag> ListAllTagsPerNote(const Note & note, QString & errorDescription,
+                                  const LocalStorageManager::ListObjectsOptions & flag,
+                                  const size_t limit, const size_t offset,
+                                  const LocalStorageManager::ListTagsOrder::type & order,
+                                  const LocalStorageManager::OrderDirection::type & orderDirection) const;
     QList<Tag> ListAllTags(QString & errorDescription, const size_t limit,
                            const size_t offset, const LocalStorageManager::ListTagsOrder::type & order,
                            const LocalStorageManager::OrderDirection::type & orderDirection) const;
