@@ -1466,7 +1466,11 @@ bool LocalStorageManagerPrivate::FindNote(Note & note, QString & errorDescriptio
 
 QList<Note> LocalStorageManagerPrivate::ListAllNotesPerNotebook(const Notebook & notebook,
                                                                 QString & errorDescription,
-                                                                const bool withResourceBinaryData) const
+                                                                const bool withResourceBinaryData,
+                                                                const LocalStorageManager::ListObjectsOptions & flag,
+                                                                const size_t limit, const size_t offset,
+                                                                const LocalStorageManager::ListNotesOrder::type & order,
+                                                                const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllNotesPerNotebook: notebookGuid = " << notebook);
 
@@ -1497,28 +1501,16 @@ QList<Note> LocalStorageManagerPrivate::ListAllNotesPerNotebook(const Notebook &
     Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
     Q_UNUSED(transaction)
 
-    QString queryString = QString("SELECT * FROM Notes WHERE %1 = '%2'").arg(column).arg(guid);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(queryString);
-    if (!res) {
-        errorDescription = errorPrefix + QT_TR_NOOP("can't select notes per notebook guid from SQL database: ");
-        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
-        errorDescription += query.lastError().text();
-        return notes;
-    }
-
-    notes.reserve(qMax(query.size(), 0));
+    QString notebookGuidSqlQueryCondition = QString("%1 = '%2'").arg(column).arg(guid);
+    notes = listObjects<Note, LocalStorageManager::ListNotesOrder::type>(flag, errorDescription, limit, offset, order,
+                                                                         orderDirection, notebookGuidSqlQueryCondition);
+    const int numNotes = notes.size();
     QString error;
-
-    while(query.next())
+    for(int i = 0; i < numNotes; ++i)
     {
-        notes << Note();
-        Note & note = notes.back();
+        Note & note = notes[i];
 
-        QSqlRecord rec = query.record();
-        FillNoteFromSqlRecord(rec, note);
-
-        res = FindAndSetTagGuidsPerNote(note, error);
+        bool res = FindAndSetTagGuidsPerNote(note, error);
         if (!res) {
             errorDescription += error;
             QNWARNING(errorDescription);
@@ -8167,7 +8159,8 @@ template <class T, class TOrderBy>
 QList<T> LocalStorageManagerPrivate::listObjects(const LocalStorageManager::ListObjectsOptions & flag,
                                                  QString & errorDescription, const size_t limit,
                                                  const size_t offset, const TOrderBy & orderBy,
-                                                 const LocalStorageManager::OrderDirection::type & orderDirection) const
+                                                 const LocalStorageManager::OrderDirection::type & orderDirection,
+                                                 const QString & additionalSqlQueryCondition) const
 {
     QString flagError;
     QString sqlQueryConditions = listObjectsOptionsToSqlQueryConditions<T>(flag, flagError);
@@ -8176,15 +8169,30 @@ QList<T> LocalStorageManagerPrivate::listObjects(const LocalStorageManager::List
         return QList<T>();
     }
 
-    QString queryString = listObjectsGenericSqlQuery<T>();
-    if (!sqlQueryConditions.isEmpty())
-    {
-        queryString += " WHERE ";
-        queryString += sqlQueryConditions;
+    QString sumSqlQueryConditions;
+    if (!sqlQueryConditions.isEmpty()) {
+        sumSqlQueryConditions += sqlQueryConditions;
+    }
 
-        if (queryString.endsWith(" AND ")) {
-            queryString.chop(5);
+    if (!additionalSqlQueryCondition.isEmpty())
+    {
+        if (!sumSqlQueryConditions.isEmpty() && !sumSqlQueryConditions.endsWith(" AND ")) {
+            sumSqlQueryConditions += " AND ";
         }
+
+        sumSqlQueryConditions += additionalSqlQueryCondition;
+    }
+
+    if (sumSqlQueryConditions.endsWith(" AND ")) {
+        sumSqlQueryConditions.chop(5);
+    }
+
+    QString queryString = listObjectsGenericSqlQuery<T>();
+    if (!sumSqlQueryConditions.isEmpty()) {
+        sumSqlQueryConditions.prepend("(");
+        sumSqlQueryConditions.append(")");
+        queryString += " WHERE ";
+        queryString += sumSqlQueryConditions;
     }
 
     QString orderByColumn = orderByToSqlTableColumn<TOrderBy>(orderBy);

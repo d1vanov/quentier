@@ -76,7 +76,11 @@ public:
     bool FindNote(Note & note, QString & errorDescription,
                   const bool withResourceBinaryData = true) const;
     QList<Note> ListAllNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
-                                        const bool withResourceBinaryData = true) const;
+                                        const bool withResourceBinaryData,
+                                        const LocalStorageManager::ListObjectsOptions & flag,
+                                        const size_t limit, const size_t offset,
+                                        const LocalStorageManager::ListNotesOrder::type & order,
+                                        const LocalStorageManager::OrderDirection::type & orderDirection) const;
     QList<Note> ListNotes(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
                           const bool withResourceBinaryData, const size_t limit,
                           const size_t offset, const LocalStorageManager::ListNotesOrder::type & order,
@@ -264,7 +268,8 @@ private:
     QList<T> listObjects(const LocalStorageManager::ListObjectsOptions & flag,
                          QString & errorDescription, const size_t limit,
                          const size_t offset, const TOrderBy & orderBy,
-                         const LocalStorageManager::OrderDirection::type & orderDirection) const;
+                         const LocalStorageManager::OrderDirection::type & orderDirection,
+                         const QString & additionalSqlQueryCondition = QString()) const;
 
     template <class T>
     QString listObjectsGenericSqlQuery() const;

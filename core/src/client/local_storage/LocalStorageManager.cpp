@@ -213,10 +213,15 @@ bool LocalStorageManager::FindNote(Note & note, QString & errorDescription,
 
 QList<Note> LocalStorageManager::ListAllNotesPerNotebook(const Notebook & notebook,
                                                          QString & errorDescription,
-                                                         const bool withResourceBinaryData) const
+                                                         const bool withResourceBinaryData,
+                                                         const LocalStorageManager::ListObjectsOptions & flag,
+                                                         const size_t limit, const size_t offset,
+                                                         const LocalStorageManager::ListNotesOrder::type & order,
+                                                         const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllNotesPerNotebook(notebook, errorDescription, withResourceBinaryData);
+    return d->ListAllNotesPerNotebook(notebook, errorDescription, withResourceBinaryData,
+                                      flag, limit, offset, order, orderDirection);
 }
 
 QList<Note> LocalStorageManager::ListNotes(const ListObjectsOptions flag, QString & errorDescription,
