@@ -7,6 +7,7 @@
 #include "LinkedNotebook.h"
 #include "SavedSearch.h"
 #include "SharedNotebookWrapper.h"
+#include <client/local_storage/LocalStorageManager.h>
 #include <QMetaType>
 
 namespace qute_note {
@@ -30,6 +31,14 @@ void registerMetatypes()
     qRegisterMetaType< QList<SavedSearch> >("QList<SavedSearch>");
 
     qRegisterMetaType< QList<SharedNotebookWrapper> >("QList<SharedNotebookWrapper>");
+
+    qRegisterMetaType<LocalStorageManager::ListObjectsOptions>("LocalStorageManager::ListObjectsOptions");
+    qRegisterMetaType<LocalStorageManager::ListNotesOrder::type>("LocalStorageManager::ListNotesOrder::type");
+    qRegisterMetaType<LocalStorageManager::ListNotebooksOrder::type>("LocalStorageManager::ListNotebooksOrder::type");
+    qRegisterMetaType<LocalStorageManager::ListTagsOrder::type>("LocalStorageManager::ListTagsOrder::type");
+    qRegisterMetaType<LocalStorageManager::ListSavedSearchesOrder::type>("LocalStorageManager::ListSavedSearchesOrder::type");
+    qRegisterMetaType<LocalStorageManager::OrderDirection::type>("LocalStorageManager::OrderDirection::type");
+    qRegisterMetaType<size_t>("size_t");
 
     qRegisterMetaType<QUuid>("QUuid");
 }

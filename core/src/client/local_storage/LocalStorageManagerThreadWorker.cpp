@@ -644,17 +644,23 @@ void LocalStorageManagerThreadWorker::onFindNoteRequest(Note note, bool withReso
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook notebook,
-                                                                       bool withResourceBinaryData, QUuid requestId)
+void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData,
+                                                                       LocalStorageManager::ListObjectsOptions flag,
+                                                                       size_t limit, size_t offset,
+                                                                       LocalStorageManager::ListNotesOrder::type order,
+                                                                       LocalStorageManager::OrderDirection::type orderDirection,
+                                                                       QUuid requestId)
 {
     try
     {
         QString errorDescription;
 
         QList<Note> notes = m_pLocalStorageManager->ListAllNotesPerNotebook(notebook, errorDescription,
-                                                                          withResourceBinaryData);
+                                                                            withResourceBinaryData, flag,
+                                                                            limit, offset, order, orderDirection);
         if (notes.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllNotesPerNotebookFailed(notebook, withResourceBinaryData, errorDescription, requestId);
+            emit listAllNotesPerNotebookFailed(notebook, withResourceBinaryData, flag, limit, offset,
+                                               order, orderDirection, errorDescription, requestId);
             return;
         }
 
@@ -665,7 +671,8 @@ void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook 
             }
         }
 
-        emit listAllNotesPerNotebookComplete(notebook, withResourceBinaryData, notes, requestId);
+        emit listAllNotesPerNotebookComplete(notebook, withResourceBinaryData, flag, limit,
+                                             offset, order, orderDirection, notes, requestId);
     }
     CATCH_EXCEPTION
 }
@@ -837,15 +844,21 @@ void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag, QUuid requestId)
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note, QUuid requestId)
+void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note, LocalStorageManager::ListObjectsOptions flag,
+                                                                  size_t limit, size_t offset,
+                                                                  LocalStorageManager::ListTagsOrder::type order,
+                                                                  LocalStorageManager::OrderDirection::type orderDirection,
+                                                                  QUuid requestId)
 {
     try
     {
         QString errorDescription;
 
-        QList<Tag> tags = m_pLocalStorageManager->ListAllTagsPerNote(note, errorDescription);
+        QList<Tag> tags = m_pLocalStorageManager->ListAllTagsPerNote(note, errorDescription, flag, limit,
+                                                                     offset, order, orderDirection);
         if (tags.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllTagsPerNoteFailed(note, errorDescription, requestId);
+            emit listAllTagsPerNoteFailed(note, flag, limit, offset, order,
+                                          orderDirection, errorDescription, requestId);
             return;
         }
 
@@ -856,7 +869,7 @@ void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note, QUu
             }
         }
 
-        emit listAllTagsPerNoteComplete(tags, note, requestId);
+        emit listAllTagsPerNoteComplete(tags, note, flag, limit, offset, order, orderDirection, requestId);
     }
     CATCH_EXCEPTION
 }

@@ -101,8 +101,14 @@ Q_SIGNALS:
     void findNoteComplete(Note foundNote, bool withResourceBinaryData, QUuid requestId = QUuid());
     void findNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId = QUuid());
     void listAllNotesPerNotebookComplete(Notebook notebook, bool withResourceBinaryData,
+                                         LocalStorageManager::ListObjectsOptions flag,
+                                         size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
+                                         LocalStorageManager::OrderDirection::type orderDirection,
                                          QList<Note> foundNotes, QUuid requestId = QUuid());
     void listAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData,
+                                       LocalStorageManager::ListObjectsOptions flag,
+                                       size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
+                                       LocalStorageManager::OrderDirection::type orderDirection,
                                        QString errorDescription, QUuid requestId = QUuid());
     void deleteNoteComplete(Note note, QUuid requestId = QUuid());
     void deleteNoteFailed(Note note, QString errorDescription, QUuid requestId = QUuid());
@@ -120,8 +126,17 @@ Q_SIGNALS:
     void linkTagWithNoteFailed(Tag tag, Note note, QString errorDescription, QUuid requestId = QUuid());
     void findTagComplete(Tag tag, QUuid requestId = QUuid());
     void findTagFailed(Tag tag, QString errorDescription, QUuid requestId = QUuid());
-    void listAllTagsPerNoteComplete(QList<Tag> foundTags, Note note, QUuid requestId = QUuid());
-    void listAllTagsPerNoteFailed(Note note, QString errorDescription, QUuid requestId = QUuid());
+    void listAllTagsPerNoteComplete(QList<Tag> foundTags, Note note,
+                                    LocalStorageManager::ListObjectsOptions flag,
+                                    size_t limit, size_t offset,
+                                    LocalStorageManager::ListTagsOrder::type order,
+                                    LocalStorageManager::OrderDirection::type orderDirection,
+                                    QUuid requestId = QUuid());
+    void listAllTagsPerNoteFailed(Note note, LocalStorageManager::ListObjectsOptions flag,
+                                  size_t limit, size_t offset,
+                                  LocalStorageManager::ListTagsOrder::type order,
+                                  LocalStorageManager::OrderDirection::type orderDirection,
+                                  QString errorDescription, QUuid requestId = QUuid());
     void listAllTagsComplete(QList<Tag> foundTags, QUuid requestId = QUuid());
     void listAllTagsFailed(QString errorDescription, QUuid requestId = QUuid());
     void deleteTagComplete(Tag tag, QUuid requestId = QUuid());
@@ -175,7 +190,7 @@ public Q_SLOTS:
     void onFindDefaultNotebookRequest(Notebook notebook, QUuid requestId);
     void onFindLastUsedNotebookRequest(Notebook notebook, QUuid requestId);
     void onFindDefaultOrLastUsedNotebookRequest(Notebook notebook, QUuid requestId);
-    void onListAllNotebooksRequest(QUuid requestId);
+    void onListAllNotebooksRequest( QUuid requestId);
     void onListAllSharedNotebooksRequest(QUuid requestId);
     void onListSharedNotebooksPerNotebookGuidRequest(QString notebookGuid, QUuid requestId);
     void onExpungeNotebookRequest(Notebook notebook, QUuid requestId);
@@ -193,7 +208,12 @@ public Q_SLOTS:
     void onAddNoteRequest(Note note, Notebook notebook, QUuid requestId);
     void onUpdateNoteRequest(Note note, Notebook notebook, QUuid requestId);
     void onFindNoteRequest(Note note, bool withResourceBinaryData, QUuid requestId);
-    void onListAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData, QUuid requestId);
+    void onListAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData,
+                                          LocalStorageManager::ListObjectsOptions flag,
+                                          size_t limit, size_t offset,
+                                          LocalStorageManager::ListNotesOrder::type order,
+                                          LocalStorageManager::OrderDirection::type orderDirection,
+                                          QUuid requestId);
     void onDeleteNoteRequest(Note note, QUuid requestId);
     void onExpungeNoteRequest(Note note, QUuid requestId);
 
@@ -203,7 +223,11 @@ public Q_SLOTS:
     void onUpdateTagRequest(Tag tag, QUuid requestId);
     void onLinkTagWithNoteRequest(Tag tag, Note note, QUuid requestId);
     void onFindTagRequest(Tag tag, QUuid requestId);
-    void onListAllTagsPerNoteRequest(Note note, QUuid requestId);
+    void onListAllTagsPerNoteRequest(Note note, LocalStorageManager::ListObjectsOptions flag,
+                                     size_t limit, size_t offset,
+                                     LocalStorageManager::ListTagsOrder::type order,
+                                     LocalStorageManager::OrderDirection::type orderDirection,
+                                     QUuid requestId);
     void onListAllTagsRequest(QUuid requestId);
     void onDeleteTagRequest(Tag tag, QUuid requestId);
     void onExpungeTagRequest(Tag tag, QUuid requestId);
