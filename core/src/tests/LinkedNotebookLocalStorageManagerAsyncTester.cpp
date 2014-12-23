@@ -190,7 +190,10 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onAddLinkedNotebookCompleted(
         m_initialLinkedNotebooks << notebook;
 
         m_state = STATE_SENT_LIST_LINKED_NOTEBOOKS_REQUEST;
-        emit listAllLinkedNotebooksRequest();
+        size_t limit = 0, offset = 0;
+        LocalStorageManager::ListLinkedNotebooksOrder::type order = LocalStorageManager::ListLinkedNotebooksOrder::NoOrder;
+        LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Ascending;
+        emit listAllLinkedNotebooksRequest(limit, offset, order, orderDirection);
     }
     HANDLE_WRONG_STATE();
 }
@@ -293,8 +296,16 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookFailed(Li
     emit failure(errorDescription);
 }
 
-void LinkedNotebookLocalStorageManagerAsyncTester::onListAllLinkedNotebooksCompleted(QList<LinkedNotebook> linkedNotebooks, QUuid requestId)
+void LinkedNotebookLocalStorageManagerAsyncTester::onListAllLinkedNotebooksCompleted(QList<LinkedNotebook> linkedNotebooks,
+                                                                                     size_t limit, size_t offset,
+                                                                                     LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                                                                     LocalStorageManager::OrderDirection::type orderDirection,
+                                                                                     QUuid requestId)
 {
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
     Q_UNUSED(requestId)
 
     int numInitialLinkedNotebooks = m_initialLinkedNotebooks.size();
@@ -322,8 +333,16 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onListAllLinkedNotebooksCompl
     emit success();
 }
 
-void LinkedNotebookLocalStorageManagerAsyncTester::onListAllLinkedNotebooksFailed(QString errorDescription, QUuid requestId)
+void LinkedNotebookLocalStorageManagerAsyncTester::onListAllLinkedNotebooksFailed(size_t limit, size_t offset,
+                                                                                  LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                                                                  LocalStorageManager::OrderDirection::type orderDirection,
+                                                                                  QString errorDescription, QUuid requestId)
 {
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
+
     QNWARNING(errorDescription << ", requestId = " << requestId);
     emit failure(errorDescription);
 }
@@ -373,8 +392,12 @@ void LinkedNotebookLocalStorageManagerAsyncTester::createConnections()
                      m_pLocalStorageManagerThreadWorker, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook,QUuid)));
     QObject::connect(this, SIGNAL(findLinkedNotebookRequest(LinkedNotebook,QUuid)),
                      m_pLocalStorageManagerThreadWorker, SLOT(onFindLinkedNotebookRequest(LinkedNotebook,QUuid)));
-    QObject::connect(this, SIGNAL(listAllLinkedNotebooksRequest(QUuid)), m_pLocalStorageManagerThreadWorker,
-                     SLOT(onListAllLinkedNotebooksRequest(QUuid)));
+    QObject::connect(this,
+                     SIGNAL(listAllLinkedNotebooksRequest(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                          LocalStorageManager::OrderDirection::type,QUuid)),
+                     m_pLocalStorageManagerThreadWorker,
+                     SLOT(onListAllLinkedNotebooksRequest(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                          LocalStorageManager::OrderDirection::type,QUuid)));
     QObject::connect(this, SIGNAL(expungeLinkedNotebookRequest(LinkedNotebook,QUuid)),
                      m_pLocalStorageManagerThreadWorker, SLOT(onExpungeLinkedNotebookRequest(LinkedNotebook,QUuid)));
 
@@ -395,10 +418,20 @@ void LinkedNotebookLocalStorageManagerAsyncTester::createConnections()
                      this, SLOT(onFindLinkedNotebookCompleted(LinkedNotebook,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findLinkedNotebookFailed(LinkedNotebook,QString,QUuid)),
                      this, SLOT(onFindLinkedNotebookFailed(LinkedNotebook,QString,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllLinkedNotebooksComplete(QList<LinkedNotebook>,QUuid)),
-                     this, SLOT(onListAllLinkedNotebooksCompleted(QList<LinkedNotebook>,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllLinkedNotebooksFailed(QString,QUuid)),
-                     this, SLOT(onListAllLinkedNotebooksFailed(QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker,
+                     SIGNAL(listAllLinkedNotebooksComplete(QList<LinkedNotebook>,size_t,size_t,
+                                                           LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                           LocalStorageManager::OrderDirection::type,QUuid)),
+                     this,
+                     SLOT(onListAllLinkedNotebooksCompleted(QList<LinkedNotebook>,size_t,size_t,
+                                                            LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                            LocalStorageManager::OrderDirection::type,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker,
+                     SIGNAL(listAllLinkedNotebooksFailed(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     this,
+                     SLOT(onListAllLinkedNotebooksFailed(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,QString,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeLinkedNotebookComplete(LinkedNotebook,QUuid)),
                      this, SLOT(onExpungeLinkedNotebookCompleted(LinkedNotebook,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeLinkedNotebookFailed(LinkedNotebook,QString,QUuid)),

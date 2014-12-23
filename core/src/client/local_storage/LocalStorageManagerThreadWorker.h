@@ -69,6 +69,13 @@ Q_SIGNALS:
     void findDefaultOrLastUsedNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId = QUuid());
     void listAllNotebooksComplete(QList<Notebook> foundNotebooks, QUuid requestId = QUuid());
     void listAllNotebooksFailed(QString errorDescription, QUuid requestId = QUuid());
+    void listNotebooksComplete(QList<Notebook> foundNotebooks, LocalStorageManager::ListObjectsOptions flag,
+                               size_t limit, size_t offset, LocalStorageManager::ListNotebooksOrder::type order,
+                               LocalStorageManager::OrderDirection::type orderDirection, QUuid requestId = QUuid());
+    void listNotebooksFailed(LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
+                             LocalStorageManager::ListNotebooksOrder::type order,
+                             LocalStorageManager::OrderDirection::type orderDirection,
+                             QString errorDescription, QUuid requestId = QUuid());
     void listAllSharedNotebooksComplete(QList<SharedNotebookWrapper> foundSharedNotebooks, QUuid requestId = QUuid());
     void listAllSharedNotebooksFailed(QString errorDescription, QUuid requestId = QUuid());
     void listSharedNotebooksPerNotebookGuidComplete(QString notebookGuid, QList<SharedNotebookWrapper> foundSharedNotebooks,
@@ -86,8 +93,15 @@ Q_SIGNALS:
     void updateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId = QUuid());
     void findLinkedNotebookComplete(LinkedNotebook foundLinkedNotebook, QUuid requestId = QUuid());
     void findLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId = QUuid());
-    void listAllLinkedNotebooksComplete(QList<LinkedNotebook> foundLinkedNotebooks, QUuid requestId = QUuid());
-    void listAllLinkedNotebooksFailed(QString errorDescription, QUuid requestId = QUuid());
+    void listAllLinkedNotebooksComplete(QList<LinkedNotebook> foundLinkedNotebooks,
+                                        size_t limit, size_t offset,
+                                        LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                        LocalStorageManager::OrderDirection::type orderDirection,
+                                        QUuid requestId = QUuid());
+    void listAllLinkedNotebooksFailed(size_t limit, size_t offset,
+                                      LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                      LocalStorageManager::OrderDirection::type orderDirection,
+                                      QString errorDescription, QUuid requestId = QUuid());
     void expungeLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
     void expungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId = QUuid());
 
@@ -200,7 +214,10 @@ public Q_SLOTS:
     void onAddLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId);
     void onUpdateLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId);
     void onFindLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId);
-    void onListAllLinkedNotebooksRequest(QUuid requestId);
+    void onListAllLinkedNotebooksRequest(size_t limit, size_t offset,
+                                         LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                         LocalStorageManager::OrderDirection::type orderDirection,
+                                         QUuid requestId);
     void onExpungeLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId);
 
     // Note-related slots:
