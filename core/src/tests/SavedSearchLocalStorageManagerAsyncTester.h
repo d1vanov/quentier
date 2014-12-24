@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__TESTS__SAVED_SEARCH_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 #define __QUTE_NOTE__CORE__TESTS__SAVED_SEARCH_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
+#include <client/local_storage/LocalStorageManager.h>
 #include <client/types/SavedSearch.h>
 
 namespace qute_note {
@@ -28,7 +29,10 @@ Q_SIGNALS:
     void addSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
     void updateSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
     void findSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
-    void listAllSavedSearchesRequest(QUuid requestId = QUuid());
+    void listAllSavedSearchesRequest(size_t limit, size_t offset,
+                                     LocalStorageManager::ListSavedSearchesOrder::type order,
+                                     LocalStorageManager::OrderDirection::type orderDirection,
+                                     QUuid requestId = QUuid());
     void expungeSavedSearchRequest(SavedSearch search, QUuid requestId = QUuid());
 
 private Q_SLOTS:
@@ -41,8 +45,14 @@ private Q_SLOTS:
     void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
     void onFindSavedSearchCompleted(SavedSearch search, QUuid requestId);
     void onFindSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
-    void onListAllSavedSearchesCompleted(QList<SavedSearch> searches, QUuid requestId);
-    void onListAllSavedSearchedFailed(QString errorDescription, QUuid requestId);
+    void onListAllSavedSearchesCompleted(size_t limit, size_t offset,
+                                         LocalStorageManager::ListSavedSearchesOrder::type order,
+                                         LocalStorageManager::OrderDirection::type orderDirection,
+                                         QList<SavedSearch> searches, QUuid requestId);
+    void onListAllSavedSearchedFailed(size_t limit, size_t offset,
+                                      LocalStorageManager::ListSavedSearchesOrder::type order,
+                                      LocalStorageManager::OrderDirection::type orderDirection,
+                                      QString errorDescription, QUuid requestId);
     void onExpungeSavedSearchCompleted(SavedSearch search, QUuid requestId);
     void onExpungeSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
 

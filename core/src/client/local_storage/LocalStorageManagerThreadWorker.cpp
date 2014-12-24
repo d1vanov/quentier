@@ -356,7 +356,9 @@ void LocalStorageManagerThreadWorker::onListAllNotebooksRequest(QUuid requestId)
 
         if (m_useCache)
         {
-            foreach(const Notebook & notebook, notebooks) {
+            const int numNotebooks = notebooks.size();
+            for(int i = 0; i < numNotebooks; ++i) {
+                const Notebook & notebook = notebooks[i];
                 m_pLocalStorageCacheManager->cacheNotebook(notebook);
             }
         }
@@ -378,6 +380,36 @@ void LocalStorageManagerThreadWorker::onListAllSharedNotebooksRequest(QUuid requ
         }
 
         emit listAllSharedNotebooksComplete(sharedNotebooks, requestId);
+    }
+    CATCH_EXCEPTION
+}
+
+void LocalStorageManagerThreadWorker::onListNotebooksRequest(LocalStorageManager::ListObjectsOptions flag,
+                                                             size_t limit, size_t offset,
+                                                             LocalStorageManager::ListNotebooksOrder::type order,
+                                                             LocalStorageManager::OrderDirection::type orderDirection,
+                                                             QUuid requestId)
+{
+    try
+    {
+        QString errorDescription;
+        QList<Notebook> notebooks = m_pLocalStorageManager->ListNotebooks(flag, errorDescription, limit,
+                                                                          offset, order, orderDirection);
+        if (notebooks.isEmpty() && !errorDescription.isEmpty()) {
+            emit listNotebooksFailed(flag, limit, offset, order, orderDirection, errorDescription, requestId);
+            return;
+        }
+
+        if (m_useCache)
+        {
+            const int numNotebooks = notebooks.size();
+            for(int i = 0; i < numNotebooks; ++i) {
+                const Notebook & notebook = notebooks[i];
+                m_pLocalStorageCacheManager->cacheNotebook(notebook);
+            }
+        }
+
+        emit listNotebooksComplete(flag, limit, offset, order, orderDirection, notebooks, requestId);
     }
     CATCH_EXCEPTION
 }
@@ -525,12 +557,44 @@ void LocalStorageManagerThreadWorker::onListAllLinkedNotebooksRequest(size_t lim
 
         if (m_useCache)
         {
-            foreach(const LinkedNotebook & linkedNotebook, linkedNotebooks) {
+            const int numLinkedNotebooks = linkedNotebooks.size();
+            for(int i = 0; i < numLinkedNotebooks; ++i) {
+                const LinkedNotebook & linkedNotebook = linkedNotebooks[i];
                 m_pLocalStorageCacheManager->cacheLinkedNotebook(linkedNotebook);
             }
         }
 
-        emit listAllLinkedNotebooksComplete(linkedNotebooks, limit, offset, order, orderDirection, requestId);
+        emit listAllLinkedNotebooksComplete(limit, offset, order, orderDirection, linkedNotebooks, requestId);
+    }
+    CATCH_EXCEPTION
+}
+
+void LocalStorageManagerThreadWorker::onListLinkedNotebooksRequest(LocalStorageManager::ListObjectsOptions flag,
+                                                                   size_t limit, size_t offset,
+                                                                   LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                                                   LocalStorageManager::OrderDirection::type orderDirection,
+                                                                   QUuid requestId)
+{
+    try
+    {
+        QString errorDescription;
+        QList<LinkedNotebook> linkedNotebooks = m_pLocalStorageManager->ListLinkedNotebooks(flag, errorDescription, limit,
+                                                                                            offset, order, orderDirection);
+        if (linkedNotebooks.isEmpty() && !errorDescription.isEmpty()) {
+            emit listLinkedNotebooksFailed(flag, limit, offset, order, orderDirection, errorDescription, requestId);
+            return;
+        }
+
+        if (m_useCache)
+        {
+            const int numLinkedNotebooks = linkedNotebooks.size();
+            for(int i = 0; i < numLinkedNotebooks; ++i) {
+                const LinkedNotebook & linkedNotebook = linkedNotebooks[i];
+                m_pLocalStorageCacheManager->cacheLinkedNotebook(linkedNotebook);
+            }
+        }
+
+        emit listLinkedNotebooksComplete(flag, limit, offset, order, orderDirection, linkedNotebooks, requestId);
     }
     CATCH_EXCEPTION
 }
@@ -670,13 +734,40 @@ void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook 
 
         if (m_useCache)
         {
-            foreach(const Note & note, notes) {
+            const int numNotes = notes.size();
+            for(int i = 0; i < numNotes; ++i) {
+                const Note & note = notes[i];
                 m_pLocalStorageCacheManager->cacheNote(note);
             }
         }
 
         emit listAllNotesPerNotebookComplete(notebook, withResourceBinaryData, flag, limit,
                                              offset, order, orderDirection, notes, requestId);
+    }
+    CATCH_EXCEPTION
+}
+
+void LocalStorageManagerThreadWorker::onListNotesRequest(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData, size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order, LocalStorageManager::OrderDirection::type orderDirection, QUuid requestId)
+{
+    try
+    {
+        QString errorDescription;
+        QList<Note> notes = m_pLocalStorageManager->ListNotes(flag, errorDescription, withResourceBinaryData,
+                                                              limit, offset, order, orderDirection);
+        if (notes.isEmpty() && !errorDescription.isEmpty()) {
+            emit listNotesFailed(flag, withResourceBinaryData, limit, offset, order,
+                                 orderDirection, errorDescription, requestId);
+            return;
+        }
+
+        if (m_useCache)
+        {
+            const int numNotes = notes.size();
+            for(int i = 0; i < numNotes; ++i) {
+                const Note & note = notes[i];
+                m_pLocalStorageCacheManager->cacheNote(note);
+            }
+        }
     }
     CATCH_EXCEPTION
 }
@@ -878,26 +969,61 @@ void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note, Loc
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListAllTagsRequest(QUuid requestId)
+void LocalStorageManagerThreadWorker::onListAllTagsRequest(size_t limit, size_t offset,
+                                                           LocalStorageManager::ListTagsOrder::type order,
+                                                           LocalStorageManager::OrderDirection::type orderDirection,
+                                                           QUuid requestId)
 {
     try
     {
         QString errorDescription;
 
-        QList<Tag> tags = m_pLocalStorageManager->ListAllTags(errorDescription);
+        QList<Tag> tags = m_pLocalStorageManager->ListAllTags(errorDescription, limit, offset,
+                                                              order, orderDirection);
         if (tags.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllTagsFailed(errorDescription, requestId);
+            emit listAllTagsFailed(limit, offset, order, orderDirection, errorDescription, requestId);
             return;
         }
 
         if (m_useCache)
         {
-            foreach(const Tag & tag, tags) {
+            const int numTags = tags.size();
+            for(int i = 0; i < numTags; ++i) {
+                const Tag & tag = tags[i];
                 m_pLocalStorageCacheManager->cacheTag(tag);
             }
         }
 
-        emit listAllTagsComplete(tags, requestId);
+        emit listAllTagsComplete(limit, offset, order, orderDirection, tags, requestId);
+    }
+    CATCH_EXCEPTION
+}
+
+void LocalStorageManagerThreadWorker::onListTagsRequest(LocalStorageManager::ListObjectsOptions flag,
+                                                        size_t limit, size_t offset,
+                                                        LocalStorageManager::ListTagsOrder::type order,
+                                                        LocalStorageManager::OrderDirection::type orderDirection,
+                                                        QUuid requestId)
+{
+    try
+    {
+        QString errorDescription;
+        QList<Tag> tags = m_pLocalStorageManager->ListTags(flag, errorDescription, limit,
+                                                           offset, order, orderDirection);
+        if (tags.isEmpty() && !errorDescription.isEmpty()) {
+            emit listTagsFailed(flag, limit, offset, order, orderDirection, errorDescription, requestId);
+        }
+
+        if (m_useCache)
+        {
+            const int numTags = tags.size();
+            for(int i = 0; i < numTags; ++i) {
+                const Tag & tag = tags[i];
+                m_pLocalStorageCacheManager->cacheTag(tag);
+            }
+        }
+
+        emit listTagsComplete(flag, limit, offset, order, orderDirection, tags, requestId);
     }
     CATCH_EXCEPTION
 }
@@ -1132,25 +1258,63 @@ void LocalStorageManagerThreadWorker::onFindSavedSearchRequest(SavedSearch searc
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListAllSavedSearchesRequest(QUuid requestId)
+void LocalStorageManagerThreadWorker::onListAllSavedSearchesRequest(size_t limit, size_t offset,
+                                                                    LocalStorageManager::ListSavedSearchesOrder::type order,
+                                                                    LocalStorageManager::OrderDirection::type orderDirection,
+                                                                    QUuid requestId)
 {
     try
     {
         QString errorDescription;
-        QList<SavedSearch> searches = m_pLocalStorageManager->ListAllSavedSearches(errorDescription);
-        if (searches.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllSavedSearchesFailed(errorDescription, requestId);
+        QList<SavedSearch> savedSearches = m_pLocalStorageManager->ListAllSavedSearches(errorDescription, limit, offset,
+                                                                                   order, orderDirection);
+        if (savedSearches.isEmpty() && !errorDescription.isEmpty()) {
+            emit listAllSavedSearchesFailed(limit, offset, order, orderDirection,
+                                            errorDescription, requestId);
             return;
         }
 
         if (m_useCache)
         {
-            foreach(const SavedSearch & search, searches) {
+            const int numSavedSearches = savedSearches.size();
+            for(int i = 0; i < numSavedSearches; ++i) {
+                const SavedSearch & search = savedSearches[i];
                 m_pLocalStorageCacheManager->cacheSavedSearch(search);
             }
         }
 
-        emit listAllSavedSearchesComplete(searches, requestId);
+        emit listAllSavedSearchesComplete(limit, offset, order, orderDirection, savedSearches, requestId);
+    }
+    CATCH_EXCEPTION
+}
+
+void LocalStorageManagerThreadWorker::onListSavedSearchesRequest(LocalStorageManager::ListObjectsOptions flag,
+                                                                 size_t limit, size_t offset,
+                                                                 LocalStorageManager::ListSavedSearchesOrder::type order,
+                                                                 LocalStorageManager::OrderDirection::type orderDirection,
+                                                                 QUuid requestId)
+{
+    try
+    {
+        QString errorDescription;
+        QList<SavedSearch> savedSearches = m_pLocalStorageManager->ListSavedSearches(flag, errorDescription, limit,
+                                                                                     offset, order, orderDirection);
+        if (savedSearches.isEmpty() && !errorDescription.isEmpty()) {
+            emit listSavedSearchesFailed(flag, limit, offset, order, orderDirection,
+                                         errorDescription, requestId);
+            return;
+        }
+
+        if (m_useCache)
+        {
+            const int numSavedSearches = savedSearches.size();
+            for(int i = 0; i < numSavedSearches; ++i) {
+                const SavedSearch & search = savedSearches[i];
+                m_pLocalStorageCacheManager->cacheSavedSearch(search);
+            }
+        }
+
+        emit listSavedSearchesComplete(flag, limit, offset, order, orderDirection, savedSearches, requestId);
     }
     CATCH_EXCEPTION
 }

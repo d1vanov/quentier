@@ -167,7 +167,10 @@ void TagLocalStorageManagerAsyncTester::onAddTagCompleted(Tag tag, QUuid request
         m_initialTags << tag;
 
         m_state = STATE_SENT_LIST_TAGS_REQUEST;
-        emit listAllTagsRequest();
+        size_t limit = 0, offset = 0;
+        LocalStorageManager::ListTagsOrder::type order = LocalStorageManager::ListTagsOrder::NoOrder;
+        LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Ascending;
+        emit listAllTagsRequest(limit, offset, order, orderDirection);
     }
     HANDLE_WRONG_STATE();
 }
@@ -285,8 +288,15 @@ void TagLocalStorageManagerAsyncTester::onFindTagFailed(Tag tag, QString errorDe
     emit failure(errorDescription);
 }
 
-void TagLocalStorageManagerAsyncTester::onListAllTagsCompleted(QList<Tag> tags, QUuid requestId)
+void TagLocalStorageManagerAsyncTester::onListAllTagsCompleted(size_t limit, size_t offset,
+                                                               LocalStorageManager::ListTagsOrder::type order,
+                                                               LocalStorageManager::OrderDirection::type orderDirection,
+                                                               QList<Tag> tags, QUuid requestId)
 {
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
     Q_UNUSED(requestId)
 
     int numInitialTags = m_initialTags.size();
@@ -315,8 +325,16 @@ void TagLocalStorageManagerAsyncTester::onListAllTagsCompleted(QList<Tag> tags, 
     emit success();
 }
 
-void TagLocalStorageManagerAsyncTester::onListAllTagsFailed(QString errorDescription, QUuid requestId)
+void TagLocalStorageManagerAsyncTester::onListAllTagsFailed(size_t limit, size_t offset,
+                                                            LocalStorageManager::ListTagsOrder::type order,
+                                                            LocalStorageManager::OrderDirection::type orderDirection,
+                                                            QString errorDescription, QUuid requestId)
 {
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
+
     QNWARNING(errorDescription << ", requestId = " << requestId);
     emit failure(errorDescription);
 }
@@ -391,8 +409,12 @@ void TagLocalStorageManagerAsyncTester::createConnections()
                      SLOT(onUpdateTagRequest(Tag,QUuid)));
     QObject::connect(this, SIGNAL(findTagRequest(Tag,QUuid)), m_pLocalStorageManagerThreadWorker,
                      SLOT(onFindTagRequest(Tag,QUuid)));
-    QObject::connect(this, SIGNAL(listAllTagsRequest(QUuid)), m_pLocalStorageManagerThreadWorker,
-                     SLOT(onListAllTagsRequest(QUuid)));
+    QObject::connect(this,
+                     SIGNAL(listAllTagsRequest(size_t,size_t,LocalStorageManager::ListTagsOrder::type,
+                                               LocalStorageManager::OrderDirection::type,QUuid)),
+                     m_pLocalStorageManagerThreadWorker,
+                     SLOT(onListAllTagsRequest(size_t,size_t,LocalStorageManager::ListTagsOrder::type,
+                                               LocalStorageManager::OrderDirection::type,QUuid)));
     QObject::connect(this, SIGNAL(deleteTagRequest(Tag,QUuid)),
                      m_pLocalStorageManagerThreadWorker, SLOT(onDeleteTagRequest(Tag,QUuid)));
     QObject::connect(this, SIGNAL(expungeTagRequest(Tag,QUuid)),
@@ -415,10 +437,18 @@ void TagLocalStorageManagerAsyncTester::createConnections()
                      this, SLOT(onFindTagCompleted(Tag,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findTagFailed(Tag,QString,QUuid)),
                      this, SLOT(onFindTagFailed(Tag,QString,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllTagsComplete(QList<Tag>,QUuid)),
-                     this, SLOT(onListAllTagsCompleted(QList<Tag>,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllTagsFailed(QString,QUuid)),
-                     this, SLOT(onListAllTagsFailed(QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker,
+                     SIGNAL(listAllTagsComplete(size_t,size_t,LocalStorageManager::ListTagsOrder::type,
+                                                LocalStorageManager::OrderDirection::type,QList<Tag>,QUuid)),
+                     this,
+                     SLOT(onListAllTagsCompleted(size_t,size_t,LocalStorageManager::ListTagsOrder::type,
+                                                 LocalStorageManager::OrderDirection::type,QList<Tag>,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker,
+                     SIGNAL(listAllTagsFailed(size_t,size_t,LocalStorageManager::ListTagsOrder::type,
+                                              LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     this,
+                     SLOT(onListAllTagsFailed(size_t,size_t,LocalStorageManager::ListTagsOrder::type,
+                                              LocalStorageManager::OrderDirection::type,QString,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteTagComplete(Tag,QUuid)),
                      this, SLOT(onDeleteTagCompleted(Tag,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteTagFailed(Tag,QString,QUuid)),

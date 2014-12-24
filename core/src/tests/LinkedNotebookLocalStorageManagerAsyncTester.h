@@ -45,10 +45,10 @@ private Q_SLOTS:
     void onUpdateLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription, QUuid requestId);
     void onFindLinkedNotebookCompleted(LinkedNotebook notebook, QUuid requestId);
     void onFindLinkedNotebookFailed(LinkedNotebook notebook, QString errorDescription, QUuid requestId);
-    void onListAllLinkedNotebooksCompleted(QList<LinkedNotebook> linkedNotebooks,
-                                           size_t limit, size_t offset,
+    void onListAllLinkedNotebooksCompleted(size_t limit, size_t offset,
                                            LocalStorageManager::ListLinkedNotebooksOrder::type order,
                                            LocalStorageManager::OrderDirection::type orderDirection,
+                                           QList<LinkedNotebook> linkedNotebooks,
                                            QUuid requestId);
     void onListAllLinkedNotebooksFailed(size_t limit, size_t offset,
                                         LocalStorageManager::ListLinkedNotebooksOrder::type order,

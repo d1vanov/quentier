@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__TESTS__TAG_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 #define __QUTE_NOTE__CORE__TESTS__TAG_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
+#include <client/local_storage/LocalStorageManager.h>
 #include <client/types/Tag.h>
 
 namespace qute_note {
@@ -28,7 +29,9 @@ Q_SIGNALS:
     void addTagRequest(Tag tag, QUuid requestId = QUuid());
     void updateTagRequest(Tag tag, QUuid requestId = QUuid());
     void findTagRequest(Tag tag, QUuid requestId = QUuid());
-    void listAllTagsRequest(QUuid requestId = QUuid());
+    void listAllTagsRequest(size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
+                            LocalStorageManager::OrderDirection::type orderDirection,
+                            QUuid requestId = QUuid());
     void deleteTagRequest(Tag tag, QUuid requestId = QUuid());
     void expungeTagRequest(Tag tag, QUuid requestId = QUuid());
 
@@ -42,8 +45,12 @@ private Q_SLOTS:
     void onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId);
     void onFindTagCompleted(Tag tag, QUuid requestId);
     void onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId);
-    void onListAllTagsCompleted(QList<Tag> tags, QUuid requestId);
-    void onListAllTagsFailed(QString errorDescription, QUuid requestId);
+    void onListAllTagsCompleted(size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
+                                LocalStorageManager::OrderDirection::type orderDirection,
+                                QList<Tag> tags, QUuid requestId);
+    void onListAllTagsFailed(size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
+                             LocalStorageManager::OrderDirection::type orderDirection,
+                             QString errorDescription, QUuid requestId);
     void onDeleteTagCompleted(Tag tag, QUuid requestId);
     void onDeleteTagFailed(Tag tag, QString errorDescription, QUuid requestId);
     void onExpungeTagCompleted(Tag tag, QUuid requestId);
