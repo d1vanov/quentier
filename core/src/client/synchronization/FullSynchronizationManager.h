@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__FULL_SYNCHRONIZATION_MANAGER_H
 #define __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__FULL_SYNCHRONIZATION_MANAGER_H
 
+#include <client/local_storage/LocalStorageManager.h>
 #include <client/types/UserWrapper.h>
 #include <client/types/Notebook.h>
 #include <client/types/Note.h>
@@ -73,6 +74,28 @@ Q_SIGNALS:
     void findSavedSearch(SavedSearch savedSearch, QUuid requestId = QUuid());
     void expungeSavedSearch(SavedSearch savedSearch, QUuid requestId = QUuid());
 
+    // signals to request dirty & not yet synchronized objects from local storage
+    void requestLocalUnsynchronizedTags(LocalStorageManager::ListObjectsOptions flag,
+                                        size_t limit, size_t offset,
+                                        LocalStorageManager::ListTagsOrder::type order,
+                                        LocalStorageManager::OrderDirection::type orderDirection,
+                                        QUuid requestId);
+    void requestLocalUnsynchronizedSavedSearches(LocalStorageManager::ListObjectsOptions flag,
+                                                 size_t limit, size_t offset,
+                                                 LocalStorageManager::ListSavedSearchesOrder::type order,
+                                                 LocalStorageManager::OrderDirection::type orderDirection,
+                                                 QUuid requestId);
+    void requestLocalUnsynchronizedNotebooks(LocalStorageManager::ListObjectsOptions flag,
+                                             size_t limit, size_t offset,
+                                             LocalStorageManager::ListNotebooksOrder::type order,
+                                             LocalStorageManager::OrderDirection::type orderDirection,
+                                             QUuid requestId);
+    void requestLocalUnsynchronizedNotes(LocalStorageManager::ListObjectsOptions flag,
+                                         size_t limit, size_t offset,
+                                         LocalStorageManager::ListNotesOrder::type order,
+                                         LocalStorageManager::OrderDirection::type orderDirection,
+                                         QUuid requestId);
+
 private Q_SLOTS:
     void onFindUserCompleted(UserWrapper user, QUuid requestId);
     void onFindUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
@@ -114,6 +137,51 @@ private Q_SLOTS:
     void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
     void onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId);
     void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
+
+
+    void onListLocalUnsynchronizedTagsCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                size_t limit, size_t offset,
+                                                LocalStorageManager::ListTagsOrder::type order,
+                                                LocalStorageManager::OrderDirection::type orderDirection,
+                                                QList<Tag> tags, QUuid requestId);
+    void onListLocalUnsynchronizedTagsFailed(LocalStorageManager::ListObjectsOptions flag,
+                                             size_t limit, size_t offset,
+                                             LocalStorageManager::ListTagsOrder::type order,
+                                             LocalStorageManager::OrderDirection::type orderDirection,
+                                             QString errorDescription, QUuid requestId);
+
+    void onListLocalUnsynchronizedSavedSearchesCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                         size_t limit, size_t offset,
+                                                         LocalStorageManager::ListSavedSearchesOrder::type order,
+                                                         LocalStorageManager::OrderDirection::type orderDirection,
+                                                         QList<SavedSearch> savedSearches, QUuid requestId);
+    void onListLocalUnsynchronizedSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
+                                                      size_t limit, size_t offset,
+                                                      LocalStorageManager::ListSavedSearchesOrder::type order,
+                                                      LocalStorageManager::OrderDirection::type orderDirection,
+                                                      QString errorDescription, QUuid requestId);
+
+    void onListLocalUnsynchronizedNotebooksCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                     size_t limit, size_t offset,
+                                                     LocalStorageManager::ListNotebooksOrder::type order,
+                                                     LocalStorageManager::OrderDirection::type orderDirection,
+                                                     QList<Notebook> notebooks, QUuid requestId);
+    void onListLocalUnsynchronizedNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
+                                                  size_t limit, size_t offset,
+                                                  LocalStorageManager::ListNotebooksOrder::type order,
+                                                  LocalStorageManager::OrderDirection::type orderDirection,
+                                                  QString errorDescription, QUuid requestId);
+
+    void onListLocalUnsynchronizedNotesCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                 size_t limit, size_t offset,
+                                                 LocalStorageManager::ListNotesOrder::type order,
+                                                 LocalStorageManager::OrderDirection::type orderDirection,
+                                                 QList<Note> notes, QUuid requestId);
+    void onListLocalUnsynchronizedNotesFailed(LocalStorageManager::ListObjectsOptions flag,
+                                              size_t limit, size_t offset,
+                                              LocalStorageManager::ListNotesOrder::type order,
+                                              LocalStorageManager::OrderDirection::type orderDirection,
+                                              QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();

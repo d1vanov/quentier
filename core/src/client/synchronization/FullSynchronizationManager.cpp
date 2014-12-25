@@ -850,6 +850,134 @@ void FullSynchronizationManager::onUpdateNoteFailed(Note note, Notebook notebook
     }
 }
 
+void FullSynchronizationManager::onListLocalUnsynchronizedTagsCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                                        size_t limit, size_t offset,
+                                                                        LocalStorageManager::ListTagsOrder::type order,
+                                                                        LocalStorageManager::OrderDirection::type orderDirection,
+                                                                        QList<Tag> tags, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
+    Q_UNUSED(tags)
+    Q_UNUSED(requestId)
+}
+
+void FullSynchronizationManager::onListLocalUnsynchronizedTagsFailed(LocalStorageManager::ListObjectsOptions flag,
+                                                                     size_t limit, size_t offset,
+                                                                     LocalStorageManager::ListTagsOrder::type order,
+                                                                     LocalStorageManager::OrderDirection::type orderDirection,
+                                                                     QString errorDescription, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
+    Q_UNUSED(errorDescription)
+    Q_UNUSED(requestId)
+}
+
+void FullSynchronizationManager::onListLocalUnsynchronizedSavedSearchesCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                                                 size_t limit, size_t offset,
+                                                                                 LocalStorageManager::ListSavedSearchesOrder::type order,
+                                                                                 LocalStorageManager::OrderDirection::type orderDirection,
+                                                                                 QList<SavedSearch> savedSearches, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
+    Q_UNUSED(savedSearches)
+    Q_UNUSED(requestId)
+}
+
+void FullSynchronizationManager::onListLocalUnsynchronizedSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
+                                                                              size_t limit, size_t offset,
+                                                                              LocalStorageManager::ListSavedSearchesOrder::type order,
+                                                                              LocalStorageManager::OrderDirection::type orderDirection,
+                                                                              QString errorDescription, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
+    Q_UNUSED(errorDescription)
+    Q_UNUSED(requestId)
+}
+
+void FullSynchronizationManager::onListLocalUnsynchronizedNotebooksCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                                             size_t limit, size_t offset,
+                                                                             LocalStorageManager::ListNotebooksOrder::type order,
+                                                                             LocalStorageManager::OrderDirection::type orderDirection,
+                                                                             QList<Notebook> notebooks, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
+    Q_UNUSED(notebooks)
+    Q_UNUSED(requestId)
+}
+
+void FullSynchronizationManager::onListLocalUnsynchronizedNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
+                                                                          size_t limit, size_t offset,
+                                                                          LocalStorageManager::ListNotebooksOrder::type order,
+                                                                          LocalStorageManager::OrderDirection::type orderDirection,
+                                                                          QString errorDescription, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
+    Q_UNUSED(errorDescription)
+    Q_UNUSED(requestId)
+}
+
+void FullSynchronizationManager::onListLocalUnsynchronizedNotesCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                                         size_t limit, size_t offset,
+                                                                         LocalStorageManager::ListNotesOrder::type order,
+                                                                         LocalStorageManager::OrderDirection::type orderDirection,
+                                                                         QList<Note> notes, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
+    Q_UNUSED(notes)
+    Q_UNUSED(requestId)
+}
+
+void FullSynchronizationManager::onListLocalUnsynchronizedNotesFailed(LocalStorageManager::ListObjectsOptions flag,
+                                                                      size_t limit, size_t offset,
+                                                                      LocalStorageManager::ListNotesOrder::type order,
+                                                                      LocalStorageManager::OrderDirection::type orderDirection,
+                                                                      QString errorDescription, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(flag)
+    Q_UNUSED(limit)
+    Q_UNUSED(offset)
+    Q_UNUSED(order)
+    Q_UNUSED(orderDirection)
+    Q_UNUSED(errorDescription)
+    Q_UNUSED(requestId)
+}
+
 void FullSynchronizationManager::createConnections()
 {
     // Connect local signals with localStorageManagerThread's slots
@@ -890,6 +1018,42 @@ void FullSynchronizationManager::createConnections()
     QObject::connect(this, SIGNAL(updateSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateSavedSearchRequest(SavedSearch,QUuid)));
     QObject::connect(this, SIGNAL(findSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindSavedSearchRequest(SavedSearch,QUuid)));
     QObject::connect(this, SIGNAL(expungeSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeSavedSearch(SavedSearch,QUuid)));
+
+    QObject::connect(this,
+                     SIGNAL(requestLocalUnsynchronizedTags(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                           LocalStorageManager::ListTagsOrder::type,
+                                                           LocalStorageManager::OrderDirection::type,QUuid)),
+                     &m_localStorageManagerThreadWorker,
+                     SLOT(onListTagsRequest(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                            LocalStorageManager::ListTagsOrder::type,
+                                            LocalStorageManager::OrderDirection::type,QUuid)));
+
+    QObject::connect(this,
+                     SIGNAL(requestLocalUnsynchronizedSavedSearches(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                                    LocalStorageManager::ListSavedSearchesOrder::type,
+                                                                    LocalStorageManager::OrderDirection::type,QUuid)),
+                     &m_localStorageManagerThreadWorker,
+                     SLOT(onListSavedSearchesRequest(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                     LocalStorageManager::ListSavedSearchesOrder::type,
+                                                     LocalStorageManager::OrderDirection::type,QUuid)));
+
+    QObject::connect(this,
+                     SIGNAL(requestLocalUnsynchronizedNotebooks(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                                LocalStorageManager::ListNotebooksOrder::type,
+                                                                LocalStorageManager::OrderDirection::type,QUuid)),
+                     &m_localStorageManagerThreadWorker,
+                     SLOT(onListSavedSearchesRequest(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                     LocalStorageManager::ListSavedSearchesOrder::type,
+                                                     LocalStorageManager::OrderDirection::type,QUuid)));
+
+    QObject::connect(this,
+                     SIGNAL(requestLocalUnsynchronizedNotes(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                            LocalStorageManager::ListNotesOrder::type,
+                                                            LocalStorageManager::OrderDirection::type,QUuid)),
+                     &m_localStorageManagerThreadWorker,
+                     SLOT(onListNotesRequest(LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                             LocalStorageManager::ListNotesOrder::type,
+                                             LocalStorageManager::OrderDirection::type,QUuid)));
 
     // Connect localStorageManagerThread's signals to local slots
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findUserComplete(UserWrapper,QUuid)), this, SLOT(onFindUserCompleted(UserWrapper,QUuid)));
