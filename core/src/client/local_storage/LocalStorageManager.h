@@ -190,15 +190,6 @@ public:
     bool FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
 
     /**
-     * @brief ListAllNotebooks - attempts to list all notebooks within the account
-     * @param errorDescription - error description if notebooks could not be listed;
-     * if no error happens, this parameter is untouched
-     * @return either list of all notebooks within the account or empty list in cases of
-     * error or no notebooks presence within the account
-     */
-    QList<Notebook> ListAllNotebooks(QString & errorDescription) const;
-
-    /**
      * @brief The OrderDirection struct is a C++98 style scoped enum which specifies the direction of ordering
      * of the results of methods listing objects from local storage
      */
@@ -226,6 +217,22 @@ public:
             NoOrder
         };
     };
+
+    /**
+     * @brief ListAllNotebooks - attempts to list all notebooks within the account
+     * @param errorDescription - error description if notebooks could not be listed;
+     * if no error happens, this parameter is untouched
+     * @param limit - limit for the max number of notebooks in the result, zero by default which means no limit is set
+     * @param offset - number of notebooks to skip in the beginning of the result, zero by default
+     * @param order - allows to specify particular ordering of notebooks in the result, NoOrder by default
+     * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
+     * this parameter has no meaning if order is equal to NoOrder
+     * @return either list of all notebooks within the account or empty list in cases of
+     * error or no notebooks presence within the account
+     */
+    QList<Notebook> ListAllNotebooks(QString & errorDescription, const size_t limit = 0,
+                                     const size_t offset = 0, const ListNotebooksOrder::type order = ListNotebooksOrder::NoOrder,
+                                     const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
      * @brief ListNotebooks - attempts to list notebooks within the account according to

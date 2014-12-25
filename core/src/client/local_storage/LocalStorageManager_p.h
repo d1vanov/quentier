@@ -47,7 +47,9 @@ public:
     bool FindDefaultNotebook(Notebook & notebook, QString & errorDescription) const;
     bool FindLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
     bool FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
-    QList<Notebook> ListAllNotebooks(QString & errorDescription) const;
+    QList<Notebook> ListAllNotebooks(QString & errorDescription, const size_t limit, const size_t offset,
+                                     const LocalStorageManager::ListNotebooksOrder::type & order,
+                                     const LocalStorageManager::OrderDirection::type & orderDirection) const;
     QList<Notebook> ListNotebooks(const LocalStorageManager::ListObjectsOptions flag,
                                   QString & errorDescription, const size_t limit, const size_t offset,
                                   const LocalStorageManager::ListNotebooksOrder::type & order,

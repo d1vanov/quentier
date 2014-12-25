@@ -755,12 +755,14 @@ bool LocalStorageManagerPrivate::FindDefaultOrLastUsedNotebook(Notebook & notebo
     return FindLastUsedNotebook(notebook, errorDescription);
 }
 
-QList<Notebook> LocalStorageManagerPrivate::ListAllNotebooks(QString & errorDescription) const
+QList<Notebook> LocalStorageManagerPrivate::ListAllNotebooks(QString & errorDescription,
+                                                             const size_t limit, const size_t offset,
+                                                             const LocalStorageManager::ListNotebooksOrder::type & order,
+                                                             const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllNotebooks");
-    return ListNotebooks(LocalStorageManager::ListAll, errorDescription, /* limit = */ 0,
-                         /* offset = */ 0, LocalStorageManager::ListNotebooksOrder::NoOrder,
-                         LocalStorageManager::OrderDirection::Ascending);
+    return ListNotebooks(LocalStorageManager::ListAll, errorDescription, limit,
+                         offset, order, orderDirection);
 }
 
 QList<Notebook> LocalStorageManagerPrivate::ListNotebooks(const LocalStorageManager::ListObjectsOptions flag,

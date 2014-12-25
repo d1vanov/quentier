@@ -67,8 +67,13 @@ Q_SIGNALS:
     void findLastUsedNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId = QUuid());
     void findDefaultOrLastUsedNotebookComplete(Notebook foundNotebook, QUuid requestId = QUuid());
     void findDefaultOrLastUsedNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId = QUuid());
-    void listAllNotebooksComplete(QList<Notebook> foundNotebooks, QUuid requestId = QUuid());
-    void listAllNotebooksFailed(QString errorDescription, QUuid requestId = QUuid());
+    void listAllNotebooksComplete(size_t limit, size_t offset, LocalStorageManager::ListNotebooksOrder::type order,
+                                  LocalStorageManager::OrderDirection::type orderDirection,
+                                  QList<Notebook> foundNotebooks, QUuid requestId = QUuid());
+    void listAllNotebooksFailed(size_t limit, size_t offset,
+                                LocalStorageManager::ListNotebooksOrder::type order,
+                                LocalStorageManager::OrderDirection::type orderDirection,
+                                QString errorDescription, QUuid requestId = QUuid());
     void listNotebooksComplete(LocalStorageManager::ListObjectsOptions flag,
                                size_t limit, size_t offset, LocalStorageManager::ListNotebooksOrder::type order,
                                LocalStorageManager::OrderDirection::type orderDirection,
@@ -252,7 +257,10 @@ public Q_SLOTS:
     void onFindDefaultNotebookRequest(Notebook notebook, QUuid requestId);
     void onFindLastUsedNotebookRequest(Notebook notebook, QUuid requestId);
     void onFindDefaultOrLastUsedNotebookRequest(Notebook notebook, QUuid requestId);
-    void onListAllNotebooksRequest(QUuid requestId);
+    void onListAllNotebooksRequest(size_t limit, size_t offset,
+                                   LocalStorageManager::ListNotebooksOrder::type order,
+                                   LocalStorageManager::OrderDirection::type orderDirection,
+                                   QUuid requestId);
     void onListAllSharedNotebooksRequest(QUuid requestId);
     void onListNotebooksRequest(LocalStorageManager::ListObjectsOptions flag,
                                 size_t limit, size_t offset,

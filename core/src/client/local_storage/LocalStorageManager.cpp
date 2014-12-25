@@ -103,10 +103,13 @@ bool LocalStorageManager::FindDefaultOrLastUsedNotebook(Notebook & notebook, QSt
     return d->FindDefaultOrLastUsedNotebook(notebook, errorDescription);
 }
 
-QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription) const
+QList<Notebook> LocalStorageManager::ListAllNotebooks(QString & errorDescription,
+                                                      const size_t limit, const size_t offset,
+                                                      const ListNotebooksOrder::type order,
+                                                      const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllNotebooks(errorDescription);
+    return d->ListAllNotebooks(errorDescription, limit, offset, order, orderDirection);
 }
 
 QList<Notebook> LocalStorageManager::ListNotebooks(const ListObjectsOptions flag, QString & errorDescription,

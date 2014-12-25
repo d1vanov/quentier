@@ -343,14 +343,19 @@ void LocalStorageManagerThreadWorker::onFindDefaultOrLastUsedNotebookRequest(Not
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListAllNotebooksRequest(QUuid requestId)
+void LocalStorageManagerThreadWorker::onListAllNotebooksRequest(size_t limit, size_t offset,
+                                                                LocalStorageManager::ListNotebooksOrder::type order,
+                                                                LocalStorageManager::OrderDirection::type orderDirection,
+                                                                QUuid requestId)
 {
     try
     {
         QString errorDescription;
-        QList<Notebook> notebooks = m_pLocalStorageManager->ListAllNotebooks(errorDescription);
+        QList<Notebook> notebooks = m_pLocalStorageManager->ListAllNotebooks(errorDescription, limit,
+                                                                             offset, order, orderDirection);
         if (notebooks.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllNotebooksFailed(errorDescription, requestId);
+            emit listAllNotebooksFailed(limit, offset, order, orderDirection,
+                                        errorDescription, requestId);
             return;
         }
 
@@ -363,7 +368,7 @@ void LocalStorageManagerThreadWorker::onListAllNotebooksRequest(QUuid requestId)
             }
         }
 
-        emit listAllNotebooksComplete(notebooks, requestId);
+        emit listAllNotebooksComplete(limit, offset, order, orderDirection, notebooks, requestId);
     }
     CATCH_EXCEPTION
 }

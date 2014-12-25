@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__TESTS__NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 #define __QUTE_NOTE__CORE__TESTS__NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
+#include <client/local_storage/LocalStorageManager.h>
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
 
@@ -32,7 +33,10 @@ Q_SIGNALS:
     void findDefaultNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
     void findLastUsedNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
     void findDefaultOrLastUsedNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
-    void listAllNotebooksRequest(QUuid requestId = QUuid());
+    void listAllNotebooksRequest(size_t limit, size_t offset,
+                                 LocalStorageManager::ListNotebooksOrder::type order,
+                                 LocalStorageManager::OrderDirection::type orderDirection,
+                                 QUuid requestId = QUuid());
     void listAllSharedNotebooksRequest(QUuid requestId = QUuid());
     void listSharedNotebooksPerNotebookRequest(QString notebookGuid, QUuid requestId = QUuid());
     void expungeNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
@@ -53,8 +57,14 @@ private Q_SLOTS:
     void onFindLastUsedNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
     void onFindDefaultOrLastUsedNotebookCompleted(Notebook notebook, QUuid requestId);
     void onFindDefaultOrLastUsedNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
-    void onListAllNotebooksCompleted(QList<Notebook> notebooks, QUuid requestId);
-    void onListAllNotebooksFailed(QString errorDescription, QUuid requestId);
+    void onListAllNotebooksCompleted(size_t limit, size_t offset,
+                                     LocalStorageManager::ListNotebooksOrder::type order,
+                                     LocalStorageManager::OrderDirection::type orderDirection,
+                                     QList<Notebook> notebooks, QUuid requestId);
+    void onListAllNotebooksFailed(size_t limit, size_t offset,
+                                  LocalStorageManager::ListNotebooksOrder::type order,
+                                  LocalStorageManager::OrderDirection::type orderDirection,
+                                  QString errorDescription, QUuid requestId);
     void onListAllSharedNotebooksCompleted(QList<SharedNotebookWrapper> sharedNotebooks, QUuid requestId);
     void onListAllSharedNotebooksFailed(QString errorDescription, QUuid requestId);
     void onListSharedNotebooksPerNotebookGuidCompleted(QString notebookGuid, QList<SharedNotebookWrapper> sharedNotebooks,
