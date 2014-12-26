@@ -46,7 +46,11 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_notebooksPerNoteGuids(),
     m_localGuidsOfElementsAlreadyAttemptedToFindByName(),
     m_notesToAddPerAPICallPostponeTimerId(),
-    m_notesToUpdatePerAPICallPostponeTimerId()
+    m_notesToUpdatePerAPICallPostponeTimerId(),
+    m_listDirtyTagsRequestId(),
+    m_listDirtySavedSearchesRequestId(),
+    m_listDirtyNotebooksRequestId(),
+    m_listDirtyNotesRequestId()
 {
     createConnections();
 }
@@ -850,43 +854,60 @@ void FullSynchronizationManager::onUpdateNoteFailed(Note note, Notebook notebook
     }
 }
 
-void FullSynchronizationManager::onListLocalUnsynchronizedTagsCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                                                        size_t limit, size_t offset,
-                                                                        LocalStorageManager::ListTagsOrder::type order,
-                                                                        LocalStorageManager::OrderDirection::type orderDirection,
-                                                                        QList<Tag> tags, QUuid requestId)
+void FullSynchronizationManager::onListDirtyTagsCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                          size_t limit, size_t offset,
+                                                          LocalStorageManager::ListTagsOrder::type order,
+                                                          LocalStorageManager::OrderDirection::type orderDirection,
+                                                          QList<Tag> tags, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(limit)
-    Q_UNUSED(offset)
-    Q_UNUSED(order)
-    Q_UNUSED(orderDirection)
-    Q_UNUSED(tags)
-    Q_UNUSED(requestId)
+    QNDEBUG("FullSynchronizationManager::onListDirtyTagsCompleted: flag = " << flag
+            << ", limit = " << limit << ", offset = " << offset << ", order = " << order
+            << ", orderDirection = " << orderDirection << ", requestId = " << requestId);
+
+    QUTE_NOTE_CHECK_PTR(m_pNoteStore);
+
+    const int numTags = tags.size();
+    for(int i = 0; i < numTags; ++i)
+    {
+        Tag & tag = tags[i];
+
+        if (!tag.hasUpdateSequenceNumber())
+        {
+            // The tag is new, need to create it in the remote service
+            try
+            {
+                // FIXME: oh shit, looks like a way to get the underlying qevercloud::Tag is required
+                // tag = m_pNoteStore->createTag(tag);
+            }
+            catch(qevercloud::EDAMUserException & userException)
+            {
+                processEdamUserExceptionForTag(tag, userException, UserExceptionSource::Creation);
+            }
+
+            // TODO: continue from here: catch & process EDAMNotFoundException && EDAMSystemException
+        }
+    }
 }
 
-void FullSynchronizationManager::onListLocalUnsynchronizedTagsFailed(LocalStorageManager::ListObjectsOptions flag,
-                                                                     size_t limit, size_t offset,
-                                                                     LocalStorageManager::ListTagsOrder::type order,
-                                                                     LocalStorageManager::OrderDirection::type orderDirection,
-                                                                     QString errorDescription, QUuid requestId)
+void FullSynchronizationManager::onListDirtyTagsFailed(LocalStorageManager::ListObjectsOptions flag,
+                                                       size_t limit, size_t offset,
+                                                       LocalStorageManager::ListTagsOrder::type order,
+                                                       LocalStorageManager::OrderDirection::type orderDirection,
+                                                       QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(limit)
-    Q_UNUSED(offset)
-    Q_UNUSED(order)
-    Q_UNUSED(orderDirection)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    QNWARNING("FullSynchronizationManager::onListDirtyTagsFailed: flag = " << flag
+              << ", limit = " << limit << ", offset = " << offset << ", order = "
+              << order << ", orderDirection = " << orderDirection << ", error description = "
+              << errorDescription << ", requestId = " << requestId);
+
+    emit failure("Error listing dirty tags from local storage: " + errorDescription);
 }
 
-void FullSynchronizationManager::onListLocalUnsynchronizedSavedSearchesCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                                                                 size_t limit, size_t offset,
-                                                                                 LocalStorageManager::ListSavedSearchesOrder::type order,
-                                                                                 LocalStorageManager::OrderDirection::type orderDirection,
-                                                                                 QList<SavedSearch> savedSearches, QUuid requestId)
+void FullSynchronizationManager::onListDirtySavedSearchesCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                                   size_t limit, size_t offset,
+                                                                   LocalStorageManager::ListSavedSearchesOrder::type order,
+                                                                   LocalStorageManager::OrderDirection::type orderDirection,
+                                                                   QList<SavedSearch> savedSearches, QUuid requestId)
 {
     // TODO: implement
     Q_UNUSED(flag)
@@ -898,11 +919,11 @@ void FullSynchronizationManager::onListLocalUnsynchronizedSavedSearchesCompleted
     Q_UNUSED(requestId)
 }
 
-void FullSynchronizationManager::onListLocalUnsynchronizedSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
-                                                                              size_t limit, size_t offset,
-                                                                              LocalStorageManager::ListSavedSearchesOrder::type order,
-                                                                              LocalStorageManager::OrderDirection::type orderDirection,
-                                                                              QString errorDescription, QUuid requestId)
+void FullSynchronizationManager::onListDirtySavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
+                                                                size_t limit, size_t offset,
+                                                                LocalStorageManager::ListSavedSearchesOrder::type order,
+                                                                LocalStorageManager::OrderDirection::type orderDirection,
+                                                                QString errorDescription, QUuid requestId)
 {
     // TODO: implement
     Q_UNUSED(flag)
@@ -914,11 +935,11 @@ void FullSynchronizationManager::onListLocalUnsynchronizedSavedSearchesFailed(Lo
     Q_UNUSED(requestId)
 }
 
-void FullSynchronizationManager::onListLocalUnsynchronizedNotebooksCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                                                             size_t limit, size_t offset,
-                                                                             LocalStorageManager::ListNotebooksOrder::type order,
-                                                                             LocalStorageManager::OrderDirection::type orderDirection,
-                                                                             QList<Notebook> notebooks, QUuid requestId)
+void FullSynchronizationManager::onListDirtyNotebooksCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                               size_t limit, size_t offset,
+                                                               LocalStorageManager::ListNotebooksOrder::type order,
+                                                               LocalStorageManager::OrderDirection::type orderDirection,
+                                                               QList<Notebook> notebooks, QUuid requestId)
 {
     // TODO: implement
     Q_UNUSED(flag)
@@ -930,11 +951,11 @@ void FullSynchronizationManager::onListLocalUnsynchronizedNotebooksCompleted(Loc
     Q_UNUSED(requestId)
 }
 
-void FullSynchronizationManager::onListLocalUnsynchronizedNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
-                                                                          size_t limit, size_t offset,
-                                                                          LocalStorageManager::ListNotebooksOrder::type order,
-                                                                          LocalStorageManager::OrderDirection::type orderDirection,
-                                                                          QString errorDescription, QUuid requestId)
+void FullSynchronizationManager::onListDirtyNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
+                                                            size_t limit, size_t offset,
+                                                            LocalStorageManager::ListNotebooksOrder::type order,
+                                                            LocalStorageManager::OrderDirection::type orderDirection,
+                                                            QString errorDescription, QUuid requestId)
 {
     // TODO: implement
     Q_UNUSED(flag)
@@ -946,11 +967,11 @@ void FullSynchronizationManager::onListLocalUnsynchronizedNotebooksFailed(LocalS
     Q_UNUSED(requestId)
 }
 
-void FullSynchronizationManager::onListLocalUnsynchronizedNotesCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                                                         size_t limit, size_t offset,
-                                                                         LocalStorageManager::ListNotesOrder::type order,
-                                                                         LocalStorageManager::OrderDirection::type orderDirection,
-                                                                         QList<Note> notes, QUuid requestId)
+void FullSynchronizationManager::onListDirtyNotesCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                           size_t limit, size_t offset,
+                                                           LocalStorageManager::ListNotesOrder::type order,
+                                                           LocalStorageManager::OrderDirection::type orderDirection,
+                                                           QList<Note> notes, QUuid requestId)
 {
     // TODO: implement
     Q_UNUSED(flag)
@@ -962,11 +983,11 @@ void FullSynchronizationManager::onListLocalUnsynchronizedNotesCompleted(LocalSt
     Q_UNUSED(requestId)
 }
 
-void FullSynchronizationManager::onListLocalUnsynchronizedNotesFailed(LocalStorageManager::ListObjectsOptions flag,
-                                                                      size_t limit, size_t offset,
-                                                                      LocalStorageManager::ListNotesOrder::type order,
-                                                                      LocalStorageManager::OrderDirection::type orderDirection,
-                                                                      QString errorDescription, QUuid requestId)
+void FullSynchronizationManager::onListDirtyNotesFailed(LocalStorageManager::ListObjectsOptions flag,
+                                                        size_t limit, size_t offset,
+                                                        LocalStorageManager::ListNotesOrder::type order,
+                                                        LocalStorageManager::OrderDirection::type orderDirection,
+                                                        QString errorDescription, QUuid requestId)
 {
     // TODO: implement
     Q_UNUSED(flag)
@@ -1106,6 +1127,78 @@ void FullSynchronizationManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNoteComplete(Note,Notebook,QUuid)), this, SLOT(onAddNoteCompleted(Note,Notebook,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString,QUuid)), this, SLOT(onAddNoteFailed(Note,Notebook,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker,
+                     SIGNAL(listTagsComplete(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                             LocalStorageManager::ListTagsOrder::type,
+                                             LocalStorageManager::OrderDirection::type,QList<Tag>,QUuid)),
+                     this,
+                     SLOT(onListDirtyTagsCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                   LocalStorageManager::ListTagsOrder::type,
+                                                   LocalStorageManager::OrderDirection::type,QList<Tag>,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker,
+                     SIGNAL(listTagsFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                           LocalStorageManager::ListTagsOrder::type,
+                                           LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     this,
+                     SLOT(onListDirtyTagsFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                LocalStorageManager::ListTagsOrder::type,
+                                                LocalStorageManager::OrderDirection::type,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker,
+                     SIGNAL(listSavedSearchesComplete(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                      LocalStorageManager::ListSavedSearchesOrder::type,
+                                                      LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QUuid)),
+                     this,
+                     SLOT(onListDirtySavedSearchesCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                            LocalStorageManager::ListSavedSearchesOrder::type,
+                                                            LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker,
+                     SIGNAL(listSavedSearchesFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                    LocalStorageManager::ListSavedSearchesOrder::type,
+                                                    LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     this,
+                     SLOT(onListDirtySavedSearchesFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                         LocalStorageManager::ListSavedSearchesOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker,
+                     SIGNAL(listNotebooksComplete(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                  LocalStorageManager::ListNotebooksOrder::type,
+                                                  LocalStorageManager::OrderDirection::type,QList<Notebook>,QUuid)),
+                     this,
+                     SLOT(onListDirtyNotebooksCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                        LocalStorageManager::ListNotebooksOrder::type,
+                                                        LocalStorageManager::OrderDirection::type,QList<Notebook>,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker,
+                     SIGNAL(listNotebooksFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                LocalStorageManager::ListNotebooksOrder::type,
+                                                LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     this,
+                     SLOT(onListDirtyNotebooksFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                     LocalStorageManager::ListNotebooksOrder::type,
+                                                     LocalStorageManager::OrderDirection::type,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker,
+                     SIGNAL(listNotesComplete(LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                              LocalStorageManager::ListNotesOrder::type,
+                                              LocalStorageManager::OrderDirection::type,QList<Note>,QUuid)),
+                     this,
+                     SLOT(onListDirtyNotesCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                    LocalStorageManager::ListNotesOrder::type,
+                                                    LocalStorageManager::OrderDirection::type,QList<Note>,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker,
+                     SIGNAL(listNotesFailed(LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                            LocalStorageManager::ListNotesOrder::type,
+                                            LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     this,
+                     SLOT(onListDirtyNotesFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                                 LocalStorageManager::ListNotesOrder::type,
+                                                 LocalStorageManager::OrderDirection::type,QString,QUuid)));
 }
 
 void FullSynchronizationManager::launchTagsSync()
@@ -1238,7 +1331,149 @@ void FullSynchronizationManager::checkServerDataMergeCompletion()
 
 void FullSynchronizationManager::requestLocalUnsynchronizedData()
 {
-    // TODO: implement;
+    QNDEBUG("FullSynchronizationManager::requestLocalUnsynchronizedData");
+
+    LocalStorageManager::ListObjectsOptions listDirtyTagsFlag =
+            LocalStorageManager::ListDirty | LocalStorageManager::ListNonLocal;
+
+    size_t limit = 0, offset = 0;
+    LocalStorageManager::ListTagsOrder::type order = LocalStorageManager::ListTagsOrder::NoOrder;
+    LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Ascending;
+
+    m_listDirtyTagsRequestId = QUuid::createUuid();
+    emit requestLocalUnsynchronizedTags(listDirtyTagsFlag, limit, offset, order,
+                                        orderDirection, m_listDirtyTagsRequestId);
+}
+
+void FullSynchronizationManager::processEdamUserExceptionForTag(const Tag & tag, const qevercloud::EDAMUserException & userException,
+                                                                const FullSynchronizationManager::UserExceptionSource::type & source)
+{
+    bool thrownOnCreation = (source == UserExceptionSource::Creation);
+
+    const auto exceptionData = userException.exceptionData();
+
+    if (userException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT)
+    {
+        QString error = QT_TR_NOOP("BAD_DATA_FORMAT exception during the attempt to " +
+                                   QString(thrownOnCreation ? "create" : "update") + " tag");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                error += ": ";
+                error += exceptionData->errorMessage;
+            }
+
+            emit failure(error);
+            return;
+        }
+
+        if (userException.parameter.ref() == "Tag.name") {
+            if (tag.hasName()) {
+                error += QT_TR_NOOP("invalid length or pattern of tag's name: ");
+                error += tag.name();
+            }
+            else {
+                error += QT_TR_NOOP("tag has no name");
+            }
+        }
+        else if (userException.parameter.ref() == "Tag.parentGuid") {
+            if (tag.hasParentGuid()) {
+                error += QT_TR_NOOP("malformed parent guid of tag: ");
+                error += tag.parentGuid();
+            }
+            else {
+                error += QT_TR_NOOP("error code indicates malformed parent guid but it is empty");
+            }
+        }
+        else {
+            error += QT_TR_NOOP("unexpected parameter: ");
+            error += userException.parameter.ref();
+        }
+
+        emit failure(error);
+        return;
+    }
+    else if (userException.errorCode == qevercloud::EDAMErrorCode::DATA_CONFLICT)
+    {
+        QString error = QT_TR_NOOP("DATA_CONFLICT exception during the attempt to " +
+                                   QString(thrownOnCreation ? "create" : "update") + " tag");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                error += ": ";
+                error += exceptionData->errorMessage;
+            }
+
+            emit failure(error);
+            return;
+        }
+
+        if (userException.parameter.ref() == "Tag.name") {
+            if (tag.hasName()) {
+                error += QT_TR_NOOP("invalid length or pattern of tag's name: ");
+                error += tag.name();
+            }
+            else {
+                error += QT_TR_NOOP("tag has no name");
+            }
+        }
+
+        if (!thrownOnCreation && (userException.parameter.ref() == "Tag.parentGuid")) {
+            if (tag.hasParentGuid()) {
+                error += QT_TR_NOOP("can't set parent for tag: circular parent-child correlation detected");
+                error += tag.parentGuid();
+            }
+            else {
+                error += QT_TR_NOOP("error code indicates the problem with circular parent-child correlation "
+                                    "but tag's parent guid is empty");
+            }
+        }
+        else {
+            error += QT_TR_NOOP("unexpected parameter: ");
+            error += userException.parameter.ref();
+        }
+
+        emit failure(error);
+        return;
+    }
+    else if (thrownOnCreation && (userException.errorCode == qevercloud::EDAMErrorCode::LIMIT_REACHED))
+    {
+        QString error = QT_TR_NOOP("LIMIT_REACHED exception during the attempt to create tag");
+
+        if (userException.parameter.isSet() && (userException.parameter.ref() == "Tag")) {
+            error += QT_TR_NOOP(": already at max number of tags, please remove some of them");
+        }
+
+        emit failure(error);
+        return;
+    }
+    else if (!thrownOnCreation && (userException.errorCode == qevercloud::EDAMErrorCode::PERMISSION_DENIED))
+    {
+        QString error = QT_TR_NOOP("PERMISSION_DENIED exception during the attempt to update tag");
+
+        if (userException.parameter.isSet() && (userException.parameter.ref() == "Tag")) {
+            error += QT_TR_NOOP(": user doesn't own the tag, it can't be updated");
+        }
+
+        emit failure(error);
+        return;
+    }
+
+    // FIXME: check specifically for RATE_LIMIT_REACHED exception
+    // FIXME: print fine error code instead of number
+    QString error = QT_TR_NOOP("Unexpected EDAM user exception on attempt to " +
+                               QString(thrownOnCreation ? "create" : "update") + " tag: errorCode = " +
+                               QString::number(userException.errorCode));
+
+    if (userException.parameter.isSet()) {
+        error += ": ";
+        error += QT_TR_NOOP("parameter: ");
+        error += userException.parameter.ref();
+    }
+
+    emit failure(error);
 }
 
 void FullSynchronizationManager::clear()

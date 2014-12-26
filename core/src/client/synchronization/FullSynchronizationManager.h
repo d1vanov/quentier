@@ -139,49 +139,49 @@ private Q_SLOTS:
     void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
 
 
-    void onListLocalUnsynchronizedTagsCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                                size_t limit, size_t offset,
-                                                LocalStorageManager::ListTagsOrder::type order,
-                                                LocalStorageManager::OrderDirection::type orderDirection,
-                                                QList<Tag> tags, QUuid requestId);
-    void onListLocalUnsynchronizedTagsFailed(LocalStorageManager::ListObjectsOptions flag,
-                                             size_t limit, size_t offset,
-                                             LocalStorageManager::ListTagsOrder::type order,
-                                             LocalStorageManager::OrderDirection::type orderDirection,
-                                             QString errorDescription, QUuid requestId);
+    void onListDirtyTagsCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                  size_t limit, size_t offset,
+                                  LocalStorageManager::ListTagsOrder::type order,
+                                  LocalStorageManager::OrderDirection::type orderDirection,
+                                  QList<Tag> tags, QUuid requestId);
+    void onListDirtyTagsFailed(LocalStorageManager::ListObjectsOptions flag,
+                               size_t limit, size_t offset,
+                               LocalStorageManager::ListTagsOrder::type order,
+                               LocalStorageManager::OrderDirection::type orderDirection,
+                               QString errorDescription, QUuid requestId);
 
-    void onListLocalUnsynchronizedSavedSearchesCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                                         size_t limit, size_t offset,
-                                                         LocalStorageManager::ListSavedSearchesOrder::type order,
-                                                         LocalStorageManager::OrderDirection::type orderDirection,
-                                                         QList<SavedSearch> savedSearches, QUuid requestId);
-    void onListLocalUnsynchronizedSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
-                                                      size_t limit, size_t offset,
-                                                      LocalStorageManager::ListSavedSearchesOrder::type order,
-                                                      LocalStorageManager::OrderDirection::type orderDirection,
-                                                      QString errorDescription, QUuid requestId);
+    void onListDirtySavedSearchesCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                           size_t limit, size_t offset,
+                                           LocalStorageManager::ListSavedSearchesOrder::type order,
+                                           LocalStorageManager::OrderDirection::type orderDirection,
+                                           QList<SavedSearch> savedSearches, QUuid requestId);
+    void onListDirtySavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
+                                        size_t limit, size_t offset,
+                                        LocalStorageManager::ListSavedSearchesOrder::type order,
+                                        LocalStorageManager::OrderDirection::type orderDirection,
+                                        QString errorDescription, QUuid requestId);
 
-    void onListLocalUnsynchronizedNotebooksCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                                     size_t limit, size_t offset,
-                                                     LocalStorageManager::ListNotebooksOrder::type order,
-                                                     LocalStorageManager::OrderDirection::type orderDirection,
-                                                     QList<Notebook> notebooks, QUuid requestId);
-    void onListLocalUnsynchronizedNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
-                                                  size_t limit, size_t offset,
-                                                  LocalStorageManager::ListNotebooksOrder::type order,
-                                                  LocalStorageManager::OrderDirection::type orderDirection,
-                                                  QString errorDescription, QUuid requestId);
+    void onListDirtyNotebooksCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                       size_t limit, size_t offset,
+                                       LocalStorageManager::ListNotebooksOrder::type order,
+                                       LocalStorageManager::OrderDirection::type orderDirection,
+                                       QList<Notebook> notebooks, QUuid requestId);
+    void onListDirtyNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
+                                    size_t limit, size_t offset,
+                                    LocalStorageManager::ListNotebooksOrder::type order,
+                                    LocalStorageManager::OrderDirection::type orderDirection,
+                                    QString errorDescription, QUuid requestId);
 
-    void onListLocalUnsynchronizedNotesCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                                 size_t limit, size_t offset,
-                                                 LocalStorageManager::ListNotesOrder::type order,
-                                                 LocalStorageManager::OrderDirection::type orderDirection,
-                                                 QList<Note> notes, QUuid requestId);
-    void onListLocalUnsynchronizedNotesFailed(LocalStorageManager::ListObjectsOptions flag,
-                                              size_t limit, size_t offset,
-                                              LocalStorageManager::ListNotesOrder::type order,
-                                              LocalStorageManager::OrderDirection::type orderDirection,
-                                              QString errorDescription, QUuid requestId);
+    void onListDirtyNotesCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                   size_t limit, size_t offset,
+                                   LocalStorageManager::ListNotesOrder::type order,
+                                   LocalStorageManager::OrderDirection::type orderDirection,
+                                   QList<Note> notes, QUuid requestId);
+    void onListDirtyNotesFailed(LocalStorageManager::ListObjectsOptions flag,
+                                size_t limit, size_t offset,
+                                LocalStorageManager::ListNotesOrder::type order,
+                                LocalStorageManager::OrderDirection::type orderDirection,
+                                QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();
@@ -307,6 +307,17 @@ private:
     void checkServerDataMergeCompletion();
     void requestLocalUnsynchronizedData();
 
+    struct UserExceptionSource
+    {
+        enum type {
+            Creation = 0,
+            Update
+        };
+    };
+
+    void processEdamUserExceptionForTag(const Tag & tag, const qevercloud::EDAMUserException & userException,
+                                        const UserExceptionSource::type & source);
+
     void clear();
 
     void timerEvent(QTimerEvent * pEvent);
@@ -395,6 +406,11 @@ private:
 
     QHash<int,Note>                         m_notesToAddPerAPICallPostponeTimerId;
     QHash<int,Note>                         m_notesToUpdatePerAPICallPostponeTimerId;
+
+    QUuid                                   m_listDirtyTagsRequestId;
+    QUuid                                   m_listDirtySavedSearchesRequestId;
+    QUuid                                   m_listDirtyNotebooksRequestId;
+    QUuid                                   m_listDirtyNotesRequestId;
 };
 
 } // namespace qute_note
