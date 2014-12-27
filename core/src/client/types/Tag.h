@@ -32,6 +32,9 @@ public:
     bool operator==(const Tag & other) const;
     bool operator!=(const Tag & other) const;
 
+    operator const qevercloud::Tag &() const;
+    operator qevercloud::Tag &();
+
     virtual void clear() Q_DECL_OVERRIDE;
 
     virtual bool hasGuid() const Q_DECL_OVERRIDE;

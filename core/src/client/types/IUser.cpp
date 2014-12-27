@@ -34,6 +34,16 @@ bool IUser::operator!=(const IUser & other) const
     return !(*this == other);
 }
 
+IUser::operator const qevercloud::User &() const
+{
+    return GetEnUser();
+}
+
+IUser::operator qevercloud::User &()
+{
+    return GetEnUser();
+}
+
 void IUser::clear()
 {
     setDirty(true);

@@ -39,6 +39,9 @@ public:
     bool operator==(const Notebook & other) const;
     bool operator!=(const Notebook & other) const;
 
+    operator const qevercloud::Notebook&() const;
+    operator qevercloud::Notebook&();
+
     virtual void clear() Q_DECL_OVERRIDE;
 
     virtual bool hasGuid() const Q_DECL_OVERRIDE;

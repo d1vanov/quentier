@@ -47,12 +47,12 @@ LinkedNotebook::LinkedNotebook(qevercloud::LinkedNotebook && linkedNotebook) :
 LinkedNotebook::~LinkedNotebook()
 {}
 
-LinkedNotebook::operator qevercloud::LinkedNotebook & ()
+LinkedNotebook::operator const qevercloud::LinkedNotebook & () const
 {
     return d->m_qecLinkedNotebook;
 }
 
-LinkedNotebook::operator const qevercloud::LinkedNotebook & () const
+LinkedNotebook::operator qevercloud::LinkedNotebook & ()
 {
     return d->m_qecLinkedNotebook;
 }

@@ -47,6 +47,16 @@ bool IResource::operator!=(const IResource & other) const
     return !(*this == other);
 }
 
+IResource::operator const qevercloud::Resource &() const
+{
+    return GetEnResource();
+}
+
+IResource::operator qevercloud::Resource &()
+{
+    return GetEnResource();
+}
+
 void IResource::clear()
 {
     setDirty(true);

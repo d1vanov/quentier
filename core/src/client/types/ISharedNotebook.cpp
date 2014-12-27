@@ -28,6 +28,16 @@ bool ISharedNotebook::operator!=(const ISharedNotebook & other) const
     return !(*this == other);
 }
 
+ISharedNotebook::operator const qevercloud::SharedNotebook &() const
+{
+    return GetEnSharedNotebook();
+}
+
+ISharedNotebook::operator qevercloud::SharedNotebook &()
+{
+    return GetEnSharedNotebook();
+}
+
 int ISharedNotebook::indexInNotebook() const
 {
     return m_indexInNotebook;

@@ -876,8 +876,7 @@ void FullSynchronizationManager::onListDirtyTagsCompleted(LocalStorageManager::L
             // The tag is new, need to create it in the remote service
             try
             {
-                // FIXME: oh shit, looks like a way to get the underlying qevercloud::Tag is required
-                // tag = m_pNoteStore->createTag(tag);
+                tag = m_pNoteStore->createTag(tag);
             }
             catch(qevercloud::EDAMUserException & userException)
             {

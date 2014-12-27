@@ -19,6 +19,9 @@ public:
     bool operator==(const IUser & other) const;
     bool operator!=(const IUser & other) const;
 
+    operator const qevercloud::User&() const;
+    operator qevercloud::User&();
+
     void clear();
 
     bool isDirty() const;

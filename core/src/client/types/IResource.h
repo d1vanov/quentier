@@ -24,6 +24,9 @@ public:
     bool operator==(const IResource & other) const;
     bool operator!=(const IResource & other) const;
 
+    operator const qevercloud::Resource&() const;
+    operator qevercloud::Resource&();
+
     virtual void clear() Q_DECL_OVERRIDE;
 
     virtual bool hasGuid() const Q_DECL_OVERRIDE;

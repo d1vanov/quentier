@@ -74,6 +74,16 @@ bool Tag::operator!=(const Tag & other) const
     return !(*this == other);
 }
 
+Tag::operator const qevercloud::Tag &() const
+{
+    return d->m_qecTag;
+}
+
+Tag::operator qevercloud::Tag &()
+{
+    return d->m_qecTag;
+}
+
 void Tag::clear()
 {
     d->clear();

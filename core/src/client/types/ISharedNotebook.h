@@ -20,6 +20,9 @@ public:
     bool operator==(const ISharedNotebook & other) const;
     bool operator!=(const ISharedNotebook & other) const;
 
+    operator const qevercloud::SharedNotebook&() const;
+    operator qevercloud::SharedNotebook&();
+
     int indexInNotebook() const;
     void setIndexInNotebook(const int index);
 

@@ -26,8 +26,8 @@ public:
 
     virtual ~LinkedNotebook();
 
-    operator qevercloud::LinkedNotebook & ();
     operator const qevercloud::LinkedNotebook & () const;
+    operator qevercloud::LinkedNotebook & ();
 
     bool operator==(const LinkedNotebook & other) const;
     bool operator!=(const LinkedNotebook & other) const;

@@ -87,6 +87,16 @@ bool Notebook::operator!=(const Notebook & other) const
     return !(*this == other);
 }
 
+Notebook::operator const qevercloud::Notebook &() const
+{
+    return d->m_qecNotebook;
+}
+
+Notebook::operator qevercloud::Notebook&()
+{
+    return d->m_qecNotebook;
+}
+
 void Notebook::clear()
 {
     d->m_qecNotebook = qevercloud::Notebook();

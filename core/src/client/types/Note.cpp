@@ -72,6 +72,16 @@ bool Note::operator!=(const Note & other) const
     return !(*this == other);
 }
 
+Note::operator const qevercloud::Note &() const
+{
+    return d->m_qecNote;
+}
+
+Note::operator qevercloud::Note &()
+{
+    return d->m_qecNote;
+}
+
 bool Note::hasGuid() const
 {
     return d->m_qecNote.guid.isSet();
