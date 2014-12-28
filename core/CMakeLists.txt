@@ -60,6 +60,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/local_storage/NoteSearchQuery.h
     src/client/local_storage/NoteSearchQuery_p.h
     src/client/local_storage/Transaction.h
+    src/client/synchronization/NoteStore.h
     src/client/synchronization/SynchronizationManager.h
     src/client/synchronization/SynchronizationManager_p.h
     src/client/synchronization/FullSynchronizationManager.h
@@ -129,6 +130,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/local_storage/NoteSearchQuery.cpp
     src/client/local_storage/NoteSearchQuery_p.cpp
     src/client/local_storage/Transaction.cpp
+    src/client/synchronization/NoteStore.cpp
     src/client/synchronization/SynchronizationManager.cpp
     src/client/synchronization/SynchronizationManager_p.cpp
     src/client/synchronization/FullSynchronizationManager.cpp
