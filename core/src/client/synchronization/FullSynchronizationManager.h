@@ -307,17 +307,6 @@ private:
     void checkServerDataMergeCompletion();
     void requestLocalUnsynchronizedData();
 
-    struct UserExceptionSource
-    {
-        enum type {
-            Creation = 0,
-            Update
-        };
-    };
-
-    void processEdamUserExceptionForTag(const Tag & tag, const qevercloud::EDAMUserException & userException,
-                                        const UserExceptionSource::type & source);
-
     void clear();
 
     void timerEvent(QTimerEvent * pEvent);

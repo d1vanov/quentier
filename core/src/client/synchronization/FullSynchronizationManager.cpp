@@ -874,17 +874,10 @@ void FullSynchronizationManager::onListDirtyTagsCompleted(LocalStorageManager::L
         if (!tag.hasUpdateSequenceNumber())
         {
             // The tag is new, need to create it in the remote service
-            try
-            {
-                tag = m_pNoteStore->createTag(tag);
-            }
-            catch(qevercloud::EDAMUserException & userException)
-            {
-                processEdamUserExceptionForTag(tag, userException, UserExceptionSource::Creation);
-            }
-
-            // TODO: continue from here: catch & process EDAMNotFoundException && EDAMSystemException
+            // TODO: call NoteStore::createTag
         }
+
+        // TODO: continue from here
     }
 }
 
@@ -1342,137 +1335,6 @@ void FullSynchronizationManager::requestLocalUnsynchronizedData()
     m_listDirtyTagsRequestId = QUuid::createUuid();
     emit requestLocalUnsynchronizedTags(listDirtyTagsFlag, limit, offset, order,
                                         orderDirection, m_listDirtyTagsRequestId);
-}
-
-void FullSynchronizationManager::processEdamUserExceptionForTag(const Tag & tag, const qevercloud::EDAMUserException & userException,
-                                                                const FullSynchronizationManager::UserExceptionSource::type & source)
-{
-    bool thrownOnCreation = (source == UserExceptionSource::Creation);
-
-    const auto exceptionData = userException.exceptionData();
-
-    if (userException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT)
-    {
-        QString error = QT_TR_NOOP("BAD_DATA_FORMAT exception during the attempt to " +
-                                   QString(thrownOnCreation ? "create" : "update") + " tag");
-
-        if (!userException.parameter.isSet())
-        {
-            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
-                error += ": ";
-                error += exceptionData->errorMessage;
-            }
-
-            emit failure(error);
-            return;
-        }
-
-        if (userException.parameter.ref() == "Tag.name") {
-            if (tag.hasName()) {
-                error += QT_TR_NOOP("invalid length or pattern of tag's name: ");
-                error += tag.name();
-            }
-            else {
-                error += QT_TR_NOOP("tag has no name");
-            }
-        }
-        else if (userException.parameter.ref() == "Tag.parentGuid") {
-            if (tag.hasParentGuid()) {
-                error += QT_TR_NOOP("malformed parent guid of tag: ");
-                error += tag.parentGuid();
-            }
-            else {
-                error += QT_TR_NOOP("error code indicates malformed parent guid but it is empty");
-            }
-        }
-        else {
-            error += QT_TR_NOOP("unexpected parameter: ");
-            error += userException.parameter.ref();
-        }
-
-        emit failure(error);
-        return;
-    }
-    else if (userException.errorCode == qevercloud::EDAMErrorCode::DATA_CONFLICT)
-    {
-        QString error = QT_TR_NOOP("DATA_CONFLICT exception during the attempt to " +
-                                   QString(thrownOnCreation ? "create" : "update") + " tag");
-
-        if (!userException.parameter.isSet())
-        {
-            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
-                error += ": ";
-                error += exceptionData->errorMessage;
-            }
-
-            emit failure(error);
-            return;
-        }
-
-        if (userException.parameter.ref() == "Tag.name") {
-            if (tag.hasName()) {
-                error += QT_TR_NOOP("invalid length or pattern of tag's name: ");
-                error += tag.name();
-            }
-            else {
-                error += QT_TR_NOOP("tag has no name");
-            }
-        }
-
-        if (!thrownOnCreation && (userException.parameter.ref() == "Tag.parentGuid")) {
-            if (tag.hasParentGuid()) {
-                error += QT_TR_NOOP("can't set parent for tag: circular parent-child correlation detected");
-                error += tag.parentGuid();
-            }
-            else {
-                error += QT_TR_NOOP("error code indicates the problem with circular parent-child correlation "
-                                    "but tag's parent guid is empty");
-            }
-        }
-        else {
-            error += QT_TR_NOOP("unexpected parameter: ");
-            error += userException.parameter.ref();
-        }
-
-        emit failure(error);
-        return;
-    }
-    else if (thrownOnCreation && (userException.errorCode == qevercloud::EDAMErrorCode::LIMIT_REACHED))
-    {
-        QString error = QT_TR_NOOP("LIMIT_REACHED exception during the attempt to create tag");
-
-        if (userException.parameter.isSet() && (userException.parameter.ref() == "Tag")) {
-            error += QT_TR_NOOP(": already at max number of tags, please remove some of them");
-        }
-
-        emit failure(error);
-        return;
-    }
-    else if (!thrownOnCreation && (userException.errorCode == qevercloud::EDAMErrorCode::PERMISSION_DENIED))
-    {
-        QString error = QT_TR_NOOP("PERMISSION_DENIED exception during the attempt to update tag");
-
-        if (userException.parameter.isSet() && (userException.parameter.ref() == "Tag")) {
-            error += QT_TR_NOOP(": user doesn't own the tag, it can't be updated");
-        }
-
-        emit failure(error);
-        return;
-    }
-
-    // FIXME: check specifically for RATE_LIMIT_REACHED exception
-    // FIXME: print fine error code instead of number
-    QString error = QT_TR_NOOP("Unexpected EDAM user exception on attempt to " +
-                               QString(thrownOnCreation ? "create" : "update") + " tag: errorCode = " +
-                               QString::number(userException.errorCode));
-
-    if (userException.parameter.isSet()) {
-        error += ": ";
-        error += QT_TR_NOOP("parameter: ");
-        error += userException.parameter.ref();
-    }
-
-    emit failure(error);
 }
 
 void FullSynchronizationManager::clear()

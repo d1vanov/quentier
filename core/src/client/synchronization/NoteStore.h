@@ -29,21 +29,37 @@ public:
     void setNoteStoreUrl(const QString & noteStoreUrl);
     void setAuthenticationToken(const QString & authToken);
 
-    bool createNotebook(Notebook & notebook, QString & errorDescription);
-    bool updateNotebook(Notebook & notebook, QString & errorDescription);
+    qint32 createNotebook(Notebook & notebook, QString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 updateNotebook(Notebook & notebook, QString & errorDescription, qint32 & rateLimitSeconds);
 
-    bool createNote(Note & note, QString & errorDescription);
-    bool updateNote(Note & note, QString & errorDescription);
+    qint32 createNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 updateNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds);
 
-    bool createTag(Tag & tag, QString & errorDescription);
-    bool updateTag(Tag & tag, QString & errorDescription);
+    qint32 createTag(Tag & tag, QString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 updateTag(Tag & tag, QString & errorDescription, qint32 & rateLimitSeconds);
 
-    bool createSavedSearch(SavedSearch & savedSearch, QString & errorDescription);
-    bool updateSavedSearch(SavedSearch & savedSearch, QString & errorDescription);
+    qint32 createSavedSearch(SavedSearch & savedSearch, QString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 updateSavedSearch(SavedSearch & savedSearch, QString & errorDescription, qint32 & rateLimitSeconds);
 
-    bool getSyncChunk(const qint32 afterUSN, const qint32 maxEntries,
-                      const qevercloud::SyncChunkFilter & filter,
-                      qevercloud::SyncChunk & syncChunk);
+    qint32 getSyncChunk(const qint32 afterUSN, const qint32 maxEntries,
+                        const qevercloud::SyncChunkFilter & filter,
+                        qevercloud::SyncChunk & syncChunk, QString & errorDescription,
+                        qint32 & rateLimitSeconds);
+private:
+
+    struct UserExceptionSource
+    {
+        enum type {
+            Creation = 0,
+            Update
+        };
+    };
+
+    qint32 processEdamUserExceptionForTag(const Tag & tag, const qevercloud::EDAMUserException & userException,
+                                          const UserExceptionSource::type & source, QString & errorDescription) const;
+
+    qint32 processEdamSystemException(const qevercloud::EDAMSystemException & systemException,
+                                      QString & errorDescription, qint32 & rateLimitSeconds) const;
 
 private:
     NoteStore(const NoteStore & other) Q_DECL_DELETE;
