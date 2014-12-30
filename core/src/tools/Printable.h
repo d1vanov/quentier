@@ -83,5 +83,6 @@ __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PremiumOrderStatus::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessUserRole::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SponsoredGroupRole::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Note)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::EDAMErrorCode::type)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

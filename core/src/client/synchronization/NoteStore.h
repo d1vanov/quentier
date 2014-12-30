@@ -61,6 +61,9 @@ private:
     qint32 processEdamSystemException(const qevercloud::EDAMSystemException & systemException,
                                       QString & errorDescription, qint32 & rateLimitSeconds) const;
 
+    void processEdamNotFoundException(const qevercloud::EDAMNotFoundException & notFoundException,
+                                      QString & errorDescription) const;
+
 private:
     NoteStore(const NoteStore & other) Q_DECL_DELETE;
     NoteStore & operator=(const NoteStore & other) Q_DECL_DELETE;

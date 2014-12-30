@@ -61,7 +61,7 @@ qint32 NoteStore::updateNotebook(Notebook & notebook, QString & errorDescription
     }
     catch(const qevercloud::EDAMNotFoundException & notFoundException)
     {
-        // TODO: convert from exception to errorDescription string
+        processEdamNotFoundException(notFoundException, errorDescription);
     }
 
     return qevercloud::EDAMErrorCode::UNKNOWN;
@@ -105,7 +105,7 @@ qint32 NoteStore::updateNote(Note & note, QString & errorDescription, qint32 & r
     }
     catch(const qevercloud::EDAMNotFoundException & notFoundException)
     {
-        // TODO: convert from exception to errorDescription string
+        processEdamNotFoundException(notFoundException, errorDescription);
     }
 
     return qevercloud::EDAMErrorCode::UNKNOWN;
@@ -154,7 +154,7 @@ qint32 NoteStore::updateTag(Tag & tag, QString & errorDescription, qint32 & rate
     }
     catch(const qevercloud::EDAMNotFoundException & notFoundException)
     {
-        // TODO: convert from exception to errorDescription string
+        processEdamNotFoundException(notFoundException, errorDescription);
     }
 
     return qevercloud::EDAMErrorCode::UNKNOWN;
@@ -199,7 +199,7 @@ qint32 NoteStore::updateSavedSearch(SavedSearch & savedSearch, QString & errorDe
     }
     catch(const qevercloud::EDAMNotFoundException & notFoundException)
     {
-        // TODO: convert from exception to errorDescription string
+        processEdamNotFoundException(notFoundException, errorDescription);
     }
 
     return qevercloud::EDAMErrorCode::UNKNOWN;
@@ -339,11 +339,9 @@ qint32 NoteStore::processEdamUserExceptionForTag(const Tag & tag, const qeverclo
         return userException.errorCode;
     }
 
-    // FIXME: print fine error code instead of number
-    QString error = QT_TR_NOOP("Unexpected EDAM user exception on attempt to " +
-                               QString(thrownOnCreation ? "create" : "update") + " tag: errorCode = " +
-                               QString::number(userException.errorCode));
-
+    errorDescription = QT_TR_NOOP("Unexpected EDAM user exception on attempt to " +
+                                  QString(thrownOnCreation ? "create" : "update") + " tag: errorCode = " +
+                                  ToQString(userException.errorCode));
     if (userException.parameter.isSet()) {
         errorDescription += ": ";
         errorDescription += QT_TR_NOOP("parameter: ");
@@ -374,8 +372,7 @@ qint32 NoteStore::processEdamSystemException(const qevercloud::EDAMSystemExcepti
     else
     {
         errorDescription = QT_TR_NOOP("Caught EDAM system exception, error code ");
-        // FIXME: print fine error code instead of number
-        errorDescription += QString::number(systemException.errorCode);
+        errorDescription += ToQString(systemException.errorCode);
         if (systemException.message.isSet() && !systemException.message->isEmpty()) {
             errorDescription += QT_TR_NOOP(", message: ");
             errorDescription += systemException.message.ref();
@@ -383,6 +380,22 @@ qint32 NoteStore::processEdamSystemException(const qevercloud::EDAMSystemExcepti
     }
 
     return systemException.errorCode;
+}
+
+void NoteStore::processEdamNotFoundException(const qevercloud::EDAMNotFoundException & notFoundException,
+                                             QString & errorDescription) const
+{
+    errorDescription = QT_TR_NOOP("Note store could not find data element");
+
+    if (notFoundException.identifier.isSet() && !notFoundException.identifier->isEmpty()) {
+        errorDescription += ": ";
+        errorDescription += notFoundException.identifier.ref();
+    }
+
+    if (notFoundException.key.isSet() && !notFoundException.key->isEmpty()) {
+        errorDescription += ": ";
+        errorDescription += notFoundException.key.ref();
+    }
 }
 
 } // namespace qute_note

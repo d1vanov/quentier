@@ -1528,3 +1528,74 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::Note & note)
 
     return strm;
 }
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::EDAMErrorCode::type & obj)
+{
+    strm << "qevercloud::EDAMErrorCode: ";
+
+    switch(obj)
+    {
+    case qevercloud::EDAMErrorCode::UNKNOWN:
+        strm << "UNKNOWN";
+        break;
+    case qevercloud::EDAMErrorCode::BAD_DATA_FORMAT:
+        strm << "BAD_DATA_FORMAT";
+        break;
+    case qevercloud::EDAMErrorCode::PERMISSION_DENIED:
+        strm << "PERMISSION_DENIED";
+        break;
+    case qevercloud::EDAMErrorCode::INTERNAL_ERROR:
+        strm << "INTERNAL_ERROR";
+        break;
+    case qevercloud::EDAMErrorCode::DATA_REQUIRED:
+        strm << "DATA_REQUIRED";
+        break;
+    case qevercloud::EDAMErrorCode::LIMIT_REACHED:
+        strm << "LIMIT_REACHED";
+        break;
+    case qevercloud::EDAMErrorCode::QUOTA_REACHED:
+        strm << "QUOTA_REACHED";
+        break;
+    case qevercloud::EDAMErrorCode::INVALID_AUTH:
+        strm << "INVALID_AUTH";
+        break;
+    case qevercloud::EDAMErrorCode::AUTH_EXPIRED:
+        strm << "AUTH_EXPIRED";
+        break;
+    case qevercloud::EDAMErrorCode::DATA_CONFLICT:
+        strm << "DATA_CONFLICT";
+        break;
+    case qevercloud::EDAMErrorCode::ENML_VALIDATION:
+        strm << "ENML_VALIDATION";
+        break;
+    case qevercloud::EDAMErrorCode::SHARD_UNAVAILABLE:
+        strm << "SHARD_UNAVAILABLE";
+        break;
+    case qevercloud::EDAMErrorCode::LEN_TOO_SHORT:
+        strm << "LEN_TOO_SHORT";
+        break;
+    case qevercloud::EDAMErrorCode::LEN_TOO_LONG:
+        strm << "LEN_TOO_LONG";
+        break;
+    case qevercloud::EDAMErrorCode::TOO_FEW:
+        strm << "TOO_FEW";
+        break;
+    case qevercloud::EDAMErrorCode::TOO_MANY:
+        strm << "TOO_MANY";
+        break;
+    case qevercloud::EDAMErrorCode::UNSUPPORTED_OPERATION:
+        strm << "UNSUPPORTED_OPERATION";
+        break;
+    case qevercloud::EDAMErrorCode::TAKEN_DOWN:
+        strm << "TAKEN_DOWN";
+        break;
+    case qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED:
+        strm << "RATE_LIMIT_REACHED";
+        break;
+    default:
+        strm << "<unknown>";
+        break;
+    }
+
+    return strm;
+}
