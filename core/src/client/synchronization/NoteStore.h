@@ -58,6 +58,12 @@ private:
     qint32 processEdamUserExceptionForTag(const Tag & tag, const qevercloud::EDAMUserException & userException,
                                           const UserExceptionSource::type & source, QString & errorDescription) const;
 
+    qint32 processEdamUserExceptionForNotebook(const Notebook & notebook, const qevercloud::EDAMUserException & userException,
+                                               const UserExceptionSource::type & source, QString & errorDescription) const;
+
+    qint32 processUnexpectedEdamUserException(const QString & typeName, const qevercloud::EDAMUserException & userException,
+                                              const UserExceptionSource::type & source, QString & errorDescription) const;
+
     qint32 processEdamSystemException(const qevercloud::EDAMSystemException & systemException,
                                       QString & errorDescription, qint32 & rateLimitSeconds) const;
 

@@ -30,7 +30,9 @@ qint32 NoteStore::createNotebook(Notebook & notebook, QString & errorDescription
     }
     catch(const qevercloud::EDAMUserException & userException)
     {
-        // TODO: convert from exception to errorDescription string
+        return processEdamUserExceptionForNotebook(notebook, userException,
+                                                   UserExceptionSource::Creation,
+                                                   errorDescription);
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
@@ -52,7 +54,9 @@ qint32 NoteStore::updateNotebook(Notebook & notebook, QString & errorDescription
     }
     catch(const qevercloud::EDAMUserException & userException)
     {
-        // TODO: convert from exception to errorDescription string
+        return processEdamUserExceptionForNotebook(notebook, userException,
+                                                   UserExceptionSource::Update,
+                                                   errorDescription);
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
@@ -238,8 +242,9 @@ qint32 NoteStore::processEdamUserExceptionForTag(const Tag & tag, const qeverclo
 
     if (userException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT)
     {
-        errorDescription = QT_TR_NOOP("BAD_DATA_FORMAT exception during the attempt to " +
-                                      QString(thrownOnCreation ? "create" : "update") + " tag");
+        errorDescription = QT_TR_NOOP("BAD_DATA_FORMAT exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" tag");
 
         if (!userException.parameter.isSet())
         {
@@ -278,8 +283,9 @@ qint32 NoteStore::processEdamUserExceptionForTag(const Tag & tag, const qeverclo
     }
     else if (userException.errorCode == qevercloud::EDAMErrorCode::DATA_CONFLICT)
     {
-        errorDescription = QT_TR_NOOP("DATA_CONFLICT exception during the attempt to " +
-                                      QString(thrownOnCreation ? "create" : "update") + " tag");
+        errorDescription = QT_TR_NOOP("DATA_CONFLICT exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" tag");
 
         if (!userException.parameter.isSet())
         {
@@ -339,12 +345,143 @@ qint32 NoteStore::processEdamUserExceptionForTag(const Tag & tag, const qeverclo
         return userException.errorCode;
     }
 
-    errorDescription = QT_TR_NOOP("Unexpected EDAM user exception on attempt to " +
-                                  QString(thrownOnCreation ? "create" : "update") + " tag: errorCode = " +
-                                  ToQString(userException.errorCode));
+    return processUnexpectedEdamUserException(QT_TR_NOOP("tag"), userException,
+                                              source, errorDescription);
+}
+
+qint32 NoteStore::processEdamUserExceptionForNotebook(const Notebook & notebook,
+                                                      const qevercloud::EDAMUserException & userException,
+                                                      const NoteStore::UserExceptionSource::type & source,
+                                                      QString & errorDescription) const
+{
+    bool thrownOnCreation = (source == UserExceptionSource::Creation);
+
+    const auto exceptionData = userException.exceptionData();
+
+    if (userException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT)
+    {
+        errorDescription = QT_TR_NOOP("BAD_DATA_FORMAT exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" notebook");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
+            }
+
+            return userException.errorCode;
+        }
+
+        if (userException.parameter.ref() == "Notebook.name") {
+            if (notebook.hasName()) {
+                errorDescription += QT_TR_NOOP("invalid length or pattern of notebook's name: ");
+                errorDescription += notebook.name();
+            }
+            else {
+                errorDescription += QT_TR_NOOP("notebook has no name");
+            }
+        }
+        else if (userException.parameter.ref() == "Notebook.stack") {
+            if (notebook.hasStack()) {
+                errorDescription += QT_TR_NOOP("invalid length or pattern of notebook's stack: ");
+                errorDescription += notebook.stack();
+            }
+            else {
+                errorDescription += QT_TR_NOOP("notebook has no stack");
+            }
+        }
+        else if (userException.parameter.ref() == "Publishing.uri") {
+            if (notebook.hasPublishingUri()) {
+                errorDescription += QT_TR_NOOP("invalid publishing uri for notebook: ");
+                errorDescription += notebook.publishingUri();
+            }
+            else {
+                errorDescription += QT_TR_NOOP("notebook has no publishing uri");
+            }
+        }
+        else if (userException.parameter.ref() == "Publishing.publicDescription")
+        {
+            if (notebook.hasPublishingPublicDescription()) {
+                errorDescription += QT_TR_NOOP("public description for notebook is too long: ");
+                errorDescription += notebook.publishingPublicDescription();
+            }
+            else {
+                errorDescription += QT_TR_NOOP("notebook has no public description");
+            }
+        }
+    }
+    else if (userException.errorCode == qevercloud::EDAMErrorCode::DATA_CONFLICT)
+    {
+        errorDescription = QT_TR_NOOP("DATA_CONFLICT exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" notebook");
+
+        if (!userException.parameter.isSet())
+        {
+            if (userException.parameter.isSet())
+            {
+                if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                    errorDescription += ": ";
+                    errorDescription += exceptionData->errorMessage;
+                }
+
+                return userException.errorCode;
+            }
+        }
+
+        if (userException.parameter.ref() == "Notebook.name") {
+            if (notebook.hasName()) {
+                errorDescription += QT_TR_NOOP("notebook's name is already in use: ");
+                errorDescription += notebook.name();
+            }
+            else {
+                errorDescription += QT_TR_NOOP("notebook has no name");
+            }
+        }
+        else if (userException.parameter.ref() == "Publishing.uri") {
+            if (notebook.hasPublishingUri()) {
+                errorDescription += QT_TR_NOOP("notebook's publishing uri is already in use: ");
+                errorDescription += notebook.publishingUri();
+            }
+            else {
+                errorDescription += QT_TR_NOOP("notebook has no publishing uri");
+            }
+        }
+
+        return userException.errorCode;
+    }
+    else if (thrownOnCreation && (userException.errorCode == qevercloud::EDAMErrorCode::LIMIT_REACHED))
+    {
+        errorDescription = QT_TR_NOOP("LIMIT_REACHED exception durig the attempt to create notebook");
+
+        if (userException.parameter.isSet() && (userException.parameter.ref() == "Notebook")) {
+            errorDescription += QT_TR_NOOP(": already at max number of notebooks, please remove some of them");
+        }
+
+        return userException.errorCode;
+    }
+
+    return processUnexpectedEdamUserException(QT_TR_NOOP("notebook"), userException,
+                                              source, errorDescription);
+}
+
+qint32 NoteStore::processUnexpectedEdamUserException(const QString & typeName,
+                                                     const qevercloud::EDAMUserException & userException,
+                                                     const NoteStore::UserExceptionSource::type & source,
+                                                     QString & errorDescription) const
+{
+    bool thrownOnCreation = (source == UserExceptionSource::Creation);
+
+    errorDescription = QT_TR_NOOP("Unexpected EDAM user exception on attempt to ");
+    errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+    errorDescription += typeName;
+    errorDescription += QT_TR_NOOP(": error code = ");
+    errorDescription += ToQString(userException.errorCode);
+
     if (userException.parameter.isSet()) {
-        errorDescription += ": ";
-        errorDescription += QT_TR_NOOP("parameter: ");
+        errorDescription += QT_TR_NOOP(": parameter: ");
         errorDescription += userException.parameter.ref();
     }
 
