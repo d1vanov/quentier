@@ -176,7 +176,9 @@ qint32 NoteStore::createSavedSearch(SavedSearch & savedSearch, QString & errorDe
     }
     catch(const qevercloud::EDAMUserException & userException)
     {
-        // TODO: convert from exception to errorDescription string
+        processEdamUserExceptionForSavedSearch(savedSearch, userException,
+                                               UserExceptionSource::Creation,
+                                               errorDescription);
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
@@ -197,7 +199,9 @@ qint32 NoteStore::updateSavedSearch(SavedSearch & savedSearch, QString & errorDe
     }
     catch(const qevercloud::EDAMUserException & userException)
     {
-        // TODO: convert from exception to errorDescription string
+        processEdamUserExceptionForSavedSearch(savedSearch, userException,
+                                               UserExceptionSource::Update,
+                                               errorDescription);
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
@@ -224,7 +228,8 @@ qint32 NoteStore::getSyncChunk(const qint32 afterUSN, const qint32 maxEntries,
     }
     catch(const qevercloud::EDAMUserException & userException)
     {
-        // TODO: convert from exception to errorDescription string
+        return processEdamUserExceptionForSyncChunk(userException, afterUSN, maxEntries,
+                                                    errorDescription);
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
@@ -350,6 +355,147 @@ qint32 NoteStore::processEdamUserExceptionForTag(const Tag & tag, const qeverclo
 
     return processUnexpectedEdamUserException(QT_TR_NOOP("tag"), userException,
                                               source, errorDescription);
+}
+
+qint32 NoteStore::processEdamUserExceptionForSavedSearch(const SavedSearch & search,
+                                                         const qevercloud::EDAMUserException & userException,
+                                                         const NoteStore::UserExceptionSource::type & source,
+                                                         QString & errorDescription) const
+{
+    bool thrownOnCreation = (source == UserExceptionSource::Creation);
+
+    const auto exceptionData = userException.exceptionData();
+
+    if (userException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT)
+    {
+        errorDescription = QT_TR_NOOP("BAD_DATA_FORMAT exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" saved search");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
+            }
+
+            return userException.errorCode;
+        }
+
+        if (userException.parameter.ref() == "SavedSearch.name") {
+            if (search.hasName()) {
+                errorDescription += QT_TR_NOOP("invalid length or pattern of saved search's name: ");
+                errorDescription += search.name();
+            }
+            else {
+                errorDescription += QT_TR_NOOP("saved search has no name");
+            }
+        }
+        else if (userException.parameter.ref() == "SavedSearch.query") {
+            if (search.hasQuery()) {
+                errorDescription += QT_TR_NOOP("invalid length of saved search's query: ");
+                errorDescription += QString::number(search.query().length());
+                QNWARNING(errorDescription << ", query: " << search.query());
+            }
+            else {
+                errorDescription += QT_TR_NOOP("saved search has no query");
+            }
+        }
+        else {
+            errorDescription += QT_TR_NOOP("unexpected parameter: ");
+            errorDescription += userException.parameter.ref();
+        }
+
+        return userException.errorCode;
+    }
+    else if (userException.errorCode == qevercloud::EDAMErrorCode::DATA_CONFLICT)
+    {
+        errorDescription = QT_TR_NOOP("DATA_CONFLICT exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" saved search");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
+            }
+
+            return userException.errorCode;
+        }
+
+        if (userException.parameter.ref() == "SavedSearch.name") {
+            if (search.hasName()) {
+                errorDescription += QT_TR_NOOP("saved search's name is already in use: ");
+                errorDescription += search.name();
+            }
+            else {
+                errorDescription += QT_TR_NOOP("saved search has no name");
+            }
+        }
+        else {
+            errorDescription += QT_TR_NOOP("unexpected parameter: ");
+            errorDescription += userException.parameter.ref();
+        }
+
+        return userException.errorCode;
+    }
+    else if (thrownOnCreation && (userException.errorCode == qevercloud::EDAMErrorCode::LIMIT_REACHED))
+    {
+        errorDescription = QT_TR_NOOP("LIMIT_REACHED exception during the attempt to create saved search: "
+                                      "already at max number of saved searches");
+        return userException.errorCode;
+    }
+    else if (!thrownOnCreation && (userException.errorCode == qevercloud::EDAMErrorCode::PERMISSION_DENIED))
+    {
+        errorDescription = QT_TR_NOOP("PERMISSION_DENIED exception during the attempt to update saved search: "
+                                      "user doesn't own saved search");
+        return userException.errorCode;
+    }
+
+    return processUnexpectedEdamUserException(QT_TR_NOOP("saved search"), userException,
+                                              source, errorDescription);
+}
+
+qint32 NoteStore::processEdamUserExceptionForSyncChunk(const qevercloud::EDAMUserException & userException,
+                                                       const qint32 afterUSN, const qint32 maxEntries,
+                                                       QString & errorDescription) const
+{
+    const auto exceptionData = userException.exceptionData();
+
+    if (userException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT)
+    {
+        errorDescription = QT_TR_NOOP("BAD_DATA_FORMAT exception during the attempt to get sync chunk");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
+            }
+
+            return userException.errorCode;
+        }
+
+        if (userException.parameter.ref() == "afterUSN") {
+            errorDescription += QT_TR_NOOP("afterUSN is negative: ");
+            errorDescription += QString::number(afterUSN);
+        }
+        else if (userException.parameter.ref() == "maxEntries") {
+            errorDescription += QT_TR_NOOP("maxEntries is less than 1: ");
+            errorDescription += QString::number(maxEntries);
+        }
+        else {
+            errorDescription += QT_TR_NOOP("unexpected parameter: ");
+            errorDescription += userException.parameter.ref();
+        }
+    }
+    else
+    {
+        errorDescription += QT_TR_NOOP("Unknown EDAM user exception on attempt to get filtered sync chunk");
+    }
+
+    return userException.errorCode;
 }
 
 qint32 NoteStore::processEdamUserExceptionForNotebook(const Notebook & notebook,

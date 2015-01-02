@@ -64,6 +64,13 @@ private:
     qint32 processEdamUserExceptionForTag(const Tag & tag, const qevercloud::EDAMUserException & userException,
                                           const UserExceptionSource::type & source, QString & errorDescription) const;
 
+    qint32 processEdamUserExceptionForSavedSearch(const SavedSearch & search, const qevercloud::EDAMUserException & userException,
+                                                  const UserExceptionSource::type & source, QString & errorDescription) const;
+
+    qint32 processEdamUserExceptionForSyncChunk(const qevercloud::EDAMUserException & userException,
+                                                const qint32 afterUSN, const qint32 maxEntries,
+                                                QString & errorDescription) const;
+
     qint32 processUnexpectedEdamUserException(const QString & typeName, const qevercloud::EDAMUserException & userException,
                                               const UserExceptionSource::type & source, QString & errorDescription) const;
 
