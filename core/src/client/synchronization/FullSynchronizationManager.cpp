@@ -2,6 +2,8 @@
 #include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
+#include <QWaitCondition>
+#include <QMutex>
 #include <algorithm>
 
 namespace qute_note {
@@ -12,7 +14,7 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
                                                        QObject * parent) :
     QObject(parent),
     m_localStorageManagerThreadWorker(localStorageManagerThreadWorker),
-    m_pNoteStore(pNoteStore),
+    m_noteStore(pNoteStore),
     m_pOAuthResult(pOAuthResult),
     m_maxSyncChunkEntries(50),
     m_syncChunks(),
@@ -59,7 +61,6 @@ void FullSynchronizationManager::start()
 {
     QNDEBUG("FullSynchronizationManager::start");
 
-    QUTE_NOTE_CHECK_PTR(m_pNoteStore.data());
     QUTE_NOTE_CHECK_PTR(m_pOAuthResult.data());
 
     clear();
@@ -78,20 +79,48 @@ void FullSynchronizationManager::start()
         m_syncChunks.push_back(qevercloud::SyncChunk());
         pSyncChunk = &(m_syncChunks.back());
 
-        try {
-            *pSyncChunk = m_pNoteStore->getSyncChunk(afterUsn, m_maxSyncChunkEntries, true,
-                                                     m_pOAuthResult->authenticationToken);
-        }
-        catch(const qevercloud::EvernoteException & exception)
+        qevercloud::SyncChunkFilter filter;
+        filter.includeNotebooks = true;
+        filter.includeNotes = true;
+        filter.includeResources = true;
+        filter.includeTags = true;
+        filter.includeSearches = true;
+        filter.includeNoteResources = true;
+        filter.includeNoteAttributes = true;
+        filter.includeNoteApplicationDataFullMap = true;
+        filter.includeNoteResourceApplicationDataFullMap = true;
+        filter.includeLinkedNotebooks = true;
+        filter.includeExpunged = true;
+
+        QString errorDescription;
+        qint32 rateLimitSeconds = 0;
+        qint32 errorCode = m_noteStore.getSyncChunk(afterUsn, m_maxSyncChunkEntries, filter,
+                                                    *pSyncChunk, errorDescription, rateLimitSeconds);
+        if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
         {
-            QString errorDescription = QT_TR_NOOP("Can't perform full synchronization, "
-                                                  "can't download the sync chunks: caught exception: " +
-                                                  QString(exception.what()));
-            const QSharedPointer<qevercloud::EverCloudExceptionData> exceptionData = exception.exceptionData();
-            if (!exceptionData.isNull()) {
-                errorDescription += ", " + exceptionData->errorMessage;
+            if (rateLimitSeconds <= 0) {
+                errorDescription += QT_TR_NOOP("\nInternal error: rate limit seconds = ");
+                errorDescription += QString::number(rateLimitSeconds);
+                emit failure(errorDescription);
+                return;
             }
-            QNWARNING(errorDescription);
+
+            // TODO: emit indication of waiting to happen
+            // NOTE: yep, it's better to use timer and let the events be handled during the wait period
+            QWaitCondition waitCondition;
+            QMutex mutex;
+
+            quint64 rateLimitMilliseconds = static_cast<quint64>(qRound64(rateLimitSeconds * 0.01));
+            waitCondition.wait(&mutex, rateLimitMilliseconds);
+
+            errorCode = m_noteStore.getSyncChunk(afterUsn, m_maxSyncChunkEntries, filter, *pSyncChunk,
+                                                 errorDescription, rateLimitSeconds);
+        }
+
+        if (errorCode != 0) {
+            QString errorPrefix = QT_TR_NOOP("Can't perform full synchronization, "
+                                             "can't download the sync chunks: ");
+            errorDescription.prepend(errorPrefix);
             emit failure(errorDescription);
             return;
         }
@@ -864,8 +893,6 @@ void FullSynchronizationManager::onListDirtyTagsCompleted(LocalStorageManager::L
             << ", limit = " << limit << ", offset = " << offset << ", order = " << order
             << ", orderDirection = " << orderDirection << ", requestId = " << requestId);
 
-    QUTE_NOTE_CHECK_PTR(m_pNoteStore);
-
     const int numTags = tags.size();
     for(int i = 0; i < numTags; ++i)
     {
@@ -1452,19 +1479,15 @@ qint32 FullSynchronizationManager::tryToGetFullNoteData(Note & note)
         return -1;
     }
 
-    if (m_pNoteStore.isNull()) {
-        QString errorDescription = QT_TR_NOOP("detected null pointer to NoteStore when attempting to get full note's data");
-        QNWARNING(errorDescription << ": " << note);
-        emit failure(errorDescription);
-        return -2;
-    }
-
+    // FIXME: switch to using the wrapper under QEverCloud's NoteStore when it's ready
+    /*
     try
     {
         bool withContent = true;
         bool withResourceData = true;
         bool withResourceRecognition = true;
         bool withResourceAlternateData = true;
+
         qevercloud::Note bulkNote = m_pNoteStore->getNote(note.guid(), withContent,
                                                           withResourceData,
                                                           withResourceRecognition,
@@ -1506,6 +1529,7 @@ qint32 FullSynchronizationManager::tryToGetFullNoteData(Note & note)
         emit failure(errorDescription);
         return -5;
     }
+    */
 
     return 0;
 }

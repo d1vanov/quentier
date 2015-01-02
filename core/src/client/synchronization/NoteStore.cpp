@@ -4,21 +4,24 @@
 #include <client/types/Tag.h>
 #include <client/types/SavedSearch.h>
 #include <logging/QuteNoteLogger.h>
+#include <tools/QuteNoteCheckPtr.h>
 
 namespace qute_note {
 
-NoteStore::NoteStore() :
-    m_qecNoteStore()
-{}
+NoteStore::NoteStore(QSharedPointer<qevercloud::NoteStore> pQecNoteStore) :
+    m_pQecNoteStore(pQecNoteStore)
+{
+    QUTE_NOTE_CHECK_PTR(m_pQecNoteStore)
+}
 
 void NoteStore::setNoteStoreUrl(const QString & noteStoreUrl)
 {
-    m_qecNoteStore.setNoteStoreUrl(noteStoreUrl);
+    m_pQecNoteStore->setNoteStoreUrl(noteStoreUrl);
 }
 
 void NoteStore::setAuthenticationToken(const QString & authToken)
 {
-    m_qecNoteStore.setAuthenticationToken(authToken);
+    m_pQecNoteStore->setAuthenticationToken(authToken);
 }
 
 qint32 NoteStore::createNotebook(Notebook & notebook, QString & errorDescription,
@@ -26,7 +29,7 @@ qint32 NoteStore::createNotebook(Notebook & notebook, QString & errorDescription
 {
     try
     {
-        notebook = m_qecNoteStore.createNotebook(notebook);
+        notebook = m_pQecNoteStore->createNotebook(notebook);
         return 0;
     }
     catch(const qevercloud::EDAMUserException & userException)
@@ -49,7 +52,7 @@ qint32 NoteStore::updateNotebook(Notebook & notebook, QString & errorDescription
 {
     try
     {
-        qint32 usn = m_qecNoteStore.updateNotebook(notebook);
+        qint32 usn = m_pQecNoteStore->updateNotebook(notebook);
         notebook.setUpdateSequenceNumber(usn);
         return 0;
     }
@@ -76,7 +79,7 @@ qint32 NoteStore::createNote(Note & note, QString & errorDescription, qint32 & r
 {
     try
     {
-        note = m_qecNoteStore.createNote(note);
+        note = m_pQecNoteStore->createNote(note);
         return 0;
     }
     catch(const qevercloud::EDAMUserException & userException)
@@ -97,7 +100,7 @@ qint32 NoteStore::updateNote(Note & note, QString & errorDescription, qint32 & r
 {
     try
     {
-        note = m_qecNoteStore.updateNote(note);
+        note = m_pQecNoteStore->updateNote(note);
         return 0;
     }
     catch(const qevercloud::EDAMUserException & userException)
@@ -122,7 +125,7 @@ qint32 NoteStore::createTag(Tag & tag, QString & errorDescription, qint32 & rate
 {
     try
     {
-        tag = m_qecNoteStore.createTag(tag);
+        tag = m_pQecNoteStore->createTag(tag);
         return 0;
     }
     catch(const qevercloud::EDAMUserException & userException)
@@ -144,7 +147,7 @@ qint32 NoteStore::updateTag(Tag & tag, QString & errorDescription, qint32 & rate
 {
     try
     {
-        qint32 usn = m_qecNoteStore.updateTag(tag);
+        qint32 usn = m_pQecNoteStore->updateTag(tag);
         tag.setUpdateSequenceNumber(usn);
         return 0;
     }
@@ -171,7 +174,7 @@ qint32 NoteStore::createSavedSearch(SavedSearch & savedSearch, QString & errorDe
 {
     try
     {
-        savedSearch = m_qecNoteStore.createSearch(savedSearch);
+        savedSearch = m_pQecNoteStore->createSearch(savedSearch);
         return 0;
     }
     catch(const qevercloud::EDAMUserException & userException)
@@ -193,7 +196,7 @@ qint32 NoteStore::updateSavedSearch(SavedSearch & savedSearch, QString & errorDe
 {
     try
     {
-        qint32 usn = m_qecNoteStore.updateSearch(savedSearch);
+        qint32 usn = m_pQecNoteStore->updateSearch(savedSearch);
         savedSearch.setUpdateSequenceNumber(usn);
         return 0;
     }
@@ -223,7 +226,7 @@ qint32 NoteStore::getSyncChunk(const qint32 afterUSN, const qint32 maxEntries,
 {
     try
     {
-        syncChunk = m_qecNoteStore.getFilteredSyncChunk(afterUSN, maxEntries, filter);
+        syncChunk = m_pQecNoteStore->getFilteredSyncChunk(afterUSN, maxEntries, filter);
         return 0;
     }
     catch(const qevercloud::EDAMUserException & userException)

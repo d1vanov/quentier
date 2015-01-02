@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__FULL_SYNCHRONIZATION_MANAGER_H
 #define __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__FULL_SYNCHRONIZATION_MANAGER_H
 
+#include "NoteStore.h"
 #include <client/local_storage/LocalStorageManager.h>
 #include <client/types/UserWrapper.h>
 #include <client/types/Notebook.h>
@@ -9,9 +10,7 @@
 #include <client/types/ResourceWrapper.h>
 #include <client/types/LinkedNotebook.h>
 #include <client/types/SavedSearch.h>
-#include <QEverCloud.h>
 #include <oauth.h>
-#include <QSharedPointer>
 
 namespace qute_note {
 
@@ -349,7 +348,7 @@ private:
 
 private:
     LocalStorageManagerThreadWorker &                               m_localStorageManagerThreadWorker;
-    QSharedPointer<qevercloud::NoteStore>                           m_pNoteStore;
+    NoteStore                                                       m_noteStore;
     QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
     qint32                                                          m_maxSyncChunkEntries;
 

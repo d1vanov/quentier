@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__NOTE_STORE_H
 
 #include <QEverCloud.h>
+#include <QSharedPointer>
 
 namespace qute_note {
 
@@ -24,7 +25,7 @@ QT_FORWARD_DECLARE_CLASS(SavedSearch)
 class NoteStore
 {
 public:
-    NoteStore();
+    NoteStore(QSharedPointer<qevercloud::NoteStore> pQecNoteStore);
 
     void setNoteStoreUrl(const QString & noteStoreUrl);
     void setAuthenticationToken(const QString & authToken);
@@ -81,11 +82,12 @@ private:
                                       QString & errorDescription) const;
 
 private:
+    NoteStore() Q_DECL_DELETE;
     NoteStore(const NoteStore & other) Q_DECL_DELETE;
     NoteStore & operator=(const NoteStore & other) Q_DECL_DELETE;
 
 private:
-    qevercloud::NoteStore   m_qecNoteStore;
+    QSharedPointer<qevercloud::NoteStore> m_pQecNoteStore;
 };
 
 } // namespace qute_note
