@@ -46,6 +46,10 @@ public:
                         const qevercloud::SyncChunkFilter & filter,
                         qevercloud::SyncChunk & syncChunk, QString & errorDescription,
                         qint32 & rateLimitSeconds);
+
+    qint32 getNote(const bool withContent, const bool withResourcesData,
+                   const bool withResourcesRecognition, const bool withResourceAlternateData,
+                   Note & note, QString & errorDescription, qint32 &rateLimitSeconds);
 private:
 
     struct UserExceptionSource
@@ -68,9 +72,12 @@ private:
     qint32 processEdamUserExceptionForSavedSearch(const SavedSearch & search, const qevercloud::EDAMUserException & userException,
                                                   const UserExceptionSource::type & source, QString & errorDescription) const;
 
-    qint32 processEdamUserExceptionForSyncChunk(const qevercloud::EDAMUserException & userException,
-                                                const qint32 afterUSN, const qint32 maxEntries,
-                                                QString & errorDescription) const;
+    qint32 processEdamUserExceptionForGetSyncChunk(const qevercloud::EDAMUserException & userException,
+                                                   const qint32 afterUSN, const qint32 maxEntries,
+                                                   QString & errorDescription) const;
+
+    qint32 processEdamUserExceptionForGetNote(const Note & note, const qevercloud::EDAMUserException & userException,
+                                              QString & errorDescription) const;
 
     qint32 processUnexpectedEdamUserException(const QString & typeName, const qevercloud::EDAMUserException & userException,
                                               const UserExceptionSource::type & source, QString & errorDescription) const;

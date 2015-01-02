@@ -231,13 +231,43 @@ qint32 NoteStore::getSyncChunk(const qint32 afterUSN, const qint32 maxEntries,
     }
     catch(const qevercloud::EDAMUserException & userException)
     {
-        return processEdamUserExceptionForSyncChunk(userException, afterUSN, maxEntries,
+        return processEdamUserExceptionForGetSyncChunk(userException, afterUSN, maxEntries,
                                                     errorDescription);
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
         return processEdamSystemException(systemException, errorDescription,
                                           rateLimitSeconds);
+    }
+
+    return qevercloud::EDAMErrorCode::UNKNOWN;
+}
+
+qint32 NoteStore::getNote(const bool withContent, const bool withResourcesData,
+                          const bool withResourcesRecognition, const bool withResourceAlternateData,
+                          Note & note, QString & errorDescription, qint32 & rateLimitSeconds)
+{
+    if (!note.hasGuid()) {
+        errorDescription = QT_TR_NOOP("can't get note: note's guid is empty");
+        return qevercloud::EDAMErrorCode::UNKNOWN;
+    }
+
+    try
+    {
+        note = m_pQecNoteStore->getNote(note.guid(), withContent, withResourcesData,
+                                        withResourcesRecognition, withResourceAlternateData);
+    }
+    catch(const qevercloud::EDAMUserException & userException)
+    {
+        return processEdamUserExceptionForGetNote(note, userException, errorDescription);
+    }
+    catch(const qevercloud::EDAMNotFoundException & notFoundException)
+    {
+        processEdamNotFoundException(notFoundException, errorDescription);
+    }
+    catch(const qevercloud::EDAMSystemException & systemException)
+    {
+        return processEdamSystemException(systemException, errorDescription, rateLimitSeconds);
     }
 
     return qevercloud::EDAMErrorCode::UNKNOWN;
@@ -460,9 +490,9 @@ qint32 NoteStore::processEdamUserExceptionForSavedSearch(const SavedSearch & sea
                                               source, errorDescription);
 }
 
-qint32 NoteStore::processEdamUserExceptionForSyncChunk(const qevercloud::EDAMUserException & userException,
-                                                       const qint32 afterUSN, const qint32 maxEntries,
-                                                       QString & errorDescription) const
+qint32 NoteStore::processEdamUserExceptionForGetSyncChunk(const qevercloud::EDAMUserException & userException,
+                                                          const qint32 afterUSN, const qint32 maxEntries,
+                                                          QString & errorDescription) const
 {
     const auto exceptionData = userException.exceptionData();
 
@@ -496,6 +526,71 @@ qint32 NoteStore::processEdamUserExceptionForSyncChunk(const qevercloud::EDAMUse
     else
     {
         errorDescription += QT_TR_NOOP("Unknown EDAM user exception on attempt to get filtered sync chunk");
+    }
+
+    return userException.errorCode;
+}
+
+qint32 NoteStore::processEdamUserExceptionForGetNote(const Note & note, const qevercloud::EDAMUserException & userException,
+                                                     QString & errorDescription) const
+{
+    const auto exceptionData = userException.exceptionData();
+
+    if (userException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT)
+    {
+        errorDescription = QT_TR_NOOP("BAD_DATA_FORMAT exception during the attempt to get note");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
+            }
+
+            return userException.errorCode;
+        }
+
+        if (userException.parameter.ref() == "Note.guid") {
+            errorDescription += QT_TR_NOOP("note's guid is missing");
+        }
+        else {
+            errorDescription += QT_TR_NOOP("unexpected parameter: ");
+            errorDescription += userException.parameter.ref();
+        }
+
+        return userException.errorCode;
+    }
+    else if (userException.errorCode == qevercloud::EDAMErrorCode::PERMISSION_DENIED)
+    {
+        errorDescription = QT_TR_NOOP("PERMISSION_DENIED exception during the attempt to get note");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
+            }
+
+            return userException.errorCode;
+        }
+
+        if (userException.parameter.ref() == "Note") {
+            errorDescription += QT_TR_NOOP("note is not owned by user");
+        }
+        else {
+            errorDescription += QT_TR_NOOP("unexpected parameter: ");
+            errorDescription += userException.parameter.ref();
+        }
+
+        return userException.errorCode;
+    }
+
+    errorDescription = QT_TR_NOOP("Unexpected EDAM user exception on attempt to get note: error code = ");
+    errorDescription += ToQString(userException.errorCode);
+
+    if (userException.parameter.isSet()) {
+        errorDescription += QT_TR_NOOP("; parameter: ");
+        errorDescription += userException.parameter.ref();
     }
 
     return userException.errorCode;
