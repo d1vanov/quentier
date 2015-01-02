@@ -3,6 +3,7 @@
 #include <client/types/Note.h>
 #include <client/types/Tag.h>
 #include <client/types/SavedSearch.h>
+#include <logging/QuteNoteLogger.h>
 
 namespace qute_note {
 
@@ -80,7 +81,8 @@ qint32 NoteStore::createNote(Note & note, QString & errorDescription, qint32 & r
     }
     catch(const qevercloud::EDAMUserException & userException)
     {
-        // TODO: convert from exception to errorDescription string
+        return processEdamUserExceptionForNote(note, userException, UserExceptionSource::Creation,
+                                               errorDescription);
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
@@ -100,7 +102,8 @@ qint32 NoteStore::updateNote(Note & note, QString & errorDescription, qint32 & r
     }
     catch(const qevercloud::EDAMUserException & userException)
     {
-        // TODO: convert from exception to errorDescription string
+        return processEdamUserExceptionForNote(note, userException, UserExceptionSource::Update,
+                                               errorDescription);
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
@@ -411,6 +414,12 @@ qint32 NoteStore::processEdamUserExceptionForNotebook(const Notebook & notebook,
                 errorDescription += QT_TR_NOOP("notebook has no public description");
             }
         }
+        else {
+            errorDescription += QT_TR_NOOP("unexpected parameter: ");
+            errorDescription += userException.parameter.ref();
+        }
+
+        return userException.errorCode;
     }
     else if (userException.errorCode == qevercloud::EDAMErrorCode::DATA_CONFLICT)
     {
@@ -420,15 +429,12 @@ qint32 NoteStore::processEdamUserExceptionForNotebook(const Notebook & notebook,
 
         if (!userException.parameter.isSet())
         {
-            if (userException.parameter.isSet())
-            {
-                if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
-                    errorDescription += ": ";
-                    errorDescription += exceptionData->errorMessage;
-                }
-
-                return userException.errorCode;
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
             }
+
+            return userException.errorCode;
         }
 
         if (userException.parameter.ref() == "Notebook.name") {
@@ -449,6 +455,10 @@ qint32 NoteStore::processEdamUserExceptionForNotebook(const Notebook & notebook,
                 errorDescription += QT_TR_NOOP("notebook has no publishing uri");
             }
         }
+        else {
+            errorDescription += QT_TR_NOOP("unexpected parameter: ");
+            errorDescription += userException.parameter.ref();
+        }
 
         return userException.errorCode;
     }
@@ -464,6 +474,228 @@ qint32 NoteStore::processEdamUserExceptionForNotebook(const Notebook & notebook,
     }
 
     return processUnexpectedEdamUserException(QT_TR_NOOP("notebook"), userException,
+                                              source, errorDescription);
+}
+
+qint32 NoteStore::processEdamUserExceptionForNote(const Note & note, const qevercloud::EDAMUserException & userException,
+                                                  const NoteStore::UserExceptionSource::type & source,
+                                                  QString & errorDescription) const
+{
+    bool thrownOnCreation = (source == UserExceptionSource::Creation);
+
+    const auto exceptionData = userException.exceptionData();
+
+    if (userException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT)
+    {
+        errorDescription = QT_TR_NOOP("BAD_DATA_FORMAT exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" note");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
+            }
+
+            return userException.errorCode;
+        }
+
+        if (userException.parameter.ref() == "Note.title") {
+            if (note.hasTitle()) {
+                errorDescription += QT_TR_NOOP("invalid length or pattetn of note's title: ");
+                errorDescription += note.title();
+            }
+            else {
+                errorDescription += QT_TR_NOOP("note has no title");
+            }
+        }
+        else if (userException.parameter.ref() == "Note.content") {
+            if (note.hasContent()) {
+                errorDescription += QT_TR_NOOP("invalid lenfth for note's ENML content: ");
+                errorDescription += QString::number(note.content().length());
+                QNWARNING(errorDescription << ", note's content: " << note.content());
+            }
+            else {
+                errorDescription += QT_TR_NOOP("note has no content");
+            }
+        }
+        else if (userException.parameter.ref().startsWith("NoteAttributes.")) {
+            if (note.hasNoteAttributes()) {
+                errorDescription += QT_TR_NOOP("invalid note attributes");
+                QNWARNING(errorDescription << ": " << note.noteAttributes());
+            }
+            else {
+                errorDescription += QT_TR_NOOP("note has no attributes");
+            }
+        }
+        else if (userException.parameter.ref().startsWith("ResourceAttributes.")) {
+            errorDescription += QT_TR_NOOP("invalid resource attributes for some of note's resources");
+            QNWARNING(errorDescription << ", note: " << note);
+        }
+        else if (userException.parameter.ref() == "Resource.mime") {
+            errorDescription += QT_TR_NOOP("invalid mime type for some of note's resources");
+            QNWARNING(errorDescription << ", note: " << note);
+        }
+        else if (userException.parameter.ref() == "Tag.name") {
+            errorDescription += QT_TR_NOOP("Note.tagNames was provided and one "
+                                           "of the specified tags had an invalid length or pattern");
+            QNWARNING(errorDescription << ", note: " << note);
+        }
+        else {
+            errorDescription += QT_TR_NOOP("unexpected parameter: ");
+            errorDescription += userException.parameter.ref();
+        }
+
+        return userException.errorCode;
+    }
+    else if (userException.errorCode == qevercloud::EDAMErrorCode::DATA_CONFLICT)
+    {
+        errorDescription = QT_TR_NOOP("DATA_CONFLICT exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" note");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
+            }
+
+            return userException.errorCode;
+        }
+
+        if (userException.parameter.ref() == "Note.deleted") {
+            errorDescription += QT_TR_NOOP("deletion timestamp is set on active note");
+        }
+
+        return userException.errorCode;
+    }
+    else if (userException.errorCode == qevercloud::EDAMErrorCode::DATA_REQUIRED)
+    {
+        errorDescription = QT_TR_NOOP("DATA_REQUIRED exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" note");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
+            }
+
+            return userException.errorCode;
+        }
+
+        if (userException.parameter.ref() == "Resource.data") {
+            errorDescription += QT_TR_NOOP("Data body for some of note's resources is missing");
+            QNWARNING(errorDescription << ", note: " << note);
+        }
+
+        return userException.errorCode;
+    }
+    else if (userException.errorCode == qevercloud::EDAMErrorCode::ENML_VALIDATION)
+    {
+        errorDescription = QT_TR_NOOP("ENML_VALIDATION exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" note: note's content doesn't validate against DTD");
+        QNWARNING(errorDescription << ", note: " << note);
+        return userException.errorCode;
+    }
+    else if (userException.errorCode == qevercloud::EDAMErrorCode::LIMIT_REACHED)
+    {
+        errorDescription = QT_TR_NOOP("LIMIT_REACHED exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" note");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
+            }
+
+            return userException.errorCode;
+        }
+
+        if (thrownOnCreation && (userException.parameter.ref() == "Note")) {
+            errorDescription += QT_TR_NOOP("already at maximum number of notes per account");
+        }
+        else if (userException.parameter.ref() == "Note.size") {
+            errorDescription += QT_TR_NOOP("total note size is too large");
+        }
+        else if (userException.parameter.ref() == "Note.resources") {
+            errorDescription += QT_TR_NOOP("too many resources on note");
+        }
+        else if (userException.parameter.ref() == "Note.tagGuids") {
+            errorDescription += QT_TR_NOOP("too many tags on note");
+        }
+        else if (userException.parameter.ref() == "Resource.data.size") {
+            errorDescription += QT_TR_NOOP("one of note's resource's data is too large");
+        }
+        else if (userException.parameter.ref().startsWith("NoteAttribute.")) {
+            errorDescription += QT_TR_NOOP("note attributes string is too large");
+            if (note.hasNoteAttributes()) {
+                QNWARNING(errorDescription << ", note attributes: " << note.noteAttributes());
+            }
+        }
+        else if (userException.parameter.ref().startsWith("ResourceAttribute.")) {
+            errorDescription += QT_TR_NOOP("one of note's resources has too large resource attributes string");
+            QNWARNING(errorDescription << ", note: " << note);
+        }
+        else if (userException.parameter.ref() == "Tag") {
+            errorDescription += QT_TR_NOOP("Note.tagNames was provided, and the required new tags "
+                                           "would exceed the maximum number per account");
+            QNWARNING(errorDescription << ", note: " << note);
+        }
+        else {
+            errorDescription += QT_TR_NOOP("unexpected parameter: ");
+            errorDescription += userException.parameter.ref();
+        }
+
+        return userException.errorCode;
+    }
+    else if (userException.errorCode == qevercloud::EDAMErrorCode::PERMISSION_DENIED)
+    {
+        errorDescription = QT_TR_NOOP("PERMISSION_DENIED exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" note");
+
+        if (!userException.parameter.isSet())
+        {
+            if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
+                errorDescription += ": ";
+                errorDescription += exceptionData->errorMessage;
+            }
+
+            return userException.errorCode;
+        }
+
+        if (userException.parameter.ref() == "Note.notebookGuid") {
+            errorDescription += QT_TR_NOOP("note's notebook is not owned by user");
+            if (note.hasNotebookGuid()) {
+                QNWARNING(errorDescription << ", notebook guid: " << note.notebookGuid());
+            }
+        }
+        else if (!thrownOnCreation && (userException.parameter.ref() == "Note")) {
+            errorDescription += QT_TR_NOOP("note is not owned by user");
+        }
+        else {
+            errorDescription += QT_TR_NOOP("unexpected parameter: ");
+            errorDescription += userException.parameter.ref();
+        }
+
+        return userException.errorCode;
+    }
+    else if (userException.errorCode == qevercloud::EDAMErrorCode::QUOTA_REACHED)
+    {
+        errorDescription = QT_TR_NOOP("QUOTA_REACHED exception during the attempt to ");
+        errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
+        errorDescription += QT_TR_NOOP(" note: note exceeds upload quota limit");
+        return userException.errorCode;
+    }
+
+    return processUnexpectedEdamUserException(QT_TR_NOOP("note"), userException,
                                               source, errorDescription);
 }
 
