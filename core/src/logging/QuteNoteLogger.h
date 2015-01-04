@@ -16,7 +16,7 @@ class QUTE_NOTE_EXPORT QuteNoteLogger
 public:
     enum Level
     {
-        LEVEL_FATAL,
+        LEVEL_FATAL = 0,
         LEVEL_CRITICAL,
         LEVEL_WARNING,
         LEVEL_DEBUG
