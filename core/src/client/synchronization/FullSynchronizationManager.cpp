@@ -62,7 +62,9 @@ void FullSynchronizationManager::start(qint32 afterUsn)
 
     QUTE_NOTE_CHECK_PTR(m_pOAuthResult.data());
 
-    clear();
+    if (afterUsn == 0) {
+        clear();
+    }
 
     qevercloud::SyncChunk * pSyncChunk = nullptr;
 
