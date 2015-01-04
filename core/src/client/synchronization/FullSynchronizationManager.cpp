@@ -6,6 +6,8 @@
 #include <QMutex>
 #include <algorithm>
 
+#define SEC_TO_MSEC(sec) (sec * 100)
+
 namespace qute_note {
 
 FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
@@ -49,6 +51,7 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     m_localGuidsOfElementsAlreadyAttemptedToFindByName(),
     m_notesToAddPerAPICallPostponeTimerId(),
     m_notesToUpdatePerAPICallPostponeTimerId(),
+    m_afterUsnForSyncChunkPerAPICallPostponeTimerId(),
     m_listDirtyTagsRequestId(),
     m_listDirtySavedSearchesRequestId(),
     m_listDirtyNotebooksRequestId(),
@@ -57,7 +60,7 @@ FullSynchronizationManager::FullSynchronizationManager(LocalStorageManagerThread
     createConnections();
 }
 
-void FullSynchronizationManager::start()
+void FullSynchronizationManager::start(qint32 afterUsn)
 {
     QNDEBUG("FullSynchronizationManager::start");
 
@@ -65,7 +68,6 @@ void FullSynchronizationManager::start()
 
     clear();
 
-    qint32 afterUsn = 0;
     qevercloud::SyncChunk * pSyncChunk = nullptr;
 
     QNDEBUG("Downloading sync chunks:");
@@ -105,19 +107,13 @@ void FullSynchronizationManager::start()
                 return;
             }
 
-            // TODO: emit indication of waiting to happen
-            // NOTE: yep, it's better to use timer and let the events be handled during the wait period
-            QWaitCondition waitCondition;
-            QMutex mutex;
-
-            quint64 rateLimitMilliseconds = static_cast<quint64>(qRound64(rateLimitSeconds * 0.01));
-            waitCondition.wait(&mutex, rateLimitMilliseconds);
-
-            errorCode = m_noteStore.getSyncChunk(afterUsn, m_maxSyncChunkEntries, filter, *pSyncChunk,
-                                                 errorDescription, rateLimitSeconds);
+            m_syncChunks.pop_back();
+            int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+            m_afterUsnForSyncChunkPerAPICallPostponeTimerId[timerId] = afterUsn;
+            emit rateLimitExceeded(rateLimitSeconds);
+            return;
         }
-
-        if (errorCode != 0) {
+        else if (errorCode != 0) {
             QString errorPrefix = QT_TR_NOOP("Can't perform full synchronization, "
                                              "can't download the sync chunks: ");
             errorDescription.prepend(errorPrefix);
@@ -128,7 +124,8 @@ void FullSynchronizationManager::start()
         QNDEBUG("Received sync chunk: " << *pSyncChunk);
     }
 
-    QNDEBUG("Done. Processing tags from buffered sync chunks");
+    QNDEBUG("Done. Processing tags, saved searches, linked notebooks and notebooks "
+            "from buffered sync chunks");
 
     launchTagsSync();
     launchSavedSearchSync();
@@ -269,15 +266,17 @@ void FullSynchronizationManager::emitUpdateRequest<Note>(const Note & note,
 
     // Dealing with separate Evernote API call for getting the content of note to be updated
     Note localNote = note;
-    qint32 postponeAPICallSeconds = tryToGetFullNoteData(localNote);
-    if (postponeAPICallSeconds < 0)
-    {
+    QString errorDescription;
+
+    qint32 postponeAPICallSeconds = tryToGetFullNoteData(localNote, errorDescription);
+    if (postponeAPICallSeconds < 0) {
+        emit failure(errorDescription);
         return;
     }
-    else if (postponeAPICallSeconds > 0)
-    {
-        int timerId = startTimer(postponeAPICallSeconds);
+    else if (postponeAPICallSeconds > 0) {
+        int timerId = startTimer(SEC_TO_MSEC(postponeAPICallSeconds));
         m_notesToUpdatePerAPICallPostponeTimerId[timerId] = localNote;
+        emit rateLimitExceeded(postponeAPICallSeconds);
         return;
     }
 
@@ -386,7 +385,8 @@ void FullSynchronizationManager::onFindNoteCompleted(Note note, bool withResourc
     }
 }
 
-void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId)
+void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBinaryData,
+                                                  QString errorDescription, QUuid requestId)
 {
     Q_UNUSED(withResourceBinaryData);
 
@@ -405,13 +405,15 @@ void FullSynchronizationManager::onFindNoteFailed(Note note, bool withResourceBi
         // Removing the note from the list of notes waiting for processing
         Q_UNUSED(m_notes.erase(it));
 
-        qint32 postponeAPICallSeconds = tryToGetFullNoteData(note);
+        qint32 postponeAPICallSeconds = tryToGetFullNoteData(note, errorDescription);
         if (postponeAPICallSeconds < 0) {
+            emit failure(errorDescription);
             return;
         }
         else if (postponeAPICallSeconds > 0) {
-            int timerId = startTimer(postponeAPICallSeconds);
+            int timerId = startTimer(SEC_TO_MSEC(postponeAPICallSeconds));
             m_notesToAddPerAPICallPostponeTimerId[timerId] = note;
+            emit rateLimitExceeded(postponeAPICallSeconds);
             return;
         }
 
@@ -1432,13 +1434,15 @@ void FullSynchronizationManager::timerEvent(QTimerEvent * pEvent)
 
         Q_UNUSED(m_notesToAddPerAPICallPostponeTimerId.erase(noteToAddIt));
 
-        int postponeAPICallSeconds = tryToGetFullNoteData(note);
+        QString errorDescription;
+        qint32 postponeAPICallSeconds = tryToGetFullNoteData(note, errorDescription);
         if (postponeAPICallSeconds < 0) {
-            return;
+            emit failure(errorDescription);
         }
         else if (postponeAPICallSeconds > 0) {
-            int timerId = startTimer(postponeAPICallSeconds);
+            int timerId = startTimer(SEC_TO_MSEC(postponeAPICallSeconds));
             m_notesToAddPerAPICallPostponeTimerId[timerId] = note;
+            emit rateLimitExceeded(postponeAPICallSeconds);
         }
         else {
             emitAddRequest(note);
@@ -1454,13 +1458,15 @@ void FullSynchronizationManager::timerEvent(QTimerEvent * pEvent)
 
         Q_UNUSED(m_notesToUpdatePerAPICallPostponeTimerId.erase(noteToUpdateIt));
 
-        int postponeAPICallSeconds = tryToGetFullNoteData(noteToUpdate);
+        QString errorDescription;
+        qint32 postponeAPICallSeconds = tryToGetFullNoteData(noteToUpdate, errorDescription);
         if (postponeAPICallSeconds < 0) {
-            return;
+            emit failure(errorDescription);
         }
         else if (postponeAPICallSeconds > 0) {
-            int timerId = startTimer(postponeAPICallSeconds);
+            int timerId = startTimer(SEC_TO_MSEC(postponeAPICallSeconds));
             m_notesToUpdatePerAPICallPostponeTimerId[timerId] = noteToUpdate;
+            emit rateLimitExceeded(postponeAPICallSeconds);
         }
         else {
             emitUpdateRequest(noteToUpdate);
@@ -1468,68 +1474,51 @@ void FullSynchronizationManager::timerEvent(QTimerEvent * pEvent)
 
         return;
     }
+
+    auto afterUsnIt = m_afterUsnForSyncChunkPerAPICallPostponeTimerId.find(timerId);
+    if (afterUsnIt != m_afterUsnForSyncChunkPerAPICallPostponeTimerId.end())
+    {
+        qint32 afterUsn = afterUsnIt.value();
+
+        Q_UNUSED(m_afterUsnForSyncChunkPerAPICallPostponeTimerId.erase(afterUsnIt));
+
+        start(afterUsn);
+        return;
+    }
 }
 
-qint32 FullSynchronizationManager::tryToGetFullNoteData(Note & note)
+qint32 FullSynchronizationManager::tryToGetFullNoteData(Note & note, QString & errorDescription)
 {
     if (!note.hasGuid()) {
-        QString errorDescription = QT_TR_NOOP("detected attempt to get full note's data for note without guid");
+        errorDescription = QT_TR_NOOP("detected attempt to get full note's data for note without guid");
         QNWARNING(errorDescription << ": " << note);
-        emit failure(errorDescription);
         return -1;
     }
 
-    // FIXME: switch to using the wrapper under QEverCloud's NoteStore when it's ready
-    /*
-    try
-    {
-        bool withContent = true;
-        bool withResourceData = true;
-        bool withResourceRecognition = true;
-        bool withResourceAlternateData = true;
+    bool withContent = true;
+    bool withResourceData = true;
+    bool withResourceRecognition = true;
+    bool withResourceAlternateData = true;
+    qint32 rateLimitSeconds = 0;
 
-        qevercloud::Note bulkNote = m_pNoteStore->getNote(note.guid(), withContent,
-                                                          withResourceData,
-                                                          withResourceRecognition,
-                                                          withResourceAlternateData);
-        note = bulkNote;
-    }
-    catch(const qevercloud::EDAMSystemException & systemException)
+    qint32 errorCode = m_noteStore.getNote(withContent, withResourceData,
+                                           withResourceRecognition,
+                                           withResourceAlternateData,
+                                           note, errorDescription, rateLimitSeconds);
+    if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
     {
-        if (systemException.errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
-        {
-            if (!systemException.rateLimitDuration.isSet()) {
-                QString errorDescription = QT_TR_NOOP("QEverCloud error: caught EDAMSystemException with error code of RATE_LIMIT_REACHED "
-                                                      "but no rateLimitDuration is set");
-                QNWARNING(errorDescription);
-                emit failure(errorDescription);
-                return -3;
-            }
-
-            qint32 secondsToWait = systemException.rateLimitDuration.ref();
-            emit rateLimitExceeded(secondsToWait);
-            return secondsToWait;
-        }
-    }
-    catch(const qevercloud::EvernoteException & exception)
-    {
-        const auto exceptionData = exception.exceptionData();
-        if (exceptionData.isNull()) {
-            QString errorDescription = QT_TR_NOOP("QEverCloud error: caught EvernoteException when attempting to "
-                                                  "get full note's data but exception data pointer is null");
-            QNWARNING(errorDescription);
-            emit failure(errorDescription);
-            return -4;
+        if (rateLimitSeconds <= 0) {
+            errorDescription = QT_TR_NOOP("QEverCloud or Evernote protocol error: caught RATE_LIMIT_REACHED "
+                                          "exception but the number of seconds to wait is zero or negative: ");
+            errorDescription += QString::number(rateLimitSeconds);
+            return -1;
         }
 
-        QString what = exceptionData->errorMessage;
-        QString errorDescription = QT_TR_NOOP("Caught exception when attempting to get full note's data: ");
-        errorDescription += what;
-        QNWARNING(errorDescription);
-        emit failure(errorDescription);
-        return -5;
+        return rateLimitSeconds;
     }
-    */
+    else if (errorCode != 0) {
+        return -1;
+    }
 
     return 0;
 }

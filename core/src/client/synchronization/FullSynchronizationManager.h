@@ -31,7 +31,7 @@ Q_SIGNALS:
     void rateLimitExceeded(qint32 secondsToWait);
 
 public Q_SLOTS:
-    void start();
+    void start(qint32 afterUsn = 0);
 
 // private signals
 Q_SIGNALS:
@@ -310,7 +310,7 @@ private:
 
     void timerEvent(QTimerEvent * pEvent);
 
-    qint32 tryToGetFullNoteData(Note & note);
+    qint32 tryToGetFullNoteData(Note & note, QString & errorDescription);
 
     const Notebook * getNotebookPerNote(const Note & note) const;
 
@@ -394,6 +394,7 @@ private:
 
     QHash<int,Note>                         m_notesToAddPerAPICallPostponeTimerId;
     QHash<int,Note>                         m_notesToUpdatePerAPICallPostponeTimerId;
+    QHash<int,qint32>                       m_afterUsnForSyncChunkPerAPICallPostponeTimerId;
 
     QUuid                                   m_listDirtyTagsRequestId;
     QUuid                                   m_listDirtySavedSearchesRequestId;
