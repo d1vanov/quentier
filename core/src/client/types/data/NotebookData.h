@@ -22,8 +22,9 @@ public:
     bool operator==(const NotebookData & other) const;
     bool operator!=(const NotebookData & other) const;
 
-    qevercloud::Notebook    m_qecNotebook;
-    bool                    m_isLastUsed;
+    qevercloud::Notebook            m_qecNotebook;
+    bool                            m_isLastUsed;
+    qevercloud::Optional<QString>   m_linkedNotebookGuid;
 
 private:
     NotebookData & operator=(const NotebookData & other) Q_DECL_DELETE;

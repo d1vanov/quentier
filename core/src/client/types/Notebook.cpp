@@ -177,6 +177,21 @@ void Notebook::setDefaultNotebook(const bool defaultNotebook)
     d->m_qecNotebook.defaultNotebook = defaultNotebook;
 }
 
+bool Notebook::hasLinkedNotebookGuid() const
+{
+    return d->m_linkedNotebookGuid.isSet();
+}
+
+const QString & Notebook::linkedNotebookGuid() const
+{
+    return d->m_linkedNotebookGuid.ref();
+}
+
+void Notebook::setLinkedNotebookGuid(const QString & linkedNotebookGuid)
+{
+    d->m_linkedNotebookGuid = linkedNotebookGuid;
+}
+
 bool Notebook::hasCreationTimestamp() const
 {
     return d->m_qecNotebook.serviceCreated.isSet();

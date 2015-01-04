@@ -21,8 +21,9 @@ public:
     bool operator==(const TagData & other) const;
     bool operator!=(const TagData & other) const;
 
-    qevercloud::Tag     m_qecTag;
-    bool                m_isDeleted;
+    qevercloud::Tag                 m_qecTag;
+    bool                            m_isDeleted;
+    qevercloud::Optional<QString>   m_linkedNotebookGuid;
 
 private:
     TagData & operator=(const TagData & other) Q_DECL_DELETE;

@@ -61,6 +61,10 @@ public:
     bool isDefaultNotebook() const;
     void setDefaultNotebook(const bool defaultNotebook);
 
+    bool hasLinkedNotebookGuid() const;
+    const QString & linkedNotebookGuid() const;
+    void setLinkedNotebookGuid(const QString & linkedNotebookGuid);
+
     bool hasCreationTimestamp() const;
     qint64 creationTimestamp() const;
     void setCreationTimestamp(const qint64 timestamp);

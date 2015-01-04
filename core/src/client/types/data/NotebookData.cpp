@@ -6,45 +6,56 @@ namespace qute_note {
 NotebookData::NotebookData() :
     DataElementWithShortcutData(),
     m_qecNotebook(),
-    m_isLastUsed(false)
+    m_isLastUsed(false),
+    m_linkedNotebookGuid()
 {}
 
 NotebookData::NotebookData(const NotebookData & other) :
     DataElementWithShortcutData(other),
     m_qecNotebook(other.m_qecNotebook),
-    m_isLastUsed(other.m_isLastUsed)
+    m_isLastUsed(other.m_isLastUsed),
+    m_linkedNotebookGuid(other.m_linkedNotebookGuid)
 {}
 
 NotebookData::NotebookData(NotebookData && other) :
     DataElementWithShortcutData(std::move(other)),
     m_qecNotebook(std::move(other.m_qecNotebook)),
-    m_isLastUsed(std::move(other.m_isLastUsed))
+    m_isLastUsed(std::move(other.m_isLastUsed)),
+    m_linkedNotebookGuid(std::move(other.m_linkedNotebookGuid))
 {}
 
 NotebookData::NotebookData(const qevercloud::Notebook & other) :
     DataElementWithShortcutData(),
     m_qecNotebook(other),
-    m_isLastUsed(false)
+    m_isLastUsed(false),
+    m_linkedNotebookGuid()
 {}
 
 NotebookData::NotebookData(qevercloud::Notebook && other) :
     DataElementWithShortcutData(),
     m_qecNotebook(std::move(other)),
-    m_isLastUsed(false)
+    m_isLastUsed(false),
+    m_linkedNotebookGuid()
 {}
 
 NotebookData::~NotebookData()
 {}
 
-bool NotebookData::checkParameters(QString &errorDescription) const
+bool NotebookData::checkParameters(QString & errorDescription) const
 {
     if (m_qecNotebook.guid.isSet() && !CheckGuid(m_qecNotebook.guid.ref())) {
-        errorDescription = QT_TR_NOOP("Notebook's guid is invalid");
+        errorDescription = QT_TR_NOOP("Notebook's guid is invalid: ") + m_qecNotebook.guid;
+        return false;
+    }
+
+    if (m_linkedNotebookGuid.isSet() && !CheckGuid(m_linkedNotebookGuid.ref())) {
+        errorDescription = QT_TR_NOOP("Notebook's linked notebook guid is invalid: ") + m_linkedNotebookGuid;
         return false;
     }
 
     if (m_qecNotebook.updateSequenceNum.isSet() && !CheckUpdateSequenceNumber(m_qecNotebook.updateSequenceNum)) {
-        errorDescription = QT_TR_NOOP("Notebook's update sequence number is invalid");
+        errorDescription = QT_TR_NOOP("Notebook's update sequence number is invalid: ") +
+                           QString::number(m_qecNotebook.updateSequenceNum);
         return false;
     }
 
@@ -108,6 +119,9 @@ bool NotebookData::operator==(const NotebookData & other) const
         return false;
     }
     else if (m_qecNotebook != other.m_qecNotebook) {
+        return false;
+    }
+    else if (!m_linkedNotebookGuid.isEqual(other.m_linkedNotebookGuid)) {
         return false;
     }
 

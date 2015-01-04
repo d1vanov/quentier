@@ -169,6 +169,21 @@ void Tag::setParentGuid(const QString & parentGuid)
     d->m_qecTag.parentGuid = parentGuid;
 }
 
+bool Tag::hasLinkedNotebookGuid() const
+{
+    return d->m_linkedNotebookGuid.isSet();
+}
+
+const QString & Tag::linkedNotebookGuid() const
+{
+    return d->m_linkedNotebookGuid;
+}
+
+void Tag::setLinkedNotebookGuid(const QString & linkedNotebookGuid)
+{
+    d->m_linkedNotebookGuid = linkedNotebookGuid;
+}
+
 QTextStream & Tag::Print(QTextStream & strm) const
 {
     strm << "Tag { \n";

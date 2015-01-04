@@ -58,6 +58,10 @@ public:
     const QString & parentGuid() const;
     void setParentGuid(const QString & parentGuid);
 
+    bool hasLinkedNotebookGuid() const;
+    const QString & linkedNotebookGuid() const;
+    void setLinkedNotebookGuid(const QString & linkedNotebookGuid);
+
 private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
