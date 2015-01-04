@@ -2875,9 +2875,26 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  businessInfoEmail       TEXT                    DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create BusinessUserInfo table");
 
+    res = query.exec("CREATE TABLE IF NOT EXISTS LinkedNotebooks("
+                     "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
+                     "  updateSequenceNumber            INTEGER           DEFAULT NULL, "
+                     "  isDirty                         INTEGER           DEFAULT NULL, "
+                     "  shareName                       TEXT              DEFAULT NULL, "
+                     "  username                        TEXT              DEFAULT NULL, "
+                     "  shardId                         TEXT              DEFAULT NULL, "
+                     "  shareKey                        TEXT              DEFAULT NULL, "
+                     "  uri                             TEXT              DEFAULT NULL, "
+                     "  noteStoreUrl                    TEXT              DEFAULT NULL, "
+                     "  webApiUrlPrefix                 TEXT              DEFAULT NULL, "
+                     "  stack                           TEXT              DEFAULT NULL, "
+                     "  businessId                      INTEGER           DEFAULT NULL"
+                     ")");
+    DATABASE_CHECK_AND_SET_ERROR("can't create LinkedNotebooks table");
+
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
                      "  localGuid                       TEXT PRIMARY KEY  NOT NULL UNIQUE, "
                      "  guid                            TEXT              DEFAULT NULL UNIQUE, "
+                     "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  updateSequenceNumber            INTEGER           DEFAULT NULL, "
                      "  notebookName                    TEXT              DEFAULT NULL, "
                      "  notebookNameUpper               TEXT              DEFAULT NULL UNIQUE, "
@@ -2942,22 +2959,6 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  expungeWhichSharedNotebookRestrictions   INTEGER     DEFAULT NULL "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create NotebookRestrictions table");
-
-    res = query.exec("CREATE TABLE IF NOT EXISTS LinkedNotebooks("
-                     "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
-                     "  updateSequenceNumber            INTEGER           DEFAULT NULL, "
-                     "  isDirty                         INTEGER           DEFAULT NULL, "
-                     "  shareName                       TEXT              DEFAULT NULL, "
-                     "  username                        TEXT              DEFAULT NULL, "
-                     "  shardId                         TEXT              DEFAULT NULL, "
-                     "  shareKey                        TEXT              DEFAULT NULL, "
-                     "  uri                             TEXT              DEFAULT NULL, "
-                     "  noteStoreUrl                    TEXT              DEFAULT NULL, "
-                     "  webApiUrlPrefix                 TEXT              DEFAULT NULL, "
-                     "  stack                           TEXT              DEFAULT NULL, "
-                     "  businessId                      INTEGER           DEFAULT NULL"
-                     ")");
-    DATABASE_CHECK_AND_SET_ERROR("can't create LinkedNotebooks table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS SharedNotebooks("
                      "  shareId                             INTEGER PRIMARY KEY   NOT NULL UNIQUE, "
@@ -3160,6 +3161,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
                      "  localGuid             TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  guid                  TEXT                 DEFAULT NULL UNIQUE, "
+                     "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  updateSequenceNumber  INTEGER              DEFAULT NULL, "
                      "  name                  TEXT                 DEFAULT NULL, "
                      "  nameUpper             TEXT                 DEFAULT NULL UNIQUE, "
@@ -4120,6 +4122,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNotebook(const Notebook & notebo
 
         query.bindValue(":localGuid", localGuid);
         query.bindValue(":guid", (notebook.hasGuid() ? notebook.guid() : nullValue));
+        query.bindValue(":linkedNotebookGuid", (notebook.hasLinkedNotebookGuid() ? notebook.linkedNotebookGuid() : nullValue));
         query.bindValue(":updateSequenceNumber", (notebook.hasUpdateSequenceNumber() ? notebook.updateSequenceNumber() : nullValue));
         query.bindValue(":notebookName", (notebook.hasName() ? notebook.name() : nullValue));
         query.bindValue(":notebookNameUpper", (notebook.hasName() ? notebook.name().toUpper() : nullValue));
@@ -4226,14 +4229,15 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceNotebookQuery()
 
         m_insertOrReplaceNotebookQuery = QSqlQuery(m_sqlDatabase);
         bool res = m_insertOrReplaceNotebookQuery.prepare("INSERT OR REPLACE INTO Notebooks"
-                                                          "(localGuid, guid, updateSequenceNumber, "
+                                                          "(localGuid, guid, linkedNotebookGuid, updateSequenceNumber, "
                                                           "notebookName, notebookNameUpper, creationTimestamp, "
                                                           "modificationTimestamp, isDirty, isLocal, "
                                                           "isDefault, isLastUsed, hasShortcut, publishingUri, "
                                                           "publishingNoteSortOrder, publishingAscendingSort, "
                                                           "publicDescription, isPublished, stack, businessNotebookDescription, "
                                                           "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, contactId) "
-                                                          "VALUES(:localGuid, :guid, :updateSequenceNumber, :notebookName, :notebookNameUpper, :creationTimestamp, "
+                                                          "VALUES(:localGuid, :guid, :linkedNotebookGuid, :updateSequenceNumber, "
+                                                          ":notebookName, :notebookNameUpper, :creationTimestamp, "
                                                           ":modificationTimestamp, :isDirty, :isLocal, :isDefault, :isLastUsed, "
                                                           ":hasShortcut, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
                                                           ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
@@ -6390,6 +6394,7 @@ bool LocalStorageManagerPrivate::FillNotebookFromSqlRecord(const QSqlRecord & re
     isRequired = false;
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(guid, setGuid, QString, QString, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(linkedNotebookGuid, setLinkedNotebookGuid, QString, QString, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasShortcut, setShortcut, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(stack, setStack, QString, QString, isRequired);
 

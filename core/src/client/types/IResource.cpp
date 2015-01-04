@@ -1,5 +1,4 @@
 #include "IResource.h"
-#include "QEverCloudHelpers.h"
 #include "data/NoteStoreDataElementData.h"
 #include <client/Utility.h>
 
@@ -76,7 +75,12 @@ const QString & IResource::guid() const
 
 void IResource::setGuid(const QString & guid)
 {
-    GetEnResource().guid = guid;
+    if (!guid.isEmpty()) {
+        GetEnResource().guid = guid;
+    }
+    else {
+        GetEnResource().guid.clear();
+    }
 }
 
 bool IResource::hasUpdateSequenceNumber() const
@@ -241,7 +245,12 @@ const QString & IResource::noteGuid() const
 
 void IResource::setNoteGuid(const QString & guid)
 {
-    GetEnResource().noteGuid = guid;
+    if (!guid.isEmpty()) {
+        GetEnResource().noteGuid = guid;
+    }
+    else {
+        GetEnResource().noteGuid.clear();
+    }
 }
 
 bool IResource::hasNoteLocalGuid() const
@@ -256,11 +265,11 @@ const QString & IResource::noteLocalGuid() const
 
 void IResource::setNoteLocalGuid(const QString & guid)
 {
-    if (guid.isEmpty()) {
-        m_noteLocalGuid.clear();
+    if (!guid.isEmpty()) {
+        m_noteLocalGuid = guid;
     }
     else {
-        m_noteLocalGuid = guid;
+        m_noteLocalGuid.clear();
     }
 }
 

@@ -478,9 +478,23 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         const bool startFromScratch = true;
         LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
 
+        LinkedNotebook linkedNotebook;
+        linkedNotebook.setGuid("00000000-0000-0000-c000-000000000001");
+        linkedNotebook.setUpdateSequenceNumber(1);
+        linkedNotebook.setShareName("Linked notebook share name");
+        linkedNotebook.setUsername("Linked notebook username");
+        linkedNotebook.setShardId("Linked notebook shard id");
+        linkedNotebook.setShareKey("Linked notebook share key");
+        linkedNotebook.setUri("Linked notebook uri");
+        linkedNotebook.setNoteStoreUrl("Linked notebook note store url");
+        linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix");
+        linkedNotebook.setStack("Linked notebook stack");
+        linkedNotebook.setBusinessId(1);
+
         Notebook notebook;
         notebook.setGuid("00000000-0000-0000-c000-000000000047");
         notebook.setUpdateSequenceNumber(1);
+        notebook.setLinkedNotebookGuid(linkedNotebook.guid());
         notebook.setName("Fake notebook name");
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
@@ -536,7 +550,11 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         notebook.addSharedNotebook(sharedNotebook);
 
         QString error;
-        bool res = localStorageManager.AddNotebook(notebook, error);
+        bool res = localStorageManager.AddLinkedNotebook(linkedNotebook, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        error.clear();
+        res = localStorageManager.AddNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Note note;

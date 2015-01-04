@@ -1,5 +1,4 @@
 #include "ISharedNotebook.h"
-#include "QEverCloudHelpers.h"
 #include "../Utility.h"
 
 namespace qute_note {
@@ -90,7 +89,12 @@ const QString & ISharedNotebook::notebookGuid() const
 
 void ISharedNotebook::setNotebookGuid(const QString & notebookGuid)
 {
-    GetEnSharedNotebook().notebookGuid = notebookGuid;
+    if (!notebookGuid.isEmpty()) {
+        GetEnSharedNotebook().notebookGuid = notebookGuid;
+    }
+    else {
+        GetEnSharedNotebook().notebookGuid.clear();
+    }
 }
 
 const bool ISharedNotebook::hasEmail() const
@@ -105,7 +109,12 @@ const QString & ISharedNotebook::email() const
 
 void ISharedNotebook::setEmail(const QString & email)
 {
-    GetEnSharedNotebook().email = email;
+    if (!email.isEmpty()) {
+        GetEnSharedNotebook().email = email;
+    }
+    else {
+        GetEnSharedNotebook().email.clear();
+    }
 }
 
 bool ISharedNotebook::hasCreationTimestamp() const
@@ -162,7 +171,12 @@ const QString & ISharedNotebook::shareKey() const
 
 void ISharedNotebook::setShareKey(const QString & shareKey)
 {
-    GetEnSharedNotebook().shareKey = shareKey;
+    if (!shareKey.isEmpty()) {
+        GetEnSharedNotebook().shareKey = shareKey;
+    }
+    else {
+        GetEnSharedNotebook().shareKey.clear();
+    }
 }
 
 bool ISharedNotebook::hasUsername() const
@@ -177,7 +191,12 @@ const QString & ISharedNotebook::username() const
 
 void ISharedNotebook::setUsername(const QString & username)
 {
-    GetEnSharedNotebook().username = username;
+    if (!username.isEmpty()) {
+        GetEnSharedNotebook().username = username;
+    }
+    else {
+        GetEnSharedNotebook().username.clear();
+    }
 }
 
 bool ISharedNotebook::hasPrivilegeLevel() const

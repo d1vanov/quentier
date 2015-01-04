@@ -2,7 +2,6 @@
 #include "data/NoteData.h"
 #include "ResourceAdapter.h"
 #include "ResourceWrapper.h"
-#include "QEverCloudHelpers.h"
 #include "../Utility.h"
 #include <client/enml/ENMLConverter.h>
 #include <logging/QuteNoteLogger.h>
@@ -94,7 +93,12 @@ const QString & Note::guid() const
 
 void Note::setGuid(const QString & guid)
 {
-    d->m_qecNote.guid = guid;
+    if (!guid.isEmpty()) {
+        d->m_qecNote.guid = guid;
+    }
+    else {
+        d->m_qecNote.guid.clear();
+    }
 }
 
 bool Note::hasUpdateSequenceNumber() const
@@ -144,7 +148,12 @@ const QString & Note::title() const
 
 void Note::setTitle(const QString & title)
 {
-    d->m_qecNote.title = title;
+    if (!title.isEmpty()) {
+        d->m_qecNote.title = title;
+    }
+    else {
+        d->m_qecNote.title.clear();
+    }
 }
 
 bool Note::hasContent() const
@@ -284,7 +293,12 @@ const QString & Note::notebookGuid() const
 
 void Note::setNotebookGuid(const QString & guid)
 {
-    d->m_qecNote.notebookGuid = guid;
+    if (!guid.isEmpty()) {
+        d->m_qecNote.notebookGuid = guid;
+    }
+    else {
+        d->m_qecNote.notebookGuid.clear();
+    }
 }
 
 bool Note::hasTagGuids() const

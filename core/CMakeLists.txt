@@ -22,7 +22,6 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/Note.h
     src/client/types/Notebook.h
     src/client/types/INoteStoreDataElement.h
-    src/client/types/QEverCloudHelpers.h
     src/client/types/ResourceWrapper.h
     src/client/types/ResourceAdapter.h
     src/client/types/ResourceAdapterAccessException.h
@@ -93,7 +92,6 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/LinkedNotebook.cpp
     src/client/types/Note.cpp
     src/client/types/Notebook.cpp
-    src/client/types/QEverCloudHelpers.cpp
     src/client/types/ResourceWrapper.cpp
     src/client/types/ResourceAdapter.cpp
     src/client/types/ResourceAdapterAccessException.cpp

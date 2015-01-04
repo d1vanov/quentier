@@ -1,6 +1,5 @@
 #include "SavedSearch.h"
 #include "data/SavedSearchData.h"
-#include "QEverCloudHelpers.h"
 #include "../Utility.h"
 
 namespace qute_note {
@@ -102,7 +101,12 @@ const QString & SavedSearch::guid() const
 
 void SavedSearch::setGuid(const QString & guid)
 {
-    d->m_qecSearch.guid = guid;
+    if (!guid.isEmpty()) {
+        d->m_qecSearch.guid = guid;
+    }
+    else {
+        d->m_qecSearch.guid.clear();
+    }
 }
 
 bool SavedSearch::hasUpdateSequenceNumber() const
@@ -142,7 +146,12 @@ const QString & SavedSearch::name() const
 
 void SavedSearch::setName(const QString & name)
 {
-    d->m_qecSearch.name = name;
+    if (!name.isEmpty()) {
+        d->m_qecSearch.name = name;
+    }
+    else {
+        d->m_qecSearch.name.clear();
+    }
 }
 
 bool SavedSearch::hasQuery() const
@@ -157,7 +166,12 @@ const QString & SavedSearch::query() const
 
 void SavedSearch::setQuery(const QString & query)
 {
-    d->m_qecSearch.query = query;
+    if (!query.isEmpty()) {
+        d->m_qecSearch.query = query;
+    }
+    else {
+        d->m_qecSearch.query.clear();
+    }
 }
 
 bool SavedSearch::hasQueryFormat() const

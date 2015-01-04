@@ -1,6 +1,5 @@
 #include "SavedSearchData.h"
 #include "../../Utility.h"
-#include "../QEverCloudHelpers.h"
 
 namespace qute_note {
 

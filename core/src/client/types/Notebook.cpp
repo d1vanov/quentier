@@ -3,7 +3,6 @@
 #include "SharedNotebookAdapter.h"
 #include "SharedNotebookWrapper.h"
 #include "UserAdapter.h"
-#include "QEverCloudHelpers.h"
 #include "../Utility.h"
 #include <logging/QuteNoteLogger.h>
 
@@ -114,7 +113,12 @@ const QString & Notebook::guid() const
 
 void Notebook::setGuid(const QString & guid)
 {
-    d->m_qecNotebook.guid = guid;
+    if (!guid.isEmpty()) {
+        d->m_qecNotebook.guid = guid;
+    }
+    else {
+        d->m_qecNotebook.guid.clear();
+    }
 }
 
 bool Notebook::hasUpdateSequenceNumber() const
@@ -159,7 +163,12 @@ void Notebook::setName(const QString & name)
         return;
     }
 
-    d->m_qecNotebook.name = name;
+    if (!name.isEmpty()) {
+        d->m_qecNotebook.name = name;
+    }
+    else {
+        d->m_qecNotebook.name.clear();
+    }
 }
 
 bool Notebook::isDefaultNotebook() const
@@ -189,7 +198,12 @@ const QString & Notebook::linkedNotebookGuid() const
 
 void Notebook::setLinkedNotebookGuid(const QString & linkedNotebookGuid)
 {
-    d->m_linkedNotebookGuid = linkedNotebookGuid;
+    if (!linkedNotebookGuid.isEmpty()) {
+        d->m_linkedNotebookGuid = linkedNotebookGuid;
+    }
+    else {
+        d->m_linkedNotebookGuid.clear();
+    }
 }
 
 bool Notebook::hasCreationTimestamp() const
@@ -369,7 +383,12 @@ void Notebook::setStack(const QString & stack)
         return;
     }
 
-    d->m_qecNotebook.stack = stack;
+    if (!stack.isEmpty()) {
+        d->m_qecNotebook.stack = stack;
+    }
+    else {
+        d->m_qecNotebook.stack.clear();
+    }
 }
 
 bool Notebook::hasSharedNotebooks()
@@ -870,6 +889,14 @@ QTextStream & Notebook::Print(QTextStream & strm) const
     }
     else {
         strm << "guid is not set";
+    }
+    INSERT_DELIMITER;
+
+    if (d->m_linkedNotebookGuid.isSet()) {
+        strm << "linked notebook guid: " << d->m_linkedNotebookGuid;
+    }
+    else {
+        strm << "linked notebook guid is not set";
     }
     INSERT_DELIMITER;
 

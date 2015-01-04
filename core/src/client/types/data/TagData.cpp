@@ -1,6 +1,5 @@
 #include "TagData.h"
 #include "../../Utility.h"
-#include "../QEverCloudHelpers.h"
 
 namespace qute_note {
 

@@ -1,6 +1,5 @@
 #include "LinkedNotebook.h"
 #include "data/LinkedNotebookData.h"
-#include "QEverCloudHelpers.h"
 
 namespace qute_note {
 
@@ -84,7 +83,12 @@ const QString & LinkedNotebook::guid() const
 
 void LinkedNotebook::setGuid(const QString & guid)
 {
-    d->m_qecLinkedNotebook.guid = guid;
+    if (!guid.isEmpty()) {
+        d->m_qecLinkedNotebook.guid = guid;
+    }
+    else {
+        d->m_qecLinkedNotebook.guid.clear();
+    }
 }
 
 bool LinkedNotebook::hasUpdateSequenceNumber() const
@@ -119,7 +123,12 @@ const QString & LinkedNotebook::shareName() const
 
 void LinkedNotebook::setShareName(const QString & shareName)
 {
-    d->m_qecLinkedNotebook.shareName = shareName;
+    if (!shareName.isEmpty()) {
+        d->m_qecLinkedNotebook.shareName = shareName;
+    }
+    else {
+        d->m_qecLinkedNotebook.shareName.clear();
+    }
 }
 
 bool LinkedNotebook::hasUsername() const
@@ -134,7 +143,12 @@ const QString & LinkedNotebook::username() const
 
 void LinkedNotebook::setUsername(const QString & username)
 {
-    d->m_qecLinkedNotebook.username = username;
+    if (!username.isEmpty()) {
+        d->m_qecLinkedNotebook.username = username;
+    }
+    else {
+        d->m_qecLinkedNotebook.username.clear();
+    }
 }
 
 bool LinkedNotebook::hasShardId() const
@@ -149,7 +163,12 @@ const QString & LinkedNotebook::shardId() const
 
 void LinkedNotebook::setShardId(const QString & shardId)
 {
-    d->m_qecLinkedNotebook.shardId = shardId;
+    if (!shardId.isEmpty()) {
+        d->m_qecLinkedNotebook.shardId = shardId;
+    }
+    else {
+        d->m_qecLinkedNotebook.shardId.clear();
+    }
 }
 
 bool LinkedNotebook::hasShareKey() const
@@ -164,7 +183,12 @@ const QString & LinkedNotebook::shareKey() const
 
 void LinkedNotebook::setShareKey(const QString & shareKey)
 {
-    d->m_qecLinkedNotebook.shareKey = shareKey;
+    if (!shareKey.isEmpty()) {
+        d->m_qecLinkedNotebook.shareKey = shareKey;
+    }
+    else {
+        d->m_qecLinkedNotebook.shareKey.clear();
+    }
 }
 
 bool LinkedNotebook::hasUri() const
@@ -179,7 +203,12 @@ const QString & LinkedNotebook::uri() const
 
 void LinkedNotebook::setUri(const QString & uri)
 {
-    d->m_qecLinkedNotebook.uri = uri;
+    if (!uri.isEmpty()) {
+        d->m_qecLinkedNotebook.uri = uri;
+    }
+    else {
+        d->m_qecLinkedNotebook.uri.clear();
+    }
 }
 
 bool LinkedNotebook::hasNoteStoreUrl() const
@@ -192,9 +221,14 @@ const QString & LinkedNotebook::noteStoreUrl() const
     return d->m_qecLinkedNotebook.noteStoreUrl;
 }
 
-void LinkedNotebook::setNoteStoreUrl(const QString & noteStoreUr)
+void LinkedNotebook::setNoteStoreUrl(const QString & noteStoreUrl)
 {
-    d->m_qecLinkedNotebook.noteStoreUrl = noteStoreUr;
+    if (!noteStoreUrl.isEmpty()) {
+        d->m_qecLinkedNotebook.noteStoreUrl = noteStoreUrl;
+    }
+    else {
+        d->m_qecLinkedNotebook.noteStoreUrl.clear();
+    }
 }
 
 bool LinkedNotebook::hasWebApiUrlPrefix() const
@@ -209,7 +243,12 @@ const QString & LinkedNotebook::webApiUrlPrefix() const
 
 void LinkedNotebook::setWebApiUrlPrefix(const QString & webApiUrlPrefix)
 {
-    d->m_qecLinkedNotebook.webApiUrlPrefix = webApiUrlPrefix;
+    if (!webApiUrlPrefix.isEmpty()) {
+        d->m_qecLinkedNotebook.webApiUrlPrefix = webApiUrlPrefix;
+    }
+    else {
+        d->m_qecLinkedNotebook.webApiUrlPrefix.clear();
+    }
 }
 
 bool LinkedNotebook::hasStack() const
@@ -224,7 +263,12 @@ const QString & LinkedNotebook::stack() const
 
 void LinkedNotebook::setStack(const QString & stack)
 {
-    d->m_qecLinkedNotebook.stack = stack;
+    if (!stack.isEmpty()) {
+        d->m_qecLinkedNotebook.stack = stack;
+    }
+    else {
+        d->m_qecLinkedNotebook.stack.clear();
+    }
 }
 
 bool LinkedNotebook::hasBusinessId() const

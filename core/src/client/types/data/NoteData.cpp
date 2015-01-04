@@ -188,9 +188,15 @@ bool NoteData::containsEncryption() const
     return false;
 }
 
-void NoteData::setContent(const QString &content)
+void NoteData::setContent(const QString & content)
 {
-    m_qecNote.content = content;
+    if (!content.isEmpty()) {
+        m_qecNote.content = content;
+    }
+    else {
+        m_qecNote.content.clear();
+    }
+
     m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
     m_lazyListOfWordsIsValid = false;
     m_lazyContainsCheckedToDo = -1;

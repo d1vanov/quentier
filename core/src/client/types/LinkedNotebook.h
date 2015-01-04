@@ -66,7 +66,7 @@ public:
 
     bool hasNoteStoreUrl() const;
     const QString & noteStoreUrl() const;
-    void setNoteStoreUrl(const QString & noteStoreUr);
+    void setNoteStoreUrl(const QString & noteStoreUrl);
 
     bool hasWebApiUrlPrefix() const;
     const QString & webApiUrlPrefix() const;

@@ -1,6 +1,5 @@
 #include "IUser.h"
 #include "../Utility.h"
-#include "QEverCloudHelpers.h"
 #include <QEverCloud.h>
 #include <QRegExp>
 
@@ -298,7 +297,12 @@ const QString & IUser::username() const
 
 void IUser::setUsername(const QString & username)
 {
-    GetEnUser().username = username;
+    if (!username.isEmpty()) {
+        GetEnUser().username = username;
+    }
+    else {
+        GetEnUser().username.clear();
+    }
 }
 
 bool IUser::hasEmail() const
@@ -313,7 +317,12 @@ const QString & IUser::email() const
 
 void IUser::setEmail(const QString & email)
 {
-    GetEnUser().email = email;
+    if (!email.isEmpty()) {
+        GetEnUser().email = email;
+    }
+    else {
+        GetEnUser().email.clear();
+    }
 }
 
 bool IUser::hasName() const
@@ -328,7 +337,12 @@ const QString & IUser::name() const
 
 void IUser::setName(const QString & name)
 {
-    GetEnUser().name = name;
+    if (!name.isEmpty()) {
+        GetEnUser().name = name;
+    }
+    else {
+        GetEnUser().name.clear();
+    }
 }
 
 bool IUser::hasTimezone() const

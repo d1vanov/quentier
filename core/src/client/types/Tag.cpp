@@ -1,6 +1,5 @@
 #include "Tag.h"
 #include "data/TagData.h"
-#include "QEverCloudHelpers.h"
 
 namespace qute_note {
 
@@ -101,7 +100,12 @@ const QString & Tag::guid() const
 
 void Tag::setGuid(const QString & guid)
 {
-    d->m_qecTag.guid = guid;
+    if (!guid.isEmpty()) {
+        d->m_qecTag.guid = guid;
+    }
+    else {
+        d->m_qecTag.guid.clear();
+    }
 }
 
 bool Tag::hasUpdateSequenceNumber() const
@@ -151,7 +155,12 @@ const QString & Tag::name() const
 
 void Tag::setName(const QString & name)
 {
-    d->m_qecTag.name = name;
+    if (!name.isEmpty()) {
+        d->m_qecTag.name = name;
+    }
+    else {
+        d->m_qecTag.name.clear();
+    }
 }
 
 bool Tag::hasParentGuid() const
@@ -165,8 +174,13 @@ const QString & Tag::parentGuid() const
 }
 
 void Tag::setParentGuid(const QString & parentGuid)
-{    
-    d->m_qecTag.parentGuid = parentGuid;
+{
+    if (!parentGuid.isEmpty()) {
+        d->m_qecTag.parentGuid = parentGuid;
+    }
+    else {
+        d->m_qecTag.parentGuid.clear();
+    }
 }
 
 bool Tag::hasLinkedNotebookGuid() const
@@ -181,7 +195,12 @@ const QString & Tag::linkedNotebookGuid() const
 
 void Tag::setLinkedNotebookGuid(const QString & linkedNotebookGuid)
 {
-    d->m_linkedNotebookGuid = linkedNotebookGuid;
+    if (!linkedNotebookGuid.isEmpty()) {
+        d->m_linkedNotebookGuid = linkedNotebookGuid;
+    }
+    else {
+        d->m_linkedNotebookGuid.clear();
+    }
 }
 
 QTextStream & Tag::Print(QTextStream & strm) const
@@ -193,6 +212,13 @@ QTextStream & Tag::Print(QTextStream & strm) const
     }
     else {
         strm << "guid is not set; \n";
+    }
+
+    if (d->m_linkedNotebookGuid.isSet()) {
+        strm << "linked notebook guid: " << d->m_linkedNotebookGuid << "; \n";
+    }
+    else {
+        strm << "linked notebook guid is not set; \n";
     }
 
     if (d->m_qecTag.name.isSet()) {

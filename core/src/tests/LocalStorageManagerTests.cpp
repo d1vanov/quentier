@@ -10,7 +10,6 @@
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/UserWrapper.h>
-#include <client/types/QEverCloudHelpers.h>
 #include <client/Utility.h>
 
 namespace qute_note {
@@ -813,6 +812,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     // ========== Check Update + Find ==========
     Notebook modifiedNotebook(notebook);
     modifiedNotebook.setUpdateSequenceNumber(notebook.updateSequenceNumber() + 1);
+    modifiedNotebook.setLinkedNotebookGuid(QString());
     modifiedNotebook.setName(notebook.name() + "_modified");
     modifiedNotebook.setDefaultNotebook(false);
     modifiedNotebook.setLastUsed(true);
