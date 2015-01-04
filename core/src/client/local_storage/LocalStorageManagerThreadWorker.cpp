@@ -1075,6 +1075,22 @@ void LocalStorageManagerThreadWorker::onExpungeTagRequest(Tag tag, QUuid request
     CATCH_EXCEPTION
 }
 
+void LocalStorageManagerThreadWorker::onExpungeNotelessTagsFromLinkedNotebooksRequest(QUuid requestId)
+{
+    try
+    {
+        QString errorDescription;
+        bool res = m_pLocalStorageManager->ExpungeNotelessTagsFromLinkedNotebooks(errorDescription);
+        if (!res) {
+            emit expungeNotelessTagsFromLinkedNotebooksFailed(errorDescription, requestId);
+        }
+        else {
+            emit expungeNotelessTagsFromLinkedNotebooksComplete(requestId);
+        }
+    }
+    CATCH_EXCEPTION
+}
+
 void LocalStorageManagerThreadWorker::onGetResourceCountRequest(QUuid requestId)
 {
     try

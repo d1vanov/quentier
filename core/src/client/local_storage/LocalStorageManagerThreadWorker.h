@@ -194,6 +194,8 @@ Q_SIGNALS:
     void deleteTagFailed(Tag tag, QString errorDescription, QUuid requestId = QUuid());
     void expungeTagComplete(Tag tag, QUuid requestId = QUuid());
     void expungeTagFailed(Tag tag, QString errorDescription, QUuid requestId = QUuid());
+    void expungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId = QUuid());
+    void expungeNotelessTagsFromLinkedNotebooksFailed(QString errorDescription, QUuid requestId = QUuid());
 
     // Resource-related signals:
     void getResourceCountComplete(int resourceCount, QUuid requestId = QUuid());
@@ -327,6 +329,7 @@ public Q_SLOTS:
                            QUuid requestId);
     void onDeleteTagRequest(Tag tag, QUuid requestId);
     void onExpungeTagRequest(Tag tag, QUuid requestId);
+    void onExpungeNotelessTagsFromLinkedNotebooksRequest(QUuid requestId);
 
     // Resource-related slots:
     void onGetResourceCountRequest(QUuid requestId);
