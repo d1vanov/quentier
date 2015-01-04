@@ -276,6 +276,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     // ========== Check Update + Find ==========
     Tag modifiedTag(tag);
     modifiedTag.setUpdateSequenceNumber(tag.updateSequenceNumber() + 1);
+    modifiedTag.setLinkedNotebookGuid(QString());
     modifiedTag.setName(tag.name() + "_modified");
     modifiedTag.setShortcut(true);
     modifiedTag.unsetLocalGuid();

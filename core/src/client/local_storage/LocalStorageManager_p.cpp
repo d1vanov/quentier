@@ -2077,8 +2077,9 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
 
     tag.clear();
 
-    QString queryString = QString("SELECT localGuid, guid, updateSequenceNumber, name, parentGuid, isDirty, isLocal, "
-                                  "isLocal, isDeleted, hasShortcut FROM Tags WHERE %1 = '%2'").arg(column).arg(value);
+    QString queryString = QString("SELECT localGuid, guid, linkedNotebookGuid, updateSequenceNumber, "
+                                  "name, parentGuid, isDirty, isLocal, isLocal, isDeleted, hasShortcut "
+                                  "FROM Tags WHERE %1 = '%2'").arg(column).arg(value);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select tag from \"Tags\" table in SQL database: ");
@@ -4942,6 +4943,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceTag(const Tag & tag, const QStri
 
     query.bindValue(":localGuid", localGuid);
     query.bindValue(":guid", (tag.hasGuid() ? tag.guid() : nullValue));
+    query.bindValue(":linkedNotebookGuid", tag.hasLinkedNotebookGuid() ? tag.linkedNotebookGuid() : nullValue);
     query.bindValue(":updateSequenceNumber", (tag.hasUpdateSequenceNumber() ? tag.updateSequenceNumber() : nullValue));
     query.bindValue(":name", (tag.hasName() ? tag.name() : nullValue));
     query.bindValue(":nameUpper", (tag.hasName() ? tag.name().toUpper() : nullValue));
@@ -4981,11 +4983,12 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceTagQuery()
     {
         m_insertOrReplaceTagQuery = QSqlQuery(m_sqlDatabase);
         bool res = m_insertOrReplaceTagQuery.prepare("INSERT OR REPLACE INTO Tags "
-                                                     "(localGuid, guid, updateSequenceNumber, "
+                                                     "(localGuid, guid, linkedNotebookGuid, updateSequenceNumber, "
                                                      "name, nameUpper, parentGuid, isDirty, "
                                                      "isLocal, isDeleted, hasShortcut) "
-                                                     "VALUES(:localGuid, :guid, :updateSequenceNumber, "
-                                                     ":name, :nameUpper, :parentGuid, :isDirty, :isLocal, "
+                                                     "VALUES(:localGuid, :guid, :linkedNotebookGuid, "
+                                                     ":updateSequenceNumber, :name, :nameUpper, "
+                                                     ":parentGuid, :isDirty, :isLocal, "
                                                      ":isDeleted, :hasShortcut)");
         if (res) {
             m_insertOrReplaceTagQueryPrepared = true;
@@ -6681,6 +6684,7 @@ bool LocalStorageManagerPrivate::FillTagFromSqlRecord(const QSqlRecord & rec, Ta
 
     bool isRequired = false;
     CHECK_AND_SET_TAG_PROPERTY(guid, QString, QString, setGuid, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(linkedNotebookGuid, QString, QString, setLinkedNotebookGuid, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(parentGuid, QString, QString, setParentGuid, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(hasShortcut, int, bool, setShortcut, isRequired);
 

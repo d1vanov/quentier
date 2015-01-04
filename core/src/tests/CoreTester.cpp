@@ -282,7 +282,7 @@ void CoreTester::localStorageManagerIndividualLinkedNotebookTest()
 
         QString error;
         bool res = TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(linkedNotebook, localStorageManager, error);
-        QVERIFY2(res == true, error.toStdString().c_str());
+        QVERIFY2(res == true, qPrintable(error));
     }
     CATCH_EXCEPTION();
 }
@@ -294,14 +294,32 @@ void CoreTester::localStorageManagerIndividualTagTest()
         const bool startFromScratch = true;
         LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
 
+        LinkedNotebook linkedNotebook;
+        linkedNotebook.setGuid("00000000-0000-0000-c000-000000000001");
+        linkedNotebook.setUpdateSequenceNumber(1);
+        linkedNotebook.setShareName("Linked notebook share name");
+        linkedNotebook.setUsername("Linked notebook username");
+        linkedNotebook.setShardId("Linked notebook shard id");
+        linkedNotebook.setShareKey("Linked notebook share key");
+        linkedNotebook.setUri("Linked notebook uri");
+        linkedNotebook.setNoteStoreUrl("Linked notebook note store url");
+        linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix");
+        linkedNotebook.setStack("Linked notebook stack");
+        linkedNotebook.setBusinessId(1);
+
         Tag tag;
         tag.setGuid("00000000-0000-0000-c000-000000000046");
+        tag.setLinkedNotebookGuid(linkedNotebook.guid());
         tag.setUpdateSequenceNumber(1);
         tag.setName("Fake tag name");
 
         QString error;
-        bool res = TestTagAddFindUpdateExpungeInLocalStorage(tag, localStorageManager, error);
-        QVERIFY2(res == true, error.toStdString().c_str());
+        bool res = localStorageManager.AddLinkedNotebook(linkedNotebook, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        error.clear();
+        res = TestTagAddFindUpdateExpungeInLocalStorage(tag, localStorageManager, error);
+        QVERIFY2(res == true, qPrintable(error));
     }
     CATCH_EXCEPTION();
 }
