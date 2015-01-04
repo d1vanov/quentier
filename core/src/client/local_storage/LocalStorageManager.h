@@ -690,6 +690,14 @@ public:
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
 
     /**
+     * @brief ExpungeNotelessTagsFromLinkedNotebooks - permanently deletes from local storage those tags
+     * which belong to some linked notebook and are not linked with any notes in the local storage
+     * @param errorDescription - error description if tag could not be expunged
+     * @return true if relevant tags were expunged successfully, false otherwise
+     */
+    bool ExpungeNotelessTagsFromLinkedNotebooks(QString & errorDescription);
+
+    /**
      * @brief GetEnResourceCount returns the number of resources currently stored in local storage database
      * @param errorDescription - error description if the number of resources could not be returned
      * @return either non-negative value with the number of resources or -1 which means some error occured

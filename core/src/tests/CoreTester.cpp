@@ -1642,6 +1642,116 @@ void CoreTester::localStorageManagerListNotebooksTest()
     CATCH_EXCEPTION();
 }
 
+void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
+{
+    try
+    {
+        const bool startFromScratch = true;
+        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch);
+
+        LinkedNotebook linkedNotebook;
+        linkedNotebook.setGuid("00000000-0000-0000-c000-000000000001");
+        linkedNotebook.setUpdateSequenceNumber(1);
+        linkedNotebook.setShareName("Linked notebook share name");
+        linkedNotebook.setUsername("Linked notebook username");
+        linkedNotebook.setShardId("Linked notebook shard id");
+        linkedNotebook.setShareKey("Linked notebook share key");
+        linkedNotebook.setUri("Linked notebook uri");
+        linkedNotebook.setNoteStoreUrl("Linked notebook note store url");
+        linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix");
+        linkedNotebook.setStack("Linked notebook stack");
+        linkedNotebook.setBusinessId(1);
+
+        Notebook notebook;
+        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setLinkedNotebookGuid(linkedNotebook.guid());
+        notebook.setUpdateSequenceNumber(1);
+        notebook.setName("Fake notebook name");
+        notebook.setCreationTimestamp(1);
+        notebook.setModificationTimestamp(1);
+
+        Note note;
+        note.setGuid("00000000-0000-0000-c000-000000000046");
+        note.setUpdateSequenceNumber(1);
+        note.setTitle("Fake note title");
+        note.setContent("<en-note><h1>Hello, world</h1></en-note>");
+        note.setCreationTimestamp(1);
+        note.setModificationTimestamp(1);
+        note.setActive(true);
+        note.setNotebookGuid(notebook.guid());
+
+        QString error;
+        bool res = localStorageManager.AddLinkedNotebook(linkedNotebook, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        error.clear();
+        res = localStorageManager.AddNotebook(notebook, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        error.clear();
+        res = localStorageManager.AddNote(note, notebook, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        int nTags = 5;
+        QList<Tag> tags;
+        tags.reserve(static_cast<size_t>(nTags));
+        for(int i = 0; i < nTags; ++i)
+        {
+            tags.push_back(Tag());
+            Tag & tag = tags.back();
+
+            tag.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            tag.setUpdateSequenceNumber(i);
+            tag.setName("Tag name #" + QString::number(i));
+
+            if (i > 2) {
+                tag.setLinkedNotebookGuid(linkedNotebook.guid());
+            }
+
+            error.clear();
+            res = localStorageManager.AddTag(tag, error);
+            QVERIFY2(res == true, qPrintable(error));
+
+            error.clear();
+            res = localStorageManager.LinkTagWithNote(tag, note, error);
+            QVERIFY2(res == true, qPrintable(error));
+        }
+
+        error.clear();
+        res = localStorageManager.ExpungeNote(note, error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        error.clear();
+        res = localStorageManager.ExpungeNotelessTagsFromLinkedNotebooks(error);
+        QVERIFY2(res == true, qPrintable(error));
+
+        QList<Tag> foundTags;
+        foundTags.reserve(3);
+        error.clear();
+        foundTags = localStorageManager.ListAllTags(error);
+        if (foundTags.isEmpty() && !error.isEmpty()) {
+            QFAIL(qPrintable(error));
+        }
+
+        for(int i = 0; i < nTags; ++i)
+        {
+            const Tag & tag = tags[i];
+
+            if ((i > 2) && foundTags.contains(tag)) {
+                error = "Found tag from linked notebook which should have been expunged";
+                QNWARNING(error);
+                QFAIL(qPrintable(error));
+            }
+            else if ((i <= 2) && !foundTags.contains(tag)) {
+                error = "Could not find tag which should have remained in the local storage";
+                QNWARNING(error);
+                QFAIL(qPrintable(error));
+            }
+        }
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::localStorageManagerAsyncSavedSearchesTest()
 {
     int savedSeachAsyncTestsResult = -1;

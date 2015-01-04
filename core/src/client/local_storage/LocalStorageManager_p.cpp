@@ -2238,6 +2238,19 @@ bool LocalStorageManagerPrivate::ExpungeTag(const Tag & tag, QString & errorDesc
     return true;
 }
 
+bool LocalStorageManagerPrivate::ExpungeNotelessTagsFromLinkedNotebooks(QString & errorDescription)
+{
+    errorDescription = QT_TR_NOOP("Can't expunge tags from linked notebooks not connected to any notes: ");
+
+    QString queryString = "DELETE FROM Tags WHERE ((linkedNotebookGuid IS NOT NULL) AND "
+                          "(localGuid NOT IN (SELECT localTag FROM NoteTags)))";
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't delete tags from \"Tags\" table in SQL database");
+
+    return true;
+}
+
 int LocalStorageManagerPrivate::GetEnResourceCount(QString & errorDescription) const
 {
     bool res = CheckAndPrepareGetResourceCountQuery();

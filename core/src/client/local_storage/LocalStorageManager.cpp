@@ -325,6 +325,12 @@ bool LocalStorageManager::ExpungeTag(const Tag & tag, QString & errorDescription
     return d->ExpungeTag(tag, errorDescription);
 }
 
+bool LocalStorageManager::ExpungeNotelessTagsFromLinkedNotebooks(QString & errorDescription)
+{
+    Q_D(LocalStorageManager);
+    return d->ExpungeNotelessTagsFromLinkedNotebooks(errorDescription);
+}
+
 int LocalStorageManager::GetEnResourceCount(QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);

@@ -112,6 +112,7 @@ public:
                         const LocalStorageManager::OrderDirection::type & orderDirection) const;
     bool DeleteTag(const Tag & tag, QString & errorDescription);
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
+    bool ExpungeNotelessTagsFromLinkedNotebooks(QString & errorDescription);
 
     int GetEnResourceCount(QString & errorDescription) const;
     bool AddEnResource(const IResource & resource, const Note & note, QString & errorDescription);
