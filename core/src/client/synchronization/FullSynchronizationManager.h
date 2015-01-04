@@ -73,28 +73,6 @@ Q_SIGNALS:
     void findSavedSearch(SavedSearch savedSearch, QUuid requestId = QUuid());
     void expungeSavedSearch(SavedSearch savedSearch, QUuid requestId = QUuid());
 
-    // signals to request dirty & not yet synchronized objects from local storage
-    void requestLocalUnsynchronizedTags(LocalStorageManager::ListObjectsOptions flag,
-                                        size_t limit, size_t offset,
-                                        LocalStorageManager::ListTagsOrder::type order,
-                                        LocalStorageManager::OrderDirection::type orderDirection,
-                                        QUuid requestId);
-    void requestLocalUnsynchronizedSavedSearches(LocalStorageManager::ListObjectsOptions flag,
-                                                 size_t limit, size_t offset,
-                                                 LocalStorageManager::ListSavedSearchesOrder::type order,
-                                                 LocalStorageManager::OrderDirection::type orderDirection,
-                                                 QUuid requestId);
-    void requestLocalUnsynchronizedNotebooks(LocalStorageManager::ListObjectsOptions flag,
-                                             size_t limit, size_t offset,
-                                             LocalStorageManager::ListNotebooksOrder::type order,
-                                             LocalStorageManager::OrderDirection::type orderDirection,
-                                             QUuid requestId);
-    void requestLocalUnsynchronizedNotes(LocalStorageManager::ListObjectsOptions flag,
-                                         size_t limit, size_t offset,
-                                         LocalStorageManager::ListNotesOrder::type order,
-                                         LocalStorageManager::OrderDirection::type orderDirection,
-                                         QUuid requestId);
-
 private Q_SLOTS:
     void onFindUserCompleted(UserWrapper user, QUuid requestId);
     void onFindUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
@@ -136,51 +114,6 @@ private Q_SLOTS:
     void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
     void onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId);
     void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
-
-
-    void onListDirtyTagsCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                  size_t limit, size_t offset,
-                                  LocalStorageManager::ListTagsOrder::type order,
-                                  LocalStorageManager::OrderDirection::type orderDirection,
-                                  QList<Tag> tags, QUuid requestId);
-    void onListDirtyTagsFailed(LocalStorageManager::ListObjectsOptions flag,
-                               size_t limit, size_t offset,
-                               LocalStorageManager::ListTagsOrder::type order,
-                               LocalStorageManager::OrderDirection::type orderDirection,
-                               QString errorDescription, QUuid requestId);
-
-    void onListDirtySavedSearchesCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                           size_t limit, size_t offset,
-                                           LocalStorageManager::ListSavedSearchesOrder::type order,
-                                           LocalStorageManager::OrderDirection::type orderDirection,
-                                           QList<SavedSearch> savedSearches, QUuid requestId);
-    void onListDirtySavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
-                                        size_t limit, size_t offset,
-                                        LocalStorageManager::ListSavedSearchesOrder::type order,
-                                        LocalStorageManager::OrderDirection::type orderDirection,
-                                        QString errorDescription, QUuid requestId);
-
-    void onListDirtyNotebooksCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                       size_t limit, size_t offset,
-                                       LocalStorageManager::ListNotebooksOrder::type order,
-                                       LocalStorageManager::OrderDirection::type orderDirection,
-                                       QList<Notebook> notebooks, QUuid requestId);
-    void onListDirtyNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
-                                    size_t limit, size_t offset,
-                                    LocalStorageManager::ListNotebooksOrder::type order,
-                                    LocalStorageManager::OrderDirection::type orderDirection,
-                                    QString errorDescription, QUuid requestId);
-
-    void onListDirtyNotesCompleted(LocalStorageManager::ListObjectsOptions flag,
-                                   size_t limit, size_t offset,
-                                   LocalStorageManager::ListNotesOrder::type order,
-                                   LocalStorageManager::OrderDirection::type orderDirection,
-                                   QList<Note> notes, QUuid requestId);
-    void onListDirtyNotesFailed(LocalStorageManager::ListObjectsOptions flag,
-                                size_t limit, size_t offset,
-                                LocalStorageManager::ListNotesOrder::type order,
-                                LocalStorageManager::OrderDirection::type orderDirection,
-                                QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();
@@ -395,11 +328,6 @@ private:
     QHash<int,Note>                         m_notesToAddPerAPICallPostponeTimerId;
     QHash<int,Note>                         m_notesToUpdatePerAPICallPostponeTimerId;
     QHash<int,qint32>                       m_afterUsnForSyncChunkPerAPICallPostponeTimerId;
-
-    QUuid                                   m_listDirtyTagsRequestId;
-    QUuid                                   m_listDirtySavedSearchesRequestId;
-    QUuid                                   m_listDirtyNotebooksRequestId;
-    QUuid                                   m_listDirtyNotesRequestId;
 };
 
 } // namespace qute_note
