@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__SYNCHRONIZATION_MANAGER_PRIVATE_H
 #define __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__SYNCHRONIZATION_MANAGER_PRIVATE_H
 
-#include "FullSynchronizationManager.h"
+#include "RemoteToLocalSynchronizationManager.h"
 #include <tools/qt4helper.h>
 #include <QEverCloud.h>
 #include <oauth.h>
@@ -26,7 +26,7 @@ private Q_SLOTS:
     void onOAuthFailure();
     void onOAuthResult(bool result);
 
-    void onFullSyncFinished();
+    void onRemoteToLocalSyncFinished();
 
 private:
     SynchronizationManagerPrivate() Q_DECL_DELETE;
@@ -55,7 +55,7 @@ private:
     QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
     QSharedPointer<qevercloud::NoteStore>               m_pNoteStore;
 
-    FullSynchronizationManager      m_fullSyncManager;
+    RemoteToLocalSynchronizationManager                 m_remoteToLocalSyncManager;
 };
 
 } // namespace qute_note

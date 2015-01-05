@@ -16,22 +16,31 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
-class FullSynchronizationManager: public QObject
+class RemoteToLocalSynchronizationManager: public QObject
 {
     Q_OBJECT
 public:
-     explicit FullSynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                                         QSharedPointer<qevercloud::NoteStore> pNoteStore,
-                                         QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult> pOAuthResult,
-                                         QObject * parent = nullptr);
+    explicit RemoteToLocalSynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+                                                 QSharedPointer<qevercloud::NoteStore> pNoteStore,
+                                                 QObject * parent = nullptr);
+
+    bool active() const;
 
 Q_SIGNALS:
     void failure(QString errorDescription);
     void finished();
     void rateLimitExceeded(qint32 secondsToWait);
 
+    // signals notifying about the progress of sycnhronization
+    void syncChunksDownloaded();
+    void notesDownloaded();
+    void linkedNotebooksChunksDownloaded();
+    void linkedNotebooksNotesDownloaded();
+
 public Q_SLOTS:
     void start(qint32 afterUsn = 0);
+    void stop();
+    void pause();
 
 // private signals
 Q_SIGNALS:
@@ -245,10 +254,12 @@ private:
 
     qint32 tryToGetFullNoteData(Note & note, QString & errorDescription);
 
+    void downloadSyncChunksAndLaunchSync(qint32 afterUsn);
+
     const Notebook * getNotebookPerNote(const Note & note) const;
 
 private:
-    FullSynchronizationManager() Q_DECL_DELETE;
+    RemoteToLocalSynchronizationManager() Q_DECL_DELETE;
 
 private:
     template <class T>
@@ -279,11 +290,25 @@ private:
     typedef QList<qevercloud::Notebook> NotebooksList;
     typedef QList<qevercloud::Note> NotesList;
 
+    struct SyncMode
+    {
+        enum type
+        {
+            FullSync = 0,
+            IncrementalSync
+        };
+    };
+
+    friend QTextStream & operator<<(QTextStream & strm, const SyncMode::type & obj);
+
 private:
-    LocalStorageManagerThreadWorker &                               m_localStorageManagerThreadWorker;
-    NoteStore                                                       m_noteStore;
-    QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
-    qint32                                                          m_maxSyncChunkEntries;
+    LocalStorageManagerThreadWorker &       m_localStorageManagerThreadWorker;
+    bool                                    m_connectedToLocalStorage;
+
+    NoteStore                               m_noteStore;
+    qint32                                  m_maxSyncChunkEntries;
+    SyncMode::type                          m_lastSyncMode;
+    bool                                    m_active;
 
     QVector<qevercloud::SyncChunk>          m_syncChunks;
 

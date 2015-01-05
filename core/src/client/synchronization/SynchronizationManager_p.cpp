@@ -20,7 +20,7 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_pOAuthWebView(new qevercloud::EvernoteOAuthWebView),
     m_pOAuthResult(),
     m_pNoteStore(),
-    m_fullSyncManager(localStorageManagerThreadWorker, m_pNoteStore, m_pOAuthResult)
+    m_remoteToLocalSyncManager(localStorageManagerThreadWorker, m_pNoteStore)
 {
     createConnecttions();
 }
@@ -71,7 +71,7 @@ void SynchronizationManagerPrivate::onOAuthResult(bool result)
     }
 }
 
-void SynchronizationManagerPrivate::onFullSyncFinished()
+void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished()
 {
     // TODO: implement
 }
@@ -84,8 +84,8 @@ void SynchronizationManagerPrivate::createConnecttions()
     QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationFailed), this, SLOT(onOAuthFailure()));
 
     // Connections with full synchronization manager
-    QObject::connect(&m_fullSyncManager, SIGNAL(error(QString)), this, SIGNAL(notifyError(QString)));
-    QObject::connect(&m_fullSyncManager, SIGNAL(finished()), this, SLOT(onFullSyncFinished()));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(error(QString)), this, SIGNAL(notifyError(QString)));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(finished()), this, SLOT(onRemoteToLocalSyncFinished()));
 }
 
 void SynchronizationManagerPrivate::authenticate()
@@ -294,8 +294,7 @@ void SynchronizationManagerPrivate::launchSync()
 void SynchronizationManagerPrivate::launchFullSync()
 {
     QNDEBUG("SynchronizationManagerPrivate::launchFullSync");
-    m_fullSyncManager.start();
-
+    m_remoteToLocalSyncManager.start();
 }
 
 void SynchronizationManagerPrivate::launchIncrementalSync()
