@@ -245,8 +245,8 @@ private:
     void launchLinkedNotebookNotebooksSync();
     void launchLinkedNotebookNotesSync();
 
+    bool hasPendingRequests() const;
     void checkServerDataMergeCompletion();
-    void requestLocalUnsynchronizedData();
 
     void clear();
 
@@ -309,6 +309,8 @@ private:
     qint32                                  m_maxSyncChunkEntries;
     SyncMode::type                          m_lastSyncMode;
     bool                                    m_active;
+    bool                                    m_paused;
+    bool                                    m_requestedToStop;
 
     QVector<qevercloud::SyncChunk>          m_syncChunks;
 
