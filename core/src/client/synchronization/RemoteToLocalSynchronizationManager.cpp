@@ -19,6 +19,8 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_noteStore(pNoteStore),
     m_maxSyncChunkEntries(50),
     m_lastSyncMode(SyncMode::FullSync),
+    m_lastSyncTime(0),
+    m_lastUpdateCount(0),
     m_lastSyncChunksDownloadedUsn(-1),
     m_syncChunksDownloaded(false),
     m_fullNoteContentsDownloaded(false),
@@ -43,6 +45,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_findLinkedNotebookRequestIds(),
     m_addLinkedNotebookRequestIds(),
     m_updateLinkedNotebookRequestIds(),
+    m_authenticationTokensByLinkedNotebookGuid(),
     m_notebooks(),
     m_notebooksToAddPerRequestId(),
     m_findNotebookByNameRequestIds(),
@@ -297,10 +300,7 @@ void RemoteToLocalSynchronizationManager::emitUpdateRequest<Note>(const Note & n
     if (m_requestedToStop && !hasPendingRequests()) { \
         QNDEBUG("RemoteToLocalSynchronizationManager is requested to stop and has no pending requests, " \
                 "finishing the synchronization"); \
-        m_active = false; \
-        disconnect(); \
-        m_connectedToLocalStorage = false; \
-        emit finished(); \
+        finalize(); \
     }
 
 void RemoteToLocalSynchronizationManager::onFindUserCompleted(UserWrapper user, QUuid requestId)
@@ -976,6 +976,12 @@ void RemoteToLocalSynchronizationManager::onUpdateNoteFailed(Note note, Notebook
     }
 }
 
+void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString, QString> authenticationTokensByLinkedNotebookGuid)
+{
+    m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
+    downloadLinkedNotebooksSyncChunksAndLaunchSync();
+}
+
 void RemoteToLocalSynchronizationManager::createConnections()
 {
     // Connect local signals with localStorageManagerThread's slots
@@ -1144,7 +1150,51 @@ void RemoteToLocalSynchronizationManager::launchLinkedNotebooksContentsSync()
 
 void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLaunchSync()
 {
-    // TODO: check the presence of authentication to linked notebooks and download sync chunks for them
+    const int numLinkedNotebooks = m_linkedNotebooks.size();
+    if (numLinkedNotebooks == 0) {
+        QNDEBUG("No linked notebooks are present within the account, can finish the synchronization right away");
+        m_linkedNotebooksSyncChunksDownloaded = true;
+        finalize();
+        return;
+    }
+
+    for(int i = 0; i < numLinkedNotebooks; ++i)
+    {
+        const qevercloud::LinkedNotebook & linkedNotebook = m_linkedNotebooks[i];
+        if (!linkedNotebook.guid.isSet()) {
+            QString error = QT_TR_NOOP("Internal error: found linked notebook without guid set");
+            QNWARNING(error << ", linked notebook: " << linkedNotebook);
+            emit failure(error);
+            return;
+        }
+
+        if (!m_authenticationTokensByLinkedNotebookGuid.contains(linkedNotebook.guid))
+        {
+            QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid
+                    << " was not found; will request authentication tokens for all linked notebooks at once");
+
+            QStringList linkedNotebookGuids;
+            for(int j = 0; j < numLinkedNotebooks; ++j)
+            {
+                const qevercloud::LinkedNotebook & currentLinkedNotebook = m_linkedNotebooks[j];
+                if (!currentLinkedNotebook.guid.isSet()) {
+                    QString error = QT_TR_NOOP("Internal error: found linked notebook without guid set");
+                    QNWARNING(error << ", linked notebook: " << currentLinkedNotebook);
+                    emit failure(error);
+                    return;
+                }
+
+                linkedNotebookGuids << currentLinkedNotebook.guid;
+            }
+
+            emit requestAuthenticationTokensForLinkedNotebooks(linkedNotebookGuids);
+            return;
+        }
+    }
+
+    // Ok, all authentication tokens seem to be in place now, can proceed
+
+    // TODO: actually download the sync chunks for linked notebooks
 
     launchLinkedNotebooksContentsSync();
 }
@@ -1242,13 +1292,23 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
     // FIXME: account for content related to linked notebooks
 
     QNDEBUG("All server side data elements are processed, proceeding to sending local changes");
-    m_active = false;
-    emit finished();
+    finalize();
+}
+
+void RemoteToLocalSynchronizationManager::finalize()
+{
+    emit finished(m_lastUpdateCount, m_lastSyncTime);
+    clear();
+    // FIXME: disconnect specifically from signals coming from local storage thread worker
+    m_connectedToLocalStorage = false;
 }
 
 void RemoteToLocalSynchronizationManager::clear()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::clear");
+
+    // NOTE: not clearing authentication tokens by linked notebook guid hash; it is intentional,
+    // this information can be reused in subsequent syncs
 
     m_lastSyncChunksDownloadedUsn = -1;
     m_syncChunksDownloaded = false;
@@ -1319,8 +1379,33 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
     killTimer(timerId);
     QNDEBUG("Killed timer with id " << timerId);
 
-    if (m_paused) {
-        QNDEBUG("RemoteToLocalSynchronizationManager is being paused, returning without any actions");
+    if (m_paused)
+    {
+        QNDEBUG("RemoteToLocalSynchronizationManager is being paused. Won't try to download full Note data "
+                "but will return the notes waiting to be downloaded into the common list of notes");
+
+        const int numNotesToAdd = m_notesToAddPerAPICallPostponeTimerId.size();
+        const int numNotesToUpdate = m_notesToUpdatePerAPICallPostponeTimerId.size();
+        const int numNotesInCommonList = m_notes.size();
+
+        m_notes.reserve(std::max(numNotesToAdd + numNotesToUpdate + numNotesInCommonList, 0));
+
+        typedef QHash<int,Note>::const_iterator CIter;
+
+        CIter notesToAddEnd = m_notesToAddPerAPICallPostponeTimerId.constEnd();
+        for(CIter it = m_notesToAddPerAPICallPostponeTimerId.constBegin(); it != notesToAddEnd; ++it) {
+            m_notes.push_back(it.value());
+        }
+        m_notesToAddPerAPICallPostponeTimerId.clear();
+
+        CIter notesToUpdateEnd = m_notesToUpdatePerAPICallPostponeTimerId.constEnd();
+        for(CIter it = m_notesToUpdatePerAPICallPostponeTimerId.constBegin(); it != notesToUpdateEnd; ++it) {
+            m_notes.push_back(it.value());
+        }
+        m_notesToUpdatePerAPICallPostponeTimerId.clear();
+
+        m_afterUsnForSyncChunkPerAPICallPostponeTimerId.clear();
+
         return;
     }
 
@@ -1434,6 +1519,9 @@ void RemoteToLocalSynchronizationManager::downloadSyncChunksAndLaunchSync(qint32
 
         m_syncChunks.push_back(qevercloud::SyncChunk());
         pSyncChunk = &(m_syncChunks.back());
+
+        m_lastSyncTime = std::max(pSyncChunk->currentTime, m_lastSyncTime);
+        m_lastUpdateCount = std::max(pSyncChunk->updateCount, m_lastUpdateCount);
 
         qevercloud::SyncChunkFilter filter;
         filter.includeNotebooks = true;

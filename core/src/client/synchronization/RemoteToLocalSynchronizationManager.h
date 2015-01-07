@@ -28,7 +28,7 @@ public:
 
 Q_SIGNALS:
     void failure(QString errorDescription);
-    void finished();
+    void finished(qint32 lastUpdateCount, qint32 lastSyncTime);
     void rateLimitExceeded(qint32 secondsToWait);
 
     // signals notifying about the progress of sycnhronization
@@ -37,10 +37,14 @@ Q_SIGNALS:
     void linkedNotebooksSyncChunksDownloaded();
     void linkedNotebooksFullNotesContentsDownloaded();
 
+    void requestAuthenticationTokensForLinkedNotebooks(QStringList linkedNotebookGuids);
+
 public Q_SLOTS:
     void start(qint32 afterUsn = 0);
     void stop();
     void pause();
+
+    void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString> authenticationTokensByLinkedNotebookGuid);
 
 // private signals
 Q_SIGNALS:
@@ -253,6 +257,7 @@ private:
     bool hasPendingRequests() const;
     void checkServerDataMergeCompletion();
 
+    void finalize();
     void clear();
 
     void timerEvent(QTimerEvent * pEvent);
@@ -313,6 +318,8 @@ private:
     NoteStore                               m_noteStore;
     qint32                                  m_maxSyncChunkEntries;
     SyncMode::type                          m_lastSyncMode;
+    qevercloud::Timestamp                   m_lastSyncTime;
+    qint32                                  m_lastUpdateCount;
 
     qint32                                  m_lastSyncChunksDownloadedUsn;
     bool                                    m_syncChunksDownloaded;
@@ -343,6 +350,7 @@ private:
     QSet<QUuid>                             m_findLinkedNotebookRequestIds;
     QSet<QUuid>                             m_addLinkedNotebookRequestIds;
     QSet<QUuid>                             m_updateLinkedNotebookRequestIds;
+    QHash<QString,QString>                  m_authenticationTokensByLinkedNotebookGuid;
 
     NotebooksList                           m_notebooks;
     QHash<QUuid,Notebook>                   m_notebooksToAddPerRequestId;

@@ -26,7 +26,7 @@ private Q_SLOTS:
     void onOAuthFailure();
     void onOAuthResult(bool result);
 
-    void onRemoteToLocalSyncFinished();
+    void onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qint32 lastSyncTime);
 
 private:
     SynchronizationManagerPrivate() Q_DECL_DELETE;

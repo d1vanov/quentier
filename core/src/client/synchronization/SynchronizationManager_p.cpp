@@ -71,7 +71,7 @@ void SynchronizationManagerPrivate::onOAuthResult(bool result)
     }
 }
 
-void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished()
+void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qint32 lastSyncTime)
 {
     // TODO: implement
 }
