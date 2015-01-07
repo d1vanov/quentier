@@ -50,6 +50,9 @@ public:
     qint32 getNote(const bool withContent, const bool withResourcesData,
                    const bool withResourcesRecognition, const bool withResourceAlternateData,
                    Note & note, QString & errorDescription, qint32 & rateLimitSeconds);
+
+    qint32 authenticateToSharedNotebook(const QString & shareKey, qevercloud::AuthenticationResult & authResult,
+                                        QString & errorDescription);
 private:
 
     struct UserExceptionSource

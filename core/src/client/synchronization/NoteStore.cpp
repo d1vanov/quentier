@@ -256,6 +256,7 @@ qint32 NoteStore::getNote(const bool withContent, const bool withResourcesData,
     {
         note = m_pQecNoteStore->getNote(note.guid(), withContent, withResourcesData,
                                         withResourcesRecognition, withResourceAlternateData);
+        return 0;
     }
     catch(const qevercloud::EDAMUserException & userException)
     {
@@ -268,6 +269,59 @@ qint32 NoteStore::getNote(const bool withContent, const bool withResourcesData,
     catch(const qevercloud::EDAMSystemException & systemException)
     {
         return processEdamSystemException(systemException, errorDescription, rateLimitSeconds);
+    }
+
+    return qevercloud::EDAMErrorCode::UNKNOWN;
+}
+
+qint32 NoteStore::authenticateToSharedNotebook(const QString & shareKey, qevercloud::AuthenticationResult & authResult,
+                                               QString & errorDescription)
+{
+    try
+    {
+        authResult = m_pQecNoteStore->authenticateToSharedNotebook(shareKey);
+        return 0;
+    }
+    catch(const qevercloud::EDAMUserException & userException)
+    {
+        if (userException.errorCode == qevercloud::EDAMErrorCode::DATA_REQUIRED) {
+            errorDescription = QT_TR_NOOP("No valid authentication token for current user");
+        }
+        else if (userException.errorCode == qevercloud::EDAMErrorCode::PERMISSION_DENIED) {
+            errorDescription = QT_TR_NOOP("Share requires login, and another username has already been bound "
+                                          "to this notebook");
+        }
+        else {
+            errorDescription = QT_TR_NOOP("Unexpected EDAM user exception, error code: ");
+            errorDescription += ToQString(userException.errorCode);
+        }
+
+        return userException.errorCode;
+    }
+    catch(const qevercloud::EDAMNotFoundException & notFoundException)
+    {
+        // NOTE: this means that shared notebook no longer exists. It can happen with
+        // shared/linked notebooks from time to time so it shouldn't be really considered
+        // an error. Instead, the method would return empty auth result which should indicate
+        // the fact of missing shared notebook to the caller
+        Q_UNUSED(notFoundException)
+        authResult = qevercloud::AuthenticationResult();
+        return 0;
+    }
+    catch(const qevercloud::EDAMSystemException & systemException)
+    {
+        if (systemException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT) {
+            errorDescription = QT_TR_NOOP("Invalid share key");
+        }
+        else if (systemException.errorCode == qevercloud::EDAMErrorCode::INVALID_AUTH) {
+            errorDescription = QT_TR_NOOP("Bad signature of share key");
+        }
+        else {
+            errorDescription = QT_TR_NOOP("Unexpected EDAN system exception, error code: ");
+            errorDescription += ToQString(systemException.errorCode);
+        }
+
+        return systemException.errorCode;
     }
 
     return qevercloud::EDAMErrorCode::UNKNOWN;
