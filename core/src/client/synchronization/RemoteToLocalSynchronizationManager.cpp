@@ -1173,10 +1173,11 @@ void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLa
             QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid
                     << " was not found; will request authentication tokens for all linked notebooks at once");
 
-            QStringList linkedNotebookGuids;
+            QList<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys;
             for(int j = 0; j < numLinkedNotebooks; ++j)
             {
                 const qevercloud::LinkedNotebook & currentLinkedNotebook = m_linkedNotebooks[j];
+
                 if (!currentLinkedNotebook.guid.isSet()) {
                     QString error = QT_TR_NOOP("Internal error: found linked notebook without guid set");
                     QNWARNING(error << ", linked notebook: " << currentLinkedNotebook);
@@ -1184,10 +1185,17 @@ void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLa
                     return;
                 }
 
-                linkedNotebookGuids << currentLinkedNotebook.guid;
+                if (!currentLinkedNotebook.shareKey.isSet()) {
+                    QString error = QT_TR_NOOP("Found linked notebook without a share key");
+                    QNWARNING(error << ", linked notebook: " << currentLinkedNotebook);
+                    emit failure(error);
+                    return;
+                }
+
+                linkedNotebookGuidsAndShareKeys << QPair<QString,QString>(currentLinkedNotebook.guid, currentLinkedNotebook.shareKey);
             }
 
-            emit requestAuthenticationTokensForLinkedNotebooks(linkedNotebookGuids);
+            emit requestAuthenticationTokensForLinkedNotebooks(linkedNotebookGuidsAndShareKeys);
             return;
         }
     }

@@ -49,7 +49,7 @@ public:
 
     qint32 getNote(const bool withContent, const bool withResourcesData,
                    const bool withResourcesRecognition, const bool withResourceAlternateData,
-                   Note & note, QString & errorDescription, qint32 &rateLimitSeconds);
+                   Note & note, QString & errorDescription, qint32 & rateLimitSeconds);
 private:
 
     struct UserExceptionSource

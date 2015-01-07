@@ -37,7 +37,7 @@ Q_SIGNALS:
     void linkedNotebooksSyncChunksDownloaded();
     void linkedNotebooksFullNotesContentsDownloaded();
 
-    void requestAuthenticationTokensForLinkedNotebooks(QStringList linkedNotebookGuids);
+    void requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndShareKeys);
 
 public Q_SLOTS:
     void start(qint32 afterUsn = 0);

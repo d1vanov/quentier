@@ -42,6 +42,8 @@ void registerMetatypes()
     qRegisterMetaType<size_t>("size_t");
 
     qRegisterMetaType<QUuid>("QUuid");
+
+    qRegisterMetaType<QList<QPair<QString,QString> > >("QList<QPair<QString,QString> >");
 }
 
 } // namespace qute_note
