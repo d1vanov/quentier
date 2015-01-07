@@ -1534,7 +1534,10 @@ void RemoteToLocalSynchronizationManager::downloadSyncChunksAndLaunchSync(qint32
         filter.includeNoteApplicationDataFullMap = true;
         filter.includeNoteResourceApplicationDataFullMap = true;
         filter.includeLinkedNotebooks = true;
-        filter.includeExpunged = true;
+
+        if (m_lastSyncMode == SyncMode::IncrementalSync) {
+            filter.includeExpunged = true;
+        }
 
         QString errorDescription;
         qint32 rateLimitSeconds = 0;
