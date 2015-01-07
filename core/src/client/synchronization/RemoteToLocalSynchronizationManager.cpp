@@ -19,6 +19,10 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_noteStore(pNoteStore),
     m_maxSyncChunkEntries(50),
     m_lastSyncMode(SyncMode::FullSync),
+    m_lastSyncChunksDownloadedUsn(-1),
+    m_syncChunksDownloaded(false),
+    m_fullNoteContentsDownloaded(false),
+    m_linkedNotebooksSyncChunksDownloaded(false),
     m_active(false),
     m_paused(false),
     m_requestedToStop(false),
@@ -66,23 +70,48 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::start: afterUsn = " << afterUsn);
 
-    m_paused = false;
-
-    if (m_requestedToStop)
-    {
-        m_requestedToStop = false;
-        // TODO: separate course of actions if the remote to local sync manager was stopped previously:
-        // in particular, need to figure out what was the last properly processed usn. If it's greater than
-        // the usn passed into this function, start with it, otherwise may proceed normally
-    }
-
-    // FIXME: it may be unnecessary and even bad here, at least if it's not full sync
-    clear();
-
     if (!m_connectedToLocalStorage) {
         createConnections();
         m_connectedToLocalStorage = true;
     }
+
+    if (m_paused || m_requestedToStop)
+    {
+        if (m_paused) {
+            m_paused = false;
+        }
+
+        if (m_requestedToStop) {
+            m_requestedToStop = false;
+        }
+
+        if (m_syncChunksDownloaded && (m_lastSyncChunksDownloadedUsn >= afterUsn))
+        {
+            QNDEBUG("last usn for which sync chunks were downloaded is " << m_lastSyncChunksDownloadedUsn
+                    << ", there's no need to download the sync chunks again, launching the sync procedure");
+
+            if (m_fullNoteContentsDownloaded)
+            {
+                QNDEBUG("Full note's contents have already been downloaded meaning that the sync for "
+                        "tags, saved searches, notebooks and notes from user's account is over");
+
+                if (m_linkedNotebooksSyncChunksDownloaded) {
+                    QNDEBUG("sync chunks for linked notebooks were already downloaded, there's no need to "
+                            "do it again, will launch the sync for linked notebooks");
+                    downloadLinkedNotebooksSyncChunksAndLaunchSync();
+                }
+                else {
+                    launchLinkedNotebooksContentsSync();
+                }
+            }
+            else
+            {
+                launchSync();
+            }
+        }
+    }
+
+    clear();
 
     m_lastSyncMode = ((afterUsn == 0)
                       ? SyncMode::FullSync
@@ -1041,6 +1070,14 @@ void RemoteToLocalSynchronizationManager::createConnections()
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString,QUuid)), this, SLOT(onAddNoteFailed(Note,Notebook,QString,QUuid)));
 }
 
+void RemoteToLocalSynchronizationManager::launchSync()
+{
+    launchTagsSync();
+    launchSavedSearchSync();
+    launchNotebookSync();
+    launchLinkedNotebookSync();
+}
+
 void RemoteToLocalSynchronizationManager::launchTagsSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchTagsSync");
@@ -1088,8 +1125,7 @@ void RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncAndLaunchLinke
 
     if (m_updateLinkedNotebookRequestIds.empty() && m_addLinkedNotebookRequestIds.empty()) {
         // All remote linked notebooks were already updated in the local storage or added there
-        launchLinkedNotebookTagsSync();
-        launchLinkedNotebookNotebooksSync();
+        downloadLinkedNotebooksSyncChunksAndLaunchSync();
     }
 }
 
@@ -1100,23 +1136,36 @@ void RemoteToLocalSynchronizationManager::checkLinkedNotebooksNotebooksAndTagsSy
     // TODO: implement
 }
 
-void RemoteToLocalSynchronizationManager::launchLinkedNotebookTagsSync()
+void RemoteToLocalSynchronizationManager::launchLinkedNotebooksContentsSync()
 {
-    QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebookTagsSync");
+    launchLinkedNotebooksTagsSync();
+    launchLinkedNotebooksNotebooksSync();
+}
+
+void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLaunchSync()
+{
+    // TODO: check the presence of authentication to linked notebooks and download sync chunks for them
+
+    launchLinkedNotebooksContentsSync();
+}
+
+void RemoteToLocalSynchronizationManager::launchLinkedNotebooksTagsSync()
+{
+    QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebooksTagsSync");
 
     // TODO: implement
 }
 
-void RemoteToLocalSynchronizationManager::launchLinkedNotebookNotebooksSync()
+void RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotebooksSync()
 {
-    QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebookNotebooksSync");
+    QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotebooksSync");
 
     // TODO: implement
 }
 
-void RemoteToLocalSynchronizationManager::launchLinkedNotebookNotesSync()
+void RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotesSync()
 {
-    QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebookNotesSync");
+    QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotesSync");
 
     // TODO: implement
 }
@@ -1187,7 +1236,8 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
         return;
     }
 
-    emit notesDownloaded();
+    m_fullNoteContentsDownloaded = true;
+    emit fullNotesContentsDownloaded();
 
     // FIXME: account for content related to linked notebooks
 
@@ -1200,7 +1250,14 @@ void RemoteToLocalSynchronizationManager::clear()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::clear");
 
+    m_lastSyncChunksDownloadedUsn = -1;
+    m_syncChunksDownloaded = false;
+    m_fullNoteContentsDownloaded = false;
+    m_linkedNotebooksSyncChunksDownloaded = false;
+
     m_active = false;
+    m_paused = false;
+    m_requestedToStop = false;
 
     m_syncChunks.clear();
 
@@ -1425,12 +1482,11 @@ void RemoteToLocalSynchronizationManager::downloadSyncChunksAndLaunchSync(qint32
     QNDEBUG("Done. Processing tags, saved searches, linked notebooks and notebooks "
             "from buffered sync chunks");
 
+    m_lastSyncChunksDownloadedUsn = afterUsn;
+    m_syncChunksDownloaded = true;
     emit syncChunksDownloaded();
 
-    launchTagsSync();
-    launchSavedSearchSync();
-    launchLinkedNotebookSync();
-    launchNotebookSync();
+    launchSync();
 }
 
 const Notebook * RemoteToLocalSynchronizationManager::getNotebookPerNote(const Note & note) const

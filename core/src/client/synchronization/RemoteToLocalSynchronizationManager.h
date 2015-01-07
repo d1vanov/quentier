@@ -33,9 +33,9 @@ Q_SIGNALS:
 
     // signals notifying about the progress of sycnhronization
     void syncChunksDownloaded();
-    void notesDownloaded();
-    void linkedNotebooksChunksDownloaded();
-    void linkedNotebooksNotesDownloaded();
+    void fullNotesContentsDownloaded();
+    void linkedNotebooksSyncChunksDownloaded();
+    void linkedNotebooksFullNotesContentsDownloaded();
 
 public Q_SLOTS:
     void start(qint32 afterUsn = 0);
@@ -126,6 +126,8 @@ private Q_SLOTS:
 
 private:
     void createConnections();
+
+    void launchSync();
 
     void launchTagsSync();
     void launchSavedSearchSync();
@@ -241,9 +243,12 @@ private:
     void checkLinkedNotebooksSyncAndLaunchLinkedNotebookContentSync();
     void checkLinkedNotebooksNotebooksAndTagsSyncAndLaynchLinkedNotebookNotesSync();
 
-    void launchLinkedNotebookTagsSync();
-    void launchLinkedNotebookNotebooksSync();
-    void launchLinkedNotebookNotesSync();
+    void launchLinkedNotebooksContentsSync();
+    void downloadLinkedNotebooksSyncChunksAndLaunchSync();
+
+    void launchLinkedNotebooksTagsSync();
+    void launchLinkedNotebooksNotebooksSync();
+    void launchLinkedNotebooksNotesSync();
 
     bool hasPendingRequests() const;
     void checkServerDataMergeCompletion();
@@ -308,6 +313,12 @@ private:
     NoteStore                               m_noteStore;
     qint32                                  m_maxSyncChunkEntries;
     SyncMode::type                          m_lastSyncMode;
+
+    qint32                                  m_lastSyncChunksDownloadedUsn;
+    bool                                    m_syncChunksDownloaded;
+    bool                                    m_fullNoteContentsDownloaded;
+    bool                                    m_linkedNotebooksSyncChunksDownloaded;
+
     bool                                    m_active;
     bool                                    m_paused;
     bool                                    m_requestedToStop;
