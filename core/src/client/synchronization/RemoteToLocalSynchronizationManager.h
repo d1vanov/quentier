@@ -29,6 +29,10 @@ public:
 Q_SIGNALS:
     void failure(QString errorDescription);
     void finished(qint32 lastUpdateCount, qint32 lastSyncTime);
+
+    // signal notifying that the Evernote API rate limit was exceeded so that the synchronization
+    // needs to wait for the specified number of seconds before it proceeds (that would happen automatically,
+    // there's no need to restart the synchronization manually)
     void rateLimitExceeded(qint32 secondsToWait);
 
     // signals notifying about the progress of sycnhronization

@@ -56,7 +56,7 @@ public:
                    Note & note, QString & errorDescription, qint32 & rateLimitSeconds);
 
     qint32 authenticateToSharedNotebook(const QString & shareKey, qevercloud::AuthenticationResult & authResult,
-                                        QString & errorDescription);
+                                        QString & errorDescription, qint32 & rateLimitSeconds);
 private:
 
     struct UserExceptionSource

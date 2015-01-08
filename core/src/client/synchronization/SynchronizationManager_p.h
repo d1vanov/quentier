@@ -21,10 +21,15 @@ public:
 Q_SIGNALS:
     void notifyError(QString errorDescription);
 
+// private signals
+    void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString> authenticationTokensByLinkedNotebookGuids);
+
 private Q_SLOTS:
     void onOAuthSuccess();
     void onOAuthFailure();
     void onOAuthResult(bool result);
+
+    void onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys);
 
     void onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qint32 lastSyncTime);
 
@@ -50,6 +55,8 @@ private:
 
     bool tryToGetSyncState(qevercloud::SyncState & syncState);
 
+    void clear();
+
 private:
     qint32      m_maxSyncChunkEntries;
     qint32      m_lastUpdateCount;
@@ -63,6 +70,12 @@ private:
     QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
 
     RemoteToLocalSynchronizationManager     m_remoteToLocalSyncManager;
+    QList<QPair<QString,QString> >          m_linkedNotebookGuidsAndShareKeysWaitingForAuth;
+    QHash<QString,QString>                  m_cachedLinkedNotebookAuthTokensByGuid;
+    QHash<QString,qevercloud::Timestamp>    m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid;
+
+    int         m_authenticateToLinkedNotebooksPostponeTimerId;
+    bool        m_receivedRequestToAuthenticateToLinkedNotebooks;
 };
 
 } // namespace qute_note

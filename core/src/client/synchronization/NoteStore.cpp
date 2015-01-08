@@ -309,7 +309,7 @@ qint32 NoteStore::getNote(const bool withContent, const bool withResourcesData,
 }
 
 qint32 NoteStore::authenticateToSharedNotebook(const QString & shareKey, qevercloud::AuthenticationResult & authResult,
-                                               QString & errorDescription)
+                                               QString & errorDescription, qint32 & rateLimitSeconds)
 {
     try
     {
@@ -344,7 +344,16 @@ qint32 NoteStore::authenticateToSharedNotebook(const QString & shareKey, qevercl
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
-        if (systemException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT) {
+        if (systemException.errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED) {
+            if (!systemException.rateLimitDuration.isSet()) {
+                errorDescription = QT_TR_NOOP("QEverCloud error: RATE_LIMIT_REACHED exception was caught "
+                                              "but rateLimitDuration is not set");
+                return qevercloud::EDAMErrorCode::UNKNOWN;
+            }
+
+            rateLimitSeconds = systemException.rateLimitDuration;
+        }
+        else if (systemException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT) {
             errorDescription = QT_TR_NOOP("Invalid share key");
         }
         else if (systemException.errorCode == qevercloud::EDAMErrorCode::INVALID_AUTH) {

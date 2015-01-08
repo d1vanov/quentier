@@ -23,7 +23,12 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_launchSyncPostponeTimerId(-1),
     m_pOAuthWebView(new qevercloud::EvernoteOAuthWebView),
     m_pOAuthResult(),
-    m_remoteToLocalSyncManager(localStorageManagerThreadWorker, m_noteStore.getQecNoteStore())
+    m_remoteToLocalSyncManager(localStorageManagerThreadWorker, m_noteStore.getQecNoteStore()),
+    m_linkedNotebookGuidsAndShareKeysWaitingForAuth(),
+    m_cachedLinkedNotebookAuthTokensByGuid(),
+    m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid(),
+    m_authenticateToLinkedNotebooksPostponeTimerId(-1),
+    m_receivedRequestToAuthenticateToLinkedNotebooks(false)
 {
     createConnections();
 }
@@ -33,12 +38,8 @@ SynchronizationManagerPrivate::~SynchronizationManagerPrivate()
 
 void SynchronizationManagerPrivate::synchronize()
 {
-    if (!m_pOAuthResult) {
-        authenticate();
-        return;
-    }
-
-    launchSync();
+    clear();
+    authenticate();
 }
 
 void SynchronizationManagerPrivate::onOAuthSuccess()
@@ -56,7 +57,12 @@ void SynchronizationManagerPrivate::onOAuthSuccess()
         return;
     }
 
-    launchSync();
+    if (m_receivedRequestToAuthenticateToLinkedNotebooks) {
+        onRequestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndShareKeysWaitingForAuth);
+    }
+    else {
+        launchSync();
+    }
 }
 
 void SynchronizationManagerPrivate::onOAuthFailure()
@@ -74,9 +80,70 @@ void SynchronizationManagerPrivate::onOAuthResult(bool result)
     }
 }
 
+void SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndShareKeys)
+{
+    QNDEBUG("SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebooks");
+
+    m_receivedRequestToAuthenticateToLinkedNotebooks = true;
+    m_linkedNotebookGuidsAndShareKeysWaitingForAuth = linkedNotebookGuidsAndShareKeys;
+
+    const int numLinkedNotebooks = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.size();
+    if (numLinkedNotebooks == 0) {
+        QNDEBUG("No linked notebooks, sending empty authentication tokens back immediately");
+        emit sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>());
+        return;
+    }
+
+    for(auto it = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.begin();
+        it != m_linkedNotebookGuidsAndShareKeysWaitingForAuth.end(); )
+    {
+        const QPair<QString,QString> & pair = *it;
+
+        const QString & guid     = pair.first;
+        const QString & shareKey = pair.second;
+
+        qevercloud::AuthenticationResult authResult;
+        QString errorDescription;
+        qint32 rateLimitSeconds = 0;
+        qint32 errorCode = m_noteStore.authenticateToSharedNotebook(shareKey, authResult,
+                                                                    errorDescription, rateLimitSeconds);
+        if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+        {
+            if (rateLimitSeconds < 0) {
+                errorDescription = QT_TR_NOOP("Internal error: RATE_LIMIT_REACHED exception was caught "
+                                              "but the number of seconds to wait is negative");
+                emit notifyError(errorDescription);
+                return;
+            }
+
+            m_authenticateToLinkedNotebooksPostponeTimerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+            return;
+        }
+        else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+        {
+            authenticate();
+        }
+        else if (errorCode != 0)
+        {
+            emit notifyError(errorDescription);
+            return;
+        }
+
+        m_cachedLinkedNotebookAuthTokensByGuid[guid] = authResult.authenticationToken;
+        m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid[guid] = authResult.expiration;
+
+        it = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.erase(it);
+    }
+
+    // TODO: cache obtained auth tokens in ApplicationSettings
+    emit sendAuthenticationTokensForLinkedNotebooks(m_cachedLinkedNotebookAuthTokensByGuid);
+}
+
 void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qint32 lastSyncTime)
 {
     // TODO: implement
+    m_lastUpdateCount = lastUpdateCount;
+    m_lastSyncTime = lastSyncTime;
 }
 
 void SynchronizationManagerPrivate::createConnections()
@@ -378,6 +445,11 @@ void SynchronizationManagerPrivate::timerEvent(QTimerEvent * pTimerEvent)
         launchSync();
         return;
     }
+    else if (timerId == m_authenticateToLinkedNotebooksPostponeTimerId) {
+        QNDEBUG("Re-attempting to authenticate to remaining linked (shared) notebooks");
+        onRequestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndShareKeysWaitingForAuth);
+        return;
+    }
 }
 
 bool SynchronizationManagerPrivate::tryToGetSyncState(qevercloud::SyncState & syncState)
@@ -410,6 +482,24 @@ bool SynchronizationManagerPrivate::tryToGetSyncState(qevercloud::SyncState & sy
     }
 
     return true;
+}
+
+void SynchronizationManagerPrivate::clear()
+{
+    m_lastUpdateCount = -1;
+    m_lastSyncTime = -1;
+
+    m_launchSyncPostponeTimerId = -1;
+
+    m_pOAuthWebView.reset();
+    m_pOAuthResult.clear();
+
+    m_linkedNotebookGuidsAndShareKeysWaitingForAuth.clear();
+    m_cachedLinkedNotebookAuthTokensByGuid.clear();
+    m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.clear();
+
+    m_authenticateToLinkedNotebooksPostponeTimerId = -1;
+    m_receivedRequestToAuthenticateToLinkedNotebooks = false;
 }
 
 } // namespace qute_note
