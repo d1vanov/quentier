@@ -27,6 +27,8 @@ class NoteStore
 public:
     NoteStore(QSharedPointer<qevercloud::NoteStore> pQecNoteStore);
 
+    QSharedPointer<qevercloud::NoteStore> getQecNoteStore();
+
     void setNoteStoreUrl(const QString & noteStoreUrl);
     void setAuthenticationToken(const QString & authToken);
 
@@ -41,6 +43,8 @@ public:
 
     qint32 createSavedSearch(SavedSearch & savedSearch, QString & errorDescription, qint32 & rateLimitSeconds);
     qint32 updateSavedSearch(SavedSearch & savedSearch, QString & errorDescription, qint32 & rateLimitSeconds);
+
+    qint32 getSyncState(qevercloud::SyncState & syncState, QString & errorDescription, qint32 & rateLimitSeconds);
 
     qint32 getSyncChunk(const qint32 afterUSN, const qint32 maxEntries,
                         const qevercloud::SyncChunkFilter & filter,

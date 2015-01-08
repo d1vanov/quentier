@@ -33,7 +33,7 @@ private:
     SynchronizationManagerPrivate(const SynchronizationManagerPrivate & other) Q_DECL_DELETE;
     SynchronizationManagerPrivate & operator=(const SynchronizationManagerPrivate & other) Q_DECL_DELETE;
 
-    void createConnecttions();
+    void createConnections();
 
     void authenticate();
 
@@ -46,16 +46,23 @@ private:
 
     bool storeOAuthResult();
 
+    virtual void timerEvent(QTimerEvent * pTimerEvent);
+
+    bool tryToGetSyncState(qevercloud::SyncState & syncState);
+
 private:
     qint32      m_maxSyncChunkEntries;
+    qint32      m_lastUpdateCount;
+    qint32      m_lastSyncTime;
 
-    QScopedPointer<qevercloud::SyncState>               m_pLastSyncState;
-    QScopedPointer<qevercloud::EvernoteOAuthWebView>    m_pOAuthWebView;
+    NoteStore   m_noteStore;
 
+    int         m_launchSyncPostponeTimerId;
+
+    QScopedPointer<qevercloud::EvernoteOAuthWebView>                m_pOAuthWebView;
     QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
-    QSharedPointer<qevercloud::NoteStore>               m_pNoteStore;
 
-    RemoteToLocalSynchronizationManager                 m_remoteToLocalSyncManager;
+    RemoteToLocalSynchronizationManager     m_remoteToLocalSyncManager;
 };
 
 } // namespace qute_note

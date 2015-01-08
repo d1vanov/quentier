@@ -11,18 +11,21 @@
 #define NOTE_STORE_URL_KEY "NoteStoreUrl"
 #define USER_ID_KEY "UserId"
 #define WEB_API_URL_PREFIX_KEY "WebApiUrlPrefix"
+#define SEC_TO_MSEC(sec) (sec * 100)
 
 namespace qute_note {
 
 SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker) :
     m_maxSyncChunkEntries(50),
-    m_pLastSyncState(),
+    m_lastUpdateCount(-1),
+    m_lastSyncTime(-1),
+    m_noteStore(QSharedPointer<qevercloud::NoteStore>(new qevercloud::NoteStore)),
+    m_launchSyncPostponeTimerId(-1),
     m_pOAuthWebView(new qevercloud::EvernoteOAuthWebView),
     m_pOAuthResult(),
-    m_pNoteStore(),
-    m_remoteToLocalSyncManager(localStorageManagerThreadWorker, m_pNoteStore)
+    m_remoteToLocalSyncManager(localStorageManagerThreadWorker, m_noteStore.getQecNoteStore())
 {
-    createConnecttions();
+    createConnections();
 }
 
 SynchronizationManagerPrivate::~SynchronizationManagerPrivate()
@@ -76,14 +79,14 @@ void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished(qint32 lastUpdat
     // TODO: implement
 }
 
-void SynchronizationManagerPrivate::createConnecttions()
+void SynchronizationManagerPrivate::createConnections()
 {
     // Connections with OAuth handler
     QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationFinished(bool)), this, SLOT(onOAuthResult(bool)));
     QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationSuceeded), this, SLOT(onOAuthSuccess()));
     QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationFailed), this, SLOT(onOAuthFailure()));
 
-    // Connections with full synchronization manager
+    // Connections with remote to local synchronization manager
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(error(QString)), this, SIGNAL(notifyError(QString)));
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(finished()), this, SLOT(onRemoteToLocalSyncFinished()));
 }
@@ -262,28 +265,34 @@ void SynchronizationManagerPrivate::launchSync()
 {
     QUTE_NOTE_CHECK_PTR(m_pOAuthResult);
 
-    m_pNoteStore = QSharedPointer<qevercloud::NoteStore>(new qevercloud::NoteStore(m_pOAuthResult->noteStoreUrl, m_pOAuthResult->authenticationToken));
+    m_noteStore.setNoteStoreUrl(m_pOAuthResult->noteStoreUrl);
+    m_noteStore.setAuthenticationToken(m_pOAuthResult->authenticationToken);
 
-    if (m_pLastSyncState.isNull()) {
+    if (m_lastUpdateCount <= 0) {
         QNDEBUG("The client has never synchronized with the remote service, "
                 "performing full sync");
         launchFullSync();
         return;
     }
 
-    qevercloud::SyncState syncState = m_pNoteStore->getSyncState(m_pOAuthResult->authenticationToken);
-    if (syncState.fullSyncBefore > m_pLastSyncState->currentTime) {
-        QNDEBUG("Server's current sync state's fullSyncBefore is larger that the timestamp of last sync "
-                "(" << syncState.fullSyncBefore << " > " << m_pLastSyncState->currentTime << "), "
-                "continue with full sync");
-        launchFullSync();
+    qevercloud::SyncState syncState;
+    if (!tryToGetSyncState(syncState)) {
         return;
     }
 
-    if (syncState.updateCount == m_pLastSyncState->updateCount) {
-        QNDEBUG("Server's current sync state's updateCount is equal to the one from the last sync "
-                "(" << syncState.updateCount << "), the server has no updates, sending changes");
+    if ((m_lastUpdateCount >= 0) && (syncState.updateCount <= m_lastUpdateCount)) {
+        QNDEBUG("Server's update count " << syncState.updateCount << " is less than or equal to the last cached "
+                "update count " << m_lastUpdateCount << "; there's no need to perform "
+                "the sync from remote to local storage, only send local changes (if any)");
         sendChanges();
+        return;
+    }
+
+    if (syncState.fullSyncBefore > m_lastSyncTime) {
+        QNDEBUG("Server's current sync state's fullSyncBefore is larger that the timestamp of last sync "
+                "(" << syncState.fullSyncBefore << " > " << m_lastSyncTime << "), "
+                "continue with full sync");
+        launchFullSync();
         return;
     }
 
@@ -345,6 +354,60 @@ bool SynchronizationManagerPrivate::storeOAuthResult()
             << QDateTime::fromMSecsSinceEpoch(m_pOAuthResult->expires).toString(Qt::ISODate) << "), "
             << ", user id = " << m_pOAuthResult->userId << ", web API url prefix = "
             << m_pOAuthResult->webApiUrlPrefix);
+
+    return true;
+}
+
+void SynchronizationManagerPrivate::timerEvent(QTimerEvent * pTimerEvent)
+{
+    if (!pTimerEvent) {
+        QString errorDescription = QT_TR_NOOP("Qt error: detected null pointer to QTimerEvent");
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    int timerId = pTimerEvent->timerId();
+    killTimer(timerId);
+
+    QNDEBUG("Timer event for timer id " << timerId);
+
+    if (timerId == m_launchSyncPostponeTimerId) {
+        QNDEBUG("Re-launching the sync procedure due to RATE_LIMIT_REACHED exception "
+                "when trying to get the sync state the last time");
+        launchSync();
+        return;
+    }
+}
+
+bool SynchronizationManagerPrivate::tryToGetSyncState(qevercloud::SyncState & syncState)
+{
+    QString error;
+    qint32 rateLimitSeconds = 0;
+    qint32 errorCode = m_noteStore.getSyncState(syncState, error, rateLimitSeconds);
+    if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+    {
+        if (rateLimitSeconds < 0) {
+            error = QT_TR_NOOP("Internal error: RATE_LIMIT_REACHED exception was caught "
+                               "but the number of seconds to wait is negative");
+            emit notifyError(error);
+            return false;
+        }
+
+        m_launchSyncPostponeTimerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+        return false;
+    }
+    else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+    {
+        QNDEBUG("caught AUTH_EXPIRED exception, will attempt to re-authorize");
+        authenticate();
+        return false;
+    }
+    else
+    {
+        emit notifyError(error);
+        return false;
+    }
 
     return true;
 }

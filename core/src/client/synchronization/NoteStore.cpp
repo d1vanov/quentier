@@ -14,6 +14,11 @@ NoteStore::NoteStore(QSharedPointer<qevercloud::NoteStore> pQecNoteStore) :
     QUTE_NOTE_CHECK_PTR(m_pQecNoteStore)
 }
 
+QSharedPointer<qevercloud::NoteStore> NoteStore::getQecNoteStore()
+{
+    return m_pQecNoteStore;
+}
+
 void NoteStore::setNoteStoreUrl(const QString & noteStoreUrl)
 {
     m_pQecNoteStore->setNoteStoreUrl(noteStoreUrl);
@@ -219,6 +224,35 @@ qint32 NoteStore::updateSavedSearch(SavedSearch & savedSearch, QString & errorDe
     return qevercloud::EDAMErrorCode::UNKNOWN;
 }
 
+qint32 NoteStore::getSyncState(qevercloud::SyncState & syncState, QString & errorDescription,
+                               qint32 & rateLimitSeconds)
+{
+    try
+    {
+        syncState = m_pQecNoteStore->getSyncState();
+        return 0;
+    }
+    catch(const qevercloud::EDAMUserException & userException)
+    {
+        errorDescription = QT_TR_NOOP("Caught EDAM user exception, error code ");
+        errorDescription += ToQString(userException.errorCode);
+
+        auto exceptionData = userException.exceptionData();
+        if (!exceptionData.isNull()) {
+            errorDescription += ", ";
+            errorDescription += exceptionData->errorMessage;
+        }
+
+        return userException.errorCode;
+    }
+    catch(const qevercloud::EDAMSystemException & systemException)
+    {
+        return processEdamSystemException(systemException, errorDescription, rateLimitSeconds);
+    }
+
+    return qevercloud::EDAMErrorCode::UNKNOWN;
+}
+
 qint32 NoteStore::getSyncChunk(const qint32 afterUSN, const qint32 maxEntries,
                                const qevercloud::SyncChunkFilter & filter,
                                qevercloud::SyncChunk & syncChunk,
@@ -317,7 +351,7 @@ qint32 NoteStore::authenticateToSharedNotebook(const QString & shareKey, qevercl
             errorDescription = QT_TR_NOOP("Bad signature of share key");
         }
         else {
-            errorDescription = QT_TR_NOOP("Unexpected EDAN system exception, error code: ");
+            errorDescription = QT_TR_NOOP("Unexpected EDAM system exception, error code: ");
             errorDescription += ToQString(systemException.errorCode);
         }
 

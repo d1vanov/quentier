@@ -262,7 +262,7 @@ private:
     void finalize();
     void clear();
 
-    void timerEvent(QTimerEvent * pEvent);
+    virtual void timerEvent(QTimerEvent * pEvent);
 
     qint32 tryToGetFullNoteData(Note & note, QString & errorDescription);
 
