@@ -43,6 +43,7 @@ public Q_SLOTS:
     void start(qint32 afterUsn = 0);
     void stop();
     void pause();
+    void resume();
 
     void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString> authenticationTokensByLinkedNotebookGuid);
 
@@ -322,6 +323,7 @@ private:
     qevercloud::Timestamp                   m_lastSyncTime;
     qint32                                  m_lastUpdateCount;
 
+    qint32                                  m_lastUsnOnStart;
     qint32                                  m_lastSyncChunksDownloadedUsn;
     bool                                    m_syncChunksDownloaded;
     bool                                    m_fullNoteContentsDownloaded;

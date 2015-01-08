@@ -21,6 +21,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_lastSyncMode(SyncMode::FullSync),
     m_lastSyncTime(0),
     m_lastUpdateCount(0),
+    m_lastUsnOnStart(-1),
     m_lastSyncChunksDownloadedUsn(-1),
     m_syncChunksDownloaded(false),
     m_fullNoteContentsDownloaded(false),
@@ -73,44 +74,15 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::start: afterUsn = " << afterUsn);
 
+    m_lastUsnOnStart = afterUsn;
+
     if (!m_connectedToLocalStorage) {
         createConnections();
     }
 
-    if (m_paused || m_requestedToStop)
-    {
-        if (m_paused) {
-            m_paused = false;
-        }
-
-        if (m_requestedToStop) {
-            m_requestedToStop = false;
-        }
-
-        if (m_syncChunksDownloaded && (m_lastSyncChunksDownloadedUsn >= afterUsn))
-        {
-            QNDEBUG("last usn for which sync chunks were downloaded is " << m_lastSyncChunksDownloadedUsn
-                    << ", there's no need to download the sync chunks again, launching the sync procedure");
-
-            if (m_fullNoteContentsDownloaded)
-            {
-                QNDEBUG("Full note's contents have already been downloaded meaning that the sync for "
-                        "tags, saved searches, notebooks and notes from user's account is over");
-
-                if (m_linkedNotebooksSyncChunksDownloaded) {
-                    QNDEBUG("sync chunks for linked notebooks were already downloaded, there's no need to "
-                            "do it again, will launch the sync for linked notebooks");
-                    launchLinkedNotebooksContentsSync();
-                }
-                else {
-                    downloadLinkedNotebooksSyncChunksAndLaunchSync();
-                }
-            }
-            else
-            {
-                launchSync();
-            }
-        }
+    if (m_paused || m_requestedToStop) {
+        resume();   // NOTE: resume can call this method so it's necessary to return
+        return;
     }
 
     clear();
@@ -134,6 +106,53 @@ void RemoteToLocalSynchronizationManager::pause()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::pause");
     m_paused = true;
+}
+
+void RemoteToLocalSynchronizationManager::resume()
+{
+    if (!m_connectedToLocalStorage) {
+        createConnections();
+    }
+
+    if (m_paused || m_requestedToStop)
+    {
+        if (m_paused) {
+            m_paused = false;
+        }
+
+        if (m_requestedToStop) {
+            m_requestedToStop = false;
+        }
+
+        if (m_syncChunksDownloaded && (m_lastSyncChunksDownloadedUsn >= m_lastUsnOnStart))
+        {
+            QNDEBUG("last usn for which sync chunks were downloaded is " << m_lastSyncChunksDownloadedUsn
+                    << ", there's no need to download the sync chunks again, launching the sync procedure");
+
+            if (m_fullNoteContentsDownloaded)
+            {
+                QNDEBUG("Full note's contents have already been downloaded meaning that the sync for "
+                        "tags, saved searches, notebooks and notes from user's account is over");
+
+                if (m_linkedNotebooksSyncChunksDownloaded) {
+                    QNDEBUG("sync chunks for linked notebooks were already downloaded, there's no need to "
+                            "do it again, will launch the sync for linked notebooks");
+                    launchLinkedNotebooksContentsSync();
+                }
+                else {
+                    downloadLinkedNotebooksSyncChunksAndLaunchSync();
+                }
+            }
+            else
+            {
+                launchSync();
+            }
+        }
+        else
+        {
+            start(m_lastUsnOnStart);
+        }
+    }
 }
 
 template <>
