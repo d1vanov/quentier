@@ -15,6 +15,9 @@ get_directory_property(QEVERCLOUD_LIB DIRECTORY QEverCloud DEFINITION PROJECT_NA
 add_subdirectory(qtkeychain)
 get_directory_property(QTKEYCHAIN_LIB DIRECTORY qtkeychain DEFINITION QTKEYCHAIN_TARGET_NAME)
 
+add_subdirectory(QsLog)
+get_directory_property(QSLOG_LIB DIRECTORY QsLog DEFINITION PROJECT_NAME)
+
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   add_subdirectory(stacktrace)
   get_directory_property(STACKTRACE_LIB DIRECTORY stacktrace DEFINITION PROJECT_NAME)
@@ -23,6 +26,7 @@ endif()
 set(THIRDPARTY_INCLUDE_DIRS
     simplecrypt/src
     QEverCloud/include
+    QsLog
     qtkeychain
     stacktrace)
    

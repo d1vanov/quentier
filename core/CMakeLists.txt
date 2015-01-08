@@ -171,7 +171,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB}
                       ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES}
-                      ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB} ${STACKTRACE_LIB})
+                      ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB} ${STACKTRACE_LIB} ${QSLOG_LIB})
 
 set(TEST_HEADERS
     src/tests/LocalStorageCacheAsyncTester.h
@@ -210,6 +210,8 @@ if(LIBCPP)
 else()
   target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
 endif()
+
+target_link_libraries(test_${PROJECT_NAME} ${QSLOG_LIB})
 
 if(USE_QT5)
   qt5_use_modules(test_${PROJECT_NAME} Core)
