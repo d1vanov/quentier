@@ -1584,7 +1584,8 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
             emit rateLimitExceeded(postponeAPICallSeconds);
         }
         else {
-            emitUpdateRequest(noteToUpdate);
+            // NOTE: workarounding the stupidity of MSVC 2013
+            emitUpdateRequest<Note>(noteToUpdate, static_cast<const Note*>(nullptr));
         }
 
         return;
@@ -2338,9 +2339,7 @@ void RemoteToLocalSynchronizationManager::checkUpdateSequenceNumbersAndProcessCo
             ElementType elementToUpdate(remoteElement);
             unsetLocalGuid(elementToUpdate);
 
-            // NOTE: the hack with static_cast to pointer type below is required to get the stupid MSVC compiler
-            // to instantiate the template method correctly. If Linus called gcc-4.9 pure and utter crap,
-            // I don't know what to say about MSVC 2013...
+            // NOTE: workarounding the stupidity of MSVC 2013
             emitUpdateRequest<ElementType>(elementToUpdate, static_cast<const ElementType*>(nullptr));
         }
         else
