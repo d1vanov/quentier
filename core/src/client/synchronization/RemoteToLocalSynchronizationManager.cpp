@@ -100,10 +100,10 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
                 if (m_linkedNotebooksSyncChunksDownloaded) {
                     QNDEBUG("sync chunks for linked notebooks were already downloaded, there's no need to "
                             "do it again, will launch the sync for linked notebooks");
-                    downloadLinkedNotebooksSyncChunksAndLaunchSync();
+                    launchLinkedNotebooksContentsSync();
                 }
                 else {
-                    launchLinkedNotebooksContentsSync();
+                    downloadLinkedNotebooksSyncChunksAndLaunchSync();
                 }
             }
             else
@@ -1175,10 +1175,20 @@ void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
 
 void RemoteToLocalSynchronizationManager::launchSync()
 {
-    launchTagsSync();
+    QNDEBUG("RemoteToLocalSynchronizationManager::launchSync");
+
     launchSavedSearchSync();
-    launchNotebookSync();
     launchLinkedNotebookSync();
+
+    if (m_tags.empty() && m_notebooks.empty()) {
+        QNDEBUG("The local lists of tags and notebooks waiting for processing are empty, "
+                "will launch the sync of notes right away");
+        launchNotesSync();
+        return;
+    }
+
+    launchTagsSync();
+    launchNotebookSync();
 }
 
 void RemoteToLocalSynchronizationManager::launchTagsSync()
