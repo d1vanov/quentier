@@ -38,6 +38,9 @@ if(USE_QT5)
   qt5_use_modules(${PROJECT_NAME} Core)
 endif()
 
+# install shared library
+install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
+
 # install headers
 file(GLOB_RECURSE DEPLOY_INCLUDE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 foreach(ITEM ${DEPLOY_FILES_AND_DIRS})
