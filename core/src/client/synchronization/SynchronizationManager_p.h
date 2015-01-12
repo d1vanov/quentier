@@ -40,7 +40,7 @@ private:
 
     void createConnections();
 
-    void authenticate();
+    bool authenticate();
 
     void launchOAuth();
 

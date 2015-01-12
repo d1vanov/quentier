@@ -39,7 +39,12 @@ SynchronizationManagerPrivate::~SynchronizationManagerPrivate()
 void SynchronizationManagerPrivate::synchronize()
 {
     clear();
-    authenticate();
+
+    if (!authenticate()) {
+        return;
+    }
+
+    launchSync();
 }
 
 void SynchronizationManagerPrivate::onOAuthSuccess()
@@ -107,6 +112,16 @@ void SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebo
         qint32 rateLimitSeconds = 0;
         qint32 errorCode = m_noteStore.authenticateToSharedNotebook(shareKey, authResult,
                                                                     errorDescription, rateLimitSeconds);
+        if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+        {
+            if (!authenticate()) {
+                return;
+            }
+
+            errorCode = m_noteStore.authenticateToSharedNotebook(shareKey, authResult,
+                                                                 errorDescription, rateLimitSeconds);
+        }
+
         if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
         {
             if (rateLimitSeconds < 0) {
@@ -118,10 +133,6 @@ void SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebo
 
             m_authenticateToLinkedNotebooksPostponeTimerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
             return;
-        }
-        else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
-        {
-            authenticate();
         }
         else if (errorCode != 0)
         {
@@ -135,7 +146,7 @@ void SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebo
         it = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.erase(it);
     }
 
-    // TODO: cache obtained auth tokens in ApplicationSettings
+    // TODO: cache obtained auth tokens
     emit sendAuthenticationTokensForLinkedNotebooks(m_cachedLinkedNotebookAuthTokensByGuid);
 }
 
@@ -158,7 +169,7 @@ void SynchronizationManagerPrivate::createConnections()
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(finished()), this, SLOT(onRemoteToLocalSyncFinished()));
 }
 
-void SynchronizationManagerPrivate::authenticate()
+bool SynchronizationManagerPrivate::authenticate()
 {
     QNDEBUG("Trying to restore persistent authentication settings...");
 
@@ -169,8 +180,9 @@ void SynchronizationManagerPrivate::authenticate()
     if (tokenExpirationValue.isNull()) {
         QNDEBUG("Failed to restore authentication token's expiration timestamp, "
                 "launching OAuth procedure");
+        // FIXME: replace this with QEventLoop approach to make the call fully synchronous
         launchOAuth();
-        return;
+        return true;
     }
 
     bool conversionResult = false;
@@ -180,14 +192,15 @@ void SynchronizationManagerPrivate::authenticate()
                                    "to actual timestamp");
         QNWARNING(error);
         emit notifyError(error);
-        return;
+        return false;
     }
 
     qevercloud::Timestamp currentTimestamp = QDateTime::currentMSecsSinceEpoch();
     if (currentTimestamp > tokenExpirationTimestamp) {
         QNDEBUG("Authentication token has already expired, launching OAuth procedure");
+        // FIXME: replace this with QEventLoop approach to make the call fully synchronous
         launchOAuth();
-        return;
+        return true;
     }
 
     QNDEBUG("Trying to restore the authentication token...");
@@ -204,14 +217,15 @@ void SynchronizationManagerPrivate::authenticate()
     QKeychain::Error error = readPasswordJob.error();
     if (error == QKeychain::EntryNotFound) {
         QNDEBUG("Failed to restore the authentication token, launching OAuth procedure");
+        // FIXME: replace this with QEventLoop approach to make the call fully synchronous
         launchOAuth();
-        return;
+        return true;
     }
     else if (error != QKeychain::NoError) {
         QNWARNING("Attempt to read authentication token returned with error: error code " << error
                   << ", " << readPasswordJob.errorString());
         emit notifyError(readPasswordJob.errorString());
-        return;
+        return false;
     }
 
     QNDEBUG("Successfully restored the autnehtication token");
@@ -230,7 +244,7 @@ void SynchronizationManagerPrivate::authenticate()
         QString error = QT_TR_NOOP("Persistent note store url is unexpectedly empty");
         QNWARNING(error);
         emit notifyError(error);
-        return;
+        return false;
     }
 
     QString noteStoreUrl = noteStoreUrlValue.toString();
@@ -238,7 +252,7 @@ void SynchronizationManagerPrivate::authenticate()
         QString error = QT_TR_NOOP("Can't convert note store url from QVariant to QString");
         QNWARNING(error);
         emit notifyError(error);
-        return;
+        return false;
     }
 
     m_pOAuthResult->noteStoreUrl = noteStoreUrl;
@@ -250,7 +264,7 @@ void SynchronizationManagerPrivate::authenticate()
         QString error = QT_TR_NOOP("Persistent user id is unexpectedly empty");
         QNWARNING(error);
         emit notifyError(error);
-        return;
+        return false;
     }
 
     conversionResult = false;
@@ -259,7 +273,7 @@ void SynchronizationManagerPrivate::authenticate()
         QString error = QT_TR_NOOP("Can't convert user id from QVariant to qint32");
         QNWARNING(error);
         emit notifyError(error);
-        return;
+        return false;
     }
 
     m_pOAuthResult->userId = userId;
@@ -271,7 +285,7 @@ void SynchronizationManagerPrivate::authenticate()
         QString error = QT_TR_NOOP("Persistent web api url prefix is unexpectedly empty");
         QNWARNING(error);
         emit notifyError(error);
-        return;
+        return false;
     }
 
     QString webApiUrlPrefix = webApiUrlPrefixValue.toString();
@@ -279,12 +293,12 @@ void SynchronizationManagerPrivate::authenticate()
         QString error = QT_TR_NOOP("Can't convert web api url prefix from QVariant to QString");
         QNWARNING(error);
         emit notifyError(error);
-        return;
+        return false;
     }
 
     m_pOAuthResult->webApiUrlPrefix = webApiUrlPrefix;
-
-    launchSync();
+    QNDEBUG("Finished authentication, result: " << *m_pOAuthResult);
+    return true;
 }
 
 void SynchronizationManagerPrivate::launchOAuth()
@@ -457,6 +471,16 @@ bool SynchronizationManagerPrivate::tryToGetSyncState(qevercloud::SyncState & sy
     QString error;
     qint32 rateLimitSeconds = 0;
     qint32 errorCode = m_noteStore.getSyncState(syncState, error, rateLimitSeconds);
+    if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+    {
+        QNDEBUG("caught AUTH_EXPIRED exception, will attempt to re-authorize");
+        if (!authenticate()) {
+            return false;
+        }
+
+        errorCode = m_noteStore.getSyncState(syncState, error, rateLimitSeconds);
+    }
+
     if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
     {
         if (rateLimitSeconds < 0) {
@@ -467,12 +491,6 @@ bool SynchronizationManagerPrivate::tryToGetSyncState(qevercloud::SyncState & sy
         }
 
         m_launchSyncPostponeTimerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
-        return false;
-    }
-    else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
-    {
-        QNDEBUG("caught AUTH_EXPIRED exception, will attempt to re-authorize");
-        authenticate();
         return false;
     }
     else

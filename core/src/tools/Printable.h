@@ -7,6 +7,7 @@
 #include <QTextStream>
 #include <QDebug>
 #include <QEverCloud.h>
+#include <oauth.h>
 
 namespace qute_note {
 
@@ -84,5 +85,6 @@ __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessUserRole::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SponsoredGroupRole::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Note)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::EDAMErrorCode::type)
+__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::EvernoteOAuthWebView::OAuthResult)
 
 #endif // __QUTE_NOTE__TOOLS_PRINTABLE_H

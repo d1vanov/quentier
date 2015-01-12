@@ -1599,3 +1599,18 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::EDAMErrorCode::ty
 
     return strm;
 }
+
+QTextStream & operator<<(QTextStream & strm, const qevercloud::EvernoteOAuthWebView::OAuthResult & result)
+{
+    strm << "qevercloud::EvernoteOAuthWebView::OAuthResult {\n";
+
+    strm << "noteStoreUrl = " << result.noteStoreUrl << "; \n";
+    strm << "expires = " << qute_note::PrintableDateTimeFromTimestamp(result.expires) << "; \n";
+    strm << "shardId = " << result.shardId << "; \n";
+    strm << "userId = " << QString::number(result.userId) << "; \n";
+    strm << "webApiUrlPrefix = " << result.webApiUrlPrefix << "; \n";
+    strm << "authenticationToken " << (result.authenticationToken.isEmpty() ? "is empty" : "is not empty") << "; \n";
+
+    strm << "}; ";
+    return strm;
+}
