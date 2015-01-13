@@ -6,6 +6,7 @@
 #include <QEverCloud.h>
 #include <oauth.h>
 #include <QObject>
+#include <QMutex>
 
 namespace qute_note {
 
@@ -70,8 +71,12 @@ private:
     QHash<QString,QString>                  m_cachedLinkedNotebookAuthTokensByGuid;
     QHash<QString,qevercloud::Timestamp>    m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid;
 
-    int         m_authenticateToLinkedNotebooksPostponeTimerId;
-    bool        m_receivedRequestToAuthenticateToLinkedNotebooks;
+    int             m_authenticateToLinkedNotebooksPostponeTimerId;
+    bool            m_receivedRequestToAuthenticateToLinkedNotebooks;
+
+    QMutex          m_readAuthTokenMutex;
+    QMutex          m_writeAuthTokenMutex;
+    QMutex          m_authenticationMutex;
 };
 
 } // namespace qute_note

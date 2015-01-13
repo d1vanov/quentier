@@ -29,13 +29,20 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_cachedLinkedNotebookAuthTokensByGuid(),
     m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid(),
     m_authenticateToLinkedNotebooksPostponeTimerId(-1),
-    m_receivedRequestToAuthenticateToLinkedNotebooks(false)
+    m_receivedRequestToAuthenticateToLinkedNotebooks(false),
+    m_readAuthTokenMutex(),
+    m_writeAuthTokenMutex(),
+    m_authenticationMutex()
 {
     createConnections();
 }
 
 SynchronizationManagerPrivate::~SynchronizationManagerPrivate()
-{}
+{
+    m_readAuthTokenMutex.unlock();
+    m_writeAuthTokenMutex.unlock();
+    m_authenticationMutex.unlock();
+}
 
 void SynchronizationManagerPrivate::synchronize()
 {
@@ -215,6 +222,8 @@ bool SynchronizationManagerPrivate::authenticate()
 
     int readPasswordJobReturnCode = -1;
     {
+        QMutexLocker locker(&m_readAuthTokenMutex);
+
         QTimer timer;
         timer.setInterval(SEC_TO_MSEC(10));
         timer.setSingleShot(true);
@@ -376,6 +385,8 @@ bool SynchronizationManagerPrivate::oauth()
 
     int authenticationEventLoopReturnCode = -1;
     {
+        QMutexLocker locker(&m_authenticationMutex);
+
         QTimer timer;
         timer.setInterval(SEC_TO_MSEC(10 * 60));    // 10 minutes should be enough
         timer.setSingleShot(true);
@@ -494,6 +505,8 @@ bool SynchronizationManagerPrivate::storeOAuthResult()
 
     int writePasswodJobReturnCode = -1;
     {
+        QMutexLocker locker(&m_writeAuthTokenMutex);
+
         QTimer timer;
         timer.setInterval(SEC_TO_MSEC(5));
         timer.setSingleShot(true);
