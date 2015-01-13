@@ -213,21 +213,46 @@ bool SynchronizationManagerPrivate::authenticate()
     readPasswordJob.setAutoDelete(false);
     readPasswordJob.setKey(QApplication::applicationName());
 
-    // FIXME: switch to using event loop with exit status + timer + invoke method after the loop exec is called
-    QEventLoop loop;
-    readPasswordJob.connect(&readPasswordJob, SIGNAL(finished(QKeychain::Job*)), &loop, SLOT(quit()));
-    readPasswordJob.start();
-    loop.exec();
-
-    QKeychain::Error error = readPasswordJob.error();
-    if (error == QKeychain::EntryNotFound)
+    int readPasswordJobReturnCode = -1;
     {
-        QString errorDescription = QT_TR_NOOP("Unexpectedly missing OAuth token in password storage: ");
-        emit notifyError(errorDescription + readPasswordJob.errorString());
+        QTimer timer;
+        timer.setInterval(SEC_TO_MSEC(10));
+        timer.setSingleShot(true);
+
+        EventLoopWithExitStatus loop;
+        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
+        loop.connect(&readPasswordJob, SIGNAL(finished(QKeychain::Job*)), SLOT(exitAsSuccess()));
+
+        QMetaObject::invokeMethod(&readPasswordJob, "start", Qt::QueuedConnection);
+        loop.exec();
+    }
+
+    QString error;
+    if (readPasswordJobReturnCode == -1) {
+        error = QT_TR_NOOP("Internal error: incorrect return code from reading password event loop");
+    }
+    else if (readPasswordJobReturnCode == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        error = QT_TR_NOOP("Timeout hit when waiting for reading password event loop to finish");
+    }
+    else if (readPasswordJobReturnCode == EventLoopWithExitStatus::ExitStatus::Failure) {
+        error = QT_TR_NOOP("Failure during reading password event loop");
+    }
+
+    if (readPasswordJobReturnCode != EventLoopWithExitStatus::ExitStatus::Success) {
+        QNWARNING(error);
+        emit notifyError(error);
         return false;
     }
-    else if (error != QKeychain::NoError) {
-        QNWARNING("Attempt to read authentication token returned with error: error code " << error
+
+    QKeychain::Error errorCode = readPasswordJob.error();
+    if (errorCode == QKeychain::EntryNotFound)
+    {
+        QString error = QT_TR_NOOP("Unexpectedly missing OAuth token in password storage: ");
+        emit notifyError(error + readPasswordJob.errorString());
+        return false;
+    }
+    else if (errorCode != QKeychain::NoError) {
+        QNWARNING("Attempt to read authentication token returned with error: error code " << errorCode
                   << ", " << readPasswordJob.errorString());
         emit notifyError(readPasswordJob.errorString());
         return false;
@@ -246,7 +271,7 @@ bool SynchronizationManagerPrivate::authenticate()
 
     QVariant noteStoreUrlValue = appSettings.value(NOTE_STORE_URL_KEY, keyGroup);
     if (noteStoreUrlValue.isNull()) {
-        QString error = QT_TR_NOOP("Persistent note store url is unexpectedly empty");
+        error = QT_TR_NOOP("Persistent note store url is unexpectedly empty");
         QNWARNING(error);
         emit notifyError(error);
         return false;
@@ -254,7 +279,7 @@ bool SynchronizationManagerPrivate::authenticate()
 
     QString noteStoreUrl = noteStoreUrlValue.toString();
     if (noteStoreUrl.isEmpty()) {
-        QString error = QT_TR_NOOP("Can't convert note store url from QVariant to QString");
+        error = QT_TR_NOOP("Can't convert note store url from QVariant to QString");
         QNWARNING(error);
         emit notifyError(error);
         return false;
@@ -266,7 +291,7 @@ bool SynchronizationManagerPrivate::authenticate()
 
     QVariant userIdValue = appSettings.value(USER_ID_KEY, keyGroup);
     if (userIdValue.isNull()) {
-        QString error = QT_TR_NOOP("Persistent user id is unexpectedly empty");
+        error = QT_TR_NOOP("Persistent user id is unexpectedly empty");
         QNWARNING(error);
         emit notifyError(error);
         return false;
@@ -275,7 +300,7 @@ bool SynchronizationManagerPrivate::authenticate()
     conversionResult = false;
     qevercloud::UserID userId = userIdValue.toInt(&conversionResult);
     if (!conversionResult) {
-        QString error = QT_TR_NOOP("Can't convert user id from QVariant to qint32");
+        error = QT_TR_NOOP("Can't convert user id from QVariant to qint32");
         QNWARNING(error);
         emit notifyError(error);
         return false;
@@ -287,7 +312,7 @@ bool SynchronizationManagerPrivate::authenticate()
 
     QVariant webApiUrlPrefixValue = appSettings.value(WEB_API_URL_PREFIX_KEY, keyGroup);
     if (webApiUrlPrefixValue.isNull()) {
-        QString error = QT_TR_NOOP("Persistent web api url prefix is unexpectedly empty");
+        error = QT_TR_NOOP("Persistent web api url prefix is unexpectedly empty");
         QNWARNING(error);
         emit notifyError(error);
         return false;
@@ -295,7 +320,7 @@ bool SynchronizationManagerPrivate::authenticate()
 
     QString webApiUrlPrefix = webApiUrlPrefixValue.toString();
     if (webApiUrlPrefix.isEmpty()) {
-        QString error = QT_TR_NOOP("Can't convert web api url prefix from QVariant to QString");
+        error = QT_TR_NOOP("Can't convert web api url prefix from QVariant to QString");
         QNWARNING(error);
         emit notifyError(error);
         return false;
@@ -373,6 +398,9 @@ bool SynchronizationManagerPrivate::oauth()
     QString error;
     if (authenticationEventLoopReturnCode == -1) {
         error = QT_TR_NOOP("Internal error: incorrect return status from OAuth event loop");
+    }
+    else if (authenticationEventLoopReturnCode == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        error = QT_TR_NOOP("Timeout hit while waiting for OAuth procedure to complete");
     }
     else if (authenticationEventLoopReturnCode == EventLoopWithExitStatus::ExitStatus::Failure) {
         error = QT_TR_NOOP("OAuth failed: ") + m_pOAuthWebView->oauthError();
