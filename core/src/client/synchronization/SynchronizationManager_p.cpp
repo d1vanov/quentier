@@ -492,15 +492,40 @@ bool SynchronizationManagerPrivate::storeOAuthResult()
     writePasswordJob.setKey(QApplication::applicationName());
     writePasswordJob.setTextData(m_pOAuthResult->authenticationToken);
 
-    // FIXME: switch to using event loop with exit status + timer + invoke method after the loop exec is called
-    QEventLoop loop;
-    writePasswordJob.connect(&writePasswordJob, SIGNAL(finished(QKeychain::Job*)), &loop, SLOT(quit()));
-    writePasswordJob.start();
-    loop.exec();
+    int writePasswodJobReturnCode = -1;
+    {
+        QTimer timer;
+        timer.setInterval(SEC_TO_MSEC(5));
+        timer.setSingleShot(true);
 
-    QKeychain::Error error = writePasswordJob.error();
-    if (error != QKeychain::NoError) {
-        QNWARNING("Attempt to write autnehtication token failed with error: error code = " << error
+        EventLoopWithExitStatus loop;
+        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
+        loop.connect(&writePasswordJob, SIGNAL(finished(QKeychain::Job*)), SLOT(exitAsSuccess()));
+
+        QMetaObject::invokeMethod(&writePasswordJob, "start", Qt::QueuedConnection);
+        loop.exec();
+    }
+
+    QString error;
+    if (writePasswodJobReturnCode == -1) {
+        error = QT_TR_NOOP("Internal error: incorrect return code from writinig password event loop");
+    }
+    else if (writePasswodJobReturnCode == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        error = QT_TR_NOOP("Timeout hit when waiting for writing password event loop to finish");
+    }
+    else if (writePasswodJobReturnCode == EventLoopWithExitStatus::ExitStatus::Failure) {
+        error = QT_TR_NOOP("Failure during writing password event loop");
+    }
+
+    if (writePasswodJobReturnCode != EventLoopWithExitStatus::ExitStatus::Success) {
+        QNWARNING(error);
+        emit notifyError(error);
+        return false;
+    }
+
+    QKeychain::Error errorCode = writePasswordJob.error();
+    if (errorCode != QKeychain::NoError) {
+        QNWARNING("Attempt to write autnehtication token failed with error: error code = " << errorCode
                   << ", " << writePasswordJob.errorString());
         emit notifyError(writePasswordJob.errorString());
         return false;
