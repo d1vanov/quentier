@@ -4,6 +4,7 @@
 #include <logging/QuteNoteLogger.h>
 #include <tools/ApplicationSettings.h>
 #include <tools/QuteNoteCheckPtr.h>
+#include <tools/EventLoopWithExitStatus.h>
 #include <Simplecrypt.h>
 #include <QApplication>
 
@@ -47,42 +48,10 @@ void SynchronizationManagerPrivate::synchronize()
     launchSync();
 }
 
-void SynchronizationManagerPrivate::onOAuthSuccess()
+void SynchronizationManagerPrivate::onOAuthRequest(QString host, QString consumerKey,
+                                                   QString consumerSecret)
 {
-    // Store OAuth result for future usage within the session
-    if (m_pOAuthResult.isNull()) {
-        m_pOAuthResult = QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>(new qevercloud::EvernoteOAuthWebView::OAuthResult(m_pOAuthWebView->oauthResult()));
-    }
-    else {
-        *m_pOAuthResult = m_pOAuthWebView->oauthResult();
-    }
-
-    bool res = storeOAuthResult();
-    if (!res) {
-        return;
-    }
-
-    if (m_receivedRequestToAuthenticateToLinkedNotebooks) {
-        onRequestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndShareKeysWaitingForAuth);
-    }
-    else {
-        launchSync();
-    }
-}
-
-void SynchronizationManagerPrivate::onOAuthFailure()
-{
-    emit notifyError(QT_TR_NOOP("OAuth failed: ") + m_pOAuthWebView->oauthError());
-}
-
-void SynchronizationManagerPrivate::onOAuthResult(bool result)
-{
-    if (result) {
-        onOAuthSuccess();
-    }
-    else {
-        onOAuthFailure();
-    }
+    m_pOAuthWebView->authenticate(host, consumerKey, consumerSecret);
 }
 
 void SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndShareKeys)
@@ -177,12 +146,21 @@ bool SynchronizationManagerPrivate::authenticate()
     QString keyGroup = "Authentication";
 
     QVariant tokenExpirationValue = appSettings.value(EXPIRATION_TIMESTAMP_KEY, keyGroup);
-    if (tokenExpirationValue.isNull()) {
+    if (tokenExpirationValue.isNull())
+    {
         QNDEBUG("Failed to restore authentication token's expiration timestamp, "
                 "launching OAuth procedure");
-        // FIXME: replace this with QEventLoop approach to make the call fully synchronous
-        launchOAuth();
-        return true;
+        bool res = oauth();
+        if (!res) {
+            return false;
+        }
+
+        tokenExpirationValue = appSettings.value(EXPIRATION_TIMESTAMP_KEY, keyGroup);
+        if (tokenExpirationValue.isNull()) {
+            QString error = QT_TR_NOOP("Can't restore OAuth expiration timestamp right after OAuth");
+            emit notifyError(error);
+            return false;
+        }
     }
 
     bool conversionResult = false;
@@ -196,11 +174,37 @@ bool SynchronizationManagerPrivate::authenticate()
     }
 
     qevercloud::Timestamp currentTimestamp = QDateTime::currentMSecsSinceEpoch();
-    if (currentTimestamp > tokenExpirationTimestamp) {
+    if (currentTimestamp > tokenExpirationTimestamp)
+    {
         QNDEBUG("Authentication token has already expired, launching OAuth procedure");
-        // FIXME: replace this with QEventLoop approach to make the call fully synchronous
-        launchOAuth();
-        return true;
+        bool res = oauth();
+        if (!res) {
+            return false;
+        }
+
+        tokenExpirationValue = appSettings.value(EXPIRATION_TIMESTAMP_KEY, keyGroup);
+        if (tokenExpirationValue.isNull()) {
+            QString error = QT_TR_NOOP("Can't restore OAuth expiration timestamp right after OAuth");
+            emit notifyError(error);
+            return false;
+        }
+
+        conversionResult = false;
+        tokenExpirationTimestamp = tokenExpirationValue.toLongLong(&conversionResult);
+        if (!conversionResult) {
+            QString error = QT_TR_NOOP("Failed to convert QVariant with authentication token "
+                                       "expiration timestamp to actual timestamp");
+            QNWARNING(error);
+            emit notifyError(error);
+            return false;
+        }
+
+        if (currentTimestamp > tokenExpirationTimestamp) {
+            QString error = QT_TR_NOOP("Internal error: OAuth token expiration timestamp "
+                                       "is less than current timestamp right after OAuth");
+            emit notifyError(error);
+            return false;
+        }
     }
 
     QNDEBUG("Trying to restore the authentication token...");
@@ -209,17 +213,18 @@ bool SynchronizationManagerPrivate::authenticate()
     readPasswordJob.setAutoDelete(false);
     readPasswordJob.setKey(QApplication::applicationName());
 
+    // FIXME: switch to using event loop with exit status + timer + invoke method after the loop exec is called
     QEventLoop loop;
     readPasswordJob.connect(&readPasswordJob, SIGNAL(finished(QKeychain::Job*)), &loop, SLOT(quit()));
     readPasswordJob.start();
     loop.exec();
 
     QKeychain::Error error = readPasswordJob.error();
-    if (error == QKeychain::EntryNotFound) {
-        QNDEBUG("Failed to restore the authentication token, launching OAuth procedure");
-        // FIXME: replace this with QEventLoop approach to make the call fully synchronous
-        launchOAuth();
-        return true;
+    if (error == QKeychain::EntryNotFound)
+    {
+        QString errorDescription = QT_TR_NOOP("Unexpectedly missing OAuth token in password storage: ");
+        emit notifyError(errorDescription + readPasswordJob.errorString());
+        return false;
     }
     else if (error != QKeychain::NoError) {
         QNWARNING("Attempt to read authentication token returned with error: error code " << error
@@ -297,11 +302,12 @@ bool SynchronizationManagerPrivate::authenticate()
     }
 
     m_pOAuthResult->webApiUrlPrefix = webApiUrlPrefix;
+
     QNDEBUG("Finished authentication, result: " << *m_pOAuthResult);
     return true;
 }
 
-void SynchronizationManagerPrivate::launchOAuth()
+bool SynchronizationManagerPrivate::oauth()
 {
     SimpleCrypt crypto(0xB87F6B9);
 
@@ -319,7 +325,7 @@ void SynchronizationManagerPrivate::launchOAuth()
                                                             "zm9BFP7JADvc2QTku"));
     if (consumerKey.isEmpty()) {
         emit notifyError(QT_TR_NOOP("Can't decrypt the consumer key"));
-        return;
+        return false;
     }
 
     QString consumerSecret = crypto.decryptToString(QByteArray("AwNqc1pRUVDQqMs4frw+fU1N9NJay4hlBoiEXZ"
@@ -336,10 +342,61 @@ void SynchronizationManagerPrivate::launchOAuth()
                                                                "09ONDC0KA=="));
     if (consumerSecret.isEmpty()) {
         emit notifyError(QT_TR_NOOP("Can't decrypt the consumer secret"));
-        return;
+        return false;
     }
 
-    m_pOAuthWebView->authenticate("sandox.evernote.com", consumerKey, consumerSecret);
+    // Synchronous waiting for OAuth procedure to get done, with all the necessary precautions;
+    // Such waits are not recommended in general but it's just too much trouble to keep things asynchronous,
+    // the chain of calls necessary to implement goes crazy really fast
+
+    int authenticationEventLoopReturnCode = -1;
+    {
+        QTimer timer;
+        timer.setInterval(SEC_TO_MSEC(10 * 60));    // 10 minutes should be enough
+        timer.setSingleShot(true);
+
+        EventLoopWithExitStatus loop;
+        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
+        loop.connect(m_pOAuthWebView.data(), SIGNAL(authenticationSuceeded()), SLOT(exitAsSuccess()));
+        loop.connect(m_pOAuthWebView.data(), SIGNAL(authenticationFailed()), SLOT(exitAsFailure()));
+
+        timer.start();
+        QMetaObject::invokeMethod(m_pOAuthWebView.data(),
+                                  "authenticate", Qt::QueuedConnection,
+                                  Q_ARG(QString, "sandbox.evernote.com"),
+                                  Q_ARG(QString, consumerKey),
+                                  Q_ARG(QString, consumerSecret));
+
+        authenticationEventLoopReturnCode = loop.exec();
+    }
+
+    QString error;
+    if (authenticationEventLoopReturnCode == -1) {
+        error = QT_TR_NOOP("Internal error: incorrect return status from OAuth event loop");
+    }
+    else if (authenticationEventLoopReturnCode == EventLoopWithExitStatus::ExitStatus::Failure) {
+        error = QT_TR_NOOP("OAuth failed: ") + m_pOAuthWebView->oauthError();
+    }
+
+    if (authenticationEventLoopReturnCode != EventLoopWithExitStatus::ExitStatus::Success) {
+        emit notifyError(error);
+        return false;
+    }
+
+    // Storing the OAuth result now
+    if (m_pOAuthResult.isNull()) {
+        m_pOAuthResult = QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>(new qevercloud::EvernoteOAuthWebView::OAuthResult(m_pOAuthWebView->oauthResult()));
+    }
+    else {
+        *m_pOAuthResult = m_pOAuthWebView->oauthResult();
+    }
+
+    bool res = storeOAuthResult();
+    if (!res) {
+        return false;
+    }
+
+    return true;
 }
 
 void SynchronizationManagerPrivate::launchSync()
@@ -407,6 +464,7 @@ bool SynchronizationManagerPrivate::storeOAuthResult()
     writePasswordJob.setKey(QApplication::applicationName());
     writePasswordJob.setTextData(m_pOAuthResult->authenticationToken);
 
+    // FIXME: switch to using event loop with exit status + timer + invoke method after the loop exec is called
     QEventLoop loop;
     writePasswordJob.connect(&writePasswordJob, SIGNAL(finished(QKeychain::Job*)), &loop, SLOT(quit()));
     writePasswordJob.start();

@@ -25,9 +25,7 @@ Q_SIGNALS:
     void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString> authenticationTokensByLinkedNotebookGuids);
 
 private Q_SLOTS:
-    void onOAuthSuccess();
-    void onOAuthFailure();
-    void onOAuthResult(bool result);
+    void onOAuthRequest(QString host, QString consumerKey, QString consumerSecret);
 
     void onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys);
 
@@ -41,19 +39,17 @@ private:
     void createConnections();
 
     bool authenticate();
+    bool oauth();
+    bool storeOAuthResult();
 
-    void launchOAuth();
+    bool tryToGetSyncState(qevercloud::SyncState & syncState);
 
     void launchSync();
     void launchFullSync();
     void launchIncrementalSync();
     void sendChanges();
 
-    bool storeOAuthResult();
-
     virtual void timerEvent(QTimerEvent * pTimerEvent);
-
-    bool tryToGetSyncState(qevercloud::SyncState & syncState);
 
     void clear();
 
