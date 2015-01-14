@@ -74,7 +74,6 @@ private:
 
     NoteStore               m_noteStore;
     AuthContext::type       m_authContext;
-    qevercloud::Optional<qevercloud::Timestamp> m_authTokenExpirationTimestamp;
 
     int         m_launchSyncPostponeTimerId;
 

@@ -23,7 +23,6 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_lastSyncTime(-1),
     m_noteStore(QSharedPointer<qevercloud::NoteStore>(new qevercloud::NoteStore)),
     m_authContext(AuthContext::Blank),
-    m_authTokenExpirationTimestamp(),
     m_launchSyncPostponeTimerId(-1),
     m_pOAuthWebView(new qevercloud::EvernoteOAuthWebView),
     m_pOAuthResult(),
@@ -70,7 +69,6 @@ void SynchronizationManagerPrivate::onOAuthResult(bool result)
 void SynchronizationManagerPrivate::onOAuthSuccess()
 {
     *m_pOAuthResult = m_pOAuthWebView->oauthResult();
-    m_authTokenExpirationTimestamp = m_pOAuthResult->expires;
 
     bool res = storeOAuthResult();
     if (!res) {
@@ -545,13 +543,14 @@ void SynchronizationManagerPrivate::clear()
 
 bool SynchronizationManagerPrivate::validAuthentication() const
 {
-    if (!m_authTokenExpirationTimestamp.isSet()) {
+    if (m_pOAuthResult->expires == static_cast<qint64>(0)) {
+        // The value is not set
         return false;
     }
 
     qevercloud::Timestamp currentTimestamp = QDateTime::currentMSecsSinceEpoch();
 
-    if (currentTimestamp - m_authTokenExpirationTimestamp.ref() < SIX_HOURS_IN_MSEC) {
+    if (currentTimestamp - m_pOAuthResult->expires < SIX_HOURS_IN_MSEC) {
         return false;
     }
 
