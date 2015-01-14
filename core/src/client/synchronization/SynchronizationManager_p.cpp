@@ -32,15 +32,20 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid(),
     m_authenticateToLinkedNotebooksPostponeTimerId(-1),
     m_receivedRequestToAuthenticateToLinkedNotebooks(false),
-    m_readAuthTokenMutex(),
-    m_writeAuthTokenMutex()
+    m_writeAuthTokenMutex(),
+    m_readPasswordJob(QApplication::applicationName() + "_read_auth_token"),
+    m_writePasswordJob(QApplication::applicationName() + "_write_auth_token")
 {
+    m_readPasswordJob.setAutoDelete(false);
+    m_readPasswordJob.setKey(QApplication::applicationName() + "_auth_token");
+
+    m_writePasswordJob.setAutoDelete(false);
+
     createConnections();
 }
 
 SynchronizationManagerPrivate::~SynchronizationManagerPrivate()
 {
-    m_readAuthTokenMutex.unlock();
     m_writeAuthTokenMutex.unlock();
 }
 
@@ -75,28 +80,7 @@ void SynchronizationManagerPrivate::onOAuthSuccess()
         return;
     }
 
-    switch(m_authContext)
-    {
-    case AuthContext::Blank:
-    {
-        QString error = QT_TR_NOOP("Internal error: incorrect authentication context: blank");
-        emit notifyError(error);
-        break;
-    }
-    case AuthContext::SyncLaunch:
-        launchSync();
-        break;
-    case AuthContext::AuthToLinkedNotebooks:
-        authenticateToLinkedNotebooks();
-        break;
-    default:
-    {
-        QString error = QT_TR_NOOP("Internal error: unknown authentication context: ");
-        error += ToQString(m_authContext);
-        emit notifyError(error);
-        break;
-    }
-    }
+    finalizeAuthentication();
 }
 
 void SynchronizationManagerPrivate::onOAuthFailure()
@@ -109,6 +93,27 @@ void SynchronizationManagerPrivate::onOAuthFailure()
     }
 
     emit notifyError(error);
+}
+
+void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
+{
+    if (!job) {
+        QString error = QT_TR_NOOP("QKeychain error: null pointer on keychain job finish");
+        emit notifyError(error);
+        return;
+    }
+
+    if (job == &m_readPasswordJob) {
+        onReadPasswordFinished();
+    }
+    else if (job == &m_writePasswordJob) {
+        onWritePasswordFinished();
+    }
+    else {
+        QString error = QT_TR_NOOP("Unknown keychain job finished event");
+        emit notifyError(error);
+        return;
+    }
 }
 
 void SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndShareKeys)
@@ -138,6 +143,10 @@ void SynchronizationManagerPrivate::createConnections()
     // Connections with remote to local synchronization manager
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(error(QString)), this, SIGNAL(notifyError(QString)));
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(finished()), this, SLOT(onRemoteToLocalSyncFinished()));
+
+    // Connections with read/write password jobs
+    QObject::connect(&m_readPasswordJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
+    QObject::connect(&m_writePasswordJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
 }
 
 void SynchronizationManagerPrivate::authenticate(const AuthContext::type authContext)
@@ -174,69 +183,13 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
         return;
     }
 
-    QNDEBUG("Trying to restore the authentication token...");
-
-    QKeychain::ReadPasswordJob readPasswordJob(QApplication::applicationName() + "_authenticationToken");
-    readPasswordJob.setAutoDelete(false);
-    readPasswordJob.setKey(QApplication::applicationName());
-
-    int readPasswordJobReturnCode = -1;
-    {
-        QMutexLocker locker(&m_readAuthTokenMutex);
-
-        QTimer timer;
-        timer.setInterval(SEC_TO_MSEC(10));
-        timer.setSingleShot(true);
-
-        EventLoopWithExitStatus loop;
-        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
-        loop.connect(&readPasswordJob, SIGNAL(finished(QKeychain::Job*)), SLOT(exitAsSuccess()));
-
-        QMetaObject::invokeMethod(&readPasswordJob, "start", Qt::QueuedConnection);
-        loop.exec();
-    }
-
-    QString error;
-    if (readPasswordJobReturnCode == -1) {
-        error = QT_TR_NOOP("Internal error: incorrect return code from reading password event loop");
-    }
-    else if (readPasswordJobReturnCode == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        error = QT_TR_NOOP("Timeout hit when waiting for reading password event loop to finish");
-    }
-    else if (readPasswordJobReturnCode == EventLoopWithExitStatus::ExitStatus::Failure) {
-        error = QT_TR_NOOP("Failure during reading password event loop");
-    }
-
-    if (readPasswordJobReturnCode != EventLoopWithExitStatus::ExitStatus::Success) {
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
-
-    QKeychain::Error errorCode = readPasswordJob.error();
-    if (errorCode == QKeychain::EntryNotFound)
-    {
-        QString error = QT_TR_NOOP("Unexpectedly missing OAuth token in password storage: ");
-        emit notifyError(error + readPasswordJob.errorString());
-        return;
-    }
-    else if (errorCode != QKeychain::NoError) {
-        QNWARNING("Attempt to read authentication token returned with error: error code " << errorCode
-                  << ", " << readPasswordJob.errorString());
-        emit notifyError(readPasswordJob.errorString());
-        return;
-    }
-
-    QNDEBUG("Successfully restored the authentication token");
-
-    m_pOAuthResult->authenticationToken = readPasswordJob.textData();
     m_pOAuthResult->expires = tokenExpirationTimestamp;
 
     QNDEBUG("Restoring persistent note store url");
 
     QVariant noteStoreUrlValue = appSettings.value(NOTE_STORE_URL_KEY, keyGroup);
     if (noteStoreUrlValue.isNull()) {
-        error = QT_TR_NOOP("Persistent note store url is unexpectedly empty");
+        QString error = QT_TR_NOOP("Persistent note store url is unexpectedly empty");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -244,7 +197,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     QString noteStoreUrl = noteStoreUrlValue.toString();
     if (noteStoreUrl.isEmpty()) {
-        error = QT_TR_NOOP("Can't convert note store url from QVariant to QString");
+        QString error = QT_TR_NOOP("Can't convert note store url from QVariant to QString");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -256,7 +209,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     QVariant userIdValue = appSettings.value(USER_ID_KEY, keyGroup);
     if (userIdValue.isNull()) {
-        error = QT_TR_NOOP("Persistent user id is unexpectedly empty");
+        QString error = QT_TR_NOOP("Persistent user id is unexpectedly empty");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -265,7 +218,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
     conversionResult = false;
     qevercloud::UserID userId = userIdValue.toInt(&conversionResult);
     if (!conversionResult) {
-        error = QT_TR_NOOP("Can't convert user id from QVariant to qint32");
+        QString error = QT_TR_NOOP("Can't convert user id from QVariant to qint32");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -277,7 +230,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     QVariant webApiUrlPrefixValue = appSettings.value(WEB_API_URL_PREFIX_KEY, keyGroup);
     if (webApiUrlPrefixValue.isNull()) {
-        error = QT_TR_NOOP("Persistent web api url prefix is unexpectedly empty");
+        QString error = QT_TR_NOOP("Persistent web api url prefix is unexpectedly empty");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -285,7 +238,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     QString webApiUrlPrefix = webApiUrlPrefixValue.toString();
     if (webApiUrlPrefix.isEmpty()) {
-        error = QT_TR_NOOP("Can't convert web api url prefix from QVariant to QString");
+        QString error = QT_TR_NOOP("Can't convert web api url prefix from QVariant to QString");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -293,7 +246,8 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     m_pOAuthResult->webApiUrlPrefix = webApiUrlPrefix;
 
-    QNDEBUG("Finished authentication, result: " << *m_pOAuthResult);
+    QNDEBUG("Trying to restore the authentication token from the keychain");
+    m_readPasswordJob.start();
 }
 
 void SynchronizationManagerPrivate::launchOAuth()
@@ -458,6 +412,34 @@ bool SynchronizationManagerPrivate::storeOAuthResult()
     return true;
 }
 
+void SynchronizationManagerPrivate::finalizeAuthentication()
+{
+    QNDEBUG("SynchronizationManagerPrivate::finalizeAuthentication: result = " << *m_pOAuthResult);
+
+    switch(m_authContext)
+    {
+    case AuthContext::Blank:
+    {
+        QString error = QT_TR_NOOP("Internal error: incorrect authentication context: blank");
+        emit notifyError(error);
+        break;
+    }
+    case AuthContext::SyncLaunch:
+        launchSync();
+        break;
+    case AuthContext::AuthToLinkedNotebooks:
+        authenticateToLinkedNotebooks();
+        break;
+    default:
+    {
+        QString error = QT_TR_NOOP("Internal error: unknown authentication context: ");
+        error += ToQString(m_authContext);
+        emit notifyError(error);
+        break;
+    }
+    }
+}
+
 void SynchronizationManagerPrivate::timerEvent(QTimerEvent * pTimerEvent)
 {
     if (!pTimerEvent) {
@@ -617,6 +599,33 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
 
     // TODO: cache obtained auth tokens
     emit sendAuthenticationTokensForLinkedNotebooks(m_cachedLinkedNotebookAuthTokensByGuid);
+}
+
+void SynchronizationManagerPrivate::onReadPasswordFinished()
+{
+    QKeychain::Error errorCode = m_readPasswordJob.error();
+    if (errorCode == QKeychain::EntryNotFound)
+    {
+        QString error = QT_TR_NOOP("Unexpectedly missing OAuth token in password storage: ");
+        emit notifyError(error + m_readPasswordJob.errorString());
+        return;
+    }
+    else if (errorCode != QKeychain::NoError) {
+        QNWARNING("Attempt to read authentication token returned with error: error code " << errorCode
+                  << ", " << m_readPasswordJob.errorString());
+        emit notifyError(m_readPasswordJob.errorString());
+        return;
+    }
+
+    QNDEBUG("Successfully restored the authentication token");
+    m_pOAuthResult->authenticationToken = m_readPasswordJob.textData();
+
+    finalizeAuthentication();
+}
+
+void SynchronizationManagerPrivate::onWritePasswordFinished()
+{
+    // TODO: implement
 }
 
 } // namespace qute_note

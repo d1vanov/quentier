@@ -5,6 +5,7 @@
 #include <tools/qt4helper.h>
 #include <QEverCloud.h>
 #include <oauth.h>
+#include <keychain.h>
 #include <QObject>
 #include <QMutex>
 
@@ -30,6 +31,8 @@ private Q_SLOTS:
     void onOAuthSuccess();
     void onOAuthFailure();
 
+    void onKeychainJobFinished(QKeychain::Job * job);
+
     void onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys);
     void onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qint32 lastSyncTime);
 
@@ -52,6 +55,7 @@ private:
     void authenticate(const AuthContext::type authContext);
     void launchOAuth();
     bool storeOAuthResult();
+    void finalizeAuthentication();
 
     bool tryToGetSyncState(qevercloud::SyncState & syncState);
 
@@ -66,6 +70,9 @@ private:
 
     bool validAuthentication() const;
     void authenticateToLinkedNotebooks();
+
+    void onReadPasswordFinished();
+    void onWritePasswordFinished();
 
 private:
     qint32      m_maxSyncChunkEntries;
@@ -88,8 +95,10 @@ private:
     int             m_authenticateToLinkedNotebooksPostponeTimerId;
     bool            m_receivedRequestToAuthenticateToLinkedNotebooks;
 
-    QMutex          m_readAuthTokenMutex;
     QMutex          m_writeAuthTokenMutex;
+
+    QKeychain::ReadPasswordJob  m_readPasswordJob;
+    QKeychain::WritePasswordJob m_writePasswordJob;
 };
 
 } // namespace qute_note
