@@ -26,10 +26,11 @@ Q_SIGNALS:
     void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString> authenticationTokensByLinkedNotebookGuids);
 
 private Q_SLOTS:
-    void onOAuthRequest(QString host, QString consumerKey, QString consumerSecret);
+    void onOAuthResult(bool result);
+    void onOAuthSuccess();
+    void onOAuthFailure();
 
     void onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys);
-
     void onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qint32 lastSyncTime);
 
 private:
@@ -39,8 +40,17 @@ private:
 
     void createConnections();
 
-    bool authenticate();
-    bool oauth();
+    struct AuthContext
+    {
+        enum type {
+            Blank = 0,
+            SyncLaunch,
+            AuthToLinkedNotebooks
+        };
+    };
+
+    void authenticate(const AuthContext::type authContext);
+    void launchOAuth();
     bool storeOAuthResult();
 
     bool tryToGetSyncState(qevercloud::SyncState & syncState);
@@ -54,12 +64,17 @@ private:
 
     void clear();
 
+    bool validAuthentication() const;
+    void authenticateToLinkedNotebooks();
+
 private:
     qint32      m_maxSyncChunkEntries;
     qint32      m_lastUpdateCount;
     qint32      m_lastSyncTime;
 
-    NoteStore   m_noteStore;
+    NoteStore               m_noteStore;
+    AuthContext::type       m_authContext;
+    qevercloud::Optional<qevercloud::Timestamp> m_authTokenExpirationTimestamp;
 
     int         m_launchSyncPostponeTimerId;
 
@@ -76,7 +91,6 @@ private:
 
     QMutex          m_readAuthTokenMutex;
     QMutex          m_writeAuthTokenMutex;
-    QMutex          m_authenticationMutex;
 };
 
 } // namespace qute_note
