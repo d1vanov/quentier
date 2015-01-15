@@ -54,8 +54,10 @@ private:
 
     void authenticate(const AuthContext::type authContext);
     void launchOAuth();
-    bool storeOAuthResult();
     void finalizeAuthentication();
+
+    void launchStoreOAuthResult();
+    void finalizeStoreOAuthResult();
 
     bool tryToGetSyncState(qevercloud::SyncState & syncState);
 

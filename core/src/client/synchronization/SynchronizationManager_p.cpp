@@ -1,10 +1,10 @@
 #include "SynchronizationManager_p.h"
+#include "../Utility.h"
 #include <keychain.h>
 #include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <logging/QuteNoteLogger.h>
 #include <tools/ApplicationSettings.h>
 #include <tools/QuteNoteCheckPtr.h>
-#include <tools/EventLoopWithExitStatus.h>
 #include <Simplecrypt.h>
 #include <QApplication>
 
@@ -75,12 +75,10 @@ void SynchronizationManagerPrivate::onOAuthSuccess()
 {
     *m_pOAuthResult = m_pOAuthWebView->oauthResult();
 
-    bool res = storeOAuthResult();
-    if (!res) {
-        return;
-    }
+    m_noteStore.setNoteStoreUrl(m_pOAuthResult->noteStoreUrl);
+    m_noteStore.setAuthenticationToken(m_pOAuthResult->authenticationToken);
 
-    finalizeAuthentication();
+    launchStoreOAuthResult();
 }
 
 void SynchronizationManagerPrivate::onOAuthFailure()
@@ -111,6 +109,7 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
     }
     else {
         QString error = QT_TR_NOOP("Unknown keychain job finished event");
+        QNWARNING(error);
         emit notifyError(error);
         return;
     }
@@ -252,6 +251,9 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
 void SynchronizationManagerPrivate::launchOAuth()
 {
+    // TODO: move consumer key and consumer secret out of core library; they should be set by the application
+    // (client of the library) but now hardcoded in the library itself
+
     SimpleCrypt crypto(0xB87F6B9);
 
     QString consumerKey = crypto.decryptToString(QByteArray("AwP9s05FRUQgWDvIjk7sru7uV3H5QCBk1W1"
@@ -341,60 +343,14 @@ void SynchronizationManagerPrivate::sendChanges()
     // TODO: implement
 }
 
-bool SynchronizationManagerPrivate::storeOAuthResult()
+void SynchronizationManagerPrivate::launchStoreOAuthResult()
 {
-    m_noteStore.setNoteStoreUrl(m_pOAuthResult->noteStoreUrl);
-    m_noteStore.setAuthenticationToken(m_pOAuthResult->authenticationToken);
+    m_writePasswordJob.setTextData(m_pOAuthResult->authenticationToken);
+    m_writePasswordJob.start();
+}
 
-    // Store authentication token in the keychain
-    QKeychain::WritePasswordJob writePasswordJob(QApplication::applicationName() + "_authenticationToken");
-    writePasswordJob.setAutoDelete(false);
-    writePasswordJob.setKey(QApplication::applicationName());
-    writePasswordJob.setTextData(m_pOAuthResult->authenticationToken);
-
-    int writePasswodJobReturnCode = -1;
-    {
-        QMutexLocker locker(&m_writeAuthTokenMutex);
-
-        QTimer timer;
-        timer.setInterval(SEC_TO_MSEC(5));
-        timer.setSingleShot(true);
-
-        EventLoopWithExitStatus loop;
-        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
-        loop.connect(&writePasswordJob, SIGNAL(finished(QKeychain::Job*)), SLOT(exitAsSuccess()));
-
-        QMetaObject::invokeMethod(&writePasswordJob, "start", Qt::QueuedConnection);
-        loop.exec();
-    }
-
-    QString error;
-    if (writePasswodJobReturnCode == -1) {
-        error = QT_TR_NOOP("Internal error: incorrect return code from writinig password event loop");
-    }
-    else if (writePasswodJobReturnCode == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        error = QT_TR_NOOP("Timeout hit when waiting for writing password event loop to finish");
-    }
-    else if (writePasswodJobReturnCode == EventLoopWithExitStatus::ExitStatus::Failure) {
-        error = QT_TR_NOOP("Failure during writing password event loop");
-    }
-
-    if (writePasswodJobReturnCode != EventLoopWithExitStatus::ExitStatus::Success) {
-        QNWARNING(error);
-        emit notifyError(error);
-        return false;
-    }
-
-    QKeychain::Error errorCode = writePasswordJob.error();
-    if (errorCode != QKeychain::NoError) {
-        QNWARNING("Attempt to write autnehtication token failed with error: error code = " << errorCode
-                  << ", " << writePasswordJob.errorString());
-        emit notifyError(writePasswordJob.errorString());
-        return false;
-    }
-
-    QNDEBUG("Successfully wrote the authentication token to the system keychain");
-
+void SynchronizationManagerPrivate::finalizeStoreOAuthResult()
+{
     ApplicationSettings & appSettings = ApplicationSettings::instance();
     QString keyGroup = "Authentication";
 
@@ -403,13 +359,12 @@ bool SynchronizationManagerPrivate::storeOAuthResult()
     appSettings.setValue(USER_ID_KEY, m_pOAuthResult->userId, keyGroup);
     appSettings.setValue(WEB_API_URL_PREFIX_KEY, m_pOAuthResult->webApiUrlPrefix, keyGroup);
 
-    QNDEBUG("Successfully wrote other authentication result info to the application settings. "
-            "Token expiration timestamp = " << m_pOAuthResult->expires << " ("
-            << QDateTime::fromMSecsSinceEpoch(m_pOAuthResult->expires).toString(Qt::ISODate) << "), "
+    QNDEBUG("Successfully wrote authentication result info to the application settings. "
+            "Token expiration timestamp = " << PrintableDateTimeFromTimestamp(m_pOAuthResult->expires)
             << ", user id = " << m_pOAuthResult->userId << ", web API url prefix = "
             << m_pOAuthResult->webApiUrlPrefix);
 
-    return true;
+    finalizeAuthentication();
 }
 
 void SynchronizationManagerPrivate::finalizeAuthentication()
@@ -606,14 +561,17 @@ void SynchronizationManagerPrivate::onReadPasswordFinished()
     QKeychain::Error errorCode = m_readPasswordJob.error();
     if (errorCode == QKeychain::EntryNotFound)
     {
-        QString error = QT_TR_NOOP("Unexpectedly missing OAuth token in password storage: ");
-        emit notifyError(error + m_readPasswordJob.errorString());
+        QString error = QT_TR_NOOP("Unexpectedly missing OAuth token in password storage: ") +
+                        m_readPasswordJob.errorString();
+        QNWARNING(error);
+        emit notifyError(error);
         return;
     }
     else if (errorCode != QKeychain::NoError) {
         QNWARNING("Attempt to read authentication token returned with error: error code " << errorCode
                   << ", " << m_readPasswordJob.errorString());
-        emit notifyError(m_readPasswordJob.errorString());
+        emit notifyError(QT_TR_NOOP("Can't read stored auth token from the keychain: ") +
+                         m_readPasswordJob.errorString());
         return;
     }
 
@@ -625,7 +583,17 @@ void SynchronizationManagerPrivate::onReadPasswordFinished()
 
 void SynchronizationManagerPrivate::onWritePasswordFinished()
 {
-    // TODO: implement
+    QKeychain::Error errorCode = m_writePasswordJob.error();
+    if (errorCode != QKeychain::NoError) {
+        QNWARNING("Attempt to read authentication token returned with error: error code " << errorCode
+                  << ", " << m_writePasswordJob.errorString());
+        emit notifyError(QT_TR_NOOP("Can't write oauth token to the keychain: ") +
+                         m_writePasswordJob.errorString());
+        return;
+    }
+
+    QNDEBUG("Successfully stored the authentication token in the keychain");
+    finalizeStoreOAuthResult();
 }
 
 } // namespace qute_note
