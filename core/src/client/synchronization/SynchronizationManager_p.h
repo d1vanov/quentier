@@ -73,8 +73,8 @@ private:
     bool validAuthentication() const;
     void authenticateToLinkedNotebooks();
 
-    void onReadPasswordFinished();
-    void onWritePasswordFinished();
+    void onReadAuthTokenFinished();
+    void onWriteAuthTokenFinished();
 
 private:
     qint32      m_maxSyncChunkEntries;
@@ -99,8 +99,11 @@ private:
 
     QMutex          m_writeAuthTokenMutex;
 
-    QKeychain::ReadPasswordJob  m_readPasswordJob;
-    QKeychain::WritePasswordJob m_writePasswordJob;
+    QKeychain::ReadPasswordJob  m_readAuthTokenJob;
+    QKeychain::WritePasswordJob m_writeAuthTokenJob;
+
+    QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >   m_readLinkedNotebookAuthTokenJobsByGuid;
+    QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >  m_writeLinkedNotebookAuthTokenJobsByGuid;
 };
 
 } // namespace qute_note

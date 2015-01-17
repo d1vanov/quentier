@@ -33,13 +33,15 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_authenticateToLinkedNotebooksPostponeTimerId(-1),
     m_receivedRequestToAuthenticateToLinkedNotebooks(false),
     m_writeAuthTokenMutex(),
-    m_readPasswordJob(QApplication::applicationName() + "_read_auth_token"),
-    m_writePasswordJob(QApplication::applicationName() + "_write_auth_token")
+    m_readAuthTokenJob(QApplication::applicationName() + "_read_auth_token"),
+    m_writeAuthTokenJob(QApplication::applicationName() + "_write_auth_token"),
+    m_readLinkedNotebookAuthTokenJobsByGuid(),
+    m_writeLinkedNotebookAuthTokenJobsByGuid()
 {
-    m_readPasswordJob.setAutoDelete(false);
-    m_readPasswordJob.setKey(QApplication::applicationName() + "_auth_token");
+    m_readAuthTokenJob.setAutoDelete(false);
+    m_readAuthTokenJob.setKey(QApplication::applicationName() + "_auth_token");
 
-    m_writePasswordJob.setAutoDelete(false);
+    m_writeAuthTokenJob.setAutoDelete(false);
 
     createConnections();
 }
@@ -101,13 +103,39 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
         return;
     }
 
-    if (job == &m_readPasswordJob) {
-        onReadPasswordFinished();
+    if (job == &m_readAuthTokenJob)
+    {
+        onReadAuthTokenFinished();
     }
-    else if (job == &m_writePasswordJob) {
-        onWritePasswordFinished();
+    else if (job == &m_writeAuthTokenJob)
+    {
+        onWriteAuthTokenFinished();
     }
-    else {
+    else
+    {
+        // Limit the scope in order to reuse the typedef later
+        {
+            typedef QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >::iterator Iter;
+
+            Iter writeLinkedNotebookAuthTokenJobsEnd = m_writeLinkedNotebookAuthTokenJobsByGuid.end();
+            for(Iter it = m_writeLinkedNotebookAuthTokenJobsByGuid.begin();
+                it != writeLinkedNotebookAuthTokenJobsEnd; ++it)
+            {
+                const auto & cachedJob = it.value();
+                if (cachedJob.data() == job)
+                {
+                    if (job->error() != QKeychain::NoError) {
+                        QString error = QT_TR_NOOP("Error writing the linked notebook's authentication token: ") +
+                                        job->errorString();
+                        QNWARNING(error);
+                        emit notifyError(error);
+                    }
+
+                    return;
+                }
+            }
+        }
+
         QString error = QT_TR_NOOP("Unknown keychain job finished event");
         QNWARNING(error);
         emit notifyError(error);
@@ -144,8 +172,8 @@ void SynchronizationManagerPrivate::createConnections()
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(finished()), this, SLOT(onRemoteToLocalSyncFinished()));
 
     // Connections with read/write password jobs
-    QObject::connect(&m_readPasswordJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
-    QObject::connect(&m_writePasswordJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
+    QObject::connect(&m_readAuthTokenJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
+    QObject::connect(&m_writeAuthTokenJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
 }
 
 void SynchronizationManagerPrivate::authenticate(const AuthContext::type authContext)
@@ -246,7 +274,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
     m_pOAuthResult->webApiUrlPrefix = webApiUrlPrefix;
 
     QNDEBUG("Trying to restore the authentication token from the keychain");
-    m_readPasswordJob.start();
+    m_readAuthTokenJob.start();
 }
 
 void SynchronizationManagerPrivate::launchOAuth()
@@ -345,8 +373,8 @@ void SynchronizationManagerPrivate::sendChanges()
 
 void SynchronizationManagerPrivate::launchStoreOAuthResult()
 {
-    m_writePasswordJob.setTextData(m_pOAuthResult->authenticationToken);
-    m_writePasswordJob.start();
+    m_writeAuthTokenJob.setTextData(m_pOAuthResult->authenticationToken);
+    m_writeAuthTokenJob.start();
 }
 
 void SynchronizationManagerPrivate::finalizeStoreOAuthResult()
@@ -511,6 +539,13 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         const QString & guid     = pair.first;
         const QString & shareKey = pair.second;
 
+        // TODO: first try to get both the token and the key from local hashes; if successful
+        // TODO: and the token is still not close to expiration, use it; otherwise,
+        // TODO: for each linked notebook: try to get expiration timestamp from app settings;
+        // TODO: if successful, check whether it is expired; if not, attempt to read
+        // TODO: linked notebook's authentication token from the keychain instead of calling Evernote's API method;
+        // TODO: otherwise, call Evernote API method as a last resort
+
         qevercloud::AuthenticationResult authResult;
         QString errorDescription;
         qint32 rateLimitSeconds = 0;
@@ -552,43 +587,80 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         it = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.erase(it);
     }
 
-    // TODO: cache obtained auth tokens
     emit sendAuthenticationTokensForLinkedNotebooks(m_cachedLinkedNotebookAuthTokensByGuid);
+
+    // Caching linked notebook's authentication token's expiration time in app settings
+    ApplicationSettings & appSettings = ApplicationSettings::instance();
+    QString keyGroup = "Authentication";
+
+    // Force scope in order to limit the scope of used typedef
+    {
+        typedef QHash<QString,qevercloud::Timestamp>::const_iterator CIter;
+        CIter linkedNotebookAuthTokenExpirationTimesEnd = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.end();
+        for(CIter it = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.begin();
+            it != linkedNotebookAuthTokenExpirationTimesEnd; ++it)
+        {
+            QString key = "LinkedNotebookExpirationTimestamp_" + QString::number(it.value());
+            appSettings.setValue(key, QVariant(it.key()), keyGroup);
+        }
+    }
+
+    // Caching linked notebook's authentication tokens in the keychain
+    QString appName = QApplication::applicationName();
+
+    typedef QHash<QString,QString>::const_iterator CIter;
+    CIter linkedNotebookAuthTokensEnd = m_cachedLinkedNotebookAuthTokensByGuid.end();
+    for(CIter it = m_cachedLinkedNotebookAuthTokensByGuid.begin();
+        it != linkedNotebookAuthTokensEnd; ++it)
+    {
+        const QString & guid = it.key();
+        const QString & token = it.value();
+
+        QString key = appName + "_LinkedNotebookAuthToken_" + guid;
+        QSharedPointer<QKeychain::WritePasswordJob> job(new QKeychain::WritePasswordJob("writeLinkedNotebookAuthToken"));
+        (void)m_writeLinkedNotebookAuthTokenJobsByGuid.insert(key, job);
+        job->setKey(appName + "_LinkedNotebookAuthToken_" + guid);
+        job->setTextData(token);
+
+        QObject::connect(job.data(), SIGNAL(finished(QKeychain::Job *)), this, SLOT(onKeychainJobFinished(QKeychain::Job *)));
+
+        job->start();
+    }
 }
 
-void SynchronizationManagerPrivate::onReadPasswordFinished()
+void SynchronizationManagerPrivate::onReadAuthTokenFinished()
 {
-    QKeychain::Error errorCode = m_readPasswordJob.error();
+    QKeychain::Error errorCode = m_readAuthTokenJob.error();
     if (errorCode == QKeychain::EntryNotFound)
     {
         QString error = QT_TR_NOOP("Unexpectedly missing OAuth token in password storage: ") +
-                        m_readPasswordJob.errorString();
+                        m_readAuthTokenJob.errorString();
         QNWARNING(error);
         emit notifyError(error);
         return;
     }
     else if (errorCode != QKeychain::NoError) {
         QNWARNING("Attempt to read authentication token returned with error: error code " << errorCode
-                  << ", " << m_readPasswordJob.errorString());
+                  << ", " << m_readAuthTokenJob.errorString());
         emit notifyError(QT_TR_NOOP("Can't read stored auth token from the keychain: ") +
-                         m_readPasswordJob.errorString());
+                         m_readAuthTokenJob.errorString());
         return;
     }
 
     QNDEBUG("Successfully restored the authentication token");
-    m_pOAuthResult->authenticationToken = m_readPasswordJob.textData();
+    m_pOAuthResult->authenticationToken = m_readAuthTokenJob.textData();
 
     finalizeAuthentication();
 }
 
-void SynchronizationManagerPrivate::onWritePasswordFinished()
+void SynchronizationManagerPrivate::onWriteAuthTokenFinished()
 {
-    QKeychain::Error errorCode = m_writePasswordJob.error();
+    QKeychain::Error errorCode = m_writeAuthTokenJob.error();
     if (errorCode != QKeychain::NoError) {
         QNWARNING("Attempt to read authentication token returned with error: error code " << errorCode
-                  << ", " << m_writePasswordJob.errorString());
+                  << ", " << m_writeAuthTokenJob.errorString());
         emit notifyError(QT_TR_NOOP("Can't write oauth token to the keychain: ") +
-                         m_writePasswordJob.errorString());
+                         m_writeAuthTokenJob.errorString());
         return;
     }
 
