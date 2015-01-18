@@ -11,6 +11,8 @@
 #define EXPIRATION_TIMESTAMP_KEY "ExpirationTimestamp"
 #define LINKED_NOTEBOOK_EXPIRATION_TIMESTAMP_KEY_PREFIX "LinkedNotebookExpirationTimestamp_"
 #define LINKED_NOTEBOOK_AUTH_TOKEN_KEY_PART "_LinkedNotebookAuthToken_"
+#define READ_LINKED_NOTEBOOK_AUTH_TOKEN_JOB "readLinkedNotebookAuthToken"
+#define WRITE_LINKED_NOTEBOOK_AUTH_TOKEN_JOB "writeLinkedNotebookAuthToken"
 #define NOTE_STORE_URL_KEY "NoteStoreUrl"
 #define USER_ID_KEY "UserId"
 #define WEB_API_URL_PREFIX_KEY "WebApiUrlPrefix"
@@ -34,11 +36,11 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid(),
     m_authenticateToLinkedNotebooksPostponeTimerId(-1),
     m_receivedRequestToAuthenticateToLinkedNotebooks(false),
-    m_writeAuthTokenMutex(),
     m_readAuthTokenJob(QApplication::applicationName() + "_read_auth_token"),
     m_writeAuthTokenJob(QApplication::applicationName() + "_write_auth_token"),
     m_readLinkedNotebookAuthTokenJobsByGuid(),
-    m_writeLinkedNotebookAuthTokenJobsByGuid()
+    m_writeLinkedNotebookAuthTokenJobsByGuid(),
+    m_linkedNotebookGuidsWithoutLocalAuthData()
 {
     m_readAuthTokenJob.setAutoDelete(false);
     m_readAuthTokenJob.setKey(QApplication::applicationName() + "_auth_token");
@@ -49,9 +51,7 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
 }
 
 SynchronizationManagerPrivate::~SynchronizationManagerPrivate()
-{
-    m_writeAuthTokenMutex.unlock();
-}
+{}
 
 void SynchronizationManagerPrivate::synchronize()
 {
@@ -115,26 +115,55 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
     }
     else
     {
-        // Limit the scope in order to reuse the typedef later
+        typedef QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >::iterator WriteJobIter;
+        WriteJobIter writeLinkedNotebookAuthTokenJobsEnd = m_writeLinkedNotebookAuthTokenJobsByGuid.end();
+        for(WriteJobIter it = m_writeLinkedNotebookAuthTokenJobsByGuid.begin();
+            it != writeLinkedNotebookAuthTokenJobsEnd; ++it)
         {
-            typedef QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >::iterator Iter;
-
-            Iter writeLinkedNotebookAuthTokenJobsEnd = m_writeLinkedNotebookAuthTokenJobsByGuid.end();
-            for(Iter it = m_writeLinkedNotebookAuthTokenJobsByGuid.begin();
-                it != writeLinkedNotebookAuthTokenJobsEnd; ++it)
+            const auto & cachedJob = it.value();
+            if (cachedJob.data() == job)
             {
-                const auto & cachedJob = it.value();
-                if (cachedJob.data() == job)
-                {
-                    if (job->error() != QKeychain::NoError) {
-                        QString error = QT_TR_NOOP("Error writing the linked notebook's authentication token: ") +
-                                        job->errorString();
-                        QNWARNING(error);
-                        emit notifyError(error);
-                    }
+                if (job->error() != QKeychain::NoError) {
+                    QString error = QT_TR_NOOP("Error writing the linked notebook's authentication token: error code = ") +
+                                    ToQString(job->error()) + ": " + job->errorString();
+                    QNWARNING(error);
+                    emit notifyError(error);
+                }
 
+                (void)m_writeLinkedNotebookAuthTokenJobsByGuid.erase(it);
+                return;
+            }
+        }
+
+        typedef QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >::iterator ReadJobIter;
+        ReadJobIter readLinkedNotebookAuthTokenJobsEnd = m_readLinkedNotebookAuthTokenJobsByGuid.end();
+        for(ReadJobIter it = m_readLinkedNotebookAuthTokenJobsByGuid.begin();
+            it != readLinkedNotebookAuthTokenJobsEnd; ++it)
+        {
+            const auto & cachedJob = it.value();
+            if (cachedJob.data() == job)
+            {
+                if (job->error() == QKeychain::NoError) {
+                    QNDEBUG("Successfully read authentication token for linked notebook from the keychain. "
+                            "linked notebook guid: " << it.key());
+                    m_cachedLinkedNotebookAuthTokensByGuid[it.key()] = cachedJob->textData();
+                }
+                else if (job->error() == QKeychain::EntryNotFound) {
+                    QNDEBUG("Could find authentication token for linked notebook in the keychain: "
+                            "linked notebook guid: " << it.key());
+                    (void)m_linkedNotebookGuidsWithoutLocalAuthData.insert(it.key());
+                }
+                else {
+                    QString error = QT_TR_NOOP("Error reading the linked notebook's auth token: error code = ") +
+                                    ToQString(job->error()) + ": " + job->errorString();
+                    QNWARNING(error);
+                    emit notifyError(error);
                     return;
                 }
+
+                authenticateToLinkedNotebooks();
+                (void)m_readLinkedNotebookAuthTokenJobsByGuid.erase(it);
+                return;
             }
         }
 
@@ -554,42 +583,69 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         const QString & guid     = pair.first;
         const QString & shareKey = pair.second;
 
+        bool forceRemoteAuth = false;
         auto linkedNotebookAuthTokenIt = m_cachedLinkedNotebookAuthTokensByGuid.find(guid);
         if (linkedNotebookAuthTokenIt == m_cachedLinkedNotebookAuthTokensByGuid.end())
         {
-            // TODO: introduce some way to check whether we have already tried to read it from the keychain but without success
-
-            QNDEBUG("Haven't found the authentication token for linked notebook guid " << guid
-                    << " in the local cache, will try to read it from the keychain");
-            // TODO: attempt to read linked notebook's authentication token from the keychain
-            continue;
-        }
-
-        auto linkedNotebookAuthTokenExpirationIt = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.find(guid);
-        if (linkedNotebookAuthTokenExpirationIt == m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.end())
-        {
-            QVariant expirationTimeVariant = appSettings.value(LINKED_NOTEBOOK_EXPIRATION_TIMESTAMP_KEY_PREFIX + guid, keyGroup);
-            if (!expirationTimeVariant.isNull())
+            auto noAuthDataIt = m_linkedNotebookGuidsWithoutLocalAuthData.find(guid);
+            if (noAuthDataIt != m_linkedNotebookGuidsWithoutLocalAuthData.end())
             {
-                bool conversionResult = false;
-                qevercloud::Timestamp expirationTime = expirationTimeVariant.toLongLong(&conversionResult);
-                if (conversionResult) {
-                    linkedNotebookAuthTokenExpirationIt = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.insert(guid, expirationTime);
+                forceRemoteAuth = true;
+                (void)m_linkedNotebookGuidsWithoutLocalAuthData.erase(noAuthDataIt);
+            }
+            else
+            {
+                QNDEBUG("Haven't found the authentication token for linked notebook guid " << guid
+                        << " in the local cache, will try to read it from the keychain");
+
+                QSharedPointer<QKeychain::ReadPasswordJob> job;
+                auto readJobIt = m_readLinkedNotebookAuthTokenJobsByGuid.find(guid);
+                if (readJobIt == m_readLinkedNotebookAuthTokenJobsByGuid.end()) {
+                    job = QSharedPointer<QKeychain::ReadPasswordJob>(new QKeychain::ReadPasswordJob(READ_LINKED_NOTEBOOK_AUTH_TOKEN_JOB));
+                    readJobIt = m_readLinkedNotebookAuthTokenJobsByGuid.insert(guid, job);
                 }
                 else {
-                    QNWARNING("Can't convert linked notebook's authentication token from QVariant retrieved from "
-                              "app settings into timestamp: linked notebook guid = " << guid << ", variant = "
-                              << expirationTimeVariant);
+                    job = readJobIt.value();
                 }
+
+                job->setKey(guid);
+
+                QObject::connect(job.data(), SIGNAL(finished(QKeychain::Job*)),
+                                 this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
+
+                job->start();
+                continue;
             }
         }
 
-        if ( (linkedNotebookAuthTokenExpirationIt != m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.end()) &&
-             !checkIfTimestampIsAboutToExpireSoon(linkedNotebookAuthTokenExpirationIt.value()) )
+        if (!forceRemoteAuth)
         {
-            QNDEBUG("Found authentication data for linked notebook guid " << guid << " + verified its expiration timestamp");
-            it = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.erase(it);
-            continue;
+            auto linkedNotebookAuthTokenExpirationIt = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.find(guid);
+            if (linkedNotebookAuthTokenExpirationIt == m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.end())
+            {
+                QVariant expirationTimeVariant = appSettings.value(LINKED_NOTEBOOK_EXPIRATION_TIMESTAMP_KEY_PREFIX + guid, keyGroup);
+                if (!expirationTimeVariant.isNull())
+                {
+                    bool conversionResult = false;
+                    qevercloud::Timestamp expirationTime = expirationTimeVariant.toLongLong(&conversionResult);
+                    if (conversionResult) {
+                        linkedNotebookAuthTokenExpirationIt = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.insert(guid, expirationTime);
+                    }
+                    else {
+                        QNWARNING("Can't convert linked notebook's authentication token from QVariant retrieved from "
+                                  "app settings into timestamp: linked notebook guid = " << guid << ", variant = "
+                                  << expirationTimeVariant);
+                    }
+                }
+            }
+
+            if ( (linkedNotebookAuthTokenExpirationIt != m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.end()) &&
+                 !checkIfTimestampIsAboutToExpireSoon(linkedNotebookAuthTokenExpirationIt.value()) )
+            {
+                QNDEBUG("Found authentication data for linked notebook guid " << guid << " + verified its expiration timestamp");
+                it = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.erase(it);
+                continue;
+            }
         }
 
         QNDEBUG("Authentication data for linked notebook guid " << guid << " was either not found in local cache "
@@ -678,7 +734,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         const QString & token = it.value();
 
         QString key = appName + LINKED_NOTEBOOK_AUTH_TOKEN_KEY_PART + guid;
-        QSharedPointer<QKeychain::WritePasswordJob> job(new QKeychain::WritePasswordJob("writeLinkedNotebookAuthToken"));
+        QSharedPointer<QKeychain::WritePasswordJob> job(new QKeychain::WritePasswordJob(WRITE_LINKED_NOTEBOOK_AUTH_TOKEN_JOB));
         (void)m_writeLinkedNotebookAuthTokenJobsByGuid.insert(key, job);
         job->setKey(key);
         job->setTextData(token);

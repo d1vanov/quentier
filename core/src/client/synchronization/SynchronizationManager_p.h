@@ -7,7 +7,6 @@
 #include <oauth.h>
 #include <keychain.h>
 #include <QObject>
-#include <QMutex>
 
 namespace qute_note {
 
@@ -98,13 +97,13 @@ private:
     int             m_authenticateToLinkedNotebooksPostponeTimerId;
     bool            m_receivedRequestToAuthenticateToLinkedNotebooks;
 
-    QMutex          m_writeAuthTokenMutex;
-
     QKeychain::ReadPasswordJob  m_readAuthTokenJob;
     QKeychain::WritePasswordJob m_writeAuthTokenJob;
 
     QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >   m_readLinkedNotebookAuthTokenJobsByGuid;
     QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >  m_writeLinkedNotebookAuthTokenJobsByGuid;
+
+    QSet<QString>   m_linkedNotebookGuidsWithoutLocalAuthData;
 };
 
 } // namespace qute_note
