@@ -9,6 +9,8 @@
 #include <QApplication>
 
 #define EXPIRATION_TIMESTAMP_KEY "ExpirationTimestamp"
+#define LINKED_NOTEBOOK_EXPIRATION_TIMESTAMP_KEY_PREFIX "LinkedNotebookExpirationTimestamp_"
+#define LINKED_NOTEBOOK_AUTH_TOKEN_KEY_PART "_LinkedNotebookAuthToken_"
 #define NOTE_STORE_URL_KEY "NoteStoreUrl"
 #define USER_ID_KEY "UserId"
 #define WEB_API_URL_PREFIX_KEY "WebApiUrlPrefix"
@@ -421,6 +423,8 @@ void SynchronizationManagerPrivate::finalizeAuthentication()
         break;
     }
     }
+
+    m_authContext = AuthContext::Blank;
 }
 
 void SynchronizationManagerPrivate::timerEvent(QTimerEvent * pTimerEvent)
@@ -513,23 +517,34 @@ bool SynchronizationManagerPrivate::validAuthentication() const
         return false;
     }
 
+    return !checkIfTimestampIsAboutToExpireSoon(m_pOAuthResult->expires);
+}
+
+bool SynchronizationManagerPrivate::checkIfTimestampIsAboutToExpireSoon(const qevercloud::Timestamp timestamp) const
+{
     qevercloud::Timestamp currentTimestamp = QDateTime::currentMSecsSinceEpoch();
 
-    if (currentTimestamp - m_pOAuthResult->expires < SIX_HOURS_IN_MSEC) {
-        return false;
+    if (currentTimestamp - timestamp < SIX_HOURS_IN_MSEC) {
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
 {
     const int numLinkedNotebooks = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.size();
     if (numLinkedNotebooks == 0) {
-        QNDEBUG("No linked notebooks, sending empty authentication tokens back immediately");
+        QNDEBUG("No linked notebooks waiting for authentication, sending empty authentication tokens back immediately");
         emit sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>());
         return;
     }
+
+    ApplicationSettings & appSettings = ApplicationSettings::instance();
+    QString keyGroup = "Authentication";
+
+    QHash<QString,QString> authTokensToCacheByGuid;
+    QHash<QString,qevercloud::Timestamp> authTokenExpirationTimestampsToCacheByGuid;
 
     for(auto it = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.begin();
         it != m_linkedNotebookGuidsAndShareKeysWaitingForAuth.end(); )
@@ -539,12 +554,58 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         const QString & guid     = pair.first;
         const QString & shareKey = pair.second;
 
-        // TODO: first try to get both the token and the key from local hashes; if successful
-        // TODO: and the token is still not close to expiration, use it; otherwise,
-        // TODO: for each linked notebook: try to get expiration timestamp from app settings;
-        // TODO: if successful, check whether it is expired; if not, attempt to read
-        // TODO: linked notebook's authentication token from the keychain instead of calling Evernote's API method;
-        // TODO: otherwise, call Evernote API method as a last resort
+        auto linkedNotebookAuthTokenIt = m_cachedLinkedNotebookAuthTokensByGuid.find(guid);
+        if (linkedNotebookAuthTokenIt == m_cachedLinkedNotebookAuthTokensByGuid.end())
+        {
+            // TODO: introduce some way to check whether we have already tried to read it from the keychain but without success
+
+            QNDEBUG("Haven't found the authentication token for linked notebook guid " << guid
+                    << " in the local cache, will try to read it from the keychain");
+            // TODO: attempt to read linked notebook's authentication token from the keychain
+            continue;
+        }
+
+        auto linkedNotebookAuthTokenExpirationIt = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.find(guid);
+        if (linkedNotebookAuthTokenExpirationIt == m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.end())
+        {
+            QVariant expirationTimeVariant = appSettings.value(LINKED_NOTEBOOK_EXPIRATION_TIMESTAMP_KEY_PREFIX + guid, keyGroup);
+            if (!expirationTimeVariant.isNull())
+            {
+                bool conversionResult = false;
+                qevercloud::Timestamp expirationTime = expirationTimeVariant.toLongLong(&conversionResult);
+                if (conversionResult) {
+                    linkedNotebookAuthTokenExpirationIt = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.insert(guid, expirationTime);
+                }
+                else {
+                    QNWARNING("Can't convert linked notebook's authentication token from QVariant retrieved from "
+                              "app settings into timestamp: linked notebook guid = " << guid << ", variant = "
+                              << expirationTimeVariant);
+                }
+            }
+        }
+
+        if ( (linkedNotebookAuthTokenExpirationIt != m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.end()) &&
+             !checkIfTimestampIsAboutToExpireSoon(linkedNotebookAuthTokenExpirationIt.value()) )
+        {
+            QNDEBUG("Found authentication data for linked notebook guid " << guid << " + verified its expiration timestamp");
+            it = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.erase(it);
+            continue;
+        }
+
+        QNDEBUG("Authentication data for linked notebook guid " << guid << " was either not found in local cache "
+                "(and/or app settings / keychain) or has expired, need to receive that from remote Evernote service");
+
+        if (m_authenticateToLinkedNotebooksPostponeTimerId >= 0) {
+            QNDEBUG("Authenticate to linked notebook postpone timer is active, will wait to preserve the breach "
+                    "of Evernote rate API limit");
+            continue;
+        }
+
+        if (m_authContext != AuthContext::Blank) {
+            QNDEBUG("Authentication context variable is not set to blank which means that authentication must be in progress: "
+                    << m_authContext << "; won't attempt to call remote Evernote API at this time");
+            continue;
+        }
 
         qevercloud::AuthenticationResult authResult;
         QString errorDescription;
@@ -561,7 +622,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
                 authenticate(AuthContext::AuthToLinkedNotebooks);
             }
 
-            return;
+            continue;
         }
         else if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
         {
@@ -573,7 +634,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
             }
 
             m_authenticateToLinkedNotebooksPostponeTimerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
-            return;
+            continue;
         }
         else if (errorCode != 0)
         {
@@ -584,45 +645,46 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         m_cachedLinkedNotebookAuthTokensByGuid[guid] = authResult.authenticationToken;
         m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid[guid] = authResult.expiration;
 
+        authTokensToCacheByGuid[guid] = authResult.authenticationToken;
+        authTokenExpirationTimestampsToCacheByGuid[guid] = authResult.expiration;
+
         it = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.erase(it);
     }
 
-    emit sendAuthenticationTokensForLinkedNotebooks(m_cachedLinkedNotebookAuthTokensByGuid);
+    if (m_linkedNotebookGuidsAndShareKeysWaitingForAuth.empty()) {
+        QNDEBUG("Retrieved authentication data for all requested linked notebooks, sending the answer now");
+        emit sendAuthenticationTokensForLinkedNotebooks(m_cachedLinkedNotebookAuthTokensByGuid);
+    }
 
     // Caching linked notebook's authentication token's expiration time in app settings
-    ApplicationSettings & appSettings = ApplicationSettings::instance();
-    QString keyGroup = "Authentication";
-
-    // Force scope in order to limit the scope of used typedef
+    typedef QHash<QString,qevercloud::Timestamp>::const_iterator ExpirationTimeCIter;
+    ExpirationTimeCIter authTokenExpirationTimesToCacheEnd = authTokenExpirationTimestampsToCacheByGuid.end();
+    for(ExpirationTimeCIter it = authTokenExpirationTimestampsToCacheByGuid.begin();
+        it != authTokenExpirationTimesToCacheEnd; ++it)
     {
-        typedef QHash<QString,qevercloud::Timestamp>::const_iterator CIter;
-        CIter linkedNotebookAuthTokenExpirationTimesEnd = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.end();
-        for(CIter it = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.begin();
-            it != linkedNotebookAuthTokenExpirationTimesEnd; ++it)
-        {
-            QString key = "LinkedNotebookExpirationTimestamp_" + QString::number(it.value());
-            appSettings.setValue(key, QVariant(it.key()), keyGroup);
-        }
+        QString key = LINKED_NOTEBOOK_EXPIRATION_TIMESTAMP_KEY_PREFIX + it.key();
+        appSettings.setValue(key, QVariant(it.value()), keyGroup);
     }
 
     // Caching linked notebook's authentication tokens in the keychain
     QString appName = QApplication::applicationName();
 
-    typedef QHash<QString,QString>::const_iterator CIter;
-    CIter linkedNotebookAuthTokensEnd = m_cachedLinkedNotebookAuthTokensByGuid.end();
-    for(CIter it = m_cachedLinkedNotebookAuthTokensByGuid.begin();
-        it != linkedNotebookAuthTokensEnd; ++it)
+    typedef QHash<QString,QString>::const_iterator AuthTokenCIter;
+    AuthTokenCIter authTokensToCacheEnd = authTokensToCacheByGuid.end();
+    for(AuthTokenCIter it = authTokensToCacheByGuid.begin();
+        it != authTokensToCacheEnd; ++it)
     {
         const QString & guid = it.key();
         const QString & token = it.value();
 
-        QString key = appName + "_LinkedNotebookAuthToken_" + guid;
+        QString key = appName + LINKED_NOTEBOOK_AUTH_TOKEN_KEY_PART + guid;
         QSharedPointer<QKeychain::WritePasswordJob> job(new QKeychain::WritePasswordJob("writeLinkedNotebookAuthToken"));
         (void)m_writeLinkedNotebookAuthTokenJobsByGuid.insert(key, job);
-        job->setKey(appName + "_LinkedNotebookAuthToken_" + guid);
+        job->setKey(key);
         job->setTextData(token);
 
-        QObject::connect(job.data(), SIGNAL(finished(QKeychain::Job *)), this, SLOT(onKeychainJobFinished(QKeychain::Job *)));
+        QObject::connect(job.data(), SIGNAL(finished(QKeychain::Job *)),
+                         this, SLOT(onKeychainJobFinished(QKeychain::Job *)));
 
         job->start();
     }

@@ -71,6 +71,7 @@ private:
     void clear();
 
     bool validAuthentication() const;
+    bool checkIfTimestampIsAboutToExpireSoon(const qevercloud::Timestamp timestamp) const;
     void authenticateToLinkedNotebooks();
 
     void onReadAuthTokenFinished();
