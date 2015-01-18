@@ -292,7 +292,6 @@ void RemoteToLocalSynchronizationManager::emitUpdateRequest<Note>(const Note & n
 
     qint32 postponeAPICallSeconds = tryToGetFullNoteData(localNote, errorDescription);
     if (postponeAPICallSeconds < 0) {
-        emit failure(errorDescription);
         return;
     }
     else if (postponeAPICallSeconds > 0) {
@@ -470,7 +469,6 @@ void RemoteToLocalSynchronizationManager::onFindNoteFailed(Note note, bool withR
 
         qint32 postponeAPICallSeconds = tryToGetFullNoteData(note, errorDescription);
         if (postponeAPICallSeconds < 0) {
-            emit failure(errorDescription);
             return;
         }
         else if (postponeAPICallSeconds > 0) {
@@ -1551,15 +1549,12 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
 
         QString errorDescription;
         qint32 postponeAPICallSeconds = tryToGetFullNoteData(note, errorDescription);
-        if (postponeAPICallSeconds < 0) {
-            emit failure(errorDescription);
-        }
-        else if (postponeAPICallSeconds > 0) {
+        if (postponeAPICallSeconds > 0) {
             int timerId = startTimer(SEC_TO_MSEC(postponeAPICallSeconds));
             m_notesToAddPerAPICallPostponeTimerId[timerId] = note;
             emit rateLimitExceeded(postponeAPICallSeconds);
         }
-        else {
+        else if (postponeAPICallSeconds == 0) {
             emitAddRequest(note);
         }
 
@@ -1575,15 +1570,12 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
 
         QString errorDescription;
         qint32 postponeAPICallSeconds = tryToGetFullNoteData(noteToUpdate, errorDescription);
-        if (postponeAPICallSeconds < 0) {
-            emit failure(errorDescription);
-        }
-        else if (postponeAPICallSeconds > 0) {
+        if (postponeAPICallSeconds > 0) {
             int timerId = startTimer(SEC_TO_MSEC(postponeAPICallSeconds));
             m_notesToUpdatePerAPICallPostponeTimerId[timerId] = noteToUpdate;
             emit rateLimitExceeded(postponeAPICallSeconds);
         }
-        else {
+        else if (postponeAPICallSeconds == 0) {
             // NOTE: workarounding the stupidity of MSVC 2013
             emitUpdateRequest<Note>(noteToUpdate, static_cast<const Note*>(nullptr));
         }
@@ -1627,12 +1619,21 @@ qint32 RemoteToLocalSynchronizationManager::tryToGetFullNoteData(Note & note, QS
             errorDescription = QT_TR_NOOP("QEverCloud or Evernote protocol error: caught RATE_LIMIT_REACHED "
                                           "exception but the number of seconds to wait is zero or negative: ");
             errorDescription += QString::number(rateLimitSeconds);
+            emit failure(errorDescription);
             return -1;
         }
 
         return rateLimitSeconds;
     }
+    else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+    {
+        // TODO: special processing: emit signal notifying of authentication expiration;
+        // TODO: also need to ensure somehow that it would suffice to restart the synchronization procedure
+        // TODO: in order to proceed things properly when the authentication token is received
+        return -1;
+    }
     else if (errorCode != 0) {
+        emit failure(errorDescription);
         return -1;
     }
 
@@ -1692,7 +1693,13 @@ void RemoteToLocalSynchronizationManager::downloadSyncChunksAndLaunchSync(qint32
             emit rateLimitExceeded(rateLimitSeconds);
             return;
         }
-        // FIXME: handle the AUTH_EXPIRED error code specifically
+        else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+        {
+            // TODO: special processing: emit signal notifying of authentication expiration;
+            // TODO: also need to ensure somehow that it would suffice to restart the synchronization procedure
+            // TODO: in order to proceed things properly when the authentication token is received
+            return;
+        }
         else if (errorCode != 0) {
             QString errorPrefix = QT_TR_NOOP("Can't perform full synchronization, "
                                              "can't download the sync chunks: ");
