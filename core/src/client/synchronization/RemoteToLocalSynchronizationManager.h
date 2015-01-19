@@ -41,6 +41,10 @@ Q_SIGNALS:
     void linkedNotebooksSyncChunksDownloaded();
     void linkedNotebooksFullNotesContentsDownloaded();
 
+    void paused(bool pendingAuthenticaton);
+    void stopped();
+
+    void requestAuthenticationToken();
     void requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndShareKeys);
 
 public Q_SLOTS:
@@ -273,6 +277,8 @@ private:
     void downloadSyncChunksAndLaunchSync(qint32 afterUsn);
 
     const Notebook * getNotebookPerNote(const Note & note) const;
+
+    void handleAuthExpiration();
 
 private:
     RemoteToLocalSynchronizationManager() Q_DECL_DELETE;

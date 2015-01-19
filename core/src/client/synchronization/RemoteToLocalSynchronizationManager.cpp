@@ -100,12 +100,14 @@ void RemoteToLocalSynchronizationManager::stop()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::stop");
     m_requestedToStop = true;
+    emit stopped();
 }
 
 void RemoteToLocalSynchronizationManager::pause()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::pause");
     m_paused = true;
+    emit paused(/* pending authentication = */ false);
 }
 
 void RemoteToLocalSynchronizationManager::resume()
@@ -1627,9 +1629,7 @@ qint32 RemoteToLocalSynchronizationManager::tryToGetFullNoteData(Note & note, QS
     }
     else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
     {
-        // TODO: special processing: emit signal notifying of authentication expiration;
-        // TODO: also need to ensure somehow that it would suffice to restart the synchronization procedure
-        // TODO: in order to proceed things properly when the authentication token is received
+        handleAuthExpiration();
         return -1;
     }
     else if (errorCode != 0) {
@@ -1695,9 +1695,7 @@ void RemoteToLocalSynchronizationManager::downloadSyncChunksAndLaunchSync(qint32
         }
         else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
         {
-            // TODO: special processing: emit signal notifying of authentication expiration;
-            // TODO: also need to ensure somehow that it would suffice to restart the synchronization procedure
-            // TODO: in order to proceed things properly when the authentication token is received
+            handleAuthExpiration();
             return;
         }
         else if (errorCode != 0) {
@@ -1736,6 +1734,15 @@ const Notebook * RemoteToLocalSynchronizationManager::getNotebookPerNote(const N
     else {
         return &(cit.value());
     }
+}
+
+void RemoteToLocalSynchronizationManager::handleAuthExpiration()
+{
+    // FIXME: really need some non-warning but persistent log level here
+    QNWARNING("Got AUTH_EXPIRED error, pausing and requesting new authentication token");
+    m_paused = true;
+    emit paused(/* pending authentication = */ true);
+    emit requestAuthenticationToken();
 }
 
 QTextStream & operator<<(QTextStream & strm, const RemoteToLocalSynchronizationManager::SyncMode::type & obj)

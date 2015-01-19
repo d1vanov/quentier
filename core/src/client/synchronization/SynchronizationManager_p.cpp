@@ -5,6 +5,7 @@
 #include <logging/QuteNoteLogger.h>
 #include <tools/ApplicationSettings.h>
 #include <tools/QuteNoteCheckPtr.h>
+#include <tools/Printable.h>
 #include <Simplecrypt.h>
 #include <QApplication>
 
@@ -174,6 +175,19 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
     }
 }
 
+void SynchronizationManagerPrivate::onRequestAuthenticationToken()
+{
+    if (validAuthentication()) {
+        QString error = QT_TR_NOOP("Unexpected AUTH_EXPIRED error while the cached authentication token "
+                                   "seems to be valid");
+        QNWARNING(error << ": " << *m_pOAuthResult);
+        emit notifyError(error);
+        return;
+    }
+
+    authenticate(AuthContext::SyncLaunch);
+}
+
 void SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndShareKeys)
 {
     QNDEBUG("SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebooks");
@@ -201,6 +215,10 @@ void SynchronizationManagerPrivate::createConnections()
     // Connections with remote to local synchronization manager
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(error(QString)), this, SIGNAL(notifyError(QString)));
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(finished()), this, SLOT(onRemoteToLocalSyncFinished()));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestAuthenticationToken()),
+                     this, SLOT(onRequestAuthenticationToken()));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)),
+                     this, SLOT(onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)));
 
     // Connections with read/write password jobs
     QObject::connect(&m_readAuthTokenJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));

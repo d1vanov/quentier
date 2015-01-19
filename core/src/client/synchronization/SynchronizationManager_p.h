@@ -32,6 +32,7 @@ private Q_SLOTS:
 
     void onKeychainJobFinished(QKeychain::Job * job);
 
+    void onRequestAuthenticationToken();
     void onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys);
     void onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qint32 lastSyncTime);
 
