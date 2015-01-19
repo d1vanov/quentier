@@ -265,13 +265,39 @@ qint32 NoteStore::getSyncChunk(const qint32 afterUSN, const qint32 maxEntries,
     }
     catch(const qevercloud::EDAMUserException & userException)
     {
-        return processEdamUserExceptionForGetSyncChunk(userException, afterUSN, maxEntries,
-                                                    errorDescription);
+        return processEdamUserExceptionForGetSyncChunk(userException, afterUSN,
+                                                       maxEntries, errorDescription);
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
         return processEdamSystemException(systemException, errorDescription,
                                           rateLimitSeconds);
+    }
+
+    return qevercloud::EDAMErrorCode::UNKNOWN;
+}
+
+qint32 NoteStore::getLinkedNotebookSyncChunk(const qevercloud::LinkedNotebook & linkedNotebook,
+                                             const qint32 afterUSN, const qint32 maxEntries,
+                                             const QString & linkedNotebookAuthToken,
+                                             const bool fullSyncOnly, qevercloud::SyncChunk & syncChunk,
+                                             QString & errorDescription, qint32 & rateLimitSeconds)
+{
+    try
+    {
+        syncChunk = m_pQecNoteStore->getLinkedNotebookSyncChunk(linkedNotebook, afterUSN,
+                                                                maxEntries, fullSyncOnly,
+                                                                linkedNotebookAuthToken);
+        return 0;
+    }
+    catch(const qevercloud::EDAMUserException & userException)
+    {
+        return processEdamUserExceptionForGetSyncChunk(userException, afterUSN,
+                                                       maxEntries, errorDescription);
+    }
+    catch(const qevercloud::EDAMSystemException & systemException)
+    {
+        return processEdamSystemException(systemException, errorDescription, rateLimitSeconds);
     }
 
     return qevercloud::EDAMErrorCode::UNKNOWN;

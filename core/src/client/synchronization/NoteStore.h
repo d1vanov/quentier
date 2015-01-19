@@ -20,7 +20,7 @@ QT_FORWARD_DECLARE_CLASS(SavedSearch)
  * "parse" their internal error flags and return the textual representation of the error.
  *
  * QuteNote at the moment uses only several methods from those available in QEverCloud's NoteStore
- * so only the small subset of original NoteStore's API is wrapped now.
+ * so only the small subset of original NoteStore's API is wrapped here at the moment.
  */
 class NoteStore
 {
@@ -50,6 +50,12 @@ public:
                         const qevercloud::SyncChunkFilter & filter,
                         qevercloud::SyncChunk & syncChunk, QString & errorDescription,
                         qint32 & rateLimitSeconds);
+
+    qint32 getLinkedNotebookSyncChunk(const qevercloud::LinkedNotebook & linkedNotebook,
+                                      const qint32 afterUSN, const qint32 maxEntries,
+                                      const QString & linkedNotebookAuthToken, const bool fullSyncOnly,
+                                      qevercloud::SyncChunk & syncChunk, QString & errorDescription,
+                                      qint32 & rateLimitSeconds);
 
     qint32 getNote(const bool withContent, const bool withResourcesData,
                    const bool withResourcesRecognition, const bool withResourceAlternateData,
