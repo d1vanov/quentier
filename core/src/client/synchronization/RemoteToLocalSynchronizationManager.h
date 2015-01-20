@@ -258,7 +258,7 @@ private:
     void checkLinkedNotebooksNotebooksAndTagsSyncAndLaynchLinkedNotebookNotesSync();
 
     void launchLinkedNotebooksContentsSync();
-    void downloadLinkedNotebooksSyncChunksAndLaunchSync();
+    void downloadLinkedNotebooksSyncChunksAndLaunchSync(const qint32 afterUsn);
 
     void launchLinkedNotebooksTagsSync();
     void launchLinkedNotebooksNotebooksSync();
@@ -335,6 +335,8 @@ private:
 
     qint32                                  m_lastUsnOnStart;
     qint32                                  m_lastSyncChunksDownloadedUsn;
+    qint32                                  m_lastLinkedNotebookSyncChunksDownloadedUsn;
+
     bool                                    m_syncChunksDownloaded;
     bool                                    m_fullNoteContentsDownloaded;
     bool                                    m_linkedNotebooksSyncChunksDownloaded;
@@ -344,6 +346,7 @@ private:
     bool                                    m_requestedToStop;
 
     QVector<qevercloud::SyncChunk>          m_syncChunks;
+    QVector<qevercloud::SyncChunk>          m_linkedNotebookSyncChunks;
 
     TagsList                                m_tags;
     QHash<QUuid,Tag>                        m_tagsToAddPerRequestId;
@@ -387,6 +390,7 @@ private:
     QHash<int,Note>                         m_notesToAddPerAPICallPostponeTimerId;
     QHash<int,Note>                         m_notesToUpdatePerAPICallPostponeTimerId;
     QHash<int,qint32>                       m_afterUsnForSyncChunkPerAPICallPostponeTimerId;
+    QHash<int,qint32>                       m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId;
 };
 
 } // namespace qute_note

@@ -23,6 +23,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_lastUpdateCount(0),
     m_lastUsnOnStart(-1),
     m_lastSyncChunksDownloadedUsn(-1),
+    m_lastLinkedNotebookSyncChunksDownloadedUsn(-1),
     m_syncChunksDownloaded(false),
     m_fullNoteContentsDownloaded(false),
     m_linkedNotebooksSyncChunksDownloaded(false),
@@ -30,6 +31,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_paused(false),
     m_requestedToStop(false),
     m_syncChunks(),
+    m_linkedNotebookSyncChunks(),
     m_tags(),
     m_tagsToAddPerRequestId(),
     m_findTagByNameRequestIds(),
@@ -62,7 +64,8 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_localGuidsOfElementsAlreadyAttemptedToFindByName(),
     m_notesToAddPerAPICallPostponeTimerId(),
     m_notesToUpdatePerAPICallPostponeTimerId(),
-    m_afterUsnForSyncChunkPerAPICallPostponeTimerId()
+    m_afterUsnForSyncChunkPerAPICallPostponeTimerId(),
+    m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId()
 {}
 
 bool RemoteToLocalSynchronizationManager::active() const
@@ -92,6 +95,9 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
                       : SyncMode::IncrementalSync);
 
     m_active = true;
+
+    // TODO: see if we need to call getSyncState before downloading the sync chunks
+    // (we don't need it only if that's the first full sync ever called)
 
     downloadSyncChunksAndLaunchSync(afterUsn);
 }
@@ -142,7 +148,7 @@ void RemoteToLocalSynchronizationManager::resume()
                     launchLinkedNotebooksContentsSync();
                 }
                 else {
-                    downloadLinkedNotebooksSyncChunksAndLaunchSync();
+                    downloadLinkedNotebooksSyncChunksAndLaunchSync(m_lastUsnOnStart);
                 }
             }
             else
@@ -997,7 +1003,7 @@ void RemoteToLocalSynchronizationManager::onUpdateNoteFailed(Note note, Notebook
 void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString, QString> authenticationTokensByLinkedNotebookGuid)
 {
     m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
-    downloadLinkedNotebooksSyncChunksAndLaunchSync();
+    downloadLinkedNotebooksSyncChunksAndLaunchSync(m_lastUsnOnStart);
 }
 
 void RemoteToLocalSynchronizationManager::createConnections()
@@ -1257,7 +1263,7 @@ void RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncAndLaunchLinke
 
     if (m_updateLinkedNotebookRequestIds.empty() && m_addLinkedNotebookRequestIds.empty()) {
         // All remote linked notebooks were already updated in the local storage or added there
-        downloadLinkedNotebooksSyncChunksAndLaunchSync();
+        downloadLinkedNotebooksSyncChunksAndLaunchSync(m_lastUsnOnStart);
     }
 }
 
@@ -1274,7 +1280,7 @@ void RemoteToLocalSynchronizationManager::launchLinkedNotebooksContentsSync()
     launchLinkedNotebooksNotebooksSync();
 }
 
-void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLaunchSync()
+void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLaunchSync(const qint32 afterUsn)
 {
     const int numLinkedNotebooks = m_linkedNotebooks.size();
     if (numLinkedNotebooks == 0) {
@@ -1326,9 +1332,100 @@ void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLa
         }
     }
 
-    // Ok, all authentication tokens seem to be in place now, can proceed
+    QNDEBUG("Got authentication tokens for all linked notebooks, can proceed with "
+            "their synchronization");
 
-    // TODO: actually download the sync chunks for linked notebooks
+    qevercloud::SyncChunk * pSyncChunk = nullptr;
+
+    QNDEBUG("Downloading linked notebook sync chunks:");
+
+    bool fullSyncOnly = (m_lastSyncMode == SyncMode::FullSync);
+    for(int i = 0; i < numLinkedNotebooks; ++i)
+    {
+        const qevercloud::LinkedNotebook & linkedNotebook = m_linkedNotebooks[i];
+        if (!linkedNotebook.guid.isSet()) {
+            QString error = QT_TR_NOOP("Found linked notebook without guid set when "
+                                       "attempting to synchronize the content it points to");
+            QNWARNING(error << ": " << linkedNotebook);
+            emit failure(error);
+            return;
+        }
+
+        auto it = m_authenticationTokensByLinkedNotebookGuid.find(linkedNotebook.guid);
+        if (it == m_authenticationTokensByLinkedNotebookGuid.end()) {
+            QString error = QT_TR_NOOP("Can't find authentication token for one of linked notebooks "
+                                       "when attempting to synchronize the content it points to");
+            QNWARNING(error << ": " << linkedNotebook);
+            emit failure(error);
+            return;
+        }
+
+        const QString & authToken = it.value();
+
+        // TODO: see if we need to call getLinkedNotebookSyncState before downloading the sync chunks
+        // (we don't need it only if that's the first full sync ever called)
+
+        qint32 localAfterUsn = afterUsn;
+        while(!pSyncChunk || (pSyncChunk->chunkHighUSN < pSyncChunk->updateCount))
+        {
+            if (pSyncChunk) {
+                localAfterUsn = pSyncChunk->chunkHighUSN;
+            }
+
+            m_linkedNotebookSyncChunks.push_back(qevercloud::SyncChunk());
+            pSyncChunk = &(m_linkedNotebookSyncChunks.back());
+
+            m_lastSyncTime = std::max(pSyncChunk->currentTime, m_lastSyncTime);
+            m_lastUpdateCount = std::max(pSyncChunk->updateCount, m_lastUpdateCount);
+
+            QString errorDescription;
+            qint32 rateLimitSeconds = 0;
+            qint32 errorCode = m_noteStore.getLinkedNotebookSyncChunk(linkedNotebook, localAfterUsn,
+                                                                      m_maxSyncChunkEntries,
+                                                                      authToken, fullSyncOnly, *pSyncChunk,
+                                                                      errorDescription, rateLimitSeconds);
+            if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+            {
+                if (rateLimitSeconds <= 0) {
+                    errorDescription += QString("\n") + QT_TR_NOOP("Internal error: rate limit seconds = ");
+                    errorDescription += QString::number(rateLimitSeconds);
+                    emit failure(errorDescription);
+                    return;
+                }
+
+                m_linkedNotebookSyncChunks.pop_back();
+                int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+                m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId[timerId] = afterUsn;
+                emit rateLimitExceeded(rateLimitSeconds);
+                return;
+            }
+            else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+            {
+                // TODO: Perhaps not only auth tokens but their expiration timestamps
+                // TODO: should as well be cached in this object so that for each auth token
+                // TODO: it would be possible to verify whether the AUTH_EXPIRED error is "valid"
+                // TODO: i.e. auth token has really expired or something weird is going on
+                // TODO: Need to check that condition and either report error or re-request
+                // TODO: auth tokens for all linked notebooks
+                return;
+            }
+            else if (errorCode != 0) {
+                QString errorPrefix = QT_TR_NOOP("Can't perform synchronization, "
+                                                 "can't download the sync chunks for "
+                                                 "linked notebooks content: ");
+                errorDescription.prepend(errorPrefix);
+                emit failure(errorDescription);
+                return;
+            }
+
+            QNDEBUG("Received sync chunk: " << *pSyncChunk);
+        }
+    }
+
+    QNDEBUG("Done. Processing content pointed to by linked notebooks from buffered sync chunks");
+    m_lastLinkedNotebookSyncChunksDownloadedUsn = afterUsn;
+    m_linkedNotebooksSyncChunksDownloaded = true;
+    emit linkedNotebooksSyncChunksDownloaded();
 
     launchLinkedNotebooksContentsSync();
 }
@@ -1444,6 +1541,7 @@ void RemoteToLocalSynchronizationManager::clear()
     // this information can be reused in subsequent syncs
 
     m_lastSyncChunksDownloadedUsn = -1;
+    m_lastLinkedNotebookSyncChunksDownloadedUsn = -1;
     m_syncChunksDownloaded = false;
     m_fullNoteContentsDownloaded = false;
     m_linkedNotebooksSyncChunksDownloaded = false;
@@ -1453,6 +1551,7 @@ void RemoteToLocalSynchronizationManager::clear()
     m_requestedToStop = false;
 
     m_syncChunks.clear();
+    m_linkedNotebookSyncChunks.clear();
 
     m_tags.clear();
     m_tagsToAddPerRequestId.clear();
@@ -1538,6 +1637,7 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
         m_notesToUpdatePerAPICallPostponeTimerId.clear();
 
         m_afterUsnForSyncChunkPerAPICallPostponeTimerId.clear();
+        m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.clear();
 
         return;
     }
@@ -1593,6 +1693,17 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
         Q_UNUSED(m_afterUsnForSyncChunkPerAPICallPostponeTimerId.erase(afterUsnIt));
 
         downloadSyncChunksAndLaunchSync(afterUsn);
+        return;
+    }
+
+    auto afterUsnLinkedNotebookIt = m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.find(timerId);
+    if (afterUsnLinkedNotebookIt != m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.end())
+    {
+        qint32 afterUsn = afterUsnLinkedNotebookIt.value();
+
+        Q_UNUSED(m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.erase(afterUsnLinkedNotebookIt));
+
+        downloadLinkedNotebooksSyncChunksAndLaunchSync(afterUsn);
         return;
     }
 }
@@ -1681,7 +1792,7 @@ void RemoteToLocalSynchronizationManager::downloadSyncChunksAndLaunchSync(qint32
         if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
         {
             if (rateLimitSeconds <= 0) {
-                errorDescription += QT_TR_NOOP("\nInternal error: rate limit seconds = ");
+                errorDescription += QString("\n") + QT_TR_NOOP("Internal error: rate limit seconds = ");
                 errorDescription += QString::number(rateLimitSeconds);
                 emit failure(errorDescription);
                 return;
@@ -1699,7 +1810,7 @@ void RemoteToLocalSynchronizationManager::downloadSyncChunksAndLaunchSync(qint32
             return;
         }
         else if (errorCode != 0) {
-            QString errorPrefix = QT_TR_NOOP("Can't perform full synchronization, "
+            QString errorPrefix = QT_TR_NOOP("Can't perform synchronization, "
                                              "can't download the sync chunks: ");
             errorDescription.prepend(errorPrefix);
             emit failure(errorDescription);
