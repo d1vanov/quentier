@@ -49,6 +49,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_addLinkedNotebookRequestIds(),
     m_updateLinkedNotebookRequestIds(),
     m_authenticationTokensByLinkedNotebookGuid(),
+    m_authenticationTokenExpirationTimesByLinkedNotebookGuid(),
     m_notebooks(),
     m_notebooksToAddPerRequestId(),
     m_findNotebookByNameRequestIds(),
@@ -1000,9 +1001,12 @@ void RemoteToLocalSynchronizationManager::onUpdateNoteFailed(Note note, Notebook
     }
 }
 
-void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString, QString> authenticationTokensByLinkedNotebookGuid)
+void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString, QString> authenticationTokensByLinkedNotebookGuid,
+                                                                                           QHash<QString, qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid)
 {
     m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
+    m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
+
     downloadLinkedNotebooksSyncChunksAndLaunchSync(m_lastUsnOnStart);
 }
 
@@ -1305,31 +1309,11 @@ void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLa
             QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid
                     << " was not found; will request authentication tokens for all linked notebooks at once");
 
-            QList<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys;
-            for(int j = 0; j < numLinkedNotebooks; ++j)
-            {
-                const qevercloud::LinkedNotebook & currentLinkedNotebook = m_linkedNotebooks[j];
-
-                if (!currentLinkedNotebook.guid.isSet()) {
-                    QString error = QT_TR_NOOP("Internal error: found linked notebook without guid set");
-                    QNWARNING(error << ", linked notebook: " << currentLinkedNotebook);
-                    emit failure(error);
-                    return;
-                }
-
-                if (!currentLinkedNotebook.shareKey.isSet()) {
-                    QString error = QT_TR_NOOP("Found linked notebook without a share key");
-                    QNWARNING(error << ", linked notebook: " << currentLinkedNotebook);
-                    emit failure(error);
-                    return;
-                }
-
-                linkedNotebookGuidsAndShareKeys << QPair<QString,QString>(currentLinkedNotebook.guid, currentLinkedNotebook.shareKey);
-            }
-
-            emit requestAuthenticationTokensForLinkedNotebooks(linkedNotebookGuidsAndShareKeys);
+            requestAuthenticationTokensForAllLinkedNotebooks();
             return;
         }
+
+        // TODO: ensure the expiration time for this auth token is also present
     }
 
     QNDEBUG("Got authentication tokens for all linked notebooks, can proceed with "
@@ -1401,12 +1385,11 @@ void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLa
             }
             else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
             {
-                // TODO: Perhaps not only auth tokens but their expiration timestamps
-                // TODO: should as well be cached in this object so that for each auth token
-                // TODO: it would be possible to verify whether the AUTH_EXPIRED error is "valid"
-                // TODO: i.e. auth token has really expired or something weird is going on
-                // TODO: Need to check that condition and either report error or re-request
-                // TODO: auth tokens for all linked notebooks
+                // TODO: check the expiration time for this token and either report error
+                // TODO: about unexpected AUTH_EXPIRED error when it should not have happened
+                // TODO: or request auth tokens for all linked notebooks.
+                // TODO: maybe even request auth tokens anyway even if it shouldn't have happened
+                requestAuthenticationTokensForAllLinkedNotebooks();
                 return;
             }
             else if (errorCode != 0) {
@@ -1428,6 +1411,36 @@ void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLa
     emit linkedNotebooksSyncChunksDownloaded();
 
     launchLinkedNotebooksContentsSync();
+}
+
+void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinkedNotebooks()
+{
+    QNDEBUG("RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinkedNotebooks");
+
+    QList<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys;
+    const int numLinkedNotebooks = m_linkedNotebooks.size();
+    for(int j = 0; j < numLinkedNotebooks; ++j)
+    {
+        const qevercloud::LinkedNotebook & currentLinkedNotebook = m_linkedNotebooks[j];
+
+        if (!currentLinkedNotebook.guid.isSet()) {
+            QString error = QT_TR_NOOP("Internal error: found linked notebook without guid set");
+            QNWARNING(error << ", linked notebook: " << currentLinkedNotebook);
+            emit failure(error);
+            return;
+        }
+
+        if (!currentLinkedNotebook.shareKey.isSet()) {
+            QString error = QT_TR_NOOP("Found linked notebook without a share key");
+            QNWARNING(error << ", linked notebook: " << currentLinkedNotebook);
+            emit failure(error);
+            return;
+        }
+
+        linkedNotebookGuidsAndShareKeys << QPair<QString,QString>(currentLinkedNotebook.guid, currentLinkedNotebook.shareKey);
+    }
+
+    emit requestAuthenticationTokensForLinkedNotebooks(linkedNotebookGuidsAndShareKeys);
 }
 
 void RemoteToLocalSynchronizationManager::launchLinkedNotebooksTagsSync()

@@ -23,7 +23,8 @@ Q_SIGNALS:
     void notifyError(QString errorDescription);
 
 // private signals
-    void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString> authenticationTokensByLinkedNotebookGuids);
+    void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString> authenticationTokensByLinkedNotebookGuids,
+                                                    QHash<QString,qevercloud::Timestamp> authenticatonTokenExpirationTimesByLinkedNotebookGuids);
 
 private Q_SLOTS:
     void onOAuthResult(bool result);

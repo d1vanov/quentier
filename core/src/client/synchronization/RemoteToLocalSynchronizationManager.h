@@ -53,7 +53,8 @@ public Q_SLOTS:
     void pause();
     void resume();
 
-    void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString> authenticationTokensByLinkedNotebookGuid);
+    void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString> authenticationTokensByLinkedNotebookGuid,
+                                                          QHash<QString,qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid);
 
 // private signals
 Q_SIGNALS:
@@ -259,6 +260,7 @@ private:
 
     void launchLinkedNotebooksContentsSync();
     void downloadLinkedNotebooksSyncChunksAndLaunchSync(const qint32 afterUsn);
+    void requestAuthenticationTokensForAllLinkedNotebooks();
 
     void launchLinkedNotebooksTagsSync();
     void launchLinkedNotebooksNotebooksSync();
@@ -367,6 +369,7 @@ private:
     QSet<QUuid>                             m_addLinkedNotebookRequestIds;
     QSet<QUuid>                             m_updateLinkedNotebookRequestIds;
     QHash<QString,QString>                  m_authenticationTokensByLinkedNotebookGuid;
+    QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
 
     NotebooksList                           m_notebooks;
     QHash<QUuid,Notebook>                   m_notebooksToAddPerRequestId;

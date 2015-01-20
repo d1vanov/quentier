@@ -219,6 +219,8 @@ void SynchronizationManagerPrivate::createConnections()
                      this, SLOT(onRequestAuthenticationToken()));
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)),
                      this, SLOT(onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)));
+    QObject::connect(this, SIGNAL(sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)),
+                     &m_remoteToLocalSyncManager, SLOT(onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)));
 
     // Connections with read/write password jobs
     QObject::connect(&m_readAuthTokenJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
@@ -583,7 +585,8 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
     const int numLinkedNotebooks = m_linkedNotebookGuidsAndShareKeysWaitingForAuth.size();
     if (numLinkedNotebooks == 0) {
         QNDEBUG("No linked notebooks waiting for authentication, sending empty authentication tokens back immediately");
-        emit sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>());
+        emit sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>(),
+                                                        QHash<QString,qevercloud::Timestamp>());
         return;
     }
 
@@ -727,7 +730,9 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
 
     if (m_linkedNotebookGuidsAndShareKeysWaitingForAuth.empty()) {
         QNDEBUG("Retrieved authentication data for all requested linked notebooks, sending the answer now");
-        emit sendAuthenticationTokensForLinkedNotebooks(m_cachedLinkedNotebookAuthTokensByGuid);
+        // TODO: ensure expiration timestamps are already fetched by this point
+        emit sendAuthenticationTokensForLinkedNotebooks(m_cachedLinkedNotebookAuthTokensByGuid,
+                                                        m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid);
     }
 
     // Caching linked notebook's authentication token's expiration time in app settings
