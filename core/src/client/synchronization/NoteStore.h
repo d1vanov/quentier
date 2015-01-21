@@ -51,6 +51,10 @@ public:
                         qevercloud::SyncChunk & syncChunk, QString & errorDescription,
                         qint32 & rateLimitSeconds);
 
+    qint32 getLinkedNotebookSyncState(const qevercloud::LinkedNotebook & linkedNotebook,
+                                      const QString & authToken, qevercloud::SyncState & syncState,
+                                      QString & errorDescription, qint32 & rateLimitSeconds);
+
     qint32 getLinkedNotebookSyncChunk(const qevercloud::LinkedNotebook & linkedNotebook,
                                       const qint32 afterUSN, const qint32 maxEntries,
                                       const QString & linkedNotebookAuthToken, const bool fullSyncOnly,

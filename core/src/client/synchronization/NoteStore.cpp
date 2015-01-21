@@ -277,6 +277,46 @@ qint32 NoteStore::getSyncChunk(const qint32 afterUSN, const qint32 maxEntries,
     return qevercloud::EDAMErrorCode::UNKNOWN;
 }
 
+qint32 NoteStore::getLinkedNotebookSyncState(const qevercloud::LinkedNotebook & linkedNotebook,
+                                             const QString & authToken, qevercloud::SyncState & syncState,
+                                             QString & errorDescription, qint32 & rateLimitSeconds)
+{
+    try
+    {
+        syncState = m_pQecNoteStore->getLinkedNotebookSyncState(linkedNotebook, authToken);
+        return 0;
+    }
+    catch(const qevercloud::EDAMUserException & userException)
+    {
+        errorDescription = QT_TR_NOOP("Caught EDAM user exception, error code = ");
+        errorDescription += ToQString(userException.errorCode);
+
+        if (!userException.exceptionData().isNull()) {
+            errorDescription += ": ";
+            errorDescription += userException.exceptionData()->errorMessage;
+        }
+
+        return userException.errorCode;
+    }
+    catch(const qevercloud::EDAMNotFoundException & notFoundException)
+    {
+        errorDescription = QT_TR_NOOP("Caught EDAM not found exception, could not find "
+                                      "linked notebook to get sync state for");
+        if (!notFoundException.exceptionData().isNull()) {
+            errorDescription += ": ";
+            errorDescription += ToQString(notFoundException.exceptionData()->errorMessage);
+        }
+
+        return qevercloud::EDAMErrorCode::UNKNOWN;
+    }
+    catch(const qevercloud::EDAMSystemException & systemException)
+    {
+        return processEdamSystemException(systemException, errorDescription, rateLimitSeconds);
+    }
+
+    return qevercloud::EDAMErrorCode::UNKNOWN;
+}
+
 qint32 NoteStore::getLinkedNotebookSyncChunk(const qevercloud::LinkedNotebook & linkedNotebook,
                                              const qint32 afterUSN, const qint32 maxEntries,
                                              const QString & linkedNotebookAuthToken,
@@ -294,6 +334,31 @@ qint32 NoteStore::getLinkedNotebookSyncChunk(const qevercloud::LinkedNotebook & 
     {
         return processEdamUserExceptionForGetSyncChunk(userException, afterUSN,
                                                        maxEntries, errorDescription);
+    }
+    catch(const qevercloud::EDAMNotFoundException & notFoundException)
+    {
+        errorDescription = QT_TR_NOOP("Caught EDAM not found exception while attempting to "
+                                      "download the sync chunk for linked notebook");
+        if (!notFoundException.exceptionData().isNull())
+        {
+            errorDescription += ": ";
+            const QString & errorMessage = notFoundException.exceptionData()->errorMessage;
+            if (errorMessage == "LinkedNotebook") {
+                errorDescription += QT_TR_NOOP("the provided information doesn't match any valid notebook");
+            }
+            else if (errorMessage == "LinkedNotebook.uri") {
+                errorDescription += QT_TR_NOOP("the provided public URI doesn't match any valid notebook");
+            }
+            else if (errorMessage == "SharedNotebook.id") {
+                errorDescription += QT_TR_NOOP("the provided information indicates the shared notebook no longer exists");
+            }
+            else {
+                errorDescription += QT_TR_NOOP("unknown error: ");
+                errorDescription += errorMessage;
+            }
+        }
+
+        return qevercloud::EDAMErrorCode::UNKNOWN;
     }
     catch(const qevercloud::EDAMSystemException & systemException)
     {
