@@ -64,7 +64,8 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_notesToAddPerAPICallPostponeTimerId(),
     m_notesToUpdatePerAPICallPostponeTimerId(),
     m_afterUsnForSyncChunkPerAPICallPostponeTimerId(),
-    m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId()
+    m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId(),
+    m_getSyncStateBeforeStartAPICallPostponeTimerId(0)
 {}
 
 bool RemoteToLocalSynchronizationManager::active() const
@@ -93,9 +94,56 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
                       ? SyncMode::FullSync
                       : SyncMode::IncrementalSync);
 
-    if (m_onceSyncDone)
+    if (m_onceSyncDone || (afterUsn != 0))
     {
-        // TODO: call getSyncState on NoteStore, check update count and fullSyncBefore
+        QString errorDescription;
+        qint32 rateLimitSeconds = 0;
+        qevercloud::SyncState state;
+        qint32 errorCode = m_noteStore.getSyncState(state, errorDescription, rateLimitSeconds);
+        if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+        {
+            if (rateLimitSeconds < 0) {
+                errorDescription = QT_TR_NOOP("Caught RATE_LIMIT_REACHED exception but "
+                                              "the number of seconds to wait is negative: ");
+                errorDescription += QString::number(rateLimitSeconds);
+                emit failure(errorDescription);
+                return;
+            }
+
+            m_getSyncStateBeforeStartAPICallPostponeTimerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+            return;
+        }
+        else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+        {
+            emit requestAuthenticationToken();
+            return;
+        }
+        else if (errorCode != 0)
+        {
+            emit failure(errorDescription);
+            return;
+        }
+
+        if (state.fullSyncBefore > m_lastSyncTime)
+        {
+            QNDEBUG("Sync state says the time has come to do the full sync");
+            afterUsn = 0;
+            m_lastSyncMode = SyncMode::FullSync;
+        }
+        else if (state.updateCount == m_lastUpdateCount)
+        {
+            QNDEBUG("Server has no updates for user's data since the last sync");
+            if (m_linkedNotebooks.size() == 0) {
+                finalize();
+            }
+            else {
+                QNDEBUG("There are several linked notebooks in the user's account, "
+                        "will check whether any of them needs to be updated");
+                downloadLinkedNotebooksSyncChunksAndLaunchSync(afterUsn);
+            }
+
+            return;
+        }
     }
 
     m_active = true;
@@ -1625,6 +1673,25 @@ void RemoteToLocalSynchronizationManager::clear()
         killTimer(key);
     }
     m_notesToUpdatePerAPICallPostponeTimerId.clear();
+
+    auto afterUsnForSyncChunkPerAPICallPostponeTimerIdEnd = m_afterUsnForSyncChunkPerAPICallPostponeTimerId.end();
+    for(auto it = m_afterUsnForSyncChunkPerAPICallPostponeTimerId.begin(); it != afterUsnForSyncChunkPerAPICallPostponeTimerIdEnd; ++it) {
+        int key = it.key();
+        killTimer(key);
+    }
+    m_afterUsnForSyncChunkPerAPICallPostponeTimerId.clear();
+
+    auto afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerIdEnd = m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.end();
+    for(auto it = m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.begin(); it != afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerIdEnd; ++it) {
+        int key = it.key();
+        killTimer(key);
+    }
+    m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.clear();
+
+    if (m_getSyncStateBeforeStartAPICallPostponeTimerId != 0) {
+        killTimer(m_getSyncStateBeforeStartAPICallPostponeTimerId);
+        m_getSyncStateBeforeStartAPICallPostponeTimerId = 0;
+    }
 }
 
 void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
@@ -1735,6 +1802,12 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
         Q_UNUSED(m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.erase(afterUsnLinkedNotebookIt));
 
         downloadLinkedNotebooksSyncChunksAndLaunchSync(afterUsn);
+        return;
+    }
+
+    if (m_getSyncStateBeforeStartAPICallPostponeTimerId == timerId) {
+        m_getSyncStateBeforeStartAPICallPostponeTimerId = 0;
+        start(m_lastUsnOnStart);
         return;
     }
 }

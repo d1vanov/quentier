@@ -396,6 +396,7 @@ private:
     QHash<int,Note>                         m_notesToUpdatePerAPICallPostponeTimerId;
     QHash<int,qint32>                       m_afterUsnForSyncChunkPerAPICallPostponeTimerId;
     QHash<int,qint32>                       m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId;
+    int                                     m_getSyncStateBeforeStartAPICallPostponeTimerId;
 };
 
 } // namespace qute_note
