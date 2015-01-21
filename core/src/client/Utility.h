@@ -5,6 +5,9 @@
 #include <QString>
 #include <cstdint>
 
+#define SEC_TO_MSEC(sec) (sec * 100)
+#define SIX_HOURS_IN_MSEC 2160000
+
 namespace qute_note {
 
 template <class T>

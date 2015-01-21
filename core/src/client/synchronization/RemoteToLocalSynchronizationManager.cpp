@@ -1,12 +1,9 @@
 #include "RemoteToLocalSynchronizationManager.h"
+#include <client/Utility.h>
 #include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
-#include <QWaitCondition>
-#include <QMutex>
 #include <algorithm>
-
-#define SEC_TO_MSEC(sec) (sec * 100)
 
 namespace qute_note {
 
@@ -21,6 +18,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_lastSyncMode(SyncMode::FullSync),
     m_lastSyncTime(0),
     m_lastUpdateCount(0),
+    m_onceSyncDone(false),
     m_lastUsnOnStart(-1),
     m_lastSyncChunksDownloadedUsn(-1),
     m_lastLinkedNotebookSyncChunksDownloadedUsn(-1),
@@ -95,11 +93,12 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
                       ? SyncMode::FullSync
                       : SyncMode::IncrementalSync);
 
+    if (m_onceSyncDone)
+    {
+        // TODO: call getSyncState on NoteStore, check update count and fullSyncBefore
+    }
+
     m_active = true;
-
-    // TODO: see if we need to call getSyncState before downloading the sync chunks
-    // (we don't need it only if that's the first full sync ever called)
-
     downloadSyncChunksAndLaunchSync(afterUsn);
 }
 
@@ -1304,8 +1303,7 @@ void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLa
             return;
         }
 
-        if (!m_authenticationTokensByLinkedNotebookGuid.contains(linkedNotebook.guid))
-        {
+        if (!m_authenticationTokensByLinkedNotebookGuid.contains(linkedNotebook.guid)) {
             QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid
                     << " was not found; will request authentication tokens for all linked notebooks at once");
 
@@ -1313,7 +1311,25 @@ void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLa
             return;
         }
 
-        // TODO: ensure the expiration time for this auth token is also present
+        auto it = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(linkedNotebook.guid);
+        if (it == m_authenticationTokenExpirationTimesByLinkedNotebookGuid.end()) {
+            QString error = QT_TR_NOOP("Internal inconsistency detected: can't find cached "
+                                       "expiration time of linked notebook's authentication token");
+            QNWARNING(error << ", linked notebook: " << linkedNotebook);
+            emit failure(error);
+        }
+
+        const qevercloud::Timestamp & expirationTime = it.value();
+        const qevercloud::Timestamp currentTime = QDateTime::currentMSecsSinceEpoch();
+        if (currentTime - expirationTime < SIX_HOURS_IN_MSEC) {
+            QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid
+                    << " is too close to expiration: its expiration time is " << PrintableDateTimeFromTimestamp(expirationTime)
+                    << ", current time is " << PrintableDateTimeFromTimestamp(currentTime)
+                    << "; will request new authentication tokens for all linked notebooks");
+
+            requestAuthenticationTokensForAllLinkedNotebooks();
+            return;
+        }
     }
 
     QNDEBUG("Got authentication tokens for all linked notebooks, can proceed with "
@@ -1346,8 +1362,10 @@ void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLa
 
         const QString & authToken = it.value();
 
-        // TODO: see if we need to call getLinkedNotebookSyncState before downloading the sync chunks
-        // (we don't need it only if that's the first full sync ever called)
+        if (m_onceSyncDone)
+        {
+            // TODO: call getLinkedNotebookSyncState on NoteStore, check updateCount and fullSyncBefore
+        }
 
         qint32 localAfterUsn = afterUsn;
         while(!pSyncChunk || (pSyncChunk->chunkHighUSN < pSyncChunk->updateCount))
@@ -1385,11 +1403,10 @@ void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLa
             }
             else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
             {
-                // TODO: check the expiration time for this token and either report error
-                // TODO: about unexpected AUTH_EXPIRED error when it should not have happened
-                // TODO: or request auth tokens for all linked notebooks.
-                // TODO: maybe even request auth tokens anyway even if it shouldn't have happened
-                requestAuthenticationTokensForAllLinkedNotebooks();
+                QString errorPrefix = QT_TR_NOOP("Unexpected AUTH_EXPIRED error when trying to download "
+                                                 "the linked notebook sync chunks: ");
+                errorDescription.prepend(errorPrefix);
+                emit failure(errorDescription);
                 return;
             }
             else if (errorCode != 0) {
@@ -1541,6 +1558,7 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
 
 void RemoteToLocalSynchronizationManager::finalize()
 {
+    m_onceSyncDone = true;
     emit finished(m_lastUpdateCount, m_lastSyncTime);
     clear();
     disconnectFromLocalStorage();

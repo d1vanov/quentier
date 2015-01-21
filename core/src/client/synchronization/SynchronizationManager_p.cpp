@@ -1,6 +1,6 @@
 #include "SynchronizationManager_p.h"
-#include "../Utility.h"
 #include <keychain.h>
+#include <client/Utility.h>
 #include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <logging/QuteNoteLogger.h>
 #include <tools/ApplicationSettings.h>
@@ -17,8 +17,6 @@
 #define NOTE_STORE_URL_KEY "NoteStoreUrl"
 #define USER_ID_KEY "UserId"
 #define WEB_API_URL_PREFIX_KEY "WebApiUrlPrefix"
-#define SEC_TO_MSEC(sec) (sec * 100)
-#define SIX_HOURS_IN_MSEC 2160000
 
 namespace qute_note {
 

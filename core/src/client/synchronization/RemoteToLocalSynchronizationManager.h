@@ -335,6 +335,8 @@ private:
     qevercloud::Timestamp                   m_lastSyncTime;
     qint32                                  m_lastUpdateCount;
 
+    bool                                    m_onceSyncDone;
+
     qint32                                  m_lastUsnOnStart;
     qint32                                  m_lastSyncChunksDownloadedUsn;
     qint32                                  m_lastLinkedNotebookSyncChunksDownloadedUsn;
