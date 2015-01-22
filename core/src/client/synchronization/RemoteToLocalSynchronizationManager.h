@@ -149,8 +149,20 @@ private:
     void launchLinkedNotebookSync();
     void launchNotebookSync();
 
+    struct ContentSource
+    {
+        enum type
+        {
+            UserAccount,
+            LinkedNotebook
+        };
+    };
+
+    friend QTextStream & operator<<(QTextStream & strm, const ContentSource::type & obj);
+
     template <class ContainerType, class LocalType>
-    void launchDataElementSync(const QString & typeName, ContainerType & container);
+    void launchDataElementSync(const ContentSource::type contentSource,
+                               const QString & typeName, ContainerType & container);
 
     template <class ElementType>
     void setConflicted(const QString & typeName, ElementType & element);
@@ -259,7 +271,7 @@ private:
     void checkLinkedNotebooksNotebooksAndTagsSyncAndLaynchLinkedNotebookNotesSync();
 
     void launchLinkedNotebooksContentsSync();
-    void downloadLinkedNotebooksSyncChunksAndLaunchSync(const qint32 afterUsn);
+    void startLinkedNotebooksSync(const qint32 afterUsn);
     void requestAuthenticationTokensForAllLinkedNotebooks();
 
     void launchLinkedNotebooksTagsSync();

@@ -139,7 +139,7 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
             else {
                 QNDEBUG("There are several linked notebooks in the user's account, "
                         "will check whether any of them needs to be updated");
-                downloadLinkedNotebooksSyncChunksAndLaunchSync(afterUsn);
+                startLinkedNotebooksSync(afterUsn);
             }
 
             return;
@@ -196,7 +196,7 @@ void RemoteToLocalSynchronizationManager::resume()
                     launchLinkedNotebooksContentsSync();
                 }
                 else {
-                    downloadLinkedNotebooksSyncChunksAndLaunchSync(m_lastUsnOnStart);
+                    startLinkedNotebooksSync(m_lastUsnOnStart);
                 }
             }
             else
@@ -1054,7 +1054,7 @@ void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNoteboo
     m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
 
-    downloadLinkedNotebooksSyncChunksAndLaunchSync(m_lastUsnOnStart);
+    startLinkedNotebooksSync(m_lastUsnOnStart);
 }
 
 void RemoteToLocalSynchronizationManager::createConnections()
@@ -1270,25 +1270,46 @@ void RemoteToLocalSynchronizationManager::launchSync()
 void RemoteToLocalSynchronizationManager::launchTagsSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchTagsSync");
-    launchDataElementSync<TagsList, Tag>("Tag", m_tags);
+    launchDataElementSync<TagsList, Tag>(ContentSource::UserAccount, "Tag", m_tags);
 }
 
 void RemoteToLocalSynchronizationManager::launchSavedSearchSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchSavedSearchSync");
-    launchDataElementSync<SavedSearchesList, SavedSearch>("Saved search", m_savedSearches);
+    launchDataElementSync<SavedSearchesList, SavedSearch>(ContentSource::UserAccount,
+                                                          "Saved search", m_savedSearches);
 }
 
 void RemoteToLocalSynchronizationManager::launchLinkedNotebookSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebookSync");
-    launchDataElementSync<LinkedNotebooksList, LinkedNotebook>("Linked notebook", m_linkedNotebooks);
+    launchDataElementSync<LinkedNotebooksList, LinkedNotebook>(ContentSource::UserAccount,
+                                                               "Linked notebook", m_linkedNotebooks);
 }
 
 void RemoteToLocalSynchronizationManager::launchNotebookSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchNotebookSync");
-    launchDataElementSync<NotebooksList, Notebook>("Notebook", m_notebooks);
+    launchDataElementSync<NotebooksList, Notebook>(ContentSource::UserAccount,
+                                                   "Notebook", m_notebooks);
+}
+
+QTextStream & operator<<(QTextStream & strm, const RemoteToLocalSynchronizationManager::ContentSource::type & obj)
+{
+    switch(obj)
+    {
+    case RemoteToLocalSynchronizationManager::ContentSource::UserAccount:
+        strm << "UserAccount";
+        break;
+    case RemoteToLocalSynchronizationManager::ContentSource::LinkedNotebook:
+        strm << "LinkedNotebook";
+        break;
+    default:
+        strm << "Unknown";
+        break;
+    }
+
+    return strm;
 }
 
 void RemoteToLocalSynchronizationManager::checkNotebooksAndTagsSyncAndLaunchNotesSync()
@@ -1305,7 +1326,7 @@ void RemoteToLocalSynchronizationManager::checkNotebooksAndTagsSyncAndLaunchNote
 
 void RemoteToLocalSynchronizationManager::launchNotesSync()
 {
-    launchDataElementSync<NotesList, Note>("Note", m_notes);
+    launchDataElementSync<NotesList, Note>(ContentSource::UserAccount, "Note", m_notes);
 }
 
 void RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncAndLaunchLinkedNotebookContentSync()
@@ -1314,7 +1335,7 @@ void RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncAndLaunchLinke
 
     if (m_updateLinkedNotebookRequestIds.empty() && m_addLinkedNotebookRequestIds.empty()) {
         // All remote linked notebooks were already updated in the local storage or added there
-        downloadLinkedNotebooksSyncChunksAndLaunchSync(m_lastUsnOnStart);
+        startLinkedNotebooksSync(m_lastUsnOnStart);
     }
 }
 
@@ -1331,7 +1352,7 @@ void RemoteToLocalSynchronizationManager::launchLinkedNotebooksContentsSync()
     launchLinkedNotebooksNotebooksSync();
 }
 
-void RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunksAndLaunchSync(const qint32 afterUsn)
+void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync(const qint32 afterUsn)
 {
     const int numLinkedNotebooks = m_linkedNotebooks.size();
     if (numLinkedNotebooks == 0) {
@@ -1801,7 +1822,7 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
 
         Q_UNUSED(m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.erase(afterUsnLinkedNotebookIt));
 
-        downloadLinkedNotebooksSyncChunksAndLaunchSync(afterUsn);
+        startLinkedNotebooksSync(afterUsn);
         return;
     }
 
@@ -2277,13 +2298,16 @@ bool RemoteToLocalSynchronizationManager::CompareItemByGuid<T>::operator()(const
 }
 
 template <class ContainerType, class ElementType>
-void RemoteToLocalSynchronizationManager::launchDataElementSync(const QString & typeName,
+void RemoteToLocalSynchronizationManager::launchDataElementSync(const ContentSource::type contentSource, const QString & typeName,
                                                                 ContainerType & container)
 {
+    const auto & syncChunks = (contentSource == ContentSource::UserAccount
+                               ? m_syncChunks : m_linkedNotebookSyncChunks);
+
     container.clear();
-    int numSyncChunks = m_syncChunks.size();
+    int numSyncChunks = syncChunks.size();
     for(int i = 0; i < numSyncChunks; ++i) {
-        const qevercloud::SyncChunk & syncChunk = m_syncChunks[i];
+        const qevercloud::SyncChunk & syncChunk = syncChunks[i];
         appendDataElementsFromSyncChunkToContainer<ContainerType>(syncChunk, container);
     }
 
