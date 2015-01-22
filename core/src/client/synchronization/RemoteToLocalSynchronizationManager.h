@@ -178,7 +178,7 @@ private:
 
     template <class ContainerType>
     void appendDataElementsFromSyncChunkToContainer(const qevercloud::SyncChunk & syncChunk,
-                                                    ContainerType & container);
+                                                    const int syncChunkIndex, ContainerType & container);
 
     // ========= Find by guid helpers ===========
 
@@ -363,6 +363,8 @@ private:
 
     QVector<qevercloud::SyncChunk>          m_syncChunks;
     QVector<qevercloud::SyncChunk>          m_linkedNotebookSyncChunks;
+    QHash<int,QString>                      m_linkedNotebookGuidsBySyncChunkIndex;
+    QSet<QString>                           m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded;
 
     TagsList                                m_tags;
     QHash<QUuid,Tag>                        m_tagsToAddPerRequestId;
