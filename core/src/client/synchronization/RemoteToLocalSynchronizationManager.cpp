@@ -38,6 +38,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_findTagByGuidRequestIds(),
     m_addTagRequestIds(),
     m_updateTagRequestIds(),
+    m_linkedNotebookGuidsByTagGuids(),
     m_savedSearches(),
     m_savedSearchesToAddPerRequestId(),
     m_findSavedSearchByNameRequestIds(),
@@ -56,6 +57,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_findNotebookByGuidRequestIds(),
     m_addNotebookRequestIds(),
     m_updateNotebookRequestIds(),
+    m_linkedNotebookGuidsByNotebookGuids(),
     m_notes(),
     m_findNoteByGuidRequestIds(),
     m_addNoteRequestIds(),
@@ -1688,6 +1690,7 @@ void RemoteToLocalSynchronizationManager::clear()
     m_findTagByGuidRequestIds.clear();
     m_addTagRequestIds.clear();
     m_updateTagRequestIds.clear();
+    m_linkedNotebookGuidsByTagGuids.clear();
 
     m_savedSearches.clear();
     m_savedSearchesToAddPerRequestId.clear();
@@ -1707,6 +1710,7 @@ void RemoteToLocalSynchronizationManager::clear()
     m_findNotebookByGuidRequestIds.clear();
     m_addNotebookRequestIds.clear();
     m_updateNotebookRequestIds.clear();
+    m_linkedNotebookGuidsByNotebookGuids.clear();
 
     m_localGuidsOfElementsAlreadyAttemptedToFindByName.clear();
 
@@ -2028,15 +2032,15 @@ QTextStream & operator<<(QTextStream & strm, const RemoteToLocalSynchronizationM
     return strm;
 }
 
-#define GET_LINKED_NOTEBOOK_GUID_FROM_SYNC_CHUNK_INDEX() \
+#define GET_LINKED_NOTEBOOK_GUID_FROM_MAPPING_INDEX() \
     QString linkedNotebookGuid; \
-    if (syncChunkIndex >= 0) \
+    if (indexForLinkedNotebookMapping >= 0) \
     { \
-        auto linkedNotebookGuidIt = m_linkedNotebookGuidsBySyncChunkIndex.find(syncChunkIndex); \
+        auto linkedNotebookGuidIt = m_linkedNotebookGuidsBySyncChunkIndex.find(indexForLinkedNotebookMapping); \
         if (linkedNotebookGuidIt == m_linkedNotebookGuidsBySyncChunkIndex.end()) { \
             QString errorDescription = QT_TR_NOOP("Internal inconsistency detected: can't find linked notebook guid " \
                                                   "by the index of linked notebook's sync chunk"); \
-            QNWARNING(errorDescription << ", sync chunk index = " << syncChunkIndex); \
+            QNWARNING(errorDescription << ", sync chink index for linked notebook mapping = " << indexForLinkedNotebookMapping); \
             emit failure(errorDescription); \
             return; \
         } \
@@ -2045,17 +2049,32 @@ QTextStream & operator<<(QTextStream & strm, const RemoteToLocalSynchronizationM
     }
 
 template <>
-void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToContainer<RemoteToLocalSynchronizationManager::TagsList>(const qevercloud::SyncChunk & syncChunk, const int syncChunkIndex,
+void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToContainer<RemoteToLocalSynchronizationManager::TagsList>(const qevercloud::SyncChunk & syncChunk, const int indexForLinkedNotebookMapping,
                                                                                                                                     RemoteToLocalSynchronizationManager::TagsList & container)
 {
-    GET_LINKED_NOTEBOOK_GUID_FROM_SYNC_CHUNK_INDEX();
+    GET_LINKED_NOTEBOOK_GUID_FROM_MAPPING_INDEX();
 
-    // FIXME: remove that when proper implementation settles
-    Q_UNUSED(linkedNotebookGuid);
+    if (syncChunk.tags.isSet())
+    {
+        const auto & tags = syncChunk.tags.ref();
+        container.append(tags);
 
-    if (syncChunk.tags.isSet()) {
-        container.append(syncChunk.tags.ref());
-        // TODO: need to add linked notebook guid as well to create a well-established mapping
+        if (indexForLinkedNotebookMapping >= 0)
+        {
+            const int numTagsInSyncChunk = tags.size();
+            for(int i = 0; i < numTagsInSyncChunk; ++i)
+            {
+                const qevercloud::Tag & tag = tags[i];
+                if (!tag.guid.isSet()) {
+                    QString error = QT_TR_NOOP("Error during sync: found tag from sync chunk without guid set");
+                    QNWARNING(error << ", tag: " << tag);
+                    emit failure(error);
+                    return;
+                }
+
+                m_linkedNotebookGuidsByTagGuids[tag.guid.ref()] = linkedNotebookGuid;
+            }
+        }
     }
 
     if (syncChunk.expungedTags.isSet())
@@ -2064,10 +2083,33 @@ void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToConta
         const auto expungedTagsEnd = expungedTags.end();
         for(auto eit = expungedTags.begin(); eit != expungedTagsEnd; ++eit)
         {
+            const QString & tagGuid = *eit;
+            if (tagGuid.isEmpty()) {
+                QString error = QT_TR_NOOP("Error during sync: found empty expunged tag guid in the sync chunk");
+                QNWARNING(error);
+                emit failure(error);
+                return;
+            }
+
             TagsList::iterator it = std::find_if(container.begin(), container.end(),
-                                                 CompareItemByGuid<qevercloud::Tag>(*eit));
-            if (it != container.end()) {
-                Q_UNUSED(container.erase(it));
+                                                 CompareItemByGuid<qevercloud::Tag>(tagGuid));
+            if (it == container.end()) {
+                continue;
+            }
+
+            Q_UNUSED(container.erase(it));
+
+            if (indexForLinkedNotebookMapping >= 0)
+            {
+                auto linkedNotebookGuidsByTagGuidsIt = m_linkedNotebookGuidsByTagGuids.find(tagGuid);
+                if (linkedNotebookGuidsByTagGuidsIt == m_linkedNotebookGuidsByTagGuids.end()) {
+                    QString error = QT_TR_NOOP("Internal error: can't find linked notebook guid corresponding to tag");
+                    QNWARNING(error << ", tag guid " << tagGuid);
+                    emit failure(error);
+                    return;
+                }
+
+                Q_UNUSED(m_linkedNotebookGuidsByTagGuids.erase(linkedNotebookGuidsByTagGuidsIt));
             }
         }
     }
@@ -2075,10 +2117,10 @@ void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToConta
 
 template <>
 void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToContainer<RemoteToLocalSynchronizationManager::SavedSearchesList>(const qevercloud::SyncChunk & syncChunk,
-                                                                                                                                             const int syncChunkIndex,
+                                                                                                                                             const int indexForLinkedNotebookMapping,
                                                                                                                                              RemoteToLocalSynchronizationManager::SavedSearchesList & container)
 {
-    Q_UNUSED(syncChunkIndex);
+    Q_UNUSED(indexForLinkedNotebookMapping);
 
     if (syncChunk.searches.isSet()) {
         container.append(syncChunk.searches.ref());
@@ -2101,10 +2143,10 @@ void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToConta
 
 template <>
 void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToContainer<RemoteToLocalSynchronizationManager::LinkedNotebooksList>(const qevercloud::SyncChunk & syncChunk,
-                                                                                                                                               const int syncChunkIndex,
+                                                                                                                                               const int indexForLinkedNotebookMapping,
                                                                                                                                                RemoteToLocalSynchronizationManager::LinkedNotebooksList & container)
 {
-    Q_UNUSED(syncChunkIndex);
+    Q_UNUSED(indexForLinkedNotebookMapping);
 
     if (syncChunk.linkedNotebooks.isSet()) {
         container.append(syncChunk.linkedNotebooks.ref());
@@ -2127,10 +2169,10 @@ void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToConta
 
 template <>
 void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToContainer<RemoteToLocalSynchronizationManager::NotebooksList>(const qevercloud::SyncChunk & syncChunk,
-                                                                                                                                         const int syncChunkIndex,
+                                                                                                                                         const int indexForLinkedNotebookMapping,
                                                                                                                                          RemoteToLocalSynchronizationManager::NotebooksList & container)
 {
-    GET_LINKED_NOTEBOOK_GUID_FROM_SYNC_CHUNK_INDEX();
+    GET_LINKED_NOTEBOOK_GUID_FROM_MAPPING_INDEX();
 
     // FIXME: remove that when proper implementation settles
     Q_UNUSED(linkedNotebookGuid);
@@ -2157,10 +2199,10 @@ void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToConta
 
 template <>
 void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToContainer<RemoteToLocalSynchronizationManager::NotesList>(const qevercloud::SyncChunk & syncChunk,
-                                                                                                                                     const int syncChunkIndex,
+                                                                                                                                     const int indexForLinkedNotebookMapping,
                                                                                                                                      RemoteToLocalSynchronizationManager::NotesList & container)
 {
-    Q_UNUSED(syncChunkIndex);
+    Q_UNUSED(indexForLinkedNotebookMapping);
 
     if (syncChunk.notes.isSet()) {
         container.append(syncChunk.notes.ref());
@@ -2377,8 +2419,8 @@ void RemoteToLocalSynchronizationManager::launchDataElementSync(const ContentSou
     {
         const qevercloud::SyncChunk & syncChunk = syncChunks[i];
 
-        int index = (syncingUserAccountData ? -1 : 0);
-        appendDataElementsFromSyncChunkToContainer<ContainerType>(syncChunk, index, container);
+        int indexForLinkedNotebookMapping = (syncingUserAccountData ? -1 : i);
+        appendDataElementsFromSyncChunkToContainer<ContainerType>(syncChunk, indexForLinkedNotebookMapping, container);
     }
 
     if (container.empty()) {

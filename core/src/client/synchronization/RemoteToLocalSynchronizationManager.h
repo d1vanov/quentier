@@ -178,7 +178,8 @@ private:
 
     template <class ContainerType>
     void appendDataElementsFromSyncChunkToContainer(const qevercloud::SyncChunk & syncChunk,
-                                                    const int syncChunkIndex, ContainerType & container);
+                                                    const int indexForLinkedNotebookMapping,
+                                                    ContainerType & container);
 
     // ========= Find by guid helpers ===========
 
@@ -372,6 +373,7 @@ private:
     QSet<QUuid>                             m_findTagByGuidRequestIds;
     QSet<QUuid>                             m_addTagRequestIds;
     QSet<QUuid>                             m_updateTagRequestIds;
+    QHash<QString,QString>                  m_linkedNotebookGuidsByTagGuids;
 
     SavedSearchesList                       m_savedSearches;
     QHash<QUuid,SavedSearch>                m_savedSearchesToAddPerRequestId;
@@ -393,6 +395,7 @@ private:
     QSet<QUuid>                             m_findNotebookByGuidRequestIds;
     QSet<QUuid>                             m_addNotebookRequestIds;
     QSet<QUuid>                             m_updateNotebookRequestIds;
+    QHash<QString,QString>                  m_linkedNotebookGuidsByNotebookGuids;
 
     NotesList                               m_notes;
     QSet<QUuid>                             m_findNoteByGuidRequestIds;
