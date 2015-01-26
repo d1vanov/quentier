@@ -177,8 +177,14 @@ private:
                                                                 ElementType & localElement);
 
     template <class ContainerType>
+    bool mapContainerElementsWithLinkedNotebookGuid(const QString & linkedNotebookGuid,
+                                                    const ContainerType & container);
+
+    template <class ElementType>
+    void unmapContainerElementsFromLinkedNotebookGuid(const QList<QString> & guids);
+
+    template <class ContainerType>
     void appendDataElementsFromSyncChunkToContainer(const qevercloud::SyncChunk & syncChunk,
-                                                    const int indexForLinkedNotebookMapping,
                                                     ContainerType & container);
 
     // ========= Find by guid helpers ===========
@@ -364,7 +370,6 @@ private:
 
     QVector<qevercloud::SyncChunk>          m_syncChunks;
     QVector<qevercloud::SyncChunk>          m_linkedNotebookSyncChunks;
-    QHash<int,QString>                      m_linkedNotebookGuidsBySyncChunkIndex;
     QSet<QString>                           m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded;
 
     TagsList                                m_tags;
