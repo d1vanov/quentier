@@ -278,7 +278,7 @@ private:
     void checkLinkedNotebooksNotebooksAndTagsSyncAndLaynchLinkedNotebookNotesSync();
 
     void launchLinkedNotebooksContentsSync();
-    void startLinkedNotebooksSync(const qint32 afterUsn);
+    void startLinkedNotebooksSync();
     void requestAuthenticationTokensForAllLinkedNotebooks();
 
     void launchLinkedNotebooksTagsSync();
@@ -358,7 +358,6 @@ private:
 
     qint32                                  m_lastUsnOnStart;
     qint32                                  m_lastSyncChunksDownloadedUsn;
-    qint32                                  m_lastLinkedNotebookSyncChunksDownloadedUsn;
 
     bool                                    m_syncChunksDownloaded;
     bool                                    m_fullNoteContentsDownloaded;
@@ -393,6 +392,10 @@ private:
     QSet<QUuid>                             m_updateLinkedNotebookRequestIds;
     QHash<QString,QString>                  m_authenticationTokensByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
+    QHash<QString,qevercloud::SyncState>    m_syncStatesByLinkedNotebookGuid;
+    QHash<QString,qint32>                   m_lastSynchronizedUsnByLinkedNotebookGuid;
+    QHash<QString,qevercloud::Timestamp>    m_lastSyncTimeByLinkedNotebookGuid;
+    QHash<QString,qint32>                   m_lastUpdateCountByLinkedNotebookGuid;
 
     NotebooksList                           m_notebooks;
     QHash<QUuid,Notebook>                   m_notebooksToAddPerRequestId;
@@ -417,7 +420,8 @@ private:
     QHash<int,Note>                         m_notesToAddPerAPICallPostponeTimerId;
     QHash<int,Note>                         m_notesToUpdatePerAPICallPostponeTimerId;
     QHash<int,qint32>                       m_afterUsnForSyncChunkPerAPICallPostponeTimerId;
-    QHash<int,qint32>                       m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId;
+    int                                     m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId;
+    int                                     m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId;
     int                                     m_getSyncStateBeforeStartAPICallPostponeTimerId;
 };
 

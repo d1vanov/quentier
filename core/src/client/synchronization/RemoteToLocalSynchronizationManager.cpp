@@ -21,7 +21,6 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_onceSyncDone(false),
     m_lastUsnOnStart(-1),
     m_lastSyncChunksDownloadedUsn(-1),
-    m_lastLinkedNotebookSyncChunksDownloadedUsn(-1),
     m_syncChunksDownloaded(false),
     m_fullNoteContentsDownloaded(false),
     m_linkedNotebooksSyncChunksDownloaded(false),
@@ -50,6 +49,10 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_updateLinkedNotebookRequestIds(),
     m_authenticationTokensByLinkedNotebookGuid(),
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid(),
+    m_syncStatesByLinkedNotebookGuid(),
+    m_lastSynchronizedUsnByLinkedNotebookGuid(),
+    m_lastSyncTimeByLinkedNotebookGuid(),
+    m_lastUpdateCountByLinkedNotebookGuid(),
     m_notebooks(),
     m_notebooksToAddPerRequestId(),
     m_findNotebookByNameRequestIds(),
@@ -67,7 +70,8 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_notesToAddPerAPICallPostponeTimerId(),
     m_notesToUpdatePerAPICallPostponeTimerId(),
     m_afterUsnForSyncChunkPerAPICallPostponeTimerId(),
-    m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId(),
+    m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId(),
+    m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId(),
     m_getSyncStateBeforeStartAPICallPostponeTimerId(0)
 {}
 
@@ -142,7 +146,7 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
             else {
                 QNDEBUG("There are several linked notebooks in the user's account, "
                         "will check whether any of them needs to be updated");
-                startLinkedNotebooksSync(afterUsn);
+                startLinkedNotebooksSync();
             }
 
             return;
@@ -199,7 +203,7 @@ void RemoteToLocalSynchronizationManager::resume()
                     launchLinkedNotebooksContentsSync();
                 }
                 else {
-                    startLinkedNotebooksSync(m_lastUsnOnStart);
+                    startLinkedNotebooksSync();
                 }
             }
             else
@@ -1057,7 +1061,7 @@ void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNoteboo
     m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
 
-    startLinkedNotebooksSync(m_lastUsnOnStart);
+    startLinkedNotebooksSync();
 }
 
 void RemoteToLocalSynchronizationManager::createConnections()
@@ -1338,7 +1342,7 @@ void RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncAndLaunchLinke
 
     if (m_updateLinkedNotebookRequestIds.empty() && m_addLinkedNotebookRequestIds.empty()) {
         // All remote linked notebooks were already updated in the local storage or added there
-        startLinkedNotebooksSync(m_lastUsnOnStart);
+        startLinkedNotebooksSync();
     }
 }
 
@@ -1433,7 +1437,7 @@ void RemoteToLocalSynchronizationManager::unmapContainerElementsFromLinkedNotebo
     }
 }
 
-void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync(const qint32 afterUsn)
+void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync()
 {
     const int numLinkedNotebooks = m_linkedNotebooks.size();
     if (numLinkedNotebooks == 0) {
@@ -1485,11 +1489,11 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync(const qint32 
     QNDEBUG("Got authentication tokens for all linked notebooks, can proceed with "
             "their synchronization");
 
+    // TODO: make sure by this moment the attempt to retrieve last synchronized usns per linked notebook from persistent storage was done
+
     qevercloud::SyncChunk * pSyncChunk = nullptr;
 
     QNDEBUG("Downloading linked notebook sync chunks:");
-
-    bool fullSyncOnly = (m_lastSyncMode == SyncMode::FullSync);
 
     for(int i = 0; i < numLinkedNotebooks; ++i)
     {
@@ -1503,6 +1507,26 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync(const qint32 
         }
 
         const QString & linkedNotebookGuid = linkedNotebook.guid.ref();
+
+        bool fullSyncOnly = false;
+        auto lastSynchronizedUsnIt = m_lastSynchronizedUsnByLinkedNotebookGuid.find(linkedNotebookGuid);
+        if (lastSynchronizedUsnIt == m_lastSynchronizedUsnByLinkedNotebookGuid.end()) {
+            lastSynchronizedUsnIt = m_lastSynchronizedUsnByLinkedNotebookGuid.insert(linkedNotebookGuid, 0);
+            fullSyncOnly = true;
+        }
+        qint32 afterUsn = lastSynchronizedUsnIt.value();
+
+        auto lastSyncTimeIt = m_lastSyncTimeByLinkedNotebookGuid.find(linkedNotebookGuid);
+        if (lastSyncTimeIt == m_lastSyncTimeByLinkedNotebookGuid.end()) {
+            lastSyncTimeIt = m_lastSyncTimeByLinkedNotebookGuid.insert(linkedNotebookGuid, 0);
+        }
+        qevercloud::Timestamp lastSyncTime = lastSyncTimeIt.value();
+
+        auto lastUpdateCountIt = m_lastUpdateCountByLinkedNotebookGuid.find(linkedNotebookGuid);
+        if (lastUpdateCountIt == m_lastUpdateCountByLinkedNotebookGuid.end()) {
+            lastUpdateCountIt = m_lastUpdateCountByLinkedNotebookGuid.insert(linkedNotebookGuid, 0);
+        }
+        qint32 lastUpdateCount = lastUpdateCountIt.value();
 
         auto syncChunksDownloadedFlagIt = m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded.find(linkedNotebookGuid);
         if (syncChunksDownloadedFlagIt != m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded.end()) {
@@ -1521,18 +1545,70 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync(const qint32 
 
         const QString & authToken = it.value();
 
-        if (m_onceSyncDone)
+        if (m_onceSyncDone || (afterUsn != 0))
         {
-            // TODO: call getLinkedNotebookSyncState on NoteStore, check updateCount and fullSyncBefore
-            // TODO: if nothing needs to be done, need to continue but before that set flag that
-            // TODO: no sync chunks need to be downloaded for this linked notebook
+            auto syncStateIter = m_syncStatesByLinkedNotebookGuid.find(linkedNotebookGuid);
+            if (syncStateIter == m_syncStatesByLinkedNotebookGuid.end())
+            {
+                qevercloud::SyncState syncState;
+                QString errorDescription;
+                qint32 rateLimitSeconds = 0;
+                qint32 errorCode = m_noteStore.getLinkedNotebookSyncState(linkedNotebook, authToken, syncState,
+                                                                          errorDescription, rateLimitSeconds);
+                if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+                {
+                    if (rateLimitSeconds <= 0) {
+                        errorDescription += QString("\n") + QT_TR_NOOP("Internal error: rate limit seconds = ");
+                        errorDescription += QString::number(rateLimitSeconds);
+                        emit failure(errorDescription);
+                        return;
+                    }
+
+                    int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+                    m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId = timerId;
+                    emit rateLimitExceeded(rateLimitSeconds);
+                    return;
+                }
+                else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+                {
+                    QString errorPrefix = QT_TR_NOOP("Unexpected AUTH_EXPIRED error when trying to get linked notebook sync state: ");
+                    errorDescription.prepend(errorPrefix);
+                    emit failure(errorDescription);
+                    return;
+                }
+                else if (errorCode != 0) {
+                    QString errorPrefix = QT_TR_NOOP("Can't perform synchronization, can't get linked notebook sync state: ");
+                    errorDescription.prepend(errorPrefix);
+                    emit failure(errorDescription);
+                    return;
+                }
+
+                syncStateIter = m_syncStatesByLinkedNotebookGuid.insert(linkedNotebookGuid, syncState);
+            }
+
+            const qevercloud::SyncState & syncState = syncStateIter.value();
+
+            if (syncState.fullSyncBefore > lastSyncTime)
+            {
+                QNDEBUG("Linked notebook sync state says the time has come to do the full sync");
+                afterUsn = 0;
+                if (!m_onceSyncDone) {
+                    fullSyncOnly = true;
+                }
+                m_lastSyncMode = SyncMode::FullSync;
+            }
+            else if (syncState.updateCount == lastUpdateCount)
+            {
+                QNDEBUG("Server has no updates for data in this linked notebook, continuing with the next one");
+                Q_UNUSED(m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded.insert(linkedNotebookGuid));
+                continue;
+            }
         }
 
-        qint32 localAfterUsn = afterUsn;
         while(!pSyncChunk || (pSyncChunk->chunkHighUSN < pSyncChunk->updateCount))
         {
             if (pSyncChunk) {
-                localAfterUsn = pSyncChunk->chunkHighUSN;
+                afterUsn = pSyncChunk->chunkHighUSN;
             }
 
             m_linkedNotebookSyncChunks.push_back(qevercloud::SyncChunk());
@@ -1543,7 +1619,7 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync(const qint32 
 
             QString errorDescription;
             qint32 rateLimitSeconds = 0;
-            qint32 errorCode = m_noteStore.getLinkedNotebookSyncChunk(linkedNotebook, localAfterUsn,
+            qint32 errorCode = m_noteStore.getLinkedNotebookSyncChunk(linkedNotebook, afterUsn,
                                                                       m_maxSyncChunkEntries,
                                                                       authToken, fullSyncOnly, *pSyncChunk,
                                                                       errorDescription, rateLimitSeconds);
@@ -1559,7 +1635,7 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync(const qint32 
                 m_linkedNotebookSyncChunks.pop_back();
 
                 int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
-                m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId[timerId] = afterUsn;
+                m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId = timerId;
                 emit rateLimitExceeded(rateLimitSeconds);
                 return;
             }
@@ -1608,14 +1684,17 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync(const qint32 
         }
 
         Q_UNUSED(m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded.insert(linkedNotebook.guid));
+        m_lastSynchronizedUsnByLinkedNotebookGuid[linkedNotebookGuid] = afterUsn;
     }
 
     QNDEBUG("Done. Processing content pointed to by linked notebooks from buffered sync chunks");
-    m_lastLinkedNotebookSyncChunksDownloadedUsn = afterUsn;
     m_linkedNotebooksSyncChunksDownloaded = true;
     emit linkedNotebooksSyncChunksDownloaded();
 
+    m_syncStatesByLinkedNotebookGuid.clear();   // don't need this anymore, it only served the purpose of preventing multiple get sync state calls for the same linked notebook
+
     launchLinkedNotebooksContentsSync();
+    // TODO: later, when finalizing the linked notebooks sync, need to store last synchronized usn per linked notebook guid in some persistent storage
 }
 
 void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinkedNotebooks()
@@ -1760,7 +1839,6 @@ void RemoteToLocalSynchronizationManager::clear()
     // this information can be reused in subsequent syncs
 
     m_lastSyncChunksDownloadedUsn = -1;
-    m_lastLinkedNotebookSyncChunksDownloadedUsn = -1;
     m_syncChunksDownloaded = false;
     m_fullNoteContentsDownloaded = false;
     m_linkedNotebooksSyncChunksDownloaded = false;
@@ -1792,6 +1870,9 @@ void RemoteToLocalSynchronizationManager::clear()
     m_findLinkedNotebookRequestIds.clear();
     m_addLinkedNotebookRequestIds.clear();
     m_updateLinkedNotebookRequestIds.clear();
+    m_syncStatesByLinkedNotebookGuid.clear();
+    // NOTE: not clearing last synchronized usns by linked notebook guid; it is intentional,
+    // this information can be reused in subsequent syncs
 
     m_notebooks.clear();
     m_notebooksToAddPerRequestId.clear();
@@ -1824,16 +1905,19 @@ void RemoteToLocalSynchronizationManager::clear()
     }
     m_afterUsnForSyncChunkPerAPICallPostponeTimerId.clear();
 
-    auto afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerIdEnd = m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.end();
-    for(auto it = m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.begin(); it != afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerIdEnd; ++it) {
-        int key = it.key();
-        killTimer(key);
-    }
-    m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.clear();
-
     if (m_getSyncStateBeforeStartAPICallPostponeTimerId != 0) {
         killTimer(m_getSyncStateBeforeStartAPICallPostponeTimerId);
         m_getSyncStateBeforeStartAPICallPostponeTimerId = 0;
+    }
+
+    if (m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId != 0) {
+        killTimer(m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId);
+        m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId = 0;
+    }
+
+    if (m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId != 0) {
+        killTimer(m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId);
+        m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId = 0;
     }
 }
 
@@ -1878,7 +1962,8 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
         m_notesToUpdatePerAPICallPostponeTimerId.clear();
 
         m_afterUsnForSyncChunkPerAPICallPostponeTimerId.clear();
-        m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.clear();
+        m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId = 0;
+        m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId = 0;
 
         return;
     }
@@ -1937,14 +2022,15 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
         return;
     }
 
-    auto afterUsnLinkedNotebookIt = m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.find(timerId);
-    if (afterUsnLinkedNotebookIt != m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.end())
-    {
-        qint32 afterUsn = afterUsnLinkedNotebookIt.value();
+    if (timerId == m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId) {
+        m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId = 0;
+        startLinkedNotebooksSync();
+        return;
+    }
 
-        Q_UNUSED(m_afterUsnForLinkedNotebookSyncChunkPerAPICallPostponeTimerId.erase(afterUsnLinkedNotebookIt));
-
-        startLinkedNotebooksSync(afterUsn);
+    if (timerId == m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId) {
+        m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId = 0;
+        startLinkedNotebooksSync();
         return;
     }
 
