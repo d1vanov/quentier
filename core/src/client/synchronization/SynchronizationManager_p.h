@@ -25,6 +25,9 @@ Q_SIGNALS:
 // private signals
     void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString> authenticationTokensByLinkedNotebookGuids,
                                                     QHash<QString,qevercloud::Timestamp> authenticatonTokenExpirationTimesByLinkedNotebookGuids);
+    void sendLastSyncParameters(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
+                                QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
+                                QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
 
 private Q_SLOTS:
     void onOAuthResult(bool result);
@@ -35,7 +38,12 @@ private Q_SLOTS:
 
     void onRequestAuthenticationToken();
     void onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys);
-    void onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qint32 lastSyncTime);
+
+    void onRequestLastSyncParameters();
+
+    void onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
+                                     QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
+                                     QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
 
 private:
     SynchronizationManagerPrivate() Q_DECL_DELETE;

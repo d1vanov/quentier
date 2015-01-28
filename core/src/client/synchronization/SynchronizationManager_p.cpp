@@ -196,11 +196,20 @@ void SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebo
     authenticateToLinkedNotebooks();
 }
 
-void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qint32 lastSyncTime)
+void SynchronizationManagerPrivate::onRequestLastSyncParameters()
+{
+    // TODO: get last sync parameters out of persistent storage and emit them via signal
+}
+
+void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
+                                                                QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
+                                                                QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid)
 {
     // TODO: implement
     m_lastUpdateCount = lastUpdateCount;
     m_lastSyncTime = lastSyncTime;
+
+    // TODO: write these parameters to persistent storage for future use
 }
 
 void SynchronizationManagerPrivate::createConnections()
@@ -212,13 +221,19 @@ void SynchronizationManagerPrivate::createConnections()
 
     // Connections with remote to local synchronization manager
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(error(QString)), this, SIGNAL(notifyError(QString)));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(finished()), this, SLOT(onRemoteToLocalSyncFinished()));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(finished(qint32,qevercloud::Timestamp,QHash<QString,qint32>,
+                                                                  QHash<QString,qevercloud::Timestamp>)),
+                     this, SLOT(onRemoteToLocalSyncFinished(qint32,qevercloud::Timestamp,QHash<QString,qint32>,
+                                                            QHash<QString,qevercloud::Timestamp>)));
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestAuthenticationToken()),
                      this, SLOT(onRequestAuthenticationToken()));
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)),
                      this, SLOT(onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)));
     QObject::connect(this, SIGNAL(sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)),
                      &m_remoteToLocalSyncManager, SLOT(onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestLastSyncParameters()), this, SLOT(onRequestLastSyncParameters()));
+    QObject::connect(this, SIGNAL(sendLastSyncParameters(qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>)),
+                     &m_remoteToLocalSyncManager, SLOT(onLastSyncParametersReceived(qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>)));
 
     // Connections with read/write password jobs
     QObject::connect(&m_readAuthTokenJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));

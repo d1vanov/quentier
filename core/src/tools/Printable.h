@@ -6,6 +6,8 @@
 #include <QString>
 #include <QTextStream>
 #include <QDebug>
+#include <QHash>
+#include <QSet>
 #include <QEverCloud.h>
 #include <oauth.h>
 
@@ -39,7 +41,7 @@ private:
 
 // printing operators for existing classes not inheriting from Printable
 
-template<class T>
+template <class T>
 const QString ToQString(const T & object)
 {
     QString str;
@@ -48,11 +50,41 @@ const QString ToQString(const T & object)
     return str;
 }
 
-#define __QUTE_NOTE_DECLARE_PRINTABLE(type) \
+template <class TKey, class TValue>
+const QString ToQString(const QHash<TKey, TValue> & object)
+{
+    QString str;
+    QTextStream strm(&str, QIODevice::WriteOnly);
+    strm << "QHash: \n";
+
+    typedef typename QHash<TKey,TValue>::const_iterator CIter;
+    CIter hashEnd = object.end();
+    for(CIter it = object.begin(); it != hashEnd; ++it) {
+        strm << "[" << it.key() << "] = " << it.value() << ";\n";
+    }
+    return str;
+}
+
+template <class T>
+const QString ToQString(const QSet<T> & object)
+{
+    QString str;
+    QTextStream strm(&str, QIODevice::WriteOnly);
+    strm << "QSet: \n";
+
+    typedef typename QSet<T>::const_iterator CIter;
+    CIter setEnd = object.end();
+    for(CIter it = object.begin(); it != setEnd; ++it) {
+        strm << "[" << *it << "];\n";
+    }
+    return str;
+}
+
+#define __QUTE_NOTE_DECLARE_PRINTABLE(type, ...) \
     QTextStream & operator << (QTextStream & strm, const type & obj); \
     inline QDebug & operator << (QDebug & debug, const type & obj) \
     { \
-        debug << ToQString<type>(obj); \
+        debug << ToQString<type, ##__VA_ARGS__>(obj); \
         return debug; \
     }
 

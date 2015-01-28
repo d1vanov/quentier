@@ -46,6 +46,7 @@ void registerMetatypes()
     qRegisterMetaType<QList<QPair<QString,QString> > >("QList<QPair<QString,QString> >");
     qRegisterMetaType<QHash<QString,QString> >("QHash<QString,QString>");
     qRegisterMetaType<QHash<QString,qevercloud::Timestamp> >("QHash<QString,qevercloud::Timestamp>");
+    qRegisterMetaType<QHash<QString,qint32> >("QHash<QString,qint32>");
 }
 
 } // namespace qute_note

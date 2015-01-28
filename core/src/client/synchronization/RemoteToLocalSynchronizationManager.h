@@ -28,7 +28,8 @@ public:
 
 Q_SIGNALS:
     void failure(QString errorDescription);
-    void finished(qint32 lastUpdateCount, qint32 lastSyncTime);
+    void finished(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
+                  QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
 
     // signal notifying that the Evernote API rate limit was exceeded so that the synchronization
     // needs to wait for the specified number of seconds before it proceeds (that would happen automatically,
@@ -46,6 +47,7 @@ Q_SIGNALS:
 
     void requestAuthenticationToken();
     void requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndShareKeys);
+    void requestLastSyncParameters();
 
 public Q_SLOTS:
     void start(qint32 afterUsn = 0);
@@ -55,6 +57,9 @@ public Q_SLOTS:
 
     void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString> authenticationTokensByLinkedNotebookGuid,
                                                           QHash<QString,qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid);
+    void onLastSyncParametersReceived(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
+                                      QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
+                                      QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
 
 // private signals
 Q_SIGNALS:
@@ -423,6 +428,8 @@ private:
     int                                     m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId;
     int                                     m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId;
     int                                     m_getSyncStateBeforeStartAPICallPostponeTimerId;
+
+    bool                                    m_gotLastSyncParameters;
 };
 
 } // namespace qute_note

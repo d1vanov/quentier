@@ -72,7 +72,8 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_afterUsnForSyncChunkPerAPICallPostponeTimerId(),
     m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId(),
     m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId(),
-    m_getSyncStateBeforeStartAPICallPostponeTimerId(0)
+    m_getSyncStateBeforeStartAPICallPostponeTimerId(0),
+    m_gotLastSyncParameters(false)
 {}
 
 bool RemoteToLocalSynchronizationManager::active() const
@@ -92,6 +93,11 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
 
     if (m_paused || m_requestedToStop) {
         resume();   // NOTE: resume can call this method so it's necessary to return
+        return;
+    }
+
+    if (!m_gotLastSyncParameters) {
+        emit requestLastSyncParameters();
         return;
     }
 
@@ -1064,6 +1070,28 @@ void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNoteboo
     startLinkedNotebooksSync();
 }
 
+void RemoteToLocalSynchronizationManager::onLastSyncParametersReceived(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
+                                                                       QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
+                                                                       QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid)
+{
+    QNDEBUG("RemoteToLocalSynchronizationManager::onLastSyncParametersReceived: last update count = " << lastUpdateCount
+            << ", last sync time = " << lastSyncTime << ", last update counts per linked notebook = " << lastUpdateCountByLinkedNotebookGuid
+            << "last sync time per linked notebook = " << lastSyncTimeByLinkedNotebookGuid);
+
+    m_lastUpdateCount = lastUpdateCount;
+    m_lastSyncTime = lastSyncTime;
+    m_lastUpdateCountByLinkedNotebookGuid = lastUpdateCountByLinkedNotebookGuid;
+    m_lastSyncTimeByLinkedNotebookGuid = lastSyncTimeByLinkedNotebookGuid;
+
+    m_gotLastSyncParameters = true;
+
+    if ((m_lastUpdateCount > 0) && (m_lastSyncTime > 0)) {
+        m_onceSyncDone = true;
+    }
+
+    start(m_lastUsnOnStart);
+}
+
 void RemoteToLocalSynchronizationManager::createConnections()
 {
     // Connect local signals with localStorageManagerThread's slots
@@ -1826,7 +1854,7 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
 void RemoteToLocalSynchronizationManager::finalize()
 {
     m_onceSyncDone = true;
-    emit finished(m_lastUpdateCount, m_lastSyncTime);
+    emit finished(m_lastUpdateCount, m_lastSyncTime, m_lastUpdateCountByLinkedNotebookGuid, m_lastSyncTimeByLinkedNotebookGuid);
     clear();
     disconnectFromLocalStorage();
 }
