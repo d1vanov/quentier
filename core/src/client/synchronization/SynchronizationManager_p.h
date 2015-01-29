@@ -89,7 +89,10 @@ private:
 private:
     qint32      m_maxSyncChunkEntries;
     qint32      m_lastUpdateCount;
-    qint32      m_lastSyncTime;
+    qevercloud::Timestamp                   m_lastSyncTime;
+    QHash<QString,qint32>                   m_cachedLinkedNotebookLastUpdateCountByGuid;
+    QHash<QString,qevercloud::Timestamp>    m_cachedLinkedNotebookLastSyncTimeByGuid;
+    bool                                    m_onceReadLastSyncParams;
 
     NoteStore               m_noteStore;
     AuthContext::type       m_authContext;

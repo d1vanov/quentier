@@ -12,8 +12,14 @@ public:
     static ApplicationSettings & instance(const QString & orgName = "d1vanov",
                                           const QString & appName = "QuteNote");
 
+    QVariant value(const QString & key, const QVariant & defaultValue = QVariant()) const;
     QVariant value(const QString & key, const QString & keyGroup, const QVariant & defaultValue = QVariant()) const;
     void setValue(const QString & key, const QVariant & value, const QString & keyGroup = QString());
+
+    int beginReadArray(const QString & prefix);
+    void beginWriteArray(const QString & prefix, int size = -1);
+    void setArrayIndex(int i);
+    void endArray();
 
 private:
     ApplicationSettings() Q_DECL_DELETE;

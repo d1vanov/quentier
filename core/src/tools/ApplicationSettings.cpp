@@ -8,6 +8,11 @@ ApplicationSettings & ApplicationSettings::instance(const QString & orgName, con
     return instance;
 }
 
+QVariant ApplicationSettings::value(const QString & key, const QVariant & defaultValue) const
+{
+    return m_settings.value(key, defaultValue);
+}
+
 QVariant ApplicationSettings::value(const QString & key, const QString & keyGroup,
                                     const QVariant & defaultValue) const
 {
@@ -32,6 +37,26 @@ void ApplicationSettings::setValue(const QString & key, const QVariant & value, 
     if (hasKeyGroup) {
         m_settings.endGroup();
     }
+}
+
+int ApplicationSettings::beginReadArray(const QString & prefix)
+{
+    return m_settings.beginReadArray(prefix);
+}
+
+void ApplicationSettings::beginWriteArray(const QString & prefix, int size)
+{
+    m_settings.beginWriteArray(prefix, size);
+}
+
+void ApplicationSettings::setArrayIndex(int i)
+{
+    m_settings.setArrayIndex(i);
+}
+
+void ApplicationSettings::endArray()
+{
+    m_settings.endArray();
 }
 
 ApplicationSettings::ApplicationSettings(const QString & orgName, const QString & appName) :
