@@ -63,12 +63,6 @@ public Q_SLOTS:
 
 // private signals
 Q_SIGNALS:
-    void addUser(UserWrapper user, QUuid requestId = QUuid());
-    void updateUser(UserWrapper user, QUuid requestId = QUuid());
-    void findUser(UserWrapper user, QUuid requestId = QUuid());
-    void deleteUser(UserWrapper user, QUuid requestId = QUuid());
-    void expungeUser(UserWrapper user, QUuid requestId = QUuid());
-
     void addNotebook(Notebook notebook, QUuid requestId = QUuid());
     void updateNotebook(Notebook notebook, QUuid requestId = QUuid());
     void findNotebook(Notebook notebook, QUuid requestId = QUuid());
@@ -86,11 +80,6 @@ Q_SIGNALS:
     void deleteTag(Tag tag, QUuid requestId = QUuid());
     void expungeTag(Tag tag, QUuid requestId = QUuid());
 
-    void addResource(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
-    void updateResource(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
-    void findResource(ResourceWrapper resource, bool withBinaryData, QUuid requestId = QUuid());
-    void expungeResource(ResourceWrapper resource, QUuid requestId = QUuid());
-
     void addLinkedNotebook(LinkedNotebook notebook, QUuid requestId = QUuid());
     void updateLinkedNotebook(LinkedNotebook notebook, QUuid requestId = QUuid());
     void findLinkedNotebook(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
@@ -102,17 +91,12 @@ Q_SIGNALS:
     void expungeSavedSearch(SavedSearch savedSearch, QUuid requestId = QUuid());
 
 private Q_SLOTS:
-    void onFindUserCompleted(UserWrapper user, QUuid requestId);
-    void onFindUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
     void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
     void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
     void onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId);
     void onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId);
     void onFindTagCompleted(Tag tag, QUuid requestId);
     void onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId);
-    void onFindResourceCompleted(ResourceWrapper resource, bool withResourceBinaryData, QUuid requestId);
-    void onFindResourceFailed(ResourceWrapper resource, bool withResourceBinaryData,
-                              QString errorDescription, QUuid requestId);
     void onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
     void onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
     void onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId);
@@ -175,6 +159,9 @@ private:
     template <class ElementType>
     void processConflictedElement(const ElementType & remoteElement,
                                   const QString & typeName, ElementType & element);
+
+    template <class ElementType>
+    void checkAndAddLinkedNotebookBinding(const ElementType & sourceElement, ElementType & targetElement);
 
     template <class ElementType>
     void checkUpdateSequenceNumbersAndProcessConflictedElements(const ElementType & remoteElement,
@@ -280,7 +267,7 @@ private:
     // Helpers launching the sync of content from someone else's shared notebooks, to be used
     // when LinkedNotebook representing pointers to content from someone else's account are in sync
     void checkLinkedNotebooksSyncAndLaunchLinkedNotebookContentSync();
-    void checkLinkedNotebooksNotebooksAndTagsSyncAndLaynchLinkedNotebookNotesSync();
+    void checkLinkedNotebooksNotebooksAndTagsSyncAndLaunchLinkedNotebookNotesSync();
 
     void launchLinkedNotebooksContentsSync();
     void startLinkedNotebooksSync();

@@ -389,20 +389,6 @@ void RemoteToLocalSynchronizationManager::emitUpdateRequest<Note>(const Note & n
         finalize(); \
     }
 
-void RemoteToLocalSynchronizationManager::onFindUserCompleted(UserWrapper user, QUuid requestId)
-{
-    CHECK_PAUSED();
-
-    // TODO: implement
-}
-
-void RemoteToLocalSynchronizationManager::onFindUserFailed(UserWrapper user, QString errorDescription, QUuid requestId)
-{
-    CHECK_PAUSED();
-
-    // TODO: implement
-}
-
 void RemoteToLocalSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUuid requestId)
 {
     CHECK_PAUSED();
@@ -587,23 +573,6 @@ void RemoteToLocalSynchronizationManager::onFindTagFailed(Tag tag, QString error
         CHECK_STOPPED();
         return;
     }
-}
-
-void RemoteToLocalSynchronizationManager::onFindResourceCompleted(ResourceWrapper resource,
-                                                                  bool withResourceBinaryData, QUuid requestId)
-{
-    CHECK_PAUSED();
-
-    // TODO: implement
-}
-
-void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper resource,
-                                                               bool withResourceBinaryData,
-                                                               QString errorDescription, QUuid requestId)
-{
-    CHECK_PAUSED();
-
-    // TODO: implement
 }
 
 void RemoteToLocalSynchronizationManager::onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook,
@@ -1095,12 +1064,6 @@ void RemoteToLocalSynchronizationManager::onLastSyncParametersReceived(qint32 la
 void RemoteToLocalSynchronizationManager::createConnections()
 {
     // Connect local signals with localStorageManagerThread's slots
-    QObject::connect(this, SIGNAL(addUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddUserRequest(UserWrapper,QUuid)));
-    QObject::connect(this, SIGNAL(updateUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateUserRequest(UserWrapper,QUuid)));
-    QObject::connect(this, SIGNAL(findUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindUserRequest(UserWrapper,QUuid)));
-    QObject::connect(this, SIGNAL(deleteUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onDeleteUserRequest(UserWrapper,QUuid)));
-    QObject::connect(this, SIGNAL(expungeUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeUserRequest(UserWrapper,QUuid)));
-
     QObject::connect(this, SIGNAL(addNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddNotebookRequest(Notebook,QUuid)));
     QObject::connect(this, SIGNAL(updateNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateNotebookRequest(Notebook,QUuid)));
     QObject::connect(this, SIGNAL(findNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindNotebookRequest(Notebook,QUuid)));
@@ -1118,11 +1081,6 @@ void RemoteToLocalSynchronizationManager::createConnections()
     QObject::connect(this, SIGNAL(deleteTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onDeleteTagRequest(Tag,QUuid)));
     QObject::connect(this, SIGNAL(expungeTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeTagRequest(Tag,QUuid)));
 
-    QObject::connect(this, SIGNAL(addResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddResourceRequest(ResourceWrapper,Note,QUuid)));
-    QObject::connect(this, SIGNAL(updateResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateResourceRequest(ResourceWrapper,Note,QUuid)));
-    QObject::connect(this, SIGNAL(findResource(ResourceWrapper,bool,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindResourceRequest(ResourceWrapper,bool,QUuid)));
-    QObject::connect(this, SIGNAL(expungeResource(ResourceWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeResourceRequest(ResourceWrapper,QUuid)));
-
     QObject::connect(this, SIGNAL(addLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddLinkedNotebookRequest(LinkedNotebook,QUuid)));
     QObject::connect(this, SIGNAL(updateLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook,QUuid)));
     QObject::connect(this, SIGNAL(findLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindLinkedNotebookRequest(LinkedNotebook,QUuid)));
@@ -1134,9 +1092,6 @@ void RemoteToLocalSynchronizationManager::createConnections()
     QObject::connect(this, SIGNAL(expungeSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeSavedSearch(SavedSearch,QUuid)));
 
     // Connect localStorageManagerThread's signals to local slots
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findUserComplete(UserWrapper,QUuid)), this, SLOT(onFindUserCompleted(UserWrapper,QUuid)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findUserFailed(UserWrapper,QString,QUuid)), this, SLOT(onFindUserFailed(UserWrapper,QString,QUuid)));
-
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findNotebookComplete(Notebook,QUuid)), this, SLOT(onFindNotebookCompleted(Notebook,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onFindNotebookFailed(Notebook,QString,QUuid)));
 
@@ -1145,9 +1100,6 @@ void RemoteToLocalSynchronizationManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findTagComplete(Tag,QUuid)), this, SLOT(onFindTagCompleted(Tag,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findTagFailed(Tag,QString,QUuid)), this, SLOT(onFindTagFailed(Tag,QString,QUuid)));
-
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findResourceComplete(ResourceWrapper,bool,QUuid)), this, SLOT(onFindResourceCompleted(ResourceWrapper,bool,QUuid)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findResourceFailed(ResourceWrapper,bool,QString,QUuid)), this, SLOT(onFindResourceFailed(ResourceWrapper,bool,QString,QUuid)));
 
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findLinkedNotebookComplete(LinkedNotebook,QUuid)), this, SLOT(onFindLinkedNotebookCompleted(LinkedNotebook,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findLinkedNotebookFailed(LinkedNotebook,QString,QUuid)), this, SLOT(onFindLinkedNotebookFailed(LinkedNotebook,QString,QUuid)));
@@ -1191,12 +1143,6 @@ void RemoteToLocalSynchronizationManager::createConnections()
 void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
 {
     // Disconnect local signals from localStorageManagerThread's slots
-    QObject::disconnect(this, SIGNAL(addUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddUserRequest(UserWrapper,QUuid)));
-    QObject::disconnect(this, SIGNAL(updateUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateUserRequest(UserWrapper,QUuid)));
-    QObject::disconnect(this, SIGNAL(findUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindUserRequest(UserWrapper,QUuid)));
-    QObject::disconnect(this, SIGNAL(deleteUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onDeleteUserRequest(UserWrapper,QUuid)));
-    QObject::disconnect(this, SIGNAL(expungeUser(UserWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeUserRequest(UserWrapper,QUuid)));
-
     QObject::disconnect(this, SIGNAL(addNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddNotebookRequest(Notebook,QUuid)));
     QObject::disconnect(this, SIGNAL(updateNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateNotebookRequest(Notebook,QUuid)));
     QObject::disconnect(this, SIGNAL(findNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindNotebookRequest(Notebook,QUuid)));
@@ -1214,11 +1160,6 @@ void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
     QObject::disconnect(this, SIGNAL(deleteTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onDeleteTagRequest(Tag,QUuid)));
     QObject::disconnect(this, SIGNAL(expungeTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeTagRequest(Tag,QUuid)));
 
-    QObject::disconnect(this, SIGNAL(addResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddResourceRequest(ResourceWrapper,Note,QUuid)));
-    QObject::disconnect(this, SIGNAL(updateResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateResourceRequest(ResourceWrapper,Note,QUuid)));
-    QObject::disconnect(this, SIGNAL(findResource(ResourceWrapper,bool,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindResourceRequest(ResourceWrapper,bool,QUuid)));
-    QObject::disconnect(this, SIGNAL(expungeResource(ResourceWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeResourceRequest(ResourceWrapper,QUuid)));
-
     QObject::disconnect(this, SIGNAL(addLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddLinkedNotebookRequest(LinkedNotebook,QUuid)));
     QObject::disconnect(this, SIGNAL(updateLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook,QUuid)));
     QObject::disconnect(this, SIGNAL(findLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindLinkedNotebookRequest(LinkedNotebook,QUuid)));
@@ -1230,9 +1171,6 @@ void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
     QObject::disconnect(this, SIGNAL(expungeSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeSavedSearch(SavedSearch,QUuid)));
 
     // Disconnect localStorageManagerThread's signals to local slots
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findUserComplete(UserWrapper,QUuid)), this, SLOT(onFindUserCompleted(UserWrapper,QUuid)));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findUserFailed(UserWrapper,QString,QUuid)), this, SLOT(onFindUserFailed(UserWrapper,QString,QUuid)));
-
     QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findNotebookComplete(Notebook,QUuid)), this, SLOT(onFindNotebookCompleted(Notebook,QUuid)));
     QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onFindNotebookFailed(Notebook,QString,QUuid)));
 
@@ -1241,9 +1179,6 @@ void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
 
     QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findTagComplete(Tag,QUuid)), this, SLOT(onFindTagCompleted(Tag,QUuid)));
     QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findTagFailed(Tag,QString,QUuid)), this, SLOT(onFindTagFailed(Tag,QString,QUuid)));
-
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findResourceComplete(ResourceWrapper,bool,QUuid)), this, SLOT(onFindResourceCompleted(ResourceWrapper,bool,QUuid)));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findResourceFailed(ResourceWrapper,bool,QString,QUuid)), this, SLOT(onFindResourceFailed(ResourceWrapper,bool,QString,QUuid)));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findLinkedNotebookComplete(LinkedNotebook,QUuid)), this, SLOT(onFindLinkedNotebookCompleted(LinkedNotebook,QUuid)));
     QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findLinkedNotebookFailed(LinkedNotebook,QString,QUuid)), this, SLOT(onFindLinkedNotebookFailed(LinkedNotebook,QString,QUuid)));
@@ -1374,11 +1309,16 @@ void RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncAndLaunchLinke
     }
 }
 
-void RemoteToLocalSynchronizationManager::checkLinkedNotebooksNotebooksAndTagsSyncAndLaynchLinkedNotebookNotesSync()
+void RemoteToLocalSynchronizationManager::checkLinkedNotebooksNotebooksAndTagsSyncAndLaunchLinkedNotebookNotesSync()
 {
-    QNDEBUG("RemoteToLocalSynchronizationManager::checkLinkedNotebooksNotebooksAndTagsSyncAndLaynchLinkedNotebookNotesSync");
+    QNDEBUG("RemoteToLocalSynchronizationManager::checkLinkedNotebooksNotebooksAndTagsSyncAndLaunchLinkedNotebookNotesSync");
 
-    // TODO: implement
+    if (m_updateNotebookRequestIds.empty() && m_addNotebookRequestIds.empty() &&
+        m_updateTagRequestIds.empty() && m_addTagRequestIds.empty())
+    {
+        // All remote notebooks and tags from linked notebooks were already either updated in the local storage or added there
+        launchLinkedNotebooksNotesSync();
+    }
 }
 
 void RemoteToLocalSynchronizationManager::launchLinkedNotebooksContentsSync()
@@ -1471,6 +1411,8 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync()
     if (numLinkedNotebooks == 0) {
         QNDEBUG("No linked notebooks are present within the account, can finish the synchronization right away");
         m_linkedNotebooksSyncChunksDownloaded = true;
+        emit linkedNotebooksSyncChunksDownloaded();
+        emit linkedNotebooksFullNotesContentsDownloaded();
         finalize();
         return;
     }
@@ -1516,8 +1458,6 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync()
 
     QNDEBUG("Got authentication tokens for all linked notebooks, can proceed with "
             "their synchronization");
-
-    // TODO: make sure by this moment the attempt to retrieve last synchronized usns per linked notebook from persistent storage was done
 
     qevercloud::SyncChunk * pSyncChunk = nullptr;
 
@@ -1722,7 +1662,6 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync()
     m_syncStatesByLinkedNotebookGuid.clear();   // don't need this anymore, it only served the purpose of preventing multiple get sync state calls for the same linked notebook
 
     launchLinkedNotebooksContentsSync();
-    // TODO: later, when finalizing the linked notebooks sync, need to store last synchronized usn per linked notebook guid in some persistent storage
 }
 
 void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinkedNotebooks()
@@ -1758,22 +1697,20 @@ void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinke
 void RemoteToLocalSynchronizationManager::launchLinkedNotebooksTagsSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebooksTagsSync");
-
-    // TODO: implement
+    launchDataElementSync<TagsList, Tag>(ContentSource::LinkedNotebook, "Tag", m_tags);
 }
 
 void RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotebooksSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotebooksSync");
-
-    // TODO: implement
+    launchDataElementSync<NotebooksList, Notebook>(ContentSource::LinkedNotebook, "Notebook", m_notebooks);
 }
 
 void RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotesSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotesSync");
 
-    // TODO: implement
+    launchDataElementSync<NotesList, Note>(ContentSource::LinkedNotebook, "Note", m_notes);
 }
 
 bool RemoteToLocalSynchronizationManager::hasPendingRequests() const
@@ -1842,13 +1779,21 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
         return;
     }
 
-    m_fullNoteContentsDownloaded = true;
-    emit fullNotesContentsDownloaded();
+    if (m_fullNoteContentsDownloaded)
+    {
+        QNDEBUG("Synchronized the whole contents from linked notebooks");
+        emit linkedNotebooksFullNotesContentsDownloaded();
+        finalize();
+    }
+    else
+    {
+        QNDEBUG("Synchronized the whole contents from user's account");
 
-    // FIXME: account for content related to linked notebooks
+        m_fullNoteContentsDownloaded = true;
+        emit fullNotesContentsDownloaded();
 
-    QNDEBUG("All server side data elements are processed, proceeding to sending local changes");
-    finalize();
+        startLinkedNotebooksSync();
+    }
 }
 
 void RemoteToLocalSynchronizationManager::finalize()
@@ -2591,14 +2536,14 @@ void setConflictedBase(const QString & typeName, ElementType & element)
 }
 
 template <>
-void setConflictedBase<Note>(const QString & typeName, Note & element)
+void setConflictedBase<Note>(const QString & typeName, Note & note)
 {
     QString currentDateTime = QDateTime::currentDateTime().toString(Qt::ISODate);
 
-    element.setGuid(QString());
-    element.setTitle(QObject::tr("Conflicted ") + typeName + element.title() + " (" + currentDateTime + ")");
-    element.setDirty(true);
-    element.setLocal(true);
+    note.setGuid(QString());
+    note.setTitle(QObject::tr("Conflicted ") + typeName + (note.hasTitle() ? note.title() : "note") + " (" + currentDateTime + ")");
+    note.setDirty(true);
+    note.setLocal(true);
 }
 
 template <class ElementType>
@@ -2694,6 +2639,8 @@ bool RemoteToLocalSynchronizationManager::onFoundDuplicateByName(ElementType ele
     }
 
     ElementType remoteElementAdapter(remoteElement);
+    checkAndAddLinkedNotebookBinding(element, remoteElementAdapter);
+
     checkUpdateSequenceNumbersAndProcessConflictedElements(remoteElementAdapter, typeName, element);
 
     Q_UNUSED(container.erase(it));
@@ -2734,6 +2681,8 @@ bool RemoteToLocalSynchronizationManager::onFoundDuplicateByGuid(ElementType ele
     }
 
     ElementType remoteElementAdapter(remoteElement);
+    checkAndAddLinkedNotebookBinding(element, remoteElementAdapter);
+
     checkUpdateSequenceNumbersAndProcessConflictedElements(remoteElementAdapter, typeName, element);
 
     Q_UNUSED(container.erase(it));
@@ -2794,6 +2743,8 @@ bool RemoteToLocalSynchronizationManager::onNoDuplicateByName(ElementType elemen
 
     // This element wasn't found in the local storage by guid or name ==> it's new from remote storage, adding it
     ElementType newElement(*it);
+    checkAndAddLinkedNotebookBinding(element, newElement);
+
     emitAddRequest(newElement);
 
     // also removing the element from the list of ones waiting for processing
@@ -2825,6 +2776,44 @@ void RemoteToLocalSynchronizationManager::processConflictedElement(const LinkedN
     QUuid updateRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateLinkedNotebookRequestIds.insert(updateRequestId));
     emit updateLinkedNotebook(linkedNotebook, updateRequestId);
+}
+
+template <class ElementType>
+void RemoteToLocalSynchronizationManager::checkAndAddLinkedNotebookBinding(const ElementType & sourceElement,
+                                                                           ElementType & targetElement)
+{
+    // Do nothing in default instantiation, only tags and notebooks need to be processed specifically
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::checkAndAddLinkedNotebookBinding<Notebook>(const Notebook & sourceNotebook,
+                                                                                     Notebook & targetNotebook)
+{
+    if (!sourceNotebook.hasGuid()) {
+        return;
+    }
+
+    auto it = m_linkedNotebookGuidsByNotebookGuids.find(sourceNotebook.guid());
+    if (it == m_linkedNotebookGuidsByNotebookGuids.end()) {
+        return;
+    }
+
+    targetNotebook.setLinkedNotebookGuid(it.value());
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::checkAndAddLinkedNotebookBinding<Tag>(const Tag & sourceTag, Tag & targetTag)
+{
+    if (!sourceTag.hasGuid()) {
+        return;
+    }
+
+    auto it = m_linkedNotebookGuidsByTagGuids.find(sourceTag.guid());
+    if (it == m_linkedNotebookGuidsByTagGuids.end()) {
+        return;
+    }
+
+    targetTag.setLinkedNotebookGuid(it.value());
 }
 
 template <class ElementType>
