@@ -80,6 +80,11 @@ Q_SIGNALS:
     void deleteTag(Tag tag, QUuid requestId = QUuid());
     void expungeTag(Tag tag, QUuid requestId = QUuid());
 
+    void addResource(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
+    void updateResource(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
+    void findResource(ResourceWrapper resource, bool withBinaryData, QUuid requestId = QUuid());
+    void expungeResource(ResourceWrapper resource, QUuid requestId = QUuid());
+
     void addLinkedNotebook(LinkedNotebook notebook, QUuid requestId = QUuid());
     void updateLinkedNotebook(LinkedNotebook notebook, QUuid requestId = QUuid());
     void findLinkedNotebook(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
@@ -97,6 +102,9 @@ private Q_SLOTS:
     void onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId);
     void onFindTagCompleted(Tag tag, QUuid requestId);
     void onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+    void onFindResourceCompleted(ResourceWrapper resource, bool withResourceBinaryData, QUuid requestId);
+    void onFindResourceFailed(ResourceWrapper resource, bool withResourceBinaryData,
+                              QString errorDescription, QUuid requestId);
     void onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
     void onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
     void onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId);
