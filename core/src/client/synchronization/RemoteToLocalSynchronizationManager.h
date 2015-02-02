@@ -272,6 +272,9 @@ private:
     void checkNotebooksAndTagsSyncAndLaunchNotesSync();
     void launchNotesSync();
 
+    void checkNotesSyncAndLaunchResourcesSync();
+    void launchResourcesSync();
+
     // Helpers launching the sync of content from someone else's shared notebooks, to be used
     // when LinkedNotebook representing pointers to content from someone else's account are in sync
     void checkLinkedNotebooksSyncAndLaunchLinkedNotebookContentSync();
@@ -332,6 +335,7 @@ private:
     typedef QList<qevercloud::LinkedNotebook> LinkedNotebooksList;
     typedef QList<qevercloud::Notebook> NotebooksList;
     typedef QList<qevercloud::Note> NotesList;
+    typedef QList<qevercloud::Resource> ResourcesList;
 
     struct SyncMode
     {
@@ -409,6 +413,11 @@ private:
     QSet<QUuid>                             m_findNoteByGuidRequestIds;
     QSet<QUuid>                             m_addNoteRequestIds;
     QSet<QUuid>                             m_updateNoteRequestIds;
+
+    ResourcesList                           m_resources;
+    QSet<QUuid>                             m_findResourceByGuidRequestIds;
+    QSet<QUuid>                             m_addResourceRequestIds;
+    QSet<QUuid>                             m_updateResourceRequestIds;
 
     typedef QHash<QUuid,QPair<Note,QUuid> > NoteDataPerFindNotebookRequestId;
     NoteDataPerFindNotebookRequestId        m_notesWithFindRequestIdsPerFindNotebookRequestId;

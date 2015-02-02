@@ -66,6 +66,10 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_updateNoteRequestIds(),
     m_notesWithFindRequestIdsPerFindNotebookRequestId(),
     m_notebooksPerNoteGuids(),
+    m_resources(),
+    m_findResourceByGuidRequestIds(),
+    m_addResourceRequestIds(),
+    m_updateResourceRequestIds(),
     m_localGuidsOfElementsAlreadyAttemptedToFindByName(),
     m_notesToAddPerAPICallPostponeTimerId(),
     m_notesToUpdatePerAPICallPostponeTimerId(),
@@ -865,6 +869,12 @@ void RemoteToLocalSynchronizationManager::performPostAddOrUpdateChecks<Notebook>
     checkNotebooksAndTagsSyncAndLaunchNotesSync();
 }
 
+template <>
+void RemoteToLocalSynchronizationManager::performPostAddOrUpdateChecks<Note>()
+{
+    checkNotesSyncAndLaunchResourcesSync();
+}
+
 template <class ElementType>
 void RemoteToLocalSynchronizationManager::unsetLocalGuid(ElementType & element)
 {
@@ -1259,15 +1269,31 @@ void RemoteToLocalSynchronizationManager::launchSync()
     launchSavedSearchSync();
     launchLinkedNotebookSync();
 
-    if (m_tags.empty() && m_notebooks.empty()) {
-        QNDEBUG("The local lists of tags and notebooks waiting for processing are empty, "
-                "will launch the sync of notes right away");
-        launchNotesSync();
+    launchTagsSync();
+    launchNotebookSync();
+    if (!m_tags.empty() || !m_notebooks.empty()) {
+        // NOTE: the sync of notes and, if need be, individual resouces would be launched later
         return;
     }
 
-    launchTagsSync();
-    launchNotebookSync();
+    QNDEBUG("The local lists of tags and notebooks waiting for processing are empty, "
+            "checking if there are notes to process");
+
+    launchNotesSync();
+    if (!m_notes.empty()) {
+        QNDEBUG("Launching the sync of notes");
+        // NOTE: the sync of individual resources would be launched later (if current sync is incremental)
+        return;
+    }
+
+    QNDEBUG("The local list of notes waiting for processing is empty");
+
+    if (m_lastSyncMode != SyncMode::IncrementalSync) {
+        QNDEBUG("Running full sync => no sync for individual resources is needed");
+        return;
+    }
+
+    launchResourcesSync();
 }
 
 void RemoteToLocalSynchronizationManager::launchTagsSync()
@@ -1330,6 +1356,27 @@ void RemoteToLocalSynchronizationManager::checkNotebooksAndTagsSyncAndLaunchNote
 void RemoteToLocalSynchronizationManager::launchNotesSync()
 {
     launchDataElementSync<NotesList, Note>(ContentSource::UserAccount, "Note", m_notes);
+}
+
+void RemoteToLocalSynchronizationManager::checkNotesSyncAndLaunchResourcesSync()
+{
+    QNDEBUG("RemoteToLocalSynchronizationManager::checkNotesSyncAndLaunchResourcesSync");
+
+    if (m_lastSyncMode != SyncMode::IncrementalSync) {
+        return;
+    }
+
+    if (m_updateNoteRequestIds.empty() && m_addNoteRequestIds.empty() && m_notesToAddPerAPICallPostponeTimerId.empty() &&
+        m_notesToUpdatePerAPICallPostponeTimerId.empty())
+    {
+        // All remote notes were already either updated in the local storage or added there
+        launchResourcesSync();
+    }
+}
+
+void RemoteToLocalSynchronizationManager::launchResourcesSync()
+{
+    // TODO: implement
 }
 
 void RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncAndLaunchLinkedNotebookContentSync()
@@ -1804,16 +1851,32 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
         return;
     }
 
-    bool notesReady = m_updateNoteRequestIds.empty() && m_addNoteRequestIds.empty();
+    bool notesReady = m_updateNoteRequestIds.empty() && m_addNoteRequestIds.empty() &&
+                      m_notesToAddPerAPICallPostponeTimerId.empty() && m_notesToUpdatePerAPICallPostponeTimerId.empty();
     if (!notesReady) {
         QNDEBUG("Notes are not ready, pending response for " << m_updateNoteRequestIds.size()
                 << " note update requests and/or " << m_addNoteRequestIds.size()
-                << " note add requests");
+                << " note add requests; also, there are " << m_notesToAddPerAPICallPostponeTimerId.size()
+                << " postponed note add requests and/or " << m_notesToUpdatePerAPICallPostponeTimerId.size()
+                << " note update requests");
         return;
+    }
+
+    if (m_lastSyncMode == SyncMode::IncrementalSync)
+    {
+        bool resourcesReady = m_updateResourceRequestIds.empty() && m_addResourceRequestIds.empty();
+        if (!resourcesReady) {
+            QNDEBUG("Resources are not ready, pending response for " << m_updateResourceRequestIds.size()
+                    << " resource update requests and/or " << m_addResourceRequestIds.size()
+                    << " resource add requests");
+            return;
+        }
     }
 
     if (m_fullNoteContentsDownloaded)
     {
+        // NOTE: if this flag is already set, it means we've already been in this method before when syncing data from user's account;
+        // now we are here due to linked notebooks
         QNDEBUG("Synchronized the whole contents from linked notebooks");
         emit linkedNotebooksFullNotesContentsDownloaded();
         finalize();
@@ -2111,7 +2174,6 @@ void RemoteToLocalSynchronizationManager::downloadSyncChunksAndLaunchSync(qint32
         qevercloud::SyncChunkFilter filter;
         filter.includeNotebooks = true;
         filter.includeNotes = true;
-        filter.includeResources = true;
         filter.includeTags = true;
         filter.includeSearches = true;
         filter.includeNoteResources = true;
@@ -2122,6 +2184,7 @@ void RemoteToLocalSynchronizationManager::downloadSyncChunksAndLaunchSync(qint32
 
         if (m_lastSyncMode == SyncMode::IncrementalSync) {
             filter.includeExpunged = true;
+            filter.includeResources = true;
         }
 
         QString errorDescription;
