@@ -947,6 +947,19 @@ void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<Note>(const QStr
     emit findNote(note, withResourceDataOption, requestId);
 }
 
+template <>
+void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<ResourceWrapper>(const QString & guid)
+{
+    ResourceWrapper resource;
+    resource.unsetLocalGuid();
+    resource.setGuid(guid);
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_findResourceByGuidRequestIds.insert(requestId));
+    bool withBinaryData = false;
+    emit findResource(resource, withBinaryData, requestId);
+}
+
 void RemoteToLocalSynchronizationManager::onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
 {
     onAddDataElementCompleted(linkedNotebook, requestId, "LinkedNotebook", m_addLinkedNotebookRequestIds);
@@ -1376,7 +1389,8 @@ void RemoteToLocalSynchronizationManager::checkNotesSyncAndLaunchResourcesSync()
 
 void RemoteToLocalSynchronizationManager::launchResourcesSync()
 {
-    // TODO: implement
+    QNDEBUG("RemoteToLocalSynchronizationManager::launchResourcesSync");
+    launchDataElementSync<ResourcesList, ResourceWrapper>(ContentSource::UserAccount, "Resource", m_resources);
 }
 
 void RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncAndLaunchLinkedNotebookContentSync()
@@ -2420,6 +2434,16 @@ void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToConta
                 }
             }
         }
+    }
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToContainer<RemoteToLocalSynchronizationManager::ResourcesList>(const qevercloud::SyncChunk & syncChunk,
+                                                                                                                                         RemoteToLocalSynchronizationManager::ResourcesList & container)
+{
+    if (syncChunk.resources.isSet()) {
+        const auto & resources = syncChunk.resources.ref();
+        container.append(resources);
     }
 }
 
