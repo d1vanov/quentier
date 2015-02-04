@@ -70,6 +70,9 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_findResourceByGuidRequestIds(),
     m_addResourceRequestIds(),
     m_updateResourceRequestIds(),
+    m_resourcesWithFindRequestIdsPerFindNoteRequestId(),
+    m_resourceFoundFlagPerFindResourceRequestId(),
+    m_notesPerResourceGuids(),
     m_localGuidsOfElementsAlreadyAttemptedToFindByName(),
     m_notesToAddPerAPICallPostponeTimerId(),
     m_notesToUpdatePerAPICallPostponeTimerId(),
@@ -283,6 +286,13 @@ void RemoteToLocalSynchronizationManager::emitAddRequest<Note>(const Note & note
 }
 
 template <>
+void RemoteToLocalSynchronizationManager::emitAddRequest<ResourceWrapper>(const ResourceWrapper & resource)
+{
+    QUuid addResourceRequestId = QUuid::createUuid();
+    // TODO: continue from here
+}
+
+template <>
 void RemoteToLocalSynchronizationManager::emitUpdateRequest<Tag>(const Tag & tag,
                                                                  const Tag * tagToAddLater)
 {
@@ -470,13 +480,14 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
 
     Q_UNUSED(withResourceBinaryData);
 
-    QSet<QUuid>::iterator it = m_findNotebookByGuidRequestIds.find(requestId);
-    if (it != m_findNotebookByGuidRequestIds.end())
+    QSet<QUuid>::iterator it = m_findNoteByGuidRequestIds.find(requestId);
+    if (it != m_findNoteByGuidRequestIds.end())
     {
         QNDEBUG("RemoteToLocalSynchronizationManager::onFindNoteCompleted: note = " << note
                 << ", requestId = " << requestId);
 
-        Q_UNUSED(m_findNotebookByGuidRequestIds.erase(it));
+        // NOTE: erase is required for proper work of the macro; the request would be re-inserted below if macro doesn't return from the method
+        Q_UNUSED(m_findNoteByGuidRequestIds.erase(it));
 
         CHECK_STOPPED();
 
@@ -496,8 +507,36 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
         notebookToFind.unsetLocalGuid();
         notebookToFind.setGuid(note.notebookGuid());
 
+        Q_UNUSED(m_findNoteByGuidRequestIds.insert(requestId));
+
         emit findNotebook(notebookToFind, findNotebookPerNoteRequestId);
         return;
+    }
+
+    ResourceDataPerFindNoteRequestId::iterator rit = m_resourcesWithFindRequestIdsPerFindNoteRequestId.find(requestId);
+    if (rit != m_resourcesWithFindRequestIdsPerFindNoteRequestId.end())
+    {
+        const QPair<ResourceWrapper,QUuid> & resourceWithFindRequestId = rit.value();
+        const ResourceWrapper & resource = resourceWithFindRequestId.first;
+        const QUuid & findResourceRequestId = resourceWithFindRequestId.second;
+
+        QString resourceGuid = (resource.hasGuid() ? resource.guid() : QString());
+        QString resourceLocalGuid = resource.localGuid();
+
+        QPair<QString,QString> key(resourceGuid, resourceLocalGuid);
+
+        m_notesPerResourceGuids[key] = note;
+
+        auto resourceFoundIt = m_resourceFoundFlagPerFindResourceRequestId.find(findResourceRequestId);
+        if (resourceFoundIt == m_resourceFoundFlagPerFindResourceRequestId.end()) {
+            emitAddRequest(resource);
+        }
+        else {
+            // TODO: uncomment when proper implementation settles
+            // Q_UNUSED(onFoundDuplicateByGuid(resource, findResourceRequestId, "Resource", m_resources, m_findResourceByGuidRequestIds));
+        }
+
+        CHECK_STOPPED();
     }
 }
 
@@ -593,7 +632,48 @@ void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper r
 {
     CHECK_PAUSED();
 
-    // TODO: implement
+    Q_UNUSED(withResourceBinaryData);
+
+    QSet<QUuid>::iterator rit = m_findResourceByGuidRequestIds.find(requestId);
+    if (rit != m_findResourceByGuidRequestIds.end())
+    {
+        QNDEBUG("RemoteToLocalSynchronizationManager::onFindResourceFailed: resource = " << resource
+                << ", requestId = " << requestId);
+
+        // NOTE: erase is required for proper work of the macro; the request would be re-inserted below if macro doesn't return from the method
+        Q_UNUSED(m_findResourceByGuidRequestIds.erase(rit));
+
+        CHECK_STOPPED();
+
+        auto it = findItemByGuid(m_resources, resource, "Resource");
+        if (it == m_resources.end()) {
+            return;
+        }
+
+        // Removing the resource from the list of resources waiting for processing
+        Q_UNUSED(m_resources.erase(it));
+
+        // TODO: need to find note which owns the resource in order to proceed
+        if (!resource.hasNoteGuid()) {
+            QString errorDescription = QT_TR_NOOP("Found duplicate resource in local storage which doesn't have note guid set");
+            QNWARNING(errorDescription << ": " << resource);
+            emit failure(errorDescription);
+            return;
+        }
+
+        QUuid findNotePerResourceRequestId = QUuid::createUuid();
+        m_resourcesWithFindRequestIdsPerFindNoteRequestId[findNotePerResourceRequestId] =
+            QPair<ResourceWrapper,QUuid>(resource, requestId);
+
+        Note noteToFind;
+        noteToFind.unsetLocalGuid();
+        noteToFind.setGuid(resource.noteGuid());
+
+        Q_UNUSED(m_findResourceByGuidRequestIds.insert(requestId));
+
+        emit findNote(noteToFind, /* with resource binary data = */ false, findNotePerResourceRequestId);
+        return;
+    }
 }
 
 void RemoteToLocalSynchronizationManager::onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook,
@@ -1878,11 +1958,13 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
 
     if (m_lastSyncMode == SyncMode::IncrementalSync)
     {
-        bool resourcesReady = m_updateResourceRequestIds.empty() && m_addResourceRequestIds.empty();
+        bool resourcesReady = m_updateResourceRequestIds.empty() && m_addResourceRequestIds.empty() &&
+                              m_resourcesWithFindRequestIdsPerFindNoteRequestId.empty();
         if (!resourcesReady) {
             QNDEBUG("Resources are not ready, pending response for " << m_updateResourceRequestIds.size()
                     << " resource update requests and/or " << m_addResourceRequestIds.size()
-                    << " resource add requests");
+                    << " resource add requests and/or  " << m_resourcesWithFindRequestIdsPerFindNoteRequestId.size()
+                    << " resource find note requests");
             return;
         }
     }
@@ -1964,6 +2046,21 @@ void RemoteToLocalSynchronizationManager::clear()
     m_addNotebookRequestIds.clear();
     m_updateNotebookRequestIds.clear();
     m_linkedNotebookGuidsByNotebookGuids.clear();
+
+    m_notes.clear();
+    m_findNoteByGuidRequestIds.clear();
+    m_addNoteRequestIds.clear();
+    m_updateNoteRequestIds.clear();
+    m_notesWithFindRequestIdsPerFindNotebookRequestId.clear();
+    m_notebooksPerNoteGuids.clear();
+
+    m_resources.clear();
+    m_findResourceByGuidRequestIds.clear();
+    m_addResourceRequestIds.clear();
+    m_updateResourceRequestIds.clear();
+    m_resourcesWithFindRequestIdsPerFindNoteRequestId.clear();
+    m_resourceFoundFlagPerFindResourceRequestId.clear();
+    m_notesPerResourceGuids.clear();
 
     m_localGuidsOfElementsAlreadyAttemptedToFindByName.clear();
 

@@ -414,15 +414,22 @@ private:
     QSet<QUuid>                             m_addNoteRequestIds;
     QSet<QUuid>                             m_updateNoteRequestIds;
 
+    typedef QHash<QUuid,QPair<Note,QUuid> > NoteDataPerFindNotebookRequestId;
+    NoteDataPerFindNotebookRequestId        m_notesWithFindRequestIdsPerFindNotebookRequestId;
+
+    QHash<QPair<QString,QString>,Notebook>  m_notebooksPerNoteGuids;
+
     ResourcesList                           m_resources;
     QSet<QUuid>                             m_findResourceByGuidRequestIds;
     QSet<QUuid>                             m_addResourceRequestIds;
     QSet<QUuid>                             m_updateResourceRequestIds;
 
-    typedef QHash<QUuid,QPair<Note,QUuid> > NoteDataPerFindNotebookRequestId;
-    NoteDataPerFindNotebookRequestId        m_notesWithFindRequestIdsPerFindNotebookRequestId;
+    typedef QHash<QUuid,QPair<ResourceWrapper,QUuid> > ResourceDataPerFindNoteRequestId;
+    ResourceDataPerFindNoteRequestId        m_resourcesWithFindRequestIdsPerFindNoteRequestId;
 
-    QHash<QPair<QString,QString>,Notebook>  m_notebooksPerNoteGuids;
+    QSet<QUuid>                             m_resourceFoundFlagPerFindResourceRequestId;
+
+    QHash<QPair<QString,QString>,Note>      m_notesPerResourceGuids;
 
     QSet<QString>                           m_localGuidsOfElementsAlreadyAttemptedToFindByName;
 
