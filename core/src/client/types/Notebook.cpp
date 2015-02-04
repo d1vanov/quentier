@@ -440,7 +440,9 @@ void Notebook::setSharedNotebooks(QList<qevercloud::SharedNotebook> sharedNotebo
         } \
         \
         d->m_qecNotebook.sharedNotebooks->clear(); \
-        foreach(const type & sharedNotebook, notebooks) { \
+        int numNotebooks = notebooks.size(); \
+        for(int i = 0; i < numNotebooks; ++i) { \
+            const type & sharedNotebook = notebooks[i]; \
             d->m_qecNotebook.sharedNotebooks.ref() << sharedNotebook.GetEnSharedNotebook(); \
         } \
     }
