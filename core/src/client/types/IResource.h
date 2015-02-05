@@ -128,7 +128,7 @@ protected:
 
     virtual QTextStream & Print(QTextStream & strm) const;
 
-private:    
+private:
     QSharedDataPointer<NoteStoreDataElementData>  d;
 
     bool m_isFreeAccount;

@@ -1,6 +1,7 @@
 #include "RemoteToLocalSynchronizationManager.h"
 #include <client/Utility.h>
 #include <client/local_storage/LocalStorageManagerThreadWorker.h>
+#include <client/types/ResourceAdapter.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
 #include <algorithm>
@@ -516,7 +517,19 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
     ResourceDataPerFindNoteRequestId::iterator rit = m_resourcesWithFindRequestIdsPerFindNoteRequestId.find(requestId);
     if (rit != m_resourcesWithFindRequestIdsPerFindNoteRequestId.end())
     {
-        const QPair<ResourceWrapper,QUuid> & resourceWithFindRequestId = rit.value();
+        QPair<ResourceWrapper,QUuid> resourceWithFindRequestId = rit.value();
+
+        Q_UNUSED(m_resourcesWithFindRequestIdsPerFindNoteRequestId.erase(rit));
+
+        CHECK_STOPPED();
+
+        if (!note.hasGuid()) {
+            QString errorDescription = QT_TR_NOOP("Internal error: found note by guid in local storage but the returned note object doesn't have guid set");
+            QNWARNING(errorDescription << ": " << note);
+            emit failure(errorDescription);
+            return;
+        }
+
         const ResourceWrapper & resource = resourceWithFindRequestId.first;
         const QUuid & findResourceRequestId = resourceWithFindRequestId.second;
 
@@ -528,15 +541,75 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
         m_notesPerResourceGuids[key] = note;
 
         auto resourceFoundIt = m_resourceFoundFlagPerFindResourceRequestId.find(findResourceRequestId);
-        if (resourceFoundIt == m_resourceFoundFlagPerFindResourceRequestId.end()) {
+        if (resourceFoundIt == m_resourceFoundFlagPerFindResourceRequestId.end())
+        {
             emitAddRequest(resource);
-        }
-        else {
-            // TODO: uncomment when proper implementation settles
-            // Q_UNUSED(onFoundDuplicateByGuid(resource, findResourceRequestId, "Resource", m_resources, m_findResourceByGuidRequestIds));
+            auto notesPerResourceGuidsIt = m_notesPerResourceGuids.find(key);
+            if (notesPerResourceGuidsIt != m_notesPerResourceGuids.end()) {
+                Q_UNUSED(m_notesPerResourceGuids.erase(notesPerResourceGuidsIt));
+            }
+            return;
         }
 
-        CHECK_STOPPED();
+        if (!resource.isDirty())
+        {
+            QNDEBUG("Found duplicate resource in local storage which is not marked dirty => using the version from synchronization manager");
+
+            QUuid updateResourceRequestId = QUuid::createUuid();
+            Q_UNUSED(m_updateResourceRequestIds.insert(updateResourceRequestId));
+
+            emit updateResource(resource, note, updateResourceRequestId);
+            return;
+        }
+
+        QNDEBUG("Found duplicate resource in local storage which is marked dirty => will copy the whole note owning it to the conflict one");
+
+        Note conflictedNote(note);
+        setConflicted("Note", conflictedNote);
+        QString conflictedNoteTitle = (conflictedNote.hasTitle()
+                                       ? QObject::tr("Note \"") + conflictedNote.title() + QObject::tr("\" containing conflicted resource")
+                                       : QObject::tr("Note containing conflicted resource"));
+        conflictedNoteTitle += " (" + QDateTime::currentDateTime().toString(Qt::ISODate) + ")";
+        conflictedNote.setTitle(conflictedNoteTitle);
+
+        Note newNote(note);
+        newNote.unsetLocalGuid();
+        bool hasResources = newNote.hasResources();
+        QList<ResourceAdapter> resources;
+        if (hasResources) {
+            resources = newNote.resourceAdapters();
+        }
+
+        int numResources = resources.size();
+        int resourceIndex = -1;
+        for(int i = 0; i < numResources; ++i)
+        {
+            const ResourceAdapter & existingResource = resources[i];
+            if (existingResource.hasGuid() && (existingResource.guid() == resource.guid())) {
+                resourceIndex = i;
+                break;
+            }
+        }
+
+        if (resourceIndex < 0)
+        {
+            newNote.addResource(resource);
+        }
+        else
+        {
+            QList<ResourceWrapper> noteResources = newNote.resources();
+            noteResources[resourceIndex] = resource;
+            newNote.setResources(noteResources);
+        }
+
+        const Notebook * pNotebook = getNotebookPerNote(note);
+        if (pNotebook)
+        {
+            // TODO: update note right away and add the new one. Don't use "emitUpdateRequest" method! It attempts to call Evernote API which is meaningless here
+            return;
+        }
+
+        // TODO: do the necessary bookkeeping for both conflicted and new notes and emit the request to find the notebook for the note
     }
 }
 
@@ -623,7 +696,47 @@ void RemoteToLocalSynchronizationManager::onFindResourceCompleted(ResourceWrappe
 {
     CHECK_PAUSED();
 
-    // TODO: implement
+    Q_UNUSED(withResourceBinaryData);
+
+    QSet<QUuid>::iterator rit = m_findResourceByGuidRequestIds.find(requestId);
+    if (rit != m_findResourceByGuidRequestIds.end())
+    {
+        QNDEBUG("RemoteToLocalSynchronizationManager::onFindResourceCompleted: resource = " << resource
+                << ", requestId = " << requestId);
+
+        CHECK_STOPPED();
+
+        auto it = findItemByGuid(m_resources, resource, "Resource");
+        if (it == m_resources.end()) {
+            return;
+        }
+
+        // Removing the resource from the list of resources waiting for processing
+        Q_UNUSED(m_resources.erase(it));
+
+        // need to find the note owning the resource to proceed
+        if (!resource.hasNoteGuid()) {
+            QString errorDescription = QT_TR_NOOP("Found duplicate resource in local storage which doesn't have note guid set");
+            QNWARNING(errorDescription << ": " << resource);
+            emit failure(errorDescription);
+            return;
+        }
+
+        Q_UNUSED(m_resourceFoundFlagPerFindResourceRequestId.insert(requestId));
+
+        QUuid findNotePerResourceRequestId = QUuid::createUuid();
+        m_resourcesWithFindRequestIdsPerFindNoteRequestId[findNotePerResourceRequestId] =
+            QPair<ResourceWrapper,QUuid>(resource, requestId);
+
+        Note noteToFind;
+        noteToFind.unsetLocalGuid();
+        noteToFind.setGuid(resource.noteGuid());
+
+        Q_UNUSED(m_findResourceByGuidRequestIds.insert(requestId));
+
+        emit findNote(noteToFind, /* with resource binary data = */ true, findNotePerResourceRequestId);
+        return;
+    }
 }
 
 void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper resource,
@@ -653,9 +766,9 @@ void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper r
         // Removing the resource from the list of resources waiting for processing
         Q_UNUSED(m_resources.erase(it));
 
-        // TODO: need to find note which owns the resource in order to proceed
+        // need to find the note owning the resource to proceed
         if (!resource.hasNoteGuid()) {
-            QString errorDescription = QT_TR_NOOP("Found duplicate resource in local storage which doesn't have note guid set");
+            QString errorDescription = QT_TR_NOOP("Detected resource which doesn't have note guid set");
             QNWARNING(errorDescription << ": " << resource);
             emit failure(errorDescription);
             return;
