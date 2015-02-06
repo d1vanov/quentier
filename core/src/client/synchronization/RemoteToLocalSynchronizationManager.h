@@ -135,6 +135,11 @@ private Q_SLOTS:
     void onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId);
     void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
 
+    void onAddResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId);
+    void onAddResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId);
+    void onUpdateResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId);
+    void onUpdateResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId);
+
 private:
     void createConnections();
     void disconnectFromLocalStorage();
@@ -430,6 +435,9 @@ private:
     QSet<QUuid>                             m_resourceFoundFlagPerFindResourceRequestId;
 
     QHash<QPair<QString,QString>,Note>      m_notesPerResourceGuids;
+
+    QHash<QString,QPair<Note,Note> >        m_resourceConflictedAndRemoteNotesPerNotebookGuid;
+    QSet<QUuid>                             m_findNotebookForNotesWithConflictedResourcesRequestIds;
 
     QSet<QString>                           m_localGuidsOfElementsAlreadyAttemptedToFindByName;
 
