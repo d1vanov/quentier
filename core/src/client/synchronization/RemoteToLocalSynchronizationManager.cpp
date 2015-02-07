@@ -291,8 +291,23 @@ void RemoteToLocalSynchronizationManager::emitAddRequest<Note>(const Note & note
 template <>
 void RemoteToLocalSynchronizationManager::emitAddRequest<ResourceWrapper>(const ResourceWrapper & resource)
 {
+    QString resourceGuid = (resource.hasGuid() ? resource.guid() : QString());
+    QString resourceLocalGuid = resource.localGuid();
+    QPair<QString,QString> key(resourceGuid, resourceLocalGuid);
+
+    auto it = m_notesPerResourceGuids.find(key);
+    if (it == m_notesPerResourceGuids.end()) {
+        QString errorDescription = QT_TR_NOOP("detected attempt to add resource for which no note was found in local storage");
+        QNWARNING(errorDescription << ": " << resource);
+        emit failure(errorDescription);
+        return;
+    }
+
+    const Note & note = it.value();
+
     QUuid addResourceRequestId = QUuid::createUuid();
-    // TODO: continue from here
+    Q_UNUSED(m_addResourceRequestIds.insert(addResourceRequestId));
+    emit addResource(resource, note, addResourceRequestId);
 }
 
 template <>
@@ -1054,7 +1069,7 @@ void RemoteToLocalSynchronizationManager::onUpdateDataElementCompleted(const Ele
         return;
     }
 
-    QNDEBUG("FullSynchronizartionManager::onUpdateDataElementCompleted<" << typeName
+    QNDEBUG("RemoteToLocalSynchronizartionManager::onUpdateDataElementCompleted<" << typeName
             << ">: " << typeName << " = " << element << ", requestId = " << requestId);
 
     Q_UNUSED(updateElementRequestIds.erase(rit));
@@ -1379,22 +1394,42 @@ void RemoteToLocalSynchronizationManager::onUpdateNoteFailed(Note note, Notebook
 
 void RemoteToLocalSynchronizationManager::onAddResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId)
 {
-    // TODO: implement
+    Q_UNUSED(note)
+    onAddDataElementCompleted(resource, requestId, "Resource", m_addResourceRequestIds);
 }
 
 void RemoteToLocalSynchronizationManager::onAddResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
+    Q_UNUSED(note)
+    onAddDataElementFailed(resource, requestId, errorDescription, "Resource", m_addResourceRequestIds);
 }
 
 void RemoteToLocalSynchronizationManager::onUpdateResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId)
 {
-    // TODO: implement
+    QSet<QUuid>::iterator it = m_updateResourceRequestIds.find(requestId);
+    if (it != m_updateResourceRequestIds.end())
+    {
+        QNDEBUG("RemoteToLocalSynchronizationManager::onUpdateResourceCompleted: resource = " << resource << "\nnote = "
+                << note << "\nrequestId = " << requestId);
+
+        Q_UNUSED(m_updateResourceRequestIds.erase(it));
+
+        checkServerDataMergeCompletion();
+    }
 }
 
 void RemoteToLocalSynchronizationManager::onUpdateResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
+    QSet<QUuid>::iterator it = m_updateResourceRequestIds.find(requestId);
+    if (it != m_updateResourceRequestIds.end())
+    {
+        QNDEBUG("RemoteToLocalSynchronizationManager::onUpdateResourceFailed: resource = " << resource << "\nnote = "
+                << note << "\nrequestId = " << requestId);
+
+        QString error = QT_TR_NOOP("Can't update resource in local storage: ");
+        error += errorDescription;
+        emit failure(error);
+    }
 }
 
 void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString, QString> authenticationTokensByLinkedNotebookGuid,
@@ -1506,11 +1541,17 @@ void RemoteToLocalSynchronizationManager::createConnections()
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNotebookComplete(Notebook,QUuid)), this, SLOT(onUpdateNotebookCompleted(Notebook,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onUpdateNotebookFailed(Notebook,QString,QUuid)));
 
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNoteComplete(Note,Notebook,QUuid)), this, SLOT(onAddNoteCompleted(Note,Notebook,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString,QUuid)), this, SLOT(onAddNoteFailed(Note,Notebook,QString,QUuid)));
+
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNoteComplete(Note,Notebook,QUuid)), this, SLOT(onUpdateNoteCompleted(Note,Notebook,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,QString,QUuid)), this, SLOT(onUpdateNoteFailed(Note,Notebook,QString,QUuid)));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNoteComplete(Note,Notebook,QUuid)), this, SLOT(onAddNoteCompleted(Note,Notebook,QUuid)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString,QUuid)), this, SLOT(onAddNoteFailed(Note,Notebook,QString,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addResourceComplete(ResourceWrapper,Note,QUuid)), this, SLOT(onAddResourceCompleted(ResourceWrapper,Note,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addResourceFailed(ResourceWrapper,Note,QString,QUuid)), this, SLOT(onAddResourceFailed(ResourceWrapper,Note,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateResourceComplete(ResourceWrapper,Note,QUuid)), this, SLOT(onUpdateResourceCompleted(ResourceWrapper,Note,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateResourceFailed(ResourceWrapper,Note,QString,QUuid)), this, SLOT(onUpdateResourceFailed(ResourceWrapper,Note,QString,QUuid)));
 
     m_connectedToLocalStorage = true;
 }
