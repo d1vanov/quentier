@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     app.setApplicationName("QuteNoteCoreTests");
 
     QUTE_NOTE_INITIALIZE_LOGGING();
-    QUTE_NOTE_SET_MIN_LOG_LEVEL(qute_note::QuteNoteLogger::Level::LEVEL_WARNING);
+    QUTE_NOTE_SET_MIN_LOG_LEVEL(Warn);
 
     QTest::qExec(new CoreTester);
     return 0;
