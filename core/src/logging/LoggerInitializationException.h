@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-class LoggerInitializationException : public IQuteNoteException
+class QUTE_NOTE_EXPORT LoggerInitializationException : public IQuteNoteException
 {
 public:
     explicit LoggerInitializationException(const QString & message);

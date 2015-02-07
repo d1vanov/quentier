@@ -4,6 +4,7 @@
 #include <client/types/ResourceAdapter.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
+#include <QTimerEvent>
 #include <algorithm>
 
 namespace qute_note {
