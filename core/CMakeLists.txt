@@ -134,7 +134,6 @@ set(${PROJECT_NAME}_SOURCES
     src/client/synchronization/SynchronizationManager_p.cpp
     src/client/synchronization/RemoteToLocalSynchronizationManager.cpp
     src/client/synchronization/SendLocalChangesManager.cpp
-    src/logging/QuteNoteLogger.cpp
     src/logging/LoggerInitializationException.cpp
     src/tools/ApplicationSettings.cpp
     src/tools/ApplicationStoragePersistencePath.cpp
@@ -174,7 +173,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB}
                       ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES}
-                      ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB} ${STACKTRACE_LIB})
+                      ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB} ${STACKTRACE_LIB} ${QSLOG_LIB})
 
 set(TEST_HEADERS
     src/tests/LocalStorageCacheAsyncTester.h
@@ -213,6 +212,8 @@ if(LIBCPP)
 else()
   target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
 endif()
+
+target_link_libraries(test_${PROJECT_NAME} ${QSLOG_LIB})
 
 if(USE_QT5)
   qt5_use_modules(test_${PROJECT_NAME} Core)
