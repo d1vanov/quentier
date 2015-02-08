@@ -1239,6 +1239,10 @@ template <>
 void RemoteToLocalSynchronizationManager::performPostAddOrUpdateChecks<Tag>()
 {
     checkNotebooksAndTagsSyncAndLaunchNotesSync();
+
+    if (m_addTagRequestIds.empty() && m_updateTagRequestIds.empty()) {
+        expungeTags();
+    }
 }
 
 template <>
@@ -1251,6 +1255,51 @@ template <>
 void RemoteToLocalSynchronizationManager::performPostAddOrUpdateChecks<Note>()
 {
     checkNotesSyncAndLaunchResourcesSync();
+
+    if (m_addNoteRequestIds.empty() && m_updateNoteRequestIds.empty() &&
+        m_notesToAddPerAPICallPostponeTimerId.empty() && m_notesToUpdatePerAPICallPostponeTimerId.empty())
+    {
+        if (!m_resources.empty()) {
+            return;
+        }
+
+        if (!m_expungedNotes.empty()) {
+            expungeNotes();
+        }
+        else if (!m_expungedNotebooks.empty()) {
+            expungeNotebooks();
+        }
+        else {
+            expungeLinkedNotebooks();
+        }
+    }
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::performPostAddOrUpdateChecks<ResourceWrapper>()
+{
+    if (m_addResourceRequestIds.empty() && m_updateResourceRequestIds.empty() &&
+        m_resourcesWithFindRequestIdsPerFindNoteRequestId.empty() &&
+        m_findNotebookForNotesWithConflictedResourcesRequestIds.empty())
+    {
+        if (!m_expungedNotes.empty()) {
+            expungeNotes();
+        }
+        else if (!m_expungedNotebooks.empty()) {
+            expungeNotebooks();
+        }
+        else {
+            expungeLinkedNotebooks();
+        }
+    }
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::performPostAddOrUpdateChecks<SavedSearch>()
+{
+    if (m_addSavedSearchRequestIds.empty() && m_updateSavedSearchRequestIds.empty()) {
+        expungeSavedSearches();
+    }
 }
 
 template <class ElementType>
@@ -1277,6 +1326,8 @@ void RemoteToLocalSynchronizationManager::onExpungeDataElementCompleted(const El
     QNTRACE("Expunged " << typeName << " from local storage: " << element);
     Q_UNUSED(expungeElementRequestIds.erase(it));
 
+    performPostExpungeChecks<ElementType>();
+
     checkServerDataMergeCompletion();
 }
 
@@ -1299,6 +1350,142 @@ void RemoteToLocalSynchronizationManager::onExpungeDataElementFailed(const Eleme
     error += errorDescription;
     QNWARNING(error);
     emit failure(error);
+}
+
+void RemoteToLocalSynchronizationManager::expungeTags()
+{
+    if (m_expungedTags.empty()) {
+        return;
+    }
+
+    Tag tagToExpunge;
+    tagToExpunge.unsetLocalGuid();
+
+    const int numExpungedTags = m_expungedTags.size();
+    for(int i = 0; i < numExpungedTags; ++i)
+    {
+        const QString & expungedTagGuid = m_expungedTags[i];
+        tagToExpunge.setGuid(expungedTagGuid);
+
+        QUuid expungeTagRequestId = QUuid::createUuid();
+        Q_UNUSED(m_expungeTagRequestIds.insert(expungeTagRequestId));
+        emit expungeTag(tagToExpunge, expungeTagRequestId);
+    }
+
+    m_expungedTags.clear();
+}
+
+void RemoteToLocalSynchronizationManager::expungeSavedSearches()
+{
+    if (m_expungedSavedSearches.empty()) {
+        return;
+    }
+
+    SavedSearch searchToExpunge;
+    searchToExpunge.unsetLocalGuid();
+
+    const int numExpungedSearches = m_expungedSavedSearches.size();
+    for(int i = 0; i < numExpungedSearches; ++i)
+    {
+        const QString & expungedSavedSerchGuid = m_expungedSavedSearches[i];
+        searchToExpunge.setGuid(expungedSavedSerchGuid);
+
+        QUuid expungeSavedSearchRequestId = QUuid::createUuid();
+        Q_UNUSED(m_expungeSavedSearchRequestIds.insert(expungeSavedSearchRequestId));
+        emit expungeSavedSearch(searchToExpunge, expungeSavedSearchRequestId);
+    }
+
+    m_expungedSavedSearches.clear();
+}
+
+void RemoteToLocalSynchronizationManager::expungeLinkedNotebooks()
+{
+    if (m_expungedLinkedNotebooks.empty()) {
+        return;
+    }
+
+    LinkedNotebook linkedNotebookToExpunge;
+
+    const int numExpungedLinkedNotebooks = m_expungedLinkedNotebooks.size();
+    for(int i = 0; i < numExpungedLinkedNotebooks; ++i)
+    {
+        const QString & expungedLinkedNotebookGuid = m_expungedLinkedNotebooks[i];
+        linkedNotebookToExpunge.setGuid(expungedLinkedNotebookGuid);
+
+        QUuid expungeLinkedNotebookRequestId = QUuid::createUuid();
+        Q_UNUSED(m_expungeLinkedNotebookRequestIds.insert(expungeLinkedNotebookRequestId));
+        emit expungeLinkedNotebook(linkedNotebookToExpunge, expungeLinkedNotebookRequestId);
+    }
+
+    m_expungedLinkedNotebooks.clear();
+}
+
+void RemoteToLocalSynchronizationManager::expungeNotebooks()
+{
+    if (m_expungedNotebooks.empty()) {
+        return;
+    }
+
+    Notebook notebookToExpunge;
+    notebookToExpunge.unsetLocalGuid();
+
+    const int numExpungedNotebooks = m_expungedNotebooks.size();
+    for(int i = 0; i < numExpungedNotebooks; ++i)
+    {
+        const QString & expungedNotebookGuid = m_expungedNotebooks[i];
+        notebookToExpunge.setGuid(expungedNotebookGuid);
+
+        QUuid expungeNotebookRequestId = QUuid::createUuid();
+        Q_UNUSED(m_expungeNotebookRequestIds.insert(expungeNotebookRequestId));
+        emit expungeNotebook(notebookToExpunge, expungeNotebookRequestId);
+    }
+
+    m_expungedNotebooks.clear();
+}
+
+void RemoteToLocalSynchronizationManager::expungeNotes()
+{
+    if (m_expungedNotes.empty()) {
+        return;
+    }
+
+    Note noteToExpunge;
+    noteToExpunge.unsetLocalGuid();
+
+    const int numExpungedNotes = m_expungedNotes.size();
+    for(int i = 0; i < numExpungedNotes; ++i)
+    {
+        const QString & expungedNoteGuid = m_expungedNotes[i];
+        noteToExpunge.setGuid(expungedNoteGuid);
+
+        QUuid expungeNoteRequestId = QUuid::createUuid();
+        Q_UNUSED(m_expungeNoteRequestIds.insert(expungeNoteRequestId));
+        emit expungeNote(noteToExpunge, expungeNoteRequestId);
+    }
+
+    m_expungedNotes.clear();
+}
+
+template <class ElementType>
+void RemoteToLocalSynchronizationManager::performPostExpungeChecks()
+{
+    // do nothing by default
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::performPostExpungeChecks<Note>()
+{
+    if (m_expungeNoteRequestIds.empty()) {
+        expungeNotebooks();
+    }
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::performPostExpungeChecks<Notebook>()
+{
+    if (m_expungeNotebookRequestIds.empty()) {
+        expungeLinkedNotebooks();
+    }
 }
 
 template <>
@@ -1610,7 +1797,6 @@ void RemoteToLocalSynchronizationManager::createConnections()
     QObject::connect(this, SIGNAL(addResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddResourceRequest(ResourceWrapper,Note,QUuid)));
     QObject::connect(this, SIGNAL(updateResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateResourceRequest(ResourceWrapper,Note,QUuid)));
     QObject::connect(this, SIGNAL(findResource(ResourceWrapper,bool,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindResourceRequest(ResourceWrapper,bool,QUuid)));
-    QObject::connect(this, SIGNAL(expungeResource(ResourceWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeResourceRequest(ResourceWrapper,QUuid)));
 
     QObject::connect(this, SIGNAL(addLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddLinkedNotebookRequest(LinkedNotebook,QUuid)));
     QObject::connect(this, SIGNAL(updateLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook,QUuid)));
@@ -1721,7 +1907,6 @@ void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
     QObject::disconnect(this, SIGNAL(addResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddResourceRequest(ResourceWrapper,Note,QUuid)));
     QObject::disconnect(this, SIGNAL(updateResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateResourceRequest(ResourceWrapper,Note,QUuid)));
     QObject::disconnect(this, SIGNAL(findResource(ResourceWrapper,bool,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindResourceRequest(ResourceWrapper,bool,QUuid)));
-    QObject::disconnect(this, SIGNAL(expungeResource(ResourceWrapper,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeResourceRequest(ResourceWrapper,QUuid)));
 
     QObject::disconnect(this, SIGNAL(addLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddLinkedNotebookRequest(LinkedNotebook,QUuid)));
     QObject::disconnect(this, SIGNAL(updateLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateLinkedNotebookRequest(LinkedNotebook,QUuid)));

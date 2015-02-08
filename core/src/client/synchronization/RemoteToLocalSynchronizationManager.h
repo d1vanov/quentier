@@ -85,7 +85,6 @@ Q_SIGNALS:
     void addResource(ResourceWrapper resource, Note note, QUuid requestId);
     void updateResource(ResourceWrapper resource, Note note, QUuid requestId);
     void findResource(ResourceWrapper resource, bool withBinaryData, QUuid requestId);
-    void expungeResource(ResourceWrapper resource, QUuid requestId);
 
     void addLinkedNotebook(LinkedNotebook notebook, QUuid requestId);
     void updateLinkedNotebook(LinkedNotebook notebook, QUuid requestId);
@@ -291,6 +290,15 @@ private:
     void onExpungeDataElementFailed(const ElementType & element, const QUuid & requestId,
                                     const QString & errorDescription, const QString & typeName,
                                     QSet<QUuid> & expungeElementRequestIds);
+
+    void expungeTags();
+    void expungeSavedSearches();
+    void expungeLinkedNotebooks();
+    void expungeNotebooks();
+    void expungeNotes();
+
+    template <class ElementType>
+    void performPostExpungeChecks();
 
     // ========= Find in blocks from sync chunk helpers ===========
 
