@@ -116,6 +116,8 @@ private Q_SLOTS:
     void onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId);
     void onUpdateTagCompleted(Tag tag, QUuid requestId);
     void onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+    void onExpungeTagCompleted(Tag tag, QUuid requestId);
+    void onExpungeTagFailed(Tag tag, QString errorDescription, QUuid requestId);
 
     void onExpungeNotelessTagsFromLinkedNotebooksCompleted(QUuid requestId);
     void onExpungeNotelessTagsFromLinkedNotebooksFailed(QString errorDescription, QUuid);
@@ -124,21 +126,29 @@ private Q_SLOTS:
     void onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
     void onUpdateSavedSearchCompleted(SavedSearch search, QUuid requestId);
     void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+    void onExpungeSavedSearchCompleted(SavedSearch search, QUuid requestId);
+    void onExpungeSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
 
     void onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
     void onAddLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
     void onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
     void onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
+    void onExpungeLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
+    void onExpungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
 
     void onAddNotebookCompleted(Notebook notebook, QUuid requestId);
     void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
     void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
     void onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onExpungeNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onExpungeNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
 
     void onAddNoteCompleted(Note note, Notebook notebook, QUuid requestId);
     void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
     void onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId);
     void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
+    void onExpungeNoteCompleted(Note note, QUuid requestId);
+    void onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId);
 
     void onAddResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId);
     void onAddResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId);
@@ -266,6 +276,17 @@ private:
     template <class ElementType>
     void unsetLocalGuid(ElementType & element);
 
+    // ========= Expunge helpers ============
+
+    template <class ElementType>
+    void onExpungeDataElementCompleted(const ElementType & element, const QUuid & requestId,
+                                       const QString & typeName, QSet<QUuid> & expungeElementRequestIds);
+
+    template <class ElementType>
+    void onExpungeDataElementFailed(const ElementType & element, const QUuid & requestId,
+                                    const QString & errorDescription, const QString & typeName,
+                                    QSet<QUuid> & expungeElementRequestIds);
+
     // ========= Find in blocks from sync chunk helpers ===========
 
     template <class ContainerType, class ElementType>
@@ -391,6 +412,8 @@ private:
     QSet<QUuid>                             m_findTagByGuidRequestIds;
     QSet<QUuid>                             m_addTagRequestIds;
     QSet<QUuid>                             m_updateTagRequestIds;
+    QSet<QUuid>                             m_expungeTagRequestIds;
+
     QHash<QString,QString>                  m_linkedNotebookGuidsByTagGuids;
     QUuid                                   m_expungeNotelessTagsRequestId;
 
@@ -400,11 +423,14 @@ private:
     QSet<QUuid>                             m_findSavedSearchByGuidRequestIds;
     QSet<QUuid>                             m_addSavedSearchRequestIds;
     QSet<QUuid>                             m_updateSavedSearchRequestIds;
+    QSet<QUuid>                             m_expungeSavedSearchRequestIds;
 
     LinkedNotebooksList                     m_linkedNotebooks;
     QSet<QUuid>                             m_findLinkedNotebookRequestIds;
     QSet<QUuid>                             m_addLinkedNotebookRequestIds;
     QSet<QUuid>                             m_updateLinkedNotebookRequestIds;
+    QSet<QUuid>                             m_expungeLinkedNotebookRequestIds;
+
     QHash<QString,QString>                  m_authenticationTokensByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
     QHash<QString,qevercloud::SyncState>    m_syncStatesByLinkedNotebookGuid;
@@ -418,12 +444,15 @@ private:
     QSet<QUuid>                             m_findNotebookByGuidRequestIds;
     QSet<QUuid>                             m_addNotebookRequestIds;
     QSet<QUuid>                             m_updateNotebookRequestIds;
+    QSet<QUuid>                             m_expungeNotebookRequestIds;
+
     QHash<QString,QString>                  m_linkedNotebookGuidsByNotebookGuids;
 
     NotesList                               m_notes;
     QSet<QUuid>                             m_findNoteByGuidRequestIds;
     QSet<QUuid>                             m_addNoteRequestIds;
     QSet<QUuid>                             m_updateNoteRequestIds;
+    QSet<QUuid>                             m_expungeNoteRequestIds;
 
     typedef QHash<QUuid,QPair<Note,QUuid> > NoteDataPerFindNotebookRequestId;
     NoteDataPerFindNotebookRequestId        m_notesWithFindRequestIdsPerFindNotebookRequestId;
