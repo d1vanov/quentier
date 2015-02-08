@@ -103,10 +103,13 @@ private:
 
 private:
     void createConnections();
+    void disconnectFromLocalStorage();
 
 private:
     LocalStorageManagerThreadWorker &   m_localStorageManagerThreadWorker;
     NoteStore                           m_noteStore;
+
+    bool                                m_connectedToLocalStorage;
 
     QUuid                               m_listDirtyTagsRequestId;
     QUuid                               m_listDirtySavedSearchesRequestId;

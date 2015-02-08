@@ -10,29 +10,49 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     QObject(parent),
     m_localStorageManagerThreadWorker(localStorageManagerThreadWorker),
     m_noteStore(pNoteStore),
+    m_connectedToLocalStorage(false),
     m_listDirtyTagsRequestId(),
     m_listDirtySavedSearchesRequestId(),
     m_listDirtyNotebooksRequestId(),
     m_listDirtyNotesRequestId()
-{
-    createConnections();
-}
+{}
 
 void SendLocalChangesManager::start()
 {
     QNDEBUG("SendLocalChangesManager::start");
 
-    QNDEBUG("Starting from listing the non-local dirty tags")
-    LocalStorageManager::ListObjectsOptions listDirtyTagsFlag =
+    if (!m_connectedToLocalStorage) {
+        createConnections();
+    }
+
+    QNTRACE("Starting from listing the non-local dirty tags");
+    LocalStorageManager::ListObjectsOptions listDirtyObjectsFlag =
             LocalStorageManager::ListDirty | LocalStorageManager::ListNonLocal;
 
     size_t limit = 0, offset = 0;
-    LocalStorageManager::ListTagsOrder::type order = LocalStorageManager::ListTagsOrder::NoOrder;
+    LocalStorageManager::ListTagsOrder::type tagsOrder = LocalStorageManager::ListTagsOrder::NoOrder;
     LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Ascending;
 
     m_listDirtyTagsRequestId = QUuid::createUuid();
-    emit requestLocalUnsynchronizedTags(listDirtyTagsFlag, limit, offset, order,
+    emit requestLocalUnsynchronizedTags(listDirtyObjectsFlag, limit, offset, tagsOrder,
                                         orderDirection, m_listDirtyTagsRequestId);
+
+    LocalStorageManager::ListSavedSearchesOrder::type savedSearchesOrder = LocalStorageManager::ListSavedSearchesOrder::NoOrder;
+    m_listDirtySavedSearchesRequestId = QUuid::createUuid();
+    emit requestLocalUnsynchronizedSavedSearches(listDirtyObjectsFlag, limit, offset, savedSearchesOrder,
+                                                 orderDirection, m_listDirtySavedSearchesRequestId);
+
+    LocalStorageManager::ListNotebooksOrder::type notebooksOrder = LocalStorageManager::ListNotebooksOrder::NoOrder;
+    m_listDirtyNotebooksRequestId = QUuid::createUuid();
+    emit requestLocalUnsynchronizedNotebooks(listDirtyObjectsFlag, limit, offset, notebooksOrder,
+                                             orderDirection, m_listDirtyNotebooksRequestId);
+
+    LocalStorageManager::ListNotesOrder::type notesOrder = LocalStorageManager::ListNotesOrder::NoOrder;
+    m_listDirtyNotesRequestId = QUuid::createUuid();
+    emit requestLocalUnsynchronizedNotes(listDirtyObjectsFlag, limit, offset, notesOrder,
+                                         orderDirection, m_listDirtyNotesRequestId);
+
+    QNTRACE("Emitted signals to local storage to request new and updates tags, saved searches, notebooks and notes");
 }
 
 void SendLocalChangesManager::onListDirtyTagsCompleted(LocalStorageManager::ListObjectsOptions flag,
@@ -168,6 +188,8 @@ void SendLocalChangesManager::onListDirtyNotesFailed(LocalStorageManager::ListOb
 
 void SendLocalChangesManager::createConnections()
 {
+    QNDEBUG("SendLocalChangesManager::createConnections");
+
     // Connect local signals with localStorageManagerThread's slots
     QObject::connect(this,
                      SIGNAL(requestLocalUnsynchronizedTags(LocalStorageManager::ListObjectsOptions,size_t,size_t,
@@ -277,6 +299,15 @@ void SendLocalChangesManager::createConnections()
                      SLOT(onListDirtyNotesFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                                  LocalStorageManager::ListNotesOrder::type,
                                                  LocalStorageManager::OrderDirection::type,QString,QUuid)));
+
+    m_connectedToLocalStorage = true;
+}
+
+void SendLocalChangesManager::disconnectFromLocalStorage()
+{
+    // TODO: implement
+
+    m_connectedToLocalStorage = false;
 }
 
 } // namespace qute_note
