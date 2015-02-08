@@ -179,7 +179,12 @@ private:
 
     template <class ContainerType, class LocalType>
     void launchDataElementSync(const ContentSource::type contentSource,
-                               const QString & typeName, ContainerType & container);
+                               const QString & typeName, ContainerType & container,
+                               QList<QString> & expungedElements);
+
+    template <class ElementType>
+    void extractExpungedElementsFromSyncChunk(const qevercloud::SyncChunk & syncChunk,
+                                              QList<QString> & expungedElementGuids);
 
     template <class ElementType>
     void setConflicted(const QString & typeName, ElementType & element);
@@ -407,6 +412,7 @@ private:
     QSet<QString>                           m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded;
 
     TagsList                                m_tags;
+    QList<QString>                          m_expungedTags;
     QHash<QUuid,Tag>                        m_tagsToAddPerRequestId;
     QSet<QUuid>                             m_findTagByNameRequestIds;
     QSet<QUuid>                             m_findTagByGuidRequestIds;
@@ -418,6 +424,7 @@ private:
     QUuid                                   m_expungeNotelessTagsRequestId;
 
     SavedSearchesList                       m_savedSearches;
+    QList<QString>                          m_expungedSavedSearches;
     QHash<QUuid,SavedSearch>                m_savedSearchesToAddPerRequestId;
     QSet<QUuid>                             m_findSavedSearchByNameRequestIds;
     QSet<QUuid>                             m_findSavedSearchByGuidRequestIds;
@@ -426,6 +433,7 @@ private:
     QSet<QUuid>                             m_expungeSavedSearchRequestIds;
 
     LinkedNotebooksList                     m_linkedNotebooks;
+    QList<QString>                          m_expungedLinkedNotebooks;
     QSet<QUuid>                             m_findLinkedNotebookRequestIds;
     QSet<QUuid>                             m_addLinkedNotebookRequestIds;
     QSet<QUuid>                             m_updateLinkedNotebookRequestIds;
@@ -439,6 +447,7 @@ private:
     QHash<QString,qint32>                   m_lastUpdateCountByLinkedNotebookGuid;
 
     NotebooksList                           m_notebooks;
+    QList<QString>                          m_expungedNotebooks;
     QHash<QUuid,Notebook>                   m_notebooksToAddPerRequestId;
     QSet<QUuid>                             m_findNotebookByNameRequestIds;
     QSet<QUuid>                             m_findNotebookByGuidRequestIds;
@@ -449,6 +458,7 @@ private:
     QHash<QString,QString>                  m_linkedNotebookGuidsByNotebookGuids;
 
     NotesList                               m_notes;
+    QList<QString>                          m_expungedNotes;
     QSet<QUuid>                             m_findNoteByGuidRequestIds;
     QSet<QUuid>                             m_addNoteRequestIds;
     QSet<QUuid>                             m_updateNoteRequestIds;

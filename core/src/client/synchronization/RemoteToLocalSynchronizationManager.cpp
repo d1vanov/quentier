@@ -33,6 +33,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_linkedNotebookSyncChunks(),
     m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded(),
     m_tags(),
+    m_expungedTags(),
     m_tagsToAddPerRequestId(),
     m_findTagByNameRequestIds(),
     m_findTagByGuidRequestIds(),
@@ -42,6 +43,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_linkedNotebookGuidsByTagGuids(),
     m_expungeNotelessTagsRequestId(),
     m_savedSearches(),
+    m_expungedSavedSearches(),
     m_savedSearchesToAddPerRequestId(),
     m_findSavedSearchByNameRequestIds(),
     m_findSavedSearchByGuidRequestIds(),
@@ -49,6 +51,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_updateSavedSearchRequestIds(),
     m_expungeSavedSearchRequestIds(),
     m_linkedNotebooks(),
+    m_expungedLinkedNotebooks(),
     m_findLinkedNotebookRequestIds(),
     m_addLinkedNotebookRequestIds(),
     m_updateLinkedNotebookRequestIds(),
@@ -60,6 +63,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_lastSyncTimeByLinkedNotebookGuid(),
     m_lastUpdateCountByLinkedNotebookGuid(),
     m_notebooks(),
+    m_expungedNotebooks(),
     m_notebooksToAddPerRequestId(),
     m_findNotebookByNameRequestIds(),
     m_findNotebookByGuidRequestIds(),
@@ -68,6 +72,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_expungeNotebookRequestIds(),
     m_linkedNotebookGuidsByNotebookGuids(),
     m_notes(),
+    m_expungedNotes(),
     m_findNoteByGuidRequestIds(),
     m_addNoteRequestIds(),
     m_updateNoteRequestIds(),
@@ -163,7 +168,7 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
         else if (state.updateCount == m_lastUpdateCount)
         {
             QNDEBUG("Server has no updates for user's data since the last sync");
-            if (m_linkedNotebooks.size() == 0) {
+            if (m_linkedNotebooks.empty() && m_expungedLinkedNotebooks.empty()) {
                 finalize();
             }
             else {
@@ -1832,28 +1837,27 @@ void RemoteToLocalSynchronizationManager::launchSync()
 void RemoteToLocalSynchronizationManager::launchTagsSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchTagsSync");
-    launchDataElementSync<TagsList, Tag>(ContentSource::UserAccount, "Tag", m_tags);
+    launchDataElementSync<TagsList, Tag>(ContentSource::UserAccount, "Tag", m_tags, m_expungedTags);
 }
 
 void RemoteToLocalSynchronizationManager::launchSavedSearchSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchSavedSearchSync");
-    launchDataElementSync<SavedSearchesList, SavedSearch>(ContentSource::UserAccount,
-                                                          "Saved search", m_savedSearches);
+    launchDataElementSync<SavedSearchesList, SavedSearch>(ContentSource::UserAccount, "Saved search",
+                                                          m_savedSearches, m_expungedSavedSearches);
 }
 
 void RemoteToLocalSynchronizationManager::launchLinkedNotebookSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebookSync");
-    launchDataElementSync<LinkedNotebooksList, LinkedNotebook>(ContentSource::UserAccount,
-                                                               "Linked notebook", m_linkedNotebooks);
+    launchDataElementSync<LinkedNotebooksList, LinkedNotebook>(ContentSource::UserAccount, "Linked notebook",
+                                                               m_linkedNotebooks, m_expungedLinkedNotebooks);
 }
 
 void RemoteToLocalSynchronizationManager::launchNotebookSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchNotebookSync");
-    launchDataElementSync<NotebooksList, Notebook>(ContentSource::UserAccount,
-                                                   "Notebook", m_notebooks);
+    launchDataElementSync<NotebooksList, Notebook>(ContentSource::UserAccount, "Notebook", m_notebooks, m_expungedNotebooks);
 }
 
 QTextStream & operator<<(QTextStream & strm, const RemoteToLocalSynchronizationManager::ContentSource::type & obj)
@@ -1888,7 +1892,7 @@ void RemoteToLocalSynchronizationManager::checkNotebooksAndTagsSyncAndLaunchNote
 
 void RemoteToLocalSynchronizationManager::launchNotesSync()
 {
-    launchDataElementSync<NotesList, Note>(ContentSource::UserAccount, "Note", m_notes);
+    launchDataElementSync<NotesList, Note>(ContentSource::UserAccount, "Note", m_notes, m_expungedNotes);
 }
 
 void RemoteToLocalSynchronizationManager::checkNotesSyncAndLaunchResourcesSync()
@@ -1910,7 +1914,8 @@ void RemoteToLocalSynchronizationManager::checkNotesSyncAndLaunchResourcesSync()
 void RemoteToLocalSynchronizationManager::launchResourcesSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchResourcesSync");
-    launchDataElementSync<ResourcesList, ResourceWrapper>(ContentSource::UserAccount, "Resource", m_resources);
+    QList<QString> dummyList;
+    launchDataElementSync<ResourcesList, ResourceWrapper>(ContentSource::UserAccount, "Resource", m_resources, dummyList);
 }
 
 void RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncAndLaunchLinkedNotebookContentSync()
@@ -2311,20 +2316,21 @@ void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinke
 void RemoteToLocalSynchronizationManager::launchLinkedNotebooksTagsSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebooksTagsSync");
-    launchDataElementSync<TagsList, Tag>(ContentSource::LinkedNotebook, "Tag", m_tags);
+    QList<QString> dummyList;
+    launchDataElementSync<TagsList, Tag>(ContentSource::LinkedNotebook, "Tag", m_tags, dummyList);
 }
 
 void RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotebooksSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotebooksSync");
-    launchDataElementSync<NotebooksList, Notebook>(ContentSource::LinkedNotebook, "Notebook", m_notebooks);
+    QList<QString> dummyList;
+    launchDataElementSync<NotebooksList, Notebook>(ContentSource::LinkedNotebook, "Notebook", m_notebooks, dummyList);
 }
 
 void RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotesSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchLinkedNotebooksNotesSync");
-
-    launchDataElementSync<NotesList, Note>(ContentSource::LinkedNotebook, "Note", m_notes);
+    launchDataElementSync<NotesList, Note>(ContentSource::LinkedNotebook, "Note", m_notes, m_expungedNotes);
 }
 
 bool RemoteToLocalSynchronizationManager::hasPendingRequests() const
@@ -2476,6 +2482,7 @@ void RemoteToLocalSynchronizationManager::clear()
     m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded.clear();
 
     m_tags.clear();
+    m_expungedTags.clear();
     m_tagsToAddPerRequestId.clear();
     m_findTagByNameRequestIds.clear();
     m_findTagByGuidRequestIds.clear();
@@ -2487,6 +2494,7 @@ void RemoteToLocalSynchronizationManager::clear()
     m_expungeNotelessTagsRequestId = QUuid();
 
     m_savedSearches.clear();
+    m_expungedSavedSearches.clear();
     m_savedSearchesToAddPerRequestId.clear();
     m_findSavedSearchByNameRequestIds.clear();
     m_findSavedSearchByGuidRequestIds.clear();
@@ -2494,6 +2502,7 @@ void RemoteToLocalSynchronizationManager::clear()
     m_updateSavedSearchRequestIds.clear();
 
     m_linkedNotebooks.clear();
+    m_expungedLinkedNotebooks.clear();
     m_findLinkedNotebookRequestIds.clear();
     m_addLinkedNotebookRequestIds.clear();
     m_updateLinkedNotebookRequestIds.clear();
@@ -2504,6 +2513,7 @@ void RemoteToLocalSynchronizationManager::clear()
     // this information can be reused in subsequent syncs
 
     m_notebooks.clear();
+    m_expungedNotebooks.clear();
     m_notebooksToAddPerRequestId.clear();
     m_findNotebookByNameRequestIds.clear();
     m_findNotebookByGuidRequestIds.clear();
@@ -2514,6 +2524,7 @@ void RemoteToLocalSynchronizationManager::clear()
     m_linkedNotebookGuidsByNotebookGuids.clear();
 
     m_notes.clear();
+    m_expungedNotes.clear();
     m_findNoteByGuidRequestIds.clear();
     m_addNoteRequestIds.clear();
     m_updateNoteRequestIds.clear();
@@ -3177,18 +3188,17 @@ bool RemoteToLocalSynchronizationManager::CompareItemByGuid<T>::operator()(const
 
 template <class ContainerType, class ElementType>
 void RemoteToLocalSynchronizationManager::launchDataElementSync(const ContentSource::type contentSource, const QString & typeName,
-                                                                ContainerType & container)
+                                                                ContainerType & container, QList<QString> & expungedElements)
 {
     bool syncingUserAccountData = (contentSource == ContentSource::UserAccount);
     const auto & syncChunks = (syncingUserAccountData ? m_syncChunks : m_linkedNotebookSyncChunks);
 
     container.clear();
     int numSyncChunks = syncChunks.size();
-    for(int i = 0; i < numSyncChunks; ++i)
-    {
+    for(int i = 0; i < numSyncChunks; ++i) {
         const qevercloud::SyncChunk & syncChunk = syncChunks[i];
-
         appendDataElementsFromSyncChunkToContainer<ContainerType>(syncChunk, container);
+        extractExpungedElementsFromSyncChunk<ElementType>(syncChunk, expungedElements);
     }
 
     if (container.empty()) {
@@ -3208,6 +3218,57 @@ void RemoteToLocalSynchronizationManager::launchDataElementSync(const ContentSou
         }
 
         emitFindByGuidRequest<ElementType>(remoteElement.guid.ref());
+    }
+}
+
+template <class ElementType>
+void RemoteToLocalSynchronizationManager::extractExpungedElementsFromSyncChunk(const qevercloud::SyncChunk & syncChunk, QList<QString> & expungedElementGuids)
+{
+    // do nothing by default
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::extractExpungedElementsFromSyncChunk<Tag>(const qevercloud::SyncChunk & syncChunk,
+                                                                                    QList<QString> & expungedElementGuids)
+{
+    if (syncChunk.expungedTags.isSet()) {
+        expungedElementGuids = syncChunk.expungedTags.ref();
+    }
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::extractExpungedElementsFromSyncChunk<SavedSearch>(const qevercloud::SyncChunk & syncChunk,
+                                                                                            QList<QString> & expungedElementGuids)
+{
+    if (syncChunk.expungedSearches.isSet()) {
+        expungedElementGuids = syncChunk.expungedSearches.ref();
+    }
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::extractExpungedElementsFromSyncChunk<Notebook>(const qevercloud::SyncChunk & syncChunk,
+                                                                                         QList<QString> & expungedElementGuids)
+{
+    if (syncChunk.expungedNotebooks.isSet()) {
+        expungedElementGuids = syncChunk.expungedNotebooks.ref();
+    }
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::extractExpungedElementsFromSyncChunk<Note>(const qevercloud::SyncChunk & syncChunk,
+                                                                                     QList<QString> & expungedElementGuids)
+{
+    if (syncChunk.expungedNotes.isSet()) {
+        expungedElementGuids = syncChunk.expungedNotes.ref();
+    }
+}
+
+template <>
+void RemoteToLocalSynchronizationManager::extractExpungedElementsFromSyncChunk<LinkedNotebook>(const qevercloud::SyncChunk & syncChunk,
+                                                                                               QList<QString> & expungedElementGuids)
+{
+    if (syncChunk.expungedLinkedNotebooks.isSet()) {
+        expungedElementGuids = syncChunk.expungedLinkedNotebooks.ref();
     }
 }
 
