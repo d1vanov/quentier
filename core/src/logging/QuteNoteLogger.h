@@ -9,7 +9,7 @@
 #include <QsLogDestFile.h>
 
 #define QNTRACE(message) \
-    QLOG_TRACE() << message;`
+    QLOG_TRACE() << message;
 
 #define QNDEBUG(message) \
     QLOG_DEBUG() << message;

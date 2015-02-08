@@ -39,6 +39,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_addTagRequestIds(),
     m_updateTagRequestIds(),
     m_linkedNotebookGuidsByTagGuids(),
+    m_expungeNotelessTagsRequestId(),
     m_savedSearches(),
     m_savedSearchesToAddPerRequestId(),
     m_findSavedSearchByNameRequestIds(),
@@ -1167,6 +1168,30 @@ void RemoteToLocalSynchronizationManager::onUpdateTagFailed(Tag tag, QString err
                               m_tagsToAddPerRequestId);
 }
 
+void RemoteToLocalSynchronizationManager::onExpungeNotelessTagsFromLinkedNotebooksCompleted(QUuid requestId)
+{
+    if (requestId == m_expungeNotelessTagsRequestId) {
+        QNDEBUG("RemoteToLocalSynchronizationManager::onExpungeNotelessTagsFromLinkedNotebooksCompleted");
+        m_expungeNotelessTagsRequestId = QUuid();
+        finalize();
+        return;
+    }
+}
+
+void RemoteToLocalSynchronizationManager::onExpungeNotelessTagsFromLinkedNotebooksFailed(QString errorDescription, QUuid requestId)
+{
+    if (requestId == m_expungeNotelessTagsRequestId)
+    {
+        QNDEBUG("RemoteToLocalSynchronizationManager::onExpungeNotelessTagsFromLinkedNotebooksFailed: " << errorDescription);
+        m_expungeNotelessTagsRequestId = QUuid();
+
+        QString error = QT_TR_NOOP("Can't expunge noteless tags belonging to linked notebooks from local storage: ");
+        error += errorDescription;
+        emit failure(error);
+        return;
+    }
+}
+
 void RemoteToLocalSynchronizationManager::onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription,
                                                                     QUuid requestId)
 {
@@ -1484,6 +1509,8 @@ void RemoteToLocalSynchronizationManager::createConnections()
     QObject::connect(this, SIGNAL(deleteTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onDeleteTagRequest(Tag,QUuid)));
     QObject::connect(this, SIGNAL(expungeTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeTagRequest(Tag,QUuid)));
 
+    QObject::connect(this, SIGNAL(expungeNotelessTagsFromLinkedNotebooks(QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeNotelessTagsFromLinkedNotebooksRequest(QUuid)));
+
     QObject::connect(this, SIGNAL(addResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddResourceRequest(ResourceWrapper,Note,QUuid)));
     QObject::connect(this, SIGNAL(updateResource(ResourceWrapper,Note,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateResourceRequest(ResourceWrapper,Note,QUuid)));
     QObject::connect(this, SIGNAL(findResource(ResourceWrapper,bool,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindResourceRequest(ResourceWrapper,bool,QUuid)));
@@ -1515,14 +1542,17 @@ void RemoteToLocalSynchronizationManager::createConnections()
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findSavedSearchComplete(SavedSearch,QUuid)), this, SLOT(onFindSavedSearchCompleted(SavedSearch,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findSavedSearchFailed(SavedSearch,QString,QUuid)), this, SLOT(onFindSavedSearchFailed(SavedSearch,QString,QUuid)));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addTagComplete(Tag,QUuid)), this, SLOT(onAddTagCompleted(Tag,QUuid)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addTagFailed(Tag,QString,QUuid)), this, SLOT(onAddTagFailed(Tag,QString,QUuid)));
-
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findResourceComplete(ResourceWrapper,bool,QUuid)), this, SLOT(onFindResourceCompleted(ResourceWrapper,bool,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findResourceFailed(ResourceWrapper,bool,QString,QUuid)), this, SLOT(onFindResourceFailed(ResourceWrapper,bool,QString,QUuid)));
 
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addTagComplete(Tag,QUuid)), this, SLOT(onAddTagCompleted(Tag,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addTagFailed(Tag,QString,QUuid)), this, SLOT(onAddTagFailed(Tag,QString,QUuid)));
+
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagComplete(Tag,QUuid)), this, SLOT(onUpdateTagCompleted(Tag,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagFailed(Tag,QString,QUuid)), this, SLOT(onUpdateTagFailed(Tag,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(expungeNotelessTagsFromLinkedNotebooksComplete(QUuid)), this, SLOT(onExpungeNotelessTagsFromLinkedNotebooksCompleted(QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(expungeNotelessTagsFromLinkedNotebooksFailed(QString,QUUid)), this, SLOT(onExpungeNotelessTagsFromLinkedNotebooksFailed(QString,QUuid)));
 
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addSavedSearchComplete(SavedSearch,QUuid)), this, SLOT(onAddSavedSearchCompleted(SavedSearch,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addSavedSearchFailed(SavedSearch,QString,QUuid)), this, SLOT(onAddSavedSearchFailed(SavedSearch,QString,QUuid)));
@@ -2269,7 +2299,9 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
         // now we are here due to linked notebooks
         QNDEBUG("Synchronized the whole contents from linked notebooks");
         emit linkedNotebooksFullNotesContentsDownloaded();
-        finalize();
+
+        m_expungeNotelessTagsRequestId = QUuid::createUuid();
+        emit expungeNotelessTagsFromLinkedNotebooks(m_expungeNotelessTagsRequestId);
     }
     else
     {
@@ -2317,6 +2349,7 @@ void RemoteToLocalSynchronizationManager::clear()
     m_addTagRequestIds.clear();
     m_updateTagRequestIds.clear();
     m_linkedNotebookGuidsByTagGuids.clear();
+    m_expungeNotelessTagsRequestId = QUuid();
 
     m_savedSearches.clear();
     m_savedSearchesToAddPerRequestId.clear();
@@ -2658,8 +2691,7 @@ const Notebook * RemoteToLocalSynchronizationManager::getNotebookPerNote(const N
 
 void RemoteToLocalSynchronizationManager::handleAuthExpiration()
 {
-    // FIXME: really need some non-warning but persistent log level here
-    QNWARNING("Got AUTH_EXPIRED error, pausing and requesting new authentication token");
+    QNINFO("Got AUTH_EXPIRED error, pausing and requesting new authentication token");
     m_paused = true;
     emit paused(/* pending authentication = */ true);
     emit requestAuthenticationToken();
