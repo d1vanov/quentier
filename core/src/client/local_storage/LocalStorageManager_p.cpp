@@ -644,6 +644,11 @@ bool LocalStorageManagerPrivate::FindNotebook(Notebook & notebook, QString & err
                                   "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
                                   "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
                                   "WHERE Notebooks.%1 = '%2'").arg(column).arg(value);
+
+    if (notebook.hasLinkedNotebookGuid()) {
+        queryString += QString(" AND Notebooks.linkedNotebookGuid = '%1'").arg(notebook.linkedNotebookGuid());
+    }
+
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find notebook in SQL database by guid");
@@ -2080,6 +2085,11 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
     QString queryString = QString("SELECT localGuid, guid, linkedNotebookGuid, updateSequenceNumber, "
                                   "name, parentGuid, isDirty, isLocal, isLocal, isDeleted, hasShortcut "
                                   "FROM Tags WHERE %1 = '%2'").arg(column).arg(value);
+
+    if (tag.hasLinkedNotebookGuid()) {
+        queryString += QString(" AND linkedNotebookGuid = '%1'").arg(tag.linkedNotebookGuid());
+    }
+
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select tag from \"Tags\" table in SQL database: ");
@@ -2911,7 +2921,7 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  updateSequenceNumber            INTEGER           DEFAULT NULL, "
                      "  notebookName                    TEXT              DEFAULT NULL, "
-                     "  notebookNameUpper               TEXT              DEFAULT NULL UNIQUE, "
+                     "  notebookNameUpper               TEXT              DEFAULT NULL, "
                      "  creationTimestamp               INTEGER           DEFAULT NULL, "
                      "  modificationTimestamp           INTEGER           DEFAULT NULL, "
                      "  isDirty                         INTEGER           NOT NULL, "
@@ -2929,7 +2939,8 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  businessNotebookPrivilegeLevel  INTEGER           DEFAULT NULL, "
                      "  businessNotebookIsRecommended   INTEGER           DEFAULT NULL, "
                      "  contactId                       INTEGER           DEFAULT NULL, "
-                     "  UNIQUE(localGuid, guid) "
+                     "  UNIQUE(localGuid, guid), "
+                     "  UNIQUE(linkedNotebookGuid, notebookNameUpper) "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Notebooks table");
 
@@ -3178,12 +3189,13 @@ bool LocalStorageManagerPrivate::CreateTables(QString & errorDescription)
                      "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  updateSequenceNumber  INTEGER              DEFAULT NULL, "
                      "  name                  TEXT                 DEFAULT NULL, "
-                     "  nameUpper             TEXT                 DEFAULT NULL UNIQUE, "
+                     "  nameUpper             TEXT                 DEFAULT NULL, "
                      "  parentGuid            TEXT                 DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
                      "  isDeleted             INTEGER              NOT NULL, "
-                     "  hasShortcut           INTEGER              NOT NULL "
+                     "  hasShortcut           INTEGER              NOT NULL, "
+                     "  UNIQUE(linkedNotebookGuid, nameUpper) "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Tags table");
 
