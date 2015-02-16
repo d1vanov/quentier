@@ -643,10 +643,13 @@ bool LocalStorageManagerPrivate::FindNotebook(Notebook & notebook, QString & err
                                   "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
                                   "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
                                   "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
-                                  "WHERE Notebooks.%1 = '%2'").arg(column).arg(value);
+                                  "WHERE (Notebooks.%1 = '%2'").arg(column).arg(value);
 
     if (notebook.hasLinkedNotebookGuid()) {
-        queryString += QString(" AND Notebooks.linkedNotebookGuid = '%1'").arg(notebook.linkedNotebookGuid());
+        queryString += QString(" AND Notebooks.linkedNotebookGuid = '%1')").arg(notebook.linkedNotebookGuid());
+    }
+    else {
+        queryString += " AND Notebooks.linkedNotebookGuid IS NULL)";
     }
 
     QSqlQuery query(m_sqlDatabase);
@@ -2084,10 +2087,13 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
 
     QString queryString = QString("SELECT localGuid, guid, linkedNotebookGuid, updateSequenceNumber, "
                                   "name, parentGuid, isDirty, isLocal, isLocal, isDeleted, hasShortcut "
-                                  "FROM Tags WHERE %1 = '%2'").arg(column).arg(value);
+                                  "FROM Tags WHERE (%1 = '%2'").arg(column).arg(value);
 
     if (tag.hasLinkedNotebookGuid()) {
-        queryString += QString(" AND linkedNotebookGuid = '%1'").arg(tag.linkedNotebookGuid());
+        queryString += QString(" AND linkedNotebookGuid = '%1')").arg(tag.linkedNotebookGuid());
+    }
+    else {
+        queryString += " AND linkedNotebookGuid IS NULL)";
     }
 
     QSqlQuery query(m_sqlDatabase);

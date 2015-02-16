@@ -157,8 +157,11 @@ public:
      * @brief FindNotebook - attempts to find and set all found fields for passed in
      * by reference Notebook object. If "remote" Evernote service's guid for Notebook is set,
      * it is used to identify the Notebook in local storage database. Otherwise it is
-     * identified by its local guid.
-     * @param notebook - notebook to be found. Must have either "remote" or local guid set
+     * identified by its local guid. If it's empty, the search would attempt to find Notebook
+     * by its name. If linked notebook guid is set for notebook, the search would consider only
+     * notebooks from that linked notebook; otherwise, the search would consider only notebooks
+     * from user's own account
+     * @param notebook - notebook to be found. Must have either "remote" or local guid or title set
      * @param errorDescription - error description if notebook could not be found
      * @return true if notebook was found, false otherwise
      */
@@ -595,8 +598,12 @@ public:
     /**
      * @brief FindTag - attempts to find and fill the fields of passed in tag object.
      * If it would have "remote" Evernote service's guid set, it would be used to identify
-     * the tag in the local storage database. Otherwise the local guid would be used.
-     * @param tag - tag to be found in the local storage database
+     * the tag in the local storage database. Otherwise the local guid would be used. If neither
+     * guid nor local guid are set, tag's name would be used.
+     * If tag has linked notebook guid set, the search for tag would consider only tags
+     * from that linked notebook; otherwise, if it's not set, the search for tag would consider
+     * only the tags from user's own account
+     * @param tag - tag to be found in the local storage database; must have either guid, local guid or name set
      * @param errorDescription - error description in case tag could not be found
      * @return true if tag was found, false otherwise
      */
