@@ -282,7 +282,8 @@ void NotebookLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook not
         size_t limit = 0, offset = 0;
         LocalStorageManager::ListNotebooksOrder::type order = LocalStorageManager::ListNotebooksOrder::NoOrder;
         LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Ascending;
-        emit listAllNotebooksRequest(limit, offset, order, orderDirection);
+        QString linkedNotebookGuid;
+        emit listAllNotebooksRequest(limit, offset, order, orderDirection, linkedNotebookGuid);
     }
     HANDLE_WRONG_STATE();
 }
@@ -569,12 +570,13 @@ void NotebookLocalStorageManagerAsyncTester::onFindDefaultOrLastUsedNotebookFail
 void NotebookLocalStorageManagerAsyncTester::onListAllNotebooksCompleted(size_t limit, size_t offset,
                                                                          LocalStorageManager::ListNotebooksOrder::type order,
                                                                          LocalStorageManager::OrderDirection::type orderDirection,
-                                                                         QList<Notebook> notebooks, QUuid requestId)
+                                                                         QString linkedNotebookGuid, QList<Notebook> notebooks, QUuid requestId)
 {
     Q_UNUSED(limit)
     Q_UNUSED(offset)
     Q_UNUSED(order)
     Q_UNUSED(orderDirection)
+    Q_UNUSED(linkedNotebookGuid)
     Q_UNUSED(requestId)
 
     QString errorDescription;
@@ -602,12 +604,14 @@ void NotebookLocalStorageManagerAsyncTester::onListAllNotebooksCompleted(size_t 
 void NotebookLocalStorageManagerAsyncTester::onListAllNotebooksFailed(size_t limit, size_t offset,
                                                                       LocalStorageManager::ListNotebooksOrder::type order,
                                                                       LocalStorageManager::OrderDirection::type orderDirection,
+                                                                      QString linkedNotebookGuid,
                                                                       QString errorDescription, QUuid requestId)
 {
     Q_UNUSED(limit)
     Q_UNUSED(offset)
     Q_UNUSED(order)
     Q_UNUSED(orderDirection)
+    Q_UNUSED(linkedNotebookGuid)
 
     QNWARNING(errorDescription << ", requestId = " << requestId);
     emit failure(errorDescription);
@@ -733,10 +737,10 @@ void NotebookLocalStorageManagerAsyncTester::createConnections()
                      m_pLocalStorageManagerThreadWorker, SLOT(onFindDefaultOrLastUsedNotebookRequest(Notebook,QUuid)));
     QObject::connect(this,
                      SIGNAL(listAllNotebooksRequest(size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                                    LocalStorageManager::OrderDirection::type,QUuid)),
+                                                    LocalStorageManager::OrderDirection::type,QString,QUuid)),
                      m_pLocalStorageManagerThreadWorker,
                      SLOT(onListAllNotebooksRequest(size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                                    LocalStorageManager::OrderDirection::type,QUuid)));
+                                                    LocalStorageManager::OrderDirection::type,QString,QUuid)));
     QObject::connect(this, SIGNAL(listAllSharedNotebooksRequest(QUuid)), m_pLocalStorageManagerThreadWorker,
                      SLOT(onListAllSharedNotebooksRequest(QUuid)));
     QObject::connect(this, SIGNAL(listSharedNotebooksPerNotebookRequest(QString,QUuid)),
@@ -775,16 +779,16 @@ void NotebookLocalStorageManagerAsyncTester::createConnections()
                      this, SLOT(onFindDefaultOrLastUsedNotebookFailed(Notebook,QString,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker,
                      SIGNAL(listAllNotebooksComplete(size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                                     LocalStorageManager::OrderDirection::type,QList<Notebook>,QUuid)),
+                                                     LocalStorageManager::OrderDirection::type,QString,QList<Notebook>,QUuid)),
                      this,
                      SLOT(onListAllNotebooksCompleted(size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                                      LocalStorageManager::OrderDirection::type,QList<Notebook>,QUuid)));
+                                                      LocalStorageManager::OrderDirection::type,QString,QList<Notebook>,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker,
                      SIGNAL(listAllNotebooksFailed(size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                                   LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                                                   LocalStorageManager::OrderDirection::type,QString,QString,QUuid)),
                      this,
                      SLOT(onListAllNotebooksFailed(size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                                   LocalStorageManager::OrderDirection::type,QString,QUuid)));
+                                                   LocalStorageManager::OrderDirection::type,QString,QString,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllSharedNotebooksComplete(QList<SharedNotebookWrapper>,QUuid)),
                      this, SLOT(onListAllSharedNotebooksCompleted(QList<SharedNotebookWrapper>,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(listAllSharedNotebooksFailed(QString,QUuid)),

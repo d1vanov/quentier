@@ -49,11 +49,13 @@ public:
     bool FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
     QList<Notebook> ListAllNotebooks(QString & errorDescription, const size_t limit, const size_t offset,
                                      const LocalStorageManager::ListNotebooksOrder::type & order,
-                                     const LocalStorageManager::OrderDirection::type & orderDirection) const;
+                                     const LocalStorageManager::OrderDirection::type & orderDirection,
+                                     const QString & linkedNotebookGuid) const;
     QList<Notebook> ListNotebooks(const LocalStorageManager::ListObjectsOptions flag,
                                   QString & errorDescription, const size_t limit, const size_t offset,
                                   const LocalStorageManager::ListNotebooksOrder::type & order,
-                                  const LocalStorageManager::OrderDirection::type & orderDirection) const;
+                                  const LocalStorageManager::OrderDirection::type & orderDirection,
+                                  const QString & linkedNotebookGuid) const;
     QList<SharedNotebookWrapper> ListAllSharedNotebooks(QString & errorDescription) const;
     QList<SharedNotebookWrapper> ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                     QString & errorDescription) const;
@@ -106,10 +108,12 @@ public:
                                   const LocalStorageManager::OrderDirection::type & orderDirection) const;
     QList<Tag> ListAllTags(QString & errorDescription, const size_t limit,
                            const size_t offset, const LocalStorageManager::ListTagsOrder::type & order,
-                           const LocalStorageManager::OrderDirection::type & orderDirection) const;
+                           const LocalStorageManager::OrderDirection::type & orderDirection,
+                           const QString & linkedNotebookGuid) const;
     QList<Tag> ListTags(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
                         const size_t limit, const size_t offset, const LocalStorageManager::ListTagsOrder::type & order,
-                        const LocalStorageManager::OrderDirection::type & orderDirection) const;
+                        const LocalStorageManager::OrderDirection::type & orderDirection,
+                        const QString & linkedNotebookGuid) const;
     bool DeleteTag(const Tag & tag, QString & errorDescription);
     bool ExpungeTag(const Tag & tag, QString & errorDescription);
     bool ExpungeNotelessTagsFromLinkedNotebooks(QString & errorDescription);
@@ -206,7 +210,7 @@ private:
     bool InsertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
                                  const Note & note, const QString & overrideNoteLocalGuid,
                                  QString & errorDescription, const bool useSeparateTransaction = true);
-    bool InsertOrReplaceResourceAttributes(const QString & localGuid, 
+    bool InsertOrReplaceResourceAttributes(const QString & localGuid,
                                            const qevercloud::ResourceAttributes & attributes,
                                            QString & errorDescription);
     bool CheckAndPrepareInsertOrReplaceResourceQuery();

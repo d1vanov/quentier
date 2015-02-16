@@ -230,12 +230,15 @@ public:
      * @param order - allows to specify particular ordering of notebooks in the result, NoOrder by default
      * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
      * this parameter has no meaning if order is equal to NoOrder
+     * @param linkedNotebookGuid - if it's empty, the notebooks from user's own account would be listed;
+     * otherwise, notebooks from corresponding linked notebook would be listed
      * @return either list of all notebooks within the account or empty list in cases of
      * error or no notebooks presence within the account
      */
     QList<Notebook> ListAllNotebooks(QString & errorDescription, const size_t limit = 0,
                                      const size_t offset = 0, const ListNotebooksOrder::type order = ListNotebooksOrder::NoOrder,
-                                     const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
+                                     const OrderDirection::type orderDirection = OrderDirection::Ascending,
+                                     const QString & linkedNotebookGuid = QString()) const;
 
     /**
      * @brief ListNotebooks - attempts to list notebooks within the account according to
@@ -248,13 +251,16 @@ public:
      * @param order - allows to specify particular ordering of notebooks in the result, NoOrder by default
      * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
      * this parameter has no meaning if order is equal to NoOrder
+     * @param linkedNotebookGuid - if it's empty, the notebooks from user's own account would be listed;
+     * otherwise, notebooks from corresponding linked notebook would be listed
      * @return either list of notebooks within the account conforming to the filter or empty list
      * in cases of error or no notebooks conforming to the filter exist within the account
      */
     QList<Notebook> ListNotebooks(const ListObjectsOptions flag, QString & errorDescription,
                                   const size_t limit = 0, const size_t offset = 0,
                                   const ListNotebooksOrder::type order = ListNotebooksOrder::NoOrder,
-                                  const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
+                                  const OrderDirection::type orderDirection = OrderDirection::Ascending,
+                                  const QString & linkedNotebookGuid = QString()) const;
 
     /**
      * @brief ListAllSharedNotebooks - attempts to list all shared notebooks within the account
@@ -652,11 +658,14 @@ public:
      * @param order - allows to specify particular ordering of tags in the result, NoOrder by default
      * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
      * this parameter has no meaning if order is equal to NoOrder
+     * @param linkedNotebookGuid - if it's empty, the notebooks from user's own account would be listed;
+     * otherwise, notebooks from corresponding linked notebook would be listed
      * @return the list of found tags within the account
      */
     QList<Tag> ListAllTags(QString & errorDescription, const size_t limit = 0,
                            const size_t offset = 0, const ListTagsOrder::type order = ListTagsOrder::NoOrder,
-                           const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
+                           const OrderDirection::type orderDirection = OrderDirection::Ascending,
+                           const QString & linkedNotebookGuid = QString()) const;
 
     /**
      * @brief ListTags - attempts to list tags within the account according to the specified input flag
@@ -668,13 +677,16 @@ public:
      * @param order - allows to specify particular ordering of tags in the result, NoOrder by default
      * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
      * this parameter has no meaning if order is equal to NoOrder
+     * @param linkedNotebookGuid - if it's empty, the notebooks from user's own account would be listed;
+     * otherwise, notebooks from corresponding linked notebook would be listed
      * @return either list of tags within the account conforming to the filter or empty list
      * in cases of error or no tags conforming to the filter exist within the account
      */
     QList<Tag> ListTags(const ListObjectsOptions flag, QString & errorDescription,
                         const size_t limit = 0, const size_t offset = 0,
                         const ListTagsOrder::type & order = ListTagsOrder::NoOrder,
-                        const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
+                        const OrderDirection::type orderDirection = OrderDirection::Ascending,
+                        const QString & linkedNotebookGuid = QString()) const;
 
     /**
      * @brief DeleteTag - marks tag as deleted in local storage.

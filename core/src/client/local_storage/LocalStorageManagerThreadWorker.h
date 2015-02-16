@@ -24,7 +24,7 @@ public:
                                              const bool startFromScratch,
                                              QObject * parent = nullptr);
     virtual ~LocalStorageManagerThreadWorker();
-    
+
     void setUseCache(const bool useCache);
 
     const LocalStorageCacheManager * localStorageCacheManager() const;
@@ -68,20 +68,19 @@ Q_SIGNALS:
     void findDefaultOrLastUsedNotebookComplete(Notebook foundNotebook, QUuid requestId = QUuid());
     void findDefaultOrLastUsedNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId = QUuid());
     void listAllNotebooksComplete(size_t limit, size_t offset, LocalStorageManager::ListNotebooksOrder::type order,
-                                  LocalStorageManager::OrderDirection::type orderDirection,
+                                  LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
                                   QList<Notebook> foundNotebooks, QUuid requestId = QUuid());
-    void listAllNotebooksFailed(size_t limit, size_t offset,
-                                LocalStorageManager::ListNotebooksOrder::type order,
-                                LocalStorageManager::OrderDirection::type orderDirection,
+    void listAllNotebooksFailed(size_t limit, size_t offset, LocalStorageManager::ListNotebooksOrder::type order,
+                                LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
                                 QString errorDescription, QUuid requestId = QUuid());
     void listNotebooksComplete(LocalStorageManager::ListObjectsOptions flag,
                                size_t limit, size_t offset, LocalStorageManager::ListNotebooksOrder::type order,
-                               LocalStorageManager::OrderDirection::type orderDirection,
+                               LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
                                QList<Notebook> foundNotebooks, QUuid requestId = QUuid());
     void listNotebooksFailed(LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
                              LocalStorageManager::ListNotebooksOrder::type order,
                              LocalStorageManager::OrderDirection::type orderDirection,
-                             QString errorDescription, QUuid requestId = QUuid());
+                             QString linkedNotebookGuid, QString errorDescription, QUuid requestId = QUuid());
     void listAllSharedNotebooksComplete(QList<SharedNotebookWrapper> foundSharedNotebooks, QUuid requestId = QUuid());
     void listAllSharedNotebooksFailed(QString errorDescription, QUuid requestId = QUuid());
     void listSharedNotebooksPerNotebookGuidComplete(QString notebookGuid, QList<SharedNotebookWrapper> foundSharedNotebooks,
@@ -177,18 +176,18 @@ Q_SIGNALS:
                                   LocalStorageManager::OrderDirection::type orderDirection,
                                   QString errorDescription, QUuid requestId = QUuid());
     void listAllTagsComplete(size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
-                             LocalStorageManager::OrderDirection::type orderDirection,
+                             LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
                              QList<Tag> foundTags, QUuid requestId = QUuid());
     void listAllTagsFailed(size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
-                           LocalStorageManager::OrderDirection::type orderDirection, QString errorDescription,
-                           QUuid requestId = QUuid());
+                           LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
+                           QString errorDescription, QUuid requestId = QUuid());
     void listTagsComplete(LocalStorageManager::ListObjectsOptions flag,
                           size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
-                          LocalStorageManager::OrderDirection::type orderDirection,
+                          LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
                           QList<Tag> foundTags, QUuid requestId = QUuid());
     void listTagsFailed(LocalStorageManager::ListObjectsOptions flag,
                         size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
-                        LocalStorageManager::OrderDirection::type orderDirection,
+                        LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
                         QString errorDescription, QUuid requestId = QUuid());
     void deleteTagComplete(Tag tag, QUuid requestId = QUuid());
     void deleteTagFailed(Tag tag, QString errorDescription, QUuid requestId = QUuid());
@@ -238,7 +237,7 @@ Q_SIGNALS:
                                  QString errorDescription, QUuid requestId = QUuid());
     void expungeSavedSearchComplete(SavedSearch search, QUuid requestId = QUuid());
     void expungeSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId = QUuid());
-    
+
 public Q_SLOTS:
     void init();
 
@@ -262,13 +261,13 @@ public Q_SLOTS:
     void onListAllNotebooksRequest(size_t limit, size_t offset,
                                    LocalStorageManager::ListNotebooksOrder::type order,
                                    LocalStorageManager::OrderDirection::type orderDirection,
-                                   QUuid requestId);
+                                   QString linkedNotebookGuid, QUuid requestId);
     void onListAllSharedNotebooksRequest(QUuid requestId);
     void onListNotebooksRequest(LocalStorageManager::ListObjectsOptions flag,
                                 size_t limit, size_t offset,
                                 LocalStorageManager::ListNotebooksOrder::type order,
                                 LocalStorageManager::OrderDirection::type orderDirection,
-                                QUuid requestId);
+                                QString linkedNotebookGuid, QUuid requestId);
     void onListSharedNotebooksPerNotebookGuidRequest(QString notebookGuid, QUuid requestId);
     void onExpungeNotebookRequest(Notebook notebook, QUuid requestId);
 
@@ -321,12 +320,12 @@ public Q_SLOTS:
     void onListAllTagsRequest(size_t limit, size_t offset,
                               LocalStorageManager::ListTagsOrder::type order,
                               LocalStorageManager::OrderDirection::type orderDirection,
-                              QUuid requestId);
+                              QString linkedNotebookGuid, QUuid requestId);
     void onListTagsRequest(LocalStorageManager::ListObjectsOptions flag,
                            size_t limit, size_t offset,
                            LocalStorageManager::ListTagsOrder::type order,
                            LocalStorageManager::OrderDirection::type orderDirection,
-                           QUuid requestId);
+                           QString linkedNotebookGuid, QUuid requestId);
     void onDeleteTagRequest(Tag tag, QUuid requestId);
     void onExpungeTagRequest(Tag tag, QUuid requestId);
     void onExpungeNotelessTagsFromLinkedNotebooksRequest(QUuid requestId);

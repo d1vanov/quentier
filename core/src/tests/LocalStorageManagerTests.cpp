@@ -246,6 +246,10 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     const QString localTagGuid = tag.localGuid();
     Tag foundTag;
     foundTag.setLocalGuid(localTagGuid);
+    if (tag.hasLinkedNotebookGuid()) {
+        foundTag.setLinkedNotebookGuid(tag.linkedNotebookGuid());
+    }
+
     res = localStorageManager.FindTag(foundTag, errorDescription);
     if (!res) {
         return false;
@@ -262,6 +266,10 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     Tag foundByNameTag;
     foundByNameTag.unsetLocalGuid();
     foundByNameTag.setName(tag.name());
+    if (tag.hasLinkedNotebookGuid()) {
+        foundByNameTag.setLinkedNotebookGuid(tag.linkedNotebookGuid());
+    }
+
     res = localStorageManager.FindTag(foundByNameTag, errorDescription);
     if (!res) {
         return false;
@@ -284,6 +292,10 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     res = localStorageManager.UpdateTag(modifiedTag, errorDescription);
     if (!res) {
         return false;
+    }
+
+    if (!modifiedTag.hasLinkedNotebookGuid()) {
+        foundTag.setLinkedNotebookGuid(QString());
     }
 
     res = localStorageManager.FindTag(foundTag, errorDescription);
@@ -750,6 +762,10 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
 
     Notebook foundNotebook;
     foundNotebook.setGuid(notebook.guid());
+    if (notebook.hasLinkedNotebookGuid()) {
+        foundNotebook.setLinkedNotebookGuid(notebook.linkedNotebookGuid());
+    }
+
     res = localStorageManager.FindNotebook(foundNotebook, errorDescription);
     if (!res) {
         return false;
@@ -766,6 +782,10 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     Notebook foundByNameNotebook;
     foundByNameNotebook.unsetLocalGuid();
     foundByNameNotebook.setName(notebook.name());
+    if (notebook.hasLinkedNotebookGuid()) {
+        foundByNameNotebook.setLinkedNotebookGuid(notebook.linkedNotebookGuid());
+    }
+
     res = localStorageManager.FindNotebook(foundByNameNotebook, errorDescription);
     if (!res) {
         return false;
@@ -836,6 +856,10 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
 
     foundNotebook = Notebook();
     foundNotebook.setGuid(modifiedNotebook.guid());
+    if (modifiedNotebook.hasLinkedNotebookGuid()) {
+        foundNotebook.setLinkedNotebookGuid(modifiedNotebook.linkedNotebookGuid());
+    }
+
     res = localStorageManager.FindNotebook(foundNotebook, errorDescription);
     if (!res) {
         return false;

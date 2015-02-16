@@ -346,15 +346,15 @@ void LocalStorageManagerThreadWorker::onFindDefaultOrLastUsedNotebookRequest(Not
 void LocalStorageManagerThreadWorker::onListAllNotebooksRequest(size_t limit, size_t offset,
                                                                 LocalStorageManager::ListNotebooksOrder::type order,
                                                                 LocalStorageManager::OrderDirection::type orderDirection,
-                                                                QUuid requestId)
+                                                                QString linkedNotebookGuid, QUuid requestId)
 {
     try
     {
         QString errorDescription;
-        QList<Notebook> notebooks = m_pLocalStorageManager->ListAllNotebooks(errorDescription, limit,
-                                                                             offset, order, orderDirection);
+        QList<Notebook> notebooks = m_pLocalStorageManager->ListAllNotebooks(errorDescription, limit, offset, order,
+                                                                             orderDirection, linkedNotebookGuid);
         if (notebooks.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllNotebooksFailed(limit, offset, order, orderDirection,
+            emit listAllNotebooksFailed(limit, offset, order, orderDirection, linkedNotebookGuid,
                                         errorDescription, requestId);
             return;
         }
@@ -368,7 +368,7 @@ void LocalStorageManagerThreadWorker::onListAllNotebooksRequest(size_t limit, si
             }
         }
 
-        emit listAllNotebooksComplete(limit, offset, order, orderDirection, notebooks, requestId);
+        emit listAllNotebooksComplete(limit, offset, order, orderDirection, linkedNotebookGuid, notebooks, requestId);
     }
     CATCH_EXCEPTION
 }
@@ -393,15 +393,16 @@ void LocalStorageManagerThreadWorker::onListNotebooksRequest(LocalStorageManager
                                                              size_t limit, size_t offset,
                                                              LocalStorageManager::ListNotebooksOrder::type order,
                                                              LocalStorageManager::OrderDirection::type orderDirection,
-                                                             QUuid requestId)
+                                                             QString linkedNotebookGuid, QUuid requestId)
 {
     try
     {
         QString errorDescription;
         QList<Notebook> notebooks = m_pLocalStorageManager->ListNotebooks(flag, errorDescription, limit,
-                                                                          offset, order, orderDirection);
+                                                                          offset, order, orderDirection,
+                                                                          linkedNotebookGuid);
         if (notebooks.isEmpty() && !errorDescription.isEmpty()) {
-            emit listNotebooksFailed(flag, limit, offset, order, orderDirection, errorDescription, requestId);
+            emit listNotebooksFailed(flag, limit, offset, order, orderDirection, linkedNotebookGuid, errorDescription, requestId);
             return;
         }
 
@@ -414,7 +415,7 @@ void LocalStorageManagerThreadWorker::onListNotebooksRequest(LocalStorageManager
             }
         }
 
-        emit listNotebooksComplete(flag, limit, offset, order, orderDirection, notebooks, requestId);
+        emit listNotebooksComplete(flag, limit, offset, order, orderDirection, linkedNotebookGuid, notebooks, requestId);
     }
     CATCH_EXCEPTION
 }
@@ -977,16 +978,16 @@ void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note, Loc
 void LocalStorageManagerThreadWorker::onListAllTagsRequest(size_t limit, size_t offset,
                                                            LocalStorageManager::ListTagsOrder::type order,
                                                            LocalStorageManager::OrderDirection::type orderDirection,
-                                                           QUuid requestId)
+                                                           QString linkedNotebookGuid, QUuid requestId)
 {
     try
     {
         QString errorDescription;
 
         QList<Tag> tags = m_pLocalStorageManager->ListAllTags(errorDescription, limit, offset,
-                                                              order, orderDirection);
+                                                              order, orderDirection, linkedNotebookGuid);
         if (tags.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllTagsFailed(limit, offset, order, orderDirection, errorDescription, requestId);
+            emit listAllTagsFailed(limit, offset, order, orderDirection, linkedNotebookGuid, errorDescription, requestId);
             return;
         }
 
@@ -999,7 +1000,7 @@ void LocalStorageManagerThreadWorker::onListAllTagsRequest(size_t limit, size_t 
             }
         }
 
-        emit listAllTagsComplete(limit, offset, order, orderDirection, tags, requestId);
+        emit listAllTagsComplete(limit, offset, order, orderDirection, linkedNotebookGuid, tags, requestId);
     }
     CATCH_EXCEPTION
 }
@@ -1008,15 +1009,15 @@ void LocalStorageManagerThreadWorker::onListTagsRequest(LocalStorageManager::Lis
                                                         size_t limit, size_t offset,
                                                         LocalStorageManager::ListTagsOrder::type order,
                                                         LocalStorageManager::OrderDirection::type orderDirection,
-                                                        QUuid requestId)
+                                                        QString linkedNotebookGuid, QUuid requestId)
 {
     try
     {
         QString errorDescription;
-        QList<Tag> tags = m_pLocalStorageManager->ListTags(flag, errorDescription, limit,
-                                                           offset, order, orderDirection);
+        QList<Tag> tags = m_pLocalStorageManager->ListTags(flag, errorDescription, limit, offset, order,
+                                                           orderDirection, linkedNotebookGuid);
         if (tags.isEmpty() && !errorDescription.isEmpty()) {
-            emit listTagsFailed(flag, limit, offset, order, orderDirection, errorDescription, requestId);
+            emit listTagsFailed(flag, limit, offset, order, orderDirection, linkedNotebookGuid, errorDescription, requestId);
         }
 
         if (m_useCache)
@@ -1028,7 +1029,7 @@ void LocalStorageManagerThreadWorker::onListTagsRequest(LocalStorageManager::Lis
             }
         }
 
-        emit listTagsComplete(flag, limit, offset, order, orderDirection, tags, requestId);
+        emit listTagsComplete(flag, limit, offset, order, orderDirection, linkedNotebookGuid, tags, requestId);
     }
     CATCH_EXCEPTION
 }

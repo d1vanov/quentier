@@ -631,8 +631,6 @@ bool LocalStorageManagerPrivate::FindNotebook(Notebook & notebook, QString & err
         value = notebook.localGuid();
     }
 
-    notebook = Notebook();
-
     QString queryString = QString("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
                                   "ON Notebooks.localGuid = NotebookRestrictions.localGuid "
                                   "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
@@ -651,6 +649,8 @@ bool LocalStorageManagerPrivate::FindNotebook(Notebook & notebook, QString & err
     else {
         queryString += " AND Notebooks.linkedNotebookGuid IS NULL)";
     }
+
+    notebook = Notebook();
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -766,20 +766,28 @@ bool LocalStorageManagerPrivate::FindDefaultOrLastUsedNotebook(Notebook & notebo
 QList<Notebook> LocalStorageManagerPrivate::ListAllNotebooks(QString & errorDescription,
                                                              const size_t limit, const size_t offset,
                                                              const LocalStorageManager::ListNotebooksOrder::type & order,
-                                                             const LocalStorageManager::OrderDirection::type & orderDirection) const
+                                                             const LocalStorageManager::OrderDirection::type & orderDirection,
+                                                             const QString & linkedNotebookGuid) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllNotebooks");
     return ListNotebooks(LocalStorageManager::ListAll, errorDescription, limit,
-                         offset, order, orderDirection);
+                         offset, order, orderDirection, linkedNotebookGuid);
 }
 
 QList<Notebook> LocalStorageManagerPrivate::ListNotebooks(const LocalStorageManager::ListObjectsOptions flag,
                                                           QString & errorDescription, const size_t limit,
                                                           const size_t offset, const LocalStorageManager::ListNotebooksOrder::type & order,
-                                                          const LocalStorageManager::OrderDirection::type & orderDirection) const
+                                                          const LocalStorageManager::OrderDirection::type & orderDirection,
+                                                          const QString & linkedNotebookGuid) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListNotebooks: flag = " << flag);
-    return listObjects<Notebook, LocalStorageManager::ListNotebooksOrder::type>(flag, errorDescription, limit, offset, order, orderDirection);
+
+    QString linkedNotebookGuidSqlQueryCondition = (linkedNotebookGuid.isEmpty()
+                                                   ? "linkedNotebookGuid IS NULL"
+                                                   : QString("linkedNotebookGuid = '%1'").arg(linkedNotebookGuid));
+
+    return listObjects<Notebook, LocalStorageManager::ListNotebooksOrder::type>(flag, errorDescription, limit, offset, order, orderDirection,
+                                                                                linkedNotebookGuidSqlQueryCondition);
 }
 
 QList<SharedNotebookWrapper> LocalStorageManagerPrivate::ListAllSharedNotebooks(QString & errorDescription) const
@@ -2083,8 +2091,6 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
         value = tag.localGuid();
     }
 
-    tag.clear();
-
     QString queryString = QString("SELECT localGuid, guid, linkedNotebookGuid, updateSequenceNumber, "
                                   "name, parentGuid, isDirty, isLocal, isLocal, isDeleted, hasShortcut "
                                   "FROM Tags WHERE (%1 = '%2'").arg(column).arg(value);
@@ -2095,6 +2101,8 @@ bool LocalStorageManagerPrivate::FindTag(Tag & tag, QString & errorDescription) 
     else {
         queryString += " AND linkedNotebookGuid IS NULL)";
     }
+
+    tag.clear();
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -2192,19 +2200,27 @@ QList<Tag> LocalStorageManagerPrivate::ListAllTagsPerNote(const Note & note, QSt
 
 QList<Tag> LocalStorageManagerPrivate::ListAllTags(QString & errorDescription, const size_t limit, const size_t offset,
                                                    const LocalStorageManager::ListTagsOrder::type & order,
-                                                   const LocalStorageManager::OrderDirection::type & orderDirection) const
+                                                   const LocalStorageManager::OrderDirection::type & orderDirection,
+                                                   const QString & linkedNotebookGuid) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListAllTags");
-    return ListTags(LocalStorageManager::ListAll, errorDescription, limit, offset, order, orderDirection);
+    return ListTags(LocalStorageManager::ListAll, errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
 }
 
 QList<Tag> LocalStorageManagerPrivate::ListTags(const LocalStorageManager::ListObjectsOptions flag,
                                                 QString & errorDescription, const size_t limit, const size_t offset,
                                                 const LocalStorageManager::ListTagsOrder::type & order,
-                                                const LocalStorageManager::OrderDirection::type & orderDirection) const
+                                                const LocalStorageManager::OrderDirection::type & orderDirection,
+                                                const QString & linkedNotebookGuid) const
 {
     QNDEBUG("LocalStorageManagerPrivate::ListTags: flag = " << flag);
-    return listObjects<Tag, LocalStorageManager::ListTagsOrder::type>(flag, errorDescription, limit, offset, order, orderDirection);
+
+    QString linkedNotebookGuidSqlQueryCondition = (linkedNotebookGuid.isEmpty()
+                                                   ? "linkedNotebookGuid IS NULL"
+                                                   : QString("linkedNotebookGuid = '%1'").arg(linkedNotebookGuid));
+
+    return listObjects<Tag, LocalStorageManager::ListTagsOrder::type>(flag, errorDescription, limit, offset, order, orderDirection,
+                                                                      linkedNotebookGuidSqlQueryCondition);
 }
 
 bool LocalStorageManagerPrivate::DeleteTag(const Tag & tag, QString & errorDescription)
