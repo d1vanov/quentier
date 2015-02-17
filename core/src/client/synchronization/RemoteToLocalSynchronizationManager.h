@@ -39,6 +39,7 @@ Q_SIGNALS:
     // signals notifying about the progress of sycnhronization
     void syncChunksDownloaded();
     void fullNotesContentsDownloaded();
+    void expungedFromServerToClient();
     void linkedNotebooksSyncChunksDownloaded();
     void linkedNotebooksFullNotesContentsDownloaded();
 
@@ -164,6 +165,8 @@ private:
     void launchSavedSearchSync();
     void launchLinkedNotebookSync();
     void launchNotebookSync();
+
+    bool syncingLinkedNotebooksContent() const;
 
     struct ContentSource
     {
@@ -300,6 +303,9 @@ private:
     template <class ElementType>
     void performPostExpungeChecks();
 
+    void expungeFromServerToClient();
+    void checkExpungesCompletion();
+
     // ========= Find in blocks from sync chunk helpers ===========
 
     template <class ContainerType, class ElementType>
@@ -409,6 +415,7 @@ private:
 
     bool                                    m_syncChunksDownloaded;
     bool                                    m_fullNoteContentsDownloaded;
+    bool                                    m_expungedFromServerToClient;
     bool                                    m_linkedNotebooksSyncChunksDownloaded;
 
     bool                                    m_active;

@@ -25,6 +25,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_lastSyncChunksDownloadedUsn(-1),
     m_syncChunksDownloaded(false),
     m_fullNoteContentsDownloaded(false),
+    m_expungedFromServerToClient(false),
     m_linkedNotebooksSyncChunksDownloaded(false),
     m_active(false),
     m_paused(false),
@@ -1328,7 +1329,7 @@ void RemoteToLocalSynchronizationManager::onExpungeDataElementCompleted(const El
 
     performPostExpungeChecks<ElementType>();
 
-    checkServerDataMergeCompletion();
+    checkExpungesCompletion();
 }
 
 template <class ElementType>
@@ -1475,8 +1476,16 @@ void RemoteToLocalSynchronizationManager::performPostExpungeChecks()
 template <>
 void RemoteToLocalSynchronizationManager::performPostExpungeChecks<Note>()
 {
-    if (m_expungeNoteRequestIds.empty()) {
-        expungeNotebooks();
+    if (m_expungeNoteRequestIds.empty())
+    {
+        if (!m_expungedNotebooks.isEmpty()) {
+            expungeNotebooks();
+            return;
+        }
+
+        expungeSavedSearches();
+        expungeTags();
+        expungeLinkedNotebooks();
     }
 }
 
@@ -1484,7 +1493,51 @@ template <>
 void RemoteToLocalSynchronizationManager::performPostExpungeChecks<Notebook>()
 {
     if (m_expungeNotebookRequestIds.empty()) {
+        expungeSavedSearches();
+        expungeTags();
         expungeLinkedNotebooks();
+    }
+}
+
+void RemoteToLocalSynchronizationManager::expungeFromServerToClient()
+{
+    if (!m_expungedNotes.isEmpty()) {
+        expungeNotes();
+        return;
+    }
+
+    if (!m_expungedNotebooks.isEmpty()) {
+        expungeNotebooks();
+        return;
+    }
+
+    expungeSavedSearches();
+    expungeTags();
+    expungeLinkedNotebooks();
+
+    checkExpungesCompletion();
+}
+
+void RemoteToLocalSynchronizationManager::checkExpungesCompletion()
+{
+    if (m_expungedTags.isEmpty() && m_expungeTagRequestIds.isEmpty() &&
+        m_expungedNotebooks.isEmpty() && m_expungeNotebookRequestIds.isEmpty() &&
+        m_expungedSavedSearches.isEmpty() && m_expungeSavedSearchRequestIds.isEmpty() &&
+        m_expungedLinkedNotebooks.isEmpty() && m_expungeLinkedNotebookRequestIds.isEmpty() &&
+        m_expungedNotes.isEmpty() && m_expungeNoteRequestIds.isEmpty())
+    {
+        if (syncingLinkedNotebooksContent())
+        {
+            m_expungeNotelessTagsRequestId = QUuid::createUuid();
+            emit expungeNotelessTagsFromLinkedNotebooks(m_expungeNotelessTagsRequestId);
+        }
+        else
+        {
+            m_expungedFromServerToClient = true;
+            emit expungedFromServerToClient();
+
+            startLinkedNotebooksSync();
+        }
     }
 }
 
@@ -2045,6 +2098,15 @@ void RemoteToLocalSynchronizationManager::launchNotebookSync()
     launchDataElementSync<NotebooksList, Notebook>(ContentSource::UserAccount, "Notebook", m_notebooks, m_expungedNotebooks);
 }
 
+bool RemoteToLocalSynchronizationManager::syncingLinkedNotebooksContent() const
+{
+    if (m_lastSyncMode == SyncMode::FullSync) {
+        return m_fullNoteContentsDownloaded;
+    }
+
+    return m_expungedFromServerToClient;
+}
+
 QTextStream & operator<<(QTextStream & strm, const RemoteToLocalSynchronizationManager::ContentSource::type & obj)
 {
     switch(obj)
@@ -2554,47 +2616,42 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
     QNDEBUG("RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion");
 
     // Need to check whether we are still waiting for the response from some add or update request
-    bool tagsReady = m_updateTagRequestIds.empty() && m_addTagRequestIds.empty() && m_expungeTagRequestIds.empty();
+    bool tagsReady = m_updateTagRequestIds.empty() && m_addTagRequestIds.empty();
     if (!tagsReady) {
         QNDEBUG("Tags are not ready, pending response for " << m_updateTagRequestIds.size()
-                << " tag update requests and/or " << m_addTagRequestIds.size() << " tag add requests and/or "
-                << m_expungeTagRequestIds.size() << " tag expunge requests");
+                << " tag update requests and/or " << m_addTagRequestIds.size() << " tag add requests");
         return;
     }
 
-    bool searchesReady = m_updateSavedSearchRequestIds.empty() && m_addSavedSearchRequestIds.empty() && m_expungeSavedSearchRequestIds.empty();
+    bool searchesReady = m_updateSavedSearchRequestIds.empty() && m_addSavedSearchRequestIds.empty();
     if (!searchesReady) {
         QNDEBUG("Saved searches are not ready, pending response for " << m_updateSavedSearchRequestIds.size()
-                << " saved search update requests and/or " << m_addSavedSearchRequestIds.size()
-                << " saved search add requests and/or " << m_expungeSavedSearchRequestIds.size() << " saved search expunge requests");
+                << " saved search update requests and/or " << m_addSavedSearchRequestIds.size() << " saved search add requests");
         return;
     }
 
-    bool linkedNotebooksReady = m_updateLinkedNotebookRequestIds.empty() && m_addLinkedNotebookRequestIds.empty() && m_expungeLinkedNotebookRequestIds.empty();
+    bool linkedNotebooksReady = m_updateLinkedNotebookRequestIds.empty() && m_addLinkedNotebookRequestIds.empty();
     if (!linkedNotebooksReady) {
         QNDEBUG("Linked notebooks are not ready, pending response for " << m_updateLinkedNotebookRequestIds.size()
-                << " linked notebook update requests and/or " << m_addLinkedNotebookRequestIds.size()
-                << " linked notebook add requests and/or " << m_expungeLinkedNotebookRequestIds.size() << " linked notebook expunge requests");
+                << " linked notebook update requests and/or " << m_addLinkedNotebookRequestIds.size() << " linked notebook add requests");
         return;
     }
 
-    bool notebooksReady = m_updateNotebookRequestIds.empty() && m_addNotebookRequestIds.empty() && m_expungeNotebookRequestIds.empty();
+    bool notebooksReady = m_updateNotebookRequestIds.empty() && m_addNotebookRequestIds.empty();
     if (!notebooksReady) {
         QNDEBUG("Notebooks are not ready, pending response for " << m_updateNotebookRequestIds.size()
-                << " notebook update requests and/or " << m_addNotebookRequestIds.size()
-                << " notebook add requests and/or " << m_expungeNotebookRequestIds.size() << " notebook expunge requests");
+                << " notebook update requests and/or " << m_addNotebookRequestIds.size() << " notebook add requests");
         return;
     }
 
     bool notesReady = m_updateNoteRequestIds.empty() && m_addNoteRequestIds.empty() &&
-                      m_notesToAddPerAPICallPostponeTimerId.empty() && m_notesToUpdatePerAPICallPostponeTimerId.empty() &&
-                      m_expungeNoteRequestIds.empty();
+                      m_notesToAddPerAPICallPostponeTimerId.empty() && m_notesToUpdatePerAPICallPostponeTimerId.empty();
     if (!notesReady) {
         QNDEBUG("Notes are not ready, pending response for " << m_updateNoteRequestIds.size()
                 << " note update requests and/or " << m_addNoteRequestIds.size()
                 << " note add requests; also, there are " << m_notesToAddPerAPICallPostponeTimerId.size()
                 << " postponed note add requests and/or " << m_notesToUpdatePerAPICallPostponeTimerId.size()
-                << " note update requests and/or " << m_expungeNoteRequestIds.size() << " tag expunge requests");
+                << " note update requests");
         return;
     }
 
@@ -2613,14 +2670,15 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
         }
     }
 
-    if (m_fullNoteContentsDownloaded)
+    if (syncingLinkedNotebooksContent())
     {
-        // NOTE: if this flag is already set, it means we've already been in this method before when syncing data from user's account;
-        // now we are here due to linked notebooks
         QNDEBUG("Synchronized the whole contents from linked notebooks");
         emit linkedNotebooksFullNotesContentsDownloaded();
 
-        // TODO: expunge notes (only notes!) marked expunged in the sync chunks
+        if (!m_expungedNotes.isEmpty()) {
+            expungeNotes();
+            return;
+        }
 
         m_expungeNotelessTagsRequestId = QUuid::createUuid();
         emit expungeNotelessTagsFromLinkedNotebooks(m_expungeNotelessTagsRequestId);
@@ -2632,9 +2690,17 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
         m_fullNoteContentsDownloaded = true;
         emit fullNotesContentsDownloaded();
 
-        // TODO: expunge data elements marked expunged in the sync chunks
+        if (m_lastSyncMode == SyncMode::FullSync) {
+            startLinkedNotebooksSync();
+            return;
+        }
 
-        startLinkedNotebooksSync();
+        if (m_expungedFromServerToClient) {
+            startLinkedNotebooksSync();
+            return;
+        }
+
+        expungeFromServerToClient();
     }
 }
 
@@ -2656,6 +2722,7 @@ void RemoteToLocalSynchronizationManager::clear()
     m_lastSyncChunksDownloadedUsn = -1;
     m_syncChunksDownloaded = false;
     m_fullNoteContentsDownloaded = false;
+    m_expungedFromServerToClient = false;
     m_linkedNotebooksSyncChunksDownloaded = false;
 
     m_active = false;
