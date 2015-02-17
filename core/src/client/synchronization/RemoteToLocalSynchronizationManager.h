@@ -336,6 +336,8 @@ private:
     bool checkAndRequestAuthenticationTokensForLinkedNotebooks();
     void requestAuthenticationTokensForAllLinkedNotebooks();
 
+    bool downloadLinkedNotebooksSyncChunks();
+
     void launchLinkedNotebooksTagsSync();
     void launchLinkedNotebooksNotebooksSync();
     void launchLinkedNotebooksNotesSync();
