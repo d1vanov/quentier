@@ -2283,47 +2283,9 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync()
         return;
     }
 
-    for(int i = 0; i < numLinkedNotebooks; ++i)
-    {
-        const qevercloud::LinkedNotebook & linkedNotebook = m_linkedNotebooks[i];
-        if (!linkedNotebook.guid.isSet()) {
-            QString error = QT_TR_NOOP("Internal error: found linked notebook without guid set");
-            QNWARNING(error << ", linked notebook: " << linkedNotebook);
-            emit failure(error);
-            return;
-        }
-
-        if (!m_authenticationTokensByLinkedNotebookGuid.contains(linkedNotebook.guid)) {
-            QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid
-                    << " was not found; will request authentication tokens for all linked notebooks at once");
-
-            requestAuthenticationTokensForAllLinkedNotebooks();
-            return;
-        }
-
-        auto it = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(linkedNotebook.guid);
-        if (it == m_authenticationTokenExpirationTimesByLinkedNotebookGuid.end()) {
-            QString error = QT_TR_NOOP("Internal inconsistency detected: can't find cached "
-                                       "expiration time of linked notebook's authentication token");
-            QNWARNING(error << ", linked notebook: " << linkedNotebook);
-            emit failure(error);
-        }
-
-        const qevercloud::Timestamp & expirationTime = it.value();
-        const qevercloud::Timestamp currentTime = QDateTime::currentMSecsSinceEpoch();
-        if (currentTime - expirationTime < SIX_HOURS_IN_MSEC) {
-            QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid
-                    << " is too close to expiration: its expiration time is " << PrintableDateTimeFromTimestamp(expirationTime)
-                    << ", current time is " << PrintableDateTimeFromTimestamp(currentTime)
-                    << "; will request new authentication tokens for all linked notebooks");
-
-            requestAuthenticationTokensForAllLinkedNotebooks();
-            return;
-        }
+    if (!checkAndRequestAuthenticationTokensForLinkedNotebooks()) {
+        return;
     }
-
-    QNDEBUG("Got authentication tokens for all linked notebooks, can proceed with "
-            "their synchronization");
 
     qevercloud::SyncChunk * pSyncChunk = nullptr;
 
@@ -2528,6 +2490,55 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync()
     m_syncStatesByLinkedNotebookGuid.clear();   // don't need this anymore, it only served the purpose of preventing multiple get sync state calls for the same linked notebook
 
     launchLinkedNotebooksContentsSync();
+}
+
+bool RemoteToLocalSynchronizationManager::checkAndRequestAuthenticationTokensForLinkedNotebooks()
+{
+    const int numLinkedNotebooks = m_linkedNotebooks.size();
+    for(int i = 0; i < numLinkedNotebooks; ++i)
+    {
+        const qevercloud::LinkedNotebook & linkedNotebook = m_linkedNotebooks[i];
+        if (!linkedNotebook.guid.isSet()) {
+            QString error = QT_TR_NOOP("Internal error: found linked notebook without guid set");
+            QNWARNING(error << ", linked notebook: " << linkedNotebook);
+            emit failure(error);
+            return false;
+        }
+
+        if (!m_authenticationTokensByLinkedNotebookGuid.contains(linkedNotebook.guid)) {
+            QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid
+                    << " was not found; will request authentication tokens for all linked notebooks at once");
+
+            requestAuthenticationTokensForAllLinkedNotebooks();
+            return false;
+        }
+
+        auto it = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(linkedNotebook.guid);
+        if (it == m_authenticationTokenExpirationTimesByLinkedNotebookGuid.end()) {
+            QString error = QT_TR_NOOP("Internal inconsistency detected: can't find cached "
+                                       "expiration time of linked notebook's authentication token");
+            QNWARNING(error << ", linked notebook: " << linkedNotebook);
+            emit failure(error);
+            return false;
+        }
+
+        const qevercloud::Timestamp & expirationTime = it.value();
+        const qevercloud::Timestamp currentTime = QDateTime::currentMSecsSinceEpoch();
+        if (currentTime - expirationTime < SIX_HOURS_IN_MSEC) {
+            QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid
+                    << " is too close to expiration: its expiration time is " << PrintableDateTimeFromTimestamp(expirationTime)
+                    << ", current time is " << PrintableDateTimeFromTimestamp(currentTime)
+                    << "; will request new authentication tokens for all linked notebooks");
+
+            requestAuthenticationTokensForAllLinkedNotebooks();
+            return false;
+        }
+    }
+
+    QNDEBUG("Got authentication tokens for all linked notebooks, can proceed with "
+            "their synchronization");
+
+    return true;
 }
 
 void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinkedNotebooks()
