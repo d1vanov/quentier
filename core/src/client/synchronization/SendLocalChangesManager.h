@@ -105,6 +105,17 @@ private Q_SLOTS:
                                 LocalStorageManager::OrderDirection::type orderDirection,
                                 QString linkedNotebookGuid, QString errorDescription, QUuid requestId);
 
+    void onListLinkedNotebooksCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                        size_t limit, size_t offset,
+                                        LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                        LocalStorageManager::OrderDirection::type orderDirection,
+                                        QList<LinkedNotebook> linkedNotebooks, QUuid requestId);
+    void onListLinkedNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
+                                     size_t limit, size_t offset,
+                                     LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                     LocalStorageManager::OrderDirection::type orderDirection,
+                                     QString errorDescription, QUuid requestId);
+
 private:
     SendLocalChangesManager() Q_DECL_DELETE;
 
