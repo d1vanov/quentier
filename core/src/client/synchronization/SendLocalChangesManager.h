@@ -123,6 +123,8 @@ private:
     void createConnections();
     void disconnectFromLocalStorage();
 
+    void checkListLocalStorageObjectsCompletion();
+
 private:
     LocalStorageManagerThreadWorker &   m_localStorageManagerThreadWorker;
     NoteStore                           m_noteStore;
@@ -133,6 +135,15 @@ private:
     QUuid                               m_listDirtySavedSearchesRequestId;
     QUuid                               m_listDirtyNotebooksRequestId;
     QUuid                               m_listDirtyNotesRequestId;
+    QUuid                               m_listLinkedNotebooksRequestId;
+
+    QList<Tag>                          m_tags;
+    QList<SavedSearch>                  m_savedSearches;
+    QList<Notebook>                     m_notebooks;
+    QList<Note>                         m_notes;
+
+    QStringList                         m_linkedNotebookGuids;
+    int                                 m_lastProcessedLinkedNotebookGuidIndex;
 };
 
 } // namespace qute_note
