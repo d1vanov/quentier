@@ -60,6 +60,11 @@ Q_SIGNALS:
                                     LocalStorageManager::OrderDirection::type orderDirection,
                                     QUuid requestId);
 
+    void updateTag(Tag tag, QUuid requestId);
+    void updateSavedSearch(SavedSearch savedSearch, QUuid requestId);
+    void updateNotebook(Notebook notebook, QUuid requestId);
+    void updateNote(Note note, QUuid requestId);
+
 private Q_SLOTS:
     void onListDirtyTagsCompleted(LocalStorageManager::ListObjectsOptions flag,
                                   size_t limit, size_t offset,
@@ -116,6 +121,18 @@ private Q_SLOTS:
                                      LocalStorageManager::OrderDirection::type orderDirection,
                                      QString errorDescription, QUuid requestId);
 
+    void onUpdateTagCompleted(Tag tag, QUuid requestId);
+    void onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+
+    void onUpdateSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId);
+    void onUpdateSavedSearchFailed(SavedSearch savedSearch, QString errorDescription, QUuid requestId);
+
+    void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+
+    void onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId);
+    void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
+
 private:
     SendLocalChangesManager() Q_DECL_DELETE;
 
@@ -123,7 +140,15 @@ private:
     void createConnections();
     void disconnectFromLocalStorage();
 
+    void requestStuffFromLocalStorage(const QString & linkedNotebookGuid);
+
     void checkListLocalStorageObjectsCompletion();
+
+    void sendLocalChanges();
+    void sendTags();
+    void sendSavedSearches();
+    void sendNotebooks();
+    void sendNotes();
 
 private:
     LocalStorageManagerThreadWorker &   m_localStorageManagerThreadWorker;
@@ -137,6 +162,10 @@ private:
     QUuid                               m_listDirtyNotesRequestId;
     QUuid                               m_listLinkedNotebooksRequestId;
 
+    QHash<QUuid,QString>                m_linkedNotebookGuidByListDirtyTagsRequestIds;
+    QHash<QUuid,QString>                m_linkedNotebookGuidByListDirtyNotebooksRequestIds;
+    QHash<QUuid,QString>                m_linkedNotebookGuidByListDirtyNotesRequestIds;
+
     QList<Tag>                          m_tags;
     QList<SavedSearch>                  m_savedSearches;
     QList<Notebook>                     m_notebooks;
@@ -144,6 +173,11 @@ private:
 
     QStringList                         m_linkedNotebookGuids;
     int                                 m_lastProcessedLinkedNotebookGuidIndex;
+
+    QSet<QUuid>                         m_updateTagRequestIds;
+    QSet<QUuid>                         m_updateSavedSearchRequestIds;
+    QSet<QUuid>                         m_updateNotebookRequestIds;
+    QSet<QUuid>                         m_updateNoteRequestIds;
 };
 
 } // namespace qute_note
