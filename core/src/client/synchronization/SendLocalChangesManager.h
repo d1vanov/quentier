@@ -65,6 +65,8 @@ Q_SIGNALS:
     void updateNotebook(Notebook notebook, QUuid requestId);
     void updateNote(Note note, QUuid requestId);
 
+    void findNotebook(Notebook notebook, QUuid requestId);
+
 private Q_SLOTS:
     void onListDirtyTagsCompleted(LocalStorageManager::ListObjectsOptions flag,
                                   size_t limit, size_t offset,
@@ -133,6 +135,9 @@ private Q_SLOTS:
     void onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId);
     void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
 
+    void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+
 private:
     SendLocalChangesManager() Q_DECL_DELETE;
 
@@ -150,6 +155,10 @@ private:
     void sendNotebooks();
     void sendNotes();
 
+    void findNotebooksForNotes();
+
+    bool rateLimitIsActive() const;
+
 private:
     LocalStorageManagerThreadWorker &   m_localStorageManagerThreadWorker;
     NoteStore                           m_noteStore;
@@ -162,9 +171,9 @@ private:
     QUuid                               m_listDirtyNotesRequestId;
     QUuid                               m_listLinkedNotebooksRequestId;
 
-    QHash<QUuid,QString>                m_linkedNotebookGuidByListDirtyTagsRequestIds;
-    QHash<QUuid,QString>                m_linkedNotebookGuidByListDirtyNotebooksRequestIds;
-    QHash<QUuid,QString>                m_linkedNotebookGuidByListDirtyNotesRequestIds;
+    QSet<QUuid>                         m_listDirtyTagsFromLinkedNotebooksRequestIds;
+    QSet<QUuid>                         m_listDirtyNotebooksFromLinkedNotebooksRequestIds;
+    QSet<QUuid>                         m_listDirtyNotesFromLinkedNotebooksRequestIds;
 
     QList<Tag>                          m_tags;
     QList<SavedSearch>                  m_savedSearches;
@@ -178,6 +187,14 @@ private:
     QSet<QUuid>                         m_updateSavedSearchRequestIds;
     QSet<QUuid>                         m_updateNotebookRequestIds;
     QSet<QUuid>                         m_updateNoteRequestIds;
+
+    QSet<QUuid>                         m_findNotebookRequestIds;
+    QHash<QString, Notebook>            m_notebooksByGuidsCache;
+
+    int                                 m_sendTagsPostponeTimerId;
+    int                                 m_sendSavedSearchesPostponeTimerId;
+    int                                 m_sendNotebooksPostponeTimerId;
+    int                                 m_sendNotesPostponeTimerId;
 };
 
 } // namespace qute_note

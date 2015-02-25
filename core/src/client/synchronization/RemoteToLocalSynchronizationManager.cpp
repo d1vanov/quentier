@@ -147,6 +147,11 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
             }
 
             m_getSyncStateBeforeStartAPICallPostponeTimerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+            if (m_getSyncStateBeforeStartAPICallPostponeTimerId == 0) {
+                errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone the Evernote API call "
+                                              "due to rate limit exceeding");
+                emit failure(errorDescription);
+            }
             return;
         }
         else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
@@ -405,11 +410,20 @@ void RemoteToLocalSynchronizationManager::emitUpdateRequest<Note>(const Note & n
     QString errorDescription;
 
     qint32 postponeAPICallSeconds = tryToGetFullNoteData(localNote, errorDescription);
-    if (postponeAPICallSeconds < 0) {
+    if (postponeAPICallSeconds < 0)
+    {
         return;
     }
-    else if (postponeAPICallSeconds > 0) {
+    else if (postponeAPICallSeconds > 0)
+    {
         int timerId = startTimer(SEC_TO_MSEC(postponeAPICallSeconds));
+        if (timerId == 0) {
+            QString errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone "
+                                                  "the Evernote API call due to rate limit exceeding");
+            emit failure(errorDescription);
+            return;
+        }
+
         m_notesToUpdatePerAPICallPostponeTimerId[timerId] = localNote;
         emit rateLimitExceeded(postponeAPICallSeconds);
         return;
@@ -767,11 +781,20 @@ void RemoteToLocalSynchronizationManager::onFindNoteFailed(Note note, bool withR
         Q_UNUSED(m_notes.erase(it));
 
         qint32 postponeAPICallSeconds = tryToGetFullNoteData(note, errorDescription);
-        if (postponeAPICallSeconds < 0) {
+        if (postponeAPICallSeconds < 0)
+        {
             return;
         }
-        else if (postponeAPICallSeconds > 0) {
+        else if (postponeAPICallSeconds > 0)
+        {
             int timerId = startTimer(SEC_TO_MSEC(postponeAPICallSeconds));
+            if (timerId == 0) {
+                QString errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone "
+                                                      "the Evernote API call due to rate limit exceeding");
+                emit failure(errorDescription);
+                return;
+            }
+
             m_notesToAddPerAPICallPostponeTimerId[timerId] = note;
             emit rateLimitExceeded(postponeAPICallSeconds);
             return;
@@ -2450,6 +2473,13 @@ bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
                     }
 
                     int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+                    if (timerId == 0) {
+                        QString errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone "
+                                                              "the Evernote API call due to rate limit exceeding");
+                        emit failure(errorDescription);
+                        return false;
+                    }
+
                     m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId = timerId;
                     emit rateLimitExceeded(rateLimitSeconds);
                     return false;
@@ -2520,6 +2550,13 @@ bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
                 m_linkedNotebookSyncChunks.pop_back();
 
                 int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+                if (timerId == 0) {
+                    QString errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone "
+                                                          "the Evernote API call due to rate limit exceeding");
+                    emit failure(errorDescription);
+                    return false;
+                }
+
                 m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId = timerId;
                 emit rateLimitExceeded(rateLimitSeconds);
                 return false;
@@ -2912,12 +2949,21 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
 
         QString errorDescription;
         qint32 postponeAPICallSeconds = tryToGetFullNoteData(note, errorDescription);
-        if (postponeAPICallSeconds > 0) {
+        if (postponeAPICallSeconds > 0)
+        {
             int timerId = startTimer(SEC_TO_MSEC(postponeAPICallSeconds));
+            if (timerId == 0) {
+                QString errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone "
+                                                      "the Evernote API call due to rate limit exceeding");
+                emit failure(errorDescription);
+                return;
+            }
+
             m_notesToAddPerAPICallPostponeTimerId[timerId] = note;
             emit rateLimitExceeded(postponeAPICallSeconds);
         }
-        else if (postponeAPICallSeconds == 0) {
+        else if (postponeAPICallSeconds == 0)
+        {
             emitAddRequest(note);
         }
 
@@ -2933,12 +2979,21 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
 
         QString errorDescription;
         qint32 postponeAPICallSeconds = tryToGetFullNoteData(noteToUpdate, errorDescription);
-        if (postponeAPICallSeconds > 0) {
+        if (postponeAPICallSeconds > 0)
+        {
             int timerId = startTimer(SEC_TO_MSEC(postponeAPICallSeconds));
+            if (timerId == 0) {
+                QString errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone "
+                                                      "the Evernote API call due to rate limit exceeding");
+                emit failure(errorDescription);
+                return;
+            }
+
             m_notesToUpdatePerAPICallPostponeTimerId[timerId] = noteToUpdate;
             emit rateLimitExceeded(postponeAPICallSeconds);
         }
-        else if (postponeAPICallSeconds == 0) {
+        else if (postponeAPICallSeconds == 0)
+        {
             // NOTE: workarounding the stupidity of MSVC 2013
             emitUpdateRequest<Note>(noteToUpdate, static_cast<const Note*>(nullptr));
         }
@@ -3067,7 +3122,15 @@ void RemoteToLocalSynchronizationManager::downloadSyncChunksAndLaunchSync(qint32
             }
 
             m_syncChunks.pop_back();
+
             int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+            if (timerId == 0) {
+                QString errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone "
+                                                      "the Evernote API call due to rate limit exceeding");
+                emit failure(errorDescription);
+                return;
+            }
+
             m_afterUsnForSyncChunkPerAPICallPostponeTimerId[timerId] = afterUsn;
             emit rateLimitExceeded(rateLimitSeconds);
             return;
