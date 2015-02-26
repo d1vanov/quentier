@@ -156,7 +156,7 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
         }
         else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
         {
-            emit requestAuthenticationToken();
+            handleAuthExpiration();
             return;
         }
         else if (errorCode != 0)

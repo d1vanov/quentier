@@ -23,11 +23,14 @@ public:
 
 Q_SIGNALS:
     void failure(QString errorDescription);
-    void finished();
+    void finished(qint32 lastUpdateCount);
+
     void rateLimitExceeded(qint32 secondsToWait);
+    void conflictDetected();
+    void shouldRepeatIncrementalSync();
 
 public Q_SLOTS:
-    void start();
+    void start(qint32 lastUpdateCount);
 
 // private signals:
 Q_SIGNALS:
@@ -153,6 +156,8 @@ private:
     void sendTags();
     void sendSavedSearches();
     void sendNotebooks();
+
+    void checkAndSendNotes();
     void sendNotes();
 
     void findNotebooksForNotes();
@@ -162,6 +167,10 @@ private:
 private:
     LocalStorageManagerThreadWorker &   m_localStorageManagerThreadWorker;
     NoteStore                           m_noteStore;
+    qint32                              m_lastUpdateCount;
+    bool                                m_shouldRepeatIncrementalSync;
+
+    bool                                m_paused;
 
     bool                                m_connectedToLocalStorage;
 
@@ -180,7 +189,7 @@ private:
     QList<Notebook>                     m_notebooks;
     QList<Note>                         m_notes;
 
-    QStringList                         m_linkedNotebookGuids;
+    QList<QPair<QString, QString> >     m_linkedNotebookGuidsAndShareKeys;
     int                                 m_lastProcessedLinkedNotebookGuidIndex;
 
     QSet<QUuid>                         m_updateTagRequestIds;
