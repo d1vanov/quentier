@@ -132,59 +132,30 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
 
     if (m_onceSyncDone || (afterUsn != 0))
     {
-        QString errorDescription;
-        qint32 rateLimitSeconds = 0;
-        qevercloud::SyncState state;
-        qint32 errorCode = m_noteStore.getSyncState(state, errorDescription, rateLimitSeconds);
-        if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+        bool asyncWait = false;
+        bool error = false;
+
+        // check the sync state of user's own account, this may produce the asynchronous chain of events or some error
+        bool res = checkUserAccountSyncState(asyncWait, error, afterUsn);
+        if (error || asyncWait) {
+            return;
+        }
+
+        if (!res)
         {
-            if (rateLimitSeconds < 0) {
-                errorDescription = QT_TR_NOOP("Caught RATE_LIMIT_REACHED exception but "
-                                              "the number of seconds to wait is negative: ");
-                errorDescription += QString::number(rateLimitSeconds);
-                emit failure(errorDescription);
+            QNTRACE("The service has no updates for user's own account, need to check for updates from linked notebooks");
+            res = checkLinkedNotebooksSyncStates(asyncWait, error);
+            if (asyncWait || error) {
                 return;
             }
 
-            m_getSyncStateBeforeStartAPICallPostponeTimerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
-            if (m_getSyncStateBeforeStartAPICallPostponeTimerId == 0) {
-                errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone the Evernote API call "
-                                              "due to rate limit exceeding");
-                emit failure(errorDescription);
-            }
-            return;
-        }
-        else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
-        {
-            handleAuthExpiration();
-            return;
-        }
-        else if (errorCode != 0)
-        {
-            emit failure(errorDescription);
-            return;
-        }
-
-        if (state.fullSyncBefore > m_lastSyncTime)
-        {
-            QNDEBUG("Sync state says the time has come to do the full sync");
-            afterUsn = 0;
-            m_lastSyncMode = SyncMode::FullSync;
-        }
-        else if (state.updateCount == m_lastUpdateCount)
-        {
-            QNDEBUG("Server has no updates for user's data since the last sync");
-            if (m_linkedNotebooks.empty() && m_expungedLinkedNotebooks.empty()) {
+            if (!res) {
+                QNTRACE("The service has no updates for any of linked notebooks");
                 finalize();
             }
-            else {
-                QNDEBUG("There are several linked notebooks in the user's account, "
-                        "will check whether any of them needs to be updated");
-                startLinkedNotebooksSync();
-            }
-
-            return;
         }
+        // Otherwise the sync of all linked notebooks from user's account would start after the sync of user's account
+        // (Because the sync of user's account can bring in the new linked notebooks or remove any of them)
     }
 
     m_active = true;
@@ -3184,6 +3155,81 @@ void RemoteToLocalSynchronizationManager::handleAuthExpiration()
     m_paused = true;
     emit paused(/* pending authentication = */ true);
     emit requestAuthenticationToken();
+}
+
+bool RemoteToLocalSynchronizationManager::checkUserAccountSyncState(bool & asyncWait, bool & error, qint32 & afterUsn)
+{
+    QNDEBUG("RemoteToLocalSynchronizationManager::checkUsersAccountSyncState");
+
+    asyncWait = false;
+    error = false;
+
+    QString errorDescription;
+    qint32 rateLimitSeconds = 0;
+    qevercloud::SyncState state;
+    qint32 errorCode = m_noteStore.getSyncState(state, errorDescription, rateLimitSeconds);
+    if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+    {
+        if (rateLimitSeconds < 0) {
+            errorDescription = QT_TR_NOOP("Caught RATE_LIMIT_REACHED exception but "
+                    "the number of seconds to wait is negative: ");
+            errorDescription += QString::number(rateLimitSeconds);
+            emit failure(errorDescription);
+            error = true;
+            return false;
+        }
+
+        m_getSyncStateBeforeStartAPICallPostponeTimerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+        if (m_getSyncStateBeforeStartAPICallPostponeTimerId == 0) {
+            errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone the Evernote API call "
+                    "due to rate limit exceeding");
+            emit failure(errorDescription);
+            error = true;
+        }
+        else {
+            asyncWait = true;
+        }
+
+        return false;
+    }
+    else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+    {
+        handleAuthExpiration();
+        asyncWait = true;
+        return false;
+    }
+    else if (errorCode != 0)
+    {
+        emit failure(errorDescription);
+        error = true;
+        return false;
+    }
+
+    if (state.fullSyncBefore > m_lastSyncTime)
+    {
+        QNDEBUG("Sync state says the time has come to do the full sync");
+        afterUsn = 0;
+        m_lastSyncMode = SyncMode::FullSync;
+    }
+    else if (state.updateCount == m_lastUpdateCount)
+    {
+        QNDEBUG("Server has no updates for user's data since the last sync");
+        return false;
+    }
+
+    return true;
+}
+
+bool RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncStates(bool & asyncWait, bool & error)
+{
+    QNDEBUG("RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncStates");
+
+    // TODO: implement
+    // 1) check that the list of all linked notebooks from local storage has been obtained, if not, obtain it
+    // 2) get sync state for each linked notebook individually, keep the "afterUsn" for each of them (along with other info useful for the sync)
+    // 3) return false if none of all linked notebooks has any updates from the service, return true otherwise
+
+    return true;
 }
 
 QTextStream & operator<<(QTextStream & strm, const RemoteToLocalSynchronizationManager::SyncMode::type & obj)

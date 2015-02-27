@@ -72,6 +72,10 @@ void SynchronizationManagerPrivate::synchronize()
         return;
     }
 
+    if (!m_onceReadLastSyncParams) {
+        readLastSyncParameters();
+    }
+
     launchSync();
 }
 
@@ -215,69 +219,7 @@ void SynchronizationManagerPrivate::onRequestLastSyncParameters()
         return;
     }
 
-    m_lastSyncTime = 0;
-    m_lastUpdateCount = 0;
-    m_cachedLinkedNotebookLastUpdateCountByGuid.clear();
-    m_cachedLinkedNotebookLastSyncTimeByGuid.clear();
-
-    ApplicationSettings & settings = ApplicationSettings::instance();
-
-    const QString keyGroup = LAST_SYNC_PARAMS_KEY_GROUP;
-    QVariant lastUpdateCountVar = settings.value(LAST_SYNC_UPDATE_COUNT_KEY, keyGroup);
-    if (!lastUpdateCountVar.isNull())
-    {
-        bool conversionResult = false;
-        m_lastUpdateCount = lastUpdateCountVar.toInt(&conversionResult);
-        if (!conversionResult) {
-            QNWARNING("Couldn't read last update count from persistent application settings");
-            m_lastUpdateCount = 0;
-        }
-    }
-
-    QVariant lastSyncTimeVar = settings.value(LAST_SYNC_TIME_KEY, keyGroup);
-    if (!lastUpdateCountVar.isNull())
-    {
-        bool conversionResult = false;
-        m_lastSyncTime = lastSyncTimeVar.toLongLong(&conversionResult);
-        if (!conversionResult) {
-            QNWARNING("Couldn't read last sync time from persistent application settings");
-            m_lastSyncTime = 0;
-        }
-    }
-
-    int numLinkedNotebooksSyncParams = settings.beginReadArray(LAST_SYNC_LINKED_NOTEBOOKS_PARAMS);
-    for(int i = 0; i < numLinkedNotebooksSyncParams; ++i)
-    {
-        settings.setArrayIndex(i);
-
-        QString guid = settings.value(LINKED_NOTEBOOK_GUID_KEY).toString();
-        if (guid.isEmpty()) {
-            QNWARNING("Couldn't read linked notebook's guid from persistent application settings");
-            continue;
-        }
-
-        QVariant lastUpdateCountVar = settings.value(LINKED_NOTEBOOK_LAST_UPDATE_COUNT_KEY);
-        bool conversionResult = false;
-        qint32 lastUpdateCount = lastUpdateCountVar.toInt(&conversionResult);
-        if (!conversionResult) {
-            QNWARNING("Couldn't read linked notebook's last update count from persistent application settings");
-            continue;
-        }
-
-        QVariant lastSyncTimeVar = settings.value(LINKED_NOTEBOOK_LAST_SYNC_TIME_KEY);
-        conversionResult = false;
-        qevercloud::Timestamp lastSyncTime = lastSyncTimeVar.toLongLong(&conversionResult);
-        if (!conversionResult) {
-            QNWARNING("Couldn't read linked notebook's last sync time from persistent application settings");
-            continue;
-        }
-
-        m_cachedLinkedNotebookLastUpdateCountByGuid[guid] = lastUpdateCount;
-        m_cachedLinkedNotebookLastSyncTimeByGuid[guid] = lastSyncTime;
-    }
-    settings.endArray();
-
-    m_onceReadLastSyncParams = true;
+    readLastSyncParameters();
 
     emit sendLastSyncParameters(m_lastUpdateCount, m_lastSyncTime, m_cachedLinkedNotebookLastUpdateCountByGuid,
                                 m_cachedLinkedNotebookLastSyncTimeByGuid);
@@ -359,6 +301,75 @@ void SynchronizationManagerPrivate::createConnections()
     // Connections with read/write password jobs
     QObject::connect(&m_readAuthTokenJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
     QObject::connect(&m_writeAuthTokenJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
+}
+
+void SynchronizationManagerPrivate::readLastSyncParameters()
+{
+    QNDEBUG("SynchronizationManagerPrivate::readLastSyncParameters");
+
+    m_lastSyncTime = 0;
+    m_lastUpdateCount = 0;
+    m_cachedLinkedNotebookLastUpdateCountByGuid.clear();
+    m_cachedLinkedNotebookLastSyncTimeByGuid.clear();
+
+    ApplicationSettings & settings = ApplicationSettings::instance();
+
+    const QString keyGroup = LAST_SYNC_PARAMS_KEY_GROUP;
+    QVariant lastUpdateCountVar = settings.value(LAST_SYNC_UPDATE_COUNT_KEY, keyGroup);
+    if (!lastUpdateCountVar.isNull())
+    {
+        bool conversionResult = false;
+        m_lastUpdateCount = lastUpdateCountVar.toInt(&conversionResult);
+        if (!conversionResult) {
+            QNWARNING("Couldn't read last update count from persistent application settings");
+            m_lastUpdateCount = 0;
+        }
+    }
+
+    QVariant lastSyncTimeVar = settings.value(LAST_SYNC_TIME_KEY, keyGroup);
+    if (!lastUpdateCountVar.isNull())
+    {
+        bool conversionResult = false;
+        m_lastSyncTime = lastSyncTimeVar.toLongLong(&conversionResult);
+        if (!conversionResult) {
+            QNWARNING("Couldn't read last sync time from persistent application settings");
+            m_lastSyncTime = 0;
+        }
+    }
+
+    int numLinkedNotebooksSyncParams = settings.beginReadArray(LAST_SYNC_LINKED_NOTEBOOKS_PARAMS);
+    for(int i = 0; i < numLinkedNotebooksSyncParams; ++i)
+    {
+        settings.setArrayIndex(i);
+
+        QString guid = settings.value(LINKED_NOTEBOOK_GUID_KEY).toString();
+        if (guid.isEmpty()) {
+            QNWARNING("Couldn't read linked notebook's guid from persistent application settings");
+            continue;
+        }
+
+        QVariant lastUpdateCountVar = settings.value(LINKED_NOTEBOOK_LAST_UPDATE_COUNT_KEY);
+        bool conversionResult = false;
+        qint32 lastUpdateCount = lastUpdateCountVar.toInt(&conversionResult);
+        if (!conversionResult) {
+            QNWARNING("Couldn't read linked notebook's last update count from persistent application settings");
+            continue;
+        }
+
+        QVariant lastSyncTimeVar = settings.value(LINKED_NOTEBOOK_LAST_SYNC_TIME_KEY);
+        conversionResult = false;
+        qevercloud::Timestamp lastSyncTime = lastSyncTimeVar.toLongLong(&conversionResult);
+        if (!conversionResult) {
+            QNWARNING("Couldn't read linked notebook's last sync time from persistent application settings");
+            continue;
+        }
+
+        m_cachedLinkedNotebookLastUpdateCountByGuid[guid] = lastUpdateCount;
+        m_cachedLinkedNotebookLastSyncTimeByGuid[guid] = lastSyncTime;
+    }
+    settings.endArray();
+
+    m_onceReadLastSyncParams = true;
 }
 
 void SynchronizationManagerPrivate::authenticate(const AuthContext::type authContext)
@@ -508,30 +519,15 @@ void SynchronizationManagerPrivate::launchOAuth()
 
 void SynchronizationManagerPrivate::launchSync()
 {
+    QNDEBUG("SynchronizationManagerPrivate::launchSync");
+
+    if (!m_onceReadLastSyncParams) {
+        readLastSyncParameters();
+    }
+
     if (m_lastUpdateCount <= 0) {
         QNDEBUG("The client has never synchronized with the remote service, "
-                "performing full sync");
-        launchFullSync();
-        return;
-    }
-
-    qevercloud::SyncState syncState;
-    if (!tryToGetSyncState(syncState)) {
-        return;
-    }
-
-    if ((m_lastUpdateCount >= 0) && (syncState.updateCount <= m_lastUpdateCount)) {
-        QNDEBUG("Server's update count " << syncState.updateCount << " is less than or equal to the last cached "
-                "update count " << m_lastUpdateCount << "; there's no need to perform "
-                "the sync from remote to local storage, only send local changes (if any)");
-        sendChanges();
-        return;
-    }
-
-    if (syncState.fullSyncBefore > m_lastSyncTime) {
-        QNDEBUG("Server's current sync state's fullSyncBefore is larger that the timestamp of last sync "
-                "(" << syncState.fullSyncBefore << " > " << m_lastSyncTime << "), "
-                "continue with full sync");
+                "performing the full sync");
         launchFullSync();
         return;
     }
@@ -635,45 +631,6 @@ void SynchronizationManagerPrivate::timerEvent(QTimerEvent * pTimerEvent)
         onRequestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndShareKeysWaitingForAuth);
         return;
     }
-}
-
-bool SynchronizationManagerPrivate::tryToGetSyncState(qevercloud::SyncState & syncState)
-{
-    QString error;
-    qint32 rateLimitSeconds = 0;
-    qint32 errorCode = m_noteStore.getSyncState(syncState, error, rateLimitSeconds);
-    if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
-    {
-        if (validAuthentication()) {
-            QString errorPrefix = QT_TR_NOOP("Internal error, unexpected AUTH_EXPIRED error: ");
-            error.prepend(errorPrefix);
-            emit notifyError(error);
-        }
-        else {
-            authenticate(AuthContext::SyncLaunch);
-        }
-
-        return false;
-    }
-    else if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
-    {
-        if (rateLimitSeconds < 0) {
-            error = QT_TR_NOOP("Internal error: RATE_LIMIT_REACHED exception was caught "
-                               "but the number of seconds to wait is negative");
-            emit notifyError(error);
-            return false;
-        }
-
-        m_launchSyncPostponeTimerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
-        return false;
-    }
-    else
-    {
-        emit notifyError(error);
-        return false;
-    }
-
-    return true;
 }
 
 void SynchronizationManagerPrivate::clear()

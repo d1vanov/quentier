@@ -23,6 +23,7 @@ Q_SIGNALS:
     void notifyError(QString errorDescription);
 
 // private signals
+    void sendAuthenticationToken(QString authToken, qevercloud::Timestamp expirationTime);
     void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString> authenticationTokensByLinkedNotebookGuids,
                                                     QHash<QString,qevercloud::Timestamp> authenticatonTokenExpirationTimesByLinkedNotebookGuids);
     void sendLastSyncParameters(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
@@ -52,12 +53,15 @@ private:
 
     void createConnections();
 
+    void readLastSyncParameters();
+
     struct AuthContext
     {
         enum type {
             Blank = 0,
             SyncLaunch,
-            AuthToLinkedNotebooks
+            Request,
+            AuthToLinkedNotebooks,
         };
     };
 
@@ -67,8 +71,6 @@ private:
 
     void launchStoreOAuthResult();
     void finalizeStoreOAuthResult();
-
-    bool tryToGetSyncState(qevercloud::SyncState & syncState);
 
     void launchSync();
     void launchFullSync();

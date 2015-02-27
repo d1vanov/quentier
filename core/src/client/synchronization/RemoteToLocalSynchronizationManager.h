@@ -358,6 +358,9 @@ private:
 
     void handleAuthExpiration();
 
+    bool checkUserAccountSyncState(bool & asyncWait, bool & error, qint32 & afterUsn);
+    bool checkLinkedNotebooksSyncStates(bool & asyncWait, bool & error);
+
 private:
     RemoteToLocalSynchronizationManager() Q_DECL_DELETE;
 
