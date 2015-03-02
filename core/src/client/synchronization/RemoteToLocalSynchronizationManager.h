@@ -91,6 +91,8 @@ Q_SIGNALS:
     void updateLinkedNotebook(LinkedNotebook notebook, QUuid requestId);
     void findLinkedNotebook(LinkedNotebook linkedNotebook, QUuid requestId);
     void expungeLinkedNotebook(LinkedNotebook notebook, QUuid requestId);
+    void listAllLinkedNotebooks(size_t limit, size_t offset, LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                LocalStorageManager::OrderDirection::type orderDirection, QUuid requestId);
 
     void addSavedSearch(SavedSearch savedSearch, QUuid requestId);
     void updateSavedSearch(SavedSearch savedSearch, QUuid requestId);
@@ -135,6 +137,12 @@ private Q_SLOTS:
     void onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
     void onExpungeLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
     void onExpungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId);
+
+    void onListAllLinkedNotebooksCompleted(size_t limit, size_t offset, LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                           LocalStorageManager::OrderDirection::type orderDirection,
+                                           QList<LinkedNotebook> linkedNotebooks, QUuid requestId);
+    void onListAllLinkedNotebooksFailed(size_t limit, size_t offset, LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                        LocalStorageManager::OrderDirection::type orderDirection, QString errorDescription, QUuid requestId);
 
     void onAddNotebookCompleted(Notebook notebook, QUuid requestId);
     void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
@@ -335,6 +343,7 @@ private:
 
     bool checkAndRequestAuthenticationTokensForLinkedNotebooks();
     void requestAuthenticationTokensForAllLinkedNotebooks();
+    void requestAllLinkedNotebooks();
 
     bool downloadLinkedNotebooksSyncChunks();
 
@@ -460,6 +469,10 @@ private:
     QSet<QUuid>                             m_addLinkedNotebookRequestIds;
     QSet<QUuid>                             m_updateLinkedNotebookRequestIds;
     QSet<QUuid>                             m_expungeLinkedNotebookRequestIds;
+
+    QList<LinkedNotebook>                   m_allLinkedNotebooks;
+    QUuid                                   m_listAllLinkedNotebooksRequestId;
+    bool                                    m_allLinkedNotebooksListed;
 
     QHash<QString,QString>                  m_authenticationTokensByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;

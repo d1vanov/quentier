@@ -57,6 +57,9 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_addLinkedNotebookRequestIds(),
     m_updateLinkedNotebookRequestIds(),
     m_expungeLinkedNotebookRequestIds(),
+    m_allLinkedNotebooks(),
+    m_listAllLinkedNotebooksRequestId(),
+    m_allLinkedNotebooksListed(false),
     m_authenticationTokensByLinkedNotebookGuid(),
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid(),
     m_syncStatesByLinkedNotebookGuid(),
@@ -1661,6 +1664,43 @@ void RemoteToLocalSynchronizationManager::onExpungeLinkedNotebookFailed(LinkedNo
     onExpungeDataElementFailed(linkedNotebook, requestId, errorDescription, "Linked notebook", m_expungeLinkedNotebookRequestIds);
 }
 
+void RemoteToLocalSynchronizationManager::onListAllLinkedNotebooksCompleted(size_t limit, size_t offset,
+                                                                            LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                                                            LocalStorageManager::OrderDirection::type orderDirection,
+                                                                            QList<LinkedNotebook> linkedNotebooks, QUuid requestId)
+{
+    if (requestId != m_listAllLinkedNotebooksRequestId) {
+        return;
+    }
+
+    QNDEBUG("RemoteToLocalSynchronizationManager::onListAllLinkedNotebooksCompleted: limit = " << limit
+            << ", offset = " << offset << ", order = " << order << ", order direction = " << orderDirection
+            << ", requestId = " << requestId);
+
+    m_allLinkedNotebooksListed = true;
+    startLinkedNotebooksSync();
+}
+
+void RemoteToLocalSynchronizationManager::onListAllLinkedNotebooksFailed(size_t limit, size_t offset,
+                                                                         LocalStorageManager::ListLinkedNotebooksOrder::type order,
+                                                                         LocalStorageManager::OrderDirection::type orderDirection,
+                                                                         QString errorDescription, QUuid requestId)
+{
+    if (requestId != m_listAllLinkedNotebooksRequestId) {
+        return;
+    }
+
+    QNWARNING("RemoteToLocalSynchronizationManager::onListAllLinkedNotebooksFailed: limit = " << limit
+              << ", offset = " << offset << ", order = " << order << ", order direction = " << orderDirection
+              << ", error description = " << errorDescription << "; request id = " << requestId);
+
+    m_allLinkedNotebooksListed = false;
+
+    QString error = QT_TR_NOOP("Can't list all linked notebooks from local storage: ");
+    error += errorDescription;
+    emit failure(error);
+}
+
 void RemoteToLocalSynchronizationManager::onAddNotebookCompleted(Notebook notebook, QUuid requestId)
 {
     onAddDataElementCompleted(notebook, requestId, "Notebook", m_addNotebookRequestIds);
@@ -1850,6 +1890,13 @@ void RemoteToLocalSynchronizationManager::createConnections()
     QObject::connect(this, SIGNAL(findLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindLinkedNotebookRequest(LinkedNotebook,QUuid)));
     QObject::connect(this, SIGNAL(expungeLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeLinkedNotebookRequest(LinkedNotebook,QUuid)));
 
+    QObject::connect(this,
+                     SIGNAL(listAllLinkedNotebooks(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                   LocalStorageManager::OrderDirection::type,QUuid)),
+                     &m_localStorageManagerThreadWorker,
+                     SLOT(onListAllLinkedNotebooksRequest(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                          LocalStorageManager::OrderDirection::type,QUuid)));
+
     QObject::connect(this, SIGNAL(addSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddSavedSearchRequest(SavedSearch,QUuid)));
     QObject::connect(this, SIGNAL(updateSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateSavedSearchRequest(SavedSearch,QUuid)));
     QObject::connect(this, SIGNAL(findSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindSavedSearchRequest(SavedSearch,QUuid)));
@@ -1903,6 +1950,19 @@ void RemoteToLocalSynchronizationManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(expungeLinkedNotebookComplete(LinkedNotebook,QUuid)), this, SLOT(onExpungeLinkedNotebookCompleted(LinkedNotebook,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(expungeLinkedNotebookFailed(LinkedNotebook,QString,QUuid)), this, SLOT(onExpungeLinkedNotebookFailed(LinkedNotebook,QString,QUuid)));
+
+    QObject::connect(&m_localStorageManagerThreadWorker,
+                     SIGNAL(listAllLinkedNotebooksComplete(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                           LocalStorageManager::OrderDirection::type,QList<LinkedNotebook>,QUuid)),
+                     this,
+                     SLOT(onListAllLinkedNotebooksCompleted(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                            LocalStorageManager::OrderDirection::type,QList<LinkedNotebook>,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker,
+                     SIGNAL(listAllLinkedNotebooksFailed(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     this,
+                     SLOT(onListAllLinkedNotebooksFailed(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                         LocalStorageManager::OrderDirection::type,QString,QUuid)));
 
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNotebookComplete(Notebook,QUuid)), this, SLOT(onAddNotebookCompleted(Notebook,QUuid)));
     QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(addNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onAddNotebookFailed(Notebook,QString,QUuid)));
@@ -1960,6 +2020,13 @@ void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
     QObject::disconnect(this, SIGNAL(findLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindLinkedNotebookRequest(LinkedNotebook,QUuid)));
     QObject::disconnect(this, SIGNAL(expungeLinkedNotebook(LinkedNotebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onExpungeLinkedNotebookRequest(LinkedNotebook,QUuid)));
 
+    QObject::disconnect(this,
+                        SIGNAL(listAllLinkedNotebooks(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                      LocalStorageManager::OrderDirection::type,QUuid)),
+                        &m_localStorageManagerThreadWorker,
+                        SLOT(onListAllLinkedNotebooksRequest(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                             LocalStorageManager::OrderDirection::type,QUuid)));
+
     QObject::disconnect(this, SIGNAL(addSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onAddSavedSearchRequest(SavedSearch,QUuid)));
     QObject::disconnect(this, SIGNAL(updateSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateSavedSearchRequest(SavedSearch,QUuid)));
     QObject::disconnect(this, SIGNAL(findSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindSavedSearchRequest(SavedSearch,QUuid)));
@@ -2010,6 +2077,19 @@ void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
 
     QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(expungeLinkedNotebookComplete(LinkedNotebook,QUuid)), this, SLOT(onExpungeLinkedNotebookCompleted(LinkedNotebook,QUuid)));
     QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(expungeLinkedNotebookFailed(LinkedNotebook,QString,QUuid)), this, SLOT(onExpungeLinkedNotebookFailed(LinkedNotebook,QString,QUuid)));
+
+    QObject::disconnect(&m_localStorageManagerThreadWorker,
+                        SIGNAL(listAllLinkedNotebooksComplete(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                              LocalStorageManager::OrderDirection::type,QList<LinkedNotebook>,QUuid)),
+                        this,
+                        SLOT(onListAllLinkedNotebooksCompleted(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                               LocalStorageManager::OrderDirection::type,QList<LinkedNotebook>,QUuid)));
+    QObject::disconnect(&m_localStorageManagerThreadWorker,
+                        SIGNAL(listAllLinkedNotebooksFailed(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                            LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                        this,
+                        SLOT(onListAllLinkedNotebooksFailed(size_t,size_t,LocalStorageManager::ListLinkedNotebooksOrder::type,
+                                                            LocalStorageManager::OrderDirection::type,QString,QUuid)));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(addNotebookComplete(Notebook,QUuid)), this, SLOT(onAddNotebookCompleted(Notebook,QUuid)));
     QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(addNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onAddNotebookFailed(Notebook,QString,QUuid)));
@@ -2267,8 +2347,15 @@ void RemoteToLocalSynchronizationManager::unmapContainerElementsFromLinkedNotebo
 
 void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync()
 {
-    const int numLinkedNotebooks = m_linkedNotebooks.size();
-    if (numLinkedNotebooks == 0) {
+    QNDEBUG("RemoteToLocalSynchronizationManager::startLinkedNotebooksSync");
+
+    if (!m_allLinkedNotebooksListed) {
+        requestAllLinkedNotebooks();
+        return;
+    }
+
+    const int numAllLinkedNotebooks = m_allLinkedNotebooks.size();
+    if (numAllLinkedNotebooks == 0) {
         QNDEBUG("No linked notebooks are present within the account, can finish the synchronization right away");
         m_linkedNotebooksSyncChunksDownloaded = true;
         emit linkedNotebooksSyncChunksDownloaded();
@@ -2290,26 +2377,26 @@ void RemoteToLocalSynchronizationManager::startLinkedNotebooksSync()
 
 bool RemoteToLocalSynchronizationManager::checkAndRequestAuthenticationTokensForLinkedNotebooks()
 {
-    const int numLinkedNotebooks = m_linkedNotebooks.size();
-    for(int i = 0; i < numLinkedNotebooks; ++i)
+    const int numAllLinkedNotebooks = m_allLinkedNotebooks.size();
+    for(int i = 0; i < numAllLinkedNotebooks; ++i)
     {
-        const qevercloud::LinkedNotebook & linkedNotebook = m_linkedNotebooks[i];
-        if (!linkedNotebook.guid.isSet()) {
+        const LinkedNotebook & linkedNotebook = m_allLinkedNotebooks[i];
+        if (!linkedNotebook.hasGuid()) {
             QString error = QT_TR_NOOP("Internal error: found linked notebook without guid set");
             QNWARNING(error << ", linked notebook: " << linkedNotebook);
             emit failure(error);
             return false;
         }
 
-        if (!m_authenticationTokensByLinkedNotebookGuid.contains(linkedNotebook.guid)) {
-            QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid
+        if (!m_authenticationTokensByLinkedNotebookGuid.contains(linkedNotebook.guid())) {
+            QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid()
                     << " was not found; will request authentication tokens for all linked notebooks at once");
 
             requestAuthenticationTokensForAllLinkedNotebooks();
             return false;
         }
 
-        auto it = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(linkedNotebook.guid);
+        auto it = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(linkedNotebook.guid());
         if (it == m_authenticationTokenExpirationTimesByLinkedNotebookGuid.end()) {
             QString error = QT_TR_NOOP("Internal inconsistency detected: can't find cached "
                                        "expiration time of linked notebook's authentication token");
@@ -2321,7 +2408,7 @@ bool RemoteToLocalSynchronizationManager::checkAndRequestAuthenticationTokensFor
         const qevercloud::Timestamp & expirationTime = it.value();
         const qevercloud::Timestamp currentTime = QDateTime::currentMSecsSinceEpoch();
         if (currentTime - expirationTime < SIX_HOURS_IN_MSEC) {
-            QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid
+            QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid()
                     << " is too close to expiration: its expiration time is " << PrintableDateTimeFromTimestamp(expirationTime)
                     << ", current time is " << PrintableDateTimeFromTimestamp(currentTime)
                     << "; will request new authentication tokens for all linked notebooks");
@@ -2342,29 +2429,41 @@ void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinke
     QNDEBUG("RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinkedNotebooks");
 
     QList<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys;
-    const int numLinkedNotebooks = m_linkedNotebooks.size();
-    for(int j = 0; j < numLinkedNotebooks; ++j)
+    const int numAllLinkedNotebooks = m_allLinkedNotebooks.size();
+    for(int j = 0; j < numAllLinkedNotebooks; ++j)
     {
-        const qevercloud::LinkedNotebook & currentLinkedNotebook = m_linkedNotebooks[j];
+        const LinkedNotebook & currentLinkedNotebook = m_allLinkedNotebooks[j];
 
-        if (!currentLinkedNotebook.guid.isSet()) {
+        if (!currentLinkedNotebook.hasGuid()) {
             QString error = QT_TR_NOOP("Internal error: found linked notebook without guid set");
             QNWARNING(error << ", linked notebook: " << currentLinkedNotebook);
             emit failure(error);
             return;
         }
 
-        if (!currentLinkedNotebook.shareKey.isSet()) {
+        if (!currentLinkedNotebook.hasShareKey()) {
             QString error = QT_TR_NOOP("Found linked notebook without a share key");
             QNWARNING(error << ", linked notebook: " << currentLinkedNotebook);
             emit failure(error);
             return;
         }
 
-        linkedNotebookGuidsAndShareKeys << QPair<QString,QString>(currentLinkedNotebook.guid, currentLinkedNotebook.shareKey);
+        linkedNotebookGuidsAndShareKeys << QPair<QString,QString>(currentLinkedNotebook.guid(), currentLinkedNotebook.shareKey());
     }
 
     emit requestAuthenticationTokensForLinkedNotebooks(linkedNotebookGuidsAndShareKeys);
+}
+
+void RemoteToLocalSynchronizationManager::requestAllLinkedNotebooks()
+{
+    size_t limit = 0, offset = 0;
+    LocalStorageManager::ListLinkedNotebooksOrder::type order = LocalStorageManager::ListLinkedNotebooksOrder::NoOrder;
+    LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Ascending;
+
+    m_listAllLinkedNotebooksRequestId = QUuid::createUuid();
+    emit listAllLinkedNotebooks(limit, offset, order, orderDirection, m_listAllLinkedNotebooksRequestId);
+
+    QNDEBUG("RemoteToLocalSynchronizationManager::requestAllLinkedNotebooks: request id = " << m_listAllLinkedNotebooksRequestId);
 }
 
 bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
@@ -2373,11 +2472,11 @@ bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
 
     QNDEBUG("Downloading linked notebook sync chunks:");
 
-    const int numLinkedNotebooks = m_linkedNotebooks.size();
-    for(int i = 0; i < numLinkedNotebooks; ++i)
+    const int numAllLinkedNotebooks = m_allLinkedNotebooks.size();
+    for(int i = 0; i < numAllLinkedNotebooks; ++i)
     {
-        const qevercloud::LinkedNotebook & linkedNotebook = m_linkedNotebooks[i];
-        if (!linkedNotebook.guid.isSet()) {
+        const LinkedNotebook & linkedNotebook = m_allLinkedNotebooks[i];
+        if (!linkedNotebook.hasGuid()) {
             QString error = QT_TR_NOOP("Found linked notebook without guid set when "
                                        "attempting to synchronize the content it points to");
             QNWARNING(error << ": " << linkedNotebook);
@@ -2385,7 +2484,7 @@ bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
             return false;
         }
 
-        const QString & linkedNotebookGuid = linkedNotebook.guid.ref();
+        const QString & linkedNotebookGuid = linkedNotebook.guid();
 
         bool fullSyncOnly = false;
         auto lastSynchronizedUsnIt = m_lastSynchronizedUsnByLinkedNotebookGuid.find(linkedNotebookGuid);
@@ -2576,7 +2675,7 @@ bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
             }
         }
 
-        Q_UNUSED(m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded.insert(linkedNotebook.guid));
+        Q_UNUSED(m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded.insert(linkedNotebook.guid()));
         m_lastSynchronizedUsnByLinkedNotebookGuid[linkedNotebookGuid] = afterUsn;
     }
 
@@ -2789,6 +2888,10 @@ void RemoteToLocalSynchronizationManager::clear()
     m_addLinkedNotebookRequestIds.clear();
     m_updateLinkedNotebookRequestIds.clear();
     m_expungeSavedSearchRequestIds.clear();
+
+    m_allLinkedNotebooks.clear();
+    m_listAllLinkedNotebooksRequestId = QUuid();
+    m_allLinkedNotebooksListed = false;
 
     m_syncStatesByLinkedNotebookGuid.clear();
     // NOTE: not clearing last synchronized usns by linked notebook guid; it is intentional,
