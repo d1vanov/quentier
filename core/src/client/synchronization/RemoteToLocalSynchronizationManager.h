@@ -357,6 +357,9 @@ private:
     void finalize();
     void clear();
 
+    void HandleLinkedNotebookAdded(const LinkedNotebook & linkedNotebook);
+    void HandleLinkedNotebookUpdated(const LinkedNotebook & linkedNotebook);
+
     virtual void timerEvent(QTimerEvent * pEvent);
 
     qint32 tryToGetFullNoteData(Note & note, QString & errorDescription);

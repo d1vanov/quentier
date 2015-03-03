@@ -1613,6 +1613,7 @@ void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<ResourceWrapper>
 
 void RemoteToLocalSynchronizationManager::onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
 {
+    HandleLinkedNotebookAdded(linkedNotebook);
     onAddDataElementCompleted(linkedNotebook, requestId, "LinkedNotebook", m_addLinkedNotebookRequestIds);
 }
 
@@ -1626,6 +1627,8 @@ void RemoteToLocalSynchronizationManager::onAddLinkedNotebookFailed(LinkedNotebo
 void RemoteToLocalSynchronizationManager::onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook,
                                                                           QUuid requestId)
 {
+    HandleLinkedNotebookUpdated(linkedNotebook);
+
     QSet<QUuid>::iterator it = m_updateLinkedNotebookRequestIds.find(requestId);
     if (it != m_updateLinkedNotebookRequestIds.end())
     {
@@ -1633,6 +1636,9 @@ void RemoteToLocalSynchronizationManager::onUpdateLinkedNotebookCompleted(Linked
                 << linkedNotebook << ", requestId = " << requestId);
 
         Q_UNUSED(m_updateLinkedNotebookRequestIds.erase(it));
+
+        CHECK_PAUSED();
+        CHECK_STOPPED();
 
         checkServerDataMergeCompletion();
     }
@@ -1669,6 +1675,9 @@ void RemoteToLocalSynchronizationManager::onListAllLinkedNotebooksCompleted(size
                                                                             LocalStorageManager::OrderDirection::type orderDirection,
                                                                             QList<LinkedNotebook> linkedNotebooks, QUuid requestId)
 {
+    CHECK_PAUSED();
+    CHECK_STOPPED();
+
     if (requestId != m_listAllLinkedNotebooksRequestId) {
         return;
     }
@@ -1686,6 +1695,9 @@ void RemoteToLocalSynchronizationManager::onListAllLinkedNotebooksFailed(size_t 
                                                                          LocalStorageManager::OrderDirection::type orderDirection,
                                                                          QString errorDescription, QUuid requestId)
 {
+    CHECK_PAUSED();
+    CHECK_STOPPED();
+
     if (requestId != m_listAllLinkedNotebooksRequestId) {
         return;
     }
@@ -2110,6 +2122,9 @@ void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
     QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(expungeNoteFailed(Note,QString,QUuid)), this, SLOT(onExpungeNoteFailed(Note,QString,QUuid)));
 
     m_connectedToLocalStorage = false;
+
+    // With the disconnect from local storage the list of previously received linked notebooks (if any) + new additions/updates becomes invalidated
+    m_allLinkedNotebooksListed = false;
 }
 
 void RemoteToLocalSynchronizationManager::launchSync()
@@ -2965,6 +2980,54 @@ void RemoteToLocalSynchronizationManager::clear()
         killTimer(m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId);
         m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId = 0;
     }
+}
+
+void RemoteToLocalSynchronizationManager::HandleLinkedNotebookAdded(const LinkedNotebook & linkedNotebook)
+{
+    QNDEBUG("RemoteToLocalSynchronizationManager::HandleLinkedNotebookAdded: linked notebook = " << linkedNotebook);
+
+    if (!m_allLinkedNotebooksListed) {
+        return;
+    }
+
+    if (!linkedNotebook.hasGuid()) {
+        QNWARNING("Detected the addition of linked notebook without guid to local storage!");
+        return;
+    }
+
+    auto it = std::find_if(m_allLinkedNotebooks.begin(), m_allLinkedNotebooks.end(),
+                           CompareItemByGuid<qevercloud::LinkedNotebook>(linkedNotebook.guid()));
+    if (it != m_allLinkedNotebooks.end()) {
+        QNINFO("Detected the addition of linked notebook to local storage, however such linked notebook is "
+                "already present within the list of all linked notebooks received previously from local storage");
+        *it = linkedNotebook;
+        return;
+    }
+
+    m_allLinkedNotebooks << linkedNotebook;
+}
+
+void RemoteToLocalSynchronizationManager::HandleLinkedNotebookUpdated(const LinkedNotebook & linkedNotebook)
+{
+    if (!m_allLinkedNotebooksListed) {
+        return;
+    }
+
+    if (!linkedNotebook.hasGuid()) {
+        QNWARNING("Detected the updated linked notebook without guid in local storage!");
+        return;
+    }
+
+    auto it = std::find_if(m_allLinkedNotebooks.begin(), m_allLinkedNotebooks.end(),
+                           CompareItemByGuid<qevercloud::LinkedNotebook>(linkedNotebook.guid()));
+    if (it == m_allLinkedNotebooks.end()) {
+        QNINFO("Detected the update of linked notebook to local storage, however such linked notebook is "
+                "not present within the list of all linked notebooks received previously from local storage");
+        m_allLinkedNotebooks << linkedNotebook;
+        return;
+    }
+
+    *it = linkedNotebook;
 }
 
 void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
