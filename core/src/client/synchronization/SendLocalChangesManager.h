@@ -29,8 +29,12 @@ Q_SIGNALS:
     void conflictDetected();
     void shouldRepeatIncrementalSync();
 
+    void paused(bool pendingAuthenticaton);
+
 public Q_SLOTS:
     void start(qint32 lastUpdateCount);
+    void pause();
+    void resume();
 
 // private signals:
 Q_SIGNALS:
@@ -171,8 +175,9 @@ private:
     bool                                m_shouldRepeatIncrementalSync;
 
     bool                                m_paused;
-
     bool                                m_connectedToLocalStorage;
+    bool                                m_receivedDirtyLocalStorageObjectsFromUsersAccount;
+    bool                                m_receivedAllDirtyLocalStorageObjects;
 
     QUuid                               m_listDirtyTagsRequestId;
     QUuid                               m_listDirtySavedSearchesRequestId;

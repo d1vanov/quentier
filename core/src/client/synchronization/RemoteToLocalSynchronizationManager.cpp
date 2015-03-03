@@ -181,6 +181,8 @@ void RemoteToLocalSynchronizationManager::pause()
 
 void RemoteToLocalSynchronizationManager::resume()
 {
+    QNDEBUG("RemoteToLocalSynchronizationManager::resume");
+
     if (!m_connectedToLocalStorage) {
         createConnections();
     }

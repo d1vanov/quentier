@@ -15,6 +15,8 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     m_shouldRepeatIncrementalSync(false),
     m_paused(false),
     m_connectedToLocalStorage(false),
+    m_receivedDirtyLocalStorageObjectsFromUsersAccount(false),
+    m_receivedAllDirtyLocalStorageObjects(false),
     m_listDirtyTagsRequestId(),
     m_listDirtySavedSearchesRequestId(),
     m_listDirtyNotebooksRequestId(),
@@ -48,7 +50,7 @@ void SendLocalChangesManager::start(const qint32 lastUpdateCount)
     m_lastUpdateCount = lastUpdateCount;
 
     if (m_paused) {
-        // TODO: call resume
+        resume();
         return;
     }
 
@@ -56,12 +58,49 @@ void SendLocalChangesManager::start(const qint32 lastUpdateCount)
     requestStuffFromLocalStorage(dummyLinkedNotebookGuid);
 }
 
+void SendLocalChangesManager::pause()
+{
+    QNDEBUG("SendLocalChangesManager::pause");
+    m_paused = true;
+    emit paused(/* pending authentication = */ false);
+}
+
+void SendLocalChangesManager::resume()
+{
+    QNDEBUG("SendLocalChangesManager::resume");
+
+    if (!m_connectedToLocalStorage) {
+        createConnections();
+    }
+
+    if (m_paused)
+    {
+        m_paused = false;
+
+        // TODO: think of more fine-grained resuming from pause
+        if (m_receivedAllDirtyLocalStorageObjects) {
+            sendLocalChanges();
+        }
+        else {
+            start(m_lastUpdateCount);
+        }
+    }
+}
+
+#define CHECK_PAUSED() \
+    if (m_paused) { \
+        QNDEBUG("SendLocalChangesManager is being paused, returning without any actions"); \
+        return; \
+    }
+
 void SendLocalChangesManager::onListDirtyTagsCompleted(LocalStorageManager::ListObjectsOptions flag,
                                                        size_t limit, size_t offset,
                                                        LocalStorageManager::ListTagsOrder::type order,
                                                        LocalStorageManager::OrderDirection::type orderDirection,
                                                        QList<Tag> tags, QString linkedNotebookGuid, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     bool ownTagsListCompleted = (requestId == m_listDirtyTagsRequestId);
     auto it = m_listDirtyTagsFromLinkedNotebooksRequestIds.end();
     if (!ownTagsListCompleted) {
@@ -94,6 +133,8 @@ void SendLocalChangesManager::onListDirtyTagsFailed(LocalStorageManager::ListObj
                                                     LocalStorageManager::OrderDirection::type orderDirection,
                                                     QString linkedNotebookGuid, QString errorDescription, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     bool ownTagsListCompleted = (requestId == m_listDirtyTagsRequestId);
     auto it = m_listDirtyTagsFromLinkedNotebooksRequestIds.end();
     if (!ownTagsListCompleted) {
@@ -117,6 +158,8 @@ void SendLocalChangesManager::onListDirtySavedSearchesCompleted(LocalStorageMana
                                                                 LocalStorageManager::OrderDirection::type orderDirection,
                                                                 QList<SavedSearch> savedSearches, QString linkedNotebookGuid, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     if (requestId != m_listDirtySavedSearchesRequestId) {
         return;
     }
@@ -136,6 +179,8 @@ void SendLocalChangesManager::onListDirtySavedSearchesFailed(LocalStorageManager
                                                              LocalStorageManager::OrderDirection::type orderDirection,
                                                              QString linkedNotebookGuid, QString errorDescription, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     if (requestId != m_listDirtySavedSearchesRequestId) {
         return;
     }
@@ -154,6 +199,8 @@ void SendLocalChangesManager::onListDirtyNotebooksCompleted(LocalStorageManager:
                                                             LocalStorageManager::OrderDirection::type orderDirection,
                                                             QList<Notebook> notebooks, QString linkedNotebookGuid, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     bool ownNotebooksListCompleted = (requestId == m_listDirtyNotebooksRequestId);
     auto it = m_listDirtyNotebooksFromLinkedNotebooksRequestIds.end();
     if (!ownNotebooksListCompleted) {
@@ -185,6 +232,8 @@ void SendLocalChangesManager::onListDirtyNotebooksFailed(LocalStorageManager::Li
                                                          LocalStorageManager::OrderDirection::type orderDirection,
                                                          QString linkedNotebookGuid, QString errorDescription, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     bool ownNotebooksListCompleted = (requestId == m_listDirtyNotebooksRequestId);
     auto it = m_listDirtyNotebooksFromLinkedNotebooksRequestIds.end();
     if (!ownNotebooksListCompleted) {
@@ -207,6 +256,8 @@ void SendLocalChangesManager::onListDirtyNotesCompleted(LocalStorageManager::Lis
                                                         LocalStorageManager::OrderDirection::type orderDirection,
                                                         QList<Note> notes, QString linkedNotebookGuid, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     bool ownNotesListCompleted = (requestId == m_listDirtyNotesRequestId);
     auto it = m_listDirtyNotesFromLinkedNotebooksRequestIds.end();
     if (!ownNotesListCompleted) {
@@ -237,6 +288,8 @@ void SendLocalChangesManager::onListDirtyNotesFailed(LocalStorageManager::ListOb
                                                      LocalStorageManager::OrderDirection::type orderDirection,
                                                      QString linkedNotebookGuid, QString errorDescription, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     bool ownNotesListCompleted = (requestId == m_listDirtyNotesRequestId);
     auto it = m_listDirtyNotesFromLinkedNotebooksRequestIds.end();
     if (!ownNotesListCompleted) {
@@ -259,6 +312,8 @@ void SendLocalChangesManager::onListLinkedNotebooksCompleted(LocalStorageManager
                                                              LocalStorageManager::OrderDirection::type orderDirection,
                                                              QList<LinkedNotebook> linkedNotebooks, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     if (requestId != m_listLinkedNotebooksRequestId) {
         return;
     }
@@ -299,6 +354,8 @@ void SendLocalChangesManager::onListLinkedNotebooksFailed(LocalStorageManager::L
                                                           LocalStorageManager::OrderDirection::type orderDirection,
                                                           QString errorDescription, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     if (requestId != m_listLinkedNotebooksRequestId) {
         return;
     }
@@ -312,6 +369,8 @@ void SendLocalChangesManager::onListLinkedNotebooksFailed(LocalStorageManager::L
 
 void SendLocalChangesManager::onUpdateTagCompleted(Tag tag, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     auto it = m_updateTagRequestIds.find(requestId);
     if (it == m_updateTagRequestIds.end()) {
         return;
@@ -323,6 +382,8 @@ void SendLocalChangesManager::onUpdateTagCompleted(Tag tag, QUuid requestId)
 
 void SendLocalChangesManager::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     auto it = m_updateTagRequestIds.find(requestId);
     if (it == m_updateTagRequestIds.end()) {
         return;
@@ -336,6 +397,8 @@ void SendLocalChangesManager::onUpdateTagFailed(Tag tag, QString errorDescriptio
 
 void SendLocalChangesManager::onUpdateSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     auto it = m_updateSavedSearchRequestIds.find(requestId);
     if (it == m_updateSavedSearchRequestIds.end()) {
         return;
@@ -347,6 +410,8 @@ void SendLocalChangesManager::onUpdateSavedSearchCompleted(SavedSearch savedSear
 
 void SendLocalChangesManager::onUpdateSavedSearchFailed(SavedSearch savedSearch, QString errorDescription, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     auto it = m_updateSavedSearchRequestIds.find(requestId);
     if (it == m_updateSavedSearchRequestIds.end()) {
         return;
@@ -360,6 +425,8 @@ void SendLocalChangesManager::onUpdateSavedSearchFailed(SavedSearch savedSearch,
 
 void SendLocalChangesManager::onUpdateNotebookCompleted(Notebook notebook, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     auto it = m_updateNotebookRequestIds.find(requestId);
     if (it == m_updateNotebookRequestIds.end()) {
         return;
@@ -371,6 +438,8 @@ void SendLocalChangesManager::onUpdateNotebookCompleted(Notebook notebook, QUuid
 
 void SendLocalChangesManager::onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     auto it = m_updateNotebookRequestIds.find(requestId);
     if (it == m_updateNotebookRequestIds.end()) {
         return;
@@ -384,6 +453,8 @@ void SendLocalChangesManager::onUpdateNotebookFailed(Notebook notebook, QString 
 
 void SendLocalChangesManager::onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     Q_UNUSED(notebook);
 
     auto it = m_updateNoteRequestIds.find(requestId);
@@ -399,6 +470,8 @@ void SendLocalChangesManager::onUpdateNoteFailed(Note note, Notebook notebook, Q
 {
     Q_UNUSED(notebook);
 
+    CHECK_PAUSED();
+
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
         return;
@@ -412,6 +485,8 @@ void SendLocalChangesManager::onUpdateNoteFailed(Note note, Notebook notebook, Q
 
 void SendLocalChangesManager::onFindNotebookCompleted(Notebook notebook, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     auto it = m_findNotebookRequestIds.find(requestId);
     if (it == m_findNotebookRequestIds.end()) {
         return;
@@ -437,6 +512,8 @@ void SendLocalChangesManager::onFindNotebookCompleted(Notebook notebook, QUuid r
 
 void SendLocalChangesManager::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
+    CHECK_PAUSED();
+
     auto it = m_findNotebookRequestIds.find(requestId);
     if (it == m_findNotebookRequestIds.end()) {
         return;
@@ -878,6 +955,7 @@ void SendLocalChangesManager::checkListLocalStorageObjectsCompletion()
         return;
     }
 
+    m_receivedDirtyLocalStorageObjectsFromUsersAccount = true;
     QNTRACE("Received all dirty objects from user's own account from local storage");
 
     if ((m_lastProcessedLinkedNotebookGuidIndex < 0) && (m_linkedNotebookGuidsAndShareKeys.size() > 0))
@@ -914,6 +992,7 @@ void SendLocalChangesManager::checkListLocalStorageObjectsCompletion()
         }
     }
 
+    m_receivedAllDirtyLocalStorageObjects = true;
     QNTRACE("All relevant objects from local storage have been listed");
 
     sendLocalChanges();
