@@ -30,9 +30,11 @@ Q_SIGNALS:
     void shouldRepeatIncrementalSync();
 
     void paused(bool pendingAuthenticaton);
+    void stopped();
 
 public Q_SLOTS:
     void start(qint32 lastUpdateCount);
+    void stop();
     void pause();
     void resume();
 
@@ -168,6 +170,9 @@ private:
 
     bool rateLimitIsActive() const;
 
+    bool hasPendingRequests() const;
+    void finalize();
+
 private:
     LocalStorageManagerThreadWorker &   m_localStorageManagerThreadWorker;
     NoteStore                           m_noteStore;
@@ -175,6 +180,8 @@ private:
     bool                                m_shouldRepeatIncrementalSync;
 
     bool                                m_paused;
+    bool                                m_requestedToStop;
+
     bool                                m_connectedToLocalStorage;
     bool                                m_receivedDirtyLocalStorageObjectsFromUsersAccount;
     bool                                m_receivedAllDirtyLocalStorageObjects;

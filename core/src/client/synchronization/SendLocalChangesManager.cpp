@@ -14,6 +14,7 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     m_lastUpdateCount(0),
     m_shouldRepeatIncrementalSync(false),
     m_paused(false),
+    m_requestedToStop(false),
     m_connectedToLocalStorage(false),
     m_receivedDirtyLocalStorageObjectsFromUsersAccount(false),
     m_receivedAllDirtyLocalStorageObjects(false),
@@ -65,6 +66,13 @@ void SendLocalChangesManager::pause()
     emit paused(/* pending authentication = */ false);
 }
 
+void SendLocalChangesManager::stop()
+{
+    QNDEBUG("SendLocalChangesManager::stop");
+    m_requestedToStop = true;
+    emit stopped();
+}
+
 void SendLocalChangesManager::resume()
 {
     QNDEBUG("SendLocalChangesManager::resume");
@@ -88,8 +96,15 @@ void SendLocalChangesManager::resume()
 }
 
 #define CHECK_PAUSED() \
-    if (m_paused) { \
+    if (m_paused && !m_requestedToStop) { \
         QNDEBUG("SendLocalChangesManager is being paused, returning without any actions"); \
+        return; \
+    }
+
+#define CHECK_STOPPED() \
+    if (m_requestedToStop && !hasPendingRequests()) { \
+        QNDEBUG("SendLocalChangesManager is requested to stop and has no pending requests, finishing sending the local changes"); \
+        finalize(); \
         return; \
     }
 
@@ -123,6 +138,8 @@ void SendLocalChangesManager::onListDirtyTagsCompleted(LocalStorageManager::List
             Q_UNUSED(m_listDirtyTagsFromLinkedNotebooksRequestIds.erase(it));
         }
 
+        CHECK_STOPPED();
+
         checkListLocalStorageObjectsCompletion();
     }
 }
@@ -148,6 +165,15 @@ void SendLocalChangesManager::onListDirtyTagsFailed(LocalStorageManager::ListObj
                 << order << ", orderDirection = " << orderDirection << ", linked notebook guid = "
                 << linkedNotebookGuid << ", error description = " << errorDescription << ", requestId = " << requestId);
 
+        if (ownTagsListCompleted) {
+            m_listDirtyTagsRequestId = QUuid();
+        }
+        else {
+            Q_UNUSED(m_listDirtyTagsFromLinkedNotebooksRequestIds.erase(it));
+        }
+
+        CHECK_STOPPED();
+
         emit failure(QT_TR_NOOP("Error listing dirty tags from local storage: ") + errorDescription);
     }
 }
@@ -170,6 +196,9 @@ void SendLocalChangesManager::onListDirtySavedSearchesCompleted(LocalStorageMana
 
     m_savedSearches << savedSearches;
     m_listDirtySavedSearchesRequestId = QUuid();
+
+    CHECK_STOPPED();
+
     checkListLocalStorageObjectsCompletion();
 }
 
@@ -189,6 +218,10 @@ void SendLocalChangesManager::onListDirtySavedSearchesFailed(LocalStorageManager
               << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
               << ", linkedNotebookGuid = " << linkedNotebookGuid << ", errorDescription = " << errorDescription
               << ", requestId = " << requestId);
+
+    m_listDirtySavedSearchesRequestId = QUuid();
+
+    CHECK_STOPPED();
 
     emit failure(QT_TR_NOOP("Error listing dirty saved searches from local storage: ") + errorDescription);
 }
@@ -222,6 +255,8 @@ void SendLocalChangesManager::onListDirtyNotebooksCompleted(LocalStorageManager:
             Q_UNUSED(m_listDirtyNotebooksFromLinkedNotebooksRequestIds.erase(it));
         }
 
+        CHECK_STOPPED();
+
         checkListLocalStorageObjectsCompletion();
     }
 }
@@ -245,6 +280,15 @@ void SendLocalChangesManager::onListDirtyNotebooksFailed(LocalStorageManager::Li
         QNWARNING("SendLocalChangesManager::onListDirtyNotebooksFailed: flag = " << flag << ", limit = " << limit
                 << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
                 << ", linkedNotebookGuid = " << linkedNotebookGuid << ", errorDescription = " << errorDescription);
+
+        if (ownNotebooksListCompleted) {
+            m_listDirtyNotebooksRequestId = QUuid();
+        }
+        else {
+            Q_UNUSED(m_listDirtyNotebooksFromLinkedNotebooksRequestIds.erase(it));
+        }
+
+        CHECK_STOPPED();
 
         emit failure(QT_TR_NOOP("Error listing dirty notebooks from local storage: ") + errorDescription);
     }
@@ -279,6 +323,8 @@ void SendLocalChangesManager::onListDirtyNotesCompleted(LocalStorageManager::Lis
             Q_UNUSED(m_listDirtyNotesFromLinkedNotebooksRequestIds.erase(it));
         }
 
+        CHECK_STOPPED();
+
         checkListLocalStorageObjectsCompletion();
     }
 }
@@ -301,6 +347,15 @@ void SendLocalChangesManager::onListDirtyNotesFailed(LocalStorageManager::ListOb
         QNWARNING("SendLocalChangesManager::onListDirtyNotesFailed: flag = " << flag << ", limit = " << limit
                 << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
                 << ", linkedNotebookGuid = " << linkedNotebookGuid << ", requestId = " << requestId);
+
+        if (ownNotesListCompleted) {
+            m_listDirtyNotesRequestId = QUuid();
+        }
+        else {
+            Q_UNUSED(m_listDirtyNotesFromLinkedNotebooksRequestIds.erase(it));
+        }
+
+        CHECK_STOPPED();
 
         emit failure(QT_TR_NOOP("Error listing dirty notes from local storage: ") + errorDescription);
     }
@@ -345,6 +400,7 @@ void SendLocalChangesManager::onListLinkedNotebooksCompleted(LocalStorageManager
     }
 
     m_listLinkedNotebooksRequestId = QUuid();
+    CHECK_STOPPED();
     checkListLocalStorageObjectsCompletion();
 }
 
@@ -364,6 +420,9 @@ void SendLocalChangesManager::onListLinkedNotebooksFailed(LocalStorageManager::L
               << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
               << ", errorDescription = " << errorDescription << ", requestId = " << requestId);
 
+    m_listLinkedNotebooksRequestId = QUuid();
+    CHECK_STOPPED();
+
     emit failure(QT_TR_NOOP("Error listing linked notebooks from local storage: ") + errorDescription);
 }
 
@@ -378,6 +437,8 @@ void SendLocalChangesManager::onUpdateTagCompleted(Tag tag, QUuid requestId)
 
     QNDEBUG("SendLocalChangesManager::onUpdateTagCompleted: tag = " << tag << "\nrequest id = " << requestId);
     Q_UNUSED(m_updateTagRequestIds.erase(it));
+
+    CHECK_STOPPED();
 }
 
 void SendLocalChangesManager::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId)
@@ -388,6 +449,9 @@ void SendLocalChangesManager::onUpdateTagFailed(Tag tag, QString errorDescriptio
     if (it == m_updateTagRequestIds.end()) {
         return;
     }
+
+    Q_UNUSED(m_updateTagRequestIds.erase(it));
+    CHECK_STOPPED();
 
     QString error = QT_TR_NOOP("Couldn't update tag in local storage: ");
     error += errorDescription;
@@ -406,6 +470,8 @@ void SendLocalChangesManager::onUpdateSavedSearchCompleted(SavedSearch savedSear
 
     QNDEBUG("SendLocalChangesManager::onUpdateSavedSearchCompleted: search = " << savedSearch << "\nrequest id = " << requestId);
     Q_UNUSED(m_updateSavedSearchRequestIds.erase(it));
+
+    CHECK_STOPPED();
 }
 
 void SendLocalChangesManager::onUpdateSavedSearchFailed(SavedSearch savedSearch, QString errorDescription, QUuid requestId)
@@ -416,6 +482,9 @@ void SendLocalChangesManager::onUpdateSavedSearchFailed(SavedSearch savedSearch,
     if (it == m_updateSavedSearchRequestIds.end()) {
         return;
     }
+
+    Q_UNUSED(m_updateSavedSearchRequestIds.erase(it));
+    CHECK_STOPPED();
 
     QString error = QT_TR_NOOP("Couldn't update saved search in local storage: ");
     error += errorDescription;
@@ -434,6 +503,8 @@ void SendLocalChangesManager::onUpdateNotebookCompleted(Notebook notebook, QUuid
 
     QNDEBUG("SendLocalChangesManager::onUpdateNotebookCompleted: notebook = " << notebook << "\nrequest id = " << requestId);
     Q_UNUSED(m_updateNotebookRequestIds.erase(it));
+
+    CHECK_STOPPED();
 }
 
 void SendLocalChangesManager::onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
@@ -444,6 +515,9 @@ void SendLocalChangesManager::onUpdateNotebookFailed(Notebook notebook, QString 
     if (it == m_updateNotebookRequestIds.end()) {
         return;
     }
+
+    Q_UNUSED(m_updateNotebookRequestIds.erase(it));
+    CHECK_STOPPED();
 
     QString error = QT_TR_NOOP("Couldn't update notebook in local storage: ");
     error += errorDescription;
@@ -464,6 +538,8 @@ void SendLocalChangesManager::onUpdateNoteCompleted(Note note, Notebook notebook
 
     QNDEBUG("SendLocalChangesManager::onUpdateNoteCompleted: note = " << note << "\nrequest id = " << requestId);
     Q_UNUSED(m_updateNoteRequestIds.erase(it));
+
+    CHECK_STOPPED();
 }
 
 void SendLocalChangesManager::onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)
@@ -476,6 +552,9 @@ void SendLocalChangesManager::onUpdateNoteFailed(Note note, Notebook notebook, Q
     if (it == m_updateNoteRequestIds.end()) {
         return;
     }
+
+    Q_UNUSED(m_updateNoteRequestIds.erase(it));
+    CHECK_STOPPED();
 
     QString error = QT_TR_NOOP("Couldn't update note in local storage: ");
     error += errorDescription;
@@ -505,6 +584,8 @@ void SendLocalChangesManager::onFindNotebookCompleted(Notebook notebook, QUuid r
     m_notebooksByGuidsCache[notebook.guid()] = notebook;
     Q_UNUSED(m_findNotebookRequestIds.erase(it));
 
+    CHECK_STOPPED();
+
     if (m_findNotebookRequestIds.isEmpty()) {
         checkAndSendNotes();
     }
@@ -519,11 +600,12 @@ void SendLocalChangesManager::onFindNotebookFailed(Notebook notebook, QString er
         return;
     }
 
-    QNWARNING("SendLocalChangesManager::onFindNotebookFailed: notebook = " << notebook << "\nerrorDescription = "
-              << errorDescription << ", request id = " << requestId);
+    Q_UNUSED(m_findNotebookRequestIds.erase(it));
+    CHECK_STOPPED();
 
     QString error = QT_TR_NOOP("Can't find notebook in local storage: ");
     error += errorDescription;
+    QNWARNING(error);
     emit failure(error);
 }
 
@@ -1071,7 +1153,7 @@ void SendLocalChangesManager::sendTags()
             QNINFO("Encountered DATA_CONFLICT exception while trying to send new and/or modified tags, "
                    "it means the incremental sync should be repeated before sending the changes to the service");
             emit conflictDetected();
-            // TODO: move the whole object to paused state
+            pause();
             return;
         }
         else if (errorCode != 0) {
@@ -1193,4 +1275,16 @@ bool SendLocalChangesManager::rateLimitIsActive() const
              (m_sendNotesPostponeTimerId > 0) );
 }
 
+bool SendLocalChangesManager::hasPendingRequests() const
+{
+    // TODO: implement
+    return false;
+}
+
+void SendLocalChangesManager::finalize()
+{
+    // TODO: implement
+}
+
 } // namespace qute_note
+

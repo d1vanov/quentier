@@ -422,6 +422,7 @@ void RemoteToLocalSynchronizationManager::emitUpdateRequest<Note>(const Note & n
         QNDEBUG("RemoteToLocalSynchronizationManager is requested to stop and has no pending requests, " \
                 "finishing the synchronization"); \
         finalize(); \
+        return; \
     }
 
 void RemoteToLocalSynchronizationManager::onFindNotebookCompleted(Notebook notebook, QUuid requestId)
