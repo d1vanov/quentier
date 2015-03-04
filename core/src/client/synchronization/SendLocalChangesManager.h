@@ -172,6 +172,7 @@ private:
 
     bool hasPendingRequests() const;
     void finalize();
+    void clear();
 
 private:
     LocalStorageManagerThreadWorker &   m_localStorageManagerThreadWorker;

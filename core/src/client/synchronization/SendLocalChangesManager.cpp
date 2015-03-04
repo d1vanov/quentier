@@ -1277,13 +1277,88 @@ bool SendLocalChangesManager::rateLimitIsActive() const
 
 bool SendLocalChangesManager::hasPendingRequests() const
 {
-    // TODO: implement
-    return false;
+    QUuid emptyId;
+    return ( (m_listDirtyTagsRequestId != emptyId) ||
+             (m_listDirtySavedSearchesRequestId != emptyId) ||
+             (m_listDirtyNotebooksRequestId != emptyId) ||
+             (m_listDirtyNotesRequestId != emptyId) ||
+             (m_listLinkedNotebooksRequestId != emptyId) ||
+             !m_listDirtyTagsFromLinkedNotebooksRequestIds.isEmpty() ||
+             !m_listDirtyNotebooksFromLinkedNotebooksRequestIds.isEmpty() ||
+             !m_listDirtyNotesFromLinkedNotebooksRequestIds.isEmpty() ||
+             !m_updateTagRequestIds.isEmpty() ||
+             !m_updateSavedSearchRequestIds.isEmpty() ||
+             !m_updateNotebookRequestIds.isEmpty() ||
+             !m_updateNoteRequestIds.isEmpty() ||
+             !m_findNotebookRequestIds.isEmpty() );
 }
 
 void SendLocalChangesManager::finalize()
 {
-    // TODO: implement
+    emit finished(m_lastUpdateCount);
+    clear();
+    disconnectFromLocalStorage();
+}
+
+void SendLocalChangesManager::clear()
+{
+    QNDEBUG("SendLocalChangesManager::clear");
+
+    m_lastUpdateCount = 0;
+    m_shouldRepeatIncrementalSync = false;
+    m_paused = false;
+    m_requestedToStop = false;
+
+    m_receivedDirtyLocalStorageObjectsFromUsersAccount = false;
+    m_receivedAllDirtyLocalStorageObjects = false;
+
+    QUuid emptyId;
+    m_listDirtyTagsRequestId = emptyId;
+    m_listDirtySavedSearchesRequestId = emptyId;
+    m_listDirtyNotebooksRequestId = emptyId;
+    m_listDirtyNotesRequestId = emptyId;
+    m_listLinkedNotebooksRequestId = emptyId;
+
+    m_listDirtyTagsFromLinkedNotebooksRequestIds.clear();
+    m_listDirtyNotebooksFromLinkedNotebooksRequestIds.clear();
+    m_listDirtyNotesFromLinkedNotebooksRequestIds.clear();
+
+    m_tags.clear();
+    m_savedSearches.clear();
+    m_notebooks.clear();
+    m_notes.clear();
+
+    m_linkedNotebookGuidsAndShareKeys.clear();
+    m_lastProcessedLinkedNotebookGuidIndex = -1;
+
+    m_updateTagRequestIds.clear();
+    m_updateSavedSearchRequestIds.clear();
+    m_updateNotebookRequestIds.clear();
+    m_updateNoteRequestIds.clear();
+
+    m_findNotebookRequestIds.clear();
+    m_notebooksByGuidsCache.clear();    // NOTE: don't get any ideas on preserving the cache, it can easily get stale
+                                        // especially when disconnected from local storage
+
+    if (m_sendTagsPostponeTimerId > 0) {
+        killTimer(m_sendTagsPostponeTimerId);
+    }
+    m_sendTagsPostponeTimerId = 0;
+
+    if (m_sendSavedSearchesPostponeTimerId > 0) {
+        killTimer(m_sendSavedSearchesPostponeTimerId);
+    }
+    m_sendSavedSearchesPostponeTimerId = 0;
+
+    if (m_sendNotebooksPostponeTimerId > 0) {
+        killTimer(m_sendNotebooksPostponeTimerId);
+    }
+    m_sendNotebooksPostponeTimerId = 0;
+
+    if (m_sendNotesPostponeTimerId > 0) {
+        killTimer(m_sendNotesPostponeTimerId);
+    }
+    m_sendNotesPostponeTimerId = 0;
 }
 
 } // namespace qute_note
