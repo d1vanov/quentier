@@ -1846,6 +1846,8 @@ void RemoteToLocalSynchronizationManager::onUpdateResourceFailed(ResourceWrapper
 void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString, QString> authenticationTokensByLinkedNotebookGuid,
                                                                                            QHash<QString, qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid)
 {
+    QNDEBUG("RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived");
+
     m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
 

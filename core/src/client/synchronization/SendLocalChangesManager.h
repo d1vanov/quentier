@@ -32,11 +32,21 @@ Q_SIGNALS:
     void paused(bool pendingAuthenticaton);
     void stopped();
 
+    void requestAuthenticationToken();
+    void requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndShareKeys);
+
+    // progress information
+    void receivedUserAccountDirtyObjects();
+    void receivedAllDirtyObjects();
+
 public Q_SLOTS:
     void start(qint32 lastUpdateCount);
     void stop();
     void pause();
     void resume();
+
+    void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString> authenticationTokensByLinkedNotebookGuid,
+                                                          QHash<QString,qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid);
 
 // private signals:
 Q_SIGNALS:
@@ -174,6 +184,10 @@ private:
     void finalize();
     void clear();
 
+    bool checkAndRequestAuthenticationTokensForLinkedNotebooks();
+
+    void handleAuthExpiration();
+
 private:
     LocalStorageManagerThreadWorker &   m_localStorageManagerThreadWorker;
     NoteStore                           m_noteStore;
@@ -202,8 +216,10 @@ private:
     QList<Notebook>                     m_notebooks;
     QList<Note>                         m_notes;
 
-    QList<QPair<QString, QString> >     m_linkedNotebookGuidsAndShareKeys;
-    int                                 m_lastProcessedLinkedNotebookGuidIndex;
+    QList<QPair<QString, QString> >         m_linkedNotebookGuidsAndShareKeys;
+    int                                     m_lastProcessedLinkedNotebookGuidIndex;
+    QHash<QString, QString>                 m_authenticationTokensByLinkedNotebookGuid;
+    QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
 
     QSet<QUuid>                         m_updateTagRequestIds;
     QSet<QUuid>                         m_updateSavedSearchRequestIds;

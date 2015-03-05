@@ -32,6 +32,8 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     m_notes(),
     m_linkedNotebookGuidsAndShareKeys(),
     m_lastProcessedLinkedNotebookGuidIndex(-1),
+    m_authenticationTokensByLinkedNotebookGuid(),
+    m_authenticationTokenExpirationTimesByLinkedNotebookGuid(),
     m_updateTagRequestIds(),
     m_updateSavedSearchRequestIds(),
     m_updateNotebookRequestIds(),
@@ -54,6 +56,8 @@ void SendLocalChangesManager::start(const qint32 lastUpdateCount)
         resume();
         return;
     }
+
+    clear();
 
     QString dummyLinkedNotebookGuid;
     requestStuffFromLocalStorage(dummyLinkedNotebookGuid);
@@ -93,6 +97,17 @@ void SendLocalChangesManager::resume()
             start(m_lastUpdateCount);
         }
     }
+}
+
+void SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString> authenticationTokensByLinkedNotebookGuid,
+                                                                               QHash<QString,qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid)
+{
+    QNDEBUG("SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived");
+
+    m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
+    m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
+
+    sendLocalChanges();
 }
 
 #define CHECK_PAUSED() \
@@ -1039,6 +1054,7 @@ void SendLocalChangesManager::checkListLocalStorageObjectsCompletion()
 
     m_receivedDirtyLocalStorageObjectsFromUsersAccount = true;
     QNTRACE("Received all dirty objects from user's own account from local storage");
+    emit receivedUserAccountDirtyObjects();
 
     if ((m_lastProcessedLinkedNotebookGuidIndex < 0) && (m_linkedNotebookGuidsAndShareKeys.size() > 0))
     {
@@ -1076,6 +1092,7 @@ void SendLocalChangesManager::checkListLocalStorageObjectsCompletion()
 
     m_receivedAllDirtyLocalStorageObjects = true;
     QNTRACE("All relevant objects from local storage have been listed");
+    emit receivedAllDirtyObjects();
 
     sendLocalChanges();
 }
@@ -1084,7 +1101,9 @@ void SendLocalChangesManager::sendLocalChanges()
 {
     QNDEBUG("SendLocalChangesManager::sendLocalChanges");
 
-    // TODO: check that all required authentication tokens are present and that they are good to use (don't expire soon)
+    if (!checkAndRequestAuthenticationTokensForLinkedNotebooks()) {
+        return;
+    }
 
     sendTags();
     sendSavedSearches();
@@ -1142,11 +1161,14 @@ void SendLocalChangesManager::sendTags()
         }
         else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
         {
-            QString errorPrefix = (creatingTag
-                                   ? QT_TR_NOOP("Unexpected AUTH_EXPIRED error when trying to create tag in the service: ")
-                                   : QT_TR_NOOP("Unexpected AUTH_EXPIRED error when trying to update tag in the service: "));
-            errorDescription.prepend(errorPrefix);
-            emit failure(errorDescription);
+            if (!tag.hasLinkedNotebookGuid()) {
+                handleAuthExpiration();
+            }
+            else {
+                // TODO: handle it specifically
+            }
+
+            return;
         }
         else if (errorCode == qevercloud::EDAMErrorCode::DATA_CONFLICT)
         {
@@ -1331,6 +1353,8 @@ void SendLocalChangesManager::clear()
     m_linkedNotebookGuidsAndShareKeys.clear();
     m_lastProcessedLinkedNotebookGuidIndex = -1;
 
+    // NOTE: don't clear auth tokens by linked notebook guid as well as their expiration timestamps, these might be useful later on
+
     m_updateTagRequestIds.clear();
     m_updateSavedSearchRequestIds.clear();
     m_updateNotebookRequestIds.clear();
@@ -1359,6 +1383,65 @@ void SendLocalChangesManager::clear()
         killTimer(m_sendNotesPostponeTimerId);
     }
     m_sendNotesPostponeTimerId = 0;
+}
+
+bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebooks()
+{
+    QNDEBUG("SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebooks");
+
+    const int numLinkedNotebookGuids = m_linkedNotebookGuidsAndShareKeys.size();
+    for(int i = 0; i < numLinkedNotebookGuids; ++i)
+    {
+        const QPair<QString, QString> & guidAndShareKey = m_linkedNotebookGuidsAndShareKeys[i];
+        const QString & guid = guidAndShareKey.first;
+        if (guid.isEmpty()) {
+            QString error = QT_TR_NOOP("Internal error: found empty linked notebook guid within the list of linked notebook guids and share keys");
+            QNWARNING(error);
+            emit failure(error);
+            return false;
+        }
+
+        auto it = m_authenticationTokensByLinkedNotebookGuid.find(guid);
+        if (it == m_authenticationTokensByLinkedNotebookGuid.end()) {
+            QNDEBUG("Authentication token for linked notebook with guid " << guid
+                    << " was not found; will request authentication tokens for all linked notebooks at once");
+            emit requestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndShareKeys);
+            return false;
+        }
+
+        auto eit = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(guid);
+        if (eit == m_authenticationTokenExpirationTimesByLinkedNotebookGuid.end()) {
+            QString error = QT_TR_NOOP("Internal inconsistency detected: can't find cached "
+                                       "expiration time of linked notebook's authentication token");
+            QNWARNING(error << ", linked notebook guid = " << guid);
+            emit failure(error);
+            return false;
+        }
+
+        const qevercloud::Timestamp & expirationTime = eit.value();
+        const qevercloud::Timestamp currentTime = QDateTime::currentMSecsSinceEpoch();
+        if (currentTime - expirationTime < SIX_HOURS_IN_MSEC) {
+            QNDEBUG("Authentication token for linked notebook with guid " << guid
+                    << " is too close to expiration: its expiration time is " << PrintableDateTimeFromTimestamp(expirationTime)
+                    << ", current time is " << PrintableDateTimeFromTimestamp(currentTime)
+                    << "; will request new authentication tokens for all linked notebooks");
+            emit requestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndShareKeys);
+            return false;
+        }
+    }
+
+    QNDEBUG("Got authentication tokens for all linked notebooks, can proceed with "
+            "their synchronization");
+
+    return true;
+}
+
+void SendLocalChangesManager::handleAuthExpiration()
+{
+    QNINFO("Got AUTH_EXPIRED error, pausing and requesting new authentication token");
+    m_paused = true;
+    emit paused(/* pending authentication = */ true);
+    emit requestAuthenticationToken();
 }
 
 } // namespace qute_note
