@@ -1127,14 +1127,27 @@ void SendLocalChangesManager::sendTags()
         qint32 rateLimitSeconds = 0;
         qint32 errorCode = qevercloud::EDAMErrorCode::UNKNOWN;
 
+        QString linkedNotebookAuthToken;
+        if (tag.hasLinkedNotebookGuid())
+        {
+            auto cit = m_authenticationTokensByLinkedNotebookGuid.find(tag.linkedNotebookGuid());
+            if (cit != m_authenticationTokensByLinkedNotebookGuid.end()) {
+                linkedNotebookAuthToken = cit.value();
+            }
+            else {
+                // TODO: warn, check that this linked notebook guid is present within the list of guids + share keys,
+                // if not, need to add it there, if yes, need to request the auth tokens for all linked notebook guids once again
+            }
+        }
+
         bool creatingTag = !tag.hasUpdateSequenceNumber();
         if (creatingTag) {
             QNTRACE("Sending new tag: " << tag);
-            errorCode = m_noteStore.createTag(tag, errorDescription, rateLimitSeconds);
+            errorCode = m_noteStore.createTag(tag, errorDescription, rateLimitSeconds, linkedNotebookAuthToken);
         }
         else {
             QNTRACE("Sending modified tag: " << tag);
-            errorCode = m_noteStore.updateTag(tag, errorDescription, rateLimitSeconds);
+            errorCode = m_noteStore.updateTag(tag, errorDescription, rateLimitSeconds, linkedNotebookAuthToken);
         }
 
         if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
@@ -1165,7 +1178,8 @@ void SendLocalChangesManager::sendTags()
                 handleAuthExpiration();
             }
             else {
-                // TODO: handle it specifically
+                // TODO: handle it specifically: check auth token's expiration time and either request the tokens
+                // for all linked notebooks once again or report error
             }
 
             return;
