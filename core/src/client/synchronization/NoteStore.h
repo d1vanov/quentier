@@ -35,11 +35,11 @@ public:
     qint32 createNotebook(Notebook & notebook, QString & errorDescription, qint32 & rateLimitSeconds);
     qint32 updateNotebook(Notebook & notebook, QString & errorDescription, qint32 & rateLimitSeconds);
 
-    qint32 createNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds);
-    qint32 updateNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 createNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
+    qint32 updateNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
 
-    qint32 createTag(Tag & tag, QString & errorDescription, qint32 & rateLimitSeconds);
-    qint32 updateTag(Tag & tag, QString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 createTag(Tag & tag, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
+    qint32 updateTag(Tag & tag, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
 
     qint32 createSavedSearch(SavedSearch & savedSearch, QString & errorDescription, qint32 & rateLimitSeconds);
     qint32 updateSavedSearch(SavedSearch & savedSearch, QString & errorDescription, qint32 & rateLimitSeconds);

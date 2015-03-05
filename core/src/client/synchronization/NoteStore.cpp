@@ -80,11 +80,11 @@ qint32 NoteStore::updateNotebook(Notebook & notebook, QString & errorDescription
     return qevercloud::EDAMErrorCode::UNKNOWN;
 }
 
-qint32 NoteStore::createNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds)
+qint32 NoteStore::createNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken)
 {
     try
     {
-        note = m_pQecNoteStore->createNote(note);
+        note =  m_pQecNoteStore->createNote(note, linkedNotebookAuthToken);
         return 0;
     }
     catch(const qevercloud::EDAMUserException & userException)
@@ -101,11 +101,11 @@ qint32 NoteStore::createNote(Note & note, QString & errorDescription, qint32 & r
     return qevercloud::EDAMErrorCode::UNKNOWN;
 }
 
-qint32 NoteStore::updateNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds)
+qint32 NoteStore::updateNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken)
 {
     try
     {
-        note = m_pQecNoteStore->updateNote(note);
+        note = m_pQecNoteStore->updateNote(note, linkedNotebookAuthToken);
         return 0;
     }
     catch(const qevercloud::EDAMUserException & userException)
@@ -126,11 +126,11 @@ qint32 NoteStore::updateNote(Note & note, QString & errorDescription, qint32 & r
     return qevercloud::EDAMErrorCode::UNKNOWN;
 }
 
-qint32 NoteStore::createTag(Tag & tag, QString & errorDescription, qint32 & rateLimitSeconds)
+qint32 NoteStore::createTag(Tag & tag, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken)
 {
     try
     {
-        tag = m_pQecNoteStore->createTag(tag);
+        tag = m_pQecNoteStore->createTag(tag, linkedNotebookAuthToken);
         return 0;
     }
     catch(const qevercloud::EDAMUserException & userException)
@@ -148,11 +148,11 @@ qint32 NoteStore::createTag(Tag & tag, QString & errorDescription, qint32 & rate
     return qevercloud::EDAMErrorCode::UNKNOWN;
 }
 
-qint32 NoteStore::updateTag(Tag & tag, QString & errorDescription, qint32 & rateLimitSeconds)
+qint32 NoteStore::updateTag(Tag & tag, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken)
 {
     try
     {
-        qint32 usn = m_pQecNoteStore->updateTag(tag);
+        qint32 usn = m_pQecNoteStore->updateTag(tag, linkedNotebookAuthToken);
         tag.setUpdateSequenceNumber(usn);
         return 0;
     }
