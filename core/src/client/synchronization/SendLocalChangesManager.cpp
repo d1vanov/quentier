@@ -1131,12 +1131,25 @@ void SendLocalChangesManager::sendTags()
         if (tag.hasLinkedNotebookGuid())
         {
             auto cit = m_authenticationTokensByLinkedNotebookGuid.find(tag.linkedNotebookGuid());
-            if (cit != m_authenticationTokensByLinkedNotebookGuid.end()) {
+            if (cit != m_authenticationTokensByLinkedNotebookGuid.end())
+            {
                 linkedNotebookAuthToken = cit.value();
             }
-            else {
-                // TODO: warn, check that this linked notebook guid is present within the list of guids + share keys,
-                // if not, need to add it there, if yes, need to request the auth tokens for all linked notebook guids once again
+            else
+            {
+                errorDescription = QT_TR_NOOP("Couldn't find authentication token for linked notebook when attempting to create or update a tag from it");
+                QNWARNING(errorDescription << ", tag = " << tag);
+
+                auto sit = std::find_if(m_linkedNotebookGuidsAndShareKeys.begin(),
+                                        m_linkedNotebookGuidsAndShareKeys.end(),
+                                        CompareGuidAndShareKeyByGuid(tag.linkedNotebookGuid()));
+                if (sit == m_linkedNotebookGuidsAndShareKeys.end()) {
+                    QNWARNING("The linked notebook the tag refers to was not found within the list of linked notebooks "
+                              "received from local storage!");
+                }
+
+                emit failure(errorDescription);
+                return;
             }
         }
 
@@ -1154,7 +1167,7 @@ void SendLocalChangesManager::sendTags()
         {
             if (rateLimitSeconds < 0) {
                 errorDescription = QT_TR_NOOP("Caught RATE_LIMIT_REACHED exception but "
-                        "the number of seconds to wait is negative: ");
+                                              "the number of seconds to wait is negative: ");
                 errorDescription += QString::number(rateLimitSeconds);
                 emit failure(errorDescription);
                 return;
@@ -1174,12 +1187,31 @@ void SendLocalChangesManager::sendTags()
         }
         else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
         {
-            if (!tag.hasLinkedNotebookGuid()) {
+            if (!tag.hasLinkedNotebookGuid())
+            {
                 handleAuthExpiration();
             }
-            else {
-                // TODO: handle it specifically: check auth token's expiration time and either request the tokens
-                // for all linked notebooks once again or report error
+            else
+            {
+                auto cit = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(tag.linkedNotebookGuid());
+                if (cit == m_authenticationTokenExpirationTimesByLinkedNotebookGuid.end())
+                {
+                    errorDescription = QT_TR_NOOP("Internal error: couldn't find the expiration time of linked notebook auth token");
+                    QNWARNING(errorDescription << ", linked notebook guid = " << tag.linkedNotebookGuid());
+                    emit failure(errorDescription);
+                    return;
+                }
+                else
+                {
+                    if (checkAndRequestAuthenticationTokensForLinkedNotebooks()) {
+                        errorDescription = QT_TR_NOOP("Unexpected AUTH_EXPIRED error: authentication tokens for all linked notebooks "
+                                                      "are still valid");
+                        QNWARNING(errorDescription << ", linked notebook guid = " << tag.linkedNotebookGuid());
+                        emit failure(errorDescription);
+                    }
+
+                    return;
+                }
             }
 
             return;

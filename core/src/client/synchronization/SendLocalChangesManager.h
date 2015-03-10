@@ -216,7 +216,22 @@ private:
     QList<Notebook>                     m_notebooks;
     QList<Note>                         m_notes;
 
-    QList<QPair<QString, QString> >         m_linkedNotebookGuidsAndShareKeys;
+    QList<QPair<QString, QString> >     m_linkedNotebookGuidsAndShareKeys;
+
+    class CompareGuidAndShareKeyByGuid
+    {
+    public:
+        CompareGuidAndShareKeyByGuid(const QString & guid) : m_guid(guid) {}
+
+        bool operator()(const QPair<QString, QString> & pair) const
+        {
+            return pair.first == m_guid;
+        }
+
+    private:
+        QString m_guid;
+    };
+
     int                                     m_lastProcessedLinkedNotebookGuidIndex;
     QHash<QString, QString>                 m_authenticationTokensByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
