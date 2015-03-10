@@ -1175,8 +1175,8 @@ void SendLocalChangesManager::sendTags()
 
             int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
             if (timerId == 0) {
-                QString errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone the Evernote API call "
-                        "due to rate limit exceeding");
+                errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone the Evernote API call "
+                                              "due to rate limit exceeding");
                 emit failure(errorDescription);
                 return;
             }
@@ -1199,18 +1199,12 @@ void SendLocalChangesManager::sendTags()
                     errorDescription = QT_TR_NOOP("Internal error: couldn't find the expiration time of linked notebook auth token");
                     QNWARNING(errorDescription << ", linked notebook guid = " << tag.linkedNotebookGuid());
                     emit failure(errorDescription);
-                    return;
                 }
-                else
-                {
-                    if (checkAndRequestAuthenticationTokensForLinkedNotebooks()) {
-                        errorDescription = QT_TR_NOOP("Unexpected AUTH_EXPIRED error: authentication tokens for all linked notebooks "
-                                                      "are still valid");
-                        QNWARNING(errorDescription << ", linked notebook guid = " << tag.linkedNotebookGuid());
-                        emit failure(errorDescription);
-                    }
-
-                    return;
+                else if (checkAndRequestAuthenticationTokensForLinkedNotebooks()) {
+                    errorDescription = QT_TR_NOOP("Unexpected AUTH_EXPIRED error: authentication tokens for all linked notebooks "
+                                                  "are still valid");
+                    QNWARNING(errorDescription << ", linked notebook guid = " << tag.linkedNotebookGuid());
+                    emit failure(errorDescription);
                 }
             }
 
@@ -1258,7 +1252,95 @@ void SendLocalChangesManager::sendTags()
 
 void SendLocalChangesManager::sendSavedSearches()
 {
-    // TODO: implement
+    QNDEBUG("SendLocalChangesManager::sendSavedSearches");
+
+    QString errorDescription;
+
+    typedef QList<SavedSearch>::iterator Iter;
+    for(Iter it = m_savedSearches.begin(); it != m_savedSearches.end(); )
+    {
+        SavedSearch & search = *it;
+
+        errorDescription.clear();
+        qint32 rateLimitSeconds = 0;
+        qint32 errorCode = qevercloud::EDAMErrorCode::UNKNOWN;
+
+        bool creatingSearch = !search.hasUpdateSequenceNumber();
+        if (creatingSearch) {
+            QNTRACE("Sending new saved search: " << search);
+            errorCode = m_noteStore.createSavedSearch(search, errorDescription, rateLimitSeconds);
+        }
+        else {
+            QNTRACE("Sending modified saved search: " << search);
+            errorCode = m_noteStore.updateSavedSearch(search, errorDescription, rateLimitSeconds);
+        }
+
+        if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+        {
+            if (rateLimitSeconds < 0) {
+                errorDescription = QT_TR_NOOP("Caught RATE_LIMIT_REACHED exception but "
+                                              "the number of seconds to wait is negative: ");
+                errorDescription += QString::number(rateLimitSeconds);
+                emit failure(errorDescription);
+                return;
+            }
+
+            int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+            if (timerId == 0) {
+                errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone the Evernote API call "
+                                              "due to trta limit exceeding");
+                emit failure(errorDescription);
+                return;
+            }
+
+            m_sendSavedSearchesPostponeTimerId = timerId;
+            emit rateLimitExceeded(rateLimitSeconds);
+            return;
+        }
+        else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+        {
+            handleAuthExpiration();
+            return;
+        }
+        else if (errorCode == qevercloud::EDAMErrorCode::DATA_CONFLICT)
+        {
+            QNINFO("Encountered DATA_CONFLICT exception while trying to send new and/or modified saved searches, "
+                   "it means the incremental sync should be repeated before sending the changes to the service");
+            emit conflictDetected();
+            pause();
+            return;
+        }
+        else if (errorCode != 0) {
+            QString errorPrefix = QT_TR_NOOP("Can't send new and/or modified tags to the service: ");
+            errorDescription.prepend(errorPrefix);
+            emit failure(errorDescription);
+            return;
+        }
+
+        if (!m_shouldRepeatIncrementalSync)
+        {
+            QNTRACE("Checking if we are still in sync with the remote service");
+
+            if (!search.hasUpdateSequenceNumber()) {
+                errorDescription = QT_TR_NOOP("Internal error: saved search's update sequence number is not set "
+                                              "after being send to the service");
+                emit failure(errorDescription);
+                return;
+            }
+
+            if (search.updateSequenceNumber() == m_lastUpdateCount + 1) {
+                m_lastUpdateCount = search.updateSequenceNumber();
+                QNTRACE("The client is in sync with the service; updated last update count to " << m_lastUpdateCount);
+            }
+            else {
+                m_shouldRepeatIncrementalSync = true;
+                emit shouldRepeatIncrementalSync();
+                QNTRACE("The client is not in sync with the service");
+            }
+        }
+
+        it = m_savedSearches.erase(it);
+    }
 }
 
 void SendLocalChangesManager::sendNotebooks()
