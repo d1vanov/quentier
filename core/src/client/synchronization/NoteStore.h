@@ -32,8 +32,8 @@ public:
     void setNoteStoreUrl(const QString & noteStoreUrl);
     void setAuthenticationToken(const QString & authToken);
 
-    qint32 createNotebook(Notebook & notebook, QString & errorDescription, qint32 & rateLimitSeconds);
-    qint32 updateNotebook(Notebook & notebook, QString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 createNotebook(Notebook & notebook, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
+    qint32 updateNotebook(Notebook & notebook, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
 
     qint32 createNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
     qint32 updateNote(Note & note, QString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());

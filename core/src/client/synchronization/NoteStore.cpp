@@ -30,11 +30,11 @@ void NoteStore::setAuthenticationToken(const QString & authToken)
 }
 
 qint32 NoteStore::createNotebook(Notebook & notebook, QString & errorDescription,
-                                 qint32 & rateLimitSeconds)
+                                 qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken)
 {
     try
     {
-        notebook = m_pQecNoteStore->createNotebook(notebook);
+        notebook = m_pQecNoteStore->createNotebook(notebook, linkedNotebookAuthToken);
         return 0;
     }
     catch(const qevercloud::EDAMUserException & userException)
@@ -53,11 +53,11 @@ qint32 NoteStore::createNotebook(Notebook & notebook, QString & errorDescription
 }
 
 qint32 NoteStore::updateNotebook(Notebook & notebook, QString & errorDescription,
-                                 qint32 & rateLimitSeconds)
+                                 qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken)
 {
     try
     {
-        qint32 usn = m_pQecNoteStore->updateNotebook(notebook);
+        qint32 usn = m_pQecNoteStore->updateNotebook(notebook, linkedNotebookAuthToken);
         notebook.setUpdateSequenceNumber(usn);
         return 0;
     }

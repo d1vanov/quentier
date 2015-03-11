@@ -1138,7 +1138,7 @@ void SendLocalChangesManager::sendTags()
             else
             {
                 errorDescription = QT_TR_NOOP("Couldn't find authentication token for linked notebook when attempting to create or update a tag from it");
-                QNWARNING(errorDescription << ", tag = " << tag);
+                QNWARNING(errorDescription << ", tag: " << tag);
 
                 auto sit = std::find_if(m_linkedNotebookGuidsAndShareKeys.begin(),
                                         m_linkedNotebookGuidsAndShareKeys.end(),
@@ -1345,7 +1345,139 @@ void SendLocalChangesManager::sendSavedSearches()
 
 void SendLocalChangesManager::sendNotebooks()
 {
-    // TODO: implement
+    QNDEBUG("SendLocalChangesManager::sendNotebooks");
+
+    QString errorDescription;
+
+    typedef QList<Notebook>::iterator Iter;
+    for(Iter it = m_notebooks.begin(); it != m_notebooks.end(); )
+    {
+        Notebook & notebook = *it;
+
+        errorDescription.clear();
+        qint32 rateLimitSeconds = 0;
+        qint32 errorCode = qevercloud::EDAMErrorCode::UNKNOWN;
+
+        QString linkedNotebookAuthToken;
+        if (notebook.hasLinkedNotebookGuid())
+        {
+            auto cit = m_authenticationTokensByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
+            if (cit != m_authenticationTokensByLinkedNotebookGuid.end())
+            {
+                linkedNotebookAuthToken = cit.value();
+            }
+            else
+            {
+                errorDescription = QT_TR_NOOP("Couldn't find authenticaton token for linked notebook when attempting to create or update a notebook");
+                QNWARNING(errorDescription << ", notebook: " << notebook);
+
+                auto sit = std::find_if(m_linkedNotebookGuidsAndShareKeys.begin(),
+                                        m_linkedNotebookGuidsAndShareKeys.end(),
+                                        CompareGuidAndShareKeyByGuid(notebook.linkedNotebookGuid()));
+                if (sit == m_linkedNotebookGuidsAndShareKeys.end()) {
+                    QNWARNING("The linked notebook the notebook refers to was not found within the list of linked notebooks "
+                              "received from local storage");
+                }
+
+                emit failure(errorDescription);
+                return;
+            }
+        }
+
+        bool creatingNotebook = !notebook.hasUpdateSequenceNumber();
+        if (creatingNotebook) {
+            QNTRACE("Sending new notebook: " << notebook);
+            errorCode = m_noteStore.createNotebook(notebook, errorDescription, rateLimitSeconds, linkedNotebookAuthToken);
+        }
+        else {
+            QNTRACE("Sending modified notebook: " << notebook);
+            errorCode = m_noteStore.updateNotebook(notebook, errorDescription, rateLimitSeconds, linkedNotebookAuthToken);
+        }
+
+        if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+        {
+            if (rateLimitSeconds < 0) {
+                errorDescription = QT_TR_NOOP("Caught RATE_LIMIT_REACHED exception but "
+                                              "the number of seconds to wait is negative");
+                errorDescription += QString::number(rateLimitSeconds);
+                emit failure(errorDescription);
+                return;
+            }
+
+            int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+            if (timerId == 0) {
+                errorDescription = QT_TR_NOOP("Internal error: can't start timer to postpone the Evernote API call "
+                                              "due to rate limit exceeding");
+                emit failure(errorDescription);
+                return;
+            }
+
+            m_sendNotebooksPostponeTimerId = timerId;
+            emit rateLimitExceeded(rateLimitSeconds);
+            return;
+        }
+        else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+        {
+            if (!notebook.hasLinkedNotebookGuid()) {
+                handleAuthExpiration();
+            }
+            else
+            {
+                auto cit = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
+                if (cit == m_authenticationTokenExpirationTimesByLinkedNotebookGuid.end())
+                {
+                    errorDescription = QT_TR_NOOP("Internal error: couldn't find the expiration time of linked notebook auth token");
+                    QNWARNING(errorDescription << ", linked notebook guid = " << notebook.linkedNotebookGuid());
+                    emit failure(errorDescription);
+                }
+                else if (checkAndRequestAuthenticationTokensForLinkedNotebooks()) {
+                    errorDescription = QT_TR_NOOP("Unexpected AUTH_EXPIRED error: authentication tokens for all linked notebooks "
+                                                  "are still valid");
+                    QNWARNING(errorDescription << ", linked notebook guid = " << notebook.linkedNotebookGuid());
+                    emit failure(errorDescription);
+                }
+            }
+
+            return;
+        }
+        else if (errorCode == qevercloud::EDAMErrorCode::DATA_CONFLICT)
+        {
+            QNINFO("Encountered DATA_CONFLICT exception while trying to send new and/or modified notebooks, "
+                   "it means the incremental sync should be repeated before sending the changes to the service");
+            emit conflictDetected();
+            pause();
+            return;
+        }
+        else if (errorCode != 0) {
+            QString errorPrefix = QT_TR_NOOP("Can't send new and/or mofidied notebooks to the service: ");
+            errorDescription.prepend(errorPrefix);
+            emit failure(errorDescription);
+            return;
+        }
+
+        if (!m_shouldRepeatIncrementalSync)
+        {
+            QNTRACE("Checking if we are still in sync with the remote service");
+
+            if (!notebook.hasUpdateSequenceNumber()) {
+                errorDescription = QT_TR_NOOP("Internal error: notebook's update sequence number is not set after it being send to the service");
+                emit failure(errorDescription);
+                return;
+            }
+
+            if (notebook.updateSequenceNumber() == m_lastUpdateCount + 1) {
+                m_lastUpdateCount = notebook.updateSequenceNumber();
+                QNTRACE("The client is in sync with the service; updated last update count to " << m_lastUpdateCount);
+            }
+            else {
+                m_shouldRepeatIncrementalSync = true;
+                emit shouldRepeatIncrementalSync();
+                QNTRACE("The client is not in sync with the service");
+            }
+        }
+
+        it = m_notebooks.erase(it);
+    }
 }
 
 void SendLocalChangesManager::checkAndSendNotes()
