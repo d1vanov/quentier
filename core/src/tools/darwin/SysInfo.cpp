@@ -68,7 +68,11 @@ QString SysInfo::GetStackTrace()
     fflush(stderr);
     fgetpos(stderr, &pos);
     int fd = dup(fileno(stderr));
-    freopen(tmpFile.toLocal8Bit().data(), "w", stderr);
+    FILE * fileHandle = freopen(tmpFile.toLocal8Bit().data(), "w", stderr);
+    if (!fileHandle) {
+        perror("Can't reopen stderr");
+        return QString();
+    }
 
     stacktrace::displayCurrentStackTrace();
 
@@ -78,6 +82,7 @@ QString SysInfo::GetStackTrace()
     close(fd);
     clearerr(stderr);
     fsetpos(stderr, &pos);
+    fclose(fileHandle);
 
     QFile file(tmpFile);
     bool res = file.open(QIODevice::ReadOnly);
