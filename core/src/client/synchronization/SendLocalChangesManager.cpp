@@ -47,21 +47,20 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     m_sendNotesPostponeTimerId(0)
 {}
 
-void SendLocalChangesManager::start(const qint32 lastUpdateCount)
+void SendLocalChangesManager::start(const qint32 updateCount)
 {
-    QNDEBUG("SendLocalChangesManager::start: last update count = " << lastUpdateCount);
-
-    m_lastUpdateCount = lastUpdateCount;
+    QNDEBUG("SendLocalChangesManager::start: update count = " << updateCount);
 
     if (m_paused) {
+        m_lastUpdateCount = updateCount;
         resume();
         return;
     }
 
     clear();
+    m_lastUpdateCount = updateCount;
 
-    QString dummyLinkedNotebookGuid;
-    requestStuffFromLocalStorage(dummyLinkedNotebookGuid);
+    requestStuffFromLocalStorage();
 }
 
 void SendLocalChangesManager::pause()
@@ -1010,13 +1009,14 @@ void SendLocalChangesManager::requestStuffFromLocalStorage(const QString & linke
 
     bool emptyLinkedNotebookGuid = linkedNotebookGuid.isEmpty();
 
+    // WARNING: this flag assumes that all local-but-not-yet-synchronized objects would have dirty flag set
     LocalStorageManager::ListObjectsOptions listDirtyObjectsFlag =
             LocalStorageManager::ListDirty | LocalStorageManager::ListNonLocal;
 
     size_t limit = 0, offset = 0;
-    LocalStorageManager::ListTagsOrder::type tagsOrder = LocalStorageManager::ListTagsOrder::NoOrder;
     LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Ascending;
 
+    LocalStorageManager::ListTagsOrder::type tagsOrder = LocalStorageManager::ListTagsOrder::NoOrder;
     QUuid listDirtyTagsRequestId = QUuid::createUuid();
     if (emptyLinkedNotebookGuid) {
         m_listDirtyTagsRequestId = listDirtyTagsRequestId;
@@ -1148,6 +1148,11 @@ void SendLocalChangesManager::sendLocalChanges()
         return;
     }
 
+    // TODO: consider checking the expiration time of user's own authentication token here
+
+    // IMPROVEME: it would be very nice to have a possibility to check whether the attempt to send tags/saved searches/notebooks
+    // had to delay itself due to rate limit exceeding or problems with authentication token expiration; should such event occur,
+    // there's no much sense in trying to send another stuff to Evernote service, it would respond with the same exception again
     sendTags();
     sendSavedSearches();
     sendNotebooks();
@@ -1848,6 +1853,11 @@ void SendLocalChangesManager::killAllTimers()
 bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebooks()
 {
     QNDEBUG("SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebooks");
+
+    if (m_linkedNotebookGuidsAndShareKeys.isEmpty()) {
+        QNDEBUG("The list of linked notebook guids and share keys is empty");
+        return true;
+    }
 
     const int numLinkedNotebookGuids = m_linkedNotebookGuidsAndShareKeys.size();
     for(int i = 0; i < numLinkedNotebookGuids; ++i)

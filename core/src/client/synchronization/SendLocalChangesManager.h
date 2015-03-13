@@ -40,7 +40,7 @@ Q_SIGNALS:
     void receivedAllDirtyObjects();
 
 public Q_SLOTS:
-    void start(qint32 lastUpdateCount);
+    void start(qint32 updateCount);
     void stop();
     void pause();
     void resume();
@@ -167,7 +167,7 @@ private:
     void createConnections();
     void disconnectFromLocalStorage();
 
-    void requestStuffFromLocalStorage(const QString & linkedNotebookGuid);
+    void requestStuffFromLocalStorage(const QString & linkedNotebookGuid = QString());
 
     void checkListLocalStorageObjectsCompletion();
 
