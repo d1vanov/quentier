@@ -1527,7 +1527,7 @@ void SendLocalChangesManager::checkAndSendNotes()
 {
     QNDEBUG("SendLocalChangesManager::checkAndSendNotes");
 
-    if (m_tags.isEmpty() && m_notebooks.isEmpty()) {
+    if (m_tags.isEmpty() && m_notebooks.isEmpty() && m_findNotebookRequestIds.isEmpty()) {
         sendNotes();
     }
 }
@@ -1684,6 +1684,10 @@ void SendLocalChangesManager::sendNotes()
 
         it = m_notes.erase(it);
     }
+
+    // If we got here, we are actually done
+    QNINFO("Sent all locally added/updated notes back to the Evernote service");
+    finalize();
 }
 
 void SendLocalChangesManager::findNotebooksForNotes()
