@@ -158,6 +158,9 @@ private Q_SLOTS:
     void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
 
 private:
+    virtual void timerEvent(QTimerEvent * pEvent);
+
+private:
     SendLocalChangesManager() Q_DECL_DELETE;
 
 private:
@@ -183,6 +186,7 @@ private:
     bool hasPendingRequests() const;
     void finalize();
     void clear();
+    void killAllTimers();
 
     bool checkAndRequestAuthenticationTokensForLinkedNotebooks();
 

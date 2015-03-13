@@ -2,6 +2,7 @@
 #include <client/Utility.h>
 #include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <logging/QuteNoteLogger.h>
+#include <QTimerEvent>
 
 namespace qute_note {
 
@@ -89,7 +90,6 @@ void SendLocalChangesManager::resume()
     {
         m_paused = false;
 
-        // TODO: think of more fine-grained resuming from pause
         if (m_receivedAllDirtyLocalStorageObjects) {
             sendLocalChanges();
         }
@@ -622,6 +622,49 @@ void SendLocalChangesManager::onFindNotebookFailed(Notebook notebook, QString er
     error += errorDescription;
     QNWARNING(error);
     emit failure(error);
+}
+
+void SendLocalChangesManager::timerEvent(QTimerEvent * pEvent)
+{
+    QNDEBUG("SendLocalChangesManager::timerEvent");
+
+    if (!pEvent) {
+        QString errorDescription = QT_TR_NOOP("Qt error: detected null pointer to QTimerEvent");
+        QNWARNING(errorDescription);
+        emit failure(errorDescription);
+        return;
+    }
+
+    if (m_paused) {
+        QNDEBUG("SendLocalChangesManager is being paused");
+        killAllTimers();
+        return;
+    }
+
+    int timerId = pEvent->timerId();
+    killTimer(timerId);
+    QNDEBUG("Killed timer with id " << timerId);
+
+    if (timerId == m_sendTagsPostponeTimerId)
+    {
+        m_sendTagsPostponeTimerId = 0;
+        sendTags();
+    }
+    else if (timerId == m_sendSavedSearchesPostponeTimerId)
+    {
+        m_sendSavedSearchesPostponeTimerId = 0;
+        sendSavedSearches();
+    }
+    else if (timerId == m_sendNotebooksPostponeTimerId)
+    {
+        m_sendNotebooksPostponeTimerId = 0;
+        sendNotebooks();
+    }
+    else if (timerId == m_sendNotesPostponeTimerId)
+    {
+        m_sendNotesPostponeTimerId = 0;
+        checkAndSendNotes();
+    }
 }
 
 void SendLocalChangesManager::createConnections()
@@ -1484,7 +1527,6 @@ void SendLocalChangesManager::checkAndSendNotes()
 {
     QNDEBUG("SendLocalChangesManager::checkAndSendNotes");
 
-    // TODO: think thoroughly other possible conditions not letting one to start sending the modified notes
     if (m_tags.isEmpty() && m_notebooks.isEmpty()) {
         sendNotes();
     }
@@ -1770,6 +1812,13 @@ void SendLocalChangesManager::clear()
     m_findNotebookRequestIds.clear();
     m_notebooksByGuidsCache.clear();    // NOTE: don't get any ideas on preserving the cache, it can easily get stale
                                         // especially when disconnected from local storage
+
+    killAllTimers();
+}
+
+void SendLocalChangesManager::killAllTimers()
+{
+    QNDEBUG("SendLocalChangesManager::killAllTimers");
 
     if (m_sendTagsPostponeTimerId > 0) {
         killTimer(m_sendTagsPostponeTimerId);
