@@ -3528,9 +3528,34 @@ template <>
 void RemoteToLocalSynchronizationManager::appendDataElementsFromSyncChunkToContainer<RemoteToLocalSynchronizationManager::NotesList>(const qevercloud::SyncChunk & syncChunk,
                                                                                                                                      RemoteToLocalSynchronizationManager::NotesList & container)
 {
-    if (syncChunk.notes.isSet()) {
+    if (syncChunk.notes.isSet())
+    {
         container.append(syncChunk.notes.ref());
+
+        if (!m_expungedNotes.isEmpty())
+        {
+            const auto & syncChunkNotes = syncChunk.notes.ref();
+            auto syncChunkNotesEnd = syncChunkNotes.constEnd();
+            for(auto it = syncChunkNotes.constBegin(); it != syncChunkNotesEnd; ++it)
+            {
+                const qevercloud::Note & note = *it;
+                if (!note.guid.isSet()) {
+                    continue;
+                }
+
+                QList<QString>::iterator eit = std::find(m_expungedNotes.begin(), m_expungedNotes.end(), note.guid.ref());
+                if (eit != m_expungedNotes.end()) {
+                    QNINFO("Note with guid " << note.guid.ref() << " and title " << (note.title.isSet() ? note.title.ref() : QString("<no title>"))
+                           << " is present both within the sync chunk's notes and in the list of "
+                           "previously collected expunged notes. That most probably means that the note belongs to the shared notebook "
+                           "and it was moved from one shared notebook to another one; removing the note from the list of notes "
+                           "waiting to be expunged");
+                    Q_UNUSED(m_expungedNotes.erase(eit));
+                }
+            }
+        }
     }
+
 
     if (syncChunk.expungedNotes.isSet())
     {
