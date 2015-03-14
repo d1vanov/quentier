@@ -130,13 +130,13 @@ void SendLocalChangesManager::onListDirtyTagsCompleted(LocalStorageManager::List
 {
     CHECK_PAUSED();
 
-    bool ownTagsListCompleted = (requestId == m_listDirtyTagsRequestId);
+    bool userTagsListCompleted = (requestId == m_listDirtyTagsRequestId);
     auto it = m_listDirtyTagsFromLinkedNotebooksRequestIds.end();
-    if (!ownTagsListCompleted) {
+    if (!userTagsListCompleted) {
         it = m_listDirtyTagsFromLinkedNotebooksRequestIds.find(requestId);
     }
 
-    if (ownTagsListCompleted || (it != m_listDirtyTagsFromLinkedNotebooksRequestIds.end()))
+    if (userTagsListCompleted || (it != m_listDirtyTagsFromLinkedNotebooksRequestIds.end()))
     {
         QNDEBUG("SendLocalChangesManager::onListDirtyTagsCompleted: flag = " << flag
                 << ", limit = " << limit << ", offset = " << offset << ", order = " << order
@@ -145,10 +145,12 @@ void SendLocalChangesManager::onListDirtyTagsCompleted(LocalStorageManager::List
 
         m_tags << tags;
 
-        if (ownTagsListCompleted) {
+        if (userTagsListCompleted) {
+            QNTRACE("User's tags list is completed");
             m_listDirtyTagsRequestId = QUuid();
         }
         else {
+            QNTRACE("Tags list is completed for one of linked notebooks");
             Q_UNUSED(m_listDirtyTagsFromLinkedNotebooksRequestIds.erase(it));
         }
 
@@ -166,20 +168,20 @@ void SendLocalChangesManager::onListDirtyTagsFailed(LocalStorageManager::ListObj
 {
     CHECK_PAUSED();
 
-    bool ownTagsListCompleted = (requestId == m_listDirtyTagsRequestId);
+    bool userTagsListCompleted = (requestId == m_listDirtyTagsRequestId);
     auto it = m_listDirtyTagsFromLinkedNotebooksRequestIds.end();
-    if (!ownTagsListCompleted) {
+    if (!userTagsListCompleted) {
         it = m_listDirtyTagsFromLinkedNotebooksRequestIds.find(requestId);
     }
 
-    if (ownTagsListCompleted || (it != m_listDirtyTagsFromLinkedNotebooksRequestIds.end()))
+    if (userTagsListCompleted || (it != m_listDirtyTagsFromLinkedNotebooksRequestIds.end()))
     {
         QNWARNING("SendLocalChangesManager::onListDirtyTagsFailed: flag = " << flag
                 << ", limit = " << limit << ", offset = " << offset << ", order = "
                 << order << ", orderDirection = " << orderDirection << ", linked notebook guid = "
                 << linkedNotebookGuid << ", error description = " << errorDescription << ", requestId = " << requestId);
 
-        if (ownTagsListCompleted) {
+        if (userTagsListCompleted) {
             m_listDirtyTagsRequestId = QUuid();
         }
         else {
@@ -248,13 +250,13 @@ void SendLocalChangesManager::onListDirtyNotebooksCompleted(LocalStorageManager:
 {
     CHECK_PAUSED();
 
-    bool ownNotebooksListCompleted = (requestId == m_listDirtyNotebooksRequestId);
+    bool userNotebooksListCompleted = (requestId == m_listDirtyNotebooksRequestId);
     auto it = m_listDirtyNotebooksFromLinkedNotebooksRequestIds.end();
-    if (!ownNotebooksListCompleted) {
+    if (!userNotebooksListCompleted) {
         it = m_listDirtyNotebooksFromLinkedNotebooksRequestIds.find(requestId);
     }
 
-    if (ownNotebooksListCompleted || (it != m_listDirtyNotebooksFromLinkedNotebooksRequestIds.end()))
+    if (userNotebooksListCompleted || (it != m_listDirtyNotebooksFromLinkedNotebooksRequestIds.end()))
     {
         QNDEBUG("SendLocalChangesManager::onListDirtyNotebooksCompleted: flag = " << flag << ", limit = " << limit
                 << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
@@ -262,7 +264,7 @@ void SendLocalChangesManager::onListDirtyNotebooksCompleted(LocalStorageManager:
 
         m_notebooks << notebooks;
 
-        if (ownNotebooksListCompleted) {
+        if (userNotebooksListCompleted) {
             m_listDirtyNotebooksRequestId = QUuid();
         }
         else {
@@ -283,19 +285,19 @@ void SendLocalChangesManager::onListDirtyNotebooksFailed(LocalStorageManager::Li
 {
     CHECK_PAUSED();
 
-    bool ownNotebooksListCompleted = (requestId == m_listDirtyNotebooksRequestId);
+    bool userNotebooksListCompleted = (requestId == m_listDirtyNotebooksRequestId);
     auto it = m_listDirtyNotebooksFromLinkedNotebooksRequestIds.end();
-    if (!ownNotebooksListCompleted) {
+    if (!userNotebooksListCompleted) {
         it = m_listDirtyNotebooksFromLinkedNotebooksRequestIds.find(requestId);
     }
 
-    if (ownNotebooksListCompleted || (it != m_listDirtyNotebooksFromLinkedNotebooksRequestIds.end()))
+    if (userNotebooksListCompleted || (it != m_listDirtyNotebooksFromLinkedNotebooksRequestIds.end()))
     {
         QNWARNING("SendLocalChangesManager::onListDirtyNotebooksFailed: flag = " << flag << ", limit = " << limit
                 << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
                 << ", linkedNotebookGuid = " << linkedNotebookGuid << ", errorDescription = " << errorDescription);
 
-        if (ownNotebooksListCompleted) {
+        if (userNotebooksListCompleted) {
             m_listDirtyNotebooksRequestId = QUuid();
         }
         else {
@@ -316,13 +318,13 @@ void SendLocalChangesManager::onListDirtyNotesCompleted(LocalStorageManager::Lis
 {
     CHECK_PAUSED();
 
-    bool ownNotesListCompleted = (requestId == m_listDirtyNotesRequestId);
+    bool userNotesListCompleted = (requestId == m_listDirtyNotesRequestId);
     auto it = m_listDirtyNotesFromLinkedNotebooksRequestIds.end();
-    if (!ownNotesListCompleted) {
+    if (!userNotesListCompleted) {
         it = m_listDirtyNotesFromLinkedNotebooksRequestIds.find(requestId);
     }
 
-    if (ownNotesListCompleted || (it != m_listDirtyNotesFromLinkedNotebooksRequestIds.end()))
+    if (userNotesListCompleted || (it != m_listDirtyNotesFromLinkedNotebooksRequestIds.end()))
     {
         QNDEBUG("SendLocalChangesManager::onListDirtyNotesCompleted: flag = " << flag << ", limit = " << limit
                 << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
@@ -330,7 +332,7 @@ void SendLocalChangesManager::onListDirtyNotesCompleted(LocalStorageManager::Lis
 
         m_notes << notes;
 
-        if (ownNotesListCompleted) {
+        if (userNotesListCompleted) {
             m_listDirtyNotesRequestId = QUuid();
         }
         else {
@@ -350,19 +352,19 @@ void SendLocalChangesManager::onListDirtyNotesFailed(LocalStorageManager::ListOb
 {
     CHECK_PAUSED();
 
-    bool ownNotesListCompleted = (requestId == m_listDirtyNotesRequestId);
+    bool userNotesListCompleted = (requestId == m_listDirtyNotesRequestId);
     auto it = m_listDirtyNotesFromLinkedNotebooksRequestIds.end();
-    if (!ownNotesListCompleted) {
+    if (!userNotesListCompleted) {
         it = m_listDirtyNotesFromLinkedNotebooksRequestIds.find(requestId);
     }
 
-    if (ownNotesListCompleted || (it != m_listDirtyNotesFromLinkedNotebooksRequestIds.end()))
+    if (userNotesListCompleted || (it != m_listDirtyNotesFromLinkedNotebooksRequestIds.end()))
     {
         QNWARNING("SendLocalChangesManager::onListDirtyNotesFailed: flag = " << flag << ", limit = " << limit
                 << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
                 << ", linkedNotebookGuid = " << linkedNotebookGuid << ", requestId = " << requestId);
 
-        if (ownNotesListCompleted) {
+        if (userNotesListCompleted) {
             m_listDirtyNotesRequestId = QUuid();
         }
         else {
@@ -1009,7 +1011,7 @@ void SendLocalChangesManager::requestStuffFromLocalStorage(const QString & linke
 
     bool emptyLinkedNotebookGuid = linkedNotebookGuid.isEmpty();
 
-    // WARNING: this flag assumes that all local-but-not-yet-synchronized objects would have dirty flag set
+    // WARNING: this flag assumes that all local-but-not-yet-synchronized objects would have dirty flag set!
     LocalStorageManager::ListObjectsOptions listDirtyObjectsFlag =
             LocalStorageManager::ListDirty | LocalStorageManager::ListNonLocal;
 
