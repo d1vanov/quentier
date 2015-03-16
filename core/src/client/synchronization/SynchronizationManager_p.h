@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__SYNCHRONIZATION_MANAGER_PRIVATE_H
 
 #include "RemoteToLocalSynchronizationManager.h"
+#include "SendLocalChangesManager.h"
 #include <tools/qt4helper.h>
 #include <QEverCloud.h>
 #include <oauth.h>
@@ -21,6 +22,8 @@ public:
 
 Q_SIGNALS:
     void notifyError(QString errorDescription);
+    void notifyRemoteToLocalSyncDone();
+    void notifyFinish();
 
 // private signals
     void sendAuthenticationToken(QString authToken, qevercloud::Timestamp expirationTime);
@@ -45,6 +48,8 @@ private Q_SLOTS:
     void onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
                                      QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
                                      QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
+
+    void onLocalChangesSent(qint32 lastUpdateCount);
 
 private:
     SynchronizationManagerPrivate() Q_DECL_DELETE;
@@ -89,36 +94,39 @@ private:
     void onWriteAuthTokenFinished();
 
 private:
-    qint32      m_maxSyncChunkEntries;
-    qint32      m_lastUpdateCount;
+    qint32                                  m_maxSyncChunkEntries;
+
+    qint32                                  m_lastUpdateCount;
     qevercloud::Timestamp                   m_lastSyncTime;
     QHash<QString,qint32>                   m_cachedLinkedNotebookLastUpdateCountByGuid;
     QHash<QString,qevercloud::Timestamp>    m_cachedLinkedNotebookLastSyncTimeByGuid;
     bool                                    m_onceReadLastSyncParams;
 
-    NoteStore               m_noteStore;
-    AuthContext::type       m_authContext;
+    NoteStore                               m_noteStore;
+    AuthContext::type                       m_authContext;
 
-    int         m_launchSyncPostponeTimerId;
+    int                                     m_launchSyncPostponeTimerId;
 
     QScopedPointer<qevercloud::EvernoteOAuthWebView>                m_pOAuthWebView;
     QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
 
     RemoteToLocalSynchronizationManager     m_remoteToLocalSyncManager;
+    SendLocalChangesManager                 m_sendLocalChangesManager;
+
     QList<QPair<QString,QString> >          m_linkedNotebookGuidsAndShareKeysWaitingForAuth;
     QHash<QString,QString>                  m_cachedLinkedNotebookAuthTokensByGuid;
     QHash<QString,qevercloud::Timestamp>    m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid;
 
-    int             m_authenticateToLinkedNotebooksPostponeTimerId;
-    bool            m_receivedRequestToAuthenticateToLinkedNotebooks;
+    int                                     m_authenticateToLinkedNotebooksPostponeTimerId;
+    bool                                    m_receivedRequestToAuthenticateToLinkedNotebooks;
 
-    QKeychain::ReadPasswordJob  m_readAuthTokenJob;
-    QKeychain::WritePasswordJob m_writeAuthTokenJob;
+    QKeychain::ReadPasswordJob              m_readAuthTokenJob;
+    QKeychain::WritePasswordJob             m_writeAuthTokenJob;
 
     QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >   m_readLinkedNotebookAuthTokenJobsByGuid;
     QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >  m_writeLinkedNotebookAuthTokenJobsByGuid;
 
-    QSet<QString>   m_linkedNotebookGuidsWithoutLocalAuthData;
+    QSet<QString>                           m_linkedNotebookGuidsWithoutLocalAuthData;
 };
 
 } // namespace qute_note

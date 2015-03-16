@@ -1285,6 +1285,8 @@ void SendLocalChangesManager::sendTags()
                 return;
             }
 
+            // FIXME: for tags from user's account it should indeed be m_lastUpdateCount; but for tags from linked notebooks
+            // it should be the update count corresponding to the linked notebook!
             if (tag.updateSequenceNumber() == m_lastUpdateCount + 1) {
                 m_lastUpdateCount = tag.updateSequenceNumber();
                 QNTRACE("The client is in sync with the service; updated last update count to " << m_lastUpdateCount);
@@ -1515,6 +1517,8 @@ void SendLocalChangesManager::sendNotebooks()
                 return;
             }
 
+            // FIXME: for notebooks from user's account it should indeed be m_lastUpdateCount; but for linked notebooks
+            // it should be the update count corresponding to the linked notebook!
             if (notebook.updateSequenceNumber() == m_lastUpdateCount + 1) {
                 m_lastUpdateCount = notebook.updateSequenceNumber();
                 QNTRACE("The client is in sync with the service; updated last update count to " << m_lastUpdateCount);
@@ -1678,6 +1682,8 @@ void SendLocalChangesManager::sendNotes()
                 return;
             }
 
+            // FIXME: for notes from user's account it should indeed be m_lastUpdateCount; but for notes from linked notebooks
+            // it should be the update count corresponding to the linked notebook!
             if (note.updateSequenceNumber() == m_lastUpdateCount + 1) {
                 m_lastUpdateCount = note.updateSequenceNumber();
                 QNTRACE("The client is in sync with the service; updated last update count to " << m_lastUpdateCount);

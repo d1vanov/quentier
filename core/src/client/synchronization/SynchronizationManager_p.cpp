@@ -41,6 +41,7 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_pOAuthWebView(new qevercloud::EvernoteOAuthWebView),
     m_pOAuthResult(),
     m_remoteToLocalSyncManager(localStorageManagerThreadWorker, m_noteStore.getQecNoteStore()),
+    m_sendLocalChangesManager(localStorageManagerThreadWorker, m_noteStore.getQecNoteStore()),
     m_linkedNotebookGuidsAndShareKeysWaitingForAuth(),
     m_cachedLinkedNotebookAuthTokensByGuid(),
     m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid(),
@@ -66,17 +67,7 @@ SynchronizationManagerPrivate::~SynchronizationManagerPrivate()
 void SynchronizationManagerPrivate::synchronize()
 {
     clear();
-
-    if (!validAuthentication()) {
-        authenticate(AuthContext::SyncLaunch);
-        return;
-    }
-
-    if (!m_onceReadLastSyncParams) {
-        readLastSyncParameters();
-    }
-
-    launchSync();
+    authenticate(AuthContext::SyncLaunch);
 }
 
 void SynchronizationManagerPrivate::onOAuthResult(bool result)
@@ -270,9 +261,18 @@ void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished(qint32 lastUpdat
 
     settings.endArray();
 
-    QNDEBUG("Wrote " << counter << " last sync params entries for linked notebooks");
+    QNTRACE("Wrote " << counter << " last sync params entries for linked notebooks");
 
     m_onceReadLastSyncParams = true;
+
+    emit notifyRemoteToLocalSyncDone();
+    sendChanges();
+}
+
+void SynchronizationManagerPrivate::onLocalChangesSent(qint32 lastUpdateCount)
+{
+    QNDEBUG("SynchronizationManagerPrivate::onLocalChangesSent: last update count = " << lastUpdateCount);
+    // TODO: implement
 }
 
 void SynchronizationManagerPrivate::createConnections()
@@ -297,6 +297,11 @@ void SynchronizationManagerPrivate::createConnections()
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestLastSyncParameters()), this, SLOT(onRequestLastSyncParameters()));
     QObject::connect(this, SIGNAL(sendLastSyncParameters(qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>)),
                      &m_remoteToLocalSyncManager, SLOT(onLastSyncParametersReceived(qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>)));
+
+    // Connections with send local changes manager
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(failure(QString)), this, SIGNAL(notifyError(QString)));
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(finished(qint32)), this, SLOT(onLocalChangesSent(qint32)));
+    // TODO: continue with other connections
 
     // Connections with read/write password jobs
     QObject::connect(&m_readAuthTokenJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
@@ -377,22 +382,22 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
     QNDEBUG("SynchronizationManagerPrivate::authenticate: auth context = " << authContext);
     m_authContext = authContext;
 
-    if (!validAuthentication()) {
-        QNDEBUG("Authentication token doesn't exist or is expired, launching OAuth procedure");
-        launchOAuth();
+    if (validAuthentication()) {
+        QNDEBUG("Found already valid authentication info");
+        finalizeAuthentication();
         return;
     }
 
-    QNDEBUG("Trying to restore persistent authentication settings...");
+    QNTRACE("Trying to restore persistent authentication settings...");
 
     ApplicationSettings & appSettings = ApplicationSettings::instance();
     QString keyGroup = "Authentication";
 
     QVariant tokenExpirationValue = appSettings.value(EXPIRATION_TIMESTAMP_KEY, keyGroup);
     if (tokenExpirationValue.isNull()) {
-        QString error = QT_TR_NOOP("Internal error: authentication token expiration timestamp is not found "
-                                   "within application settings");
-        emit notifyError(error);
+        QNINFO("Authentication token expiration timestamp was not found within application settings, "
+               "assuming it has never been written & launching the OAuth procedure");
+        launchOAuth();
         return;
     }
 
@@ -406,13 +411,20 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
         return;
     }
 
+    if (checkIfTimestampIsAboutToExpireSoon(tokenExpirationTimestamp)) {
+        QNINFO("Authentication token stored in persistent application settings is about to expire soon enough, "
+               "launching the OAuth procedure");
+        launchOAuth();
+        return;
+    }
+
     m_pOAuthResult->expires = tokenExpirationTimestamp;
 
-    QNDEBUG("Restoring persistent note store url");
+    QNTRACE("Restoring persistent note store url");
 
     QVariant noteStoreUrlValue = appSettings.value(NOTE_STORE_URL_KEY, keyGroup);
     if (noteStoreUrlValue.isNull()) {
-        QString error = QT_TR_NOOP("Persistent note store url is unexpectedly empty");
+        QString error = QT_TR_NOOP("Can't find note store url within persistent application settings");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -432,7 +444,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     QVariant userIdValue = appSettings.value(USER_ID_KEY, keyGroup);
     if (userIdValue.isNull()) {
-        QString error = QT_TR_NOOP("Persistent user id is unexpectedly empty");
+        QString error = QT_TR_NOOP("Can't find user id within persistent application settings");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -453,7 +465,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     QVariant webApiUrlPrefixValue = appSettings.value(WEB_API_URL_PREFIX_KEY, keyGroup);
     if (webApiUrlPrefixValue.isNull()) {
-        QString error = QT_TR_NOOP("Persistent web api url prefix is unexpectedly empty");
+        QString error = QT_TR_NOOP("Can't find web API url prefix within persistent application settings");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -544,12 +556,14 @@ void SynchronizationManagerPrivate::launchFullSync()
 
 void SynchronizationManagerPrivate::launchIncrementalSync()
 {
-    // TODO: implement
+    QNDEBUG("SynchronizationManagerPrivate::launchIncrementalSync: m_lastUpdateCount = " << m_lastUpdateCount);
+    m_remoteToLocalSyncManager.start(m_lastUpdateCount);
 }
 
 void SynchronizationManagerPrivate::sendChanges()
 {
-    // TODO: implement
+    QNDEBUG("SynchronizationManagerPrivate::sendChanges");
+    m_sendLocalChangesManager.start(m_lastUpdateCount);
 }
 
 void SynchronizationManagerPrivate::launchStoreOAuthResult()
@@ -637,10 +651,19 @@ void SynchronizationManagerPrivate::clear()
 {
     m_lastUpdateCount = -1;
     m_lastSyncTime = -1;
+    m_cachedLinkedNotebookLastUpdateCountByGuid.clear();
+    m_cachedLinkedNotebookLastSyncTimeByGuid.clear();
+    m_onceReadLastSyncParams = false;
+
+    m_authContext = AuthContext::Blank;
 
     m_launchSyncPostponeTimerId = -1;
 
+    // NOTE: don't do anything with m_pOauthWebView
     *m_pOAuthResult = qevercloud::EvernoteOAuthWebView::OAuthResult();
+
+    m_remoteToLocalSyncManager.stop();
+    m_sendLocalChangesManager.stop();
 
     m_linkedNotebookGuidsAndShareKeysWaitingForAuth.clear();
     m_cachedLinkedNotebookAuthTokensByGuid.clear();
@@ -648,6 +671,11 @@ void SynchronizationManagerPrivate::clear()
 
     m_authenticateToLinkedNotebooksPostponeTimerId = -1;
     m_receivedRequestToAuthenticateToLinkedNotebooks = false;
+
+    m_readLinkedNotebookAuthTokenJobsByGuid.clear();
+    m_writeLinkedNotebookAuthTokenJobsByGuid.clear();
+
+    m_linkedNotebookGuidsWithoutLocalAuthData.clear();
 }
 
 bool SynchronizationManagerPrivate::validAuthentication() const

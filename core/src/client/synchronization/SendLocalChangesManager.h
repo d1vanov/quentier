@@ -23,6 +23,8 @@ public:
 
 Q_SIGNALS:
     void failure(QString errorDescription);
+
+    // FIXME: need to also track and send back last update counts per linked notebook guid
     void finished(qint32 lastUpdateCount);
 
     void rateLimitExceeded(qint32 secondsToWait);
