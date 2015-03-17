@@ -24,8 +24,7 @@ public:
 Q_SIGNALS:
     void failure(QString errorDescription);
 
-    // FIXME: need to also track and send back last update counts per linked notebook guid
-    void finished(qint32 lastUpdateCount);
+    void finished(qint32 lastUpdateCount, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid);
 
     void rateLimitExceeded(qint32 secondsToWait);
     void conflictDetected();
@@ -42,7 +41,7 @@ Q_SIGNALS:
     void receivedAllDirtyObjects();
 
 public Q_SLOTS:
-    void start(qint32 updateCount);
+    void start(qint32 updateCount, QHash<QString,qint32> updateCountByLinkedNotebookGuid);
     void stop();
     void pause();
     void resume();
@@ -195,35 +194,6 @@ private:
     void handleAuthExpiration();
 
 private:
-    LocalStorageManagerThreadWorker &   m_localStorageManagerThreadWorker;
-    NoteStore                           m_noteStore;
-    qint32                              m_lastUpdateCount;
-    bool                                m_shouldRepeatIncrementalSync;
-
-    bool                                m_paused;
-    bool                                m_requestedToStop;
-
-    bool                                m_connectedToLocalStorage;
-    bool                                m_receivedDirtyLocalStorageObjectsFromUsersAccount;
-    bool                                m_receivedAllDirtyLocalStorageObjects;
-
-    QUuid                               m_listDirtyTagsRequestId;
-    QUuid                               m_listDirtySavedSearchesRequestId;
-    QUuid                               m_listDirtyNotebooksRequestId;
-    QUuid                               m_listDirtyNotesRequestId;
-    QUuid                               m_listLinkedNotebooksRequestId;
-
-    QSet<QUuid>                         m_listDirtyTagsFromLinkedNotebooksRequestIds;
-    QSet<QUuid>                         m_listDirtyNotebooksFromLinkedNotebooksRequestIds;
-    QSet<QUuid>                         m_listDirtyNotesFromLinkedNotebooksRequestIds;
-
-    QList<Tag>                          m_tags;
-    QList<SavedSearch>                  m_savedSearches;
-    QList<Notebook>                     m_notebooks;
-    QList<Note>                         m_notes;
-
-    QList<QPair<QString, QString> >     m_linkedNotebookGuidsAndShareKeys;
-
     class CompareGuidAndShareKeyByGuid
     {
     public:
@@ -238,22 +208,54 @@ private:
         QString m_guid;
     };
 
+private:
+    LocalStorageManagerThreadWorker     &   m_localStorageManagerThreadWorker;
+    NoteStore                               m_noteStore;
+    qint32                                  m_lastUpdateCount;
+    QHash<QString,qint32>                   m_lastUpdateCountByLinkedNotebookGuid;
+
+    bool                                    m_shouldRepeatIncrementalSync;
+
+    bool                                    m_paused;
+    bool                                    m_requestedToStop;
+
+    bool                                    m_connectedToLocalStorage;
+    bool                                    m_receivedDirtyLocalStorageObjectsFromUsersAccount;
+    bool                                    m_receivedAllDirtyLocalStorageObjects;
+
+    QUuid                                   m_listDirtyTagsRequestId;
+    QUuid                                   m_listDirtySavedSearchesRequestId;
+    QUuid                                   m_listDirtyNotebooksRequestId;
+    QUuid                                   m_listDirtyNotesRequestId;
+    QUuid                                   m_listLinkedNotebooksRequestId;
+
+    QSet<QUuid>                             m_listDirtyTagsFromLinkedNotebooksRequestIds;
+    QSet<QUuid>                             m_listDirtyNotebooksFromLinkedNotebooksRequestIds;
+    QSet<QUuid>                             m_listDirtyNotesFromLinkedNotebooksRequestIds;
+
+    QList<Tag>                              m_tags;
+    QList<SavedSearch>                      m_savedSearches;
+    QList<Notebook>                         m_notebooks;
+    QList<Note>                             m_notes;
+
+    QList<QPair<QString, QString> >         m_linkedNotebookGuidsAndShareKeys;
+
     int                                     m_lastProcessedLinkedNotebookGuidIndex;
     QHash<QString, QString>                 m_authenticationTokensByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
 
-    QSet<QUuid>                         m_updateTagRequestIds;
-    QSet<QUuid>                         m_updateSavedSearchRequestIds;
-    QSet<QUuid>                         m_updateNotebookRequestIds;
-    QSet<QUuid>                         m_updateNoteRequestIds;
+    QSet<QUuid>                             m_updateTagRequestIds;
+    QSet<QUuid>                             m_updateSavedSearchRequestIds;
+    QSet<QUuid>                             m_updateNotebookRequestIds;
+    QSet<QUuid>                             m_updateNoteRequestIds;
 
-    QSet<QUuid>                         m_findNotebookRequestIds;
-    QHash<QString, Notebook>            m_notebooksByGuidsCache;
+    QSet<QUuid>                             m_findNotebookRequestIds;
+    QHash<QString, Notebook>                m_notebooksByGuidsCache;
 
-    int                                 m_sendTagsPostponeTimerId;
-    int                                 m_sendSavedSearchesPostponeTimerId;
-    int                                 m_sendNotebooksPostponeTimerId;
-    int                                 m_sendNotesPostponeTimerId;
+    int                                     m_sendTagsPostponeTimerId;
+    int                                     m_sendSavedSearchesPostponeTimerId;
+    int                                     m_sendNotebooksPostponeTimerId;
+    int                                     m_sendNotesPostponeTimerId;
 };
 
 } // namespace qute_note

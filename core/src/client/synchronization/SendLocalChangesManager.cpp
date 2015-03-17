@@ -13,6 +13,7 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     m_localStorageManagerThreadWorker(localStorageManagerThreadWorker),
     m_noteStore(pNoteStore),
     m_lastUpdateCount(0),
+    m_lastUpdateCountByLinkedNotebookGuid(),
     m_shouldRepeatIncrementalSync(false),
     m_paused(false),
     m_requestedToStop(false),
@@ -47,18 +48,21 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     m_sendNotesPostponeTimerId(0)
 {}
 
-void SendLocalChangesManager::start(const qint32 updateCount)
+void SendLocalChangesManager::start(const qint32 updateCount, QHash<QString,qint32> updateCountByLinkedNotebookGuid)
 {
-    QNDEBUG("SendLocalChangesManager::start: update count = " << updateCount);
+    QNDEBUG("SendLocalChangesManager::start: update count = " << updateCount
+            << ", update count by linked notebook guid = " << updateCountByLinkedNotebookGuid);
 
     if (m_paused) {
         m_lastUpdateCount = updateCount;
+        m_lastUpdateCountByLinkedNotebookGuid = updateCountByLinkedNotebookGuid;
         resume();
         return;
     }
 
     clear();
     m_lastUpdateCount = updateCount;
+    m_lastUpdateCountByLinkedNotebookGuid = updateCountByLinkedNotebookGuid;
 
     requestStuffFromLocalStorage();
 }
@@ -93,7 +97,7 @@ void SendLocalChangesManager::resume()
             sendLocalChanges();
         }
         else {
-            start(m_lastUpdateCount);
+            start(m_lastUpdateCount, m_lastUpdateCountByLinkedNotebookGuid);
         }
     }
 }
@@ -1285,11 +1289,30 @@ void SendLocalChangesManager::sendTags()
                 return;
             }
 
-            // FIXME: for tags from user's account it should indeed be m_lastUpdateCount; but for tags from linked notebooks
-            // it should be the update count corresponding to the linked notebook!
-            if (tag.updateSequenceNumber() == m_lastUpdateCount + 1) {
-                m_lastUpdateCount = tag.updateSequenceNumber();
-                QNTRACE("The client is in sync with the service; updated last update count to " << m_lastUpdateCount);
+            int * pLastUpdateCount = nullptr;
+            if (!tag.hasLinkedNotebookGuid())
+            {
+                pLastUpdateCount = &m_lastUpdateCount;
+                QNTRACE("Current tag does not belong to linked notebook");
+            }
+            else
+            {
+                QNTRACE("Current tag belongs to linked notebook with guid " << tag.linkedNotebookGuid());
+
+                auto lit = m_lastUpdateCountByLinkedNotebookGuid.find(tag.linkedNotebookGuid());
+                if (lit == m_lastUpdateCountByLinkedNotebookGuid.end()) {
+                    errorDescription = QT_TR_NOOP("Internal error: can't find update count per linked notebook guid on attempt to check "
+                                                  "the update count of tag sent to the service");
+                    emit failure(errorDescription);
+                    return;
+                }
+
+                pLastUpdateCount = &lit.value();
+            }
+
+            if (tag.updateSequenceNumber() == *pLastUpdateCount + 1) {
+                *pLastUpdateCount = tag.updateSequenceNumber();
+                QNTRACE("The client is in sync with the service; updated corresponding last update count to " << *pLastUpdateCount);
             }
             else {
                 m_shouldRepeatIncrementalSync = true;
@@ -1517,11 +1540,30 @@ void SendLocalChangesManager::sendNotebooks()
                 return;
             }
 
-            // FIXME: for notebooks from user's account it should indeed be m_lastUpdateCount; but for linked notebooks
-            // it should be the update count corresponding to the linked notebook!
-            if (notebook.updateSequenceNumber() == m_lastUpdateCount + 1) {
-                m_lastUpdateCount = notebook.updateSequenceNumber();
-                QNTRACE("The client is in sync with the service; updated last update count to " << m_lastUpdateCount);
+            int * pLastUpdateCount = nullptr;
+            if (!notebook.hasLinkedNotebookGuid())
+            {
+                pLastUpdateCount = &m_lastUpdateCount;
+                QNTRACE("Current notebook does not belong to linked notebook");
+            }
+            else
+            {
+                QNTRACE("Current notebook belongs to linked notebook with guid " << notebook.linkedNotebookGuid());
+
+                auto lit = m_lastUpdateCountByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
+                if (lit == m_lastUpdateCountByLinkedNotebookGuid.end()) {
+                    errorDescription = QT_TR_NOOP("Internal error: can't find update count per linked notebook guid on attempt to check "
+                                                  "the update count of tag sent to the service");
+                    emit failure(errorDescription);
+                    return;
+                }
+
+                pLastUpdateCount = &lit.value();
+            }
+
+            if (notebook.updateSequenceNumber() == *pLastUpdateCount + 1) {
+                *pLastUpdateCount = notebook.updateSequenceNumber();
+                QNTRACE("The client is in sync with the service; updated last update count to " << *pLastUpdateCount);
             }
             else {
                 m_shouldRepeatIncrementalSync = true;
@@ -1682,11 +1724,30 @@ void SendLocalChangesManager::sendNotes()
                 return;
             }
 
-            // FIXME: for notes from user's account it should indeed be m_lastUpdateCount; but for notes from linked notebooks
-            // it should be the update count corresponding to the linked notebook!
-            if (note.updateSequenceNumber() == m_lastUpdateCount + 1) {
-                m_lastUpdateCount = note.updateSequenceNumber();
-                QNTRACE("The client is in sync with the service; updated last update count to " << m_lastUpdateCount);
+            int * pLastUpdateCount = nullptr;
+            if (!notebook.hasLinkedNotebookGuid())
+            {
+                pLastUpdateCount = &m_lastUpdateCount;
+                QNTRACE("Current note does not belong to linked notebook");
+            }
+            else
+            {
+                QNTRACE("Current note belongs to linked notebook with guid " << notebook.linkedNotebookGuid());
+
+                auto lit = m_lastUpdateCountByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
+                if (lit == m_lastUpdateCountByLinkedNotebookGuid.end()) {
+                    errorDescription = QT_TR_NOOP("Internal error: can't find update count per linked notebook guid on attempt to check "
+                                                  "the update count of tag sent to the service");
+                    emit failure(errorDescription);
+                    return;
+                }
+
+                pLastUpdateCount = &lit.value();
+            }
+
+            if (note.updateSequenceNumber() == *pLastUpdateCount + 1) {
+                *pLastUpdateCount = note.updateSequenceNumber();
+                QNTRACE("The client is in sync with the service; updated last update count to " << *pLastUpdateCount);
             }
             else {
                 m_shouldRepeatIncrementalSync = true;
@@ -1783,7 +1844,7 @@ bool SendLocalChangesManager::hasPendingRequests() const
 
 void SendLocalChangesManager::finalize()
 {
-    emit finished(m_lastUpdateCount);
+    emit finished(m_lastUpdateCount, m_lastUpdateCountByLinkedNotebookGuid);
     clear();
     disconnectFromLocalStorage();
 }
@@ -1793,6 +1854,8 @@ void SendLocalChangesManager::clear()
     QNDEBUG("SendLocalChangesManager::clear");
 
     m_lastUpdateCount = 0;
+    m_lastUpdateCountByLinkedNotebookGuid.clear();
+
     m_shouldRepeatIncrementalSync = false;
     m_paused = false;
     m_requestedToStop = false;

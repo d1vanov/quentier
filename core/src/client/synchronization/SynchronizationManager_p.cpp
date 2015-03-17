@@ -269,9 +269,10 @@ void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished(qint32 lastUpdat
     sendChanges();
 }
 
-void SynchronizationManagerPrivate::onLocalChangesSent(qint32 lastUpdateCount)
+void SynchronizationManagerPrivate::onLocalChangesSent(qint32 lastUpdateCount, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid)
 {
-    QNDEBUG("SynchronizationManagerPrivate::onLocalChangesSent: last update count = " << lastUpdateCount);
+    QNDEBUG("SynchronizationManagerPrivate::onLocalChangesSent: last update count = " << lastUpdateCount
+            << ", last update count per linked notebook guid: " << lastUpdateCountByLinkedNotebookGuid);
     // TODO: implement
 }
 
@@ -300,7 +301,8 @@ void SynchronizationManagerPrivate::createConnections()
 
     // Connections with send local changes manager
     QObject::connect(&m_sendLocalChangesManager, SIGNAL(failure(QString)), this, SIGNAL(notifyError(QString)));
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(finished(qint32)), this, SLOT(onLocalChangesSent(qint32)));
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(finished(qint32,QHash<QString,qint32>)),
+                     this, SLOT(onLocalChangesSent(qint32,QHash<QString,qint32>)));
     // TODO: continue with other connections
 
     // Connections with read/write password jobs
@@ -563,7 +565,7 @@ void SynchronizationManagerPrivate::launchIncrementalSync()
 void SynchronizationManagerPrivate::sendChanges()
 {
     QNDEBUG("SynchronizationManagerPrivate::sendChanges");
-    m_sendLocalChangesManager.start(m_lastUpdateCount);
+    m_sendLocalChangesManager.start(m_lastUpdateCount, m_cachedLinkedNotebookLastUpdateCountByGuid);
 }
 
 void SynchronizationManagerPrivate::launchStoreOAuthResult()

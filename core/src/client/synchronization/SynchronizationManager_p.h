@@ -49,7 +49,7 @@ private Q_SLOTS:
                                      QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
                                      QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
 
-    void onLocalChangesSent(qint32 lastUpdateCount);
+    void onLocalChangesSent(qint32 lastUpdateCount, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid);
 
 private:
     SynchronizationManagerPrivate() Q_DECL_DELETE;
