@@ -1848,6 +1848,8 @@ void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNoteboo
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived");
 
+    // FIXME: must check whether this object has actually requested that
+
     m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
 

@@ -107,6 +107,8 @@ void SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived(Q
 {
     QNDEBUG("SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived");
 
+    // FIXME: must check whether this object has actually requested that
+
     m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
 

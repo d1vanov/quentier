@@ -49,6 +49,9 @@ private Q_SLOTS:
                                      QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
                                      QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
 
+    void onShouldRepeatIncrementalSync();
+    void onConflictDetectedDuringLocalChangesSending();
+
     void onLocalChangesSent(qint32 lastUpdateCount, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid);
 
 private:

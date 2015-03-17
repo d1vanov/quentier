@@ -269,6 +269,18 @@ void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished(qint32 lastUpdat
     sendChanges();
 }
 
+void SynchronizationManagerPrivate::onShouldRepeatIncrementalSync()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onShouldRepeatIncrementalSync");
+    // TODO: implement
+}
+
+void SynchronizationManagerPrivate::onConflictDetectedDuringLocalChangesSending()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onConflictDetectedDuringLocalChangesSending");
+    // TODO: implement
+}
+
 void SynchronizationManagerPrivate::onLocalChangesSent(qint32 lastUpdateCount, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid)
 {
     QNDEBUG("SynchronizationManagerPrivate::onLocalChangesSent: last update count = " << lastUpdateCount
@@ -303,6 +315,15 @@ void SynchronizationManagerPrivate::createConnections()
     QObject::connect(&m_sendLocalChangesManager, SIGNAL(failure(QString)), this, SIGNAL(notifyError(QString)));
     QObject::connect(&m_sendLocalChangesManager, SIGNAL(finished(qint32,QHash<QString,qint32>)),
                      this, SLOT(onLocalChangesSent(qint32,QHash<QString,qint32>)));
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(requestAuthenticationToken()),
+                     this, SLOT(onRequestAuthenticationToken()));
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)),
+                     this, SLOT(onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)));
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(shouldRepeatIncrementalSync()), this, SLOT(onShouldRepeatIncrementalSync()));
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(conflictDetected()), this, SLOT(onConflictDetectedDuringLocalChangesSending()));
+    QObject::connect(this, SIGNAL(sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)),
+                     &m_sendLocalChangesManager, SLOT(onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)));
+
     // TODO: continue with other connections
 
     // Connections with read/write password jobs
