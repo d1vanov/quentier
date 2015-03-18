@@ -36,6 +36,7 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     m_lastProcessedLinkedNotebookGuidIndex(-1),
     m_authenticationTokensByLinkedNotebookGuid(),
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid(),
+    m_pendingAuthenticationTokensForLinkedNotebooks(false),
     m_updateTagRequestIds(),
     m_updateSavedSearchRequestIds(),
     m_updateNotebookRequestIds(),
@@ -107,8 +108,13 @@ void SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived(Q
 {
     QNDEBUG("SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived");
 
-    // FIXME: must check whether this object has actually requested that
+    if (!m_pendingAuthenticationTokensForLinkedNotebooks) {
+        QNDEBUG("Authenticaton tokens for linked notebooks were not requested by this object, "
+                "won't do anything");
+        return;
+    }
 
+    m_pendingAuthenticationTokensForLinkedNotebooks = false;
     m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
 
@@ -1883,6 +1889,7 @@ void SendLocalChangesManager::clear()
 
     m_linkedNotebookGuidsAndShareKeys.clear();
     m_lastProcessedLinkedNotebookGuidIndex = -1;
+    m_pendingAuthenticationTokensForLinkedNotebooks = false;
 
     // NOTE: don't clear auth tokens by linked notebook guid as well as their expiration timestamps, these might be useful later on
 
@@ -1949,6 +1956,7 @@ bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebo
             QNDEBUG("Authentication token for linked notebook with guid " << guid
                     << " was not found; will request authentication tokens for all linked notebooks at once");
             emit requestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndShareKeys);
+            m_pendingAuthenticationTokensForLinkedNotebooks = true;
             return false;
         }
 
@@ -1969,6 +1977,7 @@ bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebo
                     << ", current time is " << PrintableDateTimeFromTimestamp(currentTime)
                     << "; will request new authentication tokens for all linked notebooks");
             emit requestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndShareKeys);
+            m_pendingAuthenticationTokensForLinkedNotebooks = true;
             return false;
         }
     }

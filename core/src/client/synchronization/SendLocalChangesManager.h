@@ -243,6 +243,7 @@ private:
     int                                     m_lastProcessedLinkedNotebookGuidIndex;
     QHash<QString, QString>                 m_authenticationTokensByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
+    bool                                    m_pendingAuthenticationTokensForLinkedNotebooks;
 
     QSet<QUuid>                             m_updateTagRequestIds;
     QSet<QUuid>                             m_updateSavedSearchRequestIds;

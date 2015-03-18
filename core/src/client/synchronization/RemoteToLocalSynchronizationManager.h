@@ -479,6 +479,8 @@ private:
 
     QHash<QString,QString>                  m_authenticationTokensByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
+    bool                                    m_pendingAuthenticationTokensForLinkedNotebooks;
+
     QHash<QString,qevercloud::SyncState>    m_syncStatesByLinkedNotebookGuid;
     QHash<QString,qint32>                   m_lastSynchronizedUsnByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_lastSyncTimeByLinkedNotebookGuid;

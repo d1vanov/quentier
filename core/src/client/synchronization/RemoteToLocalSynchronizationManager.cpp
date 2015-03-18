@@ -62,6 +62,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_allLinkedNotebooksListed(false),
     m_authenticationTokensByLinkedNotebookGuid(),
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid(),
+    m_pendingAuthenticationTokensForLinkedNotebooks(false),
     m_syncStatesByLinkedNotebookGuid(),
     m_lastSynchronizedUsnByLinkedNotebookGuid(),
     m_lastSyncTimeByLinkedNotebookGuid(),
@@ -1848,8 +1849,13 @@ void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNoteboo
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived");
 
-    // FIXME: must check whether this object has actually requested that
+    if (!m_pendingAuthenticationTokensForLinkedNotebooks) {
+        QNDEBUG("Authentication tokens for linked notebooks were not requested by this object, "
+                "won't do anything");
+        return;
+    }
 
+    m_pendingAuthenticationTokensForLinkedNotebooks = false;
     m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
 
@@ -2474,6 +2480,7 @@ void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinke
     }
 
     emit requestAuthenticationTokensForLinkedNotebooks(linkedNotebookGuidsAndShareKeys);
+    m_pendingAuthenticationTokensForLinkedNotebooks = true;
 }
 
 void RemoteToLocalSynchronizationManager::requestAllLinkedNotebooks()
@@ -2914,6 +2921,7 @@ void RemoteToLocalSynchronizationManager::clear()
     m_allLinkedNotebooks.clear();
     m_listAllLinkedNotebooksRequestId = QUuid();
     m_allLinkedNotebooksListed = false;
+    m_pendingAuthenticationTokensForLinkedNotebooks = false;
 
     m_syncStatesByLinkedNotebookGuid.clear();
     // NOTE: not clearing last synchronized usns by linked notebook guid; it is intentional,
