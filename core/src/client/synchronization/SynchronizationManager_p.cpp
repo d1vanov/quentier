@@ -51,7 +51,8 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_writeAuthTokenJob(QApplication::applicationName() + "_write_auth_token"),
     m_readLinkedNotebookAuthTokenJobsByGuid(),
     m_writeLinkedNotebookAuthTokenJobsByGuid(),
-    m_linkedNotebookGuidsWithoutLocalAuthData()
+    m_linkedNotebookGuidsWithoutLocalAuthData(),
+    m_shouldRepeatIncrementalSyncAfterSendingChanges(false)
 {
     m_readAuthTokenJob.setAutoDelete(false);
     m_readAuthTokenJob.setKey(QApplication::applicationName() + "_auth_token");
@@ -230,62 +231,57 @@ void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished(qint32 lastUpdat
     m_cachedLinkedNotebookLastUpdateCountByGuid = lastUpdateCountByLinkedNotebookGuid;
     m_cachedLinkedNotebookLastSyncTimeByGuid = lastSyncTimeByLinkedNotebookGuid;
 
-    ApplicationSettings & settings = ApplicationSettings::instance();
-
-    const QString keyGroup = LAST_SYNC_PARAMS_KEY_GROUP;
-    settings.setValue(LAST_SYNC_UPDATE_COUNT_KEY, m_lastUpdateCount, keyGroup);
-    settings.setValue(LAST_SYNC_TIME_KEY, m_lastSyncTime, keyGroup);
-
-    int numLinkedNotebooksSyncParams = m_cachedLinkedNotebookLastUpdateCountByGuid.size();
-    settings.beginWriteArray(LAST_SYNC_LINKED_NOTEBOOKS_PARAMS, numLinkedNotebooksSyncParams);
-
-    size_t counter = 0;
-    auto updateCountEnd = m_cachedLinkedNotebookLastUpdateCountByGuid.end();
-    auto syncTimeEnd = m_cachedLinkedNotebookLastSyncTimeByGuid.end();
-    for(auto updateCountIt = m_cachedLinkedNotebookLastUpdateCountByGuid.begin(); updateCountIt != updateCountEnd; ++updateCountIt)
-    {
-        const QString & guid = updateCountIt.key();
-        auto syncTimeIt = m_cachedLinkedNotebookLastSyncTimeByGuid.find(guid);
-        if (syncTimeIt == syncTimeEnd) {
-            QNWARNING("Detected inconsistent last sync parameters for one of linked notebooks: last update count is present "
-                      "while last sync time is not, skipping writing the persistent settings entry for this linked notebook");
-            continue;
-        }
-
-        settings.setArrayIndex(counter);
-        settings.setValue(LINKED_NOTEBOOK_LAST_UPDATE_COUNT_KEY, updateCountIt.value());
-        settings.setValue(LINKED_NOTEBOOK_LAST_SYNC_TIME_KEY, syncTimeIt.value());
-
-        ++counter;
-    }
-
-    settings.endArray();
-
-    QNTRACE("Wrote " << counter << " last sync params entries for linked notebooks");
+    updatePersistentSyncSettings();
 
     m_onceReadLastSyncParams = true;
-
     emit notifyRemoteToLocalSyncDone();
+
     sendChanges();
 }
 
 void SynchronizationManagerPrivate::onShouldRepeatIncrementalSync()
 {
     QNDEBUG("SynchronizationManagerPrivate::onShouldRepeatIncrementalSync");
-    // TODO: implement
+
+    m_shouldRepeatIncrementalSyncAfterSendingChanges = true;
+    emit willRepeatRemoteToLocalSyncAfterSendingChanges();
 }
 
 void SynchronizationManagerPrivate::onConflictDetectedDuringLocalChangesSending()
 {
     QNDEBUG("SynchronizationManagerPrivate::onConflictDetectedDuringLocalChangesSending");
-    // TODO: implement
+
+    emit detectedConflictDuringLocalChangesSending();
+
+    m_sendLocalChangesManager.stop();
+
+    // NOTE: the detection of non-synchronized state with respect to remote service often precedes the actual conflict detection;
+    // need to drop this flag to prevent launching the incremental sync after sending the local changes after the incremental sync
+    // which we'd launch now
+    m_shouldRepeatIncrementalSyncAfterSendingChanges = false;
+
+    launchIncrementalSync();
 }
 
 void SynchronizationManagerPrivate::onLocalChangesSent(qint32 lastUpdateCount, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid)
 {
     QNDEBUG("SynchronizationManagerPrivate::onLocalChangesSent: last update count = " << lastUpdateCount
             << ", last update count per linked notebook guid: " << lastUpdateCountByLinkedNotebookGuid);
-    // TODO: implement
+
+    m_lastUpdateCount = lastUpdateCount;
+    m_cachedLinkedNotebookLastUpdateCountByGuid = lastUpdateCountByLinkedNotebookGuid;
+
+    updatePersistentSyncSettings();
+
+    if (m_shouldRepeatIncrementalSyncAfterSendingChanges) {
+        QNDEBUG("Repeating the incremental sync after sending the changes");
+        m_shouldRepeatIncrementalSyncAfterSendingChanges = false;
+        launchIncrementalSync();
+        return;
+    }
+
+    QNINFO("Finished the whole synchronization procedure!");
+    emit notifyFinish();
 }
 
 void SynchronizationManagerPrivate::createConnections()
@@ -511,7 +507,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 void SynchronizationManagerPrivate::launchOAuth()
 {
     // TODO: move consumer key and consumer secret out of core library; they should be set by the application
-    // (client of the library) but now hardcoded in the library itself
+    // (client of the library) but not hardcoded in the library itself
 
     SimpleCrypt crypto(0xB87F6B9);
 
@@ -949,6 +945,44 @@ void SynchronizationManagerPrivate::onWriteAuthTokenFinished()
 
     QNDEBUG("Successfully stored the authentication token in the keychain");
     finalizeStoreOAuthResult();
+}
+
+void SynchronizationManagerPrivate::updatePersistentSyncSettings()
+{
+    QNDEBUG("SynchronizationManagerPrivate::updatePersistentSyncSettings");
+
+    ApplicationSettings & settings = ApplicationSettings::instance();
+
+    const QString keyGroup = LAST_SYNC_PARAMS_KEY_GROUP;
+    settings.setValue(LAST_SYNC_UPDATE_COUNT_KEY, m_lastUpdateCount, keyGroup);
+    settings.setValue(LAST_SYNC_TIME_KEY, m_lastSyncTime, keyGroup);
+
+    int numLinkedNotebooksSyncParams = m_cachedLinkedNotebookLastUpdateCountByGuid.size();
+    settings.beginWriteArray(LAST_SYNC_LINKED_NOTEBOOKS_PARAMS, numLinkedNotebooksSyncParams);
+
+    size_t counter = 0;
+    auto updateCountEnd = m_cachedLinkedNotebookLastUpdateCountByGuid.end();
+    auto syncTimeEnd = m_cachedLinkedNotebookLastSyncTimeByGuid.end();
+    for(auto updateCountIt = m_cachedLinkedNotebookLastUpdateCountByGuid.begin(); updateCountIt != updateCountEnd; ++updateCountIt)
+    {
+        const QString & guid = updateCountIt.key();
+        auto syncTimeIt = m_cachedLinkedNotebookLastSyncTimeByGuid.find(guid);
+        if (syncTimeIt == syncTimeEnd) {
+            QNWARNING("Detected inconsistent last sync parameters for one of linked notebooks: last update count is present "
+                      "while last sync time is not, skipping writing the persistent settings entry for this linked notebook");
+            continue;
+        }
+
+        settings.setArrayIndex(counter);
+        settings.setValue(LINKED_NOTEBOOK_LAST_UPDATE_COUNT_KEY, updateCountIt.value());
+        settings.setValue(LINKED_NOTEBOOK_LAST_SYNC_TIME_KEY, syncTimeIt.value());
+
+        ++counter;
+    }
+
+    settings.endArray();
+
+    QNTRACE("Wrote " << counter << " last sync params entries for linked notebooks");
 }
 
 } // namespace qute_note

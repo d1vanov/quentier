@@ -25,6 +25,10 @@ Q_SIGNALS:
     void notifyRemoteToLocalSyncDone();
     void notifyFinish();
 
+// other informative signals
+    void willRepeatRemoteToLocalSyncAfterSendingChanges();
+    void detectedConflictDuringLocalChangesSending();
+
 // private signals
     void sendAuthenticationToken(QString authToken, qevercloud::Timestamp expirationTime);
     void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString> authenticationTokensByLinkedNotebookGuids,
@@ -96,6 +100,8 @@ private:
     void onReadAuthTokenFinished();
     void onWriteAuthTokenFinished();
 
+    void updatePersistentSyncSettings();
+
 private:
     qint32                                  m_maxSyncChunkEntries;
 
@@ -130,6 +136,8 @@ private:
     QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >  m_writeLinkedNotebookAuthTokenJobsByGuid;
 
     QSet<QString>                           m_linkedNotebookGuidsWithoutLocalAuthData;
+
+    bool                                    m_shouldRepeatIncrementalSyncAfterSendingChanges;
 };
 
 } // namespace qute_note

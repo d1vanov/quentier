@@ -54,6 +54,8 @@ void SendLocalChangesManager::start(const qint32 updateCount, QHash<QString,qint
     QNDEBUG("SendLocalChangesManager::start: update count = " << updateCount
             << ", update count by linked notebook guid = " << updateCountByLinkedNotebookGuid);
 
+    // TODO: ensure everything works as expected if there's nothing to sync i.e. no dirty modified and/or new objects in the local storage
+
     if (m_paused) {
         m_lastUpdateCount = updateCount;
         m_lastUpdateCountByLinkedNotebookGuid = updateCountByLinkedNotebookGuid;
