@@ -15,6 +15,7 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     m_lastUpdateCount(0),
     m_lastUpdateCountByLinkedNotebookGuid(),
     m_shouldRepeatIncrementalSync(false),
+    m_active(false),
     m_paused(false),
     m_requestedToStop(false),
     m_connectedToLocalStorage(false),
@@ -49,6 +50,11 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     m_sendNotesPostponeTimerId(0)
 {}
 
+bool SendLocalChangesManager::active() const
+{
+    return m_active;
+}
+
 void SendLocalChangesManager::start(const qint32 updateCount, QHash<QString,qint32> updateCountByLinkedNotebookGuid)
 {
     QNDEBUG("SendLocalChangesManager::start: update count = " << updateCount
@@ -64,6 +70,7 @@ void SendLocalChangesManager::start(const qint32 updateCount, QHash<QString,qint
     }
 
     clear();
+    m_active = true;
     m_lastUpdateCount = updateCount;
     m_lastUpdateCountByLinkedNotebookGuid = updateCountByLinkedNotebookGuid;
 
@@ -74,6 +81,7 @@ void SendLocalChangesManager::pause()
 {
     QNDEBUG("SendLocalChangesManager::pause");
     m_paused = true;
+    m_active = false;
     emit paused(/* pending authentication = */ false);
 }
 
@@ -81,6 +89,7 @@ void SendLocalChangesManager::stop()
 {
     QNDEBUG("SendLocalChangesManager::stop");
     m_requestedToStop = true;
+    m_active = false;
     emit stopped();
 }
 
@@ -94,6 +103,7 @@ void SendLocalChangesManager::resume()
 
     if (m_paused)
     {
+        m_active = true;
         m_paused = false;
 
         if (m_receivedAllDirtyLocalStorageObjects) {
@@ -1857,6 +1867,7 @@ void SendLocalChangesManager::finalize()
     emit finished(m_lastUpdateCount, m_lastUpdateCountByLinkedNotebookGuid);
     clear();
     disconnectFromLocalStorage();
+    m_active = false;
 }
 
 void SendLocalChangesManager::clear()

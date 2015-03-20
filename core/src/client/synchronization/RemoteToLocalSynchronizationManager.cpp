@@ -118,7 +118,7 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
         createConnections();
     }
 
-    if (m_paused || m_requestedToStop) {
+    if (m_paused) {
         resume();   // NOTE: resume can call this method so it's necessary to return
         return;
     }
@@ -129,6 +129,7 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
     }
 
     clear();
+    m_active = true;
 
     m_lastSyncMode = ((afterUsn == 0)
                       ? SyncMode::FullSync
@@ -162,7 +163,6 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
         // (Because the sync of user's account can bring in the new linked notebooks or remove any of them)
     }
 
-    m_active = true;
     downloadSyncChunksAndLaunchSync(afterUsn);
 }
 
@@ -170,6 +170,7 @@ void RemoteToLocalSynchronizationManager::stop()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::stop");
     m_requestedToStop = true;
+    m_active = false;
     emit stopped();
 }
 
@@ -177,6 +178,7 @@ void RemoteToLocalSynchronizationManager::pause()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::pause");
     m_paused = true;
+    m_active = false;
     emit paused(/* pending authentication = */ false);
 }
 
@@ -188,15 +190,10 @@ void RemoteToLocalSynchronizationManager::resume()
         createConnections();
     }
 
-    if (m_paused || m_requestedToStop)
+    if (m_paused)
     {
-        if (m_paused) {
-            m_paused = false;
-        }
-
-        if (m_requestedToStop) {
-            m_requestedToStop = false;
-        }
+        m_active = true;
+        m_paused = false;
 
         if (m_syncChunksDownloaded && (m_lastSyncChunksDownloadedUsn >= m_lastUsnOnStart))
         {
@@ -2868,6 +2865,7 @@ void RemoteToLocalSynchronizationManager::finalize()
     emit finished(m_lastUpdateCount, m_lastSyncTime, m_lastUpdateCountByLinkedNotebookGuid, m_lastSyncTimeByLinkedNotebookGuid);
     clear();
     disconnectFromLocalStorage();
+    m_active = false;
 }
 
 void RemoteToLocalSynchronizationManager::clear()

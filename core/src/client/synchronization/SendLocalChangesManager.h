@@ -21,6 +21,8 @@ public:
                                      QSharedPointer<qevercloud::NoteStore> pNoteStore,
                                      QObject * parent = nullptr);
 
+    bool active() const;
+
 Q_SIGNALS:
     void failure(QString errorDescription);
 
@@ -216,6 +218,7 @@ private:
 
     bool                                    m_shouldRepeatIncrementalSync;
 
+    bool                                    m_active;
     bool                                    m_paused;
     bool                                    m_requestedToStop;
 

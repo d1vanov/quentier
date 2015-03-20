@@ -71,6 +71,27 @@ void SynchronizationManagerPrivate::synchronize()
     authenticate(AuthContext::SyncLaunch);
 }
 
+void SynchronizationManagerPrivate::onPauseRequest()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onPauseRequest");
+
+    if (m_remoteToLocalSyncManager.active()) {
+        emit pauseRemoteToLocalSync();
+    }
+
+    if (m_sendLocalChangesManager.active()) {
+        emit pauseSendingLocalChanges();
+    }
+}
+
+void SynchronizationManagerPrivate::onStopRequest()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onStopRequest");
+
+    emit stopRemoteToLocalSync();
+    emit stopSendingLocalChanges();
+}
+
 void SynchronizationManagerPrivate::onOAuthResult(bool result)
 {
     if (result) {
@@ -239,6 +260,19 @@ void SynchronizationManagerPrivate::onRemoteToLocalSyncFinished(qint32 lastUpdat
     sendChanges();
 }
 
+void SynchronizationManagerPrivate::onRemoteToLocalSyncPaused(bool pendingAuthenticaton)
+{
+    QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncPaused: pending authentication = "
+            << (pendingAuthenticaton ? "true" : "false"));
+    emit remoteToLocalSyncPaused(pendingAuthenticaton);
+}
+
+void SynchronizationManagerPrivate::onRemoteToLocalSyncStopped()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncStopped");
+    emit remoteToLocalSyncStopped();
+}
+
 void SynchronizationManagerPrivate::onShouldRepeatIncrementalSync()
 {
     QNDEBUG("SynchronizationManagerPrivate::onShouldRepeatIncrementalSync");
@@ -284,6 +318,25 @@ void SynchronizationManagerPrivate::onLocalChangesSent(qint32 lastUpdateCount, Q
     emit notifyFinish();
 }
 
+void SynchronizationManagerPrivate::onSendLocalChangesPaused(bool pendingAuthenticaton)
+{
+    QNDEBUG("SynchronizationManagerPrivate::onSendLocalChangesPaused: pending authentication = "
+            << (pendingAuthenticaton ? "true" : "false"));
+    emit sendLocalChangesPaused(pendingAuthenticaton);
+}
+
+void SynchronizationManagerPrivate::onSendLocalChangesStopped()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onSendLocalChangesStopped");
+    emit sendLocalChangesStopped();
+}
+
+void SynchronizationManagerPrivate::onRateLimitExceeded(qint32 secondsToWait)
+{
+    QNDEBUG("SynchronizationManagerPrivate::onRateLimitExceeded");
+    emit rateLimitExceeded(secondsToWait);
+}
+
 void SynchronizationManagerPrivate::createConnections()
 {
     // Connections with OAuth handler
@@ -297,13 +350,18 @@ void SynchronizationManagerPrivate::createConnections()
                                                                   QHash<QString,qevercloud::Timestamp>)),
                      this, SLOT(onRemoteToLocalSyncFinished(qint32,qevercloud::Timestamp,QHash<QString,qint32>,
                                                             QHash<QString,qevercloud::Timestamp>)));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(rateLimitExceeded(qint32)), this, SLOT(onRateLimitExceeded(qint32)));
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestAuthenticationToken()),
                      this, SLOT(onRequestAuthenticationToken()));
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)),
                      this, SLOT(onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(paused(bool)), this, SLOT(onRemoteToLocalSyncPaused(bool)));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(stopped()), this, SLOT(onRemoteToLocalSyncStopped()));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestLastSyncParameters()), this, SLOT(onRequestLastSyncParameters()));
+    QObject::connect(this, SIGNAL(pauseRemoteToLocalSync()), &m_remoteToLocalSyncManager, SLOT(pause()));
+    QObject::connect(this, SIGNAL(stopRemoteToLocalSync()), &m_remoteToLocalSyncManager, SLOT(stop()));
     QObject::connect(this, SIGNAL(sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)),
                      &m_remoteToLocalSyncManager, SLOT(onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestLastSyncParameters()), this, SLOT(onRequestLastSyncParameters()));
     QObject::connect(this, SIGNAL(sendLastSyncParameters(qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>)),
                      &m_remoteToLocalSyncManager, SLOT(onLastSyncParametersReceived(qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>)));
 
@@ -311,6 +369,7 @@ void SynchronizationManagerPrivate::createConnections()
     QObject::connect(&m_sendLocalChangesManager, SIGNAL(failure(QString)), this, SIGNAL(notifyError(QString)));
     QObject::connect(&m_sendLocalChangesManager, SIGNAL(finished(qint32,QHash<QString,qint32>)),
                      this, SLOT(onLocalChangesSent(qint32,QHash<QString,qint32>)));
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(rateLimitExceeded(qint32)), this, SLOT(onRateLimitExceeded(qint32)));
     QObject::connect(&m_sendLocalChangesManager, SIGNAL(requestAuthenticationToken()),
                      this, SLOT(onRequestAuthenticationToken()));
     QObject::connect(&m_sendLocalChangesManager, SIGNAL(requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)),

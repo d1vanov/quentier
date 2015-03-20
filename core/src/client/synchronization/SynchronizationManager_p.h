@@ -25,10 +25,23 @@ Q_SIGNALS:
     void notifyRemoteToLocalSyncDone();
     void notifyFinish();
 
+// state signals
+    void remoteToLocalSyncPaused(bool pendingAuthenticaton);
+    void remoteToLocalSyncStopped();
+
+    void sendLocalChangesPaused(bool pendingAuthenticaton);
+    void sendLocalChangesStopped();
+
 // other informative signals
     void willRepeatRemoteToLocalSyncAfterSendingChanges();
     void detectedConflictDuringLocalChangesSending();
+    void rateLimitExceeded(qint32 secondsToWait);
 
+public Q_SLOTS:
+    void onPauseRequest();
+    void onStopRequest();
+
+Q_SIGNALS:
 // private signals
     void sendAuthenticationToken(QString authToken, qevercloud::Timestamp expirationTime);
     void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString> authenticationTokensByLinkedNotebookGuids,
@@ -36,6 +49,12 @@ Q_SIGNALS:
     void sendLastSyncParameters(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
                                 QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
                                 QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
+
+    void pauseRemoteToLocalSync();
+    void stopRemoteToLocalSync();
+
+    void pauseSendingLocalChanges();
+    void stopSendingLocalChanges();
 
 private Q_SLOTS:
     void onOAuthResult(bool result);
@@ -52,11 +71,17 @@ private Q_SLOTS:
     void onRemoteToLocalSyncFinished(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
                                      QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
                                      QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
+    void onRemoteToLocalSyncPaused(bool pendingAuthenticaton);
+    void onRemoteToLocalSyncStopped();
 
     void onShouldRepeatIncrementalSync();
     void onConflictDetectedDuringLocalChangesSending();
 
     void onLocalChangesSent(qint32 lastUpdateCount, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid);
+    void onSendLocalChangesPaused(bool pendingAuthenticaton);
+    void onSendLocalChangesStopped();
+
+    void onRateLimitExceeded(qint32 secondsToWait);
 
 private:
     SynchronizationManagerPrivate() Q_DECL_DELETE;
