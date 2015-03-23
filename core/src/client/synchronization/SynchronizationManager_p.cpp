@@ -84,6 +84,13 @@ void SynchronizationManagerPrivate::onPauseRequest()
     }
 }
 
+void SynchronizationManagerPrivate::onResumeRequest()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onResumeRequest");
+
+    // TODO: resume the last active sync manager
+}
+
 void SynchronizationManagerPrivate::onStopRequest()
 {
     QNDEBUG("SynchronizationManagerPrivate::onStopRequest");
@@ -331,6 +338,18 @@ void SynchronizationManagerPrivate::onSendLocalChangesStopped()
     emit sendLocalChangesStopped();
 }
 
+void SynchronizationManagerPrivate::onSendingLocalChangesReceivedUsersDirtyObjects()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onSendingLocalChangesReceivedUsersDirtyObjects");
+    // TODO: estimate progress and emit corresponding signal
+}
+
+void SynchronizationManagerPrivate::onSendingLocalChangesReceivedAllDirtyObjects()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onSendingLocalChangesReceivedAllDirtyObjects");
+    // TODO: estimate progress and emit corresponding signal
+}
+
 void SynchronizationManagerPrivate::onRateLimitExceeded(qint32 secondsToWait)
 {
     QNDEBUG("SynchronizationManagerPrivate::onRateLimitExceeded");
@@ -359,6 +378,7 @@ void SynchronizationManagerPrivate::createConnections()
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(stopped()), this, SLOT(onRemoteToLocalSyncStopped()));
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestLastSyncParameters()), this, SLOT(onRequestLastSyncParameters()));
     QObject::connect(this, SIGNAL(pauseRemoteToLocalSync()), &m_remoteToLocalSyncManager, SLOT(pause()));
+    QObject::connect(this, SIGNAL(resumeRemoteToLocalSync()), &m_remoteToLocalSyncManager, SLOT(resume()));
     QObject::connect(this, SIGNAL(stopRemoteToLocalSync()), &m_remoteToLocalSyncManager, SLOT(stop()));
     QObject::connect(this, SIGNAL(sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)),
                      &m_remoteToLocalSyncManager, SLOT(onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)));
@@ -376,10 +396,15 @@ void SynchronizationManagerPrivate::createConnections()
                      this, SLOT(onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)));
     QObject::connect(&m_sendLocalChangesManager, SIGNAL(shouldRepeatIncrementalSync()), this, SLOT(onShouldRepeatIncrementalSync()));
     QObject::connect(&m_sendLocalChangesManager, SIGNAL(conflictDetected()), this, SLOT(onConflictDetectedDuringLocalChangesSending()));
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(paused(bool)), this, SLOT(onSendLocalChangesPaused(bool)));
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(stopped()), this, SLOT(onSendLocalChangesStopped()));
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(receivedUserAccountDirtyObjects()), this, SLOT(onSendingLocalChangesReceivedUsersDirtyObjects()));
+    QObject::connect(&m_sendLocalChangesManager, SIGNAL(receivedAllDirtyObjects()), this, SLOT(onSendingLocalChangesReceivedAllDirtyObjects()));
     QObject::connect(this, SIGNAL(sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)),
                      &m_sendLocalChangesManager, SLOT(onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)));
-
-    // TODO: continue with other connections
+    QObject::connect(this, SIGNAL(pauseSendingLocalChanges()), &m_sendLocalChangesManager, SLOT(pause()));
+    QObject::connect(this, SIGNAL(resumeSendingLocalChanges()), &m_sendLocalChangesManager, SLOT(resume()));
+    QObject::connect(this, SIGNAL(stopSendingLocalChanges()), &m_sendLocalChangesManager, SLOT(stop()));
 
     // Connections with read/write password jobs
     QObject::connect(&m_readAuthTokenJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));

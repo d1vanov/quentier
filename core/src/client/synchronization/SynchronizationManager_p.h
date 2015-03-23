@@ -39,6 +39,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void onPauseRequest();
+    void onResumeRequest();
     void onStopRequest();
 
 Q_SIGNALS:
@@ -51,9 +52,11 @@ Q_SIGNALS:
                                 QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
 
     void pauseRemoteToLocalSync();
+    void resumeRemoteToLocalSync();
     void stopRemoteToLocalSync();
 
     void pauseSendingLocalChanges();
+    void resumeSendingLocalChanges();
     void stopSendingLocalChanges();
 
 private Q_SLOTS:
@@ -80,6 +83,10 @@ private Q_SLOTS:
     void onLocalChangesSent(qint32 lastUpdateCount, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid);
     void onSendLocalChangesPaused(bool pendingAuthenticaton);
     void onSendLocalChangesStopped();
+
+    // SendLocalChangesManager's progress tracking slots
+    void onSendingLocalChangesReceivedUsersDirtyObjects();
+    void onSendingLocalChangesReceivedAllDirtyObjects();
 
     void onRateLimitExceeded(qint32 secondsToWait);
 
