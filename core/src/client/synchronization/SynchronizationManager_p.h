@@ -37,6 +37,8 @@ Q_SIGNALS:
     void detectedConflictDuringLocalChangesSending();
     void rateLimitExceeded(qint32 secondsToWait);
 
+    void progress(QString message, double workDonePercentage);
+
 public Q_SLOTS:
     void onPauseRequest();
     void onResumeRequest();
@@ -76,6 +78,13 @@ private Q_SLOTS:
                                      QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
     void onRemoteToLocalSyncPaused(bool pendingAuthenticaton);
     void onRemoteToLocalSyncStopped();
+
+    // RemoteToLocalSyncManager's progress tracking slots
+    void onRemoteToLocalSyncChunksDownloaded();
+    void onRemoteToLocalSyncFullNotesContentDownloaded();
+    void onRemoteToLocalSyncExpungedFromServerToClient();
+    void onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded();
+    void onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded();
 
     void onShouldRepeatIncrementalSync();
     void onConflictDetectedDuringLocalChangesSending();

@@ -280,6 +280,36 @@ void SynchronizationManagerPrivate::onRemoteToLocalSyncStopped()
     emit remoteToLocalSyncStopped();
 }
 
+void SynchronizationManagerPrivate::onRemoteToLocalSyncChunksDownloaded()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncChunksDownloaded");
+    // TODO: estimate progress and emit signal
+}
+
+void SynchronizationManagerPrivate::onRemoteToLocalSyncFullNotesContentDownloaded()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncFullNotesContentDownloaded");
+    // TODO: estimate progress and emit signal
+}
+
+void SynchronizationManagerPrivate::onRemoteToLocalSyncExpungedFromServerToClient()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncExpungedFromServerToClient");
+    // TODO: estimate progress and emit signal
+}
+
+void SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded");
+    // TODO: estimate progress and emit signal
+}
+
+void SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded()
+{
+    QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded");
+    // TODO: estimate progress and emit signal
+}
+
 void SynchronizationManagerPrivate::onShouldRepeatIncrementalSync()
 {
     QNDEBUG("SynchronizationManagerPrivate::onShouldRepeatIncrementalSync");
@@ -341,13 +371,13 @@ void SynchronizationManagerPrivate::onSendLocalChangesStopped()
 void SynchronizationManagerPrivate::onSendingLocalChangesReceivedUsersDirtyObjects()
 {
     QNDEBUG("SynchronizationManagerPrivate::onSendingLocalChangesReceivedUsersDirtyObjects");
-    // TODO: estimate progress and emit corresponding signal
+    // TODO: estimate progress and emit signal
 }
 
 void SynchronizationManagerPrivate::onSendingLocalChangesReceivedAllDirtyObjects()
 {
     QNDEBUG("SynchronizationManagerPrivate::onSendingLocalChangesReceivedAllDirtyObjects");
-    // TODO: estimate progress and emit corresponding signal
+    // TODO: estimate progress and emit signal
 }
 
 void SynchronizationManagerPrivate::onRateLimitExceeded(qint32 secondsToWait)
@@ -377,6 +407,11 @@ void SynchronizationManagerPrivate::createConnections()
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(paused(bool)), this, SLOT(onRemoteToLocalSyncPaused(bool)));
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(stopped()), this, SLOT(onRemoteToLocalSyncStopped()));
     QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestLastSyncParameters()), this, SLOT(onRequestLastSyncParameters()));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(syncChunksDownloaded()), this, SLOT(onRemoteToLocalSyncChunksDownloaded()));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(fullNotesContentsDownloaded()), this, SLOT(onRemoteToLocalSyncFullNotesContentDownloaded()));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(expungedFromServerToClient()), this, SLOT(onRemoteToLocalSyncExpungedFromServerToClient()));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(linkedNotebooksSyncChunksDownloaded()), this, SLOT(onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded()));
+    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(linkedNotebooksFullNotesContentsDownloaded()), this, SLOT(onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded()));
     QObject::connect(this, SIGNAL(pauseRemoteToLocalSync()), &m_remoteToLocalSyncManager, SLOT(pause()));
     QObject::connect(this, SIGNAL(resumeRemoteToLocalSync()), &m_remoteToLocalSyncManager, SLOT(resume()));
     QObject::connect(this, SIGNAL(stopRemoteToLocalSync()), &m_remoteToLocalSyncManager, SLOT(stop()));
