@@ -60,8 +60,6 @@ void SendLocalChangesManager::start(const qint32 updateCount, QHash<QString,qint
     QNDEBUG("SendLocalChangesManager::start: update count = " << updateCount
             << ", update count by linked notebook guid = " << updateCountByLinkedNotebookGuid);
 
-    // TODO: ensure everything works as expected if there's nothing to sync i.e. no dirty modified and/or new objects in the local storage
-
     if (m_paused) {
         m_lastUpdateCount = updateCount;
         m_lastUpdateCountByLinkedNotebookGuid = updateCountByLinkedNotebookGuid;
@@ -1163,7 +1161,13 @@ void SendLocalChangesManager::checkListLocalStorageObjectsCompletion()
     QNTRACE("All relevant objects from local storage have been listed");
     emit receivedAllDirtyObjects();
 
-    sendLocalChanges();
+    if (!m_tags.isEmpty() || !m_savedSearches.isEmpty() || !m_notebooks.isEmpty() || !m_notes.isEmpty()) {
+        sendLocalChanges();
+    }
+    else {
+        QNINFO("No modified or new synchronizable objects were found in the local storage, nothing to send to the remote service");
+        finalize();
+    }
 }
 
 void SendLocalChangesManager::sendLocalChanges()
