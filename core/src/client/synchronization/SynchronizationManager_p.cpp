@@ -283,31 +283,31 @@ void SynchronizationManagerPrivate::onRemoteToLocalSyncStopped()
 void SynchronizationManagerPrivate::onRemoteToLocalSyncChunksDownloaded()
 {
     QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncChunksDownloaded");
-    // TODO: estimate progress and emit signal
+    emit progress(QT_TR_NOOP("Downloaded synch user account's sync chunks"), 0.125);
 }
 
 void SynchronizationManagerPrivate::onRemoteToLocalSyncFullNotesContentDownloaded()
 {
     QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncFullNotesContentDownloaded");
-    // TODO: estimate progress and emit signal
+    emit progress(QT_TR_NOOP("Downloaded full content of notes from user's account"), 0.25);
 }
 
 void SynchronizationManagerPrivate::onRemoteToLocalSyncExpungedFromServerToClient()
 {
     QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncExpungedFromServerToClient");
-    // TODO: estimate progress and emit signal
+    emit progress(QT_TR_NOOP("Expunged local items which were also expunged in the remote service"), 0.375);
 }
 
 void SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded()
 {
     QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded");
-    // TODO: estimate progress and emit signal
+    emit progress(QT_TR_NOOP("Downloaded sync chunks from linked notebooks"), 0.5);
 }
 
 void SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded()
 {
     QNDEBUG("SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded");
-    // TODO: estimate progress and emit signal
+    emit progress(QT_TR_NOOP("Downloaded the full content of notes from linked notebooks"), 0.625);
 }
 
 void SynchronizationManagerPrivate::onShouldRepeatIncrementalSync()
@@ -371,13 +371,13 @@ void SynchronizationManagerPrivate::onSendLocalChangesStopped()
 void SynchronizationManagerPrivate::onSendingLocalChangesReceivedUsersDirtyObjects()
 {
     QNDEBUG("SynchronizationManagerPrivate::onSendingLocalChangesReceivedUsersDirtyObjects");
-    // TODO: estimate progress and emit signal
+    emit progress(QT_TR_NOOP("Prepared new and modified data from user's account for sending back to the remote service"), 0.75);
 }
 
 void SynchronizationManagerPrivate::onSendingLocalChangesReceivedAllDirtyObjects()
 {
     QNDEBUG("SynchronizationManagerPrivate::onSendingLocalChangesReceivedAllDirtyObjects");
-    // TODO: estimate progress and emit signal
+    emit progress(QT_TR_NOOP("Prepared new and modified data from linked notebooks for sending back to the remote service"), 0.875);
 }
 
 void SynchronizationManagerPrivate::onRateLimitExceeded(qint32 secondsToWait)
