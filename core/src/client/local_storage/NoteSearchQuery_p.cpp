@@ -611,7 +611,6 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
     const QChar space = ' ';
     const QChar quote = '\"';
     QString currentWord;
-    // FIXME: need to also correctly process words without quotes
     for(int i = 0; i < length; ++i)
     {
         QChar chr = searchQueryString[i];
