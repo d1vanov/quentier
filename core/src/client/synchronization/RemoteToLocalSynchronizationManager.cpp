@@ -3351,7 +3351,7 @@ bool RemoteToLocalSynchronizationManager::checkUserAccountSyncState(bool & async
     {
         if (rateLimitSeconds < 0) {
             errorDescription = QT_TR_NOOP("Caught RATE_LIMIT_REACHED exception but "
-                    "the number of seconds to wait is negative: ");
+                                          "the number of seconds to wait is negative: ");
             errorDescription += QString::number(rateLimitSeconds);
             emit failure(errorDescription);
             error = true;
@@ -3402,6 +3402,73 @@ bool RemoteToLocalSynchronizationManager::checkUserAccountSyncState(bool & async
 bool RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncStates(bool & asyncWait, bool & error)
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncStates");
+
+    asyncWait = false;
+    error = false;
+
+    if (!m_allLinkedNotebooksListed) {
+        QNTRACE("The list of all linked notebooks was not obtained from local storage yet, need to wait for it to happen");
+        requestAllLinkedNotebooks();
+        asyncWait = true;
+        return false;
+    }
+
+    if (m_allLinkedNotebooks.empty()) {
+        QNTRACE("The list of all linked notebooks is empty, nothing to check sync states for");
+        return false;
+    }
+
+    if (m_pendingAuthenticationTokensForLinkedNotebooks) {
+        QNTRACE("Pending authentication tokens for linked notebook flag is set, "
+                "need to wait for auth tokens");
+        asyncWait = true;
+        return false;
+    }
+
+    const int numAllLinkedNotebooks = m_allLinkedNotebooks.size();
+    for(int i = 0; i < numAllLinkedNotebooks; ++i)
+    {
+        const LinkedNotebook & linkedNotebook = m_allLinkedNotebooks[i];
+        if (!linkedNotebook.hasGuid()) {
+            QString error = QT_TR_NOOP("Found linked notebook without guid set in local storage");
+            emit failure(error);
+            QNWARNING(error << ", linked notebook: " << linkedNotebook);
+            error = true;
+            return false;
+        }
+
+        auto it = m_authenticationTokensByLinkedNotebookGuid.find(linkedNotebook.guid());
+        if (it == m_authenticationTokensByLinkedNotebookGuid.end()) {
+            QNINFO("Detected missing auth token for one of linked notebooks. Will request auth tokens "
+                   "for all linked notebooks now. Linked notebook without auth token: " << linkedNotebook);
+            requestAuthenticationTokensForAllLinkedNotebooks();
+            asyncWait = true;
+            return false;
+        }
+
+        const QString & authToken = it.value();
+
+        QString errorDescription;
+        qint32 rateLimitSeconds = 0;
+        qevercloud::SyncState state;
+
+        qint32 errorCode = m_noteStore.getLinkedNotebookSyncState(linkedNotebook, authToken, state, errorDescription, rateLimitSeconds);
+        if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+        {
+            if (rateLimitSeconds < 0) {
+                errorDescription = QT_TR_NOOP("Caught RATE_LIMIT_REACHED exception but "
+                                              "the number of seconds to wait is negative: ");
+                errorDescription += QString::number(rateLimitSeconds);
+                emit failure(errorDescription);
+                error = true;
+                return false;
+            }
+
+            // TODO: set up the hash of timers for linked notebooks, store the necessary information there
+        }
+
+        // TODO: continue handling the other options
+    }
 
     // TODO: implement
     // 1) check that the list of all linked notebooks from local storage has been obtained, if not, obtain it
