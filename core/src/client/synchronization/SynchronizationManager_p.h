@@ -18,7 +18,8 @@ public:
     SynchronizationManagerPrivate(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     virtual ~SynchronizationManagerPrivate();
 
-    void synchronize();
+    bool active() const;
+    bool paused() const;
 
 Q_SIGNALS:
     void notifyError(QString errorDescription);
@@ -40,9 +41,10 @@ Q_SIGNALS:
     void progress(QString message, double workDonePercentage);
 
 public Q_SLOTS:
-    void onPauseRequest();
-    void onResumeRequest();
-    void onStopRequest();
+    void synchronize();
+    void pause();
+    void resume();
+    void stop();
 
 Q_SIGNALS:
 // private signals

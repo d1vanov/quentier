@@ -67,15 +67,25 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
 SynchronizationManagerPrivate::~SynchronizationManagerPrivate()
 {}
 
+bool SynchronizationManagerPrivate::active() const
+{
+    return m_remoteToLocalSyncManager.active() || m_sendLocalChangesManager.active();
+}
+
+bool SynchronizationManagerPrivate::paused() const
+{
+    return m_paused;
+}
+
 void SynchronizationManagerPrivate::synchronize()
 {
     clear();
     authenticate(AuthContext::SyncLaunch);
 }
 
-void SynchronizationManagerPrivate::onPauseRequest()
+void SynchronizationManagerPrivate::pause()
 {
-    QNDEBUG("SynchronizationManagerPrivate::onPauseRequest");
+    QNDEBUG("SynchronizationManagerPrivate::pause");
 
     if (m_remoteToLocalSyncManager.active()) {
         m_paused = true;
@@ -90,9 +100,9 @@ void SynchronizationManagerPrivate::onPauseRequest()
     }
 }
 
-void SynchronizationManagerPrivate::onResumeRequest()
+void SynchronizationManagerPrivate::resume()
 {
-    QNDEBUG("SynchronizationManagerPrivate::onResumeRequest");
+    QNDEBUG("SynchronizationManagerPrivate::resume");
 
     if (!m_paused) {
         QNINFO("Wasn't paused; not doing anything on attempt to resume");
@@ -109,9 +119,9 @@ void SynchronizationManagerPrivate::onResumeRequest()
     }
 }
 
-void SynchronizationManagerPrivate::onStopRequest()
+void SynchronizationManagerPrivate::stop()
 {
-    QNDEBUG("SynchronizationManagerPrivate::onStopRequest");
+    QNDEBUG("SynchronizationManagerPrivate::stop");
 
     emit stopRemoteToLocalSync();
     emit stopSendingLocalChanges();

@@ -16,7 +16,33 @@ public:
     SynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     virtual ~SynchronizationManager();
 
+    bool active() const;
+    bool paused() const;
+
+public Q_SLOTS:
     void synchronize();
+    void pause();
+    void resume();
+    void stop();
+
+Q_SIGNALS:
+    void failed(QString errorDescription);
+    void finished();
+
+    // state signals
+    void remoteToLocalSyncPaused(bool pendingAuthenticaton);
+    void remoteToLocalSyncStopped();
+
+    void sendLocalChangesPaused(bool pendingAuthenticaton);
+    void sendLocalChangesStopped();
+
+    // other informative signals
+    void willRepeatRemoteToLocalSyncAfterSendingChanges();
+    void detectedConflictDuringLocalChangesSending();
+    void rateLimitExceeded(qint32 secondsToWait);
+
+    void remoteToLocalSyncDone();
+    void progress(QString message, double workDonePercentage);
 
 private:
     SynchronizationManager() Q_DECL_DELETE;
