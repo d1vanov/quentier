@@ -52,7 +52,9 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(LocalStorageManager
     m_readLinkedNotebookAuthTokenJobsByGuid(),
     m_writeLinkedNotebookAuthTokenJobsByGuid(),
     m_linkedNotebookGuidsWithoutLocalAuthData(),
-    m_shouldRepeatIncrementalSyncAfterSendingChanges(false)
+    m_shouldRepeatIncrementalSyncAfterSendingChanges(false),
+    m_paused(false),
+    m_remoteToLocalSyncWasActiveOnLastPause(false)
 {
     m_readAuthTokenJob.setAutoDelete(false);
     m_readAuthTokenJob.setKey(QApplication::applicationName() + "_auth_token");
@@ -76,10 +78,14 @@ void SynchronizationManagerPrivate::onPauseRequest()
     QNDEBUG("SynchronizationManagerPrivate::onPauseRequest");
 
     if (m_remoteToLocalSyncManager.active()) {
+        m_paused = true;
+        m_remoteToLocalSyncWasActiveOnLastPause = true;
         emit pauseRemoteToLocalSync();
     }
 
     if (m_sendLocalChangesManager.active()) {
+        m_paused = true;
+        m_remoteToLocalSyncWasActiveOnLastPause = false;
         emit pauseSendingLocalChanges();
     }
 }
@@ -88,7 +94,19 @@ void SynchronizationManagerPrivate::onResumeRequest()
 {
     QNDEBUG("SynchronizationManagerPrivate::onResumeRequest");
 
-    // TODO: resume the last active sync manager
+    if (!m_paused) {
+        QNINFO("Wasn't paused; not doing anything on attempt to resume");
+        return;
+    }
+
+    m_paused = false;
+
+    if (m_remoteToLocalSyncWasActiveOnLastPause) {
+        m_remoteToLocalSyncManager.resume();
+    }
+    else {
+        m_sendLocalChangesManager.resume();
+    }
 }
 
 void SynchronizationManagerPrivate::onStopRequest()
@@ -814,6 +832,11 @@ void SynchronizationManagerPrivate::clear()
     m_writeLinkedNotebookAuthTokenJobsByGuid.clear();
 
     m_linkedNotebookGuidsWithoutLocalAuthData.clear();
+
+    m_shouldRepeatIncrementalSyncAfterSendingChanges = false;
+
+    m_paused = false;
+    m_remoteToLocalSyncWasActiveOnLastPause = false;
 }
 
 bool SynchronizationManagerPrivate::validAuthentication() const
@@ -892,6 +915,8 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
                                  this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
 
                 job->start();
+
+                ++it;
                 continue;
             }
         }
@@ -910,7 +935,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
                         linkedNotebookAuthTokenExpirationIt = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.insert(guid, expirationTime);
                     }
                     else {
-                        QNWARNING("Can't convert linked notebook's authentication token from QVariant retrieved from "
+                        QNWARNING("Can't convert linked notebook's authentication token's expiration time from QVariant retrieved from "
                                   "app settings into timestamp: linked notebook guid = " << guid << ", variant = "
                                   << expirationTimeVariant);
                     }
@@ -932,12 +957,14 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         if (m_authenticateToLinkedNotebooksPostponeTimerId >= 0) {
             QNDEBUG("Authenticate to linked notebook postpone timer is active, will wait to preserve the breach "
                     "of Evernote rate API limit");
+            ++it;
             continue;
         }
 
         if (m_authContext != AuthContext::Blank) {
             QNDEBUG("Authentication context variable is not set to blank which means that authentication must be in progress: "
                     << m_authContext << "; won't attempt to call remote Evernote API at this time");
+            ++it;
             continue;
         }
 
@@ -956,6 +983,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
                 authenticate(AuthContext::AuthToLinkedNotebooks);
             }
 
+            ++it;
             continue;
         }
         else if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
@@ -968,6 +996,8 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
             }
 
             m_authenticateToLinkedNotebooksPostponeTimerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+
+            ++it;
             continue;
         }
         else if (errorCode != 0)
@@ -987,7 +1017,6 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
 
     if (m_linkedNotebookGuidsAndShareKeysWaitingForAuth.empty()) {
         QNDEBUG("Retrieved authentication data for all requested linked notebooks, sending the answer now");
-        // TODO: ensure expiration timestamps are already fetched by this point
         emit sendAuthenticationTokensForLinkedNotebooks(m_cachedLinkedNotebookAuthTokensByGuid,
                                                         m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid);
     }

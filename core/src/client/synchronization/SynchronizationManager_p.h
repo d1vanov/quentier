@@ -179,6 +179,9 @@ private:
     QSet<QString>                           m_linkedNotebookGuidsWithoutLocalAuthData;
 
     bool                                    m_shouldRepeatIncrementalSyncAfterSendingChanges;
+
+    bool                                    m_paused;
+    bool                                    m_remoteToLocalSyncWasActiveOnLastPause;
 };
 
 } // namespace qute_note
