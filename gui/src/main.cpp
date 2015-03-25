@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
     app.setApplicationName("QuteNote");
 
     QUTE_NOTE_INITIALIZE_LOGGING();
+    QUTE_NOTE_SET_MIN_LOG_LEVEL(Trace);
 
     MainWindow w;
     w.show();
