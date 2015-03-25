@@ -345,6 +345,9 @@ private:
     void requestAuthenticationTokensForAllLinkedNotebooks();
     void requestAllLinkedNotebooks();
 
+    void getLinkedNotebookSyncState(const LinkedNotebook & linkedNotebook,
+                                    const QString & authToken, qevercloud::SyncState & syncState,
+                                    bool & asyncWait, bool & error);
     bool downloadLinkedNotebooksSyncChunks();
 
     void launchLinkedNotebooksTagsSync();
