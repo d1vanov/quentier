@@ -9,77 +9,85 @@
 #include <QApplication>
 #include <QStyle>
 #include <QStyleOption>
-#include <QCheckBox>
+#include <QtGlobal>
 
-void ToDoCheckboxTextObjectUnchecked::drawObject(QPainter * pPainter, const QRectF & /* rect */,
-                                                 QTextDocument * /* pDoc */, int /* positionInDocument */,
-                                                 const QTextFormat & /* format */)
+void drawCheckboxImpl(const QCheckBox & checkbox, const QRectF & rectF, const bool checked,
+                      QPainter * pPainter)
 {
+    if (Q_UNLIKELY(!pPainter)) {
+        QNWARNING("Detected null pointer to QPainter, can't render " << (checked ? "checked" : "unchecked") << " checkbox");
+        return;
+    }
+
     QStyle * pStyle = QApplication::style();
-    if (!pStyle) {
-        QNWARNING("Detected null pointer to QStyle from QApplication; can't render unchecked checkbox");
+    if (Q_UNLIKELY(!pStyle)) {
+        QNWARNING("Detected null pointer to QStyle from QApplication; can't render "
+                  << (checked ? "checked" : "unchecked") << " checkbox");
         return;
     }
 
     QStyleOptionButton styleOptionButton;
     styleOptionButton.state = QStyle::State_Enabled;
-    styleOptionButton.state |= QStyle::State_Off;
+    if (checked) {
+        styleOptionButton.state |= QStyle::State_On;
+    }
+    else {
+        styleOptionButton.state |= QStyle::State_Off;
+    }
+
+    QSize rectSize(static_cast<int>(rectF.width()), static_cast<int>(rectF.height()));
+
+    QPointF topLeftF = rectF.topLeft();
+    QPoint topLeft;
+    topLeft.setX(static_cast<int>(topLeftF.x()));
+    topLeft.setY(static_cast<int>(topLeftF.y()));
+
+    QRect rect(topLeft, rectSize);
+
+    QRect alignedRect = pStyle->alignedRect(Qt::LeftToRight, Qt::AlignLeft | Qt::AlignBottom, rectSize, rect);
+
+    styleOptionButton.rect = alignedRect;
+    styleOptionButton.icon = checkbox.icon();
 
     pStyle->drawControl(QStyle::CE_CheckBox, &styleOptionButton, pPainter);
 }
 
-QSizeF ToDoCheckboxTextObjectUnchecked::intrinsicSize(QTextDocument * /* pDoc */,
-                                                      int /* positionInDocument */,
-                                                      const QTextFormat & format)
+ToDoCheckboxTextObjectUnchecked::ToDoCheckboxTextObjectUnchecked() :
+    m_checkbox()
 {
-
-    QStyle * pStyle = QApplication::style();
-    if (!pStyle) {
-        QNWARNING("Detected null pointer to QStyle from QApplication; can't get intrinsic size for unchecked checkbox");
-        return QSizeF();
-    }
-
-    QStyleOption styleOptionButton;
-    styleOptionButton.state = QStyle::State_Enabled;
-    styleOptionButton.state |= QStyle::State_Off;
-
-    QCheckBox checkbox;
-    checkbox.setCheckState(Qt::Unchecked);
-
-    QSize sizeHint = checkbox.sizeHint();
-    QNTRACE("ToDoCheckboxTextObjectUnchecked::intrinsicSize: original size hint: height = "
-            << sizeHint.height() << ", width: " << sizeHint.width() << ", is valid = " << (sizeHint.isValid() ? "true" : "false"));
-
-    if (!sizeHint.isValid()) {
-        sizeHint.setHeight(25);
-        sizeHint.setWidth(25);
-    }
-
-    QSize sizeFromContents = pStyle->sizeFromContents(QStyle::CT_CheckBox, &styleOptionButton, sizeHint);
-    QNTRACE("Size from contents: height = " << sizeFromContents.height() << ", width = " << sizeFromContents.width()
-            << ", is valid = " << (sizeFromContents.isValid() ? "true" : "false"));
-
-    return QSizeF(sizeFromContents);
+    m_checkbox.setCheckState(Qt::Unchecked);
 }
 
-void ToDoCheckboxTextObjectChecked::drawObject(QPainter * pPainter, const QRectF & rect,
+void ToDoCheckboxTextObjectUnchecked::drawObject(QPainter * pPainter, const QRectF & rectF,
+                                                 QTextDocument * /* pDoc */, int /* positionInDocument */,
+                                                 const QTextFormat & /* format */)
+{
+    drawCheckboxImpl(m_checkbox, rectF, /* checked = */ false, pPainter);
+}
+
+QSizeF ToDoCheckboxTextObjectUnchecked::intrinsicSize(QTextDocument * /* pDoc */,
+                                                      int /* positionInDocument */,
+                                                      const QTextFormat & /* format */)
+{
+    return QSizeF(m_checkbox.iconSize());
+}
+
+ToDoCheckboxTextObjectChecked::ToDoCheckboxTextObjectChecked() :
+    m_checkbox()
+{
+    m_checkbox.setCheckState(Qt::Checked);
+}
+
+void ToDoCheckboxTextObjectChecked::drawObject(QPainter * pPainter, const QRectF & rectF,
                                                QTextDocument * /* pDoc */, int /* positionInDocument */,
                                                const QTextFormat & format)
 {
-    QImage bufferedImage = qvariant_cast<QImage>(format.property(QuteNoteTextEdit::TODO_CHKBOX_TXT_DATA_CHECKED));
-    pPainter->drawImage(rect, bufferedImage);
+    drawCheckboxImpl(m_checkbox, rectF, /* checked = */ true, pPainter);
 }
 
 QSizeF ToDoCheckboxTextObjectChecked::intrinsicSize(QTextDocument * /* pDoc */,
                                                     int /* positionInDocument */,
-                                                    const QTextFormat & format)
+                                                    const QTextFormat & /* format */)
 {
-    QImage bufferedImage = qvariant_cast<QImage>(format.property(QuteNoteTextEdit::TODO_CHKBOX_TXT_DATA_CHECKED));
-    QSize size = bufferedImage.size();
-
-    if (size.height() > 25) {
-        size *= 25.0 / static_cast<double>(size.height());
-    }
-
-    return QSizeF(size);
+    return QSizeF(m_checkbox.iconSize());
 }
