@@ -47,13 +47,10 @@ protected:
 private:
     void dropImage(const QUrl & url, const QImage & image);
     void insertToDoCheckbox(QTextCursor cursor, const bool checked);
-    const QImage & getCheckedTodoCheckboxImg() const;
-    const QImage & getUncheckedTodoCheckboxImg() const;
 
 private:
     mutable size_t    m_droppedImageCounter;
     qute_note::ENMLConverter  m_converter;
-    std::pair<QImage, QImage> m_todoCheckboxImgs;
 };
 
 #endif // __QUTE_NOTE__CORE__NOTE_EDITOR__QUTE_NOTE_TEXT_EDIT_H

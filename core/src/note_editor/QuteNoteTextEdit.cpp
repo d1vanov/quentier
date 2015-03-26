@@ -19,40 +19,8 @@ using namespace qevercloud;
 QuteNoteTextEdit::QuteNoteTextEdit(QWidget * parent) :
     QTextEdit(parent),
     m_droppedImageCounter(0),
-    m_converter(),
-    m_todoCheckboxImgs()
-{
-    QString checkboxUncheckedImgFileName(":/format_text_elements/checkbox_unchecked.gif");
-    QFile checkboxUncheckedImgFile(checkboxUncheckedImgFileName);
-    if (!checkboxUncheckedImgFile.exists()) {
-        QMessageBox::warning(this, tr("Error Opening File"),
-                             tr("Could not open '%1'").arg(checkboxUncheckedImgFileName));
-        return;
-    }
-
-    QImage checkboxUncheckedImg(checkboxUncheckedImgFileName);
-
-    QString checkboxCheckedImgFileName(":/format_text_elements/checkbox_checked.gif");
-    QFile checkboxCheckedImgFile(checkboxCheckedImgFileName);
-    if (!checkboxCheckedImgFile.exists()) {
-        QMessageBox::warning(this, tr("Error Opening File"),
-                             tr("Could not open '%1'").arg(checkboxCheckedImgFileName));
-        return;
-    }
-
-    QImage checkboxCheckedImg(checkboxCheckedImgFileName);
-
-    if (!checkboxUncheckedImg.isNull() && !checkboxCheckedImgFileName.isNull()) {
-        m_todoCheckboxImgs.first = checkboxUncheckedImg;
-        m_todoCheckboxImgs.second = checkboxCheckedImg;
-    }
-    else {
-        QMessageBox::warning(this, tr("Error Reading Image From File"),
-                             tr("Could not read at least one of todo "
-                                "checkbox images from resource file"));
-        return;
-    }
-}
+    m_converter()
+{}
 
 QuteNoteTextEdit::~QuteNoteTextEdit()
 {}
@@ -265,16 +233,7 @@ void QuteNoteTextEdit::mousePressEvent(QMouseEvent * pEvent)
     QTextCharFormat format = cursor.charFormat();
     if (format.objectType() == TODO_CHKBOX_TXT_FMT_UNCHECKED)
     {
-        QString checkboxCheckedImgFileName(":/format_text_elements/checkbox_checked.gif");
-        QFile checkboxCheckedImgFile(checkboxCheckedImgFileName);
-        if (!checkboxCheckedImgFile.exists()) {
-            QMessageBox::warning(this, tr("Error Opening File"),
-                                 tr("Could not open '%1'").arg(checkboxCheckedImgFileName));
-        }
-
-        QImage checkboxCheckedImg(checkboxCheckedImgFileName);
         format.setObjectType(TODO_CHKBOX_TXT_FMT_CHECKED);
-        format.setProperty(TODO_CHKBOX_TXT_DATA_CHECKED, checkboxCheckedImg);
 
         if (!cursor.hasSelection()) {
             cursor.select(QTextCursor::WordUnderCursor);
@@ -329,11 +288,9 @@ void QuteNoteTextEdit::insertToDoCheckbox(QTextCursor cursor, const bool checked
     QTextCharFormat todoCheckboxCharFormat;
     if (checked) {
         todoCheckboxCharFormat.setObjectType(TODO_CHKBOX_TXT_FMT_CHECKED);
-        todoCheckboxCharFormat.setProperty(TODO_CHKBOX_TXT_DATA_CHECKED, getCheckedTodoCheckboxImg());
     }
     else {
         todoCheckboxCharFormat.setObjectType(TODO_CHKBOX_TXT_FMT_UNCHECKED);
-        todoCheckboxCharFormat.setProperty(TODO_CHKBOX_TXT_DATA_UNCHECKED, getUncheckedTodoCheckboxImg());
     }
 
     cursor.beginEditBlock();
@@ -344,16 +301,6 @@ void QuteNoteTextEdit::insertToDoCheckbox(QTextCursor cursor, const bool checked
     cursor.endEditBlock();
 
     setTextCursor(cursor);
-}
-
-const QImage & QuteNoteTextEdit::getCheckedTodoCheckboxImg() const
-{
-    return m_todoCheckboxImgs.second;
-}
-
-const QImage & QuteNoteTextEdit::getUncheckedTodoCheckboxImg() const
-{
-    return m_todoCheckboxImgs.first;
 }
 
 void QuteNoteTextEdit::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
