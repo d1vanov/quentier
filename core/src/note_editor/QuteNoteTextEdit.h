@@ -8,6 +8,7 @@
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QImage)
+QT_FORWARD_DECLARE_CLASS(QTextTableFormat)
 
 class QUTE_NOTE_EXPORT QuteNoteTextEdit: public QTextEdit
 {
@@ -39,6 +40,9 @@ public:
     void insertCheckedToDoCheckboxAtCursor(QTextCursor cursor);
     void insertUncheckedToDoCheckboxAtCursor(QTextCursor cursor);
 
+    void insertFixedWidthTable(const int rows, const int columns, const int fixedWidth);
+    void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
+
 protected:
     virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void mousePressEvent(QMouseEvent * pEvent) Q_DECL_OVERRIDE;
@@ -47,6 +51,8 @@ protected:
 private:
     void dropImage(const QUrl & url, const QImage & image);
     void insertToDoCheckbox(QTextCursor cursor, const bool checked);
+    void insertTable(const int rows, const int columns, const bool fixedWidthFlag,
+                     const int fixedWidth, const double relativeWidth);
 
 private:
     mutable size_t    m_droppedImageCounter;

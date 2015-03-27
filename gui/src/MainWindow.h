@@ -72,6 +72,8 @@ private Q_SLOTS:
     void noteTextSpellCheck() { /* TODO: implement */ }
     void noteTextInsertToDoCheckBox();
 
+    void noteTextInsertTable();
+
     void noteHtmlContentToStdOut();
 
 private:

@@ -109,6 +109,7 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->ActionDecreaseIndentation, SIGNAL(triggered()), this, SLOT(noteTextDecreaseIndentation()));
     QObject::connect(m_pUI->ActionInsertBulletedList, SIGNAL(triggered()), this, SLOT(noteTextInsertUnorderedList()));
     QObject::connect(m_pUI->ActionInsertNumberedList, SIGNAL(triggered()), this, SLOT(noteTextInsertOrderedList()));
+    QObject::connect(m_pUI->ActionInsertTable, SIGNAL(triggered()), this, SLOT(noteTextInsertTable()));
     // Format buttons
     QObject::connect(m_pUI->formatJustifyLeftPushButton, SIGNAL(clicked()), this, SLOT(noteTextAlignLeft()));
     QObject::connect(m_pUI->formatJustifyCenterPushButton, SIGNAL(clicked()), this, SLOT(noteTextAlignCenter()));
@@ -499,6 +500,26 @@ void MainWindow::noteTextInsertToDoCheckBox()
 
     QTextCursor cursor = pNoteEditor->textCursor();
     pNoteEditor->insertUncheckedToDoCheckboxAtCursor(cursor);
+}
+
+void MainWindow::noteTextInsertTable()
+{
+    // TODO: show dialog window asking of the number of rows and columns
+    // for now, just hardcode to 4 rows and 4 columns
+
+    const int rows = 4;
+    const int columns = 4;
+    bool fixedWidthFlag = false;
+    int fixedWidth = 100;
+    double relativeWidth = 100.0;
+
+    GET_QUTE_NOTE_TEXT_EDIT();
+    if (fixedWidthFlag) {
+        pNoteEditor->insertFixedWidthTable(rows, columns, fixedWidth);
+    }
+    else {
+        pNoteEditor->insertRelativeWidthTable(rows, columns, relativeWidth);
+    }
 }
 
 void MainWindow::noteHtmlContentToStdOut()

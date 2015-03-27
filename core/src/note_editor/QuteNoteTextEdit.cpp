@@ -1,6 +1,7 @@
 #include "QuteNoteTextEdit.h"
 #include "ToDoCheckboxTextObject.h"
 #include <tools/QuteNoteCheckPtr.h>
+#include <logging/QuteNoteLogger.h>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QTextCursor>
@@ -331,4 +332,43 @@ void QuteNoteTextEdit::insertCheckedToDoCheckboxAtCursor(QTextCursor cursor)
 void QuteNoteTextEdit::insertUncheckedToDoCheckboxAtCursor(QTextCursor cursor)
 {
     insertToDoCheckbox(cursor, /* checked = */ false);
+}
+
+void QuteNoteTextEdit::insertFixedWidthTable(const int rows, const int columns, const int fixedWidth)
+{
+    insertTable(rows, columns, /* fixed width flag = */ true, fixedWidth, /* relative width = */ 0.0);
+}
+
+void QuteNoteTextEdit::insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth)
+{
+    insertTable(rows, columns, /* fixed width flag = */ false, /* fixed width = */ 0, relativeWidth);
+}
+
+void QuteNoteTextEdit::insertTable(const int rows, const int columns, const bool fixedWidthFlag,
+                                   const int fixedWidth, const double relativeWidth)
+{
+    QTextCursor cursor = textCursor();
+
+    QString htmlTable = "<table width=\"";
+    if (fixedWidthFlag) {
+        htmlTable += QString::number(fixedWidth);
+        htmlTable += "px\"";
+    }
+    else {
+        htmlTable += QString::number(static_cast<int>(relativeWidth));
+        htmlTable += "%\"";
+    }
+
+    htmlTable += " border=\"1\" cellspacing=\"1\" cellpadding=\"1\">\n";
+    for(int i = 0; i < rows - 1; ++i)
+    {
+        htmlTable += "  <tr>\n";
+        for(int j = 0; j < columns; ++j) {
+            htmlTable += "      <td></td>\n";
+        }
+        htmlTable += "  </tr>\n";
+    }
+
+    QNDEBUG("Inserting html table: " << htmlTable);
+    cursor.insertHtml(htmlTable);
 }
