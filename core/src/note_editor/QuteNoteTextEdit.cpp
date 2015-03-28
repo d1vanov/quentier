@@ -349,10 +349,12 @@ void QuteNoteTextEdit::insertTable(const int rows, const int columns, const bool
 {
     QTextCursor cursor = textCursor();
 
+    QString approxColumnWidth;
     QString htmlTable = "<table width=\"";
     if (fixedWidthFlag) {
         htmlTable += QString::number(fixedWidth);
         htmlTable += "px\"";
+        approxColumnWidth = QString::number(fixedWidth / std::max(columns, 0));
     }
     else {
         htmlTable += QString::number(static_cast<int>(relativeWidth));
@@ -360,14 +362,28 @@ void QuteNoteTextEdit::insertTable(const int rows, const int columns, const bool
     }
 
     htmlTable += " border=\"1\" cellspacing=\"1\" cellpadding=\"1\">\n";
-    for(int i = 0; i < rows - 1; ++i)
+    for(int i = 0; i < rows; ++i)
     {
         htmlTable += "  <tr>\n";
-        for(int j = 0; j < columns; ++j) {
-            htmlTable += "      <td></td>\n";
+
+        if (fixedWidthFlag)
+        {
+            for(int j = 0; j < columns; ++j) {
+                htmlTable += "      <td width=\"";
+                htmlTable += approxColumnWidth;
+                htmlTable += "\"></td>\n";
+            }
         }
+        else
+        {
+            for(int j = 0; j < columns; ++j) {
+                htmlTable += "      <td></td>\n";
+            }
+        }
+
         htmlTable += "  </tr>\n";
     }
+    htmlTable += "</table>";
 
     QNDEBUG("Inserting html table: " << htmlTable);
     cursor.insertHtml(htmlTable);

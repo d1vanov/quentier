@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
+#include "TableSettingsDialog.h"
 #include <note_editor/HorizontalLineExtraData.h>
 #include <note_editor/ToDoCheckboxTextObject.h>
 #include "EvernoteOAuthBrowser.h"
@@ -19,6 +20,7 @@
 #include <QTextList>
 #include <QColorDialog>
 #include <QFile>
+#include <QScopedPointer>
 #include <QMessageBox>
 #include <QtDebug>
 
@@ -504,22 +506,28 @@ void MainWindow::noteTextInsertToDoCheckBox()
 
 void MainWindow::noteTextInsertTable()
 {
-    // TODO: show dialog window asking of the number of rows and columns
-    // for now, just hardcode to 4 rows and 4 columns
+    QScopedPointer<TableSettingsDialog> tableSettingsDialogHolder(new TableSettingsDialog(this));
+    TableSettingsDialog * tableSettingsDialog = tableSettingsDialogHolder.data();
+    if (tableSettingsDialog->exec() == QDialog::Accepted)
+    {
+        QNTRACE("Returned from TableSettingsDialog::exec: accepted");
+        int numRows = tableSettingsDialog->numRows();
+        int numColumns = tableSettingsDialog->numColumns();
+        double tableWidth = tableSettingsDialog->tableWidth();
+        bool relativeWidth = tableSettingsDialog->relativeWidth();
 
-    const int rows = 4;
-    const int columns = 4;
-    bool fixedWidthFlag = false;
-    int fixedWidth = 100;
-    double relativeWidth = 100.0;
+        GET_QUTE_NOTE_TEXT_EDIT();
+        if (relativeWidth) {
+            pNoteEditor->insertRelativeWidthTable(numRows, numColumns, tableWidth);
+        }
+        else {
+            pNoteEditor->insertFixedWidthTable(numRows, numColumns, static_cast<int>(tableWidth));
+        }
 
-    GET_QUTE_NOTE_TEXT_EDIT();
-    if (fixedWidthFlag) {
-        pNoteEditor->insertFixedWidthTable(rows, columns, fixedWidth);
+        return;
     }
-    else {
-        pNoteEditor->insertRelativeWidthTable(rows, columns, relativeWidth);
-    }
+
+    QNTRACE("Returned from TableSettingsDialog::exec: rejected");
 }
 
 void MainWindow::noteHtmlContentToStdOut()

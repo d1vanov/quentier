@@ -73,7 +73,6 @@ private Q_SLOTS:
     void noteTextInsertToDoCheckBox();
 
     void noteTextInsertTable();
-
     void noteHtmlContentToStdOut();
 
 private:

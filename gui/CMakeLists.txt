@@ -14,7 +14,8 @@ set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
     src/AskConsumerKeyAndSecret.h
     src/AskUserNameAndPassword.h
-    src/EvernoteOAuthBrowser.h)
+    src/EvernoteOAuthBrowser.h
+    src/TableSettingsDialog.h)
 
 set(${PROJECT_NAME}_SOURCES
     client/CredentialsModel.cpp
@@ -23,12 +24,14 @@ set(${PROJECT_NAME}_SOURCES
     src/AskConsumerKeyAndSecret.cpp
     src/AskUserNameAndPassword.cpp
     src/EvernoteOAuthBrowser.cpp
+    src/TableSettingsDialog.cpp
     src/main.cpp)
 
 set(FORMS
     src/MainWindow.ui
     src/AskConsumerKeyAndSecret.ui
-    src/AskUserNameAndPassword.ui)
+    src/AskUserNameAndPassword.ui
+    src/TableSettingsDialog.ui)
 
 if(USE_QT5)
   qt5_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
