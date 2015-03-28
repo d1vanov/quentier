@@ -14,6 +14,7 @@ TableSettingsDialog::TableSettingsDialog(QWidget * parent) :
     QComboBox * pTableWidthModeComboBox = ui->tableWidthModeComboBox;
     pTableWidthModeComboBox->addItem(QObject::tr("pixels"));
     pTableWidthModeComboBox->addItem(QObject::tr("% of page width"));
+    pTableWidthModeComboBox->setCurrentIndex(1);
 
     QObject::connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(onOkButtonPressed()));
     QObject::connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(onCancelButtonPressed()));
@@ -52,7 +53,7 @@ void TableSettingsDialog::onOkButtonPressed()
     bool res = verifySettings(error);
     if (!res) {
         QNTRACE("Error: " << error);
-        ui->warningLine->setText(error);
+        ui->warningLine->setText(QString("<font color=red>") + error + QString("</font>"));
         ui->warningLine->setHidden(false);
         return;
     }
