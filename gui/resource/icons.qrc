@@ -15,5 +15,44 @@
         <file>label/tag.png</file>
         <file>format_text_elements/insert_table.png</file>
         <file>label/trash_can.png</file>
+        <file>fallback_icons/png/checkbox-2.png</file>
+        <file>fallback_icons/png/dialog-information-4.png</file>
+        <file>fallback_icons/png/document-new-6.png</file>
+        <file>fallback_icons/png/document-print-5.png</file>
+        <file>fallback_icons/png/document-save-5.png</file>
+        <file>fallback_icons/png/edit-copy-6.png</file>
+        <file>fallback_icons/png/edit-cut-6.png</file>
+        <file>fallback_icons/png/edit-delete-6.png</file>
+        <file>fallback_icons/png/edit-find-7.png</file>
+        <file>fallback_icons/png/edit-paste-6.png</file>
+        <file>fallback_icons/png/edit-redo-7.png</file>
+        <file>fallback_icons/png/edit-undo-7.png</file>
+        <file>fallback_icons/png/format-indent-less-5.png</file>
+        <file>fallback_icons/png/format-indent-more-5.png</file>
+        <file>fallback_icons/png/format-justify-center-5.png</file>
+        <file>fallback_icons/png/format-justify-fill-5.png</file>
+        <file>fallback_icons/png/format-justify-left-5.png</file>
+        <file>fallback_icons/png/format-justify-right-5.png</file>
+        <file>fallback_icons/png/format-list-ordered.png</file>
+        <file>fallback_icons/png/format-list-unordered.png</file>
+        <file>fallback_icons/png/format-text-bold-4.png</file>
+        <file>fallback_icons/png/format-text-color.png</file>
+        <file>fallback_icons/png/format-text-italic-4.png</file>
+        <file>fallback_icons/png/format-text-strikethrough-3.png</file>
+        <file>fallback_icons/png/format-text-underline-4.png</file>
+        <file>fallback_icons/png/go-bottom-6.png</file>
+        <file>fallback_icons/png/go-down-7.png</file>
+        <file>fallback_icons/png/go-next-7.png</file>
+        <file>fallback_icons/png/go-previous-7.png</file>
+        <file>fallback_icons/png/go-top-6.png</file>
+        <file>fallback_icons/png/go-up-7.png</file>
+        <file>fallback_icons/png/insert-horizontal-rule.png</file>
+        <file>fallback_icons/png/insert-image-3.png</file>
+        <file>fallback_icons/png/insert-link-2.png</file>
+        <file>fallback_icons/png/insert-table.png</file>
+        <file>fallback_icons/png/insert-text-3.png</file>
+        <file>fallback_icons/png/mail-forward-5.png</file>
+        <file>fallback_icons/png/preferences-other-3.png</file>
+        <file>fallback_icons/png/tools-check-spelling-5.png</file>
     </qresource>
 </RCC>
