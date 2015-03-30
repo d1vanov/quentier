@@ -1018,6 +1018,11 @@ background-color: rgb(205, 221, 229);
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="styleSheet">
+                 <string notr="true">QPushButton#deleteTagButton:hover {
+border: none
+}</string>
+                </property>
                 <property name="text">
                  <string notr="true"/>
                 </property>
@@ -1105,7 +1110,7 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1167</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
