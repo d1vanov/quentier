@@ -489,11 +489,6 @@ color: rgb(255, 255, 255);</string>
             <height>100</height>
            </size>
           </property>
-          <property name="styleSheet">
-           <string notr="true">#noteEditorHeaderWidget {
-border: none;
-}</string>
-          </property>
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
             <layout class="QVBoxLayout" name="noteEditorHeaderVerticalLayout">
@@ -558,6 +553,9 @@ border: none;
                <property name="shortcut">
                 <string>Ctrl+Z</string>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -576,6 +574,9 @@ border: none;
                <property name="shortcut">
                 <string>Ctrl+Y</string>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -590,6 +591,9 @@ border: none;
                </property>
                <property name="shortcut">
                 <string>Ctrl+X</string>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -606,6 +610,9 @@ border: none;
                <property name="shortcut">
                 <string>Ctrl+C</string>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -620,6 +627,9 @@ border: none;
                </property>
                <property name="shortcut">
                 <string>Ctrl+V</string>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -639,6 +649,9 @@ border: none;
                <property name="checkable">
                 <bool>false</bool>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -656,6 +669,9 @@ border: none;
                </property>
                <property name="checkable">
                 <bool>false</bool>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -675,6 +691,9 @@ border: none;
                <property name="checkable">
                 <bool>false</bool>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -693,6 +712,9 @@ border: none;
                <property name="checkable">
                 <bool>false</bool>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -704,6 +726,9 @@ border: none;
                 <iconset theme="format-justify-left">
                  <normaloff/>
                 </iconset>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -717,6 +742,9 @@ border: none;
                  <normaloff/>
                 </iconset>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -729,6 +757,9 @@ border: none;
                  <normaloff/>
                 </iconset>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -740,6 +771,9 @@ border: none;
                 <iconset theme="checkbox">
                  <normaloff/>
                 </iconset>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -832,6 +866,9 @@ border: none;
                  <normaloff/>
                 </iconset>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -850,6 +887,9 @@ border: none;
                  <normaloff/>
                 </iconset>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -861,6 +901,9 @@ border: none;
                 <iconset theme="insert-horizontal-rule">
                  <normaloff/>
                 </iconset>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -874,6 +917,9 @@ border: none;
                  <normaloff/>
                 </iconset>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -885,6 +931,9 @@ border: none;
                 <iconset theme="format-indent-more">
                  <normaloff/>
                 </iconset>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -898,6 +947,9 @@ border: none;
                  <normaloff/>
                 </iconset>
                </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -909,6 +961,9 @@ border: none;
                 <iconset theme="format-list-unordered">
                  <normaloff/>
                 </iconset>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -1020,7 +1075,7 @@ background-color: rgb(205, 221, 229);
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QPushButton#deleteTagButton:hover {
-border: none
+border: none;
 }</string>
                 </property>
                 <property name="text">
