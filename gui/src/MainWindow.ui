@@ -1294,6 +1294,9 @@ background-color: rgb(205, 221, 229);
      <property name="title">
       <string>Таблица</string>
      </property>
+     <property name="icon">
+      <iconset theme="insert-table"/>
+     </property>
      <addaction name="ActionInsertTable"/>
      <addaction name="ActionInsertRow"/>
      <addaction name="ActionInsertColumn"/>
@@ -1671,9 +1674,7 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionFindInsideNote">
    <property name="icon">
-    <iconset theme="system-search">
-     <normaloff/>
-    </iconset>
+    <iconset theme="edit-find"/>
    </property>
    <property name="text">
     <string>Найти внутри заметки</string>
@@ -1783,9 +1784,7 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionSettings">
    <property name="icon">
-    <iconset theme="emblem-system">
-     <normaloff/>
-    </iconset>
+    <iconset theme="preferences-other"/>
    </property>
    <property name="text">
     <string>Настройки</string>
@@ -2079,10 +2078,6 @@ stop: 1 #0EB7FF);
    </property>
   </action>
   <action name="ActionInsertTable">
-   <property name="icon">
-    <iconset resource="../resource/icons.qrc">
-     <normaloff>:/format_text_elements/insert_table.png</normaloff>:/format_text_elements/insert_table.png</iconset>
-   </property>
    <property name="text">
     <string>Вставить таблицу</string>
    </property>
