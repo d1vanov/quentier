@@ -86,6 +86,8 @@ private:
     enum EChangeColor { CHANGE_COLOR_ALL, CHANGE_COLOR_SELECTED };
     void changeTextColor(const EChangeColor changeColorOption);
 
+    void checkThemeIconsAndSetFallbacks();
+
 private:
     Ui::MainWindow * m_pUI;
     AskConsumerKeyAndSecret * m_pAskConsumerKeyAndSecretWidget;

@@ -14,6 +14,7 @@
 #include <note_editor/QuteNoteTextEdit.h>
 #include <cmath>
 #include <QPushButton>
+#include <QIcon>
 #include <QLabel>
 #include <QTextEdit>
 #include <QTextCursor>
@@ -40,6 +41,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pToDoChkboxTxtObjChecked(new ToDoCheckboxTextObjectChecked)
 {
     m_pUI->setupUi(this);
+    checkThemeIconsAndSetFallbacks();
 
     GET_QUTE_NOTE_TEXT_EDIT();
 
@@ -705,3 +707,219 @@ void MainWindow::changeTextColor(const MainWindow::EChangeColor changeColorOptio
         return;
     }
 }
+
+void MainWindow::checkThemeIconsAndSetFallbacks()
+{
+    QNTRACE("MainWindow::checkThemeIconsAndSetFallbacks");
+
+    if (!QIcon::hasThemeIcon("checkbox")) {
+        m_pUI->insertToDoCheckboxPushButton->setIcon(QIcon(":/fallback_icons/png/checkbox-2.png"));
+        QNTRACE("set fallback checkbox icon");
+    }
+
+    if (!QIcon::hasThemeIcon("dialog-information")) {
+        m_pUI->ActionShowNoteAttributesButton->setIcon(QIcon(":/fallback_icons/png/dialog-information-4.png"));
+        QNTRACE("set fallback dialog-information icon");
+    }
+
+    if (!QIcon::hasThemeIcon("document-new")) {
+        m_pUI->ActionNoteAdd->setIcon(QIcon(":/fallback_icons/png/document-new-6.png"));
+        QNTRACE("set fallback document-new icon");
+    }
+
+    if (!QIcon::hasThemeIcon("printer")) {
+        m_pUI->ActionPrint->setIcon(QIcon(":/fallback_icons/png/document-print-5.png"));
+        QNTRACE("set fallback printer icon");
+    }
+
+    if (!QIcon::hasThemeIcon("document-save")) {
+        m_pUI->saveSearchPushButton->setIcon(QIcon(":/fallback_icons/png/document-save-5.png"));
+        QNTRACE("set fallback document-save icon");
+    }
+
+    if (!QIcon::hasThemeIcon("edit-copy")) {
+        QIcon editCopyIcon(":/fallback_icons/png/edit-copy-6.png");
+        m_pUI->copyPushButton->setIcon(editCopyIcon);
+        m_pUI->ActionCopy->setIcon(editCopyIcon);
+        QNTRACE("set fallback edit-copy icon");
+    }
+
+    if (!QIcon::hasThemeIcon("edit-cut")) {
+        QIcon editCutIcon(":/fallback_icons/png/edit-cut-6.png");
+        m_pUI->cutPushButton->setIcon(editCutIcon);
+        m_pUI->ActionCut->setIcon(editCutIcon);
+        QNTRACE("set fallback edit-cut icon");
+    }
+
+    if (!QIcon::hasThemeIcon("edit-delete")) {
+        QIcon editDeleteIcon(":/fallback_icons/png/edit-delete-6.png");
+        m_pUI->ActionNoteDelete->setIcon(editDeleteIcon);
+        m_pUI->deleteTagButton->setIcon(editDeleteIcon);
+        QNTRACE("set fallback edit-delete icon");
+    }
+
+    if (!QIcon::hasThemeIcon("edit-find")) {
+        m_pUI->ActionFindInsideNote->setIcon(QIcon(":/fallback_icons/png/edit-find-7.png"));
+        QNTRACE("set fallback edit-find icon");
+    }
+
+    if (!QIcon::hasThemeIcon("edit-paste")) {
+        QIcon editPasteIcon(":/fallback_icons/png/edit-paste-6.png");
+        m_pUI->pastePushButton->setIcon(editPasteIcon);
+        m_pUI->ActionInsert->setIcon(editPasteIcon);
+        QNTRACE("set fallback edit-paste icon");
+    }
+
+    if (!QIcon::hasThemeIcon("edit-redo")) {
+        QIcon editRedoIcon(":/fallback_icons/png/edit-redo-7.png");
+        m_pUI->redoPushButton->setIcon(editRedoIcon);
+        m_pUI->ActionRedo->setIcon(editRedoIcon);
+        QNTRACE("set fallback edit-redo icon");
+    }
+
+    if (!QIcon::hasThemeIcon("edit-undo")) {
+        QIcon editUndoIcon(":/fallback_icons/png/edit-undo-7.png");
+        m_pUI->undoPushButton->setIcon(editUndoIcon);
+        m_pUI->ActionUndo->setIcon(editUndoIcon);
+        QNTRACE("set fallback edit-undo icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-indent-less")) {
+        QIcon formatIndentLessIcon(":/fallback_icons/png/format-indent-less-5.png");
+        m_pUI->formatIndentLessPushButton->setIcon(formatIndentLessIcon);
+        m_pUI->ActionDecreaseIndentation->setIcon(formatIndentLessIcon);
+        QNTRACE("set fallback format-indent-less icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-indent-more")) {
+        QIcon formatIndentMoreIcon(":/fallback_icons/png/format-indent-more-5.png");
+        m_pUI->formatIndentMorePushButton->setIcon(formatIndentMoreIcon);
+        m_pUI->ActionIncreaseIndentation->setIcon(formatIndentMoreIcon);
+        QNTRACE("set fallback format-indent-more icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-justify-center")) {
+        QIcon formatJustifyCenterIcon(":/fallback_icons/png/format-justify-center-5.png");
+        m_pUI->formatJustifyCenterPushButton->setIcon(formatJustifyCenterIcon);
+        m_pUI->ActionAlignCenter->setIcon(formatJustifyCenterIcon);
+        QNTRACE("set fallback format-justify-center icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-justify-left")) {
+        QIcon formatJustifyLeftIcon(":/fallback_icons/png/format-justify-left-5.png");
+        m_pUI->formatJustifyLeftPushButton->setIcon(formatJustifyLeftIcon);
+        m_pUI->ActionAlignLeft->setIcon(formatJustifyLeftIcon);
+        QNTRACE("set fallback format-justify-left icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-justify-right")) {
+        QIcon formatJustifyRightIcon(":/fallback_icons/png/format-justify-right-5.png");
+        m_pUI->formatJustifyRightPushButton->setIcon(formatJustifyRightIcon);
+        m_pUI->ActionAlignRight->setIcon(formatJustifyRightIcon);
+        QNTRACE("set fallback format-justify-right icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-list-ordered")) {
+        QIcon formatListOrderedIcon(":/fallback_icons/png/format-list-ordered.png");
+        m_pUI->formatListOrderedPushButton->setIcon(formatListOrderedIcon);
+        m_pUI->ActionInsertNumberedList->setIcon(formatListOrderedIcon);
+        QNTRACE("set fallback format-list-ordered icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-list-unordered")) {
+        QIcon formatListUnorderedIcon(":/fallback_icons/png/format-list-unordered.png");
+        m_pUI->formatListUnorderedPushButton->setIcon(formatListUnorderedIcon);
+        m_pUI->ActionInsertBulletedList->setIcon(formatListUnorderedIcon);
+        QNTRACE("set fallback format-list-unordered icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-text-bold")) {
+        QIcon formatTextBoldIcon(":/fallback_icons/png/format-text-bold-4.png");
+        m_pUI->fontBoldPushButton->setIcon(formatTextBoldIcon);
+        m_pUI->ActionFontBold->setIcon(formatTextBoldIcon);
+        QNTRACE("set fallback format-text-bold icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-text-color")) {
+        QIcon formatTextColorIcon(":/fallback_icons/png/format-text-color.png");
+        m_pUI->chooseTextColorPushButton->setIcon(formatTextColorIcon);
+        QNTRACE("set fallback format-text-color icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-text-italic")) {
+        QIcon formatTextItalicIcon(":/fallback_icons/png/format-text-italic-4.png");
+        m_pUI->fontItalicPushButton->setIcon(formatTextItalicIcon);
+        m_pUI->ActionFontItalic->setIcon(formatTextItalicIcon);
+        QNTRACE("set fallback format-text-italic icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-text-strikethrough")) {
+        QIcon formatTextStrikethroughIcon(":/fallback_icons/png/format-text-strikethrough-3.png");
+        m_pUI->fontStrikethroughPushButton->setIcon(formatTextStrikethroughIcon);
+        m_pUI->ActionFontStrikeout->setIcon(formatTextStrikethroughIcon);
+        QNTRACE("set fallback format-text-strikethrough icon");
+    }
+
+    if (!QIcon::hasThemeIcon("format-text-underline")) {
+        QIcon formatTextUnderlineIcon(":/fallback_icons/png/format-text-underline-4.png");
+        m_pUI->fontUnderlinePushButton->setIcon(formatTextUnderlineIcon);
+        m_pUI->ActionFontUnderlined->setIcon(formatTextUnderlineIcon);
+        QNTRACE("set fallback format-text-underline icon");
+    }
+
+    if (!QIcon::hasThemeIcon("go-down")) {
+        QIcon goDownIcon(":/fallback_icons/png/go-down-7.png");
+        m_pUI->ActionGoDown->setIcon(goDownIcon);
+        QNTRACE("set fallback go-down icon");
+    }
+
+    if (!QIcon::hasThemeIcon("go-up")) {
+        QIcon goUpIcon(":/fallback_icons/png/go-up-7.png");
+        m_pUI->ActionGoUp->setIcon(goUpIcon);
+        QNTRACE("set fallback go-up icon");
+    }
+
+    if (!QIcon::hasThemeIcon("go-previous")) {
+        QIcon goPreviousIcon(":/fallback_icons/png/go-previous-7.png");
+        m_pUI->ActionGoPrevious->setIcon(goPreviousIcon);
+        QNTRACE("set fallback go-previous icon");
+    }
+
+    if (!QIcon::hasThemeIcon("go-next")) {
+        QIcon goNextIcon(":/fallback_icons/png/go-next-7.png");
+        m_pUI->ActionGoNext->setIcon(goNextIcon);
+        QNTRACE("set fallback go-next icon");
+    }
+
+    if (!QIcon::hasThemeIcon("insert-horizontal-rule")) {
+        QIcon insertHorizontalRuleIcon(":/fallback_icons/png/insert-horizontal-rule.png");
+        m_pUI->insertHorizontalLinePushButton->setIcon(insertHorizontalRuleIcon);
+        m_pUI->ActionInsertHorizontalLine->setIcon(insertHorizontalRuleIcon);
+        QNTRACE("set fallback insert-horizontal-rule icon");
+    }
+
+    if (!QIcon::hasThemeIcon("insert-table")) {
+        QIcon insertTableIcon(":/fallback_icons/png/insert-table.png");
+        m_pUI->ActionInsertTable->setIcon(insertTableIcon);
+        QNTRACE("set fallback insert-table icon");
+    }
+
+    if (!QIcon::hasThemeIcon("mail-send")) {
+        QIcon mailSendIcon(":/fallback_icons/png/mail-forward-5.png");
+        m_pUI->ActionSendMail->setIcon(mailSendIcon);
+        QNTRACE("set fallback mail-send icon");
+    }
+
+    if (!QIcon::hasThemeIcon("preferences-other")) {
+        QIcon preferencesOtherIcon(":/fallback_icons/png/preferences-other-3.png");
+        m_pUI->ActionSettings->setIcon(preferencesOtherIcon);
+        QNTRACE("set fallback preferences-other icon");
+    }
+
+    if (!QIcon::hasThemeIcon("tools-check-spelling")) {
+        QIcon spellcheckIcon(":/fallback_icons/png/tools-check-spelling-5.png");
+        m_pUI->spellCheckBox->setIcon(spellcheckIcon);
+        QNTRACE("set fallback tools-check-spelling icon");
+    }
+}
+
