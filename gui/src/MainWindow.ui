@@ -1038,7 +1038,16 @@ background-color: rgb(205, 221, 229);
               <property name="spacing">
                <number>0</number>
               </property>
-              <property name="margin">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
                <number>0</number>
               </property>
               <item>
@@ -1082,14 +1091,12 @@ border: none;
                  <string notr="true"/>
                 </property>
                 <property name="icon">
-                 <iconset theme="edit-delete">
-                  <normaloff/>
-                 </iconset>
+                 <iconset theme="edit-delete"/>
                 </property>
                 <property name="iconSize">
                  <size>
-                  <width>6</width>
-                  <height>6</height>
+                  <width>12</width>
+                  <height>12</height>
                  </size>
                 </property>
                 <property name="flat">
@@ -1165,7 +1172,7 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1167</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1295,7 +1302,9 @@ background-color: rgb(205, 221, 229);
       <string>Таблица</string>
      </property>
      <property name="icon">
-      <iconset theme="insert-table"/>
+      <iconset theme="insert-table">
+       <normaloff/>
+      </iconset>
      </property>
      <addaction name="ActionInsertTable"/>
      <addaction name="ActionInsertRow"/>
@@ -1674,7 +1683,9 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionFindInsideNote">
    <property name="icon">
-    <iconset theme="edit-find"/>
+    <iconset theme="edit-find">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Найти внутри заметки</string>
@@ -1784,7 +1795,9 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionSettings">
    <property name="icon">
-    <iconset theme="preferences-other"/>
+    <iconset theme="preferences-other">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Настройки</string>
