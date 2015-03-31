@@ -1083,7 +1083,7 @@ void SendLocalChangesManager::requestStuffFromLocalStorage(const QString & linke
 
     if (emptyLinkedNotebookGuid)
     {
-        LocalStorageManager::ListObjectsOptions linkedNotebooksListOption = LocalStorageManager::ListObjectsOption::ListAll;
+        LocalStorageManager::ListObjectsOptions linkedNotebooksListOption = LocalStorageManager::ListAll;
         LocalStorageManager::ListLinkedNotebooksOrder::type linkedNotebooksOrder = LocalStorageManager::ListLinkedNotebooksOrder::NoOrder;
         m_listLinkedNotebooksRequestId = QUuid::createUuid();
         emit requestLinkedNotebooksList(linkedNotebooksListOption, limit, offset, linkedNotebooksOrder, orderDirection, m_listLinkedNotebooksRequestId);
