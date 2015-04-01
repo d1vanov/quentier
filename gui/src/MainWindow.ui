@@ -1175,82 +1175,15 @@ background-color: rgb(205, 221, 229);
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <widget class="QMenu" name="menuNotebook">
-     <property name="locale">
-      <locale language="English" country="UnitedStates"/>
-     </property>
-     <property name="title">
-      <string>Notebook</string>
-     </property>
-     <property name="icon">
-      <iconset theme="folder">
-       <normaloff/>
-      </iconset>
-     </property>
-     <addaction name="ActionNotebookAdd"/>
-     <addaction name="ActionNotebookProperties"/>
-     <addaction name="ActionNotebookDelete"/>
-     <addaction name="separator"/>
-     <addaction name="ActionNotebookSetStack"/>
-     <addaction name="ActionNotebookOpenClose"/>
-    </widget>
-    <widget class="QMenu" name="menuLabel">
-     <property name="title">
-      <string>Tag</string>
-     </property>
-     <property name="icon">
-      <iconset resource="../resource/icons.qrc">
-       <normaloff>:/label/tag.png</normaloff>:/label/tag.png</iconset>
-     </property>
-     <addaction name="ActionLabelAdd"/>
-     <addaction name="ActionLabelProperties"/>
-     <addaction name="ActionLabelDelete"/>
-     <addaction name="separator"/>
-    </widget>
-    <widget class="QMenu" name="menuNote">
-     <property name="title">
-      <string>Note</string>
-     </property>
-     <property name="icon">
-      <iconset theme="x-office-document">
-       <normaloff/>
-      </iconset>
-     </property>
-     <addaction name="ActionNoteAdd"/>
-     <addaction name="ActionNoteDelete"/>
-     <addaction name="ActionNoteReindex"/>
-     <addaction name="separator"/>
-     <addaction name="ActionNoteSetLabels"/>
-     <addaction name="separator"/>
-     <addaction name="ActionNoteHistory"/>
-     <addaction name="ActionNoteCopy"/>
-     <addaction name="ActionNoteUnite"/>
-    </widget>
-    <widget class="QMenu" name="menuSavedSearch">
-     <property name="locale">
-      <locale language="English" country="UnitedStates"/>
-     </property>
-     <property name="title">
-      <string>Saved search</string>
-     </property>
-     <addaction name="ActionSavedSearchAdd"/>
-     <addaction name="ActionSavedSearchProperties"/>
-     <addaction name="ActionSavedSearchDelete"/>
-    </widget>
-    <addaction name="menuNote"/>
-    <addaction name="menuNotebook"/>
-    <addaction name="menuLabel"/>
-    <addaction name="menuSavedSearch"/>
+    <addaction name="ActionNewNote"/>
+    <addaction name="ActionNewNotebook"/>
+    <addaction name="ActionNewTag"/>
+    <addaction name="ActionNewSavedSearch"/>
     <addaction name="separator"/>
-    <addaction name="ActionSendMail"/>
     <addaction name="ActionPrint"/>
     <addaction name="separator"/>
-    <addaction name="ActionImportNotes"/>
-    <addaction name="ActionExportChosenNotes"/>
     <addaction name="ActionBackupCopy"/>
     <addaction name="ActionRestoreDatabase"/>
-    <addaction name="separator"/>
-    <addaction name="ActionSelectiveSync"/>
     <addaction name="separator"/>
     <addaction name="ActionClenup"/>
     <addaction name="ActionExit"/>
@@ -2447,6 +2380,45 @@ stop: 1 #0EB7FF);
   <action name="actionViewCurrentNoteHtmlInStdOut">
    <property name="text">
     <string>Current note html</string>
+   </property>
+  </action>
+  <action name="ActionNewNote">
+   <property name="icon">
+    <iconset theme="document-new"/>
+   </property>
+   <property name="text">
+    <string>New note</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionNewNotebook">
+   <property name="icon">
+    <iconset theme="folder-new"/>
+   </property>
+   <property name="text">
+    <string>New notebook</string>
+   </property>
+  </action>
+  <action name="ActionNewTag">
+   <property name="icon">
+    <iconset resource="../resource/icons.qrc">
+     <normaloff>:/label/tag.png</normaloff>:/label/tag.png</iconset>
+   </property>
+   <property name="text">
+    <string>New tag</string>
+   </property>
+  </action>
+  <action name="ActionNewSavedSearch">
+   <property name="icon">
+    <iconset theme="edit-find"/>
+   </property>
+   <property name="text">
+    <string>New saved search</string>
    </property>
   </action>
  </widget>
