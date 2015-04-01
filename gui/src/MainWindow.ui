@@ -1038,16 +1038,7 @@ background-color: rgb(205, 221, 229);
               <property name="spacing">
                <number>0</number>
               </property>
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
+              <property name="margin">
                <number>0</number>
               </property>
               <item>
@@ -1091,7 +1082,9 @@ border: none;
                  <string notr="true"/>
                 </property>
                 <property name="icon">
-                 <iconset theme="edit-delete"/>
+                 <iconset theme="edit-delete">
+                  <normaloff/>
+                 </iconset>
                 </property>
                 <property name="iconSize">
                  <size>
@@ -1172,32 +1165,38 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1167</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>&amp;Файл</string>
+    <property name="locale">
+     <locale language="English" country="UnitedStates"/>
     </property>
-    <widget class="QMenu" name="menuNotepad">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <widget class="QMenu" name="menuNotebook">
+     <property name="locale">
+      <locale language="English" country="UnitedStates"/>
+     </property>
      <property name="title">
-      <string>Блокнот</string>
+      <string>Notebook</string>
      </property>
      <property name="icon">
       <iconset theme="folder">
        <normaloff/>
       </iconset>
      </property>
-     <addaction name="ActionNotepadAdd"/>
-     <addaction name="ActionNotepadProperties"/>
-     <addaction name="ActionNotepadDelete"/>
+     <addaction name="ActionNotebookAdd"/>
+     <addaction name="ActionNotebookProperties"/>
+     <addaction name="ActionNotebookDelete"/>
      <addaction name="separator"/>
-     <addaction name="ActionNotepadSetStack"/>
-     <addaction name="ActionNotepadOpenClose"/>
+     <addaction name="ActionNotebookSetStack"/>
+     <addaction name="ActionNotebookOpenClose"/>
     </widget>
     <widget class="QMenu" name="menuLabel">
      <property name="title">
-      <string>Метка</string>
+      <string>Tag</string>
      </property>
      <property name="icon">
       <iconset resource="../resource/icons.qrc">
@@ -1208,17 +1207,9 @@ background-color: rgb(205, 221, 229);
      <addaction name="ActionLabelDelete"/>
      <addaction name="separator"/>
     </widget>
-    <widget class="QMenu" name="menuRequest">
-     <property name="title">
-      <string>Запрос</string>
-     </property>
-     <addaction name="ActionRequestAdd"/>
-     <addaction name="ActionRequestProperties"/>
-     <addaction name="ActionRequestDelete"/>
-    </widget>
     <widget class="QMenu" name="menuNote">
      <property name="title">
-      <string>Заметка</string>
+      <string>Note</string>
      </property>
      <property name="icon">
       <iconset theme="x-office-document">
@@ -1235,10 +1226,21 @@ background-color: rgb(205, 221, 229);
      <addaction name="ActionNoteCopy"/>
      <addaction name="ActionNoteUnite"/>
     </widget>
+    <widget class="QMenu" name="menuSavedSearch">
+     <property name="locale">
+      <locale language="English" country="UnitedStates"/>
+     </property>
+     <property name="title">
+      <string>Saved search</string>
+     </property>
+     <addaction name="ActionSavedSearchAdd"/>
+     <addaction name="ActionSavedSearchProperties"/>
+     <addaction name="ActionSavedSearchDelete"/>
+    </widget>
     <addaction name="menuNote"/>
-    <addaction name="menuNotepad"/>
+    <addaction name="menuNotebook"/>
     <addaction name="menuLabel"/>
-    <addaction name="menuRequest"/>
+    <addaction name="menuSavedSearch"/>
     <addaction name="separator"/>
     <addaction name="ActionSendMail"/>
     <addaction name="ActionPrint"/>
@@ -1255,7 +1257,7 @@ background-color: rgb(205, 221, 229);
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
-     <string>&amp;Правка</string>
+     <string>&amp;Edit</string>
     </property>
     <addaction name="ActionFindInsideNote"/>
     <addaction name="separator"/>
@@ -1271,7 +1273,7 @@ background-color: rgb(205, 221, 229);
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>&amp;Вид</string>
+     <string>&amp;View</string>
     </property>
     <addaction name="ActionShowNoteInfo"/>
     <addaction name="ActionShowSource"/>
@@ -1295,11 +1297,11 @@ background-color: rgb(205, 221, 229);
    </widget>
    <widget class="QMenu" name="menuFormat">
     <property name="title">
-     <string>Ф&amp;ормат</string>
+     <string>F&amp;ormat</string>
     </property>
     <widget class="QMenu" name="menuTable">
      <property name="title">
-      <string>Таблица</string>
+      <string>Table</string>
      </property>
      <property name="icon">
       <iconset theme="insert-table">
@@ -1312,9 +1314,40 @@ background-color: rgb(205, 221, 229);
      <addaction name="ActionRemoveRow"/>
      <addaction name="ActionRemoveColumn"/>
     </widget>
+    <widget class="QMenu" name="menuIndentation">
+     <property name="locale">
+      <locale language="English" country="UnitedStates"/>
+     </property>
+     <property name="title">
+      <string>Indentation</string>
+     </property>
+     <addaction name="ActionIncreaseIndentation"/>
+     <addaction name="ActionDecreaseIndentation"/>
+    </widget>
+    <widget class="QMenu" name="menuList">
+     <property name="locale">
+      <locale language="English" country="UnitedStates"/>
+     </property>
+     <property name="title">
+      <string>Insert list</string>
+     </property>
+     <addaction name="ActionInsertBulletedList"/>
+     <addaction name="ActionInsertNumberedList"/>
+    </widget>
+    <widget class="QMenu" name="menuAlign">
+     <property name="locale">
+      <locale language="English" country="UnitedStates"/>
+     </property>
+     <property name="title">
+      <string>Align</string>
+     </property>
+     <addaction name="ActionAlignLeft"/>
+     <addaction name="ActionAlignCenter"/>
+     <addaction name="ActionAlignRight"/>
+    </widget>
     <widget class="QMenu" name="menuImage">
      <property name="title">
-      <string>Изображение</string>
+      <string>Image</string>
      </property>
      <property name="icon">
       <iconset theme="image-x-generic">
@@ -1324,28 +1357,6 @@ background-color: rgb(205, 221, 229);
      <addaction name="ActionSaveImage"/>
      <addaction name="ActionRotateClockwise"/>
      <addaction name="ActionRotateCounterClockwise"/>
-    </widget>
-    <widget class="QMenu" name="menuIndentation">
-     <property name="title">
-      <string>Отступ</string>
-     </property>
-     <addaction name="ActionIncreaseIndentation"/>
-     <addaction name="ActionDecreaseIndentation"/>
-    </widget>
-    <widget class="QMenu" name="menuList">
-     <property name="title">
-      <string>Вставить список</string>
-     </property>
-     <addaction name="ActionInsertBulletedList"/>
-     <addaction name="ActionInsertNumberedList"/>
-    </widget>
-    <widget class="QMenu" name="menuAlign">
-     <property name="title">
-      <string>Выровнять</string>
-     </property>
-     <addaction name="ActionAlignLeft"/>
-     <addaction name="ActionAlignCenter"/>
-     <addaction name="ActionAlignRight"/>
     </widget>
     <addaction name="ActionFontBold"/>
     <addaction name="ActionFontUnderlined"/>
@@ -1366,7 +1377,7 @@ background-color: rgb(205, 221, 229);
    </widget>
    <widget class="QMenu" name="menuService">
     <property name="title">
-     <string>С&amp;ервис</string>
+     <string>S&amp;ervice</string>
     </property>
     <addaction name="ActionSync"/>
     <addaction name="ActionConnect"/>
@@ -1383,7 +1394,7 @@ background-color: rgb(205, 221, 229);
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>&amp;Справка</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="ActionReleaseComments"/>
     <addaction name="ActionCheckForUpdates"/>
@@ -1391,7 +1402,7 @@ background-color: rgb(205, 221, 229);
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
-     <string>&amp;Дебаг</string>
+     <string>&amp;Debug</string>
     </property>
     <addaction name="actionViewCurrentNoteHtmlInStdOut"/>
    </widget>
@@ -1459,7 +1470,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Добавить</string>
+    <string>New</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -1475,22 +1486,22 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Удалить</string>
+    <string>Delete</string>
    </property>
   </action>
   <action name="ActionNoteReindex">
    <property name="text">
-    <string>Переиндексировать</string>
+    <string>Reindex</string>
    </property>
   </action>
   <action name="ActionNoteSetLabels">
    <property name="text">
-    <string>Присвоить метки</string>
+    <string>Set note tags</string>
    </property>
   </action>
   <action name="ActionNoteHistory">
    <property name="text">
-    <string>История заметки</string>
+    <string>Note history</string>
    </property>
   </action>
   <action name="ActionNoteCopy">
@@ -1500,52 +1511,52 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Копировать</string>
+    <string>Copy note</string>
    </property>
   </action>
   <action name="ActionNoteUnite">
    <property name="text">
-    <string>Объединить заметки</string>
+    <string>Merge notes</string>
    </property>
   </action>
-  <action name="ActionNotepadAdd">
+  <action name="ActionNotebookAdd">
    <property name="icon">
     <iconset theme="folder-new">
      <normaloff/>
     </iconset>
    </property>
    <property name="text">
-    <string>Добавить</string>
+    <string>New</string>
    </property>
   </action>
-  <action name="ActionNotepadProperties">
+  <action name="ActionNotebookProperties">
    <property name="text">
-    <string>Свойства</string>
+    <string>Properties</string>
    </property>
   </action>
-  <action name="ActionNotepadDelete">
+  <action name="ActionNotebookDelete">
    <property name="icon">
     <iconset theme="edit-delete">
      <normaloff/>
     </iconset>
    </property>
    <property name="text">
-    <string>Удалить</string>
+    <string>Delete</string>
    </property>
   </action>
-  <action name="ActionNotepadSetStack">
+  <action name="ActionNotebookSetStack">
    <property name="icon">
     <iconset theme="list-add">
      <normaloff/>
     </iconset>
    </property>
    <property name="text">
-    <string>Добавить в набор</string>
+    <string>Add to stack</string>
    </property>
   </action>
-  <action name="ActionNotepadOpenClose">
+  <action name="ActionNotebookOpenClose">
    <property name="text">
-    <string>Открыть/закрыть блокноты</string>
+    <string>Open/close</string>
    </property>
   </action>
   <action name="ActionNotepadChangeIcon">
@@ -1555,17 +1566,17 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionLabelAdd">
    <property name="text">
-    <string>Добавить</string>
+    <string>New</string>
    </property>
   </action>
   <action name="ActionLabelProperties">
    <property name="text">
-    <string>Свойства</string>
+    <string>Properties</string>
    </property>
   </action>
   <action name="ActionLabelDelete">
    <property name="text">
-    <string>Удалить</string>
+    <string>Delete</string>
    </property>
   </action>
   <action name="ActionLabelUnite">
@@ -1578,19 +1589,19 @@ stop: 1 #0EB7FF);
     <string>Изменить лого</string>
    </property>
   </action>
-  <action name="ActionRequestAdd">
+  <action name="ActionSavedSearchAdd">
    <property name="text">
-    <string>Добавить</string>
+    <string>New</string>
    </property>
   </action>
-  <action name="ActionRequestProperties">
+  <action name="ActionSavedSearchProperties">
    <property name="text">
-    <string>Свойства</string>
+    <string>Properties</string>
    </property>
   </action>
-  <action name="ActionRequestDelete">
+  <action name="ActionSavedSearchDelete">
    <property name="text">
-    <string>Удалить</string>
+    <string>Delete</string>
    </property>
   </action>
   <action name="ActionRequestChangeIcon">
@@ -1605,7 +1616,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Отправить по почте</string>
+    <string>Send by e-mail</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+E</string>
@@ -1621,7 +1632,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Печать</string>
+    <string>Print</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
@@ -1632,27 +1643,27 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionImportNotes">
    <property name="text">
-    <string>Импорт заметок</string>
+    <string>Import notes</string>
    </property>
   </action>
   <action name="ActionExportChosenNotes">
    <property name="text">
-    <string>Экспорт выделенных заметок</string>
+    <string>Export selected notes</string>
    </property>
   </action>
   <action name="ActionBackupCopy">
    <property name="text">
-    <string>Резервное копирование базы данных</string>
+    <string>Backup database</string>
    </property>
   </action>
   <action name="ActionRestoreDatabase">
    <property name="text">
-    <string>Восстановление базы данных</string>
+    <string>Restore database</string>
    </property>
   </action>
   <action name="ActionSelectiveSync">
    <property name="text">
-    <string>Выборочная синхронизация</string>
+    <string>Selective synchronization</string>
    </property>
   </action>
   <action name="ActionClenup">
@@ -1662,7 +1673,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Очистить корзину</string>
+    <string>Clear trash</string>
    </property>
   </action>
   <action name="ActionExit">
@@ -1672,7 +1683,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Выход</string>
+    <string>Exit</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -1688,7 +1699,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Найти внутри заметки</string>
+    <string>Find in note</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+F</string>
@@ -1704,7 +1715,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Отменить</string>
+    <string>Undo</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
@@ -1720,7 +1731,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Вернуть</string>
+    <string>Undo</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Z</string>
@@ -1736,7 +1747,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Вырезать</string>
+    <string>Cut</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
@@ -1752,7 +1763,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Копировать</string>
+    <string>Copy</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
@@ -1768,7 +1779,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Вставить</string>
+    <string>Insert</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
@@ -1784,7 +1795,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Вставить как текст</string>
+    <string>Insert as text</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+P</string>
@@ -1800,7 +1811,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Настройки</string>
+    <string>Settings</string>
    </property>
   </action>
   <action name="ActionShowNoteInfo">
@@ -1811,7 +1822,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать информацию о заметке</string>
+    <string>Show note information</string>
    </property>
    <property name="shortcut">
     <string>F8</string>
@@ -1825,7 +1836,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать источник</string>
+    <string>Show source</string>
    </property>
   </action>
   <action name="ActionWideListView">
@@ -1836,7 +1847,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Расширенный вид</string>
+    <string>Wide list view</string>
    </property>
   </action>
   <action name="ActionNarrowListView">
@@ -1844,12 +1855,12 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Сжатый вид</string>
+    <string>Narrow list view</string>
    </property>
   </action>
   <action name="ActionPleliminaryView">
    <property name="text">
-    <string>Предварительный просмотр</string>
+    <string>Preliminary view</string>
    </property>
   </action>
   <action name="ActionShowNotesList">
@@ -1860,7 +1871,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать список заметок</string>
+    <string>Show note list</string>
    </property>
    <property name="shortcut">
     <string>F10</string>
@@ -1874,7 +1885,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать окно поиска</string>
+    <string>Show search bar</string>
    </property>
   </action>
   <action name="ActionShowQuotaLimit">
@@ -1882,7 +1893,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать лимит доступного места</string>
+    <string>Show space quota limit</string>
    </property>
   </action>
   <action name="ActionShowZoom">
@@ -1893,7 +1904,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать коэффициент увеличения шрифта</string>
+    <string>Show font zoom coefficient</string>
    </property>
   </action>
   <action name="ActionShowNotepadList">
@@ -1904,7 +1915,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать список блокнотов</string>
+    <string>Show notepad list</string>
    </property>
   </action>
   <action name="ActionShowLabelList">
@@ -1915,7 +1926,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать список меток</string>
+    <string>Show label list</string>
    </property>
   </action>
   <action name="ActionShowSearchProperties">
@@ -1926,7 +1937,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать свойства поиска</string>
+    <string>Show saved search properties</string>
    </property>
   </action>
   <action name="ActionShowSavedRequests">
@@ -1937,7 +1948,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать сохранённые запросы</string>
+    <string>Show saved searches</string>
    </property>
   </action>
   <action name="ActionShowTrash">
@@ -1948,7 +1959,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать корзину</string>
+    <string>Show trash</string>
    </property>
   </action>
   <action name="ActionShowEditorPanel">
@@ -1959,7 +1970,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать панель редактирования</string>
+    <string>Show editor panel</string>
    </property>
   </action>
   <action name="ActionHideAdditionalPanels">
@@ -1967,7 +1978,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Скрыть дополнительные панели</string>
+    <string>Hide additional panels</string>
    </property>
    <property name="shortcut">
     <string>F11</string>
@@ -1981,7 +1992,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Показать панель инструментов</string>
+    <string>Show toolbar</string>
    </property>
   </action>
   <action name="ActionFontBold">
@@ -1991,7 +2002,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Полужирный</string>
+    <string>Bold</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+B</string>
@@ -2007,7 +2018,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Подчеркнутый</string>
+    <string>Underlined</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+U</string>
@@ -2023,7 +2034,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Курсив</string>
+    <string>Italic</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -2039,7 +2050,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Зачеркнутый</string>
+    <string>Strikethrough</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+-</string>
@@ -2055,7 +2066,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Вставить горизонтальную линию</string>
+    <string>Insert horizontal rule</string>
    </property>
   </action>
   <action name="ActionUpperIndex">
@@ -2065,7 +2076,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Верхний индекс</string>
+    <string>Upper index</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+]</string>
@@ -2081,7 +2092,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Нижний индекс</string>
+    <string>Lower index</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+[</string>
@@ -2092,27 +2103,27 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionInsertTable">
    <property name="text">
-    <string>Вставить таблицу</string>
+    <string>Insert</string>
    </property>
   </action>
   <action name="ActionInsertRow">
    <property name="text">
-    <string>Вставить строку</string>
+    <string>Insert row</string>
    </property>
   </action>
   <action name="ActionInsertColumn">
    <property name="text">
-    <string>Вставить столбец</string>
+    <string>Insert column</string>
    </property>
   </action>
   <action name="ActionRemoveRow">
    <property name="text">
-    <string>Удалить строку</string>
+    <string>Remove row</string>
    </property>
   </action>
   <action name="ActionRemoveColumn">
    <property name="text">
-    <string>Удалить столбец</string>
+    <string>Remove column</string>
    </property>
   </action>
   <action name="ActionSaveImage">
@@ -2122,7 +2133,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Сохранить изображение</string>
+    <string>Save</string>
    </property>
   </action>
   <action name="ActionRotateClockwise">
@@ -2132,7 +2143,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Повернуть по часовой стрелке</string>
+    <string>Rotate clockwise</string>
    </property>
   </action>
   <action name="ActionRotateCounterClockwise">
@@ -2142,7 +2153,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Повернуть против часовой стрелки</string>
+    <string>Rotate counterclockwise</string>
    </property>
   </action>
   <action name="ActionAlignLeft">
@@ -2152,7 +2163,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Влево</string>
+    <string>Align left</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
@@ -2168,7 +2179,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>По центру</string>
+    <string>Aligh center</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
@@ -2184,7 +2195,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Вправо</string>
+    <string>Align right</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
@@ -2200,7 +2211,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Маркированный список</string>
+    <string>Insert bulleted list</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+B</string>
@@ -2216,7 +2227,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Нумерованный список</string>
+    <string>Insert numbered list</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+N</string>
@@ -2232,7 +2243,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>&gt;&gt; Увеличить</string>
+    <string>Increase</string>
    </property>
    <property name="toolTip">
     <string>Увеличить отступ</string>
@@ -2251,7 +2262,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>&lt;&lt; Уменьшить</string>
+    <string>Decrease</string>
    </property>
    <property name="toolTip">
     <string>Уменьшить отступ</string>
@@ -2268,7 +2279,7 @@ stop: 1 #0EB7FF);
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Синхронизация</string>
+    <string>Synchronize</string>
    </property>
    <property name="shortcut">
     <string>F9</string>
@@ -2279,22 +2290,22 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionConnect">
    <property name="text">
-    <string>Соединиться</string>
+    <string>Connect</string>
    </property>
   </action>
   <action name="ActionSpellCheck">
    <property name="text">
-    <string>Проверка орфографии</string>
+    <string>Spellcheck</string>
    </property>
   </action>
   <action name="ActionAccountInfo">
    <property name="text">
-    <string>Об аккаунте</string>
+    <string>Account info</string>
    </property>
   </action>
   <action name="ActionReindexDatabase">
    <property name="text">
-    <string>Переиндексировать базу данных</string>
+    <string>Reindex database</string>
    </property>
   </action>
   <action name="ActionDisableNotesIndexing">
@@ -2302,37 +2313,37 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Отключить индексацию заметок</string>
+    <string>Disable notes indexing</string>
    </property>
   </action>
   <action name="ActionEncryptDatabase">
    <property name="text">
-    <string>Зашифровать базу данных</string>
+    <string>Encrypt database</string>
    </property>
   </action>
   <action name="ActionDatabaseStatus">
    <property name="text">
-    <string>Состояние базы данных</string>
+    <string>Database status</string>
    </property>
   </action>
   <action name="ActionImportFolders">
    <property name="text">
-    <string>Импорт папок</string>
+    <string>Import folders</string>
    </property>
   </action>
   <action name="ActionReleaseComments">
    <property name="text">
-    <string>Комментарии к релизам</string>
+    <string>Release notes</string>
    </property>
   </action>
   <action name="ActionCheckForUpdates">
    <property name="text">
-    <string>Проверка обновлений</string>
+    <string>Check for updates</string>
    </property>
   </action>
   <action name="ActionViewLogs">
    <property name="text">
-    <string>Просмотр логов</string>
+    <string>View logs</string>
    </property>
   </action>
   <action name="ActionGoPrevious">
@@ -2342,7 +2353,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Назад</string>
+    <string>Go back</string>
    </property>
    <property name="toolTip">
     <string>Назад</string>
@@ -2355,7 +2366,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Вперед</string>
+    <string>Go forward</string>
    </property>
    <property name="toolTip">
     <string>Вперед</string>
@@ -2371,7 +2382,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Вверх</string>
+    <string>Up</string>
    </property>
    <property name="toolTip">
     <string>Вверх</string>
@@ -2384,7 +2395,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Вниз</string>
+    <string>Down</string>
    </property>
    <property name="toolTip">
     <string>Вниз</string>
@@ -2396,7 +2407,7 @@ stop: 1 #0EB7FF);
      <normaloff>:/sync_icons/stat_notify_sync.png</normaloff>:/sync_icons/stat_notify_sync.png</iconset>
    </property>
    <property name="text">
-    <string>Синхронизация</string>
+    <string>Synchronize</string>
    </property>
    <property name="toolTip">
     <string>Синхронизация</string>
@@ -2415,7 +2426,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Показать атрибуты заметки</string>
+    <string>Show note attributes</string>
    </property>
    <property name="toolTip">
     <string>Показать атрибуты заметки</string>
@@ -2427,7 +2438,7 @@ stop: 1 #0EB7FF);
      <normaloff>:/label/tag.png</normaloff>:/label/tag.png</iconset>
    </property>
    <property name="text">
-    <string>Управление метками</string>
+    <string>Tags</string>
    </property>
    <property name="toolTip">
     <string>Управление метками</string>
@@ -2435,7 +2446,7 @@ stop: 1 #0EB7FF);
   </action>
   <action name="actionViewCurrentNoteHtmlInStdOut">
    <property name="text">
-    <string>Html текущей заметки</string>
+    <string>Current note html</string>
    </property>
   </action>
  </widget>

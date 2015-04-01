@@ -54,5 +54,8 @@
         <file>fallback_icons/png/mail-forward-5.png</file>
         <file>fallback_icons/png/preferences-other-3.png</file>
         <file>fallback_icons/png/tools-check-spelling-5.png</file>
+        <file>fallback_icons/png/image-x-generic.png</file>
+        <file>fallback_icons/png/object-rotate-left.png</file>
+        <file>fallback_icons/png/object-rotate-right.png</file>
     </qresource>
 </RCC>

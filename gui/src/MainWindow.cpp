@@ -733,7 +733,9 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
     }
 
     if (!QIcon::hasThemeIcon("document-save")) {
-        m_pUI->saveSearchPushButton->setIcon(QIcon(":/fallback_icons/png/document-save-5.png"));
+        QIcon documentSaveIcon(":/fallback_icons/png/document-save-5.png");
+        m_pUI->saveSearchPushButton->setIcon(documentSaveIcon);
+        m_pUI->ActionSaveImage->setIcon(documentSaveIcon);
         QNTRACE("set fallback document-save icon");
     }
 
@@ -901,6 +903,7 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
     if (!QIcon::hasThemeIcon("insert-table")) {
         QIcon insertTableIcon(":/fallback_icons/png/insert-table.png");
         m_pUI->ActionInsertTable->setIcon(insertTableIcon);
+        m_pUI->menuTable->setIcon(insertTableIcon);
         QNTRACE("set fallback insert-table icon");
     }
 
@@ -920,6 +923,18 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
         QIcon spellcheckIcon(":/fallback_icons/png/tools-check-spelling-5.png");
         m_pUI->spellCheckBox->setIcon(spellcheckIcon);
         QNTRACE("set fallback tools-check-spelling icon");
+    }
+
+    if (!QIcon::hasThemeIcon("object-rotate-left")) {
+        QIcon objectRotateLeftIcon(":/fallback_icons/png/object-rotate-left.png");
+        m_pUI->ActionRotateCounterClockwise->setIcon(objectRotateLeftIcon);
+        QNTRACE("set fallback object-rotate-left icon");
+    }
+
+    if (!QIcon::hasThemeIcon("object-rotate-right")) {
+        QIcon objectRotateRightIcon(":/fallback_icons/png/object-rotate-right.png");
+        m_pUI->ActionRotateClockwise->setIcon(objectRotateRightIcon);
+        QNTRACE("set fallback object-rotate-right icon");
     }
 }
 
