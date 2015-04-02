@@ -127,7 +127,7 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->chooseTextColorPushButton, SIGNAL(clicked()), this, SLOT(noteChooseTextColor()));
     QObject::connect(m_pUI->chooseSelectedTextColorPushButton, SIGNAL(clicked()), this, SLOT(noteChooseSelectedTextColor()));
     // Debug
-    QObject::connect(m_pUI->actionViewCurrentNoteHtmlInStdOut, SIGNAL(triggered()), this, SLOT(noteHtmlContentToStdOut()));
+    QObject::connect(m_pUI->ActionViewCurrentNoteHtmlInStdOut, SIGNAL(triggered()), this, SLOT(noteHtmlContentToStdOut()));
 }
 
 void MainWindow::checkAndSetupConsumerKeyAndSecret()

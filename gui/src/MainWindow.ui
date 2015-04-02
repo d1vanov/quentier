@@ -1364,18 +1364,24 @@ background-color: rgb(205, 221, 229);
     <addaction name="ActionSettings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
+    <property name="locale">
+     <locale language="English" country="UnitedStates"/>
+    </property>
     <property name="title">
      <string>&amp;Help</string>
     </property>
-    <addaction name="ActionReleaseComments"/>
-    <addaction name="ActionCheckForUpdates"/>
+    <addaction name="ActionReleaseNotes"/>
     <addaction name="ActionViewLogs"/>
+    <addaction name="ActionAbout"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
+    <property name="locale">
+     <locale language="English" country="UnitedStates"/>
+    </property>
     <property name="title">
      <string>&amp;Debug</string>
     </property>
-    <addaction name="actionViewCurrentNoteHtmlInStdOut"/>
+    <addaction name="ActionViewCurrentNoteHtmlInStdOut"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -2253,7 +2259,7 @@ stop: 1 #0EB7FF);
     <string>Import folders</string>
    </property>
   </action>
-  <action name="ActionReleaseComments">
+  <action name="ActionReleaseNotes">
    <property name="text">
     <string>Release notes</string>
    </property>
@@ -2366,7 +2372,7 @@ stop: 1 #0EB7FF);
     <string>Управление метками</string>
    </property>
   </action>
-  <action name="actionViewCurrentNoteHtmlInStdOut">
+  <action name="ActionViewCurrentNoteHtmlInStdOut">
    <property name="text">
     <string>Current note html</string>
    </property>
@@ -2587,6 +2593,11 @@ stop: 1 #0EB7FF);
    </property>
    <property name="text">
     <string>Show status bar</string>
+   </property>
+  </action>
+  <action name="ActionAbout">
+   <property name="text">
+    <string>About QuteNote</string>
    </property>
   </action>
  </widget>
