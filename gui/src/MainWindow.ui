@@ -1165,7 +1165,7 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1167</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1192,8 +1192,23 @@ background-color: rgb(205, 221, 229);
     <property name="title">
      <string>&amp;Edit</string>
     </property>
-    <addaction name="ActionFindInsideNote"/>
-    <addaction name="separator"/>
+    <widget class="QMenu" name="menuFindAndReplace">
+     <property name="title">
+      <string>Find and replace</string>
+     </property>
+     <property name="icon">
+      <iconset theme="edit-find-replace">
+       <normaloff/>
+      </iconset>
+     </property>
+     <addaction name="ActionFindNote"/>
+     <addaction name="separator"/>
+     <addaction name="ActionFindInsideNote"/>
+     <addaction name="ActionFindNext"/>
+     <addaction name="ActionFindPrevious"/>
+     <addaction name="separator"/>
+     <addaction name="ActionReplaceInNote"/>
+    </widget>
     <addaction name="ActionUndo"/>
     <addaction name="ActionRedo"/>
     <addaction name="separator"/>
@@ -1201,6 +1216,11 @@ background-color: rgb(205, 221, 229);
     <addaction name="ActionCopy"/>
     <addaction name="ActionInsert"/>
     <addaction name="ActionInsertAsText"/>
+    <addaction name="separator"/>
+    <addaction name="ActionSelectAll"/>
+    <addaction name="ActionDelete"/>
+    <addaction name="separator"/>
+    <addaction name="menuFindAndReplace"/>
     <addaction name="separator"/>
     <addaction name="ActionSettings"/>
    </widget>
@@ -1625,38 +1645,6 @@ stop: 1 #0EB7FF);
     <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
-  <action name="ActionFindInsideNote">
-   <property name="icon">
-    <iconset theme="edit-find">
-     <normaloff/>
-    </iconset>
-   </property>
-   <property name="text">
-    <string>Find in note</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+F</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::WidgetShortcut</enum>
-   </property>
-  </action>
-  <action name="ActionUndo">
-   <property name="icon">
-    <iconset theme="edit-undo">
-     <normaloff/>
-    </iconset>
-   </property>
-   <property name="text">
-    <string>Undo</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Z</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::WidgetShortcut</enum>
-   </property>
-  </action>
   <action name="ActionRedo">
    <property name="icon">
     <iconset theme="edit-redo">
@@ -1664,7 +1652,7 @@ stop: 1 #0EB7FF);
     </iconset>
    </property>
    <property name="text">
-    <string>Undo</string>
+    <string>Redo</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Z</string>
@@ -2384,7 +2372,9 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionNewNote">
    <property name="icon">
-    <iconset theme="document-new"/>
+    <iconset theme="document-new">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>New note</string>
@@ -2398,7 +2388,9 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionNewNotebook">
    <property name="icon">
-    <iconset theme="folder-new"/>
+    <iconset theme="folder-new">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>New notebook</string>
@@ -2415,10 +2407,115 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionNewSavedSearch">
    <property name="icon">
-    <iconset theme="edit-find"/>
+    <iconset theme="edit-find">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>New saved search</string>
+   </property>
+  </action>
+  <action name="ActionSelectAll">
+   <property name="icon">
+    <iconset theme="edit-select-all">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Select all</string>
+   </property>
+  </action>
+  <action name="ActionDelete">
+   <property name="icon">
+    <iconset theme="edit-delete">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+  </action>
+  <action name="ActionFindNote">
+   <property name="icon">
+    <iconset theme="system-search">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Find note</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
+   </property>
+  </action>
+  <action name="ActionFindInsideNote">
+   <property name="icon">
+    <iconset theme="edit-find">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Find inside note</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="ActionFindNext">
+   <property name="icon">
+    <iconset theme="go-next">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Find next</string>
+   </property>
+   <property name="shortcut">
+    <string>F3</string>
+   </property>
+  </action>
+  <action name="ActionFindPrevious">
+   <property name="icon">
+    <iconset theme="go-previous">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Find previous</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+F3</string>
+   </property>
+  </action>
+  <action name="ActionReplaceInNote">
+   <property name="icon">
+    <iconset theme="edit-replace">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Replace in note</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="text">
+    <string>Redo</string>
+   </property>
+  </action>
+  <action name="ActionUndo">
+   <property name="icon">
+    <iconset theme="edit-undo">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
    </property>
   </action>
  </widget>
