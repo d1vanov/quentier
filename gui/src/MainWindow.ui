@@ -1228,7 +1228,7 @@ background-color: rgb(205, 221, 229);
     <addaction name="separator"/>
     <addaction name="menuFindAndReplace"/>
     <addaction name="separator"/>
-    <addaction name="ActionSettings"/>
+    <addaction name="ActionSpellCheck"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="locale">
@@ -1265,6 +1265,9 @@ background-color: rgb(205, 221, 229);
     <addaction name="ActionShowStatusBar"/>
    </widget>
    <widget class="QMenu" name="menuFormat">
+    <property name="locale">
+     <locale language="English" country="UnitedStates"/>
+    </property>
     <property name="title">
      <string>F&amp;ormat</string>
     </property>
@@ -1282,26 +1285,6 @@ background-color: rgb(205, 221, 229);
      <addaction name="ActionInsertColumn"/>
      <addaction name="ActionRemoveRow"/>
      <addaction name="ActionRemoveColumn"/>
-    </widget>
-    <widget class="QMenu" name="menuIndentation">
-     <property name="locale">
-      <locale language="English" country="UnitedStates"/>
-     </property>
-     <property name="title">
-      <string>Indentation</string>
-     </property>
-     <addaction name="ActionIncreaseIndentation"/>
-     <addaction name="ActionDecreaseIndentation"/>
-    </widget>
-    <widget class="QMenu" name="menuList">
-     <property name="locale">
-      <locale language="English" country="UnitedStates"/>
-     </property>
-     <property name="title">
-      <string>Insert list</string>
-     </property>
-     <addaction name="ActionInsertBulletedList"/>
-     <addaction name="ActionInsertNumberedList"/>
     </widget>
     <widget class="QMenu" name="menuAlign">
      <property name="locale">
@@ -1327,6 +1310,26 @@ background-color: rgb(205, 221, 229);
      <addaction name="ActionRotateClockwise"/>
      <addaction name="ActionRotateCounterClockwise"/>
     </widget>
+    <widget class="QMenu" name="menuIndentation">
+     <property name="locale">
+      <locale language="English" country="UnitedStates"/>
+     </property>
+     <property name="title">
+      <string>Indentation</string>
+     </property>
+     <addaction name="ActionIncreaseIndentation"/>
+     <addaction name="ActionDecreaseIndentation"/>
+    </widget>
+    <widget class="QMenu" name="menuList">
+     <property name="locale">
+      <locale language="English" country="UnitedStates"/>
+     </property>
+     <property name="title">
+      <string>Insert list</string>
+     </property>
+     <addaction name="ActionInsertBulletedList"/>
+     <addaction name="ActionInsertNumberedList"/>
+    </widget>
     <addaction name="ActionFontBold"/>
     <addaction name="ActionFontUnderlined"/>
     <addaction name="ActionFontItalic"/>
@@ -1345,21 +1348,20 @@ background-color: rgb(205, 221, 229);
     <addaction name="menuIndentation"/>
    </widget>
    <widget class="QMenu" name="menuService">
+    <property name="locale">
+     <locale language="English" country="UnitedStates"/>
+    </property>
     <property name="title">
      <string>S&amp;ervice</string>
     </property>
     <addaction name="ActionSync"/>
-    <addaction name="ActionConnect"/>
     <addaction name="separator"/>
-    <addaction name="ActionSpellCheck"/>
     <addaction name="ActionAccountInfo"/>
-    <addaction name="ActionReindexDatabase"/>
-    <addaction name="ActionDisableNotesIndexing"/>
-    <addaction name="separator"/>
-    <addaction name="ActionEncryptDatabase"/>
-    <addaction name="ActionDatabaseStatus"/>
+    <addaction name="ActionLocalDatabaseStatus"/>
     <addaction name="separator"/>
     <addaction name="ActionImportFolders"/>
+    <addaction name="separator"/>
+    <addaction name="ActionSettings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -2195,17 +2197,11 @@ stop: 1 #0EB7FF);
    </property>
   </action>
   <action name="ActionSync">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="text">
     <string>Synchronize</string>
    </property>
    <property name="shortcut">
     <string>F9</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionConnect">
@@ -2214,8 +2210,14 @@ stop: 1 #0EB7FF);
    </property>
   </action>
   <action name="ActionSpellCheck">
+   <property name="icon">
+    <iconset theme="tools-check-spelling"/>
+   </property>
    <property name="text">
     <string>Spellcheck</string>
+   </property>
+   <property name="shortcut">
+    <string>F7</string>
    </property>
   </action>
   <action name="ActionAccountInfo">
@@ -2241,9 +2243,9 @@ stop: 1 #0EB7FF);
     <string>Encrypt database</string>
    </property>
   </action>
-  <action name="ActionDatabaseStatus">
+  <action name="ActionLocalDatabaseStatus">
    <property name="text">
-    <string>Database status</string>
+    <string>Local database status</string>
    </property>
   </action>
   <action name="ActionImportFolders">
