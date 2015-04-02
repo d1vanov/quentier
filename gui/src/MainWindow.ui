@@ -1189,10 +1189,16 @@ background-color: rgb(205, 221, 229);
     <addaction name="ActionExit"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
+    <property name="locale">
+     <locale language="English" country="UnitedStates"/>
+    </property>
     <property name="title">
      <string>&amp;Edit</string>
     </property>
     <widget class="QMenu" name="menuFindAndReplace">
+     <property name="locale">
+      <locale language="English" country="UnitedStates"/>
+     </property>
      <property name="title">
       <string>Find and replace</string>
      </property>
@@ -1225,28 +1231,38 @@ background-color: rgb(205, 221, 229);
     <addaction name="ActionSettings"/>
    </widget>
    <widget class="QMenu" name="menuView">
+    <property name="locale">
+     <locale language="English" country="UnitedStates"/>
+    </property>
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <addaction name="ActionShowNoteInfo"/>
-    <addaction name="ActionShowSource"/>
+    <widget class="QMenu" name="menuSidePanel">
+     <property name="locale">
+      <locale language="English" country="UnitedStates"/>
+     </property>
+     <property name="title">
+      <string>Side panel</string>
+     </property>
+     <addaction name="ActionShowSidePanel"/>
+     <addaction name="ActionShowFavorites"/>
+     <addaction name="ActionShowNotes"/>
+     <addaction name="ActionShowNotebooks"/>
+     <addaction name="ActionShowTags"/>
+     <addaction name="ActionShowSavedSearches"/>
+     <addaction name="ActionShowTrash"/>
+    </widget>
+    <addaction name="ActionNotes"/>
+    <addaction name="ActionNotebooks"/>
+    <addaction name="ActionTags"/>
+    <addaction name="ActionSavedSearches"/>
     <addaction name="separator"/>
-    <addaction name="ActionWideListView"/>
-    <addaction name="ActionNarrowListView"/>
-    <addaction name="ActionPleliminaryView"/>
-    <addaction name="separator"/>
+    <addaction name="menuSidePanel"/>
     <addaction name="ActionShowNotesList"/>
-    <addaction name="ActionShowSearchBar"/>
-    <addaction name="ActionShowQuotaLimit"/>
-    <addaction name="ActionShowZoom"/>
-    <addaction name="ActionShowNotepadList"/>
-    <addaction name="ActionShowLabelList"/>
-    <addaction name="ActionShowSearchProperties"/>
-    <addaction name="ActionShowSavedRequests"/>
-    <addaction name="ActionShowTrash"/>
-    <addaction name="ActionShowEditorPanel"/>
-    <addaction name="ActionHideAdditionalPanels"/>
-    <addaction name="ActionShowInstrumentsPanel"/>
+    <addaction name="ActionShowNoteEditorPanel"/>
+    <addaction name="ActionShowToolbar"/>
+    <addaction name="separator"/>
+    <addaction name="ActionShowStatusBar"/>
    </widget>
    <widget class="QMenu" name="menuFormat">
     <property name="title">
@@ -1784,23 +1800,6 @@ stop: 1 #0EB7FF);
     <string>Preliminary view</string>
    </property>
   </action>
-  <action name="ActionShowNotesList">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Show note list</string>
-   </property>
-   <property name="shortcut">
-    <string>F10</string>
-   </property>
-   <property name="shortcutContext">
-    <enum>Qt::WidgetShortcut</enum>
-   </property>
-  </action>
   <action name="ActionShowSearchBar">
    <property name="checkable">
     <bool>true</bool>
@@ -1828,26 +1827,26 @@ stop: 1 #0EB7FF);
     <string>Show font zoom coefficient</string>
    </property>
   </action>
-  <action name="ActionShowNotepadList">
+  <action name="ActionNotebooks">
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
-    <string>Show notepad list</string>
+    <string>Notebooks</string>
    </property>
   </action>
-  <action name="ActionShowLabelList">
+  <action name="ActionTags">
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
-    <string>Show label list</string>
+    <string>Tags</string>
    </property>
   </action>
   <action name="ActionShowSearchProperties">
@@ -1861,15 +1860,15 @@ stop: 1 #0EB7FF);
     <string>Show saved search properties</string>
    </property>
   </action>
-  <action name="ActionShowSavedRequests">
+  <action name="ActionSavedSearches">
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
-    <string>Show saved searches</string>
+    <string>Saved searches</string>
    </property>
   </action>
   <action name="ActionShowTrash">
@@ -1883,7 +1882,7 @@ stop: 1 #0EB7FF);
     <string>Show trash</string>
    </property>
   </action>
-  <action name="ActionShowEditorPanel">
+  <action name="ActionShowNoteEditorPanel">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1891,7 +1890,7 @@ stop: 1 #0EB7FF);
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show editor panel</string>
+    <string>Show note editor</string>
    </property>
   </action>
   <action name="ActionHideAdditionalPanels">
@@ -1905,7 +1904,7 @@ stop: 1 #0EB7FF);
     <string>F11</string>
    </property>
   </action>
-  <action name="ActionShowInstrumentsPanel">
+  <action name="ActionShowToolbar">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -2500,11 +2499,6 @@ stop: 1 #0EB7FF);
     <string>Ctrl+R</string>
    </property>
   </action>
-  <action name="actionRedo">
-   <property name="text">
-    <string>Redo</string>
-   </property>
-  </action>
   <action name="ActionUndo">
    <property name="icon">
     <iconset theme="edit-undo">
@@ -2516,6 +2510,81 @@ stop: 1 #0EB7FF);
    </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="ActionShowSidePanel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show side panel (left)</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
+   </property>
+  </action>
+  <action name="ActionShowFavorites">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show favorites</string>
+   </property>
+  </action>
+  <action name="ActionShowNotes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show notes</string>
+   </property>
+  </action>
+  <action name="ActionShowNotebooks">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show notebooks</string>
+   </property>
+  </action>
+  <action name="ActionShowTags">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show tags</string>
+   </property>
+  </action>
+  <action name="ActionShowSavedSearches">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show saved searches</string>
+   </property>
+  </action>
+  <action name="ActionNotes">
+   <property name="text">
+    <string>Notes</string>
+   </property>
+  </action>
+  <action name="ActionShowNotesList">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show notes list</string>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
+   </property>
+  </action>
+  <action name="ActionShowStatusBar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show status bar</string>
    </property>
   </action>
  </widget>
