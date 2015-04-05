@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 
 include_directories(SYSTEM "${QT_INCLUDES} ${SYSTEM}")
 
-set(${PROJECT_NAME}_HEADERS
+set(HEADERS
     include/QEverCloud.h
     include/QEverCloudOAuth.h
     oauth.h
@@ -28,8 +28,9 @@ set(${PROJECT_NAME}_HEADERS
     generated/types.h
     generated/types_impl.h
     generated/EDAMErrorCode.h)
+prepend_path(HEADERS "${HEADERS}" ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(${PROJECT_NAME}_SOURCES
+set(SOURCES
     exceptions.cpp
     oauth.cpp
     http.cpp
@@ -39,10 +40,13 @@ set(${PROJECT_NAME}_SOURCES
     generated/constants.cpp 
     generated/services.cpp
     generated/types.cpp)
+prepend_path(SOURCES "${SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_library(${PROJECT_NAME} STATIC
-            ${${PROJECT_NAME}_HEADERS}
-            ${${PROJECT_NAME}_SOURCES})
+set(INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}")
+list(APPEND INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include")
+list(APPEND INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/generated")
+
+add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
 if(USE_QT5)
   qt5_use_modules(${PROJECT_NAME} Core Widgets Webkit WebKitWidgets Network)

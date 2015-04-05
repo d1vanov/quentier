@@ -4,6 +4,8 @@ if(POLICY CMP0020)
 endif()
 project(qtkeychain)
 
+set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
 set(QTKEYCHAIN_VERSION 0.4.90)
 set(QTKEYCHAIN_SOVERSION 0)
 
@@ -41,12 +43,13 @@ if(NOT USE_QT5)
   list(APPEND qtkeychain_LIBRARIES ${QT_LIBRARIES})
 endif()
   
-set(qtkeychain_SOURCES
+set(SOURCES
     keychain.cpp
 )
 
 if(WIN32)
-    list(APPEND qtkeychain_SOURCES keychain_win.cpp)
+    list(APPEND SOURCES keychain_win.cpp)
+    prepend_path(SOURCES "${SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
     list(APPEND qtkeychain_LIBRARIES crypt32)
     #FIXME: mingw bug; otherwise getting undefined refs to RtlSecureZeroMemory there
     if(MINGW)
@@ -55,7 +58,8 @@ if(WIN32)
 endif()
 
 if(APPLE)
-    list(APPEND qtkeychain_SOURCES keychain_mac.cpp)
+    list(APPEND SOURCES keychain_mac.cpp)
+    prepend_path(SOURCES "${SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
     list(APPEND qtkeychain_LIBRARIES ${COREFOUNDATION_LIBRARY})
@@ -65,8 +69,9 @@ if(APPLE)
 endif()
 
 if(UNIX AND NOT APPLE)
-    list(APPEND qtkeychain_SOURCES keychain_unix.cpp gnomekeyring.cpp)
-    qt_add_dbus_interface(qtkeychain_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/org.kde.KWallet.xml kwallet_interface KWalletInterface)
+    list(APPEND SOURCES keychain_unix.cpp gnomekeyring.cpp)
+    prepend_path(SOURCES "${SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
+    qt_add_dbus_interface(SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/org.kde.KWallet.xml kwallet_interface KWalletInterface)
 endif()
 
 set(qtkeychain_TR_FILES
@@ -87,14 +92,14 @@ install(FILES ${qtkeychain_QM_FILES}
 
 set(QTKEYCHAIN_TARGET_NAME qt${QTKEYCHAIN_VERSION_INFIX}keychain)
 if(NOT QTKEYCHAIN_STATIC)
-    add_library(${QTKEYCHAIN_TARGET_NAME} SHARED ${qtkeychain_SOURCES} ${qtkeychain_QM_FILES})
+    add_library(${QTKEYCHAIN_TARGET_NAME} SHARED ${SOURCES} ${qtkeychain_QM_FILES})
     set_target_properties(${QTKEYCHAIN_TARGET_NAME} PROPERTIES COMPILE_DEFINITIONS QKEYCHAIN_BUILD_QKEYCHAIN_LIB)
     target_link_libraries(${QTKEYCHAIN_TARGET_NAME} ${qtkeychain_LIBRARIES})
 	if(USE_QT5)
       qt5_use_modules(${QTKEYCHAIN_TARGET_NAME} Core)
 	endif()
 else()
-    add_library(${QTKEYCHAIN_TARGET_NAME} STATIC ${qtkeychain_SOURCES} ${qtkeychain_QM_FILES})
+    add_library(${QTKEYCHAIN_TARGET_NAME} STATIC ${SOURCES} ${qtkeychain_QM_FILES})
     set_target_properties(${QTKEYCHAIN_TARGET_NAME} PROPERTIES COMPILE_DEFINITIONS QKEYCHAIN_STATICLIB)
 endif()
 

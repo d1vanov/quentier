@@ -219,8 +219,7 @@ Logger::Helper::~Helper()
     }
     catch(std::exception&) {
         // you shouldn't throw exceptions from a sink
-        assert(!"exception in logger helper destructor");
-        throw;
+        qFatal("Caught exception while tryint to write log entry!");
     }
 }
 

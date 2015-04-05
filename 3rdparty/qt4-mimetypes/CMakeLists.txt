@@ -12,6 +12,8 @@ set(CMAKE_AUTOMOC ON)
 
 project(mimetypes-qt4)
 
+set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/QtMimeTypes)
+
 add_definitions("-DBUILD_QT4_MIMETYPES")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/QtMimeTypes
 		            ${CMAKE_CURRENT_SOURCE_DIR}/src/mimetypes
@@ -21,21 +23,24 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/QtMimeTypes
 # shared library
 aux_source_directory(src/mimetypes MIMETYPES_SOURCES)
 aux_source_directory(src/mimetypes/mime MIME_SOURCES)
-set(${PROJECT_NAME}_SOURCES ${MIMETYPES_SOURCES} ${MIME_SOURCES})
-list(APPEND ${PROJECT_NAME}_SOURCES src/mimetypes/inqt5/qstandardpaths.cpp)
+
+set(SOURCES ${MIMETYPES_SOURCES} ${MIME_SOURCES})
+prepend_path(SOURCES "${SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
+
+list(APPEND SOURCES src/mimetypes/inqt5/qstandardpaths.cpp)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/mimetypes/inqt5/qstandardpaths_win.cpp)
+  list(APPEND SOURCES src/mimetypes/inqt5/qstandardpaths_win.cpp)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/mimetypes/inqt5/qstandardpaths_mac.cpp)
+  list(APPEND SOURCES src/mimetypes/inqt5/qstandardpaths_mac.cpp)
 else()
-  list(APPEND ${PROJECT_NAME}_SOURCES src/mimetypes/inqt5/qstandardpaths_unix.cpp)
+  list(APPEND SOURCES src/mimetypes/inqt5/qstandardpaths_unix.cpp)
 endif()
 
 set(RESOURCES src/mimetypes/mimetypes.qrc)
 qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 
-add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_RESOURCES_RCC})
+add_library(${PROJECT_NAME} SHARED ${SOURCES} ${${PROJECT_NAME}_RESOURCES_RCC})
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES}) 
 
 # qmimetype test

@@ -8,7 +8,9 @@ set(CMAKE_AUTOMOC ON)
 
 include_directories(SYSTEM "${QT_INCLUDES} ${SYSTEM}")
 
-set(${PROJECT_NAME}_HEADERS
+set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+set(HEADERS
     QsLog.h
     QsLogLevel.h
     QsLogDest.h
@@ -16,13 +18,15 @@ set(${PROJECT_NAME}_HEADERS
     QsLogDestFile.h
     QsLogDestFunctor.h
     QsLogDestConsole.h)
+prepend_path(HEADERS "${HEADERS}" ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(${PROJECT_NAME}_SOURCES
+set(SOURCES
     QsLog.cpp
     QsLogDest.cpp
     QsLogDestFile.cpp
     QsLogDestFunctor.cpp
     QsLogDestConsole.cpp)
+prepend_path(SOURCES "${SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows") 
   add_definitions("-DQSLOG_IS_SHARED_LIBRARY")
@@ -30,9 +34,7 @@ endif()
 
 add_definitions("-DQS_LOG_LINE_NUMBERS -DQS_LOG_SEPARATE_THREAD -DQSLOG_IS_SHARED_LIBRARY")
 
-add_library(${PROJECT_NAME} SHARED
-            ${${PROJECT_NAME}_HEADERS}
-            ${${PROJECT_NAME}_SOURCES})
+add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
 
 if(NOT USE_QT5)
   target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
