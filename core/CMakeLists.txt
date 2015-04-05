@@ -239,5 +239,3 @@ foreach(ITEM ${DEPLOY_FILES_AND_DIRS})
   install(FILES ${ITEM} DESTINATION include)
 endforeach()
 
-# install test binary
-install(TARGETS test_${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)

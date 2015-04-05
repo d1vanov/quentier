@@ -71,11 +71,3 @@ foreach(ITEM ${DEPLOY_FILES_AND_DIRS})
   install(FILES ${ITEM} DESTINATION include)
 endforeach()
 
-# install qmimetype test binary
-install(TARGETS test_qmimetype_${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
-
-# install qmimedatabase-xml test binary
-install(TARGETS test_qmimedatabase_xml_${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
-
-# install qmimedatabase-cache test binary
-install(TARGETS test_qmimedatabase_cache_${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
