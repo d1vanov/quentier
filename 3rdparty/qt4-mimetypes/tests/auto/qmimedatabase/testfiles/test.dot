@@ -1,0 +1,7 @@
+digraph Test {
+    node[shape=box, fontsize=20]
+
+    foo [label="Foo"];
+    bar [label="Bar"];
+    foo->bar
+}

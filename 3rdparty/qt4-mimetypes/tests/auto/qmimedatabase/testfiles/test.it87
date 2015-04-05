@@ -1,0 +1,17 @@
+IT8.7/2
+ORIGINATOR "Richard Hughes"
+DESCRIPTOR "Sample IT8.7/2 file"
+MANUFACTURER "Richard Hughes - http://www.hughsie.com"
+CREATED "November 10, 2009"
+PROD_DATE "2009:02"
+SAMPLE_BACKING "white"
+SERIAL "0123456789"
+MATERIAL "White paper"
+NUMBER_OF_FIELDS 9
+BEGIN_DATA_FORMAT
+SAMPLE_ID   XYZ_X   XYZ_Y   XYZ_Z          LAB_L   LAB_A   LAB_B          LAB_C   LAB_H
+END_DATA_FORMAT
+NUMBER_OF_SETS 1
+BEGIN_DATA
+A1           1.23   4.56    7.89           1.23    4.56    7.89           1.23    4.56
+END_DATA

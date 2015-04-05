@@ -1,0 +1,16 @@
+<?wpl version="1.0"?>
+<smil>
+    <head>
+        <meta name="Generator" content="Microsoft Windows Media Player -- 10.0.0.4058"/>
+        <author/>
+        <title>latest1_wpl.wpl</title>
+    </head>
+    <body>
+        <seq>
+            <media src="saawariya01.mp3"/>
+            <media src="saawariya02.mp3"/>
+            <media src="saawariya05.mp3"/>
+            <media src="Chaha_Hai_Tujhko(NICE).mp3"/>
+        </seq>
+    </body>
+</smil>

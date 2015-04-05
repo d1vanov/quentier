@@ -1,0 +1,2 @@
+some text in a certain encoding 1234567890.
+some more text with non-ASCII: צהüײִÜ

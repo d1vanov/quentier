@@ -1,0 +1,15 @@
+v=0
+o=bbcrd 1140190501 1140190501 IN IP4 132.185.224.80
+s=BBC ONE [H.264/AVC]
+i=Multicast trial service from BBC Research & Development Copyright (c) 2006 British Broadcasting Corporation
+a=x-qt-text-nam:BBC ONE [H.264/AVC]
+a=x-qt-text-aut:BBC Research & Development
+a=x-qt-text-cpy:Copyright (c) 2006 British Broadcasting Corporation
+u=http://www.bbc.co.uk/multicast/
+e=Multicast Support <multicast-tech@bbc.co.uk>
+t=0 0
+c=IN IP4 233.122.227.151/32
+m=video 5150 RTP/AVP 33
+b=AS:1200000
+a=type:broadcast
+a=mux:m2t

@@ -1,0 +1,6 @@
+<mrml version="1.0">
+<base src="http://smaf-yamaha.com/what/demo/">
+	<anchor src="all.mrl" title="SMAF Demos"/>
+	<anchor src="all2.mrl" title="SMAF SCAS Sample"/>
+</base>
+</mrml>

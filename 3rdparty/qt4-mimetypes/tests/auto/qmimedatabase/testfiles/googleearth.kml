@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.0">
+  <Document>
+    <name>Airports of Germany</name>
+    <Style id="randomColorIcon">
+      <IconStyle>
+        <Icon>
+          <href>./icon21.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Placemark>
+      <name>EDVE</name>
+      <description><![CDATA[<p>Airport <b>Braunschweig/Wolfsburg</b></p><p>Tower: 119.35<br/>Info: 119.35</p>]]></description>
+      <styleUrl>randomColorIcon</styleUrl>
+      <Point>
+        <coordinates>10.556111,52.319167</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>

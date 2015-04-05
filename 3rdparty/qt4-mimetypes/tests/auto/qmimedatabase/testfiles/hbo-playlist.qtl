@@ -1,0 +1,19 @@
+SMILtext<smil xmlns:qt="http://www.apple.com/quicktime/resources/smilextensions" qt:time-slider="true" qt:autoplay="true">
+	<head>
+		<meta name="title" content="hbo" />
+		<layout>
+			<root-layout width="480" height="360" background-color="black" />
+			<region id="small" width="240" height="180" left="120" top="90" fit="meet" />
+			<region id="medium" width="320" height="240" left="80" top="60" fit="meet" />
+			<region id="large" width="480" height="360" left="0" top="0" fit="meet" />
+		</layout> 
+	</head>
+	<body>
+		<switch>
+			<video region="large" src="/cdn/pdl2/webcon/trueblood/trueblood_buzz_segfin_384_dl.mov" system-bitrate="384000" />
+			<video region="medium" src="/cdn/pdl2/webcon/trueblood/trueblood_buzz_segfin_112_dl.mov" system-bitrate="112000" />
+			<video region="small" src="/cdn/pdl2/webcon/trueblood/trueblood_buzz_segfin_56_dl.mov" system-bitrate="28000" />
+		</switch>
+	</body>
+</smil>
+

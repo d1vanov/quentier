@@ -1,0 +1,13 @@
+[main]
+Description=Location is anywhere
+Host=123.123.123.123
+AuthType=1
+GroupName=foobar
+GroupPwd=
+EnableISPConnect=0
+ISPConnectType=0
+ISPConnect=
+ISPCommand=
+Username=
+SaveUserPassword=0
+EnableBackup=1

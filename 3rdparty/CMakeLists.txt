@@ -18,6 +18,12 @@ get_directory_property(QTKEYCHAIN_LIB DIRECTORY qtkeychain DEFINITION QTKEYCHAIN
 add_subdirectory(QsLog)
 get_directory_property(QSLOG_LIB DIRECTORY QsLog DEFINITION PROJECT_NAME)
 
+if(NOT USE_QT5)
+  add_subdirectory(qt4-mimetypes)
+  get_directory_property(QT4_MIMETYPES_LIB DIRECTORY qt4-mimetypes DEFINITION PROJECT_NAME)
+  get_directory_property(QT4_MIMETYPES_SOURCES DIRECTORY qt4-mimetypes DEFINITION ${QT4_MIMETYPES_LIB}_SOURCES)
+endif()
+
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   add_subdirectory(stacktrace)
   get_directory_property(STACKTRACE_LIB DIRECTORY stacktrace DEFINITION PROJECT_NAME)
@@ -30,5 +36,9 @@ set(THIRDPARTY_INCLUDE_DIRS
     QsLog
     qtkeychain
     stacktrace)
+
+if(NOT USE_QT5)
+  list(APPEND THIRDPARTY_INCLUDE_DIRS qt4-mimetypes/include/QtMimeTypes)
+endif()
    
 prepend_path(THIRDPARTY_INCLUDE_DIRS "${THIRDPARTY_INCLUDE_DIRS}" ${CMAKE_CURRENT_SOURCE_DIR})

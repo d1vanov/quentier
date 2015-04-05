@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<feed version="0.3" xmlns="http://purl.org/atom/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="en">
+  <title>mozillaZine.org</title>
+  <link rel="alternate" type="text/html" href="http://www.mozillazine.org/" />
+  <modified>2007-08-06T22:01:29-08:00</modified>
+  <tagline>Your Source for Daily Mozilla News and Advocacy</tagline>
+  <id>tag:mozillazine.org,2004:1</id>
+  <copyright>Copyright 1998-2007 MozillaZine</copyright>
+    <entry>
+      <title>SeaMonkey 1.1.4 Released</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22268" />
+      <modified>2007-08-06T14:48:50-08:00</modified>
+      <created>2007-08-06T14:48:50-08:00</created>
+      <issued>2007-08-06T14:48:50-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22268</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p><a href="mailto:kairo@kairo.at" title="kairo@kairo.at">Robert "KaiRo" Kaiser</a> has announced the <a href="http://www.mozilla.org/projects/seamonkey/news.html#2007-08-03" title="SeaMonkey News: SeaMonkey 1.1.4 Security Release">release of SeaMonkey 1.1.4</a>. This upgrade to the all-in-one Internet suite fixes several security issues, detailed in the <a href="http://www.mozilla.org/projects/security/known-vulnerabilities.html#seamonkey1.1.4">SeaMonkey 1.1.4 section of the Mozilla Foundation Security Advisories page</a>. The three issues listed, which include a SeaMonkey variant of the <a href="/talkback.html?article=22198" title="MozillaZine: Security Exploit Uses Internet Explorer to Attack Mozilla Firefox">firefoxurl:// security flaw</a>, also affected Mozilla Firefox and Mozilla Thunderbird (they were patched in those applications' 2.0.0.5 and 2.0.0.6 releases).</p>
+        <p>All SeaMonkey users are urged to upgrade, including users of the now unsupported SeaMonkey 1.0.x (last updated when <a href="/talkback.html?article=21919" title="MozillaZine: SeaMonkey 1.1.2 Released">SeaMonkey 1.0.9 was released simultaneously with SeaMonkey 1.1.2</a> in May). The SeaMonkey team is also urging users of the Mozilla Application Suite, Netscape 7, Netscape 6 and Netscape Communicator 4.x to upgrade to SeaMonkey 1.1.4. "All those older software packages suffer from a large and steadily increasing
+number of security vulnerabilities because they are no longer being maintained," KaiRo explains. "SeaMonkey 1.1.4 is a modern, drop-in replacement, providing the same familiar suite functionality with additional features and fully up to date security fixes." The SeaMonkey project is a community-driven continuation of the Mozilla Application Suite, which formed the basis of Netscape 6 and 7 and shares similarities with Netscape Communicator 4.x.</p>
+        <p>SeaMonkey 1.1.4 can be downloaded from <a href="http://www.seamonkey-project.org/">www.seamonkey-project.org</a>. More details can be found in the <a href="http://www.mozilla.org/projects/seamonkey/releases/seamonkey1.1.4/">SeaMonkey 1.1.4 Release Notes</a>.</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22268">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+    <entry>
+      <title>Mozilla Thunderbird 2.0.0.6 Released</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22261" />
+      <modified>2007-08-02T06:49:45-08:00</modified>
+      <created>2007-08-02T06:49:45-08:00</created>
+      <issued>2007-08-02T06:49:45-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22261</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p>The Mozilla Corporation has released Mozilla Thunderbird 2.0.0.6. This update fixes two security issues, which are detailed in the <a href="http://www.mozilla.org/projects/security/known-vulnerabilities.html#thunderbird2.0.0.6">Thunderbird 2.0.0.6 section of the Mozilla Foundation Security Advisories page</a> (they're the same bugs that were eliminated in the equivalent <a href="/talkback.html?article=22256" title="MozillaZine: Mozilla Firefox 2.0.0.6 Released">Mozilla Firefox 2.0.0.6 release</a> earlier this week).</p>
+        <p>The latest version of Thunderbird can be downloaded from the <a href="http://www.mozilla.com/thunderbird/">Thunderbird product page</a> and will be offered to existing Thunderbird 2 users via the software update system. More general information about Thunderbird 2.0.0.6 can be found in the <a href="http://www.mozilla.com/thunderbird/2.0.0.6/releasenotes/">Thunderbird 2.0.0.6 Release Notes</a>. An update to the Thunderbird 1.5 line is expected shortly.</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22261">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+    <entry>
+      <title>Second Air Mozilla Features Trio of Mozilla Contributors and OSCON Presentation</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22257" />
+      <modified>2007-07-31T20:17:01-08:00</modified>
+      <created>2007-07-31T20:17:01-08:00</created>
+      <issued>2007-07-31T20:17:01-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22257</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p>The second edition of the Air Mozilla video webcast will take place on Wednesday 1st August at 3:00pm Pacific Daylight Time (10:00pm UTC/GMT). Hosted by <a href="http://weblogs.mozillazine.org/asa/">Asa Dotzler</a>, the show will feature <a href="http://www.flickr.com/photos/tychay/230744043/">Bret Reckard</a>, who works on recruitment for the Mozilla Corporation, <a href="http://jtbatson.blogspot.com/">JT Batson</a>, who is currently working on the new Firefox support project, and <a href="http://blog.mozilla.com/seth/">Seth Bindernagel</a>, who coordinates the community giving programme, which shares Mozilla's riches with valuable volunteers. The programme will end with a broadcast of <a href="http://weblogs.mozillazine.org/mitchell/">Mitchell Baker</a>'s <a href="http://conferences.oreillynet.com/os2007/"><abbr title="O'Reilly Open Source Convention">OSCON</abbr> 2007</a> presentation.</p>
+        <p>Viewers can watch the webcast at <a href="http://air.mozilla.com/">air.mozilla.com</a>, which will require the <a href="http://www.adobe.com/products/flashplayer/">Adobe Flash Player 9</a> plugin (the video will be available to download in a variety of formats after the live broadcast). A discussion will take place alongside the show in the <a href="irc://irc.mozilla.org/airmozilla">#airmozilla channel on irc.mozilla.org</a>. During the webcast, viewers will be able to send questions for the guests to the airmozilla user on either the <a href="http://www.aim.com/">AIM</a>, <a href="http://messenger.yahoo.com/">Yahoo! Messenger</a> or <a href="http://www.google.com/talk/">Google Talk</a> networks. Questions can also be emailed to <a href="mailto:airmozilla@mozilla.com">airmozilla@mozilla.com</a> before or during the show.</p>
+        <p><a href="http://www.spreadfirefox.com/">Spread Firefox</a> has a post with <a href="http://www.spreadfirefox.com/node/28061" title="Spread Firefox: Air Mozilla returns this Wednesday at 3PM">more details about Wednesday's Air Mozilla</a>.</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22257">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+    <entry>
+      <title>Mozilla Firefox 2.0.0.6 Released</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22256" />
+      <modified>2007-07-31T10:42:24-08:00</modified>
+      <created>2007-07-31T10:42:24-08:00</created>
+      <issued>2007-07-31T10:42:24-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22256</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p>Mozilla Firefox 2.0.0.6 has been released. This browser upgrade fixes two security flaws, which are detailed in the <a href="http://www.mozilla.org/projects/security/known-vulnerabilities.html#firefox2.0.0.6">Firefox 2.0.0.6 section of the Mozilla Foundation Security Advisories page</a>.</p>
+        <p>The more serious flaw involves <a href="http://www.mozilla.org/security/announce/2007/mfsa2007-27.html" title="MFSA 2007-27: Unescaped URIs passed to external programs">Firefox not percent-encoding spaces and double quotes in URLs passed to helper applications</a>, which can allow malicious webpages to open programs with potentially dangerous command line parameters. The other vulnerability is a <a href="http://www.mozilla.org/security/announce/2007/mfsa2007-26.html" title="MFSA 2007-26: Privilege escalation through chrome-loaded about:blank windows">privilege elevation bug involving extensions</a>, which was accidentally introduced in Firefox 2.0.0.5.</p>
+        <p>The URL protocol handling flaw is a similar class of exploit to the <a href="/talkback.html?article=22198" title="MozillaZine: Security Exploit Uses Internet Explorer to Attack Mozilla Firefox">firefoxurl:// URL vulnerability</a>, which was fixed with the <a href="/talkback.html?article=22211" title="MozillaZine: Mozilla Firefox 2.0.0.5 Released with Fix for firefoxurl:// Exploit">release of Firefox 2.0.0.5</a>. In the original firefoxurl:// exploit, an attacker could use Microsoft Internet Explorer to launch Firefox with malicious command line parameters. In the flaw fixed in Firefox 2.0.0.6, Firefox is used as the attack vector to start other applications with dangerous arguments. The exploit could be extended to execute any program in a known location, possibly passing dangerous command line parameters.</p>
+        <p>Whether or not it's Firefox's responsibility to ensure that data passed to external applications is (relatively) safe is a matter for debate. When the original firefoxurl:// URL vulnerability was discovered, Microsoft claimed that IE was not at fault. However, as Mozilla maintained at the time that the blame lay with IE, it would have been hypocritical not to fix the similar issue in Firefox. The <a href="http://blog.mozilla.com/security/">Mozilla Security Blog</a> post about the <a href="http://blog.mozilla.com/security/2007/07/23/related-security-issue-in-url-protocol-handling-on-windows/" title="Mozilla Security Blog: Related Security Issue in URL Protocol Handling on Windows">URL protocol handling flaw</a> states that "defense in depth is the best way to protect people" (although that weblog post says that only Windows is affected, discussion in <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=389106" title="(CVE-2007-3845) &#8212; firefox may not escape quotes everywhere">bug 389106</a> indicates that Linux and Mac OS X may also be vulnerable</a>).</p>
+        <p>Firefox prompts the user before launching most helper applications and shows the command line parameters, so users of vulnerable versions would receive some warning of an attack (though only the savvy are likely be knowledgeable enough to distinguish between safe and malicious command lines). However, some protocols related to email and newsgroups (specifically, mailto, news, nntp and snews) do not prompt the user before launching an external application, so vulnerable mail and newsgroups applications could be exploited with minimal user intervention (Thunderbird 2.0.0.4 and earlier is one such application, due to its variant of the firefoxurl:// problem).</p>
+        <p>More details about Firefox 2.0.0.6 can be found in the <a href="http://www.mozilla.com/firefox/2.0.0.6/releasenotes/">Firefox 2.0.0.6 Release Notes</a>. The new version can be downloaded from the <a href="http://www.mozilla.com/firefox/">Firefox 2.0.0.6 product page</a>. Existing Firefox 2 users with the software update feature enabled (it's on by default) will be prompted to upgrade. Equivalent releases of Thunderbird (both 2 and 1.5) and SeaMonkey are expected soon.</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22256">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+    <entry>
+      <title>Mozilla Thunderbird to Find New Home as Mozilla Foundation Focuses on Mozilla Firefox</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22235" />
+      <modified>2007-07-26T08:34:39-08:00</modified>
+      <created>2007-07-26T08:34:39-08:00</created>
+      <issued>2007-07-26T08:34:39-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22235</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p>On her weblog, Mozilla Corporation CEO <a href="http://weblogs.mozillazine.org/mitchell/">Mitchell Baker</a> has announced that <a href="http://weblogs.mozillazine.org/mitchell/archives/2007/07/email_futures.html" title="mitchell's blog: Email Call to Action">Mozilla Thunderbird is to move to a "new, separate organizational setting"</a> as the Mozilla Foundation continues to focus ever more closely on Mozilla Firefox.</p>
+        <p>While the Mozilla Foundation supports a number of projects, its taxable subsidiary the Mozilla Corporation is responsible for only Firefox and Thunderbird. However, it has become increasingly clear that Firefox is the priority. The resources allocated to Firefox dwarf those allocated to Thunderbird and recent projects such as the <a href="http://support-stage.mozilla.org/">initiative to improve Mozilla support</a> exclude Thunderbird.</p>
+        <p>Mitchell outlines three possible options for a new organisational structure for Thunderbird. One is to create a entirely new non-profit, which would offer maximum independence for Thunderbird but is organisationally complex. A second option is to create a new subsidiary of the Mozilla Foundation for Thunderbird, which would keep the Mozilla Foundation involved but may mean that Thunderbird continues to be neglected in favour of Firefox. A final option is to recast Thunderbird as community project, similar to SeaMonkey, and set up a small independent services and consulting company to continue development. However, there are concerns over how the Thunderbird product, project and company would interact.</p>
+        <p>On his new weblog, lead Thunderbird developer <a href="http://scott-macgregor.org/blog/">Scott MacGregor</a> has posted his <a href="http://scott-macgregor.org/blog/?p=4" title="Thoughts On Thunderbird: Finding a New Home For Thunderbird">thoughts on the finding a new home for Thunderbird</a>. He states that he favours the third option. Scott explains that this means that Thunderbird would continue to use Mozilla Foundation infrastructure, such as the CVS repository and Bugzilla, and the new company would perform a similar role for Thunderbird as the Mozilla Corporation does for Firefox, developing, releasing and supporting the application.</p>
+        <p>Observers of the Mozilla community may have seen Thunderbird's new home coming. In April, former Firefox lead developer <a href="http://www.bengoodger.com/">Ben Goodger</a> wrote a weblog post <a href="http://www.bengoodger.com/2007/04/the_autonomous_future.html" title="millennium | ten: The Autonomous Future?">discussing autonomy for non-Firefox projects</a>. He suggested renaming the Mozilla Corporation to the Firefox Corporation and pointed to a <a href="http://groups.google.com/groups?as_umsgid=461555F0.4080109%40mozilla.org" title="mozilla.dev.platform: Re: Thunderbird's future role">newsgroup message in which Mozilla Corporation CTO Brendan Eich declared "Thunderbird will have to fly free"</a>. Ten days later, Mitchell Baker wrote a weblog post on the <a href="http://weblogs.mozillazine.org/mitchell/archives/2007/04/the_open_web_and_firefox_focus.html" title="mitchell's blog: The Open Web and Firefox Focus">Mozilla Foundation's focus on Firefox</a>, stating that the Foundation's resources would be used to "assist other Mozilla participants and projects, but not equally with Firefox and not at significant cost to Firefox".</p>
+        <p><strong>Update:</strong> In the text above, the sentence "While the Mozilla Foundation supports a number of projects, its taxable subsidiary the Mozilla Corporation is responsible for only Firefox and Thunderbird" was potentially misleading. The Corporation provides significant support to projects other than Firefox and Thunderbird in terms of hardware, services and personnel.</p>
+        <p>It would be more accurate to say that Firefox and Thunderbird are Mozilla products, which means that they get released, distributed and supported as end-user applications by the Corporation. Other applications, such as SeaMonkey and Camino, are Mozilla projects, which are made into products by volunteers or other organisations, if at all.</p>
+        <p>Thanks to Asa Dotzler for the clarification in <a href="/talkback.html?article=22235#26">comment 26</a> and <a href="/talkback.html?article=22235#30">comment 30</a> on this article.</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22235">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+    <entry>
+      <title>Staging Site for Firefox Support Knowledge Base Ready</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22221" />
+      <modified>2007-07-20T17:23:30-08:00</modified>
+      <created>2007-07-20T17:23:30-08:00</created>
+      <issued>2007-07-20T17:23:30-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22221</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p><a href="http://ilias.ca/blog/">Chris Ilias</a> writes: "The <a href="http://support-stage.mozilla.org/">staging site for the new Firefox Support knowledge base</a> is now up and running, and we’re looking for people to help contribute content. We have an <a href="http://support-stage.mozilla.org/tiki-index.php?page=Alpha%20Article%20Tracking">initial list of articles</a> we would like created for the alpha version, so feel free to create an account, assign yourself to an article, and create it. Our primary goal, right now, is core content. So if you’re not familiar with tikiwiki, feel free to create articles without markup.</p>
+        <p>"As more articles are drafted, there are more ways you can contribute, such as reviewing the accuracy of information, reviewing compliance with the <a href="http://support-stage.mozilla.org/tiki-index.php?page=Best%20Practices%20for%20Support%20Documents">best practices page</a>, <a href="http://support-stage.mozilla.org/tiki-index.php?page=Style%20Guide">proofreading</a>, marking up articles with <a href="http://doc.tikiwiki.org/tiki-index.php?page=Wiki-Syntax+Text">tikiwiki code</a>, and even <a href="http://support-stage.mozilla.org/tiki-index.php?page=Best%20Practices%20for%20Support%20Documents#Screenshots">creating screenshots</a>.</p>
+        <p>"<a href="http://support-stage.mozilla.org/tiki-index.php?page=Contributor+Home+Page">Get started now by following the instructions on our Get Started Now page</a>, and thank you to everyone who contributes."</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22221">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+    <entry>
+      <title>SeaMonkey 1.1.3 Released</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22220" />
+      <modified>2007-07-20T17:19:43-08:00</modified>
+      <created>2007-07-20T17:19:43-08:00</created>
+      <issued>2007-07-20T17:19:43-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22220</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p><a href="mailto:kairo@kairo.at">Robert Kaiser</a> wrote in to inform us of the release of SeaMonkey 1.1.3, which contains fixes for <a href="http://www.mozilla.org/projects/security/known-vulnerabilities.html#seamonkey1.1.3">several
+security vulnerabilities</a> and several smaller problems found in
+previous versions. </p>
+        <p>The SeaMonkey team strongly urges users of the old Mozilla Suite and Netscape 4, 6 or 7 to upgrade to SeaMonkey 1.1.3, as those software packages suffer from an increasing number of security vulnerabilities and are no longer being maintained. </p>
+        <p>SeaMonkey 1.1.3 is available for download from the <a href="http://www.seamonkey-project.org/">SeaMonkey Project Website</a>.</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22220">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+    <entry>
+      <title>Mozilla Thunderbird 2.0.0.5 Released</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22219" />
+      <modified>2007-07-20T17:11:43-08:00</modified>
+      <created>2007-07-20T17:11:43-08:00</created>
+      <issued>2007-07-20T17:11:43-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22219</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p>Mozilla Thunderbird 2.0.0.5 has been released and is currently being distributed to Thunderbird 2 users via the application's built-in software update system. The upgrade fixes security bugs, which are detailed in the <a href="http://www.mozilla.org/projects/security/known-vulnerabilities.html#thunderbird2.0.0.5">Thunderbird 2.0.0.5 section of the Mozilla Foundation Security Advisories page</a>.</p>
+        <p>Thunderbird 2.0.0.5 can be downloaded from the <a href="http://www.mozilla.com/thunderbird/">Thunderbird product page</a>. The <a href="http://www.mozilla.com/thunderbird/2.0.0.5/releasenotes/">Mozilla Thunderbird 2.0.0.5 Release Notes</a> contain more general information about the upgrade.</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22219">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+    <entry>
+      <title>Mozilla Firefox 2.0.0.5 Released with Fix for firefoxurl:// Exploit</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22211" />
+      <modified>2007-07-18T05:15:48-08:00</modified>
+      <created>2007-07-18T05:15:48-08:00</created>
+      <issued>2007-07-18T05:15:48-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22211</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p>Mozilla Firefox 2.0.0.5 has been released and is currently being distributed to Firefox 2 users via the application's built-in software update system. The browser upgrade fixes several security bugs, which are detailed in the <a href="http://www.mozilla.org/projects/security/known-vulnerabilities.html#firefox2.0.0.5">Firefox 2.0.0.5 section of the Mozilla Foundation Security Advisories page</a>.</p>
+        <p>Firefox 2.0.0.5 includes a fix for the <a href="/talkback.html?article=22198" title="MozillaZine: Security Exploit Uses Internet Explorer to Attack Mozilla Firefox">firefoxurl:// security exploit</a>, which allows an attacker to use Microsoft Internet Explorer to trick Firefox into executing malicious code. Whether Firefox or IE is responsible for the flaw has been a matter of debate over the past week. The <a href="http://www.mozilla.org/security/announce/2007/mfsa2007-23.html" title="MFSA 2007-23:  Remote code execution by launching Firefox from Internet Explorer">Mozilla Foundation security advisory about the firefoxurl:// issue</a> maintains that it's a problem in IE and notes that other applications could be exploited in the same way. Others have argued that it's Firefox's responsibility to vet incoming data (something 2.0.0.5 now does).</p>
+        <p>Firefox 2.0.0.5 can be downloaded from the <a href="http://www.mozilla.com/firefox/">Firefox product page</a>. The <a href="http://www.mozilla.com/firefox/2.0.0.5/releasenotes/">Firefox 2.0.0.5 Release Notes</a> contain more general information about the upgrade. A similar update for Mozilla Thunderbird is expected shortly.</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22211">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+    <entry>
+      <title>Mozilla Thunderbird 2.0.0.4 Released</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22201" />
+      <modified>2007-07-12T17:13:30-08:00</modified>
+      <created>2007-07-12T17:13:30-08:00</created>
+      <issued>2007-07-12T17:13:30-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22201</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p>Mozilla Thunderbird 2.0.0.4 was released on Thursday 14th June. This update to the Mozilla Corporation's mail client includes bug fixes but no new features. For the first time, this release of Thunderbird is available in Korean.</p>
+        <p>The <a href="http://www.mozilla.org/projects/security/known-vulnerabilities.html#thunderbird2.0.0.4">Thunderbird 2.0.0.4 section of the Mozilla Foundation Security Advisories page</a> includes details about the security flaws fixed in this release while <a href="http://weblogs.mozillazine.org/rumblingedge/">The Rumbling Edge</a> has a complete <a href="http://weblogs.mozillazine.org/rumblingedge/archives/2007/06/tb_2-0-0-4.html" title="The Rumbling Edge: Thunderbird 2.0.0.4 Released">Thunderbird 2.0.0.4 changelog</a>. More general details can be found in the <a href="http://www.mozilla.com/thunderbird/2.0.0.4/releasenotes/">Thunderbird 2.0.0.4 Release Notes</a>.</p>
+        <p>This is the first minor update to Thunderbird 2 since the <a href="/talkback.html?article=21415" title="MozillaZine: Mozilla Thunderbird 2 Released">launch of Thunderbird 2.0.0.0 in April</a>; the version number was selected to match that of the latest Mozilla Firefox release.</p>
+        <p>The older Thunderbird 1.5 will continue to be supported until Thursday 18th October this year. <a href="/talkback.html?article=21968" title="MozillaZine: Mozilla Thunderbird 1.5.0.12 Released">Thunderbird 1.5.0.12</a> was released last month with the same security fixes as 2.0.0.4.</p>
+        <p>While Thunderbird 2.0.0.4 can be downloaded from the <a href="http://www.mozilla.com/thunderbird/">Thunderbird product page</a>, most existing Thunderbird 2 users will have received it via the software update mechanism built in to the program.</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22201">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+    <entry>
+      <title>Security Exploit Uses Internet Explorer to Attack Mozilla Firefox</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22198" />
+      <modified>2007-07-11T07:32:00-08:00</modified>
+      <created>2007-07-11T07:32:00-08:00</created>
+      <issued>2007-07-11T07:32:00-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22198</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p>Firefox_User sent us a link to a <a href="http://news.com.com/">CNET News.com</a> article about a <a href="http://news.com.com/8301-10784_3-9741435-7.html" title="CNET News.com: Firefox and IE together brew up security trouble">security threat to Windows users with both Mozilla Firefox and Microsoft Internet Explorer installed</a>. The issue can allow an attacker to remotely trick Firefox into executing potentially malicious code. However, a user has to be running Internet Explorer to actually get exploited.</p>
+        <p>Security researcher <a href="http://larholm.com/">Thor Larholm</a> has published a <a href="http://larholm.com/2007/07/10/internet-explorer-0day-exploit/" title="Larholm.com:  Internet Explorer 0day Exploit">description of how the security flaw works</a>, including a proof-of-concept (though some have reported that they cannot get this to work). When installed on Windows, Firefox registers a URL protocol handler to handle firefoxurl:// URLs (this works much like a http:// or ftp:// URL protocol handler). If an IE user visits a webpage that tries to call a firefoxurl:// URL (for example, using an iframe), IE will launch Firefox with no further prompting, passing it the URL. Neither IE nor Firefox escape or sanitise the URL, which allows an attacker to inject additional parameters into the command line used to invoke Firefox. Used in combination with the <kbd>-chrome</kbd> parameter, the attacker can make Firefox execute dangerous JavaScript code.</p>
+        <p>There's some debate as to where the blame lies &#8212; is it IE for passing untrusted data to another application or Firefox for not validating input properly? <a href="http://www.securityfocus.com/">SecurityFocus</a> refers to the problem as a <a href="http://www.securityfocus.com/bid/24837/" title="SecurityFocus: Microsoft Internet Explorer FirefoxURL Protocol Handler Command Injection Vulnerability"><cite>Microsoft Internet Explorer FirefoxURL Protocol Handler Command Injection Vulnerability</cite></a>, placing the blame with Redmond, while <a href="http://secunia.com/">Secunia</a> calls it a <a href="http://secunia.com/advisories/25984/" title="Secunia: Firefox &#34;firefoxurl&#34; URI Handler Registration Vulnerability"><cite>Firefox "firefoxurl" URI Handler Registration Vulnerability</cite></a>, pointing the finger at Mozilla. News.com quotes Oliver Friedrichs of <a href="http://www.symantec.com/security_response/index.jsp">Symantec's Security Response Center</a>, who says, "It's a little bit of both."</p>
+        <p>On the official <a href="http://blog.mozilla.com/security/">Mozilla Security Blog</a>, the Mozilla Corporation's Window Synder (who used to work for Microsoft) says that a fix will be included in the forthcoming Firefox 2.0.0.5. That said, she seems to suggest that she considers this to be mostly a problem with IE, noting that Apple fixed a similar issue with Safari recently. However, according to the <a href="http://blogs.zdnet.com/security/">ZDNet Zero Day</a> security weblog, <a href="http://blogs.zdnet.com/security/?p=362" title="ZDNet Zero Day: UPDATED: Command injection flaw found in IE: Or is it Firefox?">Microsoft claims the firefoxurl:// bug "is not a vulnerability in a Microsoft product"</a>.</p>
+        <p>On his weblog, <a href="http://msinfluentials.com/blogs/jesper/">Jesper Johansson</a> (who also used to work for Microsoft), says the <a href="http://msinfluentials.com/blogs/jesper/archive/2007/07/10/blocking-the-firefox-gt-ie-0-day.aspx" title="Jesper's Blog: Blocking the Firefox -&#62; IE 0-day">firefoxurl:// flaw is a Mozilla problem</a>. He also provides instructions for unregistering the URL protocol handlers.</p>
+        <p>Thanks to roseman for some of the links used in this report.</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22198">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+    <entry>
+      <title>Air Mozilla Relaunches with Live Mitchell Baker Interview on Wednesday</title>
+      <link rel="alternate" type="text/html" href="http://www.mozillazine.org/talkback.html?article=22197" />
+      <modified>2007-07-10T18:44:02-08:00</modified>
+      <created>2007-07-10T18:44:02-08:00</created>
+      <issued>2007-07-10T18:44:02-08:00</issued>
+      <id>tag:mozillazine.org,2004:article22197</id>
+      <author>
+        <name>mozillaZine.org</name>
+      </author>
+      <content type="text/html" mode="escaped" xml:lang="en" xml:base="http://www.mozillazine.org/">
+        <![CDATA[<p>The Air Mozilla video webcast will return on Wednesday 11th July when Mozilla Corporation CEO Mitchell Baker answers questions in a live interview. The broadcast will begin at 2:00pm Pacific Daylight Time (9:00pm UTC/GMT) and is scheduled to last one hour.</p>
+        <p><a href="http://weblogs.mozillazine.org/asa/">Asa Dotzler</a>, who will be hosting the segment, has posted some <a href="http://weblogs.mozillazine.org/asa/archives/2007/07/relaunch_of_air.html" title="Asa Dotzler &#8212; Firefox and more: relaunch of air mozilla">details about the relaunch of Air Mozilla</a>. According to his post, Mitchell will talk about the state of the Mozilla project and answer questions from the audience. Asa hopes that Air Mozilla will become a regular feature, growing to feature "not just interviews, but screencasts with tips and tricks, news segments, and other community generated content."</p>
+        <p>Viewers can watch the webcast at <a href="http://air.mozilla.com/">air.mozilla.com</a>, which will require the <a href="http://www.adobe.com/products/flashplayer/">Adobe Flash Player 9</a> plugin (available for Windows, Linux and Mac OS X). A discussion will take place alongside the broadcast in the <a href="irc://irc.mozilla.org/airmozilla">#airmozilla channel on irc.mozilla.org</a>. During the show, viewers will be able to ask Mitchell questions by sending a message to the airmozilla user on either the <a href="http://www.aim.com/">AIM</a>, <a href="http://messenger.yahoo.com/">Yahoo! Messenger</a> or <a href="http://www.google.com/talk/">Google Talk</a> networks. Questions can also be emailed to <a href="mailto:airmozilla@mozilla.com">airmozilla@mozilla.com</a> before or during the webcast.</p>
+        <p><a href="http://www.numenity.org/blog/">Paul Kim</a> has said that he is <a href="http://www.numenity.org/blog/2007/07/06/a-note-about-air-mozilla/" title="PKB: A Note about Air Mozilla">unhappy that the live Air Mozilla webcast will require the proprietary Flash Player</a>. He has promised that the video will be made available in several formats after broadcast, including a recording encoded with the open <a href="http://www.theora.org/">Theora</a> codec.</p>
+        <p>The <a href="http://www.spreadfirefox.com/node/5518" title="Spread Firefox: Firefox 1.0 Launch Day: Air Mozilla">first Air Mozilla webcast</a> marked the launch of Mozilla Firefox 1.0 in late 2004.</p>]]>
+        <![CDATA[<p><a href="http://www.mozillazine.org/talkback.html?article=22197">Talkback</a></p>]]>
+      </content>
+    </entry>
+
+</feed>

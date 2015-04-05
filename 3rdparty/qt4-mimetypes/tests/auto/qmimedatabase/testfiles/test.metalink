@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metalink version="3.0" generator="Metalink Editor version 0.4.1" xmlns="http://www.metalinker.org/">
+  <publisher>
+    <name>AbiSource</name>
+    <url>http://www.abisource.com/</url>
+  </publisher>
+  <license>
+    <name>GNU GPL</name>
+    <url>http://www.gnu.org/licenses/gpl.html</url>
+  </license>
+  <identity>AbiWord</identity>
+  <version>2.4.6</version>
+  <description>AbiWord is a free word processing program similar to Microsoft Word. It is suitable for a wide variety of word processing tasks.</description>
+  <files>
+    <file name="abiword-setup-2.4.6.exe">
+      <size>5410865</size>
+      <os>Windows-x86</os>
+      <verification>
+		<hash type="sha256">685a82ca2a9c56861e5ca22b38e697791485664c36ad883f410dac9e96d09f62</hash>
+        <pieces type="sha1" length="262144">
+          <hash piece="0">51777f8439c03eb6f7a7528a2414593e741a67c2</hash>
+          <hash piece="1">ef47dbc9fad65aebba913ea64edd804df9664132</hash>
+          <hash piece="2">9af8a9435bcac7fc2dfcf06d9ea511308436966c</hash>
+          <hash piece="3">93a290689673b6f5c21c1bd888883bdd36f1e865</hash>
+          <hash piece="4">b0c8ce43b8ea00993065c6a0908571fe3377dca2</hash>
+          <hash piece="5">63bc039c960bdc6a71a974bf268a6faba110fec7</hash>
+          <hash piece="6">76e1fcf4c32d0e2a8dce4f540eb40c74b790b9de</hash>
+          <hash piece="7">e91dabe6d150388b46aad4e8834fd86ebb14db84</hash>
+          <hash piece="8">77c6e106bbdd2d760b075dab46ec592cd4be52e5</hash>
+          <hash piece="9">dff4aa3cf6c0b3357687be16b8294b492f6e5667</hash>
+          <hash piece="10">a9a92c132291cd244023c7ab363faad5b60c633f</hash>
+          <hash piece="11">28308f0d20729ab788a6f1f9643537feef7499ae</hash>
+          <hash piece="12">87bc71070c87fa0dd96cf378a397cea3739f59c9</hash>
+          <hash piece="13">cc2de995b88148a80d41de49062cf4f73bcefa57</hash>
+          <hash piece="14">f5936b561d8df275b47a5ad980488427bd5e67d3</hash>
+          <hash piece="15">bea22600358d4d4f90de674a290f35ca637440b3</hash>
+          <hash piece="16">e100448d240cb557ed16e9364a06d93a2c42f205</hash>
+          <hash piece="17">debd6e735062ded880ad787b2c5dbad2d4e634d1</hash>
+          <hash piece="18">ad821b40698d4bda2ac63df03b2b9aef5981f55e</hash>
+          <hash piece="19">6e4acc3af2daa25c71fa15f7fa1715131ae5023e</hash>
+          <hash piece="20">5075863c71c4daaeb0e0ff02f96d82e75621a0cd</hash>
+        </pieces>
+      </verification>
+      <resources>
+        <url type="http" preference="100">http://www.abisource.com/downloads/abiword/2.4.6/Windows/abiword-setup-2.4.6.exe</url>
+      </resources>
+    </file>
+  </files>
+</metalink>

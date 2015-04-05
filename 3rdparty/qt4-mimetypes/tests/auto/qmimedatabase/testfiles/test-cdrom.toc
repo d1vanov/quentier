@@ -1,0 +1,8 @@
+CD_ROM
+
+
+// Track 1
+TRACK MODE1
+NO COPY
+DATAFILE "data.bin" 69:21:33 // length in bytes: 639197184
+

@@ -1,0 +1,14 @@
+# Supposed to work
+tests/image-dcf x-content/image-dcf
+tests/video-vcd x-content/video-vcd
+tests/video-svcd x-content/video-svcd
+tests/video-dvd x-content/video-dvd x-content/audio-dvd
+tests/video-dvd-2 x-content/video-dvd x-content/audio-dvd
+tests/video-dvd-3 x-content/video-dvd x-content/audio-dvd
+tests/video-bluray x-content/video-bluray
+tests/video-hddvd x-content/video-hddvd
+tests/image-picturecd x-content/image-picturecd
+tests/software x-content/unix-software
+
+# Supposed to fail
+x tests x-content/image-dcf

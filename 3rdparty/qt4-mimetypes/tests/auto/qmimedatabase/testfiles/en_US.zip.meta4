@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metalink xmlns="urn:ietf:params:xml:ns:metalink">
+  <generator>MirrorBrain/2.15.1</generator>
+  <origin dynamic="true">http://ooo.mirrorbrain.org/contrib/dictionaries/en_US.zip.meta4</origin>
+  <published>2011-10-22T18:54:56Z</published>
+  <publisher>
+    <name>OpenOffice.org - the free and open productivity suite</name>
+    <url>http://www.openoffice.org/</url>
+  </publisher>
+
+  <file name="en_US.zip">
+    <size>248417</size>
+
+    <!-- <mtime>1178651493</mtime> -->
+
+
+
+    <!-- Found 79 mirrors: 0 in the same network prefix, 0 in the same autonomous system,
+         1 handling this country, 41 in the same region, 11 elsewhere -->
+
+    <!-- Mirrors in the same network (82.181.0.0/16): -->
+
+    <!-- Mirrors in the same AS (20542): -->
+
+    <!-- Mirrors which handle this country (FI): -->
+    <url location="fi" priority="1">http://ftp.funet.fi/pub/mirrors/openoffice.org/contrib/dictionaries/en_US.zip</url>
+
+    <!-- Mirrors in the same continent (EU): -->
+    <url location="se" priority="2">http://ftp.sunet.se/pub/Office/OpenOffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="pl" priority="3">ftp://ftp.man.poznan.pl/pub/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="dk" priority="4">http://mirrors.dotsrc.org/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="ro" priority="5">http://ftp.astral.ro/mirrors/openoffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="de" priority="6">ftp://ftp.fu-berlin.de/unix/X11/apps/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="hu" priority="7">http://ftp.fsf.hu/OpenOffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="cz" priority="8">http://ftp.sh.cvut.cz/MIRRORS/OpenOffice/contrib/dictionaries/en_US.zip</url>
+    <url location="cz" priority="9">http://ooo.mirror.dkm.cz/pub/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="at" priority="10">http://mirror.7he.at/pub/OpenOffice/contrib/dictionaries/en_US.zip</url>
+    <url location="at" priority="11">http://gd.tuwien.ac.at/office/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="de" priority="12">http://ftp.tu-chemnitz.de/pub/openoffice-extended/contrib/dictionaries/en_US.zip</url>
+    <url location="ro" priority="13">http://ftp.roedu.net/mirrors/openoffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="de" priority="14">http://ftp.rz.tu-bs.de/pub/mirror/OpenOffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="de" priority="15">http://ftp.uasw.edu/pub/openoffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="de" priority="16">http://ftp5.gwdg.de/pub/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="de" priority="17">http://ftp3.gwdg.de/pub/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="de" priority="18">http://ftp.uni-erlangen.de/mirrors/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="bg" priority="19">http://ftp.spnet.net/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="de" priority="20">ftp://ftp.uni-muenster.de/pub/software/OpenOffice/contrib/dictionaries/en_US.zip</url>
+    <url location="de" priority="21">http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.openoffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="de" priority="22">http://ftp.fernuni-hagen.de/ftp-dir/pub/mirrors/www.openoffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="nl" priority="23">http://ftp.snt.utwente.nl/pub/software/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="ch" priority="24">http://ooorg.mirror.testserver.li/contrib/dictionaries/en_US.zip</url>
+    <url location="ch" priority="25">http://mirror.switch.ch/ftp/mirror/OpenOffice/contrib/dictionaries/en_US.zip</url>
+    <url location="de" priority="26">http://sunsite.informatik.rwth-aachen.de/ftp/pub/mirror/OpenOffice/contrib/dictionaries/en_US.zip</url>
+    <url location="nl" priority="27">http://ftp.nluug.nl/pub/office/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="ch" priority="28">ftp://ftp.solnet.ch/mirror/OpenOffice/contrib/dictionaries/en_US.zip</url>
+    <url location="fr" priority="29">http://wwwftp.ciril.fr/pub/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="it" priority="30">http://ooo.mirror.garr.it/mirrors/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="gr" priority="31">http://www.ellak.gr/pub/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="gr" priority="32">http://ftp.ntua.gr/pub/OpenOffice/contrib/dictionaries/en_US.zip</url>
+    <url location="gr" priority="33">http://ftp.cc.uoc.gr/openoffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="fr" priority="34">http://ftp.proxad.net/mirrors/ftp.openoffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="fr" priority="35">http://ftp.free.fr/mirrors/ftp.openoffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="gb" priority="36">http://www.mirrorservice.org/sites/download.openoffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="gb" priority="37">http://openoffice.virginmedia.com/contrib/dictionaries/en_US.zip</url>
+    <url location="fr" priority="38">http://openoffice.cict.fr/contrib/dictionaries/en_US.zip</url>
+    <url location="ie" priority="39">http://ftp.heanet.ie/mirrors/openoffice.org/contrib/dictionaries/en_US.zip</url>
+    <url location="es" priority="40">http://openoffice.org.mirrors.irontec.com/contrib/dictionaries/en_US.zip</url>
+    <url location="pt" priority="41">http://mirrors.fe.up.pt/pub/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="pt" priority="42">http://openoffice.dcc.fc.up.pt/contrib/dictionaries/en_US.zip</url>
+
+    <!-- Mirrors in the rest of the world: -->
+    <url location="kr" priority="43">http://ftp.kaist.ac.kr/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="ca" priority="44">http://openoffice.mirror.rafal.ca/contrib/dictionaries/en_US.zip</url>
+    <url location="ca" priority="45">http://mirror.csclub.uwaterloo.ca/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="us" priority="46">http://openoffice.mirrors.tds.net/pub/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="us" priority="47">http://ftp.osuosl.org/pub/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="jp" priority="48">http://ftp.kddilabs.jp/office/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="jp" priority="49">http://ftp.jaist.ac.jp/pub/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="us" priority="50">http://ftp.ussg.iu.edu/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="jp" priority="51">http://ftp.yz.yamagata-u.ac.jp/pub/openoffice/contrib/dictionaries/en_US.zip</url>
+    <url location="us" priority="52">http://openoffice.mirror.wrpn.net/contrib/dictionaries/en_US.zip</url>
+    <url location="us" priority="53">http://openoffice.cs.utah.edu/contrib/dictionaries/en_US.zip</url>
+  </file>
+</metalink>

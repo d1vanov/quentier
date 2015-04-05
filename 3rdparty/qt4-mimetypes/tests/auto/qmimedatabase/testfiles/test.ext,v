@@ -1,0 +1,1229 @@
+head	4.2;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+4.2
+date	2004.07.22.15.07.14;	author armnphy;	state Exp;
+branches;
+next	4.1;
+
+4.1
+date	2004.04.20.19.33.53;	author armnphy;	state Exp;
+branches;
+next	4.0;
+
+4.0
+date	2003.09.19.18.49.18;	author armnphy;	state Exp;
+branches;
+next	3.9;
+
+3.9
+date	2003.06.16.18.49.37;	author armnphy;	state Exp;
+branches;
+next	3.8;
+
+3.8
+date	2003.04.01.21.57.11;	author armnbil;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+4.2
+log
+@bidon
+@
+text
+@!copyright (C) 2001  MSC-RPN COMM  %%%RPNPHY%%%
+*** S/P CLDOPTX4
+*
+#include "phy_macros_f.h"
+      subroutine cldoptx4 (LWC,IWC,neb,T,sig,ps,lat,mg,ml,m,lmx,nk,
+     +                     pbl,ipbl,dz,sdz,eneb,opdepth,asymg,
+     +                     tlwp,tiwp,topthw,topthi,
+     +                     ctp,ctt,
+     +                     omegav,tauae,istcond,satuco,
+     +                     cw_rad,ioptix,nostrlwc)
+*
+#include "impnone.cdk"
+*
+      integer lmx,m,nk,istcond,cw_rad,ioptix
+      logical satuco,nostrlwc
+      real ipbl(lmx)
+      real LWC(LMX,nk), IWC(LMX,nk), neb(LMX,nk), t(m,nk), sig(LMX,nk)
+      real ps(LMX),lat(LMX),eneb(LMX,nk),mg(LMX),ml(LMX)
+      real opdepth(LMX,nk),asymg(LMX,nk),omegav(LMX,nk)
+      real tauae(LMX,nk,5),pbl(LMX),dz(LMX,nk),sdz(LMX)
+      real tlwp(lmx),tiwp(lmx),topthw(lmx),topthi(lmx)
+      real ctp(lmx),ctt(lmx)
+*
+*AUTHOR
+*     L. Garand and H. Barker (April 1995)
+*
+*REVISION
+*
+* 001 R. Sarrazin and L. Garand (May 1996) - Correct bug for omegav
+*                                            and change tuneopi
+* 002 N. Brunet (Oct 96) Correct bug for mg
+* 003 C. Beaudoin (Jan 98) Eliminate fictitious stratospheric clouds
+*                          above 50 mb for CONDS condensation option
+* 004 B. Bilodeau and L. Garand (Aug 1999) - Add IWC for interaction
+*                                           with microphysics schemes
+* 005 B. Dugas (April 1999) Never any clouds above 70 mb, but this only
+*                           when the new input parameter climat is true
+* 006 A. Methot and L. Garand (Jun 2000) - introduce a maximum in the
+*                                         total optical depth
+* 007 A. Methot (May 2000) - modify effective radius relationship 
+*                           with lwc
+* 008 A. Methot and L. Garand (Jun 2000) - introduce Hu and Stamnes
+*                                         parameters for liquid water
+* 009 A. Methot and Mailhot (Jun 2000) - introduce Fu & Liou parameters
+*                                       for ice
+* 010 B. Bilodeau (Mar 2001) - Old cldotpx code as option
+* 011 B. Bilodeau (Nov 2001) - Tuneopi = 0.8 for new optical properties
+* 012 B. Bilodeau (Nov 2002) - Back to old optical properties for ice
+*                              Lakes treated as land
+* 013 B. Bilodeau, P. Vaillancourt and A. Glazer (Dec 2002)
+*                            - Calculate ctp and ctt
+* 014 B. Dugas - Rename CLIMAT to NOSTRLWC
+*
+* 015 M. Lepine  (March 2003) -  CVMG... Replacements
+* 016 D. Talbot (June 2003) - IBM conversion
+*                - calls to vsexp routine (from massvp4 library)
+*                - calls to exponen4 (to calculate power function '**')
+*                - divisions replaced by reciprocals
+* 017 B. Bilodeau (Aug 2003) - exponen4 replaced by vspow
+* 018 B. Bilodeau (Feb 2004) - take ml into account for aerosols 
+*                              when ioptix.lt.2
+*
+*
+*OBJECT
+*     computes optical parameters as input to visible and infrared
+*             radiation also includes aerosol parameterization
+*             Optical parameters refer to entire VIS or IR spectrum
+*             but could be extended to several bands matching those
+*             of the radiation codes.
+*
+*ARGUMENTS
+*          - Output -
+* ENEB     cloud amount times emissivity in each layer (0. to 1.)
+*          (effective nebulosity to be used by IR code)
+* OPDEPTH  layer visible optical depth (dimensionless)
+* ASYMG    layer visible asymmetry factor (G in literature, 0. to 1. )
+* OMEGAV   layer visible single scattering albedo (0. to 1.)
+* TAUAE    layer aerosol optical depth for VIS code
+* IPBL     closest model level matching PBL (LMX)
+* TLWP     total integrated liquid water path
+* TIWP     total integrated ice    water path
+* TOPTHW   total integrated optical thickness of water (from TLWP)
+* TOPTHI   total integrated optical thickness of ice   (from TIWP)
+*
+*          -Output -
+* LWC      TOTAL (liquid and solid) cloud water content for
+*          CONDS and OLDSUND schemes (cw_rad=0).
+*          Units : Kg water/Kg air (caution: not in Kg/m3) (LMX,NK)
+*
+*          -Input -
+* LWC      * TOTAL cloud water content for NEWSUND, CONSUN, EXMO
+*            and WARM K-Y condensation schemes (cw_rad=1);
+*          * LIQUID water content for MIXED PHASE and
+*            COLD K-Y schemes (cw_rad=2).
+* IWC      ICE water content in Kg water/Kg air (only if cw_rad=2)
+*
+*          -Input -
+* NEB      layer cloud amount (0. to 1.) (LMX,NK)
+* T        layer temperature (K) (M,NK)
+* SIG      sigma levels (0. to 1.) (LMX,NK; local sigma)
+* LAT      latitude in radians (-pi/2 to +pi/2) (LMX)
+* PBL      height of planetary boundary layer in meters (LMX)
+* DZ       work array, on output geometrical thickness (LMX,NK)
+* SDZ      work array (LMX)
+* MG       ground cover (ocean=0.0,land <= 1.)  (LMX)
+* ML       fraction of lakes (0.-1.) (LMX)
+* PS       surface pressure (N/m2) (LMX)
+* LMX      number of profiles to compute
+* M        first dimension of temperature (usually LMX)
+* NK       number of layers
+* ISTCOND  stratiform condensation scheme used;
+* SATUCO   .TRUE. if water/ice phase for saturation
+*          .FALSE. if water phase only for saturation
+* CW_RAD   = 0 if no cloud water content is provided as input;
+*          = 1 if total water content is provided (in LWC);
+*          = 2 if both liquid and ice water contents are provided
+*              separately (in LWC and IWC respectively).
+*          CW_RAD is defined in phydebu4, based on ISTCOND.
+* NOSTRLWC .TRUE. removes all liquid water content above 70 mb.
+*          This should be removed with an updated IR code
+* IOPTIX   parameterizations for cloud optical properties
+*          = 1 for simpler condensation schemes
+*          = 2 for microphysics schemes
+*
+*
+**
+*
+*
+************************************************************************
+*     AUTOMATIC ARRAYS
+************************************************************************
+*
+      AUTOMATIC ( CLOUD          , REAL    , (LMX,NK  ) )
+      AUTOMATIC ( DP             , REAL    , (LMX,NK  ) )
+      AUTOMATIC ( FRAC           , REAL    , (LMX,NK  ) )
+      AUTOMATIC ( IWCM           , REAL    , (LMX,NK  ) )
+      AUTOMATIC ( IWP            , REAL    , (LMX,NK  ) )
+      AUTOMATIC ( LWCM           , REAL    , (LMX,NK  ) )
+      AUTOMATIC ( LWP            , REAL    , (LMX,NK  ) )
+      AUTOMATIC ( TRANSMISSINT   , REAL    , (LMX,NK  ) )
+      AUTOMATIC ( TOP            , LOGICAL , (LMX     ) )
+*
+************************************************************************
+*
+        integer i,k
+        integer ire(m,nk)
+*       logical top
+        real lwcm1, tuneopw
+        real rei, rec_rei, ki, iwcm1, tuneopi, omi, gi, ssai
+        real dp1,dp2,dp3
+        real elsa, emiss
+        real third,rec_grav,rec_180,rec_rgasd
+        real ct,aero,rlat,eps
+        real zz, No
+        real tcel(m,nk),aird(m,nk),rew(m,nk),rec_cdd(m,nk),kw(m,nk)
+        real kwf_ire(m,nk),kvf_ire(m,nk),ssf_ire(m,nk),gwf_ire(m,nk)
+        real ei(m,nk),omw(m,nk),ssaw(m,nk),gw(m,nk)
+        real ew(m,nk)
+        real kwf(3,3), kvf(3,3), ssf(3,3), gwf(3,3)
+        external LIQWC
+*
+#include "consphy.cdk"
+*
+c LWP,IWP are liquid, ice water paths in g/m2
+        data third/0.3333333/
+c diffusivity factor of Elsasser
+        data elsa/1.66/
+        data eps/1.e-10/
+        save third,elsa,eps
+*
+      rec_grav=1./grav
+      rec_rgasd=1./rgasd
+*
+      if (IOPTIX.EQ.2) then
+*
+* ************************************************************
+*           LIQUID WATER parameterization after Hu and Stamnes
+* -----------------------------------------------------------
+*
+*        Parameters for the relationship between the
+*        diffusivity factor and equivalent radius
+*        at 11um wavelenght ( from table 4)
+*        After Hu and Stamnes 1993, JCAM p 728-742
+*                              2.5 < radius < 12.5 um
+         kwf(1,1) =   -3.88e-05
+         kwf(2,1) =    5.24
+         kwf(3,1) =  140.
+*                             12.5 <= radius <= 30 um
+         kwf(1,2) =  794.
+         kwf(2,2) =    -.148
+         kwf(3,2) = -423.
+*                             30.0 <  radius <  60 um
+         kwf(1,3) = 1680.
+         kwf(2,3) =    -.966
+         kwf(3,3) =   -5.84
+
+*        Parameters for the relationship between the
+*        optical thickness  and equivalent radius
+*        at .719 um wavelenght ( from table 1)
+*        After Hu and Stamnes 1993, JCAM p 728-742
+*                              2.5 < radius < 12.5 um
+         kvf(1,1) = 1810.
+         kvf(2,1) =   -1.08
+         kvf(3,1) =    6.85
+*                             12.5 <= radius <= 30 um
+         kvf(1,2) = 1700.
+         kvf(2,2) =   -1.04
+         kvf(3,2) =    1.04
+*                             30.0 <  radius <  60 um
+         kvf(1,3) =  978.
+         kvf(2,3) =    -.816
+         kvf(3,3) =   -9.89
+
+*        Parameters for the relationship between the
+*        asymmetry factor  and equivalent radius
+*        at .719 um wavelenght ( from table 2)
+*        After Hu and Stamnes 1993, JCAM p 728-742
+*                              2.5 < radius < 12.5 um
+         ssf(1,1) =    9.95e-7
+         ssf(2,1) =    -.856
+         ssf(3,1) =   -4.37e-7
+*                             12.5 <= radius <= 30 um
+         ssf(1,2) =    1.88e-7
+         ssf(2,2) =    1.32
+         ssf(3,2) =    3.08e-6
+*                             30.0 <  radius <  60 um
+         ssf(1,3) =    2.03e-5
+         ssf(2,3) =    -.332
+         ssf(3,3) =   -4.32e-5
+
+*        Parameters for the relationship between the
+*        single scatering albedo and equivalent radius
+*        at .719 um wavelenght ( from their table 3)
+*        After Hu and Stamnes 1993, JCAM p 728-742
+*                              2.5 < radius < 12.5 um
+         gwf(1,1) = -.141
+         gwf(2,1) = -.694
+         gwf(3,1) =  .889
+*                             12.5 <= radius <= 30 um
+         gwf(1,2) = -.157
+         gwf(2,2) = -.782
+         gwf(3,2) =  .886
+*                             30.0 <  radius <  60 um
+         gwf(1,3) = -.214
+         gwf(2,3) = -.916
+         gwf(3,3) =  .885
+*
+      endif
+*
+* ************************************************************
+*           MISCELLANEOUS
+* -----------------------------------------------------------
+*
+*                  tuning for optical thickness in visible 
+*                  (ONLY VIS IS AFFECTED)
+*                  this tuning affects outgoing and surface 
+*                  radiation; has little impact on atmosperic 
+*                  heating
+*
+      if      (ioptix.eq.1) then ! old optical properties
+         tuneopw = 0.30
+         tuneopi = 0.30
+      else if (ioptix.eq.2) then ! new optical properties (for water only)
+         tuneopw = 0.80
+         tuneopi = 0.30
+      endif
+
+*                  for maximum of lwc
+*
+      call liqwc(asymg,sig,t,ps,lmx,nk,m,satuco)
+*
+*                  liquid water content if non available as input
+*
+      if(cw_rad.eq.0) then
+         do 33 k=1,nk
+         do 33 i=1,lmx
+*
+*                  no clouds allowed above 50mb
+*
+            if (sig(i,k).lt.0.050) then
+               lwc(i,k) = 0.
+            else
+               lwc(i,k)=0.4*asymg(i,k)
+            endif
+ 33      continue
+      endif
+
+*                  never any clouds allowed above 70mb in
+*                  the "NO STRATOSPHERIC LWC" mode
+*
+      if(nostrlwc)then
+        do 34 k=1,nk
+        do 34 i=1,lmx
+          if (sig(i,k) .lt. 0.070) then
+             lwc(i,k) = 0.
+          endif
+ 34     continue
+      endif
+*
+*                 initialize output fields to zero
+*
+      do i=1,lmx
+         tlwp  (i) = 0.0
+         tiwp  (i) = 0.0
+         topthw(i) = 0.0
+         topthi(i) = 0.0
+      end do
+*
+* ************************************************************
+*                        PRELIMINARY WORK
+* -----------------------------------------------------------
+*
+      do k=1,nk
+      do I=1,lmx
+*
+         lwcm(i,k) = max(lwc(i,k),0.)
+
+         if     (cw_rad.le.1) then
+            iwcm(i,k)  = 0.0
+         else
+            iwcm(i,k) = max(iwc(i,k),0.)
+         endif
+*
+         cloud(i,k)  = max(neb(i,k),0.)
+*
+         if(istcond.gt.1 .and. istcond.lt.5 ) then
+*
+*                 the following line is an artificial source of clouds
+*                 when using the "CONDS" condensation option (harmful
+*                 in the stratosphere)
+*
+           if ((lwcm(i,k)+iwcm(i,k)) .gt. 1.e-6) then
+              cloud(i,k) = max(cloud(i,k) ,0.01)
+           else
+              cloud(i,k) = 0.0
+           endif
+         endif
+
+         if (cloud(i,k) .lt. 0.01) then
+            lwcm(i,k) = 0.
+            iwcm(i,k) = 0.
+         endif
+*
+*                 max of cloud
+*
+         cloud(i,k) = min(cloud(i,k),1.)
+*
+         if(cw_rad.gt.0) then
+*
+*                 normalize water contents to get in-cloud values
+*
+            zz=max(cloud(i,k),0.05)
+            lwcm1=lwcm(i,k)/zz
+            iwcm1=iwcm(i,k)/zz
+*
+*                  consider diabatic lifting limit
+*                  when Sundquist schem only
+*
+            if ( istcond.lt.5 ) then
+               lwcm(i,k)=min(lwcm1,asymg(i,k))
+               iwcm(i,k)=min(iwcm1,asymg(i,k))
+            else
+               lwcm(i,k)=lwcm1
+               iwcm(i,k)=iwcm1
+            endif
+         endif
+*                  thickness in sigma
+*
+         dp1=0.5*(sig(i,min(k+1,nk))-sig(i,max(k-1,1)))
+         dp2=0.5*(sig(i,1)+sig(i,2))
+         dp3=0.5*(1.-sig(i,nk))
+         if (k .eq. 1) then
+            dp(i,k) = dp2
+         else if (k .eq. nk) then
+            dp(i,k) = dp3
+         else
+            dp(i,k) = dp1
+         endif
+            
+         dp(i,k)=max(dp(i,k)*ps(i),0.)
+
+         tcel(i,k)=T(i,k)-TCDK
+
+      end do
+      end do
+*
+*                  LIQUID vs SOLID WATER PARTITION &
+*                  LIQUID and SOLID WATER PATHS in g/m2
+*
+*                  In the following, Frac is the fraction of the
+*                  cloud/precipitation water in the liquid phase
+*                  after Rockel et al, Beitr. Atmos. Phys, 1991, p.10
+*
+*                  When this liquid-solid partition is given by
+*                  the microphysic schem in used ( cw_rad.eq.2 ),
+*                  frac=1.
+*
+         if ( cw_rad .lt. 2 ) then
+*
+           CALL VSEXP (frac,-.003102*tcel*tcel,nk*lmx)
+           do k=1,nk
+           do I=1,lmx
+*           tcel(i,k)=T(i,k)-TCDK
+            if (tcel(i,k) .ge. 0.) then
+               frac(i,k) = 1.0
+            else
+*              frac(i,k) = .0059+.9941*exp(-.003102 * tcel(i,k)*tcel(i,k))
+               frac(i,k) = .0059+.9941*frac(i,k)
+            endif
+            if (frac(i,k) .lt. 0.01) frac(i,k) = 0.
+
+            IWP(i,k) = (1.-frac(i,k))*lwcm(i,k)*dp(i,k)*rec_grav*1000.
+            LWP(i,k) = frac(i,k)*lwcm(i,k)*dp(i,k)*rec_grav*1000.
+           end do
+           end do
+         else
+           do k=1,nk
+           do I=1,lmx
+            frac(i,k) = 1.
+            IWP(i,k) = iwcm(i,k)*dp(i,k)*rec_grav*1000.
+            LWP(i,k) = frac(i,k)*lwcm(i,k)*dp(i,k)*rec_grav*1000.
+           end do
+           end do
+         endif
+
+*
+*     end do
+*     end do
+*
+*
+* *****************************************************************
+*     MAIN LOOP FOR MICROPHYSICS SCHEMES ("NEW" OPTICAL PROPERTIES)
+* -----------------------------------------------------------------
+*
+      if (IOPTIX.EQ.2) then
+*
+      do k=1,nk
+      do I=1,lmx
+*                        EQUIVALENT SIZE of PARTICLES
+*
+*------------->    determines equivalent size of WATER particles
+*                  set number of drops per cm**3 100 for water
+*                  and 500 for land
+
+            if (mg(i) .le. 0.5 .and. ml(i) .le. 0.5) then
+*              cdd(i,k) = 100.
+               rec_cdd(i,k) = 1. / 100.
+            else
+*              cdd(i,k) = 500.
+               rec_cdd(i,k) = 1. / 500.
+            endif
+*
+*                  aird is air density in kg/m3
+*
+            aird(i,k) = sig(i,k)*ps(i)/T(i,k)*REC_RGASD
+*
+      end do
+      end do
+*
+      CALL VSPOWN1  (REW,(1.+LWCM*1.e4)*LWCM*frac*aird*rec_cdd,
+     +                third, nk*lmx) 
+*
+      do k=1,nk
+      do I=1,lmx
+*           REW(i,k) = 3000. * ( (1.+LWCM(i,k)*1.e4)*
+*    +            LWCM(i,k)*frac(i,k)*aird(i,k)*rec_cdd(i,k))**third
+            REW(i,k) = 3000. * REW(i,k)
+	    REW(i,k) = max(  2.5,REW(i,k))
+	    REW(i,k) = min( 60., REW(i,k))
+*
+*                  determines array index for given REW
+
+				      ire(i,k) = 2
+	    if ( rew(i,k) .lt. 12.5 ) ire(i,k) = 1
+	    if ( rew(i,k) .gt. 30.0 ) ire(i,k) = 3
+*           avant d'appeler vspownn il faut definir
+            kwf_ire(i,k) = kwf(2,ire(i,k)) 
+            kvf_ire(i,k) = kvf(2,ire(i,k)) 
+            ssf_ire(i,k) = ssf(2,ire(i,k)) 
+            gwf_ire(i,k) = gwf(2,ire(i,k)) 
+*
+      end do
+      end do
+*
+      CALL VSPOWNN  (kw,rew,kwf_ire,nk*lmx) 
+*
+      do k=1,nk
+      do I=1,lmx
+*
+*                  water diffusivity after Hu and Stammes, JCAM 1993
+*
+*           kw      = ( kwf(1,ire(i,k))*( rew(i,k)**kwf(2,ire(i,k)) ) + kwf(3,ire(i,k)) )*1.e-3
+	    kw(i,k) = ( kwf(1,ire(i,k)) * kw(i,k)                     + kwf(3,ire(i,k)) )*1.e-3
+*
+      end do
+      end do
+
+            REI = 15.
+            REC_REI = 1. / 15.
+            KI = .0003 + 1.290 * REC_REI
+            CALL VSEXP (EI,-elsa*ki*IWP,nk*lmx)
+            CALL VSEXP (ENEB,-elsa*ki*IWP-kw*LWP,nk*lmx)
+*
+*           on elimine une boucle en faisant ceci plus tot 
+            CALL VSPOWNN  (omw,rew,kvf_ire,nk*lmx)
+            CALL VSPOWNN  (ssaw,rew,ssf_ire,nk*lmx)
+            CALL VSPOWNN  (gw,rew,gwf_ire,nk*lmx)
+            SSAI = 1.0 - 1.295E-2 - 1.321E-4 *REI
+*
+*
+      do k=1,nk
+      do I=1,lmx
+*
+*
+*                  emissivity of ice after Ebert and Curry, JGR-1992,p3833 
+*                  using 11.1 micron parameters as representative
+*                  of entire spectrum assume equivalent ice particles 
+*                  radius of 25 micron will affect both VIS and 
+*                  IR radiation
+*
+*           REI = 15.
+*           KI = .0003 + 1.290 / REI
+*           EI = 1. -exp(-elsa*ki *IWP(i,k))
+            EI(i,k) = 1. - EI(i,k)
+*
+*
+*                  compute combined ice/water cloud emissivity assuming
+*                  the transmission is the product of the ice and water
+*                  phase transmissions
+*
+*                  cloud amount is considered outside of the current
+*                  main loop due to potential optical depth correction
+*
+*                  cloud emissivity temporarly in ENEB
+
+*           ENEB(i,k) = 1. - exp( - elsa*ki *IWP(i,k) - kw(i,k) * LWP(i,k) )
+            ENEB(i,k) = 1. -   ENEB(i,k) 
+	    neb(i,k) = cloud(i,k)
+*
+*     end do
+*     end do
+*
+*
+*     do k=1,nk
+*     do I=1,lmx
+*                        OPTICAL THICKNESS
+*
+*                   water optical thickness: Hu and Stammes, JCAM 1993
+*                                                for .719 um
+*
+*           omw     =LWP(i,k) * ( kvf(1,ire(i,k))*( rew(i,k)**kvf(2,ire(i,k)) ) + kvf(3,ire(i,k)) )*1.e-3
+	    omw(i,k)=LWP(i,k) * ( kvf(1,ire(i,k))*( omw(i,k)                  ) + kvf(3,ire(i,k)) )*1.e-3
+	    omw(i,k)=omw(i,k)*tuneopw
+
+            OMI = min(IWP(i,k)*(3.448E-3+2.431*REC_REI) * tuneopi, 25.)
+
+	    OPDEPTH(i,k)= max(omw(i,k) + omi,1.e-10)
+*
+*                 save integrated quantities for output purposes
+*
+         tlwp  (i) = tlwp  (i) + lwp(i,k)
+         tiwp  (i) = tiwp  (i) + iwp(i,k)
+         topthw(i) = topthw(i) + omw(i,k)
+         topthi(i) = topthi(i) + omi
+*
+*
+*                        SINGLE SCATTERING ALBEDO
+*
+*                 note that this parameter is very close to one for 
+*                 most of VIS but lowers in near infrared; proper 
+*                 spectral weighting is important because small changes 
+*                 will affect substantially the solar heating outgoing 
+*                 radiance or planetary albedo; It has a smaller influence 
+*                 on the surface flux. A SSA of unity will create division 
+*                 by zero in solar code.
+
+*           SSAI = 1.0 - 1.295E-2 - 1.321E-4 *REI
+*
+
+*                 WATER  Single scattering Albedo: Hu and Stammes, JCAM 1993
+*                                                for .719 um
+
+*           SSAW     = 1.- ( ssf(1,ire(i,k))*( rew(i,k)**ssf(2,ire(i,k)) ) + ssf(3,ire(i,k)) )
+            SSAW(i,k)= 1.- ( ssf(1,ire(i,k))*( SSAW(i,k)                 ) + ssf(3,ire(i,k)) )
+*
+*                  weighting by optical depth
+*
+         OMEGAV(i,k)= (OMW(i,k) * SSAW(i,k) + OMI* SSAI)/ (OMW(i,k)+OMI+eps)
+         OMEGAV(i,k)=max(OMEGAV(i,k),0.9850)
+         OMEGAV(i,k)=min(OMEGAV(i,k),0.999999)
+*
+*                  Ice   Asymmetry factor: Ebert and Curry JGR 1992 Eq.8
+*                        for 25 micron particles and a weighting for the 
+*                        five bands given in their Table 2
+*
+            GI = min(0.777 + 5.897E-4 * REI, 0.9999)
+*
+*
+*                  Water  Asymetry factor: Hu and Stammes, JCAM 1993
+*                                                for .719 um
+
+*           GW      = ( gwf(1,ire(i,k))*( rew(i,k)**gwf(2,ire(i,k)) ) + gwf(3,ire(i,k)) )
+            GW(i,k) = ( gwf(1,ire(i,k))*( GW(i,k)                   ) + gwf(3,ire(i,k)) )
+*
+*                  weighting by SSA * opt depth
+*
+         ASYMG(i,k) = (SSAI*OMI*GI + SSAW(i,k)*OMW(i,k)*GW(i,k))/(SSAI*OMI+SSAW(i,k)*OMW(i,k)+eps)
+*
+         asymg(i,k) = max(asymg(i,k), 0.75 )
+*
+         asymg(i,k) = min(asymg(i,k),0.9999)
+*
+*                  geometrical thickness
+*
+         dz(i,k)= dp(i,k)/aird(i,k)*rec_grav
+*
+*
+      end do
+      end do
+
+      else if (IOPTIX.EQ.1) then
+*
+* ****************************************************************
+*     MAIN LOOP FOR CONVENTIONAL CONDENSATION SCHEMES 
+*     ("OLD" OPTICAL PROPERTIES)
+* ----------------------------------------------------------------
+*
+	    REI = 15.
+            REC_REI = 1. / 15.
+	    KI = .0003 + 1.290 * REC_REI
+*
+            CALL VSEXP (EW,-0.087*elsa*LWP,nk*lmx)
+            CALL VSEXP (EI,-elsa*ki*IWP,nk*lmx)
+*
+      do k=1,nk
+      do I=1,lmx
+*
+*                  emissivity of water after Stephens, JAS 78 
+*                  we take a 0.144 factor as average of his
+*                  downward and upward emissivity which divided 
+*                  by diffusivity factor elsa yields 0.087
+*
+*           EW =      1. -exp(-0.087*elsa* LWP(i,k))
+	    EW(i,k) = 1. - EW(i,k)
+*
+*                  emissivity of ice after Ebert and Curry, JGR-1992,p3833 
+*                  using 11.1 micron parameters as representative
+*                  of entire spectrum assume equivalent ice particles 
+*                  radius of 25 micron will affect both VIS and 
+*                  IR radiation
+*
+*           EI(i,k) = 1. -exp(-elsa*ki *IWP(i,k))
+	    EI(i,k) = 1. - EI(i,k)
+*
+*                  compute combined ice/water cloud emissivity assuming
+*                  the transmission is the product of the ice and water 
+*                  phase transmissions
+*
+	    EMISS = 1. - (1.-EI(i,k))* (1.-EW(i,k))
+*
+*                   effective cloud cover
+*
+	    ENEB(i,k)= cloud(i,k)*emiss
+*
+*                  black clouds for istcond non 3
+*
+*           eneb(i,k)= cvmgt(cloud(i,k),eneb(i,k),istcond.NE.3)
+*
+*                 optical thickness at nadir is computed
+*                 set number of drops per cm**3 100 for water 
+*                 and 500 for land
+*
+*           The following line is commented out to ensure bitwise
+*           validation of the GEMDM global model. It should be
+*           activated in a future version of the code.
+            if (mg(i).le.0.5) then
+*              cdd(i,k) = 100.
+               rec_cdd(i,k) = 1. / 100.
+            else
+*              cdd(i,k) = 500.
+               rec_cdd(i,k) = 1. / 500.
+            endif
+*
+*                 aird is air density in kg/m3
+	    aird(i,k) = sig(i,k)*ps(i)/T(i,k)*REC_RGASD
+*
+      end do
+      end do
+*
+            CALL VSPOWN1  (REW,LWCM*frac*aird*rec_cdd,third,nk*lmx)
+*
+      do k=1,nk
+      do I=1,lmx
+*
+*                 this parameterization from H. Barker, based
+*                 on aircraft data range 4-17 micron is that specified
+*                 by Slingo for parameterizations
+*
+*           REW(i,k) = max(4., 754.6 * (LWCM(i,k)*frac(i,k)*aird(i,k)*rec_cdd(i,k))**third)
+	    REW(i,k) = max(4., 754.6 * REW(i,k))
+            REW(i,k) = min(REW(i,k),17.)
+
+*
+*                 slingo JAS 89 p 1420 for weighted average of 
+*                 bands 1-5 (all spectrum)
+*
+            OMW(i,k) =  LWP(i,k)* (2.622E-2 + 1.356/REW(i,k) )
+*
+*                 follows Ebert and Curry, 1992
+*                 no variation as function of band
+*                 ice optical depth limited to 25; water to 125.
+*
+            omw(i,k)= min(omw(i,k)*tuneopw,125.)
+            OMI = min(IWP(i,k)*(3.448E-3+2.431*REC_REI) * tuneopi, 25.)
+            OPDEPTH(i,k)= max(omw(i,k) + omi,1.e-10)
+*
+*
+*                 save integrated quantities for output purposes
+*
+         tlwp  (i) = tlwp  (i) + lwp(i,k)
+         tiwp  (i) = tiwp  (i) + iwp(i,k)
+         topthw(i) = topthw(i) + omw(i,k)
+         topthi(i) = topthi(i) + omi
+*
+            SSAI = 1.0 - 1.295E-2 - 1.321E-4 *REI
+*           Slingo JAS 1989 for weighted average bands 1-4 p 1420
+            SSAW(i,k) = 1.0 - 6.814E-3 - 4.842E-4 *REW(i,k)
+*
+*
+*                  weighting by optical depth
+*
+         OMEGAV(i,k)= (OMW(i,k) * SSAW(i,k) + OMI* SSAI)/ (OMW(i,k)+OMI+eps)
+         OMEGAV(i,k)=max(OMEGAV(i,k),0.9850)
+         OMEGAV(i,k)=min(OMEGAV(i,k),0.9999)
+*
+*
+*                  Ice   Asymmetry factor: Ebert and Curry JGR 1992 Eq.8
+*                        for 25 micron particles and a weighting for the 
+*                        five bands given in their Table 2
+*
+            GI = min(0.777 + 5.897E-4 * REI, 0.9999)
+*
+*                  Water  Asymetry factor: Slingo 1989
+*
+            GW(i,k) = min(0.804 + 3.850E-3*REW(i,k), 0.9999)
+*
+*                  weighting by SSA * opt depth
+*
+         ASYMG(i,k) = (SSAI*OMI*GI + SSAW(i,k)*OMW(i,k)*GW(i,k))/(SSAI*OMI+SSAW(i,k)*OMW(i,k)+eps)
+*
+            asymg(i,k) = max(asymg(i,k),GI)
+*
+         asymg(i,k) = min(asymg(i,k),0.9999)
+*
+*                  geometrical thickness
+*
+         dz(i,k)= dp(i,k)/aird(i,k)*rec_grav
+*
+      end do
+      end do
+*
+*
+      endif
+*
+*
+*
+* ************************************************************
+*                        END OF MAIN LOOPS
+* -----------------------------------------------------------
+
+*
+       if (IOPTIX.EQ.2) then
+*
+* ******************************************************************
+*                  CORRECTION FOR MAXIMUM TOTAL OPTICAL DEPTH &
+*                  FINAL CLOUD*EMISSIVITY CALCULATIONS
+* ------------------------------------------------------------------
+*
+*                  temporary use of ipbl as a work field.
+*                  ipbl is 1. when there is no correction
+*                  otherwise ipbl is a number between zero and one
+*
+         do i=1, lmx
+            ipbl(i)=min( 1., 20./( max(topthi(i)+topthw(i), 1.e-10) ) )
+         enddo
+*                  only optical depth and cloud emissivity
+*                  need to be re-scaled
+*
+         do k=1, nk
+         do i=1, lmx
+            OPDEPTH(i,k) = ipbl(i) * OPDEPTH(i,k)
+            eneb(i,k) = neb(i,k) *
+     $                  ( 1. - ( 1.-eneb(i,k) )**ipbl(i) )
+         enddo
+         enddo
+*
+*
+      endif
+*
+*     Diagnostics : cloud top pressure (ctp) and temperature (ctt) 
+*
+      do i=1,lmx
+         ctp (i)   = 110000.
+         ctt (i)   = 310.
+         top(i) = .true.
+         transmissint(i,1) = 1. - eneb(i,1)
+         if ( (1.-transmissint(i,1)) .gt. 0.99 .and. top(i) ) then
+            ctp(i) = sig(i,1)*ps(i)
+            ctt(i) = t(i,1)
+            top(i) = .false.  
+         end if
+      end do
+         
+      do k=2,nk
+         do i=1,lmx
+            transmissint(i,k) = transmissint(i,k-1) * (1.-eneb(i,k))
+            if ( (1.-transmissint(i,k)) .gt. 0.99 .and. top(i) ) then
+               ctp(i) = sig(i,k)*ps(i)
+               ctt(i) = t(i,k)
+               top(i) = .false.  
+            end if
+         end do
+      end do
+*
+*
+* ******************************************************************
+*                          AEROSOLS LOADING
+* ------------------------------------------------------------------
+*
+        do 10 I =1,lmx
+        sdz(i) =  0.
+        ipbl(i) = 0.
+ 10     continue
+*
+        do 5 k=nk,1,-1
+        do 6 I=1,lmx
+           if ( int(ipbl(i)).eq.0 ) then
+*                   pbl heiht recomputed as sum of layer thicknesses
+             sdz(i)=sdz(i)+dz(i,k)
+*                                              level closest to pbl
+             if (sdz(i) .gt. pbl(i)) ipbl(i) = float(k)
+           endif
+ 6      continue
+ 5      continue
+*
+*                  distributing aerosols
+*                  optical thickness higher over land;
+*                  decreases with latitude
+*                  See Toon and Pollack, J. Appl. Meteor, 1976, p.235
+*                  aero being total optical thickness, we distribute it
+*                  within PBL in proportion with geometrical thickness
+*                  above pbl aerosol optical depth is kept negligible
+*
+        ct=2./pi
+        REC_180=1./180.
+        do 3 k=1,nk
+        do 4 i=1,lmx
+             tauae(i,k,1)=1.e-10
+             tauae(i,k,2)=1.e-10
+             rlat = lat(i)*pi*REC_180
+             if ( k.ge.INT(ipbl(i)) ) then
+*
+                if ( mg(i).ge.0.5.or.ml(i).ge.0.5) then
+*
+*                  over land
+*
+                      aero = 0.25 - 0.2*ct * abs(lat(i))
+                      tauae(i,k,1)= max(aero * dz(i,k)/sdz(i), 1.e-10)
+                else
+*
+*                  over ocean
+*
+                      aero = 0.13 - 0.1*ct * abs(lat(i))
+                      tauae(i,k,2)= max(aero  *dz(i,k)/sdz(i), 1.e-10)
+                endif
+             endif
+*
+*                  other types of aerosols set to negligible
+*
+             tauae(i,k,3)=1.e-10
+             tauae(i,k,4)=1.e-10
+             tauae(i,k,5)=1.e-10
+ 4      continue
+ 3      continue
+        return
+        end
+@
+
+
+4.1
+log
+@bidon
+@
+text
+@d60 2
+d863 1
+a863 10
+                if ( (ioptix.eq.2 .and.
+     +                   (mg(i).ge.0.5.or.ml(i).ge.0.5))   .or.
+     +               (ioptix.lt.2 .and.
+     +                    mg(i).ge.0.5                 ) ) then
+*
+*               The following line is commented out to ensure bitwise
+*               validation of the GEMDM global model. It should be
+*               activated in a future version of the code, and
+*               the previous lines should be deleted.
+c               if ( mg(i).ge.0.5.or.ml(i).ge.0.5) then
+@
+
+
+4.0
+log
+@La version 4.0 de la physique a ete creee le 4 septembre 2003.
+
+C'est la premiere version de la programmatheque des parametrages
+destinee a etre mise en exploitation sur le nouveau calculateur
+IBM.
+
+Principaux changements :
+----------------------
+
+	* Correction de bogues introduits lors de la conversion vers IBM
+	* Nouvelles optimisations pour IBM
+	* Modifications pour permettre l'interpolation des profils
+          atmospheriques pres de la surface
+@
+text
+@@
+
+
+3.9
+log
+@La version 3.9 de la physique a ete creee le 16 juin 2003.
+
+Elle constitue la premiere version de conversion vers le
+calculateur IBM.
+
+Le nouveau code de "gravity wave drag" sgoflx3.ftn est une
+copie du code linearise lin_sgoflx1.ftn.
+@
+text
+@d59 1
+d458 2
+a459 2
+      CALL EXPONEN4 (REW,(1.+LWCM*1.e4)*LWCM*frac*aird*rec_cdd,
+     +                third, nk*lmx, nk*lmx, 1) 
+d474 1
+a474 1
+*           pour faire fonctionner exponen4 il faut definir
+d483 1
+a483 1
+      CALL EXPONEN4 (kw,rew,kwf_ire,nk*lmx,nk*lmx,nk*lmx) 
+d503 3
+a505 3
+            CALL EXPONEN4 (omw,rew,kvf_ire,nk*lmx,nk*lmx,nk*lmx)
+            CALL EXPONEN4 (ssaw,rew,ssf_ire,nk*lmx,nk*lmx,nk*lmx)
+            CALL EXPONEN4 (gw,rew,gwf_ire,nk*lmx,nk*lmx,nk*lmx)
+a540 4
+*           CALL EXPONEN4 (omw,rew,kvf_ire,nk*lmx,nk*lmx,nk*lmx)
+*           CALL EXPONEN4 (ssaw,rew,ssf_ire,nk*lmx,nk*lmx,nk*lmx)
+*           CALL EXPONEN4 (gw,rew,gwf_ire,nk*lmx,nk*lmx,nk*lmx)
+*           SSAI = 1.0 - 1.295E-2 - 1.321E-4 *REI
+d688 1
+a688 1
+            CALL EXPONEN4 (REW,LWCM*frac*aird*rec_cdd,third,nk*lmx,nk*lmx,1)
+a786 2
+         CALL EXPONEN4 (eneb,1.-eneb,ipbl,nk*lmx,nk*lmx,lmx)
+*
+d790 2
+a791 2
+*           eneb(i,k) = neb(i,k) * ( 1. - ( 1.-eneb(i,k) )**ipbl(i) )
+            eneb(i,k) = neb(i,k) * ( 1. -      eneb(i,k)            )
+@
+
+
+3.8
+log
+@La version 3.8 de la physique a ete creee le 12 mars 2003
+
+Principaux changements par rapport a la version 3.72 :
+----------------------------------------------------
+
+	* contenu de la rustine r2 de la version 3.72
+	* code developpe pour le modele regional a 15 km
+		- MOISTKE (refonte)
+		- MIXPHASE (avec BLG)
+		- KTRSNT
+		- proprietes optiques des nuages
+	* option ADVECTKE reactivee
+	* BOUJO disponible dans eturbl
+	* ajouts importants au code de physique linearisee
+	* nouvelles cles : AS,BETA,KKL,KFCPCP,SHLCVT(2),STRATOS,QCO2
+	* nombreux diagnostics supplementaires
+	* optimisation des series temporelles
+	* diagnostics supplementaires pour CHRONOS et AURAMS
+	* correction d'une multitude de bogues mineurs
+@
+text
+@d54 7
+a124 3
+#if defined (CVMG)
+#include "cvmg.cdk"
+#endif
+d142 5
+a146 4
+        integer i,k, ire
+        logical top
+        real rew, kw, lwcm1, tuneopw, omw, gw, ssaw
+        real rei, ki, iwcm1, tuneopi, omi, gi, ssai
+d148 2
+a149 2
+        real ei, ew, elsa, emiss
+        real aird, third, tcel, cdd
+d152 4
+d168 3
+a273 1
+            lwc(i,k)=0.4*asymg(i,k)
+d277 5
+a281 1
+            lwc(i,k)=cvmgt(0.,lwc(i,k),sig(i,k).lt.0.050)
+d291 3
+a293 1
+          lwc(i,k)=cvmgt(0.,lwc(i,k),sig(i,k).lt.0.070)
+d329 5
+a333 2
+           cloud(i,k)  = cvmgt(max(cloud(i,k) ,0.01),0.0,
+     +                        (lwcm(i,k)+iwcm(i,k)).gt.1.e-6)
+d336 4
+a339 2
+         lwcm(i,k)= cvmgt(0., lwcm(i,k), cloud(i,k) .lt. 0.01)
+         iwcm(i,k)= cvmgt(0., iwcm(i,k), cloud(i,k) .lt. 0.01)
+d369 8
+a376 2
+         dp(i,k)=cvmgt(dp2,dp1,k.eq.1)
+         dp(i,k)=cvmgt(dp3,dp(i,k),k.eq.nk)
+d378 5
+d397 11
+a407 4
+            tcel=T(i,k)-TCDK
+            frac(i,k) = cvmgt(1.,.0059+.9941*exp(-.003102 * tcel*tcel),
+     x                   tcel.ge.0.)
+            frac(i,k)= cvmgt(0.,frac(i,k), frac(i,k).lt.0.01)
+d409 4
+a412 1
+            IWP(i,k) = (1.-frac(i,k))*lwcm(i,k)*dp(i,k)/grav*1000.
+d414 2
+a415 1
+*
+d417 4
+a420 1
+            IWP(i,k) = iwcm(i,k)*dp(i,k)/grav*1000.
+a422 1
+         LWP(i,k) = frac(i,k)*lwcm(i,k)*dp(i,k)/grav*1000.
+d424 2
+a425 2
+      end do
+      end do
+d442 7
+a448 1
+            cdd =cvmgt(100.,500.,mg(i).le.0.5.and.ml(i).le.0.5)
+d452 7
+a458 1
+            aird = sig(i,k)*ps(i)/T(i,k)/RGASD
+d460 7
+a466 4
+	    REW = 3000. * ( (1.+LWCM(i,k)*1.e4)*
+     +            LWCM(i,k)*frac(i,k)*aird/cdd )**third
+	    REW = max(  2.5,REW)
+	    REW = min( 60., REW)
+d470 13
+a482 4
+				 ire = 2
+	    if ( rew .lt. 12.5 ) ire = 1
+	    if ( rew .gt. 30.0 ) ire = 3
+
+d484 2
+d488 6
+d495 16
+a510 2
+	    kw = ( kwf(1,ire)*( rew**kwf(2,ire) ) + kwf(3,ire) )*1.e-3
+
+d518 5
+a522 3
+	    REI = 15.
+	    KI = .0003 + 1.290 / REI
+	    EI = 1. -exp(-elsa*ki *IWP(i,k))
+a523 1
+
+d533 2
+a534 1
+	    ENEB(i,k) = 1. - exp( - elsa*ki *IWP(i,k) - kw * LWP(i,k) )
+d537 10
+d551 4
+a554 3
+
+	    omw=LWP(i,k) * ( kvf(1,ire)*( rew**kvf(2,ire) ) + kvf(3,ire) )*1.e-3
+	    omw=omw*tuneopw
+d556 1
+a556 1
+            OMI = min(IWP(i,k)*(3.448E-3+2.431/REI) * tuneopi, 25.)
+d558 1
+a558 1
+	    OPDEPTH(i,k)= max(omw + omi,1.e-10)
+d564 1
+a564 1
+         topthw(i) = topthw(i) + omw
+d578 1
+a578 1
+            SSAI = 1.0 - 1.295E-2 - 1.321E-4 *REI
+d584 2
+a585 1
+            SSAW= 1.- ( ssf(1,ire)*( rew**ssf(2,ire) ) + ssf(3,ire) )
+d589 1
+a589 1
+         OMEGAV(i,k)= (OMW * SSAW + OMI* SSAI)/ (OMW+OMI+eps)
+d603 2
+a604 1
+            GW = ( gwf(1,ire)*( rew**gwf(2,ire) ) + gwf(3,ire) )
+d608 1
+a608 1
+         ASYMG(i,k) = (SSAI*OMI*GI + SSAW*OMW*GW)/(SSAI*OMI+SSAW*OMW+eps)
+d616 1
+a616 1
+         dz(i,k)= dp(i,k)/(aird*grav)
+d629 7
+d644 2
+a645 1
+	    EW = 1. -exp(-0.087*elsa* LWP(i,k))
+d653 2
+a654 3
+	    REI = 15.
+	    KI = .0003 + 1.290 / REI
+	    EI = 1. -exp(-elsa*ki *IWP(i,k))
+d660 1
+a660 1
+	    EMISS = 1. - (1.-EI)* (1.-EW)
+d677 7
+a683 2
+c	    cdd =cvmgt(100.,500.,mg(i).le.0.5.and.ml(i).le.0.5)
+	    cdd =cvmgt(100.,500.,mg(i).le.0.5)
+d686 10
+a695 2
+	    aird = sig(i,k)*ps(i)/T(i,k)/RGASD
+
+d700 3
+a702 2
+	    REW = max(4., 754.6 * (LWCM(i,k)*frac(i,k)*aird/cdd)**third)
+            REW = min(REW,17.)
+d708 1
+a708 1
+            OMW =  LWP(i,k)* (2.622E-2 + 1.356/REW )
+d714 3
+a716 3
+            omw= min(omw*tuneopw,125.)
+            OMI = min(IWP(i,k)*(3.448E-3+2.431/REI) * tuneopi, 25.)
+            OPDEPTH(i,k)= max(omw + omi,1.e-10)
+d723 1
+a723 1
+         topthw(i) = topthw(i) + omw
+d728 1
+a728 1
+            SSAW = 1.0 - 6.814E-3 - 4.842E-4 *REW
+d733 1
+a733 1
+         OMEGAV(i,k)= (OMW * SSAW + OMI* SSAI)/ (OMW+OMI+eps)
+d746 1
+a746 1
+            GW = min(0.804 + 3.850E-3*REW, 0.9999)
+d750 1
+a750 1
+         ASYMG(i,k) = (SSAI*OMI*GI + SSAW*OMW*GW)/(SSAI*OMI+SSAW*OMW+eps)
+d758 1
+a758 1
+         dz(i,k)= dp(i,k)/(aird*grav)
+d790 2
+d795 2
+a796 2
+            eneb(i,k) = neb(i,k) *
+     $                  ( 1. - ( 1.-eneb(i,k) )**ipbl(i) )
+d844 1
+a844 1
+             ipbl(i)=cvmgt(float(k),ipbl(i),sdz(i).gt.pbl(i))
+d858 1
+d863 1
+a863 1
+             rlat = lat(i)*pi/180.
+@

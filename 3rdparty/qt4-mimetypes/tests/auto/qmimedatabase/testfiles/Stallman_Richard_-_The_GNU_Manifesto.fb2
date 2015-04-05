@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.gribuser.ru/xml/fictionbook/2.0">
+ <description>
+  <title-info>
+   <genre match="80">computers</genre>
+   <genre match="20">sci_philosophy</genre>
+   <author>
+    <first-name>Richard</first-name>
+    <last-name>Stallman</last-name>
+   </author>
+   <book-title>The GNU Manifesto</book-title>
+   <annotation>
+    <p>The GNU Manifesto was written by Richard Stallman and published in March 1985 in Dr. Dobb's Journal of Software Tools as an explanation and definition of the goals of the GNU Project (a free software development, mass collaboration project), and to call for participation and support. It is held in high regard within the free software movement as a fundamental philosophical source.</p>
+   </annotation>
+   <date value="1985-01-01">1985</date>
+   <coverpage>
+    <image xlink:href="#cover.jpg"/></coverpage>
+   <lang>en</lang>
+  </title-info>
+  <document-info>
+   <author>
+    <nickname>jrw</nickname>
+   </author>
+   <program-used>gedit</program-used>
+   <date value="2008-12-27">27.12.2008</date>
+   <src-url>http://www.gnu.org/gnu/manifesto.html</src-url>
+   <id>jrw-stallman-0123456789</id>
+   <version>1.0</version>
+   <history>
+    <p>v. 1.0 – initial version</p>
+   </history>
+  </document-info>
+ </description>
+ <body>
+  <title>
+   <p>The GNU Manifesto</p>
+   <p>by Richard Stallman</p>
+  </title>
+    <p>The GNU Manifesto (which appears below) was written by Richard Stallman at the beginning of the GNU Project, to ask for participation and support. For the first few years, it was updated in minor ways to account for developments, but now it seems best to leave it unchanged as most people have seen it.</p>
+    <p>Since that time, we have learned about certain common misunderstandings that different wording could help avoid. Footnotes added in 1993 help clarify these points.</p>
+    <p>For up-to-date information about the available GNU software, please see the information available on our web server, in particular our list of software. For how to contribute, see http://www.gnu.org/help. </p>
+  <section>
+   <title>
+    <p>What's GNU? Gnu's Not Unix!</p>
+   </title>
+  <p>GNU, which stands for Gnu's Not Unix, is the name for the complete Unix-compatible software system which I am writing so that I can give it away free to everyone who can use it. <a xlink:href="#f1" type="note"> [1]</a> Several other volunteers are helping me. Contributions of time, money, programs and equipment are greatly needed.</p>
+  <p>So far we have an Emacs text editor with Lisp for writing editor commands, a source level debugger, a yacc-compatible parser generator, a linker, and around 35 utilities. A shell (command interpreter) is nearly completed. A new portable optimizing C compiler has compiled itself and may be released this year. An initial kernel exists but many more features are needed to emulate Unix. When the kernel and compiler are finished, it will be possible to distribute a GNU system suitable for program development. We will use TeX as our text formatter, but an nroff is being worked on. We will use the free, portable X window system as well. After this we will add a portable Common Lisp, an Empire game, a spreadsheet, and hundreds of other things, plus on-line documentation. We hope to supply, eventually, everything useful that normally comes with a Unix system, and more.</p>
+  <p>GNU will be able to run Unix programs, but will not be identical to Unix. We will make all improvements that are convenient, based on our experience with other operating systems. In particular, we plan to have longer file names, file version numbers, a crashproof file system, file name completion perhaps, terminal-independent display support, and perhaps eventually a Lisp-based window system through which several Lisp programs and ordinary Unix programs can share a screen. Both C and Lisp will be available as system programming languages. We will try to support UUCP, MIT Chaosnet, and Internet protocols for communication.</p>
+  <p>GNU is aimed initially at machines in the 68000/16000 class with virtual memory, because they are the easiest machines to make it run on. The extra effort to make it run on smaller machines will be left to someone who wants to use it on them.</p>
+  <p>To avoid horrible confusion, please pronounce the "G" in the word "GNU" when it is the name of this project.</p>
+  </section>
+  <section>
+ <title> 
+  <p>Why I Must Write GNU</p>
+ </title>
+  <p>I consider that the golden rule requires that if I like a program I must share it with other people who like it. Software sellers want to divide the users and conquer them, making each user agree not to share with others. I refuse to break solidarity with other users in this way. I cannot in good conscience sign a nondisclosure agreement or a software license agreement. For years I worked within the Artificial Intelligence Lab to resist such tendencies and other inhospitalities, but eventually they had gone too far: I could not remain in an institution where such things are done for me against my will.</p>
+  <p>So that I can continue to use computers without dishonor, I have decided to put together a sufficient body of free software so that I will be able to get along without any software that is not free. I have resigned from the AI lab to deny MIT any legal excuse to prevent me from giving GNU away.</p> 
+  </section>
+  <section>
+ <title> 
+  <p>Why GNU Will Be Compatible with Unix</p>
+ </title>
+  <p>Unix is not my ideal system, but it is not too bad. The essential features of Unix seem to be good ones, and I think I can fill in what Unix lacks without spoiling them. And a system compatible with Unix would be convenient for many other people to adopt.</p> 
+  </section>
+  <section>
+ <title> 
+  <p>How GNU Will Be Available</p>
+ </title>
+  <p>GNU is not in the public domain. Everyone will be permitted to modify and redistribute GNU, but no distributor will be allowed to restrict its further redistribution. That is to say, proprietary modifications will not be allowed. I want to make sure that all versions of GNU remain free.</p> 
+  </section>
+  <section>
+ <title> 
+  <p>Why Many Other Programmers Want to Help</p>
+ </title>
+  <p>I have found many other programmers who are excited about GNU and want to help.</p>
+  <p>Many programmers are unhappy about the commercialization of system software. It may enable them to make more money, but it requires them to feel in conflict with other programmers in general rather than feel as comrades. The fundamental act of friendship among programmers is the sharing of programs; marketing arrangements now typically used essentially forbid programmers to treat others as friends. The purchaser of software must choose between friendship and obeying the law. Naturally, many decide that friendship is more important. But those who believe in law often do not feel at ease with either choice. They become cynical and think that programming is just a way of making money.</p>
+  <p>By working on and using GNU rather than proprietary programs, we can be hospitable to everyone and obey the law. In addition, GNU serves as an example to inspire and a banner to rally others to join us in sharing. This can give us a feeling of harmony which is impossible if we use software that is not free. For about half the programmers I talk to, this is an important happiness that money cannot replace.</p> 
+  </section>
+  <section>
+ <title> 
+  <p>How You Can Contribute</p>
+ </title> 
+   <empty-line/>
+   <cite>
+   <p>(Nowadays, for software tasks to work on, see the GNU task list at http://savannah.gnu.org/projects/tasklist. For other ways to contribute, see http://www.gnu.org/help.)</p> 
+   </cite>
+   <empty-line/>
+  <p>I am asking computer manufacturers for donations of machines and money. I'm asking individuals for donations of programs and work.</p>
+  <p>One consequence you can expect if you donate machines is that GNU will run on them at an early date. The machines should be complete, ready to use systems, approved for use in a residential area, and not in need of sophisticated cooling or power.</p>
+  <p>I have found very many programmers eager to contribute part-time work for GNU. For most projects, such part-time distributed work would be very hard to coordinate; the independently-written parts would not work together. But for the particular task of replacing Unix, this problem is absent. A complete Unix system contains hundreds of utility programs, each of which is documented separately. Most interface specifications are fixed by Unix compatibility. If each contributor can write a compatible replacement for a single Unix utility, and make it work properly in place of the original on a Unix system, then these utilities will work right when put together. Even allowing for Murphy to create a few unexpected problems, assembling these components will be a feasible task. (The kernel will require closer communication and will be worked on by a small, tight group.)</p>
+  <p>If I get donations of money, I may be able to hire a few people full or part time. The salary won't be high by programmers' standards, but I'm looking for people for whom building community spirit is as important as making money. I view this as a way of enabling dedicated people to devote their full energies to working on GNU by sparing them the need to make a living in another way.</p> 
+  </section>
+  <section>
+ <title> 
+  <p>Why All Computer Users Will Benefit</p>
+ </title>
+  <p>Once GNU is written, everyone will be able to obtain good system software free, just like air.<a xlink:href="#f2" type="note"> [2]</a></p>
+  <p>This means much more than just saving everyone the price of a Unix license. It means that much wasteful duplication of system programming effort will be avoided. This effort can go instead into advancing the state of the art.</p>
+  <p>Complete system sources will be available to everyone. As a result, a user who needs changes in the system will always be free to make them himself, or hire any available programmer or company to make them for him. Users will no longer be at the mercy of one programmer or company which owns the sources and is in sole position to make changes.</p>
+  <p>Schools will be able to provide a much more educational environment by encouraging all students to study and improve the system code. Harvard's computer lab used to have the policy that no program could be installed on the system if its sources were not on public display, and upheld it by actually refusing to install certain programs. I was very much inspired by this.</p>
+  <p>Finally, the overhead of considering who owns the system software and what one is or is not entitled to do with it will be lifted.</p>
+  <p>Arrangements to make people pay for using a program, including licensing of copies, always incur a tremendous cost to society through the cumbersome mechanisms necessary to figure out how much (that is, which programs) a person must pay for. And only a police state can force everyone to obey them. Consider a space station where air must be manufactured at great cost: charging each breather per liter of air may be fair, but wearing the metered gas mask all day and all night is intolerable even if everyone can afford to pay the air bill. And the TV cameras everywhere to see if you ever take the mask off are outrageous. It's better to support the air plant with a head tax and chuck the masks.</p>
+  <p>Copying all or parts of a program is as natural to a programmer as breathing, and as productive. It ought to be as free.</p> 
+  </section>
+  <section>
+ <title> 
+  <p>Some Easily Rebutted Objections to GNU's Goals</p>
+ </title>
+  <p><emphasis>"Nobody will use it if it is free, because that means they can't rely on any support."</emphasis></p>
+  <p><emphasis>"You have to charge for the program to pay for providing the support."</emphasis></p>
+  <p>If people would rather pay for GNU plus service than get GNU free without service, a company to provide just service to people who have obtained GNU free ought to be profitable.<a xlink:href="#f3" type="note"> [3]</a></p>
+  <p>We must distinguish between support in the form of real programming work and mere handholding. The former is something one cannot rely on from a software vendor. If your problem is not shared by enough people, the vendor will tell you to get lost.</p>
+  <p>If your business needs to be able to rely on support, the only way is to have all the necessary sources and tools. Then you can hire any available person to fix your problem; you are not at the mercy of any individual. With Unix, the price of sources puts this out of consideration for most businesses. With GNU this will be easy. It is still possible for there to be no available competent person, but this problem cannot be blamed on distribution arrangements. GNU does not eliminate all the world's problems, only some of them.</p>
+  <p>Meanwhile, the users who know nothing about computers need handholding: doing things for them which they could easily do themselves but don't know how.</p>
+  <p>Such services could be provided by companies that sell just hand-holding and repair service. If it is true that users would rather spend money and get a product with service, they will also be willing to buy the service having got the product free. The service companies will compete in quality and price; users will not be tied to any particular one. Meanwhile, those of us who don't need the service should be able to use the program without paying for the service.</p>
+  <p><emphasis>"You cannot reach many people without advertising, and you must charge for the program to support that."</emphasis></p>
+  <p><emphasis>"It's no use advertising a program people can get free."</emphasis></p>
+  <p>There are various forms of free or very cheap publicity that can be used to inform numbers of computer users about something like GNU. But it may be true that one can reach more microcomputer users with advertising. If this is really so, a business which advertises the service of copying and mailing GNU for a fee ought to be successful enough to pay for its advertising and more. This way, only the users who benefit from the advertising pay for it.</p>
+  <p>On the other hand, if many people get GNU from their friends, and such companies don't succeed, this will show that advertising was not really necessary to spread GNU. Why is it that free market advocates don't want to let the free market decide this?<a xlink:href="#f4" type="note"> [4]</a></p>
+  <p><emphasis>"My company needs a proprietary operating system to get a competitive edge."</emphasis></p>
+  <p>GNU will remove operating system software from the realm of competition. You will not be able to get an edge in this area, but neither will your competitors be able to get an edge over you. You and they will compete in other areas, while benefiting mutually in this one. If your business is selling an operating system, you will not like GNU, but that's tough on you. If your business is something else, GNU can save you from being pushed into the expensive business of selling operating systems.</p>
+  <p>I would like to see GNU development supported by gifts from many manufacturers and users, reducing the cost to each.<a xlink:href="#f5" type="note"> [5]</a></p>
+  <p><emphasis>"Don't programmers deserve a reward for their creativity?"</emphasis></p>
+  <p>If anything deserves a reward, it is social contribution. Creativity can be a social contribution, but only in so far as society is free to use the results. If programmers deserve to be rewarded for creating innovative programs, by the same token they deserve to be punished if they restrict the use of these programs.</p>
+  <p><emphasis>"Shouldn't a programmer be able to ask for a reward for his creativity?"</emphasis></p>
+  <p>There is nothing wrong with wanting pay for work, or seeking to maximize one's income, as long as one does not use means that are destructive. But the means customary in the field of software today are based on destruction.</p>
+  <p>Extracting money from users of a program by restricting their use of it is destructive because the restrictions reduce the amount and the ways that the program can be used. This reduces the amount of wealth that humanity derives from the program. When there is a deliberate choice to restrict, the harmful consequences are deliberate destruction.</p>
+  <p>The reason a good citizen does not use such destructive means to become wealthier is that, if everyone did so, we would all become poorer from the mutual destructiveness. This is Kantian ethics; or, the Golden Rule. Since I do not like the consequences that result if everyone hoards information, I am required to consider it wrong for one to do so. Specifically, the desire to be rewarded for one's creativity does not justify depriving the world in general of all or part of that creativity.</p>
+  <p><emphasis>"Won't programmers starve?"</emphasis></p>
+  <p>I could answer that nobody is forced to be a programmer. Most of us cannot manage to get any money for standing on the street and making faces. But we are not, as a result, condemned to spend our lives standing on the street making faces, and starving. We do something else.</p>
+  <p>But that is the wrong answer because it accepts the questioner's implicit assumption: that without ownership of software, programmers cannot possibly be paid a cent. Supposedly it is all or nothing.</p>
+  <p>The real reason programmers will not starve is that it will still be possible for them to get paid for programming; just not paid as much as now.</p>
+  <p>Restricting copying is not the only basis for business in software. It is the most common basis because it brings in the most money. If it were prohibited, or rejected by the customer, software business would move to other bases of organization which are now used less often. There are always numerous ways to organize any kind of business.</p>
+  <p>Probably programming will not be as lucrative on the new basis as it is now. But that is not an argument against the change. It is not considered an injustice that sales clerks make the salaries that they now do. If programmers made the same, that would not be an injustice either. (In practice they would still make considerably more than that.)</p>
+  <p><emphasis>"Don't people have a right to control how their creativity is used?"</emphasis></p>
+  <p>"Control over the use of one's ideas" really constitutes control over other people's lives; and it is usually used to make their lives more difficult.</p>
+  <p>People who have studied the issue of intellectual property rights<a xlink:href="#f6" type="note"> [6]</a> carefully (such as lawyers) say that there is no intrinsic right to intellectual property. The kinds of supposed intellectual property rights that the government recognizes were created by specific acts of legislation for specific purposes.</p>
+  <p>For example, the patent system was established to encourage inventors to disclose the details of their inventions. Its purpose was to help society rather than to help inventors. At the time, the life span of 17 years for a patent was short compared with the rate of advance of the state of the art. Since patents are an issue only among manufacturers, for whom the cost and effort of a license agreement are small compared with setting up production, the patents often do not do much harm. They do not obstruct most individuals who use patented products.</p>
+  <p>The idea of copyright did not exist in ancient times, when authors frequently copied other authors at length in works of non-fiction. This practice was useful, and is the only way many authors' works have survived even in part. The copyright system was created expressly for the purpose of encouraging authorship. In the domain for which it was invented - books, which could be copied economically only on a printing press - it did little harm, and did not obstruct most of the individuals who read the books.</p>
+  <p>All intellectual property rights are just licenses granted by society because it was thought, rightly or wrongly, that society as a whole would benefit by granting them. But in any particular situation, we have to ask: are we really better off granting such license? What kind of act are we licensing a person to do?</p>
+  <p>The case of programs today is very different from that of books a hundred years ago. The fact that the easiest way to copy a program is from one neighbor to another, the fact that a program has both source code and object code which are distinct, and the fact that a program is used rather than read and enjoyed, combine to create a situation in which a person who enforces a copyright is harming society as a whole both materially and spiritually; in which a person should not do so regardless of whether the law enables him to.</p>
+  <p><emphasis>"Competition makes things get done better."</emphasis></p>
+  <p>The paradigm of competition is a race: by rewarding the winner, we encourage everyone to run faster. When capitalism really works this way, it does a good job; but its defenders are wrong in assuming it always works this way. If the runners forget why the reward is offered and become intent on winning, no matter how, they may find other strategies - such as, attacking other runners. If the runners get into a fist fight, they will all finish late.</p>
+  <p>Proprietary and secret software is the moral equivalent of runners in a fist fight. Sad to say, the only referee we've got does not seem to object to fights; he just regulates them ("For every ten yards you run, you can fire one shot"). He really ought to break them up, and penalize runners for even trying to fight.</p>
+  <p><emphasis>"Won't everyone stop programming without a monetary incentive?"</emphasis></p>
+  <p>Actually, many people will program with absolutely no monetary incentive. Programming has an irresistible fascination for some people, usually the people who are best at it. There is no shortage of professional musicians who keep at it even though they have no hope of making a living that way.</p>
+  <p>But really this question, though commonly asked, is not appropriate to the situation. Pay for programmers will not disappear, only become less. So the right question is, will anyone program with a reduced monetary incentive? My experience shows that they will.</p>
+  <p>For more than ten years, many of the world's best programmers worked at the Artificial Intelligence Lab for far less money than they could have had anywhere else. They got many kinds of non-monetary rewards: fame and appreciation, for example. And creativity is also fun, a reward in itself.</p>
+  <p>Then most of them left when offered a chance to do the same interesting work for a lot of money.</p>
+  <p>What the facts show is that people will program for reasons other than riches; but if given a chance to make a lot of money as well, they will come to expect and demand it. Low-paying organizations do poorly in competition with high-paying ones, but they do not have to do badly if the high-paying ones are banned.</p>
+  <p><emphasis>"We need the programmers desperately. If they demand that we stop helping our neighbors, we have to obey."</emphasis></p>
+  <p>You're never so desperate that you have to obey this sort of demand. Remember: millions for defense, but not a cent for tribute!</p>
+  <p><emphasis>"Programmers need to make a living somehow."</emphasis></p>
+  <p>In the short run, this is true. However, there are plenty of ways that programmers could make a living without selling the right to use a program. This way is customary now because it brings programmers and businessmen the most money, not because it is the only way to make a living. It is easy to find other ways if you want to find them. Here are a number of examples.</p>
+  <p>A manufacturer introducing a new computer will pay for the porting of operating systems onto the new hardware.</p>
+  <p>The sale of teaching, hand-holding and maintenance services could also employ programmers.</p>
+  <p>People with new ideas could distribute programs as freeware<a xlink:href="#f7" type="note"> [7]</a>, asking for donations from satisfied users, or selling hand-holding services. I have met people who are already working this way successfully.</p>
+  <p>Users with related needs can form users' groups, and pay dues. A group would contract with programming companies to write programs that the group's members would like to use.</p>
+  <p>All sorts of development can be funded with a Software Tax:</p>
+  <p>Suppose everyone who buys a computer has to pay x percent of the price as a software tax. The government gives this to an agency like the NSF to spend on software development.</p>
+  <p>But if the computer buyer makes a donation to software development himself, he can take a credit against the tax. He can donate to the project of his own choosing - often, chosen because he hopes to use the results when it is done. He can take a credit for any amount of donation up to the total tax he had to pay.</p>
+  <p>The total tax rate could be decided by a vote of the payers of the tax, weighted according to the amount they will be taxed on.</p>
+  <p>The consequences:</p>
+  <p>- The computer-using community supports software development.</p>
+  <p>- This community decides what level of support is needed.</p>
+  <p>- Users who care which projects their share is spent on can choose this for themselves.</p>
+  <p>In the long run, making programs free is a step toward the post-scarcity world, where nobody will have to work very hard just to make a living. People will be free to devote themselves to activities that are fun, such as programming, after spending the necessary ten hours a week on required tasks such as legislation, family counseling, robot repair and asteroid prospecting. There will be no need to be able to make a living from programming.</p>
+  <p>We have already greatly reduced the amount of work that the whole society must do for its actual productivity, but only a little of this has translated itself into leisure for workers because much nonproductive activity is required to accompany productive activity. The main causes of this are bureaucracy and isometric struggles against competition. Free software will greatly reduce these drains in the area of software production. We must do this, in order for technical gains in productivity to translate into less work for us.</p>
+   </section>
+ </body>
+ <body name="notes">
+   <title><p>Notes</p></title>
+   <section id="f1"><title><p>1</p></title><p>The wording here was careless. The intention was that nobody would have to pay for <emphasis>permission</emphasis> to use the GNU system. But the words don't make this clear, and people often interpret them as saying that copies of GNU should always be distributed at little or no charge. That was never the intent; later on, the manifesto mentions the possibility of companies providing the service of distribution for a profit. Subsequently I have learned to distinguish carefully between "free" in the sense of freedom and "free" in the sense of price. Free software is software that users have the freedom to distribute and change. Some users may obtain copies at no charge, while others pay to obtain copies - and if the funds help support improving the software, so much the better. The important thing is that everyone who has a copy has the freedom to cooperate with others in using it.</p></section>
+   <section id="f2"><title><p>2</p></title><p>This is another place I failed to distinguish carefully between the two different meanings of "free". The statement as it stands is not false - you can get copies of GNU software at no charge, from your friends or over the net. But it does suggest the wrong idea.</p></section>
+   <section id="f3"><title><p>3</p></title><p>Several such companies now exist.</p></section>
+   <section id="f4"><title><p>4</p></title><p>The Free Software Foundation for 10 years raised most of its funds from a distribution service, although it is a charity rather than a company. You can order things from the FSF.</p></section>
+   <section id="f5"><title><p>5</p></title><p>A group of computer companies pooled funds around 1991 to support maintenance of the GNU C Compiler.</p></section>
+   <section id="f6"><title><p>6</p></title><p>In the 80s I had not yet realized how confusing it was to speak of "the issue" of "intellectual property". That term is obviously biased; more subtle is the fact that it lumps together various disparate laws which raise very different issues. Nowadays I urge people to reject the term "intellectual property" entirely, lest it lead others to suppose that those laws form one coherent issue. The way to be clear is to discuss patents, copyrights, and trademarks separately. See further explanation (at http://www.gnu.org/philosophy/not-ipr.html) of how this term spreads confusion and bias.</p></section>
+   <section id="f7"><title><p>7</p></title><p>Subsequently we have learned to distinguish between "free software" and "freeware". The term "freeware" means software you are free to redistribute, but usually you are not free to study and change the source code, so most of it is not free software. See the Confusing Words and Phrases page (http://www.gnu.org/philosophy/words-to-avoid.html#Freeware) for more explanation.</p></section>
+ </body>
+ <binary id="cover.jpg" content-type="image/jpeg">/9j/4AAQSkZJRgABAQEASABIAAD/4QAWRXhpZgAATU0AKgAAAAgAAAAAAAD/2wBDAAUDBAQEAwUE
+BAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/
+2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4e
+Hh4eHh4eHh4eHh7/wAARCAKAAeADASIAAhEBAxEB/8QAHQABAAICAwEBAAAAAAAAAAAAAAYHBQgB
+AwQJAv/EAFIQAAEEAgEDAgQDAwUJDAkFAAEAAgMEBREGBxIhEzEIFCJBMlFhFSNxCRZCUoEkMzdy
+dXaRsrMXNjg5Q2JjdJKhsbQYJkRTc4KDosE0VMPR8P/EABQBAQAAAAAAAAAAAAAAAAAAAAD/xAAU
+EQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwDcpERAREQEREBERAREQEREBERAREQEREBE
+RAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQE
+REBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERA
+REQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQERE
+BERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERARE
+QEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBE
+RAWrPXXpf8QvIuquZzHBub3cZx6x6HylWPkNis2Ptgja/UbPpbt7Xnx77391tMiD5l5nK9c8T1Wj
+6a2+pfJv25Jfr0AW8itGH1Zuzs+ru3r943Z1+a2C6Q9KfiPwnUrBZblvO71/BVrPfdrP5JZnbIzt
+I0Y3eHeSPBVT9Tf+MAqf524n/wAay+hI9gg1c/lBuUcm4xgOJS8b5Fl8LJPastmdj7slcyAMZoO7
+HDetnW/zVv8AR/k9Ov0P4VluVchghnuYis6S3kroa6eQxtJJfIducd7Pnaon+Ur/AN7fC/8Arlr/
+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
+5WYnto18c3HCQtIa+WSRkhAPsS0RDf5d7fzCseD4K+mjLwlk5ByuWuCD6JsQAn9C4Re38AD+q2C4
+VxXj/DOO1+P8ZxkONxtcHshj2dk+7nOJJc4/dxJJQZpERAREQEREBERAREQEREBERAREQEREBERA
+REQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQERE
+BERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERARE
+QEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBE
+RAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQE
+REBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERA
+REQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQERE
+BERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERARE
+QEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBE
+RARF0XrdShUkuXrUFWtE3ukmmkDGMH5lx8AIO9FXOR6zcLZK+DAuyXLLEZ05mBputMH8ZvEI+/u/
+7LFP6kdQrj3DG9NadGL3bJls8xriP1ZBHJo//MgttFVDObdSjGf/AFc4a+Qe7G5qyNeSP/235gj+
+wrzf7o/Utji3/c6wNsgAj0OTFvcD7Ed1ceP4oLgRVHX6t8lqEu5D0ozsEWx+8xV6vkP/ALQ5j/8A
+Q1Tvh3M+N8tikOEyLZLEIBsU5mOhtV9+P3kLwHs8g6JGjrwSgkKIiAiIgIiICIiAiIgIiICIuCQB
+snQCDlFXPJ+tvTfBZD9l/t9uWyhJayjiIX3ZnuH9AemCA7fjRIK6oepPJshCZsP0p5H6ZG2HKW6t
+In+LDI54/tagstFVjOpHO4ZJBkOjeYbGwb76eZpWO4fo0vaT/DS4xfXzp/LlRiM9LlOJZMnQq5+i
+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
+wf3rG1VTsZ3iHWrG9TeV4HJYGINiw/JhNqWLb4zFBZilaA2WNwji7+0bY5jvH1NC2rymPpZShJQy
+NWG1Vl13xStDmnRBB0fuCAQfsQCFjLPFcVe4xa41mBYzGLsgtdDflMzgzwQ31D9Z7SAQ5zi8HR7t
+gaDL0rMVyrHZhEgjkb3N9SJ0btfq1wBH9oXcoxxrhdHA2BLWzPJLTGnbIb2ZsWI2eNez3HY19jsf
+p7KToCIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiIC
+IiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIg
+IiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIi
+AiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIi
+ICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAi
+IgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiIC
+IiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgwHKOZcW4vkMXj+QZupjrWWlMNCKZxBsPBa0tb+u3
+sH/zBZ9alfH7kxheZ9Jcwa0loUL9qyYYzp0nZLTd2j9TrSydnr51Y4Jy7CnrFwLE4Ti+blMcNmlI
+Xy1PI8yOEjwS0OBc0taSNkexag2iRUdwTq7ye38S/Jek3LKOGrQVYZJ8RPVjkbLOz6JGB5c9wcTC
+8uOg3RY7+A9HSXqvyXnvXPnHGa9HEs4lxlxrNtMjkNmSx39gBd39haTHOfDfZrf4oLpREQEREBER
+AREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQER
+EBERAREQakfygd2fG8t6UZCrTddnq3rc0VZoJMzmyU3BgABJ2Rr2Puo58THVLBdeqHD+nfTStdye
+Tu5NluQy1nRmsRG9nY7Y9gJHOe4ba0M3sj23ZLQSCR7ey8FHCYWhkbORo4ihVu2zuzYhrMZLMd7+
+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
+EREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBER
+AREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQER
+EBERAREQf//Z</binary>
+</FictionBook>
