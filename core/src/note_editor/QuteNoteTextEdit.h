@@ -18,15 +18,15 @@ public:
     virtual ~QuteNoteTextEdit();
 
     enum ECustomTextObjectTextFormat {
-        TODO_CHKBOX_TXT_FMT_UNCHECKED = QTextFormat::UserObject + 1,
-        TODO_CHKBOX_TXT_FMT_CHECKED   = QTextFormat::UserObject + 2,
-        MEDIA_RESOURCE_TXT_FORMAT     = QTextFormat::UserObject + 3
+        TODO_CHKBOX_TXT_FMT_UNCHECKED     = QTextFormat::UserObject + 1,
+        TODO_CHKBOX_TXT_FMT_CHECKED       = QTextFormat::UserObject + 2,
+        GENERIC_MEDIA_RESOURCE_TXT_FORMAT = QTextFormat::UserObject + 3
     };
 
     enum ECustomTextObjectTextProperties {
-        TODO_CHKBOX_TXT_DATA_UNCHECKED = 1,
-        TODO_CHKBOX_TXT_DATA_CHECKED   = 2,
-        MEDIA_RESOURCE_TXT_DATA        = 3
+        TODO_CHKBOX_TXT_DATA_UNCHECKED  = 1,
+        TODO_CHKBOX_TXT_DATA_CHECKED    = 2,
+        GENERIC_MEDIA_RESOURCE_TXT_DATA = 3
     };
 
     virtual bool canInsertFromMimeData(const QMimeData * source) const Q_DECL_OVERRIDE;
@@ -49,10 +49,16 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
-    void dropImage(const QUrl & url, const QImage & image);
+    void insertImage(const QUrl & url, const QImage & image);
+    void insertMovie(const QUrl & url, QMovie &movie);
+    void insertImageOrMovie(const QMimeData & source);
+
     void insertToDoCheckbox(QTextCursor cursor, const bool checked);
     void insertTable(const int rows, const int columns, const bool fixedWidthFlag,
                      const int fixedWidth, const double relativeWidth);
+
+private Q_SLOTS:
+    void animate();
 
 private:
     mutable size_t    m_droppedImageCounter;

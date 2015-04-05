@@ -65,7 +65,7 @@ bool ENMLConverter::richTextToNoteContent(const QuteNoteTextEdit & noteEditor,
             else if (currentFragmentCharFormatObjectType == QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_UNCHECKED) {
                 ENML.append("<en-todo checked=\"false\"/>");
             }
-            else if (currentFragmentCharFormatObjectType == QuteNoteTextEdit::MEDIA_RESOURCE_TXT_FORMAT)
+            else if (currentFragmentCharFormatObjectType == QuteNoteTextEdit::GENERIC_MEDIA_RESOURCE_TXT_FORMAT)
             {
                 bool res = addEnMediaFromCharFormat(currentFragmentCharFormat, ENML,
                                                     errorDescription);

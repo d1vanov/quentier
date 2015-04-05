@@ -11,9 +11,10 @@
 #include <QMessageBox>
 #include <QApplication>
 #include <QUrl>
-#include <QString>
 #include <QImage>
-#include <QDebug>
+#include <QBuffer>
+#include <QImageReader>
+#include <QMovie>
 
 using namespace qevercloud;
 
@@ -31,13 +32,15 @@ bool QuteNoteTextEdit::canInsertFromMimeData(const QMimeData * source) const
     return (source->hasImage() || QTextEdit::canInsertFromMimeData(source));
 }
 
-void QuteNoteTextEdit::insertFromMimeData(const QMimeData *source)
+void QuteNoteTextEdit::insertFromMimeData(const QMimeData * source)
 {
-    if (source->hasImage()) {
-        QUrl url(QString("dropped_image_%1").arg(m_droppedImageCounter++));
-        dropImage(url, qvariant_cast<QImage>(source->imageData()));
+    // TODO: add proper handling of filetypes
+    if (source->hasImage())
+    {
+        insertImageOrMovie(*source);
     }
-    else {
+    else
+    {
         QTextEdit::insertFromMimeData(source);
     }
 }
@@ -262,9 +265,10 @@ void QuteNoteTextEdit::mousePressEvent(QMouseEvent * pEvent)
 void QuteNoteTextEdit::mouseMoveEvent(QMouseEvent * pEvent)
 {
     QTextCursor cursor = cursorForPosition(pEvent->pos());
-    QTextCharFormat format = cursor.charFormat();
-    if ( (format.objectType() == TODO_CHKBOX_TXT_FMT_CHECKED) ||
-         (format.objectType() == TODO_CHKBOX_TXT_FMT_UNCHECKED) )
+
+    QTextCharFormat charFormat = cursor.charFormat();
+    if ( (charFormat.objectType() == TODO_CHKBOX_TXT_FMT_CHECKED) ||
+         (charFormat.objectType() == TODO_CHKBOX_TXT_FMT_UNCHECKED) )
     {
         QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
     }
@@ -275,12 +279,103 @@ void QuteNoteTextEdit::mouseMoveEvent(QMouseEvent * pEvent)
     QTextEdit::mouseMoveEvent(pEvent);
 }
 
-void QuteNoteTextEdit::dropImage(const QUrl & url, const QImage & image)
+void QuteNoteTextEdit::insertImage(const QUrl & url, const QImage & image)
 {
-    if (!image.isNull())
+    if (image.isNull()) {
+        QNINFO("Null image detected, won't insert into document");
+        return;
+    }
+
+    QTextEdit::document()->addResource(QTextDocument::ImageResource, url, image);
+    QTextEdit::textCursor().insertImage(url.toString());
+}
+
+void QuteNoteTextEdit::insertMovie(const QUrl & url, QMovie & movie)
+{
+    if (!movie.isValid()) {
+        QNINFO("Movie is not valid, won't insert it into document");
+        return;
+    }
+
+    QImage currentImage = movie.currentImage();
+    QTextEdit::document()->addResource(QTextDocument::ImageResource, url, currentImage);
+    QTextEdit::textCursor().insertImage(currentImage);
+
+    QObject::connect(&movie, SIGNAL(frameChanged(int)), this, SLOT(animate()));
+    movie.start();
+}
+
+void QuteNoteTextEdit::insertImageOrMovie(const QMimeData & source)
+{
+    QImage image = qvariant_cast<QImage>(source.imageData());
+    if (image.isNull()) {
+        QNWARNING("Found null image in the input mime data even though it said it has image");
+        return;
+    }
+
+    const QStringList availableImageFormats = source.formats();
+
+    QByteArray byteArray;
+    QBuffer buffer(&byteArray);
+    buffer.open(QIODevice::ReadWrite);
+
+    QString usedImageFormat;
+    bool saved = false;
+    if (availableImageFormats.isEmpty()) {
+        QNINFO("Found no available image formats in input data, trying to save without format");
+        saved = image.save(&buffer);
+    }
+    else
     {
-        QTextEdit::document()->addResource(QTextDocument::ImageResource, url, image);
-        QTextEdit::textCursor().insertImage(url.toString());
+        QStringList::const_iterator formatsEnd = availableImageFormats.constEnd();
+        for(QStringList::const_iterator it = availableImageFormats.constBegin(); it != formatsEnd; ++it)
+        {
+            usedImageFormat = *it;
+            if (!usedImageFormat.startsWith("image/")) {
+                QNTRACE("Format " << usedImageFormat << " does not appear to be an image format, trying the next one");
+                continue;
+            }
+            else {
+                usedImageFormat.remove(0, 6);
+                usedImageFormat = usedImageFormat.toUpper();
+            }
+
+            saved = image.save(&buffer, usedImageFormat.toLocal8Bit().data());
+            if (saved) {
+                break;
+            }
+
+            QNDEBUG("Can't save the image to buffer using format " << usedImageFormat
+                    << ", trying the next one");
+        }
+
+        if (!saved)
+        {
+            usedImageFormat.clear();
+            QNDEBUG("Wasn't able to save the image with any of the available formats, "
+                    "will try to save without any format");
+
+            saved = image.save(&buffer);
+        }
+    }
+
+    if (!saved) {
+        QNWARNING("Can't save the image into buffer, image format = "
+                  << (usedImageFormat.isEmpty() ? "<empty>" : usedImageFormat));
+        return;
+    }
+
+    QUrl url(QString("dropped_image_%1").arg(m_droppedImageCounter++));
+
+    QImageReader imageReader(&buffer);
+    if (imageReader.supportsAnimation() && (imageReader.imageCount() > 0)) {
+        QNDEBUG("Input image supports animation, will insert QMovie based on this image");
+        QMovie * pMovie = new QMovie(&buffer, QByteArray(), this);
+        insertMovie(url, *pMovie);
+    }
+    else {
+        QNDEBUG("Input image does not support animation, will insert QImage");
+        insertImage(url, image);
     }
 }
 
@@ -387,4 +482,11 @@ void QuteNoteTextEdit::insertTable(const int rows, const int columns, const bool
 
     QNDEBUG("Inserting html table: " << htmlTable);
     cursor.insertHtml(htmlTable);
+}
+
+void QuteNoteTextEdit::animate()
+{
+    if (isHidden()) {
+        repaint();
+    }
 }
