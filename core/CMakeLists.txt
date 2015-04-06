@@ -12,6 +12,7 @@ set(${PROJECT_NAME}_HEADERS
     src/note_editor/QuteNoteTextEdit.h
     src/note_editor/ResourceTextObject.h
     src/note_editor/ToDoCheckboxTextObject.h
+    src/note_editor/NoteEditorController.h
     src/client/Utility.h
     src/client/types/IDataElementWithShortcut.h
     src/client/types/ISharedNotebook.h
@@ -85,6 +86,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/QuteNoteTextEdit.cpp
     src/note_editor/ResourceTextObject.cpp
     src/note_editor/ToDoCheckboxTextObject.cpp
+    src/note_editor/NoteEditorController.cpp
     src/client/Utility.cpp
     src/client/types/ISharedNotebook.cpp
     src/client/types/IResource.cpp
