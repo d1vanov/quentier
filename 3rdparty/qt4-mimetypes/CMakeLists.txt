@@ -16,7 +16,7 @@ set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include/QtMimeTypes)
 
 add_definitions("-DBUILD_QT4_MIMETYPES")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/QtMimeTypes
-		            ${CMAKE_CURRENT_SOURCE_DIR}/src/mimetypes
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src/mimetypes
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/mimetypes/mime
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/mimetypes/inqt5)
 
@@ -42,6 +42,8 @@ qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${${PROJECT_NAME}_RESOURCES_RCC})
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES}) 
+
+set_target_properties(${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL QMIME_LIBRARY)
 
 # qmimetype test
 aux_source_directory(tests/auto/qmimetype test_qmimetype_${PROJECT_NAME}_SOURCES)
