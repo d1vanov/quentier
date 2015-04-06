@@ -33,7 +33,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang") 
-   set( WARNING_FLAGS "-Wall -Wno-overloaded-virtual" )
+   set( WARNING_FLAGS "-Wall -Wno-overloaded-virtual -Wno-unused-const-variable" )
 endif() 
 
 if(WIN32 AND MSVC)
