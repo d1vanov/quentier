@@ -23,6 +23,7 @@ public:
 
 Q_SIGNALS:
     void contentChanged();
+    void notifyError(QString error);
 
 public Q_SLOTS:
     void undo();
@@ -41,13 +42,14 @@ public Q_SLOTS:
     void setSpellcheck(const bool enabled);
     void setFont(const QFont & font);
     void setFontHeight(const int height);
-    void setColor(const QColor & color);
+    void setFontColor(const QColor & color);
+    void setBackgroundColor(const QColor & color);
     void insertHorizontalLine();
     void changeIndentation(const bool increase);
     void insertBulletedList();
     void insertNumberedList();
     void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels);
-    void insertRelativeWidth(const int rows, const int columns, const double relativeWidth);
+    void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
 
     void insertFromMimeData(const QMimeData * source);
 

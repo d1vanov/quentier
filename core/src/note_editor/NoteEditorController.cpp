@@ -116,41 +116,64 @@ void NoteEditorController::setSpellcheck(const bool enabled)
 
 void NoteEditorController::setFont(const QFont & font)
 {
-    // TODO: implement
-    Q_UNUSED(font)
+    QString fontName = font.family();
+    execJavascriptCommand("fontName", fontName);
 }
 
 void NoteEditorController::setFontHeight(const int height)
 {
-    // TODO: implement
-    Q_UNUSED(height)
+    if (height > 0) {
+        execJavascriptCommand("fontSize", QString::number(height));
+    }
+    else {
+        QString error = QT_TR_NOOP("Detected incorrect font size: " + QString::number(height));
+        QNINFO(error);
+        emit notifyError(error);
+    }
 }
 
-void NoteEditorController::setColor(const QColor & color)
+void NoteEditorController::setFontColor(const QColor & color)
 {
-    // TODO: implement
-    Q_UNUSED(color)
+    if (color.isValid()) {
+        execJavascriptCommand("foreColor", color.name());
+    }
+    else {
+        QString error = QT_TR_NOOP("Detected invalid font color: " + color.name());
+        QNINFO(error);
+        emit notifyError(error);
+    }
+}
+
+void NoteEditorController::setBackgroundColor(const QColor & color)
+{
+    if (color.isValid()) {
+        execJavascriptCommand("hiliteColor", color.name());
+    }
+    else {
+        QString error = QT_TR_NOOP("Detected invalid background color: " + color.name());
+        QNINFO(error);
+        emit notifyError(error);
+    }
 }
 
 void NoteEditorController::insertHorizontalLine()
 {
-    // TODO: implement
+    execJavascriptCommand("insertHorizontalRule");
 }
 
 void NoteEditorController::changeIndentation(const bool increase)
 {
-    // TODO: implement
-    Q_UNUSED(increase)
+    execJavascriptCommand((increase ? "indent" : "outdent"));
 }
 
 void NoteEditorController::insertBulletedList()
 {
-    // TODO: implement
+    execJavascriptCommand("insertUnorderedList");
 }
 
 void NoteEditorController::insertNumberedList()
 {
-    // TODO: implement
+    execJavascriptCommand("insertOrderedList");
 }
 
 void NoteEditorController::insertFixedWidthTable(const int rows, const int columns, const int widthInPixels)
@@ -161,7 +184,7 @@ void NoteEditorController::insertFixedWidthTable(const int rows, const int colum
     Q_UNUSED(widthInPixels)
 }
 
-void NoteEditorController::insertRelativeWidth(const int rows, const int columns, const double relativeWidth)
+void NoteEditorController::insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth)
 {
     // TODO: implement
     Q_UNUSED(rows)
@@ -190,3 +213,4 @@ void NoteEditorController::execJavascriptCommand(const QString & command, const 
     frame->evaluateJavaScript(javascript);
     QNDEBUG("Sent javascript command to note editor: " << javascript);
 }
+
