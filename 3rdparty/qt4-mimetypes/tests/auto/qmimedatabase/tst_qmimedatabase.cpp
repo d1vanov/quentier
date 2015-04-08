@@ -846,7 +846,7 @@ void tst_QMimeDatabase::installNewGlobalMimeType()
     // WARNING from QuteNote dev: these test fails for me on OS X and I don't have enough resources
     // to fix it. I believe I won't need the functionality checked by this test anyway
 #ifdef Q_OS_MAC
-    QSKIP(qPrintable("Skip installNewGlobalMimeType test on Mac OS X"));
+    QSKIP(qPrintable("Skip installNewGlobalMimeType test on Mac OS X"), SkipSingle);
 #endif
 
     qmime_secondsBetweenChecks = 0;
@@ -885,7 +885,7 @@ void tst_QMimeDatabase::installNewLocalMimeType()
     // WARNING from QuteNote dev: these test fails for me on OS X and I don't have enough resources
     // to fix it. I believe I won't need the functionality checked by this test anyway
 #ifdef Q_OS_MAC
-    QSKIP(qPrintable("Skip installNewLocalMimeType test on Mac OS X"));
+    QSKIP(qPrintable("Skip installNewLocalMimeType test on Mac OS X"), SkipSingle);
 #endif
 
     qmime_secondsBetweenChecks = 0;
