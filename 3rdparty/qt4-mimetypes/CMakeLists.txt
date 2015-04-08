@@ -43,6 +43,10 @@ qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${${PROJECT_NAME}_RESOURCES_RCC})
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES}) 
 
+if(APPLE)
+  target_link_libraries(${PROJECT_NAME} "-framework CoreFoundation -framework Carbon")
+endif()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL QMIME_LIBRARY)
 
 # qmimetype test
