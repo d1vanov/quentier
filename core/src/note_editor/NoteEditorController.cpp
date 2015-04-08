@@ -1,4 +1,5 @@
 #include "NoteEditorController.h"
+#include "ComposeHtmlTable.hpp"
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
 #include <client/types/Note.h>
@@ -176,20 +177,78 @@ void NoteEditorController::insertNumberedList()
     execJavascriptCommand("insertOrderedList");
 }
 
+#define CHECK_NUM_COLUMNS() \
+    if (columns <= 0) { \
+        QString error = QT_TR_NOOP("Detected attempt to insert table with bad number of columns: ") + QString::number(columns); \
+        QNWARNING(error); \
+        emit notifyError(error); \
+        return; \
+    }
+
+#define CHECK_NUM_ROWS() \
+    if (rows <= 0) { \
+        QString error = QT_TR_NOOP("Detected attempt to insert table with bad number of rows: ") + QString::number(rows); \
+        QNWARNING(error); \
+        emit notifyError(error); \
+        return; \
+    }
+
 void NoteEditorController::insertFixedWidthTable(const int rows, const int columns, const int widthInPixels)
 {
-    // TODO: implement
-    Q_UNUSED(rows)
-    Q_UNUSED(columns)
-    Q_UNUSED(widthInPixels)
+    CHECK_NUM_COLUMNS();
+    CHECK_NUM_ROWS();
+
+    int pageWidth = m_pWebView->geometry().width();
+    if (widthInPixels > 2 * pageWidth) {
+        QString error = QT_TR_NOOP("Can't insert table, width is too large (more than twice the page width): ") + QString::number(widthInPixels);
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+    else if (widthInPixels <= 0) {
+        QString error = QT_TR_NOOP("Can't insert table, bad width: ") + QString::number(widthInPixels);
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    int singleColumnWidth = widthInPixels / columns;
+    if (singleColumnWidth == 0) {
+        QString error = QT_TR_NOOP("Can't insert table, bad width for specified number of columns (single column width is zero): width = ") +
+                        QString::number(widthInPixels) + QT_TR_NOOP(", number of columns = ") + QString::number(columns);
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    using namespace note_editor_controller_private;
+    QString htmlTable = composeHtmlTable(widthInPixels, singleColumnWidth, rows, columns, /* relative = */ false);
+    execJavascriptCommand("insertHTML", htmlTable);
 }
 
 void NoteEditorController::insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth)
 {
-    // TODO: implement
-    Q_UNUSED(rows)
-    Q_UNUSED(columns)
-    Q_UNUSED(relativeWidth)
+    CHECK_NUM_COLUMNS();
+    CHECK_NUM_ROWS();
+
+    if (relativeWidth <= 0.01) {
+        QString error = QT_TR_NOOP("Can't insert table, relative width is too small: ") + QString::number(relativeWidth) + QString("%");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+    else if (relativeWidth > 100.0 +1.0e-9) {
+        QString error = QT_TR_NOOP("Can't insert table, relative width is too large: ") + QString::number(relativeWidth) + QString("%");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    double singleColumnWidth = relativeWidth / columns;
+
+    using namespace note_editor_controller_private;
+    QString htmlTable = composeHtmlTable(relativeWidth, singleColumnWidth, rows, columns, /* relative = */ true);
+    execJavascriptCommand("insertHTML", htmlTable);
 }
 
 void NoteEditorController::insertFromMimeData(const QMimeData * source)
