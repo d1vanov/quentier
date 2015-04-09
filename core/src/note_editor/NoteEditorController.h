@@ -53,6 +53,8 @@ public Q_SLOTS:
 
     void insertFromMimeData(const QMimeData * source);
 
+    void onNoteLoadCancelled();
+
 private:
     void execJavascriptCommand(const QString & command);
     void execJavascriptCommand(const QString & command, const QString & args);

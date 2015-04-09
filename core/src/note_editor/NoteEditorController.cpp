@@ -257,6 +257,11 @@ void NoteEditorController::insertFromMimeData(const QMimeData * source)
     Q_UNUSED(source)
 }
 
+void NoteEditorController::onNoteLoadCancelled()
+{
+    // TODO: implement
+}
+
 void NoteEditorController::execJavascriptCommand(const QString & command)
 {
     QWebFrame * frame = m_pWebView->page()->mainFrame();
