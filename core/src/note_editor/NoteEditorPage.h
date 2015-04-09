@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H
 
+#include <tools/qt4helper.h>
 #include <QWebPage>
 
 QT_FORWARD_DECLARE_CLASS(NoteEditorController)
@@ -21,9 +22,9 @@ public Q_SLOTS:
     bool shouldInterruptJavaScript();
 
 private:
-    virtual void javaScriptAlert(QWebFrame * pFrame, const QString & message);
-    virtual bool javaScriptConfirm(QWebFrame * pFrame, const QString & message);
-    virtual void javaScriptConsoleMessage(const QString & message, int lineNumber, const QString & sourceID);
+    virtual void javaScriptAlert(QWebFrame * pFrame, const QString & message) Q_DECL_OVERRIDE;
+    virtual bool javaScriptConfirm(QWebFrame * pFrame, const QString & message) Q_DECL_OVERRIDE;
+    virtual void javaScriptConsoleMessage(const QString & message, int lineNumber, const QString & sourceID) Q_DECL_OVERRIDE;
 
 private:
     QWebView * m_parentView;
