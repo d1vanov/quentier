@@ -4,8 +4,11 @@
 #include <tools/qt4helper.h>
 #include <QWebPage>
 
-QT_FORWARD_DECLARE_CLASS(NoteEditorController)
 QT_FORWARD_DECLARE_CLASS(QWebView)
+
+namespace qute_note {
+
+QT_FORWARD_DECLARE_CLASS(NoteEditorController)
 
 class NoteEditorPage: public QWebPage
 {
@@ -29,5 +32,7 @@ private:
 private:
     QWebView * m_parentView;
 };
+
+} // namespace qute_note
 
 #endif // __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H

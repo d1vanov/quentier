@@ -6,6 +6,8 @@
 #include <QMessageBox>
 #include <QApplication>
 
+namespace qute_note {
+
 NoteEditorPage::NoteEditorPage(NoteEditorController * pNoteEditorController,
                                QWebView * parentView, QObject * parent) :
     QWebPage(parent),
@@ -55,3 +57,4 @@ void NoteEditorPage::javaScriptConsoleMessage(const QString & message, int lineN
             << ", sourceID = " << sourceID);
 }
 
+} // namespace qute_note

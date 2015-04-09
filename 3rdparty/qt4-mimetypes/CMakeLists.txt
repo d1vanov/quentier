@@ -43,6 +43,10 @@ qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${${PROJECT_NAME}_RESOURCES_RCC})
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES}) 
 
+if(MSVC)
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "/Zc:wchar_t- ${SHARED_FLAGS}")
+endif()
+
 if(APPLE)
   target_link_libraries(${PROJECT_NAME} "-framework CoreFoundation -framework Carbon")
 endif()
@@ -55,6 +59,10 @@ add_executable(test_qmimetype_${PROJECT_NAME} ${test_qmimetype_${PROJECT_NAME}_S
 target_link_libraries(test_qmimetype_${PROJECT_NAME} ${PROJECT_NAME} ${QT_LIBRARIES})
 add_test(test_qmimetype_${PROJECT_NAME} test_qmimetype_${PROJECT_NAME})
 
+if(MSVC)
+  set_target_properties(test_qmimetype_${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DQT_BUILD_INTERNAL")
+endif()
+
 # qmimedatabase-xml test
 add_definitions("-DCORE_SOURCES=\"${CMAKE_CURRENT_SOURCE_DIR}/src/\"")
 add_definitions("-DSRCDIR=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/auto/qmimedatabase/\"")
@@ -63,6 +71,10 @@ list(APPEND test_qmimedatabase_xml_${PROJECT_NAME}_SOURCES tests/auto/qmimedatab
 add_executable(test_qmimedatabase_xml_${PROJECT_NAME} ${test_qmimedatabase_xml_${PROJECT_NAME}_SOURCES})
 target_link_libraries(test_qmimedatabase_xml_${PROJECT_NAME} ${PROJECT_NAME} ${QT_LIBRARIES})
 add_test(test_qmimedatabase_xml_${PROJECT_NAME} test_qmimedatabase_xml_${PROJECT_NAME}) 
+
+if(MSVC)
+  set_target_properties(test_qmimedatabase_xml_${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DQT_BUILD_INTERNAL")
+endif()
 
 # qmimedatabase-cache test
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

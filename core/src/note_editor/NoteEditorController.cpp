@@ -9,6 +9,8 @@
 #include <QFont>
 #include <QColor>
 
+namespace qute_note {
+
 NoteEditorController::NoteEditorController(QWebView * webView, QObject * parent) :
     QObject(parent),
     m_pWebView(webView),
@@ -278,3 +280,4 @@ void NoteEditorController::execJavascriptCommand(const QString & command, const 
     QNDEBUG("Sent javascript command to note editor: " << javascript);
 }
 
+} // namespace qute_note

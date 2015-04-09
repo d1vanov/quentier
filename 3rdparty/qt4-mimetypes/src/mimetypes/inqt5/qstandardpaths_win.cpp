@@ -87,11 +87,7 @@ static GetSpecialFolderPath resolveGetSpecialFolderPath()
 
 static QString convertCharArray(const wchar_t *path)
 {
-#ifdef _MSC_VER
-    return QDir::fromNativeSeparators(QString::fromUtf16(reinterpret_cast<const unsigned short*>(path)));
-#else
     return QDir::fromNativeSeparators(QString::fromWCharArray(path));
-#endif
 }
 
 QString QStandardPaths::writableLocation(StandardLocation type)

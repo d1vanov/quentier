@@ -4,10 +4,13 @@
 #include <QObject>
 
 QT_FORWARD_DECLARE_CLASS(QWebView)
-QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(QFont)
 QT_FORWARD_DECLARE_CLASS(QColor)
 QT_FORWARD_DECLARE_CLASS(QMimeData)
+
+namespace qute_note {
+
+QT_FORWARD_DECLARE_CLASS(Note)
 
 class NoteEditorController : public QObject
 {
@@ -63,5 +66,7 @@ private:
     QWebView *      m_pWebView;
     bool            m_modified;
 };
+
+} // namespace qute_note
 
 #endif // __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_CONTROLLER_H
