@@ -24,6 +24,8 @@ public:
     bool setNote(const Note & note, QString & errorDescription);
     bool getNote(Note & note, QString & errorDescription) const;
 
+    const std::pair<QByteArray, QMimeType> * findInsertedResource(const QString & hash);
+
     bool modified() const;
 
 Q_SIGNALS:

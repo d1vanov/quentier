@@ -39,6 +39,18 @@ bool NoteEditorController::getNote(Note & note, QString & errorDescription) cons
     return true;
 }
 
+const std::pair<QByteArray, QMimeType> * NoteEditorController::findInsertedResource(const QString & hash)
+{
+    QNDEBUG("NoteEditorController::findInsertedResource: hash = " << hash);
+
+    auto it = m_insertedResourcesByHash.find(hash);
+    if (it == m_insertedResourcesByHash.end()) {
+        return nullptr;
+    }
+
+    return &(it.value());
+}
+
 bool NoteEditorController::modified() const
 {
     return m_modified;
