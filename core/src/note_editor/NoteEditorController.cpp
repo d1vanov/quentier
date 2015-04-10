@@ -268,9 +268,11 @@ void NoteEditorController::insertRelativeWidthTable(const int rows, const int co
 
 void NoteEditorController::insertNewResource(QByteArray data, QMimeType mimeType)
 {
-    Q_UNUSED(data)
-    Q_UNUSED(mimeType)
-    // TODO: implement
+    QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+    QString hashKey = QString(hash.toHex());
+
+    m_insertedResourcesByHash[hashKey] = std::pair<QByteArray, QMimeType>(data, mimeType);
+    QNDEBUG("Inserted new resource with mime type " << mimeType.name() << " by hash " << hashKey);
 }
 
 void NoteEditorController::onNoteLoadCancelled()
