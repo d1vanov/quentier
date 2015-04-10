@@ -44,7 +44,11 @@ add_library(${PROJECT_NAME} SHARED ${SOURCES} ${${PROJECT_NAME}_RESOURCES_RCC})
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES}) 
 
 if(MSVC)
-  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "/Zc:wchar_t- ${SHARED_FLAGS} -DQT_BUILD_INTERNAL -DQT_MAKEDLL")
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "/Zc:wchar_t- ${SHARED_FLAGS}")
+endif()
+
+if(MSVC OR MINGW)
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DQT_BUILD_INTERNAL -DQT_MAKEDLL")
 endif()
 
 if(APPLE)
@@ -68,7 +72,7 @@ add_executable(test_qmimedatabase_xml_${PROJECT_NAME} ${test_qmimedatabase_xml_$
 target_link_libraries(test_qmimedatabase_xml_${PROJECT_NAME} ${PROJECT_NAME} ${QT_LIBRARIES})
 add_test(test_qmimedatabase_xml_${PROJECT_NAME} test_qmimedatabase_xml_${PROJECT_NAME}) 
 
-if(MSVC)
+if(MSVC OR MINGW)
   set_target_properties(test_qmimetype_${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DQT_BUILD_INTERNAL -DQT_DLL")
   set_target_properties(test_qmimedatabase_xml_${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DQT_BUILD_INTERNAL -DQT_DLL")
 endif()
