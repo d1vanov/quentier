@@ -67,8 +67,8 @@ void NoteEditorView::dropEvent(QDropEvent * pEvent)
     Iter urlsEnd = urls.end();
     for(Iter it = urls.begin(); it != urlsEnd; ++it)
     {
-        QString url = it->toString().toLower();
-        if (url.startsWith("file://")) {
+        QString url = it->toString();
+        if (url.toLower().startsWith("file://")) {
             url.remove(0,6);
             dropFile(url);
         }
