@@ -69,6 +69,9 @@ QMimeTypePrivate::QMimeTypePrivate()
         : loaded(false)
 {}
 
+QMimeTypePrivate::~QMimeTypePrivate()
+{}
+
 QMimeTypePrivate::QMimeTypePrivate(const QMimeType &other)
         : name(other.d->name),
         localeComments(other.d->localeComments),

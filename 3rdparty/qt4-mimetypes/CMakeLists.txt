@@ -44,7 +44,7 @@ add_library(${PROJECT_NAME} SHARED ${SOURCES} ${${PROJECT_NAME}_RESOURCES_RCC})
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES}) 
 
 if(MSVC)
-  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "/Zc:wchar_t- ${SHARED_FLAGS}")
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "/Zc:wchar_t- ${SHARED_FLAGS} -DQT_BUILD_INTERNAL -DQT_MAKEDLL")
 endif()
 
 if(APPLE)
@@ -59,10 +59,6 @@ add_executable(test_qmimetype_${PROJECT_NAME} ${test_qmimetype_${PROJECT_NAME}_S
 target_link_libraries(test_qmimetype_${PROJECT_NAME} ${PROJECT_NAME} ${QT_LIBRARIES})
 add_test(test_qmimetype_${PROJECT_NAME} test_qmimetype_${PROJECT_NAME})
 
-if(MSVC)
-  set_target_properties(test_qmimetype_${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DQT_BUILD_INTERNAL")
-endif()
-
 # qmimedatabase-xml test
 add_definitions("-DCORE_SOURCES=\"${CMAKE_CURRENT_SOURCE_DIR}/src/\"")
 add_definitions("-DSRCDIR=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/auto/qmimedatabase/\"")
@@ -73,7 +69,8 @@ target_link_libraries(test_qmimedatabase_xml_${PROJECT_NAME} ${PROJECT_NAME} ${Q
 add_test(test_qmimedatabase_xml_${PROJECT_NAME} test_qmimedatabase_xml_${PROJECT_NAME}) 
 
 if(MSVC)
-  set_target_properties(test_qmimedatabase_xml_${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DQT_BUILD_INTERNAL")
+  set_target_properties(test_qmimetype_${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DQT_BUILD_INTERNAL -DQT_DLL")
+  set_target_properties(test_qmimedatabase_xml_${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DQT_BUILD_INTERNAL -DQT_DLL")
 endif()
 
 # qmimedatabase-cache test

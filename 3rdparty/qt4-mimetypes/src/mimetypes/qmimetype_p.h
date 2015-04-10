@@ -56,6 +56,7 @@ public:
 
     QMimeTypePrivate();
     explicit QMimeTypePrivate(const QMimeType &other);
+    ~QMimeTypePrivate();
 
     void clear();
 
