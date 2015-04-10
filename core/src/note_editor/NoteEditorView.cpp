@@ -1,4 +1,5 @@
 #include "NoteEditorView.h"
+#include "NoteEditorController.h"
 #include <logging/QuteNoteLogger.h>
 #include <QMimeDatabase>
 #include <QDropEvent>
@@ -9,9 +10,15 @@ namespace qute_note {
 
 NoteEditorView::NoteEditorView(QWidget * parent) :
     QWebView(parent),
+    m_pNoteEditorController(nullptr),
     m_noteEditorResourceInserters()
 {
     setAcceptDrops(true);
+}
+
+void NoteEditorView::setController(NoteEditorController * pController)
+{
+    m_pNoteEditorController = pController;
 }
 
 void NoteEditorView::addResourceInserterForMimeType(const QString & mimeTypeName,
@@ -98,7 +105,13 @@ void NoteEditorView::dropFile(QString & filepath)
         return;
     }
 
-    // TODO: create resource for note and somehow notify the note controller of its existence
+    if (!m_pNoteEditorController) {
+        QNWARNING("Note editor controller is not installed");
+        return;
+    }
+
+    QByteArray data = QFile(filepath).readAll();
+    m_pNoteEditorController->insertNewResource(data, mimeType);
 
     QString mimeTypeName = mimeType.name();
     auto resourceInsertersEnd = m_noteEditorResourceInserters.end();
@@ -115,7 +128,6 @@ void NoteEditorView::dropFile(QString & filepath)
             continue;
         }
 
-        QByteArray data = QFile(filepath).readAll();
         pResourceInserter->insertResource(data, mimeType, *this);
         return;
     }

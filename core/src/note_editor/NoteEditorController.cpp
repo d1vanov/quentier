@@ -14,7 +14,8 @@ namespace qute_note {
 NoteEditorController::NoteEditorController(QWebView * webView, QObject * parent) :
     QObject(parent),
     m_pWebView(webView),
-    m_modified(false)
+    m_modified(false),
+    m_insertedResourcesByHash()
 {
     QUTE_NOTE_CHECK_PTR(webView)
 }
@@ -253,10 +254,11 @@ void NoteEditorController::insertRelativeWidthTable(const int rows, const int co
     execJavascriptCommand("insertHTML", htmlTable);
 }
 
-void NoteEditorController::insertFromMimeData(const QMimeData * source)
+void NoteEditorController::insertNewResource(QByteArray data, QMimeType mimeType)
 {
+    Q_UNUSED(data)
+    Q_UNUSED(mimeType)
     // TODO: implement
-    Q_UNUSED(source)
 }
 
 void NoteEditorController::onNoteLoadCancelled()

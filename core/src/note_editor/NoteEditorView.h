@@ -10,6 +10,8 @@ QT_FORWARD_DECLARE_CLASS(QByteArray)
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(NoteEditorController)
+
 class INoteEditorResourceInserter: public QObject
 {
     Q_OBJECT
@@ -27,6 +29,7 @@ class NoteEditorView: public QWebView
     Q_OBJECT
 public:
     explicit NoteEditorView(QWidget * parent = nullptr);
+    void setController(NoteEditorController * pController);
 
     void addResourceInserterForMimeType(const QString & mimeTypeName,
                                         INoteEditorResourceInserter * pResourceInserter);
@@ -41,6 +44,7 @@ private:
     void dropFile(QString & filepath);
 
 private:
+    NoteEditorController *                          m_pNoteEditorController;
     QHash<QString, INoteEditorResourceInserter*>    m_noteEditorResourceInserters;
 };
 

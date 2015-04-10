@@ -2,6 +2,8 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_CONTROLLER_H
 
 #include <QObject>
+#include <QMimeType>
+#include <QHash>
 
 QT_FORWARD_DECLARE_CLASS(QWebView)
 QT_FORWARD_DECLARE_CLASS(QFont)
@@ -54,7 +56,7 @@ public Q_SLOTS:
     void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels);
     void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
 
-    void insertFromMimeData(const QMimeData * source);
+    void insertNewResource(QByteArray data, QMimeType mimeType);
 
     void onNoteLoadCancelled();
 
@@ -65,6 +67,8 @@ private:
 private:
     QWebView *      m_pWebView;
     bool            m_modified;
+
+    QHash<QString, std::pair<QByteArray, QMimeType> >  m_insertedResourcesByHash;
 };
 
 } // namespace qute_note
