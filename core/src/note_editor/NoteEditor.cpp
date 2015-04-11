@@ -10,6 +10,8 @@
 #include <QDropEvent>
 #include <QUrl>
 #include <QFileInfo>
+#include <QTemporaryFile>
+#include <QCryptographicHash>
 
 namespace qute_note {
 
@@ -367,7 +369,8 @@ void NoteEditor::dropFile(QString & filepath)
     }
 
     QByteArray data = QFile(filepath).readAll();
-    insertNewResource(data, mimeType);
+    QString dataHash = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
+    attachResourceToNote(data, dataHash, mimeType);
 
     QString mimeTypeName = mimeType.name();
     auto resourceInsertersEnd = m_noteEditorResourceInserters.end();
@@ -389,16 +392,15 @@ void NoteEditor::dropFile(QString & filepath)
     }
 
     // If we are still here, no specific resource inserter was found, so will process two generic cases: image or any other type
-    if (mimeTypeName.startsWith("image"))
-    {
-        // TODO: process image
+    if (mimeTypeName.startsWith("image")) {
+        insertImage(data, dataHash, mimeType);
         return;
     }
 
     // TODO: process generic mime type
 }
 
-void NoteEditor::insertNewResource(QByteArray data, QMimeType mimeType)
+void NoteEditor::attachResourceToNote(const QByteArray & data, const QString & dataHash, const QMimeType & mimeType)
 {
     // TODO: implement
 }
@@ -450,6 +452,36 @@ QString NoteEditor::composeHtmlTable(const T width, const T singleColumnWidth, c
     // End table
     htmlTable += "</tbody></table>";
     return htmlTable;
+}
+
+void NoteEditor::insertImage(const QByteArray & data, const QString & dataHash, const QMimeType & mimeType)
+{
+    QNDEBUG("NoteEditor::insertImage: data hash = " << dataHash << ", mime type = " << mimeType.name());
+
+    // Write the data to the temporary file
+    // TODO: first check if there is the existing temporary file with this resource's data
+    QTemporaryFile tmpFile;
+    if (!tmpFile.open()) {
+        QString error = QT_TR_NOOP("Can't render dropped image: can't create temporary file: ");
+        error += tmpFile.errorString();
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    tmpFile.write(data);
+    // TODO: put the path to the file to the local cache by resource's hash
+
+    QString imageHtml = "<img src=\"file://";
+    imageHtml += QFileInfo(tmpFile).absolutePath();
+    imageHtml += "\" type=\"";
+    imageHtml += mimeType.name();
+    imageHtml += "\" hash=\"";
+    // TODO: figure out how to deal with the context menu
+    // TODO: idea: on hover can change cursor to "zoom" one and on LMB click can zoom the area of the image
+    imageHtml += "\" />";
+
+    execJavascriptCommand("insertHTML", imageHtml);
 }
 
 } // namespace qute_note

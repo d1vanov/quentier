@@ -75,11 +75,13 @@ private:
 
     virtual void dropEvent(QDropEvent * pEvent) Q_DECL_OVERRIDE;
     void dropFile(QString & filepath);
-    void insertNewResource(QByteArray data, QMimeType mimeType);
+    void attachResourceToNote(const QByteArray & data, const QString & dataHash, const QMimeType & mimeType);
 
     template <typename T>
     QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows, const int columns,
                              const bool relative);
+
+    void insertImage(const QByteArray & data,  const QString & dataHash, const QMimeType & mimeType);
 
 private:
     Note *  m_pNote;
