@@ -70,7 +70,7 @@ set(${PROJECT_NAME}_HEADERS
     src/logging/QuteNoteLogger.h
     src/logging/LoggerInitializationException.h
     src/tools/ApplicationSettings.h
-    src/tools/ApplicationStoragePersistencePath.h
+    src/tools/DesktopServices.h
     src/tools/EmptyDataElementException.h
     src/tools/EventLoopWithExitStatus.h
     src/tools/IQuteNoteException.h
@@ -141,7 +141,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/synchronization/SendLocalChangesManager.cpp
     src/logging/LoggerInitializationException.cpp
     src/tools/ApplicationSettings.cpp
-    src/tools/ApplicationStoragePersistencePath.cpp
+    src/tools/DesktopServices.cpp
     src/tools/EmptyDataElementException.cpp
     src/tools/EventLoopWithExitStatus.cpp
     src/tools/IQuteNoteException.cpp

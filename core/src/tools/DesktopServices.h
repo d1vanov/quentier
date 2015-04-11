@@ -7,6 +7,7 @@
 namespace qute_note {
 
 const QString QUTE_NOTE_EXPORT GetApplicationPersistentStoragePath();
+const QString QUTE_NOTE_EXPORT GetTemporaryStoragePath();
 
 } // namespace qute_note
 

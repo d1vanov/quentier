@@ -1,4 +1,4 @@
-#include "ApplicationStoragePersistencePath.h"
+#include "DesktopServices.h"
 
 #if QT_VERSION >= 0x050000
 #include <QStandardPaths>
@@ -17,4 +17,14 @@ const QString GetApplicationPersistentStoragePath()
 #endif
 }
 
+const QString GetTemporaryStoragePath()
+{
+#if QT_VERSION >= 0x50000
+    return QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+#else
+    return QDesktopServices::storageLocation(QDesktopServices::TempLocation);
+#endif
 }
+
+} // namespace qute_note
+
