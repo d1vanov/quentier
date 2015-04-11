@@ -986,15 +986,12 @@ color: rgb(255, 255, 255);</string>
          </widget>
         </item>
         <item>
-         <widget class="QuteNoteTextEdit" name="noteEditWidget">
-          <property name="mouseTracking">
-           <bool>true</bool>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
+         <widget class="NoteEditor" name="noteEditorWidget" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>600</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -1165,7 +1162,7 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1167</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2217,7 +2214,9 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionSpellCheck">
    <property name="icon">
-    <iconset theme="tools-check-spelling"/>
+    <iconset theme="tools-check-spelling">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Spellcheck</string>
@@ -2604,9 +2603,10 @@ stop: 1 #0EB7FF);
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>QuteNoteTextEdit</class>
-   <extends>QTextEdit</extends>
-   <header location="global">note_editor/QuteNoteTextEdit.h</header>
+   <class>NoteEditor</class>
+   <extends>QWidget</extends>
+   <header location="global">note_editor/NoteEditor.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

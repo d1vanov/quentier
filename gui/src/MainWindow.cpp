@@ -1,5 +1,9 @@
 #include "MainWindow.h"
+
+#include <note_editor/NoteEditor.h>
+using qute_note::NoteEditor;
 #include "ui_MainWindow.h"
+
 #include "TableSettingsDialog.h"
 #include <note_editor/HorizontalLineExtraData.h>
 #include <note_editor/ToDoCheckboxTextObject.h>
@@ -42,13 +46,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 {
     m_pUI->setupUi(this);
     checkThemeIconsAndSetFallbacks();
-
-    GET_QUTE_NOTE_TEXT_EDIT();
-
-    QAbstractTextDocumentLayout * pLayout = pNoteEditor->document()->documentLayout();
-    QUTE_NOTE_CHECK_PTR(pLayout);
-    pLayout->registerHandler(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_UNCHECKED, m_pToDoChkboxTxtObjUnchecked);
-    pLayout->registerHandler(QuteNoteTextEdit::TODO_CHKBOX_TXT_FMT_CHECKED, m_pToDoChkboxTxtObjChecked);
 
     connectActionsToEditorSlots();
 
@@ -318,196 +315,84 @@ void MainWindow::show()
     }
 }
 
-#define FETCH_CURRENT_TEXT_CHAR_FORMAT() \
-    GET_QUTE_NOTE_TEXT_EDIT(); \
-    QTextCursor cursor = pNoteEditor->textCursor(); \
-    QTextCharFormat format(cursor.charFormat());
-
-#define SET_TEXT_CHAR_FORMAT() \
-    mergeFormatOnWordOrSelection(format); \
-    pNoteEditor->setFocus();
-
 void MainWindow::noteTextBold()
 {
-    FETCH_CURRENT_TEXT_CHAR_FORMAT();
-
-    bool isBold = format.font().bold();
-    format.setFontWeight(isBold ? QFont::Normal : QFont::Bold);
-
-    SET_TEXT_CHAR_FORMAT();
+    // TODO: implement
 }
 
 void MainWindow::noteTextItalic()
 {
-    FETCH_CURRENT_TEXT_CHAR_FORMAT();
-
-    bool isItalic = format.font().italic();
-    format.setFontItalic(!isItalic);
-
-    SET_TEXT_CHAR_FORMAT();
+    // TODO: implement
 }
 
 void MainWindow::noteTextUnderline()
 {
-    FETCH_CURRENT_TEXT_CHAR_FORMAT();
-
-    bool isUnderlined = format.font().underline();
-    format.setFontUnderline(!isUnderlined);
-
-    SET_TEXT_CHAR_FORMAT();
+    // TODO: implement
 }
 
 void MainWindow::noteTextStrikeThrough()
 {
-    FETCH_CURRENT_TEXT_CHAR_FORMAT();
-
-    bool isStrokenOut = format.font().strikeOut();
-    format.setFontStrikeOut(!isStrokenOut);
-
-    SET_TEXT_CHAR_FORMAT();
+    // TODO: implement
 }
 
 void MainWindow::noteTextAlignLeft()
 {
-    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    QUTE_NOTE_CHECK_PTR(pNoteEdit);
-
-    QTextCursor cursor = pNoteEdit->textCursor();
-    cursor.beginEditBlock();
-
-    pNoteEdit->setAlignment(Qt::AlignLeft | Qt::AlignAbsolute);
-    setAlignButtonsCheckedState(ALIGNED_LEFT);
-
-    cursor.endEditBlock();
-    pNoteEdit->setFocus();
+    // TODO: implement
 }
 
 void MainWindow::noteTextAlignCenter()
 {
-    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    QUTE_NOTE_CHECK_PTR(pNoteEdit);
-
-    QTextCursor cursor = pNoteEdit->textCursor();
-    cursor.beginEditBlock();
-
-    pNoteEdit->setAlignment(Qt::AlignHCenter);
-    setAlignButtonsCheckedState(ALIGNED_CENTER);
-
-    cursor.endEditBlock();
-    pNoteEdit->setFocus();
+    // TODO: implement
 }
 
 void MainWindow::noteTextAlignRight()
 {
-    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    QUTE_NOTE_CHECK_PTR(pNoteEdit);
-
-    QTextCursor cursor = pNoteEdit->textCursor();
-    cursor.beginEditBlock();
-
-    pNoteEdit->setAlignment(Qt::AlignRight | Qt::AlignAbsolute);
-    setAlignButtonsCheckedState(ALIGNED_RIGHT);
-
-    cursor.endEditBlock();
-    pNoteEdit->setFocus();
+    // TODO: implement
 }
 
 void MainWindow::noteTextAddHorizontalLine()
 {
-    GET_QUTE_NOTE_TEXT_EDIT();
-
-    QTextCursor cursor = pNoteEditor->textCursor();
-    cursor.beginEditBlock();
-
-    QTextBlockFormat format = cursor.blockFormat();
-
-    bool atStart = cursor.atStart();
-
-    cursor.insertHtml("<hr><br>");
-    cursor.setBlockFormat(format);
-    cursor.movePosition(QTextCursor::Up);
-
-    if (atStart)
-    {
-        cursor.movePosition(QTextCursor::Up);
-        cursor.deletePreviousChar();
-        cursor.movePosition(QTextCursor::Down);
-    }
-    else
-    {
-        cursor.movePosition(QTextCursor::Up);
-        cursor.movePosition(QTextCursor::Up);
-        QString line = cursor.block().text().trimmed();
-        if (line.isEmpty()) {
-            cursor.movePosition(QTextCursor::Down);
-            cursor.deletePreviousChar();
-            cursor.movePosition(QTextCursor::Down);
-        }
-        else {
-            cursor.movePosition(QTextCursor::Down);
-            cursor.movePosition(QTextCursor::Down);
-        }
-    }
-
-    // add extra data
-    cursor.movePosition(QTextCursor::Up);
-    cursor.block().setUserData(new HorizontalLineExtraData);
-    cursor.movePosition(QTextCursor::Down);
-
-    cursor.endEditBlock();
-    pNoteEditor->setFocus();
+    // TODO: implement
 }
 
 void MainWindow::noteTextIncreaseIndentation()
 {
-    const bool increaseIndentationFlag = true;
-    changeIndentation(increaseIndentationFlag);
-    m_pUI->noteEditWidget->setFocus();
+    // TODO: implement
 }
 
 void MainWindow::noteTextDecreaseIndentation()
 {
-    const bool increaseIndentationFlag = false;
-    changeIndentation(increaseIndentationFlag);
-    m_pUI->noteEditWidget->setFocus();
+    // TODO: implement
 }
 
 void MainWindow::noteTextInsertUnorderedList()
 {
-    QTextListFormat::Style style = QTextListFormat::ListDisc;
-    insertList(style);
-    m_pUI->noteEditWidget->setFocus();
+    // TODO: implement
 }
 
 void MainWindow::noteTextInsertOrderedList()
 {
-    QTextListFormat::Style style = QTextListFormat::ListDecimal;
-    insertList(style);
-    m_pUI->noteEditWidget->setFocus();
+    // TODO: implement
 }
 
 void MainWindow::noteChooseTextColor()
 {
-    changeTextColor(CHANGE_COLOR_ALL);
-    m_pUI->noteEditWidget->setFocus();
+    // TODO: implement
 }
 
 void MainWindow::noteChooseSelectedTextColor()
 {
-    changeTextColor(CHANGE_COLOR_SELECTED);
-    m_pUI->noteEditWidget->setFocus();
+    // TODO: implement
 }
 
 void MainWindow::noteTextInsertToDoCheckBox()
 {
-    GET_QUTE_NOTE_TEXT_EDIT();
-
-    QTextCursor cursor = pNoteEditor->textCursor();
-    pNoteEditor->insertUncheckedToDoCheckboxAtCursor(cursor);
+    // TODO: implement
 }
 
 void MainWindow::noteTextInsertTable()
 {
+    // TODO: implement
     QScopedPointer<TableSettingsDialog> tableSettingsDialogHolder(new TableSettingsDialog(this));
     TableSettingsDialog * tableSettingsDialog = tableSettingsDialogHolder.data();
     if (tableSettingsDialog->exec() == QDialog::Accepted)
@@ -518,12 +403,13 @@ void MainWindow::noteTextInsertTable()
         double tableWidth = tableSettingsDialog->tableWidth();
         bool relativeWidth = tableSettingsDialog->relativeWidth();
 
-        GET_QUTE_NOTE_TEXT_EDIT();
         if (relativeWidth) {
-            pNoteEditor->insertRelativeWidthTable(numRows, numColumns, tableWidth);
+            // TODO: implement
+            // pNoteEditor->insertRelativeWidthTable(numRows, numColumns, tableWidth);
         }
         else {
-            pNoteEditor->insertFixedWidthTable(numRows, numColumns, static_cast<int>(tableWidth));
+            // TODO: implement
+            // pNoteEditor->insertFixedWidthTable(numRows, numColumns, static_cast<int>(tableWidth));
         }
 
         return;
@@ -534,117 +420,7 @@ void MainWindow::noteTextInsertTable()
 
 void MainWindow::noteHtmlContentToStdOut()
 {
-    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    QUTE_NOTE_CHECK_PTR(pNoteEdit);
-
-    QString noteHtml = pNoteEdit->toHtml();
-    qDebug() << noteHtml;
-}
-
-void MainWindow::mergeFormatOnWordOrSelection(const QTextCharFormat & format)
-{
-    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    QUTE_NOTE_CHECK_PTR(pNoteEdit);
-
-    QTextCursor cursor = pNoteEdit->textCursor();
-    cursor.beginEditBlock();
-
-    if (!cursor.hasSelection()) {
-        cursor.select(QTextCursor::WordUnderCursor);
-    }
-    cursor.mergeCharFormat(format);
-    cursor.clearSelection();
-    pNoteEdit->mergeCurrentCharFormat(format);
-
-    cursor.endEditBlock();
-}
-
-void MainWindow::changeIndentation(const bool increaseIndentationFlag)
-{
-    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    QUTE_NOTE_CHECK_PTR(pNoteEdit);
-
-    QTextCursor cursor = pNoteEdit->textCursor();
-    cursor.beginEditBlock();
-
-    if (cursor.currentList())
-    {
-        QTextListFormat listFormat = cursor.currentList()->format();
-
-        if (increaseIndentationFlag) {
-            listFormat.setIndent(listFormat.indent() + 1);
-        }
-        else {
-            listFormat.setIndent(std::max(listFormat.indent() - 1, 0));
-        }
-
-        cursor.createList(listFormat);
-    }
-    else
-    {
-        int start = cursor.anchor();
-        int end = cursor.position();
-        if (start > end)
-        {
-            start = cursor.position();
-            end = cursor.anchor();
-        }
-
-        QList<QTextBlock> blocksList;
-        QTextBlock block = pNoteEdit->document()->begin();
-        while (block.isValid())
-        {
-            block = block.next();
-            if ( ((block.position() >= start) && (block.position() + block.length() <= end) ) ||
-                 block.contains(start) || block.contains(end) )
-            {
-                blocksList << block;
-            }
-        }
-
-        foreach(QTextBlock block, blocksList)
-        {
-            QTextCursor cursor(block);
-            QTextBlockFormat blockFormat = cursor.blockFormat();
-
-            if (increaseIndentationFlag) {
-                blockFormat.setIndent(blockFormat.indent() + 1);
-            }
-            else {
-                blockFormat.setIndent(std::max(blockFormat.indent() - 1, 0));
-            }
-
-            cursor.setBlockFormat(blockFormat);
-        }
-    }
-
-    cursor.endEditBlock();
-}
-
-void MainWindow::insertList(const QTextListFormat::Style style)
-{
-    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    QUTE_NOTE_CHECK_PTR(pNoteEdit);
-
-    QTextCursor cursor = pNoteEdit->textCursor();
-    cursor.beginEditBlock();
-
-    QTextBlockFormat blockFormat = cursor.blockFormat();
-
-    QTextListFormat listFormat;
-    if (cursor.currentList()) {
-        listFormat = cursor.currentList()->format();
-    }
-    else {
-        listFormat.setIndent(blockFormat.indent() + 1);
-        blockFormat.setIndent(0);
-        cursor.setBlockFormat(blockFormat);
-    }
-
-    listFormat.setStyle(style);
-
-    cursor.createList(listFormat);
-    cursor.endEditBlock();
+    // TODO: implement
 }
 
 void MainWindow::setAlignButtonsCheckedState(const ESelectedAlignment alignment)
@@ -666,45 +442,6 @@ void MainWindow::setAlignButtonsCheckedState(const ESelectedAlignment alignment)
     default:
         qWarning() << "MainWindow::setAlignButtonsCheckedState: received invalid action!";
         break;
-    }
-}
-
-void MainWindow::changeTextColor(const MainWindow::EChangeColor changeColorOption)
-{
-    QTextEdit * pNoteEdit = m_pUI->noteEditWidget;
-    QUTE_NOTE_CHECK_PTR(pNoteEdit);
-
-    QColor color = QColorDialog::getColor(pNoteEdit->textColor(), this);
-    if (!color.isValid()) {
-        qWarning() << "MainWindow::changeTextColor: detected invalid color! " << color;
-        return;
-    }
-
-    QTextCharFormat format;
-    format.setForeground(color);
-
-    switch(changeColorOption)
-    {
-    case CHANGE_COLOR_ALL:
-    {
-        QTextCursor cursor = pNoteEdit->textCursor();
-        cursor.beginEditBlock();
-
-        cursor.select(QTextCursor::Document);
-        cursor.mergeCharFormat(format);
-        pNoteEdit->mergeCurrentCharFormat(format);
-
-        cursor.endEditBlock();
-        break;
-    }
-    case CHANGE_COLOR_SELECTED:
-    {
-        mergeFormatOnWordOrSelection(format);
-        break;
-    }
-    default:
-        qWarning() << "MainWindow::changeTextColor: received wrong change color option! " << changeColorOption;
-        return;
     }
 }
 

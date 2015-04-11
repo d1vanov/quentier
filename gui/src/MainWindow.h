@@ -76,15 +76,10 @@ private Q_SLOTS:
     void noteHtmlContentToStdOut();
 
 private:
-    void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
-    void changeIndentation(const bool increaseIndentationFlag);
     void insertList(const QTextListFormat::Style style);
 
     enum ESelectedAlignment { ALIGNED_LEFT, ALIGNED_CENTER, ALIGNED_RIGHT };
     void setAlignButtonsCheckedState(const ESelectedAlignment alignment);
-
-    enum EChangeColor { CHANGE_COLOR_ALL, CHANGE_COLOR_SELECTED };
-    void changeTextColor(const EChangeColor changeColorOption);
 
     void checkThemeIconsAndSetFallbacks();
 

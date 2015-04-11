@@ -23,6 +23,7 @@ NoteEditor::NoteEditor(QWidget * parent) :
 {
     NoteEditorPage * page = new NoteEditorPage(*this);
     setPage(page);
+    page->setContentEditable(true);
 
     setAcceptDrops(true);
 }
