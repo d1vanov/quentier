@@ -1,5 +1,6 @@
 #include "NoteEditorPage.h"
-#include "NoteEditorController.h"
+#include "NoteEditor.h"
+#include "INoteEditorResourceInserter.h"
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
 #include <QWebView>
@@ -8,14 +9,13 @@
 
 namespace qute_note {
 
-NoteEditorPage::NoteEditorPage(NoteEditorController * pNoteEditorController,
-                               QWebView * parentView, QObject * parent) :
-    QWebPage(parent),
-    m_parentView(parentView)
+NoteEditorPage::NoteEditorPage(NoteEditor & parent) :
+    QWebPage(&parent),
+    m_parent(&parent)
 {
-    QUTE_NOTE_CHECK_PTR(m_parentView);
+    QUTE_NOTE_CHECK_PTR(m_parent);
 
-    QObject::connect(this, SIGNAL(noteLoadCancelled()), pNoteEditorController, SLOT(onNoteLoadCancelled()));
+    QObject::connect(this, SIGNAL(noteLoadCancelled()), &parent, SLOT(onNoteLoadCancelled()));
 }
 
 bool NoteEditorPage::shouldInterruptJavaScript()
@@ -25,7 +25,7 @@ bool NoteEditorPage::shouldInterruptJavaScript()
     QString title = QObject::tr("Note editor hanged");
     QString question = QObject::tr("Note editor seems hanged when loading or editing the note. "
                                    "Would you like to cancel loading the note?");
-    QMessageBox::StandardButton reply = QMessageBox::question(m_parentView, title, question,
+    QMessageBox::StandardButton reply = QMessageBox::question(m_parent, title, question,
                                                               QMessageBox::Yes | QMessageBox::No,
                                                               QMessageBox::No);
     if (reply == QMessageBox::Yes) {

@@ -4,19 +4,15 @@
 #include <tools/qt4helper.h>
 #include <QWebPage>
 
-QT_FORWARD_DECLARE_CLASS(QWebView)
-
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(NoteEditorController)
+QT_FORWARD_DECLARE_CLASS(NoteEditor)
 
 class NoteEditorPage: public QWebPage
 {
     Q_OBJECT
 public:
-    explicit NoteEditorPage(NoteEditorController * pNoteEditorController,
-                            QWebView * parentView,
-                            QObject * parent = nullptr);
+    explicit NoteEditorPage(NoteEditor & parent);
 
 Q_SIGNALS:
     void noteLoadCancelled();
@@ -30,7 +26,7 @@ private:
     virtual void javaScriptConsoleMessage(const QString & message, int lineNumber, const QString & sourceID) Q_DECL_OVERRIDE;
 
 private:
-    QWebView * m_parentView;
+    NoteEditor * m_parent;
 };
 
 } // namespace qute_note
