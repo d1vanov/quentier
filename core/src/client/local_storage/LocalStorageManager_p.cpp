@@ -6,7 +6,7 @@
 #include <client/Utility.h>
 #include <logging/QuteNoteLogger.h>
 #include <tools/QuteNoteNullPtrException.h>
-#include <tools/ApplicationStoragePersistencePath.h>
+#include <tools/DesktopServices.h>
 #include <tools/SysInfo.h>
 #include <algorithm>
 
@@ -15,7 +15,7 @@ namespace qute_note {
 #define QUTE_NOTE_DATABASE_NAME "qn.storage.sqlite"
 
 LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username, const UserID userId,
-                                         const bool startFromScratch) :
+                                                       const bool startFromScratch) :
     QObject(),
     // NOTE: don't initialize these! Otherwise SwitchUser won't work right
     m_currentUsername(),
