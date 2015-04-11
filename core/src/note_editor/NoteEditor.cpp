@@ -25,6 +25,9 @@ NoteEditor::NoteEditor(QWidget * parent) :
     setPage(page);
     page->setContentEditable(true);
 
+    // TODO: make it configurable in runtime
+    page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+
     setAcceptDrops(true);
 }
 
@@ -153,9 +156,10 @@ void NoteEditor::alignRight()
 
 void NoteEditor::insertToDoCheckbox()
 {
-    QString html("<input type=\"checkbox\" onmouseover=\"style.cursor=\"arrow\"\" "
-                 "onclick=\"if(checked) setAttribute(\"checked\", \"checked\") "
-                 "else removeAttribute(\"checked\")\" />");
+    QString html("<input type=\"checkbox\" "
+                 "onclick=\"JavaScript:if(checked) setAttribute(\\'checked\\', \\'checked\\'); "
+                 "else removeAttribute(\\'checked\\');\" "
+                 "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" />");
     execJavascriptCommand("insertHtml", html);
 }
 
@@ -309,13 +313,15 @@ void NoteEditor::execJavascriptCommand(const QString & command)
     QWebFrame * frame = page()->mainFrame();
     QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command);
     frame->evaluateJavaScript(javascript);
+    QNTRACE("Executed javascript command: " << javascript);
 }
 
 void NoteEditor::execJavascriptCommand(const QString & command, const QString & args)
 {
     QWebFrame * frame = page()->mainFrame();
-    QString javascript = QString("document.execCommand(\"%1\", false, \"%2\")").arg(command).arg(args);
+    QString javascript = QString("document.execCommand('%1', false, '%2')").arg(command).arg(args);
     frame->evaluateJavaScript(javascript);
+    QNTRACE("Executed javascript command: " << javascript);
 }
 
 void NoteEditor::dropEvent(QDropEvent * pEvent)

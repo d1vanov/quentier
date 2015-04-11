@@ -21,6 +21,10 @@ QT_FORWARD_DECLARE_CLASS(AskConsumerKeyAndSecret)
 QT_FORWARD_DECLARE_CLASS(AskUserNameAndPassword)
 QT_FORWARD_DECLARE_CLASS(QTextCharFormat)
 
+namespace qute_note {
+QT_FORWARD_DECLARE_CLASS(NoteEditor)
+}
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -92,7 +96,7 @@ private:
     QWidget * m_currentStatusBarChildWidget;
     QObject * m_pToDoChkboxTxtObjUnchecked;
     QObject * m_pToDoChkboxTxtObjChecked;
-
+    qute_note::NoteEditor * m_pNoteEditor;
 };
 
 #endif // __QUTE_NOTE__MAINWINDOW_H

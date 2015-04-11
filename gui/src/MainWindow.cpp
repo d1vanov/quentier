@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 
 #include <note_editor/NoteEditor.h>
-using qute_note::NoteEditor;
+using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work with namespaces
 #include "ui_MainWindow.h"
 
 #include "TableSettingsDialog.h"
@@ -15,7 +15,6 @@ using qute_note::NoteEditor;
 #include "../client/CredentialsModel.h"
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
-#include <note_editor/QuteNoteTextEdit.h>
 #include <cmath>
 #include <QPushButton>
 #include <QIcon>
@@ -29,10 +28,6 @@ using qute_note::NoteEditor;
 #include <QMessageBox>
 #include <QtDebug>
 
-#define GET_QUTE_NOTE_TEXT_EDIT() \
-    QuteNoteTextEdit * pNoteEditor = m_pUI->noteEditWidget; \
-    QUTE_NOTE_CHECK_PTR(pNoteEditor); \
-
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
@@ -42,9 +37,12 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pManager(new EvernoteServiceManager),
     m_pOAuthBrowser(new EvernoteOAuthBrowser(this, *m_pManager)),
     m_pToDoChkboxTxtObjUnchecked(new ToDoCheckboxTextObjectUnchecked),
-    m_pToDoChkboxTxtObjChecked(new ToDoCheckboxTextObjectChecked)
+    m_pToDoChkboxTxtObjChecked(new ToDoCheckboxTextObjectChecked),
+    m_pNoteEditor(nullptr)
 {
     m_pUI->setupUi(this);
+    m_pNoteEditor = m_pUI->noteEditorWidget;
+
     checkThemeIconsAndSetFallbacks();
 
     connectActionsToEditorSlots();
@@ -317,62 +315,62 @@ void MainWindow::show()
 
 void MainWindow::noteTextBold()
 {
-    // TODO: implement
+    m_pNoteEditor->textBold();
 }
 
 void MainWindow::noteTextItalic()
 {
-    // TODO: implement
+    m_pNoteEditor->textItalic();
 }
 
 void MainWindow::noteTextUnderline()
 {
-    // TODO: implement
+    m_pNoteEditor->textUnderline();
 }
 
 void MainWindow::noteTextStrikeThrough()
 {
-    // TODO: implement
+    m_pNoteEditor->textStrikethrough();
 }
 
 void MainWindow::noteTextAlignLeft()
 {
-    // TODO: implement
+    m_pNoteEditor->alignLeft();
 }
 
 void MainWindow::noteTextAlignCenter()
 {
-    // TODO: implement
+    m_pNoteEditor->alignCenter();
 }
 
 void MainWindow::noteTextAlignRight()
 {
-    // TODO: implement
+    m_pNoteEditor->alignRight();
 }
 
 void MainWindow::noteTextAddHorizontalLine()
 {
-    // TODO: implement
+    m_pNoteEditor->insertHorizontalLine();
 }
 
 void MainWindow::noteTextIncreaseIndentation()
 {
-    // TODO: implement
+    m_pNoteEditor->changeIndentation(/* increase = */ true);
 }
 
 void MainWindow::noteTextDecreaseIndentation()
 {
-    // TODO: implement
+    m_pNoteEditor->changeIndentation(/* increase = */ false);
 }
 
 void MainWindow::noteTextInsertUnorderedList()
 {
-    // TODO: implement
+    m_pNoteEditor->insertBulletedList();
 }
 
 void MainWindow::noteTextInsertOrderedList()
 {
-    // TODO: implement
+    m_pNoteEditor->insertNumberedList();
 }
 
 void MainWindow::noteChooseTextColor()
@@ -387,12 +385,12 @@ void MainWindow::noteChooseSelectedTextColor()
 
 void MainWindow::noteTextInsertToDoCheckBox()
 {
-    // TODO: implement
+    m_pNoteEditor->insertToDoCheckbox();
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::noteTextInsertTable()
 {
-    // TODO: implement
     QScopedPointer<TableSettingsDialog> tableSettingsDialogHolder(new TableSettingsDialog(this));
     TableSettingsDialog * tableSettingsDialog = tableSettingsDialogHolder.data();
     if (tableSettingsDialog->exec() == QDialog::Accepted)
@@ -404,12 +402,10 @@ void MainWindow::noteTextInsertTable()
         bool relativeWidth = tableSettingsDialog->relativeWidth();
 
         if (relativeWidth) {
-            // TODO: implement
-            // pNoteEditor->insertRelativeWidthTable(numRows, numColumns, tableWidth);
+            m_pNoteEditor->insertRelativeWidthTable(numRows, numColumns, tableWidth);
         }
         else {
-            // TODO: implement
-            // pNoteEditor->insertFixedWidthTable(numRows, numColumns, static_cast<int>(tableWidth));
+            m_pNoteEditor->insertFixedWidthTable(numRows, numColumns, static_cast<int>(tableWidth));
         }
 
         return;
