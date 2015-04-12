@@ -15,6 +15,7 @@
 #include <QCryptographicHash>
 #include <QImage>
 #include <QDir>
+#include <QMimeData>
 
 #define CHECKBOX_UNCHECKED_FILE_NAME "checkbox_unchecked.png"
 #define CHECKBOX_CHECKED_FILE_NAME "checkbox_checked.png"
@@ -39,6 +40,10 @@ NoteEditor::NoteEditor(QWidget * parent) :
     page->settings()->setLocalStoragePath(GetApplicationPersistentStoragePath() + "/note_editor_local_storage");
     page->setContentEditable(true);
     setPage(page);
+
+    QFile file("qrc:/page.html");
+    QByteArray data = file.readAll();
+    setContent(data, "text/html");
 
     setAcceptDrops(true);
 }
@@ -186,10 +191,16 @@ void NoteEditor::insertToDoCheckbox()
     QString html;
     if (!checkboxCheckedFilePath.isEmpty() && !checkboxUncheckedFilePath.isEmpty())
     {
-        html = "<img src=\"file://";
-        html += checkboxUncheckedFilePath;
-        html += "\" />";
+        html = "<img src=\"qrc:/checkbox_icons/checkbox_no.png\" />";
+        // html = "<img src=\"file://";
+        // html += checkboxUncheckedFilePath;
+        // html += "\" />";
         // html += "\" onmouseover=\"JavaScript:this.style.cursor=\\'default\\' />";
+        /*
+        html="insertImage";
+        execJavascriptCommand(html, QUrl::fromLocalFile(checkboxUncheckedFilePath).toString());
+        return;
+        */
     }
     else
     {

@@ -1,18 +1,16 @@
 #include "DesktopServices.h"
 #include <logging/QuteNoteLogger.h>
-#include <QStyle>
 #include <QStyleFactory>
 #include <QApplication>
 
 #ifdef Q_OS_WIN
-#include <QWindowsStyle>
-#endif
-
-#ifdef Q_OS_MAC
+#include <qwindowdefs.h>
+#include <QtGui/qwindowdefs_win.h>
+#elif defined Q_OS_MAC
 #include <QMacStyle>
-#endif
-
+#else
 #include <QPlastiqueStyle>
+#endif
 
 #if QT_VERSION >= 0x050000
 #include <QStandardPaths>
@@ -50,7 +48,8 @@ QStyle * GetApplicationStyle()
     QNINFO("Application style is empty, will try to deduce some default style");
 
 #ifdef Q_OS_WIN
-    return new QWindowsStyle;
+    // FIXME: figure out why QWindowsStyle doesn't compile
+    return nullptr;
 #endif
 
 #ifdef Q_OS_MAC
@@ -58,10 +57,12 @@ QStyle * GetApplicationStyle()
 #endif
 
     const QStringList styleNames = QStyleFactory::keys();
+#if !defined(Q_OS_WIN) && !defined(Q_OS_MAC)
     if (styleNames.isEmpty()) {
         QNINFO("No valid styles were found in QStyleFactory! Fallback to the last resort of plastique style");
         return new QPlastiqueStyle;
     }
+#endif
 
     const QString & firstStyle = styleNames.first();
     return QStyleFactory::create(firstStyle);

@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>checkbox_icons/checkbox_no.png</file>
         <file>checkbox_icons/checkbox_yes.png</file>
+        <file>page.html</file>
     </qresource>
 </RCC>
