@@ -41,9 +41,14 @@ NoteEditor::NoteEditor(QWidget * parent) :
     page->setContentEditable(true);
     setPage(page);
 
-    QFile file("qrc:/page.html");
-    QByteArray data = file.readAll();
-    setContent(data, "text/html");
+    // Setting initial "blank" page, it is of great importance in order to make image insertion work
+    setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
+            "<html><head>"
+            "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
+            "<title></title>"
+            "</head>"
+            "<body>"
+            "</body></html>");
 
     setAcceptDrops(true);
 }
@@ -192,15 +197,7 @@ void NoteEditor::insertToDoCheckbox()
     if (!checkboxCheckedFilePath.isEmpty() && !checkboxUncheckedFilePath.isEmpty())
     {
         html = "<img src=\"qrc:/checkbox_icons/checkbox_no.png\" />";
-        // html = "<img src=\"file://";
-        // html += checkboxUncheckedFilePath;
-        // html += "\" />";
-        // html += "\" onmouseover=\"JavaScript:this.style.cursor=\\'default\\' />";
-        /*
-        html="insertImage";
-        execJavascriptCommand(html, QUrl::fromLocalFile(checkboxUncheckedFilePath).toString());
-        return;
-        */
+               // "onmouseover=\"JavaScript:this.style.cursor=\\'default\\' />";
     }
     else
     {
