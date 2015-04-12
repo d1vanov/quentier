@@ -196,8 +196,14 @@ void NoteEditor::insertToDoCheckbox()
     QString html;
     if (!checkboxCheckedFilePath.isEmpty() && !checkboxUncheckedFilePath.isEmpty())
     {
-        html = "<img src=\"qrc:/checkbox_icons/checkbox_no.png\" />";
-               // "onmouseover=\"JavaScript:this.style.cursor=\\'default\\' />";
+        html = "<img class=\"checkbox_unchecked\" src=\"qrc:/checkbox_icons/checkbox_no.png\" "
+               "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" "
+               "onclick=\"JavaScript:if(\\'className\\'==\\'checkbox_unchecked\\') { " \
+               "setAttribute(\\'className\\', \\'checkbox_checked\\'); " \
+               "setAttribute(\\'src\\', \\'qrc:/checkbox_icons/checkbox_yes.png\\'); }" \
+               "else { setAttribute(\\'className\\', \\'checkbox_checked\\'); " \
+               "setAttribute(\\'src\\', \\'qrc:/checkbox_icons/checkbox_no.png\\'); }\" " \
+               "/>";
     }
     else
     {
