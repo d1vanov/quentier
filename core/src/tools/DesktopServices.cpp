@@ -1,4 +1,18 @@
 #include "DesktopServices.h"
+#include <logging/QuteNoteLogger.h>
+#include <QStyle>
+#include <QStyleFactory>
+#include <QApplication>
+
+#ifdef Q_OS_WIN
+#include <QWindowsStyle>
+#endif
+
+#ifdef Q_OS_MAC
+#include <QMacStyle>
+#endif
+
+#include <QPlastiqueStyle>
 
 #if QT_VERSION >= 0x050000
 #include <QStandardPaths>
@@ -24,6 +38,33 @@ const QString GetTemporaryStoragePath()
 #else
     return QDesktopServices::storageLocation(QDesktopServices::TempLocation);
 #endif
+}
+
+QStyle * GetApplicationStyle()
+{
+    QStyle * appStyle = QApplication::style();
+    if (appStyle) {
+        return appStyle;
+    }
+
+    QNINFO("Application style is empty, will try to deduce some default style");
+
+#ifdef Q_OS_WIN
+    return new QWindowsStyle;
+#endif
+
+#ifdef Q_OS_MAC
+    return new QMacStyle;
+#endif
+
+    const QStringList styleNames = QStyleFactory::keys();
+    if (styleNames.isEmpty()) {
+        QNINFO("No valid styles were found in QStyleFactory! Fallback to the last resort of plastique style");
+        return new QPlastiqueStyle;
+    }
+
+    const QString & firstStyle = styleNames.first();
+    return QStyleFactory::create(firstStyle);
 }
 
 } // namespace qute_note

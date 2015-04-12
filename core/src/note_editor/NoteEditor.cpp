@@ -3,6 +3,7 @@
 #include "NoteEditorPage.h"
 #include <client/types/Note.h>
 #include <logging/QuteNoteLogger.h>
+#include <tools/DesktopServices.h>
 #include <QWebFrame>
 #include <QByteArray>
 #include <QMimeType>
@@ -12,6 +13,11 @@
 #include <QFileInfo>
 #include <QTemporaryFile>
 #include <QCryptographicHash>
+#include <QImage>
+#include <QDir>
+
+#define CHECKBOX_UNCHECKED_FILE_NAME "checkbox_unchecked.png"
+#define CHECKBOX_CHECKED_FILE_NAME "checkbox_checked.png"
 
 namespace qute_note {
 
@@ -19,16 +25,28 @@ NoteEditor::NoteEditor(QWidget * parent) :
     QWebView(parent),
     m_pNote(nullptr),
     m_modified(false),
-    m_noteEditorResourceInserters()
+    m_noteEditorResourceInserters(),
+    m_pCheckboxCheckedImage(nullptr),
+    m_pCheckboxUncheckedImage(nullptr)
 {
     NoteEditorPage * page = new NoteEditorPage(*this);
-    setPage(page);
-    page->setContentEditable(true);
-
-    // TODO: make it configurable in runtime
+    page->settings()->setAttribute(QWebSettings::LocalContentCanAccessFileUrls, true);
+    page->settings()->setAttribute(QWebSettings::LocalContentCanAccessRemoteUrls, true);
+    page->settings()->setAttribute(QWebSettings::PluginsEnabled, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+    page->settings()->setAttribute(QWebSettings::LocalStorageEnabled, true);
+    page->settings()->setAttribute(QWebSettings::LocalStorageDatabaseEnabled, true);
+    page->settings()->setLocalStoragePath(GetApplicationPersistentStoragePath() + "/note_editor_local_storage");
+    page->setContentEditable(true);
+    setPage(page);
 
     setAcceptDrops(true);
+}
+
+NoteEditor::~NoteEditor()
+{
+    delete m_pCheckboxCheckedImage;
+    delete m_pCheckboxUncheckedImage;
 }
 
 void NoteEditor::setNote(const Note & note)
@@ -156,10 +174,34 @@ void NoteEditor::alignRight()
 
 void NoteEditor::insertToDoCheckbox()
 {
-    QString html("<input type=\"checkbox\" "
-                 "onclick=\"JavaScript:if(checked) setAttribute(\\'checked\\', \\'checked\\'); "
-                 "else removeAttribute(\\'checked\\');\" "
-                 "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" />");
+    QString filePathError;
+    QString checkboxUncheckedFilePath = checkAndGetCheckboxTemporaryFile(/* checked = */ false, filePathError);
+
+    QString checkboxCheckedFilePath;
+    if (!checkboxUncheckedFilePath.isEmpty()) {
+        filePathError.clear();
+        checkboxCheckedFilePath = checkAndGetCheckboxTemporaryFile(/* checked = */ true, filePathError);
+    }
+
+    QString html;
+    if (!checkboxCheckedFilePath.isEmpty() && !checkboxUncheckedFilePath.isEmpty())
+    {
+        html = "<img src=\"file://";
+        html += checkboxUncheckedFilePath;
+        html += "\" />";
+        // html += "\" onmouseover=\"JavaScript:this.style.cursor=\\'default\\' />";
+    }
+    else
+    {
+        QNINFO("Something went wrong with getting rendered checkboxes to files for use with img tag, "
+               "fallback to using input tag with buggy caret");
+
+        html = "<input type=\"checkbox\" "
+               "onclick=\"JavaScript:if(checked) setAttribute(\\'checked\\', \\'checked\\'); "
+               "else removeAttribute(\\'checked\\');\" "
+               "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" />";
+    }
+
     execJavascriptCommand("insertHtml", html);
 }
 
@@ -491,5 +533,95 @@ void NoteEditor::insertImage(const QByteArray & data, const QString & dataHash, 
     execJavascriptCommand("insertHTML", imageHtml);
 }
 
+QString NoteEditor::checkAndGetCheckboxTemporaryFile(const bool checked, QString & error)
+{
+    QNDEBUG("NoteEditor::checkAndGetCheckboxTemporaryFile: checked = " << (checked ? "true" : "false"));
+
+    QString appStoragePath = GetApplicationPersistentStoragePath();
+    appStoragePath += "/note_editor_local_storage";
+    QDir dir;
+    dir.mkpath(appStoragePath);
+    QString filePath = appStoragePath + "/" + (checked ? CHECKBOX_CHECKED_FILE_NAME : CHECKBOX_UNCHECKED_FILE_NAME);
+
+    QFileInfo fileInfo(filePath);
+    if (fileInfo.exists() && fileInfo.isReadable()) {
+        QNTRACE("Returning the file path for already existing file with " << (checked ? "checked" : "unchecked")
+                << " checkbox image: " << filePath);
+        return filePath;
+    }
+
+    QFile file(filePath);
+    bool open = file.open(QIODevice::ReadWrite);
+    if (!open) {
+        error = QT_TR_NOOP("Can't open file for writing: ") + filePath +
+                ": " + file.errorString();
+        QNWARNING(error);
+        return QString();
+    }
+
+    QImage checkboxImage;
+    QString checkboxImageError;
+    bool checkboxDrawn = getCheckboxImage(checked, checkboxImage, checkboxImageError);
+    if (!checkboxDrawn) {
+        error = QT_TR_NOOP("Can't get checkbox image: ") + checkboxImageError;
+        QNWARNING(error);
+        return QString();
+    }
+
+    bool saved = checkboxImage.save(&file, "PNG", /* quality percent = */ 70);
+    if (!saved) {
+        error = QT_TR_NOOP("Can't save checkbox image to file: ") + file.errorString();
+        QNWARNING(error);
+        return QString();
+    }
+
+    return filePath;
+}
+
+bool NoteEditor::getCheckboxImage(const bool checked, QImage & image, QString & error)
+{
+    QNDEBUG("NoteEditor::getCheckboxImage: checked = " << (checked ? "true" : "false"));
+
+    __initNoteEditorResources();
+
+    QImage *& pImage = (checked ? m_pCheckboxCheckedImage : m_pCheckboxUncheckedImage);
+    if (Q_LIKELY(pImage)) {
+        image = *pImage;
+        return true;
+    }
+
+    pImage = new QImage;
+
+    QString resourcePath = ":/checkbox_icons/checkbox_";
+    if (checked) {
+        resourcePath += "yes.png";
+    }
+    else {
+        resourcePath += "no.png";
+    }
+
+    QFile resource(resourcePath);
+    bool open = resource.open(QIODevice::ReadOnly);
+    if (!open) {
+        error = QT_TR_NOOP("Can't open resource file with checkbox image: ") + resource.errorString();
+        QNWARNING(error);
+        return false;
+    }
+
+    bool loaded = pImage->load(&resource, "PNG");
+    if (!loaded) {
+        error = QT_TR_NOOP("Can't load checkbox image from file: ") + resource.errorString();
+        QNWARNING(error);
+        return false;
+    }
+
+    image = *pImage;
+    return true;
+}
+
 } // namespace qute_note
 
+void __initNoteEditorResources()
+{
+    Q_INIT_RESOURCE(checkbox_icons);
+}

@@ -158,9 +158,18 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
   list(APPEND ${PROJECT_NAME}_SOURCES src/tools/darwin/SysInfo.cpp)
 endif()
 
+set(RESOURCES src/note_editor/checkbox_icons.qrc)
+
+if(USE_QT5)
+  qt5_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
+else()
+  qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
+endif()
+
 add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_HEADERS}
-            ${${PROJECT_NAME}_SOURCES})
+            ${${PROJECT_NAME}_SOURCES}
+            ${${PROJECT_NAME}_RESOURCES_RCC})
 
 if(USE_QT5)
   qt5_use_modules(${PROJECT_NAME} Core)

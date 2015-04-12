@@ -2,13 +2,14 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H
 
 #include <tools/qt4helper.h>
+#include <tools/Linkage.h>
 #include <QWebPage>
 
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
 
-class NoteEditorPage: public QWebPage
+class QUTE_NOTE_EXPORT NoteEditorPage: public QWebPage
 {
     Q_OBJECT
 public:
