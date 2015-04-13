@@ -86,16 +86,10 @@ private:
 
     void insertImage(const QByteArray & data,  const QString & dataHash, const QMimeType & mimeType);
 
-    QString checkAndGetCheckboxTemporaryFile(const bool checked, QString & error);
-    bool getCheckboxImage(const bool checked, QImage & image, QString & error);
-
 private:
     Note *  m_pNote;
     bool    m_modified;
     QHash<QString, INoteEditorResourceInserter*>    m_noteEditorResourceInserters;
-    QImage *    m_pCheckboxCheckedImage;
-    QImage *    m_pCheckboxUncheckedImage;
-
     size_t      m_lastFreeImageId;
 };
 

@@ -27,8 +27,6 @@ NoteEditor::NoteEditor(QWidget * parent) :
     m_pNote(nullptr),
     m_modified(false),
     m_noteEditorResourceInserters(),
-    m_pCheckboxCheckedImage(nullptr),
-    m_pCheckboxUncheckedImage(nullptr),
     m_lastFreeImageId(0)
 {
     NoteEditorPage * page = new NoteEditorPage(*this);
@@ -52,12 +50,12 @@ NoteEditor::NoteEditor(QWidget * parent) :
             "</body></html>");
 
     setAcceptDrops(true);
+
+    __initNoteEditorResources();
 }
 
 NoteEditor::~NoteEditor()
 {
-    delete m_pCheckboxCheckedImage;
-    delete m_pCheckboxUncheckedImage;
 }
 
 void NoteEditor::setNote(const Note & note)
@@ -185,44 +183,21 @@ void NoteEditor::alignRight()
 
 void NoteEditor::insertToDoCheckbox()
 {
-    QString filePathError;
-    QString checkboxUncheckedFilePath = checkAndGetCheckboxTemporaryFile(/* checked = */ false, filePathError);
+    QString imageId = QString::number(m_lastFreeImageId++);
 
-    QString checkboxCheckedFilePath;
-    if (!checkboxUncheckedFilePath.isEmpty()) {
-        filePathError.clear();
-        checkboxCheckedFilePath = checkAndGetCheckboxTemporaryFile(/* checked = */ true, filePathError);
-    }
-
-    QString html;
-    if (!checkboxCheckedFilePath.isEmpty() && !checkboxUncheckedFilePath.isEmpty())
-    {
-        QString imageId = QString::number(m_lastFreeImageId++);
-
-        html = "<img id=\"";
-        html += imageId;
-        html += "\" src=\"qrc:/checkbox_icons/checkbox_no.png\" "
-                "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" "
-                "onclick=\"JavaScript:if(document.getElementById(\\'";
-        html += imageId;
-        html += "\\').src ==\\'qrc:/checkbox_icons/checkbox_no.png\\') "
-                "document.getElementById(\\'";
-        html += imageId;
-        html += "\\').src=\\'qrc:/checkbox_icons/checkbox_yes.png\\'; "
-               "else document.getElementById(\\'";
-        html += imageId;
-        html += "\\').src=\\'qrc:/checkbox_icons/checkbox_no.png\\';\" />";
-    }
-    else
-    {
-        QNINFO("Something went wrong with getting rendered checkboxes to files for use with img tag, "
-               "fallback to using input tag with buggy caret");
-
-        html = "<input type=\"checkbox\" "
-               "onclick=\"JavaScript:if(checked) setAttribute(\\'checked\\', \\'checked\\'); "
-               "else removeAttribute(\\'checked\\');\" "
-               "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" />";
-    }
+    QString html = "<img id=\"";
+    html += imageId;
+    html += "\" src=\"qrc:/checkbox_icons/checkbox_no.png\" "
+            "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" "
+            "onclick=\"JavaScript:if(document.getElementById(\\'";
+    html += imageId;
+    html += "\\').src ==\\'qrc:/checkbox_icons/checkbox_no.png\\') "
+            "document.getElementById(\\'";
+    html += imageId;
+    html += "\\').src=\\'qrc:/checkbox_icons/checkbox_yes.png\\'; "
+            "else document.getElementById(\\'";
+    html += imageId;
+    html += "\\').src=\\'qrc:/checkbox_icons/checkbox_no.png\\';\" />";
 
     execJavascriptCommand("insertHtml", html);
 }
@@ -553,92 +528,6 @@ void NoteEditor::insertImage(const QByteArray & data, const QString & dataHash, 
     imageHtml += "\" />";
 
     execJavascriptCommand("insertHTML", imageHtml);
-}
-
-QString NoteEditor::checkAndGetCheckboxTemporaryFile(const bool checked, QString & error)
-{
-    QNDEBUG("NoteEditor::checkAndGetCheckboxTemporaryFile: checked = " << (checked ? "true" : "false"));
-
-    QString appStoragePath = GetApplicationPersistentStoragePath();
-    appStoragePath += "/note_editor_local_storage";
-    QDir dir;
-    dir.mkpath(appStoragePath);
-    QString filePath = appStoragePath + "/" + (checked ? CHECKBOX_CHECKED_FILE_NAME : CHECKBOX_UNCHECKED_FILE_NAME);
-
-    QFileInfo fileInfo(filePath);
-    if (fileInfo.exists() && fileInfo.isReadable()) {
-        QNTRACE("Returning the file path for already existing file with " << (checked ? "checked" : "unchecked")
-                << " checkbox image: " << filePath);
-        return filePath;
-    }
-
-    QFile file(filePath);
-    bool open = file.open(QIODevice::ReadWrite);
-    if (!open) {
-        error = QT_TR_NOOP("Can't open file for writing: ") + filePath +
-                ": " + file.errorString();
-        QNWARNING(error);
-        return QString();
-    }
-
-    QImage checkboxImage;
-    QString checkboxImageError;
-    bool checkboxDrawn = getCheckboxImage(checked, checkboxImage, checkboxImageError);
-    if (!checkboxDrawn) {
-        error = QT_TR_NOOP("Can't get checkbox image: ") + checkboxImageError;
-        QNWARNING(error);
-        return QString();
-    }
-
-    bool saved = checkboxImage.save(&file, "PNG", /* quality percent = */ 70);
-    if (!saved) {
-        error = QT_TR_NOOP("Can't save checkbox image to file: ") + file.errorString();
-        QNWARNING(error);
-        return QString();
-    }
-
-    return filePath;
-}
-
-bool NoteEditor::getCheckboxImage(const bool checked, QImage & image, QString & error)
-{
-    QNDEBUG("NoteEditor::getCheckboxImage: checked = " << (checked ? "true" : "false"));
-
-    __initNoteEditorResources();
-
-    QImage *& pImage = (checked ? m_pCheckboxCheckedImage : m_pCheckboxUncheckedImage);
-    if (Q_LIKELY(pImage)) {
-        image = *pImage;
-        return true;
-    }
-
-    pImage = new QImage;
-
-    QString resourcePath = ":/checkbox_icons/checkbox_";
-    if (checked) {
-        resourcePath += "yes.png";
-    }
-    else {
-        resourcePath += "no.png";
-    }
-
-    QFile resource(resourcePath);
-    bool open = resource.open(QIODevice::ReadOnly);
-    if (!open) {
-        error = QT_TR_NOOP("Can't open resource file with checkbox image: ") + resource.errorString();
-        QNWARNING(error);
-        return false;
-    }
-
-    bool loaded = pImage->load(&resource, "PNG");
-    if (!loaded) {
-        error = QT_TR_NOOP("Can't load checkbox image from file: ") + resource.errorString();
-        QNWARNING(error);
-        return false;
-    }
-
-    image = *pImage;
-    return true;
 }
 
 } // namespace qute_note
