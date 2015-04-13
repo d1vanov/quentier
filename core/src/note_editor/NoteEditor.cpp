@@ -187,7 +187,7 @@ void NoteEditor::insertToDoCheckbox()
 
     QString html = "<img id=\"";
     html += imageId;
-    html += "\" src=\"qrc:/checkbox_icons/checkbox_no.png\" "
+    html += "\" src=\"qrc:/checkbox_icons/checkbox_no.png\" style=\"margin:0px 4px\" "
             "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" "
             "onclick=\"JavaScript:if(document.getElementById(\\'";
     html += imageId;
