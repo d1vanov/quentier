@@ -95,6 +95,8 @@ private:
     QHash<QString, INoteEditorResourceInserter*>    m_noteEditorResourceInserters;
     QImage *    m_pCheckboxCheckedImage;
     QImage *    m_pCheckboxUncheckedImage;
+
+    size_t      m_lastFreeImageId;
 };
 
 } // namespace qute_note

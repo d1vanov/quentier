@@ -28,7 +28,8 @@ NoteEditor::NoteEditor(QWidget * parent) :
     m_modified(false),
     m_noteEditorResourceInserters(),
     m_pCheckboxCheckedImage(nullptr),
-    m_pCheckboxUncheckedImage(nullptr)
+    m_pCheckboxUncheckedImage(nullptr),
+    m_lastFreeImageId(0)
 {
     NoteEditorPage * page = new NoteEditorPage(*this);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessFileUrls, true);
@@ -196,14 +197,21 @@ void NoteEditor::insertToDoCheckbox()
     QString html;
     if (!checkboxCheckedFilePath.isEmpty() && !checkboxUncheckedFilePath.isEmpty())
     {
-        html = "<img class=\"checkbox_unchecked\" src=\"qrc:/checkbox_icons/checkbox_no.png\" "
-               "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" "
-               "onclick=\"JavaScript:if(\\'className\\'==\\'checkbox_unchecked\\') { " \
-               "setAttribute(\\'className\\', \\'checkbox_checked\\'); " \
-               "setAttribute(\\'src\\', \\'qrc:/checkbox_icons/checkbox_yes.png\\'); }" \
-               "else { setAttribute(\\'className\\', \\'checkbox_checked\\'); " \
-               "setAttribute(\\'src\\', \\'qrc:/checkbox_icons/checkbox_no.png\\'); }\" " \
-               "/>";
+        QString imageId = QString::number(m_lastFreeImageId++);
+
+        html = "<img id=\"";
+        html += imageId;
+        html += "\" src=\"qrc:/checkbox_icons/checkbox_no.png\" "
+                "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" "
+                "onclick=\"JavaScript:if(document.getElementById(\\'";
+        html += imageId;
+        html += "\\').src ==\\'qrc:/checkbox_icons/checkbox_no.png\\') "
+                "document.getElementById(\\'";
+        html += imageId;
+        html += "\\').src=\\'qrc:/checkbox_icons/checkbox_yes.png\\'; "
+               "else document.getElementById(\\'";
+        html += imageId;
+        html += "\\').src=\\'qrc:/checkbox_icons/checkbox_no.png\\';\" />";
     }
     else
     {
