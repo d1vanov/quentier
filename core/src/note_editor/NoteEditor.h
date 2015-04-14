@@ -72,6 +72,9 @@ public Q_SLOTS:
 
     void onNoteLoadCancelled();
 
+private Q_SLOTS:
+    void onNoteLoadFinished(bool ok);
+
 private:
     void execJavascriptCommand(const QString & command);
     void execJavascriptCommand(const QString & command, const QString & args);
@@ -82,15 +85,18 @@ private:
 
     template <typename T>
     QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows, const int columns,
-                             const bool relative);
+                             const bool relative, const size_t tableId);
 
     void insertImage(const QByteArray & data,  const QString & dataHash, const QMimeType & mimeType);
 
 private:
-    Note *  m_pNote;
-    bool    m_modified;
+    QString     m_jQuery;
+    QString     m_resizableColumnsPlugin;
+    Note *      m_pNote;
+    bool        m_modified;
     QHash<QString, INoteEditorResourceInserter*>    m_noteEditorResourceInserters;
     size_t      m_lastFreeImageId;
+    size_t      m_lastFreeTableId;
 };
 
 } // namespace qute_note

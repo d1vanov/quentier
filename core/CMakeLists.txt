@@ -158,7 +158,10 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
   list(APPEND ${PROJECT_NAME}_SOURCES src/tools/darwin/SysInfo.cpp)
 endif()
 
-set(RESOURCES src/note_editor/checkbox_icons.qrc)
+set(RESOURCES
+    src/note_editor/checkbox_icons.qrc
+    src/note_editor/jquery.qrc
+    src/note_editor/colResizable.qrc)
 
 if(USE_QT5)
   qt5_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})

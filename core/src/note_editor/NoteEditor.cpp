@@ -24,10 +24,13 @@ namespace qute_note {
 
 NoteEditor::NoteEditor(QWidget * parent) :
     QWebView(parent),
+    m_jQuery(),
+    m_resizableColumnsPlugin(),
     m_pNote(nullptr),
     m_modified(false),
     m_noteEditorResourceInserters(),
-    m_lastFreeImageId(0)
+    m_lastFreeImageId(0),
+    m_lastFreeTableId(0)
 {
     NoteEditorPage * page = new NoteEditorPage(*this);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessFileUrls, true);
@@ -52,6 +55,21 @@ NoteEditor::NoteEditor(QWidget * parent) :
     setAcceptDrops(true);
 
     __initNoteEditorResources();
+
+    QFile file(":/javascript/jquery/jquery-2.1.3.min.js");
+    file.open(QIODevice::ReadOnly);
+    m_jQuery = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/colResizable/colResizable-1.5.min.js");
+    file.open(QIODevice::ReadOnly);
+    m_resizableColumnsPlugin = file.readAll();
+    file.close();
+
+    QObject::connect(this, SIGNAL(loadFinished(bool)), this, SLOT(onNoteLoadFinished(bool)));
+
+    // TODO: temporary thing for debugging/development, remove later
+    onNoteLoadFinished(true);
 }
 
 NoteEditor::~NoteEditor()
@@ -314,8 +332,19 @@ void NoteEditor::insertFixedWidthTable(const int rows, const int columns, const 
         return;
     }
 
-    QString htmlTable = composeHtmlTable(widthInPixels, singleColumnWidth, rows, columns, /* relative = */ false);
+    size_t tableId = m_lastFreeTableId++;
+    QString htmlTable = composeHtmlTable(widthInPixels, singleColumnWidth, rows, columns,
+                                         /* relative = */ false, tableId);
     execJavascriptCommand("insertHTML", htmlTable);
+
+    QString colResizable = "$(\"#";
+    colResizable += QString::number(tableId);
+    colResizable += "\").colResizable({";
+    colResizable += "liveDrag:true, ";
+    colResizable += "gripInnerHtml:\"<div class=\\'grip\\'></div>\", ";
+    colResizable += "draggingClass:\"dragging\"});";
+    QNTRACE("colResizable js code: " << colResizable);
+    page()->mainFrame()->evaluateJavaScript(colResizable);
 }
 
 void NoteEditor::insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth)
@@ -338,13 +367,42 @@ void NoteEditor::insertRelativeWidthTable(const int rows, const int columns, con
 
     double singleColumnWidth = relativeWidth / columns;
 
-    QString htmlTable = composeHtmlTable(relativeWidth, singleColumnWidth, rows, columns, /* relative = */ true);
+    size_t tableId = m_lastFreeTableId++;
+    QString htmlTable = composeHtmlTable(relativeWidth, singleColumnWidth, rows, columns,
+                                         /* relative = */ true, tableId);
     execJavascriptCommand("insertHTML", htmlTable);
+
+    QString colResizable = "$(\"#";
+    colResizable += QString::number(tableId);
+    colResizable += "\").colResizable({";
+    colResizable += "liveDrag:true, ";
+    colResizable += "gripInnerHtml:\"<div class=\\'grip\\'></div>\", ";
+    colResizable += "draggingClass:\"dragging\", ";
+    colResizable += "fixed:false});";
+    QNTRACE("colResizable js code: " << colResizable);
+    page()->mainFrame()->evaluateJavaScript(colResizable);
 }
 
 void NoteEditor::onNoteLoadCancelled()
 {
     // TODO: implement
+}
+
+void NoteEditor::onNoteLoadFinished(bool ok)
+{
+    if (!ok) {
+        QNWARNING("Note page was not loaded successfully");
+        return;
+    }
+
+    QWebFrame * frame = page()->mainFrame();
+    if (!frame) {
+        return;
+    }
+
+    frame->evaluateJavaScript(m_jQuery);
+    frame->evaluateJavaScript(m_resizableColumnsPlugin);
+    QNTRACE("Evaluated jQuery and colResizable plugin");
 }
 
 void NoteEditor::execJavascriptCommand(const QString & command)
@@ -452,8 +510,9 @@ void NoteEditor::attachResourceToNote(const QByteArray & data, const QString & d
 }
 
 template <typename T>
-QString NoteEditor::composeHtmlTable(const T width, const T singleColumnWidth, const int rows, const int columns,
-                                     const bool relative)
+QString NoteEditor::composeHtmlTable(const T width, const T singleColumnWidth,
+                                     const int rows, const int columns,
+                                     const bool relative, const size_t tableId)
 {
     // Table header
     QString htmlTable = "<table style=\"border-collapse: collapse; margin-left: 0px; table-layout: fixed; width: ";
@@ -464,7 +523,11 @@ QString NoteEditor::composeHtmlTable(const T width, const T singleColumnWidth, c
     else {
         htmlTable += "px";
     }
-    htmlTable += ";\"><tbody>";
+    htmlTable += ";\" ";
+
+    htmlTable += "id=\"";
+    htmlTable += QString::number(tableId);
+    htmlTable += "\"><tbody>";
 
     for(int i = 0; i < rows; ++i)
     {
@@ -535,4 +598,6 @@ void NoteEditor::insertImage(const QByteArray & data, const QString & dataHash, 
 void __initNoteEditorResources()
 {
     Q_INIT_RESOURCE(checkbox_icons);
+    Q_INIT_RESOURCE(jquery);
+    Q_INIT_RESOURCE(colResizable);
 }
