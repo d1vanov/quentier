@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1167</width>
+    <width>1516</width>
     <height>876</height>
    </rect>
   </property>
@@ -56,9 +56,9 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
    </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QSplitter" name="centralWidgetHorizontalLayoutSplitter">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -432,8 +432,20 @@ color: rgb(255, 255, 255);</string>
           </item>
           <item row="1" column="1">
            <layout class="QHBoxLayout" name="searchQueryAndSaveHorizontalLayout">
+            <property name="leftMargin">
+             <number>5</number>
+            </property>
+            <property name="rightMargin">
+             <number>5</number>
+            </property>
             <item>
              <widget class="QLineEdit" name="searchQueryLineEdit">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="minimumSize">
                <size>
                 <width>100</width>
@@ -476,559 +488,580 @@ color: rgb(255, 255, 255);</string>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QVBoxLayout" name="noteEditorVerticalLayout">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="QWidget" name="noteEditorHeaderWidget" native="true">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>100</height>
-           </size>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
-            <layout class="QVBoxLayout" name="noteEditorHeaderVerticalLayout">
-             <item>
-              <widget class="QLabel" name="noteNameLabel">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
+      <widget class="QSplitter" name="noteEditorVerticalSplitter">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <widget class="QWidget" name="layoutWidget">
+        <layout class="QVBoxLayout" name="noteEditorWithHeaderContainer">
+         <item>
+          <widget class="QWidget" name="noteEditorHeader" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>100</height>
+            </size>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <layout class="QVBoxLayout" name="noteEditorHeaderVerticalLayout">
+              <item>
+               <widget class="QLabel" name="noteNameLabel">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>15</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>14</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="mouseTracking">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>Note title</string>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::RichText</enum>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+                <property name="margin">
+                 <number>5</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="buttonsUpperSubPaneHorizontalLayout">
+              <item>
+               <widget class="QPushButton" name="undoPushButton">
+                <property name="toolTip">
+                 <string>Undo the last action</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="edit-undo">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="shortcut">
+                 <string>Ctrl+Z</string>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="redoPushButton">
+                <property name="toolTip">
+                 <string/>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="edit-redo">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="shortcut">
+                 <string>Ctrl+Y</string>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="cutPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="edit-cut">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="shortcut">
+                 <string>Ctrl+X</string>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="copyPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="edit-copy">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="shortcut">
+                 <string>Ctrl+C</string>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pastePushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="edit-paste">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="shortcut">
+                 <string>Ctrl+V</string>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="fontBoldPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-text-bold">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="shortcut">
+                 <string>Ctrl+B</string>
+                </property>
+                <property name="checkable">
+                 <bool>false</bool>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="fontItalicPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-text-italic">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="shortcut">
+                 <string>Ctrl+I</string>
+                </property>
+                <property name="checkable">
+                 <bool>false</bool>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="fontUnderlinePushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-text-underline">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="shortcut">
+                 <string>Ctrl+U</string>
+                </property>
+                <property name="checkable">
+                 <bool>false</bool>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="fontStrikethroughPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-text-strikethrough">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="shortcut">
+                 <string>Ctrl+Shift+S</string>
+                </property>
+                <property name="checkable">
+                 <bool>false</bool>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="formatJustifyLeftPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-justify-left">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="formatJustifyCenterPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-justify-center">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="formatJustifyRightPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-justify-right">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="insertToDoCheckboxPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="checkbox">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="spellCheckBox">
+                <property name="layoutDirection">
+                 <enum>Qt::RightToLeft</enum>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="tools-check-spelling">
+                  <normaloff/>
+                 </iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="buttonsUpperSubPaneHorizontalLayoutHorizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="buttonsLowerSubPaneHorizontalLayout">
+              <item>
+               <widget class="QFontComboBox" name="fontComboBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>201</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="fontSizeComboBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>85</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>85</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="editable">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="chooseTextColorPushButton">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string notr="true"/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-text-color">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="insertHorizontalLinePushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="insert-horizontal-rule">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="formatIndentLessPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-indent-less">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="formatIndentMorePushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-indent-more">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="formatListOrderedPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-list-ordered">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="formatListUnorderedPushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="format-list-unordered">
+                  <normaloff/>
+                 </iconset>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="insertTablePushButton">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="insert-table"/>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="buttonsLowerSubPaneHorizontalLayoutHorizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="noteEditorContainer" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QSplitter" name="noteEditorSplitter">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <widget class="NoteEditor" name="noteEditorWidget" native="true">
                <property name="minimumSize">
                 <size>
-                 <width>15</width>
-                 <height>30</height>
+                 <width>0</width>
+                 <height>250</height>
                 </size>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>14</pointsize>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
                </property>
                <property name="mouseTracking">
                 <bool>true</bool>
                </property>
-               <property name="text">
-                <string>Note title</string>
-               </property>
-               <property name="textFormat">
-                <enum>Qt::RichText</enum>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-               </property>
-               <property name="margin">
-                <number>5</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="buttonsUpperSubPaneHorizontalLayout">
-             <item>
-              <widget class="QPushButton" name="undoPushButton">
-               <property name="toolTip">
-                <string>Undo the last action</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="edit-undo">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+Z</string>
-               </property>
-               <property name="flat">
+               <property name="autoFillBackground">
                 <bool>true</bool>
                </property>
               </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="redoPushButton">
-               <property name="toolTip">
-                <string/>
+              <widget class="QPlainTextEdit" name="noteSourceView">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
                </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="edit-redo">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+Y</string>
-               </property>
-               <property name="flat">
+               <property name="readOnly">
                 <bool>true</bool>
                </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="cutPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="edit-cut">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+X</string>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="copyPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="edit-copy">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+C</string>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pastePushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="edit-paste">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+V</string>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="fontBoldPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-text-bold">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+B</string>
-               </property>
-               <property name="checkable">
-                <bool>false</bool>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="fontItalicPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-text-italic">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+I</string>
-               </property>
-               <property name="checkable">
-                <bool>false</bool>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="fontUnderlinePushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-text-underline">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+U</string>
-               </property>
-               <property name="checkable">
-                <bool>false</bool>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="fontStrikethroughPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-text-strikethrough">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="shortcut">
-                <string>Ctrl+Shift+S</string>
-               </property>
-               <property name="checkable">
-                <bool>false</bool>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="formatJustifyLeftPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-justify-left">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="formatJustifyCenterPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-justify-center">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="formatJustifyRightPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-justify-right">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="insertToDoCheckboxPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="checkbox">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="spellCheckBox">
-               <property name="layoutDirection">
-                <enum>Qt::RightToLeft</enum>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="tools-check-spelling">
-                 <normaloff/>
-                </iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="buttonsUpperSubPaneHorizontalLayoutHorizontalSpacer">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="buttonsLowerSubPaneHorizontalLayout">
-             <item>
-              <widget class="QFontComboBox" name="fontComboBox">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>180</width>
-                 <height>0</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="fontSizeComboBox">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>85</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>85</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="editable">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="chooseTextColorPushButton">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
+               <property name="plainText">
                 <string notr="true"/>
                </property>
-               <property name="icon">
-                <iconset theme="format-text-color">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
               </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="insertHorizontalLinePushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="insert-horizontal-rule">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="formatIndentLessPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-indent-less">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="formatIndentMorePushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-indent-more">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="formatListOrderedPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-list-ordered">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="formatListUnorderedPushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-list-unordered">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="insertTablePushButton">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset theme="insert-table">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="buttonsLowerSubPaneHorizontalLayoutHorizontalSpacer">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="NoteEditor" name="noteEditorWidget" native="true">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>350</height>
-           </size>
-          </property>
-          <property name="mouseTracking">
-           <bool>true</bool>
-          </property>
-          <property name="autoFillBackground">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPlainTextEdit" name="noteSourceView">
-          <property name="acceptDrops">
-           <bool>false</bool>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QWidget" name="tagNameLabelsContainerWidget" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="0">
-            <widget class="QWidget" name="tagNameWidget" native="true">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="font">
-              <font>
-               <stylestrategy>PreferAntialias</stylestrategy>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QWidget#tagNameWidget {
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tagNameLabelsContainer" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <layout class="QVBoxLayout" name="tagNameLabelsContainerVerticalLayout">
+         <item>
+          <widget class="QWidget" name="tagNameLabelsGrid" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_2">
+            <item row="0" column="0">
+             <widget class="QWidget" name="tagNameWidget" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <stylestrategy>PreferAntialias</stylestrategy>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QWidget#tagNameWidget {
 border: 1px solid #555;
 border-radius: 13px;
 padding: 4px;
@@ -1040,89 +1073,89 @@ min-width: 80px;
 QWidget#tagNameWidget:hover {
 background-color: rgb(205, 221, 229);
 }</string>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
-              <property name="spacing">
-               <number>0</number>
               </property>
-              <property name="margin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QLabel" name="tagNameLabel">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>11</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&amp;lt;Tag&amp;gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="textFormat">
-                 <enum>Qt::RichText</enum>
-                </property>
-                <property name="margin">
-                 <number>7</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="deleteTagButton">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton#deleteTagButton:hover {
+              <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <property name="margin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="tagNameLabel">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>11</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&amp;lt;Tag&amp;gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="textFormat">
+                  <enum>Qt::RichText</enum>
+                 </property>
+                 <property name="margin">
+                  <number>7</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="deleteTagButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton#deleteTagButton:hover {
 border: none;
 }</string>
-                </property>
-                <property name="text">
-                 <string notr="true"/>
-                </property>
-                <property name="icon">
-                 <iconset theme="edit-delete">
-                  <normaloff/>
-                 </iconset>
-                </property>
-                <property name="iconSize">
-                 <size>
-                  <width>12</width>
-                  <height>12</height>
-                 </size>
-                </property>
-                <property name="flat">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QPushButton" name="addTagPushButton">
-             <property name="font">
-              <font>
-               <pointsize>11</pointsize>
-               <weight>50</weight>
-               <italic>false</italic>
-               <bold>false</bold>
-               <stylestrategy>PreferAntialias</stylestrategy>
-              </font>
-             </property>
-             <property name="toolTip">
-              <string>Add tag</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QPushButton#addTagPushButton {
+                 </property>
+                 <property name="text">
+                  <string notr="true"/>
+                 </property>
+                 <property name="icon">
+                  <iconset theme="edit-delete">
+                   <normaloff/>
+                  </iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>12</width>
+                   <height>12</height>
+                  </size>
+                 </property>
+                 <property name="flat">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QPushButton" name="addTagPushButton">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>50</weight>
+                <italic>false</italic>
+                <bold>false</bold>
+                <stylestrategy>PreferAntialias</stylestrategy>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>Add tag</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton#addTagPushButton {
 border: 1px solid #555;
 border-radius: 13px;
 padding: 4px;
@@ -1133,34 +1166,35 @@ border-color: rgb(182, 189, 195);
 QPushButton#addTagPushButton:hover {
 background-color: rgb(205, 221, 229);
 }</string>
-             </property>
-             <property name="icon">
-              <iconset theme="list-add">
-               <normaloff/>
-              </iconset>
-             </property>
-             <property name="flat">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <spacer name="tagsListHorizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </widget>
-        </item>
-       </layout>
+              </property>
+              <property name="icon">
+               <iconset theme="list-add">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="flat">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <spacer name="tagsListHorizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -1171,7 +1205,7 @@ background-color: rgb(205, 221, 229);
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1167</width>
+     <width>1516</width>
      <height>22</height>
     </rect>
    </property>
@@ -1388,7 +1422,7 @@ background-color: rgb(205, 221, 229);
     <property name="title">
      <string>&amp;Debug</string>
     </property>
-    <addaction name="ActionShowNoteHtml"/>
+    <addaction name="ActionShowNoteSource"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -2381,14 +2415,9 @@ stop: 1 #0EB7FF);
     <string>Управление метками</string>
    </property>
   </action>
-  <action name="ActionShowNoteHtml">
-   <property name="icon">
-    <iconset theme="text-html">
-     <normaloff/>
-    </iconset>
-   </property>
+  <action name="ActionShowNoteSource">
    <property name="text">
-    <string>Show note source</string>
+    <string>Current note html</string>
    </property>
   </action>
   <action name="ActionNewNote">

@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
                      this, SLOT(onSetStatusBarText(QString)));
 
     // Debug
-    QObject::connect(m_pUI->ActionShowNoteHtml, SIGNAL(triggered()),
+    QObject::connect(m_pUI->ActionShowNoteSource, SIGNAL(triggered()),
                      this, SLOT(showNoteSource()));
     QObject::connect(m_pNoteEditor, SIGNAL(contentChanged()), this, SLOT(onNoteContentChanged()));
 
