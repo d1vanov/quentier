@@ -27,6 +27,7 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 #include <QScopedPointer>
 #include <QMessageBox>
 #include <QtDebug>
+#include <QWebFrame>
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
@@ -41,6 +42,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pNoteEditor(nullptr)
 {
     m_pUI->setupUi(this);
+    m_pUI->noteSourceView->setHidden(true);
+
     m_pNoteEditor = m_pUI->noteEditorWidget;
 
     checkThemeIconsAndSetFallbacks();
@@ -60,6 +63,11 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QObject::connect(m_pAskConsumerKeyAndSecretWidget,
                      SIGNAL(cancelled(QString)),
                      this, SLOT(onSetStatusBarText(QString)));
+
+    // Debug
+    QObject::connect(m_pUI->ActionShowNoteHtml, SIGNAL(triggered()),
+                     this, SLOT(showNoteSource()));
+    QObject::connect(m_pNoteEditor, SIGNAL(contentChanged()), this, SLOT(onNoteContentChanged()));
 
     m_pManager->connect();
 }
@@ -120,9 +128,7 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->formatListOrderedPushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertOrderedList()));
     QObject::connect(m_pUI->insertToDoCheckboxPushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertToDoCheckBox()));
     QObject::connect(m_pUI->chooseTextColorPushButton, SIGNAL(clicked()), this, SLOT(noteChooseTextColor()));
-    QObject::connect(m_pUI->chooseSelectedTextColorPushButton, SIGNAL(clicked()), this, SLOT(noteChooseSelectedTextColor()));
-    // Debug
-    QObject::connect(m_pUI->ActionViewCurrentNoteHtmlInStdOut, SIGNAL(triggered()), this, SLOT(noteHtmlContentToStdOut()));
+    QObject::connect(m_pUI->insertTablePushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertTable()));
 }
 
 void MainWindow::checkAndSetupConsumerKeyAndSecret()
@@ -414,9 +420,24 @@ void MainWindow::noteTextInsertTable()
     QNTRACE("Returned from TableSettingsDialog::exec: rejected");
 }
 
-void MainWindow::noteHtmlContentToStdOut()
+void MainWindow::showNoteSource()
 {
-    // TODO: implement
+    if (m_pUI->noteSourceView->isVisible()) {
+        m_pUI->noteSourceView->setHidden(true);
+        return;
+    }
+
+    updateNoteHtmlView();
+    m_pUI->noteSourceView->setVisible(true);
+}
+
+void MainWindow::onNoteContentChanged()
+{
+    if (!m_pUI->noteSourceView->isVisible()) {
+        return;
+    }
+
+    updateNoteHtmlView();
 }
 
 void MainWindow::setAlignButtonsCheckedState(const ESelectedAlignment alignment)
@@ -669,5 +690,11 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
         m_pUI->ActionRotateClockwise->setIcon(objectRotateRightIcon);
         QNTRACE("set fallback object-rotate-right icon");
     }
+}
+
+void MainWindow::updateNoteHtmlView()
+{
+    QString noteHtml = m_pNoteEditor->page()->mainFrame()->toHtml();
+    m_pUI->noteSourceView->setPlainText(noteHtml);
 }
 

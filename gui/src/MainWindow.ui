@@ -812,14 +812,14 @@ color: rgb(255, 255, 255);</string>
              <item>
               <widget class="QFontComboBox" name="fontComboBox">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>201</width>
+                 <width>180</width>
                  <height>0</height>
                 </size>
                </property>
@@ -863,27 +863,6 @@ color: rgb(255, 255, 255);</string>
                </property>
                <property name="icon">
                 <iconset theme="format-text-color">
-                 <normaloff/>
-                </iconset>
-               </property>
-               <property name="flat">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="chooseSelectedTextColorPushButton">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string notr="true"/>
-               </property>
-               <property name="icon">
-                <iconset theme="format-stroke-color">
                  <normaloff/>
                 </iconset>
                </property>
@@ -968,6 +947,21 @@ color: rgb(255, 255, 255);</string>
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="insertTablePushButton">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset theme="insert-table">
+                 <normaloff/>
+                </iconset>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
               <spacer name="buttonsLowerSubPaneHorizontalLayoutHorizontalSpacer">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -990,13 +984,23 @@ color: rgb(255, 255, 255);</string>
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>300</height>
+            <height>350</height>
            </size>
           </property>
           <property name="mouseTracking">
            <bool>true</bool>
           </property>
           <property name="autoFillBackground">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPlainTextEdit" name="noteSourceView">
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
+          <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
@@ -1384,7 +1388,7 @@ background-color: rgb(205, 221, 229);
     <property name="title">
      <string>&amp;Debug</string>
     </property>
-    <addaction name="ActionViewCurrentNoteHtmlInStdOut"/>
+    <addaction name="ActionShowNoteHtml"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -2377,9 +2381,14 @@ stop: 1 #0EB7FF);
     <string>Управление метками</string>
    </property>
   </action>
-  <action name="ActionViewCurrentNoteHtmlInStdOut">
+  <action name="ActionShowNoteHtml">
+   <property name="icon">
+    <iconset theme="text-html">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
-    <string>Current note html</string>
+    <string>Show note source</string>
    </property>
   </action>
   <action name="ActionNewNote">

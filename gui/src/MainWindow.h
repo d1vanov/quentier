@@ -77,7 +77,10 @@ private Q_SLOTS:
     void noteTextInsertToDoCheckBox();
 
     void noteTextInsertTable();
-    void noteHtmlContentToStdOut();
+
+    void showNoteSource();
+
+    void onNoteContentChanged();
 
 private:
     void insertList(const QTextListFormat::Style style);
@@ -86,6 +89,8 @@ private:
     void setAlignButtonsCheckedState(const ESelectedAlignment alignment);
 
     void checkThemeIconsAndSetFallbacks();
+
+    void updateNoteHtmlView();
 
 private:
     Ui::MainWindow * m_pUI;
