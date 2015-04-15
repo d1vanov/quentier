@@ -35,11 +35,7 @@ NoteEditor::NoteEditor(QWidget * parent) :
     NoteEditorPage * page = new NoteEditorPage(*this);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessFileUrls, true);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessRemoteUrls, true);
-    page->settings()->setAttribute(QWebSettings::PluginsEnabled, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
-    page->settings()->setAttribute(QWebSettings::LocalStorageEnabled, true);
-    page->settings()->setAttribute(QWebSettings::LocalStorageDatabaseEnabled, true);
-    page->settings()->setLocalStoragePath(GetApplicationPersistentStoragePath() + "/note_editor_local_storage");
     page->setContentEditable(true);
     setPage(page);
 
