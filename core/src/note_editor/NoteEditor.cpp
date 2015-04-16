@@ -63,6 +63,7 @@ NoteEditor::NoteEditor(QWidget * parent) :
     file.close();
 
     QObject::connect(this, SIGNAL(loadFinished(bool)), this, SLOT(onNoteLoadFinished(bool)));
+    QObject::connect(page, SIGNAL(contentsChanged()), this, SIGNAL(contentChanged()));
 
     // TODO: temporary thing for debugging/development, remove later
     onNoteLoadFinished(true);

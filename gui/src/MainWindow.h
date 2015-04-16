@@ -78,7 +78,7 @@ private Q_SLOTS:
 
     void noteTextInsertTable();
 
-    void showNoteSource();
+    void onShowNoteSource();
 
     void onNoteContentChanged();
 

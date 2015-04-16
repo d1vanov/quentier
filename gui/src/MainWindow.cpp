@@ -66,7 +66,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     // Debug
     QObject::connect(m_pUI->ActionShowNoteSource, SIGNAL(triggered()),
-                     this, SLOT(showNoteSource()));
+                     this, SLOT(onShowNoteSource()));
     QObject::connect(m_pNoteEditor, SIGNAL(contentChanged()), this, SLOT(onNoteContentChanged()));
 
     m_pManager->connect();
@@ -420,8 +420,10 @@ void MainWindow::noteTextInsertTable()
     QNTRACE("Returned from TableSettingsDialog::exec: rejected");
 }
 
-void MainWindow::showNoteSource()
+void MainWindow::onShowNoteSource()
 {
+    QNDEBUG("MainWindow::onShowNoteSource");
+
     if (m_pUI->noteSourceView->isVisible()) {
         m_pUI->noteSourceView->setHidden(true);
         return;
@@ -433,6 +435,8 @@ void MainWindow::showNoteSource()
 
 void MainWindow::onNoteContentChanged()
 {
+    QNDEBUG("MainWindow::onNoteContentChanged");
+
     if (!m_pUI->noteSourceView->isVisible()) {
         return;
     }
@@ -694,7 +698,18 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 
 void MainWindow::updateNoteHtmlView()
 {
-    QString noteHtml = m_pNoteEditor->page()->mainFrame()->toHtml();
-    m_pUI->noteSourceView->setPlainText(noteHtml);
+    QString noteSource = m_pNoteEditor->page()->mainFrame()->toHtml();
+
+    int pos = noteSource.indexOf("<body>");
+    if (pos >= 0) {
+        noteSource.remove(0, pos + 6);
+    }
+
+    pos = noteSource.indexOf("</body>");
+    if (pos >= 0) {
+        noteSource.truncate(pos);
+    }
+
+    m_pUI->noteSourceView->setPlainText(noteSource);
 }
 
