@@ -70,6 +70,7 @@ set(${PROJECT_NAME}_HEADERS
     src/logging/QuteNoteLogger.h
     src/logging/LoggerInitializationException.h
     src/tools/ApplicationSettings.h
+    src/tools/BasicXMLSyntaxHighlighter.h
     src/tools/DesktopServices.h
     src/tools/EmptyDataElementException.h
     src/tools/EventLoopWithExitStatus.h
@@ -141,6 +142,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/synchronization/SendLocalChangesManager.cpp
     src/logging/LoggerInitializationException.cpp
     src/tools/ApplicationSettings.cpp
+    src/tools/BasicXMLSyntaxHighlighter.cpp
     src/tools/DesktopServices.cpp
     src/tools/EmptyDataElementException.cpp
     src/tools/EventLoopWithExitStatus.cpp

@@ -14,6 +14,7 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 #include <Simplecrypt.h>
 #include "../client/CredentialsModel.h"
 #include <tools/QuteNoteCheckPtr.h>
+#include <tools/BasicXMLSyntaxHighlighter.h>
 #include <logging/QuteNoteLogger.h>
 #include <cmath>
 #include <QPushButton>
@@ -43,6 +44,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 {
     m_pUI->setupUi(this);
     m_pUI->noteSourceView->setHidden(true);
+    BasicXMLSyntaxHighlighter * highlighter = new BasicXMLSyntaxHighlighter(m_pUI->noteSourceView->document());
+    Q_UNUSED(highlighter);
 
     m_pNoteEditor = m_pUI->noteEditorWidget;
 
