@@ -26,6 +26,7 @@ NoteEditor::NoteEditor(QWidget * parent) :
     QWebView(parent),
     m_jQuery(),
     m_resizableColumnsPlugin(),
+    m_onFixedWidthTableResize(),
     m_pNote(nullptr),
     m_modified(false),
     m_noteEditorResourceInserters(),
@@ -60,6 +61,11 @@ NoteEditor::NoteEditor(QWidget * parent) :
     file.setFileName(":/javascript/colResizable/colResizable-1.5.min.js");
     file.open(QIODevice::ReadOnly);
     m_resizableColumnsPlugin = file.readAll();
+    file.close();
+
+    file.setFileName(":/onFixedWidthTableResize.js");
+    file.open(QIODevice::ReadOnly);
+    m_onFixedWidthTableResize = file.readAll();
     file.close();
 
     QObject::connect(this, SIGNAL(loadFinished(bool)), this, SLOT(onNoteLoadFinished(bool)));
@@ -339,7 +345,11 @@ void NoteEditor::insertFixedWidthTable(const int rows, const int columns, const 
     colResizable += "\").colResizable({";
     colResizable += "liveDrag:true, ";
     colResizable += "gripInnerHtml:\"<div class=\\'grip\\'></div>\", ";
-    colResizable += "draggingClass:\"dragging\"});";
+    colResizable += "draggingClass:\"dragging\", ";
+    colResizable += "postbackSafe:true, ";
+    colResizable += "partialRefresh:true, ";
+    colResizable += "onResize:onFixedWidthTableResized ";
+    colResizable += "});";
     QNTRACE("colResizable js code: " << colResizable);
     page()->mainFrame()->evaluateJavaScript(colResizable);
 }
@@ -375,7 +385,10 @@ void NoteEditor::insertRelativeWidthTable(const int rows, const int columns, con
     colResizable += "liveDrag:true, ";
     colResizable += "gripInnerHtml:\"<div class=\\'grip\\'></div>\", ";
     colResizable += "draggingClass:\"dragging\", ";
-    colResizable += "fixed:false});";
+    colResizable += "postbackSafe:true, ";
+    colResizable += "partialRefresh:true, ";
+    colResizable += "fixed:false";
+    colResizable += "});";
     QNTRACE("colResizable js code: " << colResizable);
     page()->mainFrame()->evaluateJavaScript(colResizable);
 }
@@ -399,6 +412,7 @@ void NoteEditor::onNoteLoadFinished(bool ok)
 
     frame->evaluateJavaScript(m_jQuery);
     frame->evaluateJavaScript(m_resizableColumnsPlugin);
+    frame->evaluateJavaScript(m_onFixedWidthTableResize);
     QNTRACE("Evaluated jQuery and colResizable plugin");
 }
 

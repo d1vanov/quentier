@@ -92,6 +92,8 @@ private:
 private:
     QString     m_jQuery;
     QString     m_resizableColumnsPlugin;
+    QString     m_onFixedWidthTableResize;
+
     Note *      m_pNote;
     bool        m_modified;
     QHash<QString, INoteEditorResourceInserter*>    m_noteEditorResourceInserters;
