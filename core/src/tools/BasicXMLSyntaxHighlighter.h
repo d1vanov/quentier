@@ -29,6 +29,17 @@ private:
     void highlightByRegex(const QTextCharFormat & format,
                           const QRegExp & regex, const QString & text);
 
+    struct State
+    {
+        enum type
+        {
+            InQuotes = 0,
+            NotInQuotes
+        };
+    };
+
+    void highlightXmlValues(const QString & text);
+
 private:
     QTextCharFormat     m_xmlKeywordFormat;
     QTextCharFormat     m_xmlElementFormat;

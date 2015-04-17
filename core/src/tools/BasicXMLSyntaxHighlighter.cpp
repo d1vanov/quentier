@@ -1,5 +1,6 @@
 #include "BasicXMLSyntaxHighlighter.h"
 
+// Yes, will use regexes to highlight XML. Pure evil!
 BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * pTextDoc) :
     QSyntaxHighlighter(pTextDoc),
     m_xmlKeywordFormat(),
@@ -46,7 +47,7 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
     highlightByRegex(m_xmlAttributeFormat, m_xmlAttributeRegex, text);
     highlightByRegex(m_xmlCommentFormat, m_xmlCommentRegex, text);
 
-    // TODO: highlight xml values specifically
+    highlightXmlValues(text);
 }
 
 void BasicXMLSyntaxHighlighter::highlightByRegex(const QTextCharFormat & format,
@@ -60,5 +61,36 @@ void BasicXMLSyntaxHighlighter::highlightByRegex(const QTextCharFormat & format,
         setFormat(index, matchedLength, format);
 
         index = regex.indexIn(text, index + matchedLength);
+    }
+}
+
+void BasicXMLSyntaxHighlighter::highlightXmlValues(const QString & text)
+{
+    setCurrentBlockState(State::NotInQuotes);
+
+    int valueStartIndex = 0;
+    if (previousBlockState() != State::InQuotes) {
+        valueStartIndex = m_xmlValueStartRegex.indexIn(text);
+    }
+
+    while(valueStartIndex >= 0)
+    {
+        int quotedTextLength = 0;
+
+        int valueEndIndex = m_xmlValueEndRegex.indexIn(text, valueStartIndex);
+        if (valueEndIndex < 0) {
+            setCurrentBlockState(State::InQuotes);
+            quotedTextLength = text.length();
+            quotedTextLength -= valueStartIndex;
+        }
+        else {
+            quotedTextLength = valueEndIndex;
+            quotedTextLength -= valueStartIndex;
+            quotedTextLength += m_xmlValueEndRegex.matchedLength();
+        }
+
+        setFormat(valueStartIndex, quotedTextLength, m_xmlValueFormat);
+
+        valueStartIndex = m_xmlValueStartRegex.indexIn(text, valueStartIndex + quotedTextLength);
     }
 }
