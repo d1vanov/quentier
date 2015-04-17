@@ -20,16 +20,17 @@ BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * pTextDoc) :
                         << QRegExp(">")
                         << QRegExp("<");
 
-    m_xmlKeywordFormat.setForeground(Qt::darkMagenta);
+    m_xmlKeywordFormat.setForeground(Qt::blue);
     m_xmlKeywordFormat.setFontWeight(QFont::Bold);
 
-    m_xmlElementFormat.setForeground(Qt::green);
+    m_xmlElementFormat.setForeground(Qt::darkMagenta);
     m_xmlElementFormat.setFontWeight(QFont::Bold);
 
-    m_xmlAttributeFormat.setForeground(Qt::blue);
+    m_xmlAttributeFormat.setForeground(Qt::darkGreen);
+    m_xmlAttributeFormat.setFontWeight(QFont::Bold);
     m_xmlAttributeFormat.setFontItalic(true);
 
-    m_xmlValueFormat.setForeground(Qt::red);
+    m_xmlValueFormat.setForeground(Qt::darkRed);
 
     m_xmlCommentFormat.setForeground(Qt::gray);
 }
