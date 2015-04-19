@@ -11,7 +11,7 @@ BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * pTextDoc) :
     m_xmlElementRegex("\\w+(?=[\\s/>])"),
     m_xmlAttributeRegex("\\w+(?=\\=)"),
     m_xmlValueRegex("\"[^\\n\"]+\"(?=[\\s/>])"),
-    m_xmlCommentRegex("<!--[^\n]*-->")
+    m_xmlCommentRegex("<!--[\\N]*-->")
 {
     m_xmlKeywordRegexes << QRegExp("\\b?xml\\b")
                         << QRegExp("/>")
