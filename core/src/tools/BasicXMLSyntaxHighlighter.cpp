@@ -1,6 +1,5 @@
 #include "BasicXMLSyntaxHighlighter.h"
 
-// Yes, will use regexes to highlight XML. Pure evil!
 BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * pTextDoc) :
     QSyntaxHighlighter(pTextDoc),
     m_xmlKeywordFormat(),
@@ -9,16 +8,16 @@ BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * pTextDoc) :
     m_xmlValueFormat(),
     m_xmlCommentFormat(),
     m_xmlKeywordRegexes(),
-    m_xmlElementRegex("\\w[A-Za-z0-9_]+(?=[\\s/>])"),
-    m_xmlAttributeRegex("\\w[A-Za-z0-9_]+(?=\\=)"),
-    m_xmlValueStartRegex("\""),
-    m_xmlValueEndRegex("\"(?=[\\s></])"),
+    m_xmlElementRegex("\\w+(?=[\\s/>])"),
+    m_xmlAttributeRegex("\\w+(?=\\=)"),
+    m_xmlValueRegex("\"[^\\n\"]+\"(?=[\\s/>])"),
     m_xmlCommentRegex("<!--[^\n]*-->")
 {
-    m_xmlKeywordRegexes << QRegExp("\\w?xml\\w")
+    m_xmlKeywordRegexes << QRegExp("\\b?xml\\b")
                         << QRegExp("/>")
                         << QRegExp(">")
-                        << QRegExp("<");
+                        << QRegExp("<")
+                        << QRegExp("</");
 
     m_xmlKeywordFormat.setForeground(Qt::blue);
     m_xmlKeywordFormat.setFontWeight(QFont::Bold);
@@ -47,8 +46,7 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
     highlightByRegex(m_xmlElementFormat, m_xmlElementRegex, text);
     highlightByRegex(m_xmlAttributeFormat, m_xmlAttributeRegex, text);
     highlightByRegex(m_xmlCommentFormat, m_xmlCommentRegex, text);
-
-    highlightXmlValues(text);
+    highlightByRegex(m_xmlValueFormat, m_xmlValueRegex, text);
 }
 
 void BasicXMLSyntaxHighlighter::highlightByRegex(const QTextCharFormat & format,
@@ -62,36 +60,5 @@ void BasicXMLSyntaxHighlighter::highlightByRegex(const QTextCharFormat & format,
         setFormat(index, matchedLength, format);
 
         index = regex.indexIn(text, index + matchedLength);
-    }
-}
-
-void BasicXMLSyntaxHighlighter::highlightXmlValues(const QString & text)
-{
-    setCurrentBlockState(State::NotInQuotes);
-
-    int valueStartIndex = 0;
-    if (previousBlockState() != State::InQuotes) {
-        valueStartIndex = m_xmlValueStartRegex.indexIn(text);
-    }
-
-    while(valueStartIndex >= 0)
-    {
-        int quotedTextLength = 0;
-
-        int valueEndIndex = m_xmlValueEndRegex.indexIn(text, valueStartIndex);
-        if (valueEndIndex < 0) {
-            setCurrentBlockState(State::InQuotes);
-            quotedTextLength = text.length();
-            quotedTextLength -= valueStartIndex;
-        }
-        else {
-            quotedTextLength = valueEndIndex;
-            quotedTextLength -= valueStartIndex;
-            quotedTextLength += m_xmlValueEndRegex.matchedLength();
-        }
-
-        setFormat(valueStartIndex, quotedTextLength, m_xmlValueFormat);
-
-        valueStartIndex = m_xmlValueStartRegex.indexIn(text, valueStartIndex + quotedTextLength);
     }
 }

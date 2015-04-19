@@ -17,17 +17,6 @@ private:
     void highlightByRegex(const QTextCharFormat & format,
                           const QRegExp & regex, const QString & text);
 
-    struct State
-    {
-        enum type
-        {
-            InQuotes = 0,
-            NotInQuotes
-        };
-    };
-
-    void highlightXmlValues(const QString & text);
-
 private:
     QTextCharFormat     m_xmlKeywordFormat;
     QTextCharFormat     m_xmlElementFormat;
@@ -38,8 +27,7 @@ private:
     QList<QRegExp>      m_xmlKeywordRegexes;
     QRegExp             m_xmlElementRegex;
     QRegExp             m_xmlAttributeRegex;
-    QRegExp             m_xmlValueStartRegex;
-    QRegExp             m_xmlValueEndRegex;
+    QRegExp             m_xmlValueRegex;
     QRegExp             m_xmlCommentRegex;
 };
 
