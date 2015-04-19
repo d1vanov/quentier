@@ -9,13 +9,13 @@ BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * pTextDoc) :
     m_xmlValueFormat(),
     m_xmlCommentFormat(),
     m_xmlKeywordRegexes(),
-    m_xmlElementRegex("\\b[A-Za-z0-9_]+(?=[\\s/>])"),
-    m_xmlAttributeRegex("\\b[A-Za-z0-9_]+(?=\\=)"),
+    m_xmlElementRegex("\\w[A-Za-z0-9_]+(?=[\\s/>])"),
+    m_xmlAttributeRegex("\\w[A-Za-z0-9_]+(?=\\=)"),
     m_xmlValueStartRegex("\""),
     m_xmlValueEndRegex("\"(?=[\\s></])"),
     m_xmlCommentRegex("<!--[^\n]*-->")
 {
-    m_xmlKeywordRegexes << QRegExp("\\b?xml\\b")
+    m_xmlKeywordRegexes << QRegExp("\\w?xml\\w")
                         << QRegExp("/>")
                         << QRegExp(">")
                         << QRegExp("<");
