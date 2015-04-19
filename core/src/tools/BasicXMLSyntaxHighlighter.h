@@ -8,18 +8,6 @@ class QUTE_NOTE_EXPORT BasicXMLSyntaxHighlighter : public QSyntaxHighlighter
 {
     Q_OBJECT
 public:
-    struct XMLObject
-    {
-        enum type
-        {
-            Keyword = 0,
-            Element,
-            Attribute,
-            Value,
-            Comment
-        };
-    };
-
     explicit BasicXMLSyntaxHighlighter(QTextDocument * pTextDoc);
 
 protected:
