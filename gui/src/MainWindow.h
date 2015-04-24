@@ -76,7 +76,8 @@ private Q_SLOTS:
     void noteTextSpellCheck() { /* TODO: implement */ }
     void noteTextInsertToDoCheckBox();
 
-    void noteTextInsertTable();
+    void noteTextInsertTableDialog();
+    void noteTextInsertTable(int rows, int columns, double width, bool relativeWidth);
 
     void onShowNoteSource();
 

@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "insert-table-tool-button/InsertTableToolButton.h"
 
 #include <note_editor/NoteEditor.h>
 using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work with namespaces
@@ -119,7 +120,7 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->ActionDecreaseIndentation, SIGNAL(triggered()), this, SLOT(noteTextDecreaseIndentation()));
     QObject::connect(m_pUI->ActionInsertBulletedList, SIGNAL(triggered()), this, SLOT(noteTextInsertUnorderedList()));
     QObject::connect(m_pUI->ActionInsertNumberedList, SIGNAL(triggered()), this, SLOT(noteTextInsertOrderedList()));
-    QObject::connect(m_pUI->ActionInsertTable, SIGNAL(triggered()), this, SLOT(noteTextInsertTable()));
+    QObject::connect(m_pUI->ActionInsertTable, SIGNAL(triggered()), this, SLOT(noteTextInsertTableDialog()));
     // Format buttons
     QObject::connect(m_pUI->formatJustifyLeftPushButton, SIGNAL(clicked()), this, SLOT(noteTextAlignLeft()));
     QObject::connect(m_pUI->formatJustifyCenterPushButton, SIGNAL(clicked()), this, SLOT(noteTextAlignCenter()));
@@ -131,7 +132,8 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->formatListOrderedPushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertOrderedList()));
     QObject::connect(m_pUI->insertToDoCheckboxPushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertToDoCheckBox()));
     QObject::connect(m_pUI->chooseTextColorPushButton, SIGNAL(clicked()), this, SLOT(noteChooseTextColor()));
-    QObject::connect(m_pUI->insertTablePushButton, SIGNAL(clicked()), this, SLOT(noteTextInsertTable()));
+    QObject::connect(m_pUI->insertTableToolButton, SIGNAL(createdTable(int,int,double,bool)),
+                     this, SLOT(noteTextInsertTable(int,int,double,bool)));
 }
 
 void MainWindow::checkAndSetupConsumerKeyAndSecret()
@@ -398,7 +400,7 @@ void MainWindow::noteTextInsertToDoCheckBox()
     m_pNoteEditor->setFocus();
 }
 
-void MainWindow::noteTextInsertTable()
+void MainWindow::noteTextInsertTableDialog()
 {
     QScopedPointer<TableSettingsDialog> tableSettingsDialogHolder(new TableSettingsDialog(this));
     TableSettingsDialog * tableSettingsDialog = tableSettingsDialogHolder.data();
@@ -421,6 +423,23 @@ void MainWindow::noteTextInsertTable()
     }
 
     QNTRACE("Returned from TableSettingsDialog::exec: rejected");
+}
+
+void MainWindow::noteTextInsertTable(int rows, int columns, double width, bool relativeWidth)
+{
+    rows = std::max(rows, 1);
+    columns = std::max(columns, 1);
+    width = std::max(width, 1.0);
+
+    if (relativeWidth) {
+        m_pNoteEditor->insertRelativeWidthTable(rows, columns, width);
+    }
+    else {
+        m_pNoteEditor->insertFixedWidthTable(rows, columns, static_cast<int>(width));
+    }
+
+    QNTRACE("Inserted table: rows = " << rows << ", columns = " << columns
+            << ", width = " << width << ", relative width = " << (relativeWidth ? "true" : "false"));
 }
 
 void MainWindow::onShowNoteSource()

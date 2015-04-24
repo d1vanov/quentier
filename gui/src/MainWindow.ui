@@ -960,14 +960,19 @@ color: rgb(255, 255, 255);</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="insertTablePushButton">
+               <widget class="InsertTableToolButton" name="insertTableToolButton">
                 <property name="text">
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset theme="insert-table"/>
+                 <iconset theme="insert-table">
+                  <normaloff/>
+                 </iconset>
                 </property>
-                <property name="flat">
+                <property name="popupMode">
+                 <enum>QToolButton::InstantPopup</enum>
+                </property>
+                <property name="autoRaise">
                  <bool>true</bool>
                 </property>
                </widget>
@@ -2651,6 +2656,11 @@ stop: 1 #0EB7FF);
    <extends>QWidget</extends>
    <header location="global">note_editor/NoteEditor.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>InsertTableToolButton</class>
+   <extends>QToolButton</extends>
+   <header>insert-table-tool-button/InsertTableToolButton.h</header>
   </customwidget>
  </customwidgets>
  <resources>

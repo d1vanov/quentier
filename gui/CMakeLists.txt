@@ -6,6 +6,7 @@ project(QuteNote)
 
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../core/src)
 
 set(${PROJECT_NAME}_HEADERS
@@ -15,7 +16,11 @@ set(${PROJECT_NAME}_HEADERS
     src/AskConsumerKeyAndSecret.h
     src/AskUserNameAndPassword.h
     src/EvernoteOAuthBrowser.h
-    src/TableSettingsDialog.h)
+    src/TableSettingsDialog.h
+    src/insert-table-tool-button/InsertTableToolButton.h
+    src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
+    src/insert-table-tool-button/TableSizeSelectorActionWidget.h
+    src/insert-table-tool-button/TableSizeSelector.h)
 
 set(${PROJECT_NAME}_SOURCES
     client/CredentialsModel.cpp
@@ -25,6 +30,10 @@ set(${PROJECT_NAME}_SOURCES
     src/AskUserNameAndPassword.cpp
     src/EvernoteOAuthBrowser.cpp
     src/TableSettingsDialog.cpp
+    src/insert-table-tool-button/InsertTableToolButton.cpp
+    src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
+    src/insert-table-tool-button/TableSizeSelectorActionWidget.cpp
+    src/insert-table-tool-button/TableSizeSelector.cpp
     src/main.cpp)
 
 set(FORMS
