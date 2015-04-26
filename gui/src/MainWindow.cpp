@@ -684,6 +684,7 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
         QIcon insertTableIcon(":/fallback_icons/png/insert-table.png");
         m_pUI->ActionInsertTable->setIcon(insertTableIcon);
         m_pUI->menuTable->setIcon(insertTableIcon);
+        m_pUI->insertTableToolButton->setIcon(insertTableIcon);
         QNTRACE("set fallback insert-table icon");
     }
 
