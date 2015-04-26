@@ -347,7 +347,6 @@ void NoteEditor::insertFixedWidthTable(const int rows, const int columns, const 
     colResizable += "gripInnerHtml:\"<div class=\\'grip\\'></div>\", ";
     colResizable += "draggingClass:\"dragging\", ";
     colResizable += "postbackSafe:true, ";
-    colResizable += "partialRefresh:true, ";
     colResizable += "onResize:onFixedWidthTableResized ";
     colResizable += "});";
     QNTRACE("colResizable js code: " << colResizable);
@@ -386,7 +385,6 @@ void NoteEditor::insertRelativeWidthTable(const int rows, const int columns, con
     colResizable += "gripInnerHtml:\"<div class=\\'grip\\'></div>\", ";
     colResizable += "draggingClass:\"dragging\", ";
     colResizable += "postbackSafe:true, ";
-    colResizable += "partialRefresh:true, ";
     colResizable += "fixed:false";
     colResizable += "});";
     QNTRACE("colResizable js code: " << colResizable);
