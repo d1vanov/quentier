@@ -12,11 +12,16 @@ TableSizeSelector::TableSizeSelector(QWidget * parent) :
     m_currentColumn(-1),
     m_rowHeight(0),
     m_columnWidth(0),
-    m_rect()
+    m_rect(),
+    m_horizontalMargin(2),
+    m_verticalMargin(2)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
-    setFrameStyle(QFrame::Sunken);
+    setFrameShape(QFrame::Box);
+    setFrameShadow(QFrame::Sunken);
+    setLineWidth(0);
+    setMidLineWidth(2);
 
     QFontMetrics fontMetrics(font());
     m_rowHeight = fontMetrics.height() + 2;
@@ -24,11 +29,12 @@ TableSizeSelector::TableSizeSelector(QWidget * parent) :
 
     m_rect.setHeight(m_rowHeight * MAX_ROWS);
     m_rect.setWidth(m_columnWidth * MAX_COLUMNS);
+    m_rect.translate(m_horizontalMargin, m_verticalMargin);
 }
 
 void TableSizeSelector::paintEvent(QPaintEvent * event)
 {
-    Q_UNUSED(event)
+    QFrame::paintEvent(event);
 
     QPainter painter(this);
 
@@ -41,6 +47,7 @@ void TableSizeSelector::paintEvent(QPaintEvent * event)
         QRectF selectionRect;
         selectionRect.setHeight(m_currentRow * m_rowHeight);
         selectionRect.setWidth(m_currentColumn * m_columnWidth);
+        selectionRect.translate(m_horizontalMargin, m_verticalMargin);
         painter.fillRect(selectionRect, palette().brush(QPalette::Highlight));
     }
 
@@ -49,22 +56,31 @@ void TableSizeSelector::paintEvent(QPaintEvent * event)
     painter.setPen(pen);
 
     // Drawing rows grid
-    for(int i = 0; i < MAX_ROWS; ++i) {
-        double verticalPos = i * m_rowHeight;
-        painter.drawLine(QPointF(0.0, verticalPos), QPointF(m_rect.width(), verticalPos));
+    for(int i = 0; i <= MAX_ROWS; ++i) {
+        double verticalPos = i * m_rowHeight + m_verticalMargin;
+        painter.drawLine(QPointF(m_horizontalMargin, verticalPos), QPointF(m_rect.width() + m_horizontalMargin, verticalPos));
     }
 
     // Drawing columns grid
-    for(int i = 0; i < MAX_COLUMNS; ++i) {
-        double horizontalPos = i * m_columnWidth;
-        painter.drawLine(QPointF(horizontalPos, 0.0), QPointF(horizontalPos, m_rect.height()));
+    for(int i = 0; i <= MAX_COLUMNS; ++i) {
+        double horizontalPos = i * m_columnWidth + m_horizontalMargin;
+        painter.drawLine(QPointF(horizontalPos, m_verticalMargin), QPointF(horizontalPos, m_rect.height() + m_verticalMargin));
     }
 }
 
 void TableSizeSelector::mouseMoveEvent(QMouseEvent * event)
 {
-    m_currentRow = static_cast<int>(event->y() / m_rowHeight) + 1;
-    m_currentColumn = static_cast<int>(event->x() / m_columnWidth) + 1;
+    m_currentRow = static_cast<int>((event->y() - m_verticalMargin) / m_rowHeight) + 1;
+    m_currentColumn = static_cast<int>((event->x() - m_horizontalMargin) / m_columnWidth) + 1;
+
+    if (m_currentRow > MAX_ROWS) {
+        m_currentRow = MAX_ROWS;
+    }
+
+    if (m_currentColumn > MAX_COLUMNS) {
+        m_currentColumn = MAX_COLUMNS;
+    }
+
     QToolTip::showText(event->globalPos(), QString::number(m_currentRow) + "x" + QString::number(m_currentColumn));
     repaint();
 }
@@ -75,18 +91,18 @@ void TableSizeSelector::mouseReleaseEvent(QMouseEvent * event)
         emit tableSizeSelected(m_currentRow, m_currentColumn);
     }
 
-    QWidget::mouseReleaseEvent(event);
+    QFrame::mouseReleaseEvent(event);
 }
 
 void TableSizeSelector::enterEvent(QEvent *event)
 {
-    QWidget::enterEvent(event);
+    QFrame::enterEvent(event);
     repaint();
 }
 
 void TableSizeSelector::leaveEvent(QEvent * event)
 {
-    QWidget::leaveEvent(event);
+    QFrame::leaveEvent(event);
 
     m_currentRow = -1;
     m_currentColumn = -1;
@@ -96,7 +112,7 @@ void TableSizeSelector::leaveEvent(QEvent * event)
 QSize TableSizeSelector::sizeHint() const
 {
     QSize size;
-    size.setHeight(static_cast<int>(m_rect.height()));
-    size.setWidth(static_cast<int>(m_rect.width()));
+    size.setHeight(static_cast<int>(m_rect.height()) + 2 * m_verticalMargin);
+    size.setWidth(static_cast<int>(m_rect.width()) + 2 * m_horizontalMargin);
     return size;
 }
