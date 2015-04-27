@@ -25,6 +25,7 @@ get_directory_property(QTKEYCHAIN_LIB DIRECTORY 3rdparty DEFINITION QTKEYCHAIN_L
 get_directory_property(STACKTRACE_LIB DIRECTORY 3rdparty DEFINITION STACKTRACE_LIB)
 get_directory_property(QSLOG_LIB DIRECTORY 3rdparty DEFINITION QSLOG_LIB)
 get_directory_property(QT4_MIMETYPES_LIB DIRECTORY 3rdparty DEFINITION QT4_MIMETYPES_LIB)
+get_directory_property(TIDY_HTML5_LIB DIRECTORY 3rdparty DEFINITION TIDY_HTML5_LIB)
 
 add_subdirectory(core)
 get_directory_property(QUTE_NOTE_CORE_LIB DIRECTORY core DEFINITION PROJECT_NAME)

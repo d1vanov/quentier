@@ -25,10 +25,20 @@ get_directory_property(QSLOG_LIB DIRECTORY QsLog DEFINITION PROJECT_NAME)
 get_directory_property(QSLOG_SOURCES DIRECTORY QsLog DEFINITION SOURCES)
 get_directory_property(QSLOG_INCLUDE_DIRS DIRECTORY QsLog DEFINITION INCLUDE_DIRS)
 
-add_subdirectory(tidy-html5)
-get_directory_property(TIDYLIB DIRECTORY tidy-html5 DEFINITION PROJECT_NAME)
-get_directory_property(TIDYLIB_SOURCES DIRECTORY tidy-html5 DEFINITION SOURCES)
-get_directory_property(TIDYLIB_INCLUDE_DIRS DIRECTORY tidy-html5 DEFINITION INCLUDE_DIRS)
+if((NOT USE_SYSTEM_TIDY_HTML5) AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tidy-html5/CMakeLists.txt)
+  message(STATUS "Found tidy-html5 sources in 3rdparty folder, will use them to build the local lib instead of attempting to find the existing installation")
+  add_subdirectory(tidy-html5)
+  get_directory_property(TIDY_HTML5_LIB DIRECTORY tidy-html5 DEFINITION PROJECT_NAME)
+  get_directory_property(TIDY_HTML5_SOURCES DIRECTORY tidy-html5 DEFINITION SOURCES)
+  get_directory_property(TIDY_HTML5_INCLUDE_PATH DIRECTORY tidy-html5 DEFINITION INCLUDE_DIRS)
+else()
+  if(USE_SYSTEM_TIDY_HTML5)
+    message(STATUS "USE_SYSTEM_TIDY_HTML5 option is set, will try to find the existing installation of tidy-html5")
+  else()
+    message(STATUS "Haven't found tody-html5 sources in 3rdparty folder, will try to find the existing installation")
+  endif()
+  include("../cmake/tidy-html5.cmake")
+endif()
 
 if(NOT USE_QT5)
   add_subdirectory(qt4-mimetypes)
@@ -48,14 +58,14 @@ set(THIRDPARTY_INCLUDE_DIRS ${SIMPLECRYPT_INCLUDE_DIRS})
 list(APPEND THIRDPARTY_INCLUDE_DIRS ${QEVERCLOUD_INCLUDE_DIRS})
 list(APPEND THIRDPARTY_INCLUDE_DIRS ${QTKEYCHAIN_INCLUDE_DIRS})
 list(APPEND THIRDPARTY_INCLUDE_DIRS ${QSLOG_INCLUDE_DIRS})
-list(APPEND THIRDPARTY_INCLUDE_DIRS ${TIDYLIB_INCLUDE_DIRS})
+list(APPEND THIRDPARTY_INCLUDE_DIRS ${TIDY_HTML5_INCLUDE_PATH})
 
 set(THIRDPARTY_SOURCES
     ${SIMPLECRYPT_SOURCES}
     ${QEVERCLOUD_SOURCES}
     ${QTKEYCHAIN_SOURCES}
     ${QSLOG_SOURCES}
-    ${TIDYLIB_SOURCES})
+    ${TIDY_HTML5_SOURCES})
 
 if(NOT USE_QT5)
   list(APPEND THIRDPARTY_INCLUDE_DIRS ${QT4_MIMETYPES_INCLUDE_DIRS})

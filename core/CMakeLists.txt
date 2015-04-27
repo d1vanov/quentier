@@ -193,7 +193,8 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB}
                       ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES}
-                      ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB} ${STACKTRACE_LIB} ${QSLOG_LIB})
+                      ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB} ${STACKTRACE_LIB}
+                      ${QSLOG_LIB} ${TIDY_HTML5_LIB})
 
 if(NOT USE_QT5)
   target_link_libraries(${PROJECT_NAME} ${QT4_MIMETYPES_LIB})
