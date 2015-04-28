@@ -74,6 +74,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QObject::connect(m_pNoteEditor, SIGNAL(contentChanged()), this, SLOT(onNoteContentChanged()));
 
     m_pManager->connect();
+
+    m_pNoteEditor->setFocus();
 }
 
 MainWindow::~MainWindow()
@@ -419,6 +421,7 @@ void MainWindow::noteTextInsertTableDialog()
             m_pNoteEditor->insertFixedWidthTable(numRows, numColumns, static_cast<int>(tableWidth));
         }
 
+        m_pNoteEditor->setFocus();
         return;
     }
 
@@ -440,6 +443,7 @@ void MainWindow::noteTextInsertTable(int rows, int columns, double width, bool r
 
     QNTRACE("Inserted table: rows = " << rows << ", columns = " << columns
             << ", width = " << width << ", relative width = " << (relativeWidth ? "true" : "false"));
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onShowNoteSource()
