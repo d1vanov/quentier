@@ -29,9 +29,6 @@ private:
     double      m_rowHeight;
     double      m_columnWidth;
     QRectF      m_rect;
-
-    int         m_horizontalMargin;
-    int         m_verticalMargin;
 };
 
 #endif // __TABLE_SIZE_SELECTOR_H
