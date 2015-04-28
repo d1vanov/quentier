@@ -1,6 +1,6 @@
 message(STATUS "Looking for system wide installation of tidy-html5")
 find_path(TIDY_HTML5_INCLUDE_PATH tidy.h SILENT REQUIRED)
-if(TIDY_HTML5_INCLUDE_PATH-NOTFOUND)
+if(NOT TIDY_HTML5_INCLUDE_PATH)
   message(FATAL_ERROR "Can't find system-wide installation of tidy-html5")
 elseif(NOT EXISTS ${TIDY_HTML5_INCLUDE_PATH}/tidyenum.h)
   message(FATAL_ERROR "Found path to tidy.h in ${TIDY_HTML5_INCLUDE_PATH} but can't find tidyenum.h in the same folder")
@@ -11,7 +11,7 @@ else()
   find_library(TIDY_HTML5_LIB
                NAMES libtidy5.so libtidy5.a libtidy5.dylib libtidy5.dll tidy5.dll libtidy5.lib tidy5.lib
                SILENT REQUIRED)
-  if(TIDY_HTML5_LIB-NOTFOUND) 
+  if(NOT TIDY_HTML5_LIB)
     message(FATAL_ERROR "Can't find tidy-html5 library")
   else()
     message(STATUS "Found tidy-html5 library: ${TIDY_HTML5_LIB}")
