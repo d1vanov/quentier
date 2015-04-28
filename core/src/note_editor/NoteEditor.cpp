@@ -30,8 +30,7 @@ NoteEditor::NoteEditor(QWidget * parent) :
     m_pNote(nullptr),
     m_modified(false),
     m_noteEditorResourceInserters(),
-    m_lastFreeImageId(0),
-    m_lastFreeTableId(0)
+    m_lastFreeId(1)
 {
     NoteEditorPage * page = new NoteEditorPage(*this);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessFileUrls, true);
@@ -204,7 +203,7 @@ void NoteEditor::alignRight()
 
 void NoteEditor::insertToDoCheckbox()
 {
-    QString imageId = QString::number(m_lastFreeImageId++);
+    QString imageId = QString::number(m_lastFreeId++);
 
     QString html = "<img id=\"";
     html += imageId;
@@ -335,7 +334,7 @@ void NoteEditor::insertFixedWidthTable(const int rows, const int columns, const 
         return;
     }
 
-    size_t tableId = m_lastFreeTableId++;
+    size_t tableId = m_lastFreeId++;
     QString htmlTable = composeHtmlTable(widthInPixels, singleColumnWidth, rows, columns,
                                          /* relative = */ false, tableId);
     execJavascriptCommand("insertHTML", htmlTable);
@@ -373,7 +372,7 @@ void NoteEditor::insertRelativeWidthTable(const int rows, const int columns, con
 
     double singleColumnWidth = relativeWidth / columns;
 
-    size_t tableId = m_lastFreeTableId++;
+    size_t tableId = m_lastFreeId++;
     QString htmlTable = composeHtmlTable(relativeWidth, singleColumnWidth, rows, columns,
                                          /* relative = */ true, tableId);
     execJavascriptCommand("insertHTML", htmlTable);
@@ -524,7 +523,7 @@ QString NoteEditor::composeHtmlTable(const T width, const T singleColumnWidth,
                                      const bool relative, const size_t tableId)
 {
     // Table header
-    QString htmlTable = "<table style=\"border-collapse: collapse; margin-left: 0px; table-layout: fixed; width: ";
+    QString htmlTable = "<div><table style=\"border-collapse: collapse; margin-left: 0px; table-layout: fixed; width: ";
     htmlTable += QString::number(width);
     if (relative) {
         htmlTable += "%";
@@ -568,7 +567,7 @@ QString NoteEditor::composeHtmlTable(const T width, const T singleColumnWidth,
     }
 
     // End table
-    htmlTable += "</tbody></table>";
+    htmlTable += "</tbody></table></div>";
     return htmlTable;
 }
 

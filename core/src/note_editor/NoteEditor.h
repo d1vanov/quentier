@@ -97,8 +97,7 @@ private:
     Note *      m_pNote;
     bool        m_modified;
     QHash<QString, INoteEditorResourceInserter*>    m_noteEditorResourceInserters;
-    size_t      m_lastFreeImageId;
-    size_t      m_lastFreeTableId;
+    size_t      m_lastFreeId;
 };
 
 } // namespace qute_note
