@@ -12,9 +12,9 @@ public:
     HTMLCleaner();
     virtual ~HTMLCleaner();
 
-    bool htmlToXml(const QString & html, QString & output);
-    bool htmlToXhtml(const QString & html, QString & output);
-    bool cleanupHtml(QString & html);
+    bool htmlToXml(const QString & html, QString & output, QString & errorDescription);
+    bool htmlToXhtml(const QString & html, QString & output, QString & errorDescription);
+    bool cleanupHtml(QString & html, QString & errorDescription);
 
 private:
     HTMLCleaner(const HTMLCleaner & other) Q_DECL_DELETE;

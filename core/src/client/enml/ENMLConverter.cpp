@@ -1,4 +1,7 @@
 #include "ENMLConverter.h"
+#include "HTMLCleaner.h"
+#include <logging/QuteNoteLogger.h>
+#include <client/types/Note.h>
 #include <note_editor/QuteNoteTextEdit.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <QEverCloud.h>
@@ -8,32 +11,110 @@
 #include <QTextCharFormat>
 #include <QDomDocument>
 #include <QMimeData>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 #include <QDebug>
 
 namespace qute_note {
 
-ENMLConverter::ENMLConverter()
+ENMLConverter::ENMLConverter() :
+    m_pHtmlCleaner(nullptr)
 {
     fillTagsLists();
 }
 
-ENMLConverter::ENMLConverter(const ENMLConverter & other) :
-    m_forbiddenXhtmlTags(other.m_forbiddenXhtmlTags),
-    m_forbiddenXhtmlAttributes(other.m_forbiddenXhtmlAttributes),
-    m_evernoteSpecificXhtmlTags(other.m_evernoteSpecificXhtmlTags),
-    m_allowedXhtmlTags(other.m_allowedXhtmlTags)
-{}
-
-ENMLConverter & ENMLConverter::operator=(const ENMLConverter & other)
+ENMLConverter::~ENMLConverter()
 {
-    if (this != &other) {
-        m_forbiddenXhtmlTags = other.m_forbiddenXhtmlTags;
-        m_forbiddenXhtmlAttributes = other.m_forbiddenXhtmlAttributes;
-        m_evernoteSpecificXhtmlTags = other.m_evernoteSpecificXhtmlTags;
-        m_allowedXhtmlTags = other.m_allowedXhtmlTags;
+    delete m_pHtmlCleaner;
+}
+
+bool ENMLConverter::htmlToNoteContent(const QString & html, Note & note, QString & errorDescription) const
+{
+    QNDEBUG("ENMLConverter::htmlToNoteContent: note local guid = " << note.localGuid());
+
+    if (!m_pHtmlCleaner) {
+        m_pHtmlCleaner = new HTMLCleaner;
     }
 
-    return *this;
+    QString convertedXml;
+    bool res = m_pHtmlCleaner->htmlToXml(html, convertedXml, errorDescription);
+    if (!res) {
+        errorDescription.prepend(QT_TR_NOOP("Could not clean up note's html: "));
+        return false;
+    }
+
+    QXmlStreamReader reader(convertedXml);
+
+    QString noteContent;
+    QXmlStreamWriter writer(&noteContent);
+    writer.writeStartDocument();
+    writer.writeDTD("<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">");
+
+    while(!reader.atEnd())
+    {
+        Q_UNUSED(reader.readNext());
+
+        if (reader.isStartDocument()) {
+            continue;
+        }
+
+        if (reader.isEndDocument()) {
+            writer.writeEndDocument();
+            break;
+        }
+
+        if (reader.isStartElement())
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+
+            // Erasing the forbidden attributes
+            for(QXmlStreamAttributes::iterator it = attributes.begin(); it != attributes.end(); )
+            {
+                const QStringRef attributeName = it->name();
+                if (isForbiddenXhtmlAttribute(attributeName.toString())) {
+                    QNTRACE("Erasing the forbidden attribute " << attributeName);
+                    it = attributes.erase(it);
+                    continue;
+                }
+
+                ++it;
+            }
+
+            const QStringRef namespaceUri = reader.namespaceUri();
+            const QStringRef name = reader.name();
+
+            writer.writeStartElement(namespaceUri.toString(), name.toString());
+            writer.writeAttributes(attributes);
+            QNTRACE("Wrote element: namespaceUri = " << namespaceUri << ", name = " << name << " and its attributes");
+        }
+
+        if (reader.isEndElement()) {
+            writer.writeEndElement();
+        }
+    }
+
+    res = validateEnml(noteContent);
+    if (!res) {
+        errorDescription = QT_TR_NOOP("Failed to convert, produced ENML is invalid according to dtd");
+        QNWARNING(errorDescription << ": " << noteContent << "\n\nSource html: " << html
+                  << "\n\nCleaned up & converted xml: " << convertedXml);
+        return false;
+    }
+
+    note.setContent(noteContent);
+    return true;
+}
+
+bool ENMLConverter::noteContentToHtml(const Note & note, QString & html, QString & errorDescription) const
+{
+    // TODO: implement
+    return true;
+}
+
+bool ENMLConverter::validateEnml(const QString & enml) const
+{
+    // TODO: implement
+    return true;
 }
 
 bool ENMLConverter::richTextToNoteContent(const QuteNoteTextEdit & noteEditor,

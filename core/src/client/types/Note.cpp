@@ -3,7 +3,6 @@
 #include "ResourceAdapter.h"
 #include "ResourceWrapper.h"
 #include "../Utility.h"
-#include <client/enml/ENMLConverter.h>
 #include <logging/QuteNoteLogger.h>
 
 namespace qute_note {

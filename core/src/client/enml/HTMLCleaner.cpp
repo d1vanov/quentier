@@ -24,7 +24,7 @@ public:
     }
 
     bool convertHtml(const QString & html, const TidyOptionId outputFormat,
-                     QString & output);
+                     QString & output, QString & errorDescription);
 
     TidyBuffer  m_tidyOutput;
     TidyBuffer  m_tidyErrorBuffer;
@@ -40,31 +40,31 @@ HTMLCleaner::~HTMLCleaner()
     delete m_impl;
 }
 
-bool HTMLCleaner::htmlToXml(const QString & html, QString & output)
+bool HTMLCleaner::htmlToXml(const QString & html, QString & output, QString & errorDescription)
 {
     QNDEBUG("HTMLCleaner::htmlToXml");
     QNTRACE("html = " << html);
 
-    return m_impl->convertHtml(html, TidyXmlOut, output);
+    return m_impl->convertHtml(html, TidyXmlOut, output, errorDescription);
 }
 
-bool HTMLCleaner::htmlToXhtml(const QString & html, QString & output)
+bool HTMLCleaner::htmlToXhtml(const QString & html, QString & output, QString & errorDescription)
 {
     QNDEBUG("HTMLCleaner::htmlToXhtml");
     QNTRACE("html = " << html);
 
-    return m_impl->convertHtml(html, TidyXhtmlOut, output);
+    return m_impl->convertHtml(html, TidyXhtmlOut, output, errorDescription);
 }
 
-bool HTMLCleaner::cleanupHtml(QString & html)
+bool HTMLCleaner::cleanupHtml(QString & html, QString & errorDescription)
 {
     QNDEBUG("HTMLCleaner::cleanupHtml");
     QNTRACE("html = " << html);
 
-    return m_impl->convertHtml(html, TidyHtmlOut, html);
+    return m_impl->convertHtml(html, TidyHtmlOut, html, errorDescription);
 }
 
-bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId outputFormat, QString & output)
+bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId outputFormat, QString & output, QString & errorDescription)
 {
     int rc = -1;
     Bool ok = tidyOptSetBool(m_tidyDoc, outputFormat, yes);
@@ -113,7 +113,7 @@ bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId out
         {
             QString symbol = QString("%1").arg(m_tidyOutput.bp[i], 0, 16);
             // account for single-digit hex values (always must serialize as two digits)
-            if(symbol.length() == 1) {
+            if (symbol.length() == 1) {
                 output.append( "0" );
             }
 
@@ -123,6 +123,19 @@ bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId out
         return true;
     }
 
+    errorDescription = QT_TR_NOOP("tidy-html5 error: ");
+    for(size_t i = 0; i < m_tidyErrorBuffer.size; ++i)
+    {
+        QString symbol = QString("%1").arg(m_tidyErrorBuffer.bp[i], 0, 16);
+        // account for single-digit hex values (always must serialize as two digits)
+        if (symbol.length() == 1) {
+            errorDescription.append("0");
+        }
+
+        errorDescription.append(symbol);
+    }
+
+    QNINFO(errorDescription);
     return false;
 }
 
