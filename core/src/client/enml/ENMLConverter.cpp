@@ -43,6 +43,9 @@ bool ENMLConverter::htmlToNoteContent(const QString & html, Note & note, QString
         return false;
     }
 
+    // TODO: if has "body" open and closing tags, see if it also has "html" tags; if so, remove them;
+    // maybe need to do the same to "frame" tags which tidy seems to like and insert into cleaned up stuff
+
     QXmlStreamReader reader(convertedXml);
 
     QString noteContent;
@@ -65,6 +68,31 @@ bool ENMLConverter::htmlToNoteContent(const QString & html, Note & note, QString
 
         if (reader.isStartElement())
         {
+            QString name = reader.name().toString();
+            if (name == "body") {
+                name = "en-note";
+                QNTRACE("Replaced \"body\" XHTML element with \"en-note\"");
+            }
+
+            auto tagIt = m_forbiddenXhtmlTags.find(name);
+            if (tagIt != m_forbiddenXhtmlTags.end()) {
+                QNTRACE("Skipping forbidden XHTML tag: " << name);
+                continue;
+            }
+
+            tagIt = m_allowedXhtmlTags.find(name);
+            if (tagIt == m_allowedXhtmlTags.end()) {
+                QNTRACE("Haven't found tag " << name << " within the list of allowed XHTML tags, skipping it");
+                continue;
+            }
+
+            if (name == "img")
+            {
+                // TODO: figure out if it is checkbox or media resource or encrypted text,
+                // process it accordingly (specifically, unlike any other nodes)
+                continue;
+            }
+
             QXmlStreamAttributes attributes = reader.attributes();
 
             // Erasing the forbidden attributes
@@ -81,9 +109,8 @@ bool ENMLConverter::htmlToNoteContent(const QString & html, Note & note, QString
             }
 
             const QStringRef namespaceUri = reader.namespaceUri();
-            const QStringRef name = reader.name();
 
-            writer.writeStartElement(namespaceUri.toString(), name.toString());
+            writer.writeStartElement(namespaceUri.toString(), name);
             writer.writeAttributes(attributes);
             QNTRACE("Wrote element: namespaceUri = " << namespaceUri << ", name = " << name << " and its attributes");
         }
