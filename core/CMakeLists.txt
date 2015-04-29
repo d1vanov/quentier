@@ -49,6 +49,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/data/SavedSearchData.h
     src/client/types/data/UserWrapperData.h
     src/client/enml/ENMLConverter.h
+    src/client/enml/HTMLCleaner.h
     src/client/local_storage/ILocalStorageCacheExpiryChecker.h
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
@@ -74,7 +75,6 @@ set(${PROJECT_NAME}_HEADERS
     src/tools/DesktopServices.h
     src/tools/EmptyDataElementException.h
     src/tools/EventLoopWithExitStatus.h
-    src/tools/HTMLCleaner.h
     src/tools/IQuteNoteException.h
     src/tools/Linkage.h
     src/tools/SysInfo.h
@@ -123,6 +123,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/data/SavedSearchData.cpp
     src/client/types/data/UserWrapperData.cpp
     src/client/enml/ENMLConverter.cpp
+    src/client/enml/HTMLCleaner.cpp
     src/client/local_storage/ILocalStorageCacheExpiryChecker.cpp
     src/client/local_storage/DatabaseOpeningException.cpp
     src/client/local_storage/DatabaseSqlErrorException.cpp
@@ -147,7 +148,6 @@ set(${PROJECT_NAME}_SOURCES
     src/tools/DesktopServices.cpp
     src/tools/EmptyDataElementException.cpp
     src/tools/EventLoopWithExitStatus.cpp
-    src/tools/HTMLCleaner.cpp
     src/tools/IQuteNoteException.cpp
     src/tools/Printable.cpp
     src/tools/QuteNoteApplication.cpp

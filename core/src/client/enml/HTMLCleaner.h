@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__TOOLS__HTML_CLEANER_H
 #define __QUTE_NOTE__CORE__TOOLS__HTML_CLEANER_H
 
-#include "qt4helper.h"
+#include <tools/qt4helper.h>
 #include <QString>
 
 namespace qute_note {
