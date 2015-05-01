@@ -20,8 +20,7 @@ using namespace qevercloud;
 
 QuteNoteTextEdit::QuteNoteTextEdit(QWidget * parent) :
     QTextEdit(parent),
-    m_droppedImageCounter(0),
-    m_converter()
+    m_droppedImageCounter(0)
 {}
 
 QuteNoteTextEdit::~QuteNoteTextEdit()
@@ -412,11 +411,6 @@ void QuteNoteTextEdit::mergeFormatOnWordOrSelection(const QTextCharFormat & form
     QTextEdit::mergeCurrentCharFormat(format);
 
     cursor.endEditBlock();
-}
-
-bool QuteNoteTextEdit::noteRichTextToENML(QString & ENML, QString & errorDescription) const
-{
-    return m_converter.richTextToNoteContent(*this, ENML, errorDescription);
 }
 
 void QuteNoteTextEdit::insertCheckedToDoCheckboxAtCursor(QTextCursor cursor)

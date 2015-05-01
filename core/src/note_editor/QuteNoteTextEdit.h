@@ -3,7 +3,6 @@
 
 #include <tools/Linkage.h>
 #include <tools/qt4helper.h>
-#include <client/enml/ENMLConverter.h>
 #include <QTextEdit>
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
@@ -35,8 +34,6 @@ public:
     void changeIndentation(const bool increase);
     void mergeFormatOnWordOrSelection(const QTextCharFormat & format);
 
-    bool noteRichTextToENML(QString & ENML, QString & errorDescription) const;
-
     void insertCheckedToDoCheckboxAtCursor(QTextCursor cursor);
     void insertUncheckedToDoCheckboxAtCursor(QTextCursor cursor);
 
@@ -62,7 +59,6 @@ private Q_SLOTS:
 
 private:
     mutable size_t    m_droppedImageCounter;
-    qute_note::ENMLConverter  m_converter;
 };
 
 #endif // __QUTE_NOTE__CORE__NOTE_EDITOR__QUTE_NOTE_TEXT_EDIT_H

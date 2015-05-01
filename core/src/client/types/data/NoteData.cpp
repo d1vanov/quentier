@@ -404,10 +404,9 @@ QString NoteData::plainText(QString * errorMessage) const
         return QString();
     }
 
-    ENMLConverter converter;
     QString error;
-    bool res = converter.noteContentToPlainText(m_qecNote.content.ref(),
-                                                m_lazyPlainText, error);
+    bool res = ENMLConverter::noteContentToPlainText(m_qecNote.content.ref(),
+                                                     m_lazyPlainText, error);
     if (!res) {
         QNWARNING(error);
         if (errorMessage) {
@@ -439,11 +438,10 @@ QStringList NoteData::listOfWords(QString * errorMessage) const
     // If still not returned, there's no plain text available so will get the list of words
     // from Note's content instead
 
-    ENMLConverter converter;
     QString error;
-    bool res = converter.noteContentToListOfWords(m_qecNote.content.ref(),
-                                                  m_lazyListOfWords,
-                                                  error, &m_lazyPlainText);
+    bool res = ENMLConverter::noteContentToListOfWords(m_qecNote.content.ref(),
+                                                       m_lazyListOfWords,
+                                                       error, &m_lazyPlainText);
     if (!res) {
         QNWARNING(error);
         if (errorMessage) {
