@@ -50,8 +50,7 @@ endif()
 
 set(RESOURCES
     resource/icons.qrc
-    resource/enc_data.qrc
-    resource/enml.qrc)
+    resource/enc_data.qrc)
 
 if(USE_QT5)
   qt5_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})

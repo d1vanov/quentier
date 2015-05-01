@@ -49,6 +49,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/data/SavedSearchData.h
     src/client/types/data/UserWrapperData.h
     src/client/enml/ENMLConverter.h
+    src/client/enml/ENMLConverter_p.h
     src/client/enml/HTMLCleaner.h
     src/client/local_storage/ILocalStorageCacheExpiryChecker.h
     src/client/local_storage/DatabaseOpeningException.h
@@ -123,6 +124,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/data/SavedSearchData.cpp
     src/client/types/data/UserWrapperData.cpp
     src/client/enml/ENMLConverter.cpp
+    src/client/enml/ENMLConverter_p.cpp
     src/client/enml/HTMLCleaner.cpp
     src/client/local_storage/ILocalStorageCacheExpiryChecker.cpp
     src/client/local_storage/DatabaseOpeningException.cpp
@@ -166,7 +168,8 @@ set(RESOURCES
     src/note_editor/checkbox_icons.qrc
     src/note_editor/jquery.qrc
     src/note_editor/colResizable.qrc
-    src/note_editor/javascript/scripts.qrc)
+    src/note_editor/javascript/scripts.qrc
+    src/client/enml/enml.qrc)
 
 if(USE_QT5)
   qt5_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
