@@ -11,8 +11,8 @@ class HTMLCleaner::Impl
 {
 public:
     Impl() :
-        m_tidyOutput({0}),
-        m_tidyErrorBuffer({0}),
+        m_tidyOutput(),
+        m_tidyErrorBuffer(),
         m_tidyDoc(tidyCreate())
     {}
 
