@@ -431,7 +431,11 @@ bool ENMLConverterPrivate::validateEnml(const QString & enml, QString & errorDes
 {
     errorDescription.clear();
 
+#if QT_VERSION >= 0x050101
+    QScopedPointer<unsigned char, QScopedPointerArrayDeleter<unsigned char> > str(reinterpret_cast<unsigned char*>(qstrdup(enml.toUtf8().constData())));
+#else
     QScopedPointer<unsigned char, QScopedPointerArrayDeleter<unsigned char> > str(reinterpret_cast<unsigned char*>(qstrdup(enml.toAscii().constData())));
+#endif
 
     xmlDocPtr pDoc = xmlParseDoc(static_cast<unsigned char*>(str.data()));
     if (!pDoc) {
