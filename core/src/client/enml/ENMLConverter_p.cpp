@@ -137,6 +137,8 @@ ENMLConverterPrivate::~ENMLConverterPrivate()
 
 bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, QString & errorDescription) const
 {
+    QNDEBUG("ENMLConverterPrivate::htmlToNoteContent: note local guid = " << note.localGuid());
+
     if (!m_pHtmlCleaner) {
         m_pHtmlCleaner = new HTMLCleaner;
     }
@@ -206,15 +208,23 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                 {
                     const QString srcValue = attributes.value(namespaceUri, "src").toString();
                     if (srcValue == "qrc:/checkbox_icons/checkbox_no.png") {
-                        // TODO: write non-checked checkbox
+                        writer.writeStartElement(namespaceUri, "en-todo");
+                        writer.writeEndElement();
                         continue;
                     }
                     else if (srcValue == "qrc:/checkbox_icons/checkbox_yes.png") {
-                        // TODO: write checked checkbox
+                        writer.writeStartElement(namespaceUri, "en-todo");
+                        writer.writeAttribute("checked", "true");
+                        writer.writeEndElement();
                         continue;
                     }
+                    // TODO: leave room for additional attributes set by plugins
                     else {
-                        // TODO: write image resource info
+                        bool res = writeResourceInfoToEnml(reader, namespaceUri, writer, errorDescription);
+                        if (!res) {
+                            return false;
+                        }
+                        continue;
                     }
                 }
                 else
@@ -224,7 +234,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                     return false;
                 }
             }
-            // TODO: check for other "reserved" tag names for resources, links, etc
+            // TODO: else let plugins process their elements as they see fit
 
             // Erasing the forbidden attributes
             for(QXmlStreamAttributes::iterator it = attributes.begin(); it != attributes.end(); )
@@ -268,12 +278,152 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
     return true;
 }
 
-bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html, QString & errorDescription) const
+bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html, qint32 & lastFreeImageId,
+                                             QString & errorDescription) const
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(html)
-    Q_UNUSED(errorDescription)
+    QNDEBUG("ENMLConverterPrivate::noteContentToHtml: note local guid = " << note.localGuid());
+
+    html.clear();
+    errorDescription.clear();
+    lastFreeImageId = 0;
+
+    if (!note.hasContent()) {
+        return true;
+    }
+
+    QString toDoCheckboxUnchecked, toDoCheckboxChecked;
+    QString noteContent = note.content();
+
+    // Pre-formatting: replace en-todo tags with their html counterparts
+    // 1) Shortened <en-todo/> tags
+    int shortenedUncheckedToDoCheckboxIndex = noteContent.indexOf("<en-todo/>");
+    while(shortenedUncheckedToDoCheckboxIndex >= 0)
+    {
+        if (toDoCheckboxUnchecked.isEmpty()) {
+            toDoCheckboxUnchecked = getToDoCheckboxHtml(/* checked = */ false, lastFreeImageId);
+            ++lastFreeImageId;
+        }
+
+        noteContent.replace(shortenedUncheckedToDoCheckboxIndex, shortenedUncheckedToDoCheckboxIndex + 10, toDoCheckboxUnchecked);
+        shortenedUncheckedToDoCheckboxIndex = noteContent.indexOf("<en-todo/>", shortenedUncheckedToDoCheckboxIndex);
+    }
+
+    // 2) Non-shortened <en-todo> tags, either true or false
+    int toDoCheckboxIndex = noteContent.indexOf("<en-todo");
+    while(toDoCheckboxIndex >= 0)
+    {
+        if (Q_UNLIKELY(noteContent.size() <= toDoCheckboxIndex + 10)) {
+            errorDescription = QT_TR_NOOP("Detected incorrect ENML: ends with <en-todo");
+            return false;
+        }
+
+        // NOTE: use heave protection from arbitrary number of spaces occuring between en-todo tag name, "checked" attribute name keyword, "=" sign and "true/false" attribute value
+        int checkedAttributeIndex = noteContent.indexOf("checked", toDoCheckboxIndex);
+        if (Q_UNLIKELY(checkedAttributeIndex < 0)) {
+            // NOTE: it can't be <en-todo/> as all of those were replaces with img tags above this loop
+            errorDescription = QT_TR_NOOP("Detected incorrect ENML: can't find \"checked\" attribute within en-todo tag");
+            return false;
+        }
+
+        int equalSignIndex = noteContent.indexOf("=", checkedAttributeIndex);
+        if (Q_UNLIKELY(equalSignIndex < 0)) {
+            errorDescription = QT_TR_NOOP("Detected incorrect ENML: can't find \"=\" sign after \"checked\" attribute name within en-todo tag");
+            return false;
+        }
+
+        int tagEndIndex = noteContent.indexOf("/>", equalSignIndex);
+        if (Q_UNLIKELY(tagEndIndex < 0)) {
+            errorDescription = QT_TR_NOOP("Detected incorrect ENML: can't find the end of \"en-todo\" tag");
+            return false;
+        }
+
+        int trueValueIndex = noteContent.indexOf("true", equalSignIndex);
+        if ((trueValueIndex >= 0) && (trueValueIndex < tagEndIndex))
+        {
+            QNTRACE("found \"<en-todo checked=true/>\" tag, will replace it with html equivalent");
+
+            if (toDoCheckboxChecked.isEmpty()) {
+                toDoCheckboxChecked = getToDoCheckboxHtml(/* checked = */ true, lastFreeImageId);
+                ++lastFreeImageId;
+            }
+
+            int replacedLength = tagEndIndex + 2 - toDoCheckboxIndex;
+            noteContent.replace(toDoCheckboxIndex, replacedLength, toDoCheckboxChecked);
+
+            toDoCheckboxIndex = noteContent.indexOf("<en-todo", toDoCheckboxIndex);
+            continue;
+        }
+
+        int falseValueIndex = noteContent.indexOf("false", equalSignIndex);
+        if ((falseValueIndex >= 0) && (falseValueIndex < tagEndIndex))
+        {
+            QNTRACE("found \"<en-todo checked=false/>\" tag, will replace it with html equivalent");
+
+            if (toDoCheckboxUnchecked.isEmpty()) {
+                toDoCheckboxUnchecked = getToDoCheckboxHtml(/* checked = */ false, lastFreeImageId);
+                ++lastFreeImageId;
+            }
+
+            int replacedLength = tagEndIndex + 2 - toDoCheckboxIndex;
+            noteContent.replace(toDoCheckboxIndex, replacedLength, toDoCheckboxUnchecked);
+
+            toDoCheckboxIndex = noteContent.indexOf("<en-todo", toDoCheckboxIndex);
+            continue;
+        }
+
+        toDoCheckboxIndex = noteContent.indexOf("<en-todo", toDoCheckboxIndex);
+    }
+
+    QNTRACE("Pre-formatted ENML (with en-todo tags replaced with html: " << noteContent);
+
+    QXmlStreamReader reader(noteContent);
+
+    QXmlStreamWriter writer(&html);
+    writer.writeStartDocument();
+
+    while(!reader.atEnd())
+    {
+        Q_UNUSED(reader.readNext());
+
+        if (reader.isStartDocument()) {
+            continue;
+        }
+
+        if (reader.isEndDocument()) {
+            writer.writeEndDocument();
+            break;
+        }
+
+        if (reader.isStartElement())
+        {
+            QString name = reader.name().toString();
+            const QString namespaceUri = reader.namespaceUri().toString();
+
+            QXmlStreamAttributes attributes = reader.attributes();
+
+            if (name == "en-note") {
+                QNTRACE("Replacing en-note with \"body\" tag");
+                name = "body";
+            }
+            else if (name == "en-media") {
+                // TODO: process resource
+                continue;
+            }
+            else if (name == "en-crypt") {
+                // TODO: process encrypted text
+                continue;
+            }
+
+            writer.writeStartElement(namespaceUri, name);
+            writer.writeAttributes(attributes);
+            QNTRACE("Write element: namespaceUri = " << namespaceUri << ", name = " << " and its attributes");
+        }
+
+        if (reader.isEndElement()) {
+            writer.writeEndElement();
+        }
+    }
+
     return true;
 }
 
@@ -423,6 +573,27 @@ QStringList ENMLConverterPrivate::plainTextToListOfWords(const QString & plainTe
     return plainText.split(QRegExp("\\W+"), QString::SkipEmptyParts);
 }
 
+QString ENMLConverterPrivate::getToDoCheckboxHtml(const bool checked, const qint32 id)
+{
+    QString imageId = QString::number(id);
+
+    QString html = "<img id=\"";
+    html += imageId;
+    html += "\" src=\"qrc:/checkbox_icons/checkbox_no.png\" style=\"margin:0px 4px\" "
+            "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" "
+            "onclick=\"JavaScript:if(document.getElementById(\\'";
+    html += imageId;
+    html += "\\').src ==\\'qrc:/checkbox_icons/checkbox_no.png\\') "
+            "document.getElementById(\\'";
+    html += imageId;
+    html += "\\').src=\\'qrc:/checkbox_icons/checkbox_yes.png\\'; "
+            "else document.getElementById(\\'";
+    html += imageId;
+    html += "\\').src=\\'qrc:/checkbox_icons/checkbox_no.png\\';\" />";
+
+    return html;
+}
+
 bool ENMLConverterPrivate::isForbiddenXhtmlTag(const QString & tagName)
 {
     auto it = forbiddenXhtmlTags.find(tagName);
@@ -465,6 +636,13 @@ bool ENMLConverterPrivate::isAllowedXhtmlTag(const QString & tagName)
     else {
         return true;
     }
+}
+
+bool ENMLConverterPrivate::writeResourceInfoToEnml(const QXmlStreamReader & reader, const QString & namespaceUri,
+                                                   QXmlStreamWriter & writer, QString & errorDescription) const
+{
+    // TODO: implement
+    return true;
 }
 
 } // namespace qute_note

@@ -4,6 +4,9 @@
 #include <QtGlobal>
 #include <QStringList>
 
+QT_FORWARD_DECLARE_CLASS(QXmlStreamReader)
+QT_FORWARD_DECLARE_CLASS(QXmlStreamWriter)
+
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Note)
@@ -16,7 +19,8 @@ public:
     ~ENMLConverterPrivate();
 
     bool htmlToNoteContent(const QString & html, Note & note, QString & errorDescription) const;
-    bool noteContentToHtml(const Note & note, QString & html, QString & errorDescription) const;
+    bool noteContentToHtml(const Note & note, QString & html, qint32 & lastFreeImageId,
+                           QString & errorDescription) const;
 
     bool validateEnml(const QString & enml, QString & errorDescription) const;
 
@@ -28,11 +32,16 @@ public:
 
     static QStringList plainTextToListOfWords(const QString & plainText);
 
+    static QString getToDoCheckboxHtml(const bool checked, const qint32 id);
+
 private:
     static bool isForbiddenXhtmlTag(const QString & tagName);
     static bool isForbiddenXhtmlAttribute(const QString & attributeName);
     static bool isEvernoteSpecificXhtmlTag(const QString & tagName);
     static bool isAllowedXhtmlTag(const QString & tagName);
+
+    bool writeResourceInfoToEnml(const QXmlStreamReader & reader, const QString & namespaceUri,
+                                 QXmlStreamWriter & writer, QString & errorDescription) const;
 
 private:
     Q_DISABLE_COPY(ENMLConverterPrivate)

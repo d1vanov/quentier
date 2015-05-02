@@ -1,6 +1,7 @@
 #include "NoteEditor.h"
 #include "INoteEditorResourceInserter.h"
 #include "NoteEditorPage.h"
+#include <client/enml/ENMLConverter.h>
 #include <client/types/Note.h>
 #include <logging/QuteNoteLogger.h>
 #include <tools/DesktopServices.h>
@@ -16,9 +17,6 @@
 #include <QImage>
 #include <QDir>
 #include <QMimeData>
-
-#define CHECKBOX_UNCHECKED_FILE_NAME "checkbox_unchecked.png"
-#define CHECKBOX_CHECKED_FILE_NAME "checkbox_checked.png"
 
 namespace qute_note {
 
@@ -203,22 +201,8 @@ void NoteEditor::alignRight()
 
 void NoteEditor::insertToDoCheckbox()
 {
-    QString imageId = QString::number(m_lastFreeId++);
-
-    QString html = "<img id=\"";
-    html += imageId;
-    html += "\" src=\"qrc:/checkbox_icons/checkbox_no.png\" style=\"margin:0px 4px\" "
-            "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" "
-            "onclick=\"JavaScript:if(document.getElementById(\\'";
-    html += imageId;
-    html += "\\').src ==\\'qrc:/checkbox_icons/checkbox_no.png\\') "
-            "document.getElementById(\\'";
-    html += imageId;
-    html += "\\').src=\\'qrc:/checkbox_icons/checkbox_yes.png\\'; "
-            "else document.getElementById(\\'";
-    html += imageId;
-    html += "\\').src=\\'qrc:/checkbox_icons/checkbox_no.png\\';\" />";
-
+    QString html = ENMLConverter::getToDoCheckboxHtml(/* checke = */ false, m_lastFreeId);
+    ++m_lastFreeId;
     execJavascriptCommand("insertHtml", html);
 }
 
