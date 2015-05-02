@@ -148,9 +148,6 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
         return false;
     }
 
-    // TODO: if has "body" open and closing tags, see if it also has "html" tags; if so, remove them;
-    // maybe need to do the same to "frame" tags which tidy seems to like and insert into cleaned up stuff
-
     QXmlStreamReader reader(convertedXml);
 
     QString noteContent;
@@ -174,10 +171,20 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
         if (reader.isStartElement())
         {
             QString name = reader.name().toString();
-            if (name == "body") {
-                name = "en-note";
-                QNTRACE("Replaced \"body\" XHTML element with \"en-note\"");
+            if (name == "form") {
+                QNTRACE("Skipping <form> tag");
+                continue;
             }
+            else if (name == "html") {
+                QNTRACE("Skipping <html> tag");
+                continue;
+            }
+            else if (name == "body") {
+                name = "en-note";
+                QNTRACE("Found \"body\" HTML tag, will replace it with \"en-note\" tag for written ENML");
+            }
+
+            const QString namespaceUri = reader.namespaceUri().toString();
 
             auto tagIt = forbiddenXhtmlTags.find(name);
             if (tagIt != forbiddenXhtmlTags.end()) {
@@ -191,14 +198,33 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                 continue;
             }
 
+            QXmlStreamAttributes attributes = reader.attributes();
+
             if (name == "img")
             {
-                // TODO: figure out if it is checkbox or media resource or encrypted text,
-                // process it accordingly (specifically, unlike any other nodes)
-                continue;
+                if (attributes.hasAttribute(namespaceUri, "src"))
+                {
+                    const QString srcValue = attributes.value(namespaceUri, "src").toString();
+                    if (srcValue == "qrc:/checkbox_icons/checkbox_no.png") {
+                        // TODO: write non-checked checkbox
+                        continue;
+                    }
+                    else if (srcValue == "qrc:/checkbox_icons/checkbox_yes.png") {
+                        // TODO: write checked checkbox
+                        continue;
+                    }
+                    else {
+                        // TODO: write image resource info
+                    }
+                }
+                else
+                {
+                    errorDescription = QT_TR_NOOP("Can't convert note to ENML: found img html tag without src attribute");
+                    QNWARNING(errorDescription << ", html = " << html << ", cleaned up xml = " << convertedXml);
+                    return false;
+                }
             }
-
-            QXmlStreamAttributes attributes = reader.attributes();
+            // TODO: check for other "reserved" tag names for resources, links, etc
 
             // Erasing the forbidden attributes
             for(QXmlStreamAttributes::iterator it = attributes.begin(); it != attributes.end(); )
@@ -213,9 +239,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                 ++it;
             }
 
-            const QStringRef namespaceUri = reader.namespaceUri();
-
-            writer.writeStartElement(namespaceUri.toString(), name);
+            writer.writeStartElement(namespaceUri, name);
             writer.writeAttributes(attributes);
             QNTRACE("Wrote element: namespaceUri = " << namespaceUri << ", name = " << name << " and its attributes");
         }
@@ -442,4 +466,6 @@ bool ENMLConverterPrivate::isAllowedXhtmlTag(const QString & tagName)
         return true;
     }
 }
+
 } // namespace qute_note
+
