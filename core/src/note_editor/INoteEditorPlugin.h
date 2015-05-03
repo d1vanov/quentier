@@ -39,10 +39,17 @@ public:
     virtual QStringList mimeTypes() const = 0;
 
     /**
-     * @brief fileExtensions - the method telling which file extensions of the data the plugin should be able to handle
-     * @return the list of file extensions the plugin supports
+     * @brief fileExtensions - the method telling which file extensions of the data
+     * the plugin should be able to handle mapped to mime types the plugin supports as well
+     * @return the hash of file extensions the plugin supports per mime types the plugin supports
      */
-    virtual QStringList fileExtensions() const = 0;
+    virtual QHash<QString, QStringList> fileExtensions() const = 0;
+
+    /**
+     * @brief name - the method returning the name of the plugin
+     * @return the name of the plugin
+     */
+    virtual QString name() const = 0;
 
     /**
      * @brief description - the optional method

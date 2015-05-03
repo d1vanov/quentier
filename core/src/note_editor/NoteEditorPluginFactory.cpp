@@ -5,13 +5,11 @@ namespace qute_note {
 
 NoteEditorPluginFactory::NoteEditorPluginFactory(QObject * parent) :
     QWebPluginFactory(parent),
-    d_ptr(new NoteEditorPluginFactoryPrivate)
+    d_ptr(new NoteEditorPluginFactoryPrivate(*this, this))
 {}
 
 NoteEditorPluginFactory::~NoteEditorPluginFactory()
-{
-    delete d_ptr;
-}
+{}
 
 NoteEditorPluginFactory::PluginIdentifier NoteEditorPluginFactory::addPlugin(INoteEditorPlugin * plugin,
                                                                              QString & errorDescription,

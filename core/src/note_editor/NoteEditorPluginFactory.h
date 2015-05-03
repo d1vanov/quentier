@@ -15,7 +15,7 @@ class NoteEditorPluginFactory : public QWebPluginFactory
 {
     Q_OBJECT
 public:
-    explicit NoteEditorPluginFactory(QObject * parent = 0);
+    explicit NoteEditorPluginFactory(QObject * parent = nullptr);
     virtual ~NoteEditorPluginFactory();
 
     /**

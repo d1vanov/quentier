@@ -5,10 +5,13 @@
 
 namespace qute_note {
 
-class NoteEditorPluginFactoryPrivate
+class NoteEditorPluginFactoryPrivate: public QObject
 {
+    Q_OBJECT
 public:
-    NoteEditorPluginFactoryPrivate();
+    explicit NoteEditorPluginFactoryPrivate(NoteEditorPluginFactory & factory,
+                                            QObject * parent = nullptr);
+    virtual ~NoteEditorPluginFactoryPrivate();
 
     typedef NoteEditorPluginFactory::PluginIdentifier PluginIdentifier;
 
@@ -24,6 +27,13 @@ public:
                      const QStringList & argumentValues) const;
 
     QList<QWebPluginFactory::Plugin> plugins() const;
+
+private:
+    QHash<PluginIdentifier, INoteEditorPlugin*>     m_plugins;
+    PluginIdentifier                                m_lastFreePluginId;
+
+    NoteEditorPluginFactory * const                 q_ptr;
+    Q_DECLARE_PUBLIC(NoteEditorPluginFactory)
 };
 
 } // namespace qute_note;
