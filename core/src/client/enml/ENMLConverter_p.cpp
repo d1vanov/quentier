@@ -291,92 +291,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html, 
         return true;
     }
 
-    QString toDoCheckboxUnchecked, toDoCheckboxChecked;
-    QString noteContent = note.content();
-
-    // Pre-formatting: replace en-todo tags with their html counterparts
-    // 1) Shortened <en-todo/> tags
-    int shortenedUncheckedToDoCheckboxIndex = noteContent.indexOf("<en-todo/>");
-    while(shortenedUncheckedToDoCheckboxIndex >= 0)
-    {
-        if (toDoCheckboxUnchecked.isEmpty()) {
-            toDoCheckboxUnchecked = getToDoCheckboxHtml(/* checked = */ false, lastFreeImageId);
-            ++lastFreeImageId;
-        }
-
-        noteContent.replace(shortenedUncheckedToDoCheckboxIndex, shortenedUncheckedToDoCheckboxIndex + 10, toDoCheckboxUnchecked);
-        shortenedUncheckedToDoCheckboxIndex = noteContent.indexOf("<en-todo/>", shortenedUncheckedToDoCheckboxIndex);
-    }
-
-    // 2) Non-shortened <en-todo> tags, either true or false
-    int toDoCheckboxIndex = noteContent.indexOf("<en-todo");
-    while(toDoCheckboxIndex >= 0)
-    {
-        if (Q_UNLIKELY(noteContent.size() <= toDoCheckboxIndex + 10)) {
-            errorDescription = QT_TR_NOOP("Detected incorrect ENML: ends with <en-todo");
-            return false;
-        }
-
-        // NOTE: use heave protection from arbitrary number of spaces occuring between en-todo tag name, "checked" attribute name keyword, "=" sign and "true/false" attribute value
-        int checkedAttributeIndex = noteContent.indexOf("checked", toDoCheckboxIndex);
-        if (Q_UNLIKELY(checkedAttributeIndex < 0)) {
-            // NOTE: it can't be <en-todo/> as all of those were replaces with img tags above this loop
-            errorDescription = QT_TR_NOOP("Detected incorrect ENML: can't find \"checked\" attribute within en-todo tag");
-            return false;
-        }
-
-        int equalSignIndex = noteContent.indexOf("=", checkedAttributeIndex);
-        if (Q_UNLIKELY(equalSignIndex < 0)) {
-            errorDescription = QT_TR_NOOP("Detected incorrect ENML: can't find \"=\" sign after \"checked\" attribute name within en-todo tag");
-            return false;
-        }
-
-        int tagEndIndex = noteContent.indexOf("/>", equalSignIndex);
-        if (Q_UNLIKELY(tagEndIndex < 0)) {
-            errorDescription = QT_TR_NOOP("Detected incorrect ENML: can't find the end of \"en-todo\" tag");
-            return false;
-        }
-
-        int trueValueIndex = noteContent.indexOf("true", equalSignIndex);
-        if ((trueValueIndex >= 0) && (trueValueIndex < tagEndIndex))
-        {
-            QNTRACE("found \"<en-todo checked=true/>\" tag, will replace it with html equivalent");
-
-            if (toDoCheckboxChecked.isEmpty()) {
-                toDoCheckboxChecked = getToDoCheckboxHtml(/* checked = */ true, lastFreeImageId);
-                ++lastFreeImageId;
-            }
-
-            int replacedLength = tagEndIndex + 2 - toDoCheckboxIndex;
-            noteContent.replace(toDoCheckboxIndex, replacedLength, toDoCheckboxChecked);
-
-            toDoCheckboxIndex = noteContent.indexOf("<en-todo", toDoCheckboxIndex);
-            continue;
-        }
-
-        int falseValueIndex = noteContent.indexOf("false", equalSignIndex);
-        if ((falseValueIndex >= 0) && (falseValueIndex < tagEndIndex))
-        {
-            QNTRACE("found \"<en-todo checked=false/>\" tag, will replace it with html equivalent");
-
-            if (toDoCheckboxUnchecked.isEmpty()) {
-                toDoCheckboxUnchecked = getToDoCheckboxHtml(/* checked = */ false, lastFreeImageId);
-                ++lastFreeImageId;
-            }
-
-            int replacedLength = tagEndIndex + 2 - toDoCheckboxIndex;
-            noteContent.replace(toDoCheckboxIndex, replacedLength, toDoCheckboxUnchecked);
-
-            toDoCheckboxIndex = noteContent.indexOf("<en-todo", toDoCheckboxIndex);
-            continue;
-        }
-
-        toDoCheckboxIndex = noteContent.indexOf("<en-todo", toDoCheckboxIndex);
-    }
-
-    QNTRACE("Pre-formatted ENML (with en-todo tags replaced with html: " << noteContent);
-
-    QXmlStreamReader reader(noteContent);
+    QXmlStreamReader reader(note.content());
 
     QXmlStreamWriter writer(&html);
     writer.writeStartDocument();
@@ -413,6 +328,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html, 
                 // TODO: process encrypted text
                 continue;
             }
+            // NOTE: do not attempt to process en-todo tags here, it would be done below
 
             writer.writeStartElement(namespaceUri, name);
             writer.writeAttributes(attributes);
@@ -422,6 +338,11 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html, 
         if (reader.isEndElement()) {
             writer.writeEndElement();
         }
+    }
+
+    bool res = convertEnToDoTagsToHtml(html, lastFreeImageId, errorDescription);
+    if (!res) {
+        return false;
     }
 
     return true;
@@ -646,6 +567,104 @@ bool ENMLConverterPrivate::writeResourceInfoToEnml(const QXmlStreamReader & read
                                                    QXmlStreamWriter & writer, QString & errorDescription) const
 {
     // TODO: implement
+    return true;
+}
+
+bool ENMLConverterPrivate::convertEnToDoTagsToHtml(QString & html, qint32 & lastFreeImageId, QString & errorDescription) const
+{
+    QString toDoCheckboxUnchecked, toDoCheckboxChecked;
+
+    // Replace en-todo tags with their html counterparts
+    int toDoCheckboxIndex = html.indexOf("<en-todo");
+    while(toDoCheckboxIndex >= 0)
+    {
+        if (Q_UNLIKELY(html.size() <= toDoCheckboxIndex + 10)) {
+            errorDescription = QT_TR_NOOP("Detected incorrect html: ends with <en-todo");
+            return false;
+        }
+
+        int tagEndIndex = html.indexOf("/>", toDoCheckboxIndex + 8);
+        if (Q_UNLIKELY(tagEndIndex < 0)) {
+            errorDescription = QT_TR_NOOP("Detected incorrect html: can't find the end of \"en-todo\" tag");
+            return false;
+        }
+
+        // Need to check whether this en-todo tag is shortened i.e. if there are either nothing or only spaces between html[toDoCheckboxIndex+8] and html[tagEndIndex]
+        int enToDoTagMiddleLength = tagEndIndex - toDoCheckboxIndex - 8;
+        QString enToDoTagMiddle = html.mid(toDoCheckboxIndex + 8, enToDoTagMiddleLength);
+        if (enToDoTagMiddle.simplified().isEmpty())
+        {
+            QNTRACE("Encountered shortened en-todo tag, will replace it with corresponding html");
+            if (toDoCheckboxUnchecked.isEmpty()) {
+                toDoCheckboxUnchecked = getToDoCheckboxHtml(/* checked = */ false, lastFreeImageId);
+                ++lastFreeImageId;
+            }
+
+            html.replace(toDoCheckboxIndex, tagEndIndex + 2 - toDoCheckboxIndex, toDoCheckboxUnchecked);
+
+            toDoCheckboxIndex = html.indexOf("<en-todo", toDoCheckboxIndex);
+            continue;
+        }
+
+        QNTRACE("Encountered non-shortened en-todo tag");
+
+        // NOTE: use heave protection from arbitrary number of spaces occuring between en-todo tag name, "checked" attribute name keyword, "=" sign and "true/false" attribute value
+        int checkedAttributeIndex = html.indexOf("checked", toDoCheckboxIndex);
+        if (Q_UNLIKELY(checkedAttributeIndex < 0)) {
+            // NOTE: it can't be <en-todo/> as all of those were replaces with img tags above this loop
+            errorDescription = QT_TR_NOOP("Detected incorrect html: can't find \"checked\" attribute within en-todo tag");
+            return false;
+        }
+
+        int equalSignIndex = html.indexOf("=", checkedAttributeIndex);
+        if (Q_UNLIKELY(equalSignIndex < 0)) {
+            errorDescription = QT_TR_NOOP("Detected incorrect html: can't find \"=\" sign after \"checked\" attribute name within en-todo tag");
+            return false;
+        }
+
+        tagEndIndex = html.indexOf("/>", equalSignIndex);
+        if (Q_UNLIKELY(tagEndIndex < 0)) {
+            errorDescription = QT_TR_NOOP("Detected incorrect html: can't find the end of \"en-todo\" tag");
+            return false;
+        }
+
+        int trueValueIndex = html.indexOf("true", equalSignIndex);
+        if ((trueValueIndex >= 0) && (trueValueIndex < tagEndIndex))
+        {
+            QNTRACE("found \"<en-todo checked=true/>\" tag, will replace it with html equivalent");
+
+            if (toDoCheckboxChecked.isEmpty()) {
+                toDoCheckboxChecked = getToDoCheckboxHtml(/* checked = */ true, lastFreeImageId);
+                ++lastFreeImageId;
+            }
+
+            int replacedLength = tagEndIndex + 2 - toDoCheckboxIndex;
+            html.replace(toDoCheckboxIndex, replacedLength, toDoCheckboxChecked);
+
+            toDoCheckboxIndex = html.indexOf("<en-todo", toDoCheckboxIndex);
+            continue;
+        }
+
+        int falseValueIndex = html.indexOf("false", equalSignIndex);
+        if ((falseValueIndex >= 0) && (falseValueIndex < tagEndIndex))
+        {
+            QNTRACE("found \"<en-todo checked=false/>\" tag, will replace it with html equivalent");
+
+            if (toDoCheckboxUnchecked.isEmpty()) {
+                toDoCheckboxUnchecked = getToDoCheckboxHtml(/* checked = */ false, lastFreeImageId);
+                ++lastFreeImageId;
+            }
+
+            int replacedLength = tagEndIndex + 2 - toDoCheckboxIndex;
+            html.replace(toDoCheckboxIndex, replacedLength, toDoCheckboxUnchecked);
+
+            toDoCheckboxIndex = html.indexOf("<en-todo", toDoCheckboxIndex);
+            continue;
+        }
+
+        toDoCheckboxIndex = html.indexOf("<en-todo", toDoCheckboxIndex);
+    }
+
     return true;
 }
 

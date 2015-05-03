@@ -43,6 +43,8 @@ private:
     bool writeResourceInfoToEnml(const QXmlStreamReader & reader, const QString & namespaceUri,
                                  QXmlStreamWriter & writer, QString & errorDescription) const;
 
+    bool convertEnToDoTagsToHtml(QString & html, qint32 & lastFreeImageId, QString & errorDescription) const;
+
 private:
     Q_DISABLE_COPY(ENMLConverterPrivate)
 
