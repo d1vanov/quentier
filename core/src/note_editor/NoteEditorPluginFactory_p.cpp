@@ -109,11 +109,32 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
                                                  const QStringList & argumentNames,
                                                  const QStringList & argumentValues) const
 {
-    // TODO: implement
-    Q_UNUSED(mimeType)
-    Q_UNUSED(url)
-    Q_UNUSED(argumentNames)
-    Q_UNUSED(argumentValues)
+    QNDEBUG("NoteEditorPluginFactoryPrivate::create: mimeType = " << mimeType
+            << ", url = " << url.toString() << ", argument names: " << argumentNames.join(", ")
+            << ", argument values: " << argumentValues.join(", "));
+
+    if (m_plugins.isEmpty()) {
+        // TODO return generic plugin
+        return nullptr;
+    }
+
+    // Need to loop through installed plugins considering the last installed plugins first
+    // Sadly, Qt doesn't support proper reverse iterators for its own containers without STL compatibility so will emulate them
+    auto pluginsBegin = m_plugins.begin();
+    auto pluginsLast = m_plugins.end();
+    --pluginsLast;
+    for(auto it = pluginsLast; it != pluginsBegin; --it)
+    {
+        const INoteEditorPlugin * plugin = it.value();
+
+        const QStringList mimeTypes = plugin->mimeTypes();
+        if (mimeTypes.contains(mimeType)) {
+            QNTRACE("Will use plugin " << plugin->name());
+            // TODO: use the plugin
+        }
+    }
+
+    // TODO: implement further
     return nullptr;
 }
 
