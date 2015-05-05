@@ -20,7 +20,7 @@
 
 namespace qute_note {
 
-const QString GetApplicationPersistentStoragePath()
+const QString applicationPersistentStoragePath()
 {
 #if QT_VERSION >= 0x050000
     return QStandardPaths::writableLocation(QStandardPaths::DataLocation);
@@ -29,7 +29,7 @@ const QString GetApplicationPersistentStoragePath()
 #endif
 }
 
-const QString GetTemporaryStoragePath()
+const QString applicationTemporaryStoragePath()
 {
 #if QT_VERSION >= 0x50000
     return QStandardPaths::writableLocation(QStandardPaths::TempLocation);
@@ -38,7 +38,7 @@ const QString GetTemporaryStoragePath()
 #endif
 }
 
-QStyle * GetApplicationStyle()
+QStyle * applicationStyle()
 {
     QStyle * appStyle = QApplication::style();
     if (appStyle) {
@@ -66,6 +66,27 @@ QStyle * GetApplicationStyle()
 
     const QString & firstStyle = styleNames.first();
     return QStyleFactory::create(firstStyle);
+}
+
+const QString humanReadableFileSize(const qint64 bytes)
+{
+    QStringList list;
+    list << "Kb" << "Mb" << "Gb" << "Tb";
+
+    QStringListIterator it(list);
+    QString unit("bytes");
+
+    double num = static_cast<double>(bytes);
+    while(num >= 1024.0 && it.hasNext()) {
+        unit = it.next();
+        num /= 1024.0;
+    }
+
+    QString result = QString::number(num, 'f', 2);
+    result += " ";
+    result += unit;
+
+    return result;
 }
 
 } // namespace qute_note

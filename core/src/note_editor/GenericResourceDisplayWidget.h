@@ -4,6 +4,7 @@
 #include <QWidget>
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
+QT_FORWARD_DECLARE_CLASS(QFileInfo)
 
 namespace qute_note {
 
@@ -15,7 +16,10 @@ public:
                                  const QStringList & argumentValues,  QWidget * parent = nullptr);
 
 private:
-    Q_DISABLE_COPY(GenericResourceDisplayWidget);
+    Q_DISABLE_COPY(GenericResourceDisplayWidget)
+
+private:
+    QIcon getIconForFile(const QFileInfo & fileInfo) const;
 };
 
 } // namespace qute_note

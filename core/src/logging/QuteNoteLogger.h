@@ -36,7 +36,7 @@
     Logger & logger = Logger::instance(); \
     logger.setLoggingLevel(InfoLevel); \
     \
-    QString appPersistentStoragePathString = qute_note::GetApplicationPersistentStoragePath(); \
+    QString appPersistentStoragePathString = qute_note::applicationPersistentStoragePath(); \
     QDir appPersistentStoragePathFolder(appPersistentStoragePathString); \
     if (!appPersistentStoragePathFolder.exists()) { \
         if (!appPersistentStoragePathFolder.mkpath(".")) { \

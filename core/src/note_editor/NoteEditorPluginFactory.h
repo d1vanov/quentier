@@ -11,7 +11,7 @@ QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactoryPrivate)
 /**
  * @brief The NoteEditorPluginFactory class allows one to install and uninstall custom plugins to/from NoteEditor
  */
-class NoteEditorPluginFactory : public QWebPluginFactory
+class QUTE_NOTE_EXPORT NoteEditorPluginFactory: public QWebPluginFactory
 {
     Q_OBJECT
 public:

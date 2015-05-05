@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_H
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_H
 
+#include <tools/Linkage.h>
 #include <QWidget>
 #include <QUrl>
 
@@ -11,12 +12,18 @@ namespace qute_note {
  * the display for any custom object embedded inside the note editor,
  * such as embedded pdf viewer, embedded video viewer etc.
  */
-class INoteEditorPlugin: public QWidget
+class QUTE_NOTE_EXPORT INoteEditorPlugin: public QWidget
 {
 protected:
     explicit INoteEditorPlugin(QWidget * parent = nullptr);
 
 public:
+    /**
+     * @brief clone - pure virtual method cloning the current plugin
+     * @return pointer to the new clone of the plugin
+     */
+    virtual INoteEditorPlugin * clone() const = 0;
+
     /**
      * @brief initialize - the method used to initialize the note editor plugin
      * @param mimeType - mime type of the data meant to be displayed by the plugin

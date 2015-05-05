@@ -7,9 +7,10 @@
 
 namespace qute_note {
 
-const QString QUTE_NOTE_EXPORT GetApplicationPersistentStoragePath();
-const QString QUTE_NOTE_EXPORT GetTemporaryStoragePath();
-QUTE_NOTE_EXPORT QStyle * GetApplicationStyle();
+const QString QUTE_NOTE_EXPORT applicationPersistentStoragePath();
+const QString QUTE_NOTE_EXPORT applicationTemporaryStoragePath();
+QUTE_NOTE_EXPORT QStyle * applicationStyle();
+const QString QUTE_NOTE_EXPORT humanReadableFileSize(const qint64 bytes);
 
 } // namespace qute_note
 

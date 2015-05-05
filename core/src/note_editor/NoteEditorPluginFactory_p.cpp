@@ -1,4 +1,5 @@
 #include "NoteEditorPluginFactory_p.h"
+#include "GenericResourceDisplayWidget.h"
 #include <logging/QuteNoteLogger.h>
 
 namespace qute_note {
@@ -114,8 +115,7 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
             << ", argument values: " << argumentValues.join(", "));
 
     if (m_plugins.isEmpty()) {
-        // TODO return generic plugin
-        return nullptr;
+        return new GenericResourceDisplayWidget(mimeType, url, argumentNames, argumentValues);
     }
 
     // Need to loop through installed plugins considering the last installed plugins first
@@ -130,12 +130,13 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
         const QStringList mimeTypes = plugin->mimeTypes();
         if (mimeTypes.contains(mimeType)) {
             QNTRACE("Will use plugin " << plugin->name());
-            // TODO: use the plugin
+            return plugin->clone();
         }
     }
 
-    // TODO: implement further
-    return nullptr;
+    QNTRACE("Haven't found any installed plugin supporting mime type " << mimeType
+            << ", will use generic resource display plugin for that");
+    return new GenericResourceDisplayWidget(mimeType, url, argumentNames, argumentValues);
 }
 
 QList<QWebPluginFactory::Plugin> NoteEditorPluginFactoryPrivate::plugins() const

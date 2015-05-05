@@ -1,12 +1,13 @@
 #ifndef __QUTE_NOTE__CORE__TOOLS__HTML_CLEANER_H
 #define __QUTE_NOTE__CORE__TOOLS__HTML_CLEANER_H
 
+#include <tools/Linkage.h>
 #include <tools/qt4helper.h>
 #include <QString>
 
 namespace qute_note {
 
-class HTMLCleaner
+class QUTE_NOTE_EXPORT HTMLCleaner
 {
 public:
     HTMLCleaner();
