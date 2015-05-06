@@ -57,5 +57,9 @@
         <file>fallback_icons/png/image-x-generic.png</file>
         <file>fallback_icons/png/object-rotate-left.png</file>
         <file>fallback_icons/png/object-rotate-right.png</file>
+        <file>fallback_icons/png/16x16/unknown.png</file>
+        <file>fallback_icons/png/22x22/unknown.png</file>
+        <file>fallback_icons/png/32x32/unknown.png</file>
+        <file>fallback_icons/png/48x48/unknown.png</file>
     </qresource>
 </RCC>

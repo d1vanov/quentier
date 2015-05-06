@@ -115,7 +115,8 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
             << ", argument values: " << argumentValues.join(", "));
 
     if (m_plugins.isEmpty()) {
-        return new GenericResourceDisplayWidget(mimeType, url, argumentNames, argumentValues);
+        // TODO: return generic resource display widget
+        return nullptr;
     }
 
     // Need to loop through installed plugins considering the last installed plugins first
@@ -136,7 +137,8 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
 
     QNTRACE("Haven't found any installed plugin supporting mime type " << mimeType
             << ", will use generic resource display plugin for that");
-    return new GenericResourceDisplayWidget(mimeType, url, argumentNames, argumentValues);
+    // TODO: return generic resource display widget
+    return nullptr;
 }
 
 QList<QWebPluginFactory::Plugin> NoteEditorPluginFactoryPrivate::plugins() const

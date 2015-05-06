@@ -68,7 +68,7 @@ QStyle * applicationStyle()
     return QStyleFactory::create(firstStyle);
 }
 
-const QString humanReadableFileSize(const qint64 bytes)
+const QString humanReadableSize(const qint64 bytes)
 {
     QStringList list;
     list << "Kb" << "Mb" << "Gb" << "Tb";
