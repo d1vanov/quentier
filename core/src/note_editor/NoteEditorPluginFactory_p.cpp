@@ -1,6 +1,10 @@
 #include "NoteEditorPluginFactory_p.h"
 #include "GenericResourceDisplayWidget.h"
 #include <logging/QuteNoteLogger.h>
+#include <client/types/Note.h>
+#include <client/types/ResourceAdapter.h>
+#include <QFileIconProvider>
+#include <QDir>
 
 namespace qute_note {
 
@@ -9,6 +13,10 @@ NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginF
     QObject(parent),
     m_plugins(),
     m_lastFreePluginId(1),
+    m_pCurrentNote(nullptr),
+    m_fallbackResourceIcon(QIcon::fromTheme("unknown")),
+    m_mimeDatabase(),
+    m_resourceIconCache(),
     q_ptr(&factory)
 {}
 
@@ -106,6 +114,17 @@ bool NoteEditorPluginFactoryPrivate::hasPlugin(const NoteEditorPluginFactoryPriv
     return (it != m_plugins.end());
 }
 
+void NoteEditorPluginFactoryPrivate::setNote(const Note & note)
+{
+    QNDEBUG("NoteEditorPluginFactoryPrivate::setNote: change current note to " << (note.hasTitle() ? note.title() : note.ToQString()));
+    m_pCurrentNote = &note;
+}
+
+void NoteEditorPluginFactoryPrivate::setFallbackResourceIcon(const QIcon & icon)
+{
+    m_fallbackResourceIcon = icon;
+}
+
 QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const QUrl & url,
                                                  const QStringList & argumentNames,
                                                  const QStringList & argumentValues) const
@@ -114,31 +133,111 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
             << ", url = " << url.toString() << ", argument names: " << argumentNames.join(", ")
             << ", argument values: " << argumentValues.join(", "));
 
-    if (m_plugins.isEmpty()) {
-        // TODO: return generic resource display widget
+    if (!m_pCurrentNote) {
+        QNFATAL("Can't create note editor plugin for resource display: no note specified");
         return nullptr;
     }
 
-    // Need to loop through installed plugins considering the last installed plugins first
-    // Sadly, Qt doesn't support proper reverse iterators for its own containers without STL compatibility so will emulate them
-    auto pluginsBegin = m_plugins.begin();
-    auto pluginsLast = m_plugins.end();
-    --pluginsLast;
-    for(auto it = pluginsLast; it != pluginsBegin; --it)
-    {
-        const INoteEditorPlugin * plugin = it.value();
+    QList<ResourceAdapter> resourceAdapters = m_pCurrentNote->resourceAdapters();
+    if (resourceAdapters.isEmpty()) {
+        QNFATAL("Can't create note editor plugin for resource display: note has no resources");
+        return nullptr;
+    }
 
-        const QStringList mimeTypes = plugin->mimeTypes();
-        if (mimeTypes.contains(mimeType)) {
-            QNTRACE("Will use plugin " << plugin->name());
-            return plugin->clone();
+    int resourceHashIndex = argumentNames.indexOf("hash");
+    if (resourceHashIndex < 0) {
+        QNFATAL("Can't find resource hash index within argument names when trying to "
+                "create note editor plugin for resource display");
+        return nullptr;
+    }
+
+    QString resourceHash = argumentValues.at(resourceHashIndex);
+    const ResourceAdapter * pCurrentResource = nullptr;
+    const int numResources = resourceAdapters.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceAdapter & resource = resourceAdapters[i];
+        if (!resource.hasDataHash()) {
+            continue;
+        }
+
+        if (resource.dataHash() == resourceHash) {
+            pCurrentResource = &resource;
+            break;
+        }
+    }
+
+    if (!pCurrentResource) {
+        QNFATAL("Can't find resource in note by data hash: " << resourceHash
+                << ", note: " << *m_pCurrentNote);
+        return nullptr;
+    }
+
+    if (!m_plugins.isEmpty())
+    {
+        // Need to loop through installed plugins considering the last installed plugins first
+        // Sadly, Qt doesn't support proper reverse iterators for its own containers without STL compatibility so will emulate them
+        auto pluginsBegin = m_plugins.begin();
+        auto pluginsLast = m_plugins.end();
+        --pluginsLast;
+        for(auto it = pluginsLast; it != pluginsBegin; --it)
+        {
+            const INoteEditorPlugin * plugin = it.value();
+
+            const QStringList mimeTypes = plugin->mimeTypes();
+            if (mimeTypes.contains(mimeType))
+            {
+                QNTRACE("Will use plugin " << plugin->name());
+                INoteEditorPlugin * newPlugin = plugin->clone();
+                QString errorDescription;
+                bool res = newPlugin->initialize(mimeType, url, argumentNames, argumentValues,
+                                                 *pCurrentResource, errorDescription);
+                if (!res) {
+                    QNINFO("Can't initialize note editor plugin " << plugin->name() << ": " << errorDescription);
+                    delete newPlugin;
+                    continue;
+                }
+
+                return newPlugin;
+            }
         }
     }
 
     QNTRACE("Haven't found any installed plugin supporting mime type " << mimeType
             << ", will use generic resource display plugin for that");
-    // TODO: return generic resource display widget
-    return nullptr;
+
+    QString resourceDisplayName;
+    if (pCurrentResource->hasResourceAttributes())
+    {
+        const qevercloud::ResourceAttributes & attributes = pCurrentResource->resourceAttributes();
+        if (attributes.fileName.isSet()) {
+            resourceDisplayName = attributes.fileName;
+        }
+        else if (attributes.sourceURL.isSet()) {
+            resourceDisplayName = attributes.sourceURL;
+        }
+    }
+
+    QString resourceDataSize;
+    if (pCurrentResource->hasDataBody()) {
+        const QByteArray & data = pCurrentResource->dataBody();
+        int bytes = data.size();
+        resourceDataSize = humanReadableSize(bytes);
+    }
+    else if (pCurrentResource->hasAlternateDataBody()) {
+        const QByteArray & data = pCurrentResource->alternateDataBody();
+        int bytes = data.size();
+        resourceDataSize = humanReadableSize(bytes);
+    }
+
+    auto cachedIconIt = m_resourceIconCache.find(mimeType);
+    if (cachedIconIt == m_resourceIconCache.end()) {
+        QIcon resourceIcon = getIconForMimeType(mimeType);
+        cachedIconIt = m_resourceIconCache.insert(mimeType, resourceIcon);
+    }
+
+    return new GenericResourceDisplayWidget(cachedIconIt.value(), resourceDisplayName,
+                                            resourceDataSize, *pCurrentResource);
 }
 
 QList<QWebPluginFactory::Plugin> NoteEditorPluginFactoryPrivate::plugins() const
@@ -175,6 +274,112 @@ QList<QWebPluginFactory::Plugin> NoteEditorPluginFactoryPrivate::plugins() const
     }
 
     return plugins;
+}
+
+QIcon NoteEditorPluginFactoryPrivate::getIconForMimeType(const QString & mimeTypeName) const
+{
+    QNDEBUG("NoteEditorPluginFactoryPrivate::getIconForMimeType: mime type name = " << mimeTypeName);
+
+    QMimeType mimeType = m_mimeDatabase.mimeTypeForName(mimeTypeName);
+    if (!mimeType.isValid()) {
+        QNTRACE("Couldn't find valid mime type object for name/alias " << mimeTypeName
+                << ", will use \"unknown\" icon");
+        return m_fallbackResourceIcon;
+    }
+
+    QString iconName = mimeType.iconName();
+    if (QIcon::hasThemeIcon(iconName)) {
+        QNTRACE("Found icon from theme, name = " << iconName);
+        return QIcon::fromTheme(iconName, m_fallbackResourceIcon);
+    }
+
+    iconName = mimeType.genericIconName();
+    if (QIcon::hasThemeIcon(iconName)) {
+        QNTRACE("Found generic icon from theme, name = " << iconName);
+        return QIcon::fromTheme(iconName, m_fallbackResourceIcon);
+    }
+
+    const QStringList suffixes = mimeType.suffixes();
+    const int numSuffixes = suffixes.size();
+    if (numSuffixes == 0) {
+        QNDEBUG("Can't find any file suffix for mime type " << mimeTypeName
+                << ", will use \"unknown\" icon");
+        return m_fallbackResourceIcon;
+    }
+
+    bool hasNonEmptySuffix = false;
+    for(int i = 0; i < numSuffixes; ++i)
+    {
+        const QString & suffix = suffixes[i];
+        if (suffix.isEmpty()) {
+            QNTRACE("Found empty file suffix within suffixes, skipping it");
+            continue;
+        }
+
+        hasNonEmptySuffix = true;
+        break;
+    }
+
+    if (!hasNonEmptySuffix) {
+        QNDEBUG("All file suffixes for mime type " << mimeTypeName << " are empty, will use \"unknown\" icon");
+        return m_fallbackResourceIcon;
+    }
+
+    QString fakeFilesStoragePath = applicationPersistentStoragePath();
+    fakeFilesStoragePath.append("/fake_files");
+
+    QDir fakeFilesDir(fakeFilesStoragePath);
+    if (!fakeFilesDir.exists())
+    {
+        QNDEBUG("Fake files storage path doesn't exist yet, will attempt to create it");
+        if (!fakeFilesDir.mkpath(fakeFilesStoragePath)) {
+            QNWARNING("Can't create fake files storage path folder");
+            return m_fallbackResourceIcon;
+        }
+    }
+
+    QString filename("fake_file");
+    QFileInfo fileInfo;
+    for(int i = 0; i < numSuffixes; ++i)
+    {
+        const QString & suffix = suffixes[i];
+        if (suffix.isEmpty()) {
+            continue;
+        }
+
+        fileInfo.setFile(fakeFilesDir, filename + "." + suffix);
+        if (fileInfo.exists() && !fileInfo.isFile())
+        {
+            if (!fakeFilesDir.rmpath(fakeFilesStoragePath + "/" + filename + "." + suffix)) {
+                QNWARNING("Can't remove directory " << fileInfo.absolutePath()
+                          << " which should not be here in the first place...");
+                continue;
+            }
+        }
+
+        if (!fileInfo.exists())
+        {
+            QFile fakeFile(fakeFilesStoragePath + "/" + filename + "." + suffix);
+            if (!fakeFile.open(QIODevice::ReadWrite)) {
+                QNWARNING("Can't open file " << fakeFilesStoragePath << "/" << filename
+                          << "." << suffix << " for writing ");
+                continue;
+            }
+        }
+
+        QFileIconProvider fileIconProvider;
+        QIcon icon = fileIconProvider.icon(fileInfo);
+        if (icon.isNull()) {
+            QNTRACE("File icon provider returned null icon for file with suffix " << suffix);
+        }
+
+        QNTRACE("Returning the icon from file icon provider for mime type " << mimeTypeName);
+        return icon;
+    }
+
+    QNTRACE("Couldn't find appropriate icon from either icon theme or fake file with QFileIconProvider, "
+            "using \"unknown\" icon as a last resort");
+    return m_fallbackResourceIcon;
 }
 
 } // namespace qute_note

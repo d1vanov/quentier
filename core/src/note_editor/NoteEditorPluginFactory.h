@@ -6,6 +6,7 @@
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactoryPrivate)
 
 /**
@@ -55,6 +56,24 @@ public:
      * @return true if the plugin is installed, false otherwise
      */
     bool hasPlugin(const PluginIdentifier id) const;
+
+    /**
+     * @brief setNote - note editor plugin factory needs to access certain information from the resources
+     * of current note for which the plugins are created. For that the factory needs to have a const reference
+     * to current note. This method provides such a reference.
+     * @param note - current note to be displayed by note editor with plugins from note editor plugin factory
+     */
+    void setNote(const Note & note);
+
+    /**
+     * @brief setFallbackResourceIcon - note editor plugin factory would create the "generic"
+     * resource display plugin if it finds no "real" plugin installed for given mime type.
+     * This "generic" plugin would try to figure out the best matching icon for given mime type
+     * but it can fail to do so. In such a case the icon specified by this method would be displayed
+     * for the resource with such unidentified mime type
+     * @param icon - icon to be used as a last resort for resources of unidentified mime types
+     */
+    void setFallbackResourceIcon(const QIcon & icon);
 
 private:
     // QWebPluginFactory interface

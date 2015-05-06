@@ -2,6 +2,8 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_FACTORY_PRIVATE_H
 
 #include "NoteEditorPluginFactory.h"
+#include <QMimeDatabase>
+#include <QIcon>
 
 namespace qute_note {
 
@@ -22,6 +24,10 @@ public:
 
     bool hasPlugin(const PluginIdentifier id) const;
 
+    void setNote(const Note & note);
+
+    void setFallbackResourceIcon(const QIcon & icon);
+
     QObject * create(const QString & mimeType, const QUrl & url,
                      const QStringList & argumentNames,
                      const QStringList & argumentValues) const;
@@ -29,8 +35,16 @@ public:
     QList<QWebPluginFactory::Plugin> plugins() const;
 
 private:
+    QIcon getIconForMimeType(const QString & mimeTypeName) const;
+
+private:
     QHash<PluginIdentifier, INoteEditorPlugin*>     m_plugins;
     PluginIdentifier                                m_lastFreePluginId;
+    const Note *                                    m_pCurrentNote;
+    QIcon                                           m_fallbackResourceIcon;
+    QMimeDatabase                                   m_mimeDatabase;
+
+    mutable QHash<QString, QIcon>                   m_resourceIconCache;
 
     NoteEditorPluginFactory * const                 q_ptr;
     Q_DECLARE_PUBLIC(NoteEditorPluginFactory)

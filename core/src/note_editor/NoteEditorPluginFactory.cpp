@@ -32,6 +32,12 @@ bool NoteEditorPluginFactory::hasPlugin(const NoteEditorPluginFactory::PluginIde
     return d->hasPlugin(id);
 }
 
+void NoteEditorPluginFactory::setFallbackResourceIcon(const QIcon & icon)
+{
+    Q_D(NoteEditorPluginFactory);
+    d->setFallbackResourceIcon(icon);
+}
+
 QObject * NoteEditorPluginFactory::create(const QString & mimeType, const QUrl & url,
                                           const QStringList & argumentNames,
                                           const QStringList & argumentValues) const

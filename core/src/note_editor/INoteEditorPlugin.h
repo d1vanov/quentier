@@ -7,6 +7,8 @@
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(IResource)
+
 /**
  * @brief The INoteEditorPlugin class is the interface for any class wishing to implement
  * the display for any custom object embedded inside the note editor,
@@ -29,7 +31,8 @@ public:
      * @param mimeType - mime type of the data meant to be displayed by the plugin
      * @param url - url of the content to be displayed by the plugin
      * @param parameterNames - names of string parameters stored in HTML <object> tag for the plugin
-     * @param parameterValues - values of string parameters stored in HTML <obejct> tag for the plugin
+     * @param parameterValues - values of string parameters stored in HTML <object> tag for the plugin
+     * @param resource - const reference to resource which actually needs to be displayed
      * @param errorDescription - error description in case the plugin can't be initialized properly
      * with this set of parameters
      * @return true if initialization was successful, false otherwise
@@ -37,6 +40,7 @@ public:
     virtual bool initialize(const QString & mimeType, const QUrl & url,
                             const QStringList & parameterNames,
                             const QStringList & parameterValues,
+                            const IResource & resource,
                             QString & errorDescription) = 0;
 
     /**

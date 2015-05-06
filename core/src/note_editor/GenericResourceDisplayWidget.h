@@ -2,7 +2,6 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__GENERIC_RESOURCE_DISPLAY_WIDGET_H
 
 #include <QWidget>
-#include <QCache>
 
 QT_FORWARD_DECLARE_CLASS(QMimeDatabase)
 
@@ -14,14 +13,12 @@ class GenericResourceDisplayWidget: public QWidget
 {
     Q_OBJECT
 public:
-    GenericResourceDisplayWidget(const IResource & resource, const QMimeDatabase & mimeDatabase,
-                                 QCache<QString, QIcon> & iconCache, QWidget * parent = nullptr);
+    GenericResourceDisplayWidget(const QIcon & icon, const QString & name,
+                                 const QString & size, const IResource & resource,
+                                 QWidget * parent = nullptr);
 
 private:
     Q_DISABLE_COPY(GenericResourceDisplayWidget)
-
-private:
-    QIcon getIconForMimeType(const QString & mimeTypeName, const QMimeDatabase & mimeDatabase) const;
 
 private:
     const IResource *     m_resource;
