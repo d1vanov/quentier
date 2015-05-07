@@ -1,4 +1,5 @@
 #include "GenericResourceDisplayWidget.h"
+#include "ui_GenericResourceDisplayWidget.h"
 #include <client/types/IResource.h>
 #include <logging/QuteNoteLogger.h>
 #include <QHBoxLayout>
@@ -17,6 +18,7 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
                                                            const IResource & resource,
                                                            QWidget * parent) :
     QWidget(parent),
+    m_pUI(new Ui::GenericResourceDisplayWidget),
     m_resource(&resource),
     m_preferredFileSuffixes(preferredFileSuffixes),
     m_mimeTypeName(mimeTypeName)
@@ -25,43 +27,28 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
             << ", size = " << size);
     QNTRACE("Resource: " << resource);
 
-    QLabel * resourceNameLabel = new QLabel(this);
-    resourceNameLabel->setText("<html><head/><body><p><span style=\" font-size:14pt; font-weight:600;\">" + name +
-                               "</span></p></body></head></html>");
-    resourceNameLabel->setTextFormat(Qt::RichText);
+    m_pUI->setupUi(this);
 
-    QLabel * resourceSizeLabel = new QLabel(this);
-    resourceSizeLabel->setText("<html><head/><body><p><span style=\" font-size:12pt; font-weight:600;\">" + size +
-                               "</span></p></body></head></html>");
-    resourceSizeLabel->setTextFormat(Qt::RichText);
+    m_pUI->resourceDisplayNameLabel->setText("<html><head/><body><p><span style=\" font-size:14pt; font-weight:600;\">" +
+                                             name + "</span></p></body></head></html>");
+    m_pUI->resourceDisplayNameLabel->setTextFormat(Qt::RichText);
 
-    QVBoxLayout * labelsLayout = new QVBoxLayout(this);
-    labelsLayout->addWidget(resourceNameLabel);
-    labelsLayout->addWidget(resourceSizeLabel);
+    m_pUI->resourceSizeLabel->setText("<html><head/><body><p><span style=\" font-size:12pt; font-weight:600;\">" + size +
+                                      "</span></p></body></head></html>");
+    m_pUI->resourceSizeLabel->setTextFormat(Qt::RichText);
 
-    QLabel * resourceIconLabel = new QLabel(this);
-    resourceIconLabel->setPixmap(icon.pixmap(QSize(32,32)));
+    m_pUI->resourceIconLabel->setPixmap(icon.pixmap(QSize(32,32)));
 
-    QIcon openWithIcon = QIcon::fromTheme("document-open", QIcon(":/generic_resource_icons/png/open_with.png"));
-    QPushButton * openWithButton = new QPushButton(this);
-    openWithButton->setFlat(true);
-    openWithButton->setIcon(openWithIcon);
-    QObject::connect(openWithButton, SIGNAL(released()), this, SLOT(onOpenWithButtonPressed()));
+    if (!QIcon::hasThemeIcon("document-open")) {
+        m_pUI->openResourceButton->setIcon(QIcon(":/generic_resource_icons/png/open_with.png"));
+    }
 
-    QIcon saveIcon = QIcon::fromTheme("document-save-as", QIcon(":/generic_resource_icons/png/save.png"));
-    QPushButton * saveAsButton = new QPushButton(this);
-    saveAsButton->setFlat(true);
-    saveAsButton->setIcon(saveIcon);
-    QObject::connect(saveAsButton, SIGNAL(released()), this, SLOT(onSaveAsButtonPressed()));
+    if (!QIcon::hasThemeIcon("document-save-as")) {
+        m_pUI->saveResourceButton->setIcon(QIcon(":/generic_resource_icons/png/save.png"));
+    }
 
-    QHBoxLayout * horizontalLayout = new QHBoxLayout(this);
-    horizontalLayout->addWidget(resourceIconLabel);
-    horizontalLayout->addLayout(labelsLayout);
-    horizontalLayout->addWidget(openWithButton);
-    horizontalLayout->addWidget(saveAsButton);
-    horizontalLayout->setAlignment(Qt::AlignCenter);
-
-    setLayout(horizontalLayout);
+    QObject::connect(m_pUI->openResourceButton, SIGNAL(released()), this, SLOT(onOpenWithButtonPressed()));
+    QObject::connect(m_pUI->saveResourceButton, SIGNAL(released()), this, SLOT(onSaveAsButtonPressed()));
 }
 
 void GenericResourceDisplayWidget::onOpenWithButtonPressed()

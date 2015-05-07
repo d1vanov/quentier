@@ -185,10 +185,20 @@ else()
   qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 endif()
 
+set(FORMS
+    src/note_editor/GenericResourceDisplayWidget.ui)
+
+if(USE_QT5)
+  qt5_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
+else()
+  qt4_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
+endif()
+
 add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_HEADERS}
             ${${PROJECT_NAME}_SOURCES}
-            ${${PROJECT_NAME}_RESOURCES_RCC})
+            ${${PROJECT_NAME}_RESOURCES_RCC}
+            ${${PROJECT_NAME}_FORMS_HEADERS})
 
 if(USE_QT5)
   qt5_use_modules(${PROJECT_NAME} Core)

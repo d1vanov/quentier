@@ -5,6 +5,10 @@
 
 QT_FORWARD_DECLARE_CLASS(QMimeDatabase)
 
+namespace Ui {
+class GenericResourceDisplayWidget;
+}
+
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(IResource)
@@ -27,6 +31,8 @@ private Q_SLOTS:
     void onSaveAsButtonPressed();
 
 private:
+    Ui::GenericResourceDisplayWidget *  m_pUI;
+
     const IResource *       m_resource;
     const QStringList       m_preferredFileSuffixes;
     const QString           m_mimeTypeName;
