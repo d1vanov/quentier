@@ -172,10 +172,10 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 endif()
 
 set(RESOURCES
-    src/note_editor/checkbox_icons.qrc
-    src/note_editor/jquery.qrc
-    src/note_editor/colResizable.qrc
-    src/note_editor/javascript/scripts.qrc
+    src/note_editor/icons/checkbox_icons/checkbox_icons.qrc
+    src/note_editor/javascript/jquery/jquery.qrc
+    src/note_editor/javascript/colResizable/colResizable.qrc
+    src/note_editor/javascript/scripts/scripts.qrc
     src/client/enml/enml.qrc)
 
 if(USE_QT5)

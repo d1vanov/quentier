@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>colResizable-1.5.min.js</file>
+    </qresource>
+</RCC>
