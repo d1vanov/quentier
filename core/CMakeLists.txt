@@ -173,6 +173,7 @@ endif()
 
 set(RESOURCES
     src/note_editor/icons/checkbox_icons/checkbox_icons.qrc
+    src/note_editor/icons/generic_resource_icons/generic_resource_icons.qrc
     src/note_editor/javascript/jquery/jquery.qrc
     src/note_editor/javascript/colResizable/colResizable.qrc
     src/note_editor/javascript/scripts/scripts.qrc

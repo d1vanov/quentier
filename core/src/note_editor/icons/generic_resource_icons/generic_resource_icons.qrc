@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/generic_resource_icons">
+        <file>png/open_with.png</file>
+        <file>png/save.png</file>
+    </qresource>
+</RCC>

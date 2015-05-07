@@ -17,6 +17,7 @@ NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginF
     m_fallbackResourceIcon(QIcon::fromTheme("unknown")),
     m_mimeDatabase(),
     m_resourceIconCache(),
+    m_fileSuffixesCache(),
     q_ptr(&factory)
 {}
 
@@ -236,8 +237,16 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
         cachedIconIt = m_resourceIconCache.insert(mimeType, resourceIcon);
     }
 
+    QStringList fileSuffixes;
+    auto fileSuffixesIt = m_fileSuffixesCache.find(mimeType);
+    if (fileSuffixesIt == m_fileSuffixesCache.end()) {
+        fileSuffixes = getFileSuffixesForMimeType(mimeType);
+        m_fileSuffixesCache[mimeType] = fileSuffixes;
+    }
+
+    // FIXME: need to convert the mime type to human readable form before passing it on to the generic resource display widget
     return new GenericResourceDisplayWidget(cachedIconIt.value(), resourceDisplayName,
-                                            resourceDataSize, *pCurrentResource);
+                                            resourceDataSize, fileSuffixes, mimeType, *pCurrentResource);
 }
 
 QList<QWebPluginFactory::Plugin> NoteEditorPluginFactoryPrivate::plugins() const
@@ -299,7 +308,16 @@ QIcon NoteEditorPluginFactoryPrivate::getIconForMimeType(const QString & mimeTyp
         return QIcon::fromTheme(iconName, m_fallbackResourceIcon);
     }
 
-    const QStringList suffixes = mimeType.suffixes();
+    QStringList suffixes;
+    auto fileSuffixesIt = m_fileSuffixesCache.find(mimeTypeName);
+    if (fileSuffixesIt == m_fileSuffixesCache.end()) {
+        suffixes = getFileSuffixesForMimeType(mimeTypeName);
+        m_fileSuffixesCache[mimeTypeName] = suffixes;
+    }
+    else {
+        suffixes = fileSuffixesIt.value();
+    }
+
     const int numSuffixes = suffixes.size();
     if (numSuffixes == 0) {
         QNDEBUG("Can't find any file suffix for mime type " << mimeTypeName
@@ -380,6 +398,19 @@ QIcon NoteEditorPluginFactoryPrivate::getIconForMimeType(const QString & mimeTyp
     QNTRACE("Couldn't find appropriate icon from either icon theme or fake file with QFileIconProvider, "
             "using \"unknown\" icon as a last resort");
     return m_fallbackResourceIcon;
+}
+
+QStringList NoteEditorPluginFactoryPrivate::getFileSuffixesForMimeType(const QString & mimeTypeName) const
+{
+    QNDEBUG("NoteEditorPluginFactoryPrivate::getFileSuffixesForMimeType: mime type name = " << mimeTypeName);
+
+    QMimeType mimeType = m_mimeDatabase.mimeTypeForName(mimeTypeName);
+    if (!mimeType.isValid()) {
+        QNTRACE("Couldn't find valid mime type object for name/alias " << mimeTypeName);
+        return QStringList();
+    }
+
+    return mimeType.suffixes();
 }
 
 } // namespace qute_note

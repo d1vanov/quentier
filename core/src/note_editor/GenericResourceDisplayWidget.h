@@ -14,14 +14,22 @@ class GenericResourceDisplayWidget: public QWidget
     Q_OBJECT
 public:
     GenericResourceDisplayWidget(const QIcon & icon, const QString & name,
-                                 const QString & size, const IResource & resource,
+                                 const QString & size, const QStringList & preferredFileSuffixes,
+                                 const QString & mimeTypeName,
+                                 const IResource & resource,
                                  QWidget * parent = nullptr);
 
 private:
     Q_DISABLE_COPY(GenericResourceDisplayWidget)
 
+private Q_SLOTS:
+    void onOpenWithButtonPressed();
+    void onSaveAsButtonPressed();
+
 private:
-    const IResource *     m_resource;
+    const IResource *       m_resource;
+    const QStringList       m_preferredFileSuffixes;
+    const QString           m_mimeTypeName;
 };
 
 } // namespace qute_note
