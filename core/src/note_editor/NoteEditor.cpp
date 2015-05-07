@@ -590,6 +590,8 @@ void NoteEditor::insertImage(const QByteArray & data, const QString & dataHash, 
 void __initNoteEditorResources()
 {
     Q_INIT_RESOURCE(checkbox_icons);
+    Q_INIT_RESOURCE(generic_resource_icons);
     Q_INIT_RESOURCE(jquery);
     Q_INIT_RESOURCE(colResizable);
+    Q_INIT_RESOURCE(scripts);
 }

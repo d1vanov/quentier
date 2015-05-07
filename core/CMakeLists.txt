@@ -80,6 +80,8 @@ set(${PROJECT_NAME}_HEADERS
     src/tools/DesktopServices.h
     src/tools/EmptyDataElementException.h
     src/tools/EventLoopWithExitStatus.h
+    src/tools/FileIOThreadWorker.h
+    src/tools/FileIOThreadWorker_p.h
     src/tools/IQuteNoteException.h
     src/tools/Linkage.h
     src/tools/SysInfo.h
@@ -157,6 +159,8 @@ set(${PROJECT_NAME}_SOURCES
     src/tools/DesktopServices.cpp
     src/tools/EmptyDataElementException.cpp
     src/tools/EventLoopWithExitStatus.cpp
+    src/tools/FileIOThreadWorker.cpp
+    src/tools/FileIOThreadWorker_p.cpp
     src/tools/IQuteNoteException.cpp
     src/tools/Printable.cpp
     src/tools/QuteNoteApplication.cpp

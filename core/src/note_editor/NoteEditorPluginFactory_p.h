@@ -4,8 +4,11 @@
 #include "NoteEditorPluginFactory.h"
 #include <QMimeDatabase>
 #include <QIcon>
+#include <QThread>
 
 namespace qute_note {
+
+QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
 class NoteEditorPluginFactoryPrivate: public QObject
 {
@@ -44,6 +47,9 @@ private:
     const Note *                                    m_pCurrentNote;
     QIcon                                           m_fallbackResourceIcon;
     QMimeDatabase                                   m_mimeDatabase;
+
+    QThread *                                       m_pIOThread;
+    FileIOThreadWorker *                            m_pFileIOThreadWorker;
 
     mutable QHash<QString, QIcon>                   m_resourceIconCache;
     mutable QHash<QString, QStringList>             m_fileSuffixesCache;

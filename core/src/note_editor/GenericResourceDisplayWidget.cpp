@@ -1,5 +1,6 @@
 #include "GenericResourceDisplayWidget.h"
 #include "ui_GenericResourceDisplayWidget.h"
+#include <tools/FileIOThreadWorker.h>
 #include <client/types/IResource.h>
 #include <logging/QuteNoteLogger.h>
 #include <QHBoxLayout>
@@ -16,12 +17,16 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
                                                            const QStringList & preferredFileSuffixes,
                                                            const QString & mimeTypeName,
                                                            const IResource & resource,
+                                                           const FileIOThreadWorker & fileIOThreadWorker,
                                                            QWidget * parent) :
     QWidget(parent),
     m_pUI(new Ui::GenericResourceDisplayWidget),
-    m_resource(&resource),
+    m_pResource(&resource),
+    m_pFileIOThreadWorker(&fileIOThreadWorker),
     m_preferredFileSuffixes(preferredFileSuffixes),
-    m_mimeTypeName(mimeTypeName)
+    m_mimeTypeName(mimeTypeName),
+    m_saveResourceToFileRequestId(),
+    m_writeResourceToTmpFileRequestId()
 {
     QNDEBUG("GenericResourceDisplayWidget::GenericResourceDisplayWidget: name = " << name
             << ", size = " << size);
@@ -49,6 +54,11 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
 
     QObject::connect(m_pUI->openResourceButton, SIGNAL(released()), this, SLOT(onOpenWithButtonPressed()));
     QObject::connect(m_pUI->saveResourceButton, SIGNAL(released()), this, SLOT(onSaveAsButtonPressed()));
+
+    QObject::connect(m_pFileIOThreadWorker, SIGNAL(writeFileRequestProcessed(bool,QString,QUuid)),
+                     this, SLOT(onWriteRequestProcessed(bool,QString,QUuid)));
+    QObject::connect(this, SIGNAL(writeResourceToFile(QString,QByteArray,QUuid)),
+                     m_pFileIOThreadWorker, SLOT(onWriteFileRequest(QString,QByteArray,QUuid)));
 }
 
 void GenericResourceDisplayWidget::onOpenWithButtonPressed()
@@ -64,21 +74,21 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
 {
     QNDEBUG("GenericResourceDisplayWidget::onSaveAsButtonPressed");
 
-    if (!m_resource) {
+    if (!m_pResource) {
         QNFATAL("Can't save resource: internal pointer to resource is null");
         // TODO: probably also need to use message box to notify user of internal error
         return;
     }
 
-    if (!m_resource->hasDataBody() && !m_resource->hasAlternateDataBody()) {
+    if (!m_pResource->hasDataBody() && !m_pResource->hasAlternateDataBody()) {
         QNWARNING("Can't save resource: no data body or alternate data body within the resource");
         // TODO: probably also need to use message box to notify user of internal error
         return;
     }
 
-    const QByteArray & data = (m_resource->hasDataBody()
-                               ? m_resource->dataBody()
-                               : m_resource->alternateDataBody());
+    const QByteArray & data = (m_pResource->hasDataBody()
+                               ? m_pResource->dataBody()
+                               : m_pResource->alternateDataBody());
 
     QString preferredSuffix;
     QString preferredDirectory;
@@ -158,7 +168,6 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
     filter += QObject::tr("All files");
     filter += " (*)";
 
-
     QString fileName = QFileDialog::getSaveFileName(this, QObject::tr("Save as..."),
                                                     preferredDirectory, filter);
     if (fileName.isEmpty()) {
@@ -180,18 +189,29 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
         fileName += "." + preferredSuffix;
     }
 
-    // TODO: consider moving the file write operation to a separate thread to not block the GUI thread
+    m_saveResourceToFileRequestId = QUuid::createUuid();
+    emit writeResourceToFile(fileName, data, m_saveResourceToFileRequestId);
+    QNDEBUG("Sent request to save resource to file, request id = " << m_saveResourceToFileRequestId);
+}
 
-    QFile file(preferredDirectory + "/" + fileName);
-    bool open = file.open(QIODevice::WriteOnly);
-    if (open)
+void GenericResourceDisplayWidget::onWriteRequestProcessed(bool success, QString errorDescription,
+                                                           QUuid requestId)
+{
+    if (requestId == m_saveResourceToFileRequestId)
     {
-        qint64 writtenBytes = file.write(data);
-        if (writtenBytes < data.length()) {
-            QNFATAL("Could not write resource to file properly: the number of bytes "
-                    "written is less than the size of the data");
-            // TODO: probably also need to use message box to notify user of internal error
+        if (success) {
+            QNDEBUG("Successfully saved resource to file, request id = " << requestId);
+            // TODO: perhaps should emit some signal so that main GUI widget can display this info somehow
         }
+        else {
+            QNWARNING("Could not save resource to file: " << errorDescription
+                      << "; request id = " << requestId);
+            // TODO: probably should raise the message box to tell about it
+        }
+    }
+    else if (requestId == m_writeResourceToTmpFileRequestId)
+    {
+        // TODO: implement
     }
 }
 

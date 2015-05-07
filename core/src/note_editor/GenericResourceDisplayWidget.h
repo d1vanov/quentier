@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__GENERIC_RESOURCE_DISPLAY_WIDGET_H
 
 #include <QWidget>
+#include <QUuid>
 
 QT_FORWARD_DECLARE_CLASS(QMimeDatabase)
 
@@ -12,6 +13,7 @@ class GenericResourceDisplayWidget;
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(IResource)
+QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
 class GenericResourceDisplayWidget: public QWidget
 {
@@ -21,21 +23,32 @@ public:
                                  const QString & size, const QStringList & preferredFileSuffixes,
                                  const QString & mimeTypeName,
                                  const IResource & resource,
+                                 const FileIOThreadWorker & fileIOThreadWorker,
                                  QWidget * parent = nullptr);
 
 private:
     Q_DISABLE_COPY(GenericResourceDisplayWidget)
 
+// private signals
+Q_SIGNALS:
+    void writeResourceToFile(QString absoluteFilePath, QByteArray data, QUuid requestId);
+
 private Q_SLOTS:
     void onOpenWithButtonPressed();
     void onSaveAsButtonPressed();
 
+    void onWriteRequestProcessed(bool success, QString errorDescription, QUuid requestId);
+
 private:
     Ui::GenericResourceDisplayWidget *  m_pUI;
 
-    const IResource *       m_resource;
-    const QStringList       m_preferredFileSuffixes;
-    const QString           m_mimeTypeName;
+    const IResource *           m_pResource;
+    const FileIOThreadWorker *  m_pFileIOThreadWorker;
+    const QStringList           m_preferredFileSuffixes;
+    const QString               m_mimeTypeName;
+
+    QUuid                       m_saveResourceToFileRequestId;
+    QUuid                       m_writeResourceToTmpFileRequestId;
 };
 
 } // namespace qute_note

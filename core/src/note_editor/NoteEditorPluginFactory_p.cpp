@@ -1,5 +1,6 @@
 #include "NoteEditorPluginFactory_p.h"
 #include "GenericResourceDisplayWidget.h"
+#include <tools/FileIOThreadWorker.h>
 #include <logging/QuteNoteLogger.h>
 #include <client/types/Note.h>
 #include <client/types/ResourceAdapter.h>
@@ -16,10 +17,15 @@ NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginF
     m_pCurrentNote(nullptr),
     m_fallbackResourceIcon(QIcon::fromTheme("unknown")),
     m_mimeDatabase(),
+    m_pIOThread(new QThread(this)),
+    m_pFileIOThreadWorker(new FileIOThreadWorker(this)),
     m_resourceIconCache(),
     m_fileSuffixesCache(),
     q_ptr(&factory)
-{}
+{
+    m_pIOThread->start(QThread::LowPriority);
+    m_pFileIOThreadWorker->moveToThread(m_pIOThread);
+}
 
 NoteEditorPluginFactoryPrivate::~NoteEditorPluginFactoryPrivate()
 {
@@ -246,7 +252,8 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
 
     // FIXME: need to convert the mime type to human readable form before passing it on to the generic resource display widget
     return new GenericResourceDisplayWidget(cachedIconIt.value(), resourceDisplayName,
-                                            resourceDataSize, fileSuffixes, mimeType, *pCurrentResource);
+                                            resourceDataSize, fileSuffixes, mimeType,
+                                            *pCurrentResource, *m_pFileIOThreadWorker);
 }
 
 QList<QWebPluginFactory::Plugin> NoteEditorPluginFactoryPrivate::plugins() const
