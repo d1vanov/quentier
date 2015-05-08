@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QFileDialog>
 #include <QSettings>
+#include <QDesktopServices>
 
 namespace qute_note {
 
@@ -26,7 +27,9 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
     m_preferredFileSuffixes(preferredFileSuffixes),
     m_mimeTypeName(mimeTypeName),
     m_saveResourceToFileRequestId(),
-    m_writeResourceToTmpFileRequestId()
+    m_saveResourceToOwnFileRequestId(),
+    m_savedResourceToOwnFile(false),
+    m_pendingSaveResourceToOwnFile(false)
 {
     QNDEBUG("GenericResourceDisplayWidget::GenericResourceDisplayWidget: name = " << name
             << ", size = " << size);
@@ -59,15 +62,66 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
                      this, SLOT(onWriteRequestProcessed(bool,QString,QUuid)));
     QObject::connect(this, SIGNAL(writeResourceToFile(QString,QByteArray,QUuid)),
                      m_pFileIOThreadWorker, SLOT(onWriteFileRequest(QString,QByteArray,QUuid)));
+
+    QSettings settings;
+    settings.beginGroup("AttachmentSaveLocations");
+    QString resourceFileStorageLocation = settings.value("OwnFileStorageLocation").toString();
+    if (resourceFileStorageLocation.isEmpty()) {
+        resourceFileStorageLocation = applicationPersistentStoragePath() + "/" + "attachments";
+        settings.setValue("OwnFileStorageLocation", QVariant(resourceFileStorageLocation));
+    }
+
+    QFileInfo resourceFileStorageLocationInfo(resourceFileStorageLocation);
+    QDir resourceFileStorageLocationDir(resourceFileStorageLocation);
+    if (!resourceFileStorageLocationInfo.exists())
+    {
+        bool res = resourceFileStorageLocationDir.mkpath(resourceFileStorageLocation);
+        if (!res) {
+            QNWARNING("Can't create directory for attachment tmp storage location: "
+                      << resourceFileStorageLocation);
+            // TODO: message box with the offer to choose another folder + validate that it's writable before accepting
+            return;
+        }
+    }
+    else if (!resourceFileStorageLocationInfo.isDir())
+    {
+        QNWARNING("Can't figure out where to save the temporary copies of attachments: path "
+                  << resourceFileStorageLocation << " is not a directory");
+        // TODO: message box with the offer to choose another folder + validate that it's writable before accepting
+        return;
+    }
+    else if (resourceFileStorageLocationInfo.isWritable())
+    {
+        QNWARNING("Can't save temporary copies of attachments: the suggested folder is not writable: "
+                  << resourceFileStorageLocation);
+        // TODO: message box with the offer to choose another folder + validate that it's writable before accepting
+        return;
+    }
+
+    m_ownFilePath = resourceFileStorageLocation + "/" + m_pResource->localGuid();
+
+    if (!m_pResource->hasDataBody() && !m_pResource->hasAlternateDataBody()) {
+        QNWARNING("Resource passed to GenericResourceDisplayWidget has no data: " << *m_pResource);
+        return;
+    }
+
+    const QByteArray & data = (m_pResource->hasDataBody()
+                               ? m_pResource->dataBody()
+                               : m_pResource->alternateDataBody());
+
+    emit writeResourceToFile(m_ownFilePath, data, m_saveResourceToOwnFileRequestId);
+    QNTRACE("Emitted request to save the attachment to own file storage location, request id = "
+            << m_saveResourceToOwnFileRequestId);
 }
 
 void GenericResourceDisplayWidget::onOpenWithButtonPressed()
 {
-    // TODO: implement:
-    // 1) check if the attachment file already exists in a special directory
-    // 2) if not, create it there and after that use QDesktopServices::openUrl(QUrl("file://<file path>")); to open it with some app
+    if (m_savedResourceToOwnFile) {
+        openResource();
+        return;
+    }
 
-    // 3) When the file is being created, consider some non-modal mechanism for progress notification
+    setPendingMode(true);
 }
 
 void GenericResourceDisplayWidget::onSaveAsButtonPressed()
@@ -209,10 +263,48 @@ void GenericResourceDisplayWidget::onWriteRequestProcessed(bool success, QString
             // TODO: probably should raise the message box to tell about it
         }
     }
-    else if (requestId == m_writeResourceToTmpFileRequestId)
+    else if (requestId == m_saveResourceToOwnFileRequestId)
     {
-        // TODO: implement
+        if (success)
+        {
+            QNDEBUG("Successfully saved resource to own file, request id = " << requestId);
+            m_savedResourceToOwnFile = true;
+            if (m_pendingSaveResourceToOwnFile) {
+                setPendingMode(false);
+                openResource();
+            }
+        }
+        else
+        {
+            QNWARNING("Could not save resource to own file: " << errorDescription
+                      << "; request id = " << requestId);
+            // TODO: probably should raise the message box to tell about it
+            if (m_pendingSaveResourceToOwnFile) {
+                setPendingMode(false);
+            }
+        }
     }
+    // else it's not ours request reply, skip it
+}
+
+void GenericResourceDisplayWidget::setPendingMode(const bool pendingMode)
+{
+    QNDEBUG("GenericResourceDisplayWidget::setPendingMode: pending mode = "
+            << (pendingMode ? "true" : "false"));
+
+    m_pendingSaveResourceToOwnFile = pendingMode;
+    if (pendingMode) {
+        QApplication::setOverrideCursor(Qt::BusyCursor);
+    }
+    else {
+        QApplication::restoreOverrideCursor();
+    }
+}
+
+void GenericResourceDisplayWidget::openResource()
+{
+    QNDEBUG("GenericResourceDisplayWidget::openResource: " << m_ownFilePath);
+    QDesktopServices::openUrl(QUrl("file://" + m_ownFilePath));
 }
 
 } // namespace qute_note

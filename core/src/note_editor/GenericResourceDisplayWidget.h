@@ -40,6 +40,10 @@ private Q_SLOTS:
     void onWriteRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
 private:
+    void setPendingMode(const bool pendingMode);
+    void openResource();
+
+private:
     Ui::GenericResourceDisplayWidget *  m_pUI;
 
     const IResource *           m_pResource;
@@ -48,7 +52,10 @@ private:
     const QString               m_mimeTypeName;
 
     QUuid                       m_saveResourceToFileRequestId;
-    QUuid                       m_writeResourceToTmpFileRequestId;
+    QUuid                       m_saveResourceToOwnFileRequestId;
+    QString                     m_ownFilePath;
+    bool                        m_savedResourceToOwnFile;
+    bool                        m_pendingSaveResourceToOwnFile;
 };
 
 } // namespace qute_note
