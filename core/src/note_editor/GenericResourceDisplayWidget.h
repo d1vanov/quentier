@@ -42,6 +42,7 @@ private Q_SLOTS:
 private:
     void setPendingMode(const bool pendingMode);
     void openResource();
+    bool checkFileExistsAndUpToDate();
 
 private:
     Ui::GenericResourceDisplayWidget *  m_pUI;
@@ -53,6 +54,8 @@ private:
 
     QUuid                       m_saveResourceToFileRequestId;
     QUuid                       m_saveResourceToOwnFileRequestId;
+    QUuid                       m_saveResourceHashToHelperFileRequestId;
+
     QString                     m_ownFilePath;
     bool                        m_savedResourceToOwnFile;
     bool                        m_pendingSaveResourceToOwnFile;

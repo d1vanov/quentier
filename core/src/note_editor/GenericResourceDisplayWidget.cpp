@@ -100,6 +100,12 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
 
     m_ownFilePath = resourceFileStorageLocation + "/" + m_pResource->localGuid();
 
+    if (checkFileExistsAndUpToDate()) {
+        QNTRACE("Resource file already exists and it up to date, don't need to rewrite it again");
+        m_savedResourceToOwnFile = true;
+        return;
+    }
+
     if (!m_pResource->hasDataBody() && !m_pResource->hasAlternateDataBody()) {
         QNWARNING("Resource passed to GenericResourceDisplayWidget has no data: " << *m_pResource);
         return;
@@ -111,7 +117,21 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
 
     emit writeResourceToFile(m_ownFilePath, data, m_saveResourceToOwnFileRequestId);
     QNTRACE("Emitted request to save the attachment to own file storage location, request id = "
-            << m_saveResourceToOwnFileRequestId);
+            << m_saveResourceToOwnFileRequestId << ", file path = " << m_ownFilePath);
+
+    if (!m_pResource->hasDataHash() && m_pResource->hasAlternateDataHash()) {
+        QNWARNING("Resource has neither data hash nor alternate data hash");
+        // FIXME: calculate the hash right here then, preferably asynchronously
+        return;
+    }
+
+    const QByteArray & hash = (m_pResource->hasDataHash()
+                               ? m_pResource->dataHash()
+                               : m_pResource->alternateDataHash());
+    m_saveResourceHashToHelperFileRequestId = QUuid::createUuid();
+    emit writeResourceToFile(m_ownFilePath + ".hash", hash, m_saveResourceHashToHelperFileRequestId);
+    QNTRACE("Emitted request to save the attachment's hash to own file storage location, request id = "
+            << m_saveResourceHashToHelperFileRequestId << ", file path = " << m_ownFilePath + ".hash");
 }
 
 void GenericResourceDisplayWidget::onOpenWithButtonPressed()
@@ -284,6 +304,17 @@ void GenericResourceDisplayWidget::onWriteRequestProcessed(bool success, QString
             }
         }
     }
+    else if (requestId == m_saveResourceHashToHelperFileRequestId)
+    {
+        if (success) {
+            QNDEBUG("Successfully saved resource's hash to helper file, request id = " << requestId);
+        }
+        else {
+            QNWARNING("Could not save the resource's hash to helper file: " << errorDescription
+                      << "; request id = " << requestId);
+            // TODO: probably should raise the message box to tell about it
+        }
+    }
     // else it's not ours request reply, skip it
 }
 
@@ -305,6 +336,44 @@ void GenericResourceDisplayWidget::openResource()
 {
     QNDEBUG("GenericResourceDisplayWidget::openResource: " << m_ownFilePath);
     QDesktopServices::openUrl(QUrl("file://" + m_ownFilePath));
+}
+
+bool GenericResourceDisplayWidget::checkFileExistsAndUpToDate()
+{
+    QNDEBUG("GenericResourceDisplayWidget::checkFileExistsAndUpToDate");
+
+    if (!m_pResource->hasDataHash() && !m_pResource->hasAlternateDataHash()) {
+        QNWARNING("Resource does not have neither data hash nor alternate data hash");
+        // FIXME: figure out which data to use and calculate the hash (preferably asynchronously)
+        return false;
+    }
+
+    const QByteArray & resourceHash = (m_pResource->hasDataHash()
+                                       ? m_pResource->dataHash()
+                                       : m_pResource->alternateDataHash());
+
+    QFileInfo ownFileInfo(m_ownFilePath);
+    if (!ownFileInfo.exists()) {
+        QNTRACE("Resource's own file does not exist yet: " << m_ownFilePath);
+        return false;
+    }
+
+    QNTRACE("Resource's own file already exists, checking whether it is up to date");
+    QFileInfo ownFileHashInfo(m_ownFilePath + ".hash");
+    if (!ownFileHashInfo.exists()) {
+        QNTRACE("Could not find helper file with precalculated resource's hash");
+        return false;
+    }
+
+    QFile ownFileHash(m_ownFilePath + ".hash");
+    bool open = ownFileHash.open(QIODevice::ReadOnly);
+    if (!open) {
+        QNWARNING("Can't open helper file with precalculated resource's hash");
+        return false;
+    }
+
+    QByteArray hash = ownFileHash.readAll();
+    return (resourceHash == hash);
 }
 
 } // namespace qute_note
