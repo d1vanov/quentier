@@ -21,6 +21,7 @@ NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginF
     m_pFileIOThreadWorker(new FileIOThreadWorker(this)),
     m_resourceIconCache(),
     m_fileSuffixesCache(),
+    m_filterStringsCache(),
     q_ptr(&factory)
 {
     m_pIOThread->start(QThread::LowPriority);
@@ -250,9 +251,15 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
         m_fileSuffixesCache[mimeType] = fileSuffixes;
     }
 
-    // FIXME: need to convert the mime type to human readable form before passing it on to the generic resource display widget
+    QString filterString;
+    auto filterStringIt = m_filterStringsCache.find(mimeType);
+    if (filterStringIt == m_filterStringsCache.end()) {
+        filterString = getFilterStringForMimeType(mimeType);
+        m_filterStringsCache[mimeType] = filterString;
+    }
+
     return new GenericResourceDisplayWidget(cachedIconIt.value(), resourceDisplayName,
-                                            resourceDataSize, fileSuffixes, mimeType,
+                                            resourceDataSize, fileSuffixes, filterString,
                                             *pCurrentResource, *m_pFileIOThreadWorker);
 }
 
@@ -418,6 +425,19 @@ QStringList NoteEditorPluginFactoryPrivate::getFileSuffixesForMimeType(const QSt
     }
 
     return mimeType.suffixes();
+}
+
+QString NoteEditorPluginFactoryPrivate::getFilterStringForMimeType(const QString & mimeTypeName) const
+{
+    QNDEBUG("NoteEditorPluginFactoryPrivate::getFilterStringForMimeType: mime type name = " << mimeTypeName);
+
+    QMimeType mimeType = m_mimeDatabase.mimeTypeForName(mimeTypeName);
+    if (!mimeType.isValid()) {
+        QNTRACE("Couldn't find valid mime type object for name/alias " << mimeTypeName);
+        return QString();
+    }
+
+    return mimeType.filterString();
 }
 
 } // namespace qute_note

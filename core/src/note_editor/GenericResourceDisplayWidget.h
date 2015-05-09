@@ -21,7 +21,7 @@ class GenericResourceDisplayWidget: public QWidget
 public:
     GenericResourceDisplayWidget(const QIcon & icon, const QString & name,
                                  const QString & size, const QStringList & preferredFileSuffixes,
-                                 const QString & mimeTypeName,
+                                 const QString & filterString,
                                  const IResource & resource,
                                  const FileIOThreadWorker & fileIOThreadWorker,
                                  QWidget * parent = nullptr);
@@ -55,7 +55,7 @@ private:
     const IResource *           m_pResource;
     const FileIOThreadWorker *  m_pFileIOThreadWorker;
     const QStringList           m_preferredFileSuffixes;
-    const QString               m_mimeTypeName;
+    const QString               m_filterString;
 
     QUuid                       m_saveResourceToFileRequestId;
     QUuid                       m_saveResourceToOwnFileRequestId;

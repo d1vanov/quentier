@@ -20,7 +20,7 @@ namespace qute_note {
 GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, const QString & name,
                                                            const QString & size,
                                                            const QStringList & preferredFileSuffixes,
-                                                           const QString & mimeTypeName,
+                                                           const QString & filterString,
                                                            const IResource & resource,
                                                            const FileIOThreadWorker & fileIOThreadWorker,
                                                            QWidget * parent) :
@@ -29,7 +29,7 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
     m_pResource(&resource),
     m_pFileIOThreadWorker(&fileIOThreadWorker),
     m_preferredFileSuffixes(preferredFileSuffixes),
-    m_mimeTypeName(mimeTypeName),
+    m_filterString(filterString),
     m_saveResourceToFileRequestId(),
     m_saveResourceToOwnFileRequestId(),
     m_saveResourceHashToHelperFileRequestId(),
@@ -245,37 +245,15 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
         }
     }
 
-    QString filter = m_mimeTypeName + " (*.";
-    filter += preferredSuffix;
-    filter += " ";
-
-    const int numPreferredSuffixes = m_preferredFileSuffixes.size();
-    for(int i = 0; i < numPreferredSuffixes; ++i)
-    {
-        const QString & currentSuffix = m_preferredFileSuffixes[i];
-        if (currentSuffix == preferredSuffix) {
-            continue;
-        }
-
-        filter += "*.";
-        filter += currentSuffix;
-        filter += " ";
-    }
-
-    // Remove the trailing whitespace
-    filter = filter.remove(filter.size()-1, 1);
-    filter += ");;";
-    filter += QObject::tr("All files");
-    filter += " (*)";
-
     QString fileName = QFileDialog::getSaveFileName(this, QObject::tr("Save as..."),
-                                                    preferredDirectory, filter);
+                                                    preferredDirectory, m_filterString);
     if (fileName.isEmpty()) {
         QNINFO("User cancelled writing to file");
         return;
     }
 
     bool foundSuffix = false;
+    const int numPreferredSuffixes = m_preferredFileSuffixes.size();
     for(int i = 0; i < numPreferredSuffixes; ++i)
     {
         const QString & currentSuffix = m_preferredFileSuffixes[i];

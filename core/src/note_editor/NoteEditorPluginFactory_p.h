@@ -40,6 +40,7 @@ public:
 private:
     QIcon getIconForMimeType(const QString & mimeTypeName) const;
     QStringList getFileSuffixesForMimeType(const QString & mimeType) const;
+    QString getFilterStringForMimeType(const QString & mimeType) const;
 
 private:
     QHash<PluginIdentifier, INoteEditorPlugin*>     m_plugins;
@@ -53,6 +54,7 @@ private:
 
     mutable QHash<QString, QIcon>                   m_resourceIconCache;
     mutable QHash<QString, QStringList>             m_fileSuffixesCache;
+    mutable QHash<QString, QString>                 m_filterStringsCache;
 
     NoteEditorPluginFactory * const                 q_ptr;
     Q_DECLARE_PUBLIC(NoteEditorPluginFactory)
