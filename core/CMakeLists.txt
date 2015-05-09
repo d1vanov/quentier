@@ -7,6 +7,7 @@ project(qutenotecore)
 include_directories(${THIRDPARTY_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set(${PROJECT_NAME}_HEADERS
+    src/note_editor/AttachmentStoragePathConfigDialog.h
     src/note_editor/GenericResourceDisplayWidget.h
     src/note_editor/HorizontalLineExtraData.h
     src/note_editor/MediaResourceTextObject.h
@@ -93,6 +94,7 @@ set(${PROJECT_NAME}_HEADERS
     src/tools/qt4helper.h)
 
 set(${PROJECT_NAME}_SOURCES
+    src/note_editor/AttachmentStoragePathConfigDialog.cpp
     src/note_editor/GenericResourceDisplayWidget.cpp
     src/note_editor/HorizontalLineExtraData.cpp
     src/note_editor/QuteNoteTextEdit.cpp
@@ -190,6 +192,7 @@ else()
 endif()
 
 set(FORMS
+    src/note_editor/AttachmentStoragePathConfigDialog.ui
     src/note_editor/GenericResourceDisplayWidget.ui)
 
 if(USE_QT5)

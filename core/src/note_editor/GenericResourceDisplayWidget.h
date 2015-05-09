@@ -7,7 +7,7 @@
 QT_FORWARD_DECLARE_CLASS(QMimeDatabase)
 
 namespace Ui {
-class GenericResourceDisplayWidget;
+QT_FORWARD_DECLARE_CLASS(GenericResourceDisplayWidget)
 }
 
 namespace qute_note {

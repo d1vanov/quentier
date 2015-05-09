@@ -1,5 +1,6 @@
 #include "GenericResourceDisplayWidget.h"
 #include "ui_GenericResourceDisplayWidget.h"
+#include "AttachmentStoragePathConfigDialog.h"
 #include <tools/FileIOThreadWorker.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <tools/DesktopServices.h>
@@ -79,29 +80,45 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
 
     QFileInfo resourceFileStorageLocationInfo(resourceFileStorageLocation);
     QDir resourceFileStorageLocationDir(resourceFileStorageLocation);
+    QString manualPath;
     if (!resourceFileStorageLocationInfo.exists())
     {
         bool res = resourceFileStorageLocationDir.mkpath(resourceFileStorageLocation);
-        if (!res) {
+        if (!res)
+        {
             QNWARNING("Can't create directory for attachment tmp storage location: "
                       << resourceFileStorageLocation);
-            // TODO: message box with the offer to choose another folder + validate that it's writable before accepting
-            return;
+            manualPath = getAttachmentStoragePath(this);
         }
     }
     else if (!resourceFileStorageLocationInfo.isDir())
     {
         QNWARNING("Can't figure out where to save the temporary copies of attachments: path "
                   << resourceFileStorageLocation << " is not a directory");
-        // TODO: message box with the offer to choose another folder + validate that it's writable before accepting
+        manualPath = getAttachmentStoragePath(this);
         return;
     }
     else if (resourceFileStorageLocationInfo.isWritable())
     {
         QNWARNING("Can't save temporary copies of attachments: the suggested folder is not writable: "
                   << resourceFileStorageLocation);
-        // TODO: message box with the offer to choose another folder + validate that it's writable before accepting
+        manualPath = getAttachmentStoragePath(this);
         return;
+    }
+
+    if (!manualPath.isEmpty())
+    {
+        resourceFileStorageLocationInfo.setFile(manualPath);
+        if (!resourceFileStorageLocationInfo.exists() || !resourceFileStorageLocationInfo.isDir() ||
+                !resourceFileStorageLocationInfo.isWritable())
+        {
+            QNWARNING("Can't use manually selected attachment storage path");
+            return;
+        }
+
+        settings.setValue("OwnFileStorageLocation", QVariant(manualPath));
+        resourceFileStorageLocation = manualPath;
+        resourceFileStorageLocationDir.setPath(manualPath);
     }
 
     m_ownFilePath = resourceFileStorageLocation + "/" + m_pResource->localGuid();
