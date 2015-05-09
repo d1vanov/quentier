@@ -29,6 +29,9 @@ public:
 private:
     Q_DISABLE_COPY(GenericResourceDisplayWidget)
 
+Q_SIGNALS:
+    void savedResourceToFile();
+
 // private signals
 Q_SIGNALS:
     void writeResourceToFile(QString absoluteFilePath, QByteArray data, QUuid requestId);
@@ -42,6 +45,8 @@ private Q_SLOTS:
 private:
     void setPendingMode(const bool pendingMode);
     void openResource();
+    void evaluateResourceHash();
+
     bool checkFileExistsAndUpToDate();
 
 private:
@@ -56,6 +61,7 @@ private:
     QUuid                       m_saveResourceToOwnFileRequestId;
     QUuid                       m_saveResourceHashToHelperFileRequestId;
 
+    QByteArray                  m_resourceHash;
     QString                     m_ownFilePath;
     bool                        m_savedResourceToOwnFile;
     bool                        m_pendingSaveResourceToOwnFile;

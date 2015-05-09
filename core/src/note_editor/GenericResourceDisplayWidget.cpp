@@ -1,6 +1,8 @@
 #include "GenericResourceDisplayWidget.h"
 #include "ui_GenericResourceDisplayWidget.h"
 #include <tools/FileIOThreadWorker.h>
+#include <tools/QuteNoteCheckPtr.h>
+#include <tools/DesktopServices.h>
 #include <client/types/IResource.h>
 #include <logging/QuteNoteLogger.h>
 #include <QHBoxLayout>
@@ -10,6 +12,7 @@
 #include <QFileDialog>
 #include <QSettings>
 #include <QDesktopServices>
+#include <QMessageBox>
 
 namespace qute_note {
 
@@ -28,6 +31,9 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
     m_mimeTypeName(mimeTypeName),
     m_saveResourceToFileRequestId(),
     m_saveResourceToOwnFileRequestId(),
+    m_saveResourceHashToHelperFileRequestId(),
+    m_resourceHash(),
+    m_ownFilePath(),
     m_savedResourceToOwnFile(false),
     m_pendingSaveResourceToOwnFile(false)
 {
@@ -101,7 +107,7 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
     m_ownFilePath = resourceFileStorageLocation + "/" + m_pResource->localGuid();
 
     if (checkFileExistsAndUpToDate()) {
-        QNTRACE("Resource file already exists and it up to date, don't need to rewrite it again");
+        QNTRACE("Resource file already exists and is up to date, don't need to rewrite it again");
         m_savedResourceToOwnFile = true;
         return;
     }
@@ -111,6 +117,7 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
         return;
     }
 
+    // Write resource's data to file asynchronously so that it can further be opened in some application
     const QByteArray & data = (m_pResource->hasDataBody()
                                ? m_pResource->dataBody()
                                : m_pResource->alternateDataBody());
@@ -119,19 +126,25 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
     QNTRACE("Emitted request to save the attachment to own file storage location, request id = "
             << m_saveResourceToOwnFileRequestId << ", file path = " << m_ownFilePath);
 
+
+    // Write resource's data hash to file asynchronously so that the up-to-dateness of the file
+    // with resource data can be evaluated later and without re-calculating the hash (can be time consuming
+    // if the file is large)
     if (!m_pResource->hasDataHash() && m_pResource->hasAlternateDataHash()) {
         QNWARNING("Resource has neither data hash nor alternate data hash");
-        // FIXME: calculate the hash right here then, preferably asynchronously
-        return;
+        evaluateResourceHash();
     }
 
     const QByteArray & hash = (m_pResource->hasDataHash()
                                ? m_pResource->dataHash()
-                               : m_pResource->alternateDataHash());
+                               : (m_pResource->hasAlternateDataHash()
+                                  ? m_pResource->alternateDataHash()
+                                  : m_resourceHash));
     m_saveResourceHashToHelperFileRequestId = QUuid::createUuid();
     emit writeResourceToFile(m_ownFilePath + ".hash", hash, m_saveResourceHashToHelperFileRequestId);
     QNTRACE("Emitted request to save the attachment's hash to own file storage location, request id = "
-            << m_saveResourceHashToHelperFileRequestId << ", file path = " << m_ownFilePath + ".hash");
+            << m_saveResourceHashToHelperFileRequestId << ", file path = " << m_ownFilePath + ".hash"
+            << ", hash = " << hash.constData());
 }
 
 void GenericResourceDisplayWidget::onOpenWithButtonPressed()
@@ -148,15 +161,11 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
 {
     QNDEBUG("GenericResourceDisplayWidget::onSaveAsButtonPressed");
 
-    if (!m_pResource) {
-        QNFATAL("Can't save resource: internal pointer to resource is null");
-        // TODO: probably also need to use message box to notify user of internal error
-        return;
-    }
+    QUTE_NOTE_CHECK_PTR(m_pResource);
 
     if (!m_pResource->hasDataBody() && !m_pResource->hasAlternateDataBody()) {
         QNWARNING("Can't save resource: no data body or alternate data body within the resource");
-        // TODO: probably also need to use message box to notify user of internal error
+        internalErrorMessageBox(this, "resource has neither data body nor alternate data body");
         return;
     }
 
@@ -275,12 +284,14 @@ void GenericResourceDisplayWidget::onWriteRequestProcessed(bool success, QString
     {
         if (success) {
             QNDEBUG("Successfully saved resource to file, request id = " << requestId);
-            // TODO: perhaps should emit some signal so that main GUI widget can display this info somehow
+            emit savedResourceToFile();
         }
         else {
             QNWARNING("Could not save resource to file: " << errorDescription
                       << "; request id = " << requestId);
-            // TODO: probably should raise the message box to tell about it
+            warningMessageBox(this, QObject::tr("Error saving the resource to file"),
+                              QObject::tr("Could not save the resource to file"),
+                              errorDescription);
         }
     }
     else if (requestId == m_saveResourceToOwnFileRequestId)
@@ -298,7 +309,10 @@ void GenericResourceDisplayWidget::onWriteRequestProcessed(bool success, QString
         {
             QNWARNING("Could not save resource to own file: " << errorDescription
                       << "; request id = " << requestId);
-            // TODO: probably should raise the message box to tell about it
+            warningMessageBox(this, QObject::tr("Error saving the resource to hidden file"),
+                              QObject::tr("Could not save the resource to hidden file "
+                                          "(in order to make it possible to open it with some application)"),
+                              errorDescription);
             if (m_pendingSaveResourceToOwnFile) {
                 setPendingMode(false);
             }
@@ -312,7 +326,10 @@ void GenericResourceDisplayWidget::onWriteRequestProcessed(bool success, QString
         else {
             QNWARNING("Could not save the resource's hash to helper file: " << errorDescription
                       << "; request id = " << requestId);
-            // TODO: probably should raise the message box to tell about it
+            warningMessageBox(this, QObject::tr("Error saving the resource hash to hidden helper file"),
+                              QObject::tr("Could not save the resource's hash to hidden helper file "
+                                          "(for internal needs of the application)"),
+                              errorDescription);
         }
     }
     // else it's not ours request reply, skip it
@@ -338,19 +355,37 @@ void GenericResourceDisplayWidget::openResource()
     QDesktopServices::openUrl(QUrl("file://" + m_ownFilePath));
 }
 
+void GenericResourceDisplayWidget::evaluateResourceHash()
+{
+    QNDEBUG("GenericResourceDisplayWidget::evaluateResourceHash");
+
+    if (!m_pResource->hasDataBody() && !m_pResource->hasAlternateDataBody()) {
+        QNWARNING("Can't evaluate resource hash: resource has neither data nor alternate data");
+        return;
+    }
+
+    const QByteArray & data = (m_pResource->hasDataBody()
+                               ? m_pResource->dataBody()
+                               : m_pResource->alternateDataBody());
+    m_resourceHash = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
+    QNTRACE("Evaluated resource's hash for " << (m_pResource->hasDataBody() ? "data" : "alternate data")
+            << ": " << m_resourceHash.constData());
+}
+
 bool GenericResourceDisplayWidget::checkFileExistsAndUpToDate()
 {
     QNDEBUG("GenericResourceDisplayWidget::checkFileExistsAndUpToDate");
 
     if (!m_pResource->hasDataHash() && !m_pResource->hasAlternateDataHash()) {
         QNWARNING("Resource does not have neither data hash nor alternate data hash");
-        // FIXME: figure out which data to use and calculate the hash (preferably asynchronously)
-        return false;
+        evaluateResourceHash();
     }
 
     const QByteArray & resourceHash = (m_pResource->hasDataHash()
                                        ? m_pResource->dataHash()
-                                       : m_pResource->alternateDataHash());
+                                       : (m_pResource->hasAlternateDataHash()
+                                          ? m_pResource->alternateDataHash()
+                                          : m_resourceHash));
 
     QFileInfo ownFileInfo(m_ownFilePath);
     if (!ownFileInfo.exists()) {
@@ -369,6 +404,9 @@ bool GenericResourceDisplayWidget::checkFileExistsAndUpToDate()
     bool open = ownFileHash.open(QIODevice::ReadOnly);
     if (!open) {
         QNWARNING("Can't open helper file with precalculated resource's hash");
+        warningMessageBox(this, QObject::tr("Error reading the resource's hash from helper file"),
+                          QObject::tr("Could not read the resource's hash from helper file"),
+                          QObject::tr("Can't open the file for writing: ") + m_ownFilePath);
         return false;
     }
 

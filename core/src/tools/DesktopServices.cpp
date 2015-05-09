@@ -2,6 +2,8 @@
 #include <logging/QuteNoteLogger.h>
 #include <QStyleFactory>
 #include <QApplication>
+#include <QMessageBox>
+#include <QScopedPointer>
 
 #ifdef Q_OS_WIN
 #include <qwindowdefs.h>
@@ -87,6 +89,69 @@ const QString humanReadableSize(const int bytes)
     result += unit;
 
     return result;
+}
+
+void messageBoxImplementation(const QMessageBox::Icon icon, QWidget * parent,
+                              const QString & title, const QString & briefText,
+                              const QString & detailedText)
+{
+    QScopedPointer<QMessageBox> pMessageBox(new QMessageBox(parent));
+    if (parent) {
+        pMessageBox->setWindowModality(Qt::WindowModal);
+    }
+
+    pMessageBox->setWindowTitle(QApplication::applicationName() + " - " + title);
+    pMessageBox->setText(briefText);
+    if (!detailedText.isEmpty()) {
+        pMessageBox->setInformativeText(detailedText);
+    }
+
+    pMessageBox->setIcon(icon);
+    pMessageBox->addButton(QMessageBox::Ok);
+    pMessageBox->exec();
+}
+
+void genericMessageBox(QWidget * parent, const QString & title, const QString & briefText,
+                       const QString & detailedText)
+{
+    messageBoxImplementation(QMessageBox::NoIcon, parent, title, briefText, detailedText);
+}
+
+void informationMessageBox(QWidget * parent, const QString & title, const QString & briefText,
+                           const QString & detailedText)
+{
+    messageBoxImplementation(QMessageBox::Information, parent, title, briefText, detailedText);
+}
+
+void warningMessageBox(QWidget * parent, const QString & title, const QString & briefText,
+                       const QString & detailedText)
+{
+    messageBoxImplementation(QMessageBox::Warning, parent, title, briefText, detailedText);
+}
+
+void criticalMessageBox(QWidget * parent, const QString & title, const QString & briefText,
+                        const QString & detailedText)
+{
+    messageBoxImplementation(QMessageBox::Critical, parent, title, briefText, detailedText);
+}
+
+void questionMessageBox(QWidget * parent, const QString & title, const QString & briefText,
+                        const QString & detailedText)
+{
+    messageBoxImplementation(QMessageBox::Question, parent, title, briefText, detailedText);
+}
+
+void internalErrorMessageBox(QWidget * parent, QString detailedText)
+{
+    if (!detailedText.isEmpty()) {
+        detailedText.prepend(QObject::tr("Technical details on the issue: "));
+    }
+
+    criticalMessageBox(parent, QObject::tr("Internal error"),
+                       QObject::tr("Unfortunately, ") + QApplication::applicationName() + " " +
+                       QObject::tr("encountered internal error. Please report the bug "
+                                   "to the developers and try restarting the application"),
+                       detailedText);
 }
 
 } // namespace qute_note
