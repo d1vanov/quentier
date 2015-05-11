@@ -11,120 +11,28 @@
 
 namespace qute_note {
 
-static const QSet<QString> forbiddenXhtmlTags = QSet<QString>() << "applet"
-                                                                << "base"
-                                                                << "basefont"
-                                                                << "bgsound"
-                                                                << "body"
-                                                                << "button"
-                                                                << "dir"
-                                                                << "embed"
-                                                                << "fieldset"
-                                                                << "form"
-                                                                << "frame"
-                                                                << "frameset"
-                                                                << "head"
-                                                                << "html"
-                                                                << "iframe"
-                                                                << "ilayer"
-                                                                << "input"
-                                                                << "isindex"
-                                                                << "label"
-                                                                << "layer"
-                                                                << "legend"
-                                                                << "link"
-                                                                << "marquee"
-                                                                << "menu"
-                                                                << "meta"
-                                                                << "noframes"
-                                                                << "noscript"
-                                                                << "object"
-                                                                << "optgroup"
-                                                                << "option"
-                                                                << "param"
-                                                                << "plaintext"
-                                                                << "script"
-                                                                << "select"
-                                                                << "style"
-                                                                << "textarea"
-                                                                << "xml";
+#define WRAP(x) \
+    << x
 
-static const QSet<QString> forbiddenXhtmlAttributes = QSet<QString>() << "id"
-                                                                      << "class"
-                                                                      << "onclick"
-                                                                      << "ondblclick"
-                                                                      << "accesskey"
-                                                                      << "data"
-                                                                      << "dynsrc"
-                                                                      << "tableindex";
+static const QSet<QString> forbiddenXhtmlTags = QSet<QString>()
+#include "forbiddenXhtmlTags.inl"
+;
 
-static const QSet<QString> evernoteSpecificXhtmlTags = QSet<QString>() << "en-note"
-                                                                       << "en-media"
-                                                                       << "en-crypt"
-                                                                       << "en-todo";
+static const QSet<QString> forbiddenXhtmlAttributes = QSet<QString>()
+#include "forbiddenXhtmlAttributes.inl"
+;
 
-static const QSet<QString> allowedXhtmlTags = QSet<QString>() << "a"
-                                                              << "abbr"
-                                                              << "acronym"
-                                                              << "address"
-                                                              << "area"
-                                                              << "b"
-                                                              << "bdo"
-                                                              << "big"
-                                                              << "blockquote"
-                                                              << "br"
-                                                              << "caption"
-                                                              << "center"
-                                                              << "cite"
-                                                              << "code"
-                                                              << "col"
-                                                              << "colgroup"
-                                                              << "dd"
-                                                              << "del"
-                                                              << "dfn"
-                                                              << "div"
-                                                              << "dl"
-                                                              << "dt"
-                                                              << "em"
-                                                              << "font"
-                                                              << "h1"
-                                                              << "h2"
-                                                              << "h3"
-                                                              << "h4"
-                                                              << "h5"
-                                                              << "h6"
-                                                              << "hr"
-                                                              << "i"
-                                                              << "img"
-                                                              << "ins"
-                                                              << "kbd"
-                                                              << "li"
-                                                              << "map"
-                                                              << "ol"
-                                                              << "p"
-                                                              << "pre"
-                                                              << "q"
-                                                              << "s"
-                                                              << "samp"
-                                                              << "small"
-                                                              << "span"
-                                                              << "strike"
-                                                              << "strong"
-                                                              << "sub"
-                                                              << "sup"
-                                                              << "table"
-                                                              << "tbody"
-                                                              << "td"
-                                                              << "tfoot"
-                                                              << "th"
-                                                              << "thead"
-                                                              << "title"
-                                                              << "tr"
-                                                              << "tt"
-                                                              << "u"
-                                                              << "ul"
-                                                              << "var"
-                                                              << "xmp";
+
+static const QSet<QString> evernoteSpecificXhtmlTags = QSet<QString>()
+#include "evernoteSpecificXhtmlTags.inl"
+;
+
+
+static const QSet<QString> allowedXhtmlTags = QSet<QString>()
+#include "allowedXhtmlTags.inl"
+;
+
+#undef WRAP
 
 ENMLConverterPrivate::ENMLConverterPrivate() :
     m_pHtmlCleaner(nullptr)
