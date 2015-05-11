@@ -108,7 +108,7 @@ bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId out
             QNINFO("Tidy diagnostics: " << m_tidyErrorBuffer.bp);
         }
 
-        output.clear();
+        output.resize(0);
         for(size_t i = 0; i < m_tidyOutput.size; ++i)
         {
             QString symbol = QString("%1").arg(m_tidyOutput.bp[i], 0, 16);

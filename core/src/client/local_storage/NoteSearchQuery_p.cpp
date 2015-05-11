@@ -98,8 +98,8 @@ NoteSearchQueryPrivate::NoteSearchQueryPrivate() :
 
 void NoteSearchQueryPrivate::clear()
 {
-    m_queryString.clear();
-    m_notebookModifier.clear();
+    m_queryString.resize(0);
+    m_notebookModifier.resize(0);
     m_hasAnyModifier = false;
     m_tagNames.clear();
     m_negatedTagNames.clear();
@@ -624,7 +624,7 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
 
             if (insideUnquotedWord && !currentWord.isEmpty()) {
                 words << currentWord;
-                currentWord.clear();
+                currentWord.resize(0);
                 insideUnquotedWord = false;
                 continue;
             }
@@ -637,7 +637,7 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
             {
                 // The last word, grab it and go
                 words << currentWord;
-                currentWord.clear();
+                currentWord.resize(0);
                 break;
             }
 
@@ -669,7 +669,7 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
                     }
 
                     words << currentWord;
-                    currentWord.clear();
+                    currentWord.resize(0);
                     insideQuotedText = false;
                     insideUnquotedWord = false;
                     continue;
@@ -696,7 +696,7 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
 
     if (!currentWord.isEmpty()) {
         words << currentWord;
-        currentWord.clear();
+        currentWord.resize(0);
     }
 
     // Now we can remove any quotes from the words from the splitted query string

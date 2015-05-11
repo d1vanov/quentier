@@ -20,7 +20,7 @@ bool TypeWithError::hasError() const
 
 void TypeWithError::clearError()
 {
-    m_error.clear();
+    m_error.resize(0);
 }
 
 TypeWithError::TypeWithError() :

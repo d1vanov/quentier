@@ -159,7 +159,7 @@ bool LocalStorageManagerPrivate::AddUser(const IUser & user, QString & errorDesc
         return false;
     }
 
-    error.clear();
+    error.resize(0);
     res = InsertOrReplaceUser(user, error);
     if (!res) {
         errorDescription += error;
@@ -191,7 +191,7 @@ bool LocalStorageManagerPrivate::UpdateUser(const IUser & user, QString & errorD
         return false;
     }
 
-    error.clear();
+    error.resize(0);
     res = InsertOrReplaceUser(user, error);
     if (!res) {
         errorDescription += error;
@@ -1534,7 +1534,7 @@ QList<Note> LocalStorageManagerPrivate::ListAllNotesPerNotebook(const Notebook &
     {
         Note & note = notes[i];
 
-        error.clear();
+        error.resize(0);
         bool res = FindAndSetTagGuidsPerNote(note, error);
         if (!res) {
             errorDescription = errorPrefix + error;
@@ -1543,7 +1543,7 @@ QList<Note> LocalStorageManagerPrivate::ListAllNotesPerNotebook(const Notebook &
             return notes;
         }
 
-        error.clear();
+        error.resize(0);
         res = FindAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
             errorDescription = errorPrefix + error;
@@ -1598,7 +1598,7 @@ QList<Note> LocalStorageManagerPrivate::ListNotes(const LocalStorageManager::Lis
             return notes;
         }
 
-        error.clear();
+        error.resize(0);
         res = FindAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
             errorDescription += error;
@@ -1796,7 +1796,7 @@ NoteList LocalStorageManagerPrivate::FindNotesWithSearchQuery(const NoteSearchQu
             return NoteList();
         }
 
-        error.clear();
+        error.resize(0);
         res = FindAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
             errorDescription += error;
@@ -1813,7 +1813,7 @@ NoteList LocalStorageManagerPrivate::FindNotesWithSearchQuery(const NoteSearchQu
         }
     }
 
-    errorDescription.clear();
+    errorDescription.resize(0);
     return notes;
 }
 
@@ -4556,7 +4556,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                 return false;
             }
 
-            error.clear();
+            error.resize(0);
             QStringList contentListOfWords = note.listOfWords(&error);
             if (!error.isEmpty()) {
                 errorDescription += QT_TR_NOOP("can't get note's list of words: ") + error;
@@ -4828,7 +4828,7 @@ bool LocalStorageManagerPrivate::InsertOrReplaceNote(const Note & note, const No
                 return false;
             }
 
-            error.clear();
+            error.resize(0);
             res = InsertOrReplaceResource(resource, QString(), note, localGuid, error,
                                           /* useSeparateTransaction = */ false);
             if (!res) {
@@ -5895,7 +5895,7 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataKeysOnlyFromSq
 
             if (nextChar == wordSep) {
                 keysOnly.insert(currentKey);
-                currentKey.clear();
+                currentKey.resize(0);
             }
         }
         else if (insideQuotedText)
@@ -5964,7 +5964,7 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataFullMapFromSql
 
             if (nextChar == wordSep) {
                 keysList << currentKey;
-                currentKey.clear();
+                currentKey.resize(0);
             }
         }
         else if (insideQuotedText)
@@ -5992,7 +5992,7 @@ void LocalStorageManagerPrivate::FillNoteAttributesApplicationDataFullMapFromSql
 
             if (nextChar == wordSep) {
                 valuesList << currentValue;
-                currentValue.clear();
+                currentValue.resize(0);
             }
         }
         else if (insideQuotedText)
@@ -6062,7 +6062,7 @@ void LocalStorageManagerPrivate::FillNoteAttributesClassificationsFromSqlRecord(
 
             if (nextChar == wordSep) {
                 keysList << currentKey;
-                currentKey.clear();
+                currentKey.resize(0);
             }
         }
         else if (insideQuotedText)
@@ -6086,7 +6086,7 @@ void LocalStorageManagerPrivate::FillNoteAttributesClassificationsFromSqlRecord(
 
             if (nextChar == wordSep) {
                 valuesList << currentValue;
-                currentValue.clear();
+                currentValue.resize(0);
             }
         }
         else if (insideQuotedText)
@@ -6946,7 +6946,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     // Setting up initial templates
     QString sqlPrefix = "SELECT DISTINCT localGuid ";
-    sql.clear();
+    sql.resize(0);
 
     bool queryHasAnyModifier = noteSearchQuery.hasAnyModifier();
 
@@ -7864,7 +7864,7 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const
                                                                            QString & errorDescription) const
 {
     QString result;
-    errorDescription.clear();
+    errorDescription.resize(0);
 
     bool listAll = options.testFlag(LocalStorageManager::ListAll);
 
@@ -7940,7 +7940,7 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions<Linke
                                                                                            QString & errorDescription) const
 {
     QString result;
-    errorDescription.clear();
+    errorDescription.resize(0);
 
     bool listAll = flag.testFlag(LocalStorageManager::ListAll);
     bool listDirty = flag.testFlag(LocalStorageManager::ListDirty);

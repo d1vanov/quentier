@@ -429,7 +429,7 @@ void SendLocalChangesManager::onListLinkedNotebooksCompleted(LocalStorageManager
             return;
         }
 
-        shareKey.clear();
+        shareKey.resize(0);
         if (linkedNotebook.hasShareKey()) {
             shareKey = linkedNotebook.shareKey();
         }
@@ -1201,7 +1201,7 @@ void SendLocalChangesManager::sendTags()
     {
         Tag & tag = *it;
 
-        errorDescription.clear();
+        errorDescription.resize(0);
         qint32 rateLimitSeconds = 0;
         qint32 errorCode = qevercloud::EDAMErrorCode::UNKNOWN;
 
@@ -1360,7 +1360,7 @@ void SendLocalChangesManager::sendSavedSearches()
     {
         SavedSearch & search = *it;
 
-        errorDescription.clear();
+        errorDescription.resize(0);
         qint32 rateLimitSeconds = 0;
         qint32 errorCode = qevercloud::EDAMErrorCode::UNKNOWN;
 
@@ -1453,7 +1453,7 @@ void SendLocalChangesManager::sendNotebooks()
     {
         Notebook & notebook = *it;
 
-        errorDescription.clear();
+        errorDescription.resize(0);
         qint32 rateLimitSeconds = 0;
         qint32 errorCode = qevercloud::EDAMErrorCode::UNKNOWN;
 
@@ -1620,7 +1620,7 @@ void SendLocalChangesManager::sendNotes()
     {
         Note & note = *it;
 
-        errorDescription.clear();
+        errorDescription.resize(0);
         qint32 rateLimitSeconds = 0;
         qint32 errorCode = qevercloud::EDAMErrorCode::UNKNOWN;
 

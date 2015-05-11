@@ -35,7 +35,9 @@ static const QSet<QString> allowedXhtmlTags = QSet<QString>()
 #undef WRAP
 
 ENMLConverterPrivate::ENMLConverterPrivate() :
-    m_pHtmlCleaner(nullptr)
+    m_pHtmlCleaner(nullptr),
+    m_cachedNoteContent(),
+    m_cachedConvertedXml()
 {}
 
 ENMLConverterPrivate::~ENMLConverterPrivate()
@@ -51,17 +53,17 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
         m_pHtmlCleaner = new HTMLCleaner;
     }
 
-    QString convertedXml;
-    bool res = m_pHtmlCleaner->htmlToXml(html, convertedXml, errorDescription);
+    m_cachedConvertedXml.resize(0);
+    bool res = m_pHtmlCleaner->htmlToXml(html, m_cachedConvertedXml, errorDescription);
     if (!res) {
         errorDescription.prepend(QT_TR_NOOP("Could not clean up note's html: "));
         return false;
     }
 
-    QXmlStreamReader reader(convertedXml);
+    QXmlStreamReader reader(m_cachedConvertedXml);
 
-    QString noteContent;
-    QXmlStreamWriter writer(&noteContent);
+    m_cachedNoteContent.resize(0);
+    QXmlStreamWriter writer(&m_cachedNoteContent);
     writer.writeStartDocument();
     writer.writeDTD("<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">");
 
@@ -126,23 +128,25 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                         writer.writeEndElement();
                         continue;
                     }
-                    // TODO: leave room for additional attributes set by plugins
-                    else {
-                        bool res = writeResourceInfoToEnml(reader, namespaceUri, writer, errorDescription);
-                        if (!res) {
-                            return false;
-                        }
-                        continue;
-                    }
+                    // TODO: check if it's an en-crypt tag as well
                 }
                 else
                 {
                     errorDescription = QT_TR_NOOP("Can't convert note to ENML: found img html tag without src attribute");
-                    QNWARNING(errorDescription << ", html = " << html << ", cleaned up xml = " << convertedXml);
+                    QNWARNING(errorDescription << ", html = " << html << ", cleaned up xml = " << m_cachedConvertedXml);
                     return false;
                 }
             }
-            // TODO: else let plugins process their elements as they see fit
+
+            if ((name == "object") || (name == "img"))
+            {
+                bool res = writeResourceInfoToEnml(reader, namespaceUri, writer, errorDescription);
+                if (!res) {
+                    return false;
+                }
+
+                continue;
+            }
 
             // Erasing the forbidden attributes
             for(QXmlStreamAttributes::iterator it = attributes.begin(); it != attributes.end(); )
@@ -167,7 +171,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
         }
     }
 
-    res = validateEnml(noteContent, errorDescription);
+    res = validateEnml(m_cachedNoteContent, errorDescription);
     if (!res)
     {
         if (!errorDescription.isEmpty()) {
@@ -177,12 +181,12 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
             errorDescription = QT_TR_NOOP("Failed to convert, produced ENML is invalid according to dtd");
         }
 
-        QNWARNING(errorDescription << ": " << noteContent << "\n\nSource html: " << html
-                  << "\n\nCleaned up & converted xml: " << convertedXml);
+        QNWARNING(errorDescription << ": " << m_cachedNoteContent << "\n\nSource html: " << html
+                  << "\n\nCleaned up & converted xml: " << m_cachedConvertedXml);
         return false;
     }
 
-    note.setContent(noteContent);
+    note.setContent(m_cachedNoteContent);
     return true;
 }
 
@@ -191,8 +195,8 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html, 
 {
     QNDEBUG("ENMLConverterPrivate::noteContentToHtml: note local guid = " << note.localGuid());
 
-    html.clear();
-    errorDescription.clear();
+    html.resize(0);
+    errorDescription.resize(0);
     lastFreeImageId = 0;
 
     if (!note.hasContent()) {
@@ -258,7 +262,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html, 
 
 bool ENMLConverterPrivate::validateEnml(const QString & enml, QString & errorDescription) const
 {
-    errorDescription.clear();
+    errorDescription.resize(0);
 
 #if QT_VERSION >= 0x050101
     QScopedPointer<unsigned char, QScopedPointerArrayDeleter<unsigned char> > str(reinterpret_cast<unsigned char*>(qstrdup(enml.toUtf8().constData())));
@@ -325,7 +329,7 @@ bool ENMLConverterPrivate::noteContentToPlainText(const QString & noteContent, Q
 {
     // FIXME: remake using QXmlStreamReader
 
-    plainText.clear();
+    plainText.resize(0);
 
     QDomDocument enXmlDomDoc;
     int errorLine = -1, errorColumn = -1;

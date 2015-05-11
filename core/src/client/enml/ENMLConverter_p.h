@@ -49,7 +49,9 @@ private:
     Q_DISABLE_COPY(ENMLConverterPrivate)
 
 private:
-    mutable HTMLCleaner * m_pHtmlCleaner;
+    mutable HTMLCleaner *   m_pHtmlCleaner;
+    mutable QString         m_cachedNoteContent;    // Cached memory for the converted note ENML content
+    mutable QString         m_cachedConvertedXml;   // Cached memory for the html converted to valid xml
 };
 
 } // namespace qute_note
