@@ -40,7 +40,7 @@ public:
     virtual bool initialize(const QString & mimeType, const QUrl & url,
                             const QStringList & parameterNames,
                             const QStringList & parameterValues,
-                            const IResource & resource,
+                            const IResource * resource,
                             QString & errorDescription) = 0;
 
     /**
@@ -55,6 +55,17 @@ public:
      * @return the hash of file extensions the plugin supports per mime types the plugin supports
      */
     virtual QHash<QString, QStringList> fileExtensions() const = 0;
+
+    /**
+     * @brief specificAttributes - the method should be used by plugins which do not
+     * really represent resources hence the concept of mime type doesn't make much sense for them;
+     * @return the list of specific HTML attributes which presence within the note editor's content
+     * should trigger the insertion of the plugin; the default implementation in INoteEditorPlugin
+     * returns the empty list of strings. NOTE: the plugin using specific HTML attributes
+     * should return the empty list of mime types in mimeTypes() method and the empty list of file extensions
+     * in fileExtensions() method, otherwise the specific HTML attributes of the plugin would be ignored
+     */
+    virtual QStringList specificAttributes() const;
 
     /**
      * @brief name - the method returning the name of the plugin

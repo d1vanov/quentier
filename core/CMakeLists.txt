@@ -97,6 +97,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/AttachmentStoragePathConfigDialog.cpp
     src/note_editor/GenericResourceDisplayWidget.cpp
     src/note_editor/HorizontalLineExtraData.cpp
+    src/note_editor/INoteEditorPlugin.cpp
     src/note_editor/QuteNoteTextEdit.cpp
     src/note_editor/ResourceTextObject.cpp
     src/note_editor/ToDoCheckboxTextObject.cpp

@@ -44,7 +44,7 @@ padding: 2px;
   <property name="locale">
    <locale language="English" country="UnitedStates"/>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -165,7 +165,9 @@ padding: 2px;
        <string notr="true"/>
       </property>
       <property name="icon">
-       <iconset theme="document-open"/>
+       <iconset theme="document-open">
+        <normaloff/>
+       </iconset>
       </property>
       <property name="iconSize">
        <size>
@@ -190,7 +192,9 @@ padding: 2px;
        <string notr="true"/>
       </property>
       <property name="icon">
-       <iconset theme="document-save-as"/>
+       <iconset theme="document-save-as">
+        <normaloff/>
+       </iconset>
       </property>
       <property name="iconSize">
        <size>

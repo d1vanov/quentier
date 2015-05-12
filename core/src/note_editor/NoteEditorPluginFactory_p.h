@@ -49,6 +49,8 @@ private:
     QIcon                                           m_fallbackResourceIcon;
     QMimeDatabase                                   m_mimeDatabase;
 
+    QHash<QString, INoteEditorPlugin*>              m_attributePlugins;
+
     QThread *                                       m_pIOThread;
     FileIOThreadWorker *                            m_pFileIOThreadWorker;
 

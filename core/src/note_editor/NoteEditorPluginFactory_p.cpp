@@ -17,6 +17,7 @@ NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginF
     m_pCurrentNote(nullptr),
     m_fallbackResourceIcon(QIcon::fromTheme("unknown")),
     m_mimeDatabase(),
+    m_attributePlugins(),
     m_pIOThread(new QThread(this)),
     m_pFileIOThreadWorker(new FileIOThreadWorker(this)),
     m_resourceIconCache(),
@@ -59,8 +60,11 @@ NoteEditorPluginFactoryPrivate::PluginIdentifier NoteEditorPluginFactoryPrivate:
         }
     }
 
-    const QStringList & mimeTypes = plugin->mimeTypes();
-    if (mimeTypes.isEmpty()) {
+    const QStringList specificAttributes = plugin->specificAttributes();
+    const int numSpecificAttributes = specificAttributes.size();
+
+    const QStringList mimeTypes = plugin->mimeTypes();
+    if (mimeTypes.isEmpty() && specificAttributes.isEmpty()) {
         errorDescription = QT_TR_NOOP("Can't install note editor plugin without specified mime types");
         QNWARNING(errorDescription);
         return 0;
@@ -73,7 +77,7 @@ NoteEditorPluginFactoryPrivate::PluginIdentifier NoteEditorPluginFactoryPrivate:
         for(auto it = m_plugins.begin(); it != pluginsEnd; ++it)
         {
             const INoteEditorPlugin * currentPlugin = it.value();
-            const QStringList & currentPluginMimeTypes = currentPlugin->mimeTypes();
+            const QStringList currentPluginMimeTypes = currentPlugin->mimeTypes();
 
             for(int i = 0; i < numMimeTypes; ++i)
             {
@@ -89,8 +93,35 @@ NoteEditorPluginFactoryPrivate::PluginIdentifier NoteEditorPluginFactoryPrivate:
         }
     }
 
+    if (!forceOverrideTypeKeys)
+    {
+        for(int i = 0; i < numSpecificAttributes; ++i)
+        {
+            const QString & specificAttribute = specificAttributes[i];
+
+            auto attributePluginsEnd = m_attributePlugins.end();
+            for(auto it = m_attributePlugins.begin(); it != attributePluginsEnd; ++it)
+            {
+                const INoteEditorPlugin * currentPlugin = it.value();
+                const QStringList currentPluginSpecificAttributes = currentPlugin->specificAttributes();
+                if (currentPluginSpecificAttributes.contains(specificAttribute)) {
+                    errorDescription = QT_TR_NOOP("Can't install note editor plugin: found conflicting specific attribute " +
+                                                  specificAttribute + " from plugin " + currentPlugin->name());
+                    QNINFO(errorDescription);
+                    return 0;
+                }
+            }
+        }
+    }
+
     plugin->setParent(nullptr);
     m_plugins[m_lastFreePluginId] = plugin;
+
+    for(int i = 0; i < numSpecificAttributes; ++i) {
+        const QString & specificAttribute = specificAttributes[i];
+        m_attributePlugins[specificAttribute] = plugin;
+    }
+
     return m_lastFreePluginId++;
 }
 
@@ -106,8 +137,20 @@ bool NoteEditorPluginFactoryPrivate::removePlugin(const NoteEditorPluginFactoryP
     }
 
     INoteEditorPlugin * plugin = it.value();
-    delete plugin;
 
+    const QStringList specificAttributes = plugin->specificAttributes();
+    const int numSpecificAttributes = specificAttributes.size();
+    for(int i = 0; i < numSpecificAttributes; ++i)
+    {
+        const QString & specificAttribute = specificAttributes[i];
+        auto attrPluginIter = m_attributePlugins.find(specificAttribute);
+        if (attrPluginIter != m_attributePlugins.end()) {
+            Q_UNUSED(m_attributePlugins.erase(attrPluginIter));
+            QNTRACE("Removed note editor plugin for specific HTML attribute " << specificAttribute);
+        }
+    }
+
+    delete plugin;
     Q_UNUSED(m_plugins.erase(it));
 
     Q_Q(NoteEditorPluginFactory);
@@ -147,43 +190,65 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
     }
 
     QList<ResourceAdapter> resourceAdapters = m_pCurrentNote->resourceAdapters();
-    if (resourceAdapters.isEmpty()) {
-        QNFATAL("Can't create note editor plugin for resource display: note has no resources");
-        return nullptr;
-    }
+
+    const ResourceAdapter * pCurrentResource = nullptr;
+    QString resourceHash;
 
     int resourceHashIndex = argumentNames.indexOf("hash");
-    if (resourceHashIndex < 0) {
-        QNFATAL("Can't find resource hash index within argument names when trying to "
-                "create note editor plugin for resource display");
-        return nullptr;
-    }
-
-    QString resourceHash = argumentValues.at(resourceHashIndex);
-    const ResourceAdapter * pCurrentResource = nullptr;
-    const int numResources = resourceAdapters.size();
-    for(int i = 0; i < numResources; ++i)
+    if (resourceHashIndex >= 0)
     {
-        const ResourceAdapter & resource = resourceAdapters[i];
-        if (!resource.hasDataHash()) {
-            continue;
-        }
+        resourceHash = argumentValues.at(resourceHashIndex);
+        const int numResources = resourceAdapters.size();
+        for(int i = 0; i < numResources; ++i)
+        {
+            const ResourceAdapter & resource = resourceAdapters[i];
+            if (!resource.hasDataHash()) {
+                continue;
+            }
 
-        if (resource.dataHash() == resourceHash) {
-            pCurrentResource = &resource;
-            break;
+            if (resource.dataHash() == resourceHash) {
+                pCurrentResource = &resource;
+                break;
+            }
         }
-    }
-
-    if (!pCurrentResource) {
-        QNFATAL("Can't find resource in note by data hash: " << resourceHash
-                << ", note: " << *m_pCurrentNote);
-        return nullptr;
     }
 
     if (!m_plugins.isEmpty())
     {
-        // Need to loop through installed plugins considering the last installed plugins first
+        const int numArguments = argumentNames.size();
+        for(int i = 0; i < numArguments; ++i)
+        {
+            const QString & currentArgumentName = argumentNames[i];
+            auto it = m_attributePlugins.find(currentArgumentName);
+            if (it == m_attributePlugins.end()) {
+                continue;
+            }
+
+            const INoteEditorPlugin * plugin = it.value();
+            QNTRACE("Will use plugin " << plugin->name() << " based on specific HTML attributes");
+
+            INoteEditorPlugin * newPlugin = plugin->clone();
+            QString errorDescription;
+            bool res = newPlugin->initialize(mimeType, url, argumentNames, argumentValues,
+                                             pCurrentResource, errorDescription);
+            if (!res) {
+                QNINFO("Can't initialize note editor plugin " << plugin->name() << ": " << errorDescription);
+                delete newPlugin;
+                continue;
+            }
+
+            return newPlugin;
+        }
+
+        // If we got here, the plugin we are looking for is not specific HTML attributes-based
+        // but resource based; so we need to ensure the resource was actually found
+        if (!pCurrentResource) {
+            QNFATAL("Can't find resource in note by data hash: " << resourceHash
+                    << ", note: " << *m_pCurrentNote);
+            return nullptr;
+        }
+
+        // Need to loop through installed mime type-based plugins considering the last installed plugins first
         // Sadly, Qt doesn't support proper reverse iterators for its own containers without STL compatibility so will emulate them
         auto pluginsBegin = m_plugins.begin();
         auto pluginsLast = m_plugins.end();
@@ -199,7 +264,7 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
                 INoteEditorPlugin * newPlugin = plugin->clone();
                 QString errorDescription;
                 bool res = newPlugin->initialize(mimeType, url, argumentNames, argumentValues,
-                                                 *pCurrentResource, errorDescription);
+                                                 pCurrentResource, errorDescription);
                 if (!res) {
                     QNINFO("Can't initialize note editor plugin " << plugin->name() << ": " << errorDescription);
                     delete newPlugin;
@@ -213,6 +278,12 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
 
     QNTRACE("Haven't found any installed plugin supporting mime type " << mimeType
             << ", will use generic resource display plugin for that");
+
+    if (!pCurrentResource) {
+        QNFATAL("Can't find resource in note by data hash: " << resourceHash
+                << ", note: " << *m_pCurrentNote);
+        return nullptr;
+    }
 
     QString resourceDisplayName;
     if (pCurrentResource->hasResourceAttributes())
