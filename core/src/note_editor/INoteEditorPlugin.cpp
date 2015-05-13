@@ -2,6 +2,10 @@
 
 namespace qute_note {
 
+INoteEditorPlugin::INoteEditorPlugin(QWidget * parent) :
+    QWidget(parent)
+{}
+
 QStringList INoteEditorPlugin::specificAttributes() const
 {
     return QStringList();

@@ -8,6 +8,7 @@ include_directories(${THIRDPARTY_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set(${PROJECT_NAME}_HEADERS
     src/note_editor/AttachmentStoragePathConfigDialog.h
+    src/note_editor/EncryptedAreaPlugin.h
     src/note_editor/GenericResourceDisplayWidget.h
     src/note_editor/HorizontalLineExtraData.h
     src/note_editor/MediaResourceTextObject.h
@@ -95,6 +96,7 @@ set(${PROJECT_NAME}_HEADERS
 
 set(${PROJECT_NAME}_SOURCES
     src/note_editor/AttachmentStoragePathConfigDialog.cpp
+    src/note_editor/EncryptedAreaPlugin.cpp
     src/note_editor/GenericResourceDisplayWidget.cpp
     src/note_editor/HorizontalLineExtraData.cpp
     src/note_editor/INoteEditorPlugin.cpp
@@ -180,6 +182,7 @@ endif()
 
 set(RESOURCES
     src/note_editor/icons/checkbox_icons/checkbox_icons.qrc
+    src/note_editor/icons/encrypted_area_icons/encrypted_area_icons.qrc
     src/note_editor/icons/generic_resource_icons/generic_resource_icons.qrc
     src/note_editor/javascript/jquery/jquery.qrc
     src/note_editor/javascript/colResizable/colResizable.qrc
@@ -194,6 +197,7 @@ endif()
 
 set(FORMS
     src/note_editor/AttachmentStoragePathConfigDialog.ui
+    src/note_editor/EncryptedAreaPlugin.ui
     src/note_editor/GenericResourceDisplayWidget.ui)
 
 if(USE_QT5)

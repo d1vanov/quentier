@@ -22,7 +22,8 @@ protected:
 public:
     /**
      * @brief clone - pure virtual method cloning the current plugin
-     * @return pointer to the new clone of the plugin
+     * @return pointer to the new clone of the plugin. NOTE: there's no need to worry about the ownership
+     * over the cloned plugin, it is caller's responsibility to take care about it
      */
     virtual INoteEditorPlugin * clone() const = 0;
 
