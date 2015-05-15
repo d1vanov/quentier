@@ -12,6 +12,7 @@ set(${PROJECT_NAME}_HEADERS
     src/note_editor/GenericResourceDisplayWidget.h
     src/note_editor/HorizontalLineExtraData.h
     src/note_editor/MediaResourceTextObject.h
+    src/note_editor/NoteDecryptionDialog.h
     src/note_editor/QuteNoteTextEdit.h
     src/note_editor/ResourceTextObject.h
     src/note_editor/ToDoCheckboxTextObject.h
@@ -107,6 +108,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/NoteEditor.cpp
     src/note_editor/NoteEditorPluginFactory.cpp
     src/note_editor/NoteEditorPluginFactory_p.cpp
+    src/note_editor/NoteDecryptionDialog.cpp
     src/client/Utility.cpp
     src/client/types/ISharedNotebook.cpp
     src/client/types/IResource.cpp
@@ -198,6 +200,7 @@ endif()
 set(FORMS
     src/note_editor/AttachmentStoragePathConfigDialog.ui
     src/note_editor/EncryptedAreaPlugin.ui
+    src/note_editor/NoteDecryptionDialog.ui
     src/note_editor/GenericResourceDisplayWidget.ui)
 
 if(USE_QT5)

@@ -17,6 +17,9 @@ public:
     explicit EncryptedAreaPlugin(QWidget * parent = nullptr);
     virtual ~EncryptedAreaPlugin();
 
+Q_SIGNALS:
+    void rememberPassphraseForSession(QString cipher, QString password);
+
 private:
     // INoteEditorPlugin interface
     virtual EncryptedAreaPlugin * clone() const Q_DECL_OVERRIDE;
@@ -33,8 +36,18 @@ private:
 private:
     virtual void mouseReleaseEvent(QMouseEvent * mouseEvent) Q_DECL_OVERRIDE;
 
+private Q_SLOTS:
+    void decrypt();
+    void decryptAndRemember();
+
 private:
-    Ui::EncryptedAreaPlugin * m_pUI;
+    void raiseNoteDecryptionDialog(const bool shouldRememberPassphrase);
+
+private:
+    Ui::EncryptedAreaPlugin *   m_pUI;
+    QString                     m_hint;
+    QString                     m_cipher;
+    size_t                      m_keyLength;
 };
 
 } // namespace qute_note
