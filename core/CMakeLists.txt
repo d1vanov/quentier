@@ -82,6 +82,8 @@ set(${PROJECT_NAME}_HEADERS
     src/tools/BasicXMLSyntaxHighlighter.h
     src/tools/DesktopServices.h
     src/tools/EmptyDataElementException.h
+    src/tools/EncryptionManager.h
+    src/tools/EncryptionManager_p.h
     src/tools/EventLoopWithExitStatus.h
     src/tools/FileIOThreadWorker.h
     src/tools/FileIOThreadWorker_p.h
@@ -165,6 +167,8 @@ set(${PROJECT_NAME}_SOURCES
     src/tools/BasicXMLSyntaxHighlighter.cpp
     src/tools/DesktopServices.cpp
     src/tools/EmptyDataElementException.cpp
+    src/tools/EncryptionManager.cpp
+    src/tools/EncryptionManager_p.cpp
     src/tools/EventLoopWithExitStatus.cpp
     src/tools/FileIOThreadWorker.cpp
     src/tools/FileIOThreadWorker_p.cpp
