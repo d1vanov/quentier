@@ -1,5 +1,6 @@
 #include "HTMLCleaner.h"
 #include <logging/QuteNoteLogger.h>
+#include <tools/DesktopServices.h>
 #include <tidy.h>
 #include <buffio.h>
 #include <stdio.h>
@@ -109,34 +110,16 @@ bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId out
         }
 
         output.resize(0);
-        for(size_t i = 0; i < m_tidyOutput.size; ++i)
-        {
-            QString symbol = QString("%1").arg(m_tidyOutput.bp[i], 0, 16);
-            // account for single-digit hex values (always must serialize as two digits)
-            if (symbol.length() == 1) {
-                output.append( "0" );
-            }
-
-            output.append(symbol);
-        }
-
+        appendUnsignedCharToQString(output, m_tidyOutput.bp, static_cast<int>(m_tidyOutput.size));
+        output.resize(0);
         return true;
     }
 
     errorDescription = QT_TR_NOOP("tidy-html5 error: ");
-    for(size_t i = 0; i < m_tidyErrorBuffer.size; ++i)
-    {
-        QString symbol = QString("%1").arg(m_tidyErrorBuffer.bp[i], 0, 16);
-        // account for single-digit hex values (always must serialize as two digits)
-        if (symbol.length() == 1) {
-            errorDescription.append("0");
-        }
-
-        errorDescription.append(symbol);
-    }
-
+    appendUnsignedCharToQString(errorDescription, m_tidyErrorBuffer.bp,
+                                static_cast<int>(m_tidyErrorBuffer.size));
     QNINFO(errorDescription);
     return false;
 }
 
-}
+} // namespace qute_note

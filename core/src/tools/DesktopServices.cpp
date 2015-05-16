@@ -184,5 +184,34 @@ const QString getExistingFolderDialog(QWidget * parent, const QString & title,
     }
 }
 
+const QString appendUnsignedCharToQString(const unsigned char * str, const int size)
+{
+    QString result;
+    appendUnsignedCharToQString(result, str, size);
+    return result;
+}
+
+void appendUnsignedCharToQString(QString & result, const unsigned char * str, const int size)
+{
+    if (!str) {
+        return;
+    }
+
+    int length = (size > 0
+                  ? size
+                  : static_cast<int>(strlen(reinterpret_cast<const char*>(str))));
+
+    for(int i = 0; i < length; ++i)
+    {
+        QString symbol = QString("%1").arg(str[i], 0, 16);
+        // account for single-digit hex values (always must serialize as two digits)
+        if (symbol.length() == 1) {
+            result.append( "0" );
+        }
+
+        result.append(symbol);
+    }
+}
+
 } // namespace qute_note
 
