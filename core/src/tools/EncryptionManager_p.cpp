@@ -7,6 +7,7 @@
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <openssl/hmac.h>
+#include <stdlib.h>
 
 // Evernote service defined constants
 #define NUM_ITERATIONS (50000)
@@ -88,6 +89,18 @@ bool EncryptionManagerPrivate::encrypt(const QString & textToEncrypt, const QStr
     appendUnsignedCharToQString(encryptedText, m_salt, NUM_SALT_BYTES);
     appendUnsignedCharToQString(encryptedText, m_saltmac, NUM_SALT_BYTES);
     appendUnsignedCharToQString(encryptedText, m_iv, NUM_SALT_BYTES);
+
+    QString encryptionKey;
+    res = generateKey(passphrase, m_salt, NUM_ITERATIONS, encryptionKey, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    res = encyptWithAes(textToEncrypt, passphrase, encryptedText, errorDescription);
+    if (!res) {
+        return false;
+    }
+
 
     // TODO: continue from here
 
@@ -191,6 +204,60 @@ bool EncryptionManagerPrivate::calculateHmacHash(const QString & passphrase, con
     }
 
     hash = QString(m_hash);
+    return true;
+}
+
+bool EncryptionManagerPrivate::encyptWithAes(const QString & textToEncrypt,
+                                             const QString & key,
+                                             QString & encryptedText,
+                                             QString & errorDescription)
+{
+    ErrorStringsHolder errorStringsHolder;
+    Q_UNUSED(errorStringsHolder)
+
+    QByteArray keyData = key.toLocal8Bit();
+    const unsigned char * rawKey = reinterpret_cast<const unsigned char*>(keyData.constData());
+
+    QByteArray textToEncryptData = textToEncrypt.toLocal8Bit();
+    const unsigned char * rawTextToEncrypt = reinterpret_cast<const unsigned char*>(textToEncryptData.constData());
+    size_t rawTextToEncryptSize = strlen(textToEncryptData.constData());
+
+    unsigned char * buffer = reinterpret_cast<unsigned char*>(malloc(rawTextToEncryptSize * 2));
+    int out_len;
+
+    EVP_CIPHER_CTX context;
+    int res = EVP_CipherInit(&context, EVP_aes_128_cbc(), rawKey, m_iv, /* should encrypt = */ 1);
+    if (res != 1) {
+        errorDescription = QT_TR_NOOP("Can't encrypt the text using AES algorithm");
+        GET_OPENSSL_ERROR;
+        QNWARNING(errorDescription << ", openssl EVP_CipherInit failed: "
+                  << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
+                  << errorReason);
+        return false;
+    }
+
+    res = EVP_CipherUpdate(&context, buffer, &out_len, rawTextToEncrypt, rawTextToEncryptSize);
+    if (res != 1) {
+        errorDescription = QT_TR_NOOP("Can't encrypt the text using AES algorithm");
+        GET_OPENSSL_ERROR;
+        QNWARNING(errorDescription << ", openssl EVP_CipherUpdate failed: "
+                  << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
+                  << errorReason);
+        return false;
+    }
+
+    res = EVP_CipherFinal(&context, buffer, &out_len);
+    if (res != 1) {
+        errorDescription = QT_TR_NOOP("Can't encrypt the text using AES algorithm");
+        GET_OPENSSL_ERROR;
+        QNWARNING(errorDescription << ", openssl EVP_CipherFinal failed: "
+                  << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
+                  << errorReason);
+        return false;
+    }
+
+    encryptedText.resize(0);
+    appendUnsignedCharToQString(encryptedText, buffer, out_len);
     return true;
 }
 

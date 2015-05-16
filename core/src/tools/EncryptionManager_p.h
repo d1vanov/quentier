@@ -37,6 +37,9 @@ private:
                            const unsigned char * data, const size_t numIterations,
                            QString & hash, QString & errorDescription);
 
+    bool encyptWithAes(const QString & textToEncrypt, const QString & passphrase,
+                       QString & encryptedText, QString & errorDescription);
+
 private:
     class ErrorStringsHolder
     {
