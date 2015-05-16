@@ -39,7 +39,7 @@ const QString QUTE_NOTE_EXPORT getExistingFolderDialog(QWidget * parent, const Q
                                                        const QString & initialFolder,
                                                        QFileDialog::Options options = QFileDialog::ShowDirsOnly);
 
-const QString QUTE_NOTE_EXPORT appendUnsignedCharToQString(const unsigned char * str, const int size = -1);
+const QString QUTE_NOTE_EXPORT unsignedCharToQString(const unsigned char * str, const int size = -1);
 void QUTE_NOTE_EXPORT appendUnsignedCharToQString(QString & result, const unsigned char * str, const int size = -1);
 
 } // namespace qute_note

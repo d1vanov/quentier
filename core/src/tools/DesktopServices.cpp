@@ -184,7 +184,7 @@ const QString getExistingFolderDialog(QWidget * parent, const QString & title,
     }
 }
 
-const QString appendUnsignedCharToQString(const unsigned char * str, const int size)
+const QString unsignedCharToQString(const unsigned char * str, const int size)
 {
     QString result;
     appendUnsignedCharToQString(result, str, size);

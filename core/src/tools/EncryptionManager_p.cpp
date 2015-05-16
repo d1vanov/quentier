@@ -4,6 +4,9 @@
 #include <openssl/rand.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+#include <openssl/hmac.h>
 
 // Evernote service defined constants
 #define NUM_ITERATIONS (50000)
@@ -21,6 +24,20 @@ EncryptionManagerPrivate::EncryptionManagerPrivate() :
         m_saltmac[i] = '0';
         m_iv[i] = '0';
     }
+
+    for(int i = 0; i < 64; ++i) {
+        m_pbkdf2_key[i] = '0';
+    }
+
+    for(int i = 0; i < 129; ++i) {
+        m_hash[i] = '0';
+    }
+
+    for(int i = 0; i < 32; ++i) {
+        m_pkcs5_key[i] = '0';
+    }
+
+
 }
 
 bool EncryptionManagerPrivate::decrypt(const QString & encryptedText, const QString & passphrase,
@@ -118,6 +135,62 @@ bool EncryptionManagerPrivate::generateRandomBytes(const EncryptionManagerPrivat
         return false;
     }
 
+    return true;
+}
+
+bool EncryptionManagerPrivate::generateKey(const QString & passphrase, const unsigned char * salt,
+                                           const size_t numIterations, QString & key,
+                                           QString & errorDescription)
+{
+    ErrorStringsHolder errorStringsHolder;
+    Q_UNUSED(errorStringsHolder)
+
+    const char * rawPassphrase = passphrase.toLocal8Bit().constData();
+    int res = PKCS5_PBKDF2_HMAC(rawPassphrase, strlen(rawPassphrase),
+                                salt, strlen(reinterpret_cast<const char*>(salt)),
+                                numIterations, EVP_sha256(), 32, m_pkcs5_key);
+    if (res != 1) {
+        errorDescription = QT_TR_NOOP("Can't generate cryptographic key");
+        GET_OPENSSL_ERROR;
+        QNWARNING(errorDescription << ", openssl PKCS5_PBKDF2_HMAC failed: "
+                  << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
+                  << errorReason);
+        return false;
+    }
+
+    for(int i = 0; i < 32; ++i) {
+        Q_UNUSED(sprintf(&m_pbkdf2_key[i*2], "%02x", m_pkcs5_key[i]));
+    }
+
+    key = QString(m_pbkdf2_key);
+    return true;
+}
+
+bool EncryptionManagerPrivate::calculateHmacHash(const QString & passphrase, const unsigned char * salt,
+                                                 const unsigned char * data, const size_t numIterations,
+                                                 QString & hash, QString & errorDescription)
+{
+    QString key;
+    bool res = generateKey(passphrase, salt, numIterations, key, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    ErrorStringsHolder errorStringsHolder;
+    Q_UNUSED(errorStringsHolder)
+
+    QByteArray keyData = key.toLocal8Bit();
+    const char * rawKey = keyData.constData();
+
+    unsigned char * digest = HMAC(EVP_sha256(), rawKey, strlen(rawKey), data,
+                                  strlen(reinterpret_cast<const char*>(data)),
+                                  NULL, NULL);
+
+    for(int i = 0; i < 64; ++i) {
+        Q_UNUSED(sprintf(&m_hash[i*2], "%02x", digest[i]));
+    }
+
+    hash = QString(m_hash);
     return true;
 }
 

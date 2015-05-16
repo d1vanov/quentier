@@ -30,6 +30,13 @@ private:
 
     bool generateRandomBytes(const SaltKind::type saltKind, QString & errorDescription);
 
+    bool generateKey(const QString & passphrase, const unsigned char * salt,
+                     const size_t numIterations, QString & key, QString & errorDescription);
+
+    bool calculateHmacHash(const QString & passphrase, const unsigned char * salt,
+                           const unsigned char * data, const size_t numIterations,
+                           QString & hash, QString & errorDescription);
+
 private:
     class ErrorStringsHolder
     {
@@ -42,6 +49,10 @@ private:
     unsigned char m_salt[16];
     unsigned char m_saltmac[16];
     unsigned char m_iv[16];
+
+    char m_pbkdf2_key[64];
+    char m_hash[129];
+    unsigned char m_pkcs5_key[32];
 };
 
 } // namespace qute_note
