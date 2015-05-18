@@ -293,11 +293,58 @@ bool EncryptionManagerPrivate::encyptWithAes(const QString & textToEncrypt,
 bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const QString & passphrase,
                                           QString & decryptedText, QString & errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(encryptedText)
-    Q_UNUSED(passphrase)
-    Q_UNUSED(decryptedText)
-    Q_UNUSED(errorDescription)
+    QString cipherText;
+    bool bres = splitEncryptedData(encryptedText, cipherText, errorDescription);
+    if (!bres) {
+        return false;
+    }
+
+    QByteArray passphraseData = passphrase.toLocal8Bit();
+    const unsigned char * rawPassphraseData = reinterpret_cast<const unsigned char*>(passphraseData.constData());
+
+    QByteArray cipherTextData = cipherText.toLocal8Bit();
+    const int rawCipherTextDataSize = cipherTextData.size();
+    const unsigned char * rawCipherTextData = reinterpret_cast<const unsigned char*>(cipherTextData.constData());
+
+    unsigned char * buffer = reinterpret_cast<unsigned char*>(malloc(rawCipherTextDataSize * 2));
+    int out_len;
+
+    EVP_CIPHER_CTX context;
+    int res = EVP_CipherInit(&context, EVP_aes_128_cbc(), rawPassphraseData, m_iv, /* should encrypt = */ 0);
+    if (res != 1) {
+        errorDescription = QT_TR_NOOP("Can't decrypt the text using AES algorithm");
+        GET_OPENSSL_ERROR;
+        QNWARNING(errorDescription << ", openssl EVP_CipherInit failed: "
+                  << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
+                  << errorReason);
+        free(buffer);
+        return false;
+    }
+
+    res = EVP_CipherUpdate(&context, buffer, &out_len, rawCipherTextData, rawCipherTextDataSize);
+    if (res != 1) {
+        errorDescription = QT_TR_NOOP("Can't decrypt the text using AES algorithm");
+        GET_OPENSSL_ERROR;
+        QNWARNING(errorDescription << ", openssl EVP_CipherUpdate failed: "
+                  << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
+                  << errorReason);
+        free(buffer);
+        return false;
+    }
+
+    res = EVP_CipherFinal(&context, buffer, &out_len);
+    if (res != 1) {
+        errorDescription = QT_TR_NOOP("Can't decrypt the text using AES algorithm");
+        GET_OPENSSL_ERROR;
+        QNWARNING(errorDescription << ", openssl EVP_CipherFinal failed: "
+                  << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
+                  << errorReason);
+        free(buffer);
+        return false;
+    }
+
+    appendUnsignedCharToQString(decryptedText, buffer, out_len);
+    free(buffer);
     return true;
 }
 
@@ -317,7 +364,7 @@ bool EncryptionManagerPrivate::splitEncryptedData(const QString & encryptedData,
                                                   QString & errorDescription)
 {
     QByteArray encryptedDataArray = encryptedData.toLocal8Bit();
-    const int encryptedDataSize = encryptedDataArray.size();
+    const int encryptedDataSize = encryptedDataArray.size() - 32;   // HMAC takes the last 32 bytes
     if (encryptedDataSize <= 52) {
         errorDescription = QT_TR_NOOP("Encrypted data is too short for being valid");
         return false;
