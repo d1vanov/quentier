@@ -37,22 +37,40 @@ EncryptionManagerPrivate::EncryptionManagerPrivate() :
     for(int i = 0; i < 32; ++i) {
         m_pkcs5_key[i] = '0';
     }
-
-
 }
 
 bool EncryptionManagerPrivate::decrypt(const QString & encryptedText, const QString & passphrase,
                                        const QString & cipher, const size_t keyLength,
                                        QString & decryptedText, QString & errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(encryptedText);
-    Q_UNUSED(passphrase);
-    Q_UNUSED(cipher);
-    Q_UNUSED(keyLength);
-    Q_UNUSED(decryptedText);
-    Q_UNUSED(errorDescription);
-    return false;
+    if (cipher == "PS2")
+    {
+        if (keyLength != 64) {
+            errorDescription = QT_TR_NOOP("Invalid key length for PS2 decryption method, "
+                                          "should be 64");
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        return decryptPs2(encryptedText, passphrase, decryptedText, errorDescription);
+    }
+    else if (cipher == "AES")
+    {
+        if (keyLength != 128) {
+            errorDescription = QT_TR_NOOP("Invalid key length for AES decryption method, "
+                                          "should be 128");
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        return decryptAes(encryptedText, passphrase, decryptedText, errorDescription);
+    }
+    else
+    {
+        errorDescription = QT_TR_NOOP("Unsupported decryption method");
+        QNWARNING(errorDescription);
+        return false;
+    }
 }
 
 bool EncryptionManagerPrivate::encrypt(const QString & textToEncrypt, const QString & passphrase,
@@ -241,6 +259,7 @@ bool EncryptionManagerPrivate::encyptWithAes(const QString & textToEncrypt,
         QNWARNING(errorDescription << ", openssl EVP_CipherInit failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
+        free(buffer);
         return false;
     }
 
@@ -251,6 +270,7 @@ bool EncryptionManagerPrivate::encyptWithAes(const QString & textToEncrypt,
         QNWARNING(errorDescription << ", openssl EVP_CipherUpdate failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
+        free(buffer);
         return false;
     }
 
@@ -261,10 +281,65 @@ bool EncryptionManagerPrivate::encyptWithAes(const QString & textToEncrypt,
         QNWARNING(errorDescription << ", openssl EVP_CipherFinal failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
+        free(buffer);
         return false;
     }
 
     appendUnsignedCharToQString(encryptedText, buffer, out_len);
+    free(buffer);
+    return true;
+}
+
+bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const QString & passphrase,
+                                          QString & decryptedText, QString & errorDescription)
+{
+    // TODO: implement
+    Q_UNUSED(encryptedText)
+    Q_UNUSED(passphrase)
+    Q_UNUSED(decryptedText)
+    Q_UNUSED(errorDescription)
+    return true;
+}
+
+bool EncryptionManagerPrivate::decryptPs2(const QString & encryptedText, const QString & passphrase,
+                                          QString & decryptedText, QString & errorDescription)
+{
+    // TODO: implement
+    Q_UNUSED(encryptedText)
+    Q_UNUSED(passphrase)
+    Q_UNUSED(decryptedText)
+    Q_UNUSED(errorDescription)
+    return true;
+}
+
+bool EncryptionManagerPrivate::splitEncryptedData(const QString & encryptedData,
+                                                  QString & encryptedText,
+                                                  QString & errorDescription)
+{
+    QByteArray encryptedDataArray = encryptedData.toLocal8Bit();
+    const int encryptedDataSize = encryptedDataArray.size();
+    if (encryptedDataSize <= 52) {
+        errorDescription = QT_TR_NOOP("Encrypted data is too short for being valid");
+        return false;
+    }
+
+    for(int i = 4; i < 20; ++i) {
+        m_salt[i-4] = encryptedDataArray.at(i);
+    }
+
+    for(int i = 20; i < 36; ++i) {
+        m_saltmac[i-20] = encryptedDataArray.at(i);
+    }
+
+    for(int i = 36; i < 52; ++i) {
+        m_iv[i-36] = encryptedDataArray.at(i);
+    }
+
+    encryptedText.resize(0);
+    for(int i = 52; i < encryptedDataSize; ++i) {
+        encryptedText += encryptedDataArray.at(i);
+    }
+
     return true;
 }
 

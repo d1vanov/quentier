@@ -40,6 +40,15 @@ private:
     bool encyptWithAes(const QString & textToEncrypt, const QString & passphrase,
                        QString & encryptedText, QString & errorDescription);
 
+    bool decryptAes(const QString & encryptedText, const QString & passphrase,
+                    QString & decryptedText, QString & errorDescription);
+
+    bool decryptPs2(const QString & encryptedText, const QString & passphrase,
+                    QString & decryptedText, QString & errorDescription);
+
+    bool splitEncryptedData(const QString & encryptedData, QString & encryptedText,
+                            QString & errorDescription);
+
 private:
     class ErrorStringsHolder
     {
