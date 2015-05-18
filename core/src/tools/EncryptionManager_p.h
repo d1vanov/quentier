@@ -15,7 +15,7 @@ public:
                  QString & decryptedText, QString & errorDescription);
 
     bool encrypt(const QString & textToEncrypt, const QString & passphrase,
-                 const QString & cipher, const size_t keyLength,
+                 QString & cipher, size_t & keyLength,
                  QString & encryptedText, QString & errorDescription);
 
 private:
@@ -34,7 +34,7 @@ private:
                      const size_t numIterations, QString & key, QString & errorDescription);
 
     bool calculateHmacHash(const QString & passphrase, const unsigned char * salt,
-                           const unsigned char * data, const size_t numIterations,
+                           const QString & textToEncrypt, const size_t numIterations,
                            QString & hash, QString & errorDescription);
 
     bool encyptWithAes(const QString & textToEncrypt, const QString & passphrase,

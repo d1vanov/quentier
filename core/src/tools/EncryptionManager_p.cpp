@@ -56,7 +56,7 @@ bool EncryptionManagerPrivate::decrypt(const QString & encryptedText, const QStr
 }
 
 bool EncryptionManagerPrivate::encrypt(const QString & textToEncrypt, const QString & passphrase,
-                                       const QString & cipher, const size_t keyLength,
+                                       QString & cipher, size_t & keyLength,
                                        QString & encryptedText, QString & errorDescription)
 {
     encryptedText.resize(0);
@@ -101,17 +101,21 @@ bool EncryptionManagerPrivate::encrypt(const QString & textToEncrypt, const QStr
         return false;
     }
 
+    QString hmac;
+    res = calculateHmacHash(passphrase, m_saltmac, textToEncrypt, NUM_ITERATIONS, hmac, errorDescription);
+    if (!res) {
+        return false;
+    }
 
-    // TODO: continue from here
+    encryptedText += hmac;
 
-    // TODO: implement
-    Q_UNUSED(textToEncrypt);
-    Q_UNUSED(passphrase);
-    Q_UNUSED(cipher);
-    Q_UNUSED(keyLength);
-    Q_UNUSED(encryptedText);
-    Q_UNUSED(errorDescription);
-    return false;
+    QByteArray encryptedTextData = encryptedText.toLocal8Bit();
+    encryptedText = encryptedTextData.toBase64();
+
+    cipher = "AES";
+    keyLength = 128;
+
+    return true;
 }
 
 bool EncryptionManagerPrivate::generateRandomBytes(const EncryptionManagerPrivate::SaltKind::type saltKind,
@@ -133,6 +137,7 @@ bool EncryptionManagerPrivate::generateRandomBytes(const EncryptionManagerPrivat
     case SaltKind::IV:
         salt = m_iv;
         saltText = "iv";
+        break;
     default:
         errorDescription = QT_TR_NOOP("Internal error, detected incorrect salt kind for cryptographic key generation");
         QNCRITICAL(errorDescription);
@@ -180,7 +185,7 @@ bool EncryptionManagerPrivate::generateKey(const QString & passphrase, const uns
 }
 
 bool EncryptionManagerPrivate::calculateHmacHash(const QString & passphrase, const unsigned char * salt,
-                                                 const unsigned char * data, const size_t numIterations,
+                                                 const QString & textToEncrypt, const size_t numIterations,
                                                  QString & hash, QString & errorDescription)
 {
     QString key;
@@ -194,6 +199,9 @@ bool EncryptionManagerPrivate::calculateHmacHash(const QString & passphrase, con
 
     QByteArray keyData = key.toLocal8Bit();
     const char * rawKey = keyData.constData();
+
+    QByteArray textToEncryptData = textToEncrypt.toLocal8Bit();
+    const unsigned char * data = reinterpret_cast<const unsigned char*>(textToEncryptData.constData());
 
     unsigned char * digest = HMAC(EVP_sha256(), rawKey, strlen(rawKey), data,
                                   strlen(reinterpret_cast<const char*>(data)),
@@ -256,7 +264,6 @@ bool EncryptionManagerPrivate::encyptWithAes(const QString & textToEncrypt,
         return false;
     }
 
-    encryptedText.resize(0);
     appendUnsignedCharToQString(encryptedText, buffer, out_len);
     return true;
 }

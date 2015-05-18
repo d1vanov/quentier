@@ -20,7 +20,7 @@ bool EncryptionManager::decrypt(const QString & encryptedText, const QString & p
 }
 
 bool EncryptionManager::encrypt(const QString & textToEncrypt, const QString & passphrase,
-                                const QString & cipher, const size_t keyLength,
+                                QString & cipher, size_t & keyLength,
                                 QString & encryptedText, QString & errorDescription)
 {
     Q_D(EncryptionManager);

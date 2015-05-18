@@ -27,7 +27,7 @@ public:
                  QString & decryptedText, QString & errorDescription);
 
     bool encrypt(const QString & textToEncrypt, const QString & passphrase,
-                 const QString & cipher, const size_t keyLength,
+                 QString & cipher, size_t & keyLength,
                  QString & encryptedText, QString & errorDescription);
 
 Q_SIGNALS:
