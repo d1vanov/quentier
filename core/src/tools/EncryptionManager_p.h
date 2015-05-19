@@ -3,6 +3,12 @@
 
 #include <QString>
 
+// Evernote service defined constants
+#define EN_ITERATIONS (50000)
+#define EN_KEYSIZE (16)
+#define EN_HMACSIZE (32)
+#define EN_IDENT "ENC0"
+
 namespace qute_note {
 
 class EncryptionManagerPrivate
@@ -48,16 +54,14 @@ private:
                     QString & decryptedText, QString & errorDescription);
 
     bool splitEncryptedData(const QString & encryptedData, QString & encryptedText,
-                            QString & errorDescription);
+                            QString & hmac, QString & errorDescription);
 
 private:
-    unsigned char m_salt[16];
-    unsigned char m_saltmac[16];
-    unsigned char m_iv[16];
+    char m_salt[EN_KEYSIZE];
+    char m_saltmac[EN_KEYSIZE];
+    char m_iv[EN_KEYSIZE];
 
-    char m_pbkdf2_key[64];
-    char m_hash[129];
-    unsigned char m_pkcs5_key[32];
+    unsigned char m_key_buffer[EN_KEYSIZE];
 };
 
 } // namespace qute_note
