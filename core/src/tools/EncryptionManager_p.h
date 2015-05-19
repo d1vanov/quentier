@@ -9,6 +9,7 @@ class EncryptionManagerPrivate
 {
 public:
     EncryptionManagerPrivate();
+    ~EncryptionManagerPrivate();
 
     bool decrypt(const QString & encryptedText, const QString & passphrase,
                  const QString & cipher, const size_t keyLength,
@@ -48,14 +49,6 @@ private:
 
     bool splitEncryptedData(const QString & encryptedData, QString & encryptedText,
                             QString & errorDescription);
-
-private:
-    class ErrorStringsHolder
-    {
-    public:
-        ErrorStringsHolder();
-        ~ErrorStringsHolder();
-    };
 
 private:
     unsigned char m_salt[16];

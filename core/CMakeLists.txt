@@ -244,6 +244,7 @@ endif()
 
 
 set(TEST_HEADERS
+    src/tests/EncryptionManagerTests.h
     src/tests/LocalStorageCacheAsyncTester.h
     src/tests/LinkedNotebookLocalStorageManagerAsyncTester.h
     src/tests/NotebookLocalStorageManagerAsyncTester.h
@@ -258,6 +259,7 @@ set(TEST_HEADERS
     src/tests/CoreTester.h)
 
 set(TEST_SOURCES
+    src/tests/EncryptionManagerTests.cpp
     src/tests/LocalStorageCacheAsyncTester.cpp
     src/tests/LinkedNotebookLocalStorageManagerAsyncTester.cpp
     src/tests/NotebookLocalStorageManagerAsyncTester.cpp

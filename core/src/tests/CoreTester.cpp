@@ -10,6 +10,7 @@
 #include "ResourceLocalStorageManagerAsyncTester.h"
 #include "LocalStorageManagerNoteSearchQueryTest.h"
 #include "LocalStorageCacheAsyncTester.h"
+#include "EncryptionManagerTests.h"
 #include <tools/IQuteNoteException.h>
 #include <tools/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
@@ -208,6 +209,28 @@ void CoreTester::noteContainsEncryptionTest()
 
         note.clear();
         QVERIFY2(!note.containsEncryption(), qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
+void CoreTester::encryptDecryptNoteTest()
+{
+    try
+    {
+        QString error;
+        bool res = encryptDecryptTest(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
+void CoreTester::decryptNoteTest()
+{
+    try
+    {
+        QString error;
+        bool res = decryptTest(error);
+        QVERIFY2(res == true, qPrintable(error));
     }
     CATCH_EXCEPTION();
 }
