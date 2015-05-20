@@ -3,12 +3,6 @@
 
 #include <QString>
 
-// Evernote service defined constants
-#define EN_ITERATIONS (50000)
-#define EN_KEYSIZE (16)
-#define EN_HMACSIZE (32)
-#define EN_IDENT "ENC0"
-
 namespace qute_note {
 
 class EncryptionManagerPrivate
@@ -38,30 +32,29 @@ private:
     bool generateRandomBytes(const SaltKind::type saltKind, QString & errorDescription);
 
     bool generateKey(const QString & passphrase, const unsigned char * salt,
-                     const size_t numIterations, QString & key, QString & errorDescription);
+                     const size_t numIterations, QString & errorDescription);
 
     bool calculateHmacHash(const QString & passphrase, const unsigned char * salt,
                            const QString & textToEncrypt, const size_t numIterations,
-                           QString & hash, QString & errorDescription);
+                           QByteArray & hash, QString & errorDescription);
 
-    bool encyptWithAes(const QString & textToEncrypt, const QString & passphrase,
-                       QString & encryptedText, QString & errorDescription);
+    bool encyptWithAes(const QString & textToEncrypt, QByteArray & encryptedText,
+                       QString & errorDescription);
 
     bool decryptAes(const QString & encryptedText, const QString & passphrase,
-                    QString & decryptedText, QString & errorDescription);
+                    QByteArray & decryptedText, QString & errorDescription);
 
     bool decryptPs2(const QString & encryptedText, const QString & passphrase,
-                    QString & decryptedText, QString & errorDescription);
+                    QByteArray & decryptedText, QString & errorDescription);
 
-    bool splitEncryptedData(const QString & encryptedData, QString & encryptedText,
-                            QString & hmac, QString & errorDescription);
+    bool splitEncryptedData(const QString & encryptedData, QByteArray &encryptedText,
+                            QByteArray & hmac, QString & errorDescription);
 
 private:
-    char m_salt[EN_KEYSIZE];
-    char m_saltmac[EN_KEYSIZE];
-    char m_iv[EN_KEYSIZE];
-
-    unsigned char m_key_buffer[EN_KEYSIZE];
+    QByteArray m_salt;
+    QByteArray m_saltmac;
+    QByteArray m_iv;
+    QByteArray m_key;
 };
 
 } // namespace qute_note
