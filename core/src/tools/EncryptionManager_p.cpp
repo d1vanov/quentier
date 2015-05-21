@@ -32,7 +32,7 @@ bool EncryptionManagerPrivate::decrypt(const QString & encryptedText, const QStr
                                        const QString & cipher, const size_t keyLength,
                                        QString & decryptedText, QString & errorDescription)
 {
-    if (cipher == "PS2")
+    if (cipher == "RC2")
     {
         if (keyLength != 64) {
             errorDescription = QT_TR_NOOP("Invalid key length for PS2 decryption method, "
@@ -48,6 +48,7 @@ bool EncryptionManagerPrivate::decrypt(const QString & encryptedText, const QStr
         }
 
         decryptedText = decryptedByteArray;
+        QNWARNING("decrypted text = " << decryptedText);
         return true;
     }
     else if (cipher == "AES")
@@ -308,9 +309,9 @@ bool EncryptionManagerPrivate::decryptImpl(const QString & encryptedText, const 
     EVP_CIPHER_CTX context;
     int res = EVP_DecryptInit(&context, cipher, m_key, m_iv);
     if (res != 1) {
-        errorDescription = QT_TR_NOOP("Can't decrypt the text using AES algorithm");
+        errorDescription = QT_TR_NOOP("Can't decrypt the text");
         GET_OPENSSL_ERROR;
-        QNWARNING(errorDescription << ", openssl EVP_CipherInit failed: "
+        QNWARNING(errorDescription << ", openssl EVP_DecryptInit failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
         free(decipheredText);
@@ -319,9 +320,9 @@ bool EncryptionManagerPrivate::decryptImpl(const QString & encryptedText, const 
 
     res = EVP_DecryptUpdate(&context, decipheredText, &bytesWritten, rawCipherText, rawCipherTextSize);
     if (res != 1) {
-        errorDescription = QT_TR_NOOP("Can't decrypt the text using AES algorithm");
+        errorDescription = QT_TR_NOOP("Can't decrypt the text");
         GET_OPENSSL_ERROR;
-        QNWARNING(errorDescription << ", openssl EVP_CipherUpdate failed: "
+        QNWARNING(errorDescription << ", openssl EVP_DecryptUpdate failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
         free(decipheredText);
@@ -332,9 +333,9 @@ bool EncryptionManagerPrivate::decryptImpl(const QString & encryptedText, const 
 
     res = EVP_DecryptFinal(&context, decipheredText + bytesWritten, &bytesWritten);
     if (res != 1) {
-        errorDescription = QT_TR_NOOP("Can't decrypt the text using AES algorithm");
+        errorDescription = QT_TR_NOOP("Can't decrypt the text");
         GET_OPENSSL_ERROR;
-        QNWARNING(errorDescription << ", openssl EVP_CipherFinal failed: "
+        QNWARNING(errorDescription << ", openssl EVP_DecryptFinal failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
         free(decipheredText);
@@ -347,7 +348,6 @@ bool EncryptionManagerPrivate::decryptImpl(const QString & encryptedText, const 
     Q_UNUSED(EVP_CIPHER_CTX_cleanup(&context));
     free(decipheredText);
     return true;
-
 }
 
 bool EncryptionManagerPrivate::splitEncryptedData(const QString & encryptedData,

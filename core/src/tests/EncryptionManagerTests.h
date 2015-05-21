@@ -7,7 +7,8 @@ namespace qute_note {
 namespace test {
 
 bool encryptDecryptTest(QString & error);
-bool decryptTest(QString & error);
+bool decryptAesTest(QString & error);
+bool decryptRc2Test(QString & error);
 
 } // namespace test
 } // namespace qute_note

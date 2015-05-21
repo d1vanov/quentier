@@ -22,7 +22,8 @@ private slots:
     void noteContainsEncryptionTest();
 
     void encryptDecryptNoteTest();
-    void decryptNoteTest();
+    void decryptNoteAesTest();
+    void decryptNoteRc2Test();
 
     void noteSearchQueryTest();
     void localStorageManagerNoteSearchQueryTest();

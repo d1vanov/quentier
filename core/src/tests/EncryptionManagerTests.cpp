@@ -5,7 +5,7 @@
 namespace qute_note {
 namespace test {
 
-bool decryptTest(QString & error)
+bool decryptAesTest(QString & error)
 {
     EncryptionManager manager;
 
@@ -71,6 +71,36 @@ bool encryptDecryptTest(QString & error)
 
     return true;
 
+}
+
+bool decryptRc2Test(QString &error)
+{
+    EncryptionManager manager;
+
+    const QString encryptedText = "K+sUXSxI2Mt075+pSDxR/gnCNIEnk5XH1P/D0Eie17"
+                                  "JIWgGnNo5QeMo3L0OeBORARGvVtBlmJx6vJY2Ij/2En"
+                                  "MVy6/aifSdZXAxRlfnTLvI1IpVgHpTMzEfy6zBVMo+V"
+                                  "Bt2KglA+7L0iSjA0hs3GEHI6ZgzhGfGj";
+
+    const QString passphrase = "my_own_encryption_key_1988";
+
+    const QString originalText = "Ok, here's a piece of text I'm going to encrypt now";
+
+    QString decryptedText;
+    bool res = manager.decrypt(encryptedText, passphrase, "RC2", 64, decryptedText, error);
+    if (!res) {
+        QNWARNING(error);
+        return false;
+    }
+
+    if (decryptedText != originalText) {
+        error = QT_TR_NOOP("Decrypted text differs from the original; original text = ") + originalText +
+                QT_TR_NOOP("; decrypted text = ") + decryptedText;
+        QNWARNING(error);
+        return false;
+    }
+
+    return true;
 }
 
 } // namespace test
