@@ -9,22 +9,19 @@ bool decryptTest(QString & error)
 {
     EncryptionManager manager;
 
-    const QString encryptedText = "RU5DMA4hFx2T/Uy8tI7R7aGAe8r/ncNiNxGykP7VbZQMMP"
-                                  "6fcPzyQqGegjVvYQg4MtKBr57qb6vBLEpWHIKVY9XLQzeOX"
-                                  "kqpy/kJtLRKTP21BsZrIeSX67XuM40z02M4XAZsIF7Ixxsg"
-                                  "8m81SWYQ1oliEnac+FiWzI5dUwKpSdFVc7WB40/f2cK5Hpn"
-                                  "PjtRcjcm6aT7sCXAXgslU6Qwrv43X1bmqMlZT0pxpKRFpKrnk"
-                                  "PV89TvGfvGUyQGfc50B3VzqzJvF2R4pEe3mGzKramIGKei1w1"
-                                  "aFiT2eufwDgfJghkDWgIIW7QbZUiywoMwITrwpYJh1NCbOb"
-                                  "RGMqBLAB6kZFRVKbS5JWesKwgRmnHsdHQTpX4Sd/dYI3GC4"
-                                  "FpdeK9C+E3YcBSVcCNBGt7N2+ce3o7q/K3Ynoq+8w0qHtNi1"
-                                  "XGV2hD+LU6IK13FoRJwyT1hhkAMiFc3mgvT83hrynhVhByhk"
-                                  "KGPixL3s1GFy5s51NmLSTur/b8pnicF+TgG4YXz8Jxvnalmf"
-                                  "2SMd5voxuz9Ny5EK86P54MsuzjK0y6AO/te7pkxht6UP+SYIt"
-                                  "JI2s1r5fl07Sa/xlkVH28xcL3ODpr0DTWEh/Qq2pXRNLfpcISd"
-                                  "BJIMaIPlcJGR8567WJK0A07yhsS9c1PnVUb+cLlI9PIG3Qxtkfp";
+    const QString encryptedText = "RU5DMI1mnQ7fKjBk9f0a57gSc9Nfbuw3uuwMKs32Y+wJGLZa0N8PcTzf7pu3"
+                                  "/2VOBqZMvfkKGh4mnJuGy45ZT2TwOfqt+ey8Tic7BmhGg7b4n+SpJFHntkeL"
+                                  "glxFWJt6oIG14i7IpamIuYyE5XcBRkOQs2cr7rg730d1hxx6sW/KqIfdr+0rF4k"
+                                  "+rqP7tpI5ha/ALkhaZAuDbIVic39aCRcu6uve6mHHHPA03olCbi7ePVwO7e94mp"
+                                  "uvcg2lGTJyDw/NoZmjFycjXESRJgLIr+gGfyD17jYNGcPBLR8Rb0M9vGK1tG9haG"
+                                  "+Vem1pTWgRfYXF70mMduEmAd4xXy1JqV6XNUYDddW9iPpffWTZgD409LK9wIZM5C"
+                                  "W2rbM2lwM/R0IEnoK7N5X8lCOzqkA9H/HF+8E=";
 
     const QString passphrase = "thisismyriflethisismygunthisisforfortunethisisforfun";
+
+    const QString originalText = "<span style=\"display: inline !important; float: none; \">Ok, here's some really long text. "
+                                 "I can type and type it on and on and it will not stop any time soon just yet. The password "
+                                 "is going to be long also.&nbsp;</span>";
 
     QString decryptedText;
     bool res = manager.decrypt(encryptedText, passphrase, "AES", 128, decryptedText, error);
@@ -33,8 +30,9 @@ bool decryptTest(QString & error)
         return false;
     }
 
-    if (decryptedText != "Very-very secret") {
-        error = QT_TR_NOOP("Decrypted text differs from the original (\"Very-very secret\": ") + decryptedText;
+    if (decryptedText != originalText) {
+        error = QT_TR_NOOP("Decrypted text differs from the original; original text = ") + originalText + 
+                QT_TR_NOOP("; decrypted text = ") + decryptedText;
         QNWARNING(error);
         return false;
     }
