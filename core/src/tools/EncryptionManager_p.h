@@ -55,6 +55,9 @@ private:
     bool decryptPs2(const QString & encryptedText, const QString & passphrase,
                     QByteArray & decryptedText, QString & errorDescription);
 
+    bool decryptImpl(const QString & encryptedText, const QString & passphrase,
+                     const bool useAes, QByteArray & decryptedText, QString & errorDescription);
+
     bool splitEncryptedData(const QString & encryptedData, const size_t saltSize,
                             QByteArray & encryptedText, QString & errorDescription);
 

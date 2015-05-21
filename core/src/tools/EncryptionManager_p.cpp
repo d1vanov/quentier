@@ -268,15 +268,30 @@ bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptDat
 bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const QString & passphrase,
                                           QByteArray & decryptedText, QString & errorDescription)
 {
+    return decryptImpl(encryptedText, passphrase, /* use AES = */ true, decryptedText, errorDescription);
+}
+
+bool EncryptionManagerPrivate::decryptPs2(const QString & encryptedText, const QString & passphrase,
+                                          QByteArray & decryptedText, QString & errorDescription)
+{
+    return decryptImpl(encryptedText, passphrase, /* use AES = */ true, decryptedText, errorDescription);
+}
+
+bool EncryptionManagerPrivate::decryptImpl(const QString & encryptedText, const QString & passphrase,
+                                           const bool useAes, QByteArray & decryptedText,
+                                           QString & errorDescription)
+{
+    const size_t keySize = (useAes ? EN_AES_KEYSIZE : EN_RC2_KEYSIZE);
+
     QByteArray cipherText;
-    bool bres = splitEncryptedData(encryptedText, EN_AES_KEYSIZE, cipherText, errorDescription);
+    bool bres = splitEncryptedData(encryptedText, keySize, cipherText, errorDescription);
     if (!bres) {
         return false;
     }
 
     QByteArray passphraseData = passphrase.toLocal8Bit();
 
-    bres = generateKey(passphraseData, m_salt, EN_AES_KEYSIZE, errorDescription);
+    bres = generateKey(passphraseData, m_salt, keySize, errorDescription);
     if (!bres) {
         return false;
     }
@@ -288,8 +303,10 @@ bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const Q
     int bytesWritten = 0;
     int decipheredTextSize = 0;
 
+    const EVP_CIPHER * cipher = (useAes ? EVP_aes_128_cbc() : EVP_rc2_64_cbc());
+
     EVP_CIPHER_CTX context;
-    int res = EVP_DecryptInit(&context, EVP_aes_128_cbc(), m_key, m_iv);
+    int res = EVP_DecryptInit(&context, cipher, m_key, m_iv);
     if (res != 1) {
         errorDescription = QT_TR_NOOP("Can't decrypt the text using AES algorithm");
         GET_OPENSSL_ERROR;
@@ -330,17 +347,7 @@ bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const Q
     Q_UNUSED(EVP_CIPHER_CTX_cleanup(&context));
     free(decipheredText);
     return true;
-}
 
-bool EncryptionManagerPrivate::decryptPs2(const QString & encryptedText, const QString & passphrase,
-                                          QByteArray & decryptedText, QString & errorDescription)
-{
-    // TODO: implement
-    Q_UNUSED(encryptedText)
-    Q_UNUSED(passphrase)
-    Q_UNUSED(decryptedText)
-    Q_UNUSED(errorDescription)
-    return true;
 }
 
 bool EncryptionManagerPrivate::splitEncryptedData(const QString & encryptedData,
