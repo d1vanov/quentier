@@ -7,7 +7,8 @@
 #define EN_ITERATIONS (50000)
 #define EN_AES_KEYSIZE (16)
 #define EN_RC2_KEYSIZE (8)
-#define EN_HMACSIZE (32)
+#define EN_AES_HMACSIZE (32)
+#define EN_RC2_HMACSIZE (16)
 #define EN_IDENT "ENC0"
 #define MAX_PADDING_LEN (16)
 
@@ -28,6 +29,7 @@ public:
                  QString & encryptedText, QString & errorDescription);
 
 private:
+    // AES encryption/decryption routines
     struct SaltKind
     {
         enum type {
@@ -52,14 +54,17 @@ private:
     bool decryptAes(const QString & encryptedText, const QString & passphrase,
                     QByteArray & decryptedText, QString & errorDescription);
 
-    bool decryptPs2(const QString & encryptedText, const QString & passphrase,
+    bool splitEncryptedData(const QString & encryptedData, const size_t saltSize,
+                            const size_t hmacSize, QByteArray & encryptedText,
+                            QString & errorDescription);
+
+private:
+    // RC2 decryption routines
+    bool decryptRc2(const QString & encryptedText, const QString & passphrase,
                     QByteArray & decryptedText, QString & errorDescription);
 
-    bool decryptImpl(const QString & encryptedText, const QString & passphrase,
-                     const bool useAes, QByteArray & decryptedText, QString & errorDescription);
-
-    bool splitEncryptedData(const QString & encryptedData, const size_t saltSize,
-                            QByteArray & encryptedText, QString & errorDescription);
+    QByteArray rc2KeyFromPassphrase(const QString & passphrase) const;
+    QString decryptRc2Chunk(const QByteArray & input, const QByteArray & xkey) const;
 
 private:
     unsigned char m_salt[EN_AES_KEYSIZE];
@@ -67,7 +72,7 @@ private:
     unsigned char m_iv[EN_AES_KEYSIZE];
 
     unsigned char m_key[EN_AES_KEYSIZE];
-    unsigned char m_hmac[EN_HMACSIZE];
+    unsigned char m_hmac[EN_AES_HMACSIZE];
 };
 
 } // namespace qute_note

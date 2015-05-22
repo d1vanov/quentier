@@ -31,7 +31,7 @@ bool decryptAesTest(QString & error)
     }
 
     if (decryptedText != originalText) {
-        error = QT_TR_NOOP("Decrypted text differs from the original; original text = ") + originalText + 
+        error = QT_TR_NOOP("Decrypted text differs from the original; original text = ") + originalText +
                 QT_TR_NOOP("; decrypted text = ") + decryptedText;
         QNWARNING(error);
         return false;

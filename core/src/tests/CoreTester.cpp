@@ -237,16 +237,15 @@ void CoreTester::decryptNoteAesTest()
 
 void CoreTester::decryptNoteRc2Test()
 {
-    // FIXME: find out why it fails
-    /*
     try
     {
+        QSKIP("Skipping RC2 decryption test until the implementation is ready", SkipSingle);
+
         QString error;
         bool res = decryptRc2Test(error);
         QVERIFY2(res == true, qPrintable(error));
     }
     CATCH_EXCEPTION();
-    */
 }
 
 void CoreTester::noteSearchQueryTest()
