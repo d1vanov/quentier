@@ -239,7 +239,7 @@ void CoreTester::decryptNoteRc2Test()
 {
     try
     {
-        QSKIP("Skipping RC2 decryption test until the implementation is ready", SkipSingle);
+        // QSKIP("Skipping RC2 decryption test until the implementation is ready", SkipSingle);
 
         QString error;
         bool res = decryptRc2Test(error);

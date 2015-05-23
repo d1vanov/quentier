@@ -61,10 +61,10 @@ private:
 private:
     // RC2 decryption routines
     bool decryptRc2(const QString & encryptedText, const QString & passphrase,
-                    QByteArray & decryptedText, QString & errorDescription);
+                    QString & decryptedText, QString & errorDescription);
 
-    QByteArray rc2KeyFromPassphrase(const QString & passphrase) const;
-    QString decryptRc2Chunk(const QByteArray & input, const QByteArray & xkey) const;
+    QVector<int> rc2KeyCodesFromPassphrase(const QString & passphrase) const;
+    QString decryptRc2Chunk(const QByteArray & inputCharCodes, const QVector<int> & xkey) const;
 
 private:
     unsigned char m_salt[EN_AES_KEYSIZE];

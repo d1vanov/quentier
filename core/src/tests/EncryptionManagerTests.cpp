@@ -73,7 +73,7 @@ bool encryptDecryptTest(QString & error)
 
 }
 
-bool decryptRc2Test(QString &error)
+bool decryptRc2Test(QString & error)
 {
     EncryptionManager manager;
 
@@ -84,7 +84,8 @@ bool decryptRc2Test(QString &error)
 
     const QString passphrase = "my_own_encryption_key_1988";
 
-    const QString originalText = "Ok, here's a piece of text I'm going to encrypt now";
+    const QString originalText = "<span style=\"display: inline !important; float: none; \">"
+                                 "Ok, here's a piece of text I'm going to encrypt now</span>";
 
     QString decryptedText;
     bool res = manager.decrypt(encryptedText, passphrase, "RC2", 64, decryptedText, error);

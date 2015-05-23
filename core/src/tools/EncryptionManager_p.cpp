@@ -14,7 +14,7 @@
 namespace qute_note {
 
 // 256-entry permutation table, probably derived somehow from pi
-static const unsigned char rc2_permute[256] =
+static const int rc2_permute[256] =
 {
       217,120,249,196, 25,221,181,237, 40,233,253,121, 74,160,216,157,
       198,126, 55,131, 43,118, 83,142, 98, 76,100,136, 68,139,251,162,
@@ -65,12 +65,13 @@ bool EncryptionManagerPrivate::decrypt(const QString & encryptedText, const QStr
             return false;
         }
 
-        QByteArray decryptedByteArray;
-        bool res = decryptRc2(encryptedText, passphrase, decryptedByteArray, errorDescription);
+        bool res = decryptRc2(encryptedText, passphrase, decryptedText, errorDescription);
         if (!res) {
             return false;
         }
 
+        QNWARNING("decrypted text before messing with Utf-8: " << decryptedText);
+        QByteArray decryptedByteArray = decryptedText.toLocal8Bit();
         decryptedText = QString::fromUtf8(decryptedByteArray.constData(), decryptedByteArray.size());
         QNWARNING("decrypted text = " << decryptedText);
         return true;
@@ -407,12 +408,12 @@ bool EncryptionManagerPrivate::splitEncryptedData(const QString & encryptedData,
 }
 
 bool EncryptionManagerPrivate::decryptRc2(const QString & encryptedText, const QString & passphrase,
-                                          QByteArray & decryptedText, QString & errorDescription)
+                                          QString & decryptedText, QString & errorDescription)
 {
     QByteArray encryptedTextData = QByteArray::fromBase64(encryptedText.toLocal8Bit());
     decryptedText.resize(0);
 
-    QByteArray key = rc2KeyFromPassphrase(passphrase);
+    QVector<int> keyCodes = rc2KeyCodesFromPassphrase(passphrase);
 
     while(encryptedTextData.size() > 0)
     {
@@ -422,8 +423,8 @@ bool EncryptionManagerPrivate::decryptRc2(const QString & encryptedText, const Q
             chunk.push_back(encryptedTextData[i]);
         }
         Q_UNUSED(encryptedTextData.remove(0, 8));
-        QString decryptedChunk = decryptRc2Chunk(chunk, key);
-        decryptedText += decryptedChunk.toLocal8Bit();
+        QString decryptedChunk = decryptRc2Chunk(chunk, keyCodes);
+        decryptedText += decryptedChunk;
     }
 
     // Get rid of zero symbols at the end of the string, if any
@@ -431,18 +432,28 @@ bool EncryptionManagerPrivate::decryptRc2(const QString & encryptedText, const Q
         decryptedText.remove(decryptedText.size() - 1, 1);
     }
 
+    QNWARNING("decrypted text before cutting off four characters at the start: " << decryptedText);
+
     // FIXME: temporarily temove the leading 4 characters while in reality they should be used for CRC validation
     decryptedText.remove(0, 4);
 
     return true;
 }
 
-QByteArray EncryptionManagerPrivate::rc2KeyFromPassphrase(const QString & passphrase) const
+QVector<int> EncryptionManagerPrivate::rc2KeyCodesFromPassphrase(const QString & passphrase) const
 {
-    QByteArray xkey = QCryptographicHash::hash(passphrase.toUtf8(), QCryptographicHash::Md5);
+    QByteArray keyData = QCryptographicHash::hash(passphrase.toUtf8(), QCryptographicHash::Md5);
+    const int keyDataSize = keyData.size();
+
+    // Convert the input data into the array
+    QVector<int> xkey(keyDataSize);
+    for(int i = 0; i < keyDataSize; ++i) {
+        xkey[i] = static_cast<int>(keyData[i]);
+    }
 
     // Phase 1: Expand input key to 128 bytes
     int len = xkey.size();
+    xkey.resize(128);
     for(int i = len; i < 128; ++i) {
         xkey[i] = rc2_permute[(xkey[i - 1] + xkey[i - len]) & 255];
     }
@@ -452,7 +463,7 @@ QByteArray EncryptionManagerPrivate::rc2KeyFromPassphrase(const QString & passph
 
     len = (bits + 7) >> 3;
     int i = 128 - len;
-    unsigned char x = rc2_permute[xkey[i] & (255 >> (7 & -bits))];
+    int x = rc2_permute[xkey[i] & (255 >> (7 & -bits))];
     xkey[i] = x;
     while (i--) {
       x = rc2_permute[x ^ xkey[i + len]];
@@ -460,7 +471,7 @@ QByteArray EncryptionManagerPrivate::rc2KeyFromPassphrase(const QString & passph
     }
 
     // Phase 3: copy to key array of words in little-endian order
-    QByteArray key;
+    QVector<int> key;
     key.resize(64);
     i = 63;
     do {
@@ -470,13 +481,25 @@ QByteArray EncryptionManagerPrivate::rc2KeyFromPassphrase(const QString & passph
     return key;
 }
 
-QString EncryptionManagerPrivate::decryptRc2Chunk(const QByteArray & input, const QByteArray & xkey) const
+QString EncryptionManagerPrivate::decryptRc2Chunk(const QByteArray & inputCharCodes, const QVector<int> & xkey) const
 {
     int x76, x54, x32, x10, i;
-    x76 = (input.at(7) << 8) + input.at(6);
-    x54 = (input.at(5) << 8) + input.at(4);
-    x32 = (input.at(3) << 8) + input.at(2);
-    x10 = (input.at(1) << 8) + input.at(0);
+
+    QVector<int> convertedCharCodes;
+    convertedCharCodes.resize(8);
+    for(int i = 0; i < 8; ++i)
+    {
+        int & code = convertedCharCodes[i];
+        code = static_cast<int>(inputCharCodes.at(i));
+        if (code < 0) {
+            code += 256;
+        }
+    }
+
+    x76 = (convertedCharCodes[7] << 8) + convertedCharCodes[6];
+    x54 = (convertedCharCodes[5] << 8) + convertedCharCodes[4];
+    x32 = (convertedCharCodes[3] << 8) + convertedCharCodes[2];
+    x10 = (convertedCharCodes[1] << 8) + convertedCharCodes[0];
 
     i = 15;
     do {
@@ -505,14 +528,25 @@ QString EncryptionManagerPrivate::decryptRc2Chunk(const QByteArray & input, cons
     } while (i--);
 
     QString out;
-    out.append(QChar(static_cast<int>(x10 & 255)));
-    out.append(QChar(static_cast<int>((x10 >> 8) & 255)));
-    out.append(QChar(static_cast<int>(x32 & 255)));
-    out.append(QChar(static_cast<int>((x32 >> 8) & 255)));
-    out.append(QChar(static_cast<int>(x54 & 255)));
-    out.append(QChar(static_cast<int>((x54 >> 8) & 255)));
-    out.append(QChar(static_cast<int>(x76 & 255)));
-    out.append(QChar(static_cast<int>((x76 >> 8) & 255)));
+    out.reserve(8);
+
+#define APPEND_UNICODE_CHAR(code) \
+    out += QChar(code)
+
+    APPEND_UNICODE_CHAR(x10 & 255);
+    APPEND_UNICODE_CHAR((x10 >> 8) & 255);
+    APPEND_UNICODE_CHAR(x32 & 255);
+    APPEND_UNICODE_CHAR((x32 >> 8) & 255);
+    APPEND_UNICODE_CHAR(x54 & 255);
+    APPEND_UNICODE_CHAR((x54 >> 8) & 255);
+    APPEND_UNICODE_CHAR(x76 & 255);
+    APPEND_UNICODE_CHAR((x76 >> 8) & 255);
+
+#undef APPEND_UNICODE_CHAR
+
+    QByteArray outData = out.toLocal8Bit();
+    out = QString::fromUtf8(outData.constData(), outData.size());
+
     return out;
 }
 
