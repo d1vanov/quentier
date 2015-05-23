@@ -66,6 +66,8 @@ private:
     QVector<int> rc2KeyCodesFromPassphrase(const QString & passphrase) const;
     QString decryptRc2Chunk(const QByteArray & inputCharCodes, const QVector<int> & xkey) const;
 
+    qint32 crc32(const QString & str) const;
+
 private:
     unsigned char m_salt[EN_AES_KEYSIZE];
     unsigned char m_saltmac[EN_AES_KEYSIZE];
