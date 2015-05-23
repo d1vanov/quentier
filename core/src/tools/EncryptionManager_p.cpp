@@ -199,7 +199,7 @@ bool EncryptionManagerPrivate::encrypt(const QString & textToEncrypt, const QStr
         return false;
     }
 
-    res = calculateHmac(passphraseData, m_saltmac, textToEncryptData, EN_AES_KEYSIZE, errorDescription);
+    res = calculateHmac(passphraseData, m_saltmac, encryptedTextData, EN_AES_KEYSIZE, errorDescription);
     if (!res) {
         return false;
     }
@@ -270,7 +270,7 @@ bool EncryptionManagerPrivate::generateKey(const QByteArray & passphraseData, co
 }
 
 bool EncryptionManagerPrivate::calculateHmac(const QByteArray & passphraseData, const unsigned char * salt,
-                                             const QByteArray & textToEncryptData,
+                                             const QByteArray & encryptedTextData,
                                              const size_t keySize, QString & errorDescription)
 {
     bool res = generateKey(passphraseData, salt, keySize, errorDescription);
@@ -278,11 +278,11 @@ bool EncryptionManagerPrivate::calculateHmac(const QByteArray & passphraseData, 
         return false;
     }
 
-    const unsigned char * data = reinterpret_cast<const unsigned char*>(textToEncryptData.constData());
-    unsigned char * digest = HMAC(EVP_sha256(), m_key, keySize, data, textToEncryptData.size(), NULL, NULL);
+    const unsigned char * data = reinterpret_cast<const unsigned char*>(encryptedTextData.constData());
+    unsigned char * digest = HMAC(EVP_sha256(), m_key, keySize, data, encryptedTextData.size(), NULL, NULL);
 
     for(int i = 0; i < EN_AES_HMACSIZE; ++i) {
-        m_hmac[i] = reinterpret_cast<const char*>(digest)[i];
+        m_hmac[i] = digest[i];
     }
     return true;
 }
@@ -346,6 +346,8 @@ bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptDat
 bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const QString & passphrase,
                                           QByteArray & decryptedText, QString & errorDescription)
 {
+    QNDEBUG("EncryptionManagerPrivate::decryptAes");
+
     QByteArray cipherText;
     bool bres = splitEncryptedData(encryptedText, EN_AES_KEYSIZE, EN_AES_HMACSIZE, cipherText, errorDescription);
     if (!bres) {
@@ -353,6 +355,36 @@ bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const Q
     }
 
     QByteArray passphraseData = passphrase.toLocal8Bit();
+
+    // Validate HMAC
+    QNTRACE("Validating hmac...");
+
+    unsigned char parsedHmac[EN_AES_HMACSIZE];
+    for(int i = 0; i < EN_AES_HMACSIZE; ++i) {
+        parsedHmac[i] = m_hmac[i];
+    }
+
+    QByteArray saltWithCipherText = QByteArray::fromBase64(encryptedText.toLocal8Bit());
+    saltWithCipherText.remove(saltWithCipherText.size() - EN_AES_HMACSIZE, EN_AES_HMACSIZE);
+
+    bres = calculateHmac(passphraseData, m_saltmac, saltWithCipherText, EN_AES_KEYSIZE, errorDescription);
+    if (!bres) {
+        return false;
+    }
+
+    for(int i = 0; i < EN_AES_HMACSIZE; ++i)
+    {
+        if (parsedHmac[i] != m_hmac[i]) {
+            errorDescription = QT_TR_NOOP("Can't decrypt text: invalid checksum");
+            QNWARNING(errorDescription << ", parsed hmac: "
+                      << QByteArray(reinterpret_cast<const char*>(parsedHmac), EN_AES_HMACSIZE).toHex()
+                      << ", expected hmac: "
+                      << QByteArray(reinterpret_cast<const char*>(m_hmac), EN_AES_HMACSIZE).toHex());
+            return false;
+        }
+    }
+
+    QNTRACE("Successfully validated hmac");
 
     bres = generateKey(passphraseData, m_salt, EN_AES_KEYSIZE, errorDescription);
     if (!bres) {

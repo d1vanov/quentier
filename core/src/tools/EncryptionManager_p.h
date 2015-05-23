@@ -45,7 +45,7 @@ private:
                      const size_t keySize, QString & errorDescription);
 
     bool calculateHmac(const QByteArray & passphraseData, const unsigned char * salt,
-                       const QByteArray & textToEncryptData, const size_t keySize,
+                       const QByteArray & encryptedTextData, const size_t keySize,
                        QString & errorDescription);
 
     bool encyptWithAes(const QByteArray & textToEncrypt, QByteArray & encryptedText,
