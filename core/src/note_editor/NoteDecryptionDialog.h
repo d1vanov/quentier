@@ -1,7 +1,9 @@
 #ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
 
+#include <tools/EncryptionManager.h>
 #include <QDialog>
+#include <QSharedPointer>
 
 namespace Ui {
 QT_FORWARD_DECLARE_CLASS(NoteDecryptionDialog)
@@ -13,20 +15,38 @@ class NoteDecryptionDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit NoteDecryptionDialog(QWidget * parent = nullptr);
-    ~NoteDecryptionDialog();
+    explicit NoteDecryptionDialog(const QString & encryptedText,
+                                  const QString & cipher,
+                                  const QString & hint,
+                                  const size_t keyLength,
+                                  const QSharedPointer<EncryptionManager> & encryptionManager,
+                                  QWidget * parent = nullptr);
+    virtual ~NoteDecryptionDialog();
 
     QString passphrase() const;
     bool rememberPassphrase() const;
 
-    void setError(const QString & error);
+    QString decryptedText() const;
 
-public Q_SLOTS:
+private Q_SLOTS:
     void setHint(const QString & hint);
     void setRememberPassphraseDefaultState(const bool checked);
 
+    virtual void accept();
+
 private:
-    Ui::NoteDecryptionDialog * m_pUI;
+    void setError(const QString & error);
+
+private:
+    Ui::NoteDecryptionDialog *          m_pUI;
+    QString                             m_encryptedText;
+    QString                             m_cipher;
+    QString                             m_hint;
+
+    QString                             m_cachedDecryptedText;
+
+    QSharedPointer<EncryptionManager>   m_encryptionManager;
+    size_t                              m_keyLength;
 };
 
 } // namespace qute_note

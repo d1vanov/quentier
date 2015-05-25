@@ -49,14 +49,9 @@ private:
 private:
     Ui::EncryptedAreaPlugin *           m_pUI;
     QSharedPointer<EncryptionManager>   m_encryptionManager;
-
     QString                             m_hint;
     QString                             m_cipher;
     QString                             m_encryptedText;
-
-    QString                             m_cachedPassphrase;
-    QString                             m_cachedDecryptedText;
-
     size_t                              m_keyLength;
 };
 

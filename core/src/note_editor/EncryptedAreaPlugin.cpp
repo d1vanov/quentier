@@ -16,8 +16,6 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(const QSharedPointer<EncryptionManager>
     m_encryptionManager(encryptionManager),
     m_hint(),
     m_cipher(),
-    m_cachedPassphrase(),
-    m_cachedDecryptedText(),
     m_keyLength(0)
 {
     m_pUI->setupUi(this);
@@ -173,38 +171,19 @@ void EncryptedAreaPlugin::decrypt()
 
 void EncryptedAreaPlugin::raiseNoteDecryptionDialog()
 {
-    QScopedPointer<NoteDecryptionDialog> pDecryptionDialog(new NoteDecryptionDialog(this));
+    QScopedPointer<NoteDecryptionDialog> pDecryptionDialog(new NoteDecryptionDialog(m_encryptedText,
+                                                                                    m_cipher, m_hint,
+                                                                                    m_keyLength,
+                                                                                    m_encryptionManager,
+                                                                                    this));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
-
-    pDecryptionDialog->setHint(m_hint);
-    pDecryptionDialog->setRememberPassphraseDefaultState(false);
 
     int res = pDecryptionDialog->exec();
     if (res == QDialog::Accepted)
     {
         QString passphrase = pDecryptionDialog->passphrase();
-        if (!m_cachedPassphrase.isEmpty() && !passphrase.isEmpty() && (m_cachedPassphrase == passphrase))
-        {
-            QNTRACE("Using previously cached passphrase to unlock the en-crypt tag content");
-        }
-        else
-        {
-            QString errorDescription;
-            bool res = m_encryptionManager->decrypt(m_encryptedText, passphrase, m_cipher,
-                                                    m_keyLength, m_cachedDecryptedText,
-                                                    errorDescription);
-            if (!res) {
-                errorDescription.prepend(QT_TR_NOOP("Failed attempt to decrypt text: "));
-                QNINFO("Failed attempt to decrypt text: " << errorDescription);
-                emit notifyDecryptionError(errorDescription);
-                m_cachedPassphrase.resize(0);
-                m_cachedDecryptedText.resize(0);
-                return;
-            }
-
-            QNTRACE("Successfully decrypted text: " << m_cachedDecryptedText);
-            m_cachedPassphrase = passphrase;
-        }
+        QString decryptedText = pDecryptionDialog->decryptedText();
+        QNTRACE("Successfully decrypted text: " << decryptedText);
 
         bool shouldRememberPassphrase = pDecryptionDialog->rememberPassphrase();
         if (shouldRememberPassphrase) {
