@@ -93,7 +93,11 @@ EncryptionManagerPrivate::EncryptionManagerPrivate() :
     m_saltmac(),
     m_iv(),
     m_key(),
-    m_hmac()
+    m_hmac(),
+    m_cached_xkey(),
+    m_cached_key(),
+    m_decrypt_rc2_chunk_key_codes(),
+    m_rc2_chunk_out()
 {
     ERR_load_crypto_strings();
     OpenSSL_add_all_algorithms();
@@ -499,7 +503,7 @@ bool EncryptionManagerPrivate::decryptRc2(const QString & encryptedText, const Q
     QByteArray encryptedTextData = QByteArray::fromBase64(encryptedText.toLocal8Bit());
     decryptedText.resize(0);
 
-    QVector<int> keyCodes = rc2KeyCodesFromPassphrase(passphrase);
+    rc2KeyCodesFromPassphrase(passphrase);
 
     while(encryptedTextData.size() > 0)
     {
@@ -509,7 +513,7 @@ bool EncryptionManagerPrivate::decryptRc2(const QString & encryptedText, const Q
             chunk.push_back(encryptedTextData[i]);
         }
         Q_UNUSED(encryptedTextData.remove(0, 8));
-        QString decryptedChunk = decryptRc2Chunk(chunk, keyCodes);
+        QString decryptedChunk = decryptRc2Chunk(chunk, m_cached_key);
         decryptedText += decryptedChunk;
     }
 
@@ -541,22 +545,22 @@ bool EncryptionManagerPrivate::decryptRc2(const QString & encryptedText, const Q
     return true;
 }
 
-QVector<int> EncryptionManagerPrivate::rc2KeyCodesFromPassphrase(const QString & passphrase) const
+void EncryptionManagerPrivate::rc2KeyCodesFromPassphrase(const QString & passphrase) const
 {
     QByteArray keyData = QCryptographicHash::hash(passphrase.toUtf8(), QCryptographicHash::Md5);
     const int keyDataSize = keyData.size();
 
     // Convert the input data into the array
-    QVector<int> xkey(keyDataSize);
+    m_cached_xkey.resize(keyDataSize);
     for(int i = 0; i < keyDataSize; ++i) {
-        xkey[i] = static_cast<int>(keyData[i]);
+        m_cached_xkey[i] = static_cast<int>(keyData[i]);
     }
 
     // Phase 1: Expand input key to 128 bytes
-    int len = xkey.size();
-    xkey.resize(128);
+    int len = m_cached_xkey.size();
+    m_cached_xkey.resize(128);
     for(int i = len; i < 128; ++i) {
-        xkey[i] = rc2_permute[(xkey[i - 1] + xkey[i - len]) & 255];
+        m_cached_xkey[i] = rc2_permute[(m_cached_xkey[i - 1] + m_cached_xkey[i - len]) & 255];
     }
 
     // Phase 2: Reduce effective key size to 64 bits
@@ -564,90 +568,83 @@ QVector<int> EncryptionManagerPrivate::rc2KeyCodesFromPassphrase(const QString &
 
     len = (bits + 7) >> 3;
     int i = 128 - len;
-    int x = rc2_permute[xkey[i] & (255 >> (7 & -bits))];
-    xkey[i] = x;
+    int x = rc2_permute[m_cached_xkey[i] & (255 >> (7 & -bits))];
+    m_cached_xkey[i] = x;
     while (i--) {
-      x = rc2_permute[x ^ xkey[i + len]];
-      xkey[i] = x;
+      x = rc2_permute[x ^ m_cached_xkey[i + len]];
+      m_cached_xkey[i] = x;
     }
 
     // Phase 3: copy to key array of words in little-endian order
-    QVector<int> key;
-    key.resize(64);
+    m_cached_key.resize(64);
     i = 63;
     do {
-      key[i] = (xkey[2 * i] & 255) + (xkey[2 * i + 1] << 8);
+      m_cached_key[i] = (m_cached_xkey[2 * i] & 255) + (m_cached_xkey[2 * i + 1] << 8);
     } while (i--);
-
-    return key;
 }
 
-QString EncryptionManagerPrivate::decryptRc2Chunk(const QByteArray & inputCharCodes, const QVector<int> & xkey) const
+QString EncryptionManagerPrivate::decryptRc2Chunk(const QByteArray & inputCharCodes, const std::vector<int> & key) const
 {
     int x76, x54, x32, x10, i;
 
-    QVector<int> convertedCharCodes;
-    convertedCharCodes.resize(8);
     for(int i = 0; i < 8; ++i)
     {
-        int & code = convertedCharCodes[i];
+        int & code = m_decrypt_rc2_chunk_key_codes[i];
         code = static_cast<int>(inputCharCodes.at(i));
         if (code < 0) {
             code += 256;
         }
     }
 
-    x76 = (convertedCharCodes[7] << 8) + convertedCharCodes[6];
-    x54 = (convertedCharCodes[5] << 8) + convertedCharCodes[4];
-    x32 = (convertedCharCodes[3] << 8) + convertedCharCodes[2];
-    x10 = (convertedCharCodes[1] << 8) + convertedCharCodes[0];
+    x76 = (m_decrypt_rc2_chunk_key_codes[7] << 8) + m_decrypt_rc2_chunk_key_codes[6];
+    x54 = (m_decrypt_rc2_chunk_key_codes[5] << 8) + m_decrypt_rc2_chunk_key_codes[4];
+    x32 = (m_decrypt_rc2_chunk_key_codes[3] << 8) + m_decrypt_rc2_chunk_key_codes[2];
+    x10 = (m_decrypt_rc2_chunk_key_codes[1] << 8) + m_decrypt_rc2_chunk_key_codes[0];
 
     i = 15;
     do {
       x76 &= 65535;
       x76 = (x76 << 11) + (x76 >> 5);
-      x76 -= (x10 & ~x54) + (x32 & x54) + xkey[4*i+3];
+      x76 -= (x10 & ~x54) + (x32 & x54) + key[4*i+3];
 
       x54 &= 65535;
       x54 = (x54 << 13) + (x54 >> 3);
-      x54 -= (x76 & ~x32) + (x10 & x32) + xkey[4*i+2];
+      x54 -= (x76 & ~x32) + (x10 & x32) + key[4*i+2];
 
       x32 &= 65535;
       x32 = (x32 << 14) + (x32 >> 2);
-      x32 -= (x54 & ~x10) + (x76 & x10) + xkey[4*i+1];
+      x32 -= (x54 & ~x10) + (x76 & x10) + key[4*i+1];
 
       x10 &= 65535;
       x10 = (x10 << 15) + (x10 >> 1);
-      x10 -= (x32 & ~x76) + (x54 & x76) + xkey[4*i+0];
+      x10 -= (x32 & ~x76) + (x54 & x76) + key[4*i+0];
 
       if (i == 5 || i == 11) {
-        x76 -= xkey[x54 & 63];
-        x54 -= xkey[x32 & 63];
-        x32 -= xkey[x10 & 63];
-        x10 -= xkey[x76 & 63];
+        x76 -= key[x54 & 63];
+        x54 -= key[x32 & 63];
+        x32 -= key[x10 & 63];
+        x10 -= key[x76 & 63];
       }
     } while (i--);
 
-    QString out;
-    out.reserve(8);
+    m_rc2_chunk_out.resize(8);
 
-#define APPEND_UNICODE_CHAR(code) \
-    out += QChar(code)
+#define APPEND_UNICODE_CHAR(code, i) \
+    m_rc2_chunk_out[i] = QChar(code)
 
-    APPEND_UNICODE_CHAR(x10 & 255);
-    APPEND_UNICODE_CHAR((x10 >> 8) & 255);
-    APPEND_UNICODE_CHAR(x32 & 255);
-    APPEND_UNICODE_CHAR((x32 >> 8) & 255);
-    APPEND_UNICODE_CHAR(x54 & 255);
-    APPEND_UNICODE_CHAR((x54 >> 8) & 255);
-    APPEND_UNICODE_CHAR(x76 & 255);
-    APPEND_UNICODE_CHAR((x76 >> 8) & 255);
+    APPEND_UNICODE_CHAR(x10 & 255, 0);
+    APPEND_UNICODE_CHAR((x10 >> 8) & 255, 1);
+    APPEND_UNICODE_CHAR(x32 & 255, 2);
+    APPEND_UNICODE_CHAR((x32 >> 8) & 255, 3);
+    APPEND_UNICODE_CHAR(x54 & 255, 4);
+    APPEND_UNICODE_CHAR((x54 >> 8) & 255, 5);
+    APPEND_UNICODE_CHAR(x76 & 255, 6);
+    APPEND_UNICODE_CHAR((x76 >> 8) & 255, 7);
 
 #undef APPEND_UNICODE_CHAR
 
-    QByteArray outData = out.toLocal8Bit();
-    out = QString::fromUtf8(outData.constData(), outData.size());
-
+    QByteArray outData = m_rc2_chunk_out.toLocal8Bit();
+    QString out = QString::fromUtf8(outData.constData(), outData.size());
     return out;
 }
 
@@ -661,15 +658,15 @@ qint32 EncryptionManagerPrivate::crc32(const QString & str) const
 
     crc ^= (-1);
 
-    const QByteArray stdData = str.toLocal8Bit();
-    const int size = stdData.size();
+    const QByteArray strData = str.toLocal8Bit();
+    const int size = strData.size();
 
     QVector<int> convertedCharCodes;
     convertedCharCodes.resize(size);
     for(int i = 0; i < size; ++i)
     {
         int & code = convertedCharCodes[i];
-        code = static_cast<int>(stdData[i]);
+        code = static_cast<int>(strData[i]);
         if (code < 0) {
             code += 256;
         }

@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__TOOLS__ENCRYPTION_MANAGER_PRIVATE_H
 
 #include <QString>
+#include <vector>
 
 // Evernote service defined constants
 #define EN_ITERATIONS (50000)
@@ -63,8 +64,8 @@ private:
     bool decryptRc2(const QString & encryptedText, const QString & passphrase,
                     QString & decryptedText, QString & errorDescription);
 
-    QVector<int> rc2KeyCodesFromPassphrase(const QString & passphrase) const;
-    QString decryptRc2Chunk(const QByteArray & inputCharCodes, const QVector<int> & xkey) const;
+    void rc2KeyCodesFromPassphrase(const QString & passphrase) const;
+    QString decryptRc2Chunk(const QByteArray & inputCharCodes, const std::vector<int> & key) const;
 
     qint32 crc32(const QString & str) const;
 
@@ -75,6 +76,12 @@ private:
 
     unsigned char m_key[EN_AES_KEYSIZE];
     unsigned char m_hmac[EN_AES_HMACSIZE];
+
+    // Cache helpers
+    mutable std::vector<int>    m_cached_xkey;
+    mutable std::vector<int>    m_cached_key;
+    mutable int                 m_decrypt_rc2_chunk_key_codes[8];
+    mutable QString             m_rc2_chunk_out;
 };
 
 } // namespace qute_note
