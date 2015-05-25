@@ -3,6 +3,8 @@
 
 #include "INoteEditorPlugin.h"
 #include <tools/qt4helper.h>
+#include <tools/EncryptionManager.h>
+#include <QSharedPointer>
 
 namespace Ui {
 QT_FORWARD_DECLARE_CLASS(EncryptedAreaPlugin)
@@ -14,11 +16,13 @@ class EncryptedAreaPlugin: public INoteEditorPlugin
 {
     Q_OBJECT
 public:
-    explicit EncryptedAreaPlugin(QWidget * parent = nullptr);
+    explicit EncryptedAreaPlugin(const QSharedPointer<EncryptionManager> & encryptionManager,
+                                 QWidget * parent = nullptr);
     virtual ~EncryptedAreaPlugin();
 
 Q_SIGNALS:
     void rememberPassphraseForSession(QString cipher, QString password);
+    void notifyDecryptionError(QString errorDescription);
 
 private:
     // INoteEditorPlugin interface
@@ -38,16 +42,22 @@ private:
 
 private Q_SLOTS:
     void decrypt();
-    void decryptAndRemember();
 
 private:
-    void raiseNoteDecryptionDialog(const bool shouldRememberPassphrase);
+    void raiseNoteDecryptionDialog();
 
 private:
-    Ui::EncryptedAreaPlugin *   m_pUI;
-    QString                     m_hint;
-    QString                     m_cipher;
-    size_t                      m_keyLength;
+    Ui::EncryptedAreaPlugin *           m_pUI;
+    QSharedPointer<EncryptionManager>   m_encryptionManager;
+
+    QString                             m_hint;
+    QString                             m_cipher;
+    QString                             m_encryptedText;
+
+    QString                             m_cachedPassphrase;
+    QString                             m_cachedDecryptedText;
+
+    size_t                              m_keyLength;
 };
 
 } // namespace qute_note

@@ -38,6 +38,13 @@ spacing: 4px;
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="onErrorTextLabel">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLabel" name="hintLabel">
      <property name="text">
       <string>Hint:</string>

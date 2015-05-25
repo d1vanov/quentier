@@ -19,6 +19,8 @@ public:
     QString passphrase() const;
     bool rememberPassphrase() const;
 
+    void setError(const QString & error);
+
 public Q_SLOTS:
     void setHint(const QString & hint);
     void setRememberPassphraseDefaultState(const bool checked);

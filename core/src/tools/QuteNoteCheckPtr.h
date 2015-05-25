@@ -6,7 +6,7 @@
 #ifndef QUTE_NOTE_CHECK_PTR
 #define QUTE_NOTE_CHECK_PTR(pointer, ...) \
 { \
-    if (!pointer) \
+    if (Q_UNLIKELY(!pointer)) \
     { \
         using qute_note::QuteNoteNullPtrException; \
         QString qute_note_null_ptr_error = "Found NULL pointer at "; \

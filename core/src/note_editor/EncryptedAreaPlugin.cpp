@@ -3,19 +3,26 @@
 #include "NoteDecryptionDialog.h"
 #include <logging/QuteNoteLogger.h>
 #include <client/types/IResource.h>
+#include <tools/QuteNoteCheckPtr.h>
 #include <QIcon>
 #include <QMouseEvent>
 
 namespace qute_note {
 
-EncryptedAreaPlugin::EncryptedAreaPlugin(QWidget * parent) :
+EncryptedAreaPlugin::EncryptedAreaPlugin(const QSharedPointer<EncryptionManager> & encryptionManager,
+                                         QWidget * parent) :
     INoteEditorPlugin(parent),
     m_pUI(new Ui::EncryptedAreaPlugin),
+    m_encryptionManager(encryptionManager),
     m_hint(),
     m_cipher(),
+    m_cachedPassphrase(),
+    m_cachedDecryptedText(),
     m_keyLength(0)
 {
     m_pUI->setupUi(this);
+
+    QUTE_NOTE_CHECK_PTR(m_encryptionManager.data())
 
     if (!QIcon::hasThemeIcon("security-high")) {
         QIcon lockIcon;
@@ -30,11 +37,6 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(QWidget * parent) :
     showEncryptedTextAction->setText(QObject::tr("Show encrypted text") + "...");
     QObject::connect(showEncryptedTextAction, SIGNAL(triggered()), this, SLOT(decrypt()));
     m_pUI->toolButton->addAction(showEncryptedTextAction);
-
-    QAction * decryptTextPermanentlyAction = new QAction(this);
-    decryptTextPermanentlyAction->setText(QObject::tr("Decrypt text permanently") + "...");
-    QObject::connect(decryptTextPermanentlyAction, SIGNAL(triggered()), this, SLOT(decryptAndRemember()));
-    m_pUI->toolButton->addAction(decryptTextPermanentlyAction);
 }
 
 EncryptedAreaPlugin::~EncryptedAreaPlugin()
@@ -44,7 +46,7 @@ EncryptedAreaPlugin::~EncryptedAreaPlugin()
 
 EncryptedAreaPlugin * EncryptedAreaPlugin::clone() const
 {
-    return new EncryptedAreaPlugin();
+    return new EncryptedAreaPlugin(m_encryptionManager);
 }
 
 bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
@@ -62,7 +64,7 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
 
     int cipherIndex = parameterNames.indexOf("cipher");
     if (cipherIndex < 0) {
-        errorDescription = QT_TR_NOOP("cipher attribute was not found within object with encrypted text");
+        errorDescription = QT_TR_NOOP("cipher parameter was not found within object with encrypted text");
         return false;
     }
 
@@ -71,9 +73,15 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
         return false;
     }
 
+    int encryptedTextIndex = parameterNames.indexOf("encryptedText");
+    if (encryptedTextIndex < 0) {
+        errorDescription = QT_TR_NOOP("encrypted text parameter was not found within object with encrypted text");
+        return false;
+    }
+
     int keyLengthIndex = parameterNames.indexOf("length");
     if (keyLengthIndex < 0) {
-        errorDescription = QT_TR_NOOP("length attribute was not found within object with encrypted text");
+        errorDescription = QT_TR_NOOP("length parameter was not found within object with encrypted text");
         return false;
     }
 
@@ -96,6 +104,7 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
 
     m_keyLength = static_cast<size_t>(keyLength);
 
+    m_encryptedText = parameterValues[encryptedTextIndex];
     m_cipher = parameterValues[cipherIndex];
 
     int hintIndex = parameterNames.indexOf("hint");
@@ -107,7 +116,8 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
     }
 
     QNTRACE("Initialized encrypted area plugin: cipher = " << m_cipher
-            << ", length = " << m_keyLength << ", hint = " << m_hint);
+            << ", length = " << m_keyLength << ", hint = " << m_hint
+            << ", encrypted text = " << m_encryptedText);
     return true;
 }
 
@@ -158,15 +168,10 @@ void EncryptedAreaPlugin::mouseReleaseEvent(QMouseEvent * mouseEvent)
 
 void EncryptedAreaPlugin::decrypt()
 {
-    raiseNoteDecryptionDialog(false);
+    raiseNoteDecryptionDialog();
 }
 
-void EncryptedAreaPlugin::decryptAndRemember()
-{
-    raiseNoteDecryptionDialog(true);
-}
-
-void EncryptedAreaPlugin::raiseNoteDecryptionDialog(const bool shouldRememberPassphrase)
+void EncryptedAreaPlugin::raiseNoteDecryptionDialog()
 {
     QScopedPointer<NoteDecryptionDialog> pDecryptionDialog(new NoteDecryptionDialog(this));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
@@ -178,7 +183,29 @@ void EncryptedAreaPlugin::raiseNoteDecryptionDialog(const bool shouldRememberPas
     if (res == QDialog::Accepted)
     {
         QString passphrase = pDecryptionDialog->passphrase();
-        // TODO: attempt to use it to decrypt stuff, return with error if no luck
+        if (!m_cachedPassphrase.isEmpty() && !passphrase.isEmpty() && (m_cachedPassphrase == passphrase))
+        {
+            QNTRACE("Using previously cached passphrase to unlock the en-crypt tag content");
+        }
+        else
+        {
+            QString errorDescription;
+            bool res = m_encryptionManager->decrypt(m_encryptedText, passphrase, m_cipher,
+                                                    m_keyLength, m_cachedDecryptedText,
+                                                    errorDescription);
+            if (!res) {
+                errorDescription.prepend(QT_TR_NOOP("Failed attempt to decrypt text: "));
+                QNINFO("Failed attempt to decrypt text: " << errorDescription);
+                emit notifyDecryptionError(errorDescription);
+                m_cachedPassphrase.resize(0);
+                m_cachedDecryptedText.resize(0);
+                return;
+            }
+
+            QNTRACE("Successfully decrypted text: " << m_cachedDecryptedText);
+            m_cachedPassphrase = passphrase;
+        }
+
         bool shouldRememberPassphrase = pDecryptionDialog->rememberPassphrase();
         if (shouldRememberPassphrase) {
             emit rememberPassphraseForSession(m_cipher, passphrase);

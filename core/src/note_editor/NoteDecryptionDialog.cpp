@@ -8,6 +8,7 @@ NoteDecryptionDialog::NoteDecryptionDialog(QWidget *parent) :
     m_pUI(new Ui::NoteDecryptionDialog)
 {
     m_pUI->setupUi(this);
+    m_pUI->onErrorTextLabel->setVisible(false);
 }
 
 NoteDecryptionDialog::~NoteDecryptionDialog()
@@ -23,6 +24,12 @@ QString NoteDecryptionDialog::passphrase() const
 bool NoteDecryptionDialog::rememberPassphrase() const
 {
     return m_pUI->rememberPasswordCheckBox->isChecked();
+}
+
+void NoteDecryptionDialog::setError(const QString & error)
+{
+    m_pUI->onErrorTextLabel->setText(error);
+    m_pUI->onErrorTextLabel->setVisible(true);
 }
 
 void NoteDecryptionDialog::setHint(const QString & hint)
