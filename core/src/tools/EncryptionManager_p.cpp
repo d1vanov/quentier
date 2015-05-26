@@ -88,6 +88,10 @@ static const QString crc32table =
     "5D681B02 2A6F2B94 B40BBE37 C30C8EA1 5A05DF1B "
     "2D02EF8D";
 
+#ifdef _MSC_VER
+#pragma warning(disable:4351)
+#endif
+
 EncryptionManagerPrivate::EncryptionManagerPrivate() :
     m_salt(),
     m_saltmac(),
@@ -454,7 +458,7 @@ bool EncryptionManagerPrivate::splitEncryptedData(const QString & encryptedData,
 {
     QByteArray decodedEncryptedData = QByteArray::fromBase64(encryptedData.toLocal8Bit());
 
-    const size_t minLength = 4 + 3 * saltSize + hmacSize;
+    const int minLength = 4 + 3 * saltSize + hmacSize;
 
     const int encryptedDataSize = decodedEncryptedData.size();
     if (encryptedDataSize <= minLength) {
@@ -467,28 +471,28 @@ bool EncryptionManagerPrivate::splitEncryptedData(const QString & encryptedData,
     const unsigned char * decodedEncryptedDataPtr = reinterpret_cast<const unsigned char*>(decodedEncryptedData.constData());
 
     size_t cursor = 4;
-    for(int i = 0; i < saltSize; ++i) {
+    for(size_t i = 0; i < saltSize; ++i) {
         m_salt[i] = decodedEncryptedDataPtr[i+cursor];
     }
 
     cursor += saltSize;
-    for(int i = 0; i < saltSize; ++i) {
+    for(size_t i = 0; i < saltSize; ++i) {
         m_saltmac[i] = decodedEncryptedDataPtr[i+cursor];
     }
 
     cursor += saltSize;
-    for(int i = 0; i < saltSize; ++i) {
+    for(size_t i = 0; i < saltSize; ++i) {
         m_iv[i] = decodedEncryptedDataPtr[i+cursor];
     }
 
     cursor += saltSize;
     encryptedText.resize(0);
-    for(int i = cursor; i < encryptedDataSize-hmacSize; ++i) {
+    for(size_t i = cursor; i < encryptedDataSize-hmacSize; ++i) {
         encryptedText += decodedEncryptedData.at(i);
     }
 
     cursor = encryptedDataSize-hmacSize;
-    for(int i = 0; i < hmacSize; ++i) {
+    for(size_t i = 0; i < hmacSize; ++i) {
         m_hmac[i] = decodedEncryptedDataPtr[i+cursor];
     }
 
