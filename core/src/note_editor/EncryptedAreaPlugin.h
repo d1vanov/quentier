@@ -33,7 +33,7 @@ private:
                             const IResource * resource, QString & errorDescription) Q_DECL_OVERRIDE;
     virtual QStringList mimeTypes() const Q_DECL_OVERRIDE;
     virtual QHash<QString, QStringList> fileExtensions() const Q_DECL_OVERRIDE;
-    virtual QStringList specificAttributes() const Q_DECL_OVERRIDE;
+    virtual QList<QPair<QString, QString> > specificParameters() const Q_DECL_OVERRIDE;
     virtual QString name() const Q_DECL_OVERRIDE;
     virtual QString description() const Q_DECL_OVERRIDE;
 

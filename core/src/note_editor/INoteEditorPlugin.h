@@ -33,7 +33,8 @@ public:
      * @param url - url of the content to be displayed by the plugin
      * @param parameterNames - names of string parameters stored in HTML <object> tag for the plugin
      * @param parameterValues - values of string parameters stored in HTML <object> tag for the plugin
-     * @param resource - const reference to resource which actually needs to be displayed
+     * @param resource - const pointer to resource which needs to be displayed by the plugin or null
+     * if the plugin does not represent the resource
      * @param errorDescription - error description in case the plugin can't be initialized properly
      * with this set of parameters
      * @return true if initialization was successful, false otherwise
@@ -58,15 +59,18 @@ public:
     virtual QHash<QString, QStringList> fileExtensions() const = 0;
 
     /**
-     * @brief specificAttributes - the method should be used by plugins which do not
-     * really represent resources hence the concept of mime type doesn't make much sense for them;
-     * @return the list of specific HTML attributes which presence within the note editor's content
-     * should trigger the insertion of the plugin; the default implementation in INoteEditorPlugin
-     * returns the empty list of strings. NOTE: the plugin using specific HTML attributes
+     * @brief specificParameters - the method should be used by plugins which do not
+     * represent the real resources; instead, the plugins are identified via specific attributes
+     * within the <param> tag of the parent <object> HTML element.
+     * @return the list of name-value pairs representing specific parameter names and values
+     * which presence within the HTML of the inspected <param> child of <object> element should
+     * trigger the choice of this exact plugin by the factory; the default implementation in INoteEditorPlugin
+     * returns the empty list. NOTE: the plugins not representing the real resources
      * should return the empty list of mime types in mimeTypes() method and the empty list of file extensions
-     * in fileExtensions() method, otherwise the specific HTML attributes of the plugin would be ignored
+     * in fileExtensions() method, otherwise the specific parameters returned by this method
+     * would be ignored by the factory
      */
-    virtual QStringList specificAttributes() const;
+    virtual QList<QPair<QString, QString> > specificParameters() const;
 
     /**
      * @brief name - the method returning the name of the plugin

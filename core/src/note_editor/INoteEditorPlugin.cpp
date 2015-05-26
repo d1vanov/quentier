@@ -6,9 +6,9 @@ INoteEditorPlugin::INoteEditorPlugin(QWidget * parent) :
     QWidget(parent)
 {}
 
-QStringList INoteEditorPlugin::specificAttributes() const
+QList<QPair<QString, QString> > INoteEditorPlugin::specificParameters() const
 {
-    return QStringList();
+    return QList<QPair<QString, QString> >();
 }
 
 } // namespace qute_note

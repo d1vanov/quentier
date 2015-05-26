@@ -129,9 +129,9 @@ QHash<QString, QStringList> EncryptedAreaPlugin::fileExtensions() const
     return QHash<QString, QStringList>();
 }
 
-QStringList EncryptedAreaPlugin::specificAttributes() const
+QList<QPair<QString, QString> > EncryptedAreaPlugin::specificParameters() const
 {
-    return QStringList() << "en-crypt";
+    return QList<QPair<QString, QString> >() << QPair<QString, QString>("en-tag", "en-crypt");
 }
 
 QString EncryptedAreaPlugin::name() const

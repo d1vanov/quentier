@@ -74,7 +74,9 @@ border: none;
       <string notr="true"/>
      </property>
      <property name="icon">
-      <iconset theme="security-high"/>
+      <iconset theme="security-high">
+       <normaloff/>
+      </iconset>
      </property>
      <property name="flat">
       <bool>true</bool>
@@ -102,7 +104,7 @@ border: none;
       </size>
      </property>
      <property name="text">
-      <string notr="true">●●●●●●●●●</string>
+      <string notr="true">●●●●●●</string>
      </property>
      <property name="textInteractionFlags">
       <set>Qt::NoTextInteraction</set>
