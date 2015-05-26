@@ -2,6 +2,7 @@
 #include "ui_NoteDecryptionDialog.h"
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
+#include <QSettings>
 
 namespace qute_note {
 
@@ -23,8 +24,19 @@ NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
     QUTE_NOTE_CHECK_PTR(encryptionManager.data())
 
     setHint(m_hint);
-    setRememberPassphraseDefaultState(false);   // TODO: use QSettings to figure this out
+
+    bool rememberPassphraseForSessionDefault = false;
+    QSettings settings;
+    QVariant rememberPassphraseForSessionSetting = settings.value("General/rememberPassphraseForSession");
+    if (!rememberPassphraseForSessionSetting.isNull()) {
+        rememberPassphraseForSessionDefault = rememberPassphraseForSessionSetting.toBool();
+    }
+
+    setRememberPassphraseDefaultState(rememberPassphraseForSessionDefault);
     m_pUI->onErrorTextLabel->setVisible(false);
+
+    QObject::connect(m_pUI->rememberPasswordCheckBox, SIGNAL(stateChanged(int)),
+                     this, SLOT(onRememberPassphraseStateChanged()));
 }
 
 NoteDecryptionDialog::~NoteDecryptionDialog()
@@ -62,6 +74,18 @@ void NoteDecryptionDialog::setHint(const QString & hint)
 void NoteDecryptionDialog::setRememberPassphraseDefaultState(const bool checked)
 {
     m_pUI->rememberPasswordCheckBox->setChecked(checked);
+}
+
+void NoteDecryptionDialog::onRememberPassphraseStateChanged()
+{
+    QSettings settings;
+    if (!settings.isWritable()) {
+        QNINFO("Can't persist remember passphrase for session setting: settings are not writable");
+    }
+    else {
+        settings.setValue("General/rememberPassphraseForSession",
+                          QVariant(m_pUI->rememberPasswordCheckBox->isChecked()));
+    }
 }
 
 void NoteDecryptionDialog::accept()

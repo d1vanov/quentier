@@ -21,7 +21,7 @@ public:
     virtual ~EncryptedAreaPlugin();
 
 Q_SIGNALS:
-    void rememberPassphraseForSession(QString cipher, QString password);
+    void rememberPassphraseForSession(QString cipher, QString password, bool remember);
     void notifyDecryptionError(QString errorDescription);
 
 private:
