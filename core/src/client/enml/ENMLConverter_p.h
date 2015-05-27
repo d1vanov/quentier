@@ -40,8 +40,13 @@ private:
     static bool isEvernoteSpecificXhtmlTag(const QString & tagName);
     static bool isAllowedXhtmlTag(const QString & tagName);
 
-    bool writeResourceInfoToEnml(const QXmlStreamReader & reader, const QString & namespaceUri,
-                                 QXmlStreamWriter & writer, QString & errorDescription) const;
+    bool writeObjectInfoToEnml(QXmlStreamReader & reader, const QString & namespaceUri,
+                               QXmlStreamWriter & writer, QString & errorDescription) const;
+
+    bool writeEnCryptTagToEnml(QXmlStreamReader & reader, const QString & namespaceUri,
+                               QXmlStreamWriter & writer, QString & errorDescription) const;
+    bool writeEnCryptTagToHtml(const QXmlStreamReader & reader, const QString & namespaceUri,
+                               QXmlStreamWriter & writer, QString & errorDescription) const;
 
     bool convertEnToDoTagsToHtml(QString & html, qint32 & lastFreeImageId, QString & errorDescription) const;
 
