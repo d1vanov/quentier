@@ -4472,7 +4472,6 @@ bool LocalStorageManagerPrivate::CheckAndPrepareInsertOrReplaceLinkedNotebookQue
         QString values = ":guid, :updateSequenceNumber, :shareName, :username, :shardId, :shareKey, "
                          ":uri, :noteStoreUrl, :webApiUrlPrefix, :stack, :businessId, :isDirty";
 
-        QString queryString = QString("INSERT OR REPLACE INTO LinkedNotebooks (%1) VALUES(%2)").arg(columns).arg(values);
         QSqlQuery query(m_sqlDatabase);
 
         m_insertOrReplaceLinkedNotebookQuery = QSqlQuery(m_sqlDatabase);
