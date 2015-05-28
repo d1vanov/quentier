@@ -18,6 +18,7 @@ set(${PROJECT_NAME}_HEADERS
     src/note_editor/ToDoCheckboxTextObject.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor.h
+    src/note_editor/NoteEditor_p.h
     src/note_editor/INoteEditorPlugin.h
     src/note_editor/NoteEditorPluginFactory.h
     src/note_editor/NoteEditorPluginFactory_p.h
@@ -108,6 +109,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ToDoCheckboxTextObject.cpp
     src/note_editor/NoteEditorPage.cpp
     src/note_editor/NoteEditor.cpp
+    src/note_editor/NoteEditor_p.cpp
     src/note_editor/NoteEditorPluginFactory.cpp
     src/note_editor/NoteEditorPluginFactory_p.cpp
     src/note_editor/NoteDecryptionDialog.cpp

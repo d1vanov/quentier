@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__I_NOTE_EDITOR_RESOURCE_INSERTER_H
 
 #include "NoteEditor.h"
+#include <QMimeType>
 
 namespace qute_note {
 

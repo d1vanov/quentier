@@ -4,17 +4,12 @@
 #include <tools/qt4helper.h>
 #include <tools/Linkage.h>
 #include <QWebView>
-#include <QString>
-#include <QHash>
-
-QT_FORWARD_DECLARE_CLASS(QByteArray)
-QT_FORWARD_DECLARE_CLASS(QMimeType)
-QT_FORWARD_DECLARE_CLASS(QImage)
 
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(INoteEditorResourceInserter)
+QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 
 class QUTE_NOTE_EXPORT NoteEditor: public QWebView
 {
@@ -26,7 +21,7 @@ public:
     virtual ~NoteEditor();
 
     void setNote(const Note & note);
-    const Note * getNote();
+    const Note * getNote() const;
 
     bool isModified() const;
 
@@ -72,36 +67,14 @@ public Q_SLOTS:
 
     void onNoteLoadCancelled();
 
-private Q_SLOTS:
-    void onNoteLoadFinished(bool ok);
-
 private:
-    void execJavascriptCommand(const QString & command);
-    void execJavascriptCommand(const QString & command, const QString & args);
-
     virtual void dropEvent(QDropEvent * pEvent) Q_DECL_OVERRIDE;
-    void dropFile(QString & filepath);
-    void attachResourceToNote(const QByteArray & data, const QString & dataHash, const QMimeType & mimeType);
-
-    template <typename T>
-    QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows, const int columns,
-                             const bool relative, const size_t tableId);
-
-    void insertImage(const QByteArray & data,  const QString & dataHash, const QMimeType & mimeType);
 
 private:
-    QString     m_jQuery;
-    QString     m_resizableColumnsPlugin;
-    QString     m_onFixedWidthTableResize;
-
-    Note *      m_pNote;
-    bool        m_modified;
-    QHash<QString, INoteEditorResourceInserter*>    m_noteEditorResourceInserters;
-    size_t      m_lastFreeId;
+    NoteEditorPrivate * const   d_ptr;
+    Q_DECLARE_PRIVATE(NoteEditor)
 };
 
 } // namespace qute_note
-
-void QUTE_NOTE_EXPORT __initNoteEditorResources();
 
 #endif //__QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_H
