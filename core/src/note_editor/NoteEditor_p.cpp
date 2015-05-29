@@ -22,10 +22,14 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_jQuery(),
     m_resizableColumnsPlugin(),
     m_onFixedWidthTableResize(),
+    m_getSelectionHtml(),
+    m_replaceSelectionWithHtml(),
     m_pNote(nullptr),
     m_modified(false),
     m_noteEditorResourceInserters(),
     m_lastFreeId(1),
+    m_encryptedTextPassphraseCache(),
+    m_encryptionManager(new EncryptionManager),
     q_ptr(&noteEditor)
 {
     Q_Q(NoteEditor);
@@ -65,6 +69,16 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_onFixedWidthTableResize = file.readAll();
     file.close();
 
+    file.setFileName(":/getSelectionHtml.js");
+    file.open(QIODevice::ReadOnly);
+    m_getSelectionHtml = file.readAll();
+    file.close();
+
+    file.setFileName(":/replaceSelectionWithHtml.js");
+    file.open(QIODevice::ReadOnly);
+    m_replaceSelectionWithHtml = file.readAll();
+    file.close();
+
     QObject::connect(page, SIGNAL(contentsChanged()), q, SIGNAL(contentChanged()));
     QObject::connect(q, SIGNAL(loadFinished(bool)), this, SLOT(onNoteLoadFinished(bool)));
     QObject::connect(this, SIGNAL(notifyError(QString)), q, SIGNAL(notifyError(QString)));
@@ -86,28 +100,42 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
         return;
     }
 
-    frame->evaluateJavaScript(m_jQuery);
-    frame->evaluateJavaScript(m_resizableColumnsPlugin);
-    frame->evaluateJavaScript(m_onFixedWidthTableResize);
-    QNTRACE("Evaluated jQuery and colResizable plugin");
+    Q_UNUSED(frame->evaluateJavaScript(m_jQuery));
+    Q_UNUSED(frame->evaluateJavaScript(m_resizableColumnsPlugin));
+    Q_UNUSED(frame->evaluateJavaScript(m_onFixedWidthTableResize));
+    Q_UNUSED(frame->evaluateJavaScript(m_getSelectionHtml));
+    Q_UNUSED(frame->evaluateJavaScript(m_replaceSelectionWithHtml));
+    QNTRACE("Evaluated all JavaScript helper functions");
 }
 
-void NoteEditorPrivate::execJavascriptCommand(const QString & command)
+QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
 {
     Q_Q(NoteEditor);
     QWebFrame * frame = q->page()->mainFrame();
     QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command);
-    frame->evaluateJavaScript(javascript);
-    QNTRACE("Executed javascript command: " << javascript);
+    QVariant result = frame->evaluateJavaScript(javascript);
+    QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
+    return result;
 }
 
-void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args)
+void NoteEditorPrivate::execJavascriptCommand(const QString & command)
+{
+    Q_UNUSED(execJavascriptCommand(command));
+}
+
+QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command, const QString & args)
 {
     Q_Q(NoteEditor);
     QWebFrame * frame = q->page()->mainFrame();
     QString javascript = QString("document.execCommand('%1', false, '%2')").arg(command).arg(args);
-    frame->evaluateJavaScript(javascript);
-    QNTRACE("Executed javascript command: " << javascript);
+    QVariant result = frame->evaluateJavaScript(javascript);
+    QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
+    return result;
+}
+
+void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args)
+{
+    Q_UNUSED(execJavascriptCommand(command, args));
 }
 
 void NoteEditorPrivate::setNote(const Note & note)
@@ -433,6 +461,65 @@ void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int colum
 
     Q_Q(NoteEditor);
     q->page()->mainFrame()->evaluateJavaScript(colResizable);
+}
+
+void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
+                                            const QString & hint)
+{
+    QNDEBUG("NoteEditorPrivate::encryptSelectedText");
+
+    Q_Q(NoteEditor);
+    if (!q->page()->hasSelection()) {
+        QString error = QT_TR_NOOP("Note editor page has no selected text, nothing to encrypt");
+        QNINFO(error);
+        emit notifyError(error);
+        return;
+    }
+
+    // NOTE: use JavaScript to get the selected text here, not the convenience method of NoteEditorPage
+    // in order to ensure the method returning the selected html and the method replacing the selected html
+    // agree about the selected html
+    QString selectedHtml = execJavascriptCommandWithResult("getSelectionHtml").toString();
+    if (selectedHtml.isEmpty()) {
+        QString error = QT_TR_NOOP("Selected html is empty, nothing to encrypt");
+        QNINFO(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QString error;
+    QString encryptedText;
+    QString cipher = "AES";
+    size_t keyLength = 128;
+    bool res = m_encryptionManager->encrypt(selectedHtml, passphrase, cipher, keyLength,
+                                            encryptedText, error);
+    if (!res) {
+        error.prepend(QT_TR_NOOP("Can't encrypt selected text: "));
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QString encryptedTextHtmlObject = "<object type=\"application/octet-stream\" en-tag=\"en-crypt\" >"
+                                      "<param name=\"cipher\" value=\"";
+    encryptedTextHtmlObject += cipher;
+    encryptedTextHtmlObject += "\" />";
+    encryptedTextHtmlObject += "<param name=\"length\" value=\"";
+    encryptedTextHtmlObject += "\" />";
+    encryptedTextHtmlObject += "<param name=\"encryptedText\" value=\"";
+    encryptedTextHtmlObject += encryptedText;
+    encryptedTextHtmlObject += "\" />";
+
+    if (!hint.isEmpty()) {
+        encryptedTextHtmlObject = "<param name=\"hint\" value=\"";
+        encryptedTextHtmlObject += hint;    // FIXME: ensure there're no unescaped quotes and/or double-quotes here
+        encryptedTextHtmlObject += "\" />";
+    }
+
+    encryptedTextHtmlObject += "<object/>";
+
+    execJavascriptCommand("replaceSelectionWithHtml", encryptedTextHtmlObject);
+    // TODO: ensure the contentChanged signal would be emitted automatically (guess it should)
 }
 
 void NoteEditorPrivate::addResourceInserterForMimeType(const QString & mimeTypeName,

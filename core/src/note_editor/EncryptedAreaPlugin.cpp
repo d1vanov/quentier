@@ -185,8 +185,8 @@ void EncryptedAreaPlugin::raiseNoteDecryptionDialog()
         QString decryptedText = pDecryptionDialog->decryptedText();
         QNTRACE("Successfully decrypted text: " << decryptedText);
 
-        bool shouldRememberPassphrase = pDecryptionDialog->rememberPassphrase();
-        emit rememberPassphraseForSession(m_cipher, passphrase, shouldRememberPassphrase);
+        bool shouldRememberForSession = pDecryptionDialog->rememberPassphrase();
+        emit cachePassphrase(m_cipher, passphrase, shouldRememberForSession);
     }
 }
 

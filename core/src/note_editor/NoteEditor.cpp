@@ -184,6 +184,12 @@ void NoteEditor::insertRelativeWidthTable(const int rows, const int columns, con
     d->insertRelativeWidthTable(rows, columns, relativeWidth);
 }
 
+void NoteEditor::encryptSelectedText(const QString & passphrase, const QString & hint)
+{
+    Q_D(NoteEditor);
+    d->encryptSelectedText(passphrase, hint);
+}
+
 void NoteEditor::onNoteLoadCancelled()
 {
     // TODO: implement

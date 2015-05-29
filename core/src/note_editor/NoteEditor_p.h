@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PRIVATE_H
 
 #include "NoteEditor.h"
+#include <tools/EncryptionManager.h>
 #include <QObject>
 
 QT_FORWARD_DECLARE_CLASS(QByteArray)
@@ -17,7 +18,10 @@ class NoteEditorPrivate: public QObject
 public:
     explicit NoteEditorPrivate(NoteEditor & noteEditor);
 
+    QVariant execJavascriptCommandWithResult(const QString & command);
     void execJavascriptCommand(const QString & command);
+
+    QVariant execJavascriptCommandWithResult(const QString & command, const QString & args);
     void execJavascriptCommand(const QString & command, const QString & args);
 
     void setNote(const Note & note);
@@ -47,6 +51,8 @@ public:
     void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels);
     void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
 
+    void encryptSelectedText(const QString & passphrase, const QString & hint);
+
 public:
     // TODO: deprecate these methods in favour of NoteEditorPluginFactory
     void addResourceInserterForMimeType(const QString & mimeTypeName,
@@ -63,14 +69,20 @@ private Q_SLOTS:
     void onNoteLoadFinished(bool ok);
 
 private:
+    // JavaScript scripts
     QString     m_jQuery;
     QString     m_resizableColumnsPlugin;
     QString     m_onFixedWidthTableResize;
+    QString     m_getSelectionHtml;
+    QString     m_replaceSelectionWithHtml;
 
     Note *      m_pNote;
     bool        m_modified;
     QHash<QString, INoteEditorResourceInserter*>    m_noteEditorResourceInserters;
     size_t      m_lastFreeId;
+
+    QHash<QString, QPair<QString, bool> >   m_encryptedTextPassphraseCache;
+    QSharedPointer<EncryptionManager>       m_encryptionManager;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)
