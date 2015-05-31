@@ -120,7 +120,7 @@ QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & comm
 
 void NoteEditorPrivate::execJavascriptCommand(const QString & command)
 {
-    Q_UNUSED(execJavascriptCommand(command));
+    Q_UNUSED(execJavascriptCommandWithResult(command));
 }
 
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command, const QString & args)
@@ -135,7 +135,7 @@ QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & comm
 
 void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args)
 {
-    Q_UNUSED(execJavascriptCommand(command, args));
+    Q_UNUSED(execJavascriptCommandWithResult(command, args));
 }
 
 void NoteEditorPrivate::setNote(const Note & note)
