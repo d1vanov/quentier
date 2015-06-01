@@ -8,7 +8,7 @@
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Note)
-QT_FORWARD_DECLARE_CLASS(INoteEditorResourceInserter)
+QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 
 class QUTE_NOTE_EXPORT NoteEditor: public QWebView
@@ -25,15 +25,8 @@ public:
 
     bool isModified() const;
 
-public:
-    // ====== Interface for various resource inserters by mime type =========
-    void addResourceInserterForMimeType(const QString & mimeTypeName,
-                                        INoteEditorResourceInserter * pResourceInserter);
-
-    // returns true if resource inserter was found by mime type and removed
-    bool removeResourceInserterForMimeType(const QString & mimeTypeName);
-
-    bool hasResourceInsertedForMimeType(const QString & mimeTypeName) const;
+    const NoteEditorPluginFactory & pluginFactory() const;
+    NoteEditorPluginFactory & pluginFactory();
 
 Q_SIGNALS:
     void contentChanged();

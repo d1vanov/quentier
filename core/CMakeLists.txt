@@ -22,7 +22,6 @@ set(${PROJECT_NAME}_HEADERS
     src/note_editor/INoteEditorPlugin.h
     src/note_editor/NoteEditorPluginFactory.h
     src/note_editor/NoteEditorPluginFactory_p.h
-    src/note_editor/INoteEditorResourceInserter.h
     src/client/Utility.h
     src/client/types/IDataElementWithShortcut.h
     src/client/types/ISharedNotebook.h

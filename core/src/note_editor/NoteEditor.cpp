@@ -1,6 +1,6 @@
 #include "NoteEditor.h"
 #include "NoteEditor_p.h"
-#include "INoteEditorResourceInserter.h"
+#include "NoteEditorPluginFactory.h"
 #include <client/types/Note.h>
 #include <QFont>
 #include <QColor>
@@ -33,23 +33,16 @@ bool NoteEditor::isModified() const
     return d->isModified();
 }
 
-void NoteEditor::addResourceInserterForMimeType(const QString & mimeTypeName,
-                                                INoteEditorResourceInserter * pResourceInserter)
-{
-    Q_D(NoteEditor);
-    d->addResourceInserterForMimeType(mimeTypeName, pResourceInserter);
-}
-
-bool NoteEditor::removeResourceInserterForMimeType(const QString & mimeTypeName)
-{
-    Q_D(NoteEditor);
-    return d->removeResourceInserterForMimeType(mimeTypeName);
-}
-
-bool NoteEditor::hasResourceInsertedForMimeType(const QString & mimeTypeName) const
+const NoteEditorPluginFactory & NoteEditor::pluginFactory() const
 {
     Q_D(const NoteEditor);
-    return d->hasResourceInsertedForMimeType(mimeTypeName);
+    return d->pluginFactory();
+}
+
+NoteEditorPluginFactory & NoteEditor::pluginFactory()
+{
+    Q_D(NoteEditor);
+    return d->pluginFactory();
 }
 
 void NoteEditor::undo()

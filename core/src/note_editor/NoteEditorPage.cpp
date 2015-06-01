@@ -1,6 +1,5 @@
 #include "NoteEditorPage.h"
 #include "NoteEditor.h"
-#include "INoteEditorResourceInserter.h"
 #include <tools/QuteNoteCheckPtr.h>
 #include <logging/QuteNoteLogger.h>
 #include <QWebView>

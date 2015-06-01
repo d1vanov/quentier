@@ -1,6 +1,6 @@
 #include "NoteEditor_p.h"
 #include "NoteEditorPage.h"
-#include "INoteEditorResourceInserter.h"
+#include "NoteEditorPluginFactory.h"
 #include <client/types/Note.h>
 #include <client/enml/ENMLConverter.h>
 #include <logging/QuteNoteLogger.h>
@@ -26,19 +26,24 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_replaceSelectionWithHtml(),
     m_pNote(nullptr),
     m_modified(false),
-    m_noteEditorResourceInserters(),
     m_lastFreeId(1),
     m_encryptionManager(new EncryptionManager),
     m_decryptedTextCache(new QCache<QString, QPair<QString, bool> >(20)),
+    m_pluginFactory(nullptr),
     q_ptr(&noteEditor)
 {
     Q_Q(NoteEditor);
+
 
     NoteEditorPage * page = new NoteEditorPage(*q);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessFileUrls, true);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessRemoteUrls, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     page->setContentEditable(true);
+
+    m_pluginFactory = new NoteEditorPluginFactory(page);
+    page->setPluginFactory(m_pluginFactory);
+
     q->setPage(page);
 
     // Setting initial "blank" page, it is of great importance in order to make image insertion work
@@ -166,6 +171,16 @@ const Note * NoteEditorPrivate::getNote() const
 bool NoteEditorPrivate::isModified() const
 {
     return m_modified;
+}
+
+const NoteEditorPluginFactory & NoteEditorPrivate::pluginFactory() const
+{
+    return *m_pluginFactory;
+}
+
+NoteEditorPluginFactory & NoteEditorPrivate::pluginFactory()
+{
+    return *m_pluginFactory;
 }
 
 void NoteEditorPrivate::onDropEvent(QDropEvent *pEvent)
@@ -522,39 +537,6 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
     // TODO: ensure the contentChanged signal would be emitted automatically (guess it should)
 }
 
-void NoteEditorPrivate::addResourceInserterForMimeType(const QString & mimeTypeName,
-                                                       INoteEditorResourceInserter * pResourceInserter)
-{
-    QNDEBUG("NoteEditorPrivate::addResourceInserterForMimeType: mime type = " << mimeTypeName);
-
-    if (!pResourceInserter) {
-        QNINFO("Detected attempt to add null pointer to resource inserter for mime type " << mimeTypeName);
-        return;
-    }
-
-    m_noteEditorResourceInserters[mimeTypeName] = pResourceInserter;
-}
-
-bool NoteEditorPrivate::removeResourceInserterForMimeType(const QString & mimeTypeName)
-{
-    QNDEBUG("NoteEditorPrivate::removeResourceInserterForMimeType: mime type = " << mimeTypeName);
-
-    auto it = m_noteEditorResourceInserters.find(mimeTypeName);
-    if (it == m_noteEditorResourceInserters.end()) {
-        QNTRACE("Can't remove resource inserter for mime type " << mimeTypeName << ": not found");
-        return false;
-    }
-
-    Q_UNUSED(m_noteEditorResourceInserters.erase(it));
-    return true;
-}
-
-bool NoteEditorPrivate::hasResourceInsertedForMimeType(const QString & mimeTypeName) const
-{
-    auto it = m_noteEditorResourceInserters.find(mimeTypeName);
-    return (it != m_noteEditorResourceInserters.end());
-}
-
 void NoteEditorPrivate::dropFile(QString & filepath)
 {
     QNDEBUG("NoteEditorPrivate::dropFile: " << filepath);
@@ -581,33 +563,7 @@ void NoteEditorPrivate::dropFile(QString & filepath)
     QByteArray data = QFile(filepath).readAll();
     QString dataHash = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
     attachResourceToNote(data, dataHash, mimeType);
-
-    QString mimeTypeName = mimeType.name();
-    auto resourceInsertersEnd = m_noteEditorResourceInserters.end();
-    for(auto it = m_noteEditorResourceInserters.begin(); it != resourceInsertersEnd; ++it)
-    {
-        if (mimeTypeName != it.key()) {
-            continue;
-        }
-
-        QNTRACE("Found resource inserter for mime type " << mimeTypeName);
-        INoteEditorResourceInserter * pResourceInserter = it.value();
-        if (!pResourceInserter) {
-            QNINFO("Detected null pointer to registered resource inserter for mime type " << mimeTypeName);
-            continue;
-        }
-
-        pResourceInserter->insertResource(data, mimeType);
-        return;
-    }
-
-    // If we are still here, no specific resource inserter was found, so will process two generic cases: image or any other type
-    if (mimeTypeName.startsWith("image")) {
-        insertImage(data, dataHash, mimeType);
-        return;
-    }
-
-    // TODO: process generic mime type
+    // TODO: re-convert note's ENML to html and refresh the web page
 }
 
 } // namespace qute_note

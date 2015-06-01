@@ -31,6 +31,9 @@ public:
 
     bool isModified() const;
 
+    const NoteEditorPluginFactory & pluginFactory() const;
+    NoteEditorPluginFactory & pluginFactory();
+
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
     void attachResourceToNote(const QByteArray & data, const QString & dataHash, const QMimeType & mimeType);
@@ -55,15 +58,6 @@ public:
 
     void encryptSelectedText(const QString & passphrase, const QString & hint);
 
-public:
-    // TODO: deprecate these methods in favour of NoteEditorPluginFactory
-    void addResourceInserterForMimeType(const QString & mimeTypeName,
-                                        INoteEditorResourceInserter * pResourceInserter);
-
-    bool removeResourceInserterForMimeType(const QString & mimeTypeName);
-
-    bool hasResourceInsertedForMimeType(const QString & mimeTypeName) const;
-
 Q_SIGNALS:
     void notifyError(QString error);
 
@@ -80,11 +74,12 @@ private:
 
     Note *      m_pNote;
     bool        m_modified;
-    QHash<QString, INoteEditorResourceInserter*>    m_noteEditorResourceInserters;
     size_t      m_lastFreeId;
 
     QSharedPointer<EncryptionManager>       m_encryptionManager;
     DecryptedTextCachePtr                   m_decryptedTextCache;
+
+    NoteEditorPluginFactory *               m_pluginFactory;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)
