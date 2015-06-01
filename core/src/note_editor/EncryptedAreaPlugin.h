@@ -5,6 +5,7 @@
 #include <tools/qt4helper.h>
 #include <tools/EncryptionManager.h>
 #include <QSharedPointer>
+#include <QCache>
 
 namespace Ui {
 QT_FORWARD_DECLARE_CLASS(EncryptedAreaPlugin)
@@ -12,17 +13,19 @@ QT_FORWARD_DECLARE_CLASS(EncryptedAreaPlugin)
 
 namespace qute_note {
 
+typedef QSharedPointer<QCache<QString, QPair<QString, bool> > > DecryptedTextCachePtr;
+
 class EncryptedAreaPlugin: public INoteEditorPlugin
 {
     Q_OBJECT
 public:
-    explicit EncryptedAreaPlugin(const QSharedPointer<EncryptionManager> & encryptionManager,
+    explicit EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encryptionManager,
+                                 DecryptedTextCachePtr decryptedTextCache,
                                  QWidget * parent = nullptr);
     virtual ~EncryptedAreaPlugin();
 
 Q_SIGNALS:
-    void cachePassphrase(QString cipher, QString password, bool rememberForSession);
-    void notifyDecryptionError(QString errorDescription);
+    void decrypted(QString encryptedText, QString decryptedText, bool rememberForSession);
 
 private:
     // INoteEditorPlugin interface
@@ -49,6 +52,7 @@ private:
 private:
     Ui::EncryptedAreaPlugin *           m_pUI;
     QSharedPointer<EncryptionManager>   m_encryptionManager;
+    DecryptedTextCachePtr               m_decryptedTextCache;
     QString                             m_hint;
     QString                             m_cipher;
     QString                             m_encryptedText;

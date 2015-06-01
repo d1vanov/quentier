@@ -2,8 +2,10 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PRIVATE_H
 
 #include "NoteEditor.h"
+#include "EncryptedAreaPlugin.h"
 #include <tools/EncryptionManager.h>
 #include <QObject>
+#include <QCache>
 
 QT_FORWARD_DECLARE_CLASS(QByteArray)
 QT_FORWARD_DECLARE_CLASS(QMimeType)
@@ -81,8 +83,8 @@ private:
     QHash<QString, INoteEditorResourceInserter*>    m_noteEditorResourceInserters;
     size_t      m_lastFreeId;
 
-    QHash<QString, QPair<QString, bool> >   m_encryptedTextPassphraseCache;
     QSharedPointer<EncryptionManager>       m_encryptionManager;
+    DecryptedTextCachePtr                   m_decryptedTextCache;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

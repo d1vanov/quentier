@@ -9,7 +9,8 @@ namespace qute_note {
 NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
                                            const QString & cipher,
                                            const QString & hint, const size_t keyLength,
-                                           const QSharedPointer<EncryptionManager> & encryptionManager,
+                                           QSharedPointer<EncryptionManager> encryptionManager,
+                                           DecryptedTextCachePtr decryptedTextCache,
                                            QWidget * parent) :
     QDialog(parent),
     m_pUI(new Ui::NoteDecryptionDialog),
@@ -18,10 +19,12 @@ NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
     m_hint(hint),
     m_cachedDecryptedText(),
     m_keyLength(keyLength),
-    m_encryptionManager(encryptionManager)
+    m_encryptionManager(encryptionManager),
+    m_decryptedTextCache(decryptedTextCache)
 {
     m_pUI->setupUi(this);
     QUTE_NOTE_CHECK_PTR(encryptionManager.data())
+    QUTE_NOTE_CHECK_PTR(decryptedTextCache.data())
 
     setHint(m_hint);
 
@@ -91,15 +94,40 @@ void NoteDecryptionDialog::onRememberPassphraseStateChanged()
 void NoteDecryptionDialog::accept()
 {
     QString passphrase = m_pUI->passwordLineEdit->text();
-    QString errorDescription;
-    bool res = m_encryptionManager->decrypt(m_encryptedText, passphrase, m_cipher,
-                                            m_keyLength, m_cachedDecryptedText,
-                                            errorDescription);
-    if (!res) {
-        errorDescription.prepend(QT_TR_NOOP("Failed attempt to decrypt text: "));
-        QNINFO(errorDescription);
-        setError(errorDescription);
-        return;
+
+    const QPair<QString, bool> * cachedEntry = m_decryptedTextCache->object(passphrase);
+    if (cachedEntry)
+    {
+        QNTRACE("Found cached decrypted text for passphrase");
+        m_cachedDecryptedText = cachedEntry->first;
+    }
+    else
+    {
+        QString errorDescription;
+        bool res = m_encryptionManager->decrypt(m_encryptedText, passphrase, m_cipher,
+                                                m_keyLength, m_cachedDecryptedText,
+                                                errorDescription);
+        if (!res) {
+            errorDescription.prepend(QT_TR_NOOP("Failed attempt to decrypt text: "));
+            QNINFO(errorDescription);
+            setError(errorDescription);
+            return;
+        }
+
+        const bool rememberForSession = m_pUI->rememberPasswordCheckBox->isChecked();
+        QPair<QString, bool> cacheEntry(m_cachedDecryptedText, rememberForSession);
+        if (rememberForSession)
+        {
+            m_decryptedTextCache->insert(m_encryptedText, &cacheEntry);
+            QNTRACE("Cached decrypted text by encryptedText (per session passphrase storage): "
+                    << m_encryptedText);
+        }
+        else
+        {
+            m_decryptedTextCache->insert(passphrase, &cacheEntry);
+            QNTRACE("Cached decrypted text by passphrase (no per session passphrase storage, "
+                    "just the internal cache for faster handling");
+        }
     }
 
     QDialog::accept();

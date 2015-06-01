@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
 
+#include "EncryptedAreaPlugin.h"
 #include <tools/EncryptionManager.h>
 #include <QDialog>
 #include <QSharedPointer>
@@ -19,7 +20,8 @@ public:
                                   const QString & cipher,
                                   const QString & hint,
                                   const size_t keyLength,
-                                  const QSharedPointer<EncryptionManager> & encryptionManager,
+                                  QSharedPointer<EncryptionManager> encryptionManager,
+                                  DecryptedTextCachePtr decryptedTextCache,
                                   QWidget * parent = nullptr);
     virtual ~NoteDecryptionDialog();
 
@@ -47,6 +49,8 @@ private:
     QString                             m_cachedDecryptedText;
 
     QSharedPointer<EncryptionManager>   m_encryptionManager;
+    DecryptedTextCachePtr               m_decryptedTextCache;
+
     size_t                              m_keyLength;
 };
 
