@@ -9,6 +9,7 @@ include_directories(${THIRDPARTY_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(${PROJECT_NAME}_HEADERS
     src/note_editor/AttachmentStoragePathConfigDialog.h
     src/note_editor/EncryptedAreaPlugin.h
+    src/note_editor/DecryptedTextCache.h
     src/note_editor/GenericResourceDisplayWidget.h
     src/note_editor/HorizontalLineExtraData.h
     src/note_editor/MediaResourceTextObject.h

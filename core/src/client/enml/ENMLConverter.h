@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
 #define __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
 
+#include <note_editor/DecryptedTextCache.h>
 #include <tools/Linkage.h>
 #include <tools/qt4helper.h>
 #include <QSet>
@@ -18,7 +19,8 @@ public:
     virtual ~ENMLConverter();
 
     bool htmlToNoteContent(const QString & html, Note & note, QString & errorDescription) const;
-    bool noteContentToHtml(const Note & note, QString & html, QString & errorDescription) const;
+    bool noteContentToHtml(const Note & note, QString & html, QString & errorDescription,
+                           DecryptedTextCachePtr decryptedTextCache = DecryptedTextCachePtr()) const;
 
     bool validateEnml(const QString & enml, QString & errorDescription) const;
 

@@ -95,11 +95,11 @@ void NoteDecryptionDialog::accept()
 {
     QString passphrase = m_pUI->passwordLineEdit->text();
 
-    const QPair<QString, bool> * cachedEntry = m_decryptedTextCache->object(passphrase);
-    if (cachedEntry)
+    auto it = m_decryptedTextCache->find(passphrase);
+    if (it != m_decryptedTextCache->end())
     {
         QNTRACE("Found cached decrypted text for passphrase");
-        m_cachedDecryptedText = cachedEntry->first;
+        m_cachedDecryptedText = it.value().first;
     }
     else
     {
@@ -118,13 +118,13 @@ void NoteDecryptionDialog::accept()
         QPair<QString, bool> cacheEntry(m_cachedDecryptedText, rememberForSession);
         if (rememberForSession)
         {
-            m_decryptedTextCache->insert(m_encryptedText, &cacheEntry);
+            (*m_decryptedTextCache)[m_encryptedText] = cacheEntry;
             QNTRACE("Cached decrypted text by encryptedText (per session passphrase storage): "
                     << m_encryptedText);
         }
         else
         {
-            m_decryptedTextCache->insert(passphrase, &cacheEntry);
+            (*m_decryptedTextCache)[passphrase] = cacheEntry;
             QNTRACE("Cached decrypted text by passphrase (no per session passphrase storage, "
                     "just the internal cache for faster handling");
         }

@@ -1,19 +1,16 @@
 #ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
 
+#include "DecryptedTextCache.h"
 #include "INoteEditorPlugin.h"
 #include <tools/qt4helper.h>
 #include <tools/EncryptionManager.h>
-#include <QSharedPointer>
-#include <QCache>
 
 namespace Ui {
 QT_FORWARD_DECLARE_CLASS(EncryptedAreaPlugin)
 }
 
 namespace qute_note {
-
-typedef QSharedPointer<QCache<QString, QPair<QString, bool> > > DecryptedTextCachePtr;
 
 class EncryptedAreaPlugin: public INoteEditorPlugin
 {

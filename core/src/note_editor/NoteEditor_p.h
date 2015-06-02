@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PRIVATE_H
 
 #include "NoteEditor.h"
-#include "EncryptedAreaPlugin.h"
+#include <client/enml/ENMLConverter.h>
 #include <tools/EncryptionManager.h>
 #include <QObject>
 #include <QCache>
@@ -78,6 +78,8 @@ private:
 
     QSharedPointer<EncryptionManager>       m_encryptionManager;
     DecryptedTextCachePtr                   m_decryptedTextCache;
+
+    ENMLConverter                           m_enmlConverter;
 
     NoteEditorPluginFactory *               m_pluginFactory;
 

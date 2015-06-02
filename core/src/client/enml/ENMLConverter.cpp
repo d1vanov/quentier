@@ -22,12 +22,13 @@ bool ENMLConverter::htmlToNoteContent(const QString & html, Note & note, QString
     return d->htmlToNoteContent(html, note, errorDescription);
 }
 
-bool ENMLConverter::noteContentToHtml(const Note & note, QString & html, QString & errorDescription) const
+bool ENMLConverter::noteContentToHtml(const Note & note, QString & html, QString & errorDescription,
+                                      DecryptedTextCachePtr decryptedTextCache) const
 {
     QNDEBUG("ENMLConverter::noteContentToHtml: note local guid = " << note.localGuid());
 
     Q_D(const ENMLConverter);
-    return d->noteContentToHtml(note, html, errorDescription);
+    return d->noteContentToHtml(note, html, errorDescription, decryptedTextCache);
 }
 
 bool ENMLConverter::validateEnml(const QString & enml, QString & errorDescription) const

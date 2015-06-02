@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__ENML__ENML_CONVERTER_P_H
 #define __QUTE_NOTE__CORE__CLIENT__ENML__ENML_CONVERTER_P_H
 
+#include <note_editor/DecryptedTextCache.h>
 #include <QtGlobal>
 #include <QStringList>
 
@@ -19,7 +20,8 @@ public:
     ~ENMLConverterPrivate();
 
     bool htmlToNoteContent(const QString & html, Note & note, QString & errorDescription) const;
-    bool noteContentToHtml(const Note & note, QString & html, QString & errorDescription) const;
+    bool noteContentToHtml(const Note & note, QString & html, QString & errorDescription,
+                           DecryptedTextCachePtr decryptedTextCache) const;
 
     bool validateEnml(const QString & enml, QString & errorDescription) const;
 
@@ -45,7 +47,8 @@ private:
     bool writeEnCryptTagToEnml(QXmlStreamReader & reader, const QString & namespaceUri,
                                QXmlStreamWriter & writer, QString & errorDescription) const;
     bool writeEnCryptTagToHtml(const QXmlStreamReader & reader, const QString & namespaceUri,
-                               QXmlStreamWriter & writer, QString & errorDescription) const;
+                               QXmlStreamWriter & writer, QString & errorDescription,
+                               DecryptedTextCachePtr decryptedTextCache) const;
 
     bool convertEnToDoTagsToHtml(QString & html, QString & errorDescription) const;
 

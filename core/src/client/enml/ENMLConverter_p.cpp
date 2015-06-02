@@ -190,7 +190,8 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
 }
 
 bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
-                                             QString & errorDescription) const
+                                             QString & errorDescription,
+                                             DecryptedTextCachePtr decryptedTextCache) const
 {
     QNDEBUG("ENMLConverterPrivate::noteContentToHtml: note local guid = " << note.localGuid());
 
@@ -236,7 +237,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
             }
             else if (name == "en-crypt")
             {
-                bool res = writeEnCryptTagToHtml(reader, namespaceUri, writer, errorDescription);
+                bool res = writeEnCryptTagToHtml(reader, namespaceUri, writer, errorDescription, decryptedTextCache);
                 if (!res) {
                     return res;
                 }
@@ -256,7 +257,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
                 writer.writeCharacters(reader.text().toString());
             }
 
-            QNTRACE("Write element: namespaceUri = " << namespaceUri << ", name = "
+            QNTRACE("Wrote element: namespaceUri = " << namespaceUri << ", name = "
                     << name << " and its attributes");
         }
 
@@ -683,9 +684,26 @@ bool ENMLConverterPrivate::convertEnToDoTagsToHtml(QString & html, QString & err
 bool ENMLConverterPrivate::writeEnCryptTagToHtml(const QXmlStreamReader & reader,
                                                  const QString & namespaceUri,
                                                  QXmlStreamWriter & writer,
-                                                 QString & errorDescription) const
+                                                 QString & errorDescription,
+                                                 DecryptedTextCachePtr decryptedTextCache) const
 {
     QNDEBUG("ENMLConverterPrivate::writeEnCryptTagToHtml");
+
+    QString encryptedText = reader.text().toString();
+    if (encryptedText.isEmpty()) {
+        errorDescription = QT_TR_NOOP("Missing encrypted text data within en-crypt ENML tag");
+        return false;
+    }
+
+    auto it = decryptedTextCache->find(encryptedText);
+    if ((it != decryptedTextCache->end()) && it.value().second)
+    {
+        QNTRACE("Found encrypted text which has already been decrypted, "
+                "cached and remembered for the whole session. Encrypted text = "
+                << encryptedText);
+        // TODO: write decrypted text to div surrounded with rectangle
+        return true;
+    }
 
     writer.writeStartElement(namespaceUri, "object");
     writer.writeAttribute(namespaceUri, "en-tag", "en-crypt");
@@ -720,12 +738,6 @@ bool ENMLConverterPrivate::writeEnCryptTagToHtml(const QXmlStreamReader & reader
     }
     else {
         errorDescription = QT_TR_NOOP("Missing length attribute within en-crypt ENML tag");
-        return false;
-    }
-
-    QString encryptedText = reader.text().toString();
-    if (encryptedText.isEmpty()) {
-        errorDescription = QT_TR_NOOP("Missing encrypted text data within en-crypt ENML tag");
         return false;
     }
 

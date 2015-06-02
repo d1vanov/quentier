@@ -28,7 +28,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_modified(false),
     m_lastFreeId(1),
     m_encryptionManager(new EncryptionManager),
-    m_decryptedTextCache(new QCache<QString, QPair<QString, bool> >(20)),
+    m_decryptedTextCache(new QHash<QString, QPair<QString, bool> >()),
+    m_enmlConverter(),
     m_pluginFactory(nullptr),
     q_ptr(&noteEditor)
 {
