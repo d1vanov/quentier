@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/">
+    <qresource prefix="/checkbox_icons">
         <file>checkbox_no.png</file>
         <file>checkbox_yes.png</file>
     </qresource>

@@ -34,7 +34,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 {
     Q_Q(NoteEditor);
 
-
     NoteEditorPage * page = new NoteEditorPage(*q);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessFileUrls, true);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessRemoteUrls, true);
@@ -305,7 +304,7 @@ void NoteEditorPrivate::insertImage(const QByteArray & data, const QString & dat
 
 void NoteEditorPrivate::insertToDoCheckbox()
 {
-    QString html = ENMLConverter::getToDoCheckboxHtml(/* checked = */ false, m_lastFreeId);
+    QString html = ENMLConverter::getToDoCheckboxHtml(/* checked = */ false);
     ++m_lastFreeId;
     execJavascriptCommand("insertHtml", html);
 }
@@ -575,4 +574,6 @@ void __initNoteEditorResources()
     Q_INIT_RESOURCE(jquery);
     Q_INIT_RESOURCE(colResizable);
     Q_INIT_RESOURCE(scripts);
+
+    QNDEBUG("Initialized NoteEditor's resources");
 }

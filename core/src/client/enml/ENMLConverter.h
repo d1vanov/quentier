@@ -18,7 +18,7 @@ public:
     virtual ~ENMLConverter();
 
     bool htmlToNoteContent(const QString & html, Note & note, QString & errorDescription) const;
-    bool noteContentToHtml(const Note & note, QString & html, qint32 & lastFreeImageId, QString & errorDescription) const;
+    bool noteContentToHtml(const Note & note, QString & html, QString & errorDescription) const;
 
     bool validateEnml(const QString & enml, QString & errorDescription) const;
 
@@ -30,7 +30,7 @@ public:
 
     static QStringList plainTextToListOfWords(const QString & plainText);
 
-    static QString getToDoCheckboxHtml(const bool checked, const qint32 id);
+    static QString getToDoCheckboxHtml(const bool checked);
 
 private:
     Q_DISABLE_COPY(ENMLConverter)

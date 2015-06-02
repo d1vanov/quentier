@@ -189,14 +189,13 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
     return true;
 }
 
-bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html, qint32 & lastFreeImageId,
+bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
                                              QString & errorDescription) const
 {
     QNDEBUG("ENMLConverterPrivate::noteContentToHtml: note local guid = " << note.localGuid());
 
     html.resize(0);
     errorDescription.resize(0);
-    lastFreeImageId = 0;
 
     if (!note.hasContent()) {
         return true;
@@ -266,7 +265,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html, 
         }
     }
 
-    bool res = convertEnToDoTagsToHtml(html, lastFreeImageId, errorDescription);
+    bool res = convertEnToDoTagsToHtml(html, errorDescription);
     if (!res) {
         return false;
     }
@@ -424,24 +423,21 @@ QStringList ENMLConverterPrivate::plainTextToListOfWords(const QString & plainTe
     return plainText.split(QRegExp("\\W+"), QString::SkipEmptyParts);
 }
 
-QString ENMLConverterPrivate::getToDoCheckboxHtml(const bool checked, const qint32 id)
+QString ENMLConverterPrivate::getToDoCheckboxHtml(const bool checked)
 {
-    QString imageId = QString::number(id);
+    QString html = "<img src=\"qrc:/checkbox_icons/checkbox_";
+    if (checked) {
+        html += "yes.png\" class=\"checkbox_checked\" ";
+    }
+    else {
+        html += "no.png\" class=\"checkbox_unchecked\" ";
+    }
 
-    QString html = "<img id=\"";
-    html += imageId;
-    html += "\" src=\"qrc:/checkbox_icons/checkbox_no.png\" style=\"margin:0px 4px\" "
-            "onmouseover=\"JavaScript:this.style.cursor=\\'default\\'\" "
-            "onclick=\"JavaScript:if(document.getElementById(\\'";
-    html += imageId;
-    html += "\\').src ==\\'qrc:/checkbox_icons/checkbox_no.png\\') "
-            "document.getElementById(\\'";
-    html += imageId;
-    html += "\\').src=\\'qrc:/checkbox_icons/checkbox_yes.png\\'; "
-            "else document.getElementById(\\'";
-    html += imageId;
-    html += "\\').src=\\'qrc:/checkbox_icons/checkbox_no.png\\';\" />";
-
+    html += "style=\"margin:0px 4px\" "
+            "onmouseover=\"style.cursor=\\'default\\'\" "
+            "onclick=\"if (this.className == \\'checkbox_unchecked\\') { "
+            "this.src=\\'qrc:/checkbox_icons/checkbox_yes.png\\'; this.className = \\'checkbox_checked\\'; } "
+            "else { this.src=\\'qrc:/checkbox_icons/checkbox_no.png\\'; this.className = \\'checkbox_unchecked\\' }\" />";
     return html;
 }
 
@@ -589,7 +585,7 @@ bool ENMLConverterPrivate::writeEnCryptTagToEnml(QXmlStreamReader & reader,
     return true;
 }
 
-bool ENMLConverterPrivate::convertEnToDoTagsToHtml(QString & html, qint32 & lastFreeImageId, QString & errorDescription) const
+bool ENMLConverterPrivate::convertEnToDoTagsToHtml(QString & html, QString & errorDescription) const
 {
     QString toDoCheckboxUnchecked, toDoCheckboxChecked;
 
@@ -615,8 +611,7 @@ bool ENMLConverterPrivate::convertEnToDoTagsToHtml(QString & html, qint32 & last
         {
             QNTRACE("Encountered shortened en-todo tag, will replace it with corresponding html");
             if (toDoCheckboxUnchecked.isEmpty()) {
-                toDoCheckboxUnchecked = getToDoCheckboxHtml(/* checked = */ false, lastFreeImageId);
-                ++lastFreeImageId;
+                toDoCheckboxUnchecked = getToDoCheckboxHtml(/* checked = */ false);
             }
 
             html.replace(toDoCheckboxIndex, tagEndIndex + 2 - toDoCheckboxIndex, toDoCheckboxUnchecked);
@@ -653,8 +648,7 @@ bool ENMLConverterPrivate::convertEnToDoTagsToHtml(QString & html, qint32 & last
             QNTRACE("found \"<en-todo checked=true/>\" tag, will replace it with html equivalent");
 
             if (toDoCheckboxChecked.isEmpty()) {
-                toDoCheckboxChecked = getToDoCheckboxHtml(/* checked = */ true, lastFreeImageId);
-                ++lastFreeImageId;
+                toDoCheckboxChecked = getToDoCheckboxHtml(/* checked = */ true);
             }
 
             int replacedLength = tagEndIndex + 2 - toDoCheckboxIndex;
@@ -670,8 +664,7 @@ bool ENMLConverterPrivate::convertEnToDoTagsToHtml(QString & html, qint32 & last
             QNTRACE("found \"<en-todo checked=false/>\" tag, will replace it with html equivalent");
 
             if (toDoCheckboxUnchecked.isEmpty()) {
-                toDoCheckboxUnchecked = getToDoCheckboxHtml(/* checked = */ false, lastFreeImageId);
-                ++lastFreeImageId;
+                toDoCheckboxUnchecked = getToDoCheckboxHtml(/* checked = */ false);
             }
 
             int replacedLength = tagEndIndex + 2 - toDoCheckboxIndex;

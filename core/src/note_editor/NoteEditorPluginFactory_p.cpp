@@ -19,7 +19,7 @@ NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginF
     m_mimeDatabase(),
     m_specificParameterPlugins(),
     m_pIOThread(new QThread(this)),
-    m_pFileIOThreadWorker(new FileIOThreadWorker(this)),
+    m_pFileIOThreadWorker(new FileIOThreadWorker),
     m_resourceIconCache(),
     m_fileSuffixesCache(),
     m_filterStringsCache(),
