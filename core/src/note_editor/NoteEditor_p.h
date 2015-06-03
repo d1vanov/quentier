@@ -41,8 +41,8 @@ public:
     void attachResourceToNote(const QByteArray & data, const QString & dataHash, const QMimeType & mimeType);
 
     template <typename T>
-    QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows, const int columns,
-                             const bool relative, const size_t tableId);
+    QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows,
+                             const int columns, const bool relative);
 
     void insertImage(const QByteArray & data,  const QString & dataHash, const QMimeType & mimeType);
     void insertToDoCheckbox();
@@ -68,6 +68,7 @@ private Q_SLOTS:
 
 private:
     void clearContent();
+    void updateColResizableTableBindings();
 
 private:
     // JavaScript scripts
@@ -81,7 +82,6 @@ private:
     Notebook *  m_pNotebook;
 
     bool        m_modified;
-    size_t      m_lastFreeId;
 
     QSharedPointer<EncryptionManager>       m_encryptionManager;
     DecryptedTextCachePtr                   m_decryptedTextCache;

@@ -28,7 +28,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pNote(nullptr),
     m_pNotebook(nullptr),
     m_modified(false),
-    m_lastFreeId(1),
     m_encryptionManager(new EncryptionManager),
     m_decryptedTextCache(new QHash<QString, QPair<QString, bool> >()),
     m_enmlConverter(),
@@ -129,6 +128,33 @@ void NoteEditorPrivate::clearContent()
     q->setHtml(m_pagePrefix + "<body></body></html>");
 }
 
+void NoteEditorPrivate::updateColResizableTableBindings()
+{
+    QNDEBUG("NoteEditorPrivate::updateColResizableTableBindings");
+
+    Q_Q(NoteEditor);
+    bool readOnly = q->page()->isContentEditable();
+
+    QString colResizable = "$(\"table\").colResizable({";
+
+    colResizable += "liveDrag";
+    if (readOnly) {
+        colResizable += "false, ";
+    }
+    else {
+        colResizable += "true, ";
+    }
+
+    colResizable += "gripInnerHtml:\"<div class=\\'grip\\'></div>\", ";
+    colResizable += "draggingClass:\"dragging\", ";
+    colResizable += "postbackSafe:true, ";
+    colResizable += "onResize:onFixedWidthTableResized ";
+    colResizable += "});";
+
+    QNTRACE("colResizable js code: " << colResizable);
+    q->page()->mainFrame()->evaluateJavaScript(colResizable);
+}
+
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
 {
     Q_Q(NoteEditor);
@@ -161,6 +187,14 @@ void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QSt
 
 void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & notebook)
 {
+    QNDEBUG("NoteEditorPrivate::setNoteAndNotebook: note: local guid = " << note.localGuid()
+            << ", guid = " << (note.hasGuid() ? note.guid() : "<null>") << ", title: "
+            << (note.hasTitle() ? note.title() : "<null>") << "; notebook: local guid = "
+            << notebook.localGuid() << ", guid = " << (notebook.hasGuid() ? notebook.guid() : "<null>")
+            << ", name = " << (notebook.hasName() ? notebook.name() : "<null>"));
+
+    // FIXME: if the editor wasn't empty, need to clean it carefully, ensure there'd be no dangling JavaScript functions for some gone elements
+
     if (!m_pNote) {
         m_pNote = new Note(note);
     }
@@ -220,7 +254,6 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     m_htmlCachedMemory.replace("<br></br>", "</br>");   // Webkit-specific fix
 
     Q_Q(NoteEditor);
-    q->setHtml(m_htmlCachedMemory);
 
     bool readOnly = false;
     if (m_pNote->hasActive() && !m_pNote->active()) {
@@ -246,6 +279,8 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         q->page()->setContentEditable(true);
     }
 
+    q->setHtml(m_htmlCachedMemory);
+    updateColResizableTableBindings();
     QNTRACE("Done setting the current note and notebook");
 }
 
@@ -313,7 +348,7 @@ void NoteEditorPrivate::onDropEvent(QDropEvent *pEvent)
 template <typename T>
 QString NoteEditorPrivate::composeHtmlTable(const T width, const T singleColumnWidth,
                                             const int rows, const int columns,
-                                            const bool relative, const size_t tableId)
+                                            const bool relative)
 {
     // Table header
     QString htmlTable = "<div><table style=\"border-collapse: collapse; margin-left: 0px; table-layout: fixed; width: ";
@@ -324,11 +359,7 @@ QString NoteEditorPrivate::composeHtmlTable(const T width, const T singleColumnW
     else {
         htmlTable += "px";
     }
-    htmlTable += ";\" ";
-
-    htmlTable += "id=\"";
-    htmlTable += QString::number(tableId);
-    htmlTable += "\"><tbody>";
+    htmlTable += ";\" ><tbody>";
 
     for(int i = 0; i < rows; ++i)
     {
@@ -405,7 +436,6 @@ void NoteEditorPrivate::insertImage(const QByteArray & data, const QString & dat
 void NoteEditorPrivate::insertToDoCheckbox()
 {
     QString html = ENMLConverter::getToDoCheckboxHtml(/* checked = */ false);
-    ++m_lastFreeId;
     execJavascriptCommand("insertHtml", html);
 }
 
@@ -519,22 +549,10 @@ void NoteEditorPrivate::insertFixedWidthTable(const int rows, const int columns,
         return;
     }
 
-    size_t tableId = m_lastFreeId++;
     QString htmlTable = composeHtmlTable(widthInPixels, singleColumnWidth, rows, columns,
-                                         /* relative = */ false, tableId);
+                                         /* relative = */ false);
     execJavascriptCommand("insertHTML", htmlTable);
-    QString colResizable = "$(\"#";
-    colResizable += QString::number(tableId);
-    colResizable += "\").colResizable({";
-    colResizable += "liveDrag:true, ";
-    colResizable += "gripInnerHtml:\"<div class=\\'grip\\'></div>\", ";
-    colResizable += "draggingClass:\"dragging\", ";
-    colResizable += "postbackSafe:true, ";
-    colResizable += "onResize:onFixedWidthTableResized ";
-    colResizable += "});";
-    QNTRACE("colResizable js code: " << colResizable);
-
-    q->page()->mainFrame()->evaluateJavaScript(colResizable);
+    updateColResizableTableBindings();
 }
 
 void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth)
@@ -558,23 +576,10 @@ void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int colum
     }
 
     double singleColumnWidth = relativeWidth / columns;
-    size_t tableId = m_lastFreeId++;
     QString htmlTable = composeHtmlTable(relativeWidth, singleColumnWidth, rows, columns,
-                                         /* relative = */ true, tableId);
+                                         /* relative = */ true);
     execJavascriptCommand("insertHTML", htmlTable);
-    QString colResizable = "$(\"#";
-    colResizable += QString::number(tableId);
-    colResizable += "\").colResizable({";
-    colResizable += "liveDrag:true, ";
-    colResizable += "gripInnerHtml:\"<div class=\\'grip\\'></div>\", ";
-    colResizable += "draggingClass:\"dragging\", ";
-    colResizable += "postbackSafe:true, ";
-    colResizable += "fixed:false";
-    colResizable += "});";
-    QNTRACE("colResizable js code: " << colResizable);
-
-    Q_Q(NoteEditor);
-    q->page()->mainFrame()->evaluateJavaScript(colResizable);
+    updateColResizableTableBindings();
 }
 
 void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
