@@ -2,6 +2,7 @@
 #include "NoteEditorPage.h"
 #include "NoteEditorPluginFactory.h"
 #include <client/types/Note.h>
+#include <client/types/Notebook.h>
 #include <client/enml/ENMLConverter.h>
 #include <logging/QuteNoteLogger.h>
 #include <QWebFrame>
@@ -25,12 +26,19 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_getSelectionHtml(),
     m_replaceSelectionWithHtml(),
     m_pNote(nullptr),
+    m_pNotebook(nullptr),
     m_modified(false),
     m_lastFreeId(1),
     m_encryptionManager(new EncryptionManager),
     m_decryptedTextCache(new QHash<QString, QPair<QString, bool> >()),
     m_enmlConverter(),
     m_pluginFactory(nullptr),
+    m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
+                 "<html><head>"
+                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
+                 "<title></title></head>"),
+    m_htmlCachedMemory(),
+    m_errorCachedMemory(),
     q_ptr(&noteEditor)
 {
     Q_Q(NoteEditor);
@@ -47,13 +55,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     q->setPage(page);
 
     // Setting initial "blank" page, it is of great importance in order to make image insertion work
-    q->setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
-               "<html><head>"
-               "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
-               "<title></title>"
-               "</head>"
-               "<body>"
-               "</body></html>");
+    q->setHtml(m_pagePrefix + "<body></body></html>");
 
     q->setAcceptDrops(true);
 
@@ -92,6 +94,12 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     onNoteLoadFinished(true);
 }
 
+NoteEditorPrivate::~NoteEditorPrivate()
+{
+    delete m_pNote;
+    delete m_pNotebook;
+}
+
 void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 {
     if (!ok) {
@@ -111,6 +119,14 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     Q_UNUSED(frame->evaluateJavaScript(m_getSelectionHtml));
     Q_UNUSED(frame->evaluateJavaScript(m_replaceSelectionWithHtml));
     QNTRACE("Evaluated all JavaScript helper functions");
+}
+
+void NoteEditorPrivate::clearContent()
+{
+    QNDEBUG("NoteEditorPrivate::clearContent");
+
+    Q_Q(NoteEditor);
+    q->setHtml(m_pagePrefix + "<body></body></html>");
 }
 
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
@@ -143,7 +159,7 @@ void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QSt
     Q_UNUSED(execJavascriptCommandWithResult(command, args));
 }
 
-void NoteEditorPrivate::setNote(const Note & note)
+void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & notebook)
 {
     if (!m_pNote) {
         m_pNote = new Note(note);
@@ -152,7 +168,85 @@ void NoteEditorPrivate::setNote(const Note & note)
         *m_pNote = note;
     }
 
-    // TODO: launch note's ENML and resources conversion to widget's content
+    if (!m_pNotebook) {
+        m_pNotebook = new Notebook(notebook);
+    }
+    else {
+        *m_pNotebook = notebook;
+    }
+
+    if (!m_pNote->hasContent()) {
+        QNDEBUG("Note without content was inserted into NoteEditor");
+        clearContent();
+        return;
+    }
+
+    m_htmlCachedMemory.resize(0);
+    bool res = m_enmlConverter.noteContentToHtml(*m_pNote, m_htmlCachedMemory, m_errorCachedMemory,
+                                                 m_decryptedTextCache);
+    if (!res)
+    {
+        QNWARNING("Can't convert note's content to HTML: " << m_errorCachedMemory);
+        emit notifyError(m_errorCachedMemory);
+        clearContent();
+        return;
+    }
+
+    int bodyTagIndex = m_htmlCachedMemory.indexOf("<body>");
+    if (bodyTagIndex < 0) {
+        m_errorCachedMemory = QT_TR_NOOP("can't find <body> tag in the result of note to HTML conversion");
+        QNWARNING(m_errorCachedMemory << ", note content: " << m_pNote->content()
+                  << ", html: " << m_htmlCachedMemory);
+        emit notifyError(m_errorCachedMemory);
+        clearContent();
+        return;
+    }
+
+    m_htmlCachedMemory.remove(0, bodyTagIndex);
+    m_htmlCachedMemory.prepend(m_pagePrefix);
+    int bodyClosingTagIndex = m_htmlCachedMemory.indexOf("</body>");
+    if (bodyClosingTagIndex < 0) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't find </body> tag in the result of note to HTML conversion");
+        QNWARNING(m_errorCachedMemory << ", note content: " << m_pNote->content()
+                  << ", html: " << m_htmlCachedMemory);
+        emit notifyError(m_errorCachedMemory);
+        clearContent();
+        return;
+    }
+
+    m_htmlCachedMemory.remove(bodyClosingTagIndex, 7);
+    m_htmlCachedMemory.insert(bodyClosingTagIndex, "</html>");
+
+    m_htmlCachedMemory.replace("<br></br>", "</br>");   // Webkit-specific fix
+
+    Q_Q(NoteEditor);
+    q->setHtml(m_htmlCachedMemory);
+
+    bool readOnly = false;
+    if (m_pNote->hasActive() && !m_pNote->active()) {
+        QNDEBUG("Current note is not active, setting it to read-only state");
+        q->page()->setContentEditable(false);
+        // TODO: also disable the plugins which may change the note
+        readOnly = true;
+    }
+    else if (m_pNotebook->hasRestrictions())
+    {
+        const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
+        if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref())
+        {
+            QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
+            q->page()->setContentEditable(false);
+            // TODO: also disable the plugins which may change the note
+            readOnly = true;
+        }
+    }
+
+    if (!readOnly) {
+        QNDEBUG("Nothing prevents user to modify the note, allowing it in the editor");
+        q->page()->setContentEditable(true);
+    }
+
+    QNTRACE("Done setting the current note and notebook");
 }
 
 const Note * NoteEditorPrivate::getNote() const
@@ -166,6 +260,11 @@ const Note * NoteEditorPrivate::getNote() const
     }
 
     return m_pNote;
+}
+
+const Notebook * NoteEditorPrivate::getNotebook() const
+{
+    return m_pNotebook;
 }
 
 bool NoteEditorPrivate::isModified() const

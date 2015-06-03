@@ -2,6 +2,7 @@
 #include "NoteEditor_p.h"
 #include "NoteEditorPluginFactory.h"
 #include <client/types/Note.h>
+#include <client/types/Notebook.h>
 #include <QFont>
 #include <QColor>
 
@@ -15,16 +16,22 @@ NoteEditor::NoteEditor(QWidget * parent) :
 NoteEditor::~NoteEditor()
 {}
 
-void NoteEditor::setNote(const Note & note)
+void NoteEditor::setNoteAndNotebook(const Note & note, const Notebook & notebook)
 {
     Q_D(NoteEditor);
-    d->setNote(note);
+    d->setNoteAndNotebook(note, notebook);
 }
 
 const Note * NoteEditor::getNote() const
 {
     Q_D(const NoteEditor);
     return d->getNote();
+}
+
+const Notebook * NoteEditor::getNotebook() const
+{
+    Q_D(const NoteEditor);
+    return d->getNotebook();
 }
 
 bool NoteEditor::isModified() const

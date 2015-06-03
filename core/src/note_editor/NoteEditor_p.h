@@ -19,6 +19,7 @@ class NoteEditorPrivate: public QObject
     Q_OBJECT
 public:
     explicit NoteEditorPrivate(NoteEditor & noteEditor);
+    virtual ~NoteEditorPrivate();
 
     QVariant execJavascriptCommandWithResult(const QString & command);
     void execJavascriptCommand(const QString & command);
@@ -26,8 +27,9 @@ public:
     QVariant execJavascriptCommandWithResult(const QString & command, const QString & args);
     void execJavascriptCommand(const QString & command, const QString & args);
 
-    void setNote(const Note & note);
+    void setNoteAndNotebook(const Note & note, const Notebook & notebook);
     const Note * getNote() const;
+    const Notebook * getNotebook() const;
 
     bool isModified() const;
 
@@ -65,6 +67,9 @@ private Q_SLOTS:
     void onNoteLoadFinished(bool ok);
 
 private:
+    void clearContent();
+
+private:
     // JavaScript scripts
     QString     m_jQuery;
     QString     m_resizableColumnsPlugin;
@@ -73,6 +78,8 @@ private:
     QString     m_replaceSelectionWithHtml;
 
     Note *      m_pNote;
+    Notebook *  m_pNotebook;
+
     bool        m_modified;
     size_t      m_lastFreeId;
 
@@ -82,6 +89,11 @@ private:
     ENMLConverter                           m_enmlConverter;
 
     NoteEditorPluginFactory *               m_pluginFactory;
+
+    const QString   m_pagePrefix;
+
+    QString     m_htmlCachedMemory;   // Cached memory for HTML from Note -> HTML conversions
+    QString     m_errorCachedMemory;  // Cached memory for various errors
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

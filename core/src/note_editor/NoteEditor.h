@@ -8,6 +8,7 @@
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Note)
+QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 
@@ -20,8 +21,9 @@ public:
     explicit NoteEditor(QWidget * parent = nullptr);
     virtual ~NoteEditor();
 
-    void setNote(const Note & note);
+    void setNoteAndNotebook(const Note & note, const Notebook & notebook);
     const Note * getNote() const;
+    const Notebook * getNotebook() const;
 
     bool isModified() const;
 
