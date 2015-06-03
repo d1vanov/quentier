@@ -701,7 +701,16 @@ bool ENMLConverterPrivate::writeEnCryptTagToHtml(const QXmlStreamReader & reader
         QNTRACE("Found encrypted text which has already been decrypted, "
                 "cached and remembered for the whole session. Encrypted text = "
                 << encryptedText);
-        // TODO: write decrypted text to div surrounded with rectangle
+
+        writer.writeStartElement(namespaceUri, "div");
+        writer.writeAttribute(namespaceUri, "en-tag", "en-decrypted");
+        writer.writeAttribute(namespaceUri, "style", "border: 2px solid; "
+                                                     "border-color: rgb(195, 195, 195); "
+                                                     "border-radius: 8px; "
+                                                     "margin: 2px; "
+                                                     "padding: 2px;");
+        writer.writeCDATA(it.value().first);
+        writer.writeEndElement();
         return true;
     }
 
