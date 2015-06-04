@@ -27,10 +27,14 @@ NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginF
 {
     m_pIOThread->start(QThread::LowPriority);
     m_pFileIOThreadWorker->moveToThread(m_pIOThread);
+
+    QObject::connect(m_pIOThread, SIGNAL(finished()), m_pFileIOThreadWorker, SLOT(deleteLater()));
 }
 
 NoteEditorPluginFactoryPrivate::~NoteEditorPluginFactoryPrivate()
 {
+    m_pIOThread->quit();
+
     auto pluginsEnd = m_plugins.end();
     for(auto it = m_plugins.begin(); it != pluginsEnd; ++it)
     {

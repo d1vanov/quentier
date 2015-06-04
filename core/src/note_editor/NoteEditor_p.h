@@ -70,6 +70,8 @@ private:
     void clearContent();
     void updateColResizableTableBindings();
 
+    void htmlToNoteContent();
+
 private:
     // JavaScript scripts
     QString     m_jQuery;

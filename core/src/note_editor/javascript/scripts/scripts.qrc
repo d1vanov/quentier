@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/">
+    <qresource prefix="/javascript/scripts">
         <file>onFixedWidthTableResize.js</file>
         <file>getSelectionHtml.js</file>
         <file>replaceSelectionWithHtml.js</file>

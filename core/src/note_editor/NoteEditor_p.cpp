@@ -70,17 +70,17 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_resizableColumnsPlugin = file.readAll();
     file.close();
 
-    file.setFileName(":/onFixedWidthTableResize.js");
+    file.setFileName(":/javascript/scripts/onFixedWidthTableResize.js");
     file.open(QIODevice::ReadOnly);
     m_onFixedWidthTableResize = file.readAll();
     file.close();
 
-    file.setFileName(":/getSelectionHtml.js");
+    file.setFileName(":/javascript/scripts/getSelectionHtml.js");
     file.open(QIODevice::ReadOnly);
     m_getSelectionHtml = file.readAll();
     file.close();
 
-    file.setFileName(":/replaceSelectionWithHtml.js");
+    file.setFileName(":/javascript/scripts/replaceSelectionWithHtml.js");
     file.open(QIODevice::ReadOnly);
     m_replaceSelectionWithHtml = file.readAll();
     file.close();
@@ -133,26 +133,68 @@ void NoteEditorPrivate::updateColResizableTableBindings()
     QNDEBUG("NoteEditorPrivate::updateColResizableTableBindings");
 
     Q_Q(NoteEditor);
-    bool readOnly = q->page()->isContentEditable();
+    bool readOnly = !q->page()->isContentEditable();
 
     QString colResizable = "$(\"table\").colResizable({";
-
-    colResizable += "liveDrag";
     if (readOnly) {
-        colResizable += "false, ";
+        colResizable += "disable:true});";
     }
     else {
-        colResizable += "true, ";
+        colResizable += "liveDrag:true, "
+                        "gripInnerHtml:\"<div class=\\'grip\\'></div>\", "
+                        "draggingClass:\"dragging\", "
+                        "postbackSafe:true, "
+                        "onResize:onFixedWidthTableResized"
+                        "});";
     }
-
-    colResizable += "gripInnerHtml:\"<div class=\\'grip\\'></div>\", ";
-    colResizable += "draggingClass:\"dragging\", ";
-    colResizable += "postbackSafe:true, ";
-    colResizable += "onResize:onFixedWidthTableResized ";
-    colResizable += "});";
 
     QNTRACE("colResizable js code: " << colResizable);
     q->page()->mainFrame()->evaluateJavaScript(colResizable);
+}
+
+void NoteEditorPrivate::htmlToNoteContent()
+{
+    QNDEBUG("NoteEditorPrivate::htmlToNoteContent");
+
+    if (!m_pNote) {
+        QNTRACE("No note is set to note editor");
+        return;
+    }
+
+    if (m_pNote->hasActive() && !m_pNote->active()) {
+        m_errorCachedMemory = QT_TR_NOOP("Current note is marked as read-only, the changes won't be saved");
+        QNWARNING(m_errorCachedMemory << ", note: local guid = " << m_pNote->localGuid()
+                  << ", guid = " << (m_pNote->hasGuid() ? m_pNote->guid() : "<null>")
+                  << ", title = " << (m_pNote->hasTitle() ? m_pNote->title() : "<null>"));
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    if (m_pNotebook && m_pNotebook->hasRestrictions())
+    {
+        const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
+        if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
+            m_errorCachedMemory = QT_TR_NOOP("The notebook the current note belongs to doesn't allow notes modification, "
+                                             "the changes won't be saved");
+            QNWARNING(m_errorCachedMemory << ", note: local guid = " << m_pNote->localGuid()
+                      << ", guid = " << (m_pNote->hasGuid() ? m_pNote->guid() : "<null>")
+                      << ", title = " << (m_pNote->hasTitle() ? m_pNote->title() : "<null>")
+                      << ", notebook: local guid = " << m_pNotebook->localGuid() << ", guid = "
+                      << (m_pNotebook->hasGuid() ? m_pNotebook->guid() : "<null>") << ", name = "
+                      << (m_pNotebook->hasName() ? m_pNotebook->name() : "<null>"));
+            emit notifyError(m_errorCachedMemory);
+            return;
+        }
+    }
+
+    Q_Q(const NoteEditor);
+    m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
+    bool res = m_enmlConverter.htmlToNoteContent(m_htmlCachedMemory, *m_pNote, m_errorCachedMemory);
+    if (!res) {
+        QNWARNING("Can't convert note editor page's content to HTML: " << m_errorCachedMemory);
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
 }
 
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
@@ -259,7 +301,6 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     if (m_pNote->hasActive() && !m_pNote->active()) {
         QNDEBUG("Current note is not active, setting it to read-only state");
         q->page()->setContentEditable(false);
-        // TODO: also disable the plugins which may change the note
         readOnly = true;
     }
     else if (m_pNotebook->hasRestrictions())
@@ -269,7 +310,6 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         {
             QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
             q->page()->setContentEditable(false);
-            // TODO: also disable the plugins which may change the note
             readOnly = true;
         }
     }
