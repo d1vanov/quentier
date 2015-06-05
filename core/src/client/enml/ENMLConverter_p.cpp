@@ -112,7 +112,16 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
 
             QXmlStreamAttributes attributes = reader.attributes();
 
-            if (name == "img")
+            if ((name == "div") && attributes.hasAttribute(namespaceUri, "en-tag"))
+            {
+                const QString enTag = attributes.value(namespaceUri, "en-tag").toString();
+                if (enTag == "en-decrypted")
+                {
+                    QNTRACE("Found decrypted text area, need to convert it back to en-crypt form");
+                    // TODO: convert to en-crypt and ignore the style specific for this div
+                }
+            }
+            else if (name == "img")
             {
                 if (attributes.hasAttribute(namespaceUri, "src"))
                 {
@@ -709,6 +718,7 @@ bool ENMLConverterPrivate::writeEnCryptTagToHtml(const QXmlStreamReader & reader
                                                      "border-radius: 8px; "
                                                      "margin: 2px; "
                                                      "padding: 2px;");
+        // TODO: add cipher, length and encryptedText attributes
         writer.writeCDATA(it.value().first);
         writer.writeEndElement();
         return true;

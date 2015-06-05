@@ -22,7 +22,7 @@ public:
     virtual ~NoteEditor();
 
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
-    const Note * getNote() const;
+    const Note * getNote();
     const Notebook * getNotebook() const;
 
     bool isModified() const;

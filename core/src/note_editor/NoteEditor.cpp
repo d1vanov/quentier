@@ -22,9 +22,9 @@ void NoteEditor::setNoteAndNotebook(const Note & note, const Notebook & notebook
     d->setNoteAndNotebook(note, notebook);
 }
 
-const Note * NoteEditor::getNote() const
+const Note * NoteEditor::getNote()
 {
-    Q_D(const NoteEditor);
+    Q_D(NoteEditor);
     return d->getNote();
 }
 

@@ -28,7 +28,7 @@ public:
     void execJavascriptCommand(const QString & command, const QString & args);
 
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
-    const Note * getNote() const;
+    const Note * getNote();
     const Notebook * getNotebook() const;
 
     bool isModified() const;
@@ -38,7 +38,8 @@ public:
 
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
-    void attachResourceToNote(const QByteArray & data, const QString & dataHash, const QMimeType & mimeType);
+    void attachResourceToNote(const QByteArray & data, const QByteArray &dataHash,
+                              const QMimeType & mimeType, const QString & filename);
 
     template <typename T>
     QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows,
@@ -65,12 +66,16 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onNoteLoadFinished(bool ok);
+    void onContentChanged();
+
+private:
+    virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
 
 private:
     void clearContent();
     void updateColResizableTableBindings();
 
-    void htmlToNoteContent();
+    bool htmlToNoteContent(QString & errorDescription);
 
 private:
     // JavaScript scripts
@@ -84,6 +89,25 @@ private:
     Notebook *  m_pNotebook;
 
     bool        m_modified;
+
+    // These two bools implement a cheap scheme of watching
+    // for changes in note editor since some particular moment in time.
+    // For example, the conversion of note from HTML into ENML happens
+    // in the background mode, when the editor is idle for at least 5 seconds.
+    // How can such idle state be determined? Create a timer for 5 seconds,
+    // as it begins, set m_watchingForContentChange to true and
+    // m_contentChangedSinceWatchingStart to false. On every next content change
+    // m_contentChangedSinceWatchingStart would be set to true. When the timer ends,
+    // it can check the state of m_contentChangedSinceWatchingStart.
+    // If it's true, it means the editing is still in progress and it's not nice
+    // to block the GUI thread by HTML to ENML conversion. So drop this
+    // variable into false again and wait for another 5 seconds. And only
+    // if there were no further edits during 5 seconds, convert note editor's page
+    // to ENML
+    bool        m_watchingForContentChange;
+    bool        m_contentChangedSinceWatchingStart;
+
+    int         m_pageToNoteContentPostponeTimerId;
 
     QSharedPointer<EncryptionManager>       m_encryptionManager;
     DecryptedTextCachePtr                   m_decryptedTextCache;

@@ -3,7 +3,9 @@
 #include "NoteEditorPluginFactory.h"
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
+#include <client/types/ResourceWrapper.h>
 #include <client/enml/ENMLConverter.h>
+#include <client/Utility.h>
 #include <logging/QuteNoteLogger.h>
 #include <QWebFrame>
 #include <QFile>
@@ -28,6 +30,9 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pNote(nullptr),
     m_pNotebook(nullptr),
     m_modified(false),
+    m_watchingForContentChange(false),
+    m_contentChangedSinceWatchingStart(false),
+    m_pageToNoteContentPostponeTimerId(0),
     m_encryptionManager(new EncryptionManager),
     m_decryptedTextCache(new QHash<QString, QPair<QString, bool> >()),
     m_enmlConverter(),
@@ -86,6 +91,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     file.close();
 
     QObject::connect(page, SIGNAL(contentsChanged()), q, SIGNAL(contentChanged()));
+    QObject::connect(page, SIGNAL(contentsChanged()), this, SLOT(onContentChanged()));
     QObject::connect(q, SIGNAL(loadFinished(bool)), this, SLOT(onNoteLoadFinished(bool)));
     QObject::connect(this, SIGNAL(notifyError(QString)), q, SIGNAL(notifyError(QString)));
 
@@ -115,14 +121,64 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     Q_UNUSED(frame->evaluateJavaScript(m_jQuery));
     Q_UNUSED(frame->evaluateJavaScript(m_resizableColumnsPlugin));
     Q_UNUSED(frame->evaluateJavaScript(m_onFixedWidthTableResize));
-    Q_UNUSED(frame->evaluateJavaScript(m_getSelectionHtml));
-    Q_UNUSED(frame->evaluateJavaScript(m_replaceSelectionWithHtml));
     QNTRACE("Evaluated all JavaScript helper functions");
+}
+
+void NoteEditorPrivate::onContentChanged()
+{
+    QNTRACE("NoteEditorPrivate::onContentChanged");
+    m_modified = true;
+
+    if (Q_LIKELY(m_watchingForContentChange)) {
+        m_contentChangedSinceWatchingStart = true;
+        return;
+    }
+
+    m_pageToNoteContentPostponeTimerId = startTimer(SEC_TO_MSEC(5));
+    m_watchingForContentChange = true;
+    m_contentChangedSinceWatchingStart = false;
+    QNTRACE("Started timer to postpone note editor page's content to ENML conversion");
+}
+
+void NoteEditorPrivate::timerEvent(QTimerEvent * event)
+{
+    QNDEBUG("NoteEditorPrivate::timerEvent: " << (event ? QString::number(event->timerId()) : "<null>"));
+
+    if (!event) {
+        return;
+    }
+
+    if (event->timerId() == m_pageToNoteContentPostponeTimerId)
+    {
+        if (m_contentChangedSinceWatchingStart)
+        {
+            QNTRACE("Note editor page's content has been changed lately, "
+                    "the editing is most likely in progress now, postponing "
+                    "the conversion to ENML");
+            m_contentChangedSinceWatchingStart = false;
+            return;
+        }
+
+        QNTRACE("Looks like the note editing has stopped for a while, "
+                "will convert the note editor page's content to ENML");
+        bool res = htmlToNoteContent(m_errorCachedMemory);
+        if (!res) {
+            emit notifyError(m_errorCachedMemory);
+        }
+
+        killTimer(m_pageToNoteContentPostponeTimerId);
+        m_pageToNoteContentPostponeTimerId = 0;
+
+        m_watchingForContentChange = false;
+        m_contentChangedSinceWatchingStart = false;
+    }
 }
 
 void NoteEditorPrivate::clearContent()
 {
     QNDEBUG("NoteEditorPrivate::clearContent");
+
+    // TODO: also kill ENML conversion timer and drop boolean state trackers
 
     Q_Q(NoteEditor);
     q->setHtml(m_pagePrefix + "<body></body></html>");
@@ -152,38 +208,38 @@ void NoteEditorPrivate::updateColResizableTableBindings()
     q->page()->mainFrame()->evaluateJavaScript(colResizable);
 }
 
-void NoteEditorPrivate::htmlToNoteContent()
+bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
 {
     QNDEBUG("NoteEditorPrivate::htmlToNoteContent");
 
     if (!m_pNote) {
-        QNTRACE("No note is set to note editor");
-        return;
+        errorDescription = QT_TR_NOOP("No note was set to note editor");
+        return false;
     }
 
     if (m_pNote->hasActive() && !m_pNote->active()) {
-        m_errorCachedMemory = QT_TR_NOOP("Current note is marked as read-only, the changes won't be saved");
-        QNWARNING(m_errorCachedMemory << ", note: local guid = " << m_pNote->localGuid()
+        errorDescription = QT_TR_NOOP("Current note is marked as read-only, the changes won't be saved");
+        QNWARNING(errorDescription << ", note: local guid = " << m_pNote->localGuid()
                   << ", guid = " << (m_pNote->hasGuid() ? m_pNote->guid() : "<null>")
                   << ", title = " << (m_pNote->hasTitle() ? m_pNote->title() : "<null>"));
-        emit notifyError(m_errorCachedMemory);
-        return;
+        emit notifyError(errorDescription);
+        return false;
     }
 
     if (m_pNotebook && m_pNotebook->hasRestrictions())
     {
         const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
         if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
-            m_errorCachedMemory = QT_TR_NOOP("The notebook the current note belongs to doesn't allow notes modification, "
-                                             "the changes won't be saved");
-            QNWARNING(m_errorCachedMemory << ", note: local guid = " << m_pNote->localGuid()
+            errorDescription = QT_TR_NOOP("The notebook the current note belongs to doesn't allow notes modification, "
+                                          "the changes won't be saved");
+            QNWARNING(errorDescription << ", note: local guid = " << m_pNote->localGuid()
                       << ", guid = " << (m_pNote->hasGuid() ? m_pNote->guid() : "<null>")
                       << ", title = " << (m_pNote->hasTitle() ? m_pNote->title() : "<null>")
                       << ", notebook: local guid = " << m_pNotebook->localGuid() << ", guid = "
                       << (m_pNotebook->hasGuid() ? m_pNotebook->guid() : "<null>") << ", name = "
                       << (m_pNotebook->hasName() ? m_pNotebook->name() : "<null>"));
-            emit notifyError(m_errorCachedMemory);
-            return;
+            emit notifyError(errorDescription);
+            return false;
         }
     }
 
@@ -191,10 +247,13 @@ void NoteEditorPrivate::htmlToNoteContent()
     m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
     bool res = m_enmlConverter.htmlToNoteContent(m_htmlCachedMemory, *m_pNote, m_errorCachedMemory);
     if (!res) {
-        QNWARNING("Can't convert note editor page's content to HTML: " << m_errorCachedMemory);
-        emit notifyError(m_errorCachedMemory);
-        return;
+        errorDescription = QT_TR_NOOP("Can't convert note editor page's content to ENML: ") + errorDescription;
+        QNWARNING(errorDescription)
+        emit notifyError(errorDescription);
+        return false;
     }
+
+    return true;
 }
 
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
@@ -324,14 +383,25 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     QNTRACE("Done setting the current note and notebook");
 }
 
-const Note * NoteEditorPrivate::getNote() const
+const Note * NoteEditorPrivate::getNote()
 {
+    QNDEBUG("NoteEditorPrivate::getNote");
+
     if (!m_pNote) {
+        QNTRACE("No note was set to the editor");
         return nullptr;
     }
 
-    if (m_modified) {
-        // TODO: convert widget's content to Note's ENML and resources
+    if (m_modified)
+    {
+        QNTRACE("Note editor's content was modified, converting into note");
+
+        bool res = htmlToNoteContent(m_errorCachedMemory);
+        if (!res) {
+            return nullptr;
+        }
+
+        m_modified = false;
     }
 
     return m_pNote;
@@ -435,12 +505,31 @@ QString NoteEditorPrivate::composeHtmlTable(const T width, const T singleColumnW
     return htmlTable;
 }
 
-void NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QString & dataHash, const QMimeType & mimeType)
+void NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
+                                             const QMimeType & mimeType, const QString & filename)
 {
-    // TODO: implement
-    Q_UNUSED(data)
-    Q_UNUSED(dataHash)
-    Q_UNUSED(mimeType)
+    QNDEBUG("NoteEditorPrivate::attachResourceToNote: hash = " << dataHash
+            << ", mime type = " << mimeType.name());
+
+    if (!m_pNote) {
+        QNINFO("Can't attach resource to note editor: no actual note was selected");
+        return;
+    }
+
+    ResourceWrapper resource;
+    resource.setDataBody(data);
+    resource.setDataHash(dataHash);
+    resource.setDataSize(data.size());
+    resource.setMime(mimeType.name());
+    resource.setDirty(true);
+
+    if (!filename.isEmpty()) {
+        qevercloud::ResourceAttributes attributes;
+        attributes.fileName = filename;
+        resource.setResourceAttributes(attributes);
+    }
+
+    m_pNote->addResource(resource);
 }
 
 void NoteEditorPrivate::insertImage(const QByteArray & data, const QString & dataHash, const QMimeType & mimeType)
@@ -705,8 +794,8 @@ void NoteEditorPrivate::dropFile(QString & filepath)
     }
 
     QByteArray data = QFile(filepath).readAll();
-    QString dataHash = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
-    attachResourceToNote(data, dataHash, mimeType);
+    QByteArray dataHash = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
+    attachResourceToNote(data, dataHash, mimeType, fileInfo.fileName());
     // TODO: re-convert note's ENML to html and refresh the web page
 }
 
