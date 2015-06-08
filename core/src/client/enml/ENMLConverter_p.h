@@ -41,16 +41,29 @@ private:
     static bool isEvernoteSpecificXhtmlTag(const QString & tagName);
     static bool isAllowedXhtmlTag(const QString & tagName);
 
-    bool writeObjectInfoToEnml(QXmlStreamReader & reader, const QString & namespaceUri,
-                               QXmlStreamWriter & writer, QString & errorDescription) const;
+    // high-level method to write arbitrary <object> element to ENML
+    bool objectToEnml(QXmlStreamReader & reader, QXmlStreamWriter & writer,
+                      QString & errorDescription) const;
 
-    bool writeEnCryptTagToEnml(QXmlStreamReader & reader, const QString & namespaceUri,
-                               QXmlStreamWriter & writer, QString & errorDescription) const;
-    bool writeEnCryptTagToHtml(const QXmlStreamReader & reader, const QString & namespaceUri,
-                               QXmlStreamWriter & writer, QString & errorDescription,
-                               DecryptedTextCachePtr decryptedTextCache) const;
+    // convert <object> element with encrypted text to ENML <en-crypt> tag
+    bool encryptedTextToEnml(QXmlStreamReader & reader, QXmlStreamWriter & writer,
+                             QString & errorDescription) const;
+    // convert <div> element with decrypted text to ENML <en-crypt> tag
+    bool decryptedTextToEnml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
+                             QString & errorDescription) const;
 
-    bool convertEnToDoTagsToHtml(QString & html, QString & errorDescription) const;
+    // convert ENML en-crypt tag to HTML <object> tag
+    bool encryptedTextToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
+                             QString & errorDescription, DecryptedTextCachePtr decryptedTextCache) const;
+
+    // convert HTML <object> with resource info to ENML <en-media> tag
+    bool resourceInfoToEnml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
+                            QString & errorDescription) const;
+    // convert ENML <en-media> tag to HTML <object> tag
+    bool resourceInfoToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
+                            QString & errorDescription) const;
+
+    bool toDoTagsToHtml(QString & html, QString & errorDescription) const;
 
 private:
     Q_DISABLE_COPY(ENMLConverterPrivate)
