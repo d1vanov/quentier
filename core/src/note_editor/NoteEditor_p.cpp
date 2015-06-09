@@ -43,6 +43,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<title></title></head>"),
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
+    m_resourceTmpFilesCache(),
     q_ptr(&noteEditor)
 {
     Q_Q(NoteEditor);
@@ -178,7 +179,15 @@ void NoteEditorPrivate::clearContent()
 {
     QNDEBUG("NoteEditorPrivate::clearContent");
 
-    // TODO: also kill ENML conversion timer and drop boolean state trackers
+    if (m_pageToNoteContentPostponeTimerId != 0) {
+        killTimer(m_pageToNoteContentPostponeTimerId);
+        m_pageToNoteContentPostponeTimerId = 0;
+    }
+
+    m_watchingForContentChange = false;
+    m_contentChangedSinceWatchingStart = false;
+
+    m_modified = false;
 
     Q_Q(NoteEditor);
     q->setHtml(m_pagePrefix + "<body></body></html>");
@@ -380,6 +389,11 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
 
     q->setHtml(m_htmlCachedMemory);
     updateColResizableTableBindings();
+
+    // TODO: for all img tags with en-tag attribute equal to en-media find the corresponding resources in the note,
+    // either find them within locally saved files or write to local files (asynchronously) and add src attributes
+    // to those img tags
+
     QNTRACE("Done setting the current note and notebook");
 }
 
@@ -536,22 +550,26 @@ void NoteEditorPrivate::insertImage(const QByteArray & data, const QString & dat
 {
     QNDEBUG("NoteEditorPrivate::insertImage: data hash = " << dataHash << ", mime type = " << mimeType.name());
 
-    // Write the data to the temporary file
-    // TODO: first check if there is the existing temporary file with this resource's data
-    QTemporaryFile tmpFile;
-    if (!tmpFile.open()) {
-        QString error = QT_TR_NOOP("Can't render dropped image: can't create temporary file: ");
-        error += tmpFile.errorString();
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
+    auto it = m_resourceTmpFilesCache.find(dataHash);
+
+    if (it == m_resourceTmpFilesCache.end())
+    {
+        // Write the data to the temporary file
+        QTemporaryFile tmpFile;
+        if (!tmpFile.open()) {
+            QString error = QT_TR_NOOP("Can't render dropped image: can't create temporary file: ");
+            error += tmpFile.errorString();
+            QNWARNING(error);
+            emit notifyError(error);
+            return;
+        }
+
+        tmpFile.write(data);    // FIXME: argh, synchronous writing to the hard drive... See to having it written asynchronously in future
+        it = m_resourceTmpFilesCache.insert(dataHash, QFileInfo(tmpFile).absolutePath());
     }
 
-    tmpFile.write(data);
-    // TODO: put the path to the file to the local cache by resource's hash
-
     QString imageHtml = "<img src=\"file://";
-    imageHtml += QFileInfo(tmpFile).absolutePath();
+    imageHtml += it.value();
     imageHtml += "\" type=\"";
     imageHtml += mimeType.name();
     imageHtml += "\" hash=\"";

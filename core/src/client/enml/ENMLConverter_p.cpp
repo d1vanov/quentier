@@ -32,6 +32,10 @@ static const QSet<QString> allowedXhtmlTags = QSet<QString>()
 #include "allowedXhtmlTags.inl"
 ;
 
+static const QSet<QString> allowedEnMediaAttributes = QSet<QString>()
+#include "allowedEnMediaAttributes.inl"
+;
+
 #undef WRAP
 
 ENMLConverterPrivate::ENMLConverterPrivate() :
@@ -795,10 +799,35 @@ bool ENMLConverterPrivate::resourceInfoToEnml(const QXmlStreamReader & reader,
 {
     QNDEBUG("ENMLConverterPrivate::resourceInfoToEnml");
 
-    // TODO: implement
-    Q_UNUSED(reader);
-    Q_UNUSED(writer);
-    Q_UNUSED(errorDescription);
+    QXmlStreamAttributes attributes = reader.attributes();
+
+    if (!attributes.hasAttribute("hash")) {
+        errorDescription = QT_TR_NOOP("Detected resource tag without hash attribute");
+        return false;
+    }
+
+    if (!attributes.hasAttribute("type")) {
+        errorDescription = QT_TR_NOOP("Detected resource tag without type attribute");
+        return false;
+    }
+
+    for(QXmlStreamAttributes::Iterator it = attributes.begin(); it != attributes.end(); )
+    {
+        QXmlStreamAttribute & attribute = *it;
+        if ( !allowedEnMediaAttributes.contains(attribute.name().toString()) &&
+             ((attribute.namespaceUri() != "xml") || (attribute.name() != "lang")) )
+        {
+            it = attributes.erase(it);
+            continue;
+        }
+
+        ++it;
+    }
+
+    writer.writeStartElement("en-media");
+    writer.writeAttributes(attributes);
+    writer.writeEndElement();
+
     return true;
 }
 
@@ -808,10 +837,33 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
 {
     QNDEBUG("ENMLConverterPrivate::resourceInfoToHtml");
 
-    // TODO: implement
-    Q_UNUSED(reader);
-    Q_UNUSED(writer);
-    Q_UNUSED(errorDescription);
+    QXmlStreamAttributes attributes = reader.attributes();
+
+    if (!attributes.hasAttribute("hash")) {
+        errorDescription = QT_TR_NOOP("Detected incorrect en-media tag missing hash attribute");
+        return false;
+    }
+
+    if (!attributes.hasAttribute("type")) {
+        errorDescription = QT_TR_NOOP("Detected incorrect en-media tag missing hash attribute");
+        return false;
+    }
+
+    bool convertToImage = false;
+    QStringRef mimeType = attributes.value("type");
+    if (mimeType.startsWith("image", Qt::CaseInsensitive)) {
+        convertToImage = true;
+    }
+
+    writer.writeStartElement(convertToImage ? "img" : "object");
+
+    // NOTE: ENMLConverterPrivate can't set src attribute for img tag as it doesn't know whether the resource is stored
+    // in any local file yet. The user of noteContentToHtml should take care of those img tags and their src attributes
+
+    attributes.append("en-tag", "en-media");
+    writer.writeAttributes(attributes);
+
+    writer.writeEndElement();
     return true;
 }
 

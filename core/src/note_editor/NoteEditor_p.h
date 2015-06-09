@@ -121,6 +121,8 @@ private:
     QString     m_htmlCachedMemory;   // Cached memory for HTML from Note -> HTML conversions
     QString     m_errorCachedMemory;  // Cached memory for various errors
 
+    QHash<QString, QString>  m_resourceTmpFilesCache;
+
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)
 };
