@@ -10,9 +10,11 @@
 QT_FORWARD_DECLARE_CLASS(QByteArray)
 QT_FORWARD_DECLARE_CLASS(QMimeType)
 QT_FORWARD_DECLARE_CLASS(QImage)
+QT_FORWARD_DECLARE_CLASS(QThread)
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
 class NoteEditorPrivate: public QObject
 {
@@ -45,7 +47,6 @@ public:
     QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows,
                              const int columns, const bool relative);
 
-    void insertImage(const QByteArray & data,  const QString & dataHash, const QMimeType & mimeType);
     void insertToDoCheckbox();
 
     void setFont(const QFont & font);
@@ -76,6 +77,9 @@ private:
     void updateColResizableTableBindings();
 
     bool htmlToNoteContent(QString & errorDescription);
+
+    void checkResourceLocalFilesAndProvideSrcForImgResources(const QString & noteContentHtml);
+    void provideScrForImgResourcesFromCache();
 
 private:
     // JavaScript scripts
@@ -121,7 +125,17 @@ private:
     QString     m_htmlCachedMemory;   // Cached memory for HTML from Note -> HTML conversions
     QString     m_errorCachedMemory;  // Cached memory for various errors
 
-    QHash<QString, QString>  m_resourceTmpFilesCache;
+    QThread *   m_pIOThread;
+    FileIOThreadWorker *        m_pFileIOThreadWorker;
+
+    struct ResourceLocalFileInfo {
+        QString m_resourceHash;
+        QString m_resourceLocalFilePath;
+    };
+
+    QHash<QString, ResourceLocalFileInfo> m_resourceLocalFileInfoCache;
+
+    QString     m_resourceLocalFileStorageFolder;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

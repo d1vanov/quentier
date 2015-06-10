@@ -1,12 +1,16 @@
 #include "NoteEditor_p.h"
 #include "NoteEditorPage.h"
 #include "NoteEditorPluginFactory.h"
+#include "ResourceFileStorageLocationGetter.h"
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
 #include <client/types/ResourceWrapper.h>
 #include <client/enml/ENMLConverter.h>
 #include <client/Utility.h>
+#include <client/types/ResourceAdapter.h>
 #include <logging/QuteNoteLogger.h>
+#include <tools/FileIOThreadWorker.h>
+#include <tools/QuteNoteCheckPtr.h>
 #include <QWebFrame>
 #include <QFile>
 #include <QFileInfo>
@@ -17,6 +21,8 @@
 #include <QMimeType>
 #include <QMimeData>
 #include <QMimeDatabase>
+#include <QThread>
+#include <QXmlStreamReader>
 
 namespace qute_note {
 
@@ -43,7 +49,10 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<title></title></head>"),
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
-    m_resourceTmpFilesCache(),
+    m_pIOThread(new QThread(this)),
+    m_pFileIOThreadWorker(nullptr),
+    m_resourceLocalFileInfoCache(),
+    m_resourceLocalFileStorageFolder(),
     q_ptr(&noteEditor)
 {
     Q_Q(NoteEditor);
@@ -95,6 +104,19 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(page, SIGNAL(contentsChanged()), this, SLOT(onContentChanged()));
     QObject::connect(q, SIGNAL(loadFinished(bool)), this, SLOT(onNoteLoadFinished(bool)));
     QObject::connect(this, SIGNAL(notifyError(QString)), q, SIGNAL(notifyError(QString)));
+
+    m_pIOThread->start(QThread::LowPriority);
+    m_pFileIOThreadWorker = new FileIOThreadWorker;
+    m_pFileIOThreadWorker->moveToThread(m_pIOThread);
+    QObject::connect(m_pIOThread, SIGNAL(finished()), m_pFileIOThreadWorker, SLOT(deleteLater()));
+
+    m_resourceLocalFileStorageFolder = getResourceFileStorageLocation(q);
+    if (m_resourceLocalFileStorageFolder.isEmpty()) {
+        QNWARNING("Can't get resource file storage folder");
+        // TODO: throw appropriate exception
+    }
+
+    QNTRACE("Resource local file storage folder: " << m_resourceLocalFileStorageFolder);
 
     // TODO: temporary thing for debugging/development, remove later
     onNoteLoadFinished(true);
@@ -265,6 +287,150 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
     return true;
 }
 
+void NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources(const QString & noteContentHtml)
+{
+    QNDEBUG("NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources");
+
+    if (!m_pNote) {
+        QNTRACE("No note is set for the editor");
+        return;
+    }
+
+    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
+    if (resourceAdapters.isEmpty()) {
+        QNTRACE("Note has no resources, nothing to do");
+        return;
+    }
+
+    auto resourceAdaptersConstBegin = resourceAdapters.constBegin();
+    auto resourceAdaptersConstEnd = resourceAdapters.constEnd();
+
+    size_t numPendingResourceWritesToLocalFiles = 0;
+
+    QXmlStreamReader reader(noteContentHtml);
+    while(!reader.atEnd())
+    {
+        Q_UNUSED(reader.readNext());
+
+        if (!reader.isStartDocument()) {
+            continue;
+        }
+
+        QStringRef name = reader.name();
+        if (name != "img") {
+            continue;
+        }
+
+        QXmlStreamAttributes attributes = reader.attributes();
+        if (!attributes.hasAttribute("en-tag")) {
+            continue;
+        }
+
+        if (attributes.value("en-tag") != "en-media") {
+            continue;
+        }
+
+        if (!attributes.hasAttribute("hash")) {
+            continue;
+        }
+
+        QStringRef hash = attributes.value("hash");
+        for(auto it = resourceAdaptersConstBegin; it != resourceAdaptersConstEnd; ++it)
+        {
+            const ResourceAdapter & resourceAdapter = *it;
+            if (!resourceAdapter.hasDataHash()) {
+                QNINFO("Detected resource without data hash: " << resourceAdapter);
+                continue;
+            }
+
+            QString dataHash = QString::fromLocal8Bit(resourceAdapter.dataHash().constData(),
+                                                      resourceAdapter.dataHash().size());
+            if (dataHash != hash) {
+                continue;
+            }
+
+            QNTRACE("Found current note's resource corresponding to the data hash "
+                    << hash << ": " << resourceAdapter);
+
+            const QString resourceLocalGuid = resourceAdapter.localGuid();
+
+            // FIXME: consider moving this whole stuff into a separate thread,
+            // then the separate thread purely for IO purposes would not be necessary
+            if (!m_resourceLocalFileInfoCache.contains(resourceLocalGuid))
+            {
+                bool shouldWriteResourceToLocalFile = false;
+
+                QString resourceLocalFilePath = m_resourceLocalFileStorageFolder + "/" + resourceLocalGuid;
+                QFileInfo resourceLocalFileInfo(resourceLocalFilePath);
+                if (resourceLocalFileInfo.exists())
+                {
+                    // Need to ensure the resource stored in the local file is actual
+                    // i.e. its corresponding file with the hash has the same hash as the current resource object
+                    QFileInfo resourceHashLocalFileInfo(resourceLocalFilePath + ".hash");
+                    if (resourceHashLocalFileInfo.exists())
+                    {
+                        QFile resourceHashLocalFile(resourceLocalFilePath + ".hash");
+
+                        // FIXME: synchronous IO; bad for GUI thread, even for small file
+                        QByteArray resourceHashLocalFileData = resourceHashLocalFile.readAll();
+                        if (resourceHashLocalFileData != resourceAdapter.dataHash())
+                        {
+                            QNTRACE("Found non-actual version of the resource stored in the local file: "
+                                    "current data hash = " << hash << ", hash from the local file: "
+                                    << resourceHashLocalFileData);
+                            shouldWriteResourceToLocalFile = true;
+                        }
+                    }
+                    else
+                    {
+                        QNTRACE("Local file with resource's data hash does not exist, "
+                                "will write the resource to local file along with the supplementary .hash file");
+                        shouldWriteResourceToLocalFile = true;
+                    }
+                }
+                else
+                {
+                    QNTRACE("Haven't found the existing local file corresponding to the resource, "
+                            "will write the current version to local file asynchronously");
+                    shouldWriteResourceToLocalFile = true;
+                }
+
+                if (shouldWriteResourceToLocalFile)
+                {
+                    // TODO: schedule the async job to write the resource to local file, set up signal-slot connections
+                    ++numPendingResourceWritesToLocalFiles;
+                }
+                else
+                {
+                    ResourceLocalFileInfo & info = m_resourceLocalFileInfoCache[resourceLocalFilePath];
+                    info.m_resourceHash = hash.toString();
+                    info.m_resourceLocalFilePath = resourceLocalFilePath;
+                    QNTRACE("Cached resource with local guid " << resourceLocalGuid
+                            << " stored stored in local file " << resourceLocalFilePath
+                            << " to the cache for faster access");
+                }
+            }
+        }
+    }
+
+    if (numPendingResourceWritesToLocalFiles != 0) {
+        QNTRACE("Scheduled writing of " << numPendingResourceWritesToLocalFiles
+                << " to local files, will wait until they are written "
+                "and add the src attributes to img resources when the files are ready");
+        return;
+    }
+
+    QNTRACE("All current note's resources are written to local files and are actual. "
+            "Will set filepaths to these local files to src attributes of img resource tags");
+    provideScrForImgResourcesFromCache();
+}
+
+void NoteEditorPrivate::provideScrForImgResourcesFromCache()
+{
+    QNDEBUG("NoteEditorPrivate::provideScrForImgResourcesFromCache");
+    // TODO: implement
+}
+
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
 {
     Q_Q(NoteEditor);
@@ -390,10 +556,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     q->setHtml(m_htmlCachedMemory);
     updateColResizableTableBindings();
 
-    // TODO: for all img tags with en-tag attribute equal to en-media find the corresponding resources in the note,
-    // either find them within locally saved files or write to local files (asynchronously) and add src attributes
-    // to those img tags
-
+    checkResourceLocalFilesAndProvideSrcForImgResources(m_htmlCachedMemory);
     QNTRACE("Done setting the current note and notebook");
 }
 
@@ -544,40 +707,6 @@ void NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByt
     }
 
     m_pNote->addResource(resource);
-}
-
-void NoteEditorPrivate::insertImage(const QByteArray & data, const QString & dataHash, const QMimeType & mimeType)
-{
-    QNDEBUG("NoteEditorPrivate::insertImage: data hash = " << dataHash << ", mime type = " << mimeType.name());
-
-    auto it = m_resourceTmpFilesCache.find(dataHash);
-
-    if (it == m_resourceTmpFilesCache.end())
-    {
-        // Write the data to the temporary file
-        QTemporaryFile tmpFile;
-        if (!tmpFile.open()) {
-            QString error = QT_TR_NOOP("Can't render dropped image: can't create temporary file: ");
-            error += tmpFile.errorString();
-            QNWARNING(error);
-            emit notifyError(error);
-            return;
-        }
-
-        tmpFile.write(data);    // FIXME: argh, synchronous writing to the hard drive... See to having it written asynchronously in future
-        it = m_resourceTmpFilesCache.insert(dataHash, QFileInfo(tmpFile).absolutePath());
-    }
-
-    QString imageHtml = "<img src=\"file://";
-    imageHtml += it.value();
-    imageHtml += "\" type=\"";
-    imageHtml += mimeType.name();
-    imageHtml += "\" hash=\"";
-    // TODO: figure out how to deal with the context menu
-    // TODO: idea: on hover can change cursor to "zoom" one and on LMB click can zoom the area of the image
-    imageHtml += "\" />";
-
-    execJavascriptCommand("insertHTML", imageHtml);
 }
 
 void NoteEditorPrivate::insertToDoCheckbox()
@@ -814,7 +943,8 @@ void NoteEditorPrivate::dropFile(QString & filepath)
     QByteArray data = QFile(filepath).readAll();
     QByteArray dataHash = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
     attachResourceToNote(data, dataHash, mimeType, fileInfo.fileName());
-    // TODO: re-convert note's ENML to html and refresh the web page
+    // TODO: schedule the async copying of the file to the folder with other resources stored as local files
+    // TODO: re-convert note's ENML to html and "refresh" the web page
 }
 
 } // namespace qute_note
