@@ -1,5 +1,6 @@
 #include "ENMLConverter_p.h"
 #include "HTMLCleaner.h"
+#include <note_editor/NoteEditorPluginFactory.h>
 #include <client/types/Note.h>
 #include <logging/QuteNoteLogger.h>
 #include <libxml/xmlreader.h>
@@ -8,6 +9,7 @@
 #include <QXmlStreamWriter>
 #include <QScopedPointer>
 #include <QDomDocument>
+#include <QRegExp>
 
 namespace qute_note {
 
@@ -205,7 +207,8 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
 
 bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
                                              QString & errorDescription,
-                                             DecryptedTextCachePtr decryptedTextCache) const
+                                             DecryptedTextCachePtr decryptedTextCache,
+                                             const NoteEditorPluginFactory * pluginFactory) const
 {
     QNDEBUG("ENMLConverterPrivate::noteContentToHtml: note local guid = " << note.localGuid());
 
@@ -247,7 +250,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
             }
             else if (name == "en-media")
             {
-                bool res = resourceInfoToHtml(reader, writer, errorDescription);
+                bool res = resourceInfoToHtml(reader, writer, errorDescription, pluginFactory);
                 if (!res) {
                     return false;
                 }
@@ -833,7 +836,8 @@ bool ENMLConverterPrivate::resourceInfoToEnml(const QXmlStreamReader & reader,
 
 bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
                                               QXmlStreamWriter & writer,
-                                              QString & errorDescription) const
+                                              QString & errorDescription,
+                                              const NoteEditorPluginFactory * pluginFactory) const
 {
     QNDEBUG("ENMLConverterPrivate::resourceInfoToHtml");
 
@@ -849,10 +853,22 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         return false;
     }
 
-    bool convertToImage = false;
     QStringRef mimeType = attributes.value("type");
-    if (mimeType.startsWith("image", Qt::CaseInsensitive)) {
-        convertToImage = true;
+    bool convertToImage = false;
+    if (mimeType.startsWith("image", Qt::CaseInsensitive))
+    {
+        if (pluginFactory)
+        {
+            QRegExp regex("^image\\/.+");
+            bool res = pluginFactory->hasPluginForMimeType(regex);
+            if (!res) {
+                convertToImage = true;
+            }
+        }
+        else
+        {
+            convertToImage = true;
+        }
     }
 
     writer.writeStartElement(convertToImage ? "img" : "object");

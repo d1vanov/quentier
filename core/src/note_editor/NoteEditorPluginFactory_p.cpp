@@ -6,6 +6,7 @@
 #include <client/types/ResourceAdapter.h>
 #include <QFileIconProvider>
 #include <QDir>
+#include <QRegExp>
 
 namespace qute_note {
 
@@ -178,6 +179,48 @@ bool NoteEditorPluginFactoryPrivate::hasPlugin(const NoteEditorPluginFactoryPriv
 {
     auto it = m_plugins.find(id);
     return (it != m_plugins.end());
+}
+
+bool NoteEditorPluginFactoryPrivate::hasPluginForMimeType(const QString & mimeType) const
+{
+    QNDEBUG("NoteEditorPluginFactoryPrivate::hasPluginForMimeType: " << mimeType);
+
+    if (m_plugins.empty()) {
+        return false;
+    }
+
+    auto pluginsEnd = m_plugins.end();
+    for(auto it = m_plugins.begin(); it != pluginsEnd; ++it)
+    {
+        const INoteEditorPlugin * plugin = it.value();
+        const QStringList & mimeTypes = plugin->mimeTypes();
+        if (mimeTypes.contains(mimeType)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool NoteEditorPluginFactoryPrivate::hasPluginForMimeType(const QRegExp & mimeTypeRegex) const
+{
+    QNDEBUG("NoteEditorPluginFactoryPrivate::hasPluginForMimeType: " << mimeTypeRegex.pattern());
+
+    if (m_plugins.empty()) {
+        return false;
+    }
+
+    auto pluginsEnd = m_plugins.end();
+    for(auto it = m_plugins.begin(); it != pluginsEnd; ++it)
+    {
+        const INoteEditorPlugin * plugin = it.value();
+        const QStringList & mimeTypes = plugin->mimeTypes();
+        if (!mimeTypes.filter(mimeTypeRegex).isEmpty()) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void NoteEditorPluginFactoryPrivate::setNote(const Note & note)

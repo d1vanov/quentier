@@ -4,6 +4,8 @@
 #include "INoteEditorPlugin.h"
 #include <QWebPluginFactory>
 
+QT_FORWARD_DECLARE_CLASS(QRegExp)
+
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Note)
@@ -56,6 +58,22 @@ public:
      * @return true if the plugin is installed, false otherwise
      */
     bool hasPlugin(const PluginIdentifier id) const;
+
+    /**
+     * @brief hasPluginForMimeType - the method allowing one to find out whether the resource display plugin
+     * corresponding to certain mime type is currently installed
+     * @param mimeType - mime type for which the presence of the install plugin is checked
+     * @return true if the plugin for specified mime type is installed, false otherwise
+     */
+    bool hasPluginForMimeType(const QString & mimeType) const;
+
+    /**
+     * @brief hasPluginForMimeType - the method allowing one to find out whether the resource display plugin
+     * corresponding to any mime type matching the specified regex is currently installed
+     * @param mimeTypeRegex - the regex for mime type the matching to which for any installed plugin is checked
+     * @return true if the plugin for mime type matching the specified regex is installed, false otherwise
+     */
+    bool hasPluginForMimeType(const QRegExp & mimeTypeRegex) const;
 
     /**
      * @brief setNote - note editor plugin factory needs to access certain information from the resources

@@ -6,6 +6,8 @@
 #include <QIcon>
 #include <QThread>
 
+QT_FORWARD_DECLARE_CLASS(QRegExp)
+
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
@@ -26,6 +28,8 @@ public:
     bool removePlugin(const PluginIdentifier id, QString & errorDescription);
 
     bool hasPlugin(const PluginIdentifier id) const;
+    bool hasPluginForMimeType(const QString & mimeType) const;
+    bool hasPluginForMimeType(const QRegExp & mimeTypeRegex) const;
 
     void setNote(const Note & note);
 

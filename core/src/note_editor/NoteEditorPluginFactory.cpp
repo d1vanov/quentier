@@ -1,5 +1,6 @@
 #include "NoteEditorPluginFactory.h"
 #include "NoteEditorPluginFactory_p.h"
+#include <QRegExp>
 
 namespace qute_note {
 
@@ -50,6 +51,18 @@ QList<QWebPluginFactory::Plugin> NoteEditorPluginFactory::plugins() const
 {
     Q_D(const NoteEditorPluginFactory);
     return d->plugins();
+}
+
+bool NoteEditorPluginFactory::hasPluginForMimeType(const QString & mimeType) const
+{
+    Q_D(const NoteEditorPluginFactory);
+    return d->hasPluginForMimeType(mimeType);
+}
+
+bool NoteEditorPluginFactory::hasPluginForMimeType(const QRegExp & mimeTypeRegex) const
+{
+    Q_D(const NoteEditorPluginFactory);
+    return d->hasPluginForMimeType(mimeTypeRegex);
 }
 
 } // namespace qute_note

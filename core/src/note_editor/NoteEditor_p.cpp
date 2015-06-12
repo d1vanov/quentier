@@ -493,7 +493,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
 
     m_htmlCachedMemory.resize(0);
     bool res = m_enmlConverter.noteContentToHtml(*m_pNote, m_htmlCachedMemory, m_errorCachedMemory,
-                                                 m_decryptedTextCache);
+                                                 m_decryptedTextCache, m_pluginFactory);
     if (!res)
     {
         QNWARNING("Can't convert note's content to HTML: " << m_errorCachedMemory);
