@@ -1,7 +1,7 @@
 #include "NoteEditor_p.h"
 #include "NoteEditorPage.h"
 #include "NoteEditorPluginFactory.h"
-#include "ResourceFileStorageLocationGetter.h"
+#include "ResourceFileStorageManager.h"
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
 #include <client/types/ResourceWrapper.h>
@@ -110,7 +110,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pFileIOThreadWorker->moveToThread(m_pIOThread);
     QObject::connect(m_pIOThread, SIGNAL(finished()), m_pFileIOThreadWorker, SLOT(deleteLater()));
 
-    m_resourceLocalFileStorageFolder = getResourceFileStorageLocation(q);
+    m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {
         QNWARNING("Can't get resource file storage folder");
         // TODO: throw appropriate exception

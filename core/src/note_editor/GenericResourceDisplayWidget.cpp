@@ -1,6 +1,6 @@
 #include "GenericResourceDisplayWidget.h"
 #include "ui_GenericResourceDisplayWidget.h"
-#include "ResourceFileStorageLocationGetter.h"
+#include "ResourceFileStorageManager.h"
 #include <tools/FileIOThreadWorker.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <tools/DesktopServices.h>
@@ -70,7 +70,7 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
     QObject::connect(this, SIGNAL(writeResourceToFile(QString,QByteArray,QUuid)),
                      m_pFileIOThreadWorker, SLOT(onWriteFileRequest(QString,QByteArray,QUuid)));
 
-    QString resourceFileStorageLocation = getResourceFileStorageLocation(parent);
+    QString resourceFileStorageLocation = ResourceFileStorageManager::resourceFileStorageLocation(parent);
     if (!resourceFileStorageLocation.isEmpty()) {
         QNWARNING("Couldn't determine the path for resource file storage location");
         return;
