@@ -49,7 +49,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<title></title></head>"),
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
-    m_pIOThread(new QThread(this)),
+    m_pIOThread(new QThread),
     m_pFileIOThreadWorker(nullptr),
     m_resourceLocalFileInfoCache(),
     m_resourceLocalFileStorageFolder(),
@@ -108,7 +108,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pIOThread->start(QThread::LowPriority);
     m_pFileIOThreadWorker = new FileIOThreadWorker;
     m_pFileIOThreadWorker->moveToThread(m_pIOThread);
-    QObject::connect(m_pIOThread, SIGNAL(finished()), m_pFileIOThreadWorker, SLOT(deleteLater()));
+    QObject::connect(m_pIOThread, SIGNAL(finished()), m_pIOThread, SLOT(deleteLater()));
 
     m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {
@@ -126,6 +126,8 @@ NoteEditorPrivate::~NoteEditorPrivate()
 {
     delete m_pNote;
     delete m_pNotebook;
+
+    m_pIOThread->quit();
 }
 
 void NoteEditorPrivate::onNoteLoadFinished(bool ok)

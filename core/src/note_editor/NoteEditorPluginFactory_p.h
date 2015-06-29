@@ -11,6 +11,7 @@ QT_FORWARD_DECLARE_CLASS(QRegExp)
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 
 class NoteEditorPluginFactoryPrivate: public QObject
 {
@@ -55,7 +56,10 @@ private:
 
     QHash<QString, INoteEditorPlugin*>              m_specificParameterPlugins;
 
-    QThread *                                       m_pIOThread;
+    QThread *                                       m_pResourceFileStorageIOThread;
+    ResourceFileStorageManager *                    m_pResourceFileStorageManager;
+
+    QThread *                                       m_pFileIOThread;
     FileIOThreadWorker *                            m_pFileIOThreadWorker;
 
     mutable QHash<QString, QIcon>                   m_resourceIconCache;

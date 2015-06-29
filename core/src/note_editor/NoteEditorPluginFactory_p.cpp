@@ -1,5 +1,6 @@
 #include "NoteEditorPluginFactory_p.h"
 #include "GenericResourceDisplayWidget.h"
+#include "ResourceFileStorageManager.h"
 #include <tools/FileIOThreadWorker.h>
 #include <logging/QuteNoteLogger.h>
 #include <client/types/Note.h>
@@ -19,22 +20,29 @@ NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginF
     m_fallbackResourceIcon(QIcon::fromTheme("unknown")),
     m_mimeDatabase(),
     m_specificParameterPlugins(),
-    m_pIOThread(new QThread(this)),
+    m_pResourceFileStorageIOThread(new QThread),
+    m_pResourceFileStorageManager(new ResourceFileStorageManager),
+    m_pFileIOThread(new QThread),
     m_pFileIOThreadWorker(new FileIOThreadWorker),
     m_resourceIconCache(),
     m_fileSuffixesCache(),
     m_filterStringsCache(),
     q_ptr(&factory)
 {
-    m_pIOThread->start(QThread::LowPriority);
-    m_pFileIOThreadWorker->moveToThread(m_pIOThread);
+    m_pResourceFileStorageIOThread->start(QThread::LowPriority);
+    m_pResourceFileStorageManager->moveToThread(m_pResourceFileStorageIOThread);
 
-    QObject::connect(m_pIOThread, SIGNAL(finished()), m_pFileIOThreadWorker, SLOT(deleteLater()));
+    m_pFileIOThread->start(QThread::LowPriority);
+    m_pFileIOThreadWorker->moveToThread(m_pFileIOThread);
+
+    QObject::connect(m_pResourceFileStorageIOThread, SIGNAL(finished()), m_pResourceFileStorageIOThread, SLOT(deleteLater()));
+    QObject::connect(m_pFileIOThread, SIGNAL(finished()), m_pFileIOThread, SLOT(deleteLater()));
 }
 
 NoteEditorPluginFactoryPrivate::~NoteEditorPluginFactoryPrivate()
 {
-    m_pIOThread->quit();
+    m_pResourceFileStorageIOThread->quit();
+    m_pFileIOThread->quit();
 
     auto pluginsEnd = m_plugins.end();
     for(auto it = m_plugins.begin(); it != pluginsEnd; ++it)
@@ -392,7 +400,8 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
 
     return new GenericResourceDisplayWidget(cachedIconIt.value(), resourceDisplayName,
                                             resourceDataSize, fileSuffixes, filterString,
-                                            *pCurrentResource, *m_pFileIOThreadWorker);
+                                            *pCurrentResource, *m_pResourceFileStorageManager,
+                                            *m_pFileIOThreadWorker);
 }
 
 QList<QWebPluginFactory::Plugin> NoteEditorPluginFactoryPrivate::plugins() const

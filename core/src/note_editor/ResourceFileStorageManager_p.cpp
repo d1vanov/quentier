@@ -48,7 +48,7 @@ QString ResourceFileStorageManagerPrivate::resourceFileStorageLocation(QWidget *
                   << resourceFileStorageLocation << " is not a directory");
         manualPath = getAttachmentStoragePath(context);
     }
-    else if (resourceFileStorageLocationInfo.isWritable())
+    else if (!resourceFileStorageLocationInfo.isWritable())
     {
         QNWARNING("Can't save temporary copies of attachments: the suggested folder is not writable: "
                   << resourceFileStorageLocation);
