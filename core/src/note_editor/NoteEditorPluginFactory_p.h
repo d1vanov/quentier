@@ -11,7 +11,6 @@ QT_FORWARD_DECLARE_CLASS(QRegExp)
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
-QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 
 class NoteEditorPluginFactoryPrivate: public QObject
 {
@@ -41,6 +40,8 @@ public:
                      const QStringList & argumentValues) const;
 
     QList<QWebPluginFactory::Plugin> plugins() const;
+
+    const ResourceFileStorageManager & resourceFileStorageManager() const;
 
 private:
     QIcon getIconForMimeType(const QString & mimeTypeName) const;

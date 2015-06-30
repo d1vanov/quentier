@@ -39,6 +39,12 @@ void NoteEditorPluginFactory::setFallbackResourceIcon(const QIcon & icon)
     d->setFallbackResourceIcon(icon);
 }
 
+const ResourceFileStorageManager & NoteEditorPluginFactory::resourceFileStorageManager() const
+{
+    Q_D(const NoteEditorPluginFactory);
+    return d->resourceFileStorageManager();
+}
+
 QObject * NoteEditorPluginFactory::create(const QString & mimeType, const QUrl & url,
                                           const QStringList & argumentNames,
                                           const QStringList & argumentValues) const

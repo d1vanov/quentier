@@ -65,9 +65,13 @@ public:
 Q_SIGNALS:
     void notifyError(QString error);
 
+    // private signals:
+    void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash, QUuid requestId);
+
 private Q_SLOTS:
     void onNoteLoadFinished(bool ok);
     void onContentChanged();
+    void onResourceSavedToStorage(QUuid requestId, int errorCode, QString errorDescription);
 
 private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
@@ -134,8 +138,9 @@ private:
     };
 
     QHash<QString, ResourceLocalFileInfo> m_resourceLocalFileInfoCache;
-
     QString     m_resourceLocalFileStorageFolder;
+
+    QHash<QString, QPair<QString, QByteArray> > m_resourceLocalGuidAndDataHashBySaveToStorageRequestIds;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

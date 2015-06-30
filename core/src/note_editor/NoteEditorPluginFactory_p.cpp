@@ -440,6 +440,11 @@ QList<QWebPluginFactory::Plugin> NoteEditorPluginFactoryPrivate::plugins() const
     return plugins;
 }
 
+const ResourceFileStorageManager & NoteEditorPluginFactoryPrivate::resourceFileStorageManager() const
+{
+    return *m_pResourceFileStorageManager;
+}
+
 QIcon NoteEditorPluginFactoryPrivate::getIconForMimeType(const QString & mimeTypeName) const
 {
     QNDEBUG("NoteEditorPluginFactoryPrivate::getIconForMimeType: mime type name = " << mimeTypeName);
