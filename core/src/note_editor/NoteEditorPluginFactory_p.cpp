@@ -12,6 +12,8 @@
 namespace qute_note {
 
 NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginFactory & factory,
+                                                               const ResourceFileStorageManager & resourceFileStorageManager,
+                                                               const FileIOThreadWorker & fileIOThreadWorker,
                                                                QObject * parent) :
     QObject(parent),
     m_plugins(),
@@ -20,30 +22,16 @@ NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginF
     m_fallbackResourceIcon(QIcon::fromTheme("unknown")),
     m_mimeDatabase(),
     m_specificParameterPlugins(),
-    m_pResourceFileStorageIOThread(new QThread),
-    m_pResourceFileStorageManager(new ResourceFileStorageManager),
-    m_pFileIOThread(new QThread),
-    m_pFileIOThreadWorker(new FileIOThreadWorker),
+    m_pResourceFileStorageManager(&resourceFileStorageManager),
+    m_pFileIOThreadWorker(&fileIOThreadWorker),
     m_resourceIconCache(),
     m_fileSuffixesCache(),
     m_filterStringsCache(),
     q_ptr(&factory)
-{
-    m_pResourceFileStorageIOThread->start(QThread::LowPriority);
-    m_pResourceFileStorageManager->moveToThread(m_pResourceFileStorageIOThread);
-
-    m_pFileIOThread->start(QThread::LowPriority);
-    m_pFileIOThreadWorker->moveToThread(m_pFileIOThread);
-
-    QObject::connect(m_pResourceFileStorageIOThread, SIGNAL(finished()), m_pResourceFileStorageIOThread, SLOT(deleteLater()));
-    QObject::connect(m_pFileIOThread, SIGNAL(finished()), m_pFileIOThread, SLOT(deleteLater()));
-}
+{}
 
 NoteEditorPluginFactoryPrivate::~NoteEditorPluginFactoryPrivate()
 {
-    m_pResourceFileStorageIOThread->quit();
-    m_pFileIOThread->quit();
-
     auto pluginsEnd = m_plugins.end();
     for(auto it = m_plugins.begin(); it != pluginsEnd; ++it)
     {
@@ -438,11 +426,6 @@ QList<QWebPluginFactory::Plugin> NoteEditorPluginFactoryPrivate::plugins() const
     }
 
     return plugins;
-}
-
-const ResourceFileStorageManager & NoteEditorPluginFactoryPrivate::resourceFileStorageManager() const
-{
-    return *m_pResourceFileStorageManager;
 }
 
 QIcon NoteEditorPluginFactoryPrivate::getIconForMimeType(const QString & mimeTypeName) const

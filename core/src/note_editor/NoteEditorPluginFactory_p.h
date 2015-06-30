@@ -10,13 +10,13 @@ QT_FORWARD_DECLARE_CLASS(QRegExp)
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
-
 class NoteEditorPluginFactoryPrivate: public QObject
 {
     Q_OBJECT
 public:
     explicit NoteEditorPluginFactoryPrivate(NoteEditorPluginFactory & factory,
+                                            const ResourceFileStorageManager & ResourceFileStorageManager,
+                                            const FileIOThreadWorker & fileIOThreadWorker,
                                             QObject * parent = nullptr);
     virtual ~NoteEditorPluginFactoryPrivate();
 
@@ -41,8 +41,6 @@ public:
 
     QList<QWebPluginFactory::Plugin> plugins() const;
 
-    const ResourceFileStorageManager & resourceFileStorageManager() const;
-
 private:
     QIcon getIconForMimeType(const QString & mimeTypeName) const;
     QStringList getFileSuffixesForMimeType(const QString & mimeType) const;
@@ -57,11 +55,8 @@ private:
 
     QHash<QString, INoteEditorPlugin*>              m_specificParameterPlugins;
 
-    QThread *                                       m_pResourceFileStorageIOThread;
-    ResourceFileStorageManager *                    m_pResourceFileStorageManager;
-
-    QThread *                                       m_pFileIOThread;
-    FileIOThreadWorker *                            m_pFileIOThreadWorker;
+    const ResourceFileStorageManager *              m_pResourceFileStorageManager;
+    const FileIOThreadWorker *                      m_pFileIOThreadWorker;
 
     mutable QHash<QString, QIcon>                   m_resourceIconCache;
     mutable QHash<QString, QStringList>             m_fileSuffixesCache;

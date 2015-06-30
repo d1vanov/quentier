@@ -14,6 +14,7 @@ QT_FORWARD_DECLARE_CLASS(QThread)
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
 class NoteEditorPrivate: public QObject
@@ -130,7 +131,8 @@ private:
     QString     m_errorCachedMemory;  // Cached memory for various errors
 
     QThread *   m_pIOThread;
-    FileIOThreadWorker *        m_pFileIOThreadWorker;
+    ResourceFileStorageManager *    m_pResourceFileStorageManager;
+    FileIOThreadWorker *            m_pFileIOThreadWorker;
 
     struct ResourceLocalFileInfo {
         QString m_resourceHash;

@@ -4,9 +4,11 @@
 
 namespace qute_note {
 
-NoteEditorPluginFactory::NoteEditorPluginFactory(QObject * parent) :
+NoteEditorPluginFactory::NoteEditorPluginFactory(const ResourceFileStorageManager & resourceFileStorageManager,
+                                                 const FileIOThreadWorker & fileIOThreadWorker,
+                                                 QObject * parent) :
     QWebPluginFactory(parent),
-    d_ptr(new NoteEditorPluginFactoryPrivate(*this, this))
+    d_ptr(new NoteEditorPluginFactoryPrivate(*this, resourceFileStorageManager, fileIOThreadWorker, this))
 {}
 
 NoteEditorPluginFactory::~NoteEditorPluginFactory()
@@ -37,12 +39,6 @@ void NoteEditorPluginFactory::setFallbackResourceIcon(const QIcon & icon)
 {
     Q_D(NoteEditorPluginFactory);
     d->setFallbackResourceIcon(icon);
-}
-
-const ResourceFileStorageManager & NoteEditorPluginFactory::resourceFileStorageManager() const
-{
-    Q_D(const NoteEditorPluginFactory);
-    return d->resourceFileStorageManager();
 }
 
 QObject * NoteEditorPluginFactory::create(const QString & mimeType, const QUrl & url,

@@ -49,7 +49,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<title></title></head>"),
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
-    m_pIOThread(new QThread),
+    m_pIOThread(nullptr),
+    m_pResourceFileStorageManager(nullptr),
     m_pFileIOThreadWorker(nullptr),
     m_resourceLocalFileInfoCache(),
     m_resourceLocalFileStorageFolder(),
@@ -64,13 +65,23 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     page->setContentEditable(true);
 
-    m_pluginFactory = new NoteEditorPluginFactory(page);
+    m_pIOThread = new QThread;
+    QObject::connect(m_pIOThread, SIGNAL(finished()), m_pIOThread, SLOT(deleteLater()));
+    m_pIOThread->start(QThread::LowPriority);
+
+    m_pResourceFileStorageManager = new ResourceFileStorageManager;
+    m_pResourceFileStorageManager->moveToThread(m_pIOThread);
+
+    m_pFileIOThreadWorker = new FileIOThreadWorker;
+    m_pFileIOThreadWorker->moveToThread(m_pIOThread);
+
+    m_pluginFactory = new NoteEditorPluginFactory(*m_pResourceFileStorageManager,
+                                                  *m_pFileIOThreadWorker, page);
     page->setPluginFactory(m_pluginFactory);
 
-    const ResourceFileStorageManager & resourceFileStorageManager = m_pluginFactory->resourceFileStorageManager();
     QObject::connect(this, SIGNAL(saveResourceToStorage(QString,QByteArray,QByteArray,QUuid)),
-                     &resourceFileStorageManager, SLOT(onWriteResourceToFileRequest(QString,QByteArray,QByteArray,QUuid)));
-    QObject::connect(&resourceFileStorageManager, SIGNAL(writeResourceToFileCompleted(QUuid,int,QString)),
+                     m_pResourceFileStorageManager, SLOT(onWriteResourceToFileRequest(QString,QByteArray,QByteArray,QUuid)));
+    QObject::connect(m_pResourceFileStorageManager, SIGNAL(writeResourceToFileCompleted(QUuid,int,QString)),
                      this, SLOT(onResourceSavedToStorage(QUuid,int,QString)));
 
     q->setPage(page);
@@ -111,11 +122,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(page, SIGNAL(contentsChanged()), this, SLOT(onContentChanged()));
     QObject::connect(q, SIGNAL(loadFinished(bool)), this, SLOT(onNoteLoadFinished(bool)));
     QObject::connect(this, SIGNAL(notifyError(QString)), q, SIGNAL(notifyError(QString)));
-
-    m_pIOThread->start(QThread::LowPriority);
-    m_pFileIOThreadWorker = new FileIOThreadWorker;
-    m_pFileIOThreadWorker->moveToThread(m_pIOThread);
-    QObject::connect(m_pIOThread, SIGNAL(finished()), m_pIOThread, SLOT(deleteLater()));
 
     m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {

@@ -10,6 +10,7 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
+QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactoryPrivate)
 
 /**
@@ -19,7 +20,9 @@ class QUTE_NOTE_EXPORT NoteEditorPluginFactory: public QWebPluginFactory
 {
     Q_OBJECT
 public:
-    explicit NoteEditorPluginFactory(QObject * parent = nullptr);
+    explicit NoteEditorPluginFactory(const ResourceFileStorageManager & resourceFileStorageManager,
+                                     const FileIOThreadWorker & fileIOThreadWorker,
+                                     QObject * parent = nullptr);
     virtual ~NoteEditorPluginFactory();
 
     /**
@@ -93,14 +96,6 @@ public:
      * @param icon - icon to be used as a last resort for resources of unidentified mime types
      */
     void setFallbackResourceIcon(const QIcon & icon);
-
-    /**
-     * @brief resourceFileStorageManager - accessor for ResourceFileStorageManager, an object
-     * encapsulating saving resource data to files and reading them from files; it works
-     * in a separate thread so the file IO is non-blocking for GUI thread
-     * @return const reference to ResourceFileStorageManager object
-     */
-    const ResourceFileStorageManager & resourceFileStorageManager() const;
 
 private:
     // QWebPluginFactory interface
