@@ -84,6 +84,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(m_pResourceFileStorageManager, SIGNAL(writeResourceToFileCompleted(QUuid,int,QString)),
                      this, SLOT(onResourceSavedToStorage(QUuid,int,QString)));
 
+    page->mainFrame()->addToJavaScriptWindowObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache));
+
     q->setPage(page);
 
     // Setting initial "blank" page, it is of great importance in order to make image insertion work
@@ -199,15 +201,13 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, int errorCode,
 
     const QString & localGuid = value.first;
     const QByteArray & dataHash = value.second;
+    QString dataHashStr = QString::fromLocal8Bit(dataHash.constData(), dataHash.size());
 
     QString resourceLocalFilePath = m_resourceLocalFileStorageFolder + "/" + localGuid;
 
-    ResourceLocalFileInfo & info = m_resourceLocalFileInfoCache[resourceLocalFilePath];
-    info.m_resourceHash = QString::fromLocal8Bit(dataHash.constData(), dataHash.size());
-    info.m_resourceLocalFilePath = resourceLocalFilePath;
-    QNTRACE("Cached resource with local guid " << localGuid
-            << " stored in local file " << resourceLocalFilePath
-            << " for faster access");
+    m_resourceLocalFileInfoCache[dataHashStr] = resourceLocalFilePath;
+    QNTRACE("Cached resource local file path " << resourceLocalFilePath
+            << " for resource hash " << dataHashStr);
 
     Q_UNUSED(m_resourceLocalGuidAndDataHashBySaveToStorageRequestIds.erase(it));
 
@@ -367,7 +367,7 @@ void NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources(cons
     {
         Q_UNUSED(reader.readNext());
 
-        if (!reader.isStartDocument()) {
+        if (!reader.isStartElement()) {
             continue;
         }
 
@@ -420,9 +420,9 @@ void NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources(cons
             QNTRACE("Found current note's resource corresponding to the data hash "
                     << hash << ": " << resourceAdapter);
 
-            const QString resourceLocalGuid = resourceAdapter.localGuid();
-            if (!m_resourceLocalFileInfoCache.contains(resourceLocalGuid))
+            if (!m_resourceLocalFileInfoCache.contains(hash))
             {
+                const QString resourceLocalGuid = resourceAdapter.localGuid();
                 QUuid saveResourceRequestId = QUuid::createUuid();
                 auto & value = m_resourceLocalGuidAndDataHashBySaveToStorageRequestIds[saveResourceRequestId];
                 value.first = resourceLocalGuid;
@@ -450,7 +450,7 @@ void NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources(cons
 void NoteEditorPrivate::provideScrForImgResourcesFromCache()
 {
     QNDEBUG("NoteEditorPrivate::provideScrForImgResourcesFromCache");
-    // TODO: implement
+    // TODO: call JS function which would use its C++ callbacks to retrieve resource info
 }
 
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
@@ -490,8 +490,6 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
             << (note.hasTitle() ? note.title() : "<null>") << "; notebook: local guid = "
             << notebook.localGuid() << ", guid = " << (notebook.hasGuid() ? notebook.guid() : "<null>")
             << ", name = " << (notebook.hasName() ? notebook.name() : "<null>"));
-
-    // FIXME: if the editor wasn't empty, need to clean it carefully, ensure there'd be no dangling JavaScript functions for some gone elements
 
     if (!m_pNote) {
         m_pNote = new Note(note);
@@ -965,6 +963,19 @@ void NoteEditorPrivate::dropFile(QString & filepath)
     attachResourceToNote(data, dataHash, mimeType, fileInfo.fileName());
     // TODO: schedule the async copying of the file to the folder with other resources stored as local files
     // TODO: re-convert note's ENML to html and "refresh" the web page
+}
+
+QString NoteEditorPrivate::ResourceLocalFileInfoJavaScriptHandler::getResourceLocalFilePath(const QString & resourceHash) const
+{
+    QNTRACE("NoteEditorPrivate::ResourceLocalFileInfoJavaScriptHandler::getResourceLocalFilePath: " << resourceHash);
+
+    auto it = m_cache.find(resourceHash);
+    if (it == m_cache.end()) {
+        QNTRACE("Resource local file was not found");
+        return QString();
+    }
+
+    return it.value();
 }
 
 } // namespace qute_note

@@ -134,12 +134,26 @@ private:
     ResourceFileStorageManager *    m_pResourceFileStorageManager;
     FileIOThreadWorker *            m_pFileIOThreadWorker;
 
-    struct ResourceLocalFileInfo {
-        QString m_resourceHash;
-        QString m_resourceLocalFilePath;
+    typedef QHash<QString, QString> ResourceLocalFileInfoCache;
+    ResourceLocalFileInfoCache      m_resourceLocalFileInfoCache;
+
+    // The instance of this class would be exposed to JavaScript code to provide
+    // read-only access to resource hashes and local file paths by resource local guids
+    class ResourceLocalFileInfoJavaScriptHandler: public QObject
+    {
+    public:
+        ResourceLocalFileInfoJavaScriptHandler(const ResourceLocalFileInfoCache & cache,
+                                               QObject * parent = nullptr) :
+            QObject(parent),
+            m_cache(cache)
+        {}
+
+        Q_INVOKABLE QString getResourceLocalFilePath(const QString & resourceHash) const;
+
+    private:
+        const ResourceLocalFileInfoCache & m_cache;
     };
 
-    QHash<QString, ResourceLocalFileInfo> m_resourceLocalFileInfoCache;
     QString     m_resourceLocalFileStorageFolder;
 
     QHash<QString, QPair<QString, QByteArray> > m_resourceLocalGuidAndDataHashBySaveToStorageRequestIds;

@@ -3,5 +3,6 @@
         <file>onFixedWidthTableResize.js</file>
         <file>getSelectionHtml.js</file>
         <file>replaceSelectionWithHtml.js</file>
+        <file>provideSrcForResourceImgTags.js</file>
     </qresource>
 </RCC>
