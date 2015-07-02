@@ -66,8 +66,8 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
     QObject::connect(m_pUI->openResourceButton, SIGNAL(released()), this, SLOT(onOpenWithButtonPressed()));
     QObject::connect(m_pUI->saveResourceButton, SIGNAL(released()), this, SLOT(onSaveAsButtonPressed()));
 
-    QObject::connect(m_pResourceFileStorageManager, SIGNAL(writeResourceToFileCompleted(QUuid,int,QString)),
-                     this, SLOT(onSaveResourceToStorageRequestProcessed(QUuid,int,QString)));
+    QObject::connect(m_pResourceFileStorageManager, SIGNAL(writeResourceToFileCompleted(QUuid,QByteArray,int,QString)),
+                     this, SLOT(onSaveResourceToStorageRequestProcessed(QUuid,QByteArray,int,QString)));
     QObject::connect(this, SIGNAL(saveResourceToStorage(QString,QByteArray,QByteArray,QUuid)),
                      m_pResourceFileStorageManager, SLOT(onWriteResourceToFileRequest(QString,QByteArray,QByteArray,QUuid)));
 
@@ -220,8 +220,13 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
     QNDEBUG("Sent request to save resource to file, request id = " << m_saveResourceToFileRequestId);
 }
 
-void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid requestId, int errorCode, QString errorDescription)
+void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid requestId,
+                                                                           QByteArray dataHash,
+                                                                           int errorCode,
+                                                                           QString errorDescription)
 {
+    Q_UNUSED(dataHash);
+
     if (requestId == m_saveResourceToStorageRequestId)
     {
         if (errorCode == 0)

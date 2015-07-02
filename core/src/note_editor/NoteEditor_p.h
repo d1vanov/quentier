@@ -6,6 +6,7 @@
 #include <tools/EncryptionManager.h>
 #include <QObject>
 #include <QCache>
+#include <QMimeType>
 
 QT_FORWARD_DECLARE_CLASS(QByteArray)
 QT_FORWARD_DECLARE_CLASS(QMimeType)
@@ -16,6 +17,29 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+
+typedef QHash<QString, QString> ResourceLocalFileInfoCache;
+
+// The instance of this class would be exposed to JavaScript code to provide
+// read-only access to resource hashes and local file paths by resource local guids;
+//
+// Unfortunately, metaobject features are not supported for nested classes,
+// so here is the non-nested helper class for exposure to JavaScript
+//
+class ResourceLocalFileInfoJavaScriptHandler: public QObject
+{
+public:
+    ResourceLocalFileInfoJavaScriptHandler(const ResourceLocalFileInfoCache & cache,
+                                           QObject * parent = nullptr) :
+        QObject(parent),
+        m_cache(cache)
+    {}
+
+    Q_INVOKABLE QString getResourceLocalFilePath(const QString & resourceHash) const;
+
+private:
+    const ResourceLocalFileInfoCache & m_cache;
+};
 
 class NoteEditorPrivate: public QObject
 {
@@ -41,8 +65,10 @@ public:
 
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
-    void attachResourceToNote(const QByteArray & data, const QByteArray &dataHash,
-                              const QMimeType & mimeType, const QString & filename);
+
+    // Returns the local guid of the new resource
+    QString attachResourceToNote(const QByteArray & data, const QByteArray &dataHash,
+                                 const QMimeType & mimeType, const QString & filename);
 
     template <typename T>
     QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows,
@@ -68,11 +94,14 @@ Q_SIGNALS:
 
     // private signals:
     void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash, QUuid requestId);
+    void readDroppedFileData(QString absoluteFilePath, QUuid requestId);
 
 private Q_SLOTS:
     void onNoteLoadFinished(bool ok);
     void onContentChanged();
-    void onResourceSavedToStorage(QUuid requestId, int errorCode, QString errorDescription);
+    void onResourceSavedToStorage(QUuid requestId, QByteArray dataHash,
+                                  int errorCode, QString errorDescription);
+    void onDroppedFileRead(bool success, QString errorDescription, QByteArray data, QUuid requestId);
 
 private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
@@ -93,6 +122,7 @@ private:
     QString     m_onFixedWidthTableResize;
     QString     m_getSelectionHtml;
     QString     m_replaceSelectionWithHtml;
+    QString     m_provideSrcForResourceImgTags;
 
     Note *      m_pNote;
     Notebook *  m_pNotebook;
@@ -134,29 +164,13 @@ private:
     ResourceFileStorageManager *    m_pResourceFileStorageManager;
     FileIOThreadWorker *            m_pFileIOThreadWorker;
 
-    typedef QHash<QString, QString> ResourceLocalFileInfoCache;
     ResourceLocalFileInfoCache      m_resourceLocalFileInfoCache;
-
-    // The instance of this class would be exposed to JavaScript code to provide
-    // read-only access to resource hashes and local file paths by resource local guids
-    class ResourceLocalFileInfoJavaScriptHandler: public QObject
-    {
-    public:
-        ResourceLocalFileInfoJavaScriptHandler(const ResourceLocalFileInfoCache & cache,
-                                               QObject * parent = nullptr) :
-            QObject(parent),
-            m_cache(cache)
-        {}
-
-        Q_INVOKABLE QString getResourceLocalFilePath(const QString & resourceHash) const;
-
-    private:
-        const ResourceLocalFileInfoCache & m_cache;
-    };
 
     QString     m_resourceLocalFileStorageFolder;
 
-    QHash<QString, QPair<QString, QByteArray> > m_resourceLocalGuidAndDataHashBySaveToStorageRequestIds;
+    QHash<QString, QString> m_resourceLocalGuidBySaveToStorageRequestIds;
+
+    QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFileNamesAndMimeTypesByReadRequestIds;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

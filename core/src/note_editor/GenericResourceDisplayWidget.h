@@ -43,7 +43,7 @@ private Q_SLOTS:
     void onOpenWithButtonPressed();
     void onSaveAsButtonPressed();
 
-    void onSaveResourceToStorageRequestProcessed(QUuid requestId, int errorCode, QString errorDescription);
+    void onSaveResourceToStorageRequestProcessed(QUuid requestId, QByteArray dataHash, int errorCode, QString errorDescription);
     void onSaveResourceToFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
 private:

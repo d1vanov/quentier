@@ -23,6 +23,9 @@ function provideSrcForResourceImgTags() {
         if ((resourceLocalFilePath == null) || (resourceLocalFilePath == "")) {
             continue;
         }
+        // automatically escape special characters in the path
+        resourceLocalFilePath = resourceLocalFilePath.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
         element.setAttribute("src", resourceLocalFilePath);
+        console.log("Set src to", resourceLocalFilePath, "for resource with hash", hash);
     }
 }

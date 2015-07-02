@@ -33,6 +33,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_onFixedWidthTableResize(),
     m_getSelectionHtml(),
     m_replaceSelectionWithHtml(),
+    m_provideSrcForResourceImgTags(),
     m_pNote(nullptr),
     m_pNotebook(nullptr),
     m_modified(false),
@@ -54,7 +55,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pFileIOThreadWorker(nullptr),
     m_resourceLocalFileInfoCache(),
     m_resourceLocalFileStorageFolder(),
-    m_resourceLocalGuidAndDataHashBySaveToStorageRequestIds(),
+    m_resourceLocalGuidBySaveToStorageRequestIds(),
+    m_droppedFileNamesAndMimeTypesByReadRequestIds(),
     q_ptr(&noteEditor)
 {
     Q_Q(NoteEditor);
@@ -81,8 +83,13 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 
     QObject::connect(this, SIGNAL(saveResourceToStorage(QString,QByteArray,QByteArray,QUuid)),
                      m_pResourceFileStorageManager, SLOT(onWriteResourceToFileRequest(QString,QByteArray,QByteArray,QUuid)));
-    QObject::connect(m_pResourceFileStorageManager, SIGNAL(writeResourceToFileCompleted(QUuid,int,QString)),
-                     this, SLOT(onResourceSavedToStorage(QUuid,int,QString)));
+    QObject::connect(m_pResourceFileStorageManager, SIGNAL(writeResourceToFileCompleted(QUuid,QByteArray,int,QString)),
+                     this, SLOT(onResourceSavedToStorage(QUuid,QByteArray,int,QString)));
+
+    QObject::connect(this, SIGNAL(readDroppedFileData(QString,QUuid)),
+                     m_pFileIOThreadWorker, SLOT(onReadFileRequest(QString,QUuid)));
+    QObject::connect(m_pFileIOThreadWorker, SIGNAL(readFileRequestProcessed(bool,QString,QByteArray,QUuid)),
+                     this, SLOT(onDroppedFileRead(bool,QString,QByteArray,QUuid)));
 
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache));
 
@@ -118,6 +125,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     file.setFileName(":/javascript/scripts/replaceSelectionWithHtml.js");
     file.open(QIODevice::ReadOnly);
     m_replaceSelectionWithHtml = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/provideScrForResourceImgTags.js");
+    file.open(QIODevice::ReadOnly);
+    m_provideSrcForResourceImgTags = file.readAll();
     file.close();
 
     QObject::connect(page, SIGNAL(contentsChanged()), q, SIGNAL(contentChanged()));
@@ -161,6 +173,9 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     Q_UNUSED(frame->evaluateJavaScript(m_jQuery));
     Q_UNUSED(frame->evaluateJavaScript(m_resizableColumnsPlugin));
     Q_UNUSED(frame->evaluateJavaScript(m_onFixedWidthTableResize));
+    Q_UNUSED(frame->evaluateJavaScript(m_getSelectionHtml));
+    Q_UNUSED(frame->evaluateJavaScript(m_replaceSelectionWithHtml));
+    Q_UNUSED(frame->evaluateJavaScript(m_provideSrcForResourceImgTags));
     QNTRACE("Evaluated all JavaScript helper functions");
 }
 
@@ -180,13 +195,15 @@ void NoteEditorPrivate::onContentChanged()
     QNTRACE("Started timer to postpone note editor page's content to ENML conversion");
 }
 
-void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, int errorCode, QString errorDescription)
+void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dataHash,
+                                                 int errorCode, QString errorDescription)
 {
     QNTRACE("NoteEditorPrivate::onResourceSavedToStorage: requestId = " << requestId
-            << ", error code = " << errorCode << ", error description: " << errorDescription);
+            << ", data hash = " << dataHash << ", error code = " << errorCode
+            << ", error description: " << errorDescription);
 
-    auto it = m_resourceLocalGuidAndDataHashBySaveToStorageRequestIds.find(requestId);
-    if (it == m_resourceLocalGuidAndDataHashBySaveToStorageRequestIds.end()) {
+    auto it = m_resourceLocalGuidBySaveToStorageRequestIds.find(requestId);
+    if (it == m_resourceLocalGuidBySaveToStorageRequestIds.end()) {
         return;
     }
 
@@ -197,10 +214,25 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, int errorCode,
         return;
     }
 
-    auto value = it.value();
+    const QString & localGuid = it.value();
 
-    const QString & localGuid = value.first;
-    const QByteArray & dataHash = value.second;
+    if (m_pNote)
+    {
+        QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
+        const int numResources = resourceAdapters.size();
+        for(int i = 0; i < numResources; ++i)
+        {
+            ResourceAdapter & resourceAdapter = resourceAdapters[i];
+            if (resourceAdapter.localGuid() != localGuid) {
+                continue;
+            }
+
+            if (!resourceAdapter.hasDataHash()) {
+                resourceAdapter.setDataHash(dataHash);
+            }
+        }
+    }
+
     QString dataHashStr = QString::fromLocal8Bit(dataHash.constData(), dataHash.size());
 
     QString resourceLocalFilePath = m_resourceLocalFileStorageFolder + "/" + localGuid;
@@ -209,13 +241,51 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, int errorCode,
     QNTRACE("Cached resource local file path " << resourceLocalFilePath
             << " for resource hash " << dataHashStr);
 
-    Q_UNUSED(m_resourceLocalGuidAndDataHashBySaveToStorageRequestIds.erase(it));
+    Q_UNUSED(m_resourceLocalGuidBySaveToStorageRequestIds.erase(it));
 
-    if (m_resourceLocalGuidAndDataHashBySaveToStorageRequestIds.isEmpty()) {
+    if (m_resourceLocalGuidBySaveToStorageRequestIds.isEmpty()) {
         QNTRACE("All current note's resources were saved to local file storage and are actual. "
                 "Will set filepaths to these local files to src attributes of img resource tags");
         provideScrForImgResourcesFromCache();
     }
+}
+
+void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription,
+                                          QByteArray data, QUuid requestId)
+{
+    QNTRACE("NoteEditorPrivate::onDroppedFileRead: success = " << (success ? "true" : "false")
+            << ", error description = " << errorDescription << ", request id = " << requestId);
+
+    auto it = m_droppedFileNamesAndMimeTypesByReadRequestIds.find(requestId);
+    if (it == m_droppedFileNamesAndMimeTypesByReadRequestIds.end()) {
+        return;
+    }
+
+    const QString fileName = it.value().first;
+    const QMimeType mimeType = it.value().second;
+
+    Q_UNUSED(m_droppedFileNamesAndMimeTypesByReadRequestIds.erase(it));
+
+    if (!success) {
+        QNDEBUG("Could not read the content of the dropped file for request id " << requestId
+                << ": " << errorDescription);
+        return;
+    }
+
+    if (!m_pNote) {
+        QNDEBUG("Current note is empty");
+        return;
+    }
+
+    QNDEBUG("Successfully read the content of the dropped file for request id " << requestId);
+    QByteArray dataHash;
+    QString newResourceLocalGuid = attachResourceToNote(data, dataHash, mimeType, fileName);
+
+    QUuid saveResourceToStorageRequestId = QUuid::createUuid();
+    m_resourceLocalGuidBySaveToStorageRequestIds[saveResourceToStorageRequestId] = newResourceLocalGuid;
+    emit saveResourceToStorage(newResourceLocalGuid, data, dataHash, saveResourceToStorageRequestId);
+
+    // FIXME: should insert the resource to note's ENML, reconvert it to HTML and refresh the page
 }
 
 void NoteEditorPrivate::timerEvent(QTimerEvent * event)
@@ -420,13 +490,11 @@ void NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources(cons
             QNTRACE("Found current note's resource corresponding to the data hash "
                     << hash << ": " << resourceAdapter);
 
-            if (!m_resourceLocalFileInfoCache.contains(hash))
+            if (!m_resourceLocalFileInfoCache.contains(hash.toString()))
             {
                 const QString resourceLocalGuid = resourceAdapter.localGuid();
                 QUuid saveResourceRequestId = QUuid::createUuid();
-                auto & value = m_resourceLocalGuidAndDataHashBySaveToStorageRequestIds[saveResourceRequestId];
-                value.first = resourceLocalGuid;
-                value.second = dataHash;
+                m_resourceLocalGuidBySaveToStorageRequestIds[saveResourceRequestId] = resourceLocalGuid;
                 emit saveResourceToStorage(resourceLocalGuid, dataBody, dataHash, saveResourceRequestId);
                 QNTRACE("Sent request to save resource to file storage: request id = " << saveResourceRequestId
                         << ", resource local guid = " << resourceLocalGuid << ", data hash = " << dataHash);
@@ -450,7 +518,8 @@ void NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources(cons
 void NoteEditorPrivate::provideScrForImgResourcesFromCache()
 {
     QNDEBUG("NoteEditorPrivate::provideScrForImgResourcesFromCache");
-    // TODO: call JS function which would use its C++ callbacks to retrieve resource info
+    Q_Q(NoteEditor);
+    q->page()->mainFrame()->evaluateJavaScript("provideSrcForResourceImgTags();");
 }
 
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
@@ -700,15 +769,15 @@ QString NoteEditorPrivate::composeHtmlTable(const T width, const T singleColumnW
     return htmlTable;
 }
 
-void NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
-                                             const QMimeType & mimeType, const QString & filename)
+QString NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
+                                                const QMimeType & mimeType, const QString & filename)
 {
     QNDEBUG("NoteEditorPrivate::attachResourceToNote: hash = " << dataHash
             << ", mime type = " << mimeType.name());
 
     if (!m_pNote) {
         QNINFO("Can't attach resource to note editor: no actual note was selected");
-        return;
+        return QString();
     }
 
     ResourceWrapper resource;
@@ -725,6 +794,7 @@ void NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByt
     }
 
     m_pNote->addResource(resource);
+    return resource.localGuid();
 }
 
 void NoteEditorPrivate::insertToDoCheckbox()
@@ -931,7 +1001,7 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
 
     encryptedTextHtmlObject += "<object/>";
 
-    execJavascriptCommand("replaceSelectionWithHtml", encryptedTextHtmlObject);
+    q->page()->mainFrame()->evaluateJavaScript(QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject));
     // TODO: ensure the contentChanged signal would be emitted automatically (guess it should)
 }
 
@@ -958,16 +1028,16 @@ void NoteEditorPrivate::dropFile(QString & filepath)
         return;
     }
 
-    QByteArray data = QFile(filepath).readAll();
-    QByteArray dataHash = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
-    attachResourceToNote(data, dataHash, mimeType, fileInfo.fileName());
-    // TODO: schedule the async copying of the file to the folder with other resources stored as local files
-    // TODO: re-convert note's ENML to html and "refresh" the web page
+    QUuid readDroppedFileRequestId = QUuid::createUuid();
+    auto & pair = m_droppedFileNamesAndMimeTypesByReadRequestIds[readDroppedFileRequestId];
+    pair.first = fileInfo.fileName();
+    pair.second = mimeType;
+    emit readDroppedFileData(filepath, readDroppedFileRequestId);
 }
 
-QString NoteEditorPrivate::ResourceLocalFileInfoJavaScriptHandler::getResourceLocalFilePath(const QString & resourceHash) const
+QString ResourceLocalFileInfoJavaScriptHandler::getResourceLocalFilePath(const QString & resourceHash) const
 {
-    QNTRACE("NoteEditorPrivate::ResourceLocalFileInfoJavaScriptHandler::getResourceLocalFilePath: " << resourceHash);
+    QNTRACE("ResourceLocalFileInfoJavaScriptHandler::getResourceLocalFilePath: " << resourceHash);
 
     auto it = m_cache.find(resourceHash);
     if (it == m_cache.end()) {

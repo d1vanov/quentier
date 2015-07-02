@@ -83,28 +83,28 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString loc
     if (Q_UNLIKELY(localGuid.isEmpty())) {
         QString errorDescription = QT_TR_NOOP("Detected attempt to write data for empty resource local guid to local file");
         QNWARNING(errorDescription << ", request id = " << requestId);
-        emit writeResourceToFileCompleted(requestId, ResourceFileStorageManager::EmptyLocalGuid, errorDescription);
+        emit writeResourceToFileCompleted(requestId, dataHash, ResourceFileStorageManager::EmptyLocalGuid, errorDescription);
         return;
     }
 
     if (Q_UNLIKELY(requestId.isNull())) {
         QString errorDescription = QT_TR_NOOP("Detected attempt to write data for resource to local file with empty request id");
         QNWARNING(errorDescription << ", local guid = " << localGuid);
-        emit writeResourceToFileCompleted(requestId, ResourceFileStorageManager::EmptyRequestId, errorDescription);
+        emit writeResourceToFileCompleted(requestId, dataHash, ResourceFileStorageManager::EmptyRequestId, errorDescription);
         return;
     }
 
     if (Q_UNLIKELY(data.isEmpty())) {
         QString errorDescription = QT_TR_NOOP("Detected attempt to write empty resource data to local file");
         QNWARNING(errorDescription << ", local guid = " << localGuid);
-        emit writeResourceToFileCompleted(requestId, ResourceFileStorageManager::EmptyData, errorDescription);
+        emit writeResourceToFileCompleted(requestId, dataHash, ResourceFileStorageManager::EmptyData, errorDescription);
         return;
     }
 
     if (Q_UNLIKELY(m_resourceFileStorageLocation.isEmpty())) {
         QString errorDescription = QT_TR_NOOP("Resource file storage location is empty");
         QNWARNING(errorDescription);
-        emit writeResourceToFileCompleted(requestId, ResourceFileStorageManager::NoResourceFileStorageLocation,
+        emit writeResourceToFileCompleted(requestId, dataHash, ResourceFileStorageManager::NoResourceFileStorageLocation,
                                           errorDescription);
         return;
     }
@@ -117,7 +117,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString loc
     bool actual = checkIfResourceFileExistsAndIsActual(localGuid, dataHash);
     if (actual) {
         QNTRACE("Skipping writing the resource to file as it is not necessary");
-        emit writeResourceToFileCompleted(requestId, 0, QString());
+        emit writeResourceToFileCompleted(requestId, dataHash, 0, QString());
         return;
     }
 
@@ -129,7 +129,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString loc
         int errorCode = file.error();
         QNWARNING(errorDescription << ", error code = " << errorCode << ", local guid = "
                   << localGuid << ", request id = " << requestId);
-        emit writeResourceToFileCompleted(requestId, errorCode, errorDescription);
+        emit writeResourceToFileCompleted(requestId, dataHash, errorCode, errorDescription);
         return;
     }
 
@@ -140,7 +140,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString loc
         int errorCode = file.error();
         QNWARNING(errorDescription << ", error code = " << errorCode << ", local guid = "
                   << localGuid << ", request id = " << requestId);
-        emit writeResourceToFileCompleted(requestId, errorCode, errorDescription);
+        emit writeResourceToFileCompleted(requestId, dataHash, errorCode, errorDescription);
         return;
     }
 
@@ -155,7 +155,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString loc
         int errorCode = file.error();
         QNWARNING(errorDescription << ", error code = " << errorCode << ", local guid = "
                   << localGuid << ", request id = " << requestId);
-        emit writeResourceToFileCompleted(requestId, errorCode, errorDescription);
+        emit writeResourceToFileCompleted(requestId, dataHash, errorCode, errorDescription);
         return;
     }
 
@@ -166,14 +166,14 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString loc
         int errorCode = file.error();
         QNWARNING(errorDescription << ", error code = " << errorCode << ", local guid = "
                   << localGuid << ", request id = " << requestId);
-        emit writeResourceToFileCompleted(requestId, errorCode, errorDescription);
+        emit writeResourceToFileCompleted(requestId, dataHash, errorCode, errorDescription);
         return;
     }
 
     file.close();
 
     QNDEBUG("Successfully wrote resource data to file");
-    emit writeResourceToFileCompleted(requestId, 0, QString());
+    emit writeResourceToFileCompleted(requestId, dataHash, 0, QString());
 }
 
 void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString localGuid, QUuid requestId)
@@ -229,8 +229,8 @@ void ResourceFileStorageManagerPrivate::createConnections()
 
     QObject::connect(this, SIGNAL(readResourceFromFileCompleted(QUuid,QByteArray,QByteArray,int,QString)),
                      q_ptr, SIGNAL(readResourceFromFileCompleted(QUuid,QByteArray,QByteArray,int,QString)));
-    QObject::connect(this, SIGNAL(writeResourceToFileCompleted(QUuid,int,QString)),
-                     q_ptr, SIGNAL(writeResourceToFileCompleted(QUuid,int,QString)));
+    QObject::connect(this, SIGNAL(writeResourceToFileCompleted(QUuid,QByteArray,int,QString)),
+                     q_ptr, SIGNAL(writeResourceToFileCompleted(QUuid,QByteArray,int,QString)));
 }
 
 QByteArray ResourceFileStorageManagerPrivate::calculateHash(const QByteArray & data) const

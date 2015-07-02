@@ -44,7 +44,7 @@ public:
     };
 
 Q_SIGNALS:
-    void writeResourceToFileCompleted(QUuid requestId, int errorCode, QString errorDescription);
+    void writeResourceToFileCompleted(QUuid requestId, QByteArray dataHash, int errorCode, QString errorDescription);
     void readResourceFromFileCompleted(QUuid requestId, QByteArray data, QByteArray dataHash,
                                        int errorCode, QString errorDescription);
 
