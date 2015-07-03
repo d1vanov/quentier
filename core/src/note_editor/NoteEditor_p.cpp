@@ -993,9 +993,25 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
     encryptedTextHtmlObject += encryptedText;
     encryptedTextHtmlObject += "\" />";
 
-    if (!hint.isEmpty()) {
+    if (!hint.isEmpty())
+    {
         encryptedTextHtmlObject = "<param name=\"hint\" value=\"";
-        encryptedTextHtmlObject += hint;    // FIXME: ensure there're no unescaped quotes and/or double-quotes here
+
+        QString hintWithEscapedDoubleQuotes = hint;
+        for(int i = 0; i < hintWithEscapedDoubleQuotes.size(); ++i)
+        {
+            if (hintWithEscapedDoubleQuotes.at(i) == QChar('"'))
+            {
+                if (i == 0) {
+                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
+                }
+                else if (hintWithEscapedDoubleQuotes.at(i-1) != QChar('\\')) {
+                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
+                }
+            }
+        }
+
+        encryptedTextHtmlObject += hintWithEscapedDoubleQuotes;
         encryptedTextHtmlObject += "\" />";
     }
 
