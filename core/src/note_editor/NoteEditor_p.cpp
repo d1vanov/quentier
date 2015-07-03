@@ -2,6 +2,7 @@
 #include "NoteEditorPage.h"
 #include "NoteEditorPluginFactory.h"
 #include "ResourceFileStorageManager.h"
+#include "ResourceLocalFileStorageFolderNotFoundException.h"
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
 #include <client/types/ResourceWrapper.h>
@@ -57,6 +58,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_resourceLocalFileStorageFolder(),
     m_resourceLocalGuidBySaveToStorageRequestIds(),
     m_droppedFileNamesAndMimeTypesByReadRequestIds(),
+    m_saveNewResourcesToStorageRequestIds(),
     q_ptr(&noteEditor)
 {
     Q_Q(NoteEditor);
@@ -92,13 +94,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                      this, SLOT(onDroppedFileRead(bool,QString,QByteArray,QUuid)));
 
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache));
-
-    q->setPage(page);
-
-    // Setting initial "blank" page, it is of great importance in order to make image insertion work
-    q->setHtml(m_pagePrefix + "<body></body></html>");
-
-    q->setAcceptDrops(true);
 
     __initNoteEditorResources();
 
@@ -137,16 +132,19 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(q, SIGNAL(loadFinished(bool)), this, SLOT(onNoteLoadFinished(bool)));
     QObject::connect(this, SIGNAL(notifyError(QString)), q, SIGNAL(notifyError(QString)));
 
+    q->setPage(page);
+    // Setting initial "blank" page, it is of great importance in order to make image insertion work
+    q->setHtml(m_pagePrefix + "<body></body></html>");
+    q->setAcceptDrops(true);
+
     m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {
-        QNWARNING("Can't get resource file storage folder");
-        // TODO: throw appropriate exception
+        QString error = QT_TR_NOOP("Can't get resource file storage folder");
+        QNWARNING(error);
+        throw ResourceLocalFileStorageFolderNotFoundException(error);
     }
 
     QNTRACE("Resource local file storage folder: " << m_resourceLocalFileStorageFolder);
-
-    // TODO: temporary thing for debugging/development, remove later
-    onNoteLoadFinished(true);
 }
 
 NoteEditorPrivate::~NoteEditorPrivate()
@@ -159,6 +157,8 @@ NoteEditorPrivate::~NoteEditorPrivate()
 
 void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 {
+    QNDEBUG("NoteEditorPrivate::onNoteLoadFinished: ok = " << (ok ? "true" : "false"));
+
     if (!ok) {
         QNWARNING("Note page was not loaded successfully");
         return;
@@ -243,7 +243,12 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
     Q_UNUSED(m_resourceLocalGuidBySaveToStorageRequestIds.erase(it));
 
-    if (m_resourceLocalGuidBySaveToStorageRequestIds.isEmpty()) {
+    auto sit = m_saveNewResourcesToStorageRequestIds.find(requestId);
+    if (sit != m_saveNewResourcesToStorageRequestIds.end())
+    {
+        noteToEditorContent();
+    }
+    else if (m_resourceLocalGuidBySaveToStorageRequestIds.isEmpty()) {
         QNTRACE("All current note's resources were saved to local file storage and are actual. "
                 "Will set filepaths to these local files to src attributes of img resource tags");
         provideScrForImgResourcesFromCache();
@@ -285,7 +290,7 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
     m_resourceLocalGuidBySaveToStorageRequestIds[saveResourceToStorageRequestId] = newResourceLocalGuid;
     emit saveResourceToStorage(newResourceLocalGuid, data, dataHash, saveResourceToStorageRequestId);
 
-    // FIXME: should insert the resource to note's ENML, reconvert it to HTML and refresh the page
+    Q_UNUSED(m_saveNewResourcesToStorageRequestIds.insert(saveResourceToStorageRequestId));
 }
 
 void NoteEditorPrivate::timerEvent(QTimerEvent * event)
@@ -322,9 +327,9 @@ void NoteEditorPrivate::timerEvent(QTimerEvent * event)
     }
 }
 
-void NoteEditorPrivate::clearContent()
+void NoteEditorPrivate::clearEditorContent()
 {
-    QNDEBUG("NoteEditorPrivate::clearContent");
+    QNDEBUG("NoteEditorPrivate::clearEditorContent");
 
     if (m_pageToNoteContentPostponeTimerId != 0) {
         killTimer(m_pageToNoteContentPostponeTimerId);
@@ -338,6 +343,89 @@ void NoteEditorPrivate::clearContent()
 
     Q_Q(NoteEditor);
     q->setHtml(m_pagePrefix + "<body></body></html>");
+}
+
+void NoteEditorPrivate::noteToEditorContent()
+{
+    QNDEBUG("NoteEditorPrivate::noteToEditorContent");
+
+    if (!m_pNote) {
+        QNDEBUG("No note has been set yet");
+        clearEditorContent();
+        return;
+    }
+
+    if (!m_pNote->hasContent()) {
+        QNDEBUG("Note without content was inserted into NoteEditor");
+        clearEditorContent();
+        return;
+    }
+
+    m_htmlCachedMemory.resize(0);
+    bool res = m_enmlConverter.noteContentToHtml(*m_pNote, m_htmlCachedMemory, m_errorCachedMemory,
+                                                 m_decryptedTextCache, m_pluginFactory);
+    if (!res) {
+        QNWARNING("Can't convert note's content to HTML: " << m_errorCachedMemory);
+        emit notifyError(m_errorCachedMemory);
+        clearEditorContent();
+        return;
+    }
+
+    int bodyTagIndex = m_htmlCachedMemory.indexOf("<body>");
+    if (bodyTagIndex < 0) {
+        m_errorCachedMemory = QT_TR_NOOP("can't find <body> tag in the result of note to HTML conversion");
+        QNWARNING(m_errorCachedMemory << ", note content: " << m_pNote->content()
+                  << ", html: " << m_htmlCachedMemory);
+        emit notifyError(m_errorCachedMemory);
+        clearEditorContent();
+        return;
+    }
+
+    m_htmlCachedMemory.remove(0, bodyTagIndex);
+    m_htmlCachedMemory.prepend(m_pagePrefix);
+    int bodyClosingTagIndex = m_htmlCachedMemory.indexOf("</body>");
+    if (bodyClosingTagIndex < 0) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't find </body> tag in the result of note to HTML conversion");
+        QNWARNING(m_errorCachedMemory << ", note content: " << m_pNote->content()
+                  << ", html: " << m_htmlCachedMemory);
+        emit notifyError(m_errorCachedMemory);
+        clearEditorContent();
+        return;
+    }
+
+    m_htmlCachedMemory.remove(bodyClosingTagIndex, 7);
+    m_htmlCachedMemory.insert(bodyClosingTagIndex, "</html>");
+
+    m_htmlCachedMemory.replace("<br></br>", "</br>");   // Webkit-specific fix
+
+    Q_Q(NoteEditor);
+
+    bool readOnly = false;
+    if (m_pNote->hasActive() && !m_pNote->active()) {
+        QNDEBUG("Current note is not active, setting it to read-only state");
+        q->page()->setContentEditable(false);
+        readOnly = true;
+    }
+    else if (m_pNotebook->hasRestrictions())
+    {
+        const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
+        if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
+            QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
+            q->page()->setContentEditable(false);
+            readOnly = true;
+        }
+    }
+
+    if (!readOnly) {
+        QNDEBUG("Nothing prevents user to modify the note, allowing it in the editor");
+        q->page()->setContentEditable(true);
+    }
+
+    q->setHtml(m_htmlCachedMemory);
+    updateColResizableTableBindings();
+
+    checkResourceLocalFilesAndProvideSrcForImgResources(m_htmlCachedMemory);
+    QNTRACE("Done setting the current note and notebook");
 }
 
 void NoteEditorPrivate::updateColResizableTableBindings()
@@ -574,77 +662,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         *m_pNotebook = notebook;
     }
 
-    if (!m_pNote->hasContent()) {
-        QNDEBUG("Note without content was inserted into NoteEditor");
-        clearContent();
-        return;
-    }
-
-    m_htmlCachedMemory.resize(0);
-    bool res = m_enmlConverter.noteContentToHtml(*m_pNote, m_htmlCachedMemory, m_errorCachedMemory,
-                                                 m_decryptedTextCache, m_pluginFactory);
-    if (!res) {
-        QNWARNING("Can't convert note's content to HTML: " << m_errorCachedMemory);
-        emit notifyError(m_errorCachedMemory);
-        clearContent();
-        return;
-    }
-
-    int bodyTagIndex = m_htmlCachedMemory.indexOf("<body>");
-    if (bodyTagIndex < 0) {
-        m_errorCachedMemory = QT_TR_NOOP("can't find <body> tag in the result of note to HTML conversion");
-        QNWARNING(m_errorCachedMemory << ", note content: " << m_pNote->content()
-                  << ", html: " << m_htmlCachedMemory);
-        emit notifyError(m_errorCachedMemory);
-        clearContent();
-        return;
-    }
-
-    m_htmlCachedMemory.remove(0, bodyTagIndex);
-    m_htmlCachedMemory.prepend(m_pagePrefix);
-    int bodyClosingTagIndex = m_htmlCachedMemory.indexOf("</body>");
-    if (bodyClosingTagIndex < 0) {
-        m_errorCachedMemory = QT_TR_NOOP("Can't find </body> tag in the result of note to HTML conversion");
-        QNWARNING(m_errorCachedMemory << ", note content: " << m_pNote->content()
-                  << ", html: " << m_htmlCachedMemory);
-        emit notifyError(m_errorCachedMemory);
-        clearContent();
-        return;
-    }
-
-    m_htmlCachedMemory.remove(bodyClosingTagIndex, 7);
-    m_htmlCachedMemory.insert(bodyClosingTagIndex, "</html>");
-
-    m_htmlCachedMemory.replace("<br></br>", "</br>");   // Webkit-specific fix
-
-    Q_Q(NoteEditor);
-
-    bool readOnly = false;
-    if (m_pNote->hasActive() && !m_pNote->active()) {
-        QNDEBUG("Current note is not active, setting it to read-only state");
-        q->page()->setContentEditable(false);
-        readOnly = true;
-    }
-    else if (m_pNotebook->hasRestrictions())
-    {
-        const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
-        if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
-            QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
-            q->page()->setContentEditable(false);
-            readOnly = true;
-        }
-    }
-
-    if (!readOnly) {
-        QNDEBUG("Nothing prevents user to modify the note, allowing it in the editor");
-        q->page()->setContentEditable(true);
-    }
-
-    q->setHtml(m_htmlCachedMemory);
-    updateColResizableTableBindings();
-
-    checkResourceLocalFilesAndProvideSrcForImgResources(m_htmlCachedMemory);
-    QNTRACE("Done setting the current note and notebook");
+    noteToEditorContent();
 }
 
 const Note * NoteEditorPrivate::getNote()

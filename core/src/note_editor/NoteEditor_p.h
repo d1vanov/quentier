@@ -107,7 +107,8 @@ private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
 
 private:
-    void clearContent();
+    void clearEditorContent();
+    void noteToEditorContent();
     void updateColResizableTableBindings();
 
     bool htmlToNoteContent(QString & errorDescription);
@@ -171,6 +172,7 @@ private:
     QHash<QString, QString> m_resourceLocalGuidBySaveToStorageRequestIds;
 
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFileNamesAndMimeTypesByReadRequestIds;
+    QSet<QUuid> m_saveNewResourcesToStorageRequestIds;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)
