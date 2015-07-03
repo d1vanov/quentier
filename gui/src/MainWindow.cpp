@@ -6,8 +6,6 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 #include "ui_MainWindow.h"
 
 #include "TableSettingsDialog.h"
-#include <note_editor/HorizontalLineExtraData.h>
-#include <note_editor/ToDoCheckboxTextObject.h>
 #include "EvernoteOAuthBrowser.h"
 #include "../client/EvernoteServiceManager.h"
 #include "AskConsumerKeyAndSecret.h"
@@ -39,8 +37,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_currentStatusBarChildWidget(nullptr),
     m_pManager(new EvernoteServiceManager),
     m_pOAuthBrowser(new EvernoteOAuthBrowser(this, *m_pManager)),
-    m_pToDoChkboxTxtObjUnchecked(new ToDoCheckboxTextObjectUnchecked),
-    m_pToDoChkboxTxtObjChecked(new ToDoCheckboxTextObjectChecked),
     m_pNoteEditor(nullptr)
 {
     m_pUI->setupUi(this);
@@ -83,16 +79,6 @@ MainWindow::~MainWindow()
     if (m_pUI != nullptr) {
         delete m_pUI;
         m_pUI = nullptr;
-    }
-
-    if (!m_pToDoChkboxTxtObjUnchecked) {
-        delete m_pToDoChkboxTxtObjUnchecked;
-        m_pToDoChkboxTxtObjUnchecked = nullptr;
-    }
-
-    if (!m_pToDoChkboxTxtObjChecked) {
-        delete m_pToDoChkboxTxtObjChecked;
-        m_pToDoChkboxTxtObjChecked = nullptr;
     }
 }
 

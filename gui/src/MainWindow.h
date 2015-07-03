@@ -100,8 +100,6 @@ private:
     EvernoteServiceManager  * m_pManager;
     EvernoteOAuthBrowser * m_pOAuthBrowser;
     QWidget * m_currentStatusBarChildWidget;
-    QObject * m_pToDoChkboxTxtObjUnchecked;
-    QObject * m_pToDoChkboxTxtObjChecked;
     qute_note::NoteEditor * m_pNoteEditor;
 };
 

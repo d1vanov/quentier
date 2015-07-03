@@ -11,12 +11,7 @@ set(${PROJECT_NAME}_HEADERS
     src/note_editor/EncryptedAreaPlugin.h
     src/note_editor/DecryptedTextCache.h
     src/note_editor/GenericResourceDisplayWidget.h
-    src/note_editor/HorizontalLineExtraData.h
-    src/note_editor/MediaResourceTextObject.h
     src/note_editor/NoteDecryptionDialog.h
-    src/note_editor/QuteNoteTextEdit.h
-    src/note_editor/ResourceTextObject.h
-    src/note_editor/ToDoCheckboxTextObject.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor.h
     src/note_editor/NoteEditor_p.h
@@ -105,11 +100,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/AttachmentStoragePathConfigDialog.cpp
     src/note_editor/EncryptedAreaPlugin.cpp
     src/note_editor/GenericResourceDisplayWidget.cpp
-    src/note_editor/HorizontalLineExtraData.cpp
     src/note_editor/INoteEditorPlugin.cpp
-    src/note_editor/QuteNoteTextEdit.cpp
-    src/note_editor/ResourceTextObject.cpp
-    src/note_editor/ToDoCheckboxTextObject.cpp
     src/note_editor/NoteEditorPage.cpp
     src/note_editor/NoteEditor.cpp
     src/note_editor/NoteEditor_p.cpp
