@@ -997,7 +997,13 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SyncChunk & syncC
         }
     }
 
-    // TODO: continue from here
+    if (syncChunk.linkedNotebooks.isSet()) {
+        const QList<qevercloud::LinkedNotebook> & linkedNotebooks = syncChunk.linkedNotebooks.ref();
+        const int numLinkedNotebooks = linkedNotebooks.size();
+        for(int i = 0; i < numLinkedNotebooks; ++i) {
+            strm << indent << ", linked notebook: " << linkedNotebooks[i] << "; \n";
+        }
+    }
 
     return strm;
 }
