@@ -708,9 +708,9 @@ bool ENMLConverterPrivate::toDoTagsToHtml(QString & html, QString & errorDescrip
 }
 
 bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamReader & reader,
-                                                 QXmlStreamWriter & writer,
-                                                 QString & errorDescription,
-                                                 DecryptedTextCachePtr decryptedTextCache) const
+                                               QXmlStreamWriter & writer,
+                                               QString & errorDescription,
+                                               DecryptedTextCachePtr decryptedTextCache) const
 {
     QNDEBUG("ENMLConverterPrivate::encryptedTextToHtml");
 
@@ -762,7 +762,12 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamReader & reader,
                               "border-radius: 8px; "
                               "margin: 2px; "
                               "padding: 2px;");
+
+        writer.writeStartElement("textarea");
+        writer.writeAttribute("readonly", "readonly");
         writer.writeCDATA(it.value().first);
+        writer.writeEndElement();
+
         writer.writeEndElement();
         return true;
     }
