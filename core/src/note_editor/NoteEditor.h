@@ -60,7 +60,7 @@ public Q_SLOTS:
     void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels);
     void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
     void encryptSelectedText(const QString & passphrase, const QString & hint);
-
+    void onEncryptedAreaDecryption();
     void onNoteLoadCancelled();
 
 private:

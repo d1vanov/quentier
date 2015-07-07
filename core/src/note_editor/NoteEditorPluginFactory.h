@@ -11,6 +11,7 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+QT_FORWARD_DECLARE_CLASS(NoteEditor)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactoryPrivate)
 
 /**
@@ -20,10 +21,17 @@ class QUTE_NOTE_EXPORT NoteEditorPluginFactory: public QWebPluginFactory
 {
     Q_OBJECT
 public:
-    explicit NoteEditorPluginFactory(const ResourceFileStorageManager & resourceFileStorageManager,
+    explicit NoteEditorPluginFactory(const NoteEditor & editor,
+                                     const ResourceFileStorageManager & resourceFileStorageManager,
                                      const FileIOThreadWorker & fileIOThreadWorker,
                                      QObject * parent = nullptr);
     virtual ~NoteEditorPluginFactory();
+
+    /**
+     * @brief noteEditor - the accessor providing the const reference to NoteEditor object owning the factory
+     * @return const reference to NoteEditor object
+     */
+    const NoteEditor & noteEditor() const;
 
     /**
      * @brief PluginIdentifier - the unique identifier of the plugin assigned to it by the factory;

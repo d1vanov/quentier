@@ -1,6 +1,8 @@
 #include "EncryptedAreaPlugin.h"
 #include "ui_EncryptedAreaPlugin.h"
 #include "NoteDecryptionDialog.h"
+#include "NoteEditorPluginFactory.h"
+#include "NoteEditor.h"
 #include <logging/QuteNoteLogger.h>
 #include <client/types/IResource.h>
 #include <tools/QuteNoteCheckPtr.h>
@@ -54,6 +56,7 @@ EncryptedAreaPlugin * EncryptedAreaPlugin::clone() const
 bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
                                      const QStringList & parameterNames,
                                      const QStringList & parameterValues,
+                                     const NoteEditorPluginFactory & pluginFactory,
                                      const IResource * resource, QString & errorDescription)
 {
     QNDEBUG("EncryptedAreaPlugin::initialize: mime type = " << mimeType
@@ -116,6 +119,10 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
     else {
         m_hint = parameterValues[hintIndex];
     }
+
+    const NoteEditor & noteEditor = pluginFactory.noteEditor();
+    QObject::connect(this, SIGNAL(decrypted(QString,QString,bool)),
+                     &noteEditor, SLOT(onEncryptedAreaDecryption()));
 
     QNTRACE("Initialized encrypted area plugin: cipher = " << m_cipher
             << ", length = " << m_keyLength << ", hint = " << m_hint

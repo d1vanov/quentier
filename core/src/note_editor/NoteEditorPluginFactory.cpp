@@ -1,18 +1,26 @@
 #include "NoteEditorPluginFactory.h"
 #include "NoteEditorPluginFactory_p.h"
+#include "NoteEditor.h"
 #include <QRegExp>
 
 namespace qute_note {
 
-NoteEditorPluginFactory::NoteEditorPluginFactory(const ResourceFileStorageManager & resourceFileStorageManager,
+NoteEditorPluginFactory::NoteEditorPluginFactory(const NoteEditor & noteEditor,
+                                                 const ResourceFileStorageManager & resourceFileStorageManager,
                                                  const FileIOThreadWorker & fileIOThreadWorker,
                                                  QObject * parent) :
     QWebPluginFactory(parent),
-    d_ptr(new NoteEditorPluginFactoryPrivate(*this, resourceFileStorageManager, fileIOThreadWorker, this))
+    d_ptr(new NoteEditorPluginFactoryPrivate(*this, noteEditor, resourceFileStorageManager, fileIOThreadWorker, this))
 {}
 
 NoteEditorPluginFactory::~NoteEditorPluginFactory()
 {}
+
+const NoteEditor & NoteEditorPluginFactory::noteEditor() const
+{
+    Q_D(const NoteEditorPluginFactory);
+    return d->noteEditor();
+}
 
 NoteEditorPluginFactory::PluginIdentifier NoteEditorPluginFactory::addPlugin(INoteEditorPlugin * plugin,
                                                                              QString & errorDescription,

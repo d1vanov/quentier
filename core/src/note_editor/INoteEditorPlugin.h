@@ -8,6 +8,7 @@
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(IResource)
+QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 
 /**
  * @brief The INoteEditorPlugin class is the interface for any class wishing to implement
@@ -33,6 +34,8 @@ public:
      * @param url - url of the content to be displayed by the plugin
      * @param parameterNames - names of string parameters stored in HTML <object> tag for the plugin
      * @param parameterValues - values of string parameters stored in HTML <object> tag for the plugin
+     * @param pluginFactory - plugin factory object which initializes plugins; here intended to be used
+     * for setting up the signal-slot connections, if necessary
      * @param resource - const pointer to resource which needs to be displayed by the plugin or null
      * if the plugin does not represent the resource
      * @param errorDescription - error description in case the plugin can't be initialized properly
@@ -42,6 +45,7 @@ public:
     virtual bool initialize(const QString & mimeType, const QUrl & url,
                             const QStringList & parameterNames,
                             const QStringList & parameterValues,
+                            const NoteEditorPluginFactory & pluginFactory,
                             const IResource * resource,
                             QString & errorDescription) = 0;
 

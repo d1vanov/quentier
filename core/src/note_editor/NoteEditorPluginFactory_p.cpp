@@ -1,4 +1,5 @@
 #include "NoteEditorPluginFactory_p.h"
+#include "NoteEditor.h"
 #include "GenericResourceDisplayWidget.h"
 #include "ResourceFileStorageManager.h"
 #include <tools/FileIOThreadWorker.h>
@@ -12,10 +13,12 @@
 namespace qute_note {
 
 NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginFactory & factory,
+                                                               const NoteEditor & noteEditor,
                                                                const ResourceFileStorageManager & resourceFileStorageManager,
                                                                const FileIOThreadWorker & fileIOThreadWorker,
                                                                QObject * parent) :
     QObject(parent),
+    m_noteEditor(noteEditor),
     m_plugins(),
     m_lastFreePluginId(1),
     m_pCurrentNote(nullptr),
@@ -38,6 +41,11 @@ NoteEditorPluginFactoryPrivate::~NoteEditorPluginFactoryPrivate()
         INoteEditorPlugin * plugin = it.value();
         delete plugin;
     }
+}
+
+const NoteEditor & NoteEditorPluginFactoryPrivate::noteEditor() const
+{
+    return m_noteEditor;
 }
 
 NoteEditorPluginFactoryPrivate::PluginIdentifier NoteEditorPluginFactoryPrivate::addPlugin(INoteEditorPlugin * plugin,
@@ -269,9 +277,11 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
 
     if (!m_plugins.isEmpty())
     {
+        Q_Q(const NoteEditorPluginFactory);
         const int numArguments = argumentNames.size();
         for(int i = 0; i < numArguments; ++i)
         {
+
             const QString & currentArgumentName = argumentNames[i];
             const QString & currentArgumentValue = argumentValues[i];
             m_parameterKeyCache = currentArgumentName + ":" + currentArgumentValue;
@@ -286,7 +296,7 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
 
             INoteEditorPlugin * newPlugin = plugin->clone();
             QString errorDescription;
-            bool res = newPlugin->initialize(mimeType, url, argumentNames, argumentValues,
+            bool res = newPlugin->initialize(mimeType, url, argumentNames, argumentValues, *q,
                                              pCurrentResource, errorDescription);
             if (!res) {
                 QNINFO("Can't initialize note editor plugin " << plugin->name() << ": " << errorDescription);
@@ -320,7 +330,7 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
                 QNTRACE("Will use plugin " << plugin->name());
                 INoteEditorPlugin * newPlugin = plugin->clone();
                 QString errorDescription;
-                bool res = newPlugin->initialize(mimeType, url, argumentNames, argumentValues,
+                bool res = newPlugin->initialize(mimeType, url, argumentNames, argumentValues, *q,
                                                  pCurrentResource, errorDescription);
                 if (!res) {
                     QNINFO("Can't initialize note editor plugin " << plugin->name() << ": " << errorDescription);

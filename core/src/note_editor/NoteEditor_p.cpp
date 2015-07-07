@@ -3,6 +3,7 @@
 #include "NoteEditorPluginFactory.h"
 #include "ResourceFileStorageManager.h"
 #include "ResourceLocalFileStorageFolderNotFoundException.h"
+#include "EncryptedAreaPlugin.h"
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
 #include <client/types/ResourceWrapper.h>
@@ -79,9 +80,16 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pFileIOThreadWorker = new FileIOThreadWorker;
     m_pFileIOThreadWorker->moveToThread(m_pIOThread);
 
-    m_pluginFactory = new NoteEditorPluginFactory(*m_pResourceFileStorageManager,
+    m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager,
                                                   *m_pFileIOThreadWorker, page);
     page->setPluginFactory(m_pluginFactory);
+
+    EncryptedAreaPlugin * encryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextCache, q);
+    m_errorCachedMemory.resize(0);
+    NoteEditorPluginFactory::PluginIdentifier encryptedAreaPluginId = m_pluginFactory->addPlugin(encryptedAreaPlugin, m_errorCachedMemory);
+    if (!encryptedAreaPluginId) {
+        // TODO: throw the appropriate exception
+    }
 
     QObject::connect(this, SIGNAL(saveResourceToStorage(QString,QByteArray,QByteArray,QUuid)),
                      m_pResourceFileStorageManager, SLOT(onWriteResourceToFileRequest(QString,QByteArray,QByteArray,QUuid)));
@@ -1037,6 +1045,11 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
 
     q->page()->mainFrame()->evaluateJavaScript(QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject));
     // TODO: ensure the contentChanged signal would be emitted automatically (guess it should)
+}
+
+void NoteEditorPrivate::onEncryptedAreaDecryption()
+{
+    noteToEditorContent();
 }
 
 void NoteEditorPrivate::dropFile(QString & filepath)

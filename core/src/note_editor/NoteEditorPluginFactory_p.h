@@ -15,10 +15,13 @@ class NoteEditorPluginFactoryPrivate: public QObject
     Q_OBJECT
 public:
     explicit NoteEditorPluginFactoryPrivate(NoteEditorPluginFactory & factory,
+                                            const NoteEditor & noteEditor,
                                             const ResourceFileStorageManager & ResourceFileStorageManager,
                                             const FileIOThreadWorker & fileIOThreadWorker,
                                             QObject * parent = nullptr);
     virtual ~NoteEditorPluginFactoryPrivate();
+
+    const NoteEditor & noteEditor() const;
 
     typedef NoteEditorPluginFactory::PluginIdentifier PluginIdentifier;
 
@@ -47,6 +50,7 @@ private:
     QString getFilterStringForMimeType(const QString & mimeType) const;
 
 private:
+    const NoteEditor &                              m_noteEditor;
     QHash<PluginIdentifier, INoteEditorPlugin*>     m_plugins;
     PluginIdentifier                                m_lastFreePluginId;
     const Note *                                    m_pCurrentNote;

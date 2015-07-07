@@ -190,9 +190,15 @@ void NoteEditor::encryptSelectedText(const QString & passphrase, const QString &
     d->encryptSelectedText(passphrase, hint);
 }
 
+void NoteEditor::onEncryptedAreaDecryption()
+{
+    Q_D(NoteEditor);
+    d->onEncryptedAreaDecryption();
+}
+
 void NoteEditor::onNoteLoadCancelled()
 {
-    // TODO: implement
+    stop();
 }
 
 void NoteEditor::dropEvent(QDropEvent * pEvent)
