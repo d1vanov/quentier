@@ -5,7 +5,6 @@
 #include "NoteSearchQuery.h"
 #include <client/Utility.h>
 #include <logging/QuteNoteLogger.h>
-#include <tools/QuteNoteNullPtrException.h>
 #include <tools/DesktopServices.h>
 #include <tools/SysInfo.h>
 #include <algorithm>

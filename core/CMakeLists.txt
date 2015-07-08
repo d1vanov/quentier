@@ -92,7 +92,7 @@ set(${PROJECT_NAME}_HEADERS
     src/tools/Printable.h
     src/tools/QuteNoteApplication.h
     src/tools/QuteNoteCheckPtr.h
-    src/tools/QuteNoteNullPtrException.h
+    src/tools/NullPtrException.h
     src/tools/TypeWithError.h
     src/tools/qt4helper.h)
 
@@ -174,7 +174,7 @@ set(${PROJECT_NAME}_SOURCES
     src/tools/IQuteNoteException.cpp
     src/tools/Printable.cpp
     src/tools/QuteNoteApplication.cpp
-    src/tools/QuteNoteNullPtrException.cpp
+    src/tools/NullPtrException.cpp
     src/tools/TypeWithError.cpp)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
