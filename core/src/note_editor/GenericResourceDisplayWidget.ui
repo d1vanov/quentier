@@ -108,6 +108,9 @@ padding: 2px;
         <property name="text">
          <string notr="true">Resource display name</string>
         </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
