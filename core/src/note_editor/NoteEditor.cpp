@@ -198,7 +198,8 @@ void NoteEditor::onEncryptedAreaDecryption()
 
 void NoteEditor::onNoteLoadCancelled()
 {
-    stop();
+    Q_D(NoteEditor);
+    d->onNoteLoadCancelled();
 }
 
 void NoteEditor::dropEvent(QDropEvent * pEvent)

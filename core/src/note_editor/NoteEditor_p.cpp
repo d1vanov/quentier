@@ -4,6 +4,7 @@
 #include "ResourceFileStorageManager.h"
 #include "ResourceLocalFileStorageFolderNotFoundException.h"
 #include "EncryptedAreaPlugin.h"
+#include "PluginInitializationException.h"
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
 #include <client/types/ResourceWrapper.h>
@@ -88,7 +89,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_errorCachedMemory.resize(0);
     NoteEditorPluginFactory::PluginIdentifier encryptedAreaPluginId = m_pluginFactory->addPlugin(encryptedAreaPlugin, m_errorCachedMemory);
     if (!encryptedAreaPluginId) {
-        // TODO: throw the appropriate exception
+        throw PluginInitializationException("Can't initialize note editor plugin for managing the encrypted text");
     }
 
     QObject::connect(this, SIGNAL(saveResourceToStorage(QString,QByteArray,QByteArray,QUuid)),
@@ -1050,6 +1051,14 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
 void NoteEditorPrivate::onEncryptedAreaDecryption()
 {
     noteToEditorContent();
+}
+
+void NoteEditorPrivate::onNoteLoadCancelled()
+{
+    Q_Q(NoteEditor);
+    q->stop();
+    QNINFO("Note load has been cancelled");
+    // TODO: add some overlay widget for NoteEditor to properly indicate visually that the note load has been cancelled
 }
 
 void NoteEditorPrivate::dropFile(QString & filepath)

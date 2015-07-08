@@ -88,6 +88,7 @@ public:
     void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
     void encryptSelectedText(const QString & passphrase, const QString & hint);
     void onEncryptedAreaDecryption();
+    void onNoteLoadCancelled();
 
 Q_SIGNALS:
     void notifyError(QString error);

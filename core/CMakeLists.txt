@@ -18,6 +18,7 @@ set(${PROJECT_NAME}_HEADERS
     src/note_editor/INoteEditorPlugin.h
     src/note_editor/NoteEditorPluginFactory.h
     src/note_editor/NoteEditorPluginFactory_p.h
+    src/note_editor/PluginInitializationException.h
     src/note_editor/ResourceFileStorageManager.h
     src/note_editor/ResourceFileStorageManager_p.h
     src/note_editor/ResourceLocalFileStorageFolderNotFoundException.h
@@ -107,6 +108,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/NoteEditorPluginFactory.cpp
     src/note_editor/NoteEditorPluginFactory_p.cpp
     src/note_editor/NoteDecryptionDialog.cpp
+    src/note_editor/PluginInitializationException.cpp
     src/note_editor/ResourceFileStorageManager.cpp
     src/note_editor/ResourceFileStorageManager_p.cpp
     src/note_editor/ResourceLocalFileStorageFolderNotFoundException.cpp
