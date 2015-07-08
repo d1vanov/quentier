@@ -13,6 +13,8 @@ public:
     virtual ~QuteNoteApplication();
 
     virtual bool notify(QObject * object, QEvent * event);
+
+    bool hasGui() const;
 };
 
 } // namespace qute_note

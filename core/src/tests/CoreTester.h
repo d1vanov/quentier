@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__CORE__TESTS__CORE_TESTER_H
 
 #include <tools/qt4helper.h>
+#include <tools/QuteNoteApplication.h>
 #include <QObject>
 
 namespace qute_note {
@@ -11,7 +12,8 @@ class CoreTester: public QObject
 {
     Q_OBJECT
 public:
-    explicit CoreTester(QObject * parent = nullptr);
+    explicit CoreTester(const QuteNoteApplication & app,
+                        QObject * parent = nullptr);
     virtual ~CoreTester();
 
 private slots:
@@ -62,6 +64,8 @@ private:
     CoreTester(const CoreTester & other) Q_DECL_DELETE;
     CoreTester & operator=(const CoreTester & other) Q_DECL_DELETE;
 
+private:
+    const QuteNoteApplication & m_app;
 };
 
 }

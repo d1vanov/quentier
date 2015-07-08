@@ -18,6 +18,6 @@ int main(int argc, char *argv[])
     QsLogging::Logger & logger = QsLogging::Logger::instance();
     logger.addDestination(QsLogging::DestinationFactory::MakeDebugOutputDestination());
 
-    QTest::qExec(new CoreTester);
+    QTest::qExec(new CoreTester(app));
     return 0;
 }

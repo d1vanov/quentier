@@ -26,4 +26,15 @@ bool QuteNoteApplication::notify(QObject * object, QEvent * event)
     }
 }
 
+bool QuteNoteApplication::hasGui() const
+{
+    bool withGui = false;
+    QApplication * app = qobject_cast<QApplication*>(QCoreApplication::instance());
+    if (app) {
+        withGui = (app->type() == QApplication::GuiClient);
+    }
+
+    return withGui;
+}
+
 } // namespace qute_note
