@@ -34,9 +34,8 @@
 namespace qute_note {
 namespace test {
 
-CoreTester::CoreTester(const QuteNoteApplication & app, QObject * parent) :
-    QObject(parent),
-    m_app(app)
+CoreTester::CoreTester(QObject * parent) :
+    QObject(parent)
 {}
 
 CoreTester::~CoreTester()
