@@ -308,14 +308,14 @@ bool ENMLConverterPrivate::validateEnml(const QString & enml, QString & errorDes
     xmlDocPtr pDoc = xmlParseDoc(static_cast<unsigned char*>(str.data()));
     if (!pDoc) {
         errorDescription = QT_TR_NOOP("Can't validate ENML: can't parse enml to xml doc");
-        QNWARNING(errorDescription);
+        QNWARNING(errorDescription << ": enml = " << enml);
         return false;
     }
 
     QFile dtdFile(":/enml2.dtd");
     if (!dtdFile.open(QIODevice::ReadOnly)) {
         errorDescription = QT_TR_NOOP("Can't validate ENML: can't open resource file with DTD");
-        QNWARNING(errorDescription);
+        QNWARNING(errorDescription << ": enml = " << enml);
         xmlFreeDoc(pDoc);
         return false;
     }

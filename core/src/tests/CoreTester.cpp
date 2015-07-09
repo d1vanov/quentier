@@ -11,6 +11,7 @@
 #include "LocalStorageManagerNoteSearchQueryTest.h"
 #include "LocalStorageCacheAsyncTester.h"
 #include "EncryptionManagerTests.h"
+#include "ENMLConverterTests.h"
 #include <tools/IQuteNoteException.h>
 #include <tools/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
@@ -239,10 +240,21 @@ void CoreTester::decryptNoteRc2Test()
 {
     try
     {
-        // QSKIP("Skipping RC2 decryption test until the implementation is ready", SkipSingle);
-
         QString error;
         bool res = decryptRc2Test(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
+void CoreTester::enmlConverterSimpleTest()
+{
+    try
+    {
+        QSKIP("Skip the test until the implementation is fixed", SkipSingle);
+
+        QString error;
+        bool res = convertSimpleNoteToHtmlAndBack(error);
         QVERIFY2(res == true, qPrintable(error));
     }
     CATCH_EXCEPTION();
