@@ -66,12 +66,12 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
         return false;
     }
 
+    QNTRACE("Source html: " << html << "\n\nCleaned up html: " << m_cachedConvertedXml);
+
     QXmlStreamReader reader(m_cachedConvertedXml);
 
     m_cachedNoteContent.resize(0);
     QXmlStreamWriter writer(&m_cachedNoteContent);
-    writer.writeStartDocument();
-    writer.writeDTD("<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">");
 
     while(!reader.atEnd())
     {
@@ -82,7 +82,6 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
         }
 
         if (reader.isEndDocument()) {
-            writer.writeEndDocument();
             break;
         }
 
@@ -181,6 +180,18 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
             QNTRACE("Wrote element: name = " << name << " and its attributes");
         }
 
+        if (reader.isCharacters())
+        {
+            if (reader.isCDATA()) {
+                writer.writeCDATA(reader.text().toString());
+                QNTRACE("Wrote CDATA: " << reader.text().toString());
+            }
+            else {
+                writer.writeCharacters(reader.text().toString());
+                QNTRACE("Wrote characters: " << reader.text().toString());
+            }
+        }
+
         if (reader.isEndElement()) {
             writer.writeEndElement();
         }
@@ -196,8 +207,6 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
             errorDescription = QT_TR_NOOP("Failed to convert, produced ENML is invalid according to dtd");
         }
 
-        QNWARNING(errorDescription << ": " << m_cachedNoteContent << "\n\nSource html: " << html
-                  << "\n\nCleaned up & converted xml: " << m_cachedConvertedXml);
         return false;
     }
 
@@ -222,7 +231,6 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
     QXmlStreamReader reader(note.content());
 
     QXmlStreamWriter writer(&html);
-    writer.writeStartDocument();
 
     while(!reader.atEnd())
     {
@@ -233,7 +241,6 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
         }
 
         if (reader.isEndDocument()) {
-            writer.writeEndDocument();
             break;
         }
 
@@ -272,18 +279,24 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
             writer.writeStartElement(name);
             writer.writeAttributes(attributes);
 
+            QNTRACE("Wrote start element: " << name << " and its attributes");
+        }
+
+        if (reader.isCharacters())
+        {
             if (reader.isCDATA()) {
                 writer.writeCDATA(reader.text().toString());
+                QNTRACE("Wrote CDATA: " << reader.text().toString());
             }
             else {
                 writer.writeCharacters(reader.text().toString());
+                QNTRACE("Wrote characters: " << reader.text().toString());
             }
-
-            QNTRACE("Wrote element: name = " << name << " and its attributes");
         }
 
         if (reader.isEndElement()) {
             writer.writeEndElement();
+            QNTRACE("Wrote end element: " << reader.name().toString());
         }
     }
 
@@ -884,7 +897,6 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
     attributes.append("en-tag", "en-media");
     writer.writeAttributes(attributes);
 
-    writer.writeEndElement();
     return true;
 }
 
