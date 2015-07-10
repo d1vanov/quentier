@@ -66,13 +66,12 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
         return false;
     }
 
-    QNTRACE("Source html: " << html << "\n\nCleaned up html: " << m_cachedConvertedXml);
-
     QXmlStreamReader reader(m_cachedConvertedXml);
 
     m_cachedNoteContent.resize(0);
     QXmlStreamWriter writer(&m_cachedNoteContent);
 
+    int writeElementCounter = 0;
     while(!reader.atEnd())
     {
         Q_UNUSED(reader.readNext());
@@ -96,6 +95,10 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                 QNTRACE("Skipping <html> tag");
                 continue;
             }
+            else if (name == "title") {
+                QNTRACE("Skipping <title> tag");
+                continue;
+            }
             else if (name == "body") {
                 name = "en-note";
                 QNTRACE("Found \"body\" HTML tag, will replace it with \"en-note\" tag for written ENML");
@@ -108,9 +111,14 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
             }
 
             tagIt = allowedXhtmlTags.find(name);
-            if (tagIt == allowedXhtmlTags.end()) {
-                QNTRACE("Haven't found tag " << name << " within the list of allowed XHTML tags, skipping it");
-                continue;
+            if (tagIt == allowedXhtmlTags.end())
+            {
+                tagIt = evernoteSpecificXhtmlTags.find(name);
+                if (tagIt == evernoteSpecificXhtmlTags.end()) {
+                    QNTRACE("Haven't found tag " << name << " within the list of allowed XHTML tags "
+                            "or within Evernote-specific tags, skipping it");
+                    continue;
+                }
             }
 
             QXmlStreamAttributes attributes = reader.attributes();
@@ -177,25 +185,31 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
 
             writer.writeStartElement(name);
             writer.writeAttributes(attributes);
+            ++writeElementCounter;
             QNTRACE("Wrote element: name = " << name << " and its attributes");
         }
 
-        if (reader.isCharacters())
+        if ((writeElementCounter > 0) && reader.isCharacters())
         {
+            QString text = reader.text().toString();
+
             if (reader.isCDATA()) {
-                writer.writeCDATA(reader.text().toString());
-                QNTRACE("Wrote CDATA: " << reader.text().toString());
+                writer.writeCDATA(text);
+                QNTRACE("Wrote CDATA: " << text);
             }
             else {
-                writer.writeCharacters(reader.text().toString());
-                QNTRACE("Wrote characters: " << reader.text().toString());
+                writer.writeCharacters(text);
+                QNTRACE("Wrote characters: " << text);
             }
         }
 
-        if (reader.isEndElement()) {
+        if ((writeElementCounter > 0) && reader.isEndElement()) {
             writer.writeEndElement();
+            --writeElementCounter;
         }
     }
+
+    QNTRACE("Converted ENML: " << m_cachedNoteContent);
 
     res = validateEnml(m_cachedNoteContent, errorDescription);
     if (!res)
@@ -231,6 +245,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
     QXmlStreamReader reader(note.content());
 
     QXmlStreamWriter writer(&html);
+    int writeElementCounter = 0;
 
     while(!reader.atEnd())
     {
@@ -246,6 +261,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
 
         if (reader.isStartElement())
         {
+            ++writeElementCounter;
             QString name = reader.name().toString();
 
             QXmlStreamAttributes attributes = reader.attributes();
@@ -282,7 +298,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
             QNTRACE("Wrote start element: " << name << " and its attributes");
         }
 
-        if (reader.isCharacters())
+        if ((writeElementCounter > 0) && reader.isCharacters())
         {
             if (reader.isCDATA()) {
                 writer.writeCDATA(reader.text().toString());
@@ -294,9 +310,9 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
             }
         }
 
-        if (reader.isEndElement()) {
+        if ((writeElementCounter > 0) && reader.isEndElement()) {
             writer.writeEndElement();
-            QNTRACE("Wrote end element: " << reader.name().toString());
+            --writeElementCounter;
         }
     }
 

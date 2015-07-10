@@ -1,6 +1,5 @@
 #include "HTMLCleaner.h"
 #include <logging/QuteNoteLogger.h>
-#include <tools/DesktopServices.h>
 #include <tidy.h>
 #include <buffio.h>
 #include <stdio.h>
@@ -110,14 +109,14 @@ bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId out
         }
 
         output.resize(0);
-        appendUnsignedCharToQString(output, m_tidyOutput.bp, static_cast<int>(m_tidyOutput.size));
-        output.resize(0);
+        output.append(QByteArray(reinterpret_cast<const char*>(m_tidyOutput.bp),
+                                 static_cast<int>(m_tidyOutput.size)));
         return true;
     }
 
     errorDescription = QT_TR_NOOP("tidy-html5 error: ");
-    appendUnsignedCharToQString(errorDescription, m_tidyErrorBuffer.bp,
-                                static_cast<int>(m_tidyErrorBuffer.size));
+    errorDescription.append(QByteArray(reinterpret_cast<const char*>(m_tidyErrorBuffer.bp),
+                                       static_cast<int>(m_tidyErrorBuffer.size)));
     QNINFO(errorDescription);
     return false;
 }
