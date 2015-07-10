@@ -328,13 +328,8 @@ bool ENMLConverterPrivate::validateEnml(const QString & enml, QString & errorDes
 {
     errorDescription.resize(0);
 
-#if QT_VERSION >= 0x050101
-    QScopedPointer<unsigned char, QScopedPointerArrayDeleter<unsigned char> > str(reinterpret_cast<unsigned char*>(qstrdup(enml.toUtf8().constData())));
-#else
-    QScopedPointer<unsigned char, QScopedPointerArrayDeleter<unsigned char> > str(reinterpret_cast<unsigned char*>(qstrdup(enml.toAscii().constData())));
-#endif
-
-    xmlDocPtr pDoc = xmlParseDoc(static_cast<unsigned char*>(str.data()));
+    QByteArray inputBuffer = enml.toLocal8Bit();
+    xmlDocPtr pDoc = xmlParseMemory(inputBuffer.constData(), inputBuffer.size());
     if (!pDoc) {
         errorDescription = QT_TR_NOOP("Can't validate ENML: can't parse enml to xml doc");
         QNWARNING(errorDescription << ": enml = " << enml);
@@ -364,8 +359,8 @@ bool ENMLConverterPrivate::validateEnml(const QString & enml, QString & errorDes
     if (!pDtd) {
         errorDescription = QT_TR_NOOP("Can't validate ENML: can't parse dtd from buffer");
         QNWARNING(errorDescription);
-        xmlFreeDoc(pDoc);
         xmlFreeParserInputBuffer(pBuf);
+        xmlFreeDoc(pDoc);
         return false;
     }
 
@@ -373,17 +368,17 @@ bool ENMLConverterPrivate::validateEnml(const QString & enml, QString & errorDes
     if (!pContext) {
         errorDescription = QT_TR_NOOP("Can't validate ENML: can't allocate parses context");
         QNWARNING(errorDescription);
-        xmlFreeDoc(pDoc);
-        xmlFreeParserInputBuffer(pBuf);
         xmlFreeDtd(pDtd);
+        xmlFreeDoc(pDoc);
+        return false;
     }
 
     bool res = static_cast<bool>(xmlValidateDtd(&pContext->vctxt, pDoc, pDtd));
 
-    xmlFreeDoc(pDoc);
-    xmlFreeParserInputBuffer(pBuf);
-    xmlFreeDtd(pDtd);
     xmlFreeParserCtxt(pContext);
+    xmlFreeDtd(pDtd);
+    // WARNING: xmlIOParseDTD should have "consumed" the input buffer so one should not attempt to free it manually
+    xmlFreeDoc(pDoc);
 
     return res;
 }
