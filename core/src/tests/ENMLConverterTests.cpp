@@ -47,7 +47,7 @@ bool convertSimpleNoteToHtmlAndBack(QString & error)
         return false;
     }
 
-    res = compareEnml(testNote.content(), originalNoteContent, error);
+    res = compareEnml(originalNoteContent, testNote.content(), error);
     if (!res) {
         return false;
     }
@@ -57,19 +57,50 @@ bool convertSimpleNoteToHtmlAndBack(QString & error)
 
 bool compareEnml(const QString & original, const QString & processed, QString & error)
 {
-    QXmlStreamReader readerOriginal(original);
-    QXmlStreamReader readerProcessed(processed);
+    QString originalSimplified = original.simplified();
+    QString processedSimplified = processed.simplified();
 
-    int elementCounter = 0;
+    QXmlStreamReader readerOriginal(originalSimplified);
+    QXmlStreamReader readerProcessed(processedSimplified);
 
     while(!readerOriginal.atEnd() && !readerProcessed.atEnd())
     {
         Q_UNUSED(readerOriginal.readNext());
         Q_UNUSED(readerProcessed.readNext());
 
+        bool checkForEmptyCharacters = true;
+        while(checkForEmptyCharacters)
+        {
+            if (readerOriginal.isCharacters())
+            {
+                QString textOriginal = readerOriginal.readElementText();
+                if (textOriginal.simplified().isEmpty()) {
+                    Q_UNUSED(readerOriginal.readNext());
+                    continue;
+                }
+            }
+
+            checkForEmptyCharacters = false;
+        }
+
+        checkForEmptyCharacters = true;
+        while(checkForEmptyCharacters)
+        {
+            if (readerProcessed.isCharacters())
+            {
+                QString textProcessed = readerProcessed.readElementText();
+                if (textProcessed.simplified().isEmpty()) {
+                    Q_UNUSED(readerProcessed.readNext());
+                    continue;
+                }
+            }
+
+            checkForEmptyCharacters = false;
+        }
+
         if (readerOriginal.isStartDocument() && !readerProcessed.isStartDocument()) {
             error = "QXmlStreamReader of the original ENML is at the start of the document while the reader of the processed ENML is not";
-            QNWARNING(error << "; original ENML: " << original << "\nProcessed ENML: " << processed);
+            QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
             return false;
         }
 
@@ -77,19 +108,18 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
         {
             if (!readerProcessed.isStartElement()) {
                 error = "QXmlStreamReader of the original ENML is at the start of the element while the reader of the processed ENML is not";
-                QNWARNING(error << "; original ENML: " << original << "\nProcessed ENML: " << processed
+                QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified
                           << "\ncurrent original token: " << readerOriginal.tokenString() << "\ncurrent processed token: "
-                          << readerProcessed.tokenString());
+                          << readerProcessed.tokenString() << "\nOriginal element text: " << readerOriginal.readElementText()
+                          << "\nProcessed element text: " << readerProcessed.readElementText());
                 return false;
             }
-
-            ++elementCounter;
 
             QStringRef originalName = readerOriginal.name();
             QStringRef processedName = readerProcessed.name();
             if (originalName != processedName) {
                 error = "Found a tag in the original ENML which name doesn't match the name of the corresponding element in the processed ENML";
-                QNWARNING(error << "; original ENML: " << original << "\nProcessed ENML: " << processed);
+                QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
                 return false;
             }
 
@@ -101,7 +131,7 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
 
             if (numOriginalAttributes != numProcessedAttributes) {
                 error = "The number of attributes in tag " + originalName.toString() + " doesn't match in the original and the processed ENMLs";
-                QNWARNING(error << "; original ENML: " << original << "\nProcessed ENML: " << processed);
+                QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
                 return false;
             }
 
@@ -112,7 +142,7 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
 
                 if (originalAttribute != processedAttribute) {
                     error = "The corresponding attributes within the original and the processed ENMLs do not match";
-                    QNWARNING(error << "; original ENML: " << original << "\nProcessed ENML: " << processed
+                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified
                               << ", index within attributes = " << i << "\nOriginal attribute: name = "
                               << originalAttribute.name() << ", namespace uri = " << originalAttribute.namespaceUri()
                               << ", qualified name = " << originalAttribute.qualifiedName() << ", is default = "
@@ -127,18 +157,13 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
             }
         }
 
-        if (readerOriginal.isEndElement())
-        {
-            if (!readerProcessed.isEndElement()) {
-                error = "QXmlStreamReader of the original ENML is at the end of the element while the reader of the processed ENML is not";
-                QNWARNING(error << "; original ENML: " << original << "\nProcessed ENML: " << processed);
-                return false;
-            }
-
-            --elementCounter;
+        if (readerOriginal.isEndElement() && !readerProcessed.isEndElement()) {
+            error = "QXmlStreamReader of the original ENML is at the end of the element while the reader of the processed ENML is not";
+            QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
+            return false;
         }
 
-        if ((elementCounter > 0) && readerOriginal.isCharacters())
+        if (readerOriginal.isCharacters())
         {
             if (!readerProcessed.isCharacters())
             {
@@ -148,7 +173,7 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
                 }
 
                 error = "QXmlStreamReader of the original ENML points to characters while the reader of the processed ENML does not";
-                QNWARNING(error << "; original ENML: " << original << "\nProcessed ENML: " << processed);
+                QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
                 return false;
             }
 
@@ -156,7 +181,7 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
             {
                 if (!readerProcessed.isCDATA()) {
                     error = "QXmlStreamReader of the original ENML points to CDATA while the reader of the processed ENML does not";
-                    QNWARNING(error << "; original ENML: " << original << "\nProcessed ENML: " << processed);
+                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
                     return false;
                 }
             }
@@ -166,7 +191,7 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
 
             if (textOriginal != textProcessed) {
                 error = "The text extracted from the corresponding elements of both the original ENML and the processed ENML does not match";
-                QNWARNING(error << "; original ENML: " << original << "\nProcessed ENML: " << processed
+                QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified
                           << "\nOriginal element text: " << textOriginal << "\nProcessed element text: " << textProcessed);
                 return false;
             }
@@ -174,14 +199,14 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
 
         if (readerOriginal.isEndDocument() && !readerProcessed.isEndDocument()) {
             error = "QXmlStreamReader of the original ENML is at the end of the document while the reader of the processed ENML is not";
-            QNWARNING(error << "; original ENML: " << original << "\nProcessed ENML: " << processed);
+            QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
             return false;
         }
     }
 
     if (readerOriginal.atEnd() != readerProcessed.atEnd()) {
         error = "QXmlStreamReaders for the original ENML and the processed ENML have not both came to their ends after the checking loop";
-        QNWARNING(error << "; original ENML: " << original << "\nProcessed ENML: " << processed);
+        QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
         return false;
     }
 

@@ -251,8 +251,6 @@ void CoreTester::enmlConverterSimpleTest()
 {
     try
     {
-        QSKIP("Skip the test until the implementation is fixed", SkipSingle);
-
         QString error;
         bool res = convertSimpleNoteToHtmlAndBack(error);
         QVERIFY2(res == true, qPrintable(error));
