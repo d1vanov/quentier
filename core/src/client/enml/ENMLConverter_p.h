@@ -65,7 +65,7 @@ private:
     bool resourceInfoToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
                             QString & errorDescription, const NoteEditorPluginFactory * pluginFactory) const;
 
-    bool toDoTagsToHtml(QString & html, QString & errorDescription) const;
+    void toDoTagsToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer) const;
 
 private:
     Q_DISABLE_COPY(ENMLConverterPrivate)

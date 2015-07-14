@@ -26,6 +26,7 @@ private slots:
     void decryptNoteRc2Test();
 
     void enmlConverterSimpleTest();
+    void enmlConverterToDoTest();
 
     void noteSearchQueryTest();
     void localStorageManagerNoteSearchQueryTest();

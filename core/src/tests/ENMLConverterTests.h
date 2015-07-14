@@ -7,6 +7,7 @@ namespace qute_note {
 namespace test {
 
 bool convertSimpleNoteToHtmlAndBack(QString & error);
+bool convertNoteWithToDoTagsToHtmlAndBack(QString & error);
 
 } // namespace test
 } // namespace qute_note

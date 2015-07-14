@@ -258,6 +258,17 @@ void CoreTester::enmlConverterSimpleTest()
     CATCH_EXCEPTION();
 }
 
+void CoreTester::enmlConverterToDoTest()
+{
+    try
+    {
+        QString error;
+        bool res = convertNoteWithToDoTagsToHtmlAndBack(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::noteSearchQueryTest()
 {
     try
