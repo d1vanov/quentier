@@ -68,11 +68,6 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
     const int numParameterValues = parameterValues.size();
 
     int cipherIndex = parameterNames.indexOf("cipher");
-    if (cipherIndex < 0) {
-        errorDescription = QT_TR_NOOP("cipher parameter was not found within object with encrypted text");
-        return false;
-    }
-
     if (numParameterValues <= cipherIndex) {
         errorDescription = QT_TR_NOOP("no value was found for cipher attribute");
         return false;
@@ -85,32 +80,43 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
     }
 
     int keyLengthIndex = parameterNames.indexOf("length");
-    if (keyLengthIndex < 0) {
-        errorDescription = QT_TR_NOOP("length parameter was not found within object with encrypted text");
-        return false;
-    }
-
     if (numParameterValues <= keyLengthIndex) {
         errorDescription = QT_TR_NOOP("no value was found for length attribute");
         return false;
     }
 
-    QString keyLengthString = parameterValues[keyLengthIndex];
-    bool conversionResult = false;
-    int keyLength = keyLengthString.toInt(&conversionResult);
-    if (!conversionResult) {
-        errorDescription = QT_TR_NOOP("can't extract integer value from length attribute: ") + keyLengthString;
-        return false;
+    if (keyLengthIndex >= 0)
+    {
+        QString keyLengthString = parameterValues[keyLengthIndex];
+        bool conversionResult = false;
+        int keyLength = keyLengthString.toInt(&conversionResult);
+
+        if (!conversionResult) {
+            errorDescription = QT_TR_NOOP("can't extract integer value from length attribute: ") + keyLengthString;
+            return false;
+        }
+        else if (keyLength < 0) {
+            errorDescription = QT_TR_NOOP("key length is negative: ") + keyLengthString;
+            return false;
+        }
+
+        m_keyLength = static_cast<size_t>(keyLength);
     }
-    else if (keyLength < 0) {
-        errorDescription = QT_TR_NOOP("key length is negative: ") + keyLengthString;
-        return false;
+    else
+    {
+        m_keyLength = 128;
+        QNDEBUG("Using the default value of key length = " << m_keyLength << " instead of missing HTML attribute");
     }
 
-    m_keyLength = static_cast<size_t>(keyLength);
+    if (cipherIndex >= 0) {
+        m_cipher = parameterValues[cipherIndex];
+    }
+    else {
+        m_cipher = "AES";
+        QNDEBUG("Using the default value of cipher = " << m_cipher << " instead of missing HTML attribute");
+    }
 
     m_encryptedText = parameterValues[encryptedTextIndex];
-    m_cipher = parameterValues[cipherIndex];
 
     int hintIndex = parameterNames.indexOf("hint");
     if ((hintIndex < 0) || (numParameterValues <= hintIndex)) {

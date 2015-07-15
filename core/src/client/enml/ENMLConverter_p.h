@@ -7,6 +7,7 @@
 
 QT_FORWARD_DECLARE_CLASS(QXmlStreamReader)
 QT_FORWARD_DECLARE_CLASS(QXmlStreamWriter)
+QT_FORWARD_DECLARE_CLASS(QXmlStreamAttributes)
 
 namespace qute_note {
 
@@ -55,8 +56,10 @@ private:
                              QString & errorDescription) const;
 
     // convert ENML en-crypt tag to HTML <object> tag
-    bool encryptedTextToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
-                             QString & errorDescription, DecryptedTextCachePtr decryptedTextCache) const;
+    bool encryptedTextToHtml(const QXmlStreamAttributes & enCryptAttributes,
+                             const QStringRef & encryptedTextCharacters,
+                             QXmlStreamWriter & writer,
+                             DecryptedTextCachePtr decryptedTextCache) const;
 
     // convert HTML <object> with resource info to ENML <en-media> tag
     bool resourceInfoToEnml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,

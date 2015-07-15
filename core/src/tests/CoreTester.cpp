@@ -269,6 +269,19 @@ void CoreTester::enmlConverterToDoTest()
     CATCH_EXCEPTION();
 }
 
+void CoreTester::enmlConverterEnCryptTest()
+{
+    try
+    {
+        QSKIP("Skip until the implementation is fixed", SkipSingle);
+
+        QString error;
+        bool res = convertNoteWithEncryptionToHtmlAndBack(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::noteSearchQueryTest()
 {
     try

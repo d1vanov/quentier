@@ -107,6 +107,13 @@ void NoteDecryptionDialog::accept()
         bool res = m_encryptionManager->decrypt(m_encryptedText, passphrase, m_cipher,
                                                 m_keyLength, m_cachedDecryptedText,
                                                 errorDescription);
+        if (!res && (m_cipher == "AES") && (m_keyLength == 128)) {
+            QNDEBUG("The initial attempt to decrypt the text using AES cipher and 128 bit key has failed; "
+                    "checking whether it is old encrypted text area using RC2 encryption and 64 bit key");
+            res = m_encryptionManager->decrypt(m_encryptedText, passphrase, "RC2", 64,
+                                               m_cachedDecryptedText, errorDescription);
+        }
+
         if (!res) {
             errorDescription.prepend(QT_TR_NOOP("Failed attempt to decrypt text: "));
             QNINFO(errorDescription);

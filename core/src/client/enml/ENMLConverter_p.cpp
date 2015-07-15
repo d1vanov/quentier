@@ -247,6 +247,9 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
     QXmlStreamWriter writer(&html);
     int writeElementCounter = 0;
 
+    QString lastElementName;
+    QXmlStreamAttributes lastElementAttributes;
+
     while(!reader.atEnd())
     {
         Q_UNUSED(reader.readNext());
@@ -262,16 +265,15 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
         if (reader.isStartElement())
         {
             ++writeElementCounter;
-            QString name = reader.name().toString();
+            lastElementName = reader.name().toString();
+            lastElementAttributes = reader.attributes();
 
-            QXmlStreamAttributes attributes = reader.attributes();
-
-            if (name == "en-note")
+            if (lastElementName == "en-note")
             {
                 QNTRACE("Replacing en-note with \"body\" tag");
-                name = "body";
+                lastElementName = "body";
             }
-            else if (name == "en-media")
+            else if (lastElementName == "en-media")
             {
                 bool res = resourceInfoToHtml(reader, writer, errorDescription, pluginFactory);
                 if (!res) {
@@ -280,16 +282,12 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
 
                 continue;
             }
-            else if (name == "en-crypt")
+            else if (lastElementName == "en-crypt")
             {
-                bool res = encryptedTextToHtml(reader, writer, errorDescription, decryptedTextCache);
-                if (!res) {
-                    return false;
-                }
-
+                // NOTE: the attributes will be converted to HTML later, along with the characters data
                 continue;
             }
-            else if (name == "en-todo")
+            else if (lastElementName == "en-todo")
             {
                 toDoTagsToHtml(reader, writer);
                 continue;
@@ -297,10 +295,10 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
 
             // NOTE: do not attempt to process en-todo tags here, it would be done below
 
-            writer.writeStartElement(name);
-            writer.writeAttributes(attributes);
+            writer.writeStartElement(lastElementName);
+            writer.writeAttributes(lastElementAttributes);
 
-            QNTRACE("Wrote start element: " << name << " and its attributes");
+            QNTRACE("Wrote start element: " << lastElementName << " and its attributes");
         }
 
         if ((writeElementCounter > 0) && reader.isCharacters())
@@ -309,9 +307,18 @@ bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
                 writer.writeCDATA(reader.text().toString());
                 QNTRACE("Wrote CDATA: " << reader.text().toString());
             }
-            else {
-                writer.writeCharacters(reader.text().toString());
-                QNTRACE("Wrote characters: " << reader.text().toString());
+            else
+            {
+                QStringRef text = reader.text();
+                if (lastElementName == "en-crypt")
+                {
+                    encryptedTextToHtml(lastElementAttributes, text, writer, decryptedTextCache);
+                }
+                else
+                {
+                    writer.writeCharacters(reader.text().toString());
+                    QNTRACE("Wrote characters: " << reader.text().toString());
+                }
             }
         }
 
@@ -537,19 +544,20 @@ bool ENMLConverterPrivate::objectToEnml(QXmlStreamReader & reader, QXmlStreamWri
     QNDEBUG("ENMLConverterPrivate::objectToEnml");
 
     QXmlStreamAttributes attributes = reader.attributes();
-    if (attributes.hasAttribute("en-tag"))
-    {
-        QString enTagValue = attributes.value("en-tag").toString();
-        if (enTagValue == "en-crypt") {
-            return encryptedTextToEnml(reader, writer, errorDescription);
-        }
-        else if (enTagValue == "en-media") {
-            return resourceInfoToEnml(reader, writer, errorDescription);
-        }
+    if (!attributes.hasAttribute("en-tag")) {
+        QNTRACE("This <object> tag doen't have en-tag attribute, ignoring it");
+        return true;
     }
 
-    errorDescription = QT_TR_NOOP("Found no en-tag attribute with expected value within object tag");
-    QNINFO(errorDescription << ", token: " << reader.tokenString());
+    QString enTagValue = attributes.value("en-tag").toString();
+    if (enTagValue == "en-crypt") {
+        return encryptedTextToEnml(reader, writer, errorDescription);
+    }
+    else if (enTagValue == "en-media") {
+        return resourceInfoToEnml(reader, writer, errorDescription);
+    }
+
+    QNINFO("Detected unknown value of en-tag attribute within object tag: " << enTagValue);
     return false;
 }
 
@@ -571,7 +579,7 @@ bool ENMLConverterPrivate::encryptedTextToEnml(QXmlStreamReader & reader,
             break;
         }
 
-        QXmlStreamAttributes paramAttributes;
+        QXmlStreamAttributes paramAttributes = reader.attributes();
         if (!paramAttributes.hasAttribute("name")) {
             errorDescription = QT_TR_NOOP("Detected invalid HTML: object tag with en-tag = en-crypt "
                                           "has child param tag without name attribute");
@@ -606,24 +614,20 @@ bool ENMLConverterPrivate::encryptedTextToEnml(QXmlStreamReader & reader,
         }
     }
 
-    if (cipher.isEmpty()) {
-        errorDescription = QT_TR_NOOP("Couldn't find cipher for en-crypt ENML tag");
-        return false;
-    }
-
-    if (length.isEmpty()) {
-        errorDescription = QT_TR_NOOP("Couldn't find (key) length for en-crypt ENML tag");
-        return false;
-    }
-
     if (encryptedText.isEmpty()) {
         errorDescription = QT_TR_NOOP("Couldn't find encrypted text for en-crypt ENML tag");
         return false;
     }
 
     writer.writeStartElement("en-crypt");
-    writer.writeAttribute("cipher", cipher);
-    writer.writeAttribute("length", length);
+    if (!cipher.isEmpty()) {
+        writer.writeAttribute("cipher", cipher);
+    }
+
+    if (!length.isEmpty()) {
+        writer.writeAttribute("length", length);
+    }
+
     if (!hint.isEmpty()) {
         writer.writeAttribute("hint", hint);
     }
@@ -664,69 +668,65 @@ void ENMLConverterPrivate::toDoTagsToHtml(const QXmlStreamReader & reader, QXmlS
     writer.writeAttributes(attributes);
 }
 
-bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamReader & reader,
+bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCryptAttributes,
+                                               const QStringRef & encryptedTextCharacters,
                                                QXmlStreamWriter & writer,
-                                               QString & errorDescription,
                                                DecryptedTextCachePtr decryptedTextCache) const
 {
-    QNDEBUG("ENMLConverterPrivate::encryptedTextToHtml");
-
-    QString encryptedText = reader.text().toString();
-    if (encryptedText.isEmpty()) {
-        errorDescription = QT_TR_NOOP("Missing encrypted text data within en-crypt ENML tag");
-        return false;
+    QString cipher;
+    if (enCryptAttributes.hasAttribute("cipher")) {
+        cipher = enCryptAttributes.value("cipher").toString();
     }
 
-    QXmlStreamAttributes attributes = reader.attributes();
-
-    if (!attributes.hasAttribute("cipher")) {
-        errorDescription = QT_TR_NOOP("Missing cipher attribute within en-crypt ENML tag");
-        return false;
+    QString length;
+    if (enCryptAttributes.hasAttribute("length")) {
+        length = enCryptAttributes.value("length").toString();
     }
-
-    if (!attributes.hasAttribute("length")) {
-        errorDescription = QT_TR_NOOP("Missing length attribute within en-crypt ENML tag");
-        return false;
-    }
-
-    QString cipher = attributes.value("cipher").toString();
-    QString length = attributes.value("length").toString();
 
     QString hint;
-    if (attributes.hasAttribute("hint")) {
-        hint = attributes.value("hint").toString();
+    if (enCryptAttributes.hasAttribute("hint")) {
+        hint = enCryptAttributes.value("hint").toString();
     }
 
-    auto it = decryptedTextCache->find(encryptedText);
-    if ((it != decryptedTextCache->end()) && it.value().second)
+    if (decryptedTextCache)
     {
-        QNTRACE("Found encrypted text which has already been decrypted, "
-                "cached and remembered for the whole session. Encrypted text = "
-                << encryptedText);
+        auto it = decryptedTextCache->find(encryptedTextCharacters.toString());
+        if ((it != decryptedTextCache->end()) && it.value().second)
+        {
+            QNTRACE("Found encrypted text which has already been decrypted, "
+                    "cached and remembered for the whole session. Encrypted text = "
+                    << encryptedTextCharacters);
 
-        writer.writeStartElement("div");
-        writer.writeAttribute("en-tag", "en-decrypted");
-        writer.writeAttribute("encryptedText", encryptedText);
-        writer.writeAttribute("cipher", cipher);
-        writer.writeAttribute("length", length);
+            writer.writeStartElement("div");
+            writer.writeAttribute("en-tag", "en-decrypted");
+            writer.writeAttribute("encryptedText", encryptedTextCharacters.toString());
 
-        if (!hint.isEmpty()) {
-            writer.writeAttribute("hint", hint);
+            if (!cipher.isEmpty()) {
+                writer.writeAttribute("cipher", cipher);
+            }
+
+            if (!length.isEmpty()) {
+                writer.writeAttribute("length", length);
+            }
+
+            if (!hint.isEmpty()) {
+                writer.writeAttribute("hint", hint);
+            }
+
+            writer.writeAttribute("style", "border: 2px solid; "
+                                  "border-color: rgb(195, 195, 195); "
+                                  "border-radius: 8px; "
+                                  "margin: 2px; "
+                                  "padding: 2px;");
+
+            writer.writeStartElement("textarea");
+            writer.writeAttribute("readonly", "readonly");
+            writer.writeCDATA(it.value().first);
+            writer.writeEndElement();
+
+            writer.writeEndElement();
+            return true;
         }
-
-        writer.writeAttribute("style", "border: 2px solid; "
-                              "border-color: rgb(195, 195, 195); "
-                              "border-radius: 8px; "
-                              "margin: 2px; "
-                              "padding: 2px;");
-
-        writer.writeStartElement("textarea");
-        writer.writeAttribute("readonly", "readonly");
-        writer.writeCDATA(it.value().first);
-        writer.writeEndElement();
-
-        writer.writeEndElement();
-        return true;
     }
 
     writer.writeStartElement("object");
@@ -739,19 +739,23 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamReader & reader,
         writer.writeEndElement();
     }
 
-    writer.writeStartElement("param");
-    writer.writeAttribute("name", "cipher");
-    writer.writeAttribute("value", cipher);
-    writer.writeEndElement();
+    if (!cipher.isEmpty()) {
+        writer.writeStartElement("param");
+        writer.writeAttribute("name", "cipher");
+        writer.writeAttribute("value", cipher);
+        writer.writeEndElement();
+    }
 
-    writer.writeStartElement("param");
-    writer.writeAttribute("name", "length");
-    writer.writeAttribute("value", length);
-    writer.writeEndElement();
+    if (!length.isEmpty()) {
+        writer.writeStartElement("param");
+        writer.writeAttribute("name", "length");
+        writer.writeAttribute("value", length);
+        writer.writeEndElement();
+    }
 
     writer.writeStartElement("param");
     writer.writeAttribute("name", "encryptedText");
-    writer.writeAttribute("value", encryptedText);
+    writer.writeAttribute("value", encryptedTextCharacters.toString());
     writer.writeEndElement();
 
     QNTRACE("Wrote custom \"object\" element corresponding to en-crypt ENML tag");

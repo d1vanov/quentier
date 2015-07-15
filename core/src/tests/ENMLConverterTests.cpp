@@ -39,6 +39,23 @@ bool convertNoteWithToDoTagsToHtmlAndBack(QString & error)
     return convertNoteToHtmlAndBackImpl(noteContent, error);
 }
 
+bool convertNoteWithEncryptionToHtmlAndBack(QString & error)
+{
+    QString noteContent = "<en-note>"
+                          "<h3>This note contains encrypted text</h3>"
+                          "<br/>"
+                          "<div>Here's the encrypted text containing only the hint attribute</div>"
+                          "<en-crypt hint=\"this is my rifle, this is my gun\">RU5DMI1mnQ7fKjBk9f0a57gSc9Nfbuw3uuwMKs32Y+wJGLZa0N8PcTzf7pu3"
+                          "/2VOBqZMvfkKGh4mnJuGy45ZT2TwOfqt+ey8Tic7BmhGg7b4n+SpJFHntkeL"
+                          "glxFWJt6oIG14i7IpamIuYyE5XcBRkOQs2cr7rg730d1hxx6sW/KqIfdr+0rF4k"
+                          "+rqP7tpI5ha/ALkhaZAuDbIVic39aCRcu6uve6mHHHPA03olCbi7ePVwO7e94mp"
+                          "uvcg2lGTJyDw/NoZmjFycjXESRJgLIr+gGfyD17jYNGcPBLR8Rb0M9vGK1tG9haG"
+                          "+Vem1pTWgRfYXF70mMduEmAd4xXy1JqV6XNUYDddW9iPpffWTZgD409LK9wIZM5C"
+                          "W2rbM2lwM/R0IEnoK7N5X8lCOzqkA9H/HF+8E=</en-crypt>"
+                          "</en-note>";
+    return convertNoteToHtmlAndBackImpl(noteContent, error);
+}
+
 bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error)
 {
     Note testNote;
@@ -168,6 +185,50 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
                 if (originalChecked != processedChecked) {
                     error = "Checked state of ToDo item from the original ENML doesn't match the state of the item from "
                             "the processed ENML";
+                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
+                    return false;
+                }
+            }
+            else if (originalName == "en-crypt")
+            {
+                if (originalAttributes.hasAttribute("hint") != processedAttributes.hasAttribute("hint")) {
+                    error = "The original ENML and the processed one differ by the presence of optional hint attribute";
+                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
+                    return false;
+                }
+
+                QString originalCipher = "AES";
+                if (originalAttributes.hasAttribute("cipher")) {
+                    originalCipher = originalAttributes.value("cipher").toString();
+                }
+
+                QString originalLength = "128";
+                if (originalAttributes.hasAttribute("length")) {
+                    originalLength = originalAttributes.value("length").toString();
+                }
+
+                if (!processedAttributes.hasAttribute("cipher")) {
+                    error = "No expected cipher attribute in the processed ENML";
+                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
+                    return false;
+                }
+
+                if (!processedAttributes.hasAttribute("length")) {
+                    error = "No expected length attribute in the processed ENML";
+                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
+                    return false;
+                }
+
+                QString processedCipher = processedAttributes.value("cipher").toString();
+                if (originalCipher != processedCipher) {
+                    error = "Cipher in en-crypt tag is different in the original ENML and in the processed one";
+                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
+                    return false;
+                }
+
+                QString processedLength = processedAttributes.value("length").toString();
+                if (originalLength != processedLength) {
+                    error = "Length in en-crypt tag is different in the original ENML and in the processed one";
                     QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
                     return false;
                 }
