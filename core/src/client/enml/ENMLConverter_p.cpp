@@ -72,6 +72,11 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
     QXmlStreamWriter writer(&m_cachedNoteContent);
 
     int writeElementCounter = 0;
+
+    QString lastElementName;
+    QXmlStreamAttributes lastElementAttributes;
+    bool insideEnCryptElement = false;
+
     while(!reader.atEnd())
     {
         Q_UNUSED(reader.readNext());
@@ -86,46 +91,46 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
 
         if (reader.isStartElement())
         {
-            QString name = reader.name().toString();
-            if (name == "form") {
+            lastElementName = reader.name().toString();
+            if (lastElementName == "form") {
                 QNTRACE("Skipping <form> tag");
                 continue;
             }
-            else if (name == "html") {
+            else if (lastElementName == "html") {
                 QNTRACE("Skipping <html> tag");
                 continue;
             }
-            else if (name == "title") {
+            else if (lastElementName == "title") {
                 QNTRACE("Skipping <title> tag");
                 continue;
             }
-            else if (name == "body") {
-                name = "en-note";
+            else if (lastElementName == "body") {
+                lastElementName = "en-note";
                 QNTRACE("Found \"body\" HTML tag, will replace it with \"en-note\" tag for written ENML");
             }
 
-            auto tagIt = forbiddenXhtmlTags.find(name);
+            auto tagIt = forbiddenXhtmlTags.find(lastElementName);
             if (tagIt != forbiddenXhtmlTags.end()) {
-                QNTRACE("Skipping forbidden XHTML tag: " << name);
+                QNTRACE("Skipping forbidden XHTML tag: " << lastElementName);
                 continue;
             }
 
-            tagIt = allowedXhtmlTags.find(name);
+            tagIt = allowedXhtmlTags.find(lastElementName);
             if (tagIt == allowedXhtmlTags.end())
             {
-                tagIt = evernoteSpecificXhtmlTags.find(name);
+                tagIt = evernoteSpecificXhtmlTags.find(lastElementName);
                 if (tagIt == evernoteSpecificXhtmlTags.end()) {
-                    QNTRACE("Haven't found tag " << name << " within the list of allowed XHTML tags "
+                    QNTRACE("Haven't found tag " << lastElementName << " within the list of allowed XHTML tags "
                             "or within Evernote-specific tags, skipping it");
                     continue;
                 }
             }
 
-            QXmlStreamAttributes attributes = reader.attributes();
+            lastElementAttributes = reader.attributes();
 
-            if ((name == "div") && attributes.hasAttribute("en-tag"))
+            if ((lastElementName == "div") && lastElementAttributes.hasAttribute("en-tag"))
             {
-                const QString enTag = attributes.value("en-tag").toString();
+                const QString enTag = lastElementAttributes.value("en-tag").toString();
                 if (enTag == "en-decrypted")
                 {
                     QNTRACE("Found decrypted text area, need to convert it back to en-crypt form");
@@ -135,11 +140,11 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                     }
                 }
             }
-            else if (name == "img")
+            else if (lastElementName == "img")
             {
-                if (attributes.hasAttribute("src"))
+                if (lastElementAttributes.hasAttribute("src"))
                 {
-                    QStringRef srcValue = attributes.value("src");
+                    QStringRef srcValue = lastElementAttributes.value("src");
                     if (srcValue.contains("qrc:/checkbox_icons/checkbox_no.png")) {
                         writer.writeStartElement("en-todo");
                         ++writeElementCounter;
@@ -160,8 +165,10 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                 }
             }
 
-            if ((name == "object") || (name == "img"))
+            if ((lastElementName == "object") || (lastElementName == "img"))
             {
+                // TODO: figure out whether it is resource or en-crypt tag,
+                // if so, do the necessary bookkeeping
                 bool res = objectToEnml(reader, writer, errorDescription);
                 if (!res) {
                     return false;
@@ -171,22 +178,22 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
             }
 
             // Erasing the forbidden attributes
-            for(QXmlStreamAttributes::iterator it = attributes.begin(); it != attributes.end(); )
+            for(QXmlStreamAttributes::iterator it = lastElementAttributes.begin(); it != lastElementAttributes.end(); )
             {
                 const QStringRef attributeName = it->name();
                 if (isForbiddenXhtmlAttribute(attributeName.toString())) {
                     QNTRACE("Erasing the forbidden attribute " << attributeName);
-                    it = attributes.erase(it);
+                    it = lastElementAttributes.erase(it);
                     continue;
                 }
 
                 ++it;
             }
 
-            writer.writeStartElement(name);
-            writer.writeAttributes(attributes);
+            writer.writeStartElement(lastElementName);
+            writer.writeAttributes(lastElementAttributes);
             ++writeElementCounter;
-            QNTRACE("Wrote element: name = " << name << " and its attributes");
+            QNTRACE("Wrote element: name = " << lastElementName << " and its attributes");
         }
 
         if ((writeElementCounter > 0) && reader.isCharacters())
