@@ -72,11 +72,14 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
     QXmlStreamWriter writer(&m_cachedNoteContent);
 
     int writeElementCounter = 0;
-
     QString lastElementName;
     QXmlStreamAttributes lastElementAttributes;
+
     bool insideEnCryptElement = false;
     QXmlStreamAttributes enCryptAttributes;
+
+    bool insideEnMediaElement = false;
+    QXmlStreamAttributes enMediaAttributes;
 
     while(!reader.atEnd())
     {
@@ -181,28 +184,32 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                     writer.writeStartElement(lastElementName);
                     ++writeElementCounter;
                     QNTRACE("Started writing en-crypt element");
-                    continue;
                 }
+
+                continue;
             }
             else if (lastElementName == "param")
             {
-                if (insideEnCryptElement)
+                if (insideEnCryptElement || insideEnMediaElement)
                 {
                     if (!lastElementAttributes.hasAttribute("name")) {
-                        errorDescription = QT_TR_NOOP("Can't convert note to ENML: can't parse en-crypt tag: nested param tag doesn't have name attribute");
+                        errorDescription = QT_TR_NOOP("Can't convert note to ENML: can't parse en-crypt or en-media tag: nested param tag doesn't have name attribute");
                         QNWARNING(errorDescription << ", html = " << html << ", cleaned up xml = " << m_cachedConvertedXml);
                         return false;
                     }
 
                     if (!lastElementAttributes.hasAttribute("value")) {
-                        errorDescription = QT_TR_NOOP("Can't convert note to ENML: can't parse en-crypt tag: nested param tag doesn't have value attribute");
+                        errorDescription = QT_TR_NOOP("Can't convert note to ENML: can't parse en-crypt or en-media tag: nested param tag doesn't have value attribute");
                         QNWARNING(errorDescription << ", html = " << html << ", cleaned up xml = " << m_cachedConvertedXml);
                         return false;
                     }
+                }
 
-                    QStringRef name = lastElementAttributes.value("name");
-                    QStringRef value = lastElementAttributes.value("value");
+                QStringRef name = lastElementAttributes.value("name");
+                QStringRef value = lastElementAttributes.value("value");
 
+                if (insideEnCryptElement)
+                {
                     if (name != "encryptedText") {
                         enCryptAttributes.append(name.toString(), value.toString());
                     }
@@ -211,6 +218,38 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                             writer.writeAttributes(enCryptAttributes);
                         }
                         writer.writeCharacters(value.toString());
+                    }
+                }
+                else if (insideEnMediaElement)
+                {
+                    enMediaAttributes.append(name.toString(), value.toString());
+                }
+                else {
+                    QNINFO("Skipping <param> tag occasionally encountered when no parsing en-crypt or en-media tags");
+                }
+
+                continue;
+            }
+
+            if ((lastElementName == "object") || (lastElementName == "img"))
+            {
+                if (!lastElementAttributes.hasAttribute("en-tag"))
+                {
+                    if (lastElementName == "object") {
+                        QNTRACE("Skipping <object> tag without en-tag attribute");
+                        continue;
+                    }
+                }
+                else
+                {
+                    QStringRef enTag = lastElementAttributes.value("en-tag");
+                    if (enTag == "en-media") {
+                        lastElementName = "en-media";
+                        insideEnMediaElement = true;
+                        enMediaAttributes.clear();
+                        writer.writeStartElement(lastElementName);
+                        ++writeElementCounter;
+                        QNTRACE("Started writing en-media element");
                     }
 
                     continue;
@@ -238,7 +277,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
 
         if ((writeElementCounter > 0) && reader.isCharacters())
         {
-            if (insideEnCryptElement) {
+            if (insideEnCryptElement || insideEnMediaElement) {
                 continue;
             }
 
@@ -264,6 +303,19 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                 }
                 else {
                     // Don't write end of element corresponding to ends of en-crypt <object> tag's child elements
+                    continue;
+                }
+            }
+
+            if (insideEnMediaElement)
+            {
+                if ((reader.name() == "object") || (reader.name() == "img")) {
+                    insideEnMediaElement = false;
+                    writer.writeAttributes(enMediaAttributes);
+                    enMediaAttributes.clear();
+                }
+                else {
+                    // Don't write end of element corresponding to ends of en-media <object> or <img> tag's child elements
                     continue;
                 }
             }
@@ -602,106 +654,6 @@ bool ENMLConverterPrivate::isAllowedXhtmlTag(const QString & tagName)
     }
 }
 
-bool ENMLConverterPrivate::objectToEnml(QXmlStreamReader & reader, QXmlStreamWriter & writer,
-                                        QString & errorDescription) const
-{
-    QNDEBUG("ENMLConverterPrivate::objectToEnml");
-
-    QXmlStreamAttributes attributes = reader.attributes();
-    if (!attributes.hasAttribute("en-tag")) {
-        QNTRACE("This <object> tag doen't have en-tag attribute, ignoring it");
-        return true;
-    }
-
-    QString enTagValue = attributes.value("en-tag").toString();
-    if (enTagValue == "en-crypt") {
-        return encryptedTextToEnml(reader, writer, errorDescription);
-    }
-    else if (enTagValue == "en-media") {
-        return resourceInfoToEnml(reader, writer, errorDescription);
-    }
-
-    QNINFO("Detected unknown value of en-tag attribute within object tag: " << enTagValue);
-    return false;
-}
-
-bool ENMLConverterPrivate::encryptedTextToEnml(QXmlStreamReader & reader,
-                                               QXmlStreamWriter & writer,
-                                               QString & errorDescription) const
-{
-    QNDEBUG("ENMLConverterPrivate::encryptedTextToEnml");
-
-    QString hint;
-    QString cipher;
-    QString length;
-    QString encryptedText;
-
-    while(reader.readNextStartElement())
-    {
-        QString elementName = reader.name().toString();
-        if (elementName != "param")  {
-            break;
-        }
-
-        QXmlStreamAttributes paramAttributes = reader.attributes();
-        if (!paramAttributes.hasAttribute("name")) {
-            errorDescription = QT_TR_NOOP("Detected invalid HTML: object tag with en-tag = en-crypt "
-                                          "has child param tag without name attribute");
-            return false;
-        }
-
-        if (!paramAttributes.hasAttribute("value")) {
-            errorDescription = QT_TR_NOOP("Detected invalid HTML: object tag with en-tag = en-crypt "
-                                          "has child param tag without value attribute");
-            return false;
-        }
-
-        QString paramName = paramAttributes.value("name").toString();
-        QString paramValue = paramAttributes.value("value").toString();
-
-        if (paramName == "hint") {
-            hint = paramValue;
-        }
-        else if (paramName == "cipher") {
-            cipher = paramValue;
-        }
-        else if (paramName == "length") {
-            length = paramValue;
-        }
-        else if (paramName == "encryptedText") {
-            encryptedText = paramValue;
-        }
-        else {
-            errorDescription = QT_TR_NOOP("Detected invalid HTML: object tag with en-tag = en-crypt "
-                                          "has child param tag with unidentified name attribute: ") + paramName;
-            return false;
-        }
-    }
-
-    if (encryptedText.isEmpty()) {
-        errorDescription = QT_TR_NOOP("Couldn't find encrypted text for en-crypt ENML tag");
-        return false;
-    }
-
-    writer.writeStartElement("en-crypt");
-    if (!cipher.isEmpty()) {
-        writer.writeAttribute("cipher", cipher);
-    }
-
-    if (!length.isEmpty()) {
-        writer.writeAttribute("length", length);
-    }
-
-    if (!hint.isEmpty()) {
-        writer.writeAttribute("hint", hint);
-    }
-
-    writer.writeCDATA(encryptedText);
-    QNTRACE("Wrote en-crypt ENML element: cipher = " << cipher << ", length = " << length
-            << ", encryptedText = " << encryptedText << ", hint = " << hint);
-    return true;
-}
-
 void ENMLConverterPrivate::toDoTagsToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer) const
 {
     QNDEBUG("ENMLConverterPrivate::toDoTagsToHtml");
@@ -826,44 +778,6 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
     return true;
 }
 
-bool ENMLConverterPrivate::resourceInfoToEnml(const QXmlStreamReader & reader,
-                                              QXmlStreamWriter & writer,
-                                              QString & errorDescription) const
-{
-    QNDEBUG("ENMLConverterPrivate::resourceInfoToEnml");
-
-    QXmlStreamAttributes attributes = reader.attributes();
-
-    if (!attributes.hasAttribute("hash")) {
-        errorDescription = QT_TR_NOOP("Detected resource tag without hash attribute");
-        return false;
-    }
-
-    if (!attributes.hasAttribute("type")) {
-        errorDescription = QT_TR_NOOP("Detected resource tag without type attribute");
-        return false;
-    }
-
-    for(QXmlStreamAttributes::Iterator it = attributes.begin(); it != attributes.end(); )
-    {
-        QXmlStreamAttribute & attribute = *it;
-        if ( !allowedEnMediaAttributes.contains(attribute.name().toString()) &&
-             ((attribute.namespaceUri() != "xml") || (attribute.name() != "lang")) )
-        {
-            it = attributes.erase(it);
-            continue;
-        }
-
-        ++it;
-    }
-
-    writer.writeStartElement("en-media");
-    writer.writeAttributes(attributes);
-    writer.writeEndElement();
-
-    return true;
-}
-
 bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
                                               QXmlStreamWriter & writer,
                                               QString & errorDescription,
@@ -951,7 +865,7 @@ bool ENMLConverterPrivate::decryptedTextToEnml(const QXmlStreamReader & reader,
         writer.writeAttribute("hint", hint);
     }
 
-    writer.writeCDATA(encryptedText);
+    writer.writeCharacters(encryptedText);
     writer.writeEndElement();
 
     QNTRACE("Wrote en-crypt ENML tag from en-decrypted div tag");

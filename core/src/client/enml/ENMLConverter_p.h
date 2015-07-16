@@ -44,13 +44,6 @@ private:
     static bool isEvernoteSpecificXhtmlTag(const QString & tagName);
     static bool isAllowedXhtmlTag(const QString & tagName);
 
-    // high-level method to write arbitrary <object> element to ENML
-    bool objectToEnml(QXmlStreamReader & reader, QXmlStreamWriter & writer,
-                      QString & errorDescription) const;
-
-    // convert <object> element with encrypted text to ENML <en-crypt> tag
-    bool encryptedTextToEnml(QXmlStreamReader & reader, QXmlStreamWriter & writer,
-                             QString & errorDescription) const;
     // convert <div> element with decrypted text to ENML <en-crypt> tag
     bool decryptedTextToEnml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
                              QString & errorDescription) const;
@@ -61,9 +54,6 @@ private:
                              QXmlStreamWriter & writer,
                              DecryptedTextCachePtr decryptedTextCache) const;
 
-    // convert HTML <object> with resource info to ENML <en-media> tag
-    bool resourceInfoToEnml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
-                            QString & errorDescription) const;
     // convert ENML <en-media> tag to HTML <object> tag
     bool resourceInfoToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
                             QString & errorDescription, const NoteEditorPluginFactory * pluginFactory) const;
