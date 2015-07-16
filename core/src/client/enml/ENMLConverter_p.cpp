@@ -76,6 +76,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
     QString lastElementName;
     QXmlStreamAttributes lastElementAttributes;
     bool insideEnCryptElement = false;
+    QXmlStreamAttributes enCryptAttributes;
 
     while(!reader.atEnd())
     {
@@ -110,13 +111,13 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
             }
 
             auto tagIt = forbiddenXhtmlTags.find(lastElementName);
-            if (tagIt != forbiddenXhtmlTags.end()) {
+            if ((tagIt != forbiddenXhtmlTags.end()) && (lastElementName != "object") && (lastElementName != "param")) {
                 QNTRACE("Skipping forbidden XHTML tag: " << lastElementName);
                 continue;
             }
 
             tagIt = allowedXhtmlTags.find(lastElementName);
-            if (tagIt == allowedXhtmlTags.end())
+            if ((tagIt == allowedXhtmlTags.end()) && (lastElementName != "param"))
             {
                 tagIt = evernoteSpecificXhtmlTags.find(lastElementName);
                 if (tagIt == evernoteSpecificXhtmlTags.end()) {
@@ -165,16 +166,55 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
                 }
             }
 
-            if ((lastElementName == "object") || (lastElementName == "img"))
+            if (lastElementName == "object")
             {
-                // TODO: figure out whether it is resource or en-crypt tag,
-                // if so, do the necessary bookkeeping
-                bool res = objectToEnml(reader, writer, errorDescription);
-                if (!res) {
-                    return false;
+                if (!lastElementAttributes.hasAttribute("en-tag")) {
+                    QNTRACE("Skipping <object> tag without en-tag attribute");
+                    continue;
                 }
 
-                continue;
+                QStringRef enTag = lastElementAttributes.value("en-tag");
+                if (enTag == "en-crypt") {
+                    lastElementName = "en-crypt";
+                    insideEnCryptElement = true;
+                    enCryptAttributes.clear();
+                    writer.writeStartElement(lastElementName);
+                    ++writeElementCounter;
+                    QNTRACE("Started writing en-crypt element");
+                    continue;
+                }
+            }
+            else if (lastElementName == "param")
+            {
+                if (insideEnCryptElement)
+                {
+                    if (!lastElementAttributes.hasAttribute("name")) {
+                        errorDescription = QT_TR_NOOP("Can't convert note to ENML: can't parse en-crypt tag: nested param tag doesn't have name attribute");
+                        QNWARNING(errorDescription << ", html = " << html << ", cleaned up xml = " << m_cachedConvertedXml);
+                        return false;
+                    }
+
+                    if (!lastElementAttributes.hasAttribute("value")) {
+                        errorDescription = QT_TR_NOOP("Can't convert note to ENML: can't parse en-crypt tag: nested param tag doesn't have value attribute");
+                        QNWARNING(errorDescription << ", html = " << html << ", cleaned up xml = " << m_cachedConvertedXml);
+                        return false;
+                    }
+
+                    QStringRef name = lastElementAttributes.value("name");
+                    QStringRef value = lastElementAttributes.value("value");
+
+                    if (name != "encryptedText") {
+                        enCryptAttributes.append(name.toString(), value.toString());
+                    }
+                    else {
+                        if (!enCryptAttributes.isEmpty()) {
+                            writer.writeAttributes(enCryptAttributes);
+                        }
+                        writer.writeCharacters(value.toString());
+                    }
+
+                    continue;
+                }
             }
 
             // Erasing the forbidden attributes
@@ -198,6 +238,10 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
 
         if ((writeElementCounter > 0) && reader.isCharacters())
         {
+            if (insideEnCryptElement) {
+                continue;
+            }
+
             QString text = reader.text().toString();
 
             if (reader.isCDATA()) {
@@ -210,7 +254,20 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
             }
         }
 
-        if ((writeElementCounter > 0) && reader.isEndElement()) {
+        if ((writeElementCounter > 0) && reader.isEndElement())
+        {
+            if (insideEnCryptElement)
+            {
+                if (reader.name() == "object") {
+                    insideEnCryptElement = false;
+                    enCryptAttributes.clear();
+                }
+                else {
+                    // Don't write end of element corresponding to ends of en-crypt <object> tag's child elements
+                    continue;
+                }
+            }
+
             writer.writeEndElement();
             --writeElementCounter;
         }

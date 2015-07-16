@@ -189,50 +189,6 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
                     return false;
                 }
             }
-            else if (originalName == "en-crypt")
-            {
-                if (originalAttributes.hasAttribute("hint") != processedAttributes.hasAttribute("hint")) {
-                    error = "The original ENML and the processed one differ by the presence of optional hint attribute";
-                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
-                    return false;
-                }
-
-                QString originalCipher = "AES";
-                if (originalAttributes.hasAttribute("cipher")) {
-                    originalCipher = originalAttributes.value("cipher").toString();
-                }
-
-                QString originalLength = "128";
-                if (originalAttributes.hasAttribute("length")) {
-                    originalLength = originalAttributes.value("length").toString();
-                }
-
-                if (!processedAttributes.hasAttribute("cipher")) {
-                    error = "No expected cipher attribute in the processed ENML";
-                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
-                    return false;
-                }
-
-                if (!processedAttributes.hasAttribute("length")) {
-                    error = "No expected length attribute in the processed ENML";
-                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
-                    return false;
-                }
-
-                QString processedCipher = processedAttributes.value("cipher").toString();
-                if (originalCipher != processedCipher) {
-                    error = "Cipher in en-crypt tag is different in the original ENML and in the processed one";
-                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
-                    return false;
-                }
-
-                QString processedLength = processedAttributes.value("length").toString();
-                if (originalLength != processedLength) {
-                    error = "Length in en-crypt tag is different in the original ENML and in the processed one";
-                    QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified);
-                    return false;
-                }
-            }
             else
             {
                 const int numOriginalAttributes = originalAttributes.size();
