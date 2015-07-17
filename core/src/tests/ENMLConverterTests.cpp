@@ -106,6 +106,16 @@ bool convertNoteWithEncryptionToHtmlAndBack(QString & error)
     return convertNoteToHtmlAndBackImpl(noteContent, error);
 }
 
+bool convertNoteWithResourcesToHtmlAndBack(QString & error)
+{
+    QString noteContent = "<en-note>"
+                          "<div>Here's the note with some embedded resources</div>"
+                          "<br/>"
+                          "<en-media width=\"640\" height=\"480\" type=\"image/jpeg\" hash=\"f03c1c2d96bc67eda02968c8b5af9008\"/>"
+                          "</en-note>";
+    return convertNoteToHtmlAndBackImpl(noteContent, error);
+}
+
 bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error)
 {
     QString originalNoteContent = noteContent;

@@ -9,6 +9,7 @@ namespace test {
 bool convertSimpleNoteToHtmlAndBack(QString & error);
 bool convertNoteWithToDoTagsToHtmlAndBack(QString & error);
 bool convertNoteWithEncryptionToHtmlAndBack(QString & error);
+bool convertNoteWithResourcesToHtmlAndBack(QString & error);
 
 } // namespace test
 } // namespace qute_note

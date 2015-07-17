@@ -144,26 +144,29 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
             }
             else if (lastElementName == "img")
             {
+                if (!lastElementAttributes.hasAttribute("en-tag")) {
+                    QNTRACE("Skipping img element without en-tag attribute");
+                    continue;
+                }
+
                 if (lastElementAttributes.hasAttribute("src"))
                 {
-                    QStringRef srcValue = lastElementAttributes.value("src");
-                    if (srcValue.contains("qrc:/checkbox_icons/checkbox_no.png")) {
-                        writer.writeStartElement("en-todo");
-                        ++writeElementCounter;
-                        continue;
+                    QStringRef enTag = lastElementAttributes.value("en-tag");
+                    if (enTag == "en-todo")
+                    {
+                        QStringRef srcValue = lastElementAttributes.value("src");
+                        if (srcValue.contains("qrc:/checkbox_icons/checkbox_no.png")) {
+                            writer.writeStartElement("en-todo");
+                            ++writeElementCounter;
+                            continue;
+                        }
+                        else if (srcValue.contains("qrc:/checkbox_icons/checkbox_yes.png")) {
+                            writer.writeStartElement("en-todo");
+                            writer.writeAttribute("checked", "true");
+                            ++writeElementCounter;
+                            continue;
+                        }
                     }
-                    else if (srcValue.contains("qrc:/checkbox_icons/checkbox_yes.png")) {
-                        writer.writeStartElement("en-todo");
-                        writer.writeAttribute("checked", "true");
-                        ++writeElementCounter;
-                        continue;
-                    }
-                }
-                else
-                {
-                    errorDescription = QT_TR_NOOP("Can't convert note to ENML: found img html tag without src attribute");
-                    QNWARNING(errorDescription << ", html = " << html << ", cleaned up xml = " << m_cachedConvertedXml);
-                    return false;
                 }
             }
 
@@ -182,9 +185,8 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                     writer.writeStartElement(lastElementName);
                     ++writeElementCounter;
                     QNTRACE("Started writing en-crypt element");
+                    continue;
                 }
-
-                continue;
             }
             else if (lastElementName == "param")
             {
@@ -233,24 +235,48 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
             {
                 if (!lastElementAttributes.hasAttribute("en-tag"))
                 {
-                    if (lastElementName == "object") {
-                        QNTRACE("Skipping <object> tag without en-tag attribute");
-                        continue;
-                    }
+                    QNTRACE("Skipping <object> or <img> element without en-tag attribute");
+                    continue;
                 }
                 else
                 {
+                    bool isImage = (lastElementName == "img");
                     QStringRef enTag = lastElementAttributes.value("en-tag");
-                    if (enTag == "en-media") {
+                    if (enTag == "en-media")
+                    {
                         lastElementName = "en-media";
-                        insideEnMediaElement = true;
-                        enMediaAttributes.clear();
                         writer.writeStartElement(lastElementName);
                         ++writeElementCounter;
-                        QNTRACE("Started writing en-media element");
-                    }
+                        enMediaAttributes.clear();
 
-                    continue;
+                        if (isImage)
+                        {
+                            // Simple case - all necessary attributes are already in the tag
+                            const int numAttributes = lastElementAttributes.size();
+                            for(int i = 0; i < numAttributes; ++i)
+                            {
+                                const QXmlStreamAttribute & attribute = lastElementAttributes[i];
+                                const QString attributeQualifiedName = attribute.qualifiedName().toString();
+                                const QString attributeValue = attribute.value().toString();
+
+                                if (allowedEnMediaAttributes.contains(attributeQualifiedName)) {
+                                    enMediaAttributes.append(attributeQualifiedName, attributeValue);
+                                }
+                            }
+
+                            writer.writeAttributes(enMediaAttributes);
+                            enMediaAttributes.clear();
+                            QNTRACE("Wrote en-media element from img element in HTML");
+                        }
+                        else
+                        {
+                            // Complicated case - the necessary attributes must be retrieved from nested tags
+                            insideEnMediaElement = true;
+                            QNTRACE("Started writing en-media element");
+                        }
+
+                        continue;
+                    }
                 }
             }
 
@@ -335,6 +361,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
             errorDescription = QT_TR_NOOP("Failed to convert, produced ENML is invalid according to dtd");
         }
 
+        QNWARNING(errorDescription << ", ENML: " << noteContent << "\nHTML: " << html);
         return false;
     }
 

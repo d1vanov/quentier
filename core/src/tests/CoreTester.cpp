@@ -280,6 +280,17 @@ void CoreTester::enmlConverterEnCryptTest()
     CATCH_EXCEPTION();
 }
 
+void CoreTester::enmlConverterEnMediaTest()
+{
+    try
+    {
+        QString error;
+        bool res = convertNoteWithResourcesToHtmlAndBack(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::noteSearchQueryTest()
 {
     try
