@@ -79,6 +79,8 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
     bool insideEnMediaElement = false;
     QXmlStreamAttributes enMediaAttributes;
 
+    bool insideDecryptedEnCryptElement = false;
+
     while(!reader.atEnd())
     {
         Q_UNUSED(reader.readNext());
@@ -140,6 +142,10 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                     if (!res) {
                         return false;
                     }
+
+                    insideDecryptedEnCryptElement = true;
+                    ++writeElementCounter;
+                    continue;
                 }
             }
             else if (lastElementName == "img")
@@ -210,7 +216,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
                 if (insideEnCryptElement)
                 {
-                    if (name != "encryptedText") {
+                    if (name != "encrypted-text") {
                         enCryptAttributes.append(name.toString(), value.toString());
                     }
                     else {
@@ -301,7 +307,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
         if ((writeElementCounter > 0) && reader.isCharacters())
         {
-            if (insideEnCryptElement || insideEnMediaElement) {
+            if (insideEnCryptElement || insideEnMediaElement || insideDecryptedEnCryptElement) {
                 continue;
             }
 
@@ -340,6 +346,17 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                 }
                 else {
                     // Don't write end of element corresponding to ends of en-media <object> or <img> tag's child elements
+                    continue;
+                }
+            }
+
+            if (insideDecryptedEnCryptElement)
+            {
+                if (reader.name() == "div") {
+                    insideDecryptedEnCryptElement = false;
+                }
+                else {
+                    // Don't write end of element corresponding to ends of en-decrypted <div> tag's child elements
                     continue;
                 }
             }
@@ -735,7 +752,7 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
             writer.writeStartElement("div");
             writer.writeAttribute("en-tag", "en-decrypted");
-            writer.writeAttribute("encryptedText", encryptedTextCharacters.toString());
+            writer.writeAttribute("encrypted-text", encryptedTextCharacters.toString());
 
             if (!cipher.isEmpty()) {
                 writer.writeAttribute("cipher", cipher);
@@ -760,7 +777,6 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
             writer.writeCharacters(it.value().first);
             writer.writeEndElement();
 
-            writer.writeEndElement();
             return true;
         }
     }
@@ -790,7 +806,7 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
     }
 
     writer.writeStartElement("param");
-    writer.writeAttribute("name", "encryptedText");
+    writer.writeAttribute("name", "encrypted-text");
     writer.writeAttribute("value", encryptedTextCharacters.toString());
     writer.writeEndElement();
 
@@ -878,24 +894,12 @@ bool ENMLConverterPrivate::decryptedTextToEnml(const QXmlStreamReader & reader,
 
     QXmlStreamAttributes attributes = reader.attributes();
 
-    if (!attributes.hasAttribute("encryptedText")) {
+    if (!attributes.hasAttribute("encrypted-text")) {
         errorDescription = QT_TR_NOOP("Missing encrypted text attribute within en-decrypted div tag");
         return false;
     }
 
-    if (!attributes.hasAttribute("cipher")) {
-        errorDescription = QT_TR_NOOP("Missing cipher attribute within en-decrypted div tag");
-        return false;
-    }
-
-    if (!attributes.hasAttribute("length")) {
-        errorDescription = QT_TR_NOOP("Missing length attribute within en-dectyped dig tag");
-        return false;
-    }
-
-    QString encryptedText = attributes.value("encryptedText").toString();
-    QString cipher = attributes.value("cipher").toString();
-    QString length = attributes.value("length").toString();
+    QString encryptedText = attributes.value("encrypted-text").toString();
 
     QString hint;
     if (attributes.hasAttribute("hint")) {
@@ -903,14 +907,20 @@ bool ENMLConverterPrivate::decryptedTextToEnml(const QXmlStreamReader & reader,
     }
 
     writer.writeStartElement("en-crypt");
-    writer.writeAttribute("cipher", cipher);
-    writer.writeAttribute("length", length);
+
+    if (attributes.hasAttribute("cipher")) {
+        writer.writeAttribute("cipher", attributes.value("cipher").toString());
+    }
+
+    if (attributes.hasAttribute("length")) {
+        writer.writeAttribute("length", attributes.value("length").toString());
+    }
+
     if (!hint.isEmpty()) {
         writer.writeAttribute("hint", hint);
     }
 
     writer.writeCharacters(encryptedText);
-    writer.writeEndElement();
 
     QNTRACE("Wrote en-crypt ENML tag from en-decrypted div tag");
     return true;

@@ -6,7 +6,7 @@
 namespace qute_note {
 namespace test {
 
-bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error);
+bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error, DecryptedTextCachePtr decryptedTextCache = DecryptedTextCachePtr());
 bool compareEnml(const QString & original, const QString & processed, QString & error);
 
 bool convertSimpleNoteToHtmlAndBack(QString & error)
@@ -102,8 +102,32 @@ bool convertNoteWithEncryptionToHtmlAndBack(QString & error)
                           "uvcg2lGTJyDw/NoZmjFycjXESRJgLIr+gGfyD17jYNGcPBLR8Rb0M9vGK1tG9haG"
                           "+Vem1pTWgRfYXF70mMduEmAd4xXy1JqV6XNUYDddW9iPpffWTZgD409LK9wIZM5C"
                           "W2rbM2lwM/R0IEnoK7N5X8lCOzqkA9H/HF+8E=</en-crypt>"
+                          "<div>Here's the text encrypted with RC2 which should reside in decrypted text cache</div>"
+                          "<en-crypt hint=\"my_own_encryption_key_1988\">"
+                          "K+sUXSxI2Mt075+pSDxR/gnCNIEnk5XH1P/D0Eie17"
+                          "JIWgGnNo5QeMo3L0OeBORARGvVtBlmJx6vJY2Ij/2En"
+                          "MVy6/aifSdZXAxRlfnTLvI1IpVgHpTMzEfy6zBVMo+V"
+                          "Bt2KglA+7L0iSjA0hs3GEHI6ZgzhGfGj</en-crypt>"
+                          "<div>Here's the text encrypted with AES which should reside in decrypted text cache</div>"
+                          "<en-crypt hint=\"MyEncryptionPassword\">"
+                          "RU5DMBwXjfKR+x9ksjSJhtiF+CxfwXn2Hf/WqdVwLwJDX9YX5R34Z5SBMSCIOFF"
+                          "r1MUeNkzHGVP5fHEppUlIExDG/Vpjh9KK1uu0VqTFoUWA0IXAAMA5eHnbxhBrjvL"
+                          "3CoTQV7prRqJVLpUX77Q0vbNims1quxVWaf7+uVeK60YoiJnSOHvEYptoOs1FVfZ"
+                          "AwnDDBoCUOsAb2nCh2UZ6LSFneb58xQ/6WeoQ7QDDHLSoUIXn</en-crypt>"
                           "</en-note>";
-    return convertNoteToHtmlAndBackImpl(noteContent, error);
+    DecryptedTextCachePtr decryptedTextCache(new DecryptedTextCachePtr::value_type);
+    Q_UNUSED(decryptedTextCache->insert("K+sUXSxI2Mt075+pSDxR/gnCNIEnk5XH1P/D0Eie17"
+                                        "JIWgGnNo5QeMo3L0OeBORARGvVtBlmJx6vJY2Ij/2En"
+                                        "MVy6/aifSdZXAxRlfnTLvI1IpVgHpTMzEfy6zBVMo+V"
+                                        "Bt2KglA+7L0iSjA0hs3GEHI6ZgzhGfGj",
+                                        QPair<QString,bool>("<span style=\"display: inline !important; float: none; \">"
+                                                            "Ok, here's a piece of text I'm going to encrypt now</span>", true)));
+    Q_UNUSED(decryptedTextCache->insert("RU5DMBwXjfKR+x9ksjSJhtiF+CxfwXn2Hf/WqdVwLwJDX9YX5R34Z5SBMSCIOFF"
+                                        "r1MUeNkzHGVP5fHEppUlIExDG/Vpjh9KK1uu0VqTFoUWA0IXAAMA5eHnbxhBrjvL"
+                                        "3CoTQV7prRqJVLpUX77Q0vbNims1quxVWaf7+uVeK60YoiJnSOHvEYptoOs1FVfZ"
+                                        "AwnDDBoCUOsAb2nCh2UZ6LSFneb58xQ/6WeoQ7QDDHLSoUIXn",
+                                        QPair<QString,bool>("Sample text said to be the decrypted one", true)));
+    return convertNoteToHtmlAndBackImpl(noteContent, error, decryptedTextCache);
 }
 
 bool convertNoteWithResourcesToHtmlAndBack(QString & error)
@@ -119,13 +143,13 @@ bool convertNoteWithResourcesToHtmlAndBack(QString & error)
     return convertNoteToHtmlAndBackImpl(noteContent, error);
 }
 
-bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error)
+bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error, DecryptedTextCachePtr decryptedTextCachePtr)
 {
     QString originalNoteContent = noteContent;
 
     ENMLConverter converter;
     QString html;
-    bool res = converter.noteContentToHtml(originalNoteContent, html, error);
+    bool res = converter.noteContentToHtml(originalNoteContent, html, error, decryptedTextCachePtr);
     if (!res) {
         error.prepend("Unable to convert the note content to HTML: ");
         QNWARNING(error);
