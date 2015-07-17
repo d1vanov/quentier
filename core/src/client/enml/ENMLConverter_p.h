@@ -11,7 +11,6 @@ QT_FORWARD_DECLARE_CLASS(QXmlStreamAttributes)
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 QT_FORWARD_DECLARE_CLASS(HTMLCleaner)
 
@@ -21,8 +20,8 @@ public:
     ENMLConverterPrivate();
     ~ENMLConverterPrivate();
 
-    bool htmlToNoteContent(const QString & html, Note & note, QString & errorDescription) const;
-    bool noteContentToHtml(const Note & note, QString & html, QString & errorDescription,
+    bool htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const;
+    bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
                            DecryptedTextCachePtr decryptedTextCache,
                            const NoteEditorPluginFactory * pluginFactory) const;
 
@@ -65,7 +64,6 @@ private:
 
 private:
     mutable HTMLCleaner *   m_pHtmlCleaner;
-    mutable QString         m_cachedNoteContent;    // Cached memory for the converted note ENML content
     mutable QString         m_cachedConvertedXml;   // Cached memory for the html converted to valid xml
 };
 

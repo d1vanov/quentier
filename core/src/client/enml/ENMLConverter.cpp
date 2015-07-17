@@ -2,7 +2,6 @@
 #include "ENMLConverter_p.h"
 #include <note_editor/NoteEditorPluginFactory.h>
 #include <logging/QuteNoteLogger.h>
-#include <client/types/Note.h>
 
 namespace qute_note {
 
@@ -15,22 +14,22 @@ ENMLConverter::~ENMLConverter()
     delete d_ptr;
 }
 
-bool ENMLConverter::htmlToNoteContent(const QString & html, Note & note, QString & errorDescription) const
+bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const
 {
-    QNDEBUG("ENMLConverter::htmlToNoteContent: note local guid = " << note.localGuid());
+    QNDEBUG("ENMLConverter::htmlToNoteContent");
 
     Q_D(const ENMLConverter);
-    return d->htmlToNoteContent(html, note, errorDescription);
+    return d->htmlToNoteContent(html, noteContent, errorDescription);
 }
 
-bool ENMLConverter::noteContentToHtml(const Note & note, QString & html, QString & errorDescription,
+bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
                                       DecryptedTextCachePtr decryptedTextCache,
                                       const NoteEditorPluginFactory * pluginFactory) const
 {
-    QNDEBUG("ENMLConverter::noteContentToHtml: note local guid = " << note.localGuid());
+    QNDEBUG("ENMLConverter::noteContentToHtml");
 
     Q_D(const ENMLConverter);
-    return d->noteContentToHtml(note, html, errorDescription, decryptedTextCache, pluginFactory);
+    return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextCache, pluginFactory);
 }
 
 bool ENMLConverter::validateEnml(const QString & enml, QString & errorDescription) const

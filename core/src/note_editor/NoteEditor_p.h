@@ -159,7 +159,8 @@ private:
 
     const QString   m_pagePrefix;
 
-    QString     m_htmlCachedMemory;   // Cached memory for HTML from Note -> HTML conversions
+    QString     m_enmlCachedMemory;   // Cached memory for HTML to ENML conversions
+    QString     m_htmlCachedMemory;   // Cached memory for ENML from Note -> HTML conversions
     QString     m_errorCachedMemory;  // Cached memory for various errors
 
     QThread *   m_pIOThread;

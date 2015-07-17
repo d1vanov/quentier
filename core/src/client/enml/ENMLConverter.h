@@ -9,7 +9,6 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 QT_FORWARD_DECLARE_CLASS(ENMLConverterPrivate)
 
@@ -19,8 +18,8 @@ public:
     ENMLConverter();
     virtual ~ENMLConverter();
 
-    bool htmlToNoteContent(const QString & html, Note & note, QString & errorDescription) const;
-    bool noteContentToHtml(const Note & note, QString & html, QString & errorDescription,
+    bool htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const;
+    bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
                            DecryptedTextCachePtr decryptedTextCache = DecryptedTextCachePtr(),
                            const NoteEditorPluginFactory * pluginFactory = nullptr) const;
 

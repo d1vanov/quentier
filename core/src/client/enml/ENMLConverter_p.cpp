@@ -1,7 +1,6 @@
 #include "ENMLConverter_p.h"
 #include "HTMLCleaner.h"
 #include <note_editor/NoteEditorPluginFactory.h>
-#include <client/types/Note.h>
 #include <logging/QuteNoteLogger.h>
 #include <libxml/xmlreader.h>
 #include <QString>
@@ -42,7 +41,6 @@ static const QSet<QString> allowedEnMediaAttributes = QSet<QString>()
 
 ENMLConverterPrivate::ENMLConverterPrivate() :
     m_pHtmlCleaner(nullptr),
-    m_cachedNoteContent(),
     m_cachedConvertedXml()
 {}
 
@@ -51,9 +49,9 @@ ENMLConverterPrivate::~ENMLConverterPrivate()
     delete m_pHtmlCleaner;
 }
 
-bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, QString & errorDescription) const
+bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const
 {
-    QNDEBUG("ENMLConverterPrivate::htmlToNoteContent: note local guid = " << note.localGuid());
+    QNDEBUG("ENMLConverterPrivate::htmlToNoteContent: " << html);
 
     if (!m_pHtmlCleaner) {
         m_pHtmlCleaner = new HTMLCleaner;
@@ -68,8 +66,8 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
 
     QXmlStreamReader reader(m_cachedConvertedXml);
 
-    m_cachedNoteContent.resize(0);
-    QXmlStreamWriter writer(&m_cachedNoteContent);
+    noteContent.resize(0);
+    QXmlStreamWriter writer(&noteContent);
 
     int writeElementCounter = 0;
     QString lastElementName;
@@ -325,9 +323,9 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
         }
     }
 
-    QNTRACE("Converted ENML: " << m_cachedNoteContent);
+    QNTRACE("Converted ENML: " << noteContent);
 
-    res = validateEnml(m_cachedNoteContent, errorDescription);
+    res = validateEnml(noteContent, errorDescription);
     if (!res)
     {
         if (!errorDescription.isEmpty()) {
@@ -340,25 +338,20 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, Note & note, 
         return false;
     }
 
-    note.setContent(m_cachedNoteContent);
     return true;
 }
 
-bool ENMLConverterPrivate::noteContentToHtml(const Note & note, QString & html,
+bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QString & html,
                                              QString & errorDescription,
                                              DecryptedTextCachePtr decryptedTextCache,
                                              const NoteEditorPluginFactory * pluginFactory) const
 {
-    QNDEBUG("ENMLConverterPrivate::noteContentToHtml: note local guid = " << note.localGuid());
+    QNDEBUG("ENMLConverterPrivate::noteContentToHtml: " << noteContent);
 
     html.resize(0);
     errorDescription.resize(0);
 
-    if (!note.hasContent()) {
-        return true;
-    }
-
-    QXmlStreamReader reader(note.content());
+    QXmlStreamReader reader(noteContent);
 
     QXmlStreamWriter writer(&html);
     int writeElementCounter = 0;

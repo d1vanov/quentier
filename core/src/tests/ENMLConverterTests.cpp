@@ -1,5 +1,4 @@
 #include "ENMLConverterTests.h"
-#include <client/types/Note.h>
 #include <client/enml/ENMLConverter.h>
 #include <logging/QuteNoteLogger.h>
 #include <QXmlStreamReader>
@@ -109,34 +108,26 @@ bool convertNoteWithEncryptionToHtmlAndBack(QString & error)
 
 bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error)
 {
-    Note testNote;
-    testNote.setTitle("My test note");
     QString originalNoteContent = noteContent;
-    testNote.setContent(originalNoteContent);
 
     ENMLConverter converter;
     QString html;
-    bool res = converter.noteContentToHtml(testNote, html, error);
+    bool res = converter.noteContentToHtml(originalNoteContent, html, error);
     if (!res) {
         error.prepend("Unable to convert the note content to HTML: ");
         QNWARNING(error);
         return false;
     }
 
-    res = converter.htmlToNoteContent(html, testNote, error);
+    QString processedNoteContent;
+    res = converter.htmlToNoteContent(html, processedNoteContent, error);
     if (!res) {
         error.prepend("Unable to convert HTML to note content: ");
         QNWARNING(error);
         return false;
     }
 
-    if (!testNote.hasContent()) {
-        error = "Test note doesn't have its content set after the conversion from HTML";
-        QNWARNING(error);
-        return false;
-    }
-
-    res = compareEnml(originalNoteContent, testNote.content(), error);
+    res = compareEnml(originalNoteContent, processedNoteContent, error);
     if (!res) {
         return false;
     }

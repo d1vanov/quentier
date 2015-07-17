@@ -51,6 +51,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<html><head>"
                  "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
                  "<title></title></head>"),
+    m_enmlCachedMemory(),
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
     m_pIOThread(nullptr),
@@ -371,7 +372,7 @@ void NoteEditorPrivate::noteToEditorContent()
     }
 
     m_htmlCachedMemory.resize(0);
-    bool res = m_enmlConverter.noteContentToHtml(*m_pNote, m_htmlCachedMemory, m_errorCachedMemory,
+    bool res = m_enmlConverter.noteContentToHtml(m_pNote->content(), m_htmlCachedMemory, m_errorCachedMemory,
                                                  m_decryptedTextCache, m_pluginFactory);
     if (!res) {
         QNWARNING("Can't convert note's content to HTML: " << m_errorCachedMemory);
@@ -498,13 +499,16 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
 
     Q_Q(const NoteEditor);
     m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
-    bool res = m_enmlConverter.htmlToNoteContent(m_htmlCachedMemory, *m_pNote, m_errorCachedMemory);
+    m_enmlCachedMemory.resize(0);
+    bool res = m_enmlConverter.htmlToNoteContent(m_htmlCachedMemory, m_enmlCachedMemory, m_errorCachedMemory);
     if (!res) {
         errorDescription = QT_TR_NOOP("Can't convert note editor page's content to ENML: ") + errorDescription;
         QNWARNING(errorDescription)
         emit notifyError(errorDescription);
         return false;
     }
+
+    m_pNote->setContent(m_enmlCachedMemory);
 
     return true;
 }
