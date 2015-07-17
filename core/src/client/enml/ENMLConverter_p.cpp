@@ -757,7 +757,7 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
             writer.writeStartElement("textarea");
             writer.writeAttribute("readonly", "readonly");
-            writer.writeCDATA(it.value().first);
+            writer.writeCharacters(it.value().first);
             writer.writeEndElement();
 
             writer.writeEndElement();
@@ -840,8 +840,32 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
     // NOTE: ENMLConverterPrivate can't set src attribute for img tag as it doesn't know whether the resource is stored
     // in any local file yet. The user of noteContentToHtml should take care of those img tags and their src attributes
 
-    attributes.append("en-tag", "en-media");
-    writer.writeAttributes(attributes);
+    if (convertToImage)
+    {
+        attributes.append("en-tag", "en-media");
+        writer.writeAttributes(attributes);
+    }
+    else
+    {
+        writer.writeAttribute("en-tag", "en-media");
+
+        const int numAttributes = attributes.size();
+        for(int i = 0; i < numAttributes; ++i)
+        {
+            const QXmlStreamAttribute & attribute = attributes[i];
+            const QString qualifiedName = attribute.qualifiedName().toString();
+            if (qualifiedName == "en-tag") {
+                continue;
+            }
+
+            const QString value = attribute.value().toString();
+
+            writer.writeStartElement("param");
+            writer.writeAttribute("name", qualifiedName);
+            writer.writeAttribute("value", value);
+            writer.writeEndElement();
+        }
+    }
 
     return true;
 }

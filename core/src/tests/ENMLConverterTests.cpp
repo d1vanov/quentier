@@ -111,7 +111,10 @@ bool convertNoteWithResourcesToHtmlAndBack(QString & error)
     QString noteContent = "<en-note>"
                           "<div>Here's the note with some embedded resources</div>"
                           "<br/>"
-                          "<en-media width=\"640\" height=\"480\" type=\"image/jpeg\" hash=\"f03c1c2d96bc67eda02968c8b5af9008\"/>"
+                          "<div>The first resource: simple image</div>"
+                          "<en-media width=\"640\" height=\"480\" align=\"right\" type=\"image/jpeg\" hash=\"f03c1c2d96bc67eda02968c8b5af9008\"/>"
+                          "<div>The second resource: embedded pdf</div>"
+                          "<en-media width=\"600\" height=\"800\" title=\"My cool pdf\" type=\"application/pdf\" hash=\"6051a24c8677fd21c65c1566654c228\"/>"
                           "</en-note>";
     return convertNoteToHtmlAndBackImpl(noteContent, error);
 }
