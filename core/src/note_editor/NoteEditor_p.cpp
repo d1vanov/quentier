@@ -67,6 +67,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     Q_Q(NoteEditor);
 
     NoteEditorPage * page = new NoteEditorPage(*q);
+    page->settings()->setAttribute(QWebSettings::PluginsEnabled, false);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessFileUrls, true);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessRemoteUrls, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
@@ -391,8 +392,8 @@ void NoteEditorPrivate::noteToEditorContent()
         return;
     }
 
-    m_htmlCachedMemory.remove(0, bodyTagIndex);
-    m_htmlCachedMemory.prepend(m_pagePrefix);
+    m_htmlCachedMemory.replace(0, bodyTagIndex, m_pagePrefix);
+
     int bodyClosingTagIndex = m_htmlCachedMemory.indexOf("</body>");
     if (bodyClosingTagIndex < 0) {
         m_errorCachedMemory = QT_TR_NOOP("Can't find </body> tag in the result of note to HTML conversion");
@@ -403,8 +404,7 @@ void NoteEditorPrivate::noteToEditorContent()
         return;
     }
 
-    m_htmlCachedMemory.remove(bodyClosingTagIndex, 7);
-    m_htmlCachedMemory.insert(bodyClosingTagIndex, "</html>");
+    m_htmlCachedMemory.insert(bodyClosingTagIndex + 7, "</html>");
 
     m_htmlCachedMemory.replace("<br></br>", "</br>");   // Webkit-specific fix
 
