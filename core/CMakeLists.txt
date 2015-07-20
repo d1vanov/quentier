@@ -277,7 +277,16 @@ set(TEST_SOURCES
     src/tests/CoreTester.cpp
     src/tests/CoreTestMain.cpp)
 
-add_executable(test_${PROJECT_NAME} ${TEST_HEADERS} ${TEST_SOURCES})
+set(TEST_RESOURCES
+    src/tests/test_resources.qrc)
+
+if(USE_QT5)
+    qt5_add_resources(${PROJECT_NAME}_TEST_RESOURCES_RCC ${TEST_RESOURCES})
+else()
+    qt4_add_resources(${PROJECT_NAME}_TEST_RESOURCES_RCC ${TEST_RESOURCES})
+endif()
+
+add_executable(test_${PROJECT_NAME} ${TEST_HEADERS} ${TEST_SOURCES} ${${PROJECT_NAME}_TEST_RESOURCES_RCC})
 add_test(test_${PROJECT_NAME} test_${PROJECT_NAME})
 
 if(LIBCPP)

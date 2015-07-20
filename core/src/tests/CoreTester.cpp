@@ -291,6 +291,19 @@ void CoreTester::enmlConverterEnMediaTest()
     CATCH_EXCEPTION();
 }
 
+void CoreTester::enmlConverterComplexTest()
+{
+    try
+    {
+        QSKIP("Skip the test until the implementation is fixed", SkipSingle);
+
+        QString error;
+        bool res = convertComplexNoteToHtmlAndBack(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::noteSearchQueryTest()
 {
     try

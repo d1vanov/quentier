@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/tests">
+        <file>complexNote1.txt</file>
+    </qresource>
+</RCC>

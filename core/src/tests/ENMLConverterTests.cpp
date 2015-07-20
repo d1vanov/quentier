@@ -2,6 +2,9 @@
 #include <client/enml/ENMLConverter.h>
 #include <logging/QuteNoteLogger.h>
 #include <QXmlStreamReader>
+#include <QFile>
+
+void __initENMLConversionTestResources();
 
 namespace qute_note {
 namespace test {
@@ -143,6 +146,20 @@ bool convertNoteWithResourcesToHtmlAndBack(QString & error)
     return convertNoteToHtmlAndBackImpl(noteContent, error);
 }
 
+bool convertComplexNoteToHtmlAndBack(QString & error)
+{
+    __initENMLConversionTestResources();
+
+    QFile file(":/tests/complexNote1.txt");
+    if (!file.open(QIODevice::ReadOnly)) {
+        error = "Can't open resource with complex note #1 for reading";
+        return false;
+    }
+
+    QString noteContent = file.readAll();
+    return convertNoteToHtmlAndBackImpl(noteContent, error);
+}
+
 bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error, DecryptedTextCachePtr decryptedTextCachePtr)
 {
     QString originalNoteContent = noteContent;
@@ -155,6 +172,12 @@ bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error, 
         QNWARNING(error);
         return false;
     }
+
+    html.prepend("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
+                 "<html><head>"
+                 "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
+                 "<title></title></head>");
+    html.append("</html>");
 
     QString processedNoteContent;
     res = converter.htmlToNoteContent(html, processedNoteContent, error);
@@ -360,3 +383,9 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
 
 } // namespace test
 } // namespace qute_note
+
+void __initENMLConversionTestResources()
+{
+    Q_INIT_RESOURCE(test_resources);
+}
+
