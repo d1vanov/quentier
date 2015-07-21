@@ -1,7 +1,7 @@
 #include "HTMLCleaner.h"
 #include <logging/QuteNoteLogger.h>
 #include <tidy.h>
-#include <buffio.h>
+#include <tidybuffio.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -68,7 +68,29 @@ bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId out
 {
     int rc = -1;
     Bool ok = tidyOptSetBool(m_tidyDoc, outputFormat, yes);
-    QNTRACE("tidyOptSetBool: ok = " << (ok ? "true" : "false"));
+    QNTRACE("tidyOptSetBool: output format: ok = " << (ok ? "true" : "false"));
+    if (ok) {
+        ok = tidyOptSetBool(m_tidyDoc, TidyPreserveEntities, yes);
+        QNTRACE("tidyOptSetBool: preserve entities = yes: ok = " << (ok ? "true" : "false"));
+    }
+
+    /*
+    if (ok) {
+        tidyOptSetAutoBool(m_tidyDoc, TidyMergeDivs, no);
+        QNTRACE("tidyOptSetBool: merge divs = no: ok = " << (ok ? "true" : "false"));
+    }
+
+    if (ok) {
+        tidyOptSetBool(m_tidyDoc, TidyMergeSpans, no);
+        QNTRACE("tidyOptSetBool: merge spans = no: ok = " << (ok ? "true" : "false"));
+    }
+    */
+
+    if (ok) {
+        tidyOptSetBool(m_tidyDoc, TidyMergeEmphasis, no);
+        QNTRACE("tidyOptSetBool: merge emphasis = no: ok = " << (ok ? "true" : "false"));
+    }
+
     if (ok) {
         rc = tidySetErrorBuffer(m_tidyDoc, &m_tidyErrorBuffer);
         QNTRACE("tidySetErrorBuffer: rc = " << rc);

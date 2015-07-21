@@ -366,6 +366,11 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
         }
     }
 
+    if (reader.hasError()) {
+        QNWARNING("Error reading html: " << reader.errorString());
+        return false;
+    }
+
     QNTRACE("Converted ENML: " << noteContent);
 
     res = validateEnml(noteContent, errorDescription);
