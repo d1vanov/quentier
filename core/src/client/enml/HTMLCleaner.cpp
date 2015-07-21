@@ -74,21 +74,24 @@ bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId out
         QNTRACE("tidyOptSetBool: preserve entities = yes: ok = " << (ok ? "true" : "false"));
     }
 
-    /*
     if (ok) {
-        tidyOptSetAutoBool(m_tidyDoc, TidyMergeDivs, no);
-        QNTRACE("tidyOptSetBool: merge divs = no: ok = " << (ok ? "true" : "false"));
+        ok = tidyOptSetInt(m_tidyDoc, TidyMergeDivs, no);
+        QNTRACE("tidyOptSetInt: merge divs = no: ok = " << (ok ? "true" : "false"));
     }
 
     if (ok) {
-        tidyOptSetBool(m_tidyDoc, TidyMergeSpans, no);
-        QNTRACE("tidyOptSetBool: merge spans = no: ok = " << (ok ? "true" : "false"));
+        ok = tidyOptSetInt(m_tidyDoc, TidyMergeSpans, no);
+        QNTRACE("tidyOptSetInt: merge spans = no: ok = " << (ok ? "true" : "false"));
     }
-    */
 
     if (ok) {
-        tidyOptSetBool(m_tidyDoc, TidyMergeEmphasis, no);
+        ok = tidyOptSetBool(m_tidyDoc, TidyMergeEmphasis, no);
         QNTRACE("tidyOptSetBool: merge emphasis = no: ok = " << (ok ? "true" : "false"));
+    }
+
+    if (ok) {
+        ok = tidyOptSetBool(m_tidyDoc, TidyDropEmptyElems, no);
+        QNTRACE("tidyOptSetBool: drop empty elemens = no: ok = " << (ok ? "true" : "false"));
     }
 
     if (ok) {
@@ -127,7 +130,8 @@ bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId out
     if (rc >= 0)
     {
         if (rc > 0) {
-            QNINFO("Tidy diagnostics: " << m_tidyErrorBuffer.bp);
+            QNINFO("Tidy diagnostics: " << QByteArray(reinterpret_cast<const char*>(m_tidyErrorBuffer.bp),
+                                                      static_cast<int>(m_tidyErrorBuffer.size)));
         }
 
         output.resize(0);
