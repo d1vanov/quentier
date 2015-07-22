@@ -31,6 +31,7 @@ private slots:
     void enmlConverterEnMediaTest();
     void enmlConverterComplexTest();
     void enmlConverterComplexTest2();
+    void enmlConverterComplexTest3();
 
     void noteSearchQueryTest();
     void localStorageManagerNoteSearchQueryTest();

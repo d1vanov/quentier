@@ -174,6 +174,20 @@ bool convertComplexNote2ToHtmlAndBack(QString & error)
     return convertNoteToHtmlAndBackImpl(noteContent, error);
 }
 
+bool convertComplexNote3ToHtmlAndBack(QString & error)
+{
+    __initENMLConversionTestResources();
+
+    QFile file(":/tests/complexNote3.txt");
+    if (!file.open(QIODevice::ReadOnly)) {
+        error = "Can't open the resource with complex note #3 for reading";
+        return false;
+    }
+
+    QString noteContent = file.readAll();
+    return convertNoteToHtmlAndBackImpl(noteContent, error);
+}
+
 bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error, DecryptedTextCachePtr decryptedTextCachePtr)
 {
     QString originalNoteContent = noteContent;
@@ -322,21 +336,18 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
                 for(int i = 0; i < numOriginalAttributes; ++i)
                 {
                     const QXmlStreamAttribute & originalAttribute = originalAttributes[i];
-                    const QXmlStreamAttribute & processedAttribute = processedAttributes[i];
 
-                    if (originalAttribute != processedAttribute) {
+                    if (!processedAttributes.contains(originalAttribute)) {
                         error = "The corresponding attributes within the original and the processed ENMLs do not match";
-                        QNWARNING(error << "; original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified
+                        QNWARNING(error << ": the original attribute was not found within the processed attributes; "
+                                  << "original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified
                                   << ", index within attributes = " << i << "\nOriginal attribute: name = "
                                   << originalAttribute.name() << ", namespace uri = " << originalAttribute.namespaceUri()
                                   << ", qualified name = " << originalAttribute.qualifiedName() << ", is default = "
                                   << (originalAttribute.isDefault() ? "true" : "false") << ", value = " << originalAttribute.value()
-                                  << ", prefix = " << originalAttribute.prefix() << "\nProcessed attribute: name = "
-                                  << processedAttribute.name() << ", namespace uri = " << processedAttribute.namespaceUri()
-                                  << ", qualified name = " << processedAttribute.qualifiedName() << ", is default = "
-                                  << (processedAttribute.isDefault() ? "true" : "false") << ", value = " << processedAttribute.value()
-                                  << ", prefix = " << processedAttribute.prefix());
+                                  << ", prefix = " << originalAttribute.prefix());
                         return false;
+
                     }
                 }
             }

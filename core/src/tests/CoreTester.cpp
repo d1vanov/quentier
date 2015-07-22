@@ -313,6 +313,17 @@ void CoreTester::enmlConverterComplexTest2()
     CATCH_EXCEPTION();
 }
 
+void CoreTester::enmlConverterComplexTest3()
+{
+    try
+    {
+        QString error;
+        bool res = convertComplexNote3ToHtmlAndBack(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::noteSearchQueryTest()
 {
     try

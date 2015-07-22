@@ -209,29 +209,30 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                         QNWARNING(errorDescription << ", html = " << html << ", cleaned up xml = " << m_cachedConvertedXml);
                         return false;
                     }
-                }
 
-                QStringRef name = lastElementAttributes.value("name");
-                QStringRef value = lastElementAttributes.value("value");
+                    QStringRef name = lastElementAttributes.value("name");
+                    QStringRef value = lastElementAttributes.value("value");
 
-                if (insideEnCryptElement)
-                {
-                    if (name != "encrypted-text") {
-                        enCryptAttributes.append(name.toString(), value.toString());
-                    }
-                    else {
-                        if (!enCryptAttributes.isEmpty()) {
-                            writer.writeAttributes(enCryptAttributes);
+                    if (insideEnCryptElement)
+                    {
+                        if (name != "encrypted-text") {
+                            enCryptAttributes.append(name.toString(), value.toString());
                         }
-                        writer.writeCharacters(value.toString());
+                        else {
+                            if (!enCryptAttributes.isEmpty()) {
+                                writer.writeAttributes(enCryptAttributes);
+                            }
+                            writer.writeCharacters(value.toString());
+                        }
                     }
-                }
-                else if (insideEnMediaElement)
-                {
-                    enMediaAttributes.append(name.toString(), value.toString());
-                }
-                else {
-                    QNINFO("Skipping <param> tag occasionally encountered when no parsing en-crypt or en-media tags");
+                    else if (insideEnMediaElement)
+                    {
+                        enMediaAttributes.append(name.toString(), value.toString());
+                    }
+                    else
+                    {
+                        QNINFO("Skipping <param> tag occasionally encountered when no parsing en-crypt or en-media tags");
+                    }
                 }
 
                 continue;
@@ -408,6 +409,8 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
     QString lastElementName;
     QXmlStreamAttributes lastElementAttributes;
 
+    bool insideEnCryptTag = false;
+
     while(!reader.atEnd())
     {
         Q_UNUSED(reader.readNext());
@@ -442,6 +445,8 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
             }
             else if (lastElementName == "en-crypt")
             {
+                insideEnCryptTag = true;
+                --writeElementCounter;
                 // NOTE: the attributes will be converted to HTML later, along with the characters data
                 continue;
             }
@@ -468,12 +473,13 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
             else
             {
                 QStringRef text = reader.text();
-                if (lastElementName == "en-crypt")
-                {
+
+                if ((lastElementName == "en-crypt") && insideEnCryptTag) {
                     encryptedTextToHtml(lastElementAttributes, text, writer, decryptedTextCache);
+                    ++writeElementCounter;
+                    insideEnCryptTag = false;
                 }
-                else
-                {
+                else {
                     writer.writeCharacters(reader.text().toString());
                     QNTRACE("Wrote characters: " << reader.text().toString());
                 }

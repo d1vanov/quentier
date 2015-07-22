@@ -2,5 +2,6 @@
     <qresource prefix="/tests">
         <file>complexNote1.txt</file>
         <file>complexNote2.txt</file>
+        <file>complexNote3.txt</file>
     </qresource>
 </RCC>
