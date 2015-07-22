@@ -11,6 +11,7 @@ bool convertNoteWithToDoTagsToHtmlAndBack(QString & error);
 bool convertNoteWithEncryptionToHtmlAndBack(QString & error);
 bool convertNoteWithResourcesToHtmlAndBack(QString & error);
 bool convertComplexNoteToHtmlAndBack(QString & error);
+bool convertComplexNote2ToHtmlAndBack(QString & error);
 
 } // namespace test
 } // namespace qute_note

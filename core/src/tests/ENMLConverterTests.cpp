@@ -152,7 +152,21 @@ bool convertComplexNoteToHtmlAndBack(QString & error)
 
     QFile file(":/tests/complexNote1.txt");
     if (!file.open(QIODevice::ReadOnly)) {
-        error = "Can't open resource with complex note #1 for reading";
+        error = "Can't open the resource with complex note #1 for reading";
+        return false;
+    }
+
+    QString noteContent = file.readAll();
+    return convertNoteToHtmlAndBackImpl(noteContent, error);
+}
+
+bool convertComplexNote2ToHtmlAndBack(QString & error)
+{
+    __initENMLConversionTestResources();
+
+    QFile file(":/tests/complexNote2.txt");
+    if (!file.open(QIODevice::ReadOnly)) {
+        error = "Can't open the resource with complex note #2 for reading";
         return false;
     }
 
