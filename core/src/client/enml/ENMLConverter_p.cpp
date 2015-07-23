@@ -68,6 +68,10 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
     noteContent.resize(0);
     QXmlStreamWriter writer(&noteContent);
+    writer.setAutoFormatting(true);
+    writer.setCodec("UTF-8");
+    writer.writeStartDocument();
+    writer.writeDTD("<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">");
 
     int writeElementCounter = 0;
     QString lastElementName;
@@ -86,6 +90,10 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
         Q_UNUSED(reader.readNext());
 
         if (reader.isStartDocument()) {
+            continue;
+        }
+
+        if (reader.isDTD()) {
             continue;
         }
 
@@ -404,6 +412,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
     QXmlStreamReader reader(noteContent);
 
     QXmlStreamWriter writer(&html);
+    writer.setAutoFormatting(true);
     int writeElementCounter = 0;
 
     QString lastElementName;
@@ -416,6 +425,10 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
         Q_UNUSED(reader.readNext());
 
         if (reader.isStartDocument()) {
+            continue;
+        }
+
+        if (reader.isDTD()) {
             continue;
         }
 
@@ -490,6 +503,11 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
             writer.writeEndElement();
             --writeElementCounter;
         }
+    }
+
+    if (reader.hasError()) {
+        QNWARNING("Error reading ENML: " << reader.errorString());
+        return false;
     }
 
     return true;

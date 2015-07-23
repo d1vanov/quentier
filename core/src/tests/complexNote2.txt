@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
 <en-note><div style="position:relative;"><div style="margin-bottom:10px;font-size:14px;line-height:22.4px;font-family:Verdana,sans-serif;overflow-x:hidden;overflow-y:hidden;">
       <i style="font-size:14px;"><b style="font-size:14px;">От переводчика:</b> Джефф Прешинг (Jeff Preshing) — канадский разработчик программного обеспечения, последние 12 лет работающий в Ubisoft Montreal. Он приложил руку к созданию таких известных франшиз как Rainbow Six, Child of Light и Assassin’s Creed. У себя в блоге он часто пишет об интересных аспектах параллельного программирования, особенно применительно к Game Dev. Сегодня я бы хотел представить на суд общественности перевод одной из статей Джеффа.</i><div/>
 <div/>
@@ -146,7 +148,7 @@ private:
 <h4 style="font-size:16.8px;font-weight:400;margin-block-start:;margin-block-end:;margin-top:0px;margin-bottom:0px;font-family:Verdana,sans-serif;"><b style="font-size:16.8px;font-style:normal;">5. Легковесный семафор</b></h4><div/>
 Да, все верно: при помощи паттерна box office и семафора мы можем реализовать… другой семафор.<div/>
 <div/>
-Зачем нам это делать? Потому что тогда мы получим <b style="font-size:14px;font-style:normal;">LightweightSemaphore</b>. У такого семафора очень дешевая операция <i style="font-size:14px;">signal</i>, когда в очереди нет ожидающих потоков. К тому же она не зависит от реализации семафора, предоставляемого ОС. При вызове <i style="font-size:14px;">signal</i>, box office увеличивает значение собственного внутреннего счетчика, не обращаясь к нижележащему семафору.<div/>
+Зачем нам это делать? Потому что тогда мы получим <b style="font-size:14px;font-style:normal;">LightweightSemaphore</b>. У такого семафора очень дешевая операция <i style="font-size:14px;">signal</i>, когда в очереди нет ожидающих потоков. К тому же она не зависит от реализации семафора, предоставляемого ОС. При вызове <i style="font-size:14px;">signal</i>, box office увеличивает значение собственного внутреннего счетчика, не обращаясь к нижележащему семафору.<div/>
 <div/>
 <div style="font-size:14px;text-align:center;"><en-media hash="3d78a31af6e25546a09ba542d22685ca" type="image/png" style="font-size:14px;vertical-align:middle;max-width:1000px;"/></div><div/>
 <div/>

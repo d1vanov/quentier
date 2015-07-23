@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
 <en-note><div style="position:relative;"><div lang="en-us">
 
 <div style="margin-top:0px;margin-bottom:0px;font-size:18px;font-family:Arial,Helvetica,sans-serif;background-color:rgb(255, 255, 255);">
@@ -231,283 +233,283 @@
 <div/>
 
 <div/>
-  
+  
 <div/>
-  &lt;tbody&gt;
+  &lt;tbody&gt;
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      <strong style="background-color:rgb(224, 224, 224);">&lt;th</strong> class="sect" colspan="10" <strong style="background-color:rgb(224, 224, 224);">id="<em style="color:rgb(0, 0, 255);">ri</em>"&gt;</strong>Requester Information&lt;/th&gt;
+      <strong style="background-color:rgb(224, 224, 224);">&lt;th</strong> class="sect" colspan="10" <strong style="background-color:rgb(224, 224, 224);">id="<em style="color:rgb(0, 0, 255);">ri</em>"&gt;</strong>Requester Information&lt;/th&gt;
 <div/>
-    &lt;/tr&gt;
-<div/>
-
-<div/>
-    &lt;tr&gt;
-<div/>
-      <strong style="background-color:rgb(224, 224, 224);">&lt;th</strong> colspan="1" <strong style="background-color:rgb(224, 224, 224);">id="<em style="color:rgb(0, 0, 255);">name</em>"</strong> class="label"<strong style="background-color:rgb(224, 224, 224);">&gt;</strong>Name&lt;/th&gt;
-<div/>
-      <strong style="background-color:rgb(224, 224, 224);">&lt;td</strong> colspan="7" <strong style="background-color:rgb(224, 224, 224);">headers="<em style="color:rgb(0, 0, 255);">name</em>"&gt;</strong>Jon Smith&lt;/td&gt;
-<div/>
-      <strong style="background-color:rgb(224, 224, 224);">&lt;th</strong> colspan="1" <strong style="background-color:rgb(224, 224, 224);">id="<em style="color:rgb(0, 0, 255);">date</em>"</strong> class="label"<strong style="background-color:rgb(224, 224, 224);">&gt;</strong>Date&lt;/th&gt;
-<div/>
-      <strong style="background-color:rgb(224, 224, 224);">&lt;td</strong> colspan="1" <strong style="background-color:rgb(224, 224, 224);">headers="<em style="color:rgb(0, 0, 255);">date</em>"&gt;</strong>9/9/2005&lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th colspan="1" id="dept" class="label"&gt;Department&lt;/th&gt;
+      <strong style="background-color:rgb(224, 224, 224);">&lt;th</strong> colspan="1" <strong style="background-color:rgb(224, 224, 224);">id="<em style="color:rgb(0, 0, 255);">name</em>"</strong> class="label"<strong style="background-color:rgb(224, 224, 224);">&gt;</strong>Name&lt;/th&gt;
 <div/>
-      &lt;td colspan="9" headers="ri dept"&gt;Customer Service&lt;/td&gt;
+      <strong style="background-color:rgb(224, 224, 224);">&lt;td</strong> colspan="7" <strong style="background-color:rgb(224, 224, 224);">headers="<em style="color:rgb(0, 0, 255);">name</em>"&gt;</strong>Jon Smith&lt;/td&gt;
 <div/>
-    &lt;/tr&gt;
+      <strong style="background-color:rgb(224, 224, 224);">&lt;th</strong> colspan="1" <strong style="background-color:rgb(224, 224, 224);">id="<em style="color:rgb(0, 0, 255);">date</em>"</strong> class="label"<strong style="background-color:rgb(224, 224, 224);">&gt;</strong>Date&lt;/th&gt;
 <div/>
-
+      <strong style="background-color:rgb(224, 224, 224);">&lt;td</strong> colspan="1" <strong style="background-color:rgb(224, 224, 224);">headers="<em style="color:rgb(0, 0, 255);">date</em>"&gt;</strong>9/9/2005&lt;/td&gt;
 <div/>
-    &lt;tr&gt;
-<div/>
-      &lt;th colspan="1" id="remail" class="label"&gt;E-mail&lt;/th&gt;
-<div/>
-      &lt;td colspan="4" headers="ri remail"&gt;jon.smith@stateu.edu&lt;/td&gt;
-<div/>
-      &lt;th colspan="1" id="rphone" class="label"&gt;Phone&lt;/th&gt;
-<div/>
-      &lt;td colspan="4" headers="ri rphone"&gt;(123) 456-7890&lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th class="sect" colspan="10" id="si"&gt;Supplier Information&lt;/th&gt;
+      &lt;th colspan="1" id="dept" class="label"&gt;Department&lt;/th&gt;
 <div/>
-    &lt;/tr&gt;
+      &lt;td colspan="9" headers="ri dept"&gt;Customer Service&lt;/td&gt;
 <div/>
-
-<div/>
-    &lt;tr&gt;
-<div/>
-      &lt;th colspan="1" id="cn" class="label"&gt;Name&lt;/th&gt;
-<div/>
-      &lt;td colspan="9" headers="si cn"&gt;Acme Computer Supplies&lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th colspan="1" id="ad1" class="label"&gt;Address 1&lt;/th&gt;
+      &lt;th colspan="1" id="remail" class="label"&gt;E-mail&lt;/th&gt;
 <div/>
-      &lt;td colspan="9" headers="si ad1"&gt;1234 Business Way&lt;/td&gt;
+      &lt;td colspan="4" headers="ri remail"&gt;jon.smith@stateu.edu&lt;/td&gt;
 <div/>
-    &lt;/tr&gt;
+      &lt;th colspan="1" id="rphone" class="label"&gt;Phone&lt;/th&gt;
 <div/>
-
+      &lt;td colspan="4" headers="ri rphone"&gt;(123) 456-7890&lt;/td&gt;
 <div/>
-    &lt;tr&gt;
-<div/>
-      &lt;th colspan="1" id="ad2" class="label"&gt;Address 2&lt;/th&gt;
-<div/>
-      &lt;td colspan="9" headers="si ad2"&gt; &lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th colspan="1" id="city" class="label"&gt;City&lt;/th&gt;
+      &lt;th class="sect" colspan="10" id="si"&gt;Supplier Information&lt;/th&gt;
 <div/>
-      &lt;td colspan="3" headers="si city"&gt;Somewhere&lt;/td&gt;
-<div/>
-      &lt;th colspan="1" id="state" class="label"&gt;State&lt;/th&gt;
-<div/>
-      &lt;td colspan="1" headers="si state"&gt;&lt;abbr title="Illinois"&gt;IL&lt;/abbr&gt;&lt;/td&gt;
-<div/>
-      &lt;th colspan="3" id="zip" class="label"&gt;Zip Code&lt;/th&gt;
-<div/>
-      &lt;td colspan="1" headers="si zip"&gt;61820&lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th colspan="1" class="label" id="semail"&gt;E-mail&lt;/th&gt;
+      &lt;th colspan="1" id="cn" class="label"&gt;Name&lt;/th&gt;
 <div/>
-      &lt;td colspan="4" headers="si semail"&gt;order@acmesupply.edu&lt;/td&gt;
+      &lt;td colspan="9" headers="si cn"&gt;Acme Computer Supplies&lt;/td&gt;
 <div/>
-      &lt;th colspan="1" id="sweb" class="label"&gt;Web&lt;/th&gt;
-<div/>
-      &lt;td colspan="4" headers="si sweb"&gt;&lt;a href="http://www.acmesupply.edu/"&gt;www.acmesupply.edu&lt;/a&gt;&lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th colspan="1" id="sphone" class="label"&gt;Phone&lt;/th&gt;
+      &lt;th colspan="1" id="ad1" class="label"&gt;Address 1&lt;/th&gt;
 <div/>
-      &lt;td colspan="4" headers="si sphone"&gt;(123) 222-3344&lt;/td&gt;
+      &lt;td colspan="9" headers="si ad1"&gt;1234 Business Way&lt;/td&gt;
 <div/>
-      &lt;th colspan="1" id="sfax" class="label"&gt;Fax&lt;/th&gt;
-<div/>
-      &lt;td colspan="4" headers="si sfax"&gt;(123) 222-3355&lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th class="sect" colspan="10" id="items"&gt;Items&lt;/th&gt;
+      &lt;th colspan="1" id="ad2" class="label"&gt;Address 2&lt;/th&gt;
 <div/>
-    &lt;/tr&gt;
+      &lt;td colspan="9" headers="si ad2"&gt; &lt;/td&gt;
 <div/>
-
-<div/>
-    &lt;tr&gt;
-<div/>
-      &lt;th class="title" colspan="1" id="itemnum"&gt;Item #&lt;/th&gt;
-<div/>
-      &lt;th colspan="1" class="title" id="part"&gt;Part Number&lt;/th&gt;
-<div/>
-      &lt;th colspan="5" class="title" id="desc"&gt;Description&lt;/th&gt;
-<div/>
-      &lt;th colspan="1" id="qty" class="title"&gt;Quantity&lt;/th&gt;
-<div/>
-      &lt;th colspan="1" id="unit" class="title"&gt;Unit Cost&lt;/th&gt;
-<div/>
-      &lt;th colspan="1" id="totalcost" class="title"&gt;Total Cost&lt;/th&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th class="title" colspan="1" id="num1"&gt;1&lt;/th&gt;
+      &lt;th colspan="1" id="city" class="label"&gt;City&lt;/th&gt;
 <div/>
-      &lt;td class="part" colspan="1" headers="part  num1"&gt;197-540501&lt;/td&gt;
+      &lt;td colspan="3" headers="si city"&gt;Somewhere&lt;/td&gt;
 <div/>
-      &lt;td class="part" colspan="5" headers="desc  num1"&gt;Toner Cartridge for LaserJet 4100 Series 6000 Page Duty Cycle &lt;/td&gt;
+      &lt;th colspan="1" id="state" class="label"&gt;State&lt;/th&gt;
 <div/>
-      &lt;td class="qty" colspan="1" headers="qty   num1"&gt;2&lt;/td&gt;
+      &lt;td colspan="1" headers="si state"&gt;&lt;abbr title="Illinois"&gt;IL&lt;/abbr&gt;&lt;/td&gt;
 <div/>
-      &lt;td class="cost" colspan="1" headers="unit  num1"&gt;$29.95&lt;/td&gt;
+      &lt;th colspan="3" id="zip" class="label"&gt;Zip Code&lt;/th&gt;
 <div/>
-      &lt;td class="cost" colspan="1" headers="totalcost num1"&gt;$59.90&lt;/td&gt;
+      &lt;td colspan="1" headers="si zip"&gt;61820&lt;/td&gt;
 <div/>
-    &lt;/tr&gt;
-<div/>
-
-<div/>
-    &lt;tr&gt;
-<div/>
-      &lt;th class="title" colspan="1" id="num2"&gt;2&lt;/th&gt;
-<div/>
-      &lt;td class="part" colspan="1" headers="part  num2"&gt;555-013097&lt;/td&gt;
-<div/>
-      &lt;td class="part" colspan="5" headers="desc  num2"&gt;Ink Cartridge color for Epson Stylus C62 &lt;/td&gt;
-<div/>
-      &lt;td class="qty" colspan="1" headers="qty   num2"&gt;3&lt;/td&gt;
-<div/>
-      &lt;td class="cost" colspan="1" headers="unit  num2"&gt;$27.00&lt;/td&gt;
-<div/>
-      &lt;td class="cost" colspan="1" headers="totalcost num2"&gt;$81.00&lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th class="title" colspan="1" id="num3"&gt;3&lt;/th&gt;
+      &lt;th colspan="1" class="label" id="semail"&gt;E-mail&lt;/th&gt;
 <div/>
-      &lt;td class="part" colspan="1" headers="part  num3"&gt;555-0167213&lt;/td&gt;
+      &lt;td colspan="4" headers="si semail"&gt;order@acmesupply.edu&lt;/td&gt;
 <div/>
-      &lt;td class="part" colspan="5" headers="desc  num3"&gt;Parallel Printer Cable 10ft &lt;/td&gt;
+      &lt;th colspan="1" id="sweb" class="label"&gt;Web&lt;/th&gt;
 <div/>
-      &lt;td class="qty" colspan="1" headers="qty   num3"&gt;1&lt;/td&gt;
+      &lt;td colspan="4" headers="si sweb"&gt;&lt;a href="http://www.acmesupply.edu/"&gt;www.acmesupply.edu&lt;/a&gt;&lt;/td&gt;
 <div/>
-      &lt;td class="cost" colspan="1" headers="unit  num3"&gt;$6.00&lt;/td&gt;
-<div/>
-      &lt;td class="cost" colspan="1" headers="totalcost num3"&gt;$6.00&lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th class="sub" colspan="9" id="subtotal"&gt;Sub-Total&lt;/th&gt;
+      &lt;th colspan="1" id="sphone" class="label"&gt;Phone&lt;/th&gt;
 <div/>
-      &lt;td class="cost" colspan="1" headers="subtotal"&gt;$146.90&lt;/td&gt;
+      &lt;td colspan="4" headers="si sphone"&gt;(123) 222-3344&lt;/td&gt;
 <div/>
-    &lt;/tr&gt;
+      &lt;th colspan="1" id="sfax" class="label"&gt;Fax&lt;/th&gt;
 <div/>
-
+      &lt;td colspan="4" headers="si sfax"&gt;(123) 222-3355&lt;/td&gt;
 <div/>
-    &lt;tr&gt;
-<div/>
-      &lt;th class="sub" colspan="9" id="tax"&gt;Tax&lt;/th&gt;
-<div/>
-      &lt;td class="cost" colspan="1" headers="tax"&gt;$10.28&lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th class="sub" colspan="9" id="ship"&gt;Shipping&lt;/th&gt;
+      &lt;th class="sect" colspan="10" id="items"&gt;Items&lt;/th&gt;
 <div/>
-      &lt;td class="cost" colspan="1" headers="ship"&gt;$15.80&lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-    &lt;tr&gt;
+    &lt;tr&gt;
 <div/>
-      &lt;th colspan="9" id="totalall" class="total"&gt;Total&lt;/th&gt;
+      &lt;th class="title" colspan="1" id="itemnum"&gt;Item #&lt;/th&gt;
 <div/>
-      &lt;td class="total" colspan="1" headers="totalall"&gt;$172.98&lt;/td&gt;
+      &lt;th colspan="1" class="title" id="part"&gt;Part Number&lt;/th&gt;
 <div/>
-    &lt;/tr&gt;
+      &lt;th colspan="5" class="title" id="desc"&gt;Description&lt;/th&gt;
 <div/>
-
+      &lt;th colspan="1" id="qty" class="title"&gt;Quantity&lt;/th&gt;
 <div/>
-    &lt;tr&gt;
+      &lt;th colspan="1" id="unit" class="title"&gt;Unit Cost&lt;/th&gt;
 <div/>
-      &lt;th colspan="10" id="approval" class="sect"&gt;Approval&lt;/th&gt;
+      &lt;th colspan="1" id="totalcost" class="title"&gt;Total Cost&lt;/th&gt;
 <div/>
-    &lt;/tr&gt;
-<div/>
-
-<div/>
-    &lt;tr&gt;
-<div/>
-      &lt;th class="approval" colspan="1" id="appperson"&gt;Person&lt;/th&gt;
-<div/>
-      &lt;td class="approval" colspan="7" headers="approval appperson"&gt;Sara Johnson&lt;/td&gt;
-<div/>
-      &lt;th class="approval" colspan="1" id="appdate"&gt;Date&lt;/th&gt;
-<div/>
-      &lt;td class="approval" colspan="1" headers="approval appdate"&gt;9/7/2005&lt;/td&gt;
-<div/>
-    &lt;/tr&gt;
+    &lt;/tr&gt;
 <div/>
 
 <div/>
-  &lt;/tbody&gt;
+    &lt;tr&gt;
+<div/>
+      &lt;th class="title" colspan="1" id="num1"&gt;1&lt;/th&gt;
+<div/>
+      &lt;td class="part" colspan="1" headers="part  num1"&gt;197-540501&lt;/td&gt;
+<div/>
+      &lt;td class="part" colspan="5" headers="desc  num1"&gt;Toner Cartridge for LaserJet 4100 Series 6000 Page Duty Cycle &lt;/td&gt;
+<div/>
+      &lt;td class="qty" colspan="1" headers="qty   num1"&gt;2&lt;/td&gt;
+<div/>
+      &lt;td class="cost" colspan="1" headers="unit  num1"&gt;$29.95&lt;/td&gt;
+<div/>
+      &lt;td class="cost" colspan="1" headers="totalcost num1"&gt;$59.90&lt;/td&gt;
+<div/>
+    &lt;/tr&gt;
+<div/>
+
+<div/>
+    &lt;tr&gt;
+<div/>
+      &lt;th class="title" colspan="1" id="num2"&gt;2&lt;/th&gt;
+<div/>
+      &lt;td class="part" colspan="1" headers="part  num2"&gt;555-013097&lt;/td&gt;
+<div/>
+      &lt;td class="part" colspan="5" headers="desc  num2"&gt;Ink Cartridge color for Epson Stylus C62 &lt;/td&gt;
+<div/>
+      &lt;td class="qty" colspan="1" headers="qty   num2"&gt;3&lt;/td&gt;
+<div/>
+      &lt;td class="cost" colspan="1" headers="unit  num2"&gt;$27.00&lt;/td&gt;
+<div/>
+      &lt;td class="cost" colspan="1" headers="totalcost num2"&gt;$81.00&lt;/td&gt;
+<div/>
+    &lt;/tr&gt;
+<div/>
+
+<div/>
+    &lt;tr&gt;
+<div/>
+      &lt;th class="title" colspan="1" id="num3"&gt;3&lt;/th&gt;
+<div/>
+      &lt;td class="part" colspan="1" headers="part  num3"&gt;555-0167213&lt;/td&gt;
+<div/>
+      &lt;td class="part" colspan="5" headers="desc  num3"&gt;Parallel Printer Cable 10ft &lt;/td&gt;
+<div/>
+      &lt;td class="qty" colspan="1" headers="qty   num3"&gt;1&lt;/td&gt;
+<div/>
+      &lt;td class="cost" colspan="1" headers="unit  num3"&gt;$6.00&lt;/td&gt;
+<div/>
+      &lt;td class="cost" colspan="1" headers="totalcost num3"&gt;$6.00&lt;/td&gt;
+<div/>
+    &lt;/tr&gt;
+<div/>
+
+<div/>
+    &lt;tr&gt;
+<div/>
+      &lt;th class="sub" colspan="9" id="subtotal"&gt;Sub-Total&lt;/th&gt;
+<div/>
+      &lt;td class="cost" colspan="1" headers="subtotal"&gt;$146.90&lt;/td&gt;
+<div/>
+    &lt;/tr&gt;
+<div/>
+
+<div/>
+    &lt;tr&gt;
+<div/>
+      &lt;th class="sub" colspan="9" id="tax"&gt;Tax&lt;/th&gt;
+<div/>
+      &lt;td class="cost" colspan="1" headers="tax"&gt;$10.28&lt;/td&gt;
+<div/>
+    &lt;/tr&gt;
+<div/>
+
+<div/>
+    &lt;tr&gt;
+<div/>
+      &lt;th class="sub" colspan="9" id="ship"&gt;Shipping&lt;/th&gt;
+<div/>
+      &lt;td class="cost" colspan="1" headers="ship"&gt;$15.80&lt;/td&gt;
+<div/>
+    &lt;/tr&gt;
+<div/>
+
+<div/>
+    &lt;tr&gt;
+<div/>
+      &lt;th colspan="9" id="totalall" class="total"&gt;Total&lt;/th&gt;
+<div/>
+      &lt;td class="total" colspan="1" headers="totalall"&gt;$172.98&lt;/td&gt;
+<div/>
+    &lt;/tr&gt;
+<div/>
+
+<div/>
+    &lt;tr&gt;
+<div/>
+      &lt;th colspan="10" id="approval" class="sect"&gt;Approval&lt;/th&gt;
+<div/>
+    &lt;/tr&gt;
+<div/>
+
+<div/>
+    &lt;tr&gt;
+<div/>
+      &lt;th class="approval" colspan="1" id="appperson"&gt;Person&lt;/th&gt;
+<div/>
+      &lt;td class="approval" colspan="7" headers="approval appperson"&gt;Sara Johnson&lt;/td&gt;
+<div/>
+      &lt;th class="approval" colspan="1" id="appdate"&gt;Date&lt;/th&gt;
+<div/>
+      &lt;td class="approval" colspan="1" headers="approval appdate"&gt;9/7/2005&lt;/td&gt;
+<div/>
+    &lt;/tr&gt;
+<div/>
+
+<div/>
+  &lt;/tbody&gt;
 <div/>
 
 <div/>
@@ -522,11 +524,11 @@
 <div/>
 table.complex {
 <div/>
-  border-left: 1px solid #808080;
+  border-left: 1px solid #808080;
 <div/>
-  border-right: 1px solid #808080;
+  border-right: 1px solid #808080;
 <div/>
-  border-bottom: 1px solid #808080;
+  border-bottom: 1px solid #808080;
 <div/>
 }
 <div/>
@@ -534,15 +536,15 @@ table.complex {
 <div/>
 table.complex caption {
 <div/>
-  padding: .25em;
+  padding: .25em;
 <div/>
-  border-top: 1px solid #808080;
+  border-top: 1px solid #808080;
 <div/>
-  border-left: 1px solid #808080;
+  border-left: 1px solid #808080;
 <div/>
-  border-right: 1px solid #808080;
+  border-right: 1px solid #808080;
 <div/>
-  background-color: #FFFFFF;
+  background-color: #FFFFFF;
 <div/>
 }
 <div/>
@@ -552,19 +554,19 @@ table.complex caption {
 <div/>
 table.complex td, table.complex th {
 <div/>
-  padding: .125em;
+  padding: .125em;
 <div/>
-  margin: 0;
+  margin: 0;
 <div/>
-  width: 10%;
+  width: 10%;
 <div/>
-  background-color: #FFFFFF;
+  background-color: #FFFFFF;
 <div/>
-  border-right: 1px solid #C0C0C0;
+  border-right: 1px solid #C0C0C0;
 <div/>
-  border-top: 1px solid #C0C0C0;
+  border-top: 1px solid #C0C0C0;
 <div/>
-  border-bottom: 1px solid #C0C0C0;
+  border-bottom: 1px solid #C0C0C0;
 <div/>
 }
 <div/>
@@ -572,9 +574,9 @@ table.complex td, table.complex th {
 <div/>
 table.complex th.label {
 <div/>
-  text-align: right;
+  text-align: right;
 <div/>
-  padding-right: .25em;
+  padding-right: .25em;
 <div/>
 }
 <div/>
@@ -582,7 +584,7 @@ table.complex th.label {
 <div/>
 table.complex th.title {
 <div/>
-  text-align: center;
+  text-align: center;
 <div/>
 }
 <div/>
@@ -590,7 +592,7 @@ table.complex th.title {
 <div/>
 table.complex td.qty {
 <div/>
-  text-align: center;
+  text-align: center;
 <div/>
 }
 <div/>
@@ -598,9 +600,9 @@ table.complex td.qty {
 <div/>
 table.complex td.cost, table.complex th.approval {
 <div/>
-  text-align: right;
+  text-align: right;
 <div/>
-  padding-right: .25em;
+  padding-right: .25em;
 <div/>
 }
 <div/>
@@ -608,11 +610,11 @@ table.complex td.cost, table.complex th.approval {
 <div/>
 table.complex td.total {
 <div/>
-  font-weight: bold;
+  font-weight: bold;
 <div/>
-  text-align: right;
+  text-align: right;
 <div/>
-  padding-right: .25em;
+  padding-right: .25em;
 <div/>
 }
 <div/>
@@ -622,9 +624,9 @@ table.complex td.total {
 <div/>
 table.complex th.sub {
 <div/>
-  text-align: right;
+  text-align: right;
 <div/>
-  padding-right: .25em;
+  padding-right: .25em;
 <div/>
 }
 <div/>
@@ -632,11 +634,11 @@ table.complex th.sub {
 <div/>
 table.complex th.sect {
 <div/>
-  text-align: Left;
+  text-align: Left;
 <div/>
-  background-color: #C0C0C0;
+  background-color: #C0C0C0;
 <div/>
-  border-top: 1px solid #808080;
+  border-top: 1px solid #808080;
 <div/>
 }
 <div/>

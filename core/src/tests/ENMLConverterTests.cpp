@@ -14,7 +14,9 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
 
 bool convertSimpleNoteToHtmlAndBack(QString & error)
 {
-    QString noteContent = "<en-note>"
+    QString noteContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                          "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
+                          "<en-note>"
                           "<span style=\"font-weight:bold;color:red;\">Here's some bold red text!</span>"
                           "<div>Hickory, dickory, dock,</div>"
                           "<div>The mouse ran up the clock.</div>"
@@ -29,7 +31,9 @@ bool convertSimpleNoteToHtmlAndBack(QString & error)
 
 bool convertNoteWithToDoTagsToHtmlAndBack(QString & error)
 {
-    QString noteContent = "<en-note>"
+    QString noteContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                          "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
+                          "<en-note>"
                           "<h1>Hello, world!</h1>"
                           "<div>Here's the note with some todo tags</div>"
                           "<en-todo/>An item that I haven't completed yet"
@@ -43,7 +47,9 @@ bool convertNoteWithToDoTagsToHtmlAndBack(QString & error)
 
 bool convertNoteWithEncryptionToHtmlAndBack(QString & error)
 {
-    QString noteContent = "<en-note>"
+    QString noteContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                          "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
+                          "<en-note>"
                           "<h3>This note contains encrypted text</h3>"
                           "<br/>"
                           "<div>Here's the encrypted text containing only the hint attribute</div>"
@@ -135,7 +141,9 @@ bool convertNoteWithEncryptionToHtmlAndBack(QString & error)
 
 bool convertNoteWithResourcesToHtmlAndBack(QString & error)
 {
-    QString noteContent = "<en-note>"
+    QString noteContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                          "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
+                          "<en-note>"
                           "<div>Here's the note with some embedded resources</div>"
                           "<br/>"
                           "<div>The first resource: simple image</div>"
@@ -181,6 +189,20 @@ bool convertComplexNote3ToHtmlAndBack(QString & error)
     QFile file(":/tests/complexNote3.txt");
     if (!file.open(QIODevice::ReadOnly)) {
         error = "Can't open the resource with complex note #3 for reading";
+        return false;
+    }
+
+    QString noteContent = file.readAll();
+    return convertNoteToHtmlAndBackImpl(noteContent, error);
+}
+
+bool convertComplexNote4ToHtmlAndBack(QString &error)
+{
+    __initENMLConversionTestResources();
+
+    QFile file(":/tests/complexNote4.txt");
+    if (!file.open(QIODevice::ReadOnly)) {
+        error = "Can't open the resource with complex note #4 for reading";
         return false;
     }
 
@@ -272,6 +294,18 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
             checkForEmptyCharacters = false;
         }
 
+        bool checkForEntityReference = true;
+        while(checkForEntityReference)
+        {
+            if (readerOriginal.isEntityReference()) {
+                Q_UNUSED(readerOriginal.readNext());
+                continue;
+            }
+            else {
+                checkForEntityReference = false;
+            }
+        }
+
         if (readerOriginal.isStartDocument() && !readerProcessed.isStartDocument()) {
             error = "QXmlStreamReader of the original ENML is at the start of the document while the reader of the processed ENML is not";
             PRINT_WARNING(error);
@@ -282,7 +316,19 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
         {
             if (!readerProcessed.isStartElement()) {
                 error = "QXmlStreamReader of the original ENML is at the start of the element while the reader of the processed ENML is not";
-                PRINT_WARNING(error);
+                PRINT_WARNING(error << "\n\nchecking the state of processed ENML reader: "
+                              << "isStartDocument: " << (readerProcessed.isStartDocument() ? "true" : "false")
+                              << ", isDTD: " << (readerProcessed.isDTD() ? "true" : "false")
+                              << ", isCDATA: " << (readerProcessed.isCDATA() ? "true" : "false")
+                              << ", isCharacters: " << (readerProcessed.isCharacters() ? " true" : "false")
+                              << ", isComment: " << (readerProcessed.isComment() ? "true" : "false")
+                              << ", isEndElement: " << (readerProcessed.isEndElement() ? "true" : "false")
+                              << ", isEndDocument: " << (readerProcessed.isEndDocument() ? "true" : "false")
+                              << ", isEntityReference: " << (readerProcessed.isEntityReference() ? "true" : "false")
+                              << ", isProcessingInstruction: " << (readerProcessed.isProcessingInstruction() ? "true" : "false")
+                              << ", isStandaloneDocument: " << (readerProcessed.isStandaloneDocument() ? "true" : "false")
+                              << ", isStartDocument: " << (readerProcessed.isStartDocument() ? "true" : "false")
+                              << ", isWhitespace: " << (readerProcessed.isWhitespace() ? "true" : "false"));
                 return false;
             }
 
