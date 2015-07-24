@@ -1,0 +1,20 @@
+message(STATUS "Looking for system wide installation of Qt4 Mimetypes")
+find_path(QT4_MIMETYPES_INCLUDE_PATH QMimeType SILENT_REQUIRED)
+if(NOT QT4_MIMETYPES_INCLUDE_PATH)
+  message(FATAL_ERROR "Can't find development header QMimeType")
+elseif(NOT EXISTS ${QT4_MIMETYPES_INCLUDE_PATH}/QMimeDatabase)
+  message(FATAL_ERROR "Found path to QMimeType in ${QT4_MIMETYPES_INCLUDE_PATH} but can't find QMimeDatabase in the same folder")
+elseif(NOT EXISTS ${QT4_MIMETYPES_INCLUDE_PATH}/QMimeMagicRule)
+  message(FATAL_ERROR "Found path to QMimeType in ${QT4_MIMETYPES_INCLUDE_PATH} but can't find QMimeMagicRule in the same folder")
+else()
+  message(STATUS "Found development headers for Qt4 Mimetypes in folder ${QT4_MIMETYPES_INCLUDE_PATH}")
+  find_library(QT4_MIMETYPES_LIB
+               NAMES libmimetypes-qt4.so libmimetypes-qt4.a libmimetypes-qt4.dylib libmimetypes-qt4.dll mimetypes-qt4.dll 
+                     libmimetypes-qt4.lib mimetypes-qt4.lib
+               SILENT REQUIRED)
+  if(NOT QT4_MIMETYPES_LIB)
+    message(FATAL_ERROR "Can't find Qt4 Mimetypes library")
+  else()
+    message(STATUS "Found Qt4 Mimetypes library: " ${QT4_MIMETYPES_LIB})
+  endif()
+endif()

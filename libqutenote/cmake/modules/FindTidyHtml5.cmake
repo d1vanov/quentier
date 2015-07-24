@@ -1,7 +1,7 @@
 message(STATUS "Looking for system wide installation of tidy-html5")
 find_path(TIDY_HTML5_INCLUDE_PATH tidy.h SILENT REQUIRED)
 if(NOT TIDY_HTML5_INCLUDE_PATH)
-  message(FATAL_ERROR "Can't find system-wide installation of tidy-html5")
+  message(FATAL_ERROR "Can't find development header tidy.h")
 elseif(NOT EXISTS ${TIDY_HTML5_INCLUDE_PATH}/tidyenum.h)
   message(FATAL_ERROR "Found path to tidy.h in ${TIDY_HTML5_INCLUDE_PATH} but can't find tidyenum.h in the same folder")
 elseif(NOT EXISTS ${TIDY_HTML5_INCLUDE_PATH}/tidyplatform.h)
