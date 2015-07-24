@@ -1,5 +1,5 @@
 if(NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")    # clang is not supported by cppcheck
-  include("cmake/CppcheckTargets.cmake")
+  include(CppcheckTargets)
 
   ## using only source files for cppcheck as a first attempt
   set(SOURCE_FILE_REGEX "\\.cpp")

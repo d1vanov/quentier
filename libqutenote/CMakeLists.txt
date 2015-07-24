@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 if(POLICY CMP0020)
   cmake_policy(SET CMP0020 NEW)
 endif()
-project(qutenotecore)
+project(libqutenote)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -12,12 +12,30 @@ get_directory_property(THIRDPARTY_INCLUDE_DIRS DIRECTORY 3rdparty DEFINITION THI
 get_directory_property(THIRDPARTY_SOURCES DIRECTORY 3rdparty DEFINITION THIRDPARTY_SOURCES)
 
 get_directory_property(SIMPLECRYPT_LIB DIRECTORY 3rdparty DEFINITION SIMPLECRYPT_LIB)
-get_directory_property(QEVERCLOUD_LIB DIRECTORY 3rdparty DEFINITION QEVERCLOUD_LIB)
+
+if(NOT SYSTEM_QEVERCLOUD)
+  get_directory_property(QEVERCLOUD_LIB DIRECTORY 3rdparty DEFINITION QEVERCLOUD_LIB)
+endif()
+
 get_directory_property(QTKEYCHAIN_LIB DIRECTORY 3rdparty DEFINITION QTKEYCHAIN_LIB)
 get_directory_property(STACKTRACE_LIB DIRECTORY 3rdparty DEFINITION STACKTRACE_LIB)
 get_directory_property(QSLOG_LIB DIRECTORY 3rdparty DEFINITION QSLOG_LIB)
 get_directory_property(QT4_MIMETYPES_LIB DIRECTORY 3rdparty DEFINITION QT4_MIMETYPES_LIB)
 get_directory_property(TIDY_HTML5_LIB DIRECTORY 3rdparty DEFINITION TIDY_HTML5_LIB)
+
+set(THIRDPARTY_LIBS ${QTKEYCHAIN_LIB})
+list(APPEND THIRDPARTY_LIBS ${STACKTRACE_LIB})
+list(APPEND THIRDPARTY_LIBS ${SIMPLECRYPT_LIB})
+list(APPEND THIRDPARTY_LIBS ${QEVERCLOUD_LIB})
+list(APPEND THIRDPARTY_LIBS ${QSLOG_LIB})
+list(APPEND THIRDPARTY_LIBS ${TIDY_HTML5_LIB})
+list(APPEND THIRDPARTY_LIBS ${OPENSSL_LIBRARIES})
+if(NOT USE_QT5)
+  list(APPEND THIRDPARTY_LIBS ${QT4_MIMETYPES_LIB})
+endif()
+if(LIBCPP)
+  list(APPEND THIRDPARTY_LIBS ${LIBCPP})
+endif()
 
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
 
@@ -249,15 +267,7 @@ else()
                         ${QT_LIBRARIES})
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB}
-                      ${OPENSSL_LIBRARIES} ${LIBXML2_LIBRARIES}
-                      ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB} ${STACKTRACE_LIB}
-                      ${QSLOG_LIB} ${TIDY_HTML5_LIB})
-
-if(NOT USE_QT5)
-  target_link_libraries(${PROJECT_NAME} ${QT4_MIMETYPES_LIB})
-endif()
-
+target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
 
 set(TEST_HEADERS
     src/tests/EncryptionManagerTests.h
@@ -304,14 +314,6 @@ endif()
 add_executable(test_${PROJECT_NAME} ${TEST_HEADERS} ${TEST_SOURCES} ${${PROJECT_NAME}_TEST_RESOURCES_RCC})
 add_test(test_${PROJECT_NAME} test_${PROJECT_NAME})
 
-if(LIBCPP)
-  target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} ${LIBCPP})
-else()
-  target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
-endif()
-
-target_link_libraries(test_${PROJECT_NAME} ${QSLOG_LIB})
-
 if(USE_QT5)
   qt5_use_modules(test_${PROJECT_NAME} Core)
   qt5_use_modules(test_${PROJECT_NAME} Test)
@@ -320,12 +322,20 @@ else()
   target_link_libraries(test_${PROJECT_NAME} ${QT_LIBRARIES})
 endif()
 
+target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} ${THIRDPARTY_LIBS})
+
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "BUILDING_QUTE_NOTE_DLL=1")
 endif()
 
 # modifying sources list with absolute paths for cppcheck
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
+prepend_path(TEST_SOURCES "${TEST_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
+
+# collect the list of sources to be checked by static analyzer
+set(${PROJECT_NAME}_CHECKABLE_SOURCES ${${PROJECT_NAME}_SOURCES})
+list(APPEND ${PROJECT_NAME}_CHECKABLE_SOURCES ${TEST_SOURCES})
+list(APPEND ${PROJECT_NAME}_CHECKABLE_SOURCES ${THIRDPARTY_SOURCES})
 
 # install shared library
 install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)

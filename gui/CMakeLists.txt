@@ -79,16 +79,7 @@ else()
                         ${QT_LIBRARIES})
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB} ${LIB_QUTE_NOTE}
-                      ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB} ${STACKTRACE_LIB} ${QSLOG_LIB})
-
-if(NOT USE_QT5)
-  target_link_libraries(${PROJECT_NAME} ${QT4_MIMETYPES_LIB})
-endif()
-
-if(LIBCPP)
-  target_link_libraries(${PROJECT_NAME} ${LIBCPP})
-endif()
+target_link_libraries(${PROJECT_NAME} ${LIB_QUTE_NOTE} ${THIRDPARTY_LIBS})
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)

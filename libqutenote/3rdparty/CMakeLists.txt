@@ -35,7 +35,7 @@ else()
   else()
     message(STATUS "Haven't found tidy-html5 sources in 3rdparty folder, will try to find the existing installation")
   endif()
-  include("../../cmake/tidy-html5.cmake")
+  include(FindTidyHtml5)
 endif()
 
 if(NOT USE_QT5)
