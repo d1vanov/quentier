@@ -3,8 +3,6 @@ if(POLICY CMP0020)
   cmake_policy(SET CMP0020 NEW)
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../core/src)
-
 add_subdirectory(simplecrypt)
 get_directory_property(SIMPLECRYPT_LIB DIRECTORY simplecrypt DEFINITION PROJECT_NAME)
 get_directory_property(SIMPLECRYPT_SOURCES DIRECTORY simplecrypt DEFINITION SOURCES)
@@ -37,7 +35,7 @@ else()
   else()
     message(STATUS "Haven't found tidy-html5 sources in 3rdparty folder, will try to find the existing installation")
   endif()
-  include("../cmake/tidy-html5.cmake")
+  include("../../cmake/tidy-html5.cmake")
 endif()
 
 if(NOT USE_QT5)

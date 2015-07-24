@@ -7,7 +7,7 @@ project(QuteNote)
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../core/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqutenote/src)
 
 set(${PROJECT_NAME}_HEADERS
     client/CredentialsModel.h
@@ -79,7 +79,7 @@ else()
                         ${QT_LIBRARIES})
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB} ${QUTE_NOTE_CORE_LIB}
+target_link_libraries(${PROJECT_NAME} ${SIMPLECRYPT_LIB} ${LIB_QUTE_NOTE}
                       ${QEVERCLOUD_LIB} ${QTKEYCHAIN_LIB} ${STACKTRACE_LIB} ${QSLOG_LIB})
 
 if(NOT USE_QT5)

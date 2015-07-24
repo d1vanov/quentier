@@ -68,10 +68,11 @@ if(APPLE)
     list(APPEND qtkeychain_LIBRARIES ${SECURITY_LIBRARY})
 endif()
 
+set(DBUS_SOURCES)
 if(UNIX AND NOT APPLE)
     list(APPEND SOURCES keychain_unix.cpp gnomekeyring.cpp)
     prepend_path(SOURCES "${SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
-    qt_add_dbus_interface(SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/org.kde.KWallet.xml kwallet_interface KWalletInterface)
+    qt_add_dbus_interface(DBUS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/org.kde.KWallet.xml kwallet_interface KWalletInterface)
 endif()
 
 set(qtkeychain_TR_FILES
@@ -92,14 +93,14 @@ install(FILES ${qtkeychain_QM_FILES}
 
 set(QTKEYCHAIN_TARGET_NAME qt${QTKEYCHAIN_VERSION_INFIX}keychain)
 if(NOT QTKEYCHAIN_STATIC)
-    add_library(${QTKEYCHAIN_TARGET_NAME} SHARED ${SOURCES} ${qtkeychain_QM_FILES})
+    add_library(${QTKEYCHAIN_TARGET_NAME} SHARED ${SOURCES} ${DBUS_SOURCES} ${qtkeychain_QM_FILES})
     set_target_properties(${QTKEYCHAIN_TARGET_NAME} PROPERTIES COMPILE_DEFINITIONS QKEYCHAIN_BUILD_QKEYCHAIN_LIB)
     target_link_libraries(${QTKEYCHAIN_TARGET_NAME} ${qtkeychain_LIBRARIES})
 	if(USE_QT5)
       qt5_use_modules(${QTKEYCHAIN_TARGET_NAME} Core)
 	endif()
 else()
-    add_library(${QTKEYCHAIN_TARGET_NAME} STATIC ${SOURCES} ${qtkeychain_QM_FILES})
+    add_library(${QTKEYCHAIN_TARGET_NAME} STATIC ${SOURCES} ${DBUS_SOURCES} ${qtkeychain_QM_FILES})
     set_target_properties(${QTKEYCHAIN_TARGET_NAME} PROPERTIES COMPILE_DEFINITIONS QKEYCHAIN_STATICLIB)
 endif()
 

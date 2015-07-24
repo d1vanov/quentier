@@ -4,7 +4,22 @@ if(POLICY CMP0020)
 endif()
 project(qutenotecore)
 
-include_directories(${THIRDPARTY_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+add_subdirectory(3rdparty)
+
+get_directory_property(THIRDPARTY_INCLUDE_DIRS DIRECTORY 3rdparty DEFINITION THIRDPARTY_INCLUDE_DIRS)
+get_directory_property(THIRDPARTY_SOURCES DIRECTORY 3rdparty DEFINITION THIRDPARTY_SOURCES)
+
+get_directory_property(SIMPLECRYPT_LIB DIRECTORY 3rdparty DEFINITION SIMPLECRYPT_LIB)
+get_directory_property(QEVERCLOUD_LIB DIRECTORY 3rdparty DEFINITION QEVERCLOUD_LIB)
+get_directory_property(QTKEYCHAIN_LIB DIRECTORY 3rdparty DEFINITION QTKEYCHAIN_LIB)
+get_directory_property(STACKTRACE_LIB DIRECTORY 3rdparty DEFINITION STACKTRACE_LIB)
+get_directory_property(QSLOG_LIB DIRECTORY 3rdparty DEFINITION QSLOG_LIB)
+get_directory_property(QT4_MIMETYPES_LIB DIRECTORY 3rdparty DEFINITION QT4_MIMETYPES_LIB)
+get_directory_property(TIDY_HTML5_LIB DIRECTORY 3rdparty DEFINITION TIDY_HTML5_LIB)
+
+include_directories(${THIRDPARTY_INCLUDE_DIRS})
 
 set(${PROJECT_NAME}_HEADERS
     src/note_editor/AttachmentStoragePathConfigDialog.h
