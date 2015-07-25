@@ -138,6 +138,7 @@ void ResourceLocalStorageManagerAsyncTester::onAddNotebookFailed(Notebook notebo
 void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Notebook notebook, QUuid requestId)
 {
     Q_UNUSED(requestId)
+    Q_UNUSED(notebook)
 
     QString errorDescription;
 
@@ -321,6 +322,7 @@ void ResourceLocalStorageManagerAsyncTester::onFindResourceCompleted(ResourceWra
                                                                      bool withBinaryData, QUuid requestId)
 {
     Q_UNUSED(requestId)
+    Q_UNUSED(withBinaryData)
 
     QString errorDescription;
 

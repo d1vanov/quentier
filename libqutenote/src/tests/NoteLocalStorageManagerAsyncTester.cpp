@@ -246,6 +246,7 @@ void NoteLocalStorageManagerAsyncTester::onGetNoteCountFailed(QString errorDescr
 void NoteLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Notebook notebook, QUuid requestId)
 {
     Q_UNUSED(requestId)
+    Q_UNUSED(notebook)
 
     QString errorDescription;
 
@@ -325,6 +326,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNoteFailed(Note note, Notebook not
 void NoteLocalStorageManagerAsyncTester::onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId)
 {
     Q_UNUSED(requestId)
+    Q_UNUSED(notebook)
 
     QString errorDescription;
 
@@ -355,6 +357,7 @@ void NoteLocalStorageManagerAsyncTester::onUpdateNoteFailed(Note note, Notebook 
 void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId)
 {
     Q_UNUSED(requestId)
+    Q_UNUSED(withResourceBinaryData)
 
     QString errorDescription;
 

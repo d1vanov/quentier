@@ -14,7 +14,7 @@ const QString Printable::ToQString() const
 Printable::Printable()
 {}
 
-Printable::Printable(const Printable &other)
+Printable::Printable(const Printable &)
 {}
 
 Printable::~Printable()

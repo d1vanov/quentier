@@ -18,9 +18,9 @@ NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
     m_cipher(cipher),
     m_hint(hint),
     m_cachedDecryptedText(),
-    m_keyLength(keyLength),
     m_encryptionManager(encryptionManager),
-    m_decryptedTextCache(decryptedTextCache)
+    m_decryptedTextCache(decryptedTextCache),
+    m_keyLength(keyLength)
 {
     m_pUI->setupUi(this);
     QUTE_NOTE_CHECK_PTR(encryptionManager.data())

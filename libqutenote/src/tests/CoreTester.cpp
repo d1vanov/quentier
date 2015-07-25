@@ -977,7 +977,7 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
         foundSearches = localStorageManager.ListSavedSearches(LocalStorageManager::ListElementsWithGuid, error, limit, offset, order);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
-        if (foundSearches.size() != limit) {
+        if (foundSearches.size() != static_cast<int>(limit)) {
             QFAIL(qPrintable("Unexpected number of found saved searches not corresponding to the specified limit: limit = " +
                              QString::number(limit) + ", number of searches found is " + QString::number(foundSearches.size())));
         }

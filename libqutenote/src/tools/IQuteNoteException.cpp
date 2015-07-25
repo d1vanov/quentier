@@ -4,6 +4,7 @@
 namespace qute_note {
 
 IQuteNoteException::IQuteNoteException(const QString & message) :
+    Printable(),
     m_message(message)
 {}
 
@@ -40,6 +41,7 @@ QTextStream & IQuteNoteException::Print(QTextStream & strm) const
 }
 
 IQuteNoteException::IQuteNoteException(const IQuteNoteException & other) :
+    Printable(other),
     m_message(other.m_message)
 {}
 

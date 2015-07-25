@@ -252,7 +252,7 @@ bool NoteData::checkParameters(QString & errorDescription) const
 
     if (m_qecNote.contentHash.isSet())
     {
-        size_t contentHashSize = m_qecNote.contentHash->size();
+        int contentHashSize = m_qecNote.contentHash->size();
 
         if (contentHashSize != qevercloud::EDAM_HASH_LEN) {
             errorDescription = QT_TR_NOOP("Note's content hash size is invalid");

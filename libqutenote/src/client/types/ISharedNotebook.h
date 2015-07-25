@@ -34,11 +34,11 @@ public:
     qint32 userId() const;
     void setUserId(const qint32 userId);
 
-    const bool hasNotebookGuid() const;
+    bool hasNotebookGuid() const;
     const QString & notebookGuid() const;
     void setNotebookGuid(const QString & notebookGuid);
 
-    const bool hasEmail() const;
+    bool hasEmail() const;
     const QString & email() const;
     void setEmail(const QString & email);
 

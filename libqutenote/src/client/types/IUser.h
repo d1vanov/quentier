@@ -53,7 +53,7 @@ public:
     void setTimezone(const QString & timezone);
 
     bool hasPrivilegeLevel() const;
-    const PrivilegeLevel privilegeLevel() const;
+    PrivilegeLevel privilegeLevel() const;
     void setPrivilegeLevel(const qint8 level);
 
     bool hasCreationTimestamp() const;

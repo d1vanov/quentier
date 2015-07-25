@@ -129,6 +129,7 @@ bool EncryptionManagerPrivate::decrypt(const QString & encryptedText, const QStr
 
         bool res = decryptRc2(encryptedText, passphrase, decryptedText, errorDescription);
         if (!res) {
+            QNWARNING(errorDescription);
             return false;
         }
 
@@ -537,7 +538,7 @@ bool EncryptionManagerPrivate::decryptRc2(const QString & encryptedText, const Q
     realCrcStr = realCrcStr.toUpper();
 
     if (realCrcStr != crc) {
-        QNWARNING("CRC32 checksum mismatch! Decrypted string has " << crc << ", calculated CRC32 is " << realCrcStr);
+        errorDescription = "CRC32 checksum mismatch! Decrypted string has " + crc + ", calculated CRC32 is " + realCrcStr;
         return false;
     }
 

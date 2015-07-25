@@ -722,6 +722,8 @@ qint32 NoteStore::processEdamUserExceptionForGetSyncChunk(const qevercloud::EDAM
 qint32 NoteStore::processEdamUserExceptionForGetNote(const Note & note, const qevercloud::EDAMUserException & userException,
                                                      QString & errorDescription) const
 {
+    Q_UNUSED(note);     // Maybe it'd be actually used in future
+
     const auto exceptionData = userException.exceptionData();
 
     if (userException.errorCode == qevercloud::EDAMErrorCode::BAD_DATA_FORMAT)

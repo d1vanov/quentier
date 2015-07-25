@@ -908,7 +908,7 @@ void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper r
 
         // need to find the note owning the resource to proceed
         if (!resource.hasNoteGuid()) {
-            QString errorDescription = QT_TR_NOOP("Detected resource which doesn't have note guid set");
+            errorDescription = QT_TR_NOOP("Detected resource which doesn't have note guid set");
             QNWARNING(errorDescription << ": " << resource);
             emit failure(errorDescription);
             return;
@@ -1335,6 +1335,8 @@ void RemoteToLocalSynchronizationManager::onExpungeDataElementFailed(const Eleme
                                                                      const QString & errorDescription, const QString & typeName,
                                                                      QSet<QUuid> & expungeElementRequestIds)
 {
+    Q_UNUSED(element);
+
     auto it = expungeElementRequestIds.find(requestId);
     if (it == expungeElementRequestIds.end()) {
         return;
@@ -1687,6 +1689,7 @@ void RemoteToLocalSynchronizationManager::onListAllLinkedNotebooksCompleted(size
             << ", offset = " << offset << ", order = " << order << ", order direction = " << orderDirection
             << ", requestId = " << requestId);
 
+    m_allLinkedNotebooks = linkedNotebooks;
     m_allLinkedNotebooksListed = true;
     startLinkedNotebooksSync();
 }
@@ -3900,6 +3903,8 @@ void RemoteToLocalSynchronizationManager::launchDataElementSync(const ContentSou
 template <class ElementType>
 void RemoteToLocalSynchronizationManager::extractExpungedElementsFromSyncChunk(const qevercloud::SyncChunk & syncChunk, QList<QString> & expungedElementGuids)
 {
+    Q_UNUSED(syncChunk);
+    Q_UNUSED(expungedElementGuids);
     // do nothing by default
 }
 
@@ -4205,6 +4210,8 @@ template <class ElementType>
 void RemoteToLocalSynchronizationManager::checkAndAddLinkedNotebookBinding(const ElementType & sourceElement,
                                                                            ElementType & targetElement)
 {
+    Q_UNUSED(sourceElement);
+    Q_UNUSED(targetElement);
     // Do nothing in default instantiation, only tags and notebooks need to be processed specifically
 }
 

@@ -77,7 +77,7 @@ void ISharedNotebook::setUserId(const qint32 userId)
     GetEnSharedNotebook().userId = userId;
 }
 
-const bool ISharedNotebook::hasNotebookGuid() const
+bool ISharedNotebook::hasNotebookGuid() const
 {
     return GetEnSharedNotebook().notebookGuid.isSet();
 }
@@ -97,7 +97,7 @@ void ISharedNotebook::setNotebookGuid(const QString & notebookGuid)
     }
 }
 
-const bool ISharedNotebook::hasEmail() const
+bool ISharedNotebook::hasEmail() const
 {
     return GetEnSharedNotebook().email.isSet();
 }
@@ -282,11 +282,13 @@ void ISharedNotebook::setReminderNotifyApp(const bool notifyApp)
 #undef CHECK_AND_SET_RECIPIENT_SETTINGS
 
 ISharedNotebook::ISharedNotebook(const ISharedNotebook & other) :
+    Printable(),
     TypeWithError(other),
     m_indexInNotebook(other.m_indexInNotebook)
 {}
 
 ISharedNotebook::ISharedNotebook(ISharedNotebook && other) :
+    Printable(),
     TypeWithError(std::move(other)),
     m_indexInNotebook(std::move(other.m_indexInNotebook))
 {}

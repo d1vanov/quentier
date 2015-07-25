@@ -493,7 +493,7 @@ void SendLocalChangesManager::onUpdateTagFailed(Tag tag, QString errorDescriptio
 
     QString error = QT_TR_NOOP("Couldn't update tag in local storage: ");
     error += errorDescription;
-    QNWARNING(error);
+    QNWARNING(error << "; tag: " << tag);
     emit failure(error);
 }
 
@@ -526,7 +526,7 @@ void SendLocalChangesManager::onUpdateSavedSearchFailed(SavedSearch savedSearch,
 
     QString error = QT_TR_NOOP("Couldn't update saved search in local storage: ");
     error += errorDescription;
-    QNWARNING(error);
+    QNWARNING(error << "; saved search: " << savedSearch);
     emit failure(error);
 }
 
@@ -559,7 +559,7 @@ void SendLocalChangesManager::onUpdateNotebookFailed(Notebook notebook, QString 
 
     QString error = QT_TR_NOOP("Couldn't update notebook in local storage: ");
     error += errorDescription;
-    QNWARNING(error);
+    QNWARNING(error << "; notebook: " << notebook);
     emit failure(error);
 }
 
@@ -596,7 +596,7 @@ void SendLocalChangesManager::onUpdateNoteFailed(Note note, Notebook notebook, Q
 
     QString error = QT_TR_NOOP("Couldn't update note in local storage: ");
     error += errorDescription;
-    QNWARNING(error);
+    QNWARNING(error << "; note: " << note);
     emit failure(error);
 }
 
@@ -643,7 +643,7 @@ void SendLocalChangesManager::onFindNotebookFailed(Notebook notebook, QString er
 
     QString error = QT_TR_NOOP("Can't find notebook in local storage: ");
     error += errorDescription;
-    QNWARNING(error);
+    QNWARNING(error << "; notebook: " << notebook);
     emit failure(error);
 }
 

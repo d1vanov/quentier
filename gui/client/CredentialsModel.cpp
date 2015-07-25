@@ -1,6 +1,7 @@
 #include "CredentialsModel.h"
 
 CredentialsModel::CredentialsModel(const CredentialsModel & other) :
+    QObject(other.parent()),
     m_username(other.m_username),
     m_password(other.m_password),
     m_consumerKey(other.m_consumerKey),

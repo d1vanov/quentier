@@ -6,6 +6,7 @@
 namespace qute_note {
 
 IUser::IUser() :
+    Printable(),
     m_isDirty(true),
     m_isLocal(true)
 {}
@@ -365,7 +366,7 @@ bool IUser::hasPrivilegeLevel() const
     return GetEnUser().privilege.isSet();
 }
 
-const IUser::PrivilegeLevel IUser::privilegeLevel() const
+IUser::PrivilegeLevel IUser::privilegeLevel() const
 {
     return GetEnUser().privilege;
 }
@@ -520,11 +521,13 @@ void IUser::setBusinessUserInfo(qevercloud::BusinessUserInfo && info)
 }
 
 IUser::IUser(const IUser & other) :
+    Printable(other),
     m_isDirty(other.m_isDirty),
     m_isLocal(other.m_isLocal)
 {}
 
 IUser::IUser(IUser && other) :
+    Printable(std::move(other)),
     m_isDirty(std::move(other.m_isDirty)),
     m_isLocal(std::move(other.m_isLocal))
 {}
