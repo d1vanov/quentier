@@ -25,10 +25,6 @@ private:
     SysInfo & operator=(const SysInfo & other) Q_DECL_DELETE;
     SysInfo & operator=(SysInfo && other) Q_DECL_DELETE;
     ~SysInfo();
-
-    qint64  m_pageSize;
-    qint64  m_totalMemoryBytes;
-    qint64  m_freeMemoryBytes;
 };
 
 } // namespace qute_note
