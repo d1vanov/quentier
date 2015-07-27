@@ -247,7 +247,7 @@ bool EncryptionManagerPrivate::generateSalt(const EncryptionManagerPrivate::Salt
         return false;
     }
 
-    int res = RAND_bytes(salt, saltSize);
+    int res = RAND_bytes(salt, static_cast<int>(saltSize));
     if (res != 1) {
         errorDescription = QT_TR_NOOP("Can't generate cryptographically strong bytes for encryption");
         GET_OPENSSL_ERROR;
@@ -264,8 +264,8 @@ bool EncryptionManagerPrivate::generateKey(const QByteArray & passphraseData, co
 {
     const char * rawPassphraseData = passphraseData.constData();
 
-    int res = PKCS5_PBKDF2_HMAC(rawPassphraseData, passphraseData.size(), salt, keySize,
-                                EN_ITERATIONS, EVP_sha256(), keySize, m_key);
+    int res = PKCS5_PBKDF2_HMAC(rawPassphraseData, passphraseData.size(), salt, static_cast<int>(keySize),
+                                EN_ITERATIONS, EVP_sha256(), static_cast<int>(keySize), m_key);
     if (res != 1) {
         errorDescription = QT_TR_NOOP("Can't generate cryptographic key");
         GET_OPENSSL_ERROR;
@@ -288,7 +288,8 @@ bool EncryptionManagerPrivate::calculateHmac(const QByteArray & passphraseData, 
     }
 
     const unsigned char * data = reinterpret_cast<const unsigned char*>(encryptedTextData.constData());
-    unsigned char * digest = HMAC(EVP_sha256(), m_key, keySize, data, encryptedTextData.size(), NULL, NULL);
+    unsigned char * digest = HMAC(EVP_sha256(), m_key, static_cast<int>(keySize), data,
+                                  static_cast<size_t>(encryptedTextData.size()), NULL, NULL);
 
     for(int i = 0; i < EN_AES_HMACSIZE; ++i) {
         m_hmac[i] = digest[i];
@@ -301,9 +302,9 @@ bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptDat
                                              QString & errorDescription)
 {
     const unsigned char * rawTextToEncrypt = reinterpret_cast<const unsigned char*>(textToEncryptData.constData());
-    size_t rawTextToEncryptSize = textToEncryptData.size();
+    int rawTextToEncryptSize = textToEncryptData.size();
 
-    unsigned char * cipherText = reinterpret_cast<unsigned char*>(malloc(rawTextToEncryptSize + MAX_PADDING_LEN));
+    unsigned char * cipherText = reinterpret_cast<unsigned char*>(malloc(static_cast<size_t>(rawTextToEncryptSize + MAX_PADDING_LEN)));
     int bytesWritten = 0;
     int cipherTextSize = 0;
 
@@ -403,7 +404,7 @@ bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const Q
     const int rawCipherTextSize = cipherText.size();
     const unsigned char * rawCipherText = reinterpret_cast<const unsigned char*>(cipherText.constData());
 
-    unsigned char * decipheredText = reinterpret_cast<unsigned char*>(malloc(rawCipherTextSize));
+    unsigned char * decipheredText = reinterpret_cast<unsigned char*>(malloc(static_cast<size_t>(rawCipherTextSize)));
     int bytesWritten = 0;
     int decipheredTextSize = 0;
 
@@ -459,7 +460,7 @@ bool EncryptionManagerPrivate::splitEncryptedData(const QString & encryptedData,
 {
     QByteArray decodedEncryptedData = QByteArray::fromBase64(encryptedData.toLocal8Bit());
 
-    const int minLength = 4 + 3 * saltSize + hmacSize;
+    const int minLength = static_cast<int>(4 + 3 * saltSize + hmacSize);
 
     const int encryptedDataSize = decodedEncryptedData.size();
     if (encryptedDataSize <= minLength) {
@@ -488,11 +489,12 @@ bool EncryptionManagerPrivate::splitEncryptedData(const QString & encryptedData,
 
     cursor += saltSize;
     encryptedText.resize(0);
-    for(size_t i = cursor; i < encryptedDataSize-hmacSize; ++i) {
+    int encryptedDataWithoutHmacSize = encryptedDataSize - static_cast<int>(hmacSize);
+    for(int i = static_cast<int>(cursor); i < encryptedDataWithoutHmacSize; ++i) {
         encryptedText += decodedEncryptedData.at(i);
     }
 
-    cursor = encryptedDataSize-hmacSize;
+    cursor = static_cast<size_t>(encryptedDataWithoutHmacSize);
     for(size_t i = 0; i < hmacSize; ++i) {
         m_hmac[i] = decodedEncryptedDataPtr[i+cursor];
     }
@@ -588,7 +590,7 @@ void EncryptionManagerPrivate::rc2KeyCodesFromPassphrase(const QString & passphr
     } while (i--);
 }
 
-QString EncryptionManagerPrivate::decryptRc2Chunk(const QByteArray & inputCharCodes, const std::vector<int> & key) const
+QString EncryptionManagerPrivate::decryptRc2Chunk(const QByteArray & inputCharCodes, const QVector<int> & key) const
 {
     int x76, x54, x32, x10, i;
 
@@ -683,7 +685,7 @@ qint32 EncryptionManagerPrivate::crc32(const QString & str) const
         y = (crc ^ convertedCharCodes[i]) & 0xFF;
         x_str = crc32table.mid(y * 9, 8);
         bool conversionResult = false;
-        x = x_str.toUInt(&conversionResult, 16);
+        x = static_cast<qint32>(x_str.toUInt(&conversionResult, 16));
         if (Q_UNLIKELY(!conversionResult)) {
             QNCRITICAL("Can't convert string representation of hex number "
                        << x_str << " to unsigned int!");

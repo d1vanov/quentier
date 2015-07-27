@@ -1118,7 +1118,7 @@ void SynchronizationManagerPrivate::updatePersistentSyncSettings()
     int numLinkedNotebooksSyncParams = m_cachedLinkedNotebookLastUpdateCountByGuid.size();
     settings.beginWriteArray(LAST_SYNC_LINKED_NOTEBOOKS_PARAMS, numLinkedNotebooksSyncParams);
 
-    size_t counter = 0;
+    int counter = 0;
     auto updateCountEnd = m_cachedLinkedNotebookLastUpdateCountByGuid.end();
     auto syncTimeEnd = m_cachedLinkedNotebookLastSyncTimeByGuid.end();
     for(auto updateCountIt = m_cachedLinkedNotebookLastUpdateCountByGuid.begin(); updateCountIt != updateCountEnd; ++updateCountIt)

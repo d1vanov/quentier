@@ -5711,8 +5711,8 @@ void LocalStorageManagerPrivate::FillResourceFromSqlRecord(const QSqlRecord & re
     CHECK_AND_SET_RESOURCE_PROPERTY(mime, QString, QString, setMime);
 
     CHECK_AND_SET_RESOURCE_PROPERTY(resourceGuid, QString, QString, setGuid);
-    CHECK_AND_SET_RESOURCE_PROPERTY(width, int, qint32, setWidth);
-    CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint32, setHeight);
+    CHECK_AND_SET_RESOURCE_PROPERTY(width, int, qint16, setWidth);
+    CHECK_AND_SET_RESOURCE_PROPERTY(height, int, qint16, setHeight);
     CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataSize, int, qint32, setRecognitionDataSize);
     CHECK_AND_SET_RESOURCE_PROPERTY(recognitionDataHash, QByteArray, QByteArray, setRecognitionDataHash);
     CHECK_AND_SET_RESOURCE_PROPERTY(resourceIndexInNote, int, int, setIndexInNote);

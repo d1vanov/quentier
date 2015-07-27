@@ -251,7 +251,7 @@ bool NoteSearchQueryTest(QString & error)
     // Iterating over all combinations of 8 boolean factors with a special meaning
     for(int mask = 0; mask != (1<<8); ++mask)
     {
-        std::bitset<8> bits(mask);
+        std::bitset<8> bits(static_cast<quint32>(mask));
 
         QString queryString;
 

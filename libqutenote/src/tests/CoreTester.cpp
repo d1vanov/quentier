@@ -1098,7 +1098,7 @@ void CoreTester::localStorageManagerListTagsTest()
 
         int nTags = 5;
         QList<Tag> tags;
-        tags.reserve(static_cast<size_t>(nTags));
+        tags.reserve(nTags);
         for(int i = 0; i < nTags; ++i)
         {
             tags.push_back(Tag());
@@ -1817,7 +1817,7 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
 
         int nTags = 5;
         QList<Tag> tags;
-        tags.reserve(static_cast<size_t>(nTags));
+        tags.reserve(nTags);
         for(int i = 0; i < nTags; ++i)
         {
             tags.push_back(Tag());

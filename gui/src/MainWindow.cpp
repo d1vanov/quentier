@@ -220,7 +220,7 @@ void MainWindow::checkAndSetupCredentials(MainWindow::ECredentialsToCheck creden
         widgetName->show(); \
         xCenter -= widgetName->width() * 0.5; \
         yCenter -= widgetName->height() * 0.5; \
-        widgetName->move(xCenter, yCenter); \
+        widgetName->move(static_cast<int>(xCenter), static_cast<int>(yCenter)); \
         widgetName->raise(); \
     }
 
