@@ -81,7 +81,7 @@ else()
                         ${QT_LIBRARIES})
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${LIB_QUTE_NOTE} ${THIRDPARTY_LIBS})
+target_link_libraries(${PROJECT_NAME} ${LIB_QUTE_NOTE} ${THIRDPARTY_LIBS} ${LIBXML2_LIBRARIES} ${OPENSSL_LIBRARIES})
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)

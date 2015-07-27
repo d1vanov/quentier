@@ -287,7 +287,7 @@ else()
                         ${QT_LIBRARIES})
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
+target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS} ${LIBXML2_LIBRARIES} ${OPENSSL_LIBRARIES})
 
 set(TEST_HEADERS
     src/tests/EncryptionManagerTests.h
@@ -342,7 +342,7 @@ else()
   target_link_libraries(test_${PROJECT_NAME} ${QT_LIBRARIES})
 endif()
 
-target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} ${THIRDPARTY_LIBS})
+target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} ${THIRDPARTY_LIBS} ${LIBXML2_LIBRARIES} ${OPENSSL_LIBRARIES})
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "BUILDING_QUTE_NOTE_DLL=1")
