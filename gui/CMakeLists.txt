@@ -4,6 +4,8 @@ if(POLICY CMP0020)
 endif()
 project(QuteNote)
 
+include(QuteNoteAdditionalCompilerWarnings)
+
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)

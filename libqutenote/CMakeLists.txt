@@ -11,6 +11,8 @@ add_subdirectory(3rdparty)
 get_directory_property(THIRDPARTY_INCLUDE_DIRS DIRECTORY 3rdparty DEFINITION THIRDPARTY_INCLUDE_DIRS)
 get_directory_property(THIRDPARTY_SOURCES DIRECTORY 3rdparty DEFINITION THIRDPARTY_SOURCES)
 
+include(QuteNoteAdditionalCompilerWarnings)
+
 get_directory_property(QEVERCLOUD_LIB DIRECTORY 3rdparty DEFINITION QEVERCLOUD_LIB)
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
