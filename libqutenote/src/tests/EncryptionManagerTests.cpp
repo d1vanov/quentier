@@ -1,5 +1,5 @@
 #include "EncryptionManagerTests.h"
-#include <tools/EncryptionManager.h>
+#include <qute_note/utility/EncryptionManager.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 
 namespace qute_note {

@@ -4,7 +4,7 @@
 #include "DecryptedTextCache.h"
 #include "INoteEditorPlugin.h"
 #include <tools/qt4helper.h>
-#include <tools/EncryptionManager.h>
+#include <qute_note/utility/EncryptionManager.h>
 
 namespace Ui {
 QT_FORWARD_DECLARE_CLASS(EncryptedAreaPlugin)

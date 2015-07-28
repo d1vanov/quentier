@@ -1,4 +1,4 @@
-#include "EncryptionManager.h"
+#include <qute_note/utility/EncryptionManager.h>
 #include "EncryptionManager_p.h"
 
 namespace qute_note {

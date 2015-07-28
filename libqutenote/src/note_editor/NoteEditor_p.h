@@ -3,7 +3,7 @@
 
 #include "NoteEditor.h"
 #include <client/enml/ENMLConverter.h>
-#include <tools/EncryptionManager.h>
+#include <qute_note/utility/EncryptionManager.h>
 #include <QObject>
 #include <QCache>
 #include <QMimeType>

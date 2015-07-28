@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__TOOLS__ENCRYPTION_MANAGER_H
 #define __QUTE_NOTE__CORE__TOOLS__ENCRYPTION_MANAGER_H
 
-#include "Linkage.h"
+#include <tools/Linkage.h>
 #include <QObject>
 #include <QString>
 #include <QUuid>
