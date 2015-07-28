@@ -1,5 +1,7 @@
 if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Wmismatched-tags")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Wmismatched-tags -Wformat=2 -Wcast-align ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wimplicit-atomic-properties -Wmissing-declarations ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Woverlength-strings -Wstrict-selector-match -Wundeclared-selector -Wunreachable-code")
 endif()
