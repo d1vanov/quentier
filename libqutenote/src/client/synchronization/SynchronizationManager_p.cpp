@@ -2,7 +2,7 @@
 #include <keychain.h>
 #include <client/Utility.h>
 #include <client/local_storage/LocalStorageManagerThreadWorker.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <tools/ApplicationSettings.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <tools/Printable.h>

@@ -3,7 +3,7 @@
 #include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <client/types/ResourceAdapter.h>
 #include <tools/QuteNoteCheckPtr.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <QTimerEvent>
 #include <algorithm>
 

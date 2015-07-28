@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__CORE__LOGGING__QUTE_NOTE_LOGGER_H
 
 #include "LoggerInitializationException.h"
-#include "../tools/DesktopServices.h"
+#include <tools/DesktopServices.h>
 #include <QsLog.h>
 #include <QsLogLevel.h>
 #include <QsLogDest.h>

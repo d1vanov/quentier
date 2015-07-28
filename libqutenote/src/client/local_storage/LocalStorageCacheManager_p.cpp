@@ -2,7 +2,7 @@
 #include "DefaultLocalStorageCacheExpiryChecker.h"
 #include "LocalStorageCacheManagerException.h"
 #include <tools/QuteNoteCheckPtr.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <QDateTime>
 
 namespace qute_note {

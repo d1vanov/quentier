@@ -5,7 +5,7 @@
 #include <tools/QuteNoteCheckPtr.h>
 #include <tools/DesktopServices.h>
 #include <client/types/IResource.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QLabel>

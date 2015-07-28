@@ -1,6 +1,6 @@
 #include "NoteSearchQueryTest.h"
 #include <client/local_storage/NoteSearchQuery.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <QStringList>
 #include <QDateTime>
 #include <bitset>

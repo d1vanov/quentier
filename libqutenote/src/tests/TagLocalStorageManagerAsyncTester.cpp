@@ -1,6 +1,6 @@
 #include "TagLocalStorageManagerAsyncTester.h"
 #include <client/local_storage/LocalStorageManagerThreadWorker.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <QThread>
 
 namespace qute_note {

@@ -1,6 +1,6 @@
 #include "TableSettingsDialog.h"
 #include "ui_TableSettingsDialog.h"
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 
 TableSettingsDialog::TableSettingsDialog(QWidget * parent) :
     QDialog(parent),

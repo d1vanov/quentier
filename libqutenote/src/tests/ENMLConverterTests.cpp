@@ -1,6 +1,6 @@
 #include "ENMLConverterTests.h"
 #include <client/enml/ENMLConverter.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <QXmlStreamReader>
 #include <QFile>
 

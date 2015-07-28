@@ -1,6 +1,6 @@
 #include "FileIOThreadWorker_p.h"
 #include "../client/Utility.h"
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <QFile>
 #include <QTimerEvent>
 

@@ -3,7 +3,7 @@
 #include "GenericResourceDisplayWidget.h"
 #include "ResourceFileStorageManager.h"
 #include <tools/FileIOThreadWorker.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <client/types/Note.h>
 #include <client/types/ResourceAdapter.h>
 #include <QFileIconProvider>

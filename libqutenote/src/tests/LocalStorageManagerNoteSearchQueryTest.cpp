@@ -5,7 +5,7 @@
 #include <client/types/Note.h>
 #include <client/types/Tag.h>
 #include <client/types/ResourceWrapper.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 
 namespace qute_note {
 namespace test {

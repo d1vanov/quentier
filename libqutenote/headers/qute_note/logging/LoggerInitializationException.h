@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__LOGGING__LOGGER_INITIALIZATION_EXCEPTION_H
 #define __QUTE_NOTE__CORE__LOGGING__LOGGER_INITIALIZATION_EXCEPTION_H
 
-#include "../tools/IQuteNoteException.h"
+#include <tools/IQuteNoteException.h>
 
 namespace qute_note {
 

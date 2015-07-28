@@ -3,7 +3,7 @@
 #include "NoteDecryptionDialog.h"
 #include "NoteEditorPluginFactory.h"
 #include "NoteEditor.h"
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <client/types/IResource.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <QIcon>

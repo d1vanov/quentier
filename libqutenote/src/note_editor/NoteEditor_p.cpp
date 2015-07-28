@@ -11,7 +11,7 @@
 #include <client/enml/ENMLConverter.h>
 #include <client/Utility.h>
 #include <client/types/ResourceAdapter.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <tools/FileIOThreadWorker.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <QWebFrame>

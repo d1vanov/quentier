@@ -1,7 +1,7 @@
 #include "NoteDecryptionDialog.h"
 #include "ui_NoteDecryptionDialog.h"
 #include <tools/QuteNoteCheckPtr.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <QSettings>
 
 namespace qute_note {

@@ -1,5 +1,5 @@
 #include "NoteSearchQuery_p.h"
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <QDateTime>
 
 namespace qute_note {

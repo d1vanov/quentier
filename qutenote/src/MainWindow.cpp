@@ -14,7 +14,7 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 #include "../client/CredentialsModel.h"
 #include <tools/QuteNoteCheckPtr.h>
 #include <tools/BasicXMLSyntaxHighlighter.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <cmath>
 #include <QPushButton>
 #include <QIcon>

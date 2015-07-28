@@ -1,5 +1,5 @@
 #include "DesktopServices.h"
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <QStyleFactory>
 #include <QApplication>
 #include <QMessageBox>

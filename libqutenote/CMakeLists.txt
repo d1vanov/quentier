@@ -59,6 +59,7 @@ if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 endif()
 
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
+include_directories(headers)
 
 set(${PROJECT_NAME}_HEADERS
     src/note_editor/AttachmentStoragePathConfigDialog.h
@@ -130,8 +131,8 @@ set(${PROJECT_NAME}_HEADERS
     src/client/synchronization/SynchronizationManager_p.h
     src/client/synchronization/RemoteToLocalSynchronizationManager.h
     src/client/synchronization/SendLocalChangesManager.h
-    src/logging/QuteNoteLogger.h
-    src/logging/LoggerInitializationException.h
+    headers/qute_note/logging/QuteNoteLogger.h
+    headers/qute_note/logging/LoggerInitializationException.h
     src/tools/ApplicationSettings.h
     src/tools/BasicXMLSyntaxHighlighter.h
     src/tools/DesktopServices.h

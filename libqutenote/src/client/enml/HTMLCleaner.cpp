@@ -1,5 +1,5 @@
 #include "HTMLCleaner.h"
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <tidy.h>
 #include <tidybuffio.h>
 #include <stdio.h>

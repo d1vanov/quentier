@@ -23,7 +23,7 @@
 #include <client/types/SharedNotebookWrapper.h>
 #include <client/types/UserWrapper.h>
 #include <client/types/RegisterMetatypes.h>
-#include <logging/QuteNoteLogger.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <tools/SysInfo.h>
 #include <QApplication>
 #include <QTextStream>
