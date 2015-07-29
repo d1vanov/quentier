@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__TOOLS__NULL_PTR_EXCEPTION_H
 #define __QUTE_NOTE__TOOLS__NULL_PTR_EXCEPTION_H
 
-#include <qute_note/utility/IQuteNoteException.h>
+#include <qute_note/exception/IQuteNoteException.h>
 
 namespace qute_note {
 

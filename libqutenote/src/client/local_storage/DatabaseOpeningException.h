@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__DATABASE_OPENING_EXCEPTION_H
 #define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__DATABASE_OPENING_EXCEPTION_H
 
-#include <qute_note/utility/IQuteNoteException.h>
+#include <qute_note/exception/IQuteNoteException.h>
 
 namespace qute_note {
 

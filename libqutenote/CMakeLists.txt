@@ -142,7 +142,7 @@ set(${PROJECT_NAME}_HEADERS
     headers/qute_note/utility/EventLoopWithExitStatus.h
     headers/qute_note/utility/FileIOThreadWorker.h
     src/tools/FileIOThreadWorker_p.h
-    headers/qute_note/utility/IQuteNoteException.h
+    headers/qute_note/exception/IQuteNoteException.h
     src/tools/Linkage.h
     headers/qute_note/utility/SysInfo.h
     src/tools/Printable.h
