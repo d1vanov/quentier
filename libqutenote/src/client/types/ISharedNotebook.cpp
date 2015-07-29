@@ -283,20 +283,16 @@ void ISharedNotebook::setReminderNotifyApp(const bool notifyApp)
 
 ISharedNotebook::ISharedNotebook(const ISharedNotebook & other) :
     Printable(),
-    TypeWithError(other),
     m_indexInNotebook(other.m_indexInNotebook)
 {}
 
 ISharedNotebook::ISharedNotebook(ISharedNotebook && other) :
     Printable(),
-    TypeWithError(std::move(other)),
     m_indexInNotebook(std::move(other.m_indexInNotebook))
 {}
 
 ISharedNotebook & ISharedNotebook::operator=(const ISharedNotebook & other)
 {
-    TypeWithError::operator=(other);
-
     if (this != &other) {
         m_indexInNotebook = other.m_indexInNotebook;
     }
@@ -306,8 +302,6 @@ ISharedNotebook & ISharedNotebook::operator=(const ISharedNotebook & other)
 
 ISharedNotebook & ISharedNotebook::operator=(ISharedNotebook && other)
 {
-    TypeWithError::operator=(std::move(other));
-
     if (this != &other) {
         m_indexInNotebook = std::move(other.m_indexInNotebook);
     }

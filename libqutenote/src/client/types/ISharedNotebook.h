@@ -2,13 +2,11 @@
 #define __QUTE_NOTE__CLIENT__TYPES__I_SHARED_NOTEBOOK_H
 
 #include <tools/Printable.h>
-#include <tools/TypeWithError.h>
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class QUTE_NOTE_EXPORT ISharedNotebook: public Printable,
-                                        public TypeWithError
+class QUTE_NOTE_EXPORT ISharedNotebook: public Printable
 {
 public:
     typedef qevercloud::SharedNotebookPrivilegeLevel::type SharedNotebookPrivilegeLevel;

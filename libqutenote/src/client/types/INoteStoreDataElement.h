@@ -3,15 +3,13 @@
 
 #include "ILocalStorageDataElement.h"
 #include <tools/Printable.h>
-#include <tools/TypeWithError.h>
 #include <QtGlobal>
 #include <QUuid>
 
 namespace qute_note {
 
 class QUTE_NOTE_EXPORT INoteStoreDataElement: public ILocalStorageDataElement,
-                                              public Printable,
-                                              public TypeWithError
+                                              public Printable
 {
 public:
     virtual void clear() = 0;
