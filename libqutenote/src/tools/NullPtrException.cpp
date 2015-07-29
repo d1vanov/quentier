@@ -1,4 +1,4 @@
-#include "NullPtrException.h"
+#include <qute_note/exception/NullPtrException.h>
 
 namespace qute_note {
 

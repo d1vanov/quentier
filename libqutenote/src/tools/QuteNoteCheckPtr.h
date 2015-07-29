@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__TOOLS_QUTE_NOTE_CHECK_PTR_H
 #define __QUTE_NOTE__TOOLS_QUTE_NOTE_CHECK_PTR_H
 
-#include "NullPtrException.h"
+#include <qute_note/exception/NullPtrException.h>
 
 #ifndef QUTE_NOTE_CHECK_PTR
 #define QUTE_NOTE_CHECK_PTR(pointer, ...) \
