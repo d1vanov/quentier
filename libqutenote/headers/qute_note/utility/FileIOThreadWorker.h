@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__TOOLS__FILE_IO_THREAD_WORKER_H
-#define __QUTE_NOTE__CORE__TOOLS__FILE_IO_THREAD_WORKER_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_H
+#define __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_H
 
-#include "Linkage.h"
+#include <tools/Linkage.h>
 #include <QObject>
 #include <QString>
 #include <QUuid>
@@ -83,4 +83,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__TOOLS__FILE_IO_THREAD_WORKER_H
+#endif // __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_H

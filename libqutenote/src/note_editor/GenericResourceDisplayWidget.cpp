@@ -1,7 +1,7 @@
 #include "GenericResourceDisplayWidget.h"
 #include "ui_GenericResourceDisplayWidget.h"
 #include "ResourceFileStorageManager.h"
-#include <tools/FileIOThreadWorker.h>
+#include <qute_note/utility/FileIOThreadWorker.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <qute_note/utility/DesktopServices.h>
 #include <client/types/IResource.h>

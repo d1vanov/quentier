@@ -1,4 +1,4 @@
-#include "FileIOThreadWorker.h"
+#include <qute_note/utility/FileIOThreadWorker.h>
 #include "FileIOThreadWorker_p.h"
 
 namespace qute_note {

@@ -140,7 +140,7 @@ set(${PROJECT_NAME}_HEADERS
     headers/qute_note/utility/EncryptionManager.h
     src/tools/EncryptionManager_p.h
     headers/qute_note/utility/EventLoopWithExitStatus.h
-    src/tools/FileIOThreadWorker.h
+    headers/qute_note/utility/FileIOThreadWorker.h
     src/tools/FileIOThreadWorker_p.h
     src/tools/IQuteNoteException.h
     src/tools/Linkage.h

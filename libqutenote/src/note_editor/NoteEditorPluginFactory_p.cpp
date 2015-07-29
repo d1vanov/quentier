@@ -2,7 +2,7 @@
 #include "NoteEditor.h"
 #include "GenericResourceDisplayWidget.h"
 #include "ResourceFileStorageManager.h"
-#include <tools/FileIOThreadWorker.h>
+#include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <client/types/Note.h>
 #include <client/types/ResourceAdapter.h>

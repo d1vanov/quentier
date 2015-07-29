@@ -12,7 +12,7 @@
 #include <client/Utility.h>
 #include <client/types/ResourceAdapter.h>
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <tools/FileIOThreadWorker.h>
+#include <qute_note/utility/FileIOThreadWorker.h>
 #include <tools/QuteNoteCheckPtr.h>
 #include <QWebFrame>
 #include <QFile>
