@@ -1,7 +1,7 @@
-#ifndef __QUTE__NOTE__CORE__TOOLS__APPLICATION_STORAGE_PERSISTENCE_PATH_H
-#define __QUTE__NOTE__CORE__TOOLS__APPLICATION_STORAGE_PERSISTENCE_PATH_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__DESKTOP_SERVICES_H
+#define __LIB_QUTE_NOTE__UTILITY__DESKTOP_SERVICES_H
 
-#include "Linkage.h"
+#include <tools/Linkage.h>
 #include <QString>
 #include <QStyle>
 #include <QFileDialog>
@@ -41,4 +41,4 @@ const QString QUTE_NOTE_EXPORT getExistingFolderDialog(QWidget * parent, const Q
 
 } // namespace qute_note
 
-#endif // __QUTE__NOTE__CORE__TOOLS__APPLICATION_STORAGE_PERSISTENCE_PATH_H
+#endif // __LIB_QUTE_NOTE__UTILITY__DESKTOP_SERVICES_H

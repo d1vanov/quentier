@@ -3,7 +3,7 @@
 #include "ResourceFileStorageManager.h"
 #include <tools/FileIOThreadWorker.h>
 #include <tools/QuteNoteCheckPtr.h>
-#include <tools/DesktopServices.h>
+#include <qute_note/utility/DesktopServices.h>
 #include <client/types/IResource.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QHBoxLayout>

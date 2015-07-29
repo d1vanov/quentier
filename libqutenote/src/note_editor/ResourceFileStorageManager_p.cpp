@@ -2,7 +2,7 @@
 #include "ResourceFileStorageManager.h"
 #include "AttachmentStoragePathConfigDialog.h"
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <tools/DesktopServices.h>
+#include <qute_note/utility/DesktopServices.h>
 #include <QWidget>
 #include <QSettings>
 #include <QFileInfo>

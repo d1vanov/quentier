@@ -1,6 +1,6 @@
 #include "EncryptionManager_p.h"
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <tools/DesktopServices.h>
+#include <qute_note/utility/DesktopServices.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>

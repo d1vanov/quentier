@@ -1,6 +1,6 @@
 #include "AttachmentStoragePathConfigDialog.h"
 #include "ui_AttachmentStoragePathConfigDialog.h"
-#include <tools/DesktopServices.h>
+#include <qute_note/utility/DesktopServices.h>
 
 namespace qute_note {
 

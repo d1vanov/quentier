@@ -1,4 +1,4 @@
-#include "DesktopServices.h"
+#include <qute_note/utility/DesktopServices.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QStyleFactory>
 #include <QApplication>
