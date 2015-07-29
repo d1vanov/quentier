@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__TOOLS_IQUTE_NOTE_EXCEPTION_H
-#define __QUTE_NOTE__TOOLS_IQUTE_NOTE_EXCEPTION_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__IQUTE_NOTE_EXCEPTION_H
+#define __LIB_QUTE_NOTE__UTILITY__IQUTE_NOTE_EXCEPTION_H
 
-#include "Printable.h"
+#include <tools/Printable.h>
 #include <exception>
 
 namespace qute_note {
@@ -46,5 +46,5 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__TOOLS_IQUTE_NOTE_EXCEPTION_H
- 
+#endif // __LIB_QUTE_NOTE__UTILITY__IQUTE_NOTE_EXCEPTION_H
+

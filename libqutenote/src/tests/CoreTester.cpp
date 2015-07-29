@@ -12,7 +12,7 @@
 #include "LocalStorageCacheAsyncTester.h"
 #include "EncryptionManagerTests.h"
 #include "ENMLConverterTests.h"
-#include <tools/IQuteNoteException.h>
+#include <qute_note/utility/IQuteNoteException.h>
 #include <qute_note/utility/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
 #include <client/types/SavedSearch.h>

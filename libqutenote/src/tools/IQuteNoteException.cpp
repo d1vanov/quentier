@@ -1,4 +1,4 @@
-#include "IQuteNoteException.h"
+#include <qute_note/utility/IQuteNoteException.h>
 #include <ostream>
 
 namespace qute_note {

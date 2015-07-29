@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__TOOLS__EMPTY_DATA_ELEMENT_EXCEPTION_H
 #define __QUTE_NOTE__TOOLS__EMPTY_DATA_ELEMENT_EXCEPTION_H
 
-#include "IQuteNoteException.h"
+#include <qute_note/utility/IQuteNoteException.h>
 
 namespace qute_note {
 

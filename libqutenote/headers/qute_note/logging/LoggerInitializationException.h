@@ -1,11 +1,11 @@
-#ifndef __QUTE_NOTE__CORE__LOGGING__LOGGER_INITIALIZATION_EXCEPTION_H
-#define __QUTE_NOTE__CORE__LOGGING__LOGGER_INITIALIZATION_EXCEPTION_H
+#ifndef __LIB_QUTE_NOTE__LOGGING__LOGGER_INITIALIZATION_EXCEPTION_H
+#define __LIB_QUTE_NOTE__LOGGING__LOGGER_INITIALIZATION_EXCEPTION_H
 
-#include <tools/IQuteNoteException.h>
+#include <qute_note/utility/IQuteNoteException.h>
 
 namespace qute_note {
 
-class QUTE_NOTE_EXPORT LoggerInitializationException : public IQuteNoteException
+class QUTE_NOTE_EXPORT LoggerInitializationException: public IQuteNoteException
 {
 public:
     explicit LoggerInitializationException(const QString & message);
@@ -16,4 +16,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__LOGGING__LOGGER_INITIALIZATION_EXCEPTION_H
+#endif // __LIB_QUTE_NOTE__LOGGING__LOGGER_INITIALIZATION_EXCEPTION_H

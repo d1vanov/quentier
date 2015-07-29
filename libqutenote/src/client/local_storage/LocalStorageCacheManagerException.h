@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_CACHE_MANAGER_EXCEPTION_H
 #define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_CACHE_MANAGER_EXCEPTION_H
 
-#include <tools/IQuteNoteException.h>
+#include <qute_note/utility/IQuteNoteException.h>
 
 namespace qute_note {
 
