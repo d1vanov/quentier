@@ -1,4 +1,4 @@
-#include "EmptyDataElementException.h"
+#include <qute_note/utility/EmptyDataElementException.h>
 
 namespace qute_note {
 

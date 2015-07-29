@@ -136,7 +136,7 @@ set(${PROJECT_NAME}_HEADERS
     headers/qute_note/utility/ApplicationSettings.h
     headers/qute_note/utility/BasicXMLSyntaxHighlighter.h
     headers/qute_note/utility/DesktopServices.h
-    src/tools/EmptyDataElementException.h
+    headers/qute_note/utility/EmptyDataElementException.h
     headers/qute_note/utility/EncryptionManager.h
     src/tools/EncryptionManager_p.h
     headers/qute_note/utility/EventLoopWithExitStatus.h
