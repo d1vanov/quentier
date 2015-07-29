@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__TOOLS__NULL_PTR_EXCEPTION_H
-#define __QUTE_NOTE__TOOLS__NULL_PTR_EXCEPTION_H
+#ifndef __LIB_QUTE_NOTE__EXCEPTION__NULL_PTR_EXCEPTION_H
+#define __LIB_QUTE_NOTE__EXCEPTION__NULL_PTR_EXCEPTION_H
 
 #include <qute_note/exception/IQuteNoteException.h>
 
@@ -16,4 +16,4 @@ protected:
 
 }
 
-#endif // __QUTE_NOTE__TOOLS__NULL_PTR_EXCEPTION_H
+#endif // __LIB_QUTE_NOTE__EXCEPTION__NULL_PTR_EXCEPTION_H
