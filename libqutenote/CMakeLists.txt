@@ -134,7 +134,7 @@ set(${PROJECT_NAME}_HEADERS
     headers/qute_note/logging/QuteNoteLogger.h
     headers/qute_note/logging/LoggerInitializationException.h
     src/tools/ApplicationSettings.h
-    src/tools/BasicXMLSyntaxHighlighter.h
+    headers/qute_note/utility/BasicXMLSyntaxHighlighter.h
     headers/qute_note/utility/DesktopServices.h
     src/tools/EmptyDataElementException.h
     headers/qute_note/utility/EncryptionManager.h
