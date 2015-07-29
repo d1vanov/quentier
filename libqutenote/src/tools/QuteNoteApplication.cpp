@@ -1,4 +1,4 @@
-#include "QuteNoteApplication.h"
+#include <qute_note/utility/QuteNoteApplication.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/SysInfo.h>
 #include <exception>

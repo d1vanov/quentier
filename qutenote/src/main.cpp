@@ -1,6 +1,6 @@
 #include "MainWindow.h"
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <tools/QuteNoteApplication.h>
+#include <qute_note/utility/QuteNoteApplication.h>
 
 int main(int argc, char *argv[])
 {

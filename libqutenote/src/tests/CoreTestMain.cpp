@@ -1,6 +1,6 @@
 #include "CoreTester.h"
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <tools/QuteNoteApplication.h>
+#include <qute_note/utility/QuteNoteApplication.h>
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <QSqlDatabase>
