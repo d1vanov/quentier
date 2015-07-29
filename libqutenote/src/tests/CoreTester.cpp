@@ -13,7 +13,7 @@
 #include "EncryptionManagerTests.h"
 #include "ENMLConverterTests.h"
 #include <tools/IQuteNoteException.h>
-#include <tools/EventLoopWithExitStatus.h>
+#include <qute_note/utility/EventLoopWithExitStatus.h>
 #include <client/local_storage/LocalStorageManager.h>
 #include <client/types/SavedSearch.h>
 #include <client/types/LinkedNotebook.h>

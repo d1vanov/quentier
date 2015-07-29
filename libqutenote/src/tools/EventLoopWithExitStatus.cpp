@@ -1,4 +1,4 @@
-#include "EventLoopWithExitStatus.h"
+#include <qute_note/utility/EventLoopWithExitStatus.h>
 
 namespace qute_note {
 

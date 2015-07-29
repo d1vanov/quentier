@@ -139,7 +139,7 @@ set(${PROJECT_NAME}_HEADERS
     src/tools/EmptyDataElementException.h
     headers/qute_note/utility/EncryptionManager.h
     src/tools/EncryptionManager_p.h
-    src/tools/EventLoopWithExitStatus.h
+    headers/qute_note/utility/EventLoopWithExitStatus.h
     src/tools/FileIOThreadWorker.h
     src/tools/FileIOThreadWorker_p.h
     src/tools/IQuteNoteException.h
