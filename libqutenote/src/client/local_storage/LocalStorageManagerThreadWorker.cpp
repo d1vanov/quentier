@@ -1,6 +1,6 @@
 #include "LocalStorageManagerThreadWorker.h"
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <tools/SysInfo.h>
+#include <qute_note/utility/SysInfo.h>
 
 namespace qute_note {
 

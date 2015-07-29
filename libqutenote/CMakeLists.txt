@@ -135,7 +135,7 @@ set(${PROJECT_NAME}_HEADERS
     headers/qute_note/logging/LoggerInitializationException.h
     src/tools/ApplicationSettings.h
     src/tools/BasicXMLSyntaxHighlighter.h
-    src/tools/DesktopServices.h
+    headers/qute_note/utility/DesktopServices.h
     src/tools/EmptyDataElementException.h
     headers/qute_note/utility/EncryptionManager.h
     src/tools/EncryptionManager_p.h
@@ -144,7 +144,7 @@ set(${PROJECT_NAME}_HEADERS
     src/tools/FileIOThreadWorker_p.h
     src/tools/IQuteNoteException.h
     src/tools/Linkage.h
-    src/tools/SysInfo.h
+    headers/qute_note/utility/SysInfo.h
     src/tools/Printable.h
     src/tools/QuteNoteApplication.h
     src/tools/QuteNoteCheckPtr.h

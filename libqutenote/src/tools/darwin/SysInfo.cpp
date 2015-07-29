@@ -1,4 +1,4 @@
-#include "../SysInfo.h"
+#include <qute_note/utility/SysInfo.h>
 #include <unistd.h>
 #include <sys/sysctl.h>
 #include <mach/vm_statistics.h>

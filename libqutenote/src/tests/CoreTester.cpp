@@ -24,7 +24,7 @@
 #include <client/types/UserWrapper.h>
 #include <client/types/RegisterMetatypes.h>
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <tools/SysInfo.h>
+#include <qute_note/utility/SysInfo.h>
 #include <QApplication>
 #include <QTextStream>
 #include <QtTest/QTest>

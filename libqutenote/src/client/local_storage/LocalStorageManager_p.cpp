@@ -6,7 +6,7 @@
 #include <client/Utility.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/DesktopServices.h>
-#include <tools/SysInfo.h>
+#include <qute_note/utility/SysInfo.h>
 #include <algorithm>
 
 namespace qute_note {

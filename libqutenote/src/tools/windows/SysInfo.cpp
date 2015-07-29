@@ -1,4 +1,4 @@
-#include "../SysInfo.h"
+#include <qute_note/utility/SysInfo.h>
 #include <QMutexLocker>
 #include <QString>
 #include <windows.h>
