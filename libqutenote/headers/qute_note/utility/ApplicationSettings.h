@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__TOOLS__APPLICATION_SETTINGS_H
-#define __QUTE_NOTE__CORE__TOOLS__APPLICATION_SETTINGS_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__APPLICATION_SETTINGS_H
+#define __LIB_QUTE_NOTE__UTILITY__APPLICATION_SETTINGS_H
 
-#include "Printable.h"
+#include <tools/Printable.h>
 #include <QSettings>
 
 namespace qute_note {
@@ -41,4 +41,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__TOOLS__APPLICATION_SETTINGS_H
+#endif // __LIB_QUTE_NOTE__UTILITY__APPLICATION_SETTINGS_H

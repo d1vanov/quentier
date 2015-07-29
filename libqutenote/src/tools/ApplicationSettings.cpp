@@ -1,4 +1,4 @@
-#include "ApplicationSettings.h"
+#include <qute_note/utility/ApplicationSettings.h>
 
 namespace qute_note {
 

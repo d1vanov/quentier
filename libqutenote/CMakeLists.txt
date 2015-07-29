@@ -133,7 +133,7 @@ set(${PROJECT_NAME}_HEADERS
     src/client/synchronization/SendLocalChangesManager.h
     headers/qute_note/logging/QuteNoteLogger.h
     headers/qute_note/logging/LoggerInitializationException.h
-    src/tools/ApplicationSettings.h
+    headers/qute_note/utility/ApplicationSettings.h
     headers/qute_note/utility/BasicXMLSyntaxHighlighter.h
     headers/qute_note/utility/DesktopServices.h
     src/tools/EmptyDataElementException.h
