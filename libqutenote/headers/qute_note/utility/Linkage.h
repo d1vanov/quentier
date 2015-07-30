@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CORE__LINKAGE_H
-#define __QUTE_NOTE__CORE__LINKAGE_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__LINKAGE_H
+#define __LIB_QUTE_NOTE__UTILITY__LINKAGE_H
 
 #if defined (_WIN32) & defined(_MSC_VER)
 #if defined(BUILDING_QUTE_NOTE_DLL)
@@ -11,4 +11,4 @@
     #define QUTE_NOTE_EXPORT
 #endif
 
-#endif // __QUTE_NOTE__CORE__LINKAGE_H
+#endif // __LIB_QUTE_NOTE__UTILITY__LINKAGE_H

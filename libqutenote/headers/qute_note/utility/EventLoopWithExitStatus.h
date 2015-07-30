@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__TOOLS__EVENT_LOOP_WITH_EXIT_STATUS_H
-#define __QUTE_NOTE__CORE__TOOLS__EVENT_LOOP_WITH_EXIT_STATUS_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__EVENT_LOOP_WITH_EXIT_STATUS_H
+#define __LIB_QUTE_NOTE__UTILITY__EVENT_LOOP_WITH_EXIT_STATUS_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <QEventLoop>
 
 namespace qute_note {
@@ -28,4 +28,4 @@ public Q_SLOTS:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__TOOLS__EVENT_LOOP_WITH_EXIT_STATUS_H
+#endif // __LIB_QUTE_NOTE__UTILITY__EVENT_LOOP_WITH_EXIT_STATUS_H

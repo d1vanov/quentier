@@ -1,7 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__UTILITY__DESKTOP_SERVICES_H
 #define __LIB_QUTE_NOTE__UTILITY__DESKTOP_SERVICES_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <QString>
 #include <QStyle>
 #include <QFileDialog>

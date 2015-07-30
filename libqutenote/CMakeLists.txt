@@ -144,7 +144,7 @@ set(${PROJECT_NAME}_HEADERS
     headers/qute_note/utility/FileIOThreadWorker.h
     src/tools/FileIOThreadWorker_p.h
     headers/qute_note/exception/IQuteNoteException.h
-    src/tools/Linkage.h
+    headers/qute_note/utility/Linkage.h
     headers/qute_note/utility/SysInfo.h
     headers/qute_note/utility/Printable.h
     headers/qute_note/utility/QuteNoteApplication.h

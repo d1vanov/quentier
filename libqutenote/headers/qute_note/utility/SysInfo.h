@@ -1,7 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__UTILITY__SYS_INFO_H
 #define __LIB_QUTE_NOTE__UTILITY__SYS_INFO_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <QtGlobal>
 

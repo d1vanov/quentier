@@ -1,7 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__UTILITY__BASIC_XML_SYNTAX_HIGHLIGHTER_H
 #define __LIB_QUTE_NOTE__UTILITY__BASIC_XML_SYNTAX_HIGHLIGHTER_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <QSyntaxHighlighter>
 
 class QUTE_NOTE_EXPORT BasicXMLSyntaxHighlighter: public QSyntaxHighlighter

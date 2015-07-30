@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__TOOLS__ENCRYPTION_MANAGER_H
-#define __QUTE_NOTE__CORE__TOOLS__ENCRYPTION_MANAGER_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__ENCRYPTION_MANAGER_H
+#define __LIB_QUTE_NOTE__UTILITY__ENCRYPTION_MANAGER_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <QObject>
 #include <QString>
 #include <QUuid>
@@ -47,4 +47,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__TOOLS__ENCRYPTION_MANAGER_H
+#endif // __LIB_QUTE_NOTE__UTILITY__ENCRYPTION_MANAGER_H

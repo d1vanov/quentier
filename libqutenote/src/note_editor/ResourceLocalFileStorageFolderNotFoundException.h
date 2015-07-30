@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__RESOURCE_LOCAL_FILE_STORAGE_FOLDER_NOT_FOUND_EXCEPTION_H
 
 #include <qute_note/exception/IQuteNoteException.h>
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 
 namespace qute_note {
 

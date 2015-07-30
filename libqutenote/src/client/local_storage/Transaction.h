@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__TRANSACTION_H
 #define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__TRANSACTION_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <QSqlDatabase>
 

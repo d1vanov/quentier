@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_H
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <QWidget>
 #include <QUrl>
 

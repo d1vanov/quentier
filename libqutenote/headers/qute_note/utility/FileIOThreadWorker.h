@@ -1,7 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_H
 #define __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <QObject>
 #include <QString>
 #include <QUuid>

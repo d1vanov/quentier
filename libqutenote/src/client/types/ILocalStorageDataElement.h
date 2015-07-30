@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__I_LOCAL_STORAGE_DATA_ELEMENT_H
 #define __QUTE_NOTE__CLIENT__TYPES__I_LOCAL_STORAGE_DATA_ELEMENT_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <QString>
 #include <QUuid>
 

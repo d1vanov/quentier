@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__TOOLS__HTML_CLEANER_H
 #define __QUTE_NOTE__CORE__TOOLS__HTML_CLEANER_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <QString>
 

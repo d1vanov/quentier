@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
 
 #include <note_editor/DecryptedTextCache.h>
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <QSet>
 #include <QString>

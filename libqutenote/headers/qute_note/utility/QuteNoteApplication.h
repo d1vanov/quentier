@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__TOOLS__QUTE_NOTE_APPLICATION_H
-#define __QUTE_NOTE__CORE__TOOLS__QUTE_NOTE_APPLICATION_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__QUTE_NOTE_APPLICATION_H
+#define __LIB_QUTE_NOTE__UTILITY__QUTE_NOTE_APPLICATION_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <QApplication>
 
 namespace qute_note {
@@ -17,4 +17,4 @@ public:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__TOOLS__QUTE_NOTE_APPLICATION_H
+#endif // __LIB_QUTE_NOTE__UTILITY__QUTE_NOTE_APPLICATION_H

@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__RESOURCE_FILES_STORAGE_MANAGER_H
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__RESOURCE_FILES_STORAGE_MANAGER_H
 
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <QObject>
 #include <QUuid>
 

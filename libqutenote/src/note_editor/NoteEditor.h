@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_H
 
 #include <qute_note/utility/Qt4Helper.h>
-#include <tools/Linkage.h>
+#include <qute_note/utility/Linkage.h>
 #include <QWebView>
 
 namespace qute_note {
