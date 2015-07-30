@@ -62,7 +62,7 @@ endif()
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(headers)
 
-set(${PROJECT_NAME}_HEADERS
+set(PUBLIC_HEADERS
     src/note_editor/AttachmentStoragePathConfigDialog.h
     src/note_editor/EncryptedAreaPlugin.h
     src/note_editor/DecryptedTextCache.h
@@ -70,13 +70,10 @@ set(${PROJECT_NAME}_HEADERS
     src/note_editor/NoteDecryptionDialog.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor.h
-    src/note_editor/NoteEditor_p.h
     src/note_editor/INoteEditorPlugin.h
     src/note_editor/NoteEditorPluginFactory.h
-    src/note_editor/NoteEditorPluginFactory_p.h
     src/note_editor/PluginInitializationException.h
     src/note_editor/ResourceFileStorageManager.h
-    src/note_editor/ResourceFileStorageManager_p.h
     src/note_editor/ResourceLocalFileStorageFolderNotFoundException.h
     src/client/Utility.h
     src/client/types/IDataElementWithShortcut.h
@@ -100,6 +97,44 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/UserAdapterAccessException.h
     src/client/types/UserWrapper.h
     src/client/types/RegisterMetatypes.h
+    src/client/enml/ENMLConverter.h
+    src/client/enml/HTMLCleaner.h
+    src/client/local_storage/ILocalStorageCacheExpiryChecker.h
+    src/client/local_storage/DatabaseOpeningException.h
+    src/client/local_storage/DatabaseSqlErrorException.h
+    src/client/local_storage/DefaultLocalStorageCacheExpiryChecker.h
+    src/client/local_storage/LocalStorageCacheManager.h
+    src/client/local_storage/LocalStorageCacheManagerException.h
+    src/client/local_storage/LocalStorageManager.h
+    src/client/local_storage/LocalStorageManagerThreadWorker.h
+    src/client/local_storage/NoteSearchQuery.h
+    src/client/local_storage/Transaction.h
+    src/client/synchronization/NoteStore.h
+    src/client/synchronization/SynchronizationManager.h
+    src/client/synchronization/RemoteToLocalSynchronizationManager.h
+    src/client/synchronization/SendLocalChangesManager.h
+    headers/qute_note/logging/QuteNoteLogger.h
+    headers/qute_note/logging/LoggerInitializationException.h
+    headers/qute_note/utility/ApplicationSettings.h
+    headers/qute_note/utility/BasicXMLSyntaxHighlighter.h
+    headers/qute_note/utility/DesktopServices.h
+    headers/qute_note/exception/EmptyDataElementException.h
+    headers/qute_note/utility/EncryptionManager.h
+    headers/qute_note/utility/EventLoopWithExitStatus.h
+    headers/qute_note/utility/FileIOThreadWorker.h
+    headers/qute_note/exception/IQuteNoteException.h
+    headers/qute_note/utility/Linkage.h
+    headers/qute_note/utility/SysInfo.h
+    headers/qute_note/utility/Printable.h
+    headers/qute_note/utility/QuteNoteApplication.h
+    headers/qute_note/utility/QuteNoteCheckPtr.h
+    headers/qute_note/exception/NullPtrException.h
+    headers/qute_note/utility/Qt4Helper.h)
+
+set(PRIVATE_HEADERS
+    src/note_editor/NoteEditor_p.h
+    src/note_editor/NoteEditorPluginFactory_p.h
+    src/note_editor/ResourceFileStorageManager_p.h
     src/client/types/data/DataElementWithShortcutData.h
     src/client/types/data/LocalStorageDataElementData.h
     src/client/types/data/LinkedNotebookData.h
@@ -111,46 +146,15 @@ set(${PROJECT_NAME}_HEADERS
     src/client/types/data/TagData.h
     src/client/types/data/SavedSearchData.h
     src/client/types/data/UserWrapperData.h
-    src/client/enml/ENMLConverter.h
     src/client/enml/ENMLConverter_p.h
-    src/client/enml/HTMLCleaner.h
-    src/client/local_storage/ILocalStorageCacheExpiryChecker.h
-    src/client/local_storage/DatabaseOpeningException.h
-    src/client/local_storage/DatabaseSqlErrorException.h
-    src/client/local_storage/DefaultLocalStorageCacheExpiryChecker.h
-    src/client/local_storage/LocalStorageCacheManager.h
     src/client/local_storage/LocalStorageCacheManager_p.h
-    src/client/local_storage/LocalStorageCacheManagerException.h
-    src/client/local_storage/LocalStorageManager.h
     src/client/local_storage/LocalStorageManager_p.h
-    src/client/local_storage/LocalStorageManagerThreadWorker.h
-    src/client/local_storage/NoteSearchQuery.h
     src/client/local_storage/NoteSearchQuery_p.h
-    src/client/local_storage/Transaction.h
-    src/client/synchronization/NoteStore.h
-    src/client/synchronization/SynchronizationManager.h
     src/client/synchronization/SynchronizationManager_p.h
-    src/client/synchronization/RemoteToLocalSynchronizationManager.h
-    src/client/synchronization/SendLocalChangesManager.h
-    headers/qute_note/logging/QuteNoteLogger.h
-    headers/qute_note/logging/LoggerInitializationException.h
-    headers/qute_note/utility/ApplicationSettings.h
-    headers/qute_note/utility/BasicXMLSyntaxHighlighter.h
-    headers/qute_note/utility/DesktopServices.h
-    headers/qute_note/exception/EmptyDataElementException.h
-    headers/qute_note/utility/EncryptionManager.h
-    src/tools/EncryptionManager_p.h
-    headers/qute_note/utility/EventLoopWithExitStatus.h
-    headers/qute_note/utility/FileIOThreadWorker.h
-    src/tools/FileIOThreadWorker_p.h
-    headers/qute_note/exception/IQuteNoteException.h
-    headers/qute_note/utility/Linkage.h
-    headers/qute_note/utility/SysInfo.h
-    headers/qute_note/utility/Printable.h
-    headers/qute_note/utility/QuteNoteApplication.h
-    headers/qute_note/utility/QuteNoteCheckPtr.h
-    headers/qute_note/exception/NullPtrException.h
-    headers/qute_note/utility/Qt4Helper.h)
+    src/utility/EncryptionManager_p.h
+    src/utility/FileIOThreadWorker_p.h)
+
+set(${PROJECT_NAME}_HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 
 set(${PROJECT_NAME}_SOURCES
     src/note_editor/AttachmentStoragePathConfigDialog.cpp
@@ -219,26 +223,26 @@ set(${PROJECT_NAME}_SOURCES
     src/client/synchronization/RemoteToLocalSynchronizationManager.cpp
     src/client/synchronization/SendLocalChangesManager.cpp
     src/logging/LoggerInitializationException.cpp
-    src/tools/ApplicationSettings.cpp
-    src/tools/BasicXMLSyntaxHighlighter.cpp
-    src/tools/DesktopServices.cpp
-    src/tools/EmptyDataElementException.cpp
-    src/tools/EncryptionManager.cpp
-    src/tools/EncryptionManager_p.cpp
-    src/tools/EventLoopWithExitStatus.cpp
-    src/tools/FileIOThreadWorker.cpp
-    src/tools/FileIOThreadWorker_p.cpp
-    src/tools/IQuteNoteException.cpp
-    src/tools/Printable.cpp
-    src/tools/QuteNoteApplication.cpp
-    src/tools/NullPtrException.cpp)
+    src/utility/ApplicationSettings.cpp
+    src/utility/BasicXMLSyntaxHighlighter.cpp
+    src/utility/DesktopServices.cpp
+    src/utility/EmptyDataElementException.cpp
+    src/utility/EncryptionManager.cpp
+    src/utility/EncryptionManager_p.cpp
+    src/utility/EventLoopWithExitStatus.cpp
+    src/utility/FileIOThreadWorker.cpp
+    src/utility/FileIOThreadWorker_p.cpp
+    src/utility/IQuteNoteException.cpp
+    src/utility/Printable.cpp
+    src/utility/QuteNoteApplication.cpp
+    src/utility/NullPtrException.cpp)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/tools/windows/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/windows/SysInfo.cpp)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/tools/linux/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/linux/SysInfo.cpp)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/tools/darwin/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/darwin/SysInfo.cpp)
 endif()
 
 set(RESOURCES
@@ -362,7 +366,7 @@ list(APPEND ${PROJECT_NAME}_CHECKABLE_SOURCES ${THIRDPARTY_SOURCES})
 install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
 
 # install headers
-file(GLOB_RECURSE DEPLOY_INCLUDE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h ${CMAKE_CURRENT_SOURCE_DIR}/src/*/*.h")
+file(GLOB_RECURSE DEPLOY_INCLUDE_FILES ${PUBLIC_HEADERS})
 foreach(ITEM ${DEPLOY_FILES_AND_DIRS})
   install(FILES ${ITEM} DESTINATION include)
 endforeach()
