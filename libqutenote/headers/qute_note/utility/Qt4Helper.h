@@ -1,5 +1,5 @@
-#ifndef QT4HELPER_H
-#define QT4HELPER_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__QT4HELPER_H
+#define __LIB_QUTE_NOTE__UTILITY__QT4HELPER_H
 
 #include <QtGlobal>
 
@@ -43,4 +43,4 @@
 #endif
 #endif // Q_DECL_DELETE
 
-#endif // QT4HELPER_H
+#endif // __LIB_QUTE_NOTE__UTILITY__QT4HELPER_H

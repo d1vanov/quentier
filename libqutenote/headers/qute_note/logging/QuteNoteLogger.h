@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CORE__LOGGING__QUTE_NOTE_LOGGER_H
-#define __QUTE_NOTE__CORE__LOGGING__QUTE_NOTE_LOGGER_H
+#ifndef __LIB_QUTE_NOTE__LOGGING__QUTE_NOTE_LOGGER_H
+#define __LIB_QUTE_NOTE__LOGGING__QUTE_NOTE_LOGGER_H
 
 #include "LoggerInitializationException.h"
 #include <qute_note/utility/DesktopServices.h>
@@ -51,4 +51,4 @@
     logger.addDestination(fileDest); \
 }
 
-#endif // __QUTE_NOTE__CORE__LOGGING__QUTE_NOTE_LOGGER_H
+#endif // __LIB_QUTE_NOTE__LOGGING__QUTE_NOTE_LOGGER_H

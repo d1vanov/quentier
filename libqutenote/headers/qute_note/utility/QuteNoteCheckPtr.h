@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__TOOLS_QUTE_NOTE_CHECK_PTR_H
-#define __QUTE_NOTE__TOOLS_QUTE_NOTE_CHECK_PTR_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__QUTE_NOTE_CHECK_PTR_H
+#define __LIB_QUTE_NOTE__UTILITY__QUTE_NOTE_CHECK_PTR_H
 
 #include <qute_note/exception/NullPtrException.h>
 
@@ -21,4 +21,4 @@
 }
 #endif
 
-#endif // __QUTE_NOTE__TOOLS_QUTE_NOTE_CHECK_PTR_H
+#endif // __LIB_QUTE_NOTE__UTILITY__QUTE_NOTE_CHECK_PTR_H
