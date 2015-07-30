@@ -1,7 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__UTILITY__APPLICATION_SETTINGS_H
 #define __LIB_QUTE_NOTE__UTILITY__APPLICATION_SETTINGS_H
 
-#include <tools/Printable.h>
+#include <qute_note/utility/Printable.h>
 #include <QSettings>
 
 namespace qute_note {

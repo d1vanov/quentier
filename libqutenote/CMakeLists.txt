@@ -146,7 +146,7 @@ set(${PROJECT_NAME}_HEADERS
     headers/qute_note/exception/IQuteNoteException.h
     src/tools/Linkage.h
     headers/qute_note/utility/SysInfo.h
-    src/tools/Printable.h
+    headers/qute_note/utility/Printable.h
     headers/qute_note/utility/QuteNoteApplication.h
     headers/qute_note/utility/QuteNoteCheckPtr.h
     headers/qute_note/exception/NullPtrException.h

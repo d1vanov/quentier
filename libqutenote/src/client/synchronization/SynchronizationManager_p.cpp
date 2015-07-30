@@ -5,7 +5,7 @@
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/ApplicationSettings.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
-#include <tools/Printable.h>
+#include <qute_note/utility/Printable.h>
 #include <Simplecrypt.h>
 #include <QApplication>
 

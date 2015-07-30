@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__TOOLS_PRINTABLE_H
-#define __QUTE_NOTE__TOOLS_PRINTABLE_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__PRINTABLE_H
+#define __LIB_QUTE_NOTE__UTILITY__PRINTABLE_H
 
-#include "Linkage.h"
+#include <tools/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <QString>
 #include <QTextStream>
@@ -119,4 +119,4 @@ __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Note)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::EDAMErrorCode::type)
 __QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::EvernoteOAuthWebView::OAuthResult)
 
-#endif // __QUTE_NOTE__TOOLS_PRINTABLE_H
+#endif // __LIB_QUTE_NOTE__UTILITY__PRINTABLE_H

@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__CLIENT__TYPES__I_NOTE_STORE_DATA_ELEMENT_H
 
 #include "ILocalStorageDataElement.h"
-#include <tools/Printable.h>
+#include <qute_note/utility/Printable.h>
 #include <QtGlobal>
 #include <QUuid>
 

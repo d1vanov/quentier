@@ -1,7 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__EXCEPTION__IQUTE_NOTE_EXCEPTION_H
 #define __LIB_QUTE_NOTE__EXCEPTION__IQUTE_NOTE_EXCEPTION_H
 
-#include <tools/Printable.h>
+#include <qute_note/utility/Printable.h>
 #include <exception>
 
 namespace qute_note {

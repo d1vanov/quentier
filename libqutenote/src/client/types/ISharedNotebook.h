@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__I_SHARED_NOTEBOOK_H
 #define __QUTE_NOTE__CLIENT__TYPES__I_SHARED_NOTEBOOK_H
 
-#include <tools/Printable.h>
+#include <qute_note/utility/Printable.h>
 #include <QEverCloud.h>
 
 namespace qute_note {

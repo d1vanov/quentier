@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__I_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
 #define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__I_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
 
-#include <tools/Printable.h>
+#include <qute_note/utility/Printable.h>
 
 namespace qute_note {
 

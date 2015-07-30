@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__TYPES__IUSER_H
 #define __QUTE_NOTE__CLIENT__TYPES__IUSER_H
 
-#include <tools/Printable.h>
+#include <qute_note/utility/Printable.h>
 #include <QtGlobal>
 #include <QEverCloud.h>
 

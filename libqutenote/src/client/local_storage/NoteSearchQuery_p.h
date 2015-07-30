@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__NOTE_SEARCH_QUERY_PRIVATE_H
 #define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__NOTE_SEARCH_QUERY_PRIVATE_H
 
-#include <tools/Printable.h>
+#include <qute_note/utility/Printable.h>
 #include <QStringList>
 #include <QVector>
 
