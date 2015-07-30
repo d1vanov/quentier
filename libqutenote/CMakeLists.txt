@@ -62,7 +62,7 @@ endif()
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(headers)
 
-set(PUBLIC_HEADERS
+set(NOTE_EDITOR_HEADERS
     src/note_editor/AttachmentStoragePathConfigDialog.h
     src/note_editor/EncryptedAreaPlugin.h
     src/note_editor/DecryptedTextCache.h
@@ -74,8 +74,12 @@ set(PUBLIC_HEADERS
     src/note_editor/NoteEditorPluginFactory.h
     src/note_editor/PluginInitializationException.h
     src/note_editor/ResourceFileStorageManager.h
-    src/note_editor/ResourceLocalFileStorageFolderNotFoundException.h
-    src/client/Utility.h
+    src/note_editor/ResourceLocalFileStorageFolderNotFoundException.h)
+
+set(CLIENT_HEADERS
+    src/client/Utility.h)
+
+set(TYPES_HEADERS
     src/client/types/IDataElementWithShortcut.h
     src/client/types/ISharedNotebook.h
     src/client/types/IResource.h
@@ -96,9 +100,13 @@ set(PUBLIC_HEADERS
     src/client/types/UserAdapter.h
     src/client/types/UserAdapterAccessException.h
     src/client/types/UserWrapper.h
-    src/client/types/RegisterMetatypes.h
+    src/client/types/RegisterMetatypes.h)
+
+set(ENML_HEADERS
     src/client/enml/ENMLConverter.h
-    src/client/enml/HTMLCleaner.h
+    src/client/enml/HTMLCleaner.h)
+
+set(LOCAL_STORAGE_HEADERS
     src/client/local_storage/ILocalStorageCacheExpiryChecker.h
     src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
@@ -108,28 +116,46 @@ set(PUBLIC_HEADERS
     src/client/local_storage/LocalStorageManager.h
     src/client/local_storage/LocalStorageManagerThreadWorker.h
     src/client/local_storage/NoteSearchQuery.h
-    src/client/local_storage/Transaction.h
+    src/client/local_storage/Transaction.h)
+
+set(SYNCHRONIZATION_HEADERS
     src/client/synchronization/NoteStore.h
     src/client/synchronization/SynchronizationManager.h
     src/client/synchronization/RemoteToLocalSynchronizationManager.h
-    src/client/synchronization/SendLocalChangesManager.h
+    src/client/synchronization/SendLocalChangesManager.h)
+
+set(LOGGING_HEADERS
     headers/qute_note/logging/QuteNoteLogger.h
-    headers/qute_note/logging/LoggerInitializationException.h
+    headers/qute_note/logging/LoggerInitializationException.h)
+
+set(EXCEPTION_HEADERS
+    headers/qute_note/exception/EmptyDataElementException.h
+    headers/qute_note/exception/IQuteNoteException.h
+    headers/qute_note/exception/NullPtrException.h)
+
+set(UTILITY_HEADERS
     headers/qute_note/utility/ApplicationSettings.h
     headers/qute_note/utility/BasicXMLSyntaxHighlighter.h
     headers/qute_note/utility/DesktopServices.h
-    headers/qute_note/exception/EmptyDataElementException.h
     headers/qute_note/utility/EncryptionManager.h
     headers/qute_note/utility/EventLoopWithExitStatus.h
     headers/qute_note/utility/FileIOThreadWorker.h
-    headers/qute_note/exception/IQuteNoteException.h
     headers/qute_note/utility/Linkage.h
     headers/qute_note/utility/SysInfo.h
     headers/qute_note/utility/Printable.h
     headers/qute_note/utility/QuteNoteApplication.h
     headers/qute_note/utility/QuteNoteCheckPtr.h
-    headers/qute_note/exception/NullPtrException.h
     headers/qute_note/utility/Qt4Helper.h)
+
+set(PUBLIC_HEADERS ${NOTE_EDITOR_HEADERS})
+list(APPEND PUBLIC_HEADERS ${CLIENT_HEADERS})
+list(APPEND PUBLIC_HEADERS ${TYPES_HEADERS})
+list(APPEND PUBLIC_HEADERS ${ENML_HEADERS})
+list(APPEND PUBLIC_HEADERS ${LOCAL_STORAGE_HEADERS})
+list(APPEND PUBLIC_HEADERS ${SYNCHRONIZATION_HEADERS})
+list(APPEND PUBLIC_HEADERS ${LOGGING_HEADERS})
+list(APPEND PUBLIC_HEADERS ${EXCEPTION_HEADERS})
+list(APPEND PUBLIC_HEADERS ${UTILITY_HEADERS})
 
 set(PRIVATE_HEADERS
     src/note_editor/NoteEditor_p.h
@@ -366,8 +392,38 @@ list(APPEND ${PROJECT_NAME}_CHECKABLE_SOURCES ${THIRDPARTY_SOURCES})
 install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
 
 # install headers
-file(GLOB_RECURSE DEPLOY_INCLUDE_FILES ${PUBLIC_HEADERS})
-foreach(ITEM ${DEPLOY_FILES_AND_DIRS})
-  install(FILES ${ITEM} DESTINATION include)
+foreach(ITEM ${NOTE_EDITOR_HEADERS})
+  install(FILES ${ITEM} DESTINATION include/qute_note/note_editor)
 endforeach()
 
+foreach(ITEM ${CLIENT_HEADERS})
+  install(FILES ${ITEM} DESTINATION include/qute_note/client)
+endforeach()
+
+foreach(ITEM ${TYPES_HEADERS})
+  install(FILES ${ITEM} DESTINATION include/qute_note/client/types)
+endforeach()
+
+foreach(ITEM ${ENML_HEADERS})
+  install(FILES ${ITEM} DESTINATION include/qute_note/client/enml)
+endforeach()
+
+foreach(ITEM ${LOCAL_STORAGE_HEADERS})
+  install(FILES ${ITEM} DESTINATION include/qute_note/client/local_storage)
+endforeach()
+
+foreach(ITEM ${SYNCHRONIZATION_HEADERS})
+  install(FILES ${ITEM} DESTINATION include/qute_note/client/synchronization)
+endforeach()
+
+foreach(ITEM ${LOGGING_HEADERS})
+  install(FILES ${ITEM} DESTINATION include/qute_note/logging)
+endforeach()
+
+foreach(ITEM ${EXCEPTION_HEADERS})
+  install(FILES ${ITEM} DESTINATION include/qute_note/exception)
+endforeach()
+
+foreach(ITEM ${UTILITY_HEADERS})
+  install(FILES ${ITEM} DESTINATION include/qute_note/utility)
+endforeach()
