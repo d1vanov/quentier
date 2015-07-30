@@ -3,7 +3,7 @@
 
 #include "RemoteToLocalSynchronizationManager.h"
 #include "SendLocalChangesManager.h"
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QEverCloud.h>
 #include <oauth.h>
 #include <keychain.h>

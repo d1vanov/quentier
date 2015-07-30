@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CLIENT__EVERNOTE_SERVICE_MANAGER_H
 #define __QUTE_NOTE__CLIENT__EVERNOTE_SERVICE_MANAGER_H
 
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QObject>
 #include <QString>
 #include <QUrl>

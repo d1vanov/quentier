@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__TESTS__CORE_TESTER_H
 #define __QUTE_NOTE__CORE__TESTS__CORE_TESTER_H
 
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QObject>
 
 namespace qute_note {

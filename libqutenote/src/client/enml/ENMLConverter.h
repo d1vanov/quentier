@@ -3,7 +3,7 @@
 
 #include <note_editor/DecryptedTextCache.h>
 #include <tools/Linkage.h>
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QSet>
 #include <QString>
 

@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__TRANSACTION_H
 
 #include <tools/Linkage.h>
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QSqlDatabase>
 
 namespace qute_note {

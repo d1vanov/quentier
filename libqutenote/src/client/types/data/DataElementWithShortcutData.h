@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__DATA_ELEMENT_WITH_SHORTCUT_DATA_H
 
 #include "NoteStoreDataElementData.h"
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 
 namespace qute_note {
 

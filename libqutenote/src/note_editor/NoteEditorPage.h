@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H
 #define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H
 
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <tools/Linkage.h>
 #include <QWebPage>
 

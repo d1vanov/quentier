@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__GUI__TABLE_SETTINGS_DIALOG_H
 
 #include <QDialog>
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 
 namespace Ui {
 class TableSettingsDialog;

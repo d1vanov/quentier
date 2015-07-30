@@ -3,7 +3,7 @@
 
 #include "Lists.h"
 #include <tools/Linkage.h>
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QString>
 #include <QSharedPointer>
 #include <cstdint>

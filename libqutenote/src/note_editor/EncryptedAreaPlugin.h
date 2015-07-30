@@ -3,7 +3,7 @@
 
 #include "DecryptedTextCache.h"
 #include "INoteEditorPlugin.h"
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/EncryptionManager.h>
 
 namespace Ui {

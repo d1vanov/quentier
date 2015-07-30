@@ -2,7 +2,7 @@
 #define __LIB_QUTE_NOTE__UTILITY__SYS_INFO_H
 
 #include <tools/Linkage.h>
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QtGlobal>
 
 namespace qute_note {

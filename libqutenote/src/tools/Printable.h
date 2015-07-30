@@ -2,7 +2,7 @@
 #define __QUTE_NOTE__TOOLS_PRINTABLE_H
 
 #include "Linkage.h"
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QString>
 #include <QTextStream>
 #include <QDebug>

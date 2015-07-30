@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__GUI__ASK_CONSUMER_KEY_AND_SECRET_H
 #define __QUTE_NOTE__GUI__ASK_CONSUMER_KEY_AND_SECRET_H
 
-#include <tools/qt4helper.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QWidget>
 #include <QString>
 
@@ -15,7 +15,7 @@ class AskConsumerKeyAndSecret: public QWidget
 public:
     explicit AskConsumerKeyAndSecret(QWidget * parent = nullptr);
     virtual ~AskConsumerKeyAndSecret();
-    
+
 signals:
     void consumerKeyAndSecretEntered(QString key, QString secret);
     void cancelled(QString);

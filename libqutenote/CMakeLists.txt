@@ -4,7 +4,8 @@ if(POLICY CMP0020)
 endif()
 project(libqutenote)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/headers
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_subdirectory(3rdparty)
 
@@ -149,7 +150,7 @@ set(${PROJECT_NAME}_HEADERS
     headers/qute_note/utility/QuteNoteApplication.h
     headers/qute_note/utility/QuteNoteCheckPtr.h
     headers/qute_note/exception/NullPtrException.h
-    src/tools/qt4helper.h)
+    headers/qute_note/utility/Qt4Helper.h)
 
 set(${PROJECT_NAME}_SOURCES
     src/note_editor/AttachmentStoragePathConfigDialog.cpp
