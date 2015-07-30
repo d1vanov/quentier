@@ -4,7 +4,7 @@
 #include <client/types/Tag.h>
 #include <client/types/SavedSearch.h>
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <tools/QuteNoteCheckPtr.h>
+#include <qute_note/utility/QuteNoteCheckPtr.h>
 
 namespace qute_note {
 

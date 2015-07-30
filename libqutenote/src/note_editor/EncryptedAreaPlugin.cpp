@@ -5,7 +5,7 @@
 #include "NoteEditor.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <client/types/IResource.h>
-#include <tools/QuteNoteCheckPtr.h>
+#include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <QIcon>
 #include <QMouseEvent>
 

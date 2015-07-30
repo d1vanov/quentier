@@ -4,7 +4,7 @@
 #include <client/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/ApplicationSettings.h>
-#include <tools/QuteNoteCheckPtr.h>
+#include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <tools/Printable.h>
 #include <Simplecrypt.h>
 #include <QApplication>

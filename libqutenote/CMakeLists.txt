@@ -147,7 +147,7 @@ set(${PROJECT_NAME}_HEADERS
     headers/qute_note/utility/SysInfo.h
     src/tools/Printable.h
     headers/qute_note/utility/QuteNoteApplication.h
-    src/tools/QuteNoteCheckPtr.h
+    headers/qute_note/utility/QuteNoteCheckPtr.h
     headers/qute_note/exception/NullPtrException.h
     src/tools/qt4helper.h)
 

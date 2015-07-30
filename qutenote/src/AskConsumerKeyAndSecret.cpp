@@ -1,6 +1,6 @@
 #include "AskConsumerKeyAndSecret.h"
 #include "ui_AskConsumerKeyAndSecret.h"
-#include <tools/QuteNoteCheckPtr.h>
+#include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <QMessageBox>
 #include <QKeyEvent>
 

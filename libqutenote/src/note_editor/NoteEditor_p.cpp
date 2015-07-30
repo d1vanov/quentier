@@ -13,7 +13,7 @@
 #include <client/types/ResourceAdapter.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
-#include <tools/QuteNoteCheckPtr.h>
+#include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <QWebFrame>
 #include <QFile>
 #include <QFileInfo>
