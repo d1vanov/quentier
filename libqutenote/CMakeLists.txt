@@ -64,13 +64,13 @@ include_directories(headers)
 
 set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/AttachmentStoragePathConfigDialog.h
-    src/note_editor/EncryptedAreaPlugin.h
+    headers/qute_note/note_editor/EncryptedAreaPlugin.h
     headers/qute_note/note_editor/DecryptedTextCache.h
     src/note_editor/GenericResourceDisplayWidget.h
     src/note_editor/NoteDecryptionDialog.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor.h
-    src/note_editor/INoteEditorPlugin.h
+    headers/qute_note/note_editor/INoteEditorPlugin.h
     src/note_editor/NoteEditorPluginFactory.h
     src/note_editor/PluginInitializationException.h
     src/note_editor/ResourceFileStorageManager.h

@@ -1,4 +1,4 @@
-#include "INoteEditorPlugin.h"
+#include <qute_note/note_editor/INoteEditorPlugin.h>
 
 namespace qute_note {
 

@@ -3,7 +3,7 @@
 #include "NoteEditorPluginFactory.h"
 #include "ResourceFileStorageManager.h"
 #include "ResourceLocalFileStorageFolderNotFoundException.h"
-#include "EncryptedAreaPlugin.h"
+#include <qute_note/note_editor/EncryptedAreaPlugin.h>
 #include "PluginInitializationException.h"
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>

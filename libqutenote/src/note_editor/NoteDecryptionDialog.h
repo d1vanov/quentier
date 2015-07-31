@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
-#define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
+#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
+#define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
 
-#include "EncryptedAreaPlugin.h"
+#include <qute_note/note_editor/EncryptedAreaPlugin.h>
 #include <qute_note/utility/EncryptionManager.h>
 #include <QDialog>
 #include <QSharedPointer>
@@ -56,4 +56,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
+#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
