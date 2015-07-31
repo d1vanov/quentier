@@ -173,10 +173,10 @@ set(PRIVATE_HEADERS
     src/local_storage/LocalStorageCacheManager_p.h
     src/local_storage/LocalStorageManager_p.h
     src/local_storage/NoteSearchQuery_p.h
-    src/client/synchronization/NoteStore.h
-    src/client/synchronization/RemoteToLocalSynchronizationManager.h
-    src/client/synchronization/SendLocalChangesManager.h
-    src/client/synchronization/SynchronizationManager_p.h
+    src/synchronization/NoteStore.h
+    src/synchronization/RemoteToLocalSynchronizationManager.h
+    src/synchronization/SendLocalChangesManager.h
+    src/synchronization/SynchronizationManager_p.h
     src/utility/EncryptionManager_p.h
     src/utility/FileIOThreadWorker_p.h)
 
@@ -238,11 +238,11 @@ set(${PROJECT_NAME}_SOURCES
     src/local_storage/NoteSearchQuery.cpp
     src/local_storage/NoteSearchQuery_p.cpp
     src/local_storage/Transaction.cpp
-    src/client/synchronization/NoteStore.cpp
-    src/client/synchronization/SynchronizationManager.cpp
-    src/client/synchronization/SynchronizationManager_p.cpp
-    src/client/synchronization/RemoteToLocalSynchronizationManager.cpp
-    src/client/synchronization/SendLocalChangesManager.cpp
+    src/synchronization/NoteStore.cpp
+    src/synchronization/SynchronizationManager.cpp
+    src/synchronization/SynchronizationManager_p.cpp
+    src/synchronization/RemoteToLocalSynchronizationManager.cpp
+    src/synchronization/SendLocalChangesManager.cpp
     src/exception/DatabaseOpeningException.cpp
     src/exception/DatabaseSqlErrorException.cpp
     src/exception/NoteEditorPluginInitializationException.cpp
@@ -413,7 +413,7 @@ foreach(ITEM ${LOCAL_STORAGE_HEADERS})
 endforeach()
 
 foreach(ITEM ${SYNCHRONIZATION_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/qute_note/client/synchronization)
+  install(FILES ${ITEM} DESTINATION include/qute_note/synchronization)
 endforeach()
 
 foreach(ITEM ${LOGGING_HEADERS})
