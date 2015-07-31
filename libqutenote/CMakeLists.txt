@@ -101,7 +101,7 @@ set(TYPES_HEADERS
 
 set(ENML_HEADERS
     headers/qute_note/enml/ENMLConverter.h
-    src/client/enml/HTMLCleaner.h)
+    src/enml/HTMLCleaner.h)
 
 set(LOCAL_STORAGE_HEADERS
     src/client/local_storage/ILocalStorageCacheExpiryChecker.h
@@ -172,7 +172,7 @@ set(PRIVATE_HEADERS
     src/client/types/data/TagData.h
     src/client/types/data/SavedSearchData.h
     src/client/types/data/UserWrapperData.h
-    src/client/enml/ENMLConverter_p.h
+    src/enml/ENMLConverter_p.h
     src/client/local_storage/LocalStorageCacheManager_p.h
     src/client/local_storage/LocalStorageManager_p.h
     src/client/local_storage/NoteSearchQuery_p.h
@@ -225,9 +225,9 @@ set(${PROJECT_NAME}_SOURCES
     src/client/types/data/TagData.cpp
     src/client/types/data/SavedSearchData.cpp
     src/client/types/data/UserWrapperData.cpp
-    src/client/enml/ENMLConverter.cpp
-    src/client/enml/ENMLConverter_p.cpp
-    src/client/enml/HTMLCleaner.cpp
+    src/enml/ENMLConverter.cpp
+    src/enml/ENMLConverter_p.cpp
+    src/enml/HTMLCleaner.cpp
     src/client/local_storage/ILocalStorageCacheExpiryChecker.cpp
     src/client/local_storage/DatabaseOpeningException.cpp
     src/client/local_storage/DatabaseSqlErrorException.cpp
@@ -278,7 +278,7 @@ set(RESOURCES
     src/note_editor/javascript/jquery/jquery.qrc
     src/note_editor/javascript/colResizable/colResizable.qrc
     src/note_editor/javascript/scripts/scripts.qrc
-    src/client/enml/enml.qrc)
+    src/enml/enml.qrc)
 
 if(USE_QT5)
   qt5_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
@@ -405,7 +405,7 @@ foreach(ITEM ${TYPES_HEADERS})
 endforeach()
 
 foreach(ITEM ${ENML_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/qute_note/client/enml)
+  install(FILES ${ITEM} DESTINATION include/qute_note/enml)
 endforeach()
 
 foreach(ITEM ${LOCAL_STORAGE_HEADERS})
