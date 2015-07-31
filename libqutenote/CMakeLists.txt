@@ -110,7 +110,7 @@ set(LOCAL_STORAGE_HEADERS
     src/client/local_storage/LocalStorageCacheManagerException.h
     src/client/local_storage/LocalStorageManager.h
     src/client/local_storage/LocalStorageManagerThreadWorker.h
-    src/client/local_storage/NoteSearchQuery.h
+    headers/qute_note/local_storage/NoteSearchQuery.h
     src/client/local_storage/Transaction.h)
 
 set(SYNCHRONIZATION_HEADERS

@@ -1,4 +1,4 @@
-#include "NoteSearchQuery.h"
+#include <qute_note/local_storage/NoteSearchQuery.h>
 #include "NoteSearchQuery_p.h"
 
 namespace qute_note {

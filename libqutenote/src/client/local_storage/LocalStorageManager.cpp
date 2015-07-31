@@ -1,6 +1,6 @@
 #include "LocalStorageManager.h"
 #include "LocalStorageManager_p.h"
-#include "NoteSearchQuery.h"
+#include <qute_note/local_storage/NoteSearchQuery.h>
 
 namespace qute_note {
 

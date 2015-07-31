@@ -2,7 +2,7 @@
 #include <qute_note/exception/DatabaseOpeningException.h>
 #include <qute_note/exception/DatabaseSqlErrorException.h>
 #include "Transaction.h"
-#include "NoteSearchQuery.h"
+#include <qute_note/local_storage/NoteSearchQuery.h>
 #include <client/Utility.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/DesktopServices.h>
