@@ -1,6 +1,6 @@
 #include "NoteEditorPluginFactory.h"
 #include "NoteEditorPluginFactory_p.h"
-#include "NoteEditor.h"
+#include <qute_note/note_editor/NoteEditor.h>
 #include <QRegExp>
 
 namespace qute_note {

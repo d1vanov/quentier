@@ -2654,7 +2654,7 @@ stop: 1 #0EB7FF);
   <customwidget>
    <class>NoteEditor</class>
    <extends>QWidget</extends>
-   <header location="global">note_editor/NoteEditor.h</header>
+   <header location="global">qute_note/note_editor/NoteEditor.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

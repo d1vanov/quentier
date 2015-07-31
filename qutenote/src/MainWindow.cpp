@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 
-#include <note_editor/NoteEditor.h>
+#include <qute_note/note_editor/NoteEditor.h>
 using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work with namespaces
 #include "ui_MainWindow.h"
 

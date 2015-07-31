@@ -1,5 +1,5 @@
 #include "NoteEditorPluginFactory_p.h"
-#include "NoteEditor.h"
+#include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/note_editor/GenericResourceDisplayWidget.h>
 #include "ResourceFileStorageManager.h"
 #include <qute_note/utility/FileIOThreadWorker.h>

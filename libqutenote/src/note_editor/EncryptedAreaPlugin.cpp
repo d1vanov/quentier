@@ -2,7 +2,7 @@
 #include "ui_EncryptedAreaPlugin.h"
 #include <qute_note/note_editor/NoteDecryptionDialog.h>
 #include "NoteEditorPluginFactory.h"
-#include "NoteEditor.h"
+#include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <client/types/IResource.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>

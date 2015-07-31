@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PRIVATE_H
-#define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PRIVATE_H
+#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
+#define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
 
-#include "NoteEditor.h"
+#include <qute_note/note_editor/NoteEditor.h>
 #include <client/enml/ENMLConverter.h>
 #include <qute_note/utility/EncryptionManager.h>
 #include <QObject>
@@ -184,4 +184,4 @@ private:
 
 void __initNoteEditorResources();
 
-#endif // __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PRIVATE_H
+#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H

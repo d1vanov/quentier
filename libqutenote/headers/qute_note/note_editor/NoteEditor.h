@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_H
-#define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_H
+#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_H
+#define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_H
 
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/Linkage.h>
@@ -73,4 +73,4 @@ private:
 
 } // namespace qute_note
 
-#endif //__QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_H
+#endif //__LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_H

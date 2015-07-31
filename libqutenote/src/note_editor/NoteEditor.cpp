@@ -1,4 +1,4 @@
-#include "NoteEditor.h"
+#include <qute_note/note_editor/NoteEditor.h>
 #include "NoteEditor_p.h"
 #include "NoteEditorPluginFactory.h"
 #include <client/types/Note.h>
