@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_FACTORY_PRIVATE_H
-#define __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_FACTORY_PRIVATE_H
+#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_FACTORY_P_H
+#define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_FACTORY_P_H
 
-#include "NoteEditorPluginFactory.h"
+#include <qute_note/note_editor/NoteEditorPluginFactory.h>
 #include <QMimeDatabase>
 #include <QIcon>
 #include <QThread>
@@ -76,4 +76,4 @@ private:
 
 } // namespace qute_note;
 
-#endif // __QUTE_NOTE__CORE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_FACTORY_PRIVATE_H
+#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_FACTORY_P_H

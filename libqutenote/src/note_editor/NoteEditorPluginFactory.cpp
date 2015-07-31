@@ -1,4 +1,4 @@
-#include "NoteEditorPluginFactory.h"
+#include <qute_note/note_editor/NoteEditorPluginFactory.h>
 #include "NoteEditorPluginFactory_p.h"
 #include <qute_note/note_editor/NoteEditor.h>
 #include <QRegExp>
