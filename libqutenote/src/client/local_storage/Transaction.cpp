@@ -18,16 +18,6 @@ Transaction::Transaction(const QSqlDatabase & db, const LocalStorageManagerPriva
     init();
 }
 
-Transaction::Transaction(Transaction && other) :
-    m_db(other.m_db),
-    m_localStorageManager(other.m_localStorageManager),
-    m_type(std::move(other.m_type)),
-    m_committed(std::move(other.m_committed)),
-    m_ended(std::move(other.m_ended))
-{
-    init();
-}
-
 Transaction::~Transaction()
 {
     if ((m_type != Selection) && !m_committed)
