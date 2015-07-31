@@ -1,4 +1,4 @@
-#include "LocalStorageCacheManagerException.h"
+#include <qute_note/exception/LocalStorageCacheManagerException.h>
 
 namespace qute_note {
 

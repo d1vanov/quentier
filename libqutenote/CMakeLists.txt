@@ -107,7 +107,6 @@ set(LOCAL_STORAGE_HEADERS
     headers/qute_note/local_storage/ILocalStorageCacheExpiryChecker.h
     headers/qute_note/local_storage/DefaultLocalStorageCacheExpiryChecker.h
     src/client/local_storage/LocalStorageCacheManager.h
-    src/client/local_storage/LocalStorageCacheManagerException.h
     src/client/local_storage/LocalStorageManager.h
     src/client/local_storage/LocalStorageManagerThreadWorker.h
     headers/qute_note/local_storage/NoteSearchQuery.h
@@ -127,6 +126,7 @@ set(EXCEPTION_HEADERS
     headers/qute_note/exception/DatabaseSqlErrorException.h
     headers/qute_note/exception/EmptyDataElementException.h
     headers/qute_note/exception/IQuteNoteException.h
+    headers/qute_note/exception/LocalStorageCacheManagerException.h
     headers/qute_note/exception/LoggerInitializationException.h
     headers/qute_note/exception/NoteEditorPluginInitializationException.h
     headers/qute_note/exception/NullPtrException.h
