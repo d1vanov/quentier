@@ -1,4 +1,4 @@
-#include "DefaultLocalStorageCacheExpiryChecker.h"
+#include <qute_note/local_storage/DefaultLocalStorageCacheExpiryChecker.h>
 #include "LocalStorageCacheManager.h"
 
 namespace qute_note {

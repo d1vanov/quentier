@@ -25,9 +25,9 @@ public:
     virtual bool checkLinkedNotebooks() const;
     virtual bool checkSavedSearches() const;
 
-private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
+private:
     DefaultLocalStorageCacheExpiryChecker() Q_DECL_DELETE;
     DefaultLocalStorageCacheExpiryChecker(const DefaultLocalStorageCacheExpiryChecker & other) Q_DECL_DELETE;
     DefaultLocalStorageCacheExpiryChecker(DefaultLocalStorageCacheExpiryChecker && other) Q_DECL_DELETE;

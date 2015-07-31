@@ -105,7 +105,7 @@ set(ENML_HEADERS
 
 set(LOCAL_STORAGE_HEADERS
     headers/qute_note/local_storage/ILocalStorageCacheExpiryChecker.h
-    src/client/local_storage/DefaultLocalStorageCacheExpiryChecker.h
+    headers/qute_note/local_storage/DefaultLocalStorageCacheExpiryChecker.h
     src/client/local_storage/LocalStorageCacheManager.h
     src/client/local_storage/LocalStorageCacheManagerException.h
     src/client/local_storage/LocalStorageManager.h
