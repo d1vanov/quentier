@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CLIENT__UTILITY_H
-#define __QUTE_NOTE__CLIENT__UTILITY_H
+#ifndef __LIB_QUTE_NOTE__UTILITY__UTILITY_H
+#define __LIB_QUTE_NOTE__UTILITY__UTILITY_H
 
 #include <QEverCloud.h>
 #include <QString>
@@ -32,4 +32,4 @@ const QString PrintableDateTimeFromTimestamp(const qint64 timestamp);
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CLIENT__UTILITY_H
+#endif // __LIB_QUTE_NOTE__UTILITY__UTILITY_H

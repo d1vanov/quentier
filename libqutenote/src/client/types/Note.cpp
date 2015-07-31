@@ -2,7 +2,7 @@
 #include "data/NoteData.h"
 #include "ResourceAdapter.h"
 #include "ResourceWrapper.h"
-#include "../Utility.h"
+#include <qute_note/utility/Utility.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 
 namespace qute_note {

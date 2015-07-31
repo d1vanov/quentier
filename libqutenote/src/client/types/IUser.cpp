@@ -1,5 +1,5 @@
 #include "IUser.h"
-#include "../Utility.h"
+#include <qute_note/utility/Utility.h>
 #include <QEverCloud.h>
 #include <QRegExp>
 

@@ -1,6 +1,6 @@
 #include "SynchronizationManager_p.h"
 #include <keychain.h>
-#include <client/Utility.h>
+#include <qute_note/utility/Utility.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/ApplicationSettings.h>

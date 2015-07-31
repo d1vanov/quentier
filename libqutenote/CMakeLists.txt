@@ -73,9 +73,6 @@ set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/NoteEditorPluginFactory.h
     headers/qute_note/note_editor/ResourceFileStorageManager.h)
 
-set(CLIENT_HEADERS
-    src/client/Utility.h)
-
 set(TYPES_HEADERS
     src/client/types/IDataElementWithShortcut.h
     src/client/types/ISharedNotebook.h
@@ -140,10 +137,10 @@ set(UTILITY_HEADERS
     headers/qute_note/utility/Printable.h
     headers/qute_note/utility/QuteNoteApplication.h
     headers/qute_note/utility/QuteNoteCheckPtr.h
-    headers/qute_note/utility/Qt4Helper.h)
+    headers/qute_note/utility/Qt4Helper.h
+    headers/qute_note/utility/Utility.h)
 
 set(PUBLIC_HEADERS ${NOTE_EDITOR_HEADERS})
-list(APPEND PUBLIC_HEADERS ${CLIENT_HEADERS})
 list(APPEND PUBLIC_HEADERS ${TYPES_HEADERS})
 list(APPEND PUBLIC_HEADERS ${ENML_HEADERS})
 list(APPEND PUBLIC_HEADERS ${LOCAL_STORAGE_HEADERS})
@@ -195,7 +192,6 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/NoteDecryptionDialog.cpp
     src/note_editor/ResourceFileStorageManager.cpp
     src/note_editor/ResourceFileStorageManager_p.cpp
-    src/client/Utility.cpp
     src/client/types/ISharedNotebook.cpp
     src/client/types/IResource.cpp
     src/client/types/IUser.cpp
@@ -261,7 +257,8 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/IQuteNoteException.cpp
     src/utility/Printable.cpp
     src/utility/QuteNoteApplication.cpp
-    src/utility/NullPtrException.cpp)
+    src/utility/NullPtrException.cpp
+    src/utility/Utility.cpp)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND ${PROJECT_NAME}_SOURCES src/utility/windows/SysInfo.cpp)
@@ -394,10 +391,6 @@ install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib 
 # install headers
 foreach(ITEM ${NOTE_EDITOR_HEADERS})
   install(FILES ${ITEM} DESTINATION include/qute_note/note_editor)
-endforeach()
-
-foreach(ITEM ${CLIENT_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/qute_note/client)
 endforeach()
 
 foreach(ITEM ${TYPES_HEADERS})

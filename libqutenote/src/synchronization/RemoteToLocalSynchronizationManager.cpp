@@ -1,5 +1,5 @@
 #include "RemoteToLocalSynchronizationManager.h"
-#include <client/Utility.h>
+#include <qute_note/utility/Utility.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <client/types/ResourceAdapter.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>

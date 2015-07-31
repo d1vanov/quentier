@@ -1,6 +1,6 @@
 #include "IResource.h"
 #include "data/NoteStoreDataElementData.h"
-#include <client/Utility.h>
+#include <qute_note/utility/Utility.h>
 
 namespace qute_note {
 
@@ -30,7 +30,7 @@ IResource::~IResource()
 {}
 
 bool IResource::operator==(const IResource & other) const
-{   
+{
     return (GetEnResource() == other.GetEnResource()) &&
            (isDirty() == other.isDirty()) &&
            (m_noteLocalGuid.isEqual(other.m_noteLocalGuid)) &&

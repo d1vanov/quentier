@@ -1,6 +1,6 @@
 #include "SavedSearch.h"
 #include "data/SavedSearchData.h"
-#include "../Utility.h"
+#include <qute_note/utility/Utility.h>
 
 namespace qute_note {
 
@@ -237,7 +237,7 @@ bool SavedSearch::hasIncludeBusinessLinkedNotebooks() const
 }
 
 bool SavedSearch::includeBusinessLinkedNotebooks() const
-{    
+{
     return d->m_qecSearch.scope->includeBusinessLinkedNotebooks;
 }
 

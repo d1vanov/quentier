@@ -3,7 +3,7 @@
 #include <qute_note/exception/DatabaseSqlErrorException.h>
 #include "Transaction.h"
 #include <qute_note/local_storage/NoteSearchQuery.h>
-#include <client/Utility.h>
+#include <qute_note/utility/Utility.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/DesktopServices.h>
 #include <qute_note/utility/SysInfo.h>

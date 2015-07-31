@@ -1,5 +1,5 @@
 #include "NotebookData.h"
-#include "../../Utility.h"
+#include <qute_note/utility/Utility.h>
 
 namespace qute_note {
 

@@ -9,7 +9,7 @@
 #include <client/types/Notebook.h>
 #include <client/types/ResourceWrapper.h>
 #include <qute_note/enml/ENMLConverter.h>
-#include <client/Utility.h>
+#include <qute_note/utility/Utility.h>
 #include <client/types/ResourceAdapter.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/FileIOThreadWorker.h>

@@ -1,4 +1,4 @@
-#include "Utility.h"
+#include <qute_note/utility/Utility.h>
 #include <limits>
 #include <QDateTime>
 
