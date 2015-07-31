@@ -1,8 +1,8 @@
-#ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_PRIVATE_H
-#define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_PRIVATE_H
+#ifndef __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_PRIVATE_H
+#define __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_PRIVATE_H
 
-#include "Lists.h"
-#include "LocalStorageManager.h"
+#include <qute_note/local_storage/Lists.h>
+#include <qute_note/local_storage/LocalStorageManager.h>
 #include <client/types/IUser.h>
 #include <client/types/UserAdapter.h>
 #include <client/types/UserWrapper.h>
@@ -461,4 +461,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_PRIVATE_H
+#endif // __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_PRIVATE_H

@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_CACHE_MANAGER_PRIVATE_H
-#define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_CACHE_MANAGER_PRIVATE_H
+#ifndef __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_CACHE_MANAGER_PRIVATE_H
+#define __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_CACHE_MANAGER_PRIVATE_H
 
-#include "LocalStorageCacheManager.h"
+#include <qute_note/local_storage/LocalStorageCacheManager.h>
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
 #include <client/types/Tag.h>
@@ -297,4 +297,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_CACHE_MANAGER_PRIVATE_H
+#endif // __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_CACHE_MANAGER_PRIVATE_H

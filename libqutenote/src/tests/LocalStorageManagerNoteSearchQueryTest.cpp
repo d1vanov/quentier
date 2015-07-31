@@ -1,5 +1,5 @@
 #include "LocalStorageManagerNoteSearchQueryTest.h"
-#include <client/local_storage/LocalStorageManager.h>
+#include <qute_note/local_storage/LocalStorageManager.h>
 #include <qute_note/local_storage/NoteSearchQuery.h>
 #include <client/types/Notebook.h>
 #include <client/types/Note.h>

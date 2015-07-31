@@ -1,6 +1,6 @@
 #include "SynchronizationManager.h"
 #include "SynchronizationManager_p.h"
-#include <client/local_storage/LocalStorageManagerThreadWorker.h>
+#include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 
 namespace qute_note {
 

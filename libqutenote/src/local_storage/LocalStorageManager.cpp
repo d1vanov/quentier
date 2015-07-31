@@ -1,4 +1,4 @@
-#include "LocalStorageManager.h"
+#include <qute_note/local_storage/LocalStorageManager.h>
 #include "LocalStorageManager_p.h"
 #include <qute_note/local_storage/NoteSearchQuery.h>
 

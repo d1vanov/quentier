@@ -1,4 +1,4 @@
-#include "LocalStorageCacheManager.h"
+#include <qute_note/local_storage/LocalStorageCacheManager.h>
 #include "LocalStorageCacheManager_p.h"
 #include <qute_note/local_storage/ILocalStorageCacheExpiryChecker.h>
 #include <qute_note/logging/QuteNoteLogger.h>

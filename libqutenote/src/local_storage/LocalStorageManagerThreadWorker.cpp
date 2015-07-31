@@ -1,4 +1,4 @@
-#include "LocalStorageManagerThreadWorker.h"
+#include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/SysInfo.h>
 

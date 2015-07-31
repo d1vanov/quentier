@@ -1,8 +1,8 @@
-#ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
-#define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
+#ifndef __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
+#define __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
 
-#include "LocalStorageManager.h"
-#include "LocalStorageCacheManager.h"
+#include <qute_note/local_storage/LocalStorageManager.h>
+#include <qute_note/local_storage/LocalStorageCacheManager.h>
 #include <client/types/UserWrapper.h>
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
@@ -370,4 +370,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
+#endif // __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H

@@ -1,7 +1,7 @@
 #include "LocalStorageCacheAsyncTester.h"
-#include <client/local_storage/LocalStorageManagerThreadWorker.h>
+#include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/local_storage/DefaultLocalStorageCacheExpiryChecker.h>
-#include <client/local_storage/LocalStorageCacheManager.h>
+#include <qute_note/local_storage/LocalStorageCacheManager.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QThread>
 

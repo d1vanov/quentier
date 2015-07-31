@@ -106,11 +106,11 @@ set(ENML_HEADERS
 set(LOCAL_STORAGE_HEADERS
     headers/qute_note/local_storage/ILocalStorageCacheExpiryChecker.h
     headers/qute_note/local_storage/DefaultLocalStorageCacheExpiryChecker.h
-    src/client/local_storage/LocalStorageCacheManager.h
-    src/client/local_storage/LocalStorageManager.h
-    src/client/local_storage/LocalStorageManagerThreadWorker.h
+    headers/qute_note/local_storage/LocalStorageCacheManager.h
+    headers/qute_note/local_storage/LocalStorageManager.h
+    headers/qute_note/local_storage/LocalStorageManagerThreadWorker.h
     headers/qute_note/local_storage/NoteSearchQuery.h
-    src/client/local_storage/Transaction.h)
+    src/local_storage/Transaction.h)
 
 set(SYNCHRONIZATION_HEADERS
     src/client/synchronization/NoteStore.h
@@ -173,9 +173,9 @@ set(PRIVATE_HEADERS
     src/client/types/data/SavedSearchData.h
     src/client/types/data/UserWrapperData.h
     src/enml/ENMLConverter_p.h
-    src/client/local_storage/LocalStorageCacheManager_p.h
-    src/client/local_storage/LocalStorageManager_p.h
-    src/client/local_storage/NoteSearchQuery_p.h
+    src/local_storage/LocalStorageCacheManager_p.h
+    src/local_storage/LocalStorageManager_p.h
+    src/local_storage/NoteSearchQuery_p.h
     src/client/synchronization/SynchronizationManager_p.h
     src/utility/EncryptionManager_p.h
     src/utility/FileIOThreadWorker_p.h)
@@ -228,16 +228,16 @@ set(${PROJECT_NAME}_SOURCES
     src/enml/ENMLConverter.cpp
     src/enml/ENMLConverter_p.cpp
     src/enml/HTMLCleaner.cpp
-    src/client/local_storage/ILocalStorageCacheExpiryChecker.cpp
-    src/client/local_storage/DefaultLocalStorageCacheExpiryChecker.cpp
-    src/client/local_storage/LocalStorageManager.cpp
-    src/client/local_storage/LocalStorageManager_p.cpp
-    src/client/local_storage/LocalStorageCacheManager.cpp
-    src/client/local_storage/LocalStorageCacheManager_p.cpp
-    src/client/local_storage/LocalStorageManagerThreadWorker.cpp
-    src/client/local_storage/NoteSearchQuery.cpp
-    src/client/local_storage/NoteSearchQuery_p.cpp
-    src/client/local_storage/Transaction.cpp
+    src/local_storage/ILocalStorageCacheExpiryChecker.cpp
+    src/local_storage/DefaultLocalStorageCacheExpiryChecker.cpp
+    src/local_storage/LocalStorageManager.cpp
+    src/local_storage/LocalStorageManager_p.cpp
+    src/local_storage/LocalStorageCacheManager.cpp
+    src/local_storage/LocalStorageCacheManager_p.cpp
+    src/local_storage/LocalStorageManagerThreadWorker.cpp
+    src/local_storage/NoteSearchQuery.cpp
+    src/local_storage/NoteSearchQuery_p.cpp
+    src/local_storage/Transaction.cpp
     src/client/synchronization/NoteStore.cpp
     src/client/synchronization/SynchronizationManager.cpp
     src/client/synchronization/SynchronizationManager_p.cpp

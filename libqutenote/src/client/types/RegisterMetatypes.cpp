@@ -7,7 +7,7 @@
 #include "LinkedNotebook.h"
 #include "SavedSearch.h"
 #include "SharedNotebookWrapper.h"
-#include <client/local_storage/LocalStorageManager.h>
+#include <qute_note/local_storage/LocalStorageManager.h>
 #include <QMetaType>
 
 namespace qute_note {

@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H
-#define __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H
+#ifndef __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H
+#define __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H
 
-#include "Lists.h"
+#include <qute_note/local_storage/Lists.h>
 #include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <QString>
@@ -881,4 +881,4 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(LocalStorageManager::ListObjectsOptions)
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CLIENT__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H
+#endif // __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_H

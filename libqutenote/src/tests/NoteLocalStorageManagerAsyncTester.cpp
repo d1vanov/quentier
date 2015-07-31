@@ -1,5 +1,5 @@
 #include "NoteLocalStorageManagerAsyncTester.h"
-#include <client/local_storage/LocalStorageManagerThreadWorker.h>
+#include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QPainter>
 #include <QThread>

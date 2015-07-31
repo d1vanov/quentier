@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
-#define __QUTE_NOTE__CORE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
+#ifndef __LIB_QUTE_NOTE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
+#define __LIB_QUTE_NOTE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
-#include <client/local_storage/LocalStorageManager.h>
+#include <qute_note/local_storage/LocalStorageManager.h>
 #include <client/types/Notebook.h>
 #include <client/types/Note.h>
 #include <QUuid>
@@ -25,7 +25,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     void success();
     void failure(QString errorDescription);
-    
+
 // private signals
     void addNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
     void getNoteCountRequest(QUuid requestId = QUuid());
@@ -110,4 +110,4 @@ private:
 } // namespace qute_note
 } // namespace test
 
-#endif // __QUTE_NOTE__CORE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
+#endif // __LIB_QUTE_NOTE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H

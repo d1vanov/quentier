@@ -1,8 +1,8 @@
-#ifndef __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__SEND_LOCAL_CHANGES_MANAGER_H
-#define __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__SEND_LOCAL_CHANGES_MANAGER_H
+#ifndef __LIB_QUTE_NOTE__CORE__SYNCHRONIZATION__SEND_LOCAL_CHANGES_MANAGER_H
+#define __LIB_QUTE_NOTE__CORE__SYNCHRONIZATION__SEND_LOCAL_CHANGES_MANAGER_H
 
 #include "NoteStore.h"
-#include <client/local_storage/LocalStorageManager.h>
+#include <qute_note/local_storage/LocalStorageManager.h>
 #include <client/types/Tag.h>
 #include <client/types/SavedSearch.h>
 #include <client/types/Notebook.h>
@@ -264,4 +264,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__SEND_LOCAL_CHANGES_MANAGER_H
+#endif // __LIB_QUTE_NOTE__CORE__SYNCHRONIZATION__SEND_LOCAL_CHANGES_MANAGER_H

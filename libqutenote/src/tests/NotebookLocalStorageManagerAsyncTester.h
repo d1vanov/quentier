@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__TESTS__NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
-#define __QUTE_NOTE__CORE__TESTS__NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
+#ifndef __LIB_QUTE_NOTE__TESTS__NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
+#define __LIB_QUTE_NOTE__TESTS__NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
-#include <client/local_storage/LocalStorageManager.h>
+#include <qute_note/local_storage/LocalStorageManager.h>
 #include <client/types/Notebook.h>
 #include <client/types/SharedNotebookWrapper.h>
 
@@ -120,4 +120,4 @@ private:
 } // namespace qute_note
 } // namespace test
 
-#endif // __QUTE_NOTE__CORE__TESTS__NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
+#endif // __LIB_QUTE_NOTE__TESTS__NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
