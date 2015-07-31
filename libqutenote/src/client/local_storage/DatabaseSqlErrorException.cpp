@@ -1,4 +1,4 @@
-#include "DatabaseSqlErrorException.h"
+#include <qute_note/exception/DatabaseSqlErrorException.h>
 
 namespace qute_note {
 

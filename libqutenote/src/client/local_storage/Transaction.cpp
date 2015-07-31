@@ -1,6 +1,6 @@
 #include "Transaction.h"
 #include "LocalStorageManager_p.h"
-#include "DatabaseSqlErrorException.h"
+#include <qute_note/exception/DatabaseSqlErrorException.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QSqlQuery>
 #include <QSqlError>
