@@ -1,4 +1,4 @@
-#include "ResourceFileStorageManager.h"
+#include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include "ResourceFileStorageManager_p.h"
 
 namespace qute_note {

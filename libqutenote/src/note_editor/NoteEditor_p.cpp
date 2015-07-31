@@ -1,7 +1,7 @@
 #include "NoteEditor_p.h"
 #include "NoteEditorPage.h"
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
-#include "ResourceFileStorageManager.h"
+#include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include <qute_note/exception/ResourceLocalFileStorageFolderNotFoundException.h>
 #include <qute_note/note_editor/EncryptedAreaPlugin.h>
 #include <qute_note/exception/NoteEditorPluginInitializationException.h>

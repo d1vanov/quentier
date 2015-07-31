@@ -71,7 +71,7 @@ set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/NoteEditor.h
     headers/qute_note/note_editor/INoteEditorPlugin.h
     headers/qute_note/note_editor/NoteEditorPluginFactory.h
-    src/note_editor/ResourceFileStorageManager.h)
+    headers/qute_note/note_editor/ResourceFileStorageManager.h)
 
 set(CLIENT_HEADERS
     src/client/Utility.h)
