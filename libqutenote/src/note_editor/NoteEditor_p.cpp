@@ -4,7 +4,7 @@
 #include "ResourceFileStorageManager.h"
 #include "ResourceLocalFileStorageFolderNotFoundException.h"
 #include <qute_note/note_editor/EncryptedAreaPlugin.h>
-#include "PluginInitializationException.h"
+#include <qute_note/exception/NoteEditorPluginInitializationException.h>
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
 #include <client/types/ResourceWrapper.h>
@@ -91,7 +91,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_errorCachedMemory.resize(0);
     NoteEditorPluginFactory::PluginIdentifier encryptedAreaPluginId = m_pluginFactory->addPlugin(encryptedAreaPlugin, m_errorCachedMemory);
     if (!encryptedAreaPluginId) {
-        throw PluginInitializationException("Can't initialize note editor plugin for managing the encrypted text");
+        throw NoteEditorPluginInitializationException("Can't initialize note editor plugin for managing the encrypted text");
     }
 
     QObject::connect(this, SIGNAL(saveResourceToStorage(QString,QByteArray,QByteArray,QUuid)),

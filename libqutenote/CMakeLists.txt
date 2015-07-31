@@ -71,7 +71,6 @@ set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/NoteEditor.h
     headers/qute_note/note_editor/INoteEditorPlugin.h
     headers/qute_note/note_editor/NoteEditorPluginFactory.h
-    src/note_editor/PluginInitializationException.h
     src/note_editor/ResourceFileStorageManager.h
     src/note_editor/ResourceLocalFileStorageFolderNotFoundException.h)
 
@@ -129,8 +128,9 @@ set(LOGGING_HEADERS
 set(EXCEPTION_HEADERS
     headers/qute_note/exception/EmptyDataElementException.h
     headers/qute_note/exception/IQuteNoteException.h
-    headers/qute_note/exception/NullPtrException.h
-    headers/qute_note/exception/LoggerInitializationException.h)
+    headers/qute_note/exception/LoggerInitializationException.h
+    headers/qute_note/exception/NoteEditorPluginInitializationException.h
+    headers/qute_note/exception/NullPtrException.h)
 
 set(UTILITY_HEADERS
     headers/qute_note/utility/ApplicationSettings.h
@@ -193,7 +193,6 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/NoteEditorPluginFactory.cpp
     src/note_editor/NoteEditorPluginFactory_p.cpp
     src/note_editor/NoteDecryptionDialog.cpp
-    src/note_editor/PluginInitializationException.cpp
     src/note_editor/ResourceFileStorageManager.cpp
     src/note_editor/ResourceFileStorageManager_p.cpp
     src/note_editor/ResourceLocalFileStorageFolderNotFoundException.cpp
@@ -248,6 +247,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/synchronization/SynchronizationManager_p.cpp
     src/client/synchronization/RemoteToLocalSynchronizationManager.cpp
     src/client/synchronization/SendLocalChangesManager.cpp
+    src/exception/NoteEditorPluginInitializationException.cpp
     src/exception/LoggerInitializationException.cpp
     src/utility/ApplicationSettings.cpp
     src/utility/BasicXMLSyntaxHighlighter.cpp
