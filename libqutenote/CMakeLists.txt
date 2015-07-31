@@ -67,7 +67,7 @@ set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/EncryptedAreaPlugin.h
     headers/qute_note/note_editor/DecryptedTextCache.h
     headers/qute_note/note_editor/GenericResourceDisplayWidget.h
-    src/note_editor/NoteDecryptionDialog.h
+    headers/qute_note/note_editor/NoteDecryptionDialog.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor.h
     headers/qute_note/note_editor/INoteEditorPlugin.h
