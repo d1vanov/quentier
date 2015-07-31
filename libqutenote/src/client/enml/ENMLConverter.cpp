@@ -1,4 +1,4 @@
-#include "ENMLConverter.h"
+#include <qute_note/enml/ENMLConverter.h>
 #include "ENMLConverter_p.h"
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
 #include <qute_note/logging/QuteNoteLogger.h>

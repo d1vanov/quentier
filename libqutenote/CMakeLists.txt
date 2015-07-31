@@ -100,7 +100,7 @@ set(TYPES_HEADERS
     src/client/types/RegisterMetatypes.h)
 
 set(ENML_HEADERS
-    src/client/enml/ENMLConverter.h
+    headers/qute_note/enml/ENMLConverter.h
     src/client/enml/HTMLCleaner.h)
 
 set(LOCAL_STORAGE_HEADERS

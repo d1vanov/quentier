@@ -1,6 +1,6 @@
 #include "NoteData.h"
 #include "../../Utility.h"
-#include <client/enml/ENMLConverter.h>
+#include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QDomDocument>
 #include <QMutexLocker>

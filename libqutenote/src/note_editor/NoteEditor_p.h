@@ -2,7 +2,7 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
 
 #include <qute_note/note_editor/NoteEditor.h>
-#include <client/enml/ENMLConverter.h>
+#include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/utility/EncryptionManager.h>
 #include <QObject>
 #include <QCache>

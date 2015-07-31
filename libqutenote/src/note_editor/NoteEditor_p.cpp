@@ -8,7 +8,7 @@
 #include <client/types/Note.h>
 #include <client/types/Notebook.h>
 #include <client/types/ResourceWrapper.h>
-#include <client/enml/ENMLConverter.h>
+#include <qute_note/enml/ENMLConverter.h>
 #include <client/Utility.h>
 #include <client/types/ResourceAdapter.h>
 #include <qute_note/logging/QuteNoteLogger.h>
