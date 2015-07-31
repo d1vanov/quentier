@@ -109,14 +109,10 @@ set(LOCAL_STORAGE_HEADERS
     headers/qute_note/local_storage/LocalStorageCacheManager.h
     headers/qute_note/local_storage/LocalStorageManager.h
     headers/qute_note/local_storage/LocalStorageManagerThreadWorker.h
-    headers/qute_note/local_storage/NoteSearchQuery.h
-    src/local_storage/Transaction.h)
+    headers/qute_note/local_storage/NoteSearchQuery.h)
 
 set(SYNCHRONIZATION_HEADERS
-    src/client/synchronization/NoteStore.h
-    src/client/synchronization/SynchronizationManager.h
-    src/client/synchronization/RemoteToLocalSynchronizationManager.h
-    src/client/synchronization/SendLocalChangesManager.h)
+    headers/qute_note/synchronization/SynchronizationManager.h)
 
 set(LOGGING_HEADERS
     headers/qute_note/logging/QuteNoteLogger.h)
@@ -157,6 +153,7 @@ list(APPEND PUBLIC_HEADERS ${EXCEPTION_HEADERS})
 list(APPEND PUBLIC_HEADERS ${UTILITY_HEADERS})
 
 set(PRIVATE_HEADERS
+    src/local_storage/Transaction.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor_p.h
     src/note_editor/NoteEditorPluginFactory_p.h
@@ -176,6 +173,9 @@ set(PRIVATE_HEADERS
     src/local_storage/LocalStorageCacheManager_p.h
     src/local_storage/LocalStorageManager_p.h
     src/local_storage/NoteSearchQuery_p.h
+    src/client/synchronization/NoteStore.h
+    src/client/synchronization/RemoteToLocalSynchronizationManager.h
+    src/client/synchronization/SendLocalChangesManager.h
     src/client/synchronization/SynchronizationManager_p.h
     src/utility/EncryptionManager_p.h
     src/utility/FileIOThreadWorker_p.h)

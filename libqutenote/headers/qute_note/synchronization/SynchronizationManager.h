@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__SYNCHRONIZATION_MANAGER_H
 #define __QUTE_NOTE__CORE__CLIENT__SYNCHRONIZATION__SYNCHRONIZATION_MANAGER_H
 
+#include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <QObject>
 
@@ -9,7 +10,7 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 QT_FORWARD_DECLARE_CLASS(SynchronizationManagerPrivate)
 
-class SynchronizationManager: public QObject
+class QUTE_NOTE_EXPORT SynchronizationManager: public QObject
 {
     Q_OBJECT
 public:
@@ -46,8 +47,7 @@ Q_SIGNALS:
 
 private:
     SynchronizationManager() Q_DECL_DELETE;
-    SynchronizationManager(const SynchronizationManager & other) Q_DECL_DELETE;
-    SynchronizationManager & operator=(const SynchronizationManager & other) Q_DECL_DELETE;
+    Q_DISABLE_COPY(SynchronizationManager)
 
     SynchronizationManagerPrivate * d_ptr;
     Q_DECLARE_PRIVATE(SynchronizationManager)

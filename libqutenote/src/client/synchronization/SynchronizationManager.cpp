@@ -1,4 +1,4 @@
-#include "SynchronizationManager.h"
+#include <qute_note/synchronization/SynchronizationManager.h>
 #include "SynchronizationManager_p.h"
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 
