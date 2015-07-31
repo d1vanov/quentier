@@ -125,13 +125,13 @@ set(SYNCHRONIZATION_HEADERS
     src/client/synchronization/SendLocalChangesManager.h)
 
 set(LOGGING_HEADERS
-    headers/qute_note/logging/QuteNoteLogger.h
-    headers/qute_note/logging/LoggerInitializationException.h)
+    headers/qute_note/logging/QuteNoteLogger.h)
 
 set(EXCEPTION_HEADERS
     headers/qute_note/exception/EmptyDataElementException.h
     headers/qute_note/exception/IQuteNoteException.h
-    headers/qute_note/exception/NullPtrException.h)
+    headers/qute_note/exception/NullPtrException.h
+    headers/qute_note/exception/LoggerInitializationException.h)
 
 set(UTILITY_HEADERS
     headers/qute_note/utility/ApplicationSettings.h
@@ -248,7 +248,7 @@ set(${PROJECT_NAME}_SOURCES
     src/client/synchronization/SynchronizationManager_p.cpp
     src/client/synchronization/RemoteToLocalSynchronizationManager.cpp
     src/client/synchronization/SendLocalChangesManager.cpp
-    src/logging/LoggerInitializationException.cpp
+    src/exception/LoggerInitializationException.cpp
     src/utility/ApplicationSettings.cpp
     src/utility/BasicXMLSyntaxHighlighter.cpp
     src/utility/DesktopServices.cpp

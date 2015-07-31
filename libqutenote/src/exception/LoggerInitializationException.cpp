@@ -1,4 +1,4 @@
-#include <qute_note/logging/LoggerInitializationException.h>
+#include <qute_note/exception/LoggerInitializationException.h>
 
 namespace qute_note {
 

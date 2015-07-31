@@ -1,7 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__LOGGING__QUTE_NOTE_LOGGER_H
 #define __LIB_QUTE_NOTE__LOGGING__QUTE_NOTE_LOGGER_H
 
-#include "LoggerInitializationException.h"
+#include <qute_note/exception/LoggerInitializationException.h>
 #include <qute_note/utility/DesktopServices.h>
 #include <QsLog.h>
 #include <QsLogLevel.h>
