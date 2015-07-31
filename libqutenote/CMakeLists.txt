@@ -229,12 +229,9 @@ set(${PROJECT_NAME}_SOURCES
     src/enml/ENMLConverter_p.cpp
     src/enml/HTMLCleaner.cpp
     src/client/local_storage/ILocalStorageCacheExpiryChecker.cpp
-    src/client/local_storage/DatabaseOpeningException.cpp
-    src/client/local_storage/DatabaseSqlErrorException.cpp
     src/client/local_storage/DefaultLocalStorageCacheExpiryChecker.cpp
     src/client/local_storage/LocalStorageManager.cpp
     src/client/local_storage/LocalStorageManager_p.cpp
-    src/client/local_storage/LocalStorageCacheManagerException.cpp
     src/client/local_storage/LocalStorageCacheManager.cpp
     src/client/local_storage/LocalStorageCacheManager_p.cpp
     src/client/local_storage/LocalStorageManagerThreadWorker.cpp
@@ -246,7 +243,10 @@ set(${PROJECT_NAME}_SOURCES
     src/client/synchronization/SynchronizationManager_p.cpp
     src/client/synchronization/RemoteToLocalSynchronizationManager.cpp
     src/client/synchronization/SendLocalChangesManager.cpp
+    src/exception/DatabaseOpeningException.cpp
+    src/exception/DatabaseSqlErrorException.cpp
     src/exception/NoteEditorPluginInitializationException.cpp
+    src/exception/LocalStorageCacheManagerException.cpp
     src/exception/LoggerInitializationException.cpp
     src/exception/ResourceLocalFileStorageFolderNotFoundException.cpp
     src/utility/ApplicationSettings.cpp
