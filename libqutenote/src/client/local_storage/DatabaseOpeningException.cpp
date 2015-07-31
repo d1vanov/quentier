@@ -1,4 +1,4 @@
-#include "DatabaseOpeningException.h"
+#include <qute_note/exception/DatabaseOpeningException.h>
 
 namespace qute_note {
 

@@ -1,5 +1,5 @@
 #include "LocalStorageManager_p.h"
-#include "DatabaseOpeningException.h"
+#include <qute_note/exception/DatabaseOpeningException.h>
 #include "DatabaseSqlErrorException.h"
 #include "Transaction.h"
 #include "NoteSearchQuery.h"

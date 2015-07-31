@@ -105,7 +105,6 @@ set(ENML_HEADERS
 
 set(LOCAL_STORAGE_HEADERS
     src/client/local_storage/ILocalStorageCacheExpiryChecker.h
-    src/client/local_storage/DatabaseOpeningException.h
     src/client/local_storage/DatabaseSqlErrorException.h
     src/client/local_storage/DefaultLocalStorageCacheExpiryChecker.h
     src/client/local_storage/LocalStorageCacheManager.h
@@ -125,6 +124,7 @@ set(LOGGING_HEADERS
     headers/qute_note/logging/QuteNoteLogger.h)
 
 set(EXCEPTION_HEADERS
+    headers/qute_note/exception/DatabaseOpeningException.h
     headers/qute_note/exception/EmptyDataElementException.h
     headers/qute_note/exception/IQuteNoteException.h
     headers/qute_note/exception/LoggerInitializationException.h
