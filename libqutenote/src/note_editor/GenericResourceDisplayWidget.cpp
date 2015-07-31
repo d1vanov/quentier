@@ -1,4 +1,4 @@
-#include "GenericResourceDisplayWidget.h"
+#include <qute_note/note_editor/GenericResourceDisplayWidget.h>
 #include "ui_GenericResourceDisplayWidget.h"
 #include "ResourceFileStorageManager.h"
 #include <qute_note/utility/FileIOThreadWorker.h>
