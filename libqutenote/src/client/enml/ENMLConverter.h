@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
-#define __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
+#ifndef __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_H
+#define __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_H
 
-#include <note_editor/DecryptedTextCache.h>
+#include <qute_note/note_editor/DecryptedTextCache.h>
 #include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <QSet>
@@ -45,4 +45,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__EVERNOTE_CLIENT__ENML_CONVERTER_H
+#endif // __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_H

@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__DECRYPTED_TEXT_CACHE_H
-#define __QUTE_NOTE__CORE__NOTE_EDITOR__DECRYPTED_TEXT_CACHE_H
+#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DECRYPTED_TEXT_CACHE_H
+#define __LIB_QUTE_NOTE__NOTE_EDITOR__DECRYPTED_TEXT_CACHE_H
 
 #include <QSharedPointer>
 #include <QHash>
@@ -33,4 +33,4 @@ typedef QSharedPointer<QHash<QString, QPair<QString, bool> > > DecryptedTextCach
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__NOTE_EDITOR__DECRYPTED_TEXT_CACHE_H
+#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__DECRYPTED_TEXT_CACHE_H

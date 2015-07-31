@@ -65,7 +65,7 @@ include_directories(headers)
 set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/AttachmentStoragePathConfigDialog.h
     src/note_editor/EncryptedAreaPlugin.h
-    src/note_editor/DecryptedTextCache.h
+    headers/qute_note/note_editor/DecryptedTextCache.h
     src/note_editor/GenericResourceDisplayWidget.h
     src/note_editor/NoteDecryptionDialog.h
     src/note_editor/NoteEditorPage.h

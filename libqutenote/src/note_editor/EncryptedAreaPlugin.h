@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
-#define __QUTE_NOTE__CORE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
+#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
+#define __LIB_QUTE_NOTE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
 
-#include "DecryptedTextCache.h"
+#include <qute_note/note_editor/DecryptedTextCache.h>
 #include "INoteEditorPlugin.h"
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/EncryptionManager.h>
@@ -59,4 +59,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
+#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H

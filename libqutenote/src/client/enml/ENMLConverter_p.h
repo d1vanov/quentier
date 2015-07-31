@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__CLIENT__ENML__ENML_CONVERTER_P_H
-#define __QUTE_NOTE__CORE__CLIENT__ENML__ENML_CONVERTER_P_H
+#ifndef __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
+#define __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
 
-#include <note_editor/DecryptedTextCache.h>
+#include <qute_note/note_editor/DecryptedTextCache.h>
 #include <QtGlobal>
 #include <QStringList>
 
@@ -69,4 +69,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__CLIENT__ENML__ENML_CONVERTER_P_H
+#endif // __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
