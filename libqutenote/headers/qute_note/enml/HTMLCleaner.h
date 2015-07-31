@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CORE__TOOLS__HTML_CLEANER_H
-#define __QUTE_NOTE__CORE__TOOLS__HTML_CLEANER_H
+#ifndef __LIB_QUTE_NOTE__ENML__HTML_CLEANER_H
+#define __LIB_QUTE_NOTE__ENML__HTML_CLEANER_H
 
 #include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
@@ -30,4 +30,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__TOOLS__HTML_CLEANER_H
+#endif // __LIB_QUTE_NOTE__ENML__HTML_CLEANER_H

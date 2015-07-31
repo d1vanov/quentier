@@ -101,7 +101,7 @@ set(TYPES_HEADERS
 
 set(ENML_HEADERS
     headers/qute_note/enml/ENMLConverter.h
-    src/enml/HTMLCleaner.h)
+    headers/qute_note/enml/HTMLCleaner.h)
 
 set(LOCAL_STORAGE_HEADERS
     src/client/local_storage/ILocalStorageCacheExpiryChecker.h

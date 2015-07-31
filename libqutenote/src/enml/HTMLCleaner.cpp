@@ -1,4 +1,4 @@
-#include "HTMLCleaner.h"
+#include <qute_note/enml/HTMLCleaner.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <tidy.h>
 #include <tidybuffio.h>
