@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__I_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
-#define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__I_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
+#ifndef __LIB_QUTE_NOTE__LOCAL_STORAGE__I_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
+#define __LIB_QUTE_NOTE__LOCAL_STORAGE__I_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
 
 #include <qute_note/utility/Printable.h>
 
@@ -7,7 +7,7 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageCacheManager)
 
-class ILocalStorageCacheExpiryChecker: public Printable
+class QUTE_NOTE_EXPORT ILocalStorageCacheExpiryChecker: public Printable
 {
 protected:
     ILocalStorageCacheExpiryChecker(const LocalStorageCacheManager & cacheManager);
@@ -36,4 +36,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__I_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
+#endif // __LIB_QUTE_NOTE__LOCAL_STORAGE__I_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H

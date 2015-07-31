@@ -1,7 +1,7 @@
-#ifndef __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__DEFAULT_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
-#define __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__DEFAULT_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
+#ifndef __LIB_QUTE_NOTE__LOCAL_STORAGE__DEFAULT_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
+#define __LIB_QUTE_NOTE__LOCAL_STORAGE__DEFAULT_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
 
-#include "ILocalStorageCacheExpiryChecker.h"
+#include <qute_note/local_storage/ILocalStorageCacheExpiryChecker.h>
 
 #define MAX_NOTES_TO_STORE 100
 #define MAX_NOTEBOOKS_TO_STORE 20
@@ -11,7 +11,7 @@
 
 namespace qute_note {
 
-class DefaultLocalStorageCacheExpiryChecker : public ILocalStorageCacheExpiryChecker
+class QUTE_NOTE_EXPORT DefaultLocalStorageCacheExpiryChecker: public ILocalStorageCacheExpiryChecker
 {
 public:
     DefaultLocalStorageCacheExpiryChecker(const LocalStorageCacheManager & cacheManager);
@@ -37,4 +37,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__CLIENT__LOCAL_STORAGE__DEFAULT_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H
+#endif // __LIB_QUTE_NOTE__LOCAL_STORAGE__DEFAULT_LOCAL_STORAGE_CACHE_EXPIRY_CHECKER_H

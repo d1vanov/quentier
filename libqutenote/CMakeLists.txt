@@ -104,7 +104,7 @@ set(ENML_HEADERS
     headers/qute_note/enml/HTMLCleaner.h)
 
 set(LOCAL_STORAGE_HEADERS
-    src/client/local_storage/ILocalStorageCacheExpiryChecker.h
+    headers/qute_note/local_storage/ILocalStorageCacheExpiryChecker.h
     src/client/local_storage/DefaultLocalStorageCacheExpiryChecker.h
     src/client/local_storage/LocalStorageCacheManager.h
     src/client/local_storage/LocalStorageCacheManagerException.h
