@@ -1,4 +1,4 @@
-#include "ResourceLocalFileStorageFolderNotFoundException.h"
+#include <qute_note/exception/ResourceLocalFileStorageFolderNotFoundException.h>
 
 namespace qute_note {
 
