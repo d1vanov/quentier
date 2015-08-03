@@ -2,11 +2,11 @@
 #define __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_CACHE_MANAGER_PRIVATE_H
 
 #include <qute_note/local_storage/LocalStorageCacheManager.h>
-#include <client/types/Note.h>
-#include <client/types/Notebook.h>
-#include <client/types/Tag.h>
-#include <client/types/LinkedNotebook.h>
-#include <client/types/SavedSearch.h>
+#include <qute_note/types/Note.h>
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/Tag.h>
+#include <qute_note/types/LinkedNotebook.h>
+#include <qute_note/types/SavedSearch.h>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>

@@ -1,5 +1,5 @@
-#include "SharedNotebookWrapper.h"
 #include "data/SharedNotebookWrapperData.h"
+#include <qute_note/types/SharedNotebookWrapper.h>
 
 namespace qute_note {
 

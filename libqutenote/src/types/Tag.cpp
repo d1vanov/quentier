@@ -1,5 +1,5 @@
-#include "Tag.h"
 #include "data/TagData.h"
+#include <qute_note/types/Tag.h>
 
 namespace qute_note {
 

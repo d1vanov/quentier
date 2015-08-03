@@ -1,10 +1,10 @@
 #include "LocalStorageManagerNoteSearchQueryTest.h"
 #include <qute_note/local_storage/LocalStorageManager.h>
 #include <qute_note/local_storage/NoteSearchQuery.h>
-#include <client/types/Notebook.h>
-#include <client/types/Note.h>
-#include <client/types/Tag.h>
-#include <client/types/ResourceWrapper.h>
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/Note.h>
+#include <qute_note/types/Tag.h>
+#include <qute_note/types/ResourceWrapper.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 
 namespace qute_note {

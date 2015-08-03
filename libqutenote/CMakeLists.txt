@@ -74,27 +74,27 @@ set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/ResourceFileStorageManager.h)
 
 set(TYPES_HEADERS
-    src/client/types/IDataElementWithShortcut.h
-    src/client/types/ISharedNotebook.h
-    src/client/types/IResource.h
-    src/client/types/IUser.h
-    src/client/types/LinkedNotebook.h
-    src/client/types/ILocalStorageDataElement.h
-    src/client/types/Note.h
-    src/client/types/Notebook.h
-    src/client/types/INoteStoreDataElement.h
-    src/client/types/ResourceWrapper.h
-    src/client/types/ResourceAdapter.h
-    src/client/types/ResourceAdapterAccessException.h
-    src/client/types/SavedSearch.h
-    src/client/types/SharedNotebookAdapter.h
-    src/client/types/SharedNotebookAdapterAccessException.h
-    src/client/types/SharedNotebookWrapper.h
-    src/client/types/Tag.h
-    src/client/types/UserAdapter.h
-    src/client/types/UserAdapterAccessException.h
-    src/client/types/UserWrapper.h
-    src/client/types/RegisterMetatypes.h)
+    headers/qute_note/types/IDataElementWithShortcut.h
+    headers/qute_note/types/ISharedNotebook.h
+    headers/qute_note/types/IResource.h
+    headers/qute_note/types/IUser.h
+    headers/qute_note/types/LinkedNotebook.h
+    headers/qute_note/types/ILocalStorageDataElement.h
+    headers/qute_note/types/Note.h
+    headers/qute_note/types/Notebook.h
+    headers/qute_note/types/INoteStoreDataElement.h
+    headers/qute_note/types/ResourceWrapper.h
+    headers/qute_note/types/ResourceAdapter.h
+    headers/qute_note/types/ResourceAdapterAccessException.h
+    headers/qute_note/types/SavedSearch.h
+    headers/qute_note/types/SharedNotebookAdapter.h
+    headers/qute_note/types/SharedNotebookAdapterAccessException.h
+    headers/qute_note/types/SharedNotebookWrapper.h
+    headers/qute_note/types/Tag.h
+    headers/qute_note/types/UserAdapter.h
+    headers/qute_note/types/UserAdapterAccessException.h
+    headers/qute_note/types/UserWrapper.h
+    headers/qute_note/types/RegisterMetatypes.h)
 
 set(ENML_HEADERS
     headers/qute_note/enml/ENMLConverter.h
@@ -155,17 +155,17 @@ set(PRIVATE_HEADERS
     src/note_editor/NoteEditor_p.h
     src/note_editor/NoteEditorPluginFactory_p.h
     src/note_editor/ResourceFileStorageManager_p.h
-    src/client/types/data/DataElementWithShortcutData.h
-    src/client/types/data/LocalStorageDataElementData.h
-    src/client/types/data/LinkedNotebookData.h
-    src/client/types/data/NoteStoreDataElementData.h
-    src/client/types/data/NoteData.h
-    src/client/types/data/NotebookData.h
-    src/client/types/data/ResourceWrapperData.h
-    src/client/types/data/SharedNotebookWrapperData.h
-    src/client/types/data/TagData.h
-    src/client/types/data/SavedSearchData.h
-    src/client/types/data/UserWrapperData.h
+    src/types/data/DataElementWithShortcutData.h
+    src/types/data/LocalStorageDataElementData.h
+    src/types/data/LinkedNotebookData.h
+    src/types/data/NoteStoreDataElementData.h
+    src/types/data/NoteData.h
+    src/types/data/NotebookData.h
+    src/types/data/ResourceWrapperData.h
+    src/types/data/SharedNotebookWrapperData.h
+    src/types/data/TagData.h
+    src/types/data/SavedSearchData.h
+    src/types/data/UserWrapperData.h
     src/enml/ENMLConverter_p.h
     src/local_storage/LocalStorageCacheManager_p.h
     src/local_storage/LocalStorageManager_p.h
@@ -192,35 +192,35 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/NoteDecryptionDialog.cpp
     src/note_editor/ResourceFileStorageManager.cpp
     src/note_editor/ResourceFileStorageManager_p.cpp
-    src/client/types/ISharedNotebook.cpp
-    src/client/types/IResource.cpp
-    src/client/types/IUser.cpp
-    src/client/types/LinkedNotebook.cpp
-    src/client/types/Note.cpp
-    src/client/types/Notebook.cpp
-    src/client/types/ResourceWrapper.cpp
-    src/client/types/ResourceAdapter.cpp
-    src/client/types/ResourceAdapterAccessException.cpp
-    src/client/types/SavedSearch.cpp
-    src/client/types/SharedNotebookAdapter.cpp
-    src/client/types/SharedNotebookAdapterAccessException.cpp
-    src/client/types/SharedNotebookWrapper.cpp
-    src/client/types/Tag.cpp
-    src/client/types/UserAdapter.cpp
-    src/client/types/UserAdapterAccessException.cpp
-    src/client/types/UserWrapper.cpp
-    src/client/types/RegisterMetatypes.cpp
-    src/client/types/data/DataElementWithShortcutData.cpp
-    src/client/types/data/LocalStorageDataElementData.cpp
-    src/client/types/data/LinkedNotebookData.cpp
-    src/client/types/data/NoteStoreDataElementData.cpp
-    src/client/types/data/NoteData.cpp
-    src/client/types/data/NotebookData.cpp
-    src/client/types/data/ResourceWrapperData.cpp
-    src/client/types/data/SharedNotebookWrapperData.cpp
-    src/client/types/data/TagData.cpp
-    src/client/types/data/SavedSearchData.cpp
-    src/client/types/data/UserWrapperData.cpp
+    src/types/ISharedNotebook.cpp
+    src/types/IResource.cpp
+    src/types/IUser.cpp
+    src/types/LinkedNotebook.cpp
+    src/types/Note.cpp
+    src/types/Notebook.cpp
+    src/types/ResourceWrapper.cpp
+    src/types/ResourceAdapter.cpp
+    src/types/ResourceAdapterAccessException.cpp
+    src/types/SavedSearch.cpp
+    src/types/SharedNotebookAdapter.cpp
+    src/types/SharedNotebookAdapterAccessException.cpp
+    src/types/SharedNotebookWrapper.cpp
+    src/types/Tag.cpp
+    src/types/UserAdapter.cpp
+    src/types/UserAdapterAccessException.cpp
+    src/types/UserWrapper.cpp
+    src/types/RegisterMetatypes.cpp
+    src/types/data/DataElementWithShortcutData.cpp
+    src/types/data/LocalStorageDataElementData.cpp
+    src/types/data/LinkedNotebookData.cpp
+    src/types/data/NoteStoreDataElementData.cpp
+    src/types/data/NoteData.cpp
+    src/types/data/NotebookData.cpp
+    src/types/data/ResourceWrapperData.cpp
+    src/types/data/SharedNotebookWrapperData.cpp
+    src/types/data/TagData.cpp
+    src/types/data/SavedSearchData.cpp
+    src/types/data/UserWrapperData.cpp
     src/enml/ENMLConverter.cpp
     src/enml/ENMLConverter_p.cpp
     src/enml/HTMLCleaner.cpp
@@ -394,7 +394,7 @@ foreach(ITEM ${NOTE_EDITOR_HEADERS})
 endforeach()
 
 foreach(ITEM ${TYPES_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/qute_note/client/types)
+  install(FILES ${ITEM} DESTINATION include/qute_note/types)
 endforeach()
 
 foreach(ITEM ${ENML_HEADERS})
@@ -402,7 +402,7 @@ foreach(ITEM ${ENML_HEADERS})
 endforeach()
 
 foreach(ITEM ${LOCAL_STORAGE_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/qute_note/client/local_storage)
+  install(FILES ${ITEM} DESTINATION include/qute_note/local_storage)
 endforeach()
 
 foreach(ITEM ${SYNCHRONIZATION_HEADERS})

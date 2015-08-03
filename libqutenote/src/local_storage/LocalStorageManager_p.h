@@ -3,20 +3,20 @@
 
 #include <qute_note/local_storage/Lists.h>
 #include <qute_note/local_storage/LocalStorageManager.h>
-#include <client/types/IUser.h>
-#include <client/types/UserAdapter.h>
-#include <client/types/UserWrapper.h>
-#include <client/types/Notebook.h>
-#include <client/types/ISharedNotebook.h>
-#include <client/types/SharedNotebookAdapter.h>
-#include <client/types/SharedNotebookWrapper.h>
-#include <client/types/Note.h>
-#include <client/types/Tag.h>
-#include <client/types/IResource.h>
-#include <client/types/ResourceAdapter.h>
-#include <client/types/ResourceWrapper.h>
-#include <client/types/LinkedNotebook.h>
-#include <client/types/SavedSearch.h>
+#include <qute_note/types/IUser.h>
+#include <qute_note/types/UserAdapter.h>
+#include <qute_note/types/UserWrapper.h>
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/ISharedNotebook.h>
+#include <qute_note/types/SharedNotebookAdapter.h>
+#include <qute_note/types/SharedNotebookWrapper.h>
+#include <qute_note/types/Note.h>
+#include <qute_note/types/Tag.h>
+#include <qute_note/types/IResource.h>
+#include <qute_note/types/ResourceAdapter.h>
+#include <qute_note/types/ResourceWrapper.h>
+#include <qute_note/types/LinkedNotebook.h>
+#include <qute_note/types/SavedSearch.h>
 #include <QtSql>
 
 namespace qute_note {

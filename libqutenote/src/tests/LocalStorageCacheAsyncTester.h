@@ -1,11 +1,11 @@
 #ifndef __QUTE_NOTE__CORE__TESTS__LOCAL_STORAGE_CACHE_ASYNC_TESTER_H
 #define __QUTE_NOTE__CORE__TESTS__LOCAL_STORAGE_CACHE_ASYNC_TESTER_H
 
-#include <client/types/Notebook.h>
-#include <client/types/Note.h>
-#include <client/types/Tag.h>
-#include <client/types/LinkedNotebook.h>
-#include <client/types/SavedSearch.h>
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/Note.h>
+#include <qute_note/types/Tag.h>
+#include <qute_note/types/LinkedNotebook.h>
+#include <qute_note/types/SavedSearch.h>
 
 namespace qute_note {
 

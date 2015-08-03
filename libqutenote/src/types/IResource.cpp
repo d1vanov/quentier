@@ -1,5 +1,5 @@
-#include "IResource.h"
 #include "data/NoteStoreDataElementData.h"
+#include <qute_note/types/IResource.h>
 #include <qute_note/utility/Utility.h>
 
 namespace qute_note {

@@ -1,7 +1,7 @@
-#include "Note.h"
 #include "data/NoteData.h"
-#include "ResourceAdapter.h"
-#include "ResourceWrapper.h"
+#include <qute_note/types/Note.h>
+#include <qute_note/types/ResourceAdapter.h>
+#include <qute_note/types/ResourceWrapper.h>
 #include <qute_note/utility/Utility.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 

@@ -1,12 +1,12 @@
-#include "RegisterMetatypes.h"
-#include "Notebook.h"
-#include "Note.h"
-#include "Tag.h"
-#include "ResourceWrapper.h"
-#include "UserWrapper.h"
-#include "LinkedNotebook.h"
-#include "SavedSearch.h"
-#include "SharedNotebookWrapper.h"
+#include <qute_note/types/RegisterMetatypes.h>
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/Note.h>
+#include <qute_note/types/Tag.h>
+#include <qute_note/types/ResourceWrapper.h>
+#include <qute_note/types/UserWrapper.h>
+#include <qute_note/types/LinkedNotebook.h>
+#include <qute_note/types/SavedSearch.h>
+#include <qute_note/types/SharedNotebookWrapper.h>
 #include <qute_note/local_storage/LocalStorageManager.h>
 #include <QMetaType>
 

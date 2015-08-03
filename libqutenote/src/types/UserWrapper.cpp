@@ -1,5 +1,5 @@
-#include "UserWrapper.h"
 #include "data/UserWrapperData.h"
+#include <qute_note/types/UserWrapper.h>
 
 namespace qute_note {
 

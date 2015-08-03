@@ -1,8 +1,8 @@
 #include "NoteStore.h"
-#include <client/types/Notebook.h>
-#include <client/types/Note.h>
-#include <client/types/Tag.h>
-#include <client/types/SavedSearch.h>
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/Note.h>
+#include <qute_note/types/Tag.h>
+#include <qute_note/types/SavedSearch.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 

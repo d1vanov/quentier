@@ -1,8 +1,8 @@
-#include "Notebook.h"
 #include "data/NotebookData.h"
-#include "SharedNotebookAdapter.h"
-#include "SharedNotebookWrapper.h"
-#include "UserAdapter.h"
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/SharedNotebookAdapter.h>
+#include <qute_note/types/SharedNotebookWrapper.h>
+#include <qute_note/types/UserAdapter.h>
 #include <qute_note/utility/Utility.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 

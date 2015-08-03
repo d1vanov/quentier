@@ -4,7 +4,7 @@
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/utility/DesktopServices.h>
-#include <client/types/IResource.h>
+#include <qute_note/types/IResource.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QHBoxLayout>
 #include <QVBoxLayout>

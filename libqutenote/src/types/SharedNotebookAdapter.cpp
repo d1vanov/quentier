@@ -1,5 +1,5 @@
-#include "SharedNotebookAdapter.h"
-#include "SharedNotebookAdapterAccessException.h"
+#include <qute_note/types/SharedNotebookAdapter.h>
+#include <qute_note/types/SharedNotebookAdapterAccessException.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 
 namespace qute_note {

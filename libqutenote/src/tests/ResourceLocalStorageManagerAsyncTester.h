@@ -1,9 +1,9 @@
 #ifndef __QUTE_NOTE__CORE__TESTS__RESOURCE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 #define __QUTE_NOTE__CORE__TESTS__RESOURCE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
-#include <client/types/Notebook.h>
-#include <client/types/Note.h>
-#include <client/types/ResourceWrapper.h>
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/Note.h>
+#include <qute_note/types/ResourceWrapper.h>
 
 namespace qute_note {
 

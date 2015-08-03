@@ -1,5 +1,5 @@
-#include "LinkedNotebook.h"
 #include "data/LinkedNotebookData.h"
+#include <qute_note/types/LinkedNotebook.h>
 
 namespace qute_note {
 
@@ -107,7 +107,7 @@ void LinkedNotebook::setUpdateSequenceNumber(const qint32 usn)
 }
 
 bool LinkedNotebook::checkParameters(QString & errorDescription) const
-{    
+{
     return d->checkParameters(errorDescription);
 }
 

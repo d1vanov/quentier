@@ -1,5 +1,5 @@
-#include "SavedSearch.h"
 #include "data/SavedSearchData.h"
+#include <qute_note/types/SavedSearch.h>
 #include <qute_note/utility/Utility.h>
 
 namespace qute_note {

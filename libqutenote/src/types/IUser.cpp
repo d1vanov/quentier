@@ -1,4 +1,4 @@
-#include "IUser.h"
+#include <qute_note/types/IUser.h>
 #include <qute_note/utility/Utility.h>
 #include <QEverCloud.h>
 #include <QRegExp>

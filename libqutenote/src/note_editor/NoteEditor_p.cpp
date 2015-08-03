@@ -5,12 +5,12 @@
 #include <qute_note/exception/ResourceLocalFileStorageFolderNotFoundException.h>
 #include <qute_note/note_editor/EncryptedAreaPlugin.h>
 #include <qute_note/exception/NoteEditorPluginInitializationException.h>
-#include <client/types/Note.h>
-#include <client/types/Notebook.h>
-#include <client/types/ResourceWrapper.h>
+#include <qute_note/types/Note.h>
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/ResourceWrapper.h>
 #include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/utility/Utility.h>
-#include <client/types/ResourceAdapter.h>
+#include <qute_note/types/ResourceAdapter.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>

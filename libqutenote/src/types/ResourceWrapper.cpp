@@ -1,5 +1,5 @@
-#include "ResourceWrapper.h"
 #include "data/ResourceWrapperData.h"
+#include <qute_note/types/ResourceWrapper.h>
 
 namespace qute_note {
 

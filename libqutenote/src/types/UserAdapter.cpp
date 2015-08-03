@@ -1,5 +1,5 @@
-#include "UserAdapter.h"
-#include "UserAdapterAccessException.h"
+#include <qute_note/types/UserAdapter.h>
+#include <qute_note/types/UserAdapterAccessException.h>
 
 namespace qute_note {
 

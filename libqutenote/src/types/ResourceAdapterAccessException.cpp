@@ -1,4 +1,4 @@
-#include "ResourceAdapterAccessException.h"
+#include <qute_note/types/ResourceAdapterAccessException.h>
 
 namespace qute_note {
 

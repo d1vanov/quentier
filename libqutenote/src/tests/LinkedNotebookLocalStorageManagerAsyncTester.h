@@ -2,7 +2,7 @@
 #define __LIB_QUTE_NOTE__TESTS__LINKED_NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <qute_note/local_storage/LocalStorageManager.h>
-#include <client/types/LinkedNotebook.h>
+#include <qute_note/types/LinkedNotebook.h>
 
 namespace qute_note {
 

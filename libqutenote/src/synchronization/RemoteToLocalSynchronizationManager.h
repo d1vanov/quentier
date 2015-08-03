@@ -3,13 +3,13 @@
 
 #include "NoteStore.h"
 #include <qute_note/local_storage/LocalStorageManager.h>
-#include <client/types/UserWrapper.h>
-#include <client/types/Notebook.h>
-#include <client/types/Note.h>
-#include <client/types/Tag.h>
-#include <client/types/ResourceWrapper.h>
-#include <client/types/LinkedNotebook.h>
-#include <client/types/SavedSearch.h>
+#include <qute_note/types/UserWrapper.h>
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/Note.h>
+#include <qute_note/types/Tag.h>
+#include <qute_note/types/ResourceWrapper.h>
+#include <qute_note/types/LinkedNotebook.h>
+#include <qute_note/types/SavedSearch.h>
 #include <oauth.h>
 
 namespace qute_note {

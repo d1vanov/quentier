@@ -1,7 +1,7 @@
 #ifndef __QUTE_NOTE__CORE__TESTS__USER_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H_H
 #define __QUTE_NOTE__CORE__TESTS__USER_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H_H
 
-#include <client/types/UserWrapper.h>
+#include <qute_note/types/UserWrapper.h>
 #include <QUuid>
 
 namespace qute_note {
@@ -16,7 +16,7 @@ class UserLocalStorageManagerAsyncTester : public QObject
 public:
     explicit UserLocalStorageManagerAsyncTester(QObject * parent = nullptr);
     ~UserLocalStorageManagerAsyncTester();
-    
+
 public Q_SLOTS:
     void onInitTestCase();
 

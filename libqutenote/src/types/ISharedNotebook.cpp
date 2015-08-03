@@ -1,4 +1,4 @@
-#include "ISharedNotebook.h"
+#include <qute_note/types/ISharedNotebook.h>
 #include <qute_note/utility/Utility.h>
 
 namespace qute_note {

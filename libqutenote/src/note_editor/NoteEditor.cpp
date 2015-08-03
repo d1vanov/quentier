@@ -1,8 +1,8 @@
 #include <qute_note/note_editor/NoteEditor.h>
 #include "NoteEditor_p.h"
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
-#include <client/types/Note.h>
-#include <client/types/Notebook.h>
+#include <qute_note/types/Note.h>
+#include <qute_note/types/Notebook.h>
 #include <QFont>
 #include <QColor>
 

@@ -4,8 +4,8 @@
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <client/types/Note.h>
-#include <client/types/ResourceAdapter.h>
+#include <qute_note/types/Note.h>
+#include <qute_note/types/ResourceAdapter.h>
 #include <QFileIconProvider>
 #include <QDir>
 #include <QRegExp>

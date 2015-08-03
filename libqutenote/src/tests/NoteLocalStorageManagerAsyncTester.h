@@ -2,8 +2,8 @@
 #define __LIB_QUTE_NOTE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <qute_note/local_storage/LocalStorageManager.h>
-#include <client/types/Notebook.h>
-#include <client/types/Note.h>
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/Note.h>
 #include <QUuid>
 
 namespace qute_note {
