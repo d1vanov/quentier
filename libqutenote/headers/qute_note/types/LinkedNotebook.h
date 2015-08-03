@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CLIENT__TYPES__LINKED_NOTEBOOK_H
-#define __QUTE_NOTE__CLIENT__TYPES__LINKED_NOTEBOOK_H
+#ifndef __LIB_QUTE_NOTE__TYPES__LINKED_NOTEBOOK_H
+#define __LIB_QUTE_NOTE__TYPES__LINKED_NOTEBOOK_H
 
 #include "INoteStoreDataElement.h"
 #include <QEverCloud.h>
@@ -98,4 +98,4 @@ private:
 
 Q_DECLARE_METATYPE(qute_note::LinkedNotebook)
 
-#endif // __QUTE_NOTE__CLIENT__TYPES__LINKED_NOTEBOOK_H
+#endif // __LIB_QUTE_NOTE__TYPES__LINKED_NOTEBOOK_H

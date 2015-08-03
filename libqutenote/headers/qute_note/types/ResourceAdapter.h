@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CLIENT__TYPES__RESOURCE_ADAPTER_H
-#define __QUTE_NOTE__CLIENT__TYPES__RESOURCE_ADAPTER_H
+#ifndef __LIB_QUTE_NOTE__TYPES__RESOURCE_ADAPTER_H
+#define __LIB_QUTE_NOTE__TYPES__RESOURCE_ADAPTER_H
 
 #include "IResource.h"
 
@@ -42,4 +42,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CLIENT__TYPES__RESOURCE_ADAPTER_H
+#endif // __LIB_QUTE_NOTE__TYPES__RESOURCE_ADAPTER_H

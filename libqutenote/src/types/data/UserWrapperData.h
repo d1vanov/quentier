@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__USER_WRAPPER_DATA_H
-#define __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__USER_WRAPPER_DATA_H
+#ifndef __LIB_QUTE_NOTE__TYPES__DATA__USER_WRAPPER_DATA_H
+#define __LIB_QUTE_NOTE__TYPES__DATA__USER_WRAPPER_DATA_H
 
 #include <QEverCloud.h>
 #include <QSharedData>
@@ -23,4 +23,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__CLIENT__TYPES__DATA__USER_WRAPPER_DATA_H
+#endif // __LIB_QUTE_NOTE__TYPES__DATA__USER_WRAPPER_DATA_H

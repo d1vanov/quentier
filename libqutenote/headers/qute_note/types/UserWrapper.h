@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CLIENT__TYPES__USER_WRAPPER_H
-#define __QUTE_NOTE__CLIENT__TYPES__USER_WRAPPER_H
+#ifndef __LIB_QUTE_NOTE__TYPES__USER_WRAPPER_H
+#define __LIB_QUTE_NOTE__TYPES__USER_WRAPPER_H
 
 #include "IUser.h"
 #include <QEverCloud.h>
@@ -34,4 +34,4 @@ private:
 
 Q_DECLARE_METATYPE(qute_note::UserWrapper)
 
-#endif // __QUTE_NOTE__CLIENT__TYPES__USER_WRAPPER_H
+#endif // __LIB_QUTE_NOTE__TYPES__USER_WRAPPER_H

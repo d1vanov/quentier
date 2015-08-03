@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CORE__TESTS__ENCRYPTION_MANAGER_TESTS_H
-#define __QUTE_NOTE__CORE__TESTS__ENCRYPTION_MANAGER_TESTS_H
+#ifndef __LIB_QUTE_NOTE__TESTS__ENCRYPTION_MANAGER_TESTS_H
+#define __LIB_QUTE_NOTE__TESTS__ENCRYPTION_MANAGER_TESTS_H
 
 #include <QString>
 
@@ -13,4 +13,4 @@ bool decryptRc2Test(QString & error);
 } // namespace test
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__TESTS__ENCRYPTION_MANAGER_TESTS_H
+#endif // __LIB_QUTE_NOTE__TESTS__ENCRYPTION_MANAGER_TESTS_H

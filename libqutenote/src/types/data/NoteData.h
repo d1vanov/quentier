@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__CORE__CLIENT__TYPES__PRIVATE__NOTE_P_H
-#define __QUTE_NOTE__CORE__CLIENT__TYPES__PRIVATE__NOTE_P_H
+#ifndef __LIB_QUTE_NOTE__TYPES__PRIVATE__NOTE_DATA_H
+#define __LIB_QUTE_NOTE__TYPES__PRIVATE__NOTE_DATA_H
 
 #include "DataElementWithShortcutData.h"
 #include <QEverCloud.h>
@@ -62,4 +62,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__CORE__CLIENT__TYPES__PRIVATE__NOTE_P_H
+#endif // __LIB_QUTE_NOTE__TYPES__PRIVATE__NOTE_DATA_H
