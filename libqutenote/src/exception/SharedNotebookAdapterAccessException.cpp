@@ -1,4 +1,4 @@
-#include <qute_note/types/SharedNotebookAdapterAccessException.h>
+#include <qute_note/exception/SharedNotebookAdapterAccessException.h>
 
 namespace qute_note {
 

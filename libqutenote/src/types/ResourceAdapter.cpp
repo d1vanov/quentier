@@ -1,5 +1,5 @@
 #include <qute_note/types/ResourceAdapter.h>
-#include <qute_note/types/ResourceAdapterAccessException.h>
+#include <qute_note/exception/ResourceAdapterAccessException.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 
 namespace qute_note {

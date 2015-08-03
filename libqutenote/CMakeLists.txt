@@ -85,14 +85,11 @@ set(TYPES_HEADERS
     headers/qute_note/types/INoteStoreDataElement.h
     headers/qute_note/types/ResourceWrapper.h
     headers/qute_note/types/ResourceAdapter.h
-    headers/qute_note/types/ResourceAdapterAccessException.h
     headers/qute_note/types/SavedSearch.h
     headers/qute_note/types/SharedNotebookAdapter.h
-    headers/qute_note/types/SharedNotebookAdapterAccessException.h
     headers/qute_note/types/SharedNotebookWrapper.h
     headers/qute_note/types/Tag.h
     headers/qute_note/types/UserAdapter.h
-    headers/qute_note/types/UserAdapterAccessException.h
     headers/qute_note/types/UserWrapper.h
     headers/qute_note/types/RegisterMetatypes.h)
 
@@ -123,7 +120,10 @@ set(EXCEPTION_HEADERS
     headers/qute_note/exception/LoggerInitializationException.h
     headers/qute_note/exception/NoteEditorPluginInitializationException.h
     headers/qute_note/exception/NullPtrException.h
-    headers/qute_note/exception/ResourceLocalFileStorageFolderNotFoundException.h)
+    headers/qute_note/exception/ResourceAdapterAccessException.h
+    headers/qute_note/exception/ResourceLocalFileStorageFolderNotFoundException.h
+    headers/qute_note/exception/SharedNotebookAdapterAccessException.h
+    headers/qute_note/exception/UserAdapterAccessException.h)
 
 set(UTILITY_HEADERS
     headers/qute_note/utility/ApplicationSettings.h
@@ -200,14 +200,11 @@ set(${PROJECT_NAME}_SOURCES
     src/types/Notebook.cpp
     src/types/ResourceWrapper.cpp
     src/types/ResourceAdapter.cpp
-    src/types/ResourceAdapterAccessException.cpp
     src/types/SavedSearch.cpp
     src/types/SharedNotebookAdapter.cpp
-    src/types/SharedNotebookAdapterAccessException.cpp
     src/types/SharedNotebookWrapper.cpp
     src/types/Tag.cpp
     src/types/UserAdapter.cpp
-    src/types/UserAdapterAccessException.cpp
     src/types/UserWrapper.cpp
     src/types/RegisterMetatypes.cpp
     src/types/data/DataElementWithShortcutData.cpp
@@ -244,7 +241,10 @@ set(${PROJECT_NAME}_SOURCES
     src/exception/NoteEditorPluginInitializationException.cpp
     src/exception/LocalStorageCacheManagerException.cpp
     src/exception/LoggerInitializationException.cpp
+    src/exception/ResourceAdapterAccessException.cpp
     src/exception/ResourceLocalFileStorageFolderNotFoundException.cpp
+    src/exception/SharedNotebookAdapterAccessException.cpp
+    src/exception/UserAdapterAccessException.cpp
     src/utility/ApplicationSettings.cpp
     src/utility/BasicXMLSyntaxHighlighter.cpp
     src/utility/DesktopServices.cpp
