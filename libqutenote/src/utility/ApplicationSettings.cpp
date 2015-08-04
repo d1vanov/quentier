@@ -1,9 +1,21 @@
 #include <qute_note/utility/ApplicationSettings.h>
+#include <qute_note/exception/ApplicationSettingsInitializationException.h>
+#include <QApplication>
 
 namespace qute_note {
 
-ApplicationSettings & ApplicationSettings::instance(const QString & orgName, const QString & appName)
+ApplicationSettings & ApplicationSettings::instance()
 {
+    QString orgName = QApplication::organizationName();
+    if (Q_UNLIKELY(orgName.isEmpty())) {
+        throw ApplicationSettingsInitializationException("can't create ApplicationSettings instance: organization name is empty");
+    }
+
+    QString appName = QApplication::applicationName();
+    if (Q_UNLIKELY(appName.isEmpty())) {
+        throw ApplicationSettingsInitializationException("can't create ApplicationSettings instance: application name is empty");
+    }
+
     static ApplicationSettings instance(orgName, appName);
     return instance;
 }

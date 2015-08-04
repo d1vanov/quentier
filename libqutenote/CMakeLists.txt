@@ -112,6 +112,7 @@ set(LOGGING_HEADERS
     headers/qute_note/logging/QuteNoteLogger.h)
 
 set(EXCEPTION_HEADERS
+    headers/qute_note/exception/ApplicationSettingsInitializationException.h
     headers/qute_note/exception/DatabaseOpeningException.h
     headers/qute_note/exception/DatabaseSqlErrorException.h
     headers/qute_note/exception/EmptyDataElementException.h
@@ -235,9 +236,12 @@ set(${PROJECT_NAME}_SOURCES
     src/synchronization/SynchronizationManager_p.cpp
     src/synchronization/RemoteToLocalSynchronizationManager.cpp
     src/synchronization/SendLocalChangesManager.cpp
+    src/exception/ApplicationSettingsInitializationException.cpp
+    src/exception/EmptyDataElementException.cpp
     src/exception/DatabaseOpeningException.cpp
     src/exception/DatabaseSqlErrorException.cpp
     src/exception/NoteEditorPluginInitializationException.cpp
+    src/exception/NullPtrException.cpp
     src/exception/LocalStorageCacheManagerException.cpp
     src/exception/LoggerInitializationException.cpp
     src/exception/ResourceAdapterAccessException.cpp
@@ -246,7 +250,6 @@ set(${PROJECT_NAME}_SOURCES
     src/exception/UserAdapterAccessException.cpp
     src/utility/ApplicationSettings.cpp
     src/utility/DesktopServices.cpp
-    src/utility/EmptyDataElementException.cpp
     src/utility/EncryptionManager.cpp
     src/utility/EncryptionManager_p.cpp
     src/utility/EventLoopWithExitStatus.cpp
@@ -255,7 +258,6 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/IQuteNoteException.cpp
     src/utility/Printable.cpp
     src/utility/QuteNoteApplication.cpp
-    src/utility/NullPtrException.cpp
     src/utility/Utility.cpp)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

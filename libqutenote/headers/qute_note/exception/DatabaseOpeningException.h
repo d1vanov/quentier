@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-class DatabaseOpeningException: public IQuteNoteException
+class QUTE_NOTE_EXPORT DatabaseOpeningException: public IQuteNoteException
 {
 public:
     explicit DatabaseOpeningException(const QString & message);

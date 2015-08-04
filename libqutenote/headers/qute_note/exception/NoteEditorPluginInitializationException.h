@@ -2,7 +2,6 @@
 #define __LIB_QUTE_NOTE__EXCEPTION__NOTE_EDITOR_PLUGIN_INITIALIZATION_EXCEPTION_H
 
 #include <qute_note/exception/IQuteNoteException.h>
-#include <qute_note/utility/Linkage.h>
 
 namespace qute_note {
 

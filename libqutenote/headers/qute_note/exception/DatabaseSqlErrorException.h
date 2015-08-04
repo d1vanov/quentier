@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-class DatabaseSqlErrorException: public IQuteNoteException
+class QUTE_NOTE_EXPORT DatabaseSqlErrorException: public IQuteNoteException
 {
 public:
     explicit DatabaseSqlErrorException(const QString & message);

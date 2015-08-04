@@ -5,18 +5,10 @@
 
 namespace qute_note {
 
-class LocalStorageCacheManagerException : public IQuteNoteException
+class QUTE_NOTE_EXPORT LocalStorageCacheManagerException: public IQuteNoteException
 {
 public:
     explicit LocalStorageCacheManagerException(const QString & message);
-
-#ifdef _MSC_VER
-    virtual ~LocalStorageCacheManagerException();
-#elif __cplusplus >= 201103L
-    virtual ~LocalStorageCacheManagerException() noexcept;
-#else
-    virtual ~LocalStorageCacheManagerException() throw();
-#endif
 
     virtual const QString exceptionDisplayName() const;
 };

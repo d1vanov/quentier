@@ -5,7 +5,7 @@
 
 namespace qute_note {
 
-class EmptyDataElementException : public IQuteNoteException
+class QUTE_NOTE_EXPORT EmptyDataElementException: public IQuteNoteException
 {
 public:
     explicit EmptyDataElementException(const QString & message);

@@ -9,8 +9,7 @@ namespace qute_note {
 class QUTE_NOTE_EXPORT ApplicationSettings : public Printable
 {
 public:
-    static ApplicationSettings & instance(const QString & orgName = "d1vanov",
-                                          const QString & appName = "QuteNote");
+    static ApplicationSettings & instance();
 
     QVariant value(const QString & key, const QVariant & defaultValue = QVariant()) const;
     QVariant value(const QString & key, const QString & keyGroup, const QVariant & defaultValue = QVariant()) const;
@@ -23,19 +22,15 @@ public:
 
 private:
     ApplicationSettings() Q_DECL_DELETE;
-    ApplicationSettings(const ApplicationSettings & other) Q_DECL_DELETE;
-    ApplicationSettings(ApplicationSettings && other) Q_DECL_DELETE;
-    ApplicationSettings & operator=(const ApplicationSettings & other) Q_DECL_DELETE;
-    ApplicationSettings & operator=(ApplicationSettings && other) Q_DECL_DELETE;
+    Q_DISABLE_COPY(ApplicationSettings);
 
     ApplicationSettings(const QString & orgName, const QString & appName);
     ~ApplicationSettings();
 
 private:
-    QTextStream & Print(QTextStream & strm) const;
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
-
     QSettings   m_settings;
 };
 
