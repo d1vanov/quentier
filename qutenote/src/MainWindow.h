@@ -61,11 +61,10 @@ private Q_SLOTS:
     void onNoteContentChanged();
 
 private:
-    void insertList(const QTextListFormat::Style style);
-
     void checkThemeIconsAndSetFallbacks();
-
     void updateNoteHtmlView();
+
+    bool consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error);
 
 private:
     Ui::MainWindow * m_pUI;

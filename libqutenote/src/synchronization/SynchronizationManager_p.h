@@ -15,7 +15,8 @@ class SynchronizationManagerPrivate: public QObject
 {
     Q_OBJECT
 public:
-    SynchronizationManagerPrivate(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    SynchronizationManagerPrivate(const QString & consumerKey, const QString & consumerSecret,
+                                  LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     virtual ~SynchronizationManagerPrivate();
 
     bool active() const;
@@ -146,6 +147,9 @@ private:
     void updatePersistentSyncSettings();
 
 private:
+    QString                                 m_consumerKey;
+    QString                                 m_consumerSecret;
+
     qint32                                  m_maxSyncChunkEntries;
 
     qint32                                  m_lastUpdateCount;

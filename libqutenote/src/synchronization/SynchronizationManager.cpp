@@ -4,8 +4,9 @@
 
 namespace qute_note {
 
-SynchronizationManager::SynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker) :
-    d_ptr(new SynchronizationManagerPrivate(localStorageManagerThreadWorker))
+SynchronizationManager::SynchronizationManager(const QString & consumerKey, const QString & consumerSecret,
+                                               LocalStorageManagerThreadWorker & localStorageManagerThreadWorker) :
+    d_ptr(new SynchronizationManagerPrivate(consumerKey, consumerSecret, localStorageManagerThreadWorker))
 {
     QObject::connect(d_ptr, SIGNAL(notifyError(QString)), this, SIGNAL(failed(QString)));
     QObject::connect(d_ptr, SIGNAL(notifyFinish()), this, SIGNAL(finished()));

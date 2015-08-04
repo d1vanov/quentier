@@ -14,7 +14,8 @@ class QUTE_NOTE_EXPORT SynchronizationManager: public QObject
 {
     Q_OBJECT
 public:
-    SynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    SynchronizationManager(const QString & consumerKey, const QString & consumerSecret,
+                           LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     virtual ~SynchronizationManager();
 
     bool active() const;

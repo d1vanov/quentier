@@ -1,14 +1,15 @@
 #include "MainWindow.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "BasicXMLSyntaxHighlighter.h"
+#include "TableSettingsDialog.h"
 
 #include <qute_note/note_editor/NoteEditor.h>
 using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work with namespaces
 #include "ui_MainWindow.h"
 
-#include "TableSettingsDialog.h"
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/logging/QuteNoteLogger.h>
+#include <Simplecrypt.h>
 #include <cmath>
 #include <QPushButton>
 #include <QIcon>
@@ -499,5 +500,46 @@ void MainWindow::updateNoteHtmlView()
     }
 
     m_pUI->noteSourceView->setPlainText(noteSource);
+}
+
+bool MainWindow::consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error)
+{
+    SimpleCrypt crypto(0xB87F6B9);
+
+    consumerKey = crypto.decryptToString(QByteArray("AwP9s05FRUQgWDvIjk7sru7uV3H5QCBk1W1"
+                                                    "fiJsnZrc5qCOs75z4RrgmnN0awQ8d7X7PBu"
+                                                    "HHF8JDM33DcxXHSh5Kt8fjQoz5HrPOu8i66"
+                                                    "frlRFKguciY7xULwrXdqgECazLB9aveoIo7f"
+                                                    "SDRK9FEM0tTOjfdYVGyC3XW86WH42AT/hVpG"
+                                                    "QqGKDYNPSJktaeMQ0wVoi7u1iUCMN7L7boxl3"
+                                                    "jUO1hw6EjfnO4+f6svSocjkTmrt0qagvxpb1g"
+                                                    "xrjdYzOF/7XO9SB8wq0pPihnIvMQAMlVhW9lG"
+                                                    "2stiXrgAL0jebYmsHWo1XFNPUN2MGi7eM22uW"
+                                                    "fVFAoUW128Qgu/W4+W3dbetmV3NEDjxojsvBn"
+                                                    "koe2J8ZyeZ+Ektss4HrzBGTnmH1x0HzZOrMR9"
+                                                    "zm9BFP7JADvc2QTku"));
+    if (consumerKey.isEmpty()) {
+        error = QT_TR_NOOP("Can't decrypt the consumer key");
+        return false;
+    }
+
+    consumerSecret = crypto.decryptToString(QByteArray("AwNqc1pRUVDQqMs4frw+fU1N9NJay4hlBoiEXZ"
+                                                       "sBC7bffG0TKeA3+INU0F49tVjvLNvU3J4haezDi"
+                                                       "wrAPVgCBsADTKz5ss3woXfHlyHVUQ7C41Q8FFS6"
+                                                       "EPpgT2tM1835rb8H3+FAHF+2mu8QBIVhe0dN1js"
+                                                       "S9+F+iTWKyTwMRO1urOLaF17GEHemW5YLlsl3MN"
+                                                       "U5bz9Kq8Uw/cWOuo3S2849En8ZFbYmUE9DDGsO7"
+                                                       "eRv9lkeMe8PQ5F1GSVMV8grB71nz4E1V4wVrHR1"
+                                                       "vRm4WchFO/y2lWzq4DCrVjnqZNCWOrgwH6dnOpHg"
+                                                       "glvnsCSN2YhB+i9LhTLvM8qZHN51HZtXEALwSoWX"
+                                                       "UZ3fD5jspD0MRZNN+wr+0zfwVovoPIwo7SSkcqIY"
+                                                       "1P2QSi+OcisJLerkthnyAPouiatyDYC2PDLhu25iu"
+                                                       "09ONDC0KA=="));
+    if (consumerSecret.isEmpty()) {
+        error = QT_TR_NOOP("Can't decrypt the consumer secret");
+        return false;
+    }
+
+    return true;
 }
 
