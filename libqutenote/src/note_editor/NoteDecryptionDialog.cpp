@@ -2,7 +2,7 @@
 #include "ui_NoteDecryptionDialog.h"
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <QSettings>
+#include <qute_note/utility/ApplicationSettings.h>
 
 namespace qute_note {
 
@@ -29,7 +29,7 @@ NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
     setHint(m_hint);
 
     bool rememberPassphraseForSessionDefault = false;
-    QSettings settings;
+    ApplicationSettings & settings = ApplicationSettings::instance();
     QVariant rememberPassphraseForSessionSetting = settings.value("General/rememberPassphraseForSession");
     if (!rememberPassphraseForSessionSetting.isNull()) {
         rememberPassphraseForSessionDefault = rememberPassphraseForSessionSetting.toBool();
@@ -81,7 +81,7 @@ void NoteDecryptionDialog::setRememberPassphraseDefaultState(const bool checked)
 
 void NoteDecryptionDialog::onRememberPassphraseStateChanged()
 {
-    QSettings settings;
+    ApplicationSettings & settings = ApplicationSettings::instance();
     if (!settings.isWritable()) {
         QNINFO("Can't persist remember passphrase for session setting: settings are not writable");
     }

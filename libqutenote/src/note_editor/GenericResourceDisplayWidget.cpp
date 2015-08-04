@@ -6,12 +6,12 @@
 #include <qute_note/utility/DesktopServices.h>
 #include <qute_note/types/IResource.h>
 #include <qute_note/logging/QuteNoteLogger.h>
+#include <qute_note/utility/ApplicationSettings.h>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QFileDialog>
-#include <QSettings>
 #include <QDesktopServices>
 #include <QMessageBox>
 
@@ -143,7 +143,7 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
 
     if (!m_preferredFileSuffixes.isEmpty())
     {
-        QSettings settings;
+        ApplicationSettings & settings = ApplicationSettings::instance();
         QStringList childGroups = settings.childGroups();
         int attachmentsSaveLocGroupIndex = childGroups.indexOf("AttachmentSaveLocations");
         if (attachmentsSaveLocGroupIndex >= 0)

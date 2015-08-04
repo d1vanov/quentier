@@ -20,6 +20,14 @@ public:
     void setArrayIndex(int i);
     void endArray();
 
+    void beginGroup(const QString & keyGroup);
+    void endGroup();
+
+    QStringList childGroups() const;
+    QStringList childKeys() const;
+
+    bool isWritable() const;
+
 private:
     ApplicationSettings() Q_DECL_DELETE;
     Q_DISABLE_COPY(ApplicationSettings);

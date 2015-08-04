@@ -71,6 +71,31 @@ void ApplicationSettings::endArray()
     m_settings.endArray();
 }
 
+void ApplicationSettings::beginGroup(const QString & keyGroup)
+{
+    m_settings.beginGroup(keyGroup);
+}
+
+void ApplicationSettings::endGroup()
+{
+    m_settings.endGroup();
+}
+
+QStringList ApplicationSettings::childGroups() const
+{
+    return m_settings.childGroups();
+}
+
+QStringList ApplicationSettings::childKeys() const
+{
+    return m_settings.childKeys();
+}
+
+bool ApplicationSettings::isWritable() const
+{
+    return m_settings.isWritable();
+}
+
 ApplicationSettings::ApplicationSettings(const QString & orgName, const QString & appName) :
     m_settings(orgName, appName)
 {}

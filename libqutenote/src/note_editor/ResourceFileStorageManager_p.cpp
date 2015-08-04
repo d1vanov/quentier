@@ -3,8 +3,8 @@
 #include <qute_note/note_editor/AttachmentStoragePathConfigDialog.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/DesktopServices.h>
+#include <qute_note/utility/ApplicationSettings.h>
 #include <QWidget>
-#include <QSettings>
 #include <QFileInfo>
 #include <QDir>
 
@@ -21,7 +21,7 @@ ResourceFileStorageManagerPrivate::ResourceFileStorageManagerPrivate(ResourceFil
 
 QString ResourceFileStorageManagerPrivate::resourceFileStorageLocation(QWidget * context)
 {
-    QSettings settings;
+    ApplicationSettings & settings = ApplicationSettings::instance();
     settings.beginGroup("AttachmentSaveLocations");
     QString resourceFileStorageLocation = settings.value("OwnFileStorageLocation").toString();
     if (resourceFileStorageLocation.isEmpty()) {
