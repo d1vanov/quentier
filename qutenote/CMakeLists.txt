@@ -20,6 +20,7 @@ set(${PROJECT_NAME}_HEADERS
     src/AskUserNameAndPassword.h
     src/EvernoteOAuthBrowser.h
     src/TableSettingsDialog.h
+    src/BasicXMLSyntaxHighlighter.h
     src/insert-table-tool-button/InsertTableToolButton.h
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
@@ -33,6 +34,7 @@ set(${PROJECT_NAME}_SOURCES
     src/AskUserNameAndPassword.cpp
     src/EvernoteOAuthBrowser.cpp
     src/TableSettingsDialog.cpp
+    src/BasicXMLSyntaxHighlighter.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelectorActionWidget.cpp

@@ -13,7 +13,7 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 #include <Simplecrypt.h>
 #include "../client/CredentialsModel.h"
 #include <qute_note/utility/QuteNoteCheckPtr.h>
-#include <qute_note/utility/BasicXMLSyntaxHighlighter.h>
+#include "BasicXMLSyntaxHighlighter.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <cmath>
 #include <QPushButton>

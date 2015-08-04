@@ -1,4 +1,4 @@
-#include <qute_note/utility/BasicXMLSyntaxHighlighter.h>
+#include "BasicXMLSyntaxHighlighter.h"
 
 BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * pTextDoc) :
     QSyntaxHighlighter(pTextDoc),

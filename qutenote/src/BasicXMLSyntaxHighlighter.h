@@ -1,10 +1,9 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__BASIC_XML_SYNTAX_HIGHLIGHTER_H
-#define __LIB_QUTE_NOTE__UTILITY__BASIC_XML_SYNTAX_HIGHLIGHTER_H
+#ifndef __QUTE_NOTE__BASIC_XML_SYNTAX_HIGHLIGHTER_H
+#define __QUTE_NOTE__BASIC_XML_SYNTAX_HIGHLIGHTER_H
 
-#include <qute_note/utility/Linkage.h>
 #include <QSyntaxHighlighter>
 
-class QUTE_NOTE_EXPORT BasicXMLSyntaxHighlighter: public QSyntaxHighlighter
+class BasicXMLSyntaxHighlighter: public QSyntaxHighlighter
 {
     Q_OBJECT
 public:
@@ -31,4 +30,4 @@ private:
     QRegExp             m_xmlCommentRegex;
 };
 
-#endif // __LIB_QUTE_NOTE__UTILITY__BASIC_XML_SYNTAX_HIGHLIGHTER_H
+#endif // __QUTE_NOTE__BASIC_XML_SYNTAX_HIGHLIGHTER_H

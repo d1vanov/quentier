@@ -127,7 +127,6 @@ set(EXCEPTION_HEADERS
 
 set(UTILITY_HEADERS
     headers/qute_note/utility/ApplicationSettings.h
-    headers/qute_note/utility/BasicXMLSyntaxHighlighter.h
     headers/qute_note/utility/DesktopServices.h
     headers/qute_note/utility/EncryptionManager.h
     headers/qute_note/utility/EventLoopWithExitStatus.h
@@ -246,7 +245,6 @@ set(${PROJECT_NAME}_SOURCES
     src/exception/SharedNotebookAdapterAccessException.cpp
     src/exception/UserAdapterAccessException.cpp
     src/utility/ApplicationSettings.cpp
-    src/utility/BasicXMLSyntaxHighlighter.cpp
     src/utility/DesktopServices.cpp
     src/utility/EmptyDataElementException.cpp
     src/utility/EncryptionManager.cpp
