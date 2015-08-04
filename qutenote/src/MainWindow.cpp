@@ -1,19 +1,13 @@
 #include "MainWindow.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
+#include "BasicXMLSyntaxHighlighter.h"
 
 #include <qute_note/note_editor/NoteEditor.h>
 using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work with namespaces
 #include "ui_MainWindow.h"
 
 #include "TableSettingsDialog.h"
-#include "EvernoteOAuthBrowser.h"
-#include "../client/EvernoteServiceManager.h"
-#include "AskConsumerKeyAndSecret.h"
-#include "AskUserNameAndPassword.h"
-#include <Simplecrypt.h>
-#include "../client/CredentialsModel.h"
 #include <qute_note/utility/QuteNoteCheckPtr.h>
-#include "BasicXMLSyntaxHighlighter.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <cmath>
 #include <QPushButton>
@@ -32,15 +26,12 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
-    m_pAskConsumerKeyAndSecretWidget(new AskConsumerKeyAndSecret(this)),
-    m_pAskUserNameAndPasswordWidget(new AskUserNameAndPassword(this)),
-    m_pManager(new EvernoteServiceManager),
-    m_pOAuthBrowser(new EvernoteOAuthBrowser(this, *m_pManager)),
     m_currentStatusBarChildWidget(nullptr),
     m_pNoteEditor(nullptr)
 {
     m_pUI->setupUi(this);
     m_pUI->noteSourceView->setHidden(true);
+
     BasicXMLSyntaxHighlighter * highlighter = new BasicXMLSyntaxHighlighter(m_pUI->noteSourceView->document());
     Q_UNUSED(highlighter);
 
@@ -50,41 +41,17 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     connectActionsToEditorSlots();
 
-    QObject::connect(m_pManager, SIGNAL(statusTextUpdate(QString,int)),
-                     this, SLOT(onSetStatusBarText(QString,int)));
-    QObject::connect(m_pManager, SIGNAL(showAuthWebPage(QUrl)),
-                     this, SLOT(onShowAuthWebPage(QUrl)));
-    QObject::connect(m_pAskConsumerKeyAndSecretWidget,
-                     SIGNAL(consumerKeyAndSecretEntered(QString,QString)),
-                     m_pManager, SLOT(onConsumerKeyAndSecretSet(QString,QString)));
-    QObject::connect(m_pManager, SIGNAL(requestUsernameAndPassword()),
-                     this, SLOT(onRequestUsernameAndPassword()));
-
-    QObject::connect(m_pAskConsumerKeyAndSecretWidget,
-                     SIGNAL(cancelled(QString)),
-                     this, SLOT(onSetStatusBarText(QString)));
-
     // Debug
     QObject::connect(m_pUI->ActionShowNoteSource, SIGNAL(triggered()),
                      this, SLOT(onShowNoteSource()));
     QObject::connect(m_pNoteEditor, SIGNAL(contentChanged()), this, SLOT(onNoteContentChanged()));
-
-    m_pManager->connect();
 
     m_pNoteEditor->setFocus();
 }
 
 MainWindow::~MainWindow()
 {
-    if (m_pUI != nullptr) {
-        delete m_pUI;
-        m_pUI = nullptr;
-    }
-}
-
-EvernoteOAuthBrowser * MainWindow::OAuthBrowser()
-{
-    return m_pOAuthBrowser;
+    delete m_pUI;
 }
 
 void MainWindow::connectActionsToEditorSlots()
@@ -124,129 +91,6 @@ void MainWindow::connectActionsToEditorSlots()
                      this, SLOT(noteTextInsertTable(int,int,double,bool)));
 }
 
-void MainWindow::checkAndSetupConsumerKeyAndSecret()
-{
-    checkAndSetupCredentials(CHECK_CONSUMER_KEY_AND_SECRET);
-}
-
-void MainWindow::checkAndSetupUserNameAndPassword()
-{
-    checkAndSetupCredentials(CHECK_USER_NAME_AND_PASSWORD);
-}
-
-void MainWindow::checkAndSetupOAuthTokenAndSecret()
-{
-    checkAndSetupCredentials(CHECK_OAUTH_TOKEN_AND_SECRET);
-}
-
-void MainWindow::checkAndSetupCredentials(MainWindow::ECredentialsToCheck credentialsFlag)
-{
-    bool noStoredCredentials = false;
-
-    QFile credentialsFile;
-
-    switch(credentialsFlag)
-    {
-    case CHECK_CONSUMER_KEY_AND_SECRET:
-        credentialsFile.setFileName(":/enc_data/consks.dat");
-        break;
-    case CHECK_USER_NAME_AND_PASSWORD:
-        credentialsFile.setFileName(":/enc_data/ulp.dat");
-        break;
-    case CHECK_OAUTH_TOKEN_AND_SECRET:
-        credentialsFile.setFileName(":/enc_data/oautk.dat");
-        break;
-    default:
-        QMessageBox::critical(0, tr("Internal error"),
-                              tr("Wrong credentials flag in MainWindow::checkAndSetupCredentials."));
-        QApplication::quit();
-    }
-
-    if (!credentialsFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::information(0, "Error: cannot open file with credentials: ",
-                                 credentialsFile.errorString());
-        noStoredCredentials = true;
-    }
-
-    if (!noStoredCredentials)
-    {
-        QTextStream textStream(&credentialsFile);
-        QString keyEncrypted = textStream.readLine();
-        QString secretEncrypted = textStream.readLine();
-
-        if (keyEncrypted.isEmpty() || secretEncrypted.isEmpty())
-        {
-            noStoredCredentials = true;
-        }
-        else
-        {
-            SimpleCrypt crypto(CredentialsModel::RANDOM_CRYPTO_KEY);
-            QString keyDecrypted = crypto.decryptToString(keyEncrypted);
-            QString secretDecrypted = crypto.decryptToString(secretEncrypted);
-
-            CredentialsModel & credentials = m_pManager->getCredentials();
-
-            switch(credentialsFlag)
-            {
-            case CHECK_CONSUMER_KEY_AND_SECRET:
-                credentials.SetConsumerKey(keyDecrypted);
-                credentials.SetConsumerSecret(secretDecrypted);
-                break;
-            case CHECK_USER_NAME_AND_PASSWORD:
-                credentials.SetUsername(keyDecrypted);
-                credentials.SetPassword(secretDecrypted);
-                break;
-            case CHECK_OAUTH_TOKEN_AND_SECRET:
-                credentials.SetOAuthKey(keyDecrypted);
-                credentials.SetOAuthSecret(secretDecrypted);
-                break;
-            default:
-                QMessageBox::critical(0, tr("Internal error"),
-                                      tr("Wrong credentials flag in MainWindow::checkAndSetupCredentials."));
-                QApplication::quit();
-            }
-        }
-    }
-
-    if (noStoredCredentials)
-    {
-
-#define ASK_FOR_CREDENTIALS(widgetName)  \
-    { \
-        QUTE_NOTE_CHECK_PTR(widgetName); \
-        QRect centralWidgetRect = rect(); \
-        double xCenter = centralWidgetRect.left() + 0.5 * centralWidgetRect.width(); \
-        double yCenter = centralWidgetRect.top() + 0.5 * centralWidgetRect.height(); \
-        widgetName->show(); \
-        xCenter -= widgetName->width() * 0.5; \
-        yCenter -= widgetName->height() * 0.5; \
-        widgetName->move(static_cast<int>(xCenter), static_cast<int>(yCenter)); \
-        widgetName->raise(); \
-    }
-
-        switch(credentialsFlag)
-        {
-        case CHECK_CONSUMER_KEY_AND_SECRET:
-            ASK_FOR_CREDENTIALS(m_pAskConsumerKeyAndSecretWidget);
-            break;
-        case CHECK_USER_NAME_AND_PASSWORD:
-            ASK_FOR_CREDENTIALS(m_pAskUserNameAndPasswordWidget);
-            break;
-        case CHECK_OAUTH_TOKEN_AND_SECRET:
-        {
-            m_pManager->authenticate();
-            break;
-        }
-        default:
-            QMessageBox::critical(0, tr("Internal error"),
-                                  tr("Wrong credentials flag in MainWindow::checkAndSetupCredentials."));
-            QApplication::quit();
-        }
-
-#undef ASK_FOR_CREDENTIALS
-    }
-}
-
 void MainWindow::onSetStatusBarText(QString message, const int duration)
 {
     QStatusBar * pStatusBar = m_pUI->statusBar;
@@ -262,53 +106,6 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
     }
     else {
         pStatusBar->showMessage(message, duration);
-    }
-
-    // Check whether authentication is done and we need to close the browser
-    QString dummyErrorString;
-    if (m_pManager->CheckAuthenticationState(dummyErrorString)) {
-        if (m_pOAuthBrowser != nullptr) {
-            m_pOAuthBrowser->authSuccessful();
-            m_pOAuthBrowser->close();
-        }
-    }
-}
-
-void MainWindow::onShowAuthWebPage(QUrl url)
-{
-    if (m_pOAuthBrowser == nullptr) {
-        m_pOAuthBrowser = new EvernoteOAuthBrowser(this, *m_pManager);
-        QUTE_NOTE_CHECK_PTR(m_pOAuthBrowser);
-    }
-
-    m_pOAuthBrowser->load(url);
-    m_pOAuthBrowser->show();
-}
-
-void MainWindow::onRequestUsernameAndPassword()
-{
-    checkAndSetupUserNameAndPassword();
-}
-
-void MainWindow::show()
-{
-    QMainWindow::show();
-
-    const CredentialsModel & credentials = m_pManager->getCredentials();
-
-    if (credentials.GetConsumerKey().isEmpty() ||
-        credentials.GetConsumerSecret().isEmpty())
-    {
-        checkAndSetupConsumerKeyAndSecret();
-        if (!credentials.GetConsumerKey().isEmpty() &&
-            !credentials.GetConsumerSecret().isEmpty())
-        {
-            checkAndSetupUserNameAndPassword();
-        }
-    }
-    else
-    {
-        checkAndSetupUserNameAndPassword();
     }
 }
 
@@ -454,28 +251,6 @@ void MainWindow::onNoteContentChanged()
     }
 
     updateNoteHtmlView();
-}
-
-void MainWindow::setAlignButtonsCheckedState(const ESelectedAlignment alignment)
-{
-    switch(alignment)
-    {
-    case ALIGNED_LEFT:
-        m_pUI->formatJustifyCenterPushButton->setChecked(false);
-        m_pUI->formatJustifyRightPushButton->setChecked(false);
-        break;
-    case ALIGNED_CENTER:
-        m_pUI->formatJustifyLeftPushButton->setChecked(false);
-        m_pUI->formatJustifyRightPushButton->setChecked(false);
-        break;
-    case ALIGNED_RIGHT:
-        m_pUI->formatJustifyLeftPushButton->setChecked(false);
-        m_pUI->formatJustifyCenterPushButton->setChecked(false);
-        break;
-    default:
-        qWarning() << "MainWindow::setAlignButtonsCheckedState: received invalid action!";
-        break;
-    }
 }
 
 void MainWindow::checkThemeIconsAndSetFallbacks()

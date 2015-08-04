@@ -14,12 +14,7 @@ namespace Ui {
 class MainWindow;
 }
 
-QT_FORWARD_DECLARE_CLASS(EvernoteOAuthBrowser)
-QT_FORWARD_DECLARE_CLASS(EvernoteServiceManager)
 QT_FORWARD_DECLARE_CLASS(QUrl)
-QT_FORWARD_DECLARE_CLASS(AskConsumerKeyAndSecret)
-QT_FORWARD_DECLARE_CLASS(AskUserNameAndPassword)
-QT_FORWARD_DECLARE_CLASS(QTextCharFormat)
 
 namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
@@ -32,29 +27,11 @@ public:
     explicit MainWindow(QWidget * pParentWidget = nullptr);
     virtual ~MainWindow();
 
-    EvernoteOAuthBrowser * OAuthBrowser();
-
 private:
     void connectActionsToEditorSlots();
 
-    void checkAndSetupConsumerKeyAndSecret();
-    void checkAndSetupUserNameAndPassword();
-    void checkAndSetupOAuthTokenAndSecret();
-
-    enum ECredentialsToCheck
-    {
-        CHECK_CONSUMER_KEY_AND_SECRET,
-        CHECK_USER_NAME_AND_PASSWORD,
-        CHECK_OAUTH_TOKEN_AND_SECRET
-    };
-
-    void checkAndSetupCredentials(ECredentialsToCheck credentials);
-
 public Q_SLOTS:
     void onSetStatusBarText(QString message, const int duration = 0);
-    void onShowAuthWebPage(QUrl url);
-    void onRequestUsernameAndPassword();
-    void show();
 
 private Q_SLOTS:
     void noteTextBold();
@@ -86,19 +63,12 @@ private Q_SLOTS:
 private:
     void insertList(const QTextListFormat::Style style);
 
-    enum ESelectedAlignment { ALIGNED_LEFT, ALIGNED_CENTER, ALIGNED_RIGHT };
-    void setAlignButtonsCheckedState(const ESelectedAlignment alignment);
-
     void checkThemeIconsAndSetFallbacks();
 
     void updateNoteHtmlView();
 
 private:
     Ui::MainWindow * m_pUI;
-    AskConsumerKeyAndSecret * m_pAskConsumerKeyAndSecretWidget;
-    AskUserNameAndPassword  * m_pAskUserNameAndPasswordWidget;
-    EvernoteServiceManager  * m_pManager;
-    EvernoteOAuthBrowser * m_pOAuthBrowser;
     QWidget * m_currentStatusBarChildWidget;
     qute_note::NoteEditor * m_pNoteEditor;
 };

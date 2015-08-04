@@ -13,12 +13,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqutenote/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqutenote/headers)
 
 set(${PROJECT_NAME}_HEADERS
-    client/CredentialsModel.h
-    client/EvernoteServiceManager.h
     src/MainWindow.h
-    src/AskConsumerKeyAndSecret.h
-    src/AskUserNameAndPassword.h
-    src/EvernoteOAuthBrowser.h
     src/TableSettingsDialog.h
     src/BasicXMLSyntaxHighlighter.h
     src/insert-table-tool-button/InsertTableToolButton.h
@@ -27,12 +22,7 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeSelector.h)
 
 set(${PROJECT_NAME}_SOURCES
-    client/CredentialsModel.cpp
-    client/EvernoteServiceManager.cpp
     src/MainWindow.cpp
-    src/AskConsumerKeyAndSecret.cpp
-    src/AskUserNameAndPassword.cpp
-    src/EvernoteOAuthBrowser.cpp
     src/TableSettingsDialog.cpp
     src/BasicXMLSyntaxHighlighter.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
@@ -43,8 +33,6 @@ set(${PROJECT_NAME}_SOURCES
 
 set(FORMS
     src/MainWindow.ui
-    src/AskConsumerKeyAndSecret.ui
-    src/AskUserNameAndPassword.ui
     src/TableSettingsDialog.ui)
 
 if(USE_QT5)
@@ -54,8 +42,7 @@ else()
 endif()
 
 set(RESOURCES
-    resource/icons.qrc
-    resource/enc_data.qrc)
+    resource/icons.qrc)
 
 if(USE_QT5)
   qt5_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
