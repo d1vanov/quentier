@@ -25,7 +25,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     }
 
     // ======== Check Add + Find ============
-    bool res = localStorageManager.AddSavedSearch(search, errorDescription);
+    bool res = localStorageManager.addSavedSearch(search, errorDescription);
     if (!res) {
         return false;
     }
@@ -33,7 +33,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     const QString searchGuid = search.localGuid();
     SavedSearch foundSearch;
     foundSearch.setLocalGuid(searchGuid);
-    res = localStorageManager.FindSavedSearch(foundSearch, errorDescription);
+    res = localStorageManager.findSavedSearch(foundSearch, errorDescription);
     if (!res) {
         return false;
     }
@@ -49,7 +49,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     SavedSearch foundByNameSearch;
     foundByNameSearch.unsetLocalGuid();
     foundByNameSearch.setName(search.name());
-    res = localStorageManager.FindSavedSearch(foundByNameSearch, errorDescription);
+    res = localStorageManager.findSavedSearch(foundByNameSearch, errorDescription);
     if (!res) {
         return false;
     }
@@ -72,12 +72,12 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     QString localGuid = modifiedSearch.localGuid();
     modifiedSearch.unsetLocalGuid();
 
-    res = localStorageManager.UpdateSavedSearch(modifiedSearch, errorDescription);
+    res = localStorageManager.updateSavedSearch(modifiedSearch, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindSavedSearch(foundSearch, errorDescription);
+    res = localStorageManager.findSavedSearch(foundSearch, errorDescription);
     if (!res) {
         return false;
     }
@@ -91,7 +91,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     }
 
     // ========== Check GetSavedSearchCount to return 1 ============
-    int count = localStorageManager.GetSavedSearchCount(errorDescription);
+    int count = localStorageManager.savedSearchCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -102,12 +102,12 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     }
 
     // ============ Check Expunge + Find (failure expected) ============
-    res = localStorageManager.ExpungeSavedSearch(modifiedSearch, errorDescription);
+    res = localStorageManager.expungeSavedSearch(modifiedSearch, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindSavedSearch(foundSearch, errorDescription);
+    res = localStorageManager.findSavedSearch(foundSearch, errorDescription);
     if (res) {
         errorDescription = "Error: found saved search which should have been expunged from local storage";
         QNWARNING(errorDescription << ": SavedSearch expunged from LocalStorageManager: " << modifiedSearch
@@ -116,7 +116,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     }
 
     // ========== Check GetSavedSearchCount to return 0 ============
-    count = localStorageManager.GetSavedSearchCount(errorDescription);
+    count = localStorageManager.savedSearchCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -139,7 +139,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     }
 
     // ========== Check Add + Find ===========
-    bool res = localStorageManager.AddLinkedNotebook(linkedNotebook, errorDescription);
+    bool res = localStorageManager.addLinkedNotebook(linkedNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -147,7 +147,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     const QString linkedNotebookGuid = linkedNotebook.guid();
     LinkedNotebook foundLinkedNotebook;
     foundLinkedNotebook.setGuid(linkedNotebookGuid);
-    res = localStorageManager.FindLinkedNotebook(foundLinkedNotebook, errorDescription);
+    res = localStorageManager.findLinkedNotebook(foundLinkedNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -172,12 +172,12 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     modifiedLinkedNotebook.setStack(linkedNotebook.stack() + "_modified");
     modifiedLinkedNotebook.setBusinessId(linkedNotebook.businessId() + 1);
 
-    res = localStorageManager.UpdateLinkedNotebook(modifiedLinkedNotebook, errorDescription);
+    res = localStorageManager.updateLinkedNotebook(modifiedLinkedNotebook, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindLinkedNotebook(foundLinkedNotebook, errorDescription);
+    res = localStorageManager.findLinkedNotebook(foundLinkedNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -190,7 +190,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     }
 
     // ========== Check GetLinkedNotebookCount to return 1 ============
-    int count = localStorageManager.GetLinkedNotebookCount(errorDescription);
+    int count = localStorageManager.linkedNotebookCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -201,12 +201,12 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     }
 
     // ============= Check Expunge + Find (failure expected) ============
-    res = localStorageManager.ExpungeLinkedNotebook(modifiedLinkedNotebook, errorDescription);
+    res = localStorageManager.expungeLinkedNotebook(modifiedLinkedNotebook, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindLinkedNotebook(foundLinkedNotebook, errorDescription);
+    res = localStorageManager.findLinkedNotebook(foundLinkedNotebook, errorDescription);
     if (res) {
         errorDescription = "Error: found linked notebook which should have been expunged from local storage";
         QNWARNING(errorDescription << ": LinkedNotebook expunged from LocalStorageManager: " << modifiedLinkedNotebook
@@ -215,7 +215,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     }
 
     // ========== Check GetLinkedNotebookCount to return 0 ============
-    count = localStorageManager.GetLinkedNotebookCount(errorDescription);
+    count = localStorageManager.linkedNotebookCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -238,7 +238,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     // ========== Check Add + Find ==========
-    bool res = localStorageManager.AddTag(tag, errorDescription);
+    bool res = localStorageManager.addTag(tag, errorDescription);
     if (!res) {
         return false;
     }
@@ -250,7 +250,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         foundTag.setLinkedNotebookGuid(tag.linkedNotebookGuid());
     }
 
-    res = localStorageManager.FindTag(foundTag, errorDescription);
+    res = localStorageManager.findTag(foundTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -270,7 +270,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         foundByNameTag.setLinkedNotebookGuid(tag.linkedNotebookGuid());
     }
 
-    res = localStorageManager.FindTag(foundByNameTag, errorDescription);
+    res = localStorageManager.findTag(foundByNameTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -289,7 +289,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     modifiedTag.setShortcut(true);
     modifiedTag.unsetLocalGuid();
 
-    res = localStorageManager.UpdateTag(modifiedTag, errorDescription);
+    res = localStorageManager.updateTag(modifiedTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -298,7 +298,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         foundTag.setLinkedNotebookGuid(QString());
     }
 
-    res = localStorageManager.FindTag(foundTag, errorDescription);
+    res = localStorageManager.findTag(foundTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -312,7 +312,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     // ========== GetTagCount to return 1 ============
-    int count = localStorageManager.GetTagCount(errorDescription);
+    int count = localStorageManager.tagCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -324,12 +324,12 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
 
     // ========== Check Delete + Find ==========
     modifiedTag.setDeleted(true);
-    res = localStorageManager.DeleteTag(modifiedTag, errorDescription);
+    res = localStorageManager.deleteTag(modifiedTag, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindTag(foundTag, errorDescription);
+    res = localStorageManager.findTag(foundTag, errorDescription);
     if (!res) {
         return false;
     }
@@ -344,7 +344,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     // ========== GetTagCount to return 0 ============
-    count = localStorageManager.GetTagCount(errorDescription);
+    count = localStorageManager.tagCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -355,12 +355,12 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     // ========== Check Expunge + Find (failure expected) ==========
-    res = localStorageManager.ExpungeTag(modifiedTag, errorDescription);
+    res = localStorageManager.expungeTag(modifiedTag, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindTag(foundTag, errorDescription);
+    res = localStorageManager.findTag(foundTag, errorDescription);
     if (res) {
         errorDescription = "Error: found tag which should have been exounged from local storage";
         QNWARNING(errorDescription << ": Tag expunged from LocalStorageManager: " << modifiedTag
@@ -381,7 +381,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     }
 
     // ========== Check Add + Find ==========
-    bool res = localStorageManager.AddEnResource(resource, note, errorDescription);
+    bool res = localStorageManager.addEnResource(resource, note, errorDescription);
     if (!res) {
         return false;
     }
@@ -389,7 +389,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     const QString resourceGuid = resource.guid();
     ResourceWrapper foundResource;
     foundResource.setGuid(resourceGuid);
-    res = localStorageManager.FindEnResource(foundResource, errorDescription,
+    res = localStorageManager.findEnResource(foundResource, errorDescription,
                                              /* withBinaryData = */ true);
     if (!res) {
         return false;
@@ -431,12 +431,12 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     QString resourceLocalGuid = modifiedResource.localGuid();
     modifiedResource.unsetLocalGuid();
 
-    res = localStorageManager.UpdateEnResource(modifiedResource, note, errorDescription);
+    res = localStorageManager.updateEnResource(modifiedResource, note, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindEnResource(foundResource, errorDescription,
+    res = localStorageManager.findEnResource(foundResource, errorDescription,
                                              /* withBinaryData = */ true);
     if (!res) {
         return false;
@@ -453,7 +453,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     // ========== Check Find without resource binary data =========
     foundResource.clear();
     foundResource.setGuid(resourceGuid);
-    res = localStorageManager.FindEnResource(foundResource, errorDescription,
+    res = localStorageManager.findEnResource(foundResource, errorDescription,
                                              /* withBinaryData = */ false);
     if (!res) {
         return false;
@@ -472,7 +472,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
 
 
     // ========== GetEnResourceCount to return 1 ============
-    int count = localStorageManager.GetEnResourceCount(errorDescription);
+    int count = localStorageManager.enResourceCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -483,12 +483,12 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     }
 
     // ========== Check Expunge + Find (falure expected) ==========
-    res = localStorageManager.ExpungeEnResource(modifiedResource, errorDescription);
+    res = localStorageManager.expungeEnResource(modifiedResource, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindEnResource(foundResource, errorDescription);
+    res = localStorageManager.findEnResource(foundResource, errorDescription);
     if (res) {
         errorDescription = "Error: found IResource which should have been expunged from LocalStorageManager";
         QNWARNING(errorDescription << ": IResource expunged from LocalStorageManager: " << modifiedResource
@@ -497,7 +497,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     }
 
     // ========== GetEnResourceCount to return 0 ============
-    count = localStorageManager.GetEnResourceCount(errorDescription);
+    count = localStorageManager.enResourceCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -523,7 +523,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     const QString initialResourceGuid = "00000000-0000-0000-c000-000000000049";
     ResourceWrapper foundResource;
     foundResource.setGuid(initialResourceGuid);
-    bool res = localStorageManager.FindEnResource(foundResource, errorDescription,
+    bool res = localStorageManager.findEnResource(foundResource, errorDescription,
                                                   /* withBinaryData = */ true);
     if (!res) {
         return false;
@@ -533,7 +533,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     const bool withResourceBinaryData = true;
     Note foundNote;
     foundNote.setGuid(noteGuid);
-    res = localStorageManager.FindNote(foundNote, errorDescription, withResourceBinaryData);
+    res = localStorageManager.findNote(foundNote, errorDescription, withResourceBinaryData);
     if (!res) {
         return false;
     }
@@ -577,7 +577,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     newTag.setUpdateSequenceNumber(1);
     newTag.setName("Fake new tag name");
 
-    res = localStorageManager.AddTag(newTag, errorDescription);
+    res = localStorageManager.addTag(newTag, errorDescription);
     if (!res) {
         QNWARNING("Can't add new tag to local storage manager: "
                   << errorDescription);
@@ -621,14 +621,14 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
 
     modifiedNote.unsetLocalGuid();
 
-    res = localStorageManager.UpdateNote(modifiedNote, notebook, errorDescription);
+    res = localStorageManager.updateNote(modifiedNote, notebook, errorDescription);
     if (!res) {
         return false;
     }
 
     foundResource = ResourceWrapper();
     foundResource.setGuid(newResource.guid());
-    res = localStorageManager.FindEnResource(foundResource, errorDescription,
+    res = localStorageManager.findEnResource(foundResource, errorDescription,
                                              /* withBinaryData = */ true);
     if (!res) {
         return false;
@@ -645,7 +645,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
 
-    res = localStorageManager.FindNote(foundNote, errorDescription,
+    res = localStorageManager.findNote(foundNote, errorDescription,
                                        /* withResourceBinaryData = */ true);
     if (!res) {
         return false;
@@ -666,7 +666,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     }
 
     // ========== GetNoteCount to return 1 ============
-    int count = localStorageManager.GetNoteCount(errorDescription);
+    int count = localStorageManager.noteCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -680,12 +680,12 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     modifiedNote.setActive(false);
     modifiedNote.setDeletionTimestamp(1);
     foundNote.setActive(true);
-    res = localStorageManager.DeleteNote(modifiedNote, errorDescription);
+    res = localStorageManager.deleteNote(modifiedNote, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindNote(foundNote, errorDescription,
+    res = localStorageManager.findNote(foundNote, errorDescription,
                                        /* withResourceBinaryData = */ true);
     if (!res) {
         return false;
@@ -699,7 +699,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     }
 
     // ========== GetNoteCount to return 0 ============
-    count = localStorageManager.GetNoteCount(errorDescription);
+    count = localStorageManager.noteCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -710,12 +710,12 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     }
 
     // ========== Check Expunge + Find (failure expected) ==========
-    res = localStorageManager.ExpungeNote(modifiedNote, errorDescription);
+    res = localStorageManager.expungeNote(modifiedNote, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindNote(foundNote, errorDescription,
+    res = localStorageManager.findNote(foundNote, errorDescription,
                                        /* withResourceBinaryData = */ true);
     if (res) {
         errorDescription = "Error: found Note which should have been expunged "
@@ -728,7 +728,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     // ========== Try to find resource belonging to expunged note (failure expected) ==========
     foundResource = ResourceWrapper();
     foundResource.setGuid(newResource.guid());
-    res = localStorageManager.FindEnResource(foundResource, errorDescription,
+    res = localStorageManager.findEnResource(foundResource, errorDescription,
                                              /* withBinaryData = */ true);
     if (res) {
         errorDescription = "Error: found Resource which should have been expunged "
@@ -754,7 +754,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     const QString initialNoteGuid = "00000000-0000-0000-c000-000000000049";
     Note foundNote;
     foundNote.setGuid(initialNoteGuid);
-    bool res = localStorageManager.FindNote(foundNote, errorDescription,
+    bool res = localStorageManager.findNote(foundNote, errorDescription,
                                             /* withResourceBinaryData = */ true);
     if (!res) {
         return false;
@@ -766,7 +766,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
         foundNotebook.setLinkedNotebookGuid(notebook.linkedNotebookGuid());
     }
 
-    res = localStorageManager.FindNotebook(foundNotebook, errorDescription);
+    res = localStorageManager.findNotebook(foundNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -786,7 +786,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
         foundByNameNotebook.setLinkedNotebookGuid(notebook.linkedNotebookGuid());
     }
 
-    res = localStorageManager.FindNotebook(foundByNameNotebook, errorDescription);
+    res = localStorageManager.findNotebook(foundByNameNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -800,14 +800,14 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
 
     // ========== Check FindDefaultNotebook =========
     Notebook defaultNotebook;
-    res = localStorageManager.FindDefaultNotebook(defaultNotebook, errorDescription);
+    res = localStorageManager.findDefaultNotebook(defaultNotebook, errorDescription);
     if (!res) {
         return false;
     }
 
     // ========== Check FindLastUsedNotebook (failure expected) ==========
     Notebook lastUsedNotebook;
-    res = localStorageManager.FindLastUsedNotebook(lastUsedNotebook, errorDescription);
+    res = localStorageManager.findLastUsedNotebook(lastUsedNotebook, errorDescription);
     if (res) {
         errorDescription = "Found some last used notebook which shouldn't have been found";
         QNWARNING(errorDescription << ": " << lastUsedNotebook);
@@ -816,7 +816,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
 
     // ========== Check FindDefaultOrLastUsedNotebook ===========
     Notebook defaultOrLastUsedNotebook;
-    res = localStorageManager.FindDefaultOrLastUsedNotebook(defaultOrLastUsedNotebook,
+    res = localStorageManager.findDefaultOrLastUsedNotebook(defaultOrLastUsedNotebook,
                                                             errorDescription);
     if (!res) {
         return false;
@@ -849,7 +849,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     modifiedNotebook.setCanPublishToPublic(false);
     modifiedNotebook.setShortcut(true);
 
-    res = localStorageManager.UpdateNotebook(modifiedNotebook, errorDescription);
+    res = localStorageManager.updateNotebook(modifiedNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -860,7 +860,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
         foundNotebook.setLinkedNotebookGuid(modifiedNotebook.linkedNotebookGuid());
     }
 
-    res = localStorageManager.FindNotebook(foundNotebook, errorDescription);
+    res = localStorageManager.findNotebook(foundNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -874,7 +874,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
 
     // ========== Check FindDefaultNotebook (failure expected) =========
     defaultNotebook = Notebook();
-    res = localStorageManager.FindDefaultNotebook(defaultNotebook, errorDescription);
+    res = localStorageManager.findDefaultNotebook(defaultNotebook, errorDescription);
     if (res) {
         errorDescription = "Found some default notebook which shouldn't have been found";
         QNWARNING(errorDescription << ": " << defaultNotebook);
@@ -883,14 +883,14 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
 
     // ========== Check FindLastUsedNotebook  ==========
     lastUsedNotebook = Notebook();
-    res = localStorageManager.FindLastUsedNotebook(lastUsedNotebook, errorDescription);
+    res = localStorageManager.findLastUsedNotebook(lastUsedNotebook, errorDescription);
     if (!res) {
         return false;
     }
 
     // ========== Check FindDefaultOrLastUsedNotebook ===========
     defaultOrLastUsedNotebook = Notebook();
-    res = localStorageManager.FindDefaultOrLastUsedNotebook(defaultOrLastUsedNotebook,
+    res = localStorageManager.findDefaultOrLastUsedNotebook(defaultOrLastUsedNotebook,
                                                             errorDescription);
     if (!res) {
         return false;
@@ -905,7 +905,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     }
 
     // ========== Check GetNotebookCount to return 1 ============
-    int count = localStorageManager.GetNotebookCount(errorDescription);
+    int count = localStorageManager.notebookCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -916,12 +916,12 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     }
 
     // ========== Check Expunge + Find (failure expected) ==========
-    res = localStorageManager.ExpungeNotebook(modifiedNotebook, errorDescription);
+    res = localStorageManager.expungeNotebook(modifiedNotebook, errorDescription);
     if (!res) {
         return false;
     }
 
-    res = localStorageManager.FindNotebook(foundNotebook, errorDescription);
+    res = localStorageManager.findNotebook(foundNotebook, errorDescription);
     if (res) {
         errorDescription = "Error: found Notebook which should have been expunged "
                            "from LocalStorageManager";
@@ -931,7 +931,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     }
 
     // ========== Check GetNotebookCount to return 0 ============
-    count = localStorageManager.GetNotebookCount(errorDescription);
+    count = localStorageManager.notebookCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -953,7 +953,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     // ========== Check Add + Find ==========
-    bool res = localStorageManager.AddUser(user, errorDescription);
+    bool res = localStorageManager.addUser(user, errorDescription);
     if (!res) {
         return false;
     }
@@ -961,7 +961,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     const qint32 initialUserId = user.id();
     UserWrapper foundUser;
     foundUser.setId(initialUserId);
-    res = localStorageManager.FindUser(foundUser, errorDescription);
+    res = localStorageManager.findUser(foundUser, errorDescription);
     if (!res) {
         return false;
     }
@@ -1017,14 +1017,14 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
 
     modifiedUser.setPremiumInfo(std::move(modifiedPremiumInfo));
 
-    res = localStorageManager.UpdateUser(modifiedUser, errorDescription);
+    res = localStorageManager.updateUser(modifiedUser, errorDescription);
     if (!res) {
         return false;
     }
 
     foundUser.clear();
     foundUser.setId(modifiedUser.id());
-    res = localStorageManager.FindUser(foundUser, errorDescription);
+    res = localStorageManager.findUser(foundUser, errorDescription);
     if (!res) {
         return false;
     }
@@ -1037,7 +1037,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     // ========== Check GetUserCount to return 1 ===========
-    int count = localStorageManager.GetUserCount(errorDescription);
+    int count = localStorageManager.userCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -1050,14 +1050,14 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     // ========== Check Delete + Find ==========
     modifiedUser.setDeletionTimestamp(5);
 
-    res = localStorageManager.DeleteUser(modifiedUser, errorDescription);
+    res = localStorageManager.deleteUser(modifiedUser, errorDescription);
     if (!res) {
         return false;
     }
 
     foundUser.clear();
     foundUser.setId(modifiedUser.id());
-    res = localStorageManager.FindUser(foundUser, errorDescription);
+    res = localStorageManager.findUser(foundUser, errorDescription);
     if (!res) {
         return false;
     }
@@ -1070,7 +1070,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     // ========== Check GetUserCount to return 0 (as it doesn't account for deleted resources) ===========
-    count = localStorageManager.GetUserCount(errorDescription);
+    count = localStorageManager.userCount(errorDescription);
     if (count < 0) {
         return false;
     }
@@ -1081,14 +1081,14 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     // ========== Check Expunge + Find (failure expected) ==========
-    res = localStorageManager.ExpungeUser(modifiedUser, errorDescription);
+    res = localStorageManager.expungeUser(modifiedUser, errorDescription);
     if (!res) {
         return false;
     }
 
     foundUser.clear();
     foundUser.setId(modifiedUser.id());
-    res = localStorageManager.FindUser(foundUser, errorDescription);
+    res = localStorageManager.findUser(foundUser, errorDescription);
     if (res) {
         errorDescription = "Error: found IUser which should have been expunged "
                            "from LocalStorageManager";
@@ -1155,7 +1155,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     user.setPremiumInfo(std::move(premiumInfo));
 
     // 3) ============ Add user to local storage ==============
-    bool res = localStorageManager.AddUser(user, errorDescription);
+    bool res = localStorageManager.addUser(user, errorDescription);
     if (!res) {
         return false;
     }
@@ -1171,7 +1171,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     updatedUser.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
     updatedUser.setActive(true);
 
-    res = localStorageManager.UpdateUser(updatedUser, errorDescription);
+    res = localStorageManager.updateUser(updatedUser, errorDescription);
     if (!res) {
         return false;
     }
@@ -1181,7 +1181,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     UserWrapper foundUser;
     foundUser.setId(1);
 
-    res = localStorageManager.FindUser(foundUser, errorDescription);
+    res = localStorageManager.findUser(foundUser, errorDescription);
     if (!res) {
         return false;
     }
@@ -1276,7 +1276,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     notebook.addSharedNotebook(sharedNotebook);
 
-    res = localStorageManager.AddNotebook(notebook, errorDescription);
+    res = localStorageManager.addNotebook(notebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -1301,7 +1301,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     updatedNotebook.setBusinessNotebookPrivilegeLevel(1);
     updatedNotebook.setBusinessNotebookRecommended(true);
 
-    res = localStorageManager.UpdateNotebook(updatedNotebook, errorDescription);
+    res = localStorageManager.updateNotebook(updatedNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -1311,7 +1311,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     Notebook foundNotebook;
     foundNotebook.setGuid(notebook.guid());
 
-    res = localStorageManager.FindNotebook(foundNotebook, errorDescription);
+    res = localStorageManager.findNotebook(foundNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -1340,7 +1340,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     tag.setUpdateSequenceNumber(1);
     tag.setName("Fake tag name");
 
-    res = localStorageManager.AddTag(tag, errorDescription);
+    res = localStorageManager.addTag(tag, errorDescription);
     if (!res) {
         return false;
     }
@@ -1367,7 +1367,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     note.addResource(resource);
     note.addTagGuid(tag.guid());
 
-    res = localStorageManager.AddNote(note, updatedNotebook, errorDescription);
+    res = localStorageManager.addNote(note, updatedNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -1384,7 +1384,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     updatedNote.setActive(true);
     updatedNote.setNotebookGuid(notebook.guid());
 
-    res = localStorageManager.UpdateNote(updatedNote, updatedNotebook, errorDescription);
+    res = localStorageManager.updateNote(updatedNote, updatedNotebook, errorDescription);
     if (!res) {
         return false;
     }
@@ -1394,7 +1394,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     foundNote.setLocalGuid(updatedNote.localGuid());
     foundNote.setGuid(updatedNote.guid());
 
-    res = localStorageManager.FindNote(foundNote, errorDescription);
+    res = localStorageManager.findNote(foundNote, errorDescription);
     if (!res) {
         return false;
     }
@@ -1426,7 +1426,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     updatedNote.addResource(resource);
 
-    res = localStorageManager.UpdateNote(updatedNote, updatedNotebook, errorDescription);
+    res = localStorageManager.updateNote(updatedNote, updatedNotebook, errorDescription);
     if (!res) {
         return res;
     }
@@ -1446,13 +1446,13 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     updatedNote.setResources(resources);
 
-    res = localStorageManager.UpdateNote(updatedNote, updatedNotebook, errorDescription);
+    res = localStorageManager.updateNote(updatedNote, updatedNotebook, errorDescription);
     if (!res) {
         return false;
     }
 
     // 15) ============= Find note in local storage again ===============
-    res = localStorageManager.FindNote(foundNote, errorDescription);
+    res = localStorageManager.findNote(foundNote, errorDescription);
     if (!res) {
         return false;
     }

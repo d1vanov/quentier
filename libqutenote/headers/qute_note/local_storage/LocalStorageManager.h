@@ -62,7 +62,7 @@ public:
     Q_DECLARE_FLAGS(ListObjectsOptions, ListObjectsOption)
 
     /**
-     * @brief SwitchUser - switches to another local database file associated with passed in
+     * @brief switchUser - switches to another local database file associated with passed in
      * username and user id. If optional "startFromScratch" parameter is set to true (it is false
      * by default), the database file would be erased and only then - opened
      * @param username - name of user to which the local storage is switched
@@ -70,17 +70,17 @@ public:
      * @param startFromScratch - optional, false by default; if true and database file
      * for this user existed previously, it is erased before open
      */
-    void SwitchUser(const QString & username, const UserID userId, const bool startFromScratch = false);
+    void switchUser(const QString & username, const UserID userId, const bool startFromScratch = false);
 
     /**
-     * @brief GetUserCount - returns the number of non-deleted users currently stored in local storage database
+     * @brief userCount - returns the number of non-deleted users currently stored in local storage database
      * @param errorDescription - error description if the number of users could not be returned
      * @return either non-negative value with the number of users or -1 which means some error occured
      */
-    int GetUserCount(QString & errorDescription) const;
+    int userCount(QString & errorDescription) const;
 
     /**
-     * @brief AddUser - adds passed in by const reference IUser subclass object
+     * @brief addUser - adds passed in by const reference IUser subclass object
      * to the local storage database; basically the table with Users is only involved
      * in operations with Notebooks which have "contact" field set which in turn is
      * intended to use with business accounts.
@@ -88,10 +88,10 @@ public:
      * @param errorDescription - error description if user could not be added
      * @return true if user was added successfully, false otherwise
      */
-    bool AddUser(const IUser & user, QString & errorDescription);
+    bool addUser(const IUser & user, QString & errorDescription);
 
     /**
-     * @brief UpdateUser - updates passed in by const reference IUser subclass object
+     * @brief updateUser - updates passed in by const reference IUser subclass object
      * in the local storage database; basically the table with Users is only involved
      * in operations with Notebooks which have "contact" field set which in turn is
      * intended to use with business accounts.
@@ -99,62 +99,62 @@ public:
      * @param errorDescription - error description if user could not be added
      * @return true if user was updated successfully, false otherwise
      */
-    bool UpdateUser(const IUser & user, QString & errorDescription);
+    bool updateUser(const IUser & user, QString & errorDescription);
 
     /**
-     * @brief FindUser - attempts to find and fill the fields of passed in user object which must have
+     * @brief findUser - attempts to find and fill the fields of passed in user object which must have
      * "id" field set as this value is the identifier of user objects in the local storage database.
      * @param user - user to be found. Must have "id" field set.
      * @param errorDescription - error description if user could not be found
      * @return true if user was found successfully, false otherwise
      */
-    bool FindUser(IUser & user, QString & errorDescription) const;
+    bool findUser(IUser & user, QString & errorDescription) const;
 
     /**
-     * @brief DeleteUser - marks user as deleted in local storage.
+     * @brief deleteUser - marks user as deleted in local storage.
      * @param user - user to be deleted
      * @param errorDescription - error description if user could not be deleted
      * @return true if user was deleted successfully, false otherwise
      */
-    bool DeleteUser(const IUser & user, QString & errorDescription);
+    bool deleteUser(const IUser & user, QString & errorDescription);
 
     /**
-     * @brief ExpungeUser - permanently deletes user from local storage database.
+     * @brief expungeUser - permanently deletes user from local storage database.
      * @param user - user to be expunged
      * @param errorDescription - error description if user could not be expunged
      * @return true if user was expunged successfully, false otherwise
      */
-    bool ExpungeUser(const IUser & user, QString & errorDescription);
+    bool expungeUser(const IUser & user, QString & errorDescription);
 
     /**
-     * @brief GetNotebookCount returns the number of notebooks currently stored in local storage database
+     * @brief notebookCount returns the number of notebooks currently stored in local storage database
      * @param errorDescription - error description if the number of notebooks could not be returned
      * @return either non-negative value with the number of notebooks or -1 which means some error occured
      */
-    int GetNotebookCount(QString & errorDescription) const;
+    int notebookCount(QString & errorDescription) const;
 
     /**
-     * @brief AddNotebook - adds passed in Notebook to the local storage database;
+     * @brief addNotebook - adds passed in Notebook to the local storage database;
      * if Notebook has "remote" Evernote service's guid set, it is identified by this guid
      * in local storage database. Otherwise it is identified by its local guid.
      * @param notebook - notebook to be added to the local storage database
      * @param errorDescription - error description if notebook could not be added
      * @return true if notebook was added successfully, false otherwise
      */
-    bool AddNotebook(const Notebook & notebook, QString & errorDescription);
+    bool addNotebook(const Notebook & notebook, QString & errorDescription);
 
     /**
-     * @brief UpdateNotebook - updates passed in Notebook in the local storage database;
+     * @brief updateNotebook - updates passed in Notebook in the local storage database;
      * if Notebook has "remote" Evernote service's guid set, it is identified by this guid
      * in local storage database. Otherwise it is identified by its local guid.
      * @param notebook - notebook to be updated in the local storage database
      * @param errorDescription - error description if notebook could not be updated
      * @return true if notebook was updated successfully, false otherwise
      */
-    bool UpdateNotebook(const Notebook & notebook, QString & errorDescription);
+    bool updateNotebook(const Notebook & notebook, QString & errorDescription);
 
     /**
-     * @brief FindNotebook - attempts to find and set all found fields for passed in
+     * @brief findNotebook - attempts to find and set all found fields for passed in
      * by reference Notebook object. If "remote" Evernote service's guid for Notebook is set,
      * it is used to identify the Notebook in local storage database. Otherwise it is
      * identified by its local guid. If it's empty, the search would attempt to find Notebook
@@ -165,32 +165,32 @@ public:
      * @param errorDescription - error description if notebook could not be found
      * @return true if notebook was found, false otherwise
      */
-    bool FindNotebook(Notebook & notebook, QString & errorDescription) const;
+    bool findNotebook(Notebook & notebook, QString & errorDescription) const;
 
     /**
-     * @brief FindDefaultNotebook - attempts to find default notebook in the local storage database.
+     * @brief findDefaultNotebook - attempts to find default notebook in the local storage database.
      * @param notebook - default notebook to be found
      * @param errorDescription - error description if default notebook could not be found
      * @return true if default notebook was found, false otherwise
      */
-    bool FindDefaultNotebook(Notebook & notebook, QString & errorDescription) const;
+    bool findDefaultNotebook(Notebook & notebook, QString & errorDescription) const;
 
     /**
-     * @brief FindLastUsedNotebook - attempts to find last used notebook in the local storage database.
+     * @brief findLastUsedNotebook - attempts to find last used notebook in the local storage database.
      * @param notebook - last used notebook to be found
      * @param errorDescription - error description if last used notebook could not be found
      * @return true if last used notebook was found, false otherwise
      */
-    bool FindLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
+    bool findLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
 
     /**
-     * @brief FindDefaultOrLastUsedNotebook - attempts to find either default or last used notebook
+     * @brief findDefaultOrLastUsedNotebook - attempts to find either default or last used notebook
      * in the local storage database
      * @param notebook - default or last used notebook to be found
      * @param errorDescription - error description if default or last used notebook could not be found
      * @return true if default or last used notebook was found, false otherwise
      */
-    bool FindDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
+    bool findDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
 
     /**
      * @brief The OrderDirection struct is a C++98 style scoped enum which specifies the direction of ordering
@@ -222,7 +222,7 @@ public:
     };
 
     /**
-     * @brief ListAllNotebooks - attempts to list all notebooks within the account
+     * @brief listAllNotebooks - attempts to list all notebooks within the account
      * @param errorDescription - error description if notebooks could not be listed;
      * if no error happens, this parameter is untouched
      * @param limit - limit for the max number of notebooks in the result, zero by default which means no limit is set
@@ -235,13 +235,13 @@ public:
      * @return either list of all notebooks within the account or empty list in cases of
      * error or no notebooks presence within the account
      */
-    QList<Notebook> ListAllNotebooks(QString & errorDescription, const size_t limit = 0,
+    QList<Notebook> listAllNotebooks(QString & errorDescription, const size_t limit = 0,
                                      const size_t offset = 0, const ListNotebooksOrder::type order = ListNotebooksOrder::NoOrder,
                                      const OrderDirection::type orderDirection = OrderDirection::Ascending,
                                      const QString & linkedNotebookGuid = QString()) const;
 
     /**
-     * @brief ListNotebooks - attempts to list notebooks within the account according to
+     * @brief listNotebooks - attempts to list notebooks within the account according to
      * the specified input flag
      * @param flag - input parameter used to set the filter for the desired notebooks to be listed
      * @param errorDescription - error description if notebooks within the account could not be listed;
@@ -256,23 +256,23 @@ public:
      * @return either list of notebooks within the account conforming to the filter or empty list
      * in cases of error or no notebooks conforming to the filter exist within the account
      */
-    QList<Notebook> ListNotebooks(const ListObjectsOptions flag, QString & errorDescription,
+    QList<Notebook> listNotebooks(const ListObjectsOptions flag, QString & errorDescription,
                                   const size_t limit = 0, const size_t offset = 0,
                                   const ListNotebooksOrder::type order = ListNotebooksOrder::NoOrder,
                                   const OrderDirection::type orderDirection = OrderDirection::Ascending,
                                   const QString & linkedNotebookGuid = QString()) const;
 
     /**
-     * @brief ListAllSharedNotebooks - attempts to list all shared notebooks within the account
+     * @brief listAllSharedNotebooks - attempts to list all shared notebooks within the account
      * @param errorDescription - error description if shared notebooks could not be listed;
      * if no error happens, this parameter is untouched
      * @return either list of all shared notebooks within the account or empty list in cases of
      * error or no shared notebooks presence within the account
      */
-    QList<SharedNotebookWrapper> ListAllSharedNotebooks(QString & errorDescription) const;
+    QList<SharedNotebookWrapper> listAllSharedNotebooks(QString & errorDescription) const;
 
     /**
-     * @brief ListSharedNotebooksPerNotebookGuid - attempts to list all shared notebooks
+     * @brief listSharedNotebooksPerNotebookGuid - attempts to list all shared notebooks
      * per given notebook's remote guid. It is important, guid here is the remote one,
      * the one used by Evernote service, not the local guid!
      * @param notebookGuid - remote Evernote service's guid of notebook for which
@@ -282,11 +282,11 @@ public:
      * @return either list of shared notebooks per notebook guid or empy list
      * in case of error of no shared notebooks presence per given notebook guid
      */
-    QList<SharedNotebookWrapper> ListSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
+    QList<SharedNotebookWrapper> listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                     QString & errorDescription) const;
 
     /**
-     * @brief ExpungeNotebook - permanently deletes specified notebook from local storage.
+     * @brief expungeNotebook - permanently deletes specified notebook from local storage.
      * Evernote API doesn't allow to delete notebooks from remote storage, it can
      * only be done by official desktop client or web GUI. So this method should be called
      * only during the synchronization with remote database, when some notebook is found to be
@@ -295,17 +295,17 @@ public:
      * @param errorDescription - error description if notebook could not be expunged
      * @return true if notebook was expunged successfully, false otherwise
      */
-    bool ExpungeNotebook(const Notebook & notebook, QString & errorDescription);
+    bool expungeNotebook(const Notebook & notebook, QString & errorDescription);
 
     /**
-     * @brief GetLinkedNotebookCount - returns the number of linked notebooks stored in the local storage database
+     * @brief linkedNotebookCount - returns the number of linked notebooks stored in the local storage database
      * @param errorDescription - error description if the number of linked notebooks count not be returned
      * @return either non-negative number of linked notebooks or -1 if some error has occured
      */
-    int GetLinkedNotebookCount(QString & errorDescription) const;
+    int linkedNotebookCount(QString & errorDescription) const;
 
     /**
-     * @brief AddLinkedNotebook - adds passed in LinkedNotebook to the local storage database;
+     * @brief addLinkedNotebook - adds passed in LinkedNotebook to the local storage database;
      * LinkedNotebook must have "remote" Evernote service's guid set. It is not possible
      * to add a linked notebook in offline mode so it doesn't make sense for LinkedNotebook
      * objects to not have guid.
@@ -313,19 +313,19 @@ public:
      * @param errorDescription - error description if linked notebook could not be added
      * @return true if linked notebook was added successfully, false otherwise
      */
-    bool AddLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
+    bool addLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     /**
-     * @brief UpdateLinkedNotebook - updates passd in LinkedNotebook in the local storage database;
+     * @brief updateLinkedNotebook - updates passd in LinkedNotebook in the local storage database;
      * LinkedNotebook must have "remote" Evernote service's guid set.
      * @param linkedNotebook - LinkedNotebook to be updated in the local storage database
      * @param errorDescription - error description if linked notebook could not be updated
      * @return true if linked notebook was updated successfully, false otherwise
      */
-    bool UpdateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
+    bool updateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     /**
-     * @brief FindLinkedNotebook - attempts to find and set all found fields for passed in
+     * @brief findLinkedNotebook - attempts to find and set all found fields for passed in
      * by reference LinkedNotebook object. For LinkedNotebook local guid doesn't mean anything
      * because it can only be considered valid if it has "remote" Evernote service's guid set.
      * So this passed in LinkedNotebook object must have guid set to identify
@@ -334,7 +334,7 @@ public:
      * @param errorDescription - error description if linked notebook could not be found
      * @return true if linked notebook was found, false otherwise
      */
-    bool FindLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const;
+    bool findLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const;
 
     /**
      * @brief The ListLinkedNotebooksOrder struct is a C++98-style scoped enum which allows to specify ordering
@@ -352,7 +352,7 @@ public:
     };
 
     /**
-     * @brief ListAllLinkedNotebooks - attempts to list all linked notebooks within the account
+     * @brief listAllLinkedNotebooks - attempts to list all linked notebooks within the account
      * @param errorDescription - error description if linked notebooks could not be listed,
      * otherwise this parameter is untouched
      * @param limit - limit for the max number of linked notebooks in the result, zero by default which means no limit is set
@@ -363,12 +363,12 @@ public:
      * @return either list of all linked notebooks or empty list in case of error or
      * no linked notebooks presence within the account
      */
-    QList<LinkedNotebook> ListAllLinkedNotebooks(QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
+    QList<LinkedNotebook> listAllLinkedNotebooks(QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
                                                  const ListLinkedNotebooksOrder::type order = ListLinkedNotebooksOrder::NoOrder,
                                                  const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
-     * @brief ListLinkedNotebooks - attempts to list linked notebooks within the account
+     * @brief listLinkedNotebooks - attempts to list linked notebooks within the account
      * according to the specified input flag
      * @param flag - input parameter used to set the filter for the desired linked notebooks to be listed
      * @param errorDescription - error description if linked notebooks within the account could not be listed;
@@ -381,13 +381,13 @@ public:
      * @return either list of linked notebooks within the account conforming to the filter or empty list
      * in cases of error or no linked notebooks conforming to the filter exist within the account
      */
-    QList<LinkedNotebook> ListLinkedNotebooks(const ListObjectsOptions flag, QString & errorDescription,
+    QList<LinkedNotebook> listLinkedNotebooks(const ListObjectsOptions flag, QString & errorDescription,
                                               const size_t limit = 0, const size_t offset = 0,
                                               const ListLinkedNotebooksOrder::type order = ListLinkedNotebooksOrder::NoOrder,
                                               const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
-     * @brief ExpungeLinkedNotebook - permanently deletes specified linked notebook from local storage.
+     * @brief expungeLinkedNotebook - permanently deletes specified linked notebook from local storage.
      * Evernote API doesn't allow to delete linked notebooks from remote storage, it can
      * only be done by official desktop client or web GUI. So this method should be called
      * only during the synchronization with remote database, when some linked notebook
@@ -396,17 +396,17 @@ public:
      * @param errorDescription - error description if linked notebook could not be expunged
      * @return true if linked notebook was expunged successfully, false otherwise
      */
-    bool ExpungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
+    bool expungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     /**
-     * @brief GetNoteCount returns the number of non-deleted notes currently stored in local storage database
+     * @brief noteCount returns the number of non-deleted notes currently stored in local storage database
      * @param errorDescription - error description if the number of notes could not be returned
      * @return either non-negative value with the number of notes or -1 which means some error occured
      */
-    int GetNoteCount(QString & errorDescription) const;
+    int noteCount(QString & errorDescription) const;
 
     /**
-     * @brief AddNote - adds passed in Note to the local storage database.
+     * @brief addNote - adds passed in Note to the local storage database.
      * @param note - note to be passed to local storage database
      * @param notebook - notebook for which the note must be added. It is needed
      * because note only keeps "remote" notebook's guid inside itself but local storage
@@ -418,10 +418,10 @@ public:
      * @param errorDescription - error description if note could not be added
      * @return true if note was added successfully, false otherwise
      */
-    bool AddNote(const Note & note, const Notebook & notebook, QString & errorDescription);
+    bool addNote(const Note & note, const Notebook & notebook, QString & errorDescription);
 
     /**
-     * @brief UpdateNote - updates passed in Note in the local storage database
+     * @brief updateNote - updates passed in Note in the local storage database
      * @param note - note to be updated in the local storage database
      * @param notebook - notebook in which the note must be updated. It is needed
      * because note only keeps "remote" notebook's guid inside itself but local storage
@@ -433,10 +433,10 @@ public:
      * @param errorDescription - error description if note could not be updated
      * @return true if note was updated successfully, false otherwise
      */
-    bool UpdateNote(const Note & note, const Notebook & notebook, QString & errorDescription);
+    bool updateNote(const Note & note, const Notebook & notebook, QString & errorDescription);
 
     /**
-     * @brief FindNote - attempts to find note in the local storage database
+     * @brief findNote - attempts to find note in the local storage database
      * @param note - note to be found in the local storage database. Must have either
      * local or "remote" Evernote service's guid set
      * @param errorDescription - error description if note could not be found
@@ -447,7 +447,7 @@ public:
      * resources
      * @return true if note was found, false otherwise
      */
-    bool FindNote(Note & note, QString & errorDescription,
+    bool findNote(Note & note, QString & errorDescription,
                   const bool withResourceBinaryData = true) const;
 
     /**
@@ -473,7 +473,7 @@ public:
     };
 
     /**
-     * @brief ListAllNotesPerNotebook - attempts to list all notes per given notebook
+     * @brief listAllNotesPerNotebook - attempts to list all notes per given notebook
      * @param notebook - notebook for which list of notes is requested. If it has
      * "remote" Evernote service's guid set, it would be used to identify the notebook
      * in the local storage database, otherwise its local guid would be used
@@ -491,7 +491,7 @@ public:
      * @return either list of notes per notebook or empty list in case of error or
      * no notes presence in the given notebook
      */
-    QList<Note> ListAllNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
+    QList<Note> listAllNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
                                         const bool withResourceBinaryData = true,
                                         const ListObjectsOptions & flag = ListAll,
                                         const size_t limit = 0, const size_t offset = 0,
@@ -499,7 +499,7 @@ public:
                                         const OrderDirection::type & orderDirection = OrderDirection::Ascending) const;
 
     /**
-     * @brief ListNotes - attempts to list notes within the account according to the specified input flag
+     * @brief listNotes - attempts to list notes within the account according to the specified input flag
      * @param flag - input parameter used to set the filter for the desired notes to be listed
      * @param errorDescription - error description if notes within the account could not be listed;
      * if no error happens, this parameter is untouched
@@ -516,13 +516,13 @@ public:
      * @return either list of notes within the account conforming to the filter or empty list
      * in cases of error or no notes conforming to the filter exist within the account
      */
-    QList<Note> ListNotes(const ListObjectsOptions flag, QString & errorDescription,
+    QList<Note> listNotes(const ListObjectsOptions flag, QString & errorDescription,
                           const bool withResourceBinaryData = true, const size_t limit = 0,
                           const size_t offset = 0, const ListNotesOrder::type order = ListNotesOrder::NoOrder,
                           const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
-     * @brief FindNotesWithSearchQuery - attempt to find notes corresponding to passed in
+     * @brief findNotesWithSearchQuery - attempt to find notes corresponding to passed in
      * NoteSearchQuery object.
      * @param noteSearchQuery - filled NoteSearchQuery object used to filter the notes
      * @param errorDescription - error description in case notes could not be listed
@@ -534,20 +534,20 @@ public:
      * @return either list of notes per NoteSearchQuery or empty list in case of error or
      * no notes presence for the given NoteSearchQuery
      */
-    NoteList FindNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
+    NoteList findNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
                                       QString & errorDescription,
                                       const bool withResourceBinaryData = true) const;
 
     /**
-     * @brief DeleteNote - marks the note as deleted in local storage.
+     * @brief deleteNote - marks the note as deleted in local storage.
      * @param note - note to be deleted
      * @param errorDescription - error description if note could not be deleted
      * @return true if note was deleted successfully, false otherwise
      */
-    bool DeleteNote(const Note & note, QString & errorDescription);
+    bool deleteNote(const Note & note, QString & errorDescription);
 
     /**
-     * @brief ExpungeNote - permanently deletes note from local storage.
+     * @brief expungeNote - permanently deletes note from local storage.
      * Evernote API doesn't allow to delete notes from remote storage, it can
      * only be done by official desktop client or web GUI. So this method should be called
      * only during the synchronization with remote database, when some note is found to be
@@ -556,37 +556,37 @@ public:
      * @param errorDescription - error description if note could not be expunged
      * @return true if note was expunged successfully, false otherwise
      */
-    bool ExpungeNote(const Note & note, QString & errorDescription);
+    bool expungeNote(const Note & note, QString & errorDescription);
 
     /**
-     * @brief GetTagCount returns the number of non-deleted tags currently stored in local storage database
+     * @brief tagCount returns the number of non-deleted tags currently stored in local storage database
      * @param errorDescription - error description if the number of tags could not be returned
      * @return either non-negative value with the number of tags or -1 which means some error occured
      */
-    int GetTagCount(QString & errorDescription) const;
+    int tagCount(QString & errorDescription) const;
 
     /**
-     * @brief AddTag - adds passed in Tag to the local storage database. If tag has
+     * @brief addTag - adds passed in Tag to the local storage database. If tag has
      * "remote" Evernote service's guid set, it is identified in the database by this guid.
      * Otherwise it is identified by local guid.
      * @param tag - tag to be added to the local storage
      * @param errorDescription - error description if Tag could not be added
      * @return true if Tag was added successfully, false otherwise
      */
-    bool AddTag(const Tag & tag, QString & errorDescription);
+    bool addTag(const Tag & tag, QString & errorDescription);
 
     /**
-     * @brief UpdateTag - updates passed in Tag in the local storage database. If tag has
+     * @brief updateTag - updates passed in Tag in the local storage database. If tag has
      * "remote" Evernote service's guid set, it is identified in the database by this guid.
      * Otherwise it is identified by local guid.
      * @param tag - Tag filled with values to be updated in the local storage database
      * @param errorDescription - error description if Tag could not be updated
      * @return true if Tag was updated successfully, false otherwise
      */
-    bool UpdateTag(const Tag & tag, QString & errorDescription);
+    bool updateTag(const Tag & tag, QString & errorDescription);
 
     /**
-     * @brief LinkTagWithNote - attempts to link the given tag to the given note
+     * @brief linkTagWithNote - attempts to link the given tag to the given note
      * in the local storage database. Note that "note" parameter is not altered
      * as a result of this method. Both note and tag can have or not have "remote"
      * Evernote service's guid set, in case they are not set only their local guids
@@ -599,10 +599,10 @@ public:
      * @param errorDescription - error description if tag could not be linked with note
      * @return true if tag was linked to note successfully, false otherwise
      */
-    bool LinkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
+    bool linkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
 
     /**
-     * @brief FindTag - attempts to find and fill the fields of passed in tag object.
+     * @brief findTag - attempts to find and fill the fields of passed in tag object.
      * If it would have "remote" Evernote service's guid set, it would be used to identify
      * the tag in the local storage database. Otherwise the local guid would be used. If neither
      * guid nor local guid are set, tag's name would be used.
@@ -613,7 +613,7 @@ public:
      * @param errorDescription - error description in case tag could not be found
      * @return true if tag was found, false otherwise
      */
-    bool FindTag(Tag & tag, QString & errorDescription) const;
+    bool findTag(Tag & tag, QString & errorDescription) const;
 
     struct ListTagsOrder
     {
@@ -626,7 +626,7 @@ public:
     };
 
     /**
-     * @brief ListAllTagsPerNote - lists all tags per given note
+     * @brief listAllTagsPerNote - lists all tags per given note
      * @param note - note for which the list of tags is requested. If it has "remote"
      * Evernote service's guid set, it is used to identify the note in the local storage database.
      * Otherwise its local guid is used for that.
@@ -641,14 +641,14 @@ public:
      * @param orderDirection - specifies the direction of ordering, by default ascending direction is used;
      * @return the list of found tags per note
      */
-    QList<Tag> ListAllTagsPerNote(const Note & note, QString & errorDescription,
+    QList<Tag> listAllTagsPerNote(const Note & note, QString & errorDescription,
                                   const ListObjectsOptions & flag = ListAll,
                                   const size_t limit = 0, const size_t offset = 0,
                                   const ListTagsOrder::type & order = ListTagsOrder::NoOrder,
                                   const OrderDirection::type & orderDirection = OrderDirection::Ascending) const;
 
     /**
-     * @brief ListAllTags - lists all tags within current user's account
+     * @brief listAllTags - lists all tags within current user's account
      * @param errorDescription - error description if tags were not listed successfully.
      * In such case the returned list of tags would be empty and error description won't be empty.
      * However, if, for example, the list of tags is empty and error description is empty too,
@@ -662,13 +662,13 @@ public:
      * otherwise, notebooks from corresponding linked notebook would be listed
      * @return the list of found tags within the account
      */
-    QList<Tag> ListAllTags(QString & errorDescription, const size_t limit = 0,
+    QList<Tag> listAllTags(QString & errorDescription, const size_t limit = 0,
                            const size_t offset = 0, const ListTagsOrder::type order = ListTagsOrder::NoOrder,
                            const OrderDirection::type orderDirection = OrderDirection::Ascending,
                            const QString & linkedNotebookGuid = QString()) const;
 
     /**
-     * @brief ListTags - attempts to list tags within the account according to the specified input flag
+     * @brief listTags - attempts to list tags within the account according to the specified input flag
      * @param flag - input parameter used to set the filter for the desired tags to be listed
      * @param errorDescription - error description if notes within the account could not be listed;
      * if no error happens, this parameter is untouched
@@ -682,22 +682,22 @@ public:
      * @return either list of tags within the account conforming to the filter or empty list
      * in cases of error or no tags conforming to the filter exist within the account
      */
-    QList<Tag> ListTags(const ListObjectsOptions flag, QString & errorDescription,
+    QList<Tag> listTags(const ListObjectsOptions flag, QString & errorDescription,
                         const size_t limit = 0, const size_t offset = 0,
                         const ListTagsOrder::type & order = ListTagsOrder::NoOrder,
                         const OrderDirection::type orderDirection = OrderDirection::Ascending,
                         const QString & linkedNotebookGuid = QString()) const;
 
     /**
-     * @brief DeleteTag - marks tag as deleted in local storage.
+     * @brief deleteTag - marks tag as deleted in local storage.
      * @param tag - tag to be deleted
      * @param errorDescription - error description if tag could not be deleted
      * @return true if tag was deleted successfully, false otherwise
      */
-    bool DeleteTag(const Tag & tag, QString & errorDescription);
+    bool deleteTag(const Tag & tag, QString & errorDescription);
 
     /**
-     * @brief ExpungeTag - permanently deletes tag from local storage.
+     * @brief expungeTag - permanently deletes tag from local storage.
      * Evernote API doesn't allow to delete tags from remote storage, it can
      * only be done by official desktop client or web GUI. So this method should be called
      * only during the synchronization with remote database, when some tag is found to be
@@ -706,25 +706,26 @@ public:
      * @param errorDescription - error description if tag could not be expunged
      * @return true if tag was expunged successfully, false otherwise
      */
-    bool ExpungeTag(const Tag & tag, QString & errorDescription);
+    bool expungeTag(const Tag & tag, QString & errorDescription);
 
     /**
-     * @brief ExpungeNotelessTagsFromLinkedNotebooks - permanently deletes from local storage those tags
+     * @brief expungeNotelessTagsFromLinkedNotebooks - permanently deletes from local storage those tags
      * which belong to some linked notebook and are not linked with any notes in the local storage
      * @param errorDescription - error description if tag could not be expunged
      * @return true if relevant tags were expunged successfully, false otherwise
      */
-    bool ExpungeNotelessTagsFromLinkedNotebooks(QString & errorDescription);
+    bool expungeNotelessTagsFromLinkedNotebooks(QString & errorDescription);
 
     /**
-     * @brief GetEnResourceCount returns the number of resources currently stored in local storage database
+     * @brief enResourceCount (the name is not Resource to prevent problems with Resource macro defined
+     * on some versions of Windows) returns the number of resources currently stored in local storage database
      * @param errorDescription - error description if the number of resources could not be returned
      * @return either non-negative value with the number of resources or -1 which means some error occured
      */
-    int GetEnResourceCount(QString & errorDescription) const;
+    int enResourceCount(QString & errorDescription) const;
 
     /**
-     * @brief AddEnResource - adds passed in resource to the local storage database
+     * @brief addEnResource - adds passed in resource to the local storage database
      * @param resource - resource to be added to the database
      * @param note - note for which the resource is added. If note doesn't have
      * "remote" Evernote service's guid set, the resource can be linked to note
@@ -732,10 +733,10 @@ public:
      * @param errorDescription - error description if resource could not be added
      * @return true if resource was added successfully, false otherwise
      */
-    bool AddEnResource(const IResource & resource, const Note & note, QString & errorDescription);
+    bool addEnResource(const IResource & resource, const Note & note, QString & errorDescription);
 
     /**
-     * @brief UpdateEnResource - updates passed in resource in the local storage database
+     * @brief updateEnResource - updates passed in resource in the local storage database
      * @param resource - resource to be updated
      * @param note - note for which the resource is updated. If note doesn't have
      * "remote" Evernote service's guid set, the resource can be linked to note
@@ -743,10 +744,10 @@ public:
      * @param errorDescription - error description if resource could not be updated
      * @return true if resource was updated successfully, false otherwise
      */
-    bool UpdateEnResource(const IResource & resource, const Note & note, QString & errorDescription);
+    bool updateEnResource(const IResource & resource, const Note & note, QString & errorDescription);
 
     /**
-     * @brief FindEnResource - attempts to find resource in the local storage database
+     * @brief findEnResource - attempts to find resource in the local storage database
      * @param resource - resource to be found in the local storage database. If it has
      * "remote" Evernote service's guid set, this guid is used to identify the resource
      * in the local storage database. Otherwise resource's local guid is used
@@ -756,56 +757,56 @@ public:
      * By default this parameter is true.
      * @return true if resource was found successfully, false otherwise
      */
-    bool FindEnResource(IResource & resource, QString & errorDescription, const bool withBinaryData = true) const;
+    bool findEnResource(IResource & resource, QString & errorDescription, const bool withBinaryData = true) const;
 
-    // NOTE: there is no 'DeleteEnResource' method for a reason: resources are deleted automatically
+    // NOTE: there is no 'deleteEnResource' method for a reason: resources are deleted automatically
     // in remote storage so there's no need to mark some resource as deleted for synchronization procedure.
 
     /**
-     * @brief ExpungeResource - permanently deletes resource from local storage completely,
+     * @brief expungeResource - permanently deletes resource from local storage completely,
      * without the possibility to restore it
      * @param resource - resource to be expunged
      * @param errorDescription - error description if resource could not be expunged
      * @return true if resource was expunged successfully, false otherwise
      */
-    bool ExpungeEnResource(const IResource & resource, QString & errorDescription);
+    bool expungeEnResource(const IResource & resource, QString & errorDescription);
 
     /**
-     * @brief GetSavedSearchCount returns the number of saved seacrhes currently stored in local storage database
+     * @brief savedSearchCount returns the number of saved seacrhes currently stored in local storage database
      * @param errorDescription - error description if the number of saved seacrhes could not be returned
      * @return either non-negative value with the number of saved seacrhes or -1 which means some error occured
      */
-    int GetSavedSearchCount(QString & errorDescription) const;
+    int savedSearchCount(QString & errorDescription) const;
 
     /**
-     * @brief AddSavedSearch - adds passed in SavedSearch to the local storage database;
+     * @brief addSavedSearch - adds passed in SavedSearch to the local storage database;
      * If search has "remote" Evernote service's guid set, it is identified in the database
      * by this guid. Otherwise it is identified by local guid.
      * @param search - SavedSearch to be added to the local storage
      * @param errorDescription - error description if SavedSearch could not be added
      * @return true if SavedSearch was added successfully, false otherwise
      */
-    bool AddSavedSearch(const SavedSearch & search, QString & errorDescription);
+    bool addSavedSearch(const SavedSearch & search, QString & errorDescription);
 
     /**
-     * @brief UpdateSavedSearch - updates passed in SavedSearch in th local storage database.
+     * @brief updateSavedSearch - updates passed in SavedSearch in th local storage database.
      * If search has "remote" Evernote service's guid set, it is identified in the database
      * by this guid. Otherwise it is identified by local guid.
      * @param search - SavedSearch filled with values to be updated in the local storage database
      * @param errorDescription - error description if SavedSearch could not be updated
      * @return true if SavedSearch was updated successfully, false otherwise
      */
-    bool UpdateSavedSearch(const SavedSearch & search, QString & errorDescription);
+    bool updateSavedSearch(const SavedSearch & search, QString & errorDescription);
 
     /**
-     * @brief FindSavedSearch - attempts to find SavedSearch in the local storage database
+     * @brief findSavedSearch - attempts to find SavedSearch in the local storage database
      * @param search - SavedSearch to be found in the local storage database. If it
      * would have "remote" Evernote service's guid set, it would be used to identify
      * the search in the local storage database. Otherwise its local guid would be used.
      * @param errorDescription - error description if SavedSearch could not be found
      * @return true if SavedSearch was found, false otherwise
      */
-    bool FindSavedSearch(SavedSearch & search, QString & errorDescription) const;
+    bool findSavedSearch(SavedSearch & search, QString & errorDescription) const;
 
     /**
      * @brief The ListSavedSearchesOrder struct is a C++98-style scoped enum which allows to specify the ordering
@@ -823,7 +824,7 @@ public:
     };
 
     /**
-     * @brief ListAllSavedSearches - lists all saved searches within the account
+     * @brief listAllSavedSearches - lists all saved searches within the account
      * @param errorDescription - error description if all saved searches could not be listed;
      * otherwise this parameter is untouched
      * @param limit - limit for the max number of saved searches in the result, zero by default which means no limit is set
@@ -834,12 +835,12 @@ public:
      * @return either the list of all saved searches within the account or empty list
      * in case of error or if there are no saved searches within the account
      */
-    QList<SavedSearch> ListAllSavedSearches(QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
+    QList<SavedSearch> listAllSavedSearches(QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
                                             const ListSavedSearchesOrder::type order = ListSavedSearchesOrder::NoOrder,
                                             const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
-     * @brief ListSavedSearches - attempts to list saved searches within the account
+     * @brief listSavedSearches - attempts to list saved searches within the account
      * according to the specified input flag
      * @param flag - input parameter used to set the filter for the desired saved searches to be listed
      * @param errorDescription - error description if saved searches within the account could not be listed;
@@ -852,26 +853,25 @@ public:
      * @return either list of saved searches within the account conforming to the filter or empty list
      * in cases of error or no saved searches conforming to the filter exist within the account
      */
-    QList<SavedSearch> ListSavedSearches(const ListObjectsOptions flag, QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
+    QList<SavedSearch> listSavedSearches(const ListObjectsOptions flag, QString & errorDescription, const size_t limit = 0, const size_t offset = 0,
                                          const ListSavedSearchesOrder::type order = ListSavedSearchesOrder::NoOrder,
                                          const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
-    // NOTE: there is no 'DeleteSearch' method for a reason: saved searches are deleted automatically
+    // NOTE: there is no 'deleteSearch' method for a reason: saved searches are deleted automatically
     // in remote storage so there's no need to mark some saved search as deleted for synchronization procedure.
 
     /**
-     * @brief ExpungeSavedSearch - permanently deletes saved search from local storage completely,
+     * @brief expungeSavedSearch - permanently deletes saved search from local storage completely,
      * without the possibility to restore it
      * @param search - saved search to be expunged
      * @param errorDescription - error description if saved search could not be expunged
      * @return true if saved search was expunged succesfully, false otherwise
      */
-    bool ExpungeSavedSearch(const SavedSearch & search, QString & errorDescription);
+    bool expungeSavedSearch(const SavedSearch & search, QString & errorDescription);
 
 private:
     LocalStorageManager() Q_DECL_DELETE;
-    LocalStorageManager(const LocalStorageManager & other) Q_DECL_DELETE;
-    LocalStorageManager & operator=(const LocalStorageManager & other) Q_DECL_DELETE;
+    Q_DISABLE_COPY(LocalStorageManager)
 
     LocalStorageManagerPrivate * const d_ptr;
     Q_DECLARE_PRIVATE(LocalStorageManager)

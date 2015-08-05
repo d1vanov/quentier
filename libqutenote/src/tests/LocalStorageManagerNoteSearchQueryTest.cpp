@@ -22,7 +22,7 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
     }
 
     errorDescription.clear();
-    NoteList foundNotes = localStorageManager.FindNotesWithSearchQuery(noteSearchQuery, errorDescription);
+    NoteList foundNotes = localStorageManager.findNotesWithSearchQuery(noteSearchQuery, errorDescription);
     if (foundNotes.isEmpty())
     {
         if (!expectedContainedNotesIndices.contains(true)) {
@@ -532,7 +532,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
     for(int i = 0; i < numNotebooks; ++i)
     {
-        bool res = localStorageManager.AddNotebook(notebooks[i], errorDescription);
+        bool res = localStorageManager.addNotebook(notebooks[i], errorDescription);
         if (!res) {
             return false;
         }
@@ -540,7 +540,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
     for(int i = 0; i < numTags; ++i)
     {
-        bool res = localStorageManager.AddTag(tags[i], errorDescription);
+        bool res = localStorageManager.addTag(tags[i], errorDescription);
         if (!res) {
             return false;
         }
@@ -548,7 +548,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
     for(int i = 0; i < numNotes; ++i)
     {
-        bool res = localStorageManager.AddNote(notes[i], notebooks[notebookIndexForNoteIndex[i]], errorDescription);
+        bool res = localStorageManager.addNote(notes[i], notebooks[notebookIndexForNoteIndex[i]], errorDescription);
         if (!res) {
             return false;
         }

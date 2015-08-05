@@ -78,7 +78,7 @@ void LocalStorageManagerThreadWorker::onGetUserCountRequest(QUuid requestId)
     try
     {
         QString errorDescription;
-        int count = m_pLocalStorageManager->GetUserCount(errorDescription);
+        int count = m_pLocalStorageManager->userCount(errorDescription);
         if (count < 0) {
             emit getUserCountFailed(errorDescription, requestId);
         }
@@ -93,7 +93,7 @@ void LocalStorageManagerThreadWorker::onSwitchUserRequest(QString username, qint
                                                           bool startFromScratch, QUuid requestId)
 {
     try {
-        m_pLocalStorageManager->SwitchUser(username, userId, startFromScratch);
+        m_pLocalStorageManager->switchUser(username, userId, startFromScratch);
     }
     catch(const std::exception & exception) {
         emit switchUserFailed(userId, QString(exception.what()), requestId);
@@ -109,7 +109,7 @@ void LocalStorageManagerThreadWorker::onAddUserRequest(UserWrapper user, QUuid r
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->AddUser(user, errorDescription);
+        bool res = m_pLocalStorageManager->addUser(user, errorDescription);
         if (!res) {
             emit addUserFailed(user, errorDescription, requestId);
             return;
@@ -126,7 +126,7 @@ void LocalStorageManagerThreadWorker::onUpdateUserRequest(UserWrapper user, QUui
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->UpdateUser(user, errorDescription);
+        bool res = m_pLocalStorageManager->updateUser(user, errorDescription);
         if (!res) {
             emit updateUserFailed(user, errorDescription, requestId);
             return;
@@ -143,7 +143,7 @@ void LocalStorageManagerThreadWorker::onFindUserRequest(UserWrapper user, QUuid 
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->FindUser(user, errorDescription);
+        bool res = m_pLocalStorageManager->findUser(user, errorDescription);
         if (!res) {
             emit findUserFailed(user, errorDescription, requestId);
             return;
@@ -160,7 +160,7 @@ void LocalStorageManagerThreadWorker::onDeleteUserRequest(UserWrapper user, QUui
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->DeleteUser(user, errorDescription);
+        bool res = m_pLocalStorageManager->deleteUser(user, errorDescription);
         if (!res) {
             emit deleteUserFailed(user, errorDescription, requestId);
             return;
@@ -177,7 +177,7 @@ void LocalStorageManagerThreadWorker::onExpungeUserRequest(UserWrapper user, QUu
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->ExpungeUser(user, errorDescription);
+        bool res = m_pLocalStorageManager->expungeUser(user, errorDescription);
         if (!res) {
             emit expungeUserFailed(user, errorDescription, requestId);
             return;
@@ -193,7 +193,7 @@ void LocalStorageManagerThreadWorker::onGetNotebookCountRequest(QUuid requestId)
     try
     {
         QString errorDescription;
-        int count = m_pLocalStorageManager->GetNotebookCount(errorDescription);
+        int count = m_pLocalStorageManager->notebookCount(errorDescription);
         if (count < 0) {
             emit getNotebookCountFailed(errorDescription, requestId);
         }
@@ -210,7 +210,7 @@ void LocalStorageManagerThreadWorker::onAddNotebookRequest(Notebook notebook, QU
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->AddNotebook(notebook, errorDescription);
+        bool res = m_pLocalStorageManager->addNotebook(notebook, errorDescription);
         if (!res) {
             emit addNotebookFailed(notebook, errorDescription, requestId);
             return;
@@ -231,7 +231,7 @@ void LocalStorageManagerThreadWorker::onUpdateNotebookRequest(Notebook notebook,
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->UpdateNotebook(notebook, errorDescription);
+        bool res = m_pLocalStorageManager->updateNotebook(notebook, errorDescription);
         if (!res) {
             emit updateNotebookFailed(notebook, errorDescription, requestId);
             return;
@@ -280,7 +280,7 @@ void LocalStorageManagerThreadWorker::onFindNotebookRequest(Notebook notebook, Q
 
         if (!foundNotebookInCache)
         {
-            bool res = m_pLocalStorageManager->FindNotebook(notebook, errorDescription);
+            bool res = m_pLocalStorageManager->findNotebook(notebook, errorDescription);
             if (!res) {
                 emit findNotebookFailed(notebook, errorDescription, requestId);
                 return;
@@ -298,7 +298,7 @@ void LocalStorageManagerThreadWorker::onFindDefaultNotebookRequest(Notebook note
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->FindDefaultNotebook(notebook, errorDescription);
+        bool res = m_pLocalStorageManager->findDefaultNotebook(notebook, errorDescription);
         if (!res) {
             emit findDefaultNotebookFailed(notebook, errorDescription, requestId);
             return;
@@ -315,7 +315,7 @@ void LocalStorageManagerThreadWorker::onFindLastUsedNotebookRequest(Notebook not
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->FindLastUsedNotebook(notebook, errorDescription);
+        bool res = m_pLocalStorageManager->findLastUsedNotebook(notebook, errorDescription);
         if (!res) {
             emit findLastUsedNotebookFailed(notebook, errorDescription, requestId);
             return;
@@ -332,7 +332,7 @@ void LocalStorageManagerThreadWorker::onFindDefaultOrLastUsedNotebookRequest(Not
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->FindDefaultOrLastUsedNotebook(notebook, errorDescription);
+        bool res = m_pLocalStorageManager->findDefaultOrLastUsedNotebook(notebook, errorDescription);
         if (!res) {
             emit findDefaultOrLastUsedNotebookFailed(notebook, errorDescription, requestId);
             return;
@@ -351,7 +351,7 @@ void LocalStorageManagerThreadWorker::onListAllNotebooksRequest(size_t limit, si
     try
     {
         QString errorDescription;
-        QList<Notebook> notebooks = m_pLocalStorageManager->ListAllNotebooks(errorDescription, limit, offset, order,
+        QList<Notebook> notebooks = m_pLocalStorageManager->listAllNotebooks(errorDescription, limit, offset, order,
                                                                              orderDirection, linkedNotebookGuid);
         if (notebooks.isEmpty() && !errorDescription.isEmpty()) {
             emit listAllNotebooksFailed(limit, offset, order, orderDirection, linkedNotebookGuid,
@@ -378,7 +378,7 @@ void LocalStorageManagerThreadWorker::onListAllSharedNotebooksRequest(QUuid requ
     try
     {
         QString errorDescription;
-        QList<SharedNotebookWrapper> sharedNotebooks = m_pLocalStorageManager->ListAllSharedNotebooks(errorDescription);
+        QList<SharedNotebookWrapper> sharedNotebooks = m_pLocalStorageManager->listAllSharedNotebooks(errorDescription);
         if (sharedNotebooks.isEmpty() && !errorDescription.isEmpty()) {
             emit listAllSharedNotebooksFailed(errorDescription, requestId);
             return;
@@ -398,7 +398,7 @@ void LocalStorageManagerThreadWorker::onListNotebooksRequest(LocalStorageManager
     try
     {
         QString errorDescription;
-        QList<Notebook> notebooks = m_pLocalStorageManager->ListNotebooks(flag, errorDescription, limit,
+        QList<Notebook> notebooks = m_pLocalStorageManager->listNotebooks(flag, errorDescription, limit,
                                                                           offset, order, orderDirection,
                                                                           linkedNotebookGuid);
         if (notebooks.isEmpty() && !errorDescription.isEmpty()) {
@@ -425,7 +425,7 @@ void LocalStorageManagerThreadWorker::onListSharedNotebooksPerNotebookGuidReques
     try
     {
         QString errorDescription;
-        QList<SharedNotebookWrapper> sharedNotebooks = m_pLocalStorageManager->ListSharedNotebooksPerNotebookGuid(notebookGuid, errorDescription);
+        QList<SharedNotebookWrapper> sharedNotebooks = m_pLocalStorageManager->listSharedNotebooksPerNotebookGuid(notebookGuid, errorDescription);
         if (sharedNotebooks.isEmpty() && !errorDescription.isEmpty()) {
             emit listSharedNotebooksPerNotebookGuidFailed(notebookGuid, errorDescription, requestId);
             return;
@@ -442,7 +442,7 @@ void LocalStorageManagerThreadWorker::onExpungeNotebookRequest(Notebook notebook
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->ExpungeNotebook(notebook, errorDescription);
+        bool res = m_pLocalStorageManager->expungeNotebook(notebook, errorDescription);
         if (!res) {
             emit expungeNotebookFailed(notebook, errorDescription, requestId);
             return;
@@ -462,7 +462,7 @@ void LocalStorageManagerThreadWorker::onGetLinkedNotebookCountRequest(QUuid requ
     try
     {
         QString errorDescription;
-        int count = m_pLocalStorageManager->GetLinkedNotebookCount(errorDescription);
+        int count = m_pLocalStorageManager->linkedNotebookCount(errorDescription);
         if (count < 0) {
             emit getLinkedNotebookCountFailed(errorDescription, requestId);
         }
@@ -479,7 +479,7 @@ void LocalStorageManagerThreadWorker::onAddLinkedNotebookRequest(LinkedNotebook 
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->AddLinkedNotebook(linkedNotebook, errorDescription);
+        bool res = m_pLocalStorageManager->addLinkedNotebook(linkedNotebook, errorDescription);
         if (!res) {
             emit addLinkedNotebookFailed(linkedNotebook, errorDescription, requestId);
             return;
@@ -500,7 +500,7 @@ void LocalStorageManagerThreadWorker::onUpdateLinkedNotebookRequest(LinkedNotebo
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->UpdateLinkedNotebook(linkedNotebook, errorDescription);
+        bool res = m_pLocalStorageManager->updateLinkedNotebook(linkedNotebook, errorDescription);
         if (!res) {
             emit updateLinkedNotebookFailed(linkedNotebook, errorDescription, requestId);
             return;
@@ -534,7 +534,7 @@ void LocalStorageManagerThreadWorker::onFindLinkedNotebookRequest(LinkedNotebook
 
         if (!foundLinkedNotebookInCache)
         {
-            bool res = m_pLocalStorageManager->FindLinkedNotebook(linkedNotebook, errorDescription);
+            bool res = m_pLocalStorageManager->findLinkedNotebook(linkedNotebook, errorDescription);
             if (!res) {
                 emit findLinkedNotebookFailed(linkedNotebook, errorDescription, requestId);
                 return;
@@ -554,7 +554,7 @@ void LocalStorageManagerThreadWorker::onListAllLinkedNotebooksRequest(size_t lim
     try
     {
         QString errorDescription;
-        QList<LinkedNotebook> linkedNotebooks = m_pLocalStorageManager->ListAllLinkedNotebooks(errorDescription, limit,
+        QList<LinkedNotebook> linkedNotebooks = m_pLocalStorageManager->listAllLinkedNotebooks(errorDescription, limit,
                                                                                                offset, order, orderDirection);
         if (linkedNotebooks.isEmpty() && !errorDescription.isEmpty()) {
             emit listAllLinkedNotebooksFailed(limit, offset, order, orderDirection, errorDescription, requestId);
@@ -584,7 +584,7 @@ void LocalStorageManagerThreadWorker::onListLinkedNotebooksRequest(LocalStorageM
     try
     {
         QString errorDescription;
-        QList<LinkedNotebook> linkedNotebooks = m_pLocalStorageManager->ListLinkedNotebooks(flag, errorDescription, limit,
+        QList<LinkedNotebook> linkedNotebooks = m_pLocalStorageManager->listLinkedNotebooks(flag, errorDescription, limit,
                                                                                             offset, order, orderDirection);
         if (linkedNotebooks.isEmpty() && !errorDescription.isEmpty()) {
             emit listLinkedNotebooksFailed(flag, limit, offset, order, orderDirection, errorDescription, requestId);
@@ -611,7 +611,7 @@ void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(LinkedNoteb
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->ExpungeLinkedNotebook(linkedNotebook, errorDescription);
+        bool res = m_pLocalStorageManager->expungeLinkedNotebook(linkedNotebook, errorDescription);
         if (!res) {
             emit expungeLinkedNotebookFailed(linkedNotebook, errorDescription, requestId);
             return;
@@ -631,7 +631,7 @@ void LocalStorageManagerThreadWorker::onGetNoteCountRequest(QUuid requestId)
     try
     {
         QString errorDescription;
-        int count = m_pLocalStorageManager->GetNoteCount(errorDescription);
+        int count = m_pLocalStorageManager->noteCount(errorDescription);
         if (count < 0) {
             emit getNoteCountFailed(errorDescription, requestId);
         }
@@ -648,7 +648,7 @@ void LocalStorageManagerThreadWorker::onAddNoteRequest(Note note, Notebook noteb
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->AddNote(note, notebook, errorDescription);
+        bool res = m_pLocalStorageManager->addNote(note, notebook, errorDescription);
         if (!res) {
             emit addNoteFailed(note, notebook, errorDescription, requestId);
             return;
@@ -669,7 +669,7 @@ void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, Notebook no
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->UpdateNote(note, notebook, errorDescription);
+        bool res = m_pLocalStorageManager->updateNote(note, notebook, errorDescription);
         if (!res) {
             emit updateNoteFailed(note, notebook, errorDescription, requestId);
             return;
@@ -706,7 +706,7 @@ void LocalStorageManagerThreadWorker::onFindNoteRequest(Note note, bool withReso
 
         if (!foundNoteInCache)
         {
-            bool res = m_pLocalStorageManager->FindNote(note, errorDescription, withResourceBinaryData);
+            bool res = m_pLocalStorageManager->findNote(note, errorDescription, withResourceBinaryData);
             if (!res) {
                 emit findNoteFailed(note, withResourceBinaryData, errorDescription, requestId);
                 return;
@@ -729,7 +729,7 @@ void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook 
     {
         QString errorDescription;
 
-        QList<Note> notes = m_pLocalStorageManager->ListAllNotesPerNotebook(notebook, errorDescription,
+        QList<Note> notes = m_pLocalStorageManager->listAllNotesPerNotebook(notebook, errorDescription,
                                                                             withResourceBinaryData, flag,
                                                                             limit, offset, order, orderDirection);
         if (notes.isEmpty() && !errorDescription.isEmpty()) {
@@ -758,7 +758,7 @@ void LocalStorageManagerThreadWorker::onListNotesRequest(LocalStorageManager::Li
     try
     {
         QString errorDescription;
-        QList<Note> notes = m_pLocalStorageManager->ListNotes(flag, errorDescription, withResourceBinaryData,
+        QList<Note> notes = m_pLocalStorageManager->listNotes(flag, errorDescription, withResourceBinaryData,
                                                               limit, offset, order, orderDirection);
         if (notes.isEmpty() && !errorDescription.isEmpty()) {
             emit listNotesFailed(flag, withResourceBinaryData, limit, offset, order,
@@ -784,7 +784,7 @@ void LocalStorageManagerThreadWorker::onDeleteNoteRequest(Note note, QUuid reque
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->DeleteNote(note, errorDescription);
+        bool res = m_pLocalStorageManager->deleteNote(note, errorDescription);
         if (!res) {
             emit deleteNoteFailed(note, errorDescription, requestId);
             return;
@@ -805,7 +805,7 @@ void LocalStorageManagerThreadWorker::onExpungeNoteRequest(Note note, QUuid requ
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->ExpungeNote(note, errorDescription);
+        bool res = m_pLocalStorageManager->expungeNote(note, errorDescription);
         if (!res) {
             emit expungeNoteFailed(note, errorDescription, requestId);
             return;
@@ -825,7 +825,7 @@ void LocalStorageManagerThreadWorker::onGetTagCountRequest(QUuid requestId)
     try
     {
         QString errorDescription;
-        int count = m_pLocalStorageManager->GetTagCount(errorDescription);
+        int count = m_pLocalStorageManager->tagCount(errorDescription);
         if (count < 0) {
             emit getTagCountFailed(errorDescription, requestId);
         }
@@ -842,7 +842,7 @@ void LocalStorageManagerThreadWorker::onAddTagRequest(Tag tag, QUuid requestId)
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->AddTag(tag, errorDescription);
+        bool res = m_pLocalStorageManager->addTag(tag, errorDescription);
         if (!res) {
             emit addTagFailed(tag, errorDescription, requestId);
             return;
@@ -863,7 +863,7 @@ void LocalStorageManagerThreadWorker::onUpdateTagRequest(Tag tag, QUuid requestI
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->UpdateTag(tag, errorDescription);
+        bool res = m_pLocalStorageManager->updateTag(tag, errorDescription);
         if (!res) {
             emit updateTagFailed(tag, errorDescription, requestId);
             return;
@@ -884,7 +884,7 @@ void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(Tag tag, Note not
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->LinkTagWithNote(tag, note, errorDescription);
+        bool res = m_pLocalStorageManager->linkTagWithNote(tag, note, errorDescription);
         if (!res) {
             emit linkTagWithNoteFailed(tag, note, errorDescription, requestId);
             return;
@@ -933,7 +933,7 @@ void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag, QUuid requestId)
 
         if (!foundTagInCache)
         {
-            bool res = m_pLocalStorageManager->FindTag(tag, errorDescription);
+            bool res = m_pLocalStorageManager->findTag(tag, errorDescription);
             if (!res) {
                 emit findTagFailed(tag, errorDescription, requestId);
                 return;
@@ -955,7 +955,7 @@ void LocalStorageManagerThreadWorker::onListAllTagsPerNoteRequest(Note note, Loc
     {
         QString errorDescription;
 
-        QList<Tag> tags = m_pLocalStorageManager->ListAllTagsPerNote(note, errorDescription, flag, limit,
+        QList<Tag> tags = m_pLocalStorageManager->listAllTagsPerNote(note, errorDescription, flag, limit,
                                                                      offset, order, orderDirection);
         if (tags.isEmpty() && !errorDescription.isEmpty()) {
             emit listAllTagsPerNoteFailed(note, flag, limit, offset, order,
@@ -984,7 +984,7 @@ void LocalStorageManagerThreadWorker::onListAllTagsRequest(size_t limit, size_t 
     {
         QString errorDescription;
 
-        QList<Tag> tags = m_pLocalStorageManager->ListAllTags(errorDescription, limit, offset,
+        QList<Tag> tags = m_pLocalStorageManager->listAllTags(errorDescription, limit, offset,
                                                               order, orderDirection, linkedNotebookGuid);
         if (tags.isEmpty() && !errorDescription.isEmpty()) {
             emit listAllTagsFailed(limit, offset, order, orderDirection, linkedNotebookGuid, errorDescription, requestId);
@@ -1014,7 +1014,7 @@ void LocalStorageManagerThreadWorker::onListTagsRequest(LocalStorageManager::Lis
     try
     {
         QString errorDescription;
-        QList<Tag> tags = m_pLocalStorageManager->ListTags(flag, errorDescription, limit, offset, order,
+        QList<Tag> tags = m_pLocalStorageManager->listTags(flag, errorDescription, limit, offset, order,
                                                            orderDirection, linkedNotebookGuid);
         if (tags.isEmpty() && !errorDescription.isEmpty()) {
             emit listTagsFailed(flag, limit, offset, order, orderDirection, linkedNotebookGuid, errorDescription, requestId);
@@ -1040,7 +1040,7 @@ void LocalStorageManagerThreadWorker::onDeleteTagRequest(Tag tag, QUuid requestI
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->DeleteTag(tag, errorDescription);
+        bool res = m_pLocalStorageManager->deleteTag(tag, errorDescription);
         if (!res) {
             emit deleteTagFailed(tag, errorDescription, requestId);
             return;
@@ -1061,7 +1061,7 @@ void LocalStorageManagerThreadWorker::onExpungeTagRequest(Tag tag, QUuid request
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->ExpungeTag(tag, errorDescription);
+        bool res = m_pLocalStorageManager->expungeTag(tag, errorDescription);
         if (!res) {
             emit expungeTagFailed(tag, errorDescription, requestId);
             return;
@@ -1081,7 +1081,7 @@ void LocalStorageManagerThreadWorker::onExpungeNotelessTagsFromLinkedNotebooksRe
     try
     {
         QString errorDescription;
-        bool res = m_pLocalStorageManager->ExpungeNotelessTagsFromLinkedNotebooks(errorDescription);
+        bool res = m_pLocalStorageManager->expungeNotelessTagsFromLinkedNotebooks(errorDescription);
         if (!res) {
             emit expungeNotelessTagsFromLinkedNotebooksFailed(errorDescription, requestId);
         }
@@ -1097,7 +1097,7 @@ void LocalStorageManagerThreadWorker::onGetResourceCountRequest(QUuid requestId)
     try
     {
         QString errorDescription;
-        int count = m_pLocalStorageManager->GetEnResourceCount(errorDescription);
+        int count = m_pLocalStorageManager->enResourceCount(errorDescription);
         if (count < 0) {
             emit getResourceCountFailed(errorDescription, requestId);
         }
@@ -1114,7 +1114,7 @@ void LocalStorageManagerThreadWorker::onAddResourceRequest(ResourceWrapper resou
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->AddEnResource(resource, note, errorDescription);
+        bool res = m_pLocalStorageManager->addEnResource(resource, note, errorDescription);
         if (!res) {
             emit addResourceFailed(resource, note, errorDescription, requestId);
             return;
@@ -1131,7 +1131,7 @@ void LocalStorageManagerThreadWorker::onUpdateResourceRequest(ResourceWrapper re
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->UpdateEnResource(resource, note, errorDescription);
+        bool res = m_pLocalStorageManager->updateEnResource(resource, note, errorDescription);
         if (!res) {
             emit updateResourceFailed(resource, note, errorDescription, requestId);
             return;
@@ -1148,7 +1148,7 @@ void LocalStorageManagerThreadWorker::onFindResourceRequest(ResourceWrapper reso
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->FindEnResource(resource, errorDescription, withBinaryData);
+        bool res = m_pLocalStorageManager->findEnResource(resource, errorDescription, withBinaryData);
         if (!res) {
             emit findResourceFailed(resource, withBinaryData, errorDescription, requestId);
             return;
@@ -1165,7 +1165,7 @@ void LocalStorageManagerThreadWorker::onExpungeResourceRequest(ResourceWrapper r
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->ExpungeEnResource(resource, errorDescription);
+        bool res = m_pLocalStorageManager->expungeEnResource(resource, errorDescription);
         if (!res) {
             emit expungeResourceFailed(resource, errorDescription, requestId);
             return;
@@ -1181,7 +1181,7 @@ void LocalStorageManagerThreadWorker::onGetSavedSearchCountRequest(QUuid request
     try
     {
         QString errorDescription;
-        int count = m_pLocalStorageManager->GetSavedSearchCount(errorDescription);
+        int count = m_pLocalStorageManager->savedSearchCount(errorDescription);
         if (count < 0) {
             emit getSavedSearchCountFailed(errorDescription, requestId);
         }
@@ -1198,7 +1198,7 @@ void LocalStorageManagerThreadWorker::onAddSavedSearchRequest(SavedSearch search
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->AddSavedSearch(search, errorDescription);
+        bool res = m_pLocalStorageManager->addSavedSearch(search, errorDescription);
         if (!res) {
             emit addSavedSearchFailed(search, errorDescription, requestId);
             return;
@@ -1219,7 +1219,7 @@ void LocalStorageManagerThreadWorker::onUpdateSavedSearchRequest(SavedSearch sea
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->UpdateSavedSearch(search, errorDescription);
+        bool res = m_pLocalStorageManager->updateSavedSearch(search, errorDescription);
         if (!res) {
             emit updateSavedSearchFailed(search, errorDescription, requestId);
             return;
@@ -1268,7 +1268,7 @@ void LocalStorageManagerThreadWorker::onFindSavedSearchRequest(SavedSearch searc
 
         if (!foundCachedSavedSearch)
         {
-            bool res = m_pLocalStorageManager->FindSavedSearch(search, errorDescription);
+            bool res = m_pLocalStorageManager->findSavedSearch(search, errorDescription);
             if (!res) {
                 emit findSavedSearchFailed(search, errorDescription, requestId);
                 return;
@@ -1288,7 +1288,7 @@ void LocalStorageManagerThreadWorker::onListAllSavedSearchesRequest(size_t limit
     try
     {
         QString errorDescription;
-        QList<SavedSearch> savedSearches = m_pLocalStorageManager->ListAllSavedSearches(errorDescription, limit, offset,
+        QList<SavedSearch> savedSearches = m_pLocalStorageManager->listAllSavedSearches(errorDescription, limit, offset,
                                                                                    order, orderDirection);
         if (savedSearches.isEmpty() && !errorDescription.isEmpty()) {
             emit listAllSavedSearchesFailed(limit, offset, order, orderDirection,
@@ -1319,7 +1319,7 @@ void LocalStorageManagerThreadWorker::onListSavedSearchesRequest(LocalStorageMan
     try
     {
         QString errorDescription;
-        QList<SavedSearch> savedSearches = m_pLocalStorageManager->ListSavedSearches(flag, errorDescription, limit,
+        QList<SavedSearch> savedSearches = m_pLocalStorageManager->listSavedSearches(flag, errorDescription, limit,
                                                                                      offset, order, orderDirection);
         if (savedSearches.isEmpty() && !errorDescription.isEmpty()) {
             emit listSavedSearchesFailed(flag, limit, offset, order, orderDirection,
@@ -1347,7 +1347,7 @@ void LocalStorageManagerThreadWorker::onExpungeSavedSearch(SavedSearch search, Q
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->ExpungeSavedSearch(search, errorDescription);
+        bool res = m_pLocalStorageManager->expungeSavedSearch(search, errorDescription);
         if (!res) {
             emit expungeSavedSearchFailed(search, errorDescription, requestId);
             return;

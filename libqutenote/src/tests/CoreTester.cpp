@@ -437,7 +437,7 @@ void CoreTester::localStorageManagerIndividualTagTest()
         tag.setName("Fake tag name");
 
         QString error;
-        bool res = localStorageManager.AddLinkedNotebook(linkedNotebook, error);
+        bool res = localStorageManager.addLinkedNotebook(linkedNotebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         error.clear();
@@ -462,7 +462,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         notebook.setModificationTimestamp(1);
 
         QString error;
-        bool res = localStorageManager.AddNotebook(notebook, error);
+        bool res = localStorageManager.addNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Note note;
@@ -476,7 +476,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         note.setNotebookGuid(notebook.guid());
 
         error.clear();
-        res = localStorageManager.AddNote(note, notebook, error);
+        res = localStorageManager.addNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         ResourceWrapper resource;
@@ -533,7 +533,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         notebook.setModificationTimestamp(1);
 
         QString error;
-        bool res = localStorageManager.AddNotebook(notebook, error);
+        bool res = localStorageManager.addNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Note note;
@@ -560,7 +560,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         note.unsetLocalGuid();
         notebook.unsetLocalGuid();
 
-        res = localStorageManager.AddNote(note, notebook, error);
+        res = localStorageManager.addNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Tag tag;
@@ -568,10 +568,10 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         tag.setUpdateSequenceNumber(1);
         tag.setName("Fake tag name");
 
-        res = localStorageManager.AddTag(tag, error);
+        res = localStorageManager.addTag(tag, error);
         QVERIFY2(res == true, qPrintable(error));
 
-        res = localStorageManager.LinkTagWithNote(tag, note, error);
+        res = localStorageManager.linkTagWithNote(tag, note, error);
         QVERIFY2(res == true, qPrintable(error));
 
         note.addTagGuid(tag.guid());
@@ -603,7 +603,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
 
         note.addResource(resource);
 
-        res = localStorageManager.UpdateNote(note, notebook, error);
+        res = localStorageManager.updateNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         res = TestNoteFindUpdateDeleteExpungeInLocalStorage(note, notebook, localStorageManager, error);
@@ -691,11 +691,11 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         notebook.addSharedNotebook(sharedNotebook);
 
         QString error;
-        bool res = localStorageManager.AddLinkedNotebook(linkedNotebook, error);
+        bool res = localStorageManager.addLinkedNotebook(linkedNotebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         error.clear();
-        res = localStorageManager.AddNotebook(notebook, error);
+        res = localStorageManager.addNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Note note;
@@ -708,7 +708,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
 
-        res = localStorageManager.AddNote(note, notebook, error);
+        res = localStorageManager.addNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Tag tag;
@@ -716,10 +716,10 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         tag.setUpdateSequenceNumber(1);
         tag.setName("Fake tag name");
 
-        res = localStorageManager.AddTag(tag, error);
+        res = localStorageManager.addTag(tag, error);
         QVERIFY2(res == true, qPrintable(error));
 
-        res = localStorageManager.LinkTagWithNote(tag, note, error);
+        res = localStorageManager.linkTagWithNote(tag, note, error);
         QVERIFY2(res == true, qPrintable(error));
 
         note.addTagGuid(tag.guid());
@@ -903,14 +903,14 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
                 search.setShortcut(false);
             }
 
-            bool res = localStorageManager.AddSavedSearch(search, error);
+            bool res = localStorageManager.addSavedSearch(search, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 
         // 1) Test method listing all saved searches
 
         error.clear();
-        QList<SavedSearch> foundSearches = localStorageManager.ListAllSavedSearches(error);
+        QList<SavedSearch> foundSearches = localStorageManager.listAllSavedSearches(error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
         int numFoundSearches = foundSearches.size();
@@ -931,7 +931,7 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
 
 #define CHECK_LIST_SAVED_SEARCHES_BY_FLAG(flag, flag_name, true_condition, false_condition) \
         error.clear(); \
-        foundSearches = localStorageManager.ListSavedSearches(flag, error); \
+        foundSearches = localStorageManager.listSavedSearches(flag, error); \
         QVERIFY2(error.isEmpty(), qPrintable(error)); \
         \
         for(int i = 0; i < nSearches; ++i) \
@@ -974,7 +974,7 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
         LocalStorageManager::ListSavedSearchesOrder::type order = LocalStorageManager::ListSavedSearchesOrder::ByUpdateSequenceNumber;
 
         error.clear();
-        foundSearches = localStorageManager.ListSavedSearches(LocalStorageManager::ListElementsWithGuid, error, limit, offset, order);
+        foundSearches = localStorageManager.listSavedSearches(LocalStorageManager::ListElementsWithGuid, error, limit, offset, order);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
         if (foundSearches.size() != static_cast<int>(limit)) {
@@ -1039,14 +1039,14 @@ void CoreTester::localStorageManagerListLinkedNotebooksTest()
                 linkedNotebook.setDirty(false);
             }
 
-            bool res = localStorageManager.AddLinkedNotebook(linkedNotebook, error);
+            bool res = localStorageManager.addLinkedNotebook(linkedNotebook, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 
         // 1) Test method listing all linked notebooks
 
         error.clear();
-        QList<LinkedNotebook> foundLinkedNotebooks = localStorageManager.ListAllLinkedNotebooks(error);
+        QList<LinkedNotebook> foundLinkedNotebooks = localStorageManager.listAllLinkedNotebooks(error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
         int numFoundLinkedNotebooks = foundLinkedNotebooks.size();
@@ -1067,7 +1067,7 @@ void CoreTester::localStorageManagerListLinkedNotebooksTest()
 
         // 2) Test method listing only dirty linked notebooks
         error.clear();
-        foundLinkedNotebooks = localStorageManager.ListLinkedNotebooks(LocalStorageManager::ListDirty, error);
+        foundLinkedNotebooks = localStorageManager.listLinkedNotebooks(LocalStorageManager::ListDirty, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
         for(int i = 0; i < nLinkedNotebooks; ++i)
@@ -1136,14 +1136,14 @@ void CoreTester::localStorageManagerListTagsTest()
                 tag.setShortcut(false);
             }
 
-            bool res = localStorageManager.AddTag(tag, error);
+            bool res = localStorageManager.addTag(tag, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 
         // 1) Test method listing all tags
 
         error.clear();
-        QList<Tag> foundTags = localStorageManager.ListAllTags(error);
+        QList<Tag> foundTags = localStorageManager.listAllTags(error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
         int numFoundTags = foundTags.size();
@@ -1164,7 +1164,7 @@ void CoreTester::localStorageManagerListTagsTest()
 
 #define CHECK_LIST_TAGS_BY_FLAG(flag, flag_name, true_condition, false_condition) \
         error.clear(); \
-        foundTags = localStorageManager.ListTags(flag, error); \
+        foundTags = localStorageManager.listTags(flag, error); \
         QVERIFY2(error.isEmpty(), qPrintable(error)); \
         \
         for(int i = 0; i < nTags; ++i) \
@@ -1247,10 +1247,10 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
         }
 
         QString error;
-        bool res = localStorageManager.AddNotebook(notebook, error);
+        bool res = localStorageManager.addNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
-        QList<SharedNotebookWrapper> foundSharedNotebooks = localStorageManager.ListAllSharedNotebooks(error);
+        QList<SharedNotebookWrapper> foundSharedNotebooks = localStorageManager.listAllSharedNotebooks(error);
         QVERIFY2(!foundSharedNotebooks.isEmpty(), qPrintable(error));
 
         int numFoundSharedNotebooks = foundSharedNotebooks.size();
@@ -1287,7 +1287,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         notebook.setModificationTimestamp(1);
 
         QString error;
-        bool res = localStorageManager.AddNotebook(notebook, error);
+        bool res = localStorageManager.addNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Note note;
@@ -1300,7 +1300,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
 
-        res = localStorageManager.AddNote(note, notebook, error);
+        res = localStorageManager.addNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         int numTags = 5;
@@ -1322,10 +1322,10 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
                 tag.setDirty(false);
             }
 
-            res = localStorageManager.AddTag(tag, error);
+            res = localStorageManager.addTag(tag, error);
             QVERIFY2(res == true, qPrintable(error));
 
-            res = localStorageManager.LinkTagWithNote(tag, note, error);
+            res = localStorageManager.linkTagWithNote(tag, note, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 
@@ -1334,13 +1334,13 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         tagNotLinkedWithNote.setUpdateSequenceNumber(9);
         tagNotLinkedWithNote.setName("Tag not linked with note");
 
-        res = localStorageManager.AddTag(tagNotLinkedWithNote, error);
+        res = localStorageManager.addTag(tagNotLinkedWithNote, error);
         QVERIFY2(res == true, qPrintable(error));
 
         // 1) Test method listing all tags per given note without any additional conditions
 
         error.clear();
-        QList<Tag> foundTags = localStorageManager.ListAllTagsPerNote(note, error);
+        QList<Tag> foundTags = localStorageManager.listAllTagsPerNote(note, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
         int numFoundTags = foundTags.size();
@@ -1372,7 +1372,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         const LocalStorageManager::ListObjectsOptions flag = LocalStorageManager::ListDirty;
         const LocalStorageManager::ListTagsOrder::type order = LocalStorageManager::ListTagsOrder::ByUpdateSequenceNumber;
         const LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Descending;
-        foundTags = localStorageManager.ListAllTagsPerNote(note, error, flag, limit, offset,
+        foundTags = localStorageManager.listAllTagsPerNote(note, error, flag, limit, offset,
                                                            order, orderDirection);
         if (foundTags.size() != limit) {
             QFAIL(qPrintable("Found unexpected amount of tags: expected to find " + QString::number(limit) +
@@ -1413,7 +1413,7 @@ void CoreTester::localStorageManagerListNotesTest()
         notebook.setModificationTimestamp(1);
 
         QString error;
-        bool res = localStorageManager.AddNotebook(notebook, error);
+        bool res = localStorageManager.addNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Notebook notebookNotLinkedWithNotes;
@@ -1423,7 +1423,7 @@ void CoreTester::localStorageManagerListNotesTest()
         notebookNotLinkedWithNotes.setCreationTimestamp(1);
         notebookNotLinkedWithNotes.setModificationTimestamp(1);
 
-        res = localStorageManager.AddNotebook(notebookNotLinkedWithNotes, error);
+        res = localStorageManager.addNotebook(notebookNotLinkedWithNotes, error);
         QVERIFY2(res == true, qPrintable(error));
 
         int numNotes = 5;
@@ -1467,14 +1467,14 @@ void CoreTester::localStorageManagerListNotesTest()
             note.setActive(true);
             note.setNotebookGuid(notebook.guid());
 
-            res = localStorageManager.AddNote(note, notebook, error);
+            res = localStorageManager.addNote(note, notebook, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 
         // 1) Test method listing all notes per notebook
 
         error.clear();
-        QList<Note> foundNotes = localStorageManager.ListAllNotesPerNotebook(notebook, error);
+        QList<Note> foundNotes = localStorageManager.listAllNotesPerNotebook(notebook, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
         int numFoundNotes = foundNotes.size();
@@ -1496,7 +1496,7 @@ void CoreTester::localStorageManagerListNotesTest()
         // 2) Ensure the method listing notes per notebook actually checks the notebook
 
         error.clear();
-        foundNotes = localStorageManager.ListAllNotesPerNotebook(notebookNotLinkedWithNotes, error);
+        foundNotes = localStorageManager.listAllNotesPerNotebook(notebookNotLinkedWithNotes, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
         if (foundNotes.size() != 0) {
@@ -1513,7 +1513,7 @@ void CoreTester::localStorageManagerListNotesTest()
         const size_t offset = 1;
         const LocalStorageManager::ListNotesOrder::type order = LocalStorageManager::ListNotesOrder::ByUpdateSequenceNumber;
         const LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Descending;
-        foundNotes = localStorageManager.ListAllNotesPerNotebook(notebook, error, /* with resource binary data = */ true,
+        foundNotes = localStorageManager.listAllNotesPerNotebook(notebook, error, /* with resource binary data = */ true,
                                                                  LocalStorageManager::ListElementsWithGuid, limit, offset,
                                                                  order, orderDirection);
         if (foundNotes.size() != limit) {
@@ -1539,7 +1539,7 @@ void CoreTester::localStorageManagerListNotesTest()
 
         // 4) Test method listing all notes
         error.clear();
-        foundNotes = localStorageManager.ListNotes(LocalStorageManager::ListAll, error);
+        foundNotes = localStorageManager.listNotes(LocalStorageManager::ListAll, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
         numFoundNotes = foundNotes.size();
@@ -1560,7 +1560,7 @@ void CoreTester::localStorageManagerListNotesTest()
 
 #define CHECK_LIST_NOTES_BY_FLAG(flag, flag_name, true_condition, false_condition) \
         error.clear(); \
-        foundNotes = localStorageManager.ListNotes(flag, error); \
+        foundNotes = localStorageManager.listNotes(flag, error); \
         QVERIFY2(error.isEmpty(), qPrintable(error)); \
         \
         for(int i = 0; i < numNotes; ++i) \
@@ -1697,13 +1697,13 @@ void CoreTester::localStorageManagerListNotebooksTest()
                 notebook.addSharedNotebook(sharedNotebook);
             }
 
-            bool res = localStorageManager.AddNotebook(notebook, error);
+            bool res = localStorageManager.addNotebook(notebook, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 
         // 1) Test method listing all notebooks
 
-        QList<Notebook> foundNotebooks = localStorageManager.ListAllNotebooks(error);
+        QList<Notebook> foundNotebooks = localStorageManager.listAllNotebooks(error);
         QVERIFY2(!foundNotebooks.isEmpty(), qPrintable(error));
 
         int numFoundNotebooks = foundNotebooks.size();
@@ -1724,7 +1724,7 @@ void CoreTester::localStorageManagerListNotebooksTest()
 
 #define CHECK_LIST_NOTEBOOKS_BY_FLAG(flag, flag_name, true_condition, false_condition) \
         error.clear(); \
-        foundNotebooks = localStorageManager.ListNotebooks(flag, error); \
+        foundNotebooks = localStorageManager.listNotebooks(flag, error); \
         QVERIFY2(error.isEmpty(), qPrintable(error)); \
         \
         for(int i = 0; i < numNotebooks; ++i) \
@@ -1804,15 +1804,15 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
         note.setNotebookGuid(notebook.guid());
 
         QString error;
-        bool res = localStorageManager.AddLinkedNotebook(linkedNotebook, error);
+        bool res = localStorageManager.addLinkedNotebook(linkedNotebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         error.clear();
-        res = localStorageManager.AddNotebook(notebook, error);
+        res = localStorageManager.addNotebook(notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         error.clear();
-        res = localStorageManager.AddNote(note, notebook, error);
+        res = localStorageManager.addNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
 
         int nTags = 5;
@@ -1832,26 +1832,26 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
             }
 
             error.clear();
-            res = localStorageManager.AddTag(tag, error);
+            res = localStorageManager.addTag(tag, error);
             QVERIFY2(res == true, qPrintable(error));
 
             error.clear();
-            res = localStorageManager.LinkTagWithNote(tag, note, error);
+            res = localStorageManager.linkTagWithNote(tag, note, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 
         error.clear();
-        res = localStorageManager.ExpungeNote(note, error);
+        res = localStorageManager.expungeNote(note, error);
         QVERIFY2(res == true, qPrintable(error));
 
         error.clear();
-        res = localStorageManager.ExpungeNotelessTagsFromLinkedNotebooks(error);
+        res = localStorageManager.expungeNotelessTagsFromLinkedNotebooks(error);
         QVERIFY2(res == true, qPrintable(error));
 
         QList<Tag> foundTags;
         foundTags.reserve(3);
         error.clear();
-        foundTags = localStorageManager.ListAllTags(error);
+        foundTags = localStorageManager.listAllTags(error);
         if (foundTags.isEmpty() && !error.isEmpty()) {
             QFAIL(qPrintable(error));
         }

@@ -29,10 +29,7 @@ public:
 
 private:
     DefaultLocalStorageCacheExpiryChecker() Q_DECL_DELETE;
-    DefaultLocalStorageCacheExpiryChecker(const DefaultLocalStorageCacheExpiryChecker & other) Q_DECL_DELETE;
-    DefaultLocalStorageCacheExpiryChecker(DefaultLocalStorageCacheExpiryChecker && other) Q_DECL_DELETE;
-    DefaultLocalStorageCacheExpiryChecker & operator=(const DefaultLocalStorageCacheExpiryChecker & other) Q_DECL_DELETE;
-    DefaultLocalStorageCacheExpiryChecker & operator=(DefaultLocalStorageCacheExpiryChecker && other) Q_DECL_DELETE;
+    Q_DISABLE_COPY(DefaultLocalStorageCacheExpiryChecker)
 };
 
 } // namespace qute_note
