@@ -143,15 +143,15 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
 
     if (!m_preferredFileSuffixes.isEmpty())
     {
-        ApplicationSettings & settings = ApplicationSettings::instance();
-        QStringList childGroups = settings.childGroups();
+        ApplicationSettings appSettings;
+        QStringList childGroups = appSettings.childGroups();
         int attachmentsSaveLocGroupIndex = childGroups.indexOf("AttachmentSaveLocations");
         if (attachmentsSaveLocGroupIndex >= 0)
         {
             QNTRACE("Found cached attachment save location group within application settings");
 
-            settings.beginGroup("AttachmentSaveLocations");
-            QStringList cachedFileSuffixes = settings.childKeys();
+            appSettings.beginGroup("AttachmentSaveLocations");
+            QStringList cachedFileSuffixes = appSettings.childKeys();
             const int numPreferredSuffixes = m_preferredFileSuffixes.size();
             for(int i = 0; i < numPreferredSuffixes; ++i)
             {
@@ -162,7 +162,7 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
                     continue;
                 }
 
-                QVariant dirValue = settings.value(preferredSuffix);
+                QVariant dirValue = appSettings.value(preferredSuffix);
                 if (dirValue.isNull() || !dirValue.isValid()) {
                     QNTRACE("Found inappropriate attachment save directory for file suffix " << preferredSuffix);
                     continue;
@@ -189,7 +189,7 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
                 break;
             }
 
-            settings.endGroup();
+            appSettings.endGroup();
         }
     }
 

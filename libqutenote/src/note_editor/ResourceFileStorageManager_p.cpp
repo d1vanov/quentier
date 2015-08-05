@@ -21,12 +21,12 @@ ResourceFileStorageManagerPrivate::ResourceFileStorageManagerPrivate(ResourceFil
 
 QString ResourceFileStorageManagerPrivate::resourceFileStorageLocation(QWidget * context)
 {
-    ApplicationSettings & settings = ApplicationSettings::instance();
-    settings.beginGroup("AttachmentSaveLocations");
-    QString resourceFileStorageLocation = settings.value("OwnFileStorageLocation").toString();
+    ApplicationSettings appSettings;
+    appSettings.beginGroup("AttachmentSaveLocations");
+    QString resourceFileStorageLocation = appSettings.value("OwnFileStorageLocation").toString();
     if (resourceFileStorageLocation.isEmpty()) {
         resourceFileStorageLocation = applicationPersistentStoragePath() + "/" + "attachments";
-        settings.setValue("OwnFileStorageLocation", QVariant(resourceFileStorageLocation));
+        appSettings.setValue("OwnFileStorageLocation", QVariant(resourceFileStorageLocation));
     }
 
     QFileInfo resourceFileStorageLocationInfo(resourceFileStorageLocation);
@@ -65,10 +65,11 @@ QString ResourceFileStorageManagerPrivate::resourceFileStorageLocation(QWidget *
             return QString();
         }
 
-        settings.setValue("OwnFileStorageLocation", QVariant(manualPath));
+        appSettings.setValue("OwnFileStorageLocation", QVariant(manualPath));
         resourceFileStorageLocation = manualPath;
     }
 
+    appSettings.endGroup();
     return resourceFileStorageLocation;
 }
 

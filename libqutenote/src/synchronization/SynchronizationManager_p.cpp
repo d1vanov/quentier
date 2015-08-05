@@ -486,10 +486,10 @@ void SynchronizationManagerPrivate::readLastSyncParameters()
     m_cachedLinkedNotebookLastUpdateCountByGuid.clear();
     m_cachedLinkedNotebookLastSyncTimeByGuid.clear();
 
-    ApplicationSettings & settings = ApplicationSettings::instance();
+    ApplicationSettings appSettings;
 
-    const QString keyGroup = LAST_SYNC_PARAMS_KEY_GROUP;
-    QVariant lastUpdateCountVar = settings.value(LAST_SYNC_UPDATE_COUNT_KEY, keyGroup);
+    const QString keyGroup = QString(LAST_SYNC_PARAMS_KEY_GROUP) + "/";
+    QVariant lastUpdateCountVar = appSettings.value(keyGroup + LAST_SYNC_UPDATE_COUNT_KEY);
     if (!lastUpdateCountVar.isNull())
     {
         bool conversionResult = false;
@@ -500,7 +500,7 @@ void SynchronizationManagerPrivate::readLastSyncParameters()
         }
     }
 
-    QVariant lastSyncTimeVar = settings.value(LAST_SYNC_TIME_KEY, keyGroup);
+    QVariant lastSyncTimeVar = appSettings.value(keyGroup + LAST_SYNC_TIME_KEY);
     if (!lastUpdateCountVar.isNull())
     {
         bool conversionResult = false;
@@ -511,18 +511,18 @@ void SynchronizationManagerPrivate::readLastSyncParameters()
         }
     }
 
-    int numLinkedNotebooksSyncParams = settings.beginReadArray(LAST_SYNC_LINKED_NOTEBOOKS_PARAMS);
+    int numLinkedNotebooksSyncParams = appSettings.beginReadArray(LAST_SYNC_LINKED_NOTEBOOKS_PARAMS);
     for(int i = 0; i < numLinkedNotebooksSyncParams; ++i)
     {
-        settings.setArrayIndex(i);
+        appSettings.setArrayIndex(i);
 
-        QString guid = settings.value(LINKED_NOTEBOOK_GUID_KEY).toString();
+        QString guid = appSettings.value(LINKED_NOTEBOOK_GUID_KEY).toString();
         if (guid.isEmpty()) {
             QNWARNING("Couldn't read linked notebook's guid from persistent application settings");
             continue;
         }
 
-        QVariant lastUpdateCountVar = settings.value(LINKED_NOTEBOOK_LAST_UPDATE_COUNT_KEY);
+        QVariant lastUpdateCountVar = appSettings.value(LINKED_NOTEBOOK_LAST_UPDATE_COUNT_KEY);
         bool conversionResult = false;
         qint32 lastUpdateCount = lastUpdateCountVar.toInt(&conversionResult);
         if (!conversionResult) {
@@ -530,7 +530,7 @@ void SynchronizationManagerPrivate::readLastSyncParameters()
             continue;
         }
 
-        QVariant lastSyncTimeVar = settings.value(LINKED_NOTEBOOK_LAST_SYNC_TIME_KEY);
+        QVariant lastSyncTimeVar = appSettings.value(LINKED_NOTEBOOK_LAST_SYNC_TIME_KEY);
         conversionResult = false;
         qevercloud::Timestamp lastSyncTime = lastSyncTimeVar.toLongLong(&conversionResult);
         if (!conversionResult) {
@@ -541,7 +541,7 @@ void SynchronizationManagerPrivate::readLastSyncParameters()
         m_cachedLinkedNotebookLastUpdateCountByGuid[guid] = lastUpdateCount;
         m_cachedLinkedNotebookLastSyncTimeByGuid[guid] = lastSyncTime;
     }
-    settings.endArray();
+    appSettings.endArray();
 
     m_onceReadLastSyncParams = true;
 }
@@ -559,10 +559,10 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     QNTRACE("Trying to restore persistent authentication settings...");
 
-    ApplicationSettings & appSettings = ApplicationSettings::instance();
-    QString keyGroup = "Authentication";
+    ApplicationSettings appSettings;
+    QString keyGroup = "Authentication/";
 
-    QVariant tokenExpirationValue = appSettings.value(EXPIRATION_TIMESTAMP_KEY, keyGroup);
+    QVariant tokenExpirationValue = appSettings.value(keyGroup + EXPIRATION_TIMESTAMP_KEY);
     if (tokenExpirationValue.isNull()) {
         QNINFO("Authentication token expiration timestamp was not found within application settings, "
                "assuming it has never been written & launching the OAuth procedure");
@@ -591,7 +591,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     QNTRACE("Restoring persistent note store url");
 
-    QVariant noteStoreUrlValue = appSettings.value(NOTE_STORE_URL_KEY, keyGroup);
+    QVariant noteStoreUrlValue = appSettings.value(keyGroup + NOTE_STORE_URL_KEY);
     if (noteStoreUrlValue.isNull()) {
         QString error = QT_TR_NOOP("Can't find note store url within persistent application settings");
         QNWARNING(error);
@@ -611,7 +611,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     QNDEBUG("Restoring persistent user id");
 
-    QVariant userIdValue = appSettings.value(USER_ID_KEY, keyGroup);
+    QVariant userIdValue = appSettings.value(keyGroup + USER_ID_KEY);
     if (userIdValue.isNull()) {
         QString error = QT_TR_NOOP("Can't find user id within persistent application settings");
         QNWARNING(error);
@@ -632,7 +632,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     QNDEBUG("Restoring persistent web api url prefix");
 
-    QVariant webApiUrlPrefixValue = appSettings.value(WEB_API_URL_PREFIX_KEY, keyGroup);
+    QVariant webApiUrlPrefixValue = appSettings.value(keyGroup + WEB_API_URL_PREFIX_KEY);
     if (webApiUrlPrefixValue.isNull()) {
         QString error = QT_TR_NOOP("Can't find web API url prefix within persistent application settings");
         QNWARNING(error);
@@ -704,13 +704,13 @@ void SynchronizationManagerPrivate::launchStoreOAuthResult()
 
 void SynchronizationManagerPrivate::finalizeStoreOAuthResult()
 {
-    ApplicationSettings & appSettings = ApplicationSettings::instance();
-    QString keyGroup = "Authentication";
+    ApplicationSettings appSettings;
+    QString keyGroup = "Authentication/";
 
-    appSettings.setValue(NOTE_STORE_URL_KEY, m_pOAuthResult->noteStoreUrl, keyGroup);
-    appSettings.setValue(EXPIRATION_TIMESTAMP_KEY, m_pOAuthResult->expires, keyGroup);
-    appSettings.setValue(USER_ID_KEY, m_pOAuthResult->userId, keyGroup);
-    appSettings.setValue(WEB_API_URL_PREFIX_KEY, m_pOAuthResult->webApiUrlPrefix, keyGroup);
+    appSettings.setValue(keyGroup + NOTE_STORE_URL_KEY, m_pOAuthResult->noteStoreUrl);
+    appSettings.setValue(keyGroup + EXPIRATION_TIMESTAMP_KEY, m_pOAuthResult->expires);
+    appSettings.setValue(keyGroup + USER_ID_KEY, m_pOAuthResult->userId);
+    appSettings.setValue(keyGroup + WEB_API_URL_PREFIX_KEY, m_pOAuthResult->webApiUrlPrefix);
 
     QNDEBUG("Successfully wrote authentication result info to the application settings. "
             "Token expiration timestamp = " << PrintableDateTimeFromTimestamp(m_pOAuthResult->expires)
@@ -844,8 +844,8 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         return;
     }
 
-    ApplicationSettings & appSettings = ApplicationSettings::instance();
-    QString keyGroup = "Authentication";
+    ApplicationSettings appSettings;
+    QString keyGroup = "Authentication/";
 
     QHash<QString,QString> authTokensToCacheByGuid;
     QHash<QString,qevercloud::Timestamp> authTokenExpirationTimestampsToCacheByGuid;
@@ -900,7 +900,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
             auto linkedNotebookAuthTokenExpirationIt = m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.find(guid);
             if (linkedNotebookAuthTokenExpirationIt == m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid.end())
             {
-                QVariant expirationTimeVariant = appSettings.value(LINKED_NOTEBOOK_EXPIRATION_TIMESTAMP_KEY_PREFIX + guid, keyGroup);
+                QVariant expirationTimeVariant = appSettings.value(keyGroup + LINKED_NOTEBOOK_EXPIRATION_TIMESTAMP_KEY_PREFIX + guid);
                 if (!expirationTimeVariant.isNull())
                 {
                     bool conversionResult = false;
@@ -1002,7 +1002,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         it != authTokenExpirationTimesToCacheEnd; ++it)
     {
         QString key = LINKED_NOTEBOOK_EXPIRATION_TIMESTAMP_KEY_PREFIX + it.key();
-        appSettings.setValue(key, QVariant(it.value()), keyGroup);
+        appSettings.setValue(keyGroup + key, QVariant(it.value()));
     }
 
     // Caching linked notebook's authentication tokens in the keychain
@@ -1073,14 +1073,14 @@ void SynchronizationManagerPrivate::updatePersistentSyncSettings()
 {
     QNDEBUG("SynchronizationManagerPrivate::updatePersistentSyncSettings");
 
-    ApplicationSettings & settings = ApplicationSettings::instance();
+    ApplicationSettings appSettings;
 
-    const QString keyGroup = LAST_SYNC_PARAMS_KEY_GROUP;
-    settings.setValue(LAST_SYNC_UPDATE_COUNT_KEY, m_lastUpdateCount, keyGroup);
-    settings.setValue(LAST_SYNC_TIME_KEY, m_lastSyncTime, keyGroup);
+    const QString keyGroup = QString(LAST_SYNC_PARAMS_KEY_GROUP) + "/";
+    appSettings.setValue(keyGroup + LAST_SYNC_UPDATE_COUNT_KEY, m_lastUpdateCount);
+    appSettings.setValue(keyGroup + LAST_SYNC_TIME_KEY, m_lastSyncTime);
 
     int numLinkedNotebooksSyncParams = m_cachedLinkedNotebookLastUpdateCountByGuid.size();
-    settings.beginWriteArray(LAST_SYNC_LINKED_NOTEBOOKS_PARAMS, numLinkedNotebooksSyncParams);
+    appSettings.beginWriteArray(LAST_SYNC_LINKED_NOTEBOOKS_PARAMS, numLinkedNotebooksSyncParams);
 
     int counter = 0;
     auto updateCountEnd = m_cachedLinkedNotebookLastUpdateCountByGuid.end();
@@ -1095,14 +1095,14 @@ void SynchronizationManagerPrivate::updatePersistentSyncSettings()
             continue;
         }
 
-        settings.setArrayIndex(counter);
-        settings.setValue(LINKED_NOTEBOOK_LAST_UPDATE_COUNT_KEY, updateCountIt.value());
-        settings.setValue(LINKED_NOTEBOOK_LAST_SYNC_TIME_KEY, syncTimeIt.value());
+        appSettings.setArrayIndex(counter);
+        appSettings.setValue(LINKED_NOTEBOOK_LAST_UPDATE_COUNT_KEY, updateCountIt.value());
+        appSettings.setValue(LINKED_NOTEBOOK_LAST_SYNC_TIME_KEY, syncTimeIt.value());
 
         ++counter;
     }
 
-    settings.endArray();
+    appSettings.endArray();
 
     QNTRACE("Wrote " << counter << " last sync params entries for linked notebooks");
 }

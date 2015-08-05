@@ -29,8 +29,8 @@ NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
     setHint(m_hint);
 
     bool rememberPassphraseForSessionDefault = false;
-    ApplicationSettings & settings = ApplicationSettings::instance();
-    QVariant rememberPassphraseForSessionSetting = settings.value("General/rememberPassphraseForSession");
+    ApplicationSettings appSettings;
+    QVariant rememberPassphraseForSessionSetting = appSettings.value("General/rememberPassphraseForSession");
     if (!rememberPassphraseForSessionSetting.isNull()) {
         rememberPassphraseForSessionDefault = rememberPassphraseForSessionSetting.toBool();
     }
@@ -81,13 +81,13 @@ void NoteDecryptionDialog::setRememberPassphraseDefaultState(const bool checked)
 
 void NoteDecryptionDialog::onRememberPassphraseStateChanged()
 {
-    ApplicationSettings & settings = ApplicationSettings::instance();
-    if (!settings.isWritable()) {
+    ApplicationSettings appSettings;
+    if (!appSettings.isWritable()) {
         QNINFO("Can't persist remember passphrase for session setting: settings are not writable");
     }
     else {
-        settings.setValue("General/rememberPassphraseForSession",
-                          QVariant(m_pUI->rememberPasswordCheckBox->isChecked()));
+        appSettings.setValue("General/rememberPassphraseForSession",
+                             QVariant(m_pUI->rememberPasswordCheckBox->isChecked()));
     }
 }
 
