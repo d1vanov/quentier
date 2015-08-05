@@ -300,6 +300,7 @@ add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_SOURCES}
             ${${PROJECT_NAME}_RESOURCES_RCC}
             ${${PROJECT_NAME}_FORMS_HEADERS})
+set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 
 if(USE_QT5)
   qt5_use_modules(${PROJECT_NAME} Core)
