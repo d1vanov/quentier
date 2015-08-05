@@ -18,10 +18,7 @@ public:
     bool cleanupHtml(QString & html, QString & errorDescription);
 
 private:
-    HTMLCleaner(const HTMLCleaner & other) Q_DECL_DELETE;
-    HTMLCleaner(HTMLCleaner && other) Q_DECL_DELETE;
-    HTMLCleaner & operator=(const HTMLCleaner & other) Q_DECL_DELETE;
-    HTMLCleaner & operator=(HTMLCleaner && other) Q_DECL_DELETE;
+    Q_DISABLE_COPY(HTMLCleaner)
 
 private:
     class Impl;

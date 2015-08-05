@@ -68,10 +68,7 @@ public:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
-    LocalStorageCacheManager(const LocalStorageCacheManager & other) Q_DECL_DELETE;
-    LocalStorageCacheManager(LocalStorageCacheManager && other) Q_DECL_DELETE;
-    LocalStorageCacheManager & operator=(const LocalStorageCacheManager & other) Q_DECL_DELETE;
-    LocalStorageCacheManager & operator=(LocalStorageCacheManager && other) Q_DECL_DELETE;
+    Q_DISABLE_COPY(LocalStorageCacheManager)
 
     LocalStorageCacheManagerPrivate *   d_ptr;
     Q_DECLARE_PRIVATE(LocalStorageCacheManager)

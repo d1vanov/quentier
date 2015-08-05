@@ -28,10 +28,7 @@ public:
 
 private:
     ILocalStorageCacheExpiryChecker() Q_DECL_DELETE;
-    ILocalStorageCacheExpiryChecker(const ILocalStorageCacheExpiryChecker & other) Q_DECL_DELETE;
-    ILocalStorageCacheExpiryChecker(ILocalStorageCacheExpiryChecker && other) Q_DECL_DELETE;
-    ILocalStorageCacheExpiryChecker & operator=(const ILocalStorageCacheExpiryChecker & other) Q_DECL_DELETE;
-    ILocalStorageCacheExpiryChecker & operator=(ILocalStorageCacheExpiryChecker && other) Q_DECL_DELETE;
+    Q_DISABLE_COPY(ILocalStorageCacheExpiryChecker)
 };
 
 } // namespace qute_note

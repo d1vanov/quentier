@@ -355,10 +355,7 @@ public Q_SLOTS:
 
 private:
     LocalStorageManagerThreadWorker() Q_DECL_DELETE;
-    LocalStorageManagerThreadWorker(const LocalStorageManagerThreadWorker & other) Q_DECL_DELETE;
-    LocalStorageManagerThreadWorker(LocalStorageManagerThreadWorker && other) Q_DECL_DELETE;
-    LocalStorageManagerThreadWorker & operator=(const LocalStorageManagerThreadWorker & other) Q_DECL_DELETE;
-    LocalStorageManagerThreadWorker & operator=(LocalStorageManagerThreadWorker && other) Q_DECL_DELETE;
+    Q_DISABLE_COPY(LocalStorageManagerThreadWorker)
 
     QString                     m_username;
     qint32                      m_userId;
