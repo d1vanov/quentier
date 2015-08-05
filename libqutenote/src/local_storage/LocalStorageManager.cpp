@@ -21,86 +21,86 @@ LocalStorageManager::~LocalStorageManager()
 bool LocalStorageManager::addUser(const IUser & user, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->AddUser(user, errorDescription);
+    return d->addUser(user, errorDescription);
 }
 
 bool LocalStorageManager::updateUser(const IUser & user, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->UpdateUser(user, errorDescription);
+    return d->updateUser(user, errorDescription);
 }
 
 bool LocalStorageManager::findUser(IUser & user, QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->FindUser(user, errorDescription);
+    return d->findUser(user, errorDescription);
 }
 
 bool LocalStorageManager::deleteUser(const IUser & user, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->DeleteUser(user, errorDescription);
+    return d->deleteUser(user, errorDescription);
 }
 
 bool LocalStorageManager::expungeUser(const IUser & user, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->ExpungeUser(user, errorDescription);
+    return d->expungeUser(user, errorDescription);
 }
 
 int LocalStorageManager::notebookCount(QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->GetNotebookCount(errorDescription);
+    return d->notebookCount(errorDescription);
 }
 
 void LocalStorageManager::switchUser(const QString & username, const UserID userId,
                                      const bool startFromScratch)
 {
     Q_D(LocalStorageManager);
-    return d->SwitchUser(username, userId, startFromScratch);
+    return d->switchUser(username, userId, startFromScratch);
 }
 
 int LocalStorageManager::userCount(QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->GetUserCount(errorDescription);
+    return d->userCount(errorDescription);
 }
 
 bool LocalStorageManager::addNotebook(const Notebook & notebook, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->AddNotebook(notebook, errorDescription);
+    return d->addNotebook(notebook, errorDescription);
 }
 
 bool LocalStorageManager::updateNotebook(const Notebook & notebook, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->UpdateNotebook(notebook, errorDescription);
+    return d->updateNotebook(notebook, errorDescription);
 }
 
 bool LocalStorageManager::findNotebook(Notebook & notebook, QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->FindNotebook(notebook, errorDescription);
+    return d->findNotebook(notebook, errorDescription);
 }
 
 bool LocalStorageManager::findDefaultNotebook(Notebook & notebook, QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->FindDefaultNotebook(notebook, errorDescription);
+    return d->findDefaultNotebook(notebook, errorDescription);
 }
 
 bool LocalStorageManager::findLastUsedNotebook(Notebook & notebook, QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->FindLastUsedNotebook(notebook, errorDescription);
+    return d->findLastUsedNotebook(notebook, errorDescription);
 }
 
 bool LocalStorageManager::findDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->FindDefaultOrLastUsedNotebook(notebook, errorDescription);
+    return d->findDefaultOrLastUsedNotebook(notebook, errorDescription);
 }
 
 QList<Notebook> LocalStorageManager::listAllNotebooks(QString & errorDescription,
@@ -110,7 +110,7 @@ QList<Notebook> LocalStorageManager::listAllNotebooks(QString & errorDescription
                                                       const QString & linkedNotebookGuid) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllNotebooks(errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
+    return d->listAllNotebooks(errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
 }
 
 QList<Notebook> LocalStorageManager::listNotebooks(const ListObjectsOptions flag, QString & errorDescription,
@@ -120,52 +120,52 @@ QList<Notebook> LocalStorageManager::listNotebooks(const ListObjectsOptions flag
                                                    const QString & linkedNotebookGuid) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListNotebooks(flag, errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
+    return d->listNotebooks(flag, errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
 }
 
 QList<SharedNotebookWrapper> LocalStorageManager::listAllSharedNotebooks(QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllSharedNotebooks(errorDescription);
+    return d->listAllSharedNotebooks(errorDescription);
 }
 
 QList<SharedNotebookWrapper> LocalStorageManager::listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                                      QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListSharedNotebooksPerNotebookGuid(notebookGuid, errorDescription);
+    return d->listSharedNotebooksPerNotebookGuid(notebookGuid, errorDescription);
 }
 
 bool LocalStorageManager::expungeNotebook(const Notebook & notebook, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->ExpungeNotebook(notebook, errorDescription);
+    return d->expungeNotebook(notebook, errorDescription);
 }
 
 int LocalStorageManager::linkedNotebookCount(QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->GetLinkedNotebookCount(errorDescription);
+    return d->linkedNotebookCount(errorDescription);
 }
 
 bool LocalStorageManager::addLinkedNotebook(const LinkedNotebook & linkedNotebook,
                                             QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->AddLinkedNotebook(linkedNotebook, errorDescription);
+    return d->addLinkedNotebook(linkedNotebook, errorDescription);
 }
 
 bool LocalStorageManager::updateLinkedNotebook(const LinkedNotebook & linkedNotebook,
                                                QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->UpdateLinkedNotebook(linkedNotebook, errorDescription);
+    return d->updateLinkedNotebook(linkedNotebook, errorDescription);
 }
 
 bool LocalStorageManager::findLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->FindLinkedNotebook(linkedNotebook, errorDescription);
+    return d->findLinkedNotebook(linkedNotebook, errorDescription);
 }
 
 QList<LinkedNotebook> LocalStorageManager::listAllLinkedNotebooks(QString & errorDescription, const size_t limit,
@@ -173,7 +173,7 @@ QList<LinkedNotebook> LocalStorageManager::listAllLinkedNotebooks(QString & erro
                                                                   const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllLinkedNotebooks(errorDescription, limit, offset, order, orderDirection);
+    return d->listAllLinkedNotebooks(errorDescription, limit, offset, order, orderDirection);
 }
 
 QList<LinkedNotebook> LocalStorageManager::listLinkedNotebooks(const ListObjectsOptions flag, QString & errorDescription, const size_t limit,
@@ -181,39 +181,39 @@ QList<LinkedNotebook> LocalStorageManager::listLinkedNotebooks(const ListObjects
                                                                const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListLinkedNotebooks(flag, errorDescription, limit, offset, order, orderDirection);
+    return d->listLinkedNotebooks(flag, errorDescription, limit, offset, order, orderDirection);
 }
 
 bool LocalStorageManager::expungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
                                                 QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->ExpungeLinkedNotebook(linkedNotebook, errorDescription);
+    return d->expungeLinkedNotebook(linkedNotebook, errorDescription);
 }
 
 int LocalStorageManager::noteCount(QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->GetNoteCount(errorDescription);
+    return d->noteCount(errorDescription);
 }
 
 bool LocalStorageManager::addNote(const Note & note, const Notebook & notebook, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->AddNote(note, notebook, errorDescription);
+    return d->addNote(note, notebook, errorDescription);
 }
 
 bool LocalStorageManager::updateNote(const Note & note, const Notebook & notebook, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->UpdateNote(note, notebook, errorDescription);
+    return d->updateNote(note, notebook, errorDescription);
 }
 
 bool LocalStorageManager::findNote(Note & note, QString & errorDescription,
                                    const bool withResourceBinaryData) const
 {
     Q_D(const LocalStorageManager);
-    return d->FindNote(note, errorDescription, withResourceBinaryData);
+    return d->findNote(note, errorDescription, withResourceBinaryData);
 }
 
 QList<Note> LocalStorageManager::listAllNotesPerNotebook(const Notebook & notebook,
@@ -225,7 +225,7 @@ QList<Note> LocalStorageManager::listAllNotesPerNotebook(const Notebook & notebo
                                                          const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllNotesPerNotebook(notebook, errorDescription, withResourceBinaryData,
+    return d->listAllNotesPerNotebook(notebook, errorDescription, withResourceBinaryData,
                                       flag, limit, offset, order, orderDirection);
 }
 
@@ -235,7 +235,7 @@ QList<Note> LocalStorageManager::listNotes(const ListObjectsOptions flag, QStrin
                                            const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListNotes(flag, errorDescription, withResourceBinaryData, limit, offset, order, orderDirection);
+    return d->listNotes(flag, errorDescription, withResourceBinaryData, limit, offset, order, orderDirection);
 }
 
 NoteList LocalStorageManager::findNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
@@ -243,50 +243,50 @@ NoteList LocalStorageManager::findNotesWithSearchQuery(const NoteSearchQuery & n
                                                        const bool withResourceBinaryData) const
 {
     Q_D(const LocalStorageManager);
-    return d->FindNotesWithSearchQuery(noteSearchQuery, errorDescription, withResourceBinaryData);
+    return d->findNotesWithSearchQuery(noteSearchQuery, errorDescription, withResourceBinaryData);
 }
 
 bool LocalStorageManager::deleteNote(const Note & note, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->DeleteNote(note, errorDescription);
+    return d->deleteNote(note, errorDescription);
 }
 
 bool LocalStorageManager::expungeNote(const Note & note, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->ExpungeNote(note, errorDescription);
+    return d->expungeNote(note, errorDescription);
 }
 
 int LocalStorageManager::tagCount(QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->GetTagCount(errorDescription);
+    return d->tagCount(errorDescription);
 }
 
 bool LocalStorageManager::addTag(const Tag & tag, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->AddTag(tag, errorDescription);
+    return d->addTag(tag, errorDescription);
 }
 
 bool LocalStorageManager::updateTag(const Tag & tag, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->UpdateTag(tag, errorDescription);
+    return d->updateTag(tag, errorDescription);
 }
 
 bool LocalStorageManager::linkTagWithNote(const Tag & tag, const Note & note,
                                           QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->LinkTagWithNote(tag, note, errorDescription);
+    return d->linkTagWithNote(tag, note, errorDescription);
 }
 
 bool LocalStorageManager::findTag(Tag & tag, QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->FindTag(tag, errorDescription);
+    return d->findTag(tag, errorDescription);
 }
 
 QList<Tag> LocalStorageManager::listAllTagsPerNote(const Note & note, QString & errorDescription,
@@ -295,7 +295,7 @@ QList<Tag> LocalStorageManager::listAllTagsPerNote(const Note & note, QString & 
                                                    const OrderDirection::type & orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllTagsPerNote(note, errorDescription, flag, limit, offset, order, orderDirection);
+    return d->listAllTagsPerNote(note, errorDescription, flag, limit, offset, order, orderDirection);
 }
 
 QList<Tag> LocalStorageManager::listAllTags(QString & errorDescription, const size_t limit,
@@ -304,7 +304,7 @@ QList<Tag> LocalStorageManager::listAllTags(QString & errorDescription, const si
                                             const QString & linkedNotebookGuid) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllTags(errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
+    return d->listAllTags(errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
 }
 
 QList<Tag> LocalStorageManager::listTags(const ListObjectsOptions flag, QString & errorDescription,
@@ -314,81 +314,81 @@ QList<Tag> LocalStorageManager::listTags(const ListObjectsOptions flag, QString 
                                          const QString & linkedNotebookGuid) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListTags(flag, errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
+    return d->listTags(flag, errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
 }
 
 bool LocalStorageManager::deleteTag(const Tag & tag, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->DeleteTag(tag, errorDescription);
+    return d->deleteTag(tag, errorDescription);
 }
 
 bool LocalStorageManager::expungeTag(const Tag & tag, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->ExpungeTag(tag, errorDescription);
+    return d->expungeTag(tag, errorDescription);
 }
 
 bool LocalStorageManager::expungeNotelessTagsFromLinkedNotebooks(QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->ExpungeNotelessTagsFromLinkedNotebooks(errorDescription);
+    return d->expungeNotelessTagsFromLinkedNotebooks(errorDescription);
 }
 
 int LocalStorageManager::enResourceCount(QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->GetEnResourceCount(errorDescription);
+    return d->enResourceCount(errorDescription);
 }
 
 bool LocalStorageManager::addEnResource(const IResource & resource, const Note & note, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->AddEnResource(resource, note, errorDescription);
+    return d->addEnResource(resource, note, errorDescription);
 }
 
 bool LocalStorageManager::updateEnResource(const IResource & resource, const Note &note, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->UpdateEnResource(resource, note, errorDescription);
+    return d->updateEnResource(resource, note, errorDescription);
 }
 
 bool LocalStorageManager::findEnResource(IResource & resource, QString & errorDescription,
                                          const bool withBinaryData) const
 {
     Q_D(const LocalStorageManager);
-    return d->FindEnResource(resource, errorDescription, withBinaryData);
+    return d->findEnResource(resource, errorDescription, withBinaryData);
 }
 
 bool LocalStorageManager::expungeEnResource(const IResource & resource, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->ExpungeEnResource(resource, errorDescription);
+    return d->expungeEnResource(resource, errorDescription);
 }
 
 int LocalStorageManager::savedSearchCount(QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->GetSavedSearchCount(errorDescription);
+    return d->savedSearchCount(errorDescription);
 }
 
 bool LocalStorageManager::addSavedSearch(const SavedSearch & search, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->AddSavedSearch(search, errorDescription);
+    return d->addSavedSearch(search, errorDescription);
 }
 
 bool LocalStorageManager::updateSavedSearch(const SavedSearch & search,
                                             QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->UpdateSavedSearch(search, errorDescription);
+    return d->updateSavedSearch(search, errorDescription);
 }
 
 bool LocalStorageManager::findSavedSearch(SavedSearch & search, QString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
-    return d->FindSavedSearch(search, errorDescription);
+    return d->findSavedSearch(search, errorDescription);
 }
 
 QList<SavedSearch> LocalStorageManager::listAllSavedSearches(QString & errorDescription, const size_t limit, const size_t offset,
@@ -396,7 +396,7 @@ QList<SavedSearch> LocalStorageManager::listAllSavedSearches(QString & errorDesc
                                                              const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListAllSavedSearches(errorDescription, limit, offset, order, orderDirection);
+    return d->listAllSavedSearches(errorDescription, limit, offset, order, orderDirection);
 }
 
 QList<SavedSearch> LocalStorageManager::listSavedSearches(const ListObjectsOptions flag, QString & errorDescription,
@@ -405,14 +405,14 @@ QList<SavedSearch> LocalStorageManager::listSavedSearches(const ListObjectsOptio
                                                           const OrderDirection::type orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->ListSavedSearches(flag, errorDescription, limit, offset, order, orderDirection);
+    return d->listSavedSearches(flag, errorDescription, limit, offset, order, orderDirection);
 }
 
 bool LocalStorageManager::expungeSavedSearch(const SavedSearch & search,
                                              QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->ExpungeSavedSearch(search, errorDescription);
+    return d->expungeSavedSearch(search, errorDescription);
 }
 
 } // namespace qute_note
