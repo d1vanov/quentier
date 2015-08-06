@@ -38,6 +38,8 @@ public:
 
     void setFallbackResourceIcon(const QIcon & icon);
 
+    void setGenericResourceDisplayWidget(IGenericResourceDisplayWidget * genericResourceDisplayWidget);
+
     QObject * create(const QString & mimeType, const QUrl & url,
                      const QStringList & argumentNames,
                      const QStringList & argumentValues) const;
@@ -51,6 +53,7 @@ private:
 
 private:
     const NoteEditor &                              m_noteEditor;
+    IGenericResourceDisplayWidget *                 m_genericResourceDisplayWidget;
     QHash<PluginIdentifier, INoteEditorPlugin*>     m_plugins;
     PluginIdentifier                                m_lastFreePluginId;
     const Note *                                    m_pCurrentNote;

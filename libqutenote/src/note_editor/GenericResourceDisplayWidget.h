@@ -1,7 +1,8 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_DISPLAY_WIDGET_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_DISPLAY_WIDGET_H
 
-#include <QWidget>
+#include <qute_note/note_editor/IGenericResourceDisplayWidget.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QUuid>
 
 QT_FORWARD_DECLARE_CLASS(QMimeDatabase)
@@ -16,20 +17,21 @@ QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
-class GenericResourceDisplayWidget: public QWidget
+class GenericResourceDisplayWidget: public IGenericResourceDisplayWidget
 {
     Q_OBJECT
 public:
-    GenericResourceDisplayWidget(const QIcon & icon, const QString & name,
-                                 const QString & size, const QStringList & preferredFileSuffixes,
-                                 const QString & filterString,
-                                 const IResource & resource,
-                                 const ResourceFileStorageManager & resourceFileStorageManager,
-                                 const FileIOThreadWorker & fileIOThreadWorker,
-                                 QWidget * parent = nullptr);
+    GenericResourceDisplayWidget(QWidget * parent = nullptr);
+    virtual ~GenericResourceDisplayWidget();
 
-private:
-    Q_DISABLE_COPY(GenericResourceDisplayWidget)
+    virtual void initialize(const QIcon & icon, const QString & name,
+                            const QString & size, const QStringList & preferredFileSuffixes,
+                            const QString & filterString,
+                            const IResource & resource,
+                            const ResourceFileStorageManager & resourceFileStorageManager,
+                            const FileIOThreadWorker & fileIOThreadWorker) Q_DECL_OVERRIDE;
+
+    virtual GenericResourceDisplayWidget * create() const Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void savedResourceToFile();
@@ -51,13 +53,16 @@ private:
     void openResource();
 
 private:
+    Q_DISABLE_COPY(GenericResourceDisplayWidget)
+
+private:
     Ui::GenericResourceDisplayWidget *  m_pUI;
 
     const IResource *                   m_pResource;
     const ResourceFileStorageManager *  m_pResourceFileStorageManager;
     const FileIOThreadWorker *          m_pFileIOThreadWorker;
-    const QStringList                   m_preferredFileSuffixes;
-    const QString                       m_filterString;
+    QStringList                         m_preferredFileSuffixes;
+    QString                             m_filterString;
 
     QUuid                               m_saveResourceToFileRequestId;
     QUuid                               m_saveResourceToStorageRequestId;

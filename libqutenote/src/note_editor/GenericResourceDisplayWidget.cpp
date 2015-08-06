@@ -1,4 +1,4 @@
-#include <qute_note/note_editor/GenericResourceDisplayWidget.h>
+#include "GenericResourceDisplayWidget.h"
 #include "ui_GenericResourceDisplayWidget.h"
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
@@ -17,21 +17,14 @@
 
 namespace qute_note {
 
-GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, const QString & name,
-                                                           const QString & size,
-                                                           const QStringList & preferredFileSuffixes,
-                                                           const QString & filterString,
-                                                           const IResource & resource,
-                                                           const ResourceFileStorageManager & resourceFileStorageManager,
-                                                           const FileIOThreadWorker & fileIOThreadWorker,
-                                                           QWidget * parent) :
-    QWidget(parent),
+GenericResourceDisplayWidget::GenericResourceDisplayWidget(QWidget * parent) :
+    IGenericResourceDisplayWidget(parent),
     m_pUI(new Ui::GenericResourceDisplayWidget),
-    m_pResource(&resource),
-    m_pResourceFileStorageManager(&resourceFileStorageManager),
-    m_pFileIOThreadWorker(&fileIOThreadWorker),
-    m_preferredFileSuffixes(preferredFileSuffixes),
-    m_filterString(filterString),
+    m_pResource(nullptr),
+    m_pResourceFileStorageManager(nullptr),
+    m_pFileIOThreadWorker(nullptr),
+    m_preferredFileSuffixes(nullptr),
+    m_filterString(),
     m_saveResourceToFileRequestId(),
     m_saveResourceToStorageRequestId(),
     m_resourceHash(),
@@ -39,11 +32,28 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
     m_savedResourceToStorage(false),
     m_pendingSaveResourceToStorage(false)
 {
-    QNDEBUG("GenericResourceDisplayWidget::GenericResourceDisplayWidget: name = " << name
-            << ", size = " << size);
-    QNTRACE("Resource: " << resource);
-
     m_pUI->setupUi(this);
+}
+
+GenericResourceDisplayWidget::~GenericResourceDisplayWidget()
+{
+    delete m_pUI;
+}
+
+void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString & name,
+                                              const QString & size, const QStringList & preferredFileSuffixes,
+                                              const QString & filterString,
+                                              const IResource & resource,
+                                              const ResourceFileStorageManager & resourceFileStorageManager,
+                                              const FileIOThreadWorker & fileIOThreadWorker)
+{
+    QNDEBUG("GenericResourceDisplayWidget::initialize: name = " << name << ", size = " << size);
+
+    m_pResource = &resource;
+    m_pResourceFileStorageManager = &resourceFileStorageManager;
+    m_pFileIOThreadWorker = &fileIOThreadWorker;
+    m_preferredFileSuffixes = preferredFileSuffixes;
+    m_filterString = filterString;
 
     m_pUI->resourceDisplayNameLabel->setText("<html><head/><body><p><span style=\" font-size:14pt; font-weight:600;\">" +
                                              name + "</span></p></body></head></html>");
@@ -76,7 +86,7 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
     QObject::connect(this, SIGNAL(saveResourceToFile(QString,QByteArray,QUuid)),
                      m_pFileIOThreadWorker, SLOT(onWriteFileRequest(QString,QByteArray,QUuid)));
 
-    QString resourceFileStorageLocation = ResourceFileStorageManager::resourceFileStorageLocation(parent);
+    QString resourceFileStorageLocation = ResourceFileStorageManager::resourceFileStorageLocation(qobject_cast<QWidget*>(parent()));
     if (!resourceFileStorageLocation.isEmpty()) {
         QNWARNING("Couldn't determine the path for resource file storage location");
         return;
@@ -110,6 +120,11 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(const QIcon & icon, c
     emit saveResourceToStorage(m_pResource->localGuid(), data, *dataHash, m_saveResourceToStorageRequestId);
     QNTRACE("Emitted request to save the attachment to own file storage location, request id = "
             << m_saveResourceToStorageRequestId << ", resource local guid = " << m_pResource->localGuid());
+}
+
+GenericResourceDisplayWidget * GenericResourceDisplayWidget::create() const
+{
+    return new GenericResourceDisplayWidget;
 }
 
 void GenericResourceDisplayWidget::onOpenWithButtonPressed()

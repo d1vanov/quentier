@@ -66,7 +66,7 @@ set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/AttachmentStoragePathConfigDialog.h
     headers/qute_note/note_editor/EncryptedAreaPlugin.h
     headers/qute_note/note_editor/DecryptedTextCache.h
-    headers/qute_note/note_editor/GenericResourceDisplayWidget.h
+    headers/qute_note/note_editor/IGenericResourceDisplayWidget.h
     headers/qute_note/note_editor/NoteDecryptionDialog.h
     headers/qute_note/note_editor/NoteEditor.h
     headers/qute_note/note_editor/INoteEditorPlugin.h
@@ -151,6 +151,7 @@ list(APPEND PUBLIC_HEADERS ${UTILITY_HEADERS})
 
 set(PRIVATE_HEADERS
     src/local_storage/Transaction.h
+    src/note_editor/GenericResourceDisplayWidget.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor_p.h
     src/note_editor/NoteEditorPluginFactory_p.h
@@ -183,6 +184,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/AttachmentStoragePathConfigDialog.cpp
     src/note_editor/EncryptedAreaPlugin.cpp
     src/note_editor/GenericResourceDisplayWidget.cpp
+    src/note_editor/IGenericResourceDisplayWidget.cpp
     src/note_editor/INoteEditorPlugin.cpp
     src/note_editor/NoteEditorPage.cpp
     src/note_editor/NoteEditor.cpp

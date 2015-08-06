@@ -1,8 +1,9 @@
 #include "NoteEditorPluginFactory_p.h"
+#include "GenericResourceDisplayWidget.h"
 #include <qute_note/note_editor/NoteEditor.h>
-#include <qute_note/note_editor/GenericResourceDisplayWidget.h>
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
+#include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/types/Note.h>
 #include <qute_note/types/ResourceAdapter.h>
@@ -19,6 +20,7 @@ NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginF
                                                                QObject * parent) :
     QObject(parent),
     m_noteEditor(noteEditor),
+    m_genericResourceDisplayWidget(new GenericResourceDisplayWidget),
     m_plugins(),
     m_lastFreePluginId(1),
     m_pCurrentNote(nullptr),
@@ -41,6 +43,8 @@ NoteEditorPluginFactoryPrivate::~NoteEditorPluginFactoryPrivate()
         INoteEditorPlugin * plugin = it.value();
         delete plugin;
     }
+
+    delete m_genericResourceDisplayWidget;
 }
 
 const NoteEditor & NoteEditorPluginFactoryPrivate::noteEditor() const
@@ -238,6 +242,18 @@ void NoteEditorPluginFactoryPrivate::setFallbackResourceIcon(const QIcon & icon)
     m_fallbackResourceIcon = icon;
 }
 
+void NoteEditorPluginFactoryPrivate::setGenericResourceDisplayWidget(IGenericResourceDisplayWidget * genericResourceDisplayWidget)
+{
+    if (!genericResourceDisplayWidget) {
+        QNWARNING("detected attempt to set null generic resource display widget to note editor plugin factory");
+        return;
+    }
+
+    delete m_genericResourceDisplayWidget;
+    m_genericResourceDisplayWidget = genericResourceDisplayWidget;
+    m_genericResourceDisplayWidget->setParent(nullptr);
+}
+
 QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const QUrl & url,
                                                  const QStringList & argumentNames,
                                                  const QStringList & argumentValues) const
@@ -396,10 +412,20 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
         m_filterStringsCache[mimeType] = filterString;
     }
 
-    return new GenericResourceDisplayWidget(cachedIconIt.value(), resourceDisplayName,
-                                            resourceDataSize, fileSuffixes, filterString,
-                                            *pCurrentResource, *m_pResourceFileStorageManager,
-                                            *m_pFileIOThreadWorker);
+    IGenericResourceDisplayWidget * genericResourceDisplayWidget = m_genericResourceDisplayWidget->create();
+    QUTE_NOTE_CHECK_PTR(genericResourceDisplayWidget, "null pointer to generic resource display widget");
+
+    // NOTE: upon return this generic resource display widget would be reparented to the caller anyway,
+    // the parent setting below is strictly for possible use within initialize method (for example, if
+    // the widget would need to create some dialog window, it could be modal due to the existence of the parent)
+    genericResourceDisplayWidget->setParent(qobject_cast<QWidget*>(parent()));
+
+    genericResourceDisplayWidget->initialize(cachedIconIt.value(), resourceDisplayName,
+                                             resourceDataSize, fileSuffixes, filterString,
+                                             *pCurrentResource, *m_pResourceFileStorageManager,
+                                             *m_pFileIOThreadWorker);
+
+    return genericResourceDisplayWidget;
 }
 
 QList<QWebPluginFactory::Plugin> NoteEditorPluginFactoryPrivate::plugins() const

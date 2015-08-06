@@ -1,6 +1,7 @@
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
 #include "NoteEditorPluginFactory_p.h"
 #include <qute_note/note_editor/NoteEditor.h>
+#include <qute_note/note_editor/IGenericResourceDisplayWidget.h>
 #include <QRegExp>
 
 namespace qute_note {
@@ -47,6 +48,12 @@ void NoteEditorPluginFactory::setFallbackResourceIcon(const QIcon & icon)
 {
     Q_D(NoteEditorPluginFactory);
     d->setFallbackResourceIcon(icon);
+}
+
+void NoteEditorPluginFactory::setGenericResourceDisplayWidget(IGenericResourceDisplayWidget * genericResourceDisplayWidget)
+{
+    Q_D(NoteEditorPluginFactory);
+    d->setGenericResourceDisplayWidget(genericResourceDisplayWidget);
 }
 
 QObject * NoteEditorPluginFactory::create(const QString & mimeType, const QUrl & url,

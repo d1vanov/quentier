@@ -12,6 +12,7 @@ QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
+QT_FORWARD_DECLARE_CLASS(IGenericResourceDisplayWidget)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactoryPrivate)
 
 /**
@@ -104,6 +105,17 @@ public:
      * @param icon - icon to be used as a last resort for resources of unidentified mime types
      */
     void setFallbackResourceIcon(const QIcon & icon);
+
+    /**
+     * @brief setGenericResourceDisplayWidget - note editor plugin factory would create the "generic"
+     * resource display plugin if it finds no "real" plugin installed for the given mime type.
+     * This "generic" plugin is either built-in one or any other plugin implementing IGenericResourceDisplayWidget interface.
+     * This method is used to provide the note editor plugin factory with a sample object of particular
+     * IGenericResourceDisplayWidget subclass
+     * @param genericResourceDisplayWidget - sample object to be used for creation of generic resource display widget;
+     * the ownership of this object is passed to the note editor plugin factory
+     */
+    void setGenericResourceDisplayWidget(IGenericResourceDisplayWidget * genericResourceDisplayWidget);
 
 private:
     // QWebPluginFactory interface
