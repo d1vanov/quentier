@@ -16,6 +16,9 @@ private:
     void highlightByRegex(const QTextCharFormat & format,
                           const QRegExp & regex, const QString & text);
 
+    void setRegexes();
+    void setFormats();
+
 private:
     QTextCharFormat     m_xmlKeywordFormat;
     QTextCharFormat     m_xmlElementFormat;
