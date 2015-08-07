@@ -58,6 +58,7 @@ set(${PROJECT_NAME}_HEADERS
     src/FindAndReplaceWidget.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
+    src/models/SavedSearchModel.h
     src/insert-table-tool-button/InsertTableToolButton.h
     src/insert-table-tool-button/TableSettingsDialog.h
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
@@ -77,6 +78,7 @@ set(${PROJECT_NAME}_SOURCES
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelectorActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelector.cpp
+    src/models/SavedSearchModel.cpp
     src/tests/ManualTestingHelper.cpp
     src/main.cpp)
 
