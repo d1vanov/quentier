@@ -1,4 +1,4 @@
-#include <qute_note/note_editor/NoteDecryptionDialog.h>
+#include "NoteDecryptionDialog.h"
 #include "ui_NoteDecryptionDialog.h"
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/logging/QuteNoteLogger.h>
