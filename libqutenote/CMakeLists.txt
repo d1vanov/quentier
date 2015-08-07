@@ -63,7 +63,6 @@ include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(headers)
 
 set(NOTE_EDITOR_HEADERS
-    headers/qute_note/note_editor/EncryptedAreaPlugin.h
     headers/qute_note/note_editor/DecryptedTextCache.h
     headers/qute_note/note_editor/IGenericResourceDisplayWidget.h
     headers/qute_note/note_editor/NoteEditor.h
@@ -150,6 +149,7 @@ list(APPEND PUBLIC_HEADERS ${UTILITY_HEADERS})
 set(PRIVATE_HEADERS
     src/local_storage/Transaction.h
     src/note_editor/AttachmentStoragePathConfigDialog.h
+    src/note_editor/EncryptedAreaPlugin.h
     src/note_editor/GenericResourceDisplayWidget.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor_p.h
