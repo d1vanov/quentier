@@ -1,4 +1,4 @@
-#include <qute_note/note_editor/AttachmentStoragePathConfigDialog.h>
+#include "AttachmentStoragePathConfigDialog.h"
 #include "ui_AttachmentStoragePathConfigDialog.h"
 #include <qute_note/utility/DesktopServices.h>
 
