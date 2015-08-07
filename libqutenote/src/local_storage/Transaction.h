@@ -19,7 +19,7 @@ public:
     };
 
     Transaction(const QSqlDatabase & db, const LocalStorageManagerPrivate & localStorageManager,
-                TransactionType type = TransactionType::Default);
+                TransactionType type = Default);
     virtual ~Transaction();
 
     bool commit(QString & errorDescription);

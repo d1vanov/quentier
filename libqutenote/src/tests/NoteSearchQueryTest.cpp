@@ -251,7 +251,12 @@ bool NoteSearchQueryTest(QString & error)
     // Iterating over all combinations of 8 boolean factors with a special meaning
     for(int mask = 0; mask != (1<<8); ++mask)
     {
+        // NOTE: workarounding VC 2010 bug
+#if defined(_MSC_VER) && _MSC_VER <= 1600
+        std::bitset<static_cast<unsigned long long>(8)> bits(static_cast<unsigned long long>(mask));
+#else
         std::bitset<8> bits(static_cast<quint32>(mask));
+#endif
 
         QString queryString;
 
