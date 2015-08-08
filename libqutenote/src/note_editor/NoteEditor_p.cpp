@@ -74,7 +74,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     page->setContentEditable(true);
 
     m_pIOThread = new QThread;
-    QObject::connect(m_pIOThread, SIGNAL(finished()), m_pIOThread, SLOT(deleteLater()));
+    QObject::connect(m_pIOThread, QNSIGNAL(FileIOThreadWorker,finished), m_pIOThread, QNSLOT(FileIOThreadWorker,deleteLater));
     m_pIOThread->start(QThread::LowPriority);
 
     m_pResourceFileStorageManager = new ResourceFileStorageManager;
@@ -94,15 +94,15 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
         throw NoteEditorPluginInitializationException("Can't initialize note editor plugin for managing the encrypted text");
     }
 
-    QObject::connect(this, SIGNAL(saveResourceToStorage(QString,QByteArray,QByteArray,QUuid)),
-                     m_pResourceFileStorageManager, SLOT(onWriteResourceToFileRequest(QString,QByteArray,QByteArray,QUuid)));
-    QObject::connect(m_pResourceFileStorageManager, SIGNAL(writeResourceToFileCompleted(QUuid,QByteArray,int,QString)),
-                     this, SLOT(onResourceSavedToStorage(QUuid,QByteArray,int,QString)));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToStorage,QString,QByteArray,QByteArray,QUuid),
+                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QUuid));
+    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,int,QString),
+                     this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,int,QString));
 
-    QObject::connect(this, SIGNAL(readDroppedFileData(QString,QUuid)),
-                     m_pFileIOThreadWorker, SLOT(onReadFileRequest(QString,QUuid)));
-    QObject::connect(m_pFileIOThreadWorker, SIGNAL(readFileRequestProcessed(bool,QString,QByteArray,QUuid)),
-                     this, SLOT(onDroppedFileRead(bool,QString,QByteArray,QUuid)));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,readDroppedFileData,QString,QUuid),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorke,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
+                     this, QNSLOT(NoteEditorPrivate,onDroppedFileRead,bool,QString,QByteArray,QUuid));
 
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache));
 
@@ -138,10 +138,10 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForResourceImgTags = file.readAll();
     file.close();
 
-    QObject::connect(page, SIGNAL(contentsChanged()), q, SIGNAL(contentChanged()));
-    QObject::connect(page, SIGNAL(contentsChanged()), this, SLOT(onContentChanged()));
-    QObject::connect(q, SIGNAL(loadFinished(bool)), this, SLOT(onNoteLoadFinished(bool)));
-    QObject::connect(this, SIGNAL(notifyError(QString)), q, SIGNAL(notifyError(QString)));
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
+    QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
 
     q->setPage(page);
     // Setting initial "blank" page, it is of great importance in order to make image insertion work
@@ -1052,8 +1052,11 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
     // TODO: ensure the contentChanged signal would be emitted automatically (guess it should)
 }
 
-void NoteEditorPrivate::onEncryptedAreaDecryption()
+void NoteEditorPrivate::onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession)
 {
+    Q_UNUSED(encryptedText)
+    Q_UNUSED(decryptedText)
+    Q_UNUSED(rememberForSession)
     noteToEditorContent();
 }
 

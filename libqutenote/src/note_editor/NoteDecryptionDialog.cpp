@@ -38,8 +38,8 @@ NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
     setRememberPassphraseDefaultState(rememberPassphraseForSessionDefault);
     m_pUI->onErrorTextLabel->setVisible(false);
 
-    QObject::connect(m_pUI->rememberPasswordCheckBox, SIGNAL(stateChanged(int)),
-                     this, SLOT(onRememberPassphraseStateChanged()));
+    QObject::connect(m_pUI->rememberPasswordCheckBox, QNSIGNAL(QCheckBox,stateChanged,int),
+                     this, QNSLOT(NoteDecryptionDialog,onRememberPassphraseStateChanged));
 }
 
 NoteDecryptionDialog::~NoteDecryptionDialog()
@@ -79,8 +79,10 @@ void NoteDecryptionDialog::setRememberPassphraseDefaultState(const bool checked)
     m_pUI->rememberPasswordCheckBox->setChecked(checked);
 }
 
-void NoteDecryptionDialog::onRememberPassphraseStateChanged()
+void NoteDecryptionDialog::onRememberPassphraseStateChanged(int checked)
 {
+    Q_UNUSED(checked)
+
     ApplicationSettings appSettings;
     if (!appSettings.isWritable()) {
         QNINFO("Can't persist remember passphrase for session setting: settings are not writable");

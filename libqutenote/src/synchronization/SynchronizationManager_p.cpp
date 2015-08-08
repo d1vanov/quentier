@@ -420,61 +420,66 @@ void SynchronizationManagerPrivate::onRateLimitExceeded(qint32 secondsToWait)
 void SynchronizationManagerPrivate::createConnections()
 {
     // Connections with OAuth handler
-    QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationFinished(bool)), this, SLOT(onOAuthResult(bool)));
-    QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationSuceeded), this, SLOT(onOAuthSuccess()));
-    QObject::connect(m_pOAuthWebView.data(), SIGNAL(authenticationFailed), this, SLOT(onOAuthFailure()));
+    QObject::connect(m_pOAuthWebView.data(), QNSIGNAL(qevercloud::EvernoteOAuthWebView,authenticationFinished,bool),
+                     this, QNSLOT(SynchronizationManagerPrivate,onOAuthResult,bool));
+    QObject::connect(m_pOAuthWebView.data(), QNSIGNAL(qevercloud::EvernoteOAuthWebView,authenticationSuceeded),
+                     this, QNSLOT(SynchronizationManagerPrivate,onOAuthSuccess));
+    QObject::connect(m_pOAuthWebView.data(), QNSIGNAL(qevercloud::EvernoteOAuthWebView,authenticationFailed),
+                     this, QNSLOT(SynchronizationManagerPrivate,onOAuthFailure));
 
     // Connections with remote to local synchronization manager
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(error(QString)), this, SIGNAL(notifyError(QString)));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(finished(qint32,qevercloud::Timestamp,QHash<QString,qint32>,
-                                                                  QHash<QString,qevercloud::Timestamp>)),
-                     this, SLOT(onRemoteToLocalSyncFinished(qint32,qevercloud::Timestamp,QHash<QString,qint32>,
-                                                            QHash<QString,qevercloud::Timestamp>)));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(rateLimitExceeded(qint32)), this, SLOT(onRateLimitExceeded(qint32)));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestAuthenticationToken()),
-                     this, SLOT(onRequestAuthenticationToken()));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)),
-                     this, SLOT(onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(paused(bool)), this, SLOT(onRemoteToLocalSyncPaused(bool)));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(stopped()), this, SLOT(onRemoteToLocalSyncStopped()));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(requestLastSyncParameters()), this, SLOT(onRequestLastSyncParameters()));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(syncChunksDownloaded()), this, SLOT(onRemoteToLocalSyncChunksDownloaded()));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(fullNotesContentsDownloaded()), this, SLOT(onRemoteToLocalSyncFullNotesContentDownloaded()));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(expungedFromServerToClient()), this, SLOT(onRemoteToLocalSyncExpungedFromServerToClient()));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(linkedNotebooksSyncChunksDownloaded()), this, SLOT(onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded()));
-    QObject::connect(&m_remoteToLocalSyncManager, SIGNAL(linkedNotebooksFullNotesContentsDownloaded()), this, SLOT(onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded()));
-    QObject::connect(this, SIGNAL(pauseRemoteToLocalSync()), &m_remoteToLocalSyncManager, SLOT(pause()));
-    QObject::connect(this, SIGNAL(resumeRemoteToLocalSync()), &m_remoteToLocalSyncManager, SLOT(resume()));
-    QObject::connect(this, SIGNAL(stopRemoteToLocalSync()), &m_remoteToLocalSyncManager, SLOT(stop()));
-    QObject::connect(this, SIGNAL(sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)),
-                     &m_remoteToLocalSyncManager, SLOT(onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)));
-    QObject::connect(this, SIGNAL(sendLastSyncParameters(qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>)),
-                     &m_remoteToLocalSyncManager, SLOT(onLastSyncParametersReceived(qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>)));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,error,QString),
+                     this, QNSIGNAL(SynchronizationManagerPrivate,notifyError,QString));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,finished,qint32,qevercloud::Timestamp,QHash<QString,qint32>,
+                                                           QHash<QString,qevercloud::Timestamp>),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncFinished,qint32,qevercloud::Timestamp,QHash<QString,qint32>,
+                                  QHash<QString,qevercloud::Timestamp>));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,rateLimitExceeded,qint32),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRateLimitExceeded,qint32));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,requestAuthenticationToken),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRequestAuthenticationToken));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,requestAuthenticationTokensForLinkedNotebooks,QList<QPair<QString,QString> >),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRequestAuthenticationTokensForLinkedNotebooks,QList<QPair<QString,QString> >));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,paused,bool), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncPaused,bool));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,stopped), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncStopped));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,requestLastSyncParameters), this, QNSLOT(SynchronizationManagerPrivate,onRequestLastSyncParameters));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,syncChunksDownloaded), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncChunksDownloaded));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,fullNotesContentsDownloaded), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncFullNotesContentDownloaded));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,expungedFromServerToClient), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncExpungedFromServerToClient));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,linkedNotebooksSyncChunksDownloaded), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,linkedNotebooksFullNotesContentsDownloaded), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,pauseRemoteToLocalSync), &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,pause));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,resumeRemoteToLocalSync), &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManage,resume));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,stopRemoteToLocalSync), &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,stop));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,sendAuthenticationTokensForLinkedNotebooks,QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>),
+                     &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,onAuthenticationTokensForLinkedNotebooksReceived,QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,sendLastSyncParameters,qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>),
+                     &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,onLastSyncParametersReceived,qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>));
 
     // Connections with send local changes manager
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(failure(QString)), this, SIGNAL(notifyError(QString)));
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(finished(qint32,QHash<QString,qint32>)),
-                     this, SLOT(onLocalChangesSent(qint32,QHash<QString,qint32>)));
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(rateLimitExceeded(qint32)), this, SLOT(onRateLimitExceeded(qint32)));
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(requestAuthenticationToken()),
-                     this, SLOT(onRequestAuthenticationToken()));
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)),
-                     this, SLOT(onRequestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString,QString> >)));
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(shouldRepeatIncrementalSync()), this, SLOT(onShouldRepeatIncrementalSync()));
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(conflictDetected()), this, SLOT(onConflictDetectedDuringLocalChangesSending()));
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(paused(bool)), this, SLOT(onSendLocalChangesPaused(bool)));
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(stopped()), this, SLOT(onSendLocalChangesStopped()));
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(receivedUserAccountDirtyObjects()), this, SLOT(onSendingLocalChangesReceivedUsersDirtyObjects()));
-    QObject::connect(&m_sendLocalChangesManager, SIGNAL(receivedAllDirtyObjects()), this, SLOT(onSendingLocalChangesReceivedAllDirtyObjects()));
-    QObject::connect(this, SIGNAL(sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)),
-                     &m_sendLocalChangesManager, SLOT(onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>)));
-    QObject::connect(this, SIGNAL(pauseSendingLocalChanges()), &m_sendLocalChangesManager, SLOT(pause()));
-    QObject::connect(this, SIGNAL(resumeSendingLocalChanges()), &m_sendLocalChangesManager, SLOT(resume()));
-    QObject::connect(this, SIGNAL(stopSendingLocalChanges()), &m_sendLocalChangesManager, SLOT(stop()));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,failure,QString), this, QNSIGNAL(SynchronizationManagerPrivate,notifyError,QString));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,finished,qint32,QHash<QString,qint32>),
+                     this, QNSLOT(SynchronizationManagerPrivate,onLocalChangesSent,qint32,QHash<QString,qint32>));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManage,rateLimitExceeded,qint32), this, QNSLOT(SynchronizationManagerPrivate,onRateLimitExceeded,qint32));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManage,requestAuthenticationToken),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRequestAuthenticationToken));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,requestAuthenticationTokensForLinkedNotebook,QList<QPair<QString,QString> >),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRequestAuthenticationTokensForLinkedNotebooks,QList<QPair<QString,QString> >));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,shouldRepeatIncrementalSync), this, QNSLOT(SynchronizationManagerPrivate,onShouldRepeatIncrementalSync));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,conflictDetected), this, QNSLOT(SynchronizationManagerPrivate,onConflictDetectedDuringLocalChangesSending));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,paused,bool), this, QNSLOT(SynchronizationManagerPrivate,onSendLocalChangesPaused,bool));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,stopped), this, QNSLOT(SynchronizationManagerPrivate,onSendLocalChangesStopped));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,receivedUserAccountDirtyObjects), this, QNSLOT(SynchronizationManagerPrivate,onSendingLocalChangesReceivedUsersDirtyObjects));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,receivedAllDirtyObjects), this, QNSLOT(SynchronizationManagerPrivate,onSendingLocalChangesReceivedAllDirtyObjects));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,sendAuthenticationTokensForLinkedNotebooks,QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>),
+                     &m_sendLocalChangesManager, QNSLOT(SendLocalChangesManager,onAuthenticationTokensForLinkedNotebooksReceived,QHash<QString,QString>,QHash<QString,qevercloud::Timestamp>));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,pauseSendingLocalChanges), &m_sendLocalChangesManager, QNSLOT(SendLocalChangesManager,pause));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,resumeSendingLocalChanges), &m_sendLocalChangesManager, QNSLOT(SendLocalChangesManager,resume));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,stopSendingLocalChanges), &m_sendLocalChangesManager, QNSLOT(SendLocalChangesManager,stop));
 
     // Connections with read/write password jobs
-    QObject::connect(&m_readAuthTokenJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
-    QObject::connect(&m_writeAuthTokenJob, SIGNAL(finished(QKeychain::Job*)), this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
+    QObject::connect(&m_readAuthTokenJob, QNSIGNAL(QKeychain::ReadPasswordJob,finished,QKeychain::Job*), this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
+    QObject::connect(&m_writeAuthTokenJob, QNSIGNAL(QKeychain::WritePasswordJob,finished,QKeychain::Job*), this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
 }
 
 void SynchronizationManagerPrivate::readLastSyncParameters()
@@ -885,8 +890,8 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
 
                 job->setKey(guid);
 
-                QObject::connect(job.data(), SIGNAL(finished(QKeychain::Job*)),
-                                 this, SLOT(onKeychainJobFinished(QKeychain::Job*)));
+                QObject::connect(job.data(), QNSIGNAL(QKeychain::ReadPasswordJob,finished,QKeychain::Job*),
+                                 this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
 
                 job->start();
 
@@ -1022,8 +1027,8 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         job->setKey(key);
         job->setTextData(token);
 
-        QObject::connect(job.data(), SIGNAL(finished(QKeychain::Job *)),
-                         this, SLOT(onKeychainJobFinished(QKeychain::Job *)));
+        QObject::connect(job.data(), QNSIGNAL(QKeychain::WritePasswordJob,finished,QKeychain::Job*),
+                         this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
 
         job->start();
     }

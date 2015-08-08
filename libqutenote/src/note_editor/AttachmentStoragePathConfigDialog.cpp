@@ -1,6 +1,7 @@
 #include <qute_note/note_editor/AttachmentStoragePathConfigDialog.h>
 #include "ui_AttachmentStoragePathConfigDialog.h"
 #include <qute_note/utility/DesktopServices.h>
+#include <qute_note/utility/Qt4Helper.h>
 
 namespace qute_note {
 
@@ -26,8 +27,10 @@ AttachmentStoragePathConfigDialog::AttachmentStoragePathConfigDialog(QWidget * p
     m_pUI->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(initialFolderInfo.exists() &&
                                                                initialFolderInfo.isDir() &&
                                                                initialFolderInfo.isWritable());
-    QObject::connect(m_pUI->chooseFolderButton, SIGNAL(released()), this, SLOT(onChooseFolder()));
-    QObject::connect(m_pUI->buttonBox->button(QDialogButtonBox::Ok), SIGNAL(released()), this, SLOT(accept()));
+    QObject::connect(m_pUI->chooseFolderButton, QNSIGNAL(QPushButton,released),
+                     this, QNSLOT(AttachmentStoragePathConfigDialog,onChooseFolder));
+    QObject::connect(m_pUI->buttonBox->button(QDialogButtonBox::Ok), QNSIGNAL(QPushButton,released),
+                     this, QNSLOT(AttachmentStoragePathConfigDialog,accept));
 }
 
 AttachmentStoragePathConfigDialog::~AttachmentStoragePathConfigDialog()

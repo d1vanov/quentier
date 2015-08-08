@@ -38,7 +38,7 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encry
 
     QAction * showEncryptedTextAction = new QAction(this);
     showEncryptedTextAction->setText(QObject::tr("Show encrypted text") + "...");
-    QObject::connect(showEncryptedTextAction, SIGNAL(triggered()), this, SLOT(decrypt()));
+    QObject::connect(showEncryptedTextAction, QNSIGNAL(QAction,triggered), this, QNSLOT(EncryptedAreaPlugin,decrypt));
     m_pUI->toolButton->addAction(showEncryptedTextAction);
 }
 
@@ -127,8 +127,8 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
     }
 
     const NoteEditor & noteEditor = pluginFactory.noteEditor();
-    QObject::connect(this, SIGNAL(decrypted(QString,QString,bool)),
-                     &noteEditor, SLOT(onEncryptedAreaDecryption()));
+    QObject::connect(this, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,QString,bool),
+                     &noteEditor, QNSLOT(NoteEditor,onEncryptedAreaDecryption,QString,QString,bool));
 
     QNTRACE("Initialized encrypted area plugin: cipher = " << m_cipher
             << ", length = " << m_keyLength << ", hint = " << m_hint

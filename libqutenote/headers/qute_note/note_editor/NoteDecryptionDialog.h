@@ -33,7 +33,7 @@ public:
 private Q_SLOTS:
     void setHint(const QString & hint);
     void setRememberPassphraseDefaultState(const bool checked);
-    void onRememberPassphraseStateChanged();
+    void onRememberPassphraseStateChanged(int checked);
 
     virtual void accept();
 

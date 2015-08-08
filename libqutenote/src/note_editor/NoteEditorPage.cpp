@@ -14,7 +14,7 @@ NoteEditorPage::NoteEditorPage(NoteEditor & parent) :
 {
     QUTE_NOTE_CHECK_PTR(m_parent);
 
-    QObject::connect(this, SIGNAL(noteLoadCancelled()), &parent, SLOT(onNoteLoadCancelled()));
+    QObject::connect(this, QNSIGNAL(NoteEditorPage,noteLoadCancelled), &parent, QNSLOT(NoteEditor,onNoteLoadCancelled));
 }
 
 bool NoteEditorPage::shouldInterruptJavaScript()
