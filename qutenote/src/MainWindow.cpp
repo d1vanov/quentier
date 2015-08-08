@@ -88,7 +88,7 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->formatListOrderedPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, noteTextInsertOrderedList));
     QObject::connect(m_pUI->insertToDoCheckboxPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, noteTextInsertToDoCheckBox));
     QObject::connect(m_pUI->chooseTextColorPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, noteChooseTextColor));
-    QObject::connect(m_pUI->insertTableToolButton, QNSIGNAL(QPushButton, createdTable,int,int,double,bool),
+    QObject::connect(m_pUI->insertTableToolButton, QNSIGNAL(InsertTableToolButton, createdTable,int,int,double,bool),
                      this, QNSLOT(MainWindow, noteTextInsertTable,int,int,double,bool));
 }
 
