@@ -8,17 +8,17 @@ SynchronizationManager::SynchronizationManager(const QString & consumerKey, cons
                                                LocalStorageManagerThreadWorker & localStorageManagerThreadWorker) :
     d_ptr(new SynchronizationManagerPrivate(consumerKey, consumerSecret, localStorageManagerThreadWorker))
 {
-    QObject::connect(d_ptr, SIGNAL(notifyError(QString)), this, SIGNAL(failed(QString)));
-    QObject::connect(d_ptr, SIGNAL(notifyFinish()), this, SIGNAL(finished()));
-    QObject::connect(d_ptr, SIGNAL(remoteToLocalSyncPaused(bool)), this, SIGNAL(remoteToLocalSyncPaused(bool)));
-    QObject::connect(d_ptr, SIGNAL(remoteToLocalSyncStopped()), this, SIGNAL(remoteToLocalSyncStopped()));
-    QObject::connect(d_ptr, SIGNAL(sendLocalChangesPaused(bool)), this, SIGNAL(sendLocalChangesPaused(bool)));
-    QObject::connect(d_ptr, SIGNAL(sendLocalChangesStopped()), this, SIGNAL(sendLocalChangesStopped()));
-    QObject::connect(d_ptr, SIGNAL(willRepeatRemoteToLocalSyncAfterSendingChanges()), this, SIGNAL(willRepeatRemoteToLocalSyncAfterSendingChanges()));
-    QObject::connect(d_ptr, SIGNAL(detectedConflictDuringLocalChangesSending()), this, SIGNAL(detectedConflictDuringLocalChangesSending()));
-    QObject::connect(d_ptr, SIGNAL(rateLimitExceeded(qint32)), this, SIGNAL(rateLimitExceeded(qint32)));
-    QObject::connect(d_ptr, SIGNAL(notifyRemoteToLocalSyncDone()), this, SIGNAL(remoteToLocalSyncDone()));
-    QObject::connect(d_ptr, SIGNAL(progress(QString,double)), this, SIGNAL(progress(QString,double)));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate, notifyError, QString), this, QNSIGNAL(SynchronizationManager, failed, QString));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate, notifyFinish), this, QNSIGNAL(SynchronizationManager, finished));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate, remoteToLocalSyncPaused, bool), this, QNSIGNAL(SynchronizationManager, remoteToLocalSyncPaused, bool));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate, remoteToLocalSyncStopped), this, QNSIGNAL(SynchronizationManager, remoteToLocalSyncStopped));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate, sendLocalChangesPaused, bool), this, QNSIGNAL(SynchronizationManager, sendLocalChangesPaused, bool));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate, sendLocalChangesStopped), this, QNSIGNAL(SynchronizationManager, sendLocalChangesStopped));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate, willRepeatRemoteToLocalSyncAfterSendingChanges), this, QNSIGNAL(SynchronizationManager, willRepeatRemoteToLocalSyncAfterSendingChanges));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate, detectedConflictDuringLocalChangesSending), this, QNSIGNAL(SynchronizationManager, detectedConflictDuringLocalChangesSending));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate, rateLimitExceeded, qint32), this, QNSIGNAL(SynchronizationManager, rateLimitExceeded, qint32));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate, notifyRemoteToLocalSyncDone), this, QNSIGNAL(SynchronizationManager, remoteToLocalSyncDone));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate, progress,QString,double), this, QNSIGNAL(SynchronizationManager, progress,QString,double));
 }
 
 SynchronizationManager::~SynchronizationManager()

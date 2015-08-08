@@ -190,10 +190,10 @@ void NoteEditor::encryptSelectedText(const QString & passphrase, const QString &
     d->encryptSelectedText(passphrase, hint);
 }
 
-void NoteEditor::onEncryptedAreaDecryption()
+void NoteEditor::onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession)
 {
     Q_D(NoteEditor);
-    d->onEncryptedAreaDecryption();
+    d->onEncryptedAreaDecryption(encryptedText, decryptedText, rememberForSession);
 }
 
 void NoteEditor::onNoteLoadCancelled()

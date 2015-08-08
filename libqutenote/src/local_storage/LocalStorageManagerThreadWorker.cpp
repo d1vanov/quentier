@@ -774,6 +774,8 @@ void LocalStorageManagerThreadWorker::onListNotesRequest(LocalStorageManager::Li
                 m_pLocalStorageCacheManager->cacheNote(note);
             }
         }
+
+        emit listNotesComplete(flag, withResourceBinaryData, limit, offset, order, orderDirection, notes, requestId);
     }
     CATCH_EXCEPTION
 }

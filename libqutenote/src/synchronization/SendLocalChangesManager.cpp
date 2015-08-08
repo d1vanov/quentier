@@ -148,7 +148,7 @@ void SendLocalChangesManager::onListDirtyTagsCompleted(LocalStorageManager::List
                                                        size_t limit, size_t offset,
                                                        LocalStorageManager::ListTagsOrder::type order,
                                                        LocalStorageManager::OrderDirection::type orderDirection,
-                                                       QList<Tag> tags, QString linkedNotebookGuid, QUuid requestId)
+                                                       QString linkedNotebookGuid, QList<Tag> tags, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -220,7 +220,7 @@ void SendLocalChangesManager::onListDirtySavedSearchesCompleted(LocalStorageMana
                                                                 size_t limit, size_t offset,
                                                                 LocalStorageManager::ListSavedSearchesOrder::type order,
                                                                 LocalStorageManager::OrderDirection::type orderDirection,
-                                                                QList<SavedSearch> savedSearches, QString linkedNotebookGuid, QUuid requestId)
+                                                                QList<SavedSearch> savedSearches, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -230,7 +230,7 @@ void SendLocalChangesManager::onListDirtySavedSearchesCompleted(LocalStorageMana
 
     QNDEBUG("SendLocalChangesManager::onListDirtySavedSearchesCompleted: flag = " << flag << ", limit = " << limit
             << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
-            << ", linked notebook guid = " << linkedNotebookGuid << ", requestId = " << requestId);
+            << ", requestId = " << requestId);
 
     m_savedSearches << savedSearches;
     m_listDirtySavedSearchesRequestId = QUuid();
@@ -244,7 +244,7 @@ void SendLocalChangesManager::onListDirtySavedSearchesFailed(LocalStorageManager
                                                              size_t limit, size_t offset,
                                                              LocalStorageManager::ListSavedSearchesOrder::type order,
                                                              LocalStorageManager::OrderDirection::type orderDirection,
-                                                             QString linkedNotebookGuid, QString errorDescription, QUuid requestId)
+                                                             QString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -254,8 +254,7 @@ void SendLocalChangesManager::onListDirtySavedSearchesFailed(LocalStorageManager
 
     QNWARNING("SendLocalChangesManager::onListDirtySavedSearchesFailed: flag = " << flag << ", limit = " << limit
               << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
-              << ", linkedNotebookGuid = " << linkedNotebookGuid << ", errorDescription = " << errorDescription
-              << ", requestId = " << requestId);
+              << ", errorDescription = " << errorDescription << ", requestId = " << requestId);
 
     m_listDirtySavedSearchesRequestId = QUuid();
 
@@ -268,7 +267,7 @@ void SendLocalChangesManager::onListDirtyNotebooksCompleted(LocalStorageManager:
                                                             size_t limit, size_t offset,
                                                             LocalStorageManager::ListNotebooksOrder::type order,
                                                             LocalStorageManager::OrderDirection::type orderDirection,
-                                                            QList<Notebook> notebooks, QString linkedNotebookGuid, QUuid requestId)
+                                                            QString linkedNotebookGuid, QList<Notebook> notebooks, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -333,10 +332,11 @@ void SendLocalChangesManager::onListDirtyNotebooksFailed(LocalStorageManager::Li
 }
 
 void SendLocalChangesManager::onListDirtyNotesCompleted(LocalStorageManager::ListObjectsOptions flag,
+                                                        bool withResourceBinaryData,
                                                         size_t limit, size_t offset,
                                                         LocalStorageManager::ListNotesOrder::type order,
                                                         LocalStorageManager::OrderDirection::type orderDirection,
-                                                        QList<Note> notes, QString linkedNotebookGuid, QUuid requestId)
+                                                        QList<Note> notes, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -348,9 +348,10 @@ void SendLocalChangesManager::onListDirtyNotesCompleted(LocalStorageManager::Lis
 
     if (userNotesListCompleted || (it != m_listDirtyNotesFromLinkedNotebooksRequestIds.end()))
     {
-        QNDEBUG("SendLocalChangesManager::onListDirtyNotesCompleted: flag = " << flag << ", limit = " << limit
-                << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
-                << ", linkedNotebookGuid = " << linkedNotebookGuid << ", requestId = " << requestId);
+        QNDEBUG("SendLocalChangesManager::onListDirtyNotesCompleted: flag = " << flag
+                << ", withResourceBinaryData = " << (withResourceBinaryData ? "true" : "false")
+                << ", limit = " << limit << ", offset = " << offset << ", order = " << order
+                << ", orderDirection = " << orderDirection << ", requestId = " << requestId);
 
         m_notes << notes;
 
@@ -367,10 +368,11 @@ void SendLocalChangesManager::onListDirtyNotesCompleted(LocalStorageManager::Lis
     }
 }
 
-void SendLocalChangesManager::onListDirtyNotesFailed(LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
+void SendLocalChangesManager::onListDirtyNotesFailed(LocalStorageManager::ListObjectsOptions flag,
+                                                     bool withResourceBinaryData, size_t limit, size_t offset,
                                                      LocalStorageManager::ListNotesOrder::type order,
                                                      LocalStorageManager::OrderDirection::type orderDirection,
-                                                     QString linkedNotebookGuid, QString errorDescription, QUuid requestId)
+                                                     QString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -382,9 +384,10 @@ void SendLocalChangesManager::onListDirtyNotesFailed(LocalStorageManager::ListOb
 
     if (userNotesListCompleted || (it != m_listDirtyNotesFromLinkedNotebooksRequestIds.end()))
     {
-        QNWARNING("SendLocalChangesManager::onListDirtyNotesFailed: flag = " << flag << ", limit = " << limit
-                << ", offset = " << offset << ", order = " << order << ", orderDirection = " << orderDirection
-                << ", linkedNotebookGuid = " << linkedNotebookGuid << ", requestId = " << requestId);
+        QNWARNING("SendLocalChangesManager::onListDirtyNotesFailed: flag = " << flag
+                  << ", withResourceBinaryData = " << (withResourceBinaryData ? "true" : "false")
+                  << ", limit = " << limit << ", offset = " << offset << ", order = " << order
+                  << ", orderDirection = " << orderDirection << ", requestId = " << requestId);
 
         if (userNotesListCompleted) {
             m_listDirtyNotesRequestId = QUuid();
@@ -696,162 +699,142 @@ void SendLocalChangesManager::createConnections()
 
     // Connect local signals with localStorageManagerThread's slots
     QObject::connect(this,
-                     SIGNAL(requestLocalUnsynchronizedTags(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                           LocalStorageManager::ListTagsOrder::type,
-                                                           LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     QNSIGNAL(SendLocalChangesManager,requestLocalUnsynchronizedTags,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                      &m_localStorageManagerThreadWorker,
-                     SLOT(onListTagsRequest(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                            LocalStorageManager::ListTagsOrder::type,
-                                            LocalStorageManager::OrderDirection::type,QString,QUuid)));
+                     QNSLOT(LocalStorageManagerThreadWorker,onListTagsRequest,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
     QObject::connect(this,
-                     SIGNAL(requestLocalUnsynchronizedSavedSearches(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                                    LocalStorageManager::ListSavedSearchesOrder::type,
-                                                                    LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     QNSIGNAL(SendLocalChangesManager,requestLocalUnsynchronizedSavedSearches,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                      &m_localStorageManagerThreadWorker,
-                     SLOT(onListSavedSearchesRequest(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                     LocalStorageManager::ListSavedSearchesOrder::type,
-                                                     LocalStorageManager::OrderDirection::type,QString,QUuid)));
+                     QNSLOT(LocalStorageManagerThreadWorker,onListSavedSearchesRequest,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
     QObject::connect(this,
-                     SIGNAL(requestLocalUnsynchronizedNotebooks(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                                LocalStorageManager::ListNotebooksOrder::type,
-                                                                LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     QNSIGNAL(SendLocalChangesManager,requestLocalUnsynchronizedNotebooks,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                      &m_localStorageManagerThreadWorker,
-                     SLOT(onListSavedSearchesRequest(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                     LocalStorageManager::ListSavedSearchesOrder::type,
-                                                     LocalStorageManager::OrderDirection::type,QString,QUuid)));
+                     QNSLOT(LocalStorageManagerThreadWorker,onListNotebooksRequest,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
     QObject::connect(this,
-                     SIGNAL(requestLocalUnsynchronizedNotes(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                            LocalStorageManager::ListNotesOrder::type,
-                                                            LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     QNSIGNAL(SendLocalChangesManager,requestLocalUnsynchronizedNotes,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                      &m_localStorageManagerThreadWorker,
-                     SLOT(onListNotesRequest(LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                             LocalStorageManager::ListNotesOrder::type,
-                                             LocalStorageManager::OrderDirection::type,QString,QUuid)));
+                     QNSLOT(LocalStorageManagerThreadWorker,onListNotesRequest,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
     QObject::connect(this,
-                     SIGNAL(requestLinkedNotebooksList(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                       LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                       LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                     QNSIGNAL(SendLocalChangesManager,requestLinkedNotebooksList,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                      &m_localStorageManagerThreadWorker,
-                     SLOT(onListLinkedNotebooksRequest(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                       LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                       LocalStorageManager::OrderDirection::type,QString,QUuid)));
+                     QNSLOT(LocalStorageManagerThreadWorker,onListLinkedNotebooksRequest,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
-    QObject::connect(this, SIGNAL(updateTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateTagRequest(Tag,QUuid)));
-    QObject::connect(this, SIGNAL(updateSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateSavedSearchRequest(SavedSearch,QUuid)));
-    QObject::connect(this, SIGNAL(updateNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateNotebookRequest(Notebook,QUuid)));
-    QObject::connect(this, SIGNAL(updateNote(Note,Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook,QUuid)));
+    QObject::connect(this, QNSIGNAL(SendLocalChangesManager,updateTag,Tag,QUuid), &m_localStorageManagerThreadWorker,
+                     QNSLOT(LocalStorageManagerThreadWorker,onUpdateTagRequest,Tag,QUuid));
+    QObject::connect(this, QNSIGNAL(SendLocalChangesManager,updateSavedSearch,SavedSearch,QUuid), &m_localStorageManagerThreadWorker,
+                     QNSLOT(LocalStorageManagerThreadWorker,onUpdateSavedSearchRequest,SavedSearch,QUuid));
+    QObject::connect(this, QNSIGNAL(SendLocalChangesManager,updateNotebook,Notebook,QUuid), &m_localStorageManagerThreadWorker,
+                     QNSLOT(LocalStorageManagerThreadWorker,onUpdateNotebookRequest,Notebook,QUuid));
+    QObject::connect(this, QNSIGNAL(SendLocalChangesManager,updateNote,Note,Notebook,QUuid), &m_localStorageManagerThreadWorker,
+                     QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,Notebook,QUuid));
 
-    QObject::connect(this, SIGNAL(findNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindNotebookRequest(Notebook,QUuid)));
+    QObject::connect(this, QNSIGNAL(SendLocalChangesManager,findNotebook,Notebook,QUuid), &m_localStorageManagerThreadWorker,
+                     QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
 
     // Connect localStorageManagerThread's signals to local slots
     QObject::connect(&m_localStorageManagerThreadWorker,
-                     SIGNAL(listTagsComplete(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                             LocalStorageManager::ListTagsOrder::type,
-                                             LocalStorageManager::OrderDirection::type,QList<Tag>,QString,QUuid)),
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listTagsComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QList<Tag>,QString,QUuid),
                      this,
-                     SLOT(onListDirtyTagsCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                   LocalStorageManager::ListTagsOrder::type,
-                                                   LocalStorageManager::OrderDirection::type,QList<Tag>,QString,QUuid)));
+                     QNSLOT(SendLocalChangesManager,onListDirtyTagsCompleted,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QList<Tag>,QString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
-                     SIGNAL(listTagsFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                           LocalStorageManager::ListTagsOrder::type,
-                                           LocalStorageManager::OrderDirection::type,QString,QString,QUuid)),
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid),
                      this,
-                     SLOT(onListDirtyTagsFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                LocalStorageManager::ListTagsOrder::type,
-                                                LocalStorageManager::OrderDirection::type,QString,QString,QUuid)));
+                     QNSLOT(SendLocalChangesManager,onListDirtyTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
-                     SIGNAL(listSavedSearchesComplete(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                      LocalStorageManager::ListSavedSearchesOrder::type,
-                                                      LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QString,QUuid)),
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QString,QUuid),
                      this,
-                     SLOT(onListDirtySavedSearchesCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                            LocalStorageManager::ListSavedSearchesOrder::type,
-                                                            LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QString,QUuid)));
+                     QNSLOT(SendLocalChangesManager,onListDirtySavedSearchesCompleted,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
-                     SIGNAL(listSavedSearchesFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                    LocalStorageManager::ListSavedSearchesOrder::type,
-                                                    LocalStorageManager::OrderDirection::type,QString,QString,QUuid)),
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                      this,
-                     SLOT(onListDirtySavedSearchesFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                         LocalStorageManager::ListSavedSearchesOrder::type,
-                                                         LocalStorageManager::OrderDirection::type,QString,QString,QUuid)));
+                     QNSLOT(SendLocalChangesManager,onListDirtySavedSearchesFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
-                     SIGNAL(listNotebooksComplete(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                  LocalStorageManager::ListNotebooksOrder::type,
-                                                  LocalStorageManager::OrderDirection::type,QList<Notebook>,QString,QUuid)),
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QList<Notebook>,QUuid),
                      this,
-                     SLOT(onListDirtyNotebooksCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                        LocalStorageManager::ListNotebooksOrder::type,
-                                                        LocalStorageManager::OrderDirection::type,QList<Notebook>,QString,QUuid)));
+                     QNSLOT(SendLocalChangesManager,onListDirtyNotebooksCompleted,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QList<Notebook>,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
-                     SIGNAL(listNotebooksFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                LocalStorageManager::ListNotebooksOrder::type,
-                                                LocalStorageManager::OrderDirection::type,QString,QString,QUuid)),
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid),
                      this,
-                     SLOT(onListDirtyNotebooksFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                     LocalStorageManager::ListNotebooksOrder::type,
-                                                     LocalStorageManager::OrderDirection::type,QString,QString,QUuid)));
+                     QNSLOT(SendLocalChangesManager,onListDirtyNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
-                     SIGNAL(listNotesComplete(LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                              LocalStorageManager::ListNotesOrder::type,
-                                              LocalStorageManager::OrderDirection::type,QList<Note>,QString,QUuid)),
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QList<Note>,QUuid),
                      this,
-                     SLOT(onListDirtyNotesCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                    LocalStorageManager::ListNotesOrder::type,
-                                                    LocalStorageManager::OrderDirection::type,QList<Note>,QString,QUuid)));
+                     QNSLOT(SendLocalChangesManager,onListDirtyNotesCompleted,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QList<Note>,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
-                     SIGNAL(listNotesFailed(LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                            LocalStorageManager::ListNotesOrder::type,
-                                            LocalStorageManager::OrderDirection::type,QString,QString,QUuid)),
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                              LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                      this,
-                     SLOT(onListDirtyNotesFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                 LocalStorageManager::ListNotesOrder::type,
-                                                 LocalStorageManager::OrderDirection::type,QString,QString,QUuid)));
+                     QNSLOT(SendLocalChangesManager,onListDirtyNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                            LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
-                     SIGNAL(listLinkedNotebooksComplete(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                        LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                        LocalStorageManager::OrderDirection::type,
-                                                        QList<LinkedNotebook>,QString,QUuid)),
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listLinkedNotebooksComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListLinkedNotebooksOrder::type, LocalStorageManager::OrderDirection::type,QList<LinkedNotebook>,QString,QUuid),
                      this,
-                     SLOT(onListLinkedNotebooksCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                         LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                         LocalStorageManager::OrderDirection::type,
-                                                         QList<LinkedNotebook>,QString,QUuid)));
+                     QNSLOT(SendLocalChangesManager,onListLinkedNotebooksCompleted,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QList<LinkedNotebook>,QString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
-                     SIGNAL(listLinkedNotebooksFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                      LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                      LocalStorageManager::OrderDirection::type,
-                                                      QString,QString,QUuid)),
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listLinkedNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                              LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid),
                      this,
-                     SLOT(onListLinkedNotebooksFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                      LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                      LocalStorageManager::OrderDirection::type,
-                                                      QString,QString,QUuid)));
+                     QNSLOT(SendLocalChangesManager,onListLinkedNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                            LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagComplete(Tag,QUuid)), this, SLOT(onUpdateTagCompleted(Tag,QUuid)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagFailed(Tag,QString,QUuid)), this, SLOT(onUpdateTagFailed(Tag,QString,QUuid)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateSavedSearchComplete(SavedSearch,QUuid)), this, SLOT(onUpdateSavedSearchCompleted(SavedSearch,QUuid)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateSavedSearchFailed(SavedSearch,QString,QUuid)), this, SLOT(onUpdateSavedSearchFailed(SavedSearch,QString,QUuid)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNotebookComplete(Notebook,QUuid)), this, SLOT(onUpdateNotebookCompleted(Notebook,QUuid)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onUpdateNotebookFailed(Notebook,QString,QUuid)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNoteComplete(Note,Notebook,QUuid)), this, SLOT(onUpdateNoteCompleted(Note,Notebook,QUuid)));
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,QString,QUuid)), this, SLOT(onUpdateNoteFailed(Note,Notebook,QString,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateTagCompleted,Tag,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,QString,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateTagFailed,Tag,QString,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchComplete,SavedSearch,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateSavedSearchCompleted,SavedSearch,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,QString,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateSavedSearchFailed,SavedSearch,QString,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateNotebookCompleted,Notebook,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QString,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateNotebookFailed,Notebook,QString,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,Notebook,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateNoteCompleted,Note,Notebook,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,Notebook,QString,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateNoteFailed,Note,Notebook,QString,QUuid));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, SIGNAL(findNotebookComplete(Notebook,QUuid)), this, SLOT(onFindNotebookCompleted(Notebook,QUuid)));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onFindNotebookCompleted,Notebook,QUuid));
 
     m_connectedToLocalStorage = true;
 }
@@ -862,163 +845,144 @@ void SendLocalChangesManager::disconnectFromLocalStorage()
 
     // Disconnect local signals from localStorageManagerThread's slots
     QObject::disconnect(this,
-                        SIGNAL(requestLocalUnsynchronizedTags(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                              LocalStorageManager::ListTagsOrder::type,
-                                                              LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                        QNSIGNAL(SendLocalChangesManager,requestLocalUnsynchronizedTags,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                         &m_localStorageManagerThreadWorker,
-                        SLOT(onListTagsRequest(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                            LocalStorageManager::ListTagsOrder::type,
-                                            LocalStorageManager::OrderDirection::type,QString,QUuid)));
+                        QNSLOT(LocalStorageManagerThreadWorker,onListTagsRequest,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
     QObject::disconnect(this,
-                        SIGNAL(requestLocalUnsynchronizedSavedSearches(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                                       LocalStorageManager::ListSavedSearchesOrder::type,
-                                                                       LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                        QNSIGNAL(SendLocalChangesManager,requestLocalUnsynchronizedSavedSearches,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                         &m_localStorageManagerThreadWorker,
-                        SLOT(onListSavedSearchesRequest(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                        LocalStorageManager::ListSavedSearchesOrder::type,
-                                                        LocalStorageManager::OrderDirection::type,QString,QUuid)));
+                        QNSLOT(LocalStorageManagerThreadWorker,onListSavedSearchesRequest,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
     QObject::disconnect(this,
-                        SIGNAL(requestLocalUnsynchronizedNotebooks(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                                   LocalStorageManager::ListNotebooksOrder::type,
-                                                                   LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                        QNSIGNAL(SendLocalChangesManager,requestLocalUnsynchronizedNotebooks,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                         &m_localStorageManagerThreadWorker,
-                        SLOT(onListSavedSearchesRequest(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                        LocalStorageManager::ListSavedSearchesOrder::type,
-                                                        LocalStorageManager::OrderDirection::type,QString,QUuid)));
+                        QNSLOT(LocalStorageManagerThreadWorker,onListNotebooksRequest,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
     QObject::disconnect(this,
-                        SIGNAL(requestLocalUnsynchronizedNotes(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                               LocalStorageManager::ListNotesOrder::type,
-                                                               LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                        QNSIGNAL(SendLocalChangesManager,requestLocalUnsynchronizedNotes,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                 LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                         &m_localStorageManagerThreadWorker,
-                        SLOT(onListNotesRequest(LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                                LocalStorageManager::ListNotesOrder::type,
-                                                LocalStorageManager::OrderDirection::type,QString,QUuid)));
+                        QNSLOT(LocalStorageManagerThreadWorker,onListNotesRequest,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                               LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
     QObject::disconnect(this,
-                        SIGNAL(requestLinkedNotebooksList(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                          LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                          LocalStorageManager::OrderDirection::type,QString,QUuid)),
+                        QNSIGNAL(SendLocalChangesManager,requestLinkedNotebooksList,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                         &m_localStorageManagerThreadWorker,
-                        SLOT(onListLinkedNotebooksRequest(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                          LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                          LocalStorageManager::OrderDirection::type,QString,QUuid)));
+                        QNSLOT(LocalStorageManagerThreadWorker,onListLinkedNotebooksRequest,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
-    QObject::disconnect(this, SIGNAL(updateTag(Tag,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateTagRequest(Tag,QUuid)));
-    QObject::disconnect(this, SIGNAL(updateSavedSearch(SavedSearch,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateSavedSearchRequest(SavedSearch,QUuid)));
-    QObject::disconnect(this, SIGNAL(updateNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateNotebookRequest(Notebook,QUuid)));
-    QObject::disconnect(this, SIGNAL(updateNote(Note,Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook,QUuid)));
+    QObject::disconnect(this, QNSIGNAL(SendLocalChangesManager,updateTag,Tag,QUuid), &m_localStorageManagerThreadWorker,
+                        QNSLOT(LocalStorageManagerThreadWorker,onUpdateTagRequest,Tag,QUuid));
+    QObject::disconnect(this, QNSIGNAL(SendLocalChangesManager,updateSavedSearch,SavedSearch,QUuid), &m_localStorageManagerThreadWorker,
+                        QNSLOT(LocalStorageManagerThreadWorker,onUpdateSavedSearchRequest,SavedSearch,QUuid));
+    QObject::disconnect(this, QNSIGNAL(SendLocalChangesManager,updateNotebook,Notebook,QUuid), &m_localStorageManagerThreadWorker,
+                        QNSLOT(LocalStorageManagerThreadWorker,onUpdateNotebookRequest,Notebook,QUuid));
+    QObject::disconnect(this, QNSIGNAL(SendLocalChangesManager,updateNote,Note,Notebook,QUuid), &m_localStorageManagerThreadWorker,
+                        QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,Notebook,QUuid));
 
-    QObject::disconnect(this, SIGNAL(findNotebook(Notebook,QUuid)), &m_localStorageManagerThreadWorker, SLOT(onFindNotebookRequest(Notebook,QUuid)));
+    QObject::disconnect(this, QNSIGNAL(SendLocalChangesManager,findNotebook,Notebook,QUuid), &m_localStorageManagerThreadWorker,
+                        QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
 
     // Disconnect localStorageManagerThread's signals from local slots
     QObject::disconnect(&m_localStorageManagerThreadWorker,
-                        SIGNAL(listTagsComplete(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                LocalStorageManager::ListTagsOrder::type,
-                                                LocalStorageManager::OrderDirection::type,QList<Tag>,QString,QUuid)),
+                        QNSIGNAL(LocalStorageManagerThreadWorker,listTagsComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QList<Tag>,QString,QUuid),
                         this,
-                        SLOT(onListDirtyTagsCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                      LocalStorageManager::ListTagsOrder::type,
-                                                      LocalStorageManager::OrderDirection::type,QList<Tag>,QString,QUuid)));
+                        QNSLOT(SendLocalChangesManager,onListDirtyTagsCompleted,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QList<Tag>,QString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
-                        SIGNAL(listTagsFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                              LocalStorageManager::ListTagsOrder::type,
-                                              LocalStorageManager::OrderDirection::type,QString,QString,QUuid)),
+                        QNSIGNAL(LocalStorageManagerThreadWorker,listTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid),
                         this,
-                        SLOT(onListDirtyTagsFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                   LocalStorageManager::ListTagsOrder::type,
-                                                   LocalStorageManager::OrderDirection::type,QString,QString,QUuid)));
+                        QNSLOT(SendLocalChangesManager,onListDirtyTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
-                        SIGNAL(listSavedSearchesComplete(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                         LocalStorageManager::ListSavedSearchesOrder::type,
-                                                         LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QString,QUuid)),
+                        QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QString,QUuid),
                         this,
-                        SLOT(onListDirtySavedSearchesCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                               LocalStorageManager::ListSavedSearchesOrder::type,
-                                                               LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QString,QUuid)));
+                        QNSLOT(SendLocalChangesManager,onListDirtySavedSearchesCompleted,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
-                        SIGNAL(listSavedSearchesFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                       LocalStorageManager::ListSavedSearchesOrder::type,
-                                                       LocalStorageManager::OrderDirection::type,QString,QString,QUuid)),
+                        QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid),
                         this,
-                        SLOT(onListDirtySavedSearchesFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                            LocalStorageManager::ListSavedSearchesOrder::type,
-                                                            LocalStorageManager::OrderDirection::type,QString,QString,QUuid)));
+                        QNSLOT(SendLocalChangesManager,onListDirtySavedSearchesFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
-                        SIGNAL(listNotebooksComplete(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                     LocalStorageManager::ListNotebooksOrder::type,
-                                                     LocalStorageManager::OrderDirection::type,QList<Notebook>,QString,QUuid)),
+                        QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QList<Notebook>,QString,QUuid),
                         this,
-                        SLOT(onListDirtyNotebooksCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                           LocalStorageManager::ListNotebooksOrder::type,
-                                                           LocalStorageManager::OrderDirection::type,QList<Notebook>,QString,QUuid)));
+                        QNSLOT(SendLocalChangesManager,onListDirtyNotebooksCompleted,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QList<Notebook>,QString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
-                        SIGNAL(listNotebooksFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                   LocalStorageManager::ListNotebooksOrder::type,
-                                                   LocalStorageManager::OrderDirection::type,QString,QString,QUuid)),
+                        QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid),
                         this,
-                        SLOT(onListDirtyNotebooksFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                        LocalStorageManager::ListNotebooksOrder::type,
-                                                        LocalStorageManager::OrderDirection::type,QString,QString,QUuid)));
+                        QNSLOT(SendLocalChangesManager,onListDirtyNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
-                        SIGNAL(listNotesComplete(LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                                 LocalStorageManager::ListNotesOrder::type,
-                                                 LocalStorageManager::OrderDirection::type,QList<Note>,QString,QUuid)),
+                        QNSIGNAL(LocalStorageManagerThreadWorker,listNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                 LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QList<Note>,QString,QUuid),
                         this,
-                        SLOT(onListDirtyNotesCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                       LocalStorageManager::ListNotesOrder::type,
-                                                       LocalStorageManager::OrderDirection::type,QList<Note>,QString,QUuid)));
+                        QNSLOT(SendLocalChangesManager,onListDirtyNotesCompleted,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                               LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QList<Note>,QString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
-                        SIGNAL(listNotesFailed(LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                               LocalStorageManager::ListNotesOrder::type,
-                                               LocalStorageManager::OrderDirection::type,QString,QString,QUuid)),
+                        QNSIGNAL(LocalStorageManagerThreadWorker,listNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                 LocalStorageManager::ListNotesOrder::type, LocalStorageManager::OrderDirection::type,QString,QUuid),
                         this,
-                        SLOT(onListDirtyNotesFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                    LocalStorageManager::ListNotesOrder::type,
-                                                    LocalStorageManager::OrderDirection::type,QString,QString,QUuid)));
+                        QNSLOT(SendLocalChangesManager,onListDirtyNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                               LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
-                        SIGNAL(listLinkedNotebooksComplete(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                           LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                           LocalStorageManager::OrderDirection::type,
-                                                           QList<LinkedNotebook>,QString,QUuid)),
+                        QNSIGNAL(LocalStorageManagerThreadWorker,listLinkedNotebooksComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QList<LinkedNotebook>,QString,QUuid),
                         this,
-                        SLOT(onListLinkedNotebooksCompleted(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                            LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                            LocalStorageManager::OrderDirection::type,
-                                                            QList<LinkedNotebook>,QString,QUuid)));
+                        QNSLOT(SendLocalChangesManager,onListLinkedNotebooksCompleted,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QList<LinkedNotebook>,QString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
-                        SIGNAL(listLinkedNotebooksFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                         LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                         LocalStorageManager::OrderDirection::type,
-                                                         QString,QString,QUuid)),
+                        QNSIGNAL(LocalStorageManagerThreadWorker,listLinkedNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                 LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid),
                         this,
-                        SLOT(onListLinkedNotebooksFailed(LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                                         LocalStorageManager::ListLinkedNotebooksOrder::type,
-                                                         LocalStorageManager::OrderDirection::type,
-                                                         QString,QString,QUuid)));
+                        QNSLOT(SendLocalChangesManager,onListLinkedNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                               LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QString,QUuid));
 
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagComplete(Tag,QUuid)), this, SLOT(onUpdateTagCompleted(Tag,QUuid)));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(updateTagFailed(Tag,QString,QUuid)), this, SLOT(onUpdateTagFailed(Tag,QString,QUuid)));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(updateSavedSearchComplete(SavedSearch,QUuid)), this, SLOT(onUpdateSavedSearchCompleted(SavedSearch,QUuid)));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(updateSavedSearchFailed(SavedSearch,QString,QUuid)), this, SLOT(onUpdateSavedSearchFailed(SavedSearch,QString,QUuid)));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(updateNotebookComplete(Notebook,QUuid)), this, SLOT(onUpdateNotebookCompleted(Notebook,QUuid)));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(updateNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onUpdateNotebookFailed(Notebook,QString,QUuid)));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(updateNoteComplete(Note,Notebook,QUuid)), this, SLOT(onUpdateNoteCompleted(Note,Notebook,QUuid)));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,QString,QUuid)), this, SLOT(onUpdateNoteFailed(Note,Notebook,QString,QUuid)));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateTagCompleted,Tag,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,QString,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateTagFailed,Tag,QString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchComplete,SavedSearch,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateSavedSearchCompleted,SavedSearch,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,QString,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateSavedSearchFailed,SavedSearch,QString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateNotebookCompleted,Notebook,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QString,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateNotebookFailed,Notebook,QString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,Notebook,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateNoteCompleted,Note,Notebook,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,Notebook,QString,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateNoteFailed,Note,Notebook,QString,QUuid));
 
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findNotebookComplete(Notebook,QUuid)), this, SLOT(onFindNotebookCompleted(Notebook,QUuid)));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, SIGNAL(findNotebookFailed(Notebook,QString,QUuid)), this, SLOT(onFindNotebookFailed(Notebook,QString,QUuid)));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onFindNotebookCompleted,Notebook,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QString,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onFindNotebookFailed,Notebook,QString,QUuid));
 
     m_connectedToLocalStorage = false;
 }
@@ -1078,8 +1042,9 @@ void SendLocalChangesManager::requestStuffFromLocalStorage(const QString & linke
     else {
         Q_UNUSED(m_listDirtyNotesFromLinkedNotebooksRequestIds.insert(listDirtyNotesRequestId));
     }
-    emit requestLocalUnsynchronizedNotes(listDirtyObjectsFlag, limit, offset, notesOrder,
-                                         orderDirection, linkedNotebookGuid, listDirtyNotesRequestId);
+    emit requestLocalUnsynchronizedNotes(listDirtyObjectsFlag, /* with resource binary data = */ true,
+                                         limit, offset, notesOrder, orderDirection, linkedNotebookGuid,
+                                         listDirtyNotesRequestId);
 
     if (emptyLinkedNotebookGuid)
     {

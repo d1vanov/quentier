@@ -228,10 +228,10 @@ void ResourceFileStorageManagerPrivate::createConnections()
 {
     Q_Q(ResourceFileStorageManager);
 
-    QObject::connect(this, SIGNAL(readResourceFromFileCompleted(QUuid,QByteArray,QByteArray,int,QString)),
-                     q, SIGNAL(readResourceFromFileCompleted(QUuid,QByteArray,QByteArray,int,QString)));
-    QObject::connect(this, SIGNAL(writeResourceToFileCompleted(QUuid,QByteArray,int,QString)),
-                     q, SIGNAL(writeResourceToFileCompleted(QUuid,QByteArray,int,QString)));
+    QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,QString),
+                     q, QNSIGNAL(ResourceFileStorageManager,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,QString));
+    QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,writeResourceToFileCompleted,QUuid,QByteArray,int,QString),
+                     q, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,int,QString));
 }
 
 QByteArray ResourceFileStorageManagerPrivate::calculateHash(const QByteArray & data) const
