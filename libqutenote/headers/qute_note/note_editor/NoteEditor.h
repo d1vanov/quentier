@@ -3,7 +3,12 @@
 
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/Linkage.h>
+
+#ifdef USE_QT_WEB_ENGINE
+#include <QWebEngineView>
+#else
 #include <QWebView>
+#endif
 
 namespace qute_note {
 
@@ -12,7 +17,11 @@ QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 
+#ifdef USE_QT_WEB_ENGINE
+class QUTE_NOTE_EXPORT NoteEditor: public QWebEngineView
+#else
 class QUTE_NOTE_EXPORT NoteEditor: public QWebView
+#endif
 {
     Q_OBJECT
 public:

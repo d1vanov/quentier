@@ -2,7 +2,11 @@
 #define QEVERCLOUD_OAUTH_H
 
 #include "./generated/types.h"
+#ifdef USE_QT_WEB_ENGINE
+#include <QWebEngineView>
+#else
 #include <QWebView>
+#endif
 #include <QDialog>
 
 /** @page oauth_include Reasons for QEverCloudOAuth.h header file
@@ -45,7 +49,11 @@ void setNonceGenerator(quint64 (*nonceGenerator)());
  * By deafult EvernoteOAuthWebView uses qrand() for generating nonce so do not forget to call qsrand()
  * in your application. See @link setNonceGenerator @endlink If you want more control over nonce generation.
  */
+#ifdef USE_QT_WEB_ENGINE
+class EvernoteOAuthWebView: public QWebEngineView {
+#else
 class EvernoteOAuthWebView: public QWebView {
+#endif
     Q_OBJECT
 public:
     EvernoteOAuthWebView(QWidget* parent = 0);

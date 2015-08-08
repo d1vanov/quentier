@@ -49,7 +49,11 @@ list(APPEND INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/generated")
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
 if(USE_QT5)
-  qt5_use_modules(${PROJECT_NAME} Core Widgets Webkit WebKitWidgets Network)
+  if(USE_QT_WEB_ENGINE)
+    qt5_use_modules(${PROJECT_NAME} Core Widgets WebEngine WebEngineWidgets Network)
+  else()
+    qt5_use_modules(${PROJECT_NAME} Core Widgets Webkit WebKitWidgets Network)
+  endif()
 endif()
 
 # install headers

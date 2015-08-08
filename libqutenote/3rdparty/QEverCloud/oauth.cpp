@@ -2,8 +2,14 @@
 #include "http.h"
 #include <QVBoxLayout>
 #include <QNetworkReply>
+
+#ifdef USE_QT_WEB_ENGINE
+#include <QWebEngineHistory>
+#else
 #include <QWebSettings>
 #include <QWebHistory>
+#endif
+
 #include <QUuid>
 #include <cstring>
 
@@ -39,9 +45,15 @@ void setNonceGenerator(quint64 (*nonceGenerator)())
 
 
 qevercloud::EvernoteOAuthWebView::EvernoteOAuthWebView(QWidget *parent)
+#ifdef USE_QT_WEB_ENGINE
+    : QWebEngineView(parent), isSucceeded_(false)
+#else
     : QWebView(parent), isSucceeded_(false)
+#endif
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->setNetworkAccessManager(evernoteNetworkAccessManager());
+#endif
 }
 
 void qevercloud::EvernoteOAuthWebView::setSizeHint(QSize sizeHint)
@@ -67,7 +79,11 @@ void qevercloud::EvernoteOAuthWebView::authenticate(QString host, QString consum
     ReplyFetcher* replyFetcher = new ReplyFetcher();
     connect(replyFetcher, SIGNAL(replyFetched(qevercloud::ReplyFetcher*)), this, SLOT(temporaryFinished(QObject*)));
     QUrl url(oauthUrlBase_ + QStringLiteral("&oauth_callback=nnoauth"));
+#ifdef USE_QT_WEB_ENGINE
+    replyFetcher->start(evernoteNetworkAccessManager(), url);
+#else
     replyFetcher->start(page()->networkAccessManager(), url);
+#endif
 }
 
 void qevercloud::EvernoteOAuthWebView::temporaryFinished(QObject *rf)
@@ -101,7 +117,11 @@ void qevercloud::EvernoteOAuthWebView::onUrlChanged(const QUrl &url)
             ReplyFetcher* replyFetcher = new ReplyFetcher();
             connect(replyFetcher, SIGNAL(replyFetched(qevercloud::ReplyFetcher*)), this, SLOT(permanentFinished(QObject*)));
             QUrl url(oauthUrlBase_ + QStringLiteral("&oauth_token=%1").arg(token));
+#ifdef USE_QT_WEB_ENGINE
+            replyFetcher->start(evernoteNetworkAccessManager(), url);
+#else
             replyFetcher->start(page()->networkAccessManager(), url);
+#endif
         } else {
             setError(QStringLiteral("Authentification failed."));
         }
@@ -174,7 +194,9 @@ qevercloud::EvernoteOAuthDialog::EvernoteOAuthDialog(QString consumerKey, QStrin
 
 qevercloud::EvernoteOAuthDialog::~EvernoteOAuthDialog()
 {
+#ifndef USE_QT_WEB_ENGINE
     QWebSettings::clearMemoryCaches();
+#endif
 }
 
 int qevercloud::EvernoteOAuthDialog::exec()
