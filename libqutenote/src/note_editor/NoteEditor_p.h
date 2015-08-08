@@ -171,7 +171,7 @@ private:
 
     QString     m_resourceLocalFileStorageFolder;
 
-    QHash<QString, QString> m_resourceLocalGuidBySaveToStorageRequestIds;
+    QHash<QUuid, QString> m_resourceLocalGuidBySaveToStorageRequestIds;
 
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFileNamesAndMimeTypesByReadRequestIds;
     QSet<QUuid> m_saveNewResourcesToStorageRequestIds;

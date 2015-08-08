@@ -9,8 +9,8 @@ elseif(NOT EXISTS ${TIDY_HTML5_INCLUDE_PATH}/tidyplatform.h)
 else()
   message(STATUS "Found development headers for tidy-html5 in folder ${TIDY_HTML5_INCLUDE_PATH}")
   find_library(TIDY_HTML5_LIB
-               NAMES libtidy5.so libtidy5.a libtidy5.dylib libtidy5.dll tidy5.dll libtidy5.lib tidy5.lib
-                     libtidy.so libtidy.a libtidy.dylib libtidy.dll tidy.dll libtidy.lib tidy.lib
+               NAMES libtidy5.so libtidy5.a libtidy5.dylib libtidy5.dll tidy5.dll libtidy5.lib tidy5.lib tidy5s.lib tidy5s.lib
+                     libtidy.so libtidy.a libtidy.dylib libtidy.dll tidy.dll libtidy.lib libtidys.lib tidy.lib tidys.lib
                SILENT REQUIRED)
   if(NOT TIDY_HTML5_LIB)
     message(FATAL_ERROR "Can't find tidy-html5 library")
