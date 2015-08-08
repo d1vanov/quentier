@@ -74,7 +74,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     page->setContentEditable(true);
 
     m_pIOThread = new QThread;
-    QObject::connect(m_pIOThread, QNSIGNAL(FileIOThreadWorker,finished), m_pIOThread, QNSLOT(FileIOThreadWorker,deleteLater));
+    QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished), m_pIOThread, QNSLOT(QThread,deleteLater));
     m_pIOThread->start(QThread::LowPriority);
 
     m_pResourceFileStorageManager = new ResourceFileStorageManager;
@@ -101,7 +101,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,readDroppedFileData,QString,QUuid),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorke,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
                      this, QNSLOT(NoteEditorPrivate,onDroppedFileRead,bool,QString,QByteArray,QUuid));
 
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache));
