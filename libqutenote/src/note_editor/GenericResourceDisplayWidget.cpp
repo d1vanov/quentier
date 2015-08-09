@@ -73,18 +73,20 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
         m_pUI->saveResourceButton->setIcon(QIcon(":/generic_resource_icons/png/save.png"));
     }
 
-    QObject::connect(m_pUI->openResourceButton, SIGNAL(released()), this, SLOT(onOpenWithButtonPressed()));
-    QObject::connect(m_pUI->saveResourceButton, SIGNAL(released()), this, SLOT(onSaveAsButtonPressed()));
+    QObject::connect(m_pUI->openResourceButton, QNSIGNAL(QPushButton,released),
+                     this, QNSLOT(GenericResourceDisplayWidget,onOpenWithButtonPressed));
+    QObject::connect(m_pUI->saveResourceButton, QNSIGNAL(QPushButton,released),
+                     this, QNSLOT(GenericResourceDisplayWidget,onSaveAsButtonPressed));
 
-    QObject::connect(m_pResourceFileStorageManager, SIGNAL(writeResourceToFileCompleted(QUuid,QByteArray,int,QString)),
-                     this, SLOT(onSaveResourceToStorageRequestProcessed(QUuid,QByteArray,int,QString)));
-    QObject::connect(this, SIGNAL(saveResourceToStorage(QString,QByteArray,QByteArray,QUuid)),
-                     m_pResourceFileStorageManager, SLOT(onWriteResourceToFileRequest(QString,QByteArray,QByteArray,QUuid)));
+    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,int,QString),
+                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToStorageRequestProcessed,QUuid,QByteArray,int,QString));
+    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToStorage,QString,QByteArray,QByteArray,QUuid),
+                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QUuid));
 
-    QObject::connect(m_pFileIOThreadWorker, SIGNAL(writeFileRequestProcessed(bool,QString,QUuid)),
-                     this, SLOT(onSaveResourceToFileRequestProcessed(bool,QString,QUuid)));
-    QObject::connect(this, SIGNAL(saveResourceToFile(QString,QByteArray,QUuid)),
-                     m_pFileIOThreadWorker, SLOT(onWriteFileRequest(QString,QByteArray,QUuid)));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
+                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToFileRequestProcessed,bool,QString,QUuid));
+    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToFile,QString,QByteArray,QUuid),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
 
     QString resourceFileStorageLocation = ResourceFileStorageManager::resourceFileStorageLocation(qobject_cast<QWidget*>(parent()));
     if (!resourceFileStorageLocation.isEmpty()) {
