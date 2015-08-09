@@ -11,7 +11,11 @@
 #elif defined Q_OS_MAC
 #include <QMacStyle>
 #else
+
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
 #include <QPlastiqueStyle>
+#endif
+
 #endif
 
 #if QT_VERSION >= 0x050000
@@ -68,11 +72,13 @@ QStyle * applicationStyle()
 #endif
 
     const QStringList styleNames = QStyleFactory::keys();
-#if !defined(Q_OS_WIN) && !defined(Q_OS_MAC)
+#if !defined(Q_OS_WIN) && !defined(Q_OS_MAC) && (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
     if (styleNames.isEmpty()) {
         QNINFO("No valid styles were found in QStyleFactory! Fallback to the last resort of plastique style");
         return new QPlastiqueStyle;
     }
+#elif QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    return nullptr;
 #endif
 
     const QString & firstStyle = styleNames.first();

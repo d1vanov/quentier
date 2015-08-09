@@ -1,6 +1,10 @@
 #include "ENMLConverter_p.h"
 #include <qute_note/enml/HTMLCleaner.h>
+
+#ifndef USE_QT_WEB_ENGINE
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
+#endif
+
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <libxml/xmlreader.h>
 #include <QString>
@@ -401,8 +405,11 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
 bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QString & html,
                                              QString & errorDescription,
-                                             DecryptedTextCachePtr decryptedTextCache,
-                                             const NoteEditorPluginFactory * pluginFactory) const
+                                             DecryptedTextCachePtr decryptedTextCache
+#ifndef USE_QT_WEB_ENGINE
+                                             , const NoteEditorPluginFactory * pluginFactory
+#endif
+                                             ) const
 {
     QNDEBUG("ENMLConverterPrivate::noteContentToHtml: " << noteContent);
 
@@ -449,7 +456,11 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
             }
             else if (lastElementName == "en-media")
             {
-                bool res = resourceInfoToHtml(reader, writer, errorDescription, pluginFactory);
+                bool res = resourceInfoToHtml(reader, writer, errorDescription
+#ifndef USE_QT_WEB_ENGINE
+                                              , pluginFactory
+#endif
+                                              );
                 if (!res) {
                     return false;
                 }
@@ -845,8 +856,11 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
 bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
                                               QXmlStreamWriter & writer,
-                                              QString & errorDescription,
-                                              const NoteEditorPluginFactory * pluginFactory) const
+                                              QString & errorDescription
+#ifndef USE_QT_WEB_ENGINE
+                                              , const NoteEditorPluginFactory * pluginFactory
+#endif
+                                              ) const
 {
     QNDEBUG("ENMLConverterPrivate::resourceInfoToHtml");
 
@@ -866,6 +880,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
     bool convertToImage = false;
     if (mimeType.startsWith("image", Qt::CaseInsensitive))
     {
+#ifndef USE_QT_WEB_ENGINE
         if (pluginFactory)
         {
             QRegExp regex("^image\\/.+");
@@ -878,6 +893,9 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         {
             convertToImage = true;
         }
+#else
+        convertToImage = true;
+#endif
     }
 
     writer.writeStartElement(convertToImage ? "img" : "object");

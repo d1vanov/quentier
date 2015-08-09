@@ -2,14 +2,24 @@
 #include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/logging/QuteNoteLogger.h>
+
+#ifndef USE_QT_WEB_ENGINE
 #include <QWebView>
+#else
+#include <QWebEngineView>
+#endif
+
 #include <QMessageBox>
 #include <QApplication>
 
 namespace qute_note {
 
 NoteEditorPage::NoteEditorPage(NoteEditor & parent) :
+#ifndef USE_QT_WEB_ENGINE
     QWebPage(&parent),
+#else
+    QWebEnginePage(&parent),
+#endif
     m_parent(&parent)
 {
     QUTE_NOTE_CHECK_PTR(m_parent);
@@ -38,6 +48,7 @@ bool NoteEditorPage::shouldInterruptJavaScript()
     }
 }
 
+#ifndef USE_QT_WEB_ENGINE
 void NoteEditorPage::javaScriptAlert(QWebFrame * pFrame, const QString & message)
 {
     QNDEBUG("NoteEditorPage::javaScriptAlert, message: " << message);
@@ -54,6 +65,28 @@ void NoteEditorPage::javaScriptConsoleMessage(const QString & message, int lineN
 {
     QNDEBUG("NoteEditorPage::javaScriptConsoleMessage, message: " << message << ", line number: " << lineNumber
             << ", sourceID = " << sourceID);
+    NoteEditorPage::javaScriptConsoleMessage(message, lineNumber, sourceID);
 }
+#else
+void NoteEditorPage::javaScriptAlert(const QUrl & securityOrigin, const QString & msg)
+{
+    QNDEBUG("NoteEditorPage::javaScriptAlert, message: " << msg);
+    QWebEnginePage::javaScriptAlert(securityOrigin, msg);
+}
+
+bool NoteEditorPage::javaScriptConfirm(const QUrl & securityOrigin, const QString & msg)
+{
+    QNDEBUG("NoteEditorPage::javaScriptConfirm, message: " << msg);
+    QWebEnginePage::javaScriptConfirm(securityOrigin, msg);
+}
+
+void NoteEditorPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMessageLevel level,
+                                              const QString & message, int lineNumber, const QString & sourceID)
+{
+    QNDEBUG("NoteEditorPage::javaScriptConsoleMessage, message: " << message << ", level = " << level
+            << ", line number: " << lineNumber << ", sourceID = " << sourceID);
+    QWebEnginePage::javaScriptConsoleMessage(level, message, lineNumber, sourceID);
+}
+#endif
 
 } // namespace qute_note

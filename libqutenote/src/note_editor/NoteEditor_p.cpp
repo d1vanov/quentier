@@ -1,7 +1,11 @@
 #include "NoteEditor_p.h"
 #include "NoteEditorPage.h"
 #include "EncryptedAreaPlugin.h"
+
+#ifndef USE_QT_WEB_ENGINE
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
+#endif
+
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include <qute_note/exception/ResourceLocalFileStorageFolderNotFoundException.h>
 #include <qute_note/exception/NoteEditorPluginInitializationException.h>
@@ -14,7 +18,11 @@
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
+
+#ifndef USE_QT_WEB_ENGINE
 #include <QWebFrame>
+#endif
+
 #include <QFile>
 #include <QFileInfo>
 #include <QTemporaryFile>
@@ -46,7 +54,9 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_encryptionManager(new EncryptionManager),
     m_decryptedTextCache(new QHash<QString, QPair<QString, bool> >()),
     m_enmlConverter(),
+#ifndef USE_QT_WEB_ENGINE
     m_pluginFactory(nullptr),
+#endif
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
@@ -67,11 +77,16 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     Q_Q(NoteEditor);
 
     NoteEditorPage * page = new NoteEditorPage(*q);
+
+#ifndef USE_QT_WEB_ENGINE
     page->settings()->setAttribute(QWebSettings::PluginsEnabled, false);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessFileUrls, true);
     page->settings()->setAttribute(QWebSettings::LocalContentCanAccessRemoteUrls, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     page->setContentEditable(true);
+#else
+    // TODO: repeat the same using QWebEngine API
+#endif
 
     m_pIOThread = new QThread;
     QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished), m_pIOThread, QNSLOT(QThread,deleteLater));
@@ -83,6 +98,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pFileIOThreadWorker = new FileIOThreadWorker;
     m_pFileIOThreadWorker->moveToThread(m_pIOThread);
 
+#ifndef USE_QT_WEB_ENGINE
     m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager,
                                                   *m_pFileIOThreadWorker, page);
     page->setPluginFactory(m_pluginFactory);
@@ -93,6 +109,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     if (!encryptedAreaPluginId) {
         throw NoteEditorPluginInitializationException("Can't initialize note editor plugin for managing the encrypted text");
     }
+#endif
 
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToStorage,QString,QByteArray,QByteArray,QUuid),
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QUuid));
@@ -104,7 +121,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
                      this, QNSLOT(NoteEditorPrivate,onDroppedFileRead,bool,QString,QByteArray,QUuid));
 
+#ifndef USE_QT_WEB_ENGINE
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache));
+#else
+    // TODO: do the same using QWebEngine API
+#endif
 
     __initNoteEditorResources();
 
@@ -138,15 +159,24 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForResourceImgTags = file.readAll();
     file.close();
 
+#ifndef USE_QT_WEB_ENGINE
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
+#else
+    // TODO: do whatever similar stuff QWebEngine API offers
+#endif
     QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
 
     q->setPage(page);
+
+#ifndef USE_QT_WEB_ENGINE
     // Setting initial "blank" page, it is of great importance in order to make image insertion work
     q->setHtml(m_pagePrefix + "<body></body></html>");
     q->setAcceptDrops(true);
+#else
+    // TODO: do the same using QWebEngine API
+#endif
 
     m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {
@@ -175,6 +205,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
         return;
     }
 
+#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
     QWebFrame * frame = q->page()->mainFrame();
     if (!frame) {
@@ -187,6 +218,10 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     Q_UNUSED(frame->evaluateJavaScript(m_getSelectionHtml));
     Q_UNUSED(frame->evaluateJavaScript(m_replaceSelectionWithHtml));
     Q_UNUSED(frame->evaluateJavaScript(m_provideSrcForResourceImgTags));
+#else
+    // TODO: do the same using QWebEngine API
+#endif
+
     QNTRACE("Evaluated all JavaScript helper functions");
 }
 
@@ -352,8 +387,12 @@ void NoteEditorPrivate::clearEditorContent()
 
     m_modified = false;
 
+#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
     q->setHtml(m_pagePrefix + "<body></body></html>");
+#else
+    // TODO: do the same using QWebEngine API
+#endif
 }
 
 void NoteEditorPrivate::noteToEditorContent()
@@ -374,7 +413,11 @@ void NoteEditorPrivate::noteToEditorContent()
 
     m_htmlCachedMemory.resize(0);
     bool res = m_enmlConverter.noteContentToHtml(m_pNote->content(), m_htmlCachedMemory, m_errorCachedMemory,
-                                                 m_decryptedTextCache, m_pluginFactory);
+                                                 m_decryptedTextCache
+#ifndef USE_QT_WEB_ENGINE
+                                                 , m_pluginFactory
+#endif
+                                                 );
     if (!res) {
         QNWARNING("Can't convert note's content to HTML: " << m_errorCachedMemory);
         emit notifyError(m_errorCachedMemory);
@@ -413,7 +456,11 @@ void NoteEditorPrivate::noteToEditorContent()
     bool readOnly = false;
     if (m_pNote->hasActive() && !m_pNote->active()) {
         QNDEBUG("Current note is not active, setting it to read-only state");
+#ifndef USE_QT_WEB_ENGINE
         q->page()->setContentEditable(false);
+#else
+        // TODO: do the same using QWebEngine API
+#endif
         readOnly = true;
     }
     else if (m_pNotebook->hasRestrictions())
@@ -421,17 +468,30 @@ void NoteEditorPrivate::noteToEditorContent()
         const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
         if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
             QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
+#ifndef USE_QT_WEB_ENGINE
             q->page()->setContentEditable(false);
+#else
+            // TODO: do the same using QWebEngine API
+#endif
             readOnly = true;
         }
     }
 
     if (!readOnly) {
         QNDEBUG("Nothing prevents user to modify the note, allowing it in the editor");
+#ifndef USE_QT_WEB_ENGINE
         q->page()->setContentEditable(true);
+#else
+        // TODO: do the same using QWebEngine API
+#endif
     }
 
+#ifndef USE_QT_WEB_ENGINE
     q->setHtml(m_htmlCachedMemory);
+#else
+    // TODO: do the same using QWebEngine API
+#endif
+
     updateColResizableTableBindings();
 
     checkResourceLocalFilesAndProvideSrcForImgResources(m_htmlCachedMemory);
@@ -443,7 +503,12 @@ void NoteEditorPrivate::updateColResizableTableBindings()
     QNDEBUG("NoteEditorPrivate::updateColResizableTableBindings");
 
     Q_Q(NoteEditor);
+#ifndef USE_QT_WEB_ENGINE
     bool readOnly = !q->page()->isContentEditable();
+#else
+    // TODO: do the same using QWebEngine API or somehow
+    bool readOnly = false;
+#endif
 
     QString colResizable = "$(\"table\").colResizable({";
     if (readOnly) {
@@ -459,7 +524,12 @@ void NoteEditorPrivate::updateColResizableTableBindings()
     }
 
     QNTRACE("colResizable js code: " << colResizable);
+
+#ifndef USE_QT_WEB_ENGINE
     q->page()->mainFrame()->evaluateJavaScript(colResizable);
+#else
+    // TODO: do the same using QWebEngine API
+#endif
 }
 
 bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
@@ -497,6 +567,7 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
         }
     }
 
+#ifndef USE_QT_WEB_ENGINE
     Q_Q(const NoteEditor);
     m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
     m_enmlCachedMemory.resize(0);
@@ -507,6 +578,9 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
         emit notifyError(errorDescription);
         return false;
     }
+#else
+    // TODO: do the same using QWebEngine API
+#endif
 
     m_pNote->setContent(m_enmlCachedMemory);
 
@@ -620,17 +694,27 @@ void NoteEditorPrivate::provideScrForImgResourcesFromCache()
 {
     QNDEBUG("NoteEditorPrivate::provideScrForImgResourcesFromCache");
     Q_Q(NoteEditor);
+
+#ifndef USE_QT_WEB_ENGINE
     q->page()->mainFrame()->evaluateJavaScript("provideSrcForResourceImgTags();");
+#else
+    // TODO: do the same using QWebEngine API
+#endif
 }
 
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
 {
+#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
     QWebFrame * frame = q->page()->mainFrame();
     QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command);
     QVariant result = frame->evaluateJavaScript(javascript);
     QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
     return result;
+#else
+    // TODO: do the same using QWebEngine API
+    return QVariant();
+#endif
 }
 
 void NoteEditorPrivate::execJavascriptCommand(const QString & command)
@@ -640,12 +724,17 @@ void NoteEditorPrivate::execJavascriptCommand(const QString & command)
 
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command, const QString & args)
 {
+#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
     QWebFrame * frame = q->page()->mainFrame();
     QString javascript = QString("document.execCommand('%1', false, '%2')").arg(command).arg(args);
     QVariant result = frame->evaluateJavaScript(javascript);
     QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
     return result;
+#else
+    // TODO: do the same using QWebEngine API
+    return QVariant();
+#endif
 }
 
 void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args)
@@ -712,6 +801,7 @@ bool NoteEditorPrivate::isModified() const
     return m_modified;
 }
 
+#ifndef USE_QT_WEB_ENGINE
 const NoteEditorPluginFactory & NoteEditorPrivate::pluginFactory() const
 {
     return *m_pluginFactory;
@@ -721,6 +811,7 @@ NoteEditorPluginFactory & NoteEditorPrivate::pluginFactory()
 {
     return *m_pluginFactory;
 }
+#endif
 
 void NoteEditorPrivate::onDropEvent(QDropEvent *pEvent)
 {
@@ -1048,8 +1139,12 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
 
     encryptedTextHtmlObject += "<object/>";
 
+#ifndef USE_QT_WEB_ENGINE
     q->page()->mainFrame()->evaluateJavaScript(QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject));
     // TODO: ensure the contentChanged signal would be emitted automatically (guess it should)
+#else
+    // TODO: do the same using QWebEngine API
+#endif
 }
 
 void NoteEditorPrivate::onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession)

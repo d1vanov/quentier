@@ -64,11 +64,15 @@ include_directories(headers)
 
 set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/DecryptedTextCache.h
-    headers/qute_note/note_editor/IGenericResourceDisplayWidget.h
     headers/qute_note/note_editor/NoteEditor.h
-    headers/qute_note/note_editor/INoteEditorPlugin.h
-    headers/qute_note/note_editor/NoteEditorPluginFactory.h
     headers/qute_note/note_editor/ResourceFileStorageManager.h)
+
+if(NOT USE_QT_WEB_ENGINE)
+  list(APPEND NOTE_EDITOR_HEADERS
+       headers/qute_note/note_editor/IGenericResourceDisplayWidget.h
+       headers/qute_note/note_editor/NoteEditorPluginFactory.h
+       headers/qute_note/note_editor/INoteEditorPlugin.h)
+endif()
 
 set(TYPES_HEADERS
     headers/qute_note/types/IDataElementWithShortcut.h
@@ -149,11 +153,8 @@ list(APPEND PUBLIC_HEADERS ${UTILITY_HEADERS})
 set(PRIVATE_HEADERS
     src/local_storage/Transaction.h
     src/note_editor/AttachmentStoragePathConfigDialog.h
-    src/note_editor/EncryptedAreaPlugin.h
-    src/note_editor/GenericResourceDisplayWidget.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor_p.h
-    src/note_editor/NoteEditorPluginFactory_p.h
     src/note_editor/NoteDecryptionDialog.h
     src/note_editor/ResourceFileStorageManager_p.h
     src/types/data/DataElementWithShortcutData.h
@@ -178,19 +179,20 @@ set(PRIVATE_HEADERS
     src/utility/EncryptionManager_p.h
     src/utility/FileIOThreadWorker_p.h)
 
+if(NOT USE_QT_WEB_ENGINE)
+  list(APPEND PRIVATE_HEADERS
+       src/note_editor/EncryptedAreaPlugin.h
+       src/note_editor/GenericResourceDisplayWidget.h
+       src/note_editor/NoteEditorPluginFactory_p.h)
+endif()
+
 set(${PROJECT_NAME}_HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 
 set(${PROJECT_NAME}_SOURCES
     src/note_editor/AttachmentStoragePathConfigDialog.cpp
-    src/note_editor/EncryptedAreaPlugin.cpp
-    src/note_editor/GenericResourceDisplayWidget.cpp
-    src/note_editor/IGenericResourceDisplayWidget.cpp
-    src/note_editor/INoteEditorPlugin.cpp
     src/note_editor/NoteEditorPage.cpp
     src/note_editor/NoteEditor.cpp
     src/note_editor/NoteEditor_p.cpp
-    src/note_editor/NoteEditorPluginFactory.cpp
-    src/note_editor/NoteEditorPluginFactory_p.cpp
     src/note_editor/NoteDecryptionDialog.cpp
     src/note_editor/ResourceFileStorageManager.cpp
     src/note_editor/ResourceFileStorageManager_p.cpp
@@ -262,6 +264,16 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/QuteNoteApplication.cpp
     src/utility/Utility.cpp)
 
+if(NOT USE_QT_WEB_ENGINE)
+  list(APPEND ${PROJECT_NAME}_SOURCES
+    src/note_editor/EncryptedAreaPlugin.cpp
+    src/note_editor/GenericResourceDisplayWidget.cpp
+    src/note_editor/IGenericResourceDisplayWidget.cpp
+    src/note_editor/INoteEditorPlugin.cpp
+    src/note_editor/NoteEditorPluginFactory.cpp
+    src/note_editor/NoteEditorPluginFactory_p.cpp)
+endif()
+
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND ${PROJECT_NAME}_SOURCES src/utility/windows/SysInfo.cpp)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -287,9 +299,13 @@ endif()
 
 set(FORMS
     src/note_editor/AttachmentStoragePathConfigDialog.ui
-    src/note_editor/EncryptedAreaPlugin.ui
-    src/note_editor/NoteDecryptionDialog.ui
-    src/note_editor/GenericResourceDisplayWidget.ui)
+    src/note_editor/NoteDecryptionDialog.ui)
+
+if(NOT USE_QT_WEB_ENGINE)
+  list(APPEND FORMS
+       src/note_editor/EncryptedAreaPlugin.ui
+       src/note_editor/GenericResourceDisplayWidget.ui)
+endif()
 
 if(USE_QT5)
   qt5_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})

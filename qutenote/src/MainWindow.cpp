@@ -22,7 +22,10 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 #include <QScopedPointer>
 #include <QMessageBox>
 #include <QtDebug>
+
+#ifndef USE_QT_WEB_ENGINE
 #include <QWebFrame>
+#endif
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
@@ -487,7 +490,12 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 
 void MainWindow::updateNoteHtmlView()
 {
+#ifndef USE_QT_WEB_ENGINE
     QString noteSource = m_pNoteEditor->page()->mainFrame()->toHtml();
+#else
+    // TODO: do similar thing using whatever QWebEngine API offers
+    QString noteSource;
+#endif
 
     int pos = noteSource.indexOf("<body>");
     if (pos >= 0) {

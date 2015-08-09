@@ -1,6 +1,10 @@
 #include <qute_note/note_editor/NoteEditor.h>
 #include "NoteEditor_p.h"
+
+#ifndef USE_QT_WEB_ENGINE
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
+#endif
+
 #include <qute_note/types/Note.h>
 #include <qute_note/types/Notebook.h>
 #include <QFont>
@@ -9,7 +13,11 @@
 namespace qute_note {
 
 NoteEditor::NoteEditor(QWidget * parent) :
+#ifndef USE_QT_WEB_ENGINE
     QWebView(parent),
+#else
+    QWebEngineView(parent),
+#endif
     d_ptr(new NoteEditorPrivate(*this))
 {}
 
@@ -40,6 +48,7 @@ bool NoteEditor::isModified() const
     return d->isModified();
 }
 
+#ifndef USE_QT_WEB_ENGINE
 const NoteEditorPluginFactory & NoteEditor::pluginFactory() const
 {
     Q_D(const NoteEditor);
@@ -51,65 +60,114 @@ NoteEditorPluginFactory & NoteEditor::pluginFactory()
     Q_D(NoteEditor);
     return d->pluginFactory();
 }
+#endif
 
 void NoteEditor::undo()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::Undo);
+#else
+    page()->triggerAction(QWebEnginePage::Undo);
+#endif
 }
 
 void NoteEditor::redo()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::Redo);
+#else
+    page()->triggerAction(QWebEnginePage::Redo);
+#endif
 }
 
 void NoteEditor::cut()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::Cut);
+#else
+    page()->triggerAction(QWebEnginePage::Cut);
+#endif
 }
 
 void NoteEditor::copy()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::Copy);
+#else
+    page()->triggerAction(QWebEnginePage::Copy);
+#endif
 }
 
 void NoteEditor::paste()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::Paste);
+#else
+    page()->triggerAction(QWebEnginePage::Paste);
+#endif
 }
 
 void NoteEditor::textBold()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::ToggleBold);
+#else
+    // TODO: err... do somethind?
+#endif
 }
 
 void NoteEditor::textItalic()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::ToggleItalic);
+#else
+    // TODO: err... do somethind?
+#endif
 }
 
 void NoteEditor::textUnderline()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::ToggleUnderline);
+#else
+    // TODO: err... do somethind?
+#endif
 }
 
 void NoteEditor::textStrikethrough()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::ToggleStrikethrough);
+#else
+    // TODO: err... do somethind?
+#endif
 }
 
 void NoteEditor::alignLeft()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::AlignLeft);
+#else
+    // TODO: err... do somethind?
+#endif
 }
 
 void NoteEditor::alignCenter()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::AlignCenter);
+#else
+    // TODO: err... do somethind?
+#endif
 }
 
 void NoteEditor::alignRight()
 {
+#ifndef USE_QT_WEB_ENGINE
     page()->triggerAction(QWebPage::AlignRight);
+#else
+    // TODO: err... do somethind?
+#endif
 }
 
 void NoteEditor::insertToDoCheckbox()

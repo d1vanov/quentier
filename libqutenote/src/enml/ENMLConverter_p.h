@@ -11,7 +11,10 @@ QT_FORWARD_DECLARE_CLASS(QXmlStreamAttributes)
 
 namespace qute_note {
 
+#ifndef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
+#endif
+
 QT_FORWARD_DECLARE_CLASS(HTMLCleaner)
 
 class ENMLConverterPrivate
@@ -22,8 +25,11 @@ public:
 
     bool htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const;
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
-                           DecryptedTextCachePtr decryptedTextCache,
-                           const NoteEditorPluginFactory * pluginFactory) const;
+                           DecryptedTextCachePtr decryptedTextCache
+#ifndef USE_QT_WEB_ENGINE
+                           , const NoteEditorPluginFactory * pluginFactory
+#endif
+                           ) const;
 
     bool validateEnml(const QString & enml, QString & errorDescription) const;
 
@@ -55,7 +61,11 @@ private:
 
     // convert ENML <en-media> tag to HTML <object> tag
     bool resourceInfoToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
-                            QString & errorDescription, const NoteEditorPluginFactory * pluginFactory) const;
+                            QString & errorDescription
+#ifndef USE_QT_WEB_ENGINE
+                            , const NoteEditorPluginFactory * pluginFactory
+#endif
+                            ) const;
 
     void toDoTagsToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer) const;
 

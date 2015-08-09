@@ -3,11 +3,7 @@
 
 #include <qute_note/note_editor/INoteEditorPlugin.h>
 
-#ifdef USE_QT_WEB_ENGINE
-#include <QWebEnginePluginFactory>
-#else
 #include <QWebPluginFactory>
-#endif
 
 QT_FORWARD_DECLARE_CLASS(QRegExp)
 
@@ -23,11 +19,7 @@ QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactoryPrivate)
 /**
  * @brief The NoteEditorPluginFactory class allows one to install and uninstall custom plugins to/from NoteEditor
  */
-#ifdef USE_QT_WEB_ENGINE
-class QUTE_NOTE_EXPORT NoteEditorPluginFactory: public QWebEnginePluginFactory
-#else
 class QUTE_NOTE_EXPORT NoteEditorPluginFactory: public QWebPluginFactory
-#endif
 {
     Q_OBJECT
 public:

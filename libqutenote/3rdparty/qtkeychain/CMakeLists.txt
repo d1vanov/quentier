@@ -42,7 +42,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 if(NOT USE_QT5)
   list(APPEND qtkeychain_LIBRARIES ${QT_LIBRARIES})
 endif()
-  
+
 set(SOURCES
     keychain.cpp
 )
@@ -98,6 +98,9 @@ if(NOT QTKEYCHAIN_STATIC)
     target_link_libraries(${QTKEYCHAIN_TARGET_NAME} ${qtkeychain_LIBRARIES})
 	if(USE_QT5)
       qt5_use_modules(${QTKEYCHAIN_TARGET_NAME} Core)
+      if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+        qt5_use_modules(${QTKEYCHAIN_TARGET_NAME} DBus)
+      endif()
 	endif()
 else()
     add_library(${QTKEYCHAIN_TARGET_NAME} STATIC ${SOURCES} ${DBUS_SOURCES} ${qtkeychain_QM_FILES})

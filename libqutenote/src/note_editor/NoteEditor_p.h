@@ -60,8 +60,10 @@ public:
 
     bool isModified() const;
 
+#ifndef USE_QT_WEB_ENGINE
     const NoteEditorPluginFactory & pluginFactory() const;
     NoteEditorPluginFactory & pluginFactory();
+#endif
 
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
@@ -155,7 +157,9 @@ private:
 
     ENMLConverter                           m_enmlConverter;
 
+#ifndef USE_QT_WEB_ENGINE
     NoteEditorPluginFactory *               m_pluginFactory;
+#endif
 
     const QString   m_pagePrefix;
 

@@ -14,7 +14,11 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Notebook)
+
+#ifndef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
+#endif
+
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 
 #ifdef USE_QT_WEB_ENGINE
@@ -36,8 +40,10 @@ public:
 
     bool isModified() const;
 
+#ifndef USE_QT_WEB_ENGINE
     const NoteEditorPluginFactory & pluginFactory() const;
     NoteEditorPluginFactory & pluginFactory();
+#endif
 
 Q_SIGNALS:
     void contentChanged();

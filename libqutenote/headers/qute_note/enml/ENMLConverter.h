@@ -9,7 +9,10 @@
 
 namespace qute_note {
 
+#ifndef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
+#endif
+
 QT_FORWARD_DECLARE_CLASS(ENMLConverterPrivate)
 
 class QUTE_NOTE_EXPORT ENMLConverter
@@ -20,8 +23,11 @@ public:
 
     bool htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const;
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
-                           DecryptedTextCachePtr decryptedTextCache = DecryptedTextCachePtr(),
-                           const NoteEditorPluginFactory * pluginFactory = nullptr) const;
+                           DecryptedTextCachePtr decryptedTextCache = DecryptedTextCachePtr()
+#ifndef USE_QT_WEB_ENGINE
+                           , const NoteEditorPluginFactory * pluginFactory = nullptr
+#endif
+                           ) const;
 
     bool validateEnml(const QString & enml, QString & errorDescription) const;
 
