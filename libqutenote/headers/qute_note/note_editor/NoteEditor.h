@@ -6,8 +6,12 @@
 
 #ifdef USE_QT_WEB_ENGINE
 #include <QWebEngineView>
+typedef QWebEngineView WebView;
+typedef QWebEnginePage WebPage;
 #else
 #include <QWebView>
+typedef QWebView WebView;
+typedef QWebPage WebPage;
 #endif
 
 namespace qute_note {
@@ -21,11 +25,7 @@ QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 
-#ifdef USE_QT_WEB_ENGINE
-class QUTE_NOTE_EXPORT NoteEditor: public QWebEngineView
-#else
-class QUTE_NOTE_EXPORT NoteEditor: public QWebView
-#endif
+class QUTE_NOTE_EXPORT NoteEditor: public WebView
 {
     Q_OBJECT
 public:

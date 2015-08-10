@@ -184,6 +184,10 @@ if(NOT USE_QT_WEB_ENGINE)
        src/note_editor/EncryptedAreaPlugin.h
        src/note_editor/GenericResourceDisplayWidget.h
        src/note_editor/NoteEditorPluginFactory_p.h)
+else()
+  list(APPEND PRIVATE_HEADERS
+       src/note_editor/WebSocketClientWrapper.h
+       src/note_editor/WebSocketTransport.h)
 endif()
 
 set(${PROJECT_NAME}_HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
@@ -272,6 +276,10 @@ if(NOT USE_QT_WEB_ENGINE)
     src/note_editor/INoteEditorPlugin.cpp
     src/note_editor/NoteEditorPluginFactory.cpp
     src/note_editor/NoteEditorPluginFactory_p.cpp)
+else()
+  list(APPEND ${PROJECT_NAME}_SOURCES
+    src/note_editor/WebSocketTransport.cpp
+    src/note_editor/WebSocketClientWrapper.cpp)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -330,6 +338,8 @@ if(USE_QT5)
   if(USE_QT_WEB_ENGINE)
     qt5_use_modules(${PROJECT_NAME} WebEngine)
     qt5_use_modules(${PROJECT_NAME} WebEngineWidgets)
+    qt5_use_modules(${PROJECT_NAME} WebSockets)
+    qt5_use_modules(${PROJECT_NAME} WebChannel)
   else()
     qt5_use_modules(${PROJECT_NAME} Webkit)
     qt5_use_modules(${PROJECT_NAME} WebKitWidgets)

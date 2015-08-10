@@ -4,6 +4,15 @@
 
 #ifndef USE_QT_WEB_ENGINE
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
+#include <QWebFrame>
+typedef QWebSettings WebSettings;
+#else
+#include "WebSocketClientWrapper.h"
+#include "WebSocketTransport.h"
+#include <QtWebSockets/QWebSocketServer>
+#include <QtWebChannel>
+#include <QWebEngineSettings>
+typedef QWebEngineSettings WebSettings;
 #endif
 
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
@@ -18,11 +27,6 @@
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
-
-#ifndef USE_QT_WEB_ENGINE
-#include <QWebFrame>
-#endif
-
 #include <QFile>
 #include <QFileInfo>
 #include <QTemporaryFile>
@@ -77,15 +81,17 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     Q_Q(NoteEditor);
 
     NoteEditorPage * page = new NoteEditorPage(*q);
+    page->settings()->setAttribute(WebSettings::LocalContentCanAccessFileUrls, true);
+    page->settings()->setAttribute(WebSettings::LocalContentCanAccessRemoteUrls, true);
 
 #ifndef USE_QT_WEB_ENGINE
     page->settings()->setAttribute(QWebSettings::PluginsEnabled, false);
-    page->settings()->setAttribute(QWebSettings::LocalContentCanAccessFileUrls, true);
-    page->settings()->setAttribute(QWebSettings::LocalContentCanAccessRemoteUrls, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     page->setContentEditable(true);
 #else
-    // TODO: repeat the same using QWebEngine API
+    page->settings()->setAttribute(QWebEngineSettings::AutoLoadImages, true);
+    page->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
+    page->runJavaScript("document.designMode='on';");
 #endif
 
     m_pIOThread = new QThread;
@@ -124,7 +130,18 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #ifndef USE_QT_WEB_ENGINE
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache));
 #else
-    // TODO: do the same using QWebEngine API
+    // Setup WebSocket server
+    QWebSocketServer server("QWebChannel server", QWebSocketServer::NonSecureMode);
+    server.listen(QHostAddress::LocalHost, 12345);
+
+    WebSocketClientWrapper clientWrapper(&server);
+
+    // setup the channel
+    QWebChannel channel;
+    QObject::connect(&clientWrapper, &WebSocketClientWrapper::clientConnected,
+                     &channel, &QWebChannel::connectTo);
+
+    // TODO: continue from here: retain the ref to ResourceLocalFileInfoJavaScriptHandler and register it in the channel
 #endif
 
     __initNoteEditorResources();

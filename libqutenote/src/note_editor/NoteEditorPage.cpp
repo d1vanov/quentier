@@ -77,7 +77,7 @@ void NoteEditorPage::javaScriptAlert(const QUrl & securityOrigin, const QString 
 bool NoteEditorPage::javaScriptConfirm(const QUrl & securityOrigin, const QString & msg)
 {
     QNDEBUG("NoteEditorPage::javaScriptConfirm, message: " << msg);
-    QWebEnginePage::javaScriptConfirm(securityOrigin, msg);
+    return QWebEnginePage::javaScriptConfirm(securityOrigin, msg);
 }
 
 void NoteEditorPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMessageLevel level,
