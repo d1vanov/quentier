@@ -128,7 +128,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                      this, QNSLOT(NoteEditorPrivate,onDroppedFileRead,bool,QString,QByteArray,QUuid));
 
 #ifndef USE_QT_WEB_ENGINE
-    page->mainFrame()->addToJavaScriptWindowObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache));
+    page->mainFrame()->addToJavaScriptWindowObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this),
+                                                   QScriptEngine::QtOwnership);
 #else
     // Setup WebSocket server
     QWebSocketServer server("QWebChannel server", QWebSocketServer::NonSecureMode);
@@ -141,7 +142,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(&clientWrapper, &WebSocketClientWrapper::clientConnected,
                      &channel, &QWebChannel::connectTo);
 
-    // TODO: continue from here: retain the ref to ResourceLocalFileInfoJavaScriptHandler and register it in the channel
+    channel.registerObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this));
 #endif
 
     __initNoteEditorResources();

@@ -28,6 +28,7 @@ typedef QHash<QString, QString> ResourceLocalFileInfoCache;
 //
 class ResourceLocalFileInfoJavaScriptHandler: public QObject
 {
+    Q_OBJECT
 public:
     ResourceLocalFileInfoJavaScriptHandler(const ResourceLocalFileInfoCache & cache,
                                            QObject * parent = nullptr) :
@@ -35,7 +36,8 @@ public:
         m_cache(cache)
     {}
 
-    Q_INVOKABLE QString getResourceLocalFilePath(const QString & resourceHash) const;
+public Q_SLOTS:
+    QString getResourceLocalFilePath(const QString & resourceHash) const;
 
 private:
     const ResourceLocalFileInfoCache & m_cache;
