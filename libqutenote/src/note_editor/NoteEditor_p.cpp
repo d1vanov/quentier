@@ -132,17 +132,17 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                                                    QScriptEngine::QtOwnership);
 #else
     // Setup WebSocket server
-    QWebSocketServer server("QWebChannel server", QWebSocketServer::NonSecureMode);
-    server.listen(QHostAddress::LocalHost, 12345);
+    QWebSocketServer * server = new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this);
+    server->listen(QHostAddress::LocalHost, 12345);
 
-    WebSocketClientWrapper clientWrapper(&server);
+    WebSocketClientWrapper * clientWrapper = new WebSocketClientWrapper(server, this);
 
-    // setup the channel
-    QWebChannel channel;
-    QObject::connect(&clientWrapper, &WebSocketClientWrapper::clientConnected,
-                     &channel, &QWebChannel::connectTo);
+    // Setup the channel
+    QWebChannel * channel = new QWebChannel(this);
+    QObject::connect(clientWrapper, &WebSocketClientWrapper::clientConnected,
+                     channel, &QWebChannel::connectTo);
 
-    channel.registerObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this));
+    channel->registerObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this));
 #endif
 
     __initNoteEditorResources();
