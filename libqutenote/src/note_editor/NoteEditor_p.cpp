@@ -49,6 +49,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_getSelectionHtml(),
     m_replaceSelectionWithHtml(),
     m_provideSrcForResourceImgTags(),
+#ifdef USE_QT_WEB_ENGINE
+    m_pageMutationObserver(),
+    m_isPageEditable(false),
+#endif
+    m_pendingConversionToNote(false),
     m_pNote(nullptr),
     m_pNotebook(nullptr),
     m_modified(false),
@@ -91,7 +96,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #else
     page->settings()->setAttribute(QWebEngineSettings::AutoLoadImages, true);
     page->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
-    page->runJavaScript("document.designMode='on';");
+    setPageEditable(true);
 #endif
 
     m_pIOThread = new QThread;
@@ -181,20 +186,32 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
 #else
-    // TODO: do whatever similar stuff QWebEngine API offers
+    // As long as QWebEnginePage doesn't offer a convenience signal on its content change,
+    // need to reinvent the wheel using JavaScript
+    PageMutationHandler * pageMutationHandler = new PageMutationHandler(this);
+    QObject::connect(pageMutationHandler, &PageMutationHandler::contentsChanged,
+                     q, &NoteEditor::contentChanged);
+    QObject::connect(pageMutationHandler, &PageMutationHandler::contentsChanged,
+                     this, &NoteEditorPrivate::onContentChanged);
+
+    channel->registerObject("pageMutationHandler", pageMutationHandler);
+
+    file.setFileName(":/javascript/scripts/pageMutationObserver.js");
+    file.open(QIODevice::ReadOnly);
+    m_pageMutationObserver = file.readAll();
+    file.close();
 #endif
+
     QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QString), q, QNSIGNAL(NoteEditor,cantConvertToNote,QString));
 
     q->setPage(page);
 
-#ifndef USE_QT_WEB_ENGINE
     // Setting initial "blank" page, it is of great importance in order to make image insertion work
     q->setHtml(m_pagePrefix + "<body></body></html>");
     q->setAcceptDrops(true);
-#else
-    // TODO: do the same using QWebEngine API
-#endif
 
     m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {
@@ -223,8 +240,9 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
         return;
     }
 
-#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
+
+#ifndef USE_QT_WEB_ENGINE
     QWebFrame * frame = q->page()->mainFrame();
     if (!frame) {
         return;
@@ -237,7 +255,18 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     Q_UNUSED(frame->evaluateJavaScript(m_replaceSelectionWithHtml));
     Q_UNUSED(frame->evaluateJavaScript(m_provideSrcForResourceImgTags));
 #else
-    // TODO: do the same using QWebEngine API
+    QWebEnginePage * page = q->page();
+    if (!page) {
+        return;
+    }
+
+    page->runJavaScript(m_jQuery);
+    page->runJavaScript(m_resizableColumnsPlugin);
+    page->runJavaScript(m_onFixedWidthTableResize);
+    page->runJavaScript(m_getSelectionHtml);
+    page->runJavaScript(m_replaceSelectionWithHtml);
+    page->runJavaScript(m_provideSrcForResourceImgTags);
+    page->runJavaScript(m_pageMutationObserver);
 #endif
 
     QNTRACE("Evaluated all JavaScript helper functions");
@@ -405,12 +434,8 @@ void NoteEditorPrivate::clearEditorContent()
 
     m_modified = false;
 
-#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
     q->setHtml(m_pagePrefix + "<body></body></html>");
-#else
-    // TODO: do the same using QWebEngine API
-#endif
 }
 
 void NoteEditorPrivate::noteToEditorContent()
@@ -477,7 +502,7 @@ void NoteEditorPrivate::noteToEditorContent()
 #ifndef USE_QT_WEB_ENGINE
         q->page()->setContentEditable(false);
 #else
-        // TODO: do the same using QWebEngine API
+        setPageEditable(false);
 #endif
         readOnly = true;
     }
@@ -489,7 +514,7 @@ void NoteEditorPrivate::noteToEditorContent()
 #ifndef USE_QT_WEB_ENGINE
             q->page()->setContentEditable(false);
 #else
-            // TODO: do the same using QWebEngine API
+            setPageEditable(false);
 #endif
             readOnly = true;
         }
@@ -500,15 +525,11 @@ void NoteEditorPrivate::noteToEditorContent()
 #ifndef USE_QT_WEB_ENGINE
         q->page()->setContentEditable(true);
 #else
-        // TODO: do the same using QWebEngine API
+        setPageEditable(true);
 #endif
     }
 
-#ifndef USE_QT_WEB_ENGINE
     q->setHtml(m_htmlCachedMemory);
-#else
-    // TODO: do the same using QWebEngine API
-#endif
 
     updateColResizableTableBindings();
 
@@ -524,8 +545,7 @@ void NoteEditorPrivate::updateColResizableTableBindings()
 #ifndef USE_QT_WEB_ENGINE
     bool readOnly = !q->page()->isContentEditable();
 #else
-    // TODO: do the same using QWebEngine API or somehow
-    bool readOnly = false;
+    bool readOnly = !isPageEditable();
 #endif
 
     QString colResizable = "$(\"table\").colResizable({";
@@ -546,7 +566,7 @@ void NoteEditorPrivate::updateColResizableTableBindings()
 #ifndef USE_QT_WEB_ENGINE
     q->page()->mainFrame()->evaluateJavaScript(colResizable);
 #else
-    // TODO: do the same using QWebEngine API
+    q->page()->runJavaScript(colResizable);
 #endif
 }
 
@@ -556,6 +576,7 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
 
     if (!m_pNote) {
         errorDescription = QT_TR_NOOP("No note was set to note editor");
+        emit notifyError(errorDescription);
         return false;
     }
 
@@ -585,22 +606,14 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
         }
     }
 
-#ifndef USE_QT_WEB_ENGINE
     Q_Q(const NoteEditor);
-    m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
-    m_enmlCachedMemory.resize(0);
-    bool res = m_enmlConverter.htmlToNoteContent(m_htmlCachedMemory, m_enmlCachedMemory, m_errorCachedMemory);
-    if (!res) {
-        errorDescription = QT_TR_NOOP("Can't convert note editor page's content to ENML: ") + errorDescription;
-        QNWARNING(errorDescription)
-        emit notifyError(errorDescription);
-        return false;
-    }
-#else
-    // TODO: do the same using QWebEngine API
-#endif
 
-    m_pNote->setContent(m_enmlCachedMemory);
+#ifndef USE_QT_WEB_ENGINE
+    m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
+    onPageHtmlReceived(m_htmlCachedMemory);
+#else
+    q->page()->toHtml(HtmlRetrieveFunctor(this));
+#endif
 
     return true;
 }
@@ -720,6 +733,53 @@ void NoteEditorPrivate::provideScrForImgResourcesFromCache()
 #endif
 }
 
+#ifdef USE_QT_WEB_ENGINE
+void NoteEditorPrivate::setPageEditable(const bool editable)
+{
+    Q_Q(NoteEditor);
+    q->page()->runJavaScript(QString("document.designMode='") + QString(editable ? "on" : "off") + QString("'"));
+    m_isPageEditable = editable;
+}
+#endif
+
+void NoteEditorPrivate::onPageHtmlReceived(const QString & html)
+{
+    if (!m_pNote)
+    {
+        if (m_pendingConversionToNote) {
+            m_pendingConversionToNote = false;
+            m_errorCachedMemory = QT_TR_NOOP("No current note is set to note editor");
+            emit cantConvertToNote(m_errorCachedMemory);
+        }
+
+        return;
+    }
+
+    m_htmlCachedMemory = html;
+    m_enmlCachedMemory.resize(0);
+    m_errorCachedMemory.resize(0);
+    bool res = m_enmlConverter.htmlToNoteContent(m_htmlCachedMemory, m_enmlCachedMemory, m_errorCachedMemory);
+    if (!res)
+    {
+        m_errorCachedMemory = QT_TR_NOOP("Can't convert note editor page's content to ENML: ") + m_errorCachedMemory;
+        QNWARNING(m_errorCachedMemory)
+        emit notifyError(m_errorCachedMemory);
+
+        if (m_pendingConversionToNote) {
+            m_pendingConversionToNote = false;
+            emit cantConvertToNote(m_errorCachedMemory);
+        }
+
+        return;
+    }
+
+    m_pNote->setContent(m_enmlCachedMemory);
+    if (m_pendingConversionToNote) {
+        m_pendingConversionToNote = false;
+        emit convertedToNote(*m_pNote);
+    }
+}
+
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
 {
 #ifndef USE_QT_WEB_ENGINE
@@ -812,6 +872,19 @@ const Note * NoteEditorPrivate::getNote()
 const Notebook * NoteEditorPrivate::getNotebook() const
 {
     return m_pNotebook;
+}
+
+void NoteEditorPrivate::convertToNote()
+{
+    QNDEBUG("NoteEditorPrivate::convertToNote");
+    m_pendingConversionToNote = true;
+
+    m_errorCachedMemory.resize(0);
+    bool res = htmlToNoteContent(m_errorCachedMemory);
+    if (!res) {
+        m_pendingConversionToNote = false;
+        return;
+    }
 }
 
 bool NoteEditorPrivate::isModified() const

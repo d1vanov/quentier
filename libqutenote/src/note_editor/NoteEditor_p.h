@@ -30,8 +30,8 @@ class ResourceLocalFileInfoJavaScriptHandler: public QObject
 {
     Q_OBJECT
 public:
-    ResourceLocalFileInfoJavaScriptHandler(const ResourceLocalFileInfoCache & cache,
-                                           QObject * parent = nullptr) :
+    explicit ResourceLocalFileInfoJavaScriptHandler(const ResourceLocalFileInfoCache & cache,
+                                                    QObject * parent = nullptr) :
         QObject(parent),
         m_cache(cache)
     {}
@@ -42,6 +42,29 @@ public Q_SLOTS:
 private:
     const ResourceLocalFileInfoCache & m_cache;
 };
+
+#ifdef USE_QT_WEB_ENGINE
+
+// The instance of this class would be exposed to JavaScript call
+// in order to emulate the contentsChanged signal that way because - surprise! -
+// QWebEnginePage doesn't provide such a signal natively!
+
+class PageMutationHandler: public QObject
+{
+    Q_OBJECT
+public:
+    explicit PageMutationHandler(QObject * parent = nullptr) :
+        QObject(parent)
+    {}
+
+Q_SIGNALS:
+    void contentsChanged();
+
+public Q_SLOTS:
+    void onPageMutation() { emit contentsChanged(); }
+};
+
+#endif
 
 class NoteEditorPrivate: public QObject
 {
@@ -60,6 +83,13 @@ public:
     const Note * getNote();
     const Notebook * getNotebook() const;
 
+    void convertToNote();
+
+Q_SIGNALS:
+    void convertedToNote(Note note);
+    void cantConvertToNote(QString errorDescription);
+
+public:
     bool isModified() const;
 
 #ifndef USE_QT_WEB_ENGINE
@@ -121,6 +151,29 @@ private:
     void checkResourceLocalFilesAndProvideSrcForImgResources(const QString & noteContentHtml);
     void provideScrForImgResourcesFromCache();
 
+#ifdef USE_QT_WEB_ENGINE
+    bool isPageEditable() const { return m_isPageEditable; }
+    void setPageEditable(const bool editable);
+#endif
+
+    void onPageHtmlReceived(const QString & html);
+
+    class HtmlRetrieveFunctor
+    {
+    public:
+        HtmlRetrieveFunctor(NoteEditorPrivate * editor) : m_editor(editor) {}
+        HtmlRetrieveFunctor(const HtmlRetrieveFunctor & other) : m_editor(other.m_editor) {}
+        HtmlRetrieveFunctor & operator=(const HtmlRetrieveFunctor & other)
+        { if (this != &other) { m_editor = other.m_editor; } }
+
+        void operator()(const QString & html) { m_editor->onPageHtmlReceived(html); }
+
+    private:
+        NoteEditorPrivate * m_editor;
+    };
+
+    friend class HtmlRetrieveFunctor;
+
 private:
     // JavaScript scripts
     QString     m_jQuery;
@@ -129,6 +182,13 @@ private:
     QString     m_getSelectionHtml;
     QString     m_replaceSelectionWithHtml;
     QString     m_provideSrcForResourceImgTags;
+#ifdef USE_QT_WEB_ENGINE
+    QString     m_pageMutationObserver;
+
+    bool        m_isPageEditable;
+#endif
+
+    bool        m_pendingConversionToNote;
 
     Note *      m_pNote;
     Notebook *  m_pNotebook;

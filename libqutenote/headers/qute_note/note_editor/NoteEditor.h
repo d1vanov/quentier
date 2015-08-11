@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_H
 
+#include <qute_note/types/Note.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/Linkage.h>
 
@@ -16,7 +17,6 @@ typedef QWebPage WebPage;
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 
 #ifndef USE_QT_WEB_ENGINE
@@ -35,7 +35,6 @@ public:
     virtual ~NoteEditor();
 
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
-    const Note * getNote();
     const Notebook * getNotebook() const;
 
     bool isModified() const;
@@ -49,7 +48,11 @@ Q_SIGNALS:
     void contentChanged();
     void notifyError(QString error);
 
+    void convertedToNote(Note note);
+    void cantConvertToNote(QString error);
+
 public Q_SLOTS:
+    void convertToNote();
     void undo();
     void redo();
     void cut();

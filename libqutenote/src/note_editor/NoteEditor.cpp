@@ -26,12 +26,6 @@ void NoteEditor::setNoteAndNotebook(const Note & note, const Notebook & notebook
     d->setNoteAndNotebook(note, notebook);
 }
 
-const Note * NoteEditor::getNote()
-{
-    Q_D(NoteEditor);
-    return d->getNote();
-}
-
 const Notebook * NoteEditor::getNotebook() const
 {
     Q_D(const NoteEditor);
@@ -42,6 +36,12 @@ bool NoteEditor::isModified() const
 {
     Q_D(const NoteEditor);
     return d->isModified();
+}
+
+void NoteEditor::convertToNote()
+{
+    Q_D(NoteEditor);
+    d->convertToNote();
 }
 
 #ifndef USE_QT_WEB_ENGINE
