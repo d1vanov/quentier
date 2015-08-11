@@ -164,7 +164,7 @@ private:
         HtmlRetrieveFunctor(NoteEditorPrivate * editor) : m_editor(editor) {}
         HtmlRetrieveFunctor(const HtmlRetrieveFunctor & other) : m_editor(other.m_editor) {}
         HtmlRetrieveFunctor & operator=(const HtmlRetrieveFunctor & other)
-        { if (this != &other) { m_editor = other.m_editor; } }
+        { if (this != &other) { m_editor = other.m_editor; } return *this; }
 
         void operator()(const QString & html) { m_editor->onPageHtmlReceived(html); }
 
