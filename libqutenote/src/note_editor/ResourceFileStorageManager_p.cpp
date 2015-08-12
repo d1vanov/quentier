@@ -23,7 +23,7 @@ QString ResourceFileStorageManagerPrivate::resourceFileStorageLocation(QWidget *
 {
     ApplicationSettings appSettings;
     appSettings.beginGroup("AttachmentSaveLocations");
-    QString resourceFileStorageLocation = appSettings.value("OwnFileStorageLocation").toString();
+    QString resourceFileStorageLocation; // = appSettings.value("OwnFileStorageLocation").toString();
     if (resourceFileStorageLocation.isEmpty()) {
         resourceFileStorageLocation = applicationPersistentStoragePath() + "/" + "attachments";
         appSettings.setValue("OwnFileStorageLocation", QVariant(resourceFileStorageLocation));

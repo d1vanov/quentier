@@ -96,7 +96,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #else
     page->settings()->setAttribute(QWebEngineSettings::AutoLoadImages, true);
     page->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
-    setPageEditable(true);
 #endif
 
     m_pIOThread = new QThread;
@@ -177,7 +176,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_replaceSelectionWithHtml = file.readAll();
     file.close();
 
-    file.setFileName(":/javascript/scripts/provideScrForResourceImgTags.js");
+    file.setFileName(":/javascript/scripts/provideSrcForResourceImgTags.js");
     file.open(QIODevice::ReadOnly);
     m_provideSrcForResourceImgTags = file.readAll();
     file.close();
@@ -267,6 +266,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->runJavaScript(m_replaceSelectionWithHtml);
     page->runJavaScript(m_provideSrcForResourceImgTags);
     page->runJavaScript(m_pageMutationObserver);
+    setPageEditable(true);
 #endif
 
     QNTRACE("Evaluated all JavaScript helper functions");
@@ -612,7 +612,7 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
     m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
     onPageHtmlReceived(m_htmlCachedMemory);
 #else
-    q->page()->toHtml(HtmlRetrieveFunctor(this));
+    q->page()->toHtml(HtmlRetrieveFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
 #endif
 
     return true;
@@ -729,7 +729,7 @@ void NoteEditorPrivate::provideScrForImgResourcesFromCache()
 #ifndef USE_QT_WEB_ENGINE
     q->page()->mainFrame()->evaluateJavaScript("provideSrcForResourceImgTags();");
 #else
-    // TODO: do the same using QWebEngine API
+    q->page()->runJavaScript("provideSrcForResourceImgTags();");
 #endif
 }
 
@@ -737,13 +737,19 @@ void NoteEditorPrivate::provideScrForImgResourcesFromCache()
 void NoteEditorPrivate::setPageEditable(const bool editable)
 {
     Q_Q(NoteEditor);
-    q->page()->runJavaScript(QString("document.designMode='") + QString(editable ? "on" : "off") + QString("'"));
+    QString javascript = QString("document.body.contentEditable='") + QString(editable ? "true" : "false") + QString("'; ") +
+                         QString("document.designMode='") + QString(editable ? "on" : "off") + QString("'; void 0;");
+    q->page()->runJavaScript(javascript);
+    QNINFO("Executed javascript to make page " << (editable ? "editable" : "non-editable") << ": " << javascript);
     m_isPageEditable = editable;
 }
 #endif
 
-void NoteEditorPrivate::onPageHtmlReceived(const QString & html)
+void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
+                                           const QVector<QPair<QString, QString> > & extraData)
 {
+    Q_UNUSED(extraData)
+
     if (!m_pNote)
     {
         if (m_pendingConversionToNote) {
@@ -780,44 +786,148 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html)
     }
 }
 
+void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant & selectedHtmlData,
+                                                                const QVector<QPair<QString, QString> > & extraData)
+{
+    QString selectedHtml = selectedHtmlData.toString();
+
+    if (selectedHtml.isEmpty()) {
+        QNDEBUG("Note editor page has no selected text, nothing to encrypt");
+        return;
+    }
+
+    QString passphrase;
+    QString hint;
+    typedef QVector<QPair<QString,QString> >::const_iterator CIter;
+    CIter extraDataEnd = extraData.constEnd();
+    for(CIter it = extraData.constBegin(); it != extraDataEnd; ++it)
+    {
+        const QPair<QString,QString> & itemPair = *it;
+        if (itemPair.first == "passphrase") {
+            passphrase = itemPair.second;
+        }
+        else if (itemPair.first == "hint") {
+            hint = itemPair.second;
+        }
+    }
+
+    if (passphrase.isEmpty()) {
+        m_errorCachedMemory = QT_TR_NOOP("Internal error: passphrase was either not found within extra data "
+                                         "passed along with the selected HTML for encryption or it was passed but is empty");
+        QNWARNING(m_errorCachedMemory << ", extra data: " << extraData);
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    QString error;
+    QString encryptedText;
+    QString cipher = "AES";
+    size_t keyLength = 128;
+    bool res = m_encryptionManager->encrypt(selectedHtml, passphrase, cipher, keyLength,
+                                            encryptedText, error);
+    if (!res) {
+        error.prepend(QT_TR_NOOP("Can't encrypt selected text: "));
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QString encryptedTextHtmlObject = "<object type=\"application/octet-stream\" en-tag=\"en-crypt\" >"
+                                      "<param name=\"cipher\" value=\"";
+    encryptedTextHtmlObject += cipher;
+    encryptedTextHtmlObject += "\" />";
+    encryptedTextHtmlObject += "<param name=\"length\" value=\"";
+    encryptedTextHtmlObject += "\" />";
+    encryptedTextHtmlObject += "<param name=\"encryptedText\" value=\"";
+    encryptedTextHtmlObject += encryptedText;
+    encryptedTextHtmlObject += "\" />";
+
+    if (!hint.isEmpty())
+    {
+        encryptedTextHtmlObject = "<param name=\"hint\" value=\"";
+
+        QString hintWithEscapedDoubleQuotes = hint;
+        for(int i = 0; i < hintWithEscapedDoubleQuotes.size(); ++i)
+        {
+            if (hintWithEscapedDoubleQuotes.at(i) == QChar('"'))
+            {
+                if (i == 0) {
+                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
+                }
+                else if (hintWithEscapedDoubleQuotes.at(i-1) != QChar('\\')) {
+                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
+                }
+            }
+        }
+
+        encryptedTextHtmlObject += hintWithEscapedDoubleQuotes;
+        encryptedTextHtmlObject += "\" />";
+    }
+
+    encryptedTextHtmlObject += "<object/>";
+
+    Q_Q(NoteEditor);
+#ifndef USE_QT_WEB_ENGINE
+    q->page()->mainFrame()->evaluateJavaScript(QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject));
+#else
+    q->page()->runJavaScript(QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject));
+#endif
+    // TODO: see whether contentChanged signal should be emitted manually here
+}
+
+#define COMMAND_TO_JS(command) \
+    QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command)
+
+#define COMMAND_WITH_ARGS_TO_JS(command, args) \
+    QString javascript = QString("document.execCommand('%1', false, '%2')").arg(command).arg(args)
+
+#ifndef USE_QT_WEB_ENGINE
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
 {
-#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
+    COMMAND_TO_JS(command);
     QWebFrame * frame = q->page()->mainFrame();
-    QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command);
     QVariant result = frame->evaluateJavaScript(javascript);
     QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
     return result;
-#else
-    // TODO: do the same using QWebEngine API
-    return QVariant();
-#endif
-}
-
-void NoteEditorPrivate::execJavascriptCommand(const QString & command)
-{
-    Q_UNUSED(execJavascriptCommandWithResult(command));
 }
 
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command, const QString & args)
 {
-#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
+    COMMAND_WITH_ARGS_TO_JS(command, args);
     QWebFrame * frame = q->page()->mainFrame();
-    QString javascript = QString("document.execCommand('%1', false, '%2')").arg(command).arg(args);
     QVariant result = frame->evaluateJavaScript(javascript);
     QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
     return result;
+}
+#endif
+
+void NoteEditorPrivate::execJavascriptCommand(const QString & command)
+{
+    Q_Q(NoteEditor);
+    COMMAND_TO_JS(command);
+#ifndef USE_QT_WEB_ENGINE
+    QWebFrame * frame = q->page()->mainFrame();
+    QVariant result = frame->evaluateJavaScript(javascript);
+    QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
 #else
-    // TODO: do the same using QWebEngine API
-    return QVariant();
+    q->page()->runJavaScript(javascript);
 #endif
 }
 
 void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args)
 {
-    Q_UNUSED(execJavascriptCommandWithResult(command, args));
+    Q_Q(NoteEditor);
+    COMMAND_WITH_ARGS_TO_JS(command, args);
+#ifndef USE_QT_WEB_ENGINE
+    QWebFrame * frame = q->page()->mainFrame();
+    QVariant result = frame->evaluateJavaScript(javascript);
+    QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
+    return;
+#else
+    q->page()->runJavaScript(javascript);
+#endif
 }
 
 void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & notebook)
@@ -1165,10 +1275,12 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
     QNDEBUG("NoteEditorPrivate::encryptSelectedText");
 
     Q_Q(NoteEditor);
+    QVector<QPair<QString,QString> > extraData;
+    extraData << QPair<QString,QString>("passphrase",passphrase) << QPair<QString,QString>("hint",hint);
+
+#ifndef USE_QT_WEB_ENGINE
     if (!q->page()->hasSelection()) {
-        QString error = QT_TR_NOOP("Note editor page has no selected text, nothing to encrypt");
-        QNINFO(error);
-        emit notifyError(error);
+        QNINFO("Note editor page has no selected text, nothing to encrypt");
         return;
     }
 
@@ -1177,64 +1289,13 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
     // agree about the selected html
     QString selectedHtml = execJavascriptCommandWithResult("getSelectionHtml").toString();
     if (selectedHtml.isEmpty()) {
-        QString error = QT_TR_NOOP("Selected html is empty, nothing to encrypt");
-        QNINFO(error);
-        emit notifyError(error);
+        QNINFO("Selected html is empty, nothing to encrypt");
         return;
     }
 
-    QString error;
-    QString encryptedText;
-    QString cipher = "AES";
-    size_t keyLength = 128;
-    bool res = m_encryptionManager->encrypt(selectedHtml, passphrase, cipher, keyLength,
-                                            encryptedText, error);
-    if (!res) {
-        error.prepend(QT_TR_NOOP("Can't encrypt selected text: "));
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
-
-    QString encryptedTextHtmlObject = "<object type=\"application/octet-stream\" en-tag=\"en-crypt\" >"
-                                      "<param name=\"cipher\" value=\"";
-    encryptedTextHtmlObject += cipher;
-    encryptedTextHtmlObject += "\" />";
-    encryptedTextHtmlObject += "<param name=\"length\" value=\"";
-    encryptedTextHtmlObject += "\" />";
-    encryptedTextHtmlObject += "<param name=\"encryptedText\" value=\"";
-    encryptedTextHtmlObject += encryptedText;
-    encryptedTextHtmlObject += "\" />";
-
-    if (!hint.isEmpty())
-    {
-        encryptedTextHtmlObject = "<param name=\"hint\" value=\"";
-
-        QString hintWithEscapedDoubleQuotes = hint;
-        for(int i = 0; i < hintWithEscapedDoubleQuotes.size(); ++i)
-        {
-            if (hintWithEscapedDoubleQuotes.at(i) == QChar('"'))
-            {
-                if (i == 0) {
-                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
-                }
-                else if (hintWithEscapedDoubleQuotes.at(i-1) != QChar('\\')) {
-                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
-                }
-            }
-        }
-
-        encryptedTextHtmlObject += hintWithEscapedDoubleQuotes;
-        encryptedTextHtmlObject += "\" />";
-    }
-
-    encryptedTextHtmlObject += "<object/>";
-
-#ifndef USE_QT_WEB_ENGINE
-    q->page()->mainFrame()->evaluateJavaScript(QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject));
-    // TODO: ensure the contentChanged signal would be emitted automatically (guess it should)
+    onPageSelectedHtmlForEncryptionReceived(selectedHtml, extraData);
 #else
-    // TODO: do the same using QWebEngine API
+    q->page()->runJavaScript("getSelectionHtml", HtmlRetrieveFunctor<QVariant>(this, &NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived, extraData));
 #endif
 }
 

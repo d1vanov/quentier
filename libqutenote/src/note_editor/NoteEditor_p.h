@@ -73,10 +73,12 @@ public:
     explicit NoteEditorPrivate(NoteEditor & noteEditor);
     virtual ~NoteEditorPrivate();
 
+#ifndef USE_QT_WEB_ENGINE
     QVariant execJavascriptCommandWithResult(const QString & command);
-    void execJavascriptCommand(const QString & command);
-
     QVariant execJavascriptCommandWithResult(const QString & command, const QString & args);
+#endif
+
+    void execJavascriptCommand(const QString & command);
     void execJavascriptCommand(const QString & command, const QString & args);
 
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
@@ -156,23 +158,35 @@ private:
     void setPageEditable(const bool editable);
 #endif
 
-    void onPageHtmlReceived(const QString & html);
+    void onPageHtmlReceived(const QString & html, const QVector<QPair<QString,QString> > & extraData = QVector<QPair<QString,QString> >());
+    void onPageSelectedHtmlForEncryptionReceived(const QVariant & selectedHtmlData,
+                                                 const QVector<QPair<QString,QString> > & extraData);
 
+    template <class T>
     class HtmlRetrieveFunctor
     {
     public:
-        HtmlRetrieveFunctor(NoteEditorPrivate * editor) : m_editor(editor) {}
-        HtmlRetrieveFunctor(const HtmlRetrieveFunctor & other) : m_editor(other.m_editor) {}
-        HtmlRetrieveFunctor & operator=(const HtmlRetrieveFunctor & other)
-        { if (this != &other) { m_editor = other.m_editor; } return *this; }
+        HtmlRetrieveFunctor(NoteEditorPrivate * editor,
+                            void (NoteEditorPrivate::* method)(const T & result,
+                                                               const QVector<QPair<QString,QString> > & extraData),
+                            const QVector<QPair<QString,QString> > & extraData = QVector<QPair<QString,QString> >()) :
+            m_editor(editor), m_method(method), m_extraData(extraData)
+        {}
 
-        void operator()(const QString & html) { m_editor->onPageHtmlReceived(html); }
+        HtmlRetrieveFunctor(const HtmlRetrieveFunctor<T> & other) : m_editor(other.m_editor), m_method(other.m_method), m_extraData(other.m_extraData) {}
+        HtmlRetrieveFunctor & operator=(const HtmlRetrieveFunctor<T> & other)
+        { if (this != &other) { m_editor = other.m_editor; m_method = other.m_method; m_extraData = other.m_extraData; } return *this; }
+
+        void operator()(const T & result) { (m_editor->*m_method)(result, m_extraData); }
 
     private:
         NoteEditorPrivate * m_editor;
+        void (NoteEditorPrivate::* m_method)(const T & result, const QVector<QPair<QString,QString> > & extraData);
+        QVector<QPair<QString, QString> > m_extraData;
     };
 
-    friend class HtmlRetrieveFunctor;
+    friend class HtmlRetrieveFunctor<QString>;
+    friend class HtmlRetrieveFunctor<QVariant>;
 
 private:
     // JavaScript scripts
