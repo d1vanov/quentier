@@ -89,7 +89,7 @@ void NoteEditor::textBold()
     page()->triggerAction(QWebPage::ToggleBold);
 #else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("document.execCommand('bold');");
+    d->execJavascriptCommand("bold");
 #endif
 }
 
@@ -99,7 +99,7 @@ void NoteEditor::textItalic()
     page()->triggerAction(QWebPage::ToggleItalic);
 #else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("document.execCommand('italic');");
+    d->execJavascriptCommand("italic");
 #endif
 }
 
@@ -109,7 +109,7 @@ void NoteEditor::textUnderline()
     page()->triggerAction(QWebPage::ToggleUnderline);
 #else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("document.execCommand('underline');");
+    d->execJavascriptCommand("underline");
 #endif
 }
 
@@ -119,7 +119,7 @@ void NoteEditor::textStrikethrough()
     page()->triggerAction(QWebPage::ToggleStrikethrough);
 #else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("document.execCommand('strikethrough');");
+    d->execJavascriptCommand("strikethrough");
 #endif
 }
 
@@ -129,7 +129,7 @@ void NoteEditor::alignLeft()
     page()->triggerAction(QWebPage::AlignLeft);
 #else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("document.execCommand('justifyleft');");
+    d->execJavascriptCommand("justifyleft");
 #endif
 }
 
@@ -139,7 +139,7 @@ void NoteEditor::alignCenter()
     page()->triggerAction(QWebPage::AlignCenter);
 #else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("document.execCommand('justifycenter');");
+    d->execJavascriptCommand("justifycenter");
 #endif
 }
 
@@ -149,7 +149,7 @@ void NoteEditor::alignRight()
     page()->triggerAction(QWebPage::AlignRight);
 #else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("document.execCommand('justifyright');");
+    d->execJavascriptCommand("justifyright");
 #endif
 }
 
