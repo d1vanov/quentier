@@ -196,9 +196,8 @@ private:
     QString     m_getSelectionHtml;
     QString     m_replaceSelectionWithHtml;
     QString     m_provideSrcForResourceImgTags;
-#ifdef USE_QT_WEB_ENGINE
-    QString     m_pageMutationObserver;
 
+#ifdef USE_QT_WEB_ENGINE
     bool        m_isPageEditable;
 #endif
 
@@ -237,7 +236,7 @@ private:
     NoteEditorPluginFactory *               m_pluginFactory;
 #endif
 
-    const QString   m_pagePrefix;
+    const QString     m_pagePrefix;
 
     QString     m_enmlCachedMemory;   // Cached memory for HTML to ENML conversions
     QString     m_htmlCachedMemory;   // Cached memory for ENML from Note -> HTML conversions

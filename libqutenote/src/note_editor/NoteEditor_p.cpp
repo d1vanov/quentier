@@ -50,7 +50,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_replaceSelectionWithHtml(),
     m_provideSrcForResourceImgTags(),
 #ifdef USE_QT_WEB_ENGINE
-    m_pageMutationObserver(),
     m_isPageEditable(false),
 #endif
     m_pendingConversionToNote(false),
@@ -84,6 +83,36 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     q_ptr(&noteEditor)
 {
     Q_Q(NoteEditor);
+
+#ifdef USE_QT_WEB_ENGINE
+    // Setup WebSocket server
+    QWebSocketServer * server = new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this);
+    if (!server->listen(QHostAddress::LocalHost, 12345)) {  // FIXME: figure out how to find the first available port and how to pass this info to JS before registering objects
+        QNFATAL("Cannot open web socket server: " << server->errorString());
+        return;
+    }
+
+    WebSocketClientWrapper * clientWrapper = new WebSocketClientWrapper(server, this);
+
+    // Setup the channel on C++ side
+    QWebChannel * channel = new QWebChannel(this);
+    QObject::connect(clientWrapper, &WebSocketClientWrapper::clientConnected,
+                     channel, &QWebChannel::connectTo);
+
+    // Register resource local file info JavaScript object
+    channel->registerObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this));
+
+    // As long as QWebEnginePage doesn't offer a convenience signal on its content change,
+    // need to reinvent the wheel using JavaScript
+    PageMutationHandler * pageMutationHandler = new PageMutationHandler(this);
+    QObject::connect(pageMutationHandler, &PageMutationHandler::contentsChanged,
+                     q, &NoteEditor::contentChanged);
+    QObject::connect(pageMutationHandler, &PageMutationHandler::contentsChanged,
+                     this, &NoteEditorPrivate::onContentChanged);
+
+    channel->registerObject("pageMutationHandler", pageMutationHandler);
+    QNDEBUG("Registered pageMutationHandler and resourceCache JavaScript objects");
+#endif
 
     NoteEditorPage * page = new NoteEditorPage(*q);
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessFileUrls, true);
@@ -134,19 +163,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #ifndef USE_QT_WEB_ENGINE
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this),
                                                    QScriptEngine::QtOwnership);
-#else
-    // Setup WebSocket server
-    QWebSocketServer * server = new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this);
-    server->listen(QHostAddress::LocalHost, 12345);
-
-    WebSocketClientWrapper * clientWrapper = new WebSocketClientWrapper(server, this);
-
-    // Setup the channel
-    QWebChannel * channel = new QWebChannel(this);
-    QObject::connect(clientWrapper, &WebSocketClientWrapper::clientConnected,
-                     channel, &QWebChannel::connectTo);
-
-    channel->registerObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this));
 #endif
 
     __initNoteEditorResources();
@@ -184,21 +200,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #ifndef USE_QT_WEB_ENGINE
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
-#else
-    // As long as QWebEnginePage doesn't offer a convenience signal on its content change,
-    // need to reinvent the wheel using JavaScript
-    PageMutationHandler * pageMutationHandler = new PageMutationHandler(this);
-    QObject::connect(pageMutationHandler, &PageMutationHandler::contentsChanged,
-                     q, &NoteEditor::contentChanged);
-    QObject::connect(pageMutationHandler, &PageMutationHandler::contentsChanged,
-                     this, &NoteEditorPrivate::onContentChanged);
-
-    channel->registerObject("pageMutationHandler", pageMutationHandler);
-
-    file.setFileName(":/javascript/scripts/pageMutationObserver.js");
-    file.open(QIODevice::ReadOnly);
-    m_pageMutationObserver = file.readAll();
-    file.close();
 #endif
 
     QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
@@ -265,8 +266,31 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->runJavaScript(m_getSelectionHtml);
     page->runJavaScript(m_replaceSelectionWithHtml);
     page->runJavaScript(m_provideSrcForResourceImgTags);
-    page->runJavaScript(m_pageMutationObserver);
+
+    // Setup QWebChannel on JavaScript side
+    QFile file(":/qtwebchannel/qwebchannel.js");
+    file.open(QIODevice::ReadOnly);
+    QString qWebChannelJs = file.readAll();
+    file.close();
+
+    page->runJavaScript(qWebChannelJs);
+
+    file.setFileName(":/javascript/scripts/qWebChannelSetup.js");
+    file.open(QIODevice::ReadOnly);
+    QString qWebChannelSetupJs = file.readAll();
+    file.close();
+
+    page->runJavaScript(qWebChannelSetupJs);
+    QNDEBUG("Ran JavaScript to set up QWebChannel on JavaScript side");
+
+    file.setFileName(":/javascript/scripts/pageMutationObserver.js");
+    file.open(QIODevice::ReadOnly);
+    QString pageMutationObserverScript = file.readAll();
+    file.close();
+
     setPageEditable(true);
+    page->runJavaScript(pageMutationObserverScript);
+    QNDEBUG("Ran JavaScript to set up pageMutationHandler on JavaScript side");
 #endif
 
     QNTRACE("Evaluated all JavaScript helper functions");
