@@ -50,6 +50,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_replaceSelectionWithHtml(),
     m_provideSrcForResourceImgTags(),
 #ifdef USE_QT_WEB_ENGINE
+    m_webSocketServerPort(0),
     m_isPageEditable(false),
 #endif
     m_pendingConversionToNote(false),
@@ -87,10 +88,13 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #ifdef USE_QT_WEB_ENGINE
     // Setup WebSocket server
     QWebSocketServer * server = new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this);
-    if (!server->listen(QHostAddress::LocalHost, 12345)) {  // FIXME: figure out how to find the first available port and how to pass this info to JS before registering objects
+    if (!server->listen(QHostAddress::LocalHost, 0)) {
         QNFATAL("Cannot open web socket server: " << server->errorString());
         return;
     }
+
+    m_webSocketServerPort = server->serverPort();
+    QNDEBUG("Using automatically selected websocket server port " << m_webSocketServerPort);
 
     WebSocketClientWrapper * clientWrapper = new WebSocketClientWrapper(server, this);
 
@@ -274,6 +278,10 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     file.close();
 
     page->runJavaScript(qWebChannelJs);
+
+    // Expose websocket server port number to JavaScript
+    page->runJavaScript(QString("(function(){window.websocketserverport = ") +
+                        QString::number(m_webSocketServerPort) + QString("})();"));
 
     file.setFileName(":/javascript/scripts/qWebChannelSetup.js");
     file.open(QIODevice::ReadOnly);

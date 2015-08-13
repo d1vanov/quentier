@@ -198,6 +198,7 @@ private:
     QString     m_provideSrcForResourceImgTags;
 
 #ifdef USE_QT_WEB_ENGINE
+    quint16     m_webSocketServerPort;
     bool        m_isPageEditable;
 #endif
 
