@@ -58,11 +58,11 @@ private Q_SLOTS:
 
     void onShowNoteSource();
 
-    void onNoteContentChanged();
+    void onNoteEditorHtmlUpdate(QString html);
 
 private:
     void checkThemeIconsAndSetFallbacks();
-    void updateNoteHtmlView();
+    void updateNoteHtmlView(QString html);
 
     bool consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error);
 
@@ -70,6 +70,7 @@ private:
     Ui::MainWindow * m_pUI;
     QWidget * m_currentStatusBarChildWidget;
     qute_note::NoteEditor * m_pNoteEditor;
+    QString m_lastNoteEditorHtml;
 };
 
 #endif // __QUTE_NOTE__MAINWINDOW_H

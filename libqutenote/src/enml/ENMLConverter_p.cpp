@@ -68,6 +68,8 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
         return false;
     }
 
+    QNTRACE("HTML converted to XML by tidy: " << m_cachedConvertedXml);
+
     QXmlStreamReader reader(m_cachedConvertedXml);
 
     noteContent.resize(0);
@@ -380,7 +382,9 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
     }
 
     if (reader.hasError()) {
-        QNWARNING("Error reading html: " << reader.errorString());
+        errorDescription = reader.errorString();
+        QNWARNING("Error reading html: " << errorDescription
+                  << ", HTML: " << html << "\nXML: " << m_cachedConvertedXml);
         return false;
     }
 

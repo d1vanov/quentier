@@ -7,6 +7,8 @@
 using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work with namespaces
 #include "ui_MainWindow.h"
 
+#include <qute_note/types/Note.h>
+#include <qute_note/types/Notebook.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <Simplecrypt.h>
@@ -27,11 +29,14 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 #include <QWebFrame>
 #endif
 
+using namespace qute_note;
+
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
     m_currentStatusBarChildWidget(nullptr),
-    m_pNoteEditor(nullptr)
+    m_pNoteEditor(nullptr),
+    m_lastNoteEditorHtml()
 {
     m_pUI->setupUi(this);
     m_pUI->noteSourceView->setHidden(true);
@@ -48,7 +53,18 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     // Debug
     QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction, triggered),
                      this, QNSLOT(MainWindow, onShowNoteSource));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor, contentChanged), this, QNSLOT(MainWindow, onNoteContentChanged));
+    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString),
+                     this, QNSLOT(MainWindow,onNoteEditorHtmlUpdate,QString));
+
+    // FIXME: temporary stuff for testing
+    Notebook myCoolNotebook;
+    myCoolNotebook.setName("My cool notebook");
+
+    Note myCoolNote;
+    myCoolNote.setTitle("My cool note");
+
+    m_pNoteEditor->setNoteAndNotebook(myCoolNote, myCoolNotebook);
+
 
     m_pNoteEditor->setFocus();
 }
@@ -236,25 +252,22 @@ void MainWindow::noteTextInsertTable(int rows, int columns, double width, bool r
 void MainWindow::onShowNoteSource()
 {
     QNDEBUG("MainWindow::onShowNoteSource");
-
-    if (m_pUI->noteSourceView->isVisible()) {
-        m_pUI->noteSourceView->setHidden(true);
-        return;
-    }
-
-    updateNoteHtmlView();
-    m_pUI->noteSourceView->setVisible(true);
+    updateNoteHtmlView(m_lastNoteEditorHtml);
+    m_pUI->noteSourceView->setHidden(m_pUI->noteSourceView->isVisible());
 }
 
-void MainWindow::onNoteContentChanged()
+void MainWindow::onNoteEditorHtmlUpdate(QString html)
 {
-    QNDEBUG("MainWindow::onNoteContentChanged");
+    QNDEBUG("MainWindow::onNoteEditorHtmlUpdate");
+    QNTRACE("Html: " << html);
+
+    m_lastNoteEditorHtml = html;
 
     if (!m_pUI->noteSourceView->isVisible()) {
         return;
     }
 
-    updateNoteHtmlView();
+    updateNoteHtmlView(html);
 }
 
 void MainWindow::checkThemeIconsAndSetFallbacks()
@@ -488,26 +501,9 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
     }
 }
 
-void MainWindow::updateNoteHtmlView()
+void MainWindow::updateNoteHtmlView(QString html)
 {
-#ifndef USE_QT_WEB_ENGINE
-    QString noteSource = m_pNoteEditor->page()->mainFrame()->toHtml();
-#else
-    // TODO: do similar thing using whatever QWebEngine API offers
-    QString noteSource;
-#endif
-
-    int pos = noteSource.indexOf("<body>");
-    if (pos >= 0) {
-        noteSource.remove(0, pos + 6);
-    }
-
-    pos = noteSource.indexOf("</body>");
-    if (pos >= 0) {
-        noteSource.truncate(pos);
-    }
-
-    m_pUI->noteSourceView->setPlainText(noteSource);
+    m_pUI->noteSourceView->setPlainText(html);
 }
 
 bool MainWindow::consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error)

@@ -91,6 +91,10 @@ Q_SIGNALS:
     void convertedToNote(Note note);
     void cantConvertToNote(QString errorDescription);
 
+    void notifyError(QString error);
+
+    void noteEditorHtmlUpdated(QString html);
+
 public:
     bool isModified() const;
 
@@ -126,10 +130,8 @@ public:
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
     void onNoteLoadCancelled();
 
+// private signals:
 Q_SIGNALS:
-    void notifyError(QString error);
-
-    // private signals:
     void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash, QUuid requestId);
     void readDroppedFileData(QString absoluteFilePath, QUuid requestId);
 

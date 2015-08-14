@@ -66,6 +66,12 @@ bool HTMLCleaner::cleanupHtml(QString & html, QString & errorDescription)
 
 bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId outputFormat, QString & output, QString & errorDescription)
 {
+    // Clear buffers from the previous run, if any
+    tidyBufClear(&m_tidyOutput);
+    tidyBufClear(&m_tidyErrorBuffer);
+    tidyRelease(m_tidyDoc);
+    m_tidyDoc = tidyCreate();
+
     int rc = -1;
     Bool ok = tidyOptSetBool(m_tidyDoc, outputFormat, yes);
     QNTRACE("tidyOptSetBool: output format: ok = " << (ok ? "true" : "false"));

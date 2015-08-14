@@ -210,6 +210,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QString), q, QNSIGNAL(NoteEditor,cantConvertToNote,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteEditorHtmlUpdated,QString), q, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString));
 
     q->setPage(page);
 
@@ -608,16 +609,16 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
 
     if (!m_pNote) {
         errorDescription = QT_TR_NOOP("No note was set to note editor");
-        emit notifyError(errorDescription);
+        emit cantConvertToNote(errorDescription);
         return false;
     }
 
     if (m_pNote->hasActive() && !m_pNote->active()) {
         errorDescription = QT_TR_NOOP("Current note is marked as read-only, the changes won't be saved");
-        QNWARNING(errorDescription << ", note: local guid = " << m_pNote->localGuid()
-                  << ", guid = " << (m_pNote->hasGuid() ? m_pNote->guid() : "<null>")
-                  << ", title = " << (m_pNote->hasTitle() ? m_pNote->title() : "<null>"));
-        emit notifyError(errorDescription);
+        QNINFO(errorDescription << ", note: local guid = " << m_pNote->localGuid()
+               << ", guid = " << (m_pNote->hasGuid() ? m_pNote->guid() : "<null>")
+               << ", title = " << (m_pNote->hasTitle() ? m_pNote->title() : "<null>"));
+        emit cantConvertToNote(errorDescription);
         return false;
     }
 
@@ -627,13 +628,13 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
         if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
             errorDescription = QT_TR_NOOP("The notebook the current note belongs to doesn't allow notes modification, "
                                           "the changes won't be saved");
-            QNWARNING(errorDescription << ", note: local guid = " << m_pNote->localGuid()
-                      << ", guid = " << (m_pNote->hasGuid() ? m_pNote->guid() : "<null>")
-                      << ", title = " << (m_pNote->hasTitle() ? m_pNote->title() : "<null>")
-                      << ", notebook: local guid = " << m_pNotebook->localGuid() << ", guid = "
-                      << (m_pNotebook->hasGuid() ? m_pNotebook->guid() : "<null>") << ", name = "
-                      << (m_pNotebook->hasName() ? m_pNotebook->name() : "<null>"));
-            emit notifyError(errorDescription);
+            QNINFO(errorDescription << ", note: local guid = " << m_pNote->localGuid()
+                   << ", guid = " << (m_pNote->hasGuid() ? m_pNote->guid() : "<null>")
+                   << ", title = " << (m_pNote->hasTitle() ? m_pNote->title() : "<null>")
+                   << ", notebook: local guid = " << m_pNotebook->localGuid() << ", guid = "
+                   << (m_pNotebook->hasGuid() ? m_pNotebook->guid() : "<null>") << ", name = "
+                   << (m_pNotebook->hasName() ? m_pNotebook->name() : "<null>"));
+            emit cantConvertToNote(errorDescription);
             return false;
         }
     }
@@ -780,7 +781,10 @@ void NoteEditorPrivate::setPageEditable(const bool editable)
 void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
                                            const QVector<QPair<QString, QString> > & extraData)
 {
+    QNDEBUG("NoteEditorPrivate::onPageHtmlReceived");
     Q_UNUSED(extraData)
+
+    emit noteEditorHtmlUpdated(html);
 
     if (!m_pNote)
     {

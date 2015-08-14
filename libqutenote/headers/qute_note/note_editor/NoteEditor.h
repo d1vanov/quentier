@@ -51,6 +51,8 @@ Q_SIGNALS:
     void convertedToNote(Note note);
     void cantConvertToNote(QString error);
 
+    void noteEditorHtmlUpdated(QString html);
+
 public Q_SLOTS:
     void convertToNote();
     void undo();
