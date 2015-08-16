@@ -169,25 +169,53 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                     continue;
                 }
 
-                if (lastElementAttributes.hasAttribute("src"))
+                QStringRef enTag = lastElementAttributes.value("en-tag");
+                if ((enTag == "en-todo") && lastElementAttributes.hasAttribute("src"))
                 {
-                    QStringRef enTag = lastElementAttributes.value("en-tag");
-                    if (enTag == "en-todo")
-                    {
-                        QStringRef srcValue = lastElementAttributes.value("src");
-                        if (srcValue.contains("qrc:/checkbox_icons/checkbox_no.png")) {
-                            writer.writeStartElement("en-todo");
-                            ++writeElementCounter;
-                            continue;
-                        }
-                        else if (srcValue.contains("qrc:/checkbox_icons/checkbox_yes.png")) {
-                            writer.writeStartElement("en-todo");
-                            writer.writeAttribute("checked", "true");
-                            ++writeElementCounter;
-                            continue;
-                        }
+                    QStringRef srcValue = lastElementAttributes.value("src");
+                    if (srcValue.contains("qrc:/checkbox_icons/checkbox_no.png")) {
+                        writer.writeStartElement("en-todo");
+                        ++writeElementCounter;
+                        continue;
+                    }
+                    else if (srcValue.contains("qrc:/checkbox_icons/checkbox_yes.png")) {
+                        writer.writeStartElement("en-todo");
+                        writer.writeAttribute("checked", "true");
+                        ++writeElementCounter;
+                        continue;
                     }
                 }
+#ifdef USE_QT_WEB_ENGINE
+                else if (enTag == "en-crypt")
+                {
+                    const QXmlStreamAttributes & attributes = reader.attributes();
+                    QXmlStreamAttributes enCryptAttributes;
+
+                    if (attributes.hasAttribute("cipher")) {
+                        enCryptAttributes.append("cipher", attributes.value("cipher").toString());
+                    }
+
+                    if (attributes.hasAttribute("length")) {
+                        enCryptAttributes.append("length", attributes.value("length").toString());
+                    }
+
+                    if (!attributes.hasAttribute("encrypted_text")) {
+                        errorDescription = QT_TR_NOOP("Found en-crypt tag without encrypted_text attribute");
+                        return false;
+                    }
+
+                    if (attributes.hasAttribute("hint")) {
+                        enCryptAttributes.append("hint", attributes.value("hint").toString());
+                    }
+
+                    writer.writeStartElement("en-crypt");
+                    writer.writeAttributes(enCryptAttributes);
+                    writer.writeCharacters(attributes.value("encrypted_text").toString());
+                    ++writeElementCounter;
+                    QNTRACE("Started writing en-crypt tag");
+                    continue;
+                }
+#endif
             }
 
             if (lastElementName == "object")
@@ -825,36 +853,67 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
         }
     }
 
+#ifndef USE_QT_WEB_ENGINE
     writer.writeStartElement("object");
+#else
+    writer.writeStartElement("img");
+    writer.writeAttribute("src", QString());
+#endif
+
     writer.writeAttribute("en-tag", "en-crypt");
 
-    if (!hint.isEmpty()) {
+    if (!hint.isEmpty())
+    {
+#ifndef USE_QT_WEB_ENGINE
         writer.writeStartElement("param");
         writer.writeAttribute("name", "hint");
         writer.writeAttribute("value", hint);
         writer.writeEndElement();
+#else
+        writer.writeAttribute("hint", hint);
+#endif
     }
 
-    if (!cipher.isEmpty()) {
+    if (!cipher.isEmpty())
+    {
+#ifndef USE_QT_WEB_ENGINE
         writer.writeStartElement("param");
         writer.writeAttribute("name", "cipher");
         writer.writeAttribute("value", cipher);
         writer.writeEndElement();
+#else
+        writer.writeAttribute("cipher", cipher);
+#endif
     }
 
-    if (!length.isEmpty()) {
+    if (!length.isEmpty())
+    {
+#ifndef USE_QT_WEB_ENGINE
         writer.writeStartElement("param");
         writer.writeAttribute("name", "length");
         writer.writeAttribute("value", length);
         writer.writeEndElement();
+#else
+        writer.writeAttribute("length", length);
+#endif
     }
 
+#ifndef USE_QT_WEB_ENGINE
     writer.writeStartElement("param");
     writer.writeAttribute("name", "encrypted-text");
     writer.writeAttribute("value", encryptedTextCharacters.toString());
     writer.writeEndElement();
+#else
+    writer.writeAttribute("encrypted_text", encryptedTextCharacters.toString());
+#endif
 
-    QNTRACE("Wrote custom \"object\" element corresponding to en-crypt ENML tag");
+    QNTRACE("Wrote custom "
+#ifndef USE_QT_WEB_ENGINE
+            "\"object\" "
+#else
+            "\"img\" "
+#endif
+            "element corresponding to en-crypt ENML tag");
     return true;
 }
 
