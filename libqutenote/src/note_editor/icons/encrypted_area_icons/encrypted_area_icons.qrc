@@ -1,8 +1,9 @@
 <RCC>
     <qresource prefix="/encrypted_area_icons">
-        <file>png/lock-16x16.png</file>
-        <file>png/lock-24x24.png</file>
-        <file>png/lock-32x32.png</file>
-        <file>png/lock-48x48.png</file>
+        <file>lock/png/lock-16x16.png</file>
+        <file>lock/png/lock-24x24.png</file>
+        <file>lock/png/lock-32x32.png</file>
+        <file>lock/png/lock-48x48.png</file>
+        <file>en-crypt/en-crypt.png</file>
     </qresource>
 </RCC>
