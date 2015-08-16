@@ -7,6 +7,7 @@
 #include <QWebFrame>
 typedef QWebSettings WebSettings;
 #else
+#include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
 #include <QtWebSockets/QWebSocketServer>
@@ -50,6 +51,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_replaceSelectionWithHtml(),
     m_provideSrcForResourceImgTags(),
 #ifdef USE_QT_WEB_ENGINE
+    m_provideSrcForEnCryptImgTags(),
     m_webSocketServerPort(0),
     m_isPageEditable(false),
 #endif
@@ -103,7 +105,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(clientWrapper, &WebSocketClientWrapper::clientConnected,
                      channel, &QWebChannel::connectTo);
 
-    // Register resource local file info JavaScript object
     channel->registerObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this));
 
     // As long as QWebEnginePage doesn't offer a convenience signal on its content change,
@@ -113,9 +114,14 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                      q, &NoteEditor::contentChanged);
     QObject::connect(pageMutationHandler, &PageMutationHandler::contentsChanged,
                      this, &NoteEditorPrivate::onContentChanged);
-
     channel->registerObject("pageMutationHandler", pageMutationHandler);
-    QNDEBUG("Registered pageMutationHandler and resourceCache JavaScript objects");
+
+    EnCryptElementClickHandler * enCryptElementClickHandler = new EnCryptElementClickHandler(this);
+    QObject::connect(enCryptElementClickHandler, &EnCryptElementClickHandler::decrypt,
+                     this, &NoteEditorPrivate::onEnCryptElementClicked);
+    channel->registerObject("enCryptElementClickHandler", enCryptElementClickHandler);
+
+    QNDEBUG("Registered resourceCache, pageMutationHandler and enCryptElementClickHandler JavaScript objects");
 #endif
 
     NoteEditorPage * page = new NoteEditorPage(*q);
@@ -204,6 +210,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #ifndef USE_QT_WEB_ENGINE
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
+#else
+    file.setFileName(":/javascript/scripts/provideSrcForImgEnCryptTags.js");
+    file.open(QIODevice::ReadOnly);
+    m_provideSrcForEnCryptImgTags = file.readAll();
+    file.close();
 #endif
 
     QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
@@ -419,6 +430,32 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
     Q_UNUSED(m_saveNewResourcesToStorageRequestIds.insert(saveResourceToStorageRequestId));
 }
 
+#ifdef USE_QT_WEB_ENGINE
+void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint)
+{
+    bool conversionResult = false;
+    size_t keyLength = static_cast<size_t>(length.toInt(&conversionResult));
+    if (!conversionResult) {
+        QNFATAL("NoteEditorPrivate::onEnCryptElementClicked: can't convert encryption key from string to number: " << length);
+        return;
+    }
+
+    Q_Q(NoteEditor);
+    QScopedPointer<NoteDecryptionDialog> pDecryptionDialog(new NoteDecryptionDialog(encryptedText,
+                                                                                    cipher, hint, keyLength,
+                                                                                    m_encryptionManager,
+                                                                                    m_decryptedTextCache, q));
+    pDecryptionDialog->setWindowModality(Qt::WindowModal);
+
+    int res = pDecryptionDialog->exec();
+    if (res == QDialog::Accepted) {
+        QNTRACE("Successfully decrypted text: " << pDecryptionDialog->decryptedText());
+        onEncryptedAreaDecryption(encryptedText, pDecryptionDialog->decryptedText(),
+                                  pDecryptionDialog->rememberPassphrase());
+    }
+}
+#endif
+
 void NoteEditorPrivate::timerEvent(QTimerEvent * event)
 {
     QNDEBUG("NoteEditorPrivate::timerEvent: " << (event ? QString::number(event->timerId()) : "<null>"));
@@ -565,8 +602,12 @@ void NoteEditorPrivate::noteToEditorContent()
     q->setHtml(m_htmlCachedMemory);
 
     updateColResizableTableBindings();
-
     checkResourceLocalFilesAndProvideSrcForImgResources(m_htmlCachedMemory);
+
+#ifdef USE_QT_WEB_ENGINE
+    checkEnCryptIconAndProvideSrcForEnCryptTags();
+#endif
+
     QNTRACE("Done setting the current note and notebook");
 }
 
@@ -685,7 +726,7 @@ void NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources(cons
             continue;
         }
 
-        QXmlStreamAttributes attributes = reader.attributes();
+        const QXmlStreamAttributes attributes = reader.attributes();
         if (!attributes.hasAttribute("en-tag")) {
             continue;
         }
@@ -767,6 +808,33 @@ void NoteEditorPrivate::provideScrForImgResourcesFromCache()
 }
 
 #ifdef USE_QT_WEB_ENGINE
+void NoteEditorPrivate::checkEnCryptIconAndProvideSrcForEnCryptTags()
+{
+    QNDEBUG("NoteEditorPrivate::checkEnCryptIconAndProvideSrcForEnCryptTags");
+
+    if (!m_pNote) {
+        QNTRACE("No note is set for the editor");
+        return;
+    }
+
+    if (!m_pNote->containsEncryption()) {
+        QNTRACE("Current note doesn't contain any encryption, nothing to do");
+        return;
+    }
+
+    provideSrcForImgEnCryptTags();
+}
+
+void NoteEditorPrivate::provideSrcForImgEnCryptTags()
+{
+    QString iconPath = "qrc:/encrypted_area_icons/en-crypt/en-crypt.png";
+
+    Q_Q(NoteEditor);
+    QString javascript = "provideSrcForEnCryptImgTags(" + iconPath + ")";
+    q->page()->runJavaScript(javascript);
+    QNDEBUG("Executed javascript command to provide src for img tags: " << javascript);
+}
+
 void NoteEditorPrivate::setPageEditable(const bool editable)
 {
     Q_Q(NoteEditor);

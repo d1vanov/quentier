@@ -14,9 +14,10 @@
     socket.onopen = function() {
         console.log("WebSocket connected, setting up QWebChannel.");
         new QWebChannel(socket, function(channel) {
-            // make resourceCache and pageMutationHandler objects accessible globally
+            // make resourceCache, pageMutationHandler and enCryptElementClickHandler objects accessible globally
             window.resourceCache = channel.objects.resourceCache;
             window.pageMutationHandler = channel.objects.pageMutationHandler;
+            window.enCryptElementClickHandler = channel.enCryptElementClickHandler;
         });
         console.log("Connected to WebChannel, ready to send/receive messages!");
     }

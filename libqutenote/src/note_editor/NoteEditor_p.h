@@ -48,7 +48,6 @@ private:
 // The instance of this class would be exposed to JavaScript call
 // in order to emulate the contentsChanged signal that way because - surprise! -
 // QWebEnginePage doesn't provide such a signal natively!
-
 class PageMutationHandler: public QObject
 {
     Q_OBJECT
@@ -62,6 +61,24 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void onPageMutation() { emit contentsChanged(); }
+};
+
+// The instance of this class would be exposed to JavaScript call in order to propagate
+// the click on en-crypt element to the C++ code
+class EnCryptElementClickHandler: public QObject
+{
+    Q_OBJECT
+public:
+    explicit EnCryptElementClickHandler(QObject * parent = nullptr) :
+        QObject(parent)
+    {}
+
+Q_SIGNALS:
+    void decrypt(QString encryptedText, QString cipher, QString length, QString hint);
+
+public Q_SLOTS:
+    void onClick(QString encryptedText, QString cipher, QString length, QString hint)
+    { emit decrypt(encryptedText, cipher, length, hint); }
 };
 
 #endif
@@ -142,6 +159,10 @@ private Q_SLOTS:
                                   int errorCode, QString errorDescription);
     void onDroppedFileRead(bool success, QString errorDescription, QByteArray data, QUuid requestId);
 
+#ifdef USE_QT_WEB_ENGINE
+    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
+#endif
+
 private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
 
@@ -156,6 +177,9 @@ private:
     void provideScrForImgResourcesFromCache();
 
 #ifdef USE_QT_WEB_ENGINE
+    void checkEnCryptIconAndProvideSrcForEnCryptTags();
+    void provideSrcForImgEnCryptTags();
+
     bool isPageEditable() const { return m_isPageEditable; }
     void setPageEditable(const bool editable);
 #endif
@@ -200,6 +224,7 @@ private:
     QString     m_provideSrcForResourceImgTags;
 
 #ifdef USE_QT_WEB_ENGINE
+    QString     m_provideSrcForEnCryptImgTags;
     quint16     m_webSocketServerPort;
     bool        m_isPageEditable;
 #endif

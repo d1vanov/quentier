@@ -188,7 +188,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 #ifdef USE_QT_WEB_ENGINE
                 else if (enTag == "en-crypt")
                 {
-                    const QXmlStreamAttributes & attributes = reader.attributes();
+                    const QXmlStreamAttributes attributes = reader.attributes();
                     QXmlStreamAttributes enCryptAttributes;
 
                     if (attributes.hasAttribute("cipher")) {
@@ -905,6 +905,8 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
     writer.writeEndElement();
 #else
     writer.writeAttribute("encrypted_text", encryptedTextCharacters.toString());
+    writer.writeAttribute("onclick", "enCryptElementClickHandler.onClick(this.encrypted_text, "
+                                     "this.cipher || \"AES\", this.length || \"128\", this.hint || \"\")");
 #endif
 
     QNTRACE("Wrote custom "

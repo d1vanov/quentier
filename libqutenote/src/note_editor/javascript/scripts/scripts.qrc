@@ -6,5 +6,6 @@
         <file>provideSrcForResourceImgTags.js</file>
         <file>pageMutationObserver.js</file>
         <file>qWebChannelSetup.js</file>
+        <file>provideSrcForEnCryptImgTags.js</file>
     </qresource>
 </RCC>
