@@ -40,6 +40,8 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encry
     showEncryptedTextAction->setText(QObject::tr("Show encrypted text") + "...");
     QObject::connect(showEncryptedTextAction, QNSIGNAL(QAction,triggered), this, QNSLOT(EncryptedAreaPlugin,decrypt));
     m_pUI->toolButton->addAction(showEncryptedTextAction);
+
+    QObject::connect(m_pUI->iconPushButton, QNSIGNAL(QPushButton,released), this, QNSLOT(EncryptedAreaPlugin,decrypt));
 }
 
 EncryptedAreaPlugin::~EncryptedAreaPlugin()
@@ -160,25 +162,6 @@ QString EncryptedAreaPlugin::description() const
 {
     return QObject::tr("Encrypted area plugin - note editor plugin used for the display and convenient work "
                        "with encrypted text within notes");
-}
-
-void EncryptedAreaPlugin::mouseReleaseEvent(QMouseEvent * mouseEvent)
-{
-    QWidget::mouseReleaseEvent(mouseEvent);
-
-    if (!mouseEvent) {
-        return;
-    }
-
-    const QPoint & pos = mouseEvent->pos();
-    QWidget * child = childAt(pos);
-    if (!child) {
-        return;
-    }
-
-    if (child == m_pUI->iconPushButton) {
-        decrypt();
-    }
 }
 
 void EncryptedAreaPlugin::decrypt()

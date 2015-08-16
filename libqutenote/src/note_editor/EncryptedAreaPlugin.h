@@ -38,9 +38,6 @@ private:
     virtual QString name() const Q_DECL_OVERRIDE;
     virtual QString description() const Q_DECL_OVERRIDE;
 
-private:
-    virtual void mouseReleaseEvent(QMouseEvent * mouseEvent) Q_DECL_OVERRIDE;
-
 private Q_SLOTS:
     void decrypt();
 
