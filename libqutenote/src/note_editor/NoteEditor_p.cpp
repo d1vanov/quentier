@@ -211,7 +211,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
 #else
-    file.setFileName(":/javascript/scripts/provideSrcForImgEnCryptTags.js");
+    file.setFileName(":/javascript/scripts/provideSrcForEnCryptImgTags.js");
     file.open(QIODevice::ReadOnly);
     m_provideSrcForEnCryptImgTags = file.readAll();
     file.close();
@@ -282,6 +282,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->runJavaScript(m_getSelectionHtml);
     page->runJavaScript(m_replaceSelectionWithHtml);
     page->runJavaScript(m_provideSrcForResourceImgTags);
+    page->runJavaScript(m_provideSrcForEnCryptImgTags);
 
     // Setup QWebChannel on JavaScript side
     QFile file(":/qtwebchannel/qwebchannel.js");
@@ -605,7 +606,7 @@ void NoteEditorPrivate::noteToEditorContent()
     checkResourceLocalFilesAndProvideSrcForImgResources(m_htmlCachedMemory);
 
 #ifdef USE_QT_WEB_ENGINE
-    checkEnCryptIconAndProvideSrcForEnCryptTags();
+    provideSrcForImgEnCryptTags();
 #endif
 
     QNTRACE("Done setting the current note and notebook");
@@ -808,10 +809,8 @@ void NoteEditorPrivate::provideScrForImgResourcesFromCache()
 }
 
 #ifdef USE_QT_WEB_ENGINE
-void NoteEditorPrivate::checkEnCryptIconAndProvideSrcForEnCryptTags()
+void NoteEditorPrivate::provideSrcForImgEnCryptTags()
 {
-    QNDEBUG("NoteEditorPrivate::checkEnCryptIconAndProvideSrcForEnCryptTags");
-
     if (!m_pNote) {
         QNTRACE("No note is set for the editor");
         return;
@@ -822,15 +821,10 @@ void NoteEditorPrivate::checkEnCryptIconAndProvideSrcForEnCryptTags()
         return;
     }
 
-    provideSrcForImgEnCryptTags();
-}
-
-void NoteEditorPrivate::provideSrcForImgEnCryptTags()
-{
     QString iconPath = "qrc:/encrypted_area_icons/en-crypt/en-crypt.png";
 
     Q_Q(NoteEditor);
-    QString javascript = "provideSrcForEnCryptImgTags(" + iconPath + ")";
+    QString javascript = "provideSrcForEnCryptImgTags(\"" + iconPath + "\")";
     q->page()->runJavaScript(javascript);
     QNDEBUG("Executed javascript command to provide src for img tags: " << javascript);
 }

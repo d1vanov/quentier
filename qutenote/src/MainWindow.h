@@ -1,6 +1,9 @@
 #ifndef __QUTE_NOTE__MAINWINDOW_H
 #define __QUTE_NOTE__MAINWINDOW_H
 
+#include <qute_note/types/Notebook.h>
+#include <qute_note/types/Note.h>
+
 #include <QtCore>
 
 #if QT_VERSION >= 0x050000
@@ -57,6 +60,7 @@ private Q_SLOTS:
     void noteTextInsertTable(int rows, int columns, double width, bool relativeWidth);
 
     void onShowNoteSource();
+    void onSetTestNoteWithEncryptedData();
 
     void onNoteEditorHtmlUpdate(QString html);
 
@@ -71,6 +75,9 @@ private:
     QWidget * m_currentStatusBarChildWidget;
     qute_note::NoteEditor * m_pNoteEditor;
     QString m_lastNoteEditorHtml;
+
+    qute_note::Notebook    m_testNotebook;
+    qute_note::Note        m_testNote;
 };
 
 #endif // __QUTE_NOTE__MAINWINDOW_H

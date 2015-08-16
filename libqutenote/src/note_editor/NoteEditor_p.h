@@ -177,7 +177,6 @@ private:
     void provideScrForImgResourcesFromCache();
 
 #ifdef USE_QT_WEB_ENGINE
-    void checkEnCryptIconAndProvideSrcForEnCryptTags();
     void provideSrcForImgEnCryptTags();
 
     bool isPageEditable() const { return m_isPageEditable; }

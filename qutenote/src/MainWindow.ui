@@ -1083,7 +1083,16 @@ background-color: rgb(205, 221, 229);
                <property name="spacing">
                 <number>0</number>
                </property>
-               <property name="margin">
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
                 <number>0</number>
                </property>
                <item>
@@ -1211,7 +1220,7 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1516</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1428,6 +1437,7 @@ background-color: rgb(205, 221, 229);
      <string>&amp;Debug</string>
     </property>
     <addaction name="ActionShowNoteSource"/>
+    <addaction name="ActionSetTestNoteWithEncryptedData"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -2646,6 +2656,11 @@ stop: 1 #0EB7FF);
   <action name="ActionAbout">
    <property name="text">
     <string>About QuteNote</string>
+   </property>
+  </action>
+  <action name="ActionSetTestNoteWithEncryptedData">
+   <property name="text">
+    <string>Set test note with encrypted data</string>
    </property>
   </action>
  </widget>

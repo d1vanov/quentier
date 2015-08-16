@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
+#include "tests/ManualTestingHelper.h"
 #include "BasicXMLSyntaxHighlighter.h"
 #include "TableSettingsDialog.h"
 
@@ -36,7 +37,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pUI(new Ui::MainWindow),
     m_currentStatusBarChildWidget(nullptr),
     m_pNoteEditor(nullptr),
-    m_lastNoteEditorHtml()
+    m_lastNoteEditorHtml(),
+    m_testNotebook(),
+    m_testNote()
 {
     m_pUI->setupUi(this);
     m_pUI->noteSourceView->setHidden(true);
@@ -50,22 +53,16 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     connectActionsToEditorSlots();
 
-    // Debug
+    // Stuff primarily for manual testing
     QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction, triggered),
                      this, QNSLOT(MainWindow, onShowNoteSource));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString),
                      this, QNSLOT(MainWindow,onNoteEditorHtmlUpdate,QString));
 
-    // FIXME: temporary stuff for testing
-    Notebook myCoolNotebook;
-    myCoolNotebook.setName("My cool notebook");
+    QObject::connect(m_pUI->ActionSetTestNoteWithEncryptedData, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow, onSetTestNoteWithEncryptedData));
 
-    Note myCoolNote;
-    myCoolNote.setTitle("My cool note");
-
-    m_pNoteEditor->setNoteAndNotebook(myCoolNote, myCoolNotebook);
-
-
+    m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
     m_pNoteEditor->setFocus();
 }
 
@@ -254,6 +251,16 @@ void MainWindow::onShowNoteSource()
     QNDEBUG("MainWindow::onShowNoteSource");
     updateNoteHtmlView(m_lastNoteEditorHtml);
     m_pUI->noteSourceView->setHidden(m_pUI->noteSourceView->isVisible());
+}
+
+void MainWindow::onSetTestNoteWithEncryptedData()
+{
+    QNDEBUG("MainWindow::onSetTestNoteWithEncryptedData");
+
+    QString noteContent = test::ManualTestingHelper::noteContentWithEncryption();
+    m_testNote.setContent(noteContent);
+    m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteEditorHtmlUpdate(QString html)
