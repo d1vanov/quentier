@@ -19,7 +19,8 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/InsertTableToolButton.h
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
-    src/insert-table-tool-button/TableSizeSelector.h)
+    src/insert-table-tool-button/TableSizeSelector.h
+    src/tests/ManualTestingHelper.h)
 
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
@@ -29,6 +30,7 @@ set(${PROJECT_NAME}_SOURCES
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelectorActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelector.cpp
+    src/tests/ManualTestingHelper.cpp
     src/main.cpp)
 
 set(FORMS
