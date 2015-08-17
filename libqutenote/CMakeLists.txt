@@ -186,6 +186,7 @@ if(NOT USE_QT_WEB_ENGINE)
        src/note_editor/NoteEditorPluginFactory_p.h)
 else()
   list(APPEND PRIVATE_HEADERS
+       src/note_editor/JavaScriptInOrderExecutor.h
        src/note_editor/WebSocketClientWrapper.h
        src/note_editor/WebSocketTransport.h)
 endif()
@@ -278,6 +279,7 @@ if(NOT USE_QT_WEB_ENGINE)
     src/note_editor/NoteEditorPluginFactory_p.cpp)
 else()
   list(APPEND ${PROJECT_NAME}_SOURCES
+    src/note_editor/JavaScriptInOrderExecutor.cpp
     src/note_editor/WebSocketTransport.cpp
     src/note_editor/WebSocketClientWrapper.cpp)
 endif()

@@ -7,6 +7,7 @@
 #include <QWebFrame>
 typedef QWebSettings WebSettings;
 #else
+#include "JavaScriptInOrderExecutor.h"
 #include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
@@ -52,6 +53,12 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForResourceImgTags(),
 #ifdef USE_QT_WEB_ENGINE
     m_provideSrcAndOnClickScriptForEnCryptImgTags(),
+    m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
+    m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
+    m_pWebChannel(new QWebChannel(this)),
+    m_pPageMutationHandler(new PageMutationHandler(this)),
+    m_pEnCryptElementClickHandler(new EnCryptElementClickHandler(this)),
+    m_pJavaScriptInOrderExecutor(new JavaScriptInOrderExecutor(noteEditor, this)),
     m_webSocketServerPort(0),
     m_isPageEditable(false),
 #endif
@@ -79,6 +86,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pResourceFileStorageManager(nullptr),
     m_pFileIOThreadWorker(nullptr),
     m_resourceLocalFileInfoCache(),
+    m_pResourceLocalFileInfoJavaScriptHandler(new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this)),
     m_resourceLocalFileStorageFolder(),
     m_resourceLocalGuidBySaveToStorageRequestIds(),
     m_droppedFileNamesAndMimeTypesByReadRequestIds(),
@@ -88,40 +96,32 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     Q_Q(NoteEditor);
 
 #ifdef USE_QT_WEB_ENGINE
-    // Setup WebSocket server
-    QWebSocketServer * server = new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this);
-    if (!server->listen(QHostAddress::LocalHost, 0)) {
-        QNFATAL("Cannot open web socket server: " << server->errorString());
+    if (!m_pWebSocketServer->listen(QHostAddress::LocalHost, 0)) {
+        QNFATAL("Cannot open web socket server: " << m_pWebSocketServer->errorString());
+        // TODO: throw appropriate exception
         return;
     }
 
-    m_webSocketServerPort = server->serverPort();
+    m_webSocketServerPort = m_pWebSocketServer->serverPort();
     QNDEBUG("Using automatically selected websocket server port " << m_webSocketServerPort);
-
-    WebSocketClientWrapper * clientWrapper = new WebSocketClientWrapper(server, this);
-
-    // Setup the channel on C++ side
-    QWebChannel * channel = new QWebChannel(this);
-    QObject::connect(clientWrapper, &WebSocketClientWrapper::clientConnected,
-                     channel, &QWebChannel::connectTo);
-
-    channel->registerObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this));
 
     // As long as QWebEnginePage doesn't offer a convenience signal on its content change,
     // need to reinvent the wheel using JavaScript
-    PageMutationHandler * pageMutationHandler = new PageMutationHandler(this);
-    QObject::connect(pageMutationHandler, &PageMutationHandler::contentsChanged,
+    QObject::connect(m_pPageMutationHandler, &PageMutationHandler::contentsChanged,
                      q, &NoteEditor::contentChanged);
-    QObject::connect(pageMutationHandler, &PageMutationHandler::contentsChanged,
+    QObject::connect(m_pPageMutationHandler, &PageMutationHandler::contentsChanged,
                      this, &NoteEditorPrivate::onContentChanged);
-    channel->registerObject("pageMutationHandler", pageMutationHandler);
 
-    EnCryptElementClickHandler * enCryptElementClickHandler = new EnCryptElementClickHandler(this);
-    QObject::connect(enCryptElementClickHandler, &EnCryptElementClickHandler::decrypt,
+    QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementClickHandler::decrypt,
                      this, &NoteEditorPrivate::onEnCryptElementClicked);
-    channel->registerObject("enCryptElementClickHandler", enCryptElementClickHandler);
 
+    m_pWebChannel->registerObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler);
+    m_pWebChannel->registerObject("pageMutationHandler", m_pPageMutationHandler);
+    m_pWebChannel->registerObject("enCryptElementClickHandler", m_pEnCryptElementClickHandler);
     QNDEBUG("Registered resourceCache, pageMutationHandler and enCryptElementClickHandler JavaScript objects");
+
+    QObject::connect(m_pWebSocketClientWrapper, &WebSocketClientWrapper::clientConnected,
+                     m_pWebChannel, &QWebChannel::connectTo);
 #endif
 
     NoteEditorPage * page = new NoteEditorPage(*q);
@@ -171,8 +171,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                      this, QNSLOT(NoteEditorPrivate,onDroppedFileRead,bool,QString,QByteArray,QUuid));
 
 #ifndef USE_QT_WEB_ENGINE
-    page->mainFrame()->addToJavaScriptWindowObject("resourceCache", new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this),
-                                                   QScriptEngine::QtOwnership);
+    page()->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler,
+                                                     QScriptEngine::QtOwnership);
 #endif
 
     __initNoteEditorResources();
@@ -205,6 +205,21 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     file.setFileName(":/javascript/scripts/provideSrcForResourceImgTags.js");
     file.open(QIODevice::ReadOnly);
     m_provideSrcForResourceImgTags = file.readAll();
+    file.close();
+
+    file.setFileName(":/qtwebchannel/qwebchannel.js");
+    file.open(QIODevice::ReadOnly);
+    m_qWebChannelJs = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/qWebChannelSetup.js");
+    file.open(QIODevice::ReadOnly);
+    m_qWebChannelSetupJs = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/pageMutationObserver.js");
+    file.open(QIODevice::ReadOnly);
+    m_pageMutationObserverJs = file.readAll();
     file.close();
 
 #ifndef USE_QT_WEB_ENGINE
@@ -276,42 +291,24 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
         return;
     }
 
-    page->runJavaScript(m_jQuery);
-    page->runJavaScript(m_resizableColumnsPlugin);
-    page->runJavaScript(m_onFixedWidthTableResize);
-    page->runJavaScript(m_getSelectionHtml);
-    page->runJavaScript(m_replaceSelectionWithHtml);
-    page->runJavaScript(m_provideSrcForResourceImgTags);
-    page->runJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTags);
-
-    // Setup QWebChannel on JavaScript side
-    QFile file(":/qtwebchannel/qwebchannel.js");
-    file.open(QIODevice::ReadOnly);
-    QString qWebChannelJs = file.readAll();
-    file.close();
-
-    page->runJavaScript(qWebChannelJs);
+    m_pJavaScriptInOrderExecutor->clear();
+    m_pJavaScriptInOrderExecutor->append(m_pageMutationObserverJs);
+    m_pJavaScriptInOrderExecutor->append(m_qWebChannelJs);
 
     // Expose websocket server port number to JavaScript
-    page->runJavaScript(QString("(function(){window.websocketserverport = ") +
-                        QString::number(m_webSocketServerPort) + QString("})();"));
+    m_pJavaScriptInOrderExecutor->append(QString("(function(){window.websocketserverport = ") +
+                                         QString::number(m_webSocketServerPort) + QString("})();"));
 
-    file.setFileName(":/javascript/scripts/qWebChannelSetup.js");
-    file.open(QIODevice::ReadOnly);
-    QString qWebChannelSetupJs = file.readAll();
-    file.close();
-
-    page->runJavaScript(qWebChannelSetupJs);
-    QNDEBUG("Ran JavaScript to set up QWebChannel on JavaScript side");
-
-    file.setFileName(":/javascript/scripts/pageMutationObserver.js");
-    file.open(QIODevice::ReadOnly);
-    QString pageMutationObserverScript = file.readAll();
-    file.close();
+    m_pJavaScriptInOrderExecutor->append(m_qWebChannelSetupJs);
+    m_pJavaScriptInOrderExecutor->append(m_jQuery);
+    m_pJavaScriptInOrderExecutor->append(m_resizableColumnsPlugin);
+    m_pJavaScriptInOrderExecutor->append(m_onFixedWidthTableResize);
+    m_pJavaScriptInOrderExecutor->append(m_getSelectionHtml);
+    m_pJavaScriptInOrderExecutor->append(m_replaceSelectionWithHtml);
+    m_pJavaScriptInOrderExecutor->append(m_provideSrcForResourceImgTags);
+    m_pJavaScriptInOrderExecutor->append(m_provideSrcAndOnClickScriptForEnCryptImgTags);
 
     setPageEditable(true);
-    page->runJavaScript(pageMutationObserverScript);
-    QNDEBUG("Ran JavaScript to set up pageMutationHandler on JavaScript side");
 #endif
 
     updateColResizableTableBindings();
@@ -470,6 +467,12 @@ void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString c
                                   pDecryptionDialog->rememberPassphrase());
     }
 }
+
+void NoteEditorPrivate::onJavaScriptLoaded()
+{
+    QNDEBUG("NoteEditorPrivate::onJavaScriptLoaded");
+    // TODO: implement
+}
 #endif
 
 void NoteEditorPrivate::timerEvent(QTimerEvent * event)
@@ -623,8 +626,8 @@ void NoteEditorPrivate::updateColResizableTableBindings()
 {
     QNDEBUG("NoteEditorPrivate::updateColResizableTableBindings");
 
-    Q_Q(NoteEditor);
 #ifndef USE_QT_WEB_ENGINE
+    Q_Q(NoteEditor);
     bool readOnly = !q->page()->isContentEditable();
 #else
     bool readOnly = !isPageEditable();
@@ -648,7 +651,10 @@ void NoteEditorPrivate::updateColResizableTableBindings()
 #ifndef USE_QT_WEB_ENGINE
     q->page()->mainFrame()->evaluateJavaScript(colResizable);
 #else
-    q->page()->runJavaScript(colResizable);
+    m_pJavaScriptInOrderExecutor->append(colResizable);
+    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
+        m_pJavaScriptInOrderExecutor->start();
+    }
 #endif
 }
 
@@ -806,12 +812,15 @@ void NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources(cons
 void NoteEditorPrivate::provideScrForImgResourcesFromCache()
 {
     QNDEBUG("NoteEditorPrivate::provideScrForImgResourcesFromCache");
-    Q_Q(NoteEditor);
 
 #ifndef USE_QT_WEB_ENGINE
+    Q_Q(NoteEditor);
     q->page()->mainFrame()->evaluateJavaScript("provideSrcForResourceImgTags();");
 #else
-    q->page()->runJavaScript("provideSrcForResourceImgTags();");
+    m_pJavaScriptInOrderExecutor->append("provideSrcForResourceImgTags();");
+    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
+        m_pJavaScriptInOrderExecutor->start();
+    }
 #endif
 }
 
@@ -832,19 +841,24 @@ void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
 
     QString iconPath = "qrc:/encrypted_area_icons/en-crypt/en-crypt.png";
 
-    Q_Q(NoteEditor);
     QString javascript = "provideSrcAndOnClickScriptForEnCryptImgTags(\"" + iconPath + "\")";
-    q->page()->runJavaScript(javascript);
-    QNDEBUG("Executed javascript command to provide src for img tags: " << javascript);
+    m_pJavaScriptInOrderExecutor->append(javascript);
+    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
+        m_pJavaScriptInOrderExecutor->start();
+    }
+    QNDEBUG("Queued javascript command to provide src for img tags: " << javascript);
 }
 
 void NoteEditorPrivate::setPageEditable(const bool editable)
 {
-    Q_Q(NoteEditor);
     QString javascript = QString("document.body.contentEditable='") + QString(editable ? "true" : "false") + QString("'; ") +
                          QString("document.designMode='") + QString(editable ? "on" : "off") + QString("'; void 0;");
-    q->page()->runJavaScript(javascript);
-    QNINFO("Executed javascript to make page " << (editable ? "editable" : "non-editable") << ": " << javascript);
+    m_pJavaScriptInOrderExecutor->append(javascript);
+    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
+        m_pJavaScriptInOrderExecutor->start();
+    }
+
+    QNINFO("Queued javascript to make page " << (editable ? "editable" : "non-editable") << ": " << javascript);
     m_isPageEditable = editable;
 }
 #endif
@@ -973,13 +987,16 @@ void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant &
 
     encryptedTextHtmlObject += "<object/>";
 
-    Q_Q(NoteEditor);
 #ifndef USE_QT_WEB_ENGINE
+    Q_Q(NoteEditor);
     q->page()->mainFrame()->evaluateJavaScript(QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject));
-#else
-    q->page()->runJavaScript(QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject));
-#endif
     // TODO: see whether contentChanged signal should be emitted manually here
+#else
+    m_pJavaScriptInOrderExecutor->append(QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject));
+    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
+        m_pJavaScriptInOrderExecutor->start();
+    }
+#endif
 }
 
 #define COMMAND_TO_JS(command) \
@@ -1012,28 +1029,34 @@ QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & comm
 
 void NoteEditorPrivate::execJavascriptCommand(const QString & command)
 {
-    Q_Q(NoteEditor);
     COMMAND_TO_JS(command);
 #ifndef USE_QT_WEB_ENGINE
+    Q_Q(NoteEditor);
     QWebFrame * frame = q->page()->mainFrame();
     QVariant result = frame->evaluateJavaScript(javascript);
     QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
 #else
-    q->page()->runJavaScript(javascript);
+    m_pJavaScriptInOrderExecutor->append(javascript);
+    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
+        m_pJavaScriptInOrderExecutor->start();
+    }
 #endif
 }
 
 void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args)
 {
-    Q_Q(NoteEditor);
     COMMAND_WITH_ARGS_TO_JS(command, args);
 #ifndef USE_QT_WEB_ENGINE
+    Q_Q(NoteEditor);
     QWebFrame * frame = q->page()->mainFrame();
     QVariant result = frame->evaluateJavaScript(javascript);
     QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
     return;
 #else
-    q->page()->runJavaScript(javascript);
+    m_pJavaScriptInOrderExecutor->append(javascript);
+    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
+        m_pJavaScriptInOrderExecutor->start();
+    }
 #endif
 }
 

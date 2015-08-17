@@ -1,7 +1,9 @@
 MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
 
 var observer = new MutationObserver(function(mutations, observer) {
-    pageMutationHandler.onPageMutation();
+    if (window.pageMutationHandler) {
+        window.pageMutationHandler.onPageMutation();
+    }
 });
 
 observer.observe(document, {

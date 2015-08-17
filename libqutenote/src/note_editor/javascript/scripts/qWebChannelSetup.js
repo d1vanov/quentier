@@ -16,8 +16,8 @@
         new QWebChannel(socket, function(channel) {
             // make resourceCache, pageMutationHandler and enCryptElementClickHandler objects accessible globally
             window.resourceCache = channel.objects.resourceCache;
-            window.pageMutationHandler = channel.objects.pageMutationHandler;
-            window.enCryptElementClickHandler = channel.enCryptElementClickHandler;
+            // window.pageMutationHandler = channel.objects.pageMutationHandler;
+            window.enCryptElementClickHandler = channel.objects.enCryptElementClickHandler;
             console.log("Created window variables: resourceCache, pageMutationHandler, enCryptElementClickHandler");
         });
         console.log("Connected to WebChannel, ready to send/receive messages!");

@@ -13,10 +13,20 @@ QT_FORWARD_DECLARE_CLASS(QMimeType)
 QT_FORWARD_DECLARE_CLASS(QImage)
 QT_FORWARD_DECLARE_CLASS(QThread)
 
+#ifdef USE_QT_WEB_ENGINE
+QT_FORWARD_DECLARE_CLASS(QWebChannel)
+QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
+QT_FORWARD_DECLARE_CLASS(WebSocketClientWrapper)
+#endif
+
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+
+#ifdef USE_QT_WEB_ENGINE
+QT_FORWARD_DECLARE_CLASS(JavaScriptInOrderExecutor)
+#endif
 
 typedef QHash<QString, QString> ResourceLocalFileInfoCache;
 
@@ -161,6 +171,7 @@ private Q_SLOTS:
 
 #ifdef USE_QT_WEB_ENGINE
     void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
+    void onJavaScriptLoaded();
 #endif
 
 private:
@@ -224,6 +235,16 @@ private:
 
 #ifdef USE_QT_WEB_ENGINE
     QString     m_provideSrcAndOnClickScriptForEnCryptImgTags;
+    QString     m_qWebChannelJs;
+    QString     m_qWebChannelSetupJs;
+    QString     m_pageMutationObserverJs;
+    QWebSocketServer * m_pWebSocketServer;
+    WebSocketClientWrapper * m_pWebSocketClientWrapper;
+    QWebChannel * m_pWebChannel;
+    PageMutationHandler * m_pPageMutationHandler;
+    EnCryptElementClickHandler * m_pEnCryptElementClickHandler;
+    JavaScriptInOrderExecutor * m_pJavaScriptInOrderExecutor;
+
     quint16     m_webSocketServerPort;
     bool        m_isPageEditable;
 #endif
@@ -274,6 +295,7 @@ private:
     FileIOThreadWorker *            m_pFileIOThreadWorker;
 
     ResourceLocalFileInfoCache      m_resourceLocalFileInfoCache;
+    ResourceLocalFileInfoJavaScriptHandler * m_pResourceLocalFileInfoJavaScriptHandler;
 
     QString     m_resourceLocalFileStorageFolder;
 

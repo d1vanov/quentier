@@ -26,12 +26,13 @@ function provideSrcAndOnClickScriptForEnCryptImgTags(path) {
         // automatically escape special characters in the path
         path = path.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
         element.setAttribute("src", path);
+        element.setAttribute("onmouseover", "style.cursor=\"default\"");
         element.setAttribute("onclick", "window.enCryptElementClickHandler.onEnCryptElementClicked(" +
-                                        "this.getAttribute(\"encrypted_text\"), " +
-                                        "this.getAttribute(\"cipher\"), " +
-                                        "this.getAttribute(\"length\"), " +
-                                        "this.getAttribute(\"hint\")" +
-                                        ")");
+                             "this.getAttribute(\"encrypted_text\"), " +
+                             "this.getAttribute(\"cipher\"), " +
+                             "this.getAttribute(\"length\"), " +
+                             "this.getAttribute(\"hint\")" +
+                             ")");
         console.log("Set en-crypt tag's src to " + path + "; also set onclick script");
     }
 }
