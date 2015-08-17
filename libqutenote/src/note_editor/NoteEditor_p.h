@@ -77,7 +77,7 @@ Q_SIGNALS:
     void decrypt(QString encryptedText, QString cipher, QString length, QString hint);
 
 public Q_SLOTS:
-    void onClick(QString encryptedText, QString cipher, QString length, QString hint)
+    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint)
     { emit decrypt(encryptedText, cipher, length, hint); }
 };
 
@@ -177,7 +177,7 @@ private:
     void provideScrForImgResourcesFromCache();
 
 #ifdef USE_QT_WEB_ENGINE
-    void provideSrcForImgEnCryptTags();
+    void provideSrcAndOnClickScriptForImgEnCryptTags();
 
     bool isPageEditable() const { return m_isPageEditable; }
     void setPageEditable(const bool editable);
@@ -223,7 +223,7 @@ private:
     QString     m_provideSrcForResourceImgTags;
 
 #ifdef USE_QT_WEB_ENGINE
-    QString     m_provideSrcForEnCryptImgTags;
+    QString     m_provideSrcAndOnClickScriptForEnCryptImgTags;
     quint16     m_webSocketServerPort;
     bool        m_isPageEditable;
 #endif

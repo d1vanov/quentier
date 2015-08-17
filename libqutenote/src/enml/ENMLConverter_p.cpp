@@ -905,8 +905,9 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
     writer.writeEndElement();
 #else
     writer.writeAttribute("encrypted_text", encryptedTextCharacters.toString());
-    writer.writeAttribute("onclick", "enCryptElementClickHandler.onClick(this.encrypted_text, "
-                                     "this.cipher || \"AES\", this.length || \"128\", this.hint || \"\")");
+    writer.writeAttribute("class", QString("en-crypt"));
+    writer.writeAttribute("style", "display: inline");
+    // writer.writeAttribute("onmouseover", "style.cursor=\\'default\\'");
 #endif
 
     QNTRACE("Wrote custom "

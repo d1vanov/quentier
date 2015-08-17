@@ -51,7 +51,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_replaceSelectionWithHtml(),
     m_provideSrcForResourceImgTags(),
 #ifdef USE_QT_WEB_ENGINE
-    m_provideSrcForEnCryptImgTags(),
+    m_provideSrcAndOnClickScriptForEnCryptImgTags(),
     m_webSocketServerPort(0),
     m_isPageEditable(false),
 #endif
@@ -211,9 +211,9 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
 #else
-    file.setFileName(":/javascript/scripts/provideSrcForEnCryptImgTags.js");
+    file.setFileName(":/javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js");
     file.open(QIODevice::ReadOnly);
-    m_provideSrcForEnCryptImgTags = file.readAll();
+    m_provideSrcAndOnClickScriptForEnCryptImgTags = file.readAll();
     file.close();
 #endif
 
@@ -282,7 +282,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->runJavaScript(m_getSelectionHtml);
     page->runJavaScript(m_replaceSelectionWithHtml);
     page->runJavaScript(m_provideSrcForResourceImgTags);
-    page->runJavaScript(m_provideSrcForEnCryptImgTags);
+    page->runJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTags);
 
     // Setup QWebChannel on JavaScript side
     QFile file(":/qtwebchannel/qwebchannel.js");
@@ -312,6 +312,13 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     setPageEditable(true);
     page->runJavaScript(pageMutationObserverScript);
     QNDEBUG("Ran JavaScript to set up pageMutationHandler on JavaScript side");
+#endif
+
+    updateColResizableTableBindings();
+    checkResourceLocalFilesAndProvideSrcForImgResources(m_htmlCachedMemory);
+
+#ifdef USE_QT_WEB_ENGINE
+    provideSrcAndOnClickScriptForImgEnCryptTags();
 #endif
 
     QNTRACE("Evaluated all JavaScript helper functions");
@@ -434,6 +441,14 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
 #ifdef USE_QT_WEB_ENGINE
 void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint)
 {
+    if (cipher.isEmpty()) {
+        cipher = "AES";
+    }
+
+    if (length.isEmpty()) {
+        length = "128";
+    }
+
     bool conversionResult = false;
     size_t keyLength = static_cast<size_t>(length.toInt(&conversionResult));
     if (!conversionResult) {
@@ -601,14 +616,6 @@ void NoteEditorPrivate::noteToEditorContent()
     }
 
     q->setHtml(m_htmlCachedMemory);
-
-    updateColResizableTableBindings();
-    checkResourceLocalFilesAndProvideSrcForImgResources(m_htmlCachedMemory);
-
-#ifdef USE_QT_WEB_ENGINE
-    provideSrcForImgEnCryptTags();
-#endif
-
     QNTRACE("Done setting the current note and notebook");
 }
 
@@ -809,8 +816,10 @@ void NoteEditorPrivate::provideScrForImgResourcesFromCache()
 }
 
 #ifdef USE_QT_WEB_ENGINE
-void NoteEditorPrivate::provideSrcForImgEnCryptTags()
+void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
 {
+    QNDEBUG("NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags");
+
     if (!m_pNote) {
         QNTRACE("No note is set for the editor");
         return;
@@ -824,7 +833,7 @@ void NoteEditorPrivate::provideSrcForImgEnCryptTags()
     QString iconPath = "qrc:/encrypted_area_icons/en-crypt/en-crypt.png";
 
     Q_Q(NoteEditor);
-    QString javascript = "provideSrcForEnCryptImgTags(\"" + iconPath + "\")";
+    QString javascript = "provideSrcAndOnClickScriptForEnCryptImgTags(\"" + iconPath + "\")";
     q->page()->runJavaScript(javascript);
     QNDEBUG("Executed javascript command to provide src for img tags: " << javascript);
 }
