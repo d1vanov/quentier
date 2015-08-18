@@ -1067,18 +1067,44 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
             << notebook.localGuid() << ", guid = " << (notebook.hasGuid() ? notebook.guid() : "<null>")
             << ", name = " << (notebook.hasName() ? notebook.name() : "<null>"));
 
-    if (!m_pNote) {
-        m_pNote = new Note(note);
-    }
-    else {
-        *m_pNote = note;
-    }
-
     if (!m_pNotebook) {
         m_pNotebook = new Notebook(notebook);
     }
     else {
         *m_pNotebook = notebook;
+    }
+
+    if (!m_pNote) {
+        m_pNote = new Note(note);
+    }
+    else
+    {
+        if ( (m_pNote->localGuid() == note.localGuid()) &&
+             (m_pNote->hasContent() == note.hasContent()) &&
+             (!m_pNote->hasContent() || (m_pNote->content() == note.content())) )
+        {
+            QNDEBUG("This note has already been set for the editor and its content hasn't changed");
+        }
+        else
+        {
+            *m_pNote = note;
+
+            if (m_decryptedTextCache)
+            {
+                for(auto it = m_decryptedTextCache->begin(); it != m_decryptedTextCache->end(); )
+                {
+                    const QPair<QString, bool> & value = it.value();
+                    if (!value.second) {
+                        it = m_decryptedTextCache->erase(it);
+                    }
+                    else {
+                        ++it;
+                    }
+                }
+
+                QNTRACE("Removed non-per-session saved passphrases from decrypted text cache");
+            }
+        }
     }
 
     noteToEditorContent();
