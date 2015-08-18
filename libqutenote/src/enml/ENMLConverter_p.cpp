@@ -816,11 +816,10 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
     if (decryptedTextCache)
     {
         auto it = decryptedTextCache->find(encryptedTextCharacters.toString());
-        if ((it != decryptedTextCache->end()) && it.value().second)
+        if (it != decryptedTextCache->end())
         {
-            QNTRACE("Found encrypted text which has already been decrypted, "
-                    "cached and remembered for the whole session. Encrypted text = "
-                    << encryptedTextCharacters);
+            QNTRACE("Found encrypted text which has already been decrypted and cached; "
+                    "encrypted text = " << encryptedTextCharacters);
 
             writer.writeStartElement("div");
             writer.writeAttribute("en-tag", "en-decrypted");
