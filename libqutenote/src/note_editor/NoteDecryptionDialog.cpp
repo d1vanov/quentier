@@ -139,6 +139,7 @@ void NoteDecryptionDialog::accept()
         }
     }
 
+    emit accepted(m_encryptedText, m_cachedDecryptedText, m_pUI->rememberPasswordCheckBox->isChecked());
     QDialog::accept();
 }
 

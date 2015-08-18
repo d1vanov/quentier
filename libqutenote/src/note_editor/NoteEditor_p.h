@@ -154,7 +154,6 @@ public:
     void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels);
     void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
     void encryptSelectedText(const QString & passphrase, const QString & hint);
-    void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
     void onNoteLoadCancelled();
 
 // private signals:
@@ -163,6 +162,7 @@ Q_SIGNALS:
     void readDroppedFileData(QString absoluteFilePath, QUuid requestId);
 
 private Q_SLOTS:
+    void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
     void onNoteLoadFinished(bool ok);
     void onContentChanged();
     void onResourceSavedToStorage(QUuid requestId, QByteArray dataHash,

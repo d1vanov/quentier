@@ -30,6 +30,9 @@ public:
 
     QString decryptedText() const;
 
+Q_SIGNALS:
+    void accepted(QString encryptedText, QString decryptedText, bool rememberPassphrase);
+
 private Q_SLOTS:
     void setHint(const QString & hint);
     void setRememberPassphraseDefaultState(const bool checked);

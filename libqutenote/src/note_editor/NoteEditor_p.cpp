@@ -116,9 +116,9 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                      this, &NoteEditorPrivate::onEnCryptElementClicked);
 
     m_pWebChannel->registerObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler);
-    m_pWebChannel->registerObject("pageMutationHandler", m_pPageMutationHandler);
     m_pWebChannel->registerObject("enCryptElementClickHandler", m_pEnCryptElementClickHandler);
-    QNDEBUG("Registered resourceCache, pageMutationHandler and enCryptElementClickHandler JavaScript objects");
+    m_pWebChannel->registerObject("pageMutationObserver", m_pPageMutationHandler);
+    QNDEBUG("Registered resourceCache, pageMutationObserver and enCryptElementClickHandler JavaScript objects");
 
     QObject::connect(m_pWebSocketClientWrapper, &WebSocketClientWrapper::clientConnected,
                      m_pWebChannel, &QWebChannel::connectTo);
@@ -207,6 +207,10 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForResourceImgTags = file.readAll();
     file.close();
 
+#ifndef USE_QT_WEB_ENGINE
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
+#else
     file.setFileName(":/qtwebchannel/qwebchannel.js");
     file.open(QIODevice::ReadOnly);
     m_qWebChannelJs = file.readAll();
@@ -222,10 +226,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pageMutationObserverJs = file.readAll();
     file.close();
 
-#ifndef USE_QT_WEB_ENGINE
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
-#else
     file.setFileName(":/javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js");
     file.open(QIODevice::ReadOnly);
     m_provideSrcAndOnClickScriptForEnCryptImgTags = file.readAll();
@@ -438,6 +438,8 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
 #ifdef USE_QT_WEB_ENGINE
 void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint)
 {
+    QNDEBUG("NoteEditorPrivate::onEnCryptElementClicked");
+
     if (cipher.isEmpty()) {
         cipher = "AES";
     }
@@ -459,19 +461,16 @@ void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString c
                                                                                     m_encryptionManager,
                                                                                     m_decryptedTextCache, q));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
-
-    int res = pDecryptionDialog->exec();
-    if (res == QDialog::Accepted) {
-        QNTRACE("Successfully decrypted text: " << pDecryptionDialog->decryptedText());
-        onEncryptedAreaDecryption(encryptedText, pDecryptionDialog->decryptedText(),
-                                  pDecryptionDialog->rememberPassphrase());
-    }
+    QObject::connect(pDecryptionDialog.data(), QNSIGNAL(NoteDecryptionDialog,accepted,QString,QString,bool),
+                     this,QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,QString,bool));
+    QNTRACE("Will exec note decryption dialog now");
+    pDecryptionDialog->exec();
+    QNTRACE("Executed note decryption dialog");
 }
 
 void NoteEditorPrivate::onJavaScriptLoaded()
 {
     QNDEBUG("NoteEditorPrivate::onJavaScriptLoaded");
-    // TODO: implement
 }
 #endif
 
@@ -1431,6 +1430,7 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
 
 void NoteEditorPrivate::onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession)
 {
+    QNDEBUG("NoteEditorPrivate::onEncryptedAreaDecryption");
     Q_UNUSED(encryptedText)
     Q_UNUSED(decryptedText)
     Q_UNUSED(rememberForSession)
