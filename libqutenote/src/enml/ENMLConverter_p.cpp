@@ -845,7 +845,43 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
             writer.writeStartElement("textarea");
             writer.writeAttribute("readonly", "readonly");
-            writer.writeCharacters(it.value().first);
+
+            QXmlStreamReader decryptedTextReader(it.value().first);
+            // FIXME: need to teach this thing to deal with undeclared HTML entities somehow
+            bool foundFormattedText = false;
+
+            while(!decryptedTextReader.atEnd())
+            {
+                Q_UNUSED(decryptedTextReader.readNext());
+
+                if (decryptedTextReader.isStartElement()) {
+                    writer.writeStartElement(decryptedTextReader.name().toString());
+                    writer.writeAttributes(decryptedTextReader.attributes());
+                    foundFormattedText = true;
+                    QNTRACE("Wrote start element from decrypted text: " << decryptedTextReader.name());
+                }
+
+                if (decryptedTextReader.isCharacters()) {
+                    writer.writeCharacters(decryptedTextReader.text().toString());
+                    foundFormattedText = true;
+                    QNTRACE("Wrote characters from decrypted text: " << decryptedTextReader.text());
+                }
+
+                if (decryptedTextReader.isEndElement()) {
+                    writer.writeEndElement();
+                    QNTRACE("Wrote end element from decrypted text: " << decryptedTextReader.name());
+                }
+            }
+
+            if (decryptedTextReader.hasError()) {
+                QNWARNING("Decrypted text reader has error: " << decryptedTextReader.errorString());
+            }
+
+            if (!foundFormattedText) {
+                writer.writeCharacters(it.value().first);
+                QNTRACE("Wrote unformatted decrypted text: " << it.value().first);
+            }
+
             writer.writeEndElement();
 
             return true;
