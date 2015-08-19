@@ -846,8 +846,12 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
             writer.writeStartElement("textarea");
             writer.writeAttribute("readonly", "readonly");
 
-            QXmlStreamReader decryptedTextReader(it.value().first);
-            // FIXME: need to teach this thing to deal with undeclared HTML entities somehow
+            QString decryptedText = it.value().first;
+            decryptedText.prepend("<?xml version=\"1.0\"?>"
+                                  "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
+                                  "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
+
+            QXmlStreamReader decryptedTextReader(decryptedText);
             bool foundFormattedText = false;
 
             while(!decryptedTextReader.atEnd())
