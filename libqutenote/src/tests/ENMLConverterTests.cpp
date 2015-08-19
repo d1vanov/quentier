@@ -455,6 +455,56 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
     return true;
 }
 
+bool convertHtmlWithModifiedDecryptedTextToEnml(QString & error)
+{
+    QString html = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
+                   "<html><head>"
+                   "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
+                   "<title></title></head><body>"
+                   "<div>Here's the encrypted text containing only the hint attribute</div>"
+                   "<div en-tag=\"en-decrypted\" encrypted-text=\""
+                   "RU5DMI1mnQ7fKjBk9f0a57gSc9Nfbuw3uuwMKs32Y+wJGLZa0N8"
+                   "PcTzf7pu3/2VOBqZMvfkKGh4mnJuGy45ZT2TwOfqt+ey8Tic7Bmh"
+                   "Gg7b4n+SpJFHntkeLglxFWJt6oIG14i7IpamIuYyE5XcBRkOQs2cr7"
+                   "rg730d1hxx6sW/KqIfdr+0rF4k+rqP7tpI5ha/ALkhaZAuDbIVic39a"
+                   "CRcu6uve6mHHHPA03olCbi7ePVwO7e94mpuvcg2lGTJyDw/NoZmjFycj"
+                   "XESRJgLIr+gGfyD17jYNGcPBLR8Rb0M9vGK1tG9haG+Vem1pTWgRfYXF70"
+                   "mMduEmAd4xXy1JqV6XNUYDddW9iPpffWTZgD409LK9wIZM5CW2rbM2lwM/"
+                   "R0IEnoK7N5X8lCOzqkA9H/HF+8E=\" "
+                   "hint=\"this is my rifle, this is my gun\" "
+                   "style=\"border: 2px solid; border-color: rgb(195, 195, 195); "
+                   "border-radius: 8px; margin: 2px; padding: 2px;\">"
+                   "<div>"
+                   "<span style=\"display: inline !important; float: none; \">"
+                   "Ok, here's some really long text. I can type and type it on "
+                   "and on and it will not stop any time soon just yet. "
+                   "The password is going to be long also. I wonder what would happen "
+                   "if I edit this text. Would it be actually saved to ENML?"
+                   "</span></div></div></body></html>";
+    DecryptedTextCachePtr decryptedTextCache(new DecryptedTextCachePtr::value_type);
+    Q_UNUSED(decryptedTextCache->insert("RU5DMI1mnQ7fKjBk9f0a57gSc9Nfbuw3uuwMKs32Y+wJGLZa0N8PcTzf7pu3"
+                                        "/2VOBqZMvfkKGh4mnJuGy45ZT2TwOfqt+ey8Tic7BmhGg7b4n+SpJFHntkeL"
+                                        "glxFWJt6oIG14i7IpamIuYyE5XcBRkOQs2cr7rg730d1hxx6sW/KqIfdr+0rF4k"
+                                        "+rqP7tpI5ha/ALkhaZAuDbIVic39aCRcu6uve6mHHHPA03olCbi7ePVwO7e94mp"
+                                        "uvcg2lGTJyDw/NoZmjFycjXESRJgLIr+gGfyD17jYNGcPBLR8Rb0M9vGK1tG9haG"
+                                        "+Vem1pTWgRfYXF70mMduEmAd4xXy1JqV6XNUYDddW9iPpffWTZgD409LK9wIZM5C"
+                                        "W2rbM2lwM/R0IEnoK7N5X8lCOzqkA9H/HF+8E=",
+                                        QPair<QString,bool>("<span style=\"display: inline !important; float: none; \">"
+                                                            "Ok, here's some really long text. I can type and type it on "
+                                                            "and on and it will not stop any time soon just yet. "
+                                                            "The password is going to be long also."
+                                                            "</span>", false)));
+    // NOTE: the text in decrypted text cache is different from that in html meaning that encrypted text was modified;
+    // The conversion to ENML should re-calculate the hash of the encrypted text
+    // and ensure this entry is present in decrypted text cache if this decryption needs to be remembered for the whole session
+
+    // TODO: continue from here
+    Q_UNUSED(html)
+    Q_UNUSED(error)
+
+    return true;
+}
+
 } // namespace test
 } // namespace qute_note
 
