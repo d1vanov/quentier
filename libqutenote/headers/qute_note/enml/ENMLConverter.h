@@ -1,7 +1,6 @@
 #ifndef __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_H
 #define __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_H
 
-#include <qute_note/note_editor/DecryptedTextCache.h>
 #include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <QSet>
@@ -13,6 +12,7 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 #endif
 
+QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 QT_FORWARD_DECLARE_CLASS(ENMLConverterPrivate)
 
 class QUTE_NOTE_EXPORT ENMLConverter
@@ -23,7 +23,7 @@ public:
 
     bool htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const;
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
-                           DecryptedTextCachePtr decryptedTextCache = DecryptedTextCachePtr()
+                           DecryptedTextManager & decryptedTextManager
 #ifndef USE_QT_WEB_ENGINE
                            , const NoteEditorPluginFactory * pluginFactory = nullptr
 #endif

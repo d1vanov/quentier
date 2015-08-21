@@ -64,6 +64,7 @@ include_directories(headers)
 
 set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/DecryptedTextCache.h
+    headers/qute_note/note_editor/DecryptedTextManager.h
     headers/qute_note/note_editor/NoteEditor.h
     headers/qute_note/note_editor/ResourceFileStorageManager.h)
 
@@ -153,6 +154,7 @@ list(APPEND PUBLIC_HEADERS ${UTILITY_HEADERS})
 set(PRIVATE_HEADERS
     src/local_storage/Transaction.h
     src/note_editor/AttachmentStoragePathConfigDialog.h
+    src/note_editor/DecryptedTextManager_p.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor_p.h
     src/note_editor/NoteDecryptionDialog.h
@@ -195,6 +197,8 @@ set(${PROJECT_NAME}_HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 
 set(${PROJECT_NAME}_SOURCES
     src/note_editor/AttachmentStoragePathConfigDialog.cpp
+    src/note_editor/DecryptedTextManager.cpp
+    src/note_editor/DecryptedTextManager_p.cpp
     src/note_editor/NoteEditorPage.cpp
     src/note_editor/NoteEditor.cpp
     src/note_editor/NoteEditor_p.cpp

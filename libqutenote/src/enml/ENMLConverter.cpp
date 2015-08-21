@@ -27,7 +27,7 @@ bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteConten
 }
 
 bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
-                                      DecryptedTextCachePtr decryptedTextCache
+                                      DecryptedTextManager & decryptedTextManager
 #ifndef USE_QT_WEB_ENGINE
                                       , const NoteEditorPluginFactory * pluginFactory
 #endif
@@ -36,7 +36,7 @@ bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & htm
     QNDEBUG("ENMLConverter::noteContentToHtml");
 
     Q_D(const ENMLConverter);
-    return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextCache
+    return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextManager
 #ifndef USE_QT_WEB_ENGINE
                                 , pluginFactory
 #endif

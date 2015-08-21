@@ -1,5 +1,6 @@
 #include "ENMLConverterTests.h"
 #include <qute_note/enml/ENMLConverter.h>
+#include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QXmlStreamReader>
 #include <QFile>
@@ -9,7 +10,7 @@ void __initENMLConversionTestResources();
 namespace qute_note {
 namespace test {
 
-bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error, DecryptedTextCachePtr decryptedTextCache = DecryptedTextCachePtr());
+bool convertNoteToHtmlAndBackImpl(const QString & noteContent, DecryptedTextManager & decryptedTextManager, QString & error);
 bool compareEnml(const QString & original, const QString & processed, QString & error);
 
 bool convertSimpleNoteToHtmlAndBack(QString & error)
@@ -26,7 +27,8 @@ bool convertSimpleNoteToHtmlAndBack(QString & error)
                           "<div><br/></div>"
                           "<div>-- Author unknown</div>"
                           "</en-note>";
-    return convertNoteToHtmlAndBackImpl(noteContent, error);
+    DecryptedTextManager decryptedTextManager;
+    return convertNoteToHtmlAndBackImpl(noteContent, decryptedTextManager, error);
 }
 
 bool convertNoteWithToDoTagsToHtmlAndBack(QString & error)
@@ -42,7 +44,8 @@ bool convertNoteWithToDoTagsToHtmlAndBack(QString & error)
                           "<br/>"
                           "<en-todo checked=\"false\"/>Another not yet completed item"
                           "</en-note>";
-    return convertNoteToHtmlAndBackImpl(noteContent, error);
+    DecryptedTextManager decryptedTextManager;
+    return convertNoteToHtmlAndBackImpl(noteContent, decryptedTextManager, error);
 }
 
 bool convertNoteWithEncryptionToHtmlAndBack(QString & error)
@@ -124,19 +127,23 @@ bool convertNoteWithEncryptionToHtmlAndBack(QString & error)
                           "3CoTQV7prRqJVLpUX77Q0vbNims1quxVWaf7+uVeK60YoiJnSOHvEYptoOs1FVfZ"
                           "AwnDDBoCUOsAb2nCh2UZ6LSFneb58xQ/6WeoQ7QDDHLSoUIXn</en-crypt>"
                           "</en-note>";
-    DecryptedTextCachePtr decryptedTextCache(new DecryptedTextCachePtr::value_type);
-    Q_UNUSED(decryptedTextCache->insert("K+sUXSxI2Mt075+pSDxR/gnCNIEnk5XH1P/D0Eie17"
-                                        "JIWgGnNo5QeMo3L0OeBORARGvVtBlmJx6vJY2Ij/2En"
-                                        "MVy6/aifSdZXAxRlfnTLvI1IpVgHpTMzEfy6zBVMo+V"
-                                        "Bt2KglA+7L0iSjA0hs3GEHI6ZgzhGfGj",
-                                        QPair<QString,bool>("<span style=\"display: inline !important; float: none; \">"
-                                                            "Ok, here's a piece of text I'm going to encrypt now</span>", true)));
-    Q_UNUSED(decryptedTextCache->insert("RU5DMBwXjfKR+x9ksjSJhtiF+CxfwXn2Hf/WqdVwLwJDX9YX5R34Z5SBMSCIOFF"
-                                        "r1MUeNkzHGVP5fHEppUlIExDG/Vpjh9KK1uu0VqTFoUWA0IXAAMA5eHnbxhBrjvL"
-                                        "3CoTQV7prRqJVLpUX77Q0vbNims1quxVWaf7+uVeK60YoiJnSOHvEYptoOs1FVfZ"
-                                        "AwnDDBoCUOsAb2nCh2UZ6LSFneb58xQ/6WeoQ7QDDHLSoUIXn",
-                                        QPair<QString,bool>("Sample text said to be the decrypted one", true)));
-    return convertNoteToHtmlAndBackImpl(noteContent, error, decryptedTextCache);
+    DecryptedTextManager decryptedTextManager;
+    decryptedTextManager.addEntry("K+sUXSxI2Mt075+pSDxR/gnCNIEnk5XH1P/D0Eie17"
+                                  "JIWgGnNo5QeMo3L0OeBORARGvVtBlmJx6vJY2Ij/2En"
+                                  "MVy6/aifSdZXAxRlfnTLvI1IpVgHpTMzEfy6zBVMo+V"
+                                  "Bt2KglA+7L0iSjA0hs3GEHI6ZgzhGfGj",
+                                  "<span style=\"display: inline !important; float: none; \">"
+                                  "Ok, here's a piece of text I'm going to encrypt now</span>",
+                                  /* remember for session = */ true,
+                                  "my_own_encryption_key_1988", "RC2", 64);
+    decryptedTextManager.addEntry("RU5DMBwXjfKR+x9ksjSJhtiF+CxfwXn2Hf/WqdVwLwJDX9YX5R34Z5SBMSCIOFF"
+                                  "r1MUeNkzHGVP5fHEppUlIExDG/Vpjh9KK1uu0VqTFoUWA0IXAAMA5eHnbxhBrjvL"
+                                  "3CoTQV7prRqJVLpUX77Q0vbNims1quxVWaf7+uVeK60YoiJnSOHvEYptoOs1FVfZ"
+                                  "AwnDDBoCUOsAb2nCh2UZ6LSFneb58xQ/6WeoQ7QDDHLSoUIXn",
+                                  "Sample text said to be the decrypted one",
+                                  /* remember for session = */ true,
+                                  "MyEncryptionPassword", "AES", 128);
+    return convertNoteToHtmlAndBackImpl(noteContent, decryptedTextManager, error);
 }
 
 bool convertNoteWithResourcesToHtmlAndBack(QString & error)
@@ -151,7 +158,8 @@ bool convertNoteWithResourcesToHtmlAndBack(QString & error)
                           "<div>The second resource: embedded pdf</div>"
                           "<en-media width=\"600\" height=\"800\" title=\"My cool pdf\" type=\"application/pdf\" hash=\"6051a24c8677fd21c65c1566654c228\"/>"
                           "</en-note>";
-    return convertNoteToHtmlAndBackImpl(noteContent, error);
+    DecryptedTextManager decryptedTextManager;
+    return convertNoteToHtmlAndBackImpl(noteContent, decryptedTextManager, error);
 }
 
 bool convertComplexNoteToHtmlAndBack(QString & error)
@@ -165,7 +173,8 @@ bool convertComplexNoteToHtmlAndBack(QString & error)
     }
 
     QString noteContent = file.readAll();
-    return convertNoteToHtmlAndBackImpl(noteContent, error);
+    DecryptedTextManager decryptedTextManager;
+    return convertNoteToHtmlAndBackImpl(noteContent, decryptedTextManager, error);
 }
 
 bool convertComplexNote2ToHtmlAndBack(QString & error)
@@ -179,7 +188,8 @@ bool convertComplexNote2ToHtmlAndBack(QString & error)
     }
 
     QString noteContent = file.readAll();
-    return convertNoteToHtmlAndBackImpl(noteContent, error);
+    DecryptedTextManager decryptedTextManager;
+    return convertNoteToHtmlAndBackImpl(noteContent, decryptedTextManager, error);
 }
 
 bool convertComplexNote3ToHtmlAndBack(QString & error)
@@ -193,7 +203,8 @@ bool convertComplexNote3ToHtmlAndBack(QString & error)
     }
 
     QString noteContent = file.readAll();
-    return convertNoteToHtmlAndBackImpl(noteContent, error);
+    DecryptedTextManager decryptedTextManager;
+    return convertNoteToHtmlAndBackImpl(noteContent, decryptedTextManager, error);
 }
 
 bool convertComplexNote4ToHtmlAndBack(QString &error)
@@ -207,16 +218,17 @@ bool convertComplexNote4ToHtmlAndBack(QString &error)
     }
 
     QString noteContent = file.readAll();
-    return convertNoteToHtmlAndBackImpl(noteContent, error);
+    DecryptedTextManager decryptedTextManager;
+    return convertNoteToHtmlAndBackImpl(noteContent, decryptedTextManager, error);
 }
 
-bool convertNoteToHtmlAndBackImpl(const QString & noteContent, QString & error, DecryptedTextCachePtr decryptedTextCachePtr)
+bool convertNoteToHtmlAndBackImpl(const QString & noteContent, DecryptedTextManager & decryptedTextManager, QString & error)
 {
     QString originalNoteContent = noteContent;
 
     ENMLConverter converter;
     QString html;
-    bool res = converter.noteContentToHtml(originalNoteContent, html, error, decryptedTextCachePtr);
+    bool res = converter.noteContentToHtml(originalNoteContent, html, error, decryptedTextManager);
     if (!res) {
         error.prepend("Unable to convert the note content to HTML: ");
         QNWARNING(error);
@@ -481,19 +493,22 @@ bool convertHtmlWithModifiedDecryptedTextToEnml(QString & error)
                    "The password is going to be long also. I wonder what would happen "
                    "if I edit this text. Would it be actually saved to ENML?"
                    "</span></div></div></body></html>";
-    DecryptedTextCachePtr decryptedTextCache(new DecryptedTextCachePtr::value_type);
-    Q_UNUSED(decryptedTextCache->insert("RU5DMI1mnQ7fKjBk9f0a57gSc9Nfbuw3uuwMKs32Y+wJGLZa0N8PcTzf7pu3"
-                                        "/2VOBqZMvfkKGh4mnJuGy45ZT2TwOfqt+ey8Tic7BmhGg7b4n+SpJFHntkeL"
-                                        "glxFWJt6oIG14i7IpamIuYyE5XcBRkOQs2cr7rg730d1hxx6sW/KqIfdr+0rF4k"
-                                        "+rqP7tpI5ha/ALkhaZAuDbIVic39aCRcu6uve6mHHHPA03olCbi7ePVwO7e94mp"
-                                        "uvcg2lGTJyDw/NoZmjFycjXESRJgLIr+gGfyD17jYNGcPBLR8Rb0M9vGK1tG9haG"
-                                        "+Vem1pTWgRfYXF70mMduEmAd4xXy1JqV6XNUYDddW9iPpffWTZgD409LK9wIZM5C"
-                                        "W2rbM2lwM/R0IEnoK7N5X8lCOzqkA9H/HF+8E=",
-                                        QPair<QString,bool>("<span style=\"display: inline !important; float: none; \">"
-                                                            "Ok, here's some really long text. I can type and type it on "
-                                                            "and on and it will not stop any time soon just yet. "
-                                                            "The password is going to be long also."
-                                                            "</span>", false)));
+    DecryptedTextManager decryptedTextManager;
+    decryptedTextManager.addEntry("RU5DMI1mnQ7fKjBk9f0a57gSc9Nfbuw3uuwMKs32Y+wJGLZa0N8PcTzf7pu3"
+                                  "/2VOBqZMvfkKGh4mnJuGy45ZT2TwOfqt+ey8Tic7BmhGg7b4n+SpJFHntkeL"
+                                  "glxFWJt6oIG14i7IpamIuYyE5XcBRkOQs2cr7rg730d1hxx6sW/KqIfdr+0rF4k"
+                                  "+rqP7tpI5ha/ALkhaZAuDbIVic39aCRcu6uve6mHHHPA03olCbi7ePVwO7e94mp"
+                                  "uvcg2lGTJyDw/NoZmjFycjXESRJgLIr+gGfyD17jYNGcPBLR8Rb0M9vGK1tG9haG"
+                                  "+Vem1pTWgRfYXF70mMduEmAd4xXy1JqV6XNUYDddW9iPpffWTZgD409LK9wIZM5C"
+                                  "W2rbM2lwM/R0IEnoK7N5X8lCOzqkA9H/HF+8E=",
+                                  "<span style=\"display: inline !important; float: none; \">"
+                                  "Ok, here's some really long text. I can type and type it on "
+                                  "and on and it will not stop any time soon just yet. "
+                                  "The password is going to be long also."
+                                  "</span>",
+                                  /* remember for session = */ false,
+                                  "thisismyriflethisismygunthisisforfortunethisisforfun",
+                                  "AES", 128);
     // NOTE: the text in decrypted text cache is different from that in html meaning that encrypted text was modified;
     // The conversion to ENML should re-calculate the hash of the encrypted text
     // and ensure this entry is present in decrypted text cache if this decryption needs to be remembered for the whole session

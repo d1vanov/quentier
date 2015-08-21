@@ -2,6 +2,7 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
 
 #include <qute_note/note_editor/NoteEditor.h>
+#include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/utility/EncryptionManager.h>
 #include <QObject>
@@ -276,7 +277,7 @@ private:
     int         m_pageToNoteContentPostponeTimerId;
 
     QSharedPointer<EncryptionManager>       m_encryptionManager;
-    DecryptedTextCachePtr                   m_decryptedTextCache;
+    DecryptedTextManager                    m_decryptedTextManager;
 
     ENMLConverter                           m_enmlConverter;
 

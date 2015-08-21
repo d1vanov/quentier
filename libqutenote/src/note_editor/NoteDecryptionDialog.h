@@ -12,6 +12,8 @@ QT_FORWARD_DECLARE_CLASS(NoteDecryptionDialog)
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
+
 class NoteDecryptionDialog: public QDialog
 {
     Q_OBJECT
@@ -21,7 +23,7 @@ public:
                                   const QString & hint,
                                   const size_t keyLength,
                                   QSharedPointer<EncryptionManager> encryptionManager,
-                                  DecryptedTextCachePtr decryptedTextCache,
+                                  DecryptedTextManager & decryptedTextManager,
                                   QWidget * parent = nullptr);
     virtual ~NoteDecryptionDialog();
 
@@ -52,7 +54,7 @@ private:
     QString                             m_cachedDecryptedText;
 
     QSharedPointer<EncryptionManager>   m_encryptionManager;
-    DecryptedTextCachePtr               m_decryptedTextCache;
+    DecryptedTextManager &              m_decryptedTextManager;
 
     size_t                              m_keyLength;
 };

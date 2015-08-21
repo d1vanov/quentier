@@ -1,7 +1,6 @@
 #ifndef __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
 #define __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
 
-#include <qute_note/note_editor/DecryptedTextCache.h>
 #include <QtGlobal>
 #include <QStringList>
 
@@ -15,6 +14,7 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 #endif
 
+QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 QT_FORWARD_DECLARE_CLASS(HTMLCleaner)
 
 class ENMLConverterPrivate
@@ -25,7 +25,7 @@ public:
 
     bool htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const;
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
-                           DecryptedTextCachePtr decryptedTextCache
+                           DecryptedTextManager & decryptedTextManager
 #ifndef USE_QT_WEB_ENGINE
                            , const NoteEditorPluginFactory * pluginFactory
 #endif
@@ -57,7 +57,7 @@ private:
     bool encryptedTextToHtml(const QXmlStreamAttributes & enCryptAttributes,
                              const QStringRef & encryptedTextCharacters,
                              QXmlStreamWriter & writer,
-                             DecryptedTextCachePtr decryptedTextCache) const;
+                             DecryptedTextManager & decryptedTextManager) const;
 
     // convert ENML <en-media> tag to HTML <object> tag
     bool resourceInfoToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,

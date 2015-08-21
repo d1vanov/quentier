@@ -1,5 +1,6 @@
 #include "NoteDecryptionDialog.h"
 #include "ui_NoteDecryptionDialog.h"
+#include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/ApplicationSettings.h>
@@ -10,7 +11,7 @@ NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
                                            const QString & cipher,
                                            const QString & hint, const size_t keyLength,
                                            QSharedPointer<EncryptionManager> encryptionManager,
-                                           DecryptedTextCachePtr decryptedTextCache,
+                                           DecryptedTextManager & decryptedTextManager,
                                            QWidget * parent) :
     QDialog(parent),
     m_pUI(new Ui::NoteDecryptionDialog),
@@ -19,12 +20,11 @@ NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
     m_hint(hint),
     m_cachedDecryptedText(),
     m_encryptionManager(encryptionManager),
-    m_decryptedTextCache(decryptedTextCache),
+    m_decryptedTextManager(decryptedTextManager),
     m_keyLength(keyLength)
 {
     m_pUI->setupUi(this);
     QUTE_NOTE_CHECK_PTR(encryptionManager.data())
-    QUTE_NOTE_CHECK_PTR(decryptedTextCache.data())
 
     setHint(m_hint);
 
@@ -97,11 +97,13 @@ void NoteDecryptionDialog::accept()
 {
     QString passphrase = m_pUI->passwordLineEdit->text();
 
-    auto it = m_decryptedTextCache->find(passphrase);
-    if (it != m_decryptedTextCache->end())
+
+    bool rememberForSession = false;
+    bool foundDecryptedText = m_decryptedTextManager.findDecryptedText(passphrase, m_cachedDecryptedText,
+                                                                       rememberForSession);
+    if (foundDecryptedText)
     {
         QNTRACE("Found cached decrypted text for passphrase");
-        m_cachedDecryptedText = it.value().first;
     }
     else
     {
@@ -123,20 +125,11 @@ void NoteDecryptionDialog::accept()
             return;
         }
 
-        const bool rememberForSession = m_pUI->rememberPasswordCheckBox->isChecked();
-        QPair<QString, bool> cacheEntry(m_cachedDecryptedText, rememberForSession);
-        if (rememberForSession)
-        {
-            (*m_decryptedTextCache)[m_encryptedText] = cacheEntry;
-            QNTRACE("Cached decrypted text by encryptedText (per session passphrase storage): "
-                    << m_encryptedText);
-        }
-        else
-        {
-            (*m_decryptedTextCache)[passphrase] = cacheEntry;
-            QNTRACE("Cached decrypted text by passphrase (no per session passphrase storage, "
-                    "just the internal cache for faster handling");
-        }
+        rememberForSession = m_pUI->rememberPasswordCheckBox->isChecked();
+        m_decryptedTextManager.addEntry(m_encryptedText, m_cachedDecryptedText, rememberForSession,
+                                        passphrase, m_cipher, m_keyLength);
+        QNTRACE("Cached decrypted text by encryptedText: " << m_encryptedText
+                << "; remember for session = " << (rememberForSession ? "true" : "false"));
     }
 
     emit accepted(m_encryptedText, m_cachedDecryptedText, m_pUI->rememberPasswordCheckBox->isChecked());

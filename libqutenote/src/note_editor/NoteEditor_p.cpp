@@ -70,7 +70,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_contentChangedSinceWatchingStart(false),
     m_pageToNoteContentPostponeTimerId(0),
     m_encryptionManager(new EncryptionManager),
-    m_decryptedTextCache(new QHash<QString, QPair<QString, bool> >()),
+    m_decryptedTextManager(),
     m_enmlConverter(),
 #ifndef USE_QT_WEB_ENGINE
     m_pluginFactory(nullptr),
