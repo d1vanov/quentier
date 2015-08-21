@@ -152,7 +152,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                                                   *m_pFileIOThreadWorker, page);
     page->setPluginFactory(m_pluginFactory);
 
-    EncryptedAreaPlugin * encryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextCache, q);
+    EncryptedAreaPlugin * encryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager, q);
     m_errorCachedMemory.resize(0);
     NoteEditorPluginFactory::PluginIdentifier encryptedAreaPluginId = m_pluginFactory->addPlugin(encryptedAreaPlugin, m_errorCachedMemory);
     if (!encryptedAreaPluginId) {
@@ -171,8 +171,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                      this, QNSLOT(NoteEditorPrivate,onDroppedFileRead,bool,QString,QByteArray,QUuid));
 
 #ifndef USE_QT_WEB_ENGINE
-    page()->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler,
-                                                     QScriptEngine::QtOwnership);
+    page->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler,
+                                                   QScriptEngine::QtOwnership);
 #endif
 
     __initNoteEditorResources();
@@ -459,7 +459,7 @@ void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString c
     QScopedPointer<NoteDecryptionDialog> pDecryptionDialog(new NoteDecryptionDialog(encryptedText,
                                                                                     cipher, hint, keyLength,
                                                                                     m_encryptionManager,
-                                                                                    m_decryptedTextCache, q));
+                                                                                    m_decryptedTextManager, q));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pDecryptionDialog.data(), QNSIGNAL(NoteDecryptionDialog,accepted,QString,QString,bool),
                      this,QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,QString,bool));
@@ -544,7 +544,7 @@ void NoteEditorPrivate::noteToEditorContent()
 
     m_htmlCachedMemory.resize(0);
     bool res = m_enmlConverter.noteContentToHtml(m_pNote->content(), m_htmlCachedMemory, m_errorCachedMemory,
-                                                 m_decryptedTextCache
+                                                 m_decryptedTextManager
 #ifndef USE_QT_WEB_ENGINE
                                                  , m_pluginFactory
 #endif
@@ -1089,21 +1089,8 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         {
             *m_pNote = note;
 
-            if (m_decryptedTextCache)
-            {
-                for(auto it = m_decryptedTextCache->begin(); it != m_decryptedTextCache->end(); )
-                {
-                    const QPair<QString, bool> & value = it.value();
-                    if (!value.second) {
-                        it = m_decryptedTextCache->erase(it);
-                    }
-                    else {
-                        ++it;
-                    }
-                }
-
-                QNTRACE("Removed non-per-session saved passphrases from decrypted text cache");
-            }
+            m_decryptedTextManager.clearNonRememberedForSessionEntries();
+            QNTRACE("Removed non-per-session saved passphrases from decrypted text manager");
         }
     }
 

@@ -16,14 +16,19 @@ public:
                   const bool rememberForSession, const QString & passphrase,
                   const QString & cipher, const size_t keyLength);
 
-    bool findDecryptedText(const QString & passphrase, QString & decryptedText,
-                           bool & rememberForSession) const;
+    void clearNonRememberedForSessionEntries();
 
-    bool rehashDecryptedText(const QString & originalHash, const QString & newDecryptedText,
-                             QString & newHash);
+    bool findDecryptedTextByPassphrase(const QString & passphrase, QString & decryptedText,
+                                       bool & rememberForSession) const;
+
+    bool findDecryptedTextByEncryptedText(const QString & encryptedText, QString & decryptedText,
+                                          bool & rememberForSession) const;
+
+    bool modifyDecryptedText(const QString & originalHash, const QString & newDecryptedText,
+                             QString & newEncryptedText);
 
 private:
-    Q_DISABLE_COPY(DecryptedTextManagerPrivate);
+    Q_DISABLE_COPY(DecryptedTextManagerPrivate)
 
 private:
     class Data
@@ -31,14 +36,14 @@ private:
     public:
         Data() :
             m_decryptedText(),
-            m_hash(),
+            m_encryptedText(),
             m_cipher(),
             m_keyLength(0),
             m_rememberForSession(false)
         {}
 
         QString m_decryptedText;
-        QString m_hash;
+        QString m_encryptedText;
         QString m_cipher;
         size_t  m_keyLength;
         bool    m_rememberForSession;

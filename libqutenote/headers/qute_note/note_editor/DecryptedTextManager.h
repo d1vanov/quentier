@@ -11,16 +11,22 @@ class DecryptedTextManager
 {
 public:
     DecryptedTextManager();
+    virtual ~DecryptedTextManager();
 
     void addEntry(const QString & hash, const QString & decryptedText,
                   const bool rememberForSession, const QString & passphrase,
                   const QString & cipher, const size_t keyLength);
 
-    bool findDecryptedText(const QString & passphrase, QString & decryptedText,
-                           bool & rememberForSession) const;
+    void clearNonRememberedForSessionEntries();
 
-    bool rehashDecryptedText(const QString & originalHash, const QString & newDecryptedText,
-                             QString & newHash);
+    bool findDecryptedTextByPassphrase(const QString & passphrase, QString & decryptedText,
+                                       bool & rememberForSession) const;
+
+    bool findDecryptedTextByEncryptedText(const QString & encryptedText, QString & decryptedText,
+                                          bool & rememberForSession) const;
+
+    bool modifyDecryptedText(const QString & originalEncryptedText, const QString & newDecryptedText,
+                             QString & newEncryptedText);
 
 private:
     Q_DISABLE_COPY(DecryptedTextManager)

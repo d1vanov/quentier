@@ -63,7 +63,6 @@ include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(headers)
 
 set(NOTE_EDITOR_HEADERS
-    headers/qute_note/note_editor/DecryptedTextCache.h
     headers/qute_note/note_editor/DecryptedTextManager.h
     headers/qute_note/note_editor/NoteEditor.h
     headers/qute_note/note_editor/ResourceFileStorageManager.h)

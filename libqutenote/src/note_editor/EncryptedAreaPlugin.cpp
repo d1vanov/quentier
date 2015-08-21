@@ -12,12 +12,12 @@
 namespace qute_note {
 
 EncryptedAreaPlugin::EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encryptionManager,
-                                         DecryptedTextCachePtr decryptedTextCache,
+                                         DecryptedTextManager & decryptedTextManager,
                                          QWidget * parent) :
     INoteEditorPlugin(parent),
     m_pUI(new Ui::EncryptedAreaPlugin),
     m_encryptionManager(encryptionManager),
-    m_decryptedTextCache(decryptedTextCache),
+    m_decryptedTextManager(decryptedTextManager),
     m_hint(),
     m_cipher(),
     m_keyLength(0)
@@ -25,7 +25,6 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encry
     m_pUI->setupUi(this);
 
     QUTE_NOTE_CHECK_PTR(m_encryptionManager.data())
-    QUTE_NOTE_CHECK_PTR(m_decryptedTextCache.data())
 
     if (!QIcon::hasThemeIcon("security-high")) {
         QIcon lockIcon;
@@ -51,7 +50,7 @@ EncryptedAreaPlugin::~EncryptedAreaPlugin()
 
 EncryptedAreaPlugin * EncryptedAreaPlugin::clone() const
 {
-    return new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextCache,
+    return new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager,
                                    qobject_cast<QWidget*>(parent()));
 }
 
@@ -175,7 +174,7 @@ void EncryptedAreaPlugin::raiseNoteDecryptionDialog()
                                                                                     m_cipher, m_hint,
                                                                                     m_keyLength,
                                                                                     m_encryptionManager,
-                                                                                    m_decryptedTextCache,
+                                                                                    m_decryptedTextManager,
                                                                                     this));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
 

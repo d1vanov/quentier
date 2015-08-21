@@ -1,7 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
 
-#include <qute_note/note_editor/DecryptedTextCache.h>
+#include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/note_editor/INoteEditorPlugin.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/EncryptionManager.h>
@@ -17,7 +17,7 @@ class EncryptedAreaPlugin: public INoteEditorPlugin
     Q_OBJECT
 public:
     explicit EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encryptionManager,
-                                 DecryptedTextCachePtr decryptedTextCache,
+                                 DecryptedTextManager & decryptedTextManager,
                                  QWidget * parent = nullptr);
     virtual ~EncryptedAreaPlugin();
 
@@ -47,7 +47,7 @@ private:
 private:
     Ui::EncryptedAreaPlugin *           m_pUI;
     QSharedPointer<EncryptionManager>   m_encryptionManager;
-    DecryptedTextCachePtr               m_decryptedTextCache;
+    DecryptedTextManager &              m_decryptedTextManager;
     QString                             m_hint;
     QString                             m_cipher;
     QString                             m_encryptedText;

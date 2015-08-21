@@ -816,8 +816,8 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
     QString decryptedText;
     bool rememberForSession = false;
-    bool foundDecryptedText = decryptedTextManager.findDecryptedText(encryptedTextCharacters.toString(),
-                                                                     decryptedText, rememberForSession);
+    bool foundDecryptedText = decryptedTextManager.findDecryptedTextByEncryptedText(encryptedTextCharacters.toString(),
+                                                                                    decryptedText, rememberForSession);
     if (foundDecryptedText)
     {
         QNTRACE("Found encrypted text which has already been decrypted and cached; "

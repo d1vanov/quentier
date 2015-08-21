@@ -22,16 +22,32 @@ void DecryptedTextManagerPrivate::addEntry(const QString & hash, const QString &
 
     Data & entry = m_dataHash[passphrase];
     entry.m_decryptedText = decryptedText;
-    entry.m_hash = hash;
+    entry.m_encryptedText = hash;
     entry.m_cipher = cipher;
     entry.m_keyLength = keyLength;
     entry.m_rememberForSession = rememberForSession;
 }
 
-bool DecryptedTextManagerPrivate::findDecryptedText(const QString & passphrase, QString & decryptedText,
-                                                    bool & rememberForSession) const
+void DecryptedTextManagerPrivate::clearNonRememberedForSessionEntries()
 {
-    QNDEBUG("DecryptedTextManagerPrivate::findDecryptedText");
+    QNDEBUG("DecryptedTextManagerPrivate::clearNonRememberedForSessionEntries");
+
+    for(auto it = m_dataHash.begin(); it != m_dataHash.end();)
+    {
+        const Data & data = it.value();
+        if (!data.m_rememberForSession) {
+            it = m_dataHash.erase(it);
+        }
+        else {
+            ++it;
+        }
+    }
+}
+
+bool DecryptedTextManagerPrivate::findDecryptedTextByPassphrase(const QString & passphrase, QString & decryptedText,
+                                                                bool & rememberForSession) const
+{
+    QNDEBUG("DecryptedTextManagerPrivate::findDecryptedTextByPassphrase");
 
     DataHash::const_iterator it = m_dataHash.find(passphrase);
     if (it == m_dataHash.end()) {
@@ -45,11 +61,34 @@ bool DecryptedTextManagerPrivate::findDecryptedText(const QString & passphrase, 
     return true;
 }
 
-bool DecryptedTextManagerPrivate::rehashDecryptedText(const QString & originalHash, const QString & newDecryptedText,
-                                                      QString & newHash)
+bool DecryptedTextManagerPrivate::findDecryptedTextByEncryptedText(const QString & encryptedText,
+                                                                   QString & decryptedText,
+                                                                   bool & rememberForSession) const
 {
-    QNDEBUG("DecryptedTextManagerPrivate::rehashDecryptedText: originalHash = " << originalHash
-            << ", new decrypted text = " << newDecryptedText);
+    QNDEBUG("DecryptedTextManagerPrivate::findDecryptedTextByEncryptedText: " << encryptedText);
+
+    typedef DataHash::const_iterator CIter;
+    CIter dataHashEnd = m_dataHash.end();
+
+    for(CIter it = m_dataHash.begin(); it != dataHashEnd; ++it)
+    {
+        const Data & data = it.value();
+        if (data.m_encryptedText == encryptedText) {
+            decryptedText = data.m_decryptedText;
+            rememberForSession = data.m_rememberForSession;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool DecryptedTextManagerPrivate::modifyDecryptedText(const QString & originalEncryptedText,
+                                                      const QString & newDecryptedText,
+                                                      QString & newEncryptedText)
+{
+    QNDEBUG("DecryptedTextManagerPrivate::modifyDecryptedText: original decrypted text = "
+            << originalEncryptedText << ", new decrypted text = " << newDecryptedText);
 
     typedef DataHash::iterator Iter;
     Iter dataHashEnd = m_dataHash.end();
@@ -57,7 +96,7 @@ bool DecryptedTextManagerPrivate::rehashDecryptedText(const QString & originalHa
 
     for(Iter it = m_dataHash.begin(); it != dataHashEnd; ++it)
     {
-        if (it.value().m_hash == originalHash) {
+        if (it.value().m_encryptedText == originalEncryptedText) {
             itemIt = it;
             break;
         }
@@ -71,13 +110,13 @@ bool DecryptedTextManagerPrivate::rehashDecryptedText(const QString & originalHa
     const QString & passphrase = itemIt.key();
     Data & entry = itemIt.value();
     QString errorDescription;
-    bool res = m_encryptionManager.encrypt(newDecryptedText, passphrase, entry.m_cipher, entry.m_keyLength, newHash, errorDescription);
+    bool res = m_encryptionManager.encrypt(newDecryptedText, passphrase, entry.m_cipher, entry.m_keyLength, newEncryptedText, errorDescription);
     if (!res) {
         QNWARNING("Could not rehash the decrypted text: " << errorDescription);
         return false;
     }
 
-    entry.m_hash = newHash;
+    entry.m_encryptedText = newEncryptedText;
     entry.m_decryptedText = newDecryptedText;
     return true;
 }

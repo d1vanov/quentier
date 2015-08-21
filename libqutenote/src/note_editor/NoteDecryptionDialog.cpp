@@ -99,8 +99,8 @@ void NoteDecryptionDialog::accept()
 
 
     bool rememberForSession = false;
-    bool foundDecryptedText = m_decryptedTextManager.findDecryptedText(passphrase, m_cachedDecryptedText,
-                                                                       rememberForSession);
+    bool foundDecryptedText = m_decryptedTextManager.findDecryptedTextByPassphrase(passphrase, m_cachedDecryptedText,
+                                                                                   rememberForSession);
     if (foundDecryptedText)
     {
         QNTRACE("Found cached decrypted text for passphrase");
@@ -128,7 +128,7 @@ void NoteDecryptionDialog::accept()
         rememberForSession = m_pUI->rememberPasswordCheckBox->isChecked();
         m_decryptedTextManager.addEntry(m_encryptedText, m_cachedDecryptedText, rememberForSession,
                                         passphrase, m_cipher, m_keyLength);
-        QNTRACE("Cached decrypted text by encryptedText: " << m_encryptedText
+        QNTRACE("Cached decrypted text for encryptedText: " << m_encryptedText
                 << "; remember for session = " << (rememberForSession ? "true" : "false"));
     }
 
