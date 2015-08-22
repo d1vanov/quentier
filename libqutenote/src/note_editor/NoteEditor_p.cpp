@@ -78,7 +78,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
-                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-crypt-hover.css\">"
+                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-crypt.css\">"
+                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/hover.css\">"
                  "<title></title></head>"),
     m_enmlCachedMemory(),
     m_htmlCachedMemory(),

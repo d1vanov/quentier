@@ -1,6 +1,6 @@
-en-crypt-hover.css:
+hover.css: used content from
 
-Used content from Hover.css (http://ianlunn.github.io/Hover/)
+Hover.css (http://ianlunn.github.io/Hover/)
 Version: 2.0.2
 Author: Ian Lunn @IanLunn
 Author URL: http://ianlunn.co.uk/
