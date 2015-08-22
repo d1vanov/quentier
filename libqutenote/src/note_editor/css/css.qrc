@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/css">
+        <file>en-crypt-hover.css</file>
+    </qresource>
+</RCC>

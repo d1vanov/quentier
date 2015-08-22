@@ -851,12 +851,6 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
             writer.writeAttribute("hint", hint);
         }
 
-        writer.writeAttribute("style", "border: 2px solid; "
-                              "border-color: rgb(195, 195, 195); "
-                              "border-radius: 8px; "
-                              "margin: 2px; "
-                              "padding: 2px;");
-
         QString formattedDecryptedText = decryptedText;
         formattedDecryptedText.prepend("<?xml version=\"1.0\"?>"
                                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
@@ -954,7 +948,7 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
     writer.writeEndElement();
 #else
     writer.writeAttribute("encrypted_text", encryptedTextCharacters.toString());
-    writer.writeAttribute("class", QString("en-crypt"));
+    writer.writeAttribute("class", "en-crypt hvr-border-color");
     writer.writeAttribute("style", "display: inline");
     // writer.writeAttribute("onmouseover", "style.cursor=\\'default\\'");
 #endif
