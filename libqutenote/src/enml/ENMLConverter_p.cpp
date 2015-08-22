@@ -92,6 +92,8 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
     bool insideDecryptedEnCryptElement = false;
 
+    int nestedDecryptedTextElementCounter = 0;
+
     while(!reader.atEnd())
     {
         Q_UNUSED(reader.readNext());
@@ -343,6 +345,14 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                 ++it;
             }
 
+            if (insideDecryptedEnCryptElement) {
+                ++nestedDecryptedTextElementCounter;
+                QNTRACE("Ignored nested element within the decrypted div: " << lastElementName
+                        << ", nested decrypted text element counter increased: "
+                        << nestedDecryptedTextElementCounter);
+                continue;
+            }
+
             writer.writeStartElement(lastElementName);
             writer.writeAttributes(lastElementAttributes);
             ++writeElementCounter;
@@ -396,13 +406,15 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
             if (insideDecryptedEnCryptElement)
             {
-                if (reader.name() == "div") {
-                    insideDecryptedEnCryptElement = false;
-                }
-                else {
-                    // Don't write end of element corresponding to ends of en-decrypted <div> tag's child elements
+                if (nestedDecryptedTextElementCounter != 0) {
+                    --nestedDecryptedTextElementCounter;
+                    QNTRACE("Skipped the end of nested element within the decrypted div: " << lastElementName
+                            << ", nested decrypted text element counted decreased: "
+                            << nestedDecryptedTextElementCounter);
                     continue;
                 }
+
+                insideDecryptedEnCryptElement = false;
             }
 
             writer.writeEndElement();
@@ -845,13 +857,12 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
                               "margin: 2px; "
                               "padding: 2px;");
 
-        writer.writeStartElement("textarea");
-        writer.writeAttribute("readonly", "readonly");
-
         QString formattedDecryptedText = decryptedText;
         formattedDecryptedText.prepend("<?xml version=\"1.0\"?>"
                                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
-                                       "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
+                                       "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
+                                       "<div>");
+        formattedDecryptedText.append("</div>");
 
         QXmlStreamReader decryptedTextReader(formattedDecryptedText);
         bool foundFormattedText = false;
@@ -887,8 +898,6 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
             writer.writeCharacters(decryptedText);
             QNTRACE("Wrote unformatted decrypted text: " << decryptedText);
         }
-
-        writer.writeEndElement();
 
         return true;
     }
