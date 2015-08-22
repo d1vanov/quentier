@@ -1,11 +1,17 @@
 .en-crypt {
-  display: inline;
+  display: inline-block;
   cursor: default;
   border: 2px solid;
   border-color: rgb(195,195,195);
-  border-radius: 16px;
-  margin: 2px;
-  padding: 2px;
+  border-radius: 8px;
+  vertical-align: bottom;
+  height: 18px;
+  width: 93px;
+  margin: 0px;
+  padding: 0px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
 }
 
 .hvr-border-color {
