@@ -242,7 +242,7 @@ bool convertNoteToHtmlAndBackImpl(const QString & noteContent, DecryptedTextMana
     html.append("</html>");
 
     QString processedNoteContent;
-    res = converter.htmlToNoteContent(html, processedNoteContent, error);
+    res = converter.htmlToNoteContent(html, processedNoteContent, decryptedTextManager, error);
     if (!res) {
         error.prepend("Unable to convert HTML to note content: ");
         QNWARNING(error);

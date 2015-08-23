@@ -26,13 +26,6 @@ void DecryptedTextManager::clearNonRememberedForSessionEntries()
     d->clearNonRememberedForSessionEntries();
 }
 
-bool DecryptedTextManager::findDecryptedTextByPassphrase(const QString & passphrase, QString & decryptedText,
-                                                         bool & rememberForSession) const
-{
-    Q_D(const DecryptedTextManager);
-    return d->findDecryptedTextByPassphrase(passphrase, decryptedText, rememberForSession);
-}
-
 bool DecryptedTextManager::findDecryptedTextByEncryptedText(const QString & encryptedText,
                                                             QString & decryptedText,
                                                             bool & rememberForSession) const

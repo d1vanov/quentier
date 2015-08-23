@@ -19,9 +19,6 @@ public:
 
     void clearNonRememberedForSessionEntries();
 
-    bool findDecryptedTextByPassphrase(const QString & passphrase, QString & decryptedText,
-                                       bool & rememberForSession) const;
-
     bool findDecryptedTextByEncryptedText(const QString & encryptedText, QString & decryptedText,
                                           bool & rememberForSession) const;
 

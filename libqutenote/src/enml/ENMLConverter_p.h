@@ -23,7 +23,9 @@ public:
     ENMLConverterPrivate();
     ~ENMLConverterPrivate();
 
-    bool htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const;
+    bool htmlToNoteContent(const QString & html, QString & noteContent,
+                           DecryptedTextManager & decryptedTextManager,
+                           QString & errorDescription) const;
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
                            DecryptedTextManager & decryptedTextManager
 #ifndef USE_QT_WEB_ENGINE
@@ -50,14 +52,14 @@ private:
     static bool isAllowedXhtmlTag(const QString & tagName);
 
     // convert <div> element with decrypted text to ENML <en-crypt> tag
-    bool decryptedTextToEnml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
-                             QString & errorDescription) const;
+    bool decryptedTextToEnml(QXmlStreamReader & reader,
+                             DecryptedTextManager & decryptedTextManager,
+                             QXmlStreamWriter & writer, QString & errorDescription) const;
 
     // convert ENML en-crypt tag to HTML <object> tag
     bool encryptedTextToHtml(const QXmlStreamAttributes & enCryptAttributes,
                              const QStringRef & encryptedTextCharacters,
-                             QXmlStreamWriter & writer,
-                             DecryptedTextManager & decryptedTextManager) const;
+                             QXmlStreamWriter & writer, DecryptedTextManager & decryptedTextManager) const;
 
     // convert ENML <en-media> tag to HTML <object> tag
     bool resourceInfoToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,

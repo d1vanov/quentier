@@ -80,6 +80,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-crypt.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/hover.css\">"
+                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-decrypted.css\">"
                  "<title></title></head>"),
     m_enmlCachedMemory(),
     m_htmlCachedMemory(),
@@ -886,7 +887,8 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
     m_htmlCachedMemory = html;
     m_enmlCachedMemory.resize(0);
     m_errorCachedMemory.resize(0);
-    bool res = m_enmlConverter.htmlToNoteContent(m_htmlCachedMemory, m_enmlCachedMemory, m_errorCachedMemory);
+    bool res = m_enmlConverter.htmlToNoteContent(m_htmlCachedMemory, m_enmlCachedMemory,
+                                                 m_decryptedTextManager, m_errorCachedMemory);
     if (!res)
     {
         m_errorCachedMemory = QT_TR_NOOP("Can't convert note editor page's content to ENML: ") + m_errorCachedMemory;

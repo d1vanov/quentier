@@ -5,6 +5,7 @@ namespace qute_note {
 
 DecryptedTextManagerPrivate::DecryptedTextManagerPrivate() :
     m_dataHash(),
+    m_staleDataHash(),
     m_encryptionManager()
 {}
 
@@ -20,9 +21,9 @@ void DecryptedTextManagerPrivate::addEntry(const QString & hash, const QString &
         return;
     }
 
-    Data & entry = m_dataHash[passphrase];
+    Data & entry = m_dataHash[hash];
     entry.m_decryptedText = decryptedText;
-    entry.m_encryptedText = hash;
+    entry.m_passphrase = passphrase;
     entry.m_cipher = cipher;
     entry.m_keyLength = keyLength;
     entry.m_rememberForSession = rememberForSession;
@@ -42,23 +43,9 @@ void DecryptedTextManagerPrivate::clearNonRememberedForSessionEntries()
             ++it;
         }
     }
-}
 
-bool DecryptedTextManagerPrivate::findDecryptedTextByPassphrase(const QString & passphrase, QString & decryptedText,
-                                                                bool & rememberForSession) const
-{
-    QNDEBUG("DecryptedTextManagerPrivate::findDecryptedTextByPassphrase");
-
-    DataHash::const_iterator it = m_dataHash.find(passphrase);
-    if (it == m_dataHash.end()) {
-        QNDEBUG("Could not find decrypted text");
-        return false;
-    }
-
-    const Data & entry = it.value();
-    decryptedText = entry.m_decryptedText;
-    rememberForSession = entry.m_rememberForSession;
-    return true;
+    // Also clear the stale data hash here as it shouldn't be needed after this call
+    m_staleDataHash.clear();
 }
 
 bool DecryptedTextManagerPrivate::findDecryptedTextByEncryptedText(const QString & encryptedText,
@@ -67,20 +54,20 @@ bool DecryptedTextManagerPrivate::findDecryptedTextByEncryptedText(const QString
 {
     QNDEBUG("DecryptedTextManagerPrivate::findDecryptedTextByEncryptedText: " << encryptedText);
 
-    typedef DataHash::const_iterator CIter;
-    CIter dataHashEnd = m_dataHash.end();
-
-    for(CIter it = m_dataHash.begin(); it != dataHashEnd; ++it)
+    DataHash::const_iterator dataIt = m_dataHash.find(encryptedText);
+    if (dataIt == m_dataHash.end())
     {
-        const Data & data = it.value();
-        if (data.m_encryptedText == encryptedText) {
-            decryptedText = data.m_decryptedText;
-            rememberForSession = data.m_rememberForSession;
-            return true;
+        // Try the stale data hash
+        dataIt = m_staleDataHash.find(encryptedText);
+        if (dataIt == m_staleDataHash.end()) {
+            return false;
         }
     }
 
-    return false;
+    const Data & data = dataIt.value();
+    decryptedText = data.m_decryptedText;
+    rememberForSession = data.m_rememberForSession;
+    return true;
 }
 
 bool DecryptedTextManagerPrivate::modifyDecryptedText(const QString & originalEncryptedText,
@@ -88,37 +75,62 @@ bool DecryptedTextManagerPrivate::modifyDecryptedText(const QString & originalEn
                                                       QString & newEncryptedText)
 {
     QNDEBUG("DecryptedTextManagerPrivate::modifyDecryptedText: original decrypted text = "
-            << originalEncryptedText << ", new decrypted text = " << newDecryptedText);
+            << originalEncryptedText);
 
-    typedef DataHash::iterator Iter;
-    Iter dataHashEnd = m_dataHash.end();
-    Iter itemIt = dataHashEnd;
-
-    for(Iter it = m_dataHash.begin(); it != dataHashEnd; ++it)
+    bool foundInDataHash = true;
+    DataHash::iterator it = m_dataHash.find(originalEncryptedText);
+    if (it == m_dataHash.end())
     {
-        if (it.value().m_encryptedText == originalEncryptedText) {
-            itemIt = it;
-            break;
+        foundInDataHash = false;
+        // Try the stale data hash instead
+        it = m_staleDataHash.find(originalEncryptedText);
+        if (it == m_staleDataHash.end()) {
+            QNDEBUG("Could not find original hash");
+            return false;
         }
     }
 
-    if (itemIt == dataHashEnd) {
-        QNDEBUG("Could not find original hash");
-        return false;
-    }
-
-    const QString & passphrase = itemIt.key();
-    Data & entry = itemIt.value();
+    Data & entry = it.value();
+    const QString & passphrase = entry.m_passphrase;
     QString errorDescription;
-    bool res = m_encryptionManager.encrypt(newDecryptedText, passphrase, entry.m_cipher, entry.m_keyLength, newEncryptedText, errorDescription);
+    bool res = m_encryptionManager.encrypt(newDecryptedText, passphrase, entry.m_cipher,
+                                           entry.m_keyLength, newEncryptedText, errorDescription);
     if (!res) {
-        QNWARNING("Could not rehash the decrypted text: " << errorDescription);
+        QNWARNING("Could not re-encrypt the decrypted text: " << errorDescription);
         return false;
     }
 
-    entry.m_encryptedText = newEncryptedText;
-    entry.m_decryptedText = newDecryptedText;
-    return true;
+    if (foundInDataHash)
+    {
+        // Copy the previous entry's stale data to the stale data hash
+        // in case it would be needed further
+        Data & staleEntry = m_staleDataHash[originalEncryptedText];
+        staleEntry.m_cipher = entry.m_cipher;
+        staleEntry.m_keyLength = entry.m_keyLength;
+        staleEntry.m_rememberForSession = entry.m_rememberForSession;
+        staleEntry.m_decryptedText = entry.m_decryptedText;
+        staleEntry.m_passphrase = entry.m_passphrase;
+
+        m_dataHash.erase(it);
+        Data & newEntry = m_dataHash[newEncryptedText];
+        newEntry.m_cipher = staleEntry.m_cipher;
+        newEntry.m_keyLength = staleEntry.m_keyLength;
+        newEntry.m_rememberForSession = staleEntry.m_rememberForSession;
+        newEntry.m_decryptedText = newDecryptedText;
+        newEntry.m_passphrase = staleEntry.m_passphrase;
+
+        return true;
+    }
+    else {
+        Data & dataEntry = m_dataHash[newEncryptedText];
+        dataEntry.m_cipher = entry.m_cipher;
+        dataEntry.m_keyLength = entry.m_keyLength;
+        dataEntry.m_rememberForSession = entry.m_rememberForSession;
+        dataEntry.m_decryptedText = newDecryptedText;
+        dataEntry.m_passphrase = entry.m_passphrase;
+
+        return true;
+    }
 }
 
 } // namespace qute_note

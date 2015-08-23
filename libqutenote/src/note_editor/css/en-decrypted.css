@@ -1,0 +1,11 @@
+.en-decrypted {
+  display: inline-block;
+  cursor: default;
+  border: 2px solid;
+  border-color: rgb(195,195,195);
+  border-radius: 8px;
+  vertical-align: bottom;
+  margin: 2px;
+  padding: 2px;
+  -webkit-font-smoothing: antialiased;
+}

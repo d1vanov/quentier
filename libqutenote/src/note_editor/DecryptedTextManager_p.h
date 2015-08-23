@@ -18,9 +18,6 @@ public:
 
     void clearNonRememberedForSessionEntries();
 
-    bool findDecryptedTextByPassphrase(const QString & passphrase, QString & decryptedText,
-                                       bool & rememberForSession) const;
-
     bool findDecryptedTextByEncryptedText(const QString & encryptedText, QString & decryptedText,
                                           bool & rememberForSession) const;
 
@@ -36,14 +33,14 @@ private:
     public:
         Data() :
             m_decryptedText(),
-            m_encryptedText(),
+            m_passphrase(),
             m_cipher(),
             m_keyLength(0),
             m_rememberForSession(false)
         {}
 
         QString m_decryptedText;
-        QString m_encryptedText;
+        QString m_passphrase;
         QString m_cipher;
         size_t  m_keyLength;
         bool    m_rememberForSession;
@@ -51,6 +48,8 @@ private:
 
     typedef QHash<QString, Data> DataHash;
     DataHash    m_dataHash;
+
+    DataHash    m_staleDataHash;
 
     EncryptionManager   m_encryptionManager;
 };

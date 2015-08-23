@@ -21,7 +21,9 @@ public:
     ENMLConverter();
     virtual ~ENMLConverter();
 
-    bool htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const;
+    bool htmlToNoteContent(const QString & html, QString & noteContent,
+                           DecryptedTextManager & decryptedTextManager,
+                           QString & errorDescription) const;
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
                            DecryptedTextManager & decryptedTextManager
 #ifndef USE_QT_WEB_ENGINE

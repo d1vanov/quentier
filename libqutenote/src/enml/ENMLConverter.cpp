@@ -18,12 +18,13 @@ ENMLConverter::~ENMLConverter()
     delete d_ptr;
 }
 
-bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const
+bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteContent,
+                                      DecryptedTextManager & decryptedTextManager, QString & errorDescription) const
 {
     QNDEBUG("ENMLConverter::htmlToNoteContent");
 
     Q_D(const ENMLConverter);
-    return d->htmlToNoteContent(html, noteContent, errorDescription);
+    return d->htmlToNoteContent(html, noteContent, decryptedTextManager, errorDescription);
 }
 
 bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,

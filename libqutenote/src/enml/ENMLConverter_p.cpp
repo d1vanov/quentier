@@ -54,7 +54,7 @@ ENMLConverterPrivate::~ENMLConverterPrivate()
     delete m_pHtmlCleaner;
 }
 
-bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & noteContent, QString & errorDescription) const
+bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & noteContent, DecryptedTextManager &decryptedTextManager, QString & errorDescription) const
 {
     QNDEBUG("ENMLConverterPrivate::htmlToNoteContent: " << html);
 
@@ -89,10 +89,6 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
     bool insideEnMediaElement = false;
     QXmlStreamAttributes enMediaAttributes;
-
-    bool insideDecryptedEnCryptElement = false;
-
-    int nestedDecryptedTextElementCounter = 0;
 
     while(!reader.atEnd())
     {
@@ -155,13 +151,11 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                 if (enTag == "en-decrypted")
                 {
                     QNTRACE("Found decrypted text area, need to convert it back to en-crypt form");
-                    bool res = decryptedTextToEnml(reader, writer, errorDescription);
+                    bool res = decryptedTextToEnml(reader, decryptedTextManager, writer, errorDescription);
                     if (!res) {
                         return false;
                     }
 
-                    insideDecryptedEnCryptElement = true;
-                    ++writeElementCounter;
                     continue;
                 }
             }
@@ -345,14 +339,6 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                 ++it;
             }
 
-            if (insideDecryptedEnCryptElement) {
-                ++nestedDecryptedTextElementCounter;
-                QNTRACE("Ignored nested element within the decrypted div: " << lastElementName
-                        << ", nested decrypted text element counter increased: "
-                        << nestedDecryptedTextElementCounter);
-                continue;
-            }
-
             writer.writeStartElement(lastElementName);
             writer.writeAttributes(lastElementAttributes);
             ++writeElementCounter;
@@ -361,7 +347,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
         if ((writeElementCounter > 0) && reader.isCharacters())
         {
-            if (insideEnCryptElement || insideEnMediaElement || insideDecryptedEnCryptElement) {
+            if (insideEnCryptElement || insideEnMediaElement) {
                 continue;
             }
 
@@ -402,19 +388,6 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                     // Don't write end of element corresponding to ends of en-media <object> or <img> tag's child elements
                     continue;
                 }
-            }
-
-            if (insideDecryptedEnCryptElement)
-            {
-                if (nestedDecryptedTextElementCounter != 0) {
-                    --nestedDecryptedTextElementCounter;
-                    QNTRACE("Skipped the end of nested element within the decrypted div: " << lastElementName
-                            << ", nested decrypted text element counted decreased: "
-                            << nestedDecryptedTextElementCounter);
-                    continue;
-                }
-
-                insideDecryptedEnCryptElement = false;
             }
 
             writer.writeEndElement();
@@ -855,7 +828,7 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
         formattedDecryptedText.prepend("<?xml version=\"1.0\"?>"
                                        "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
                                        "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
-                                       "<div>");
+                                       "<div class=\"en-decrypted hvr-border-color\">");
         formattedDecryptedText.append("</div>");
 
         QXmlStreamReader decryptedTextReader(formattedDecryptedText);
@@ -949,8 +922,6 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 #else
     writer.writeAttribute("encrypted_text", encryptedTextCharacters.toString());
     writer.writeAttribute("class", "en-crypt hvr-border-color");
-    writer.writeAttribute("style", "display: inline");
-    // writer.writeAttribute("onmouseover", "style.cursor=\\'default\\'");
 #endif
 
     QNTRACE("Wrote custom "
@@ -1042,20 +1013,45 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
     return true;
 }
 
-bool ENMLConverterPrivate::decryptedTextToEnml(const QXmlStreamReader & reader,
-                                               QXmlStreamWriter & writer,
-                                               QString & errorDescription) const
+bool ENMLConverterPrivate::decryptedTextToEnml(QXmlStreamReader & reader,
+                                               DecryptedTextManager & decryptedTextManager,
+                                               QXmlStreamWriter & writer, QString & errorDescription) const
 {
     QNDEBUG("ENMLConverterPrivate::decryptedTextToEnml");
 
-    QXmlStreamAttributes attributes = reader.attributes();
-
+    const QXmlStreamAttributes attributes = reader.attributes();
     if (!attributes.hasAttribute("encrypted-text")) {
         errorDescription = QT_TR_NOOP("Missing encrypted text attribute within en-decrypted div tag");
         return false;
     }
 
     QString encryptedText = attributes.value("encrypted-text").toString();
+
+    QString storedDecryptedText;
+    bool rememberForSession = false;
+    bool res = decryptedTextManager.findDecryptedTextByEncryptedText(encryptedText, storedDecryptedText, rememberForSession);
+    if (!res) {
+        errorDescription = QT_TR_NOOP("Can't find decrypted text by its encrypted text");
+        QNWARNING(errorDescription);
+        return false;
+    }
+
+    QString decryptedText = reader.readElementText(QXmlStreamReader::IncludeChildElements);
+    QNDEBUG("Read decrypted text including child elements; reader has error = "
+            << (reader.hasError() ? "true" : "false") << ", reader error = " << reader.errorString());
+
+    if (storedDecryptedText != decryptedText)
+    {
+        QNTRACE("Found modified decrypted text, need to re-encrypt");
+
+        QString actualEncryptedText;
+        res = decryptedTextManager.modifyDecryptedText(encryptedText, decryptedText, actualEncryptedText);
+        if (res) {
+            QNTRACE("Re-evaluated the modified decrypted text's encrypted text; was: "
+                    << encryptedText << "; new: " << actualEncryptedText);
+            encryptedText = actualEncryptedText;
+        }
+    }
 
     QString hint;
     if (attributes.hasAttribute("hint")) {
@@ -1077,6 +1073,7 @@ bool ENMLConverterPrivate::decryptedTextToEnml(const QXmlStreamReader & reader,
     }
 
     writer.writeCharacters(encryptedText);
+    writer.writeEndElement();
 
     QNTRACE("Wrote en-crypt ENML tag from en-decrypted div tag");
     return true;

@@ -97,40 +97,29 @@ void NoteDecryptionDialog::accept()
 {
     QString passphrase = m_pUI->passwordLineEdit->text();
 
-
-    bool rememberForSession = false;
-    bool foundDecryptedText = m_decryptedTextManager.findDecryptedTextByPassphrase(passphrase, m_cachedDecryptedText,
-                                                                                   rememberForSession);
-    if (foundDecryptedText)
-    {
-        QNTRACE("Found cached decrypted text for passphrase");
+    QString errorDescription;
+    bool res = m_encryptionManager->decrypt(m_encryptedText, passphrase, m_cipher,
+                                            m_keyLength, m_cachedDecryptedText,
+                                            errorDescription);
+    if (!res && (m_cipher == "AES") && (m_keyLength == 128)) {
+        QNDEBUG("The initial attempt to decrypt the text using AES cipher and 128 bit key has failed; "
+                "checking whether it is old encrypted text area using RC2 encryption and 64 bit key");
+        res = m_encryptionManager->decrypt(m_encryptedText, passphrase, "RC2", 64,
+                                           m_cachedDecryptedText, errorDescription);
     }
-    else
-    {
-        QString errorDescription;
-        bool res = m_encryptionManager->decrypt(m_encryptedText, passphrase, m_cipher,
-                                                m_keyLength, m_cachedDecryptedText,
-                                                errorDescription);
-        if (!res && (m_cipher == "AES") && (m_keyLength == 128)) {
-            QNDEBUG("The initial attempt to decrypt the text using AES cipher and 128 bit key has failed; "
-                    "checking whether it is old encrypted text area using RC2 encryption and 64 bit key");
-            res = m_encryptionManager->decrypt(m_encryptedText, passphrase, "RC2", 64,
-                                               m_cachedDecryptedText, errorDescription);
-        }
 
-        if (!res) {
-            errorDescription.prepend(QT_TR_NOOP("Failed attempt to decrypt text: "));
-            QNINFO(errorDescription);
-            setError(errorDescription);
-            return;
-        }
-
-        rememberForSession = m_pUI->rememberPasswordCheckBox->isChecked();
-        m_decryptedTextManager.addEntry(m_encryptedText, m_cachedDecryptedText, rememberForSession,
-                                        passphrase, m_cipher, m_keyLength);
-        QNTRACE("Cached decrypted text for encryptedText: " << m_encryptedText
-                << "; remember for session = " << (rememberForSession ? "true" : "false"));
+    if (!res) {
+        errorDescription.prepend(QT_TR_NOOP("Failed attempt to decrypt text: "));
+        QNINFO(errorDescription);
+        setError(errorDescription);
+        return;
     }
+
+    bool rememberForSession = m_pUI->rememberPasswordCheckBox->isChecked();
+    m_decryptedTextManager.addEntry(m_encryptedText, m_cachedDecryptedText, rememberForSession,
+                                    passphrase, m_cipher, m_keyLength);
+    QNTRACE("Cached decrypted text for encryptedText: " << m_encryptedText
+            << "; remember for session = " << (rememberForSession ? "true" : "false"));
 
     emit accepted(m_encryptedText, m_cachedDecryptedText, m_pUI->rememberPasswordCheckBox->isChecked());
     QDialog::accept();
