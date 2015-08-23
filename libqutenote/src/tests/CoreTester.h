@@ -28,6 +28,7 @@ private slots:
     void enmlConverterSimpleTest();
     void enmlConverterToDoTest();
     void enmlConverterEnCryptTest();
+    void enmlConverterEnCryptWithModifiedDecryptedTextTest();
     void enmlConverterEnMediaTest();
     void enmlConverterComplexTest();
     void enmlConverterComplexTest2();

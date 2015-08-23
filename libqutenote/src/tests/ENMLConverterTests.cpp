@@ -469,30 +469,40 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
 
 bool convertHtmlWithModifiedDecryptedTextToEnml(QString & error)
 {
-    QString html = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
-                   "<html><head>"
-                   "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
-                   "<title></title></head><body>"
-                   "<div>Here's the encrypted text containing only the hint attribute</div>"
-                   "<div en-tag=\"en-decrypted\" encrypted-text=\""
-                   "RU5DMI1mnQ7fKjBk9f0a57gSc9Nfbuw3uuwMKs32Y+wJGLZa0N8"
-                   "PcTzf7pu3/2VOBqZMvfkKGh4mnJuGy45ZT2TwOfqt+ey8Tic7Bmh"
-                   "Gg7b4n+SpJFHntkeLglxFWJt6oIG14i7IpamIuYyE5XcBRkOQs2cr7"
-                   "rg730d1hxx6sW/KqIfdr+0rF4k+rqP7tpI5ha/ALkhaZAuDbIVic39a"
-                   "CRcu6uve6mHHHPA03olCbi7ePVwO7e94mpuvcg2lGTJyDw/NoZmjFycj"
-                   "XESRJgLIr+gGfyD17jYNGcPBLR8Rb0M9vGK1tG9haG+Vem1pTWgRfYXF70"
-                   "mMduEmAd4xXy1JqV6XNUYDddW9iPpffWTZgD409LK9wIZM5CW2rbM2lwM/"
-                   "R0IEnoK7N5X8lCOzqkA9H/HF+8E=\" "
-                   "hint=\"this is my rifle, this is my gun\" "
-                   "style=\"border: 2px solid; border-color: rgb(195, 195, 195); "
-                   "border-radius: 8px; margin: 2px; padding: 2px;\">"
-                   "<div>"
-                   "<span style=\"display: inline !important; float: none; \">"
-                   "Ok, here's some really long text. I can type and type it on "
-                   "and on and it will not stop any time soon just yet. "
-                   "The password is going to be long also. I wonder what would happen "
-                   "if I edit this text. Would it be actually saved to ENML?"
-                   "</span></div></div></body></html>";
+    QString originalENML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                           "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
+                           "<en-note>"
+                           "<h3>This note contains encrypted text</h3>"
+                           "<br/>"
+                           "<div>Here's the encrypted text containing only the hint attribute</div>"
+                           "<en-crypt hint=\"this is my rifle, this is my gun\">"
+                           "RU5DMI1mnQ7fKjBk9f0a57gSc9Nfbuw3uuwMKs32Y+wJGLZa0N8PcTzf7pu3"
+                           "/2VOBqZMvfkKGh4mnJuGy45ZT2TwOfqt+ey8Tic7BmhGg7b4n+SpJFHntkeL"
+                           "glxFWJt6oIG14i7IpamIuYyE5XcBRkOQs2cr7rg730d1hxx6sW/KqIfdr+0rF4k"
+                           "+rqP7tpI5ha/ALkhaZAuDbIVic39aCRcu6uve6mHHHPA03olCbi7ePVwO7e94mp"
+                           "uvcg2lGTJyDw/NoZmjFycjXESRJgLIr+gGfyD17jYNGcPBLR8Rb0M9vGK1tG9haG"
+                           "+Vem1pTWgRfYXF70mMduEmAd4xXy1JqV6XNUYDddW9iPpffWTZgD409LK9wIZM5C"
+                           "W2rbM2lwM/R0IEnoK7N5X8lCOzqkA9H/HF+8E=</en-crypt></en-note>";
+
+    QString expectedReturnENML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                                 "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
+                                 "<en-note>"
+                                 "<h3>This note contains encrypted text</h3>"
+                                 "<br/>"
+                                 "<div>Here's the encrypted text containing only the hint attribute</div>"
+                                 "<en-crypt hint=\"this is my rifle, this is my gun\">"
+                                 "RU5DMGurZ1T6vW4yZ3HNWU7ymzW/xBXG6c7AomFCebMy2R57ekc/kT94"
+                                 "6aGUAJxSsCsWmX39wsyqGBG03dqSiVKw6lyHHEY0qA/r9M8fGYaiOugS"
+                                 "OQRmyS7dN+k8hdJWsTwes/L1Q6d89J4nJX1cVV8rwVsr0/dsC/GIeIcV"
+                                 "Or1PLyRjFieujCKah4Tlm7svcYFwruXtpyng4TjEnspT5AtWYGxQCY8L"
+                                 "WhLRhf8b4ONmC+PEDpw5KazuMDnRQml56j5JcezD/kKHWKIp9cUAeOAb"
+                                 "zIkoFDorRc/Yg777olCNLHYS2shkD8PrWOZTF2D1L1VP5vNBnSFS5QFXT"
+                                 "+tkQfd1yark0//ID+PtiCroPCO8ayqJynqlmPkzHA6Z6FuGwwXBJFE6K7"
+                                 "vFOmbMWfEp235c1eVb5QbvbLjPujjQsWrVpS1qyTOHoTHpiBeFtTZ8ka2"
+                                 "FytyHtv7YdoR8M6sfR+20xWgfnbdO87iOn2Fec/lvLvRohl68QhwCuKRL"
+                                 "0IZUuDKjm/OWiGzoEzCTvmz3m5x89dAIUJ10lV56uhGTp9of+yPI"
+                                 "</en-crypt></en-note>";
+
     DecryptedTextManager decryptedTextManager;
     decryptedTextManager.addEntry("RU5DMI1mnQ7fKjBk9f0a57gSc9Nfbuw3uuwMKs32Y+wJGLZa0N8PcTzf7pu3"
                                   "/2VOBqZMvfkKGh4mnJuGy45ZT2TwOfqt+ey8Tic7BmhGg7b4n+SpJFHntkeL"
@@ -502,8 +512,8 @@ bool convertHtmlWithModifiedDecryptedTextToEnml(QString & error)
                                   "+Vem1pTWgRfYXF70mMduEmAd4xXy1JqV6XNUYDddW9iPpffWTZgD409LK9wIZM5C"
                                   "W2rbM2lwM/R0IEnoK7N5X8lCOzqkA9H/HF+8E=",
                                   "<span style=\"display: inline !important; float: none; \">"
-                                  "Ok, here's some really long text. I can type and type it on "
-                                  "and on and it will not stop any time soon just yet. "
+                                  "Ok, here's some really long text. I can type and type it "
+                                  "on and on and it will not stop any time soon just yet. "
                                   "The password is going to be long also."
                                   "</span>",
                                   /* remember for session = */ false,
@@ -513,9 +523,53 @@ bool convertHtmlWithModifiedDecryptedTextToEnml(QString & error)
     // The conversion to ENML should re-calculate the hash of the encrypted text
     // and ensure this entry is present in decrypted text cache if this decryption needs to be remembered for the whole session
 
-    // TODO: continue from here
-    Q_UNUSED(html)
-    Q_UNUSED(error)
+    QString html;
+    ENMLConverter converter;
+    bool res = converter.noteContentToHtml(originalENML, html, error, decryptedTextManager);
+    if (!res) {
+        error.prepend("Unable to convert the note content to HTML: ");
+        QNWARNING(error);
+        return false;
+    }
+
+    html.prepend("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
+                 "<html><head>"
+                 "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
+                 "<title></title></head>");
+    html.append("</html>");
+
+    decryptedTextManager.addEntry("RU5DMI1mnQ7fKjBk9f0a57gSc9Nfbuw3uuwMKs32Y+wJGLZa0N8PcTzf7pu3"
+                                  "/2VOBqZMvfkKGh4mnJuGy45ZT2TwOfqt+ey8Tic7BmhGg7b4n+SpJFHntkeL"
+                                  "glxFWJt6oIG14i7IpamIuYyE5XcBRkOQs2cr7rg730d1hxx6sW/KqIfdr+0rF4k"
+                                  "+rqP7tpI5ha/ALkhaZAuDbIVic39aCRcu6uve6mHHHPA03olCbi7ePVwO7e94mp"
+                                  "uvcg2lGTJyDw/NoZmjFycjXESRJgLIr+gGfyD17jYNGcPBLR8Rb0M9vGK1tG9haG"
+                                  "+Vem1pTWgRfYXF70mMduEmAd4xXy1JqV6XNUYDddW9iPpffWTZgD409LK9wIZM5C"
+                                  "W2rbM2lwM/R0IEnoK7N5X8lCOzqkA9H/HF+8E=",
+                                  "<span style=\"display: inline !important; float: none; \">"
+                                  "Ok, here's some really long text. I can type and type it "
+                                  "on and on and it will not stop any time soon just yet. "
+                                  "The password is going to be long also. And I can <b>edit</b> "
+                                  "it as well without too much trying.&nbsp;"
+                                  "</span>",
+                                  /* remember for session = */ false,
+                                  "thisismyriflethisismygunthisisforfortunethisisforfun",
+                                  "AES", 128);
+    // NOTE: specifying the entry with the same hash as above but with different decrypted text
+    // to trigger the re-evaluation of decrypted text hash in the following conversion
+
+    QString processedENML;
+    res = converter.htmlToNoteContent(html, processedENML, decryptedTextManager, error);
+    if (!res) {
+        error.prepend("Unable to convert HTML to note content: ");
+        QNWARNING(error);
+        return false;
+    }
+
+    res = compareEnml(processedENML, expectedReturnENML, error);
+    if (!res) {
+        QNWARNING("\n\nHTML: " << html);
+        return false;
+    }
 
     return true;
 }

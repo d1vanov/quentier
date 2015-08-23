@@ -1036,16 +1036,49 @@ bool ENMLConverterPrivate::decryptedTextToEnml(QXmlStreamReader & reader,
         return false;
     }
 
-    QString decryptedText = reader.readElementText(QXmlStreamReader::IncludeChildElements);
-    QNDEBUG("Read decrypted text including child elements; reader has error = "
-            << (reader.hasError() ? "true" : "false") << ", reader error = " << reader.errorString());
+    QString actualDecryptedText;
+    QXmlStreamWriter decryptedTextWriter(&actualDecryptedText);
 
-    if (storedDecryptedText != decryptedText)
+    int nestedElementsCounter = 0;
+    while(!reader.atEnd())
+    {
+        reader.readNext();
+
+        if (reader.isStartElement()) {
+            decryptedTextWriter.writeStartElement(reader.name().toString());
+            decryptedTextWriter.writeAttributes(reader.attributes());
+            ++nestedElementsCounter;
+        }
+
+        if (reader.isCharacters()) {
+            decryptedTextWriter.writeCharacters(reader.text().toString());
+        }
+
+        if (reader.isEndElement())
+        {
+            if (nestedElementsCounter > 0) {
+                decryptedTextWriter.writeEndElement();
+                --nestedElementsCounter;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    if (reader.hasError()) {
+        errorDescription = reader.errorString();
+        QNWARNING("Couldn't read the nested contents of en-decrypted div, reader has error: "
+                  << errorDescription);
+        return false;
+    }
+
+    if (storedDecryptedText != actualDecryptedText)
     {
         QNTRACE("Found modified decrypted text, need to re-encrypt");
 
         QString actualEncryptedText;
-        res = decryptedTextManager.modifyDecryptedText(encryptedText, decryptedText, actualEncryptedText);
+        res = decryptedTextManager.modifyDecryptedText(encryptedText, actualDecryptedText, actualEncryptedText);
         if (res) {
             QNTRACE("Re-evaluated the modified decrypted text's encrypted text; was: "
                     << encryptedText << "; new: " << actualEncryptedText);

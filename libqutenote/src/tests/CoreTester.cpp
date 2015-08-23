@@ -280,6 +280,17 @@ void CoreTester::enmlConverterEnCryptTest()
     CATCH_EXCEPTION();
 }
 
+void CoreTester::enmlConverterEnCryptWithModifiedDecryptedTextTest()
+{
+    try
+    {
+        QString error;
+        bool res = convertHtmlWithModifiedDecryptedTextToEnml(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::enmlConverterEnMediaTest()
 {
     try
