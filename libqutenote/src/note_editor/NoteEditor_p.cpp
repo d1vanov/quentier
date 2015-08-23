@@ -68,6 +68,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_modified(false),
     m_watchingForContentChange(false),
     m_contentChangedSinceWatchingStart(false),
+    m_secondsToWaitBeforeConversionStart(30),
     m_pageToNoteContentPostponeTimerId(0),
     m_encryptionManager(new EncryptionManager),
     m_decryptedTextManager(),
@@ -334,7 +335,7 @@ void NoteEditorPrivate::onContentChanged()
         return;
     }
 
-    m_pageToNoteContentPostponeTimerId = startTimer(SEC_TO_MSEC(5));
+    m_pageToNoteContentPostponeTimerId = startTimer(SEC_TO_MSEC(m_secondsToWaitBeforeConversionStart));
     m_watchingForContentChange = true;
     m_contentChangedSinceWatchingStart = false;
     QNTRACE("Started timer to postpone note editor page's content to ENML conversion");

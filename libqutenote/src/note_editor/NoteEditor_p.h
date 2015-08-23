@@ -260,19 +260,21 @@ private:
     // These two bools implement a cheap scheme of watching
     // for changes in note editor since some particular moment in time.
     // For example, the conversion of note from HTML into ENML happens
-    // in the background mode, when the editor is idle for at least 5 seconds.
-    // How can such idle state be determined? Create a timer for 5 seconds,
+    // in the background mode, when the editor is idle for at least N seconds.
+    // How can such idle state be determined? Create a timer for N seconds,
     // as it begins, set m_watchingForContentChange to true and
     // m_contentChangedSinceWatchingStart to false. On every next content change
     // m_contentChangedSinceWatchingStart would be set to true. When the timer ends,
     // it can check the state of m_contentChangedSinceWatchingStart.
     // If it's true, it means the editing is still in progress and it's not nice
     // to block the GUI thread by HTML to ENML conversion. So drop this
-    // variable into false again and wait for another 5 seconds. And only
-    // if there were no further edits during 5 seconds, convert note editor's page
+    // variable into false again and wait for another N seconds. And only
+    // if there were no further edits during N seconds, convert note editor's page
     // to ENML
     bool        m_watchingForContentChange;
     bool        m_contentChangedSinceWatchingStart;
+
+    int         m_secondsToWaitBeforeConversionStart;
 
     int         m_pageToNoteContentPostponeTimerId;
 
