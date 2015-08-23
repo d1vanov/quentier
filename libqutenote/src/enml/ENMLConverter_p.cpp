@@ -145,7 +145,8 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
             lastElementAttributes = reader.attributes();
 
-            if ((lastElementName == "div") && lastElementAttributes.hasAttribute("en-tag"))
+            if ( ((lastElementName == "div") || (lastElementName == "img")) &&
+                 lastElementAttributes.hasAttribute("en-tag") )
             {
                 const QString enTag = lastElementAttributes.value("en-tag").toString();
                 if (enTag == "en-decrypted")
@@ -158,8 +159,33 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
                     continue;
                 }
+#ifdef USE_QT_WEB_ENGINE
+                else if (enTag == "en-media")
+                {
+                    QXmlStreamAttributes filteredAttributes;
+                    const int numAttributes = lastElementAttributes.size();
+                    filteredAttributes.reserve(std::max(numAttributes - 2, 0)); // All except en-tag and class should fit
+                    for(int i = 0; i < numAttributes; ++i)
+                    {
+                        const QStringRef attributeName = lastElementAttributes[i].name();
+                        if ((attributeName == "en-tag") || (attributeName == "class")) {
+                            continue;
+                        }
+
+                        filteredAttributes.push_back(lastElementAttributes[i]);
+                    }
+
+                    writer.writeStartElement("en-media");
+                    writer.writeAttributes(filteredAttributes);
+                    writer.writeEndElement();
+
+                    Q_UNUSED(reader.readElementText(QXmlStreamReader::SkipChildElements));
+                    continue;
+                }
+#endif
             }
-            else if (lastElementName == "img")
+
+            if (lastElementName == "img")
             {
                 if (!lastElementAttributes.hasAttribute("en-tag")) {
                     QNTRACE("Skipping img element without en-tag attribute");
@@ -978,7 +1004,13 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
 #endif
     }
 
-    writer.writeStartElement(convertToImage ? "img" : "object");
+    writer.writeStartElement(convertToImage
+                             ? "img"
+#ifndef USE_QT_WEB_ENGINE
+                             : "object");
+#else
+                             : "div");
+#endif
 
     // NOTE: ENMLConverterPrivate can't set src attribute for img tag as it doesn't know whether the resource is stored
     // in any local file yet. The user of noteContentToHtml should take care of those img tags and their src attributes
@@ -992,6 +1024,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
     {
         writer.writeAttribute("en-tag", "en-media");
 
+#ifndef USE_QT_WEB_ENGINE
         const int numAttributes = attributes.size();
         for(int i = 0; i < numAttributes; ++i)
         {
@@ -1008,6 +1041,46 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
             writer.writeAttribute("value", value);
             writer.writeEndElement();
         }
+#else
+        writer.writeAttributes(attributes);
+        writer.writeAttribute("class", "en-media-generic hvr-border-color");
+
+        // Resource icon
+        writer.writeStartElement("img");
+        writer.writeAttribute("class", "resource-icon");
+
+        QStringRef mimeType = attributes.value("type");
+        writer.writeAttribute("resource-mime-type", (mimeType.isNull() ? QString() : mimeType.toString()));
+
+        writer.writeAttribute("width", "32");
+        writer.writeAttribute("height", "32");
+
+        writer.writeEndElement();
+
+        // Resource name div - the actual name is not specified here, let JavaScript communicating with NoteEditor's C++ code handle it
+        writer.writeStartElement("div");
+        writer.writeAttribute("class", "resource-name");
+        writer.writeEndElement();
+
+        // Resource size div - the actual size is not specified here as well as the name
+        writer.writeStartElement("div");
+        writer.writeAttribute("class", "resource-size");
+        writer.writeEndElement();
+
+        // Open resource button
+        writer.writeStartElement("img");
+        writer.writeAttribute("class", "open-resource-button");
+        writer.writeAttribute("width", "32");
+        writer.writeAttribute("height", "32");
+        writer.writeEndElement();
+
+        // Save resource to file button
+        writer.writeStartElement("img");
+        writer.writeAttribute("class", "save-resource-button");
+        writer.writeAttribute("width", "32");
+        writer.writeAttribute("height", "32");
+        writer.writeEndElement();
+#endif
     }
 
     return true;
