@@ -1,0 +1,11 @@
+.checkbox_checked {
+  cursor: default;
+  margin-left: 0px;
+  margin-right: 4px;
+}
+
+.checkbox_unchecked {
+  cursor: default;
+  margin-left: 0px;
+  margin-right: 4px;
+}

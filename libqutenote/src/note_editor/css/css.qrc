@@ -4,5 +4,6 @@
         <file>hover.css</file>
         <file>en-decrypted.css</file>
         <file>en-media-generic.css</file>
+        <file>en-todo.css</file>
     </qresource>
 </RCC>
