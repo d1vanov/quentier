@@ -2,6 +2,7 @@
 #include <qute_note/utility/Utility.h>
 #include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/logging/QuteNoteLogger.h>
+#include <QXmlStreamReader>
 #include <QDomDocument>
 #include <QMutexLocker>
 
@@ -154,34 +155,15 @@ bool NoteData::containsEncryption() const
         return false;
     }
 
-    QDomDocument enXmlDomDoc;
-    int errorLine = -1, errorColumn = -1;
-    QString errorMessage;
-    bool res = enXmlDomDoc.setContent(m_qecNote.content.ref(), &errorMessage, &errorLine, &errorColumn);
-    if (!res) {
-        // TRANSLATOR Explaining the error of XML parsing
-        errorMessage += QT_TR_NOOP(". Error happened at line ") +
-                        QString::number(errorLine) + QT_TR_NOOP(", at column ") +
-                        QString::number(errorColumn);
-        QNWARNING("Note content parsing error: " << errorMessage);
-        m_lazyContainsEncryption = 0;
-        return false;
-    }
-
-    QDomElement docElem = enXmlDomDoc.documentElement();
-    QDomNode nextNode = docElem.firstChild();
-    while (!nextNode.isNull())
+    QXmlStreamReader reader(m_qecNote.content.ref());
+    while(!reader.atEnd())
     {
-        QDomElement element = nextNode.toElement();
-        if (!element.isNull())
-        {
-            QString tagName = element.tagName();
-            if (tagName == "en-crypt") {
-                m_lazyContainsEncryption = 1;
-                return true;
-            }
+        Q_UNUSED(reader.readNext());
+
+        if (reader.isStartElement() && (reader.name() == "en-crypt")) {
+            m_lazyContainsEncryption = 1;
+            return true;
         }
-        nextNode = nextNode.nextSibling();
     }
 
     m_lazyContainsEncryption = 0;
