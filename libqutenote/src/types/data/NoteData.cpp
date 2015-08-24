@@ -94,42 +94,27 @@ bool NoteData::containsToDoImpl(const bool checked) const
         return false;
     }
 
-    QDomDocument enXmlDomDoc;
-    int errorLine = -1, errorColumn = -1;
-    QString errorMessage;
-    bool res = enXmlDomDoc.setContent(m_qecNote.content.ref(), &errorMessage, &errorLine, &errorColumn);
-    if (!res) {
-        // TRANSLATOR Explaining the error of XML parsing
-        errorMessage += QT_TR_NOOP(". Error happened at line ") +
-                        QString::number(errorLine) + QT_TR_NOOP(", at column ") +
-                        QString::number(errorColumn);
-        QNWARNING("Note content parsing error: " << errorMessage);
-        refLazyContainsToDo = 0;
-        return false;
-    }
+    QXmlStreamReader reader(m_qecNote.content.ref());
 
-    QDomElement docElem = enXmlDomDoc.documentElement();
-    QDomNode nextNode = docElem.firstChild();
-    while (!nextNode.isNull())
+    while(!reader.atEnd())
     {
-        QDomElement element = nextNode.toElement();
-        if (!element.isNull())
+        Q_UNUSED(reader.readNext());
+
+        if (reader.isStartElement() && (reader.name() == "en-todo"))
         {
-            QString tagName = element.tagName();
-            if (tagName == "en-todo")
+            const QXmlStreamAttributes attributes = reader.attributes();
+            if (checked && attributes.hasAttribute("checked") && (attributes.value("checked") == "true")) {
+                refLazyContainsToDo = 1;
+                return true;
+            }
+
+            if ( !checked &&
+                 (!attributes.hasAttribute("checked") || (attributes.value("checked") == "false")) )
             {
-                QString checkedStr = element.attribute("checked", "false");
-                if (checked && (checkedStr == "true")) {
-                    refLazyContainsToDo = 1;
-                    return true;
-                }
-                else if (!checked && (checkedStr == "false")) {
-                    refLazyContainsToDo = 1;
-                    return true;
-                }
+                refLazyContainsToDo = 1;
+                return true;
             }
         }
-        nextNode = nextNode.nextSibling();
     }
 
     refLazyContainsToDo = 0;
