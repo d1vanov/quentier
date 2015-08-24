@@ -61,6 +61,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     QObject::connect(m_pUI->ActionSetTestNoteWithEncryptedData, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow, onSetTestNoteWithEncryptedData));
+    QObject::connect(m_pUI->ActionSetTestNoteWithResources , QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow, onSetTestNoteWithResources));
 
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
     m_pNoteEditor->setFocus();
@@ -258,6 +260,16 @@ void MainWindow::onSetTestNoteWithEncryptedData()
     QNDEBUG("MainWindow::onSetTestNoteWithEncryptedData");
 
     QString noteContent = test::ManualTestingHelper::noteContentWithEncryption();
+    m_testNote.setContent(noteContent);
+    m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
+    m_pNoteEditor->setFocus();
+}
+
+void MainWindow::onSetTestNoteWithResources()
+{
+    QNDEBUG("MainWindow::onSetTestNoteWithResources");
+
+    QString noteContent = test::ManualTestingHelper::noteContentWithResources();
     m_testNote.setContent(noteContent);
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
     m_pNoteEditor->setFocus();

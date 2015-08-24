@@ -1049,36 +1049,43 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         writer.writeStartElement("img");
         writer.writeAttribute("class", "resource-icon");
 
+        // TODO: remove later
+        writer.writeAttribute("src", "qrc:/generic_resource_icons/png/save.png");
+
         QStringRef mimeType = attributes.value("type");
         writer.writeAttribute("resource-mime-type", (mimeType.isNull() ? QString() : mimeType.toString()));
-
-        writer.writeAttribute("width", "32");
-        writer.writeAttribute("height", "32");
 
         writer.writeEndElement();
 
         // Resource name div - the actual name is not specified here, let JavaScript communicating with NoteEditor's C++ code handle it
         writer.writeStartElement("div");
         writer.writeAttribute("class", "resource-name");
+        writer.writeAttribute("readonly", "true");
+        writer.writeCharacters("Sample resource name");  // TODO: remove later, will be replaced with proper resource name
         writer.writeEndElement();
 
         // Resource size div - the actual size is not specified here as well as the name
         writer.writeStartElement("div");
         writer.writeAttribute("class", "resource-size");
+        writer.writeCharacters("Sample resource size");  // TODO: remove later, will be replaced with proper resource size
         writer.writeEndElement();
 
         // Open resource button
         writer.writeStartElement("img");
         writer.writeAttribute("class", "open-resource-button");
-        writer.writeAttribute("width", "32");
-        writer.writeAttribute("height", "32");
+
+        // TODO: remove later
+        writer.writeAttribute("src", "qrc:/generic_resource_icons/png/open_with.png");
+
         writer.writeEndElement();
 
         // Save resource to file button
         writer.writeStartElement("img");
         writer.writeAttribute("class", "save-resource-button");
-        writer.writeAttribute("width", "32");
-        writer.writeAttribute("height", "32");
+
+        // TODO: remove later
+        writer.writeAttribute("src", "qrc:/generic_resource_icons/png/save.png");
+
         writer.writeEndElement();
 #endif
     }

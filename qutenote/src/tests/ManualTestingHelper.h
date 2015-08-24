@@ -11,6 +11,7 @@ class ManualTestingHelper
 {
 public:
     static QString noteContentWithEncryption();
+    static QString noteContentWithResources();
 };
 
 } // namespace test

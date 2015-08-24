@@ -44,7 +44,8 @@ else()
 endif()
 
 set(RESOURCES
-    resource/icons.qrc)
+    resource/icons.qrc
+    src/tests/test_notes.qrc)
 
 if(USE_QT5)
   qt5_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})

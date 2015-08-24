@@ -61,6 +61,7 @@ private Q_SLOTS:
 
     void onShowNoteSource();
     void onSetTestNoteWithEncryptedData();
+    void onSetTestNoteWithResources();
 
     void onNoteEditorHtmlUpdate(QString html);
 

@@ -82,6 +82,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-crypt.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/hover.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-decrypted.css\">"
+                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-media-generic.css\">"
                  "<title></title></head>"),
     m_enmlCachedMemory(),
     m_htmlCachedMemory(),

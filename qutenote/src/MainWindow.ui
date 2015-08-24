@@ -1220,7 +1220,7 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1516</width>
-     <height>25</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1438,6 +1438,7 @@ background-color: rgb(205, 221, 229);
     </property>
     <addaction name="ActionShowNoteSource"/>
     <addaction name="ActionSetTestNoteWithEncryptedData"/>
+    <addaction name="ActionSetTestNoteWithResources"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -2661,6 +2662,11 @@ stop: 1 #0EB7FF);
   <action name="ActionSetTestNoteWithEncryptedData">
    <property name="text">
     <string>Set test note with encrypted data</string>
+   </property>
+  </action>
+  <action name="ActionSetTestNoteWithResources">
+   <property name="text">
+    <string>Set test note with resources</string>
    </property>
   </action>
  </widget>

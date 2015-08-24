@@ -3,5 +3,6 @@
         <file>en-crypt.css</file>
         <file>hover.css</file>
         <file>en-decrypted.css</file>
+        <file>en-media-generic.css</file>
     </qresource>
 </RCC>

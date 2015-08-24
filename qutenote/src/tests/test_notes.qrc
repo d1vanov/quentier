@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/test_notes">
+        <file>enml_with_resources.xml</file>
+    </qresource>
+</RCC>

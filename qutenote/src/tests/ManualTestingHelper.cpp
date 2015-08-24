@@ -1,4 +1,5 @@
 #include "ManualTestingHelper.h"
+#include <QFile>
 
 namespace qute_note {
 namespace test {
@@ -82,6 +83,16 @@ QString ManualTestingHelper::noteContentWithEncryption()
            "3CoTQV7prRqJVLpUX77Q0vbNims1quxVWaf7+uVeK60YoiJnSOHvEYptoOs1FVfZ"
            "AwnDDBoCUOsAb2nCh2UZ6LSFneb58xQ/6WeoQ7QDDHLSoUIXn</en-crypt>"
            "</en-note>";
+}
+
+QString ManualTestingHelper::noteContentWithResources()
+{
+    QFile file(":/test_notes/enml_with_resources.xml");
+    file.open(QIODevice::ReadOnly);
+    QString result = file.readAll();
+    file.close();
+
+    return result;
 }
 
 } // namespace test
