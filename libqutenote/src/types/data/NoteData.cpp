@@ -3,7 +3,6 @@
 #include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QXmlStreamReader>
-#include <QDomDocument>
 #include <QMutexLocker>
 
 namespace qute_note {
