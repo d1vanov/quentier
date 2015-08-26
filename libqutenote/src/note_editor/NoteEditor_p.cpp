@@ -51,6 +51,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_getSelectionHtml(),
     m_replaceSelectionWithHtml(),
     m_provideSrcForResourceImgTags(),
+    m_setupEnToDoTags(),
 #ifdef USE_QT_WEB_ENGINE
     m_provideSrcAndOnClickScriptForEnCryptImgTags(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
@@ -60,8 +61,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pEnCryptElementClickHandler(new EnCryptElementClickHandler(this)),
     m_pJavaScriptInOrderExecutor(new JavaScriptInOrderExecutor(noteEditor, this)),
     m_webSocketServerPort(0),
-    m_isPageEditable(false),
 #endif
+    m_isPageEditable(false),
     m_pendingConversionToNote(false),
     m_pNote(nullptr),
     m_pNotebook(nullptr),
@@ -83,6 +84,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/hover.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-decrypted.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-media-generic.css\">"
+                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-todo.css\">"
                  "<title></title></head>"),
     m_enmlCachedMemory(),
     m_htmlCachedMemory(),
@@ -212,6 +214,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForResourceImgTags = file.readAll();
     file.close();
 
+    file.setFileName(":/javascript/scripts/enToDoTagsSetup.js");
+    file.open(QIODevice::ReadOnly);
+    m_setupEnToDoTags = file.readAll();
+    file.close();
+
 #ifndef USE_QT_WEB_ENGINE
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
@@ -279,8 +286,13 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     Q_Q(NoteEditor);
 
 #ifndef USE_QT_WEB_ENGINE
-    QWebFrame * frame = q->page()->mainFrame();
-    if (!frame) {
+    QWebPage * page = q->page();
+    if (Q_UNLIKELY(!page)) {
+        return;
+    }
+
+    QWebFrame * frame = page->mainFrame();
+    if (Q_UNLIKELY(!frame)) {
         return;
     }
 
@@ -290,6 +302,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     Q_UNUSED(frame->evaluateJavaScript(m_getSelectionHtml));
     Q_UNUSED(frame->evaluateJavaScript(m_replaceSelectionWithHtml));
     Q_UNUSED(frame->evaluateJavaScript(m_provideSrcForResourceImgTags));
+    Q_UNUSED(frame->evaluateJavaScript(m_setupEnToDoTags));
 #else
     QWebEnginePage * page = q->page();
     if (!page) {
@@ -311,6 +324,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     m_pJavaScriptInOrderExecutor->append(m_getSelectionHtml);
     m_pJavaScriptInOrderExecutor->append(m_replaceSelectionWithHtml);
     m_pJavaScriptInOrderExecutor->append(m_provideSrcForResourceImgTags);
+    m_pJavaScriptInOrderExecutor->append(m_setupEnToDoTags);
     m_pJavaScriptInOrderExecutor->append(m_provideSrcAndOnClickScriptForEnCryptImgTags);
 
     setPageEditable(true);
@@ -592,11 +606,7 @@ void NoteEditorPrivate::noteToEditorContent()
     bool readOnly = false;
     if (m_pNote->hasActive() && !m_pNote->active()) {
         QNDEBUG("Current note is not active, setting it to read-only state");
-#ifndef USE_QT_WEB_ENGINE
-        q->page()->setContentEditable(false);
-#else
         setPageEditable(false);
-#endif
         readOnly = true;
     }
     else if (m_pNotebook->hasRestrictions())
@@ -605,7 +615,10 @@ void NoteEditorPrivate::noteToEditorContent()
         if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
             QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
 #ifndef USE_QT_WEB_ENGINE
-            q->page()->setContentEditable(false);
+            QWebPage * page = q->page();
+            if (Q_LIKELY(page)) {
+                page->setContentEditable(false);
+            }
 #else
             setPageEditable(false);
 #endif
@@ -615,11 +628,7 @@ void NoteEditorPrivate::noteToEditorContent()
 
     if (!readOnly) {
         QNDEBUG("Nothing prevents user to modify the note, allowing it in the editor");
-#ifndef USE_QT_WEB_ENGINE
-        q->page()->setContentEditable(true);
-#else
         setPageEditable(true);
-#endif
     }
 
     q->setHtml(m_htmlCachedMemory);
@@ -630,12 +639,7 @@ void NoteEditorPrivate::updateColResizableTableBindings()
 {
     QNDEBUG("NoteEditorPrivate::updateColResizableTableBindings");
 
-#ifndef USE_QT_WEB_ENGINE
-    Q_Q(NoteEditor);
-    bool readOnly = !q->page()->isContentEditable();
-#else
     bool readOnly = !isPageEditable();
-#endif
 
     QString colResizable = "$(\"table\").colResizable({";
     if (readOnly) {
@@ -653,6 +657,7 @@ void NoteEditorPrivate::updateColResizableTableBindings()
     QNTRACE("colResizable js code: " << colResizable);
 
 #ifndef USE_QT_WEB_ENGINE
+    Q_Q(NoteEditor);
     q->page()->mainFrame()->evaluateJavaScript(colResizable);
 #else
     m_pJavaScriptInOrderExecutor->append(colResizable);
@@ -853,8 +858,19 @@ void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
     QNDEBUG("Queued javascript command to provide src for img tags: " << javascript);
 }
 
+#endif
+
 void NoteEditorPrivate::setPageEditable(const bool editable)
 {
+    QNTRACE("NoteEditorPrivate::setPageEditable: " << (editable ? "true" : "false"));
+
+#ifndef USE_QT_WEB_ENGINE
+    Q_Q(NoteEditor);
+    QWebPage * page = q->page();
+    if (Q_LIKELY(page)) {
+        page->setContentEditable(editable);
+    }
+#else
     QString javascript = QString("document.body.contentEditable='") + QString(editable ? "true" : "false") + QString("'; ") +
                          QString("document.designMode='") + QString(editable ? "on" : "off") + QString("'; void 0;");
     m_pJavaScriptInOrderExecutor->append(javascript);
@@ -863,9 +879,10 @@ void NoteEditorPrivate::setPageEditable(const bool editable)
     }
 
     QNINFO("Queued javascript to make page " << (editable ? "editable" : "non-editable") << ": " << javascript);
+#endif
+
     m_isPageEditable = editable;
 }
-#endif
 
 void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
                                            const QVector<QPair<QString, QString> > & extraData)
@@ -1271,7 +1288,28 @@ QString NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const Q
 void NoteEditorPrivate::insertToDoCheckbox()
 {
     QString html = ENMLConverter::getToDoCheckboxHtml(/* checked = */ false);
-    execJavascriptCommand("insertHtml", html);
+    QString javascript = QString("document.execCommand('insertHtml', false, '%1'); ").arg(html);
+    javascript += m_setupEnToDoTags;
+
+#ifndef USE_QT_WEB_ENGINE
+    Q_Q(NoteEditor);
+    QWebPage * page = q->page();
+    if (Q_UNLIKELY(!page)) {
+        return;
+    }
+
+    QWebFrame * frame = page->mainFrame();
+    if (Q_UNLIKELY(!frame)) {
+        return;
+    }
+
+    Q_UNUSED(frame->evaluateJavaScript(javascript));
+#else
+    m_pJavaScriptInOrderExecutor->append(javascript);
+    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
+        m_pJavaScriptInOrderExecutor->start();
+    }
+#endif
 }
 
 void NoteEditorPrivate::setFont(const QFont & font)

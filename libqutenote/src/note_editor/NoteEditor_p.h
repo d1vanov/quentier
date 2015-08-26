@@ -190,10 +190,10 @@ private:
 
 #ifdef USE_QT_WEB_ENGINE
     void provideSrcAndOnClickScriptForImgEnCryptTags();
+#endif
 
     bool isPageEditable() const { return m_isPageEditable; }
     void setPageEditable(const bool editable);
-#endif
 
     void onPageHtmlReceived(const QString & html, const QVector<QPair<QString,QString> > & extraData = QVector<QPair<QString,QString> >());
     void onPageSelectedHtmlForEncryptionReceived(const QVariant & selectedHtmlData,
@@ -233,6 +233,7 @@ private:
     QString     m_getSelectionHtml;
     QString     m_replaceSelectionWithHtml;
     QString     m_provideSrcForResourceImgTags;
+    QString     m_setupEnToDoTags;
 
 #ifdef USE_QT_WEB_ENGINE
     QString     m_provideSrcAndOnClickScriptForEnCryptImgTags;
@@ -247,9 +248,9 @@ private:
     JavaScriptInOrderExecutor * m_pJavaScriptInOrderExecutor;
 
     quint16     m_webSocketServerPort;
-    bool        m_isPageEditable;
 #endif
 
+    bool        m_isPageEditable;
     bool        m_pendingConversionToNote;
 
     Note *      m_pNote;

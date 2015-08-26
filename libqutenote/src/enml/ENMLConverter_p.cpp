@@ -723,11 +723,7 @@ QString ENMLConverterPrivate::getToDoCheckboxHtml(const bool checked)
         html += "no.png\" class=\"checkbox_unchecked\" ";
     }
 
-    html += "style=\"margin:0px 4px\" "
-            "onmouseover=\"style.cursor=\\'default\\'\" "
-            "onclick=\"if (this.className == \\'checkbox_unchecked\\') { "
-            "this.src=\\'qrc:/checkbox_icons/checkbox_yes.png\\'; this.className = \\'checkbox_checked\\'; } "
-            "else { this.src=\\'qrc:/checkbox_icons/checkbox_no.png\\'; this.className = \\'checkbox_unchecked\\' }\" />";
+    html += "en-tag=\"en-todo\" />";
     return html;
 }
 
@@ -796,12 +792,6 @@ void ENMLConverterPrivate::toDoTagsToHtml(const QXmlStreamReader & reader, QXmlS
     attributes.append("src", QString("qrc:/checkbox_icons/checkbox_") + QString(checked ? "yes" : "no") + QString(".png"));
     attributes.append("class", QString("checkbox_") + QString(checked ? "checked" : "unchecked"));
     attributes.append("en-tag", "en-todo");
-    attributes.append("style", "margin:0px 4px");
-    attributes.append("onmouseover", "style.cursor=\\'default\\'");
-    attributes.append("onclick", "if (this.className == \\'checkbox_unchecked\\') { "
-                      "this.src=\\'qrc:/checkbox_icons/checkbox_yes.png\\'; this.className = \\'checkbox_checked\\'; } "
-                      "else { this.src=\\'qrc:/checkbox_icons/checkbox_no.png\\'; this.className = \\'checkbox_unchecked\\' }");
-
     writer.writeAttributes(attributes);
 }
 

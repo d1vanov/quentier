@@ -65,7 +65,7 @@ void NoteEditorPage::javaScriptConsoleMessage(const QString & message, int lineN
 {
     QNDEBUG("NoteEditorPage::javaScriptConsoleMessage, message: " << message << ", line number: " << lineNumber
             << ", sourceID = " << sourceID);
-    NoteEditorPage::javaScriptConsoleMessage(message, lineNumber, sourceID);
+    QWebPage::javaScriptConsoleMessage(message, lineNumber, sourceID);
 }
 #else
 void NoteEditorPage::javaScriptAlert(const QUrl & securityOrigin, const QString & msg)

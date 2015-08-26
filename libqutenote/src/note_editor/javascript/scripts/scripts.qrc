@@ -7,5 +7,6 @@
         <file>pageMutationObserver.js</file>
         <file>qWebChannelSetup.js</file>
         <file>provideSrcAndOnClickScriptForEnCryptImgTags.js</file>
+        <file>enToDoTagsSetup.js</file>
     </qresource>
 </RCC>
