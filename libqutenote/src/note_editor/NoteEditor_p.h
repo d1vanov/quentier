@@ -57,6 +57,38 @@ private:
 #ifdef USE_QT_WEB_ENGINE
 
 // The instance of this class would be exposed to JavaScript call
+// in order to provide the filepaths to locally saved icons corresponding to
+// resource mime types;
+class MimeTypeIconJavaScriptHandler: public QObject
+{
+    Q_OBJECT
+public:
+    explicit MimeTypeIconJavaScriptHandler(QThread * ioThread, QObject * parent = nullptr);
+
+Q_SIGNALS:
+    void gotIconFilePathForMimeType(const QString & mimeType, const QString & filePath);
+
+public Q_SLOTS:
+    // Searches for icon file path in the cache, then in the folder where the icon should reside;
+    // if it's not there, uses QMimeDatabase to find the icon, if successful, schedules the async job
+    // of writing it to local file and returns empty string; when the icon is written to file,
+    // emits the signal
+    QString iconFilePathForMimeType(const QString & mimeType);
+
+// private signals
+Q_SIGNALS:
+    void writeIconToFile(QString absoluteFilePath, QByteArray data, QUuid requestId);
+
+private Q_SLOTS:
+    void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
+
+private:
+    QHash<QString, QString> m_iconFilePathCache;
+    QHash<QUuid, QPair<QString, QString> >   m_mimeTypeAndLocalFilePathByWriteIconRequestId;
+    FileIOThreadWorker *    m_iconWriter;
+};
+
+// The instance of this class would be exposed to JavaScript call
 // in order to emulate the contentsChanged signal that way because - surprise! -
 // QWebEnginePage doesn't provide such a signal natively!
 class PageMutationHandler: public QObject
@@ -190,6 +222,8 @@ private:
 
 #ifdef USE_QT_WEB_ENGINE
     void provideSrcAndOnClickScriptForImgEnCryptTags();
+    void provideSrcForGenericResourceIcons(const QString & mimeType,
+                                           const QString & localFilePath);
 #endif
 
     bool isPageEditable() const { return m_isPageEditable; }
@@ -244,6 +278,7 @@ private:
     WebSocketClientWrapper * m_pWebSocketClientWrapper;
     QWebChannel * m_pWebChannel;
     PageMutationHandler * m_pPageMutationHandler;
+    MimeTypeIconJavaScriptHandler * m_pMimeTypeIconJavaScriptHandler;
     EnCryptElementClickHandler * m_pEnCryptElementClickHandler;
     JavaScriptInOrderExecutor * m_pJavaScriptInOrderExecutor;
 

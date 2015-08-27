@@ -18,7 +18,8 @@
             window.resourceCache = channel.objects.resourceCache;
             window.pageMutationObserver = channel.objects.pageMutationObserver;
             window.enCryptElementClickHandler = channel.objects.enCryptElementClickHandler;
-            console.log("Created window variables: resourceCache, pageMutationHandler, enCryptElementClickHandler");
+            window.mimeTypeIconHandler = channel.objects.mimeTypeIconHandler;
+            console.log("Created window variables for objects exposed to JavaScript");
         });
         console.log("Connected to WebChannel, ready to send/receive messages!");
     }
