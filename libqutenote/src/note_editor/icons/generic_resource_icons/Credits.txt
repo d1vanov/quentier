@@ -5,3 +5,11 @@ save: https://www.iconfinder.com/icons/227583/in_icon#size=128
 open_with: https://www.iconfinder.com/icons/227574/open_icon#size=128
 
 Full icon set Feather: https://www.iconfinder.com/iconsets/feather
+
+
+Attachment icon by Designmodo (http://designmodo.com) / CC 3.0 Unported
+
+Source:
+attachment: https://www.iconfinder.com/icons/115756/attachment_clip_paper_icon#size=128
+
+Full icon set Linecons Free - Vector Icons Pack: https://www.iconfinder.com/iconsets/linecons-free-vector-icons-pack
