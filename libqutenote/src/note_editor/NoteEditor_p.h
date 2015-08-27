@@ -73,7 +73,7 @@ public Q_SLOTS:
     // if it's not there, uses QMimeDatabase to find the icon, if successful, schedules the async job
     // of writing it to local file and returns empty string; when the icon is written to file,
     // emits the signal
-    QString iconFilePathForMimeType(const QString & mimeType);
+    void iconFilePathForMimeType(const QString & mimeType);
 
 // private signals
 Q_SIGNALS:
@@ -85,6 +85,7 @@ private Q_SLOTS:
 private:
     QHash<QString, QString> m_iconFilePathCache;
     QHash<QUuid, QPair<QString, QString> >   m_mimeTypeAndLocalFilePathByWriteIconRequestId;
+    QSet<QString>           m_mimeTypesWithIconsWriteInProgress;
     FileIOThreadWorker *    m_iconWriter;
 };
 
@@ -222,8 +223,6 @@ private:
 
 #ifdef USE_QT_WEB_ENGINE
     void provideSrcAndOnClickScriptForImgEnCryptTags();
-    void provideSrcForGenericResourceIcons(const QString & mimeType,
-                                           const QString & localFilePath);
 #endif
 
     bool isPageEditable() const { return m_isPageEditable; }
@@ -270,6 +269,7 @@ private:
     QString     m_setupEnToDoTags;
 
 #ifdef USE_QT_WEB_ENGINE
+    QString     m_provideSrcForGenericResourceIcons;
     QString     m_provideSrcAndOnClickScriptForEnCryptImgTags;
     QString     m_qWebChannelJs;
     QString     m_qWebChannelSetupJs;

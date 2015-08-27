@@ -27,7 +27,21 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
     QNDEBUG("FileIOThreadWorkerPrivate::onWriteFileRequest: file path = " << absoluteFilePath
             << ", request id = " << requestId);
 
+    QFileInfo fileInfo(absoluteFilePath);
+    QDir folder = fileInfo.absoluteDir();
+    if (!folder.exists())
+    {
+        bool madeFolder = folder.mkpath(folder.absolutePath());
+        if (!madeFolder) {
+            emit writeFileRequestProcessed(false, QT_TR_NOOP("Can't create folder to write file into: ") + absoluteFilePath,
+                                           requestId);
+            RESTART_TIMER();
+            return;
+        }
+    }
+
     QFile file(absoluteFilePath);
+
     bool open = file.open(QIODevice::WriteOnly);
     if (!open) {
         emit writeFileRequestProcessed(false, QT_TR_NOOP("Can't open file for writing: ") + absoluteFilePath,

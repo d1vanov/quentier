@@ -19,6 +19,14 @@
             window.pageMutationObserver = channel.objects.pageMutationObserver;
             window.enCryptElementClickHandler = channel.objects.enCryptElementClickHandler;
             window.mimeTypeIconHandler = channel.objects.mimeTypeIconHandler;
+            window.mimeTypeIconHandler.gotIconFilePathForMimeType.connect(function(mimeType, iconFilePath) {
+                var genericResources = document.querySelectorAll('.resource-icon[type="' + mimeType.toString() + '"]');
+                console.log("Found " + genericResources.length + " generic resources for mime type " + mimeType.toString() +
+                            "; icon file path = " + iconFilePath);
+                for(var i = 0; i < genericResources.length; ++i) {
+                    genericResources[i].setAttribute("src", "file://" + iconFilePath.toString());
+                }
+            });
             console.log("Created window variables for objects exposed to JavaScript");
         });
         console.log("Connected to WebChannel, ready to send/receive messages!");

@@ -53,6 +53,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForResourceImgTags(),
     m_setupEnToDoTags(),
 #ifdef USE_QT_WEB_ENGINE
+    m_provideSrcForGenericResourceIcons(),
     m_provideSrcAndOnClickScriptForEnCryptImgTags(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
@@ -125,8 +126,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pIOThread->start(QThread::LowPriority);
 
     m_pMimeTypeIconJavaScriptHandler = new MimeTypeIconJavaScriptHandler(m_pIOThread, this);
-    QObject::connect(m_pMimeTypeIconJavaScriptHandler, &MimeTypeIconJavaScriptHandler::gotIconFilePathForMimeType,
-                     this, &NoteEditorPrivate::provideSrcForGenericResourceIcons);
 
     QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementClickHandler::decrypt,
                      this, &NoteEditorPrivate::onEnCryptElementClicked);
@@ -248,6 +247,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     file.open(QIODevice::ReadOnly);
     m_provideSrcAndOnClickScriptForEnCryptImgTags = file.readAll();
     file.close();
+
+    file.setFileName(":/javascript/scripts/provideSrcForGenericResourceIcons.js");
+    file.open(QIODevice::ReadOnly);
+    m_provideSrcForGenericResourceIcons = file.readAll();
+    file.close();
 #endif
 
     QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
@@ -332,6 +336,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     m_pJavaScriptInOrderExecutor->append(m_provideSrcForResourceImgTags);
     m_pJavaScriptInOrderExecutor->append(m_setupEnToDoTags);
     m_pJavaScriptInOrderExecutor->append(m_provideSrcAndOnClickScriptForEnCryptImgTags);
+    m_pJavaScriptInOrderExecutor->append(m_provideSrcForGenericResourceIcons);
 
     setPageEditable(true);
 #endif
@@ -862,14 +867,6 @@ void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
         m_pJavaScriptInOrderExecutor->start();
     }
     QNDEBUG("Queued javascript command to provide src for img tags: " << javascript);
-}
-
-void NoteEditorPrivate::provideSrcForGenericResourceIcons(const QString & mimeType,
-                                                          const QString & localFilePath)
-{
-    QNDEBUG("NoteEditorPrivate::provideSrcForGenericResourceIcons: mimeType = " << mimeType
-            << ", local file path = " << localFilePath);
-    // TODO: implement
 }
 
 #endif
@@ -1565,6 +1562,7 @@ MimeTypeIconJavaScriptHandler::MimeTypeIconJavaScriptHandler(QThread * ioThread,
     QObject(parent),
     m_iconFilePathCache(),
     m_mimeTypeAndLocalFilePathByWriteIconRequestId(),
+    m_mimeTypesWithIconsWriteInProgress(),
     m_iconWriter(new FileIOThreadWorker(this))
 {
     Q_ASSERT(ioThread);
@@ -1578,13 +1576,16 @@ MimeTypeIconJavaScriptHandler::MimeTypeIconJavaScriptHandler(QThread * ioThread,
     QNDEBUG("Initialized MimeTypeIconJavaScriptHandler");
 }
 
-QString MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & mimeType)
+void MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & mimeType)
 {
+    QNDEBUG("MimeTypeIconJavaScriptHandler::iconFilePathForMimeType: " << mimeType);
+
     // First try to find it in the cache
     auto it = m_iconFilePathCache.find(mimeType);
     if (it != m_iconFilePathCache.end()) {
         QNTRACE("Found cached icon for mime type " << mimeType << ": " << it.value());
-        return it.value();
+        emit gotIconFilePathForMimeType(mimeType, it.value());
+        return;
     }
 
     // Ok, try to find the already written icon in the appropriate folder
@@ -1598,7 +1599,20 @@ QString MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & m
     if (mimeTypeIconInfo.exists() && mimeTypeIconInfo.isFile() && mimeTypeIconInfo.isReadable()) {
         QNTRACE("Found existing icon written to file: " << iconFilePath);
         m_iconFilePathCache[mimeType] = iconFilePath;
-        return iconFilePath;
+        emit gotIconFilePathForMimeType(mimeType, iconFilePath);
+        return;
+    }
+
+    // If we haven't returned just above, we'd most likely need to return this fallback generic resource icon
+    // before we get the proper one written to the local file
+    QString fallbackIconFilePath = "qrc:/generic_resource_icons/png/attachment.png";
+
+    // If it's not there, see if we are already in the process of writing this icon to local file
+    auto mimeTypeIconWriteInProgressIter = m_mimeTypesWithIconsWriteInProgress.find(mimeType);
+    if (mimeTypeIconWriteInProgressIter != m_mimeTypesWithIconsWriteInProgress.end()) {
+        QNTRACE("Writing icon for mime type " << mimeType << " is still in progress");
+        emit gotIconFilePathForMimeType(mimeType, fallbackIconFilePath);
+        return;
     }
 
     // If it's not there, try to find the icon from theme; if found, schedule the async job
@@ -1611,30 +1625,29 @@ QString MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & m
     }
 
     QIcon icon = QIcon::fromTheme(iconName);
-    if (icon.isNull()) {
+    if (!icon.isNull()) {
+        QImage iconImage = icon.pixmap(QSize(24, 24)).toImage();
+
+        QByteArray iconRawData;
+        QBuffer buffer(&iconRawData);
+        buffer.open(QIODevice::WriteOnly);
+        iconImage.save(&buffer, "png");
+
+        QUuid writeIconRequestId = QUuid::createUuid();
+        m_mimeTypeAndLocalFilePathByWriteIconRequestId[writeIconRequestId] = QPair<QString,QString>(mimeType, iconFilePath);
+        Q_UNUSED(m_mimeTypesWithIconsWriteInProgress.insert(mimeType));
+        emit writeIconToFile(iconFilePath, iconRawData, writeIconRequestId);
+        QNTRACE("Emitted a signal to save the icon for mime type " << mimeType
+                << " to local file with path " << iconFilePath << ", request id = "
+                << writeIconRequestId);
+    }
+    else {
         QNTRACE("Haven't found the icon corresponding to mime type " << mimeType
                 << ", will use the default icon instead");
-        // NOTE: don't cache this path in the blind hope the icon would magically appear later on
-        // TODO: return the path to generic resource icon from qrc resources
-        return QString();
+        m_iconFilePathCache[mimeType] = fallbackIconFilePath;
     }
 
-    QImage iconImage = icon.pixmap(QSize(24, 24)).toImage();
-
-    QByteArray iconRawData;
-    QBuffer buffer(&iconRawData);
-    buffer.open(QIODevice::WriteOnly);
-    iconImage.save(&buffer, "png");
-
-    QUuid writeIconRequestId = QUuid::createUuid();
-    emit writeIconToFile(iconFilePath, iconRawData, writeIconRequestId);
-    m_mimeTypeAndLocalFilePathByWriteIconRequestId[writeIconRequestId] = QPair<QString,QString>(mimeType, iconFilePath);
-    QNTRACE("Emitted a signal to save the icon for mime type " << mimeType
-            << " to local file with path " << iconFilePath << ", request id = "
-            << writeIconRequestId);
-    // TODO: return the path to generic resource icon from qrc resources,
-    // just in case something would go wrong with writing the icon to file
-    return QString();
+    emit gotIconFilePathForMimeType(mimeType, fallbackIconFilePath);
 }
 
 void MimeTypeIconJavaScriptHandler::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
@@ -1650,6 +1663,11 @@ void MimeTypeIconJavaScriptHandler::onWriteFileRequestProcessed(bool success, QS
 
     QPair<QString,QString> mimeTypeAndFilePath = it.value();
     Q_UNUSED(m_mimeTypeAndLocalFilePathByWriteIconRequestId.erase(it));
+
+    auto mimeTypeIconWriteInProgressIter = m_mimeTypesWithIconsWriteInProgress.find(mimeTypeAndFilePath.first);
+    if (mimeTypeIconWriteInProgressIter != m_mimeTypesWithIconsWriteInProgress.end()) {
+        Q_UNUSED(m_mimeTypesWithIconsWriteInProgress.erase(mimeTypeIconWriteInProgressIter));
+    }
 
     if (!success) {
         QNWARNING("Can't save resource icon for mime type " << mimeTypeAndFilePath.first

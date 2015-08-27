@@ -8,5 +8,6 @@
         <file>qWebChannelSetup.js</file>
         <file>provideSrcAndOnClickScriptForEnCryptImgTags.js</file>
         <file>enToDoTagsSetup.js</file>
+        <file>provideSrcForGenericResourceIcons.js</file>
     </qresource>
 </RCC>

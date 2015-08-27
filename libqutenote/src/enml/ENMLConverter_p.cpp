@@ -1039,11 +1039,11 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         writer.writeStartElement("img");
         writer.writeAttribute("class", "resource-icon");
 
-        // TODO: remove later
-        writer.writeAttribute("src", "qrc:/generic_resource_icons/png/save.png");
+        writer.writeAttribute("src", "qrc:/generic_resource_icons/png/attachment.png");
 
         QStringRef mimeType = attributes.value("type");
-        writer.writeAttribute("resource-mime-type", (mimeType.isNull() ? QString() : mimeType.toString()));
+        QNTRACE("Resource mime type: " << mimeType);
+        writer.writeAttribute("type", (mimeType.isNull() ? QString() : mimeType.toString()));
 
         writer.writeEndElement();
 
