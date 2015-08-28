@@ -45,6 +45,7 @@ namespace qute_note {
 
 NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject(&noteEditor),
+    m_noteEditorPageFolderPath(),
     m_jQuery(),
     m_resizableColumnsPlugin(),
     m_onFixedWidthTableResize(),
@@ -125,7 +126,33 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished), m_pIOThread, QNSLOT(QThread,deleteLater));
     m_pIOThread->start(QThread::LowPriority);
 
-    m_pMimeTypeIconJavaScriptHandler = new MimeTypeIconJavaScriptHandler(m_pIOThread, this);
+    QString initialHtml = m_pagePrefix + "<body></body></html>";
+    QString pageFilePath = applicationPersistentStoragePath() + "/NoteEditorPage/index.html";
+    QFileInfo pageFileInfo(pageFilePath);
+    QDir pageFilePathDir = pageFileInfo.absoluteDir();
+    m_noteEditorPageFolderPath = pageFilePathDir.absolutePath();
+    if (!pageFilePathDir.exists())
+    {
+        bool created = pageFilePathDir.mkpath(m_noteEditorPageFolderPath);
+        if (!created) {
+            QNFATAL("Can't create folder to store the content for note editor web page");
+            // TODO: throw appropriate exception
+            return;
+        }
+    }
+
+    QFile pageFile(pageFilePath);
+    bool pageFileOpen = pageFile.open(QIODevice::WriteOnly);
+    if (!pageFileOpen) {
+        QNFATAL("Can't open file to store the content for note editor web page");
+        // TODO: throw appropriate exception
+        return;
+    }
+    Q_UNUSED(pageFile.write(initialHtml.toLocal8Bit()));
+    pageFile.close();
+
+    m_pMimeTypeIconJavaScriptHandler = new MimeTypeIconJavaScriptHandler(m_noteEditorPageFolderPath,
+                                                                         m_pIOThread, this);
 
     QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementClickHandler::decrypt,
                      this, &NoteEditorPrivate::onEnCryptElementClicked);
@@ -261,10 +288,9 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteEditorHtmlUpdated,QString), q, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString));
 
     q->setPage(page);
-
-    // Setting initial "blank" page, it is of great importance in order to make image insertion work
-    q->setHtml(m_pagePrefix + "<body></body></html>");
     q->setAcceptDrops(true);
+    q->load(QUrl(pageFilePath));
+    QNDEBUG("Loaded page file with path " << pageFilePath);
 
     m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {
@@ -1558,20 +1584,22 @@ QString ResourceLocalFileInfoJavaScriptHandler::getResourceLocalFilePath(const Q
 
 #ifdef USE_QT_WEB_ENGINE
 
-MimeTypeIconJavaScriptHandler::MimeTypeIconJavaScriptHandler(QThread * ioThread, QObject * parent) :
+MimeTypeIconJavaScriptHandler::MimeTypeIconJavaScriptHandler(const QString & noteEditorPageFolder,
+                                                             QThread * ioThread, QObject * parent) :
     QObject(parent),
+    m_noteEditorPageFolder(noteEditorPageFolder),
     m_iconFilePathCache(),
     m_mimeTypeAndLocalFilePathByWriteIconRequestId(),
     m_mimeTypesWithIconsWriteInProgress(),
     m_iconWriter(new FileIOThreadWorker(this))
 {
     Q_ASSERT(ioThread);
+    m_iconWriter->moveToThread(ioThread);
 
     QObject::connect(this, QNSIGNAL(MimeTypeIconJavaScriptHandler,writeIconToFile,QString,QByteArray,QUuid),
                      m_iconWriter, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
     QObject::connect(m_iconWriter, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
                      this, QNSLOT(MimeTypeIconJavaScriptHandler,onWriteFileRequestProcessed,bool,QString,QUuid));
-    m_iconWriter->moveToThread(ioThread);
 
     QNDEBUG("Initialized MimeTypeIconJavaScriptHandler");
 }
@@ -1589,7 +1617,7 @@ void MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & mime
     }
 
     // Ok, try to find the already written icon in the appropriate folder
-    QString iconsFolderPath = applicationPersistentStoragePath() + "/mimeTypeIcons";
+    QString iconsFolderPath = m_noteEditorPageFolder + "/mimeTypeIcons";
 
     QString normalizedMimeType = mimeType;
     normalizedMimeType.replace('/', '_');
@@ -1598,8 +1626,9 @@ void MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & mime
     QFileInfo mimeTypeIconInfo(iconFilePath);
     if (mimeTypeIconInfo.exists() && mimeTypeIconInfo.isFile() && mimeTypeIconInfo.isReadable()) {
         QNTRACE("Found existing icon written to file: " << iconFilePath);
-        m_iconFilePathCache[mimeType] = iconFilePath;
-        emit gotIconFilePathForMimeType(mimeType, iconFilePath);
+        QString relativeIconFilePath = relativePath(iconFilePath);
+        m_iconFilePathCache[mimeType] = relativeIconFilePath;
+        emit gotIconFilePathForMimeType(mimeType, relativeIconFilePath);
         return;
     }
 
@@ -1625,29 +1654,28 @@ void MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & mime
     }
 
     QIcon icon = QIcon::fromTheme(iconName);
-    if (!icon.isNull()) {
-        QImage iconImage = icon.pixmap(QSize(24, 24)).toImage();
-
-        QByteArray iconRawData;
-        QBuffer buffer(&iconRawData);
-        buffer.open(QIODevice::WriteOnly);
-        iconImage.save(&buffer, "png");
-
-        QUuid writeIconRequestId = QUuid::createUuid();
-        m_mimeTypeAndLocalFilePathByWriteIconRequestId[writeIconRequestId] = QPair<QString,QString>(mimeType, iconFilePath);
-        Q_UNUSED(m_mimeTypesWithIconsWriteInProgress.insert(mimeType));
-        emit writeIconToFile(iconFilePath, iconRawData, writeIconRequestId);
-        QNTRACE("Emitted a signal to save the icon for mime type " << mimeType
-                << " to local file with path " << iconFilePath << ", request id = "
-                << writeIconRequestId);
-    }
-    else {
+    if (icon.isNull()) {
         QNTRACE("Haven't found the icon corresponding to mime type " << mimeType
                 << ", will use the default icon instead");
         m_iconFilePathCache[mimeType] = fallbackIconFilePath;
+        emit gotIconFilePathForMimeType(mimeType, fallbackIconFilePath);
+        return;
     }
 
-    emit gotIconFilePathForMimeType(mimeType, fallbackIconFilePath);
+    QImage iconImage = icon.pixmap(QSize(24, 24)).toImage();
+
+    QByteArray iconRawData;
+    QBuffer buffer(&iconRawData);
+    buffer.open(QIODevice::WriteOnly);
+    iconImage.save(&buffer, "png");
+
+    QUuid writeIconRequestId = QUuid::createUuid();
+    m_mimeTypeAndLocalFilePathByWriteIconRequestId[writeIconRequestId] = QPair<QString,QString>(mimeType, iconFilePath);
+    Q_UNUSED(m_mimeTypesWithIconsWriteInProgress.insert(mimeType));
+    emit writeIconToFile(iconFilePath, iconRawData, writeIconRequestId);
+    QNTRACE("Emitted a signal to save the icon for mime type " << mimeType
+            << " to local file with path " << iconFilePath << ", request id = "
+            << writeIconRequestId);
 }
 
 void MimeTypeIconJavaScriptHandler::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
@@ -1672,11 +1700,26 @@ void MimeTypeIconJavaScriptHandler::onWriteFileRequestProcessed(bool success, QS
     if (!success) {
         QNWARNING("Can't save resource icon for mime type " << mimeTypeAndFilePath.first
                   << " to local file: " << errorDescription);
+        QString fallbackIconFilePath = "qrc:/generic_resource_icons/png/attachment.png";
+        m_iconFilePathCache[mimeTypeAndFilePath.first] = fallbackIconFilePath;
+        emit gotIconFilePathForMimeType(mimeTypeAndFilePath.first, fallbackIconFilePath);
         return;
     }
 
-    m_iconFilePathCache[mimeTypeAndFilePath.first] = mimeTypeAndFilePath.second;
-    emit gotIconFilePathForMimeType(mimeTypeAndFilePath.first, mimeTypeAndFilePath.second);
+    QString relativeIconFilePath = relativePath(mimeTypeAndFilePath.second);
+    m_iconFilePathCache[mimeTypeAndFilePath.first] = relativeIconFilePath;
+    QNTRACE("Emitting the signal to update icon file path for mime type " << mimeTypeAndFilePath.first);
+    emit gotIconFilePathForMimeType(mimeTypeAndFilePath.first, relativeIconFilePath);
+}
+
+QString MimeTypeIconJavaScriptHandler::relativePath(const QString & absolutePath) const
+{
+    int position = absolutePath.indexOf("NoteEditorPage", 0, Qt::CaseInsensitive);
+    if (position < 0) {
+        return QString();
+    }
+
+    return absolutePath.mid(position + 15);
 }
 
 #endif

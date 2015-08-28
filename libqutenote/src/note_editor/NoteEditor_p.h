@@ -63,7 +63,8 @@ class MimeTypeIconJavaScriptHandler: public QObject
 {
     Q_OBJECT
 public:
-    explicit MimeTypeIconJavaScriptHandler(QThread * ioThread, QObject * parent = nullptr);
+    explicit MimeTypeIconJavaScriptHandler(const QString & noteEditorPageFolder,
+                                           QThread * ioThread, QObject * parent = nullptr);
 
 Q_SIGNALS:
     void gotIconFilePathForMimeType(const QString & mimeType, const QString & filePath);
@@ -83,6 +84,10 @@ private Q_SLOTS:
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
 private:
+    QString relativePath(const QString & absolutePath) const;
+
+private:
+    QString                 m_noteEditorPageFolder;
     QHash<QString, QString> m_iconFilePathCache;
     QHash<QUuid, QPair<QString, QString> >   m_mimeTypeAndLocalFilePathByWriteIconRequestId;
     QSet<QString>           m_mimeTypesWithIconsWriteInProgress;
@@ -259,6 +264,8 @@ private:
     friend class HtmlRetrieveFunctor<QVariant>;
 
 private:
+    QString     m_noteEditorPageFolderPath;
+
     // JavaScript scripts
     QString     m_jQuery;
     QString     m_resizableColumnsPlugin;
