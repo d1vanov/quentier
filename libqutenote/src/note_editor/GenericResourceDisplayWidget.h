@@ -13,7 +13,7 @@ QT_FORWARD_DECLARE_CLASS(GenericResourceDisplayWidget)
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(IResource)
+QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
@@ -58,7 +58,7 @@ private:
 private:
     Ui::GenericResourceDisplayWidget *  m_pUI;
 
-    const IResource *                   m_pResource;
+    const ResourceWrapper *             m_pResource;
     const ResourceFileStorageManager *  m_pResourceFileStorageManager;
     const FileIOThreadWorker *          m_pFileIOThreadWorker;
     QStringList                         m_preferredFileSuffixes;

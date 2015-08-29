@@ -1177,7 +1177,8 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         *m_pNotebook = notebook;
     }
 
-    if (!m_pNote) {
+    if (!m_pNote)
+    {
         m_pNote = new Note(note);
     }
     else
@@ -1198,7 +1199,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     }
 
 #ifndef USE_QT_WEB_ENGINE
-        m_pluginFactory->setNote(*m_pNote);
+    m_pluginFactory->setNote(*m_pNote);
 #endif
 
     noteToEditorContent();

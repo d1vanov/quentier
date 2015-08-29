@@ -4,7 +4,7 @@
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/utility/DesktopServices.h>
-#include <qute_note/types/IResource.h>
+#include <qute_note/types/ResourceWrapper.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/ApplicationSettings.h>
 #include <QHBoxLayout>
@@ -38,6 +38,7 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(QWidget * parent) :
 GenericResourceDisplayWidget::~GenericResourceDisplayWidget()
 {
     delete m_pUI;
+    delete m_pResource;
 }
 
 void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString & name,
@@ -49,7 +50,7 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
 {
     QNDEBUG("GenericResourceDisplayWidget::initialize: name = " << name << ", size = " << size);
 
-    m_pResource = &resource;
+    m_pResource = new ResourceWrapper(resource);
     m_pResourceFileStorageManager = &resourceFileStorageManager;
     m_pFileIOThreadWorker = &fileIOThreadWorker;
     m_preferredFileSuffixes = preferredFileSuffixes;
@@ -89,7 +90,7 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
 
     QString resourceFileStorageLocation = ResourceFileStorageManager::resourceFileStorageLocation(qobject_cast<QWidget*>(parent()));
-    if (!resourceFileStorageLocation.isEmpty()) {
+    if (resourceFileStorageLocation.isEmpty()) {
         QNWARNING("Couldn't determine the path for resource file storage location");
         return;
     }
@@ -119,6 +120,7 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     }
 
     // Write resource's data to file asynchronously so that it can further be opened in some application
+    m_saveResourceToStorageRequestId = QUuid::createUuid();
     emit saveResourceToStorage(m_pResource->localGuid(), data, *dataHash, m_saveResourceToStorageRequestId);
     QNTRACE("Emitted request to save the attachment to own file storage location, request id = "
             << m_saveResourceToStorageRequestId << ", resource local guid = " << m_pResource->localGuid());

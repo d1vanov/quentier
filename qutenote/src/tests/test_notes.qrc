@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/test_notes">
         <file>enml_with_resources.xml</file>
+        <file>Architecture_whats_the_architecture.png</file>
+        <file>GrowlNotify.pkg</file>
+        <file>cDock_v8.2.zip</file>
     </qresource>
 </RCC>

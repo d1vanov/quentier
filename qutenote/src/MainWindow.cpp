@@ -10,6 +10,7 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 
 #include <qute_note/types/Note.h>
 #include <qute_note/types/Notebook.h>
+#include <qute_note/types/ResourceWrapper.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <Simplecrypt.h>
@@ -259,6 +260,8 @@ void MainWindow::onSetTestNoteWithEncryptedData()
 {
     QNDEBUG("MainWindow::onSetTestNoteWithEncryptedData");
 
+    m_testNote = Note();
+
     QString noteContent = test::ManualTestingHelper::noteContentWithEncryption();
     m_testNote.setContent(noteContent);
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
@@ -269,8 +272,75 @@ void MainWindow::onSetTestNoteWithResources()
 {
     QNDEBUG("MainWindow::onSetTestNoteWithResources");
 
+    m_testNote = Note();
+
     QString noteContent = test::ManualTestingHelper::noteContentWithResources();
     m_testNote.setContent(noteContent);
+
+    // Read the first result from qrc
+    QFile resourceFile(":/test_notes/Architecture_whats_the_architecture.png");
+    resourceFile.open(QIODevice::ReadOnly);
+    QByteArray resourceData = resourceFile.readAll();
+    resourceFile.close();
+
+    // Assemble the first resource data
+    qute_note::ResourceWrapper resource;
+    resource.setDataHash("84f9f1159d922e8c977d9a1539351ccf");
+    resource.setDataBody(resourceData);
+    resource.setDataSize(resourceData.size());
+    resource.setNoteLocalGuid(m_testNote.localGuid());
+    resource.setMime("image/png");
+
+    qevercloud::ResourceAttributes resourceAttributes;
+    resourceAttributes.fileName = "Architecture_whats_the_architecture.png";
+
+    resource.setResourceAttributes(resourceAttributes);
+
+    // Add the first resource to the note
+    m_testNote.addResource(resource);
+
+    // Read the second resource from qrc
+    resourceFile.setFileName(":/test_notes/cDock_v8.2.zip");
+    resourceFile.open(QIODevice::ReadOnly);
+    resourceData = resourceFile.readAll();
+    resourceFile.close();
+
+    // Assemble the second resource data
+    resource = qute_note::ResourceWrapper();
+    resource.setDataHash("377ce54f92b5f12e83d8eb3867fc1d9a");
+    resource.setDataBody(resourceData);
+    resource.setDataSize(resourceData.size());
+    resource.setMime("application/zip");
+
+    resourceAttributes = qevercloud::ResourceAttributes();
+    resourceAttributes.fileName = "cDock_v8.2.zip";
+
+    resource.setResourceAttributes(resourceAttributes);
+
+    // Add the second resource to the note
+    m_testNote.addResource(resource);
+
+    // Read the third resource from qrc
+    resourceFile.setFileName(":/test_notes/GrowlNotify.pkg");
+    resourceFile.open(QIODevice::ReadOnly);
+    resourceData = resourceFile.readAll();
+    resourceFile.close();
+
+    // Assemble the third resource data
+    resource = qute_note::ResourceWrapper();
+    resource.setDataHash("2e0f79af4ca47b473e5105156a18c7cb");
+    resource.setDataBody(resourceData);
+    resource.setDataSize(resourceData.size());
+    resource.setMime("application/octet-stream");
+
+    resourceAttributes = qevercloud::ResourceAttributes();
+    resourceAttributes.fileName = "GrowlNotify.pkg";
+
+    resource.setResourceAttributes(resourceAttributes);
+
+    // Add the third resource to the note
+    m_testNote.addResource(resource);
+
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
     m_pNoteEditor->setFocus();
 }
