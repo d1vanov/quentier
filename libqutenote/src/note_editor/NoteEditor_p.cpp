@@ -104,182 +104,26 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_saveNewResourcesToStorageRequestIds(),
     q_ptr(&noteEditor)
 {
-    Q_Q(NoteEditor);
     QString initialHtml = m_pagePrefix + "<body></body></html>";
-
-#ifdef USE_QT_WEB_ENGINE
-    if (!m_pWebSocketServer->listen(QHostAddress::LocalHost, 0)) {
-        QNFATAL("Cannot open web socket server: " << m_pWebSocketServer->errorString());
-        // TODO: throw appropriate exception
-        return;
-    }
-
-    m_webSocketServerPort = m_pWebSocketServer->serverPort();
-    QNDEBUG("Using automatically selected websocket server port " << m_webSocketServerPort);
-
-    // As long as QWebEnginePage doesn't offer a convenience signal on its content change,
-    // need to reinvent the wheel using JavaScript
-    QObject::connect(m_pPageMutationHandler, &PageMutationHandler::contentsChanged,
-                     q, &NoteEditor::contentChanged);
-    QObject::connect(m_pPageMutationHandler, &PageMutationHandler::contentsChanged,
-                     this, &NoteEditorPrivate::onContentChanged);
-
-    m_pIOThread = new QThread;
-    QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished), m_pIOThread, QNSLOT(QThread,deleteLater));
-    m_pIOThread->start(QThread::LowPriority);
-
-    m_pFileIOThreadWorker = new FileIOThreadWorker;
-    m_pFileIOThreadWorker->moveToThread(m_pIOThread);
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,readDroppedFileData,QString,QUuid),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
-                     this, QNSLOT(NoteEditorPrivate,onDroppedFileRead,bool,QString,QByteArray,QUuid));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeNoteHtmlToFile,QString,QByteArray,QUuid),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                     this, QNSLOT(NoteEditorPrivate,onWriteFileRequestProcessed,bool,QString,QUuid));
-
     m_noteEditorPageFolderPath = applicationPersistentStoragePath() + "/NoteEditorPage";
 
-    m_pMimeTypeIconJavaScriptHandler = new MimeTypeIconJavaScriptHandler(m_noteEditorPageFolderPath,
-                                                                         m_pIOThread, this);
+    setupFileIO();
 
-    QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementClickHandler::decrypt,
-                     this, &NoteEditorPrivate::onEnCryptElementClicked);
-
-    m_pWebChannel->registerObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler);
-    m_pWebChannel->registerObject("enCryptElementClickHandler", m_pEnCryptElementClickHandler);
-    m_pWebChannel->registerObject("pageMutationObserver", m_pPageMutationHandler);
-    m_pWebChannel->registerObject("mimeTypeIconHandler", m_pMimeTypeIconJavaScriptHandler);
-    QNDEBUG("Registered objects exposed to JavaScript");
-
-    QObject::connect(m_pWebSocketClientWrapper, &WebSocketClientWrapper::clientConnected,
-                     m_pWebChannel, &QWebChannel::connectTo);
+#ifdef USE_QT_WEB_ENGINE
+    setupWebSocketServer();
+    setupJavaScriptObjects();
 #endif
 
-    NoteEditorPage * page = new NoteEditorPage(*q);
-    page->settings()->setAttribute(WebSettings::LocalContentCanAccessFileUrls, true);
-    page->settings()->setAttribute(WebSettings::LocalContentCanAccessRemoteUrls, true);
+    setupScripts();
+    setupNoteEditorPage();
 
-#ifndef USE_QT_WEB_ENGINE
-    page->settings()->setAttribute(QWebSettings::PluginsEnabled, false);
-    page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
-    page->setContentEditable(true);
-#else
-    page->settings()->setAttribute(QWebEngineSettings::AutoLoadImages, true);
-    page->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
-#endif
-
-    m_pResourceFileStorageManager = new ResourceFileStorageManager;
-    m_pResourceFileStorageManager->moveToThread(m_pIOThread);
-
-#ifndef USE_QT_WEB_ENGINE
-    m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager,
-                                                  *m_pFileIOThreadWorker, page);
-    page->setPluginFactory(m_pluginFactory);
-
-    EncryptedAreaPlugin * encryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager, q);
-    m_errorCachedMemory.resize(0);
-    NoteEditorPluginFactory::PluginIdentifier encryptedAreaPluginId = m_pluginFactory->addPlugin(encryptedAreaPlugin, m_errorCachedMemory);
-    if (!encryptedAreaPluginId) {
-        throw NoteEditorPluginInitializationException("Can't initialize note editor plugin for managing the encrypted text");
-    }
-#endif
-
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToStorage,QString,QByteArray,QByteArray,QUuid),
-                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QUuid));
-    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,int,QString),
-                     this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,int,QString));
-
-
-#ifndef USE_QT_WEB_ENGINE
-    page->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler,
-                                                   QScriptEngine::QtOwnership);
-#endif
-
-    __initNoteEditorResources();
-
-    QFile file(":/javascript/jquery/jquery-2.1.3.min.js");
-    file.open(QIODevice::ReadOnly);
-    m_jQuery = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/colResizable/colResizable-1.5.min.js");
-    file.open(QIODevice::ReadOnly);
-    m_resizableColumnsPlugin = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/onFixedWidthTableResize.js");
-    file.open(QIODevice::ReadOnly);
-    m_onFixedWidthTableResize = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/getSelectionHtml.js");
-    file.open(QIODevice::ReadOnly);
-    m_getSelectionHtml = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/replaceSelectionWithHtml.js");
-    file.open(QIODevice::ReadOnly);
-    m_replaceSelectionWithHtml = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/provideSrcForResourceImgTags.js");
-    file.open(QIODevice::ReadOnly);
-    m_provideSrcForResourceImgTags = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/enToDoTagsSetup.js");
-    file.open(QIODevice::ReadOnly);
-    m_setupEnToDoTags = file.readAll();
-    file.close();
-
-#ifndef USE_QT_WEB_ENGINE
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
-#else
-    file.setFileName(":/qtwebchannel/qwebchannel.js");
-    file.open(QIODevice::ReadOnly);
-    m_qWebChannelJs = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/qWebChannelSetup.js");
-    file.open(QIODevice::ReadOnly);
-    m_qWebChannelSetupJs = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/pageMutationObserver.js");
-    file.open(QIODevice::ReadOnly);
-    m_pageMutationObserverJs = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js");
-    file.open(QIODevice::ReadOnly);
-    m_provideSrcAndOnClickScriptForEnCryptImgTags = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/provideSrcForGenericResourceIcons.js");
-    file.open(QIODevice::ReadOnly);
-    m_provideSrcForGenericResourceIcons = file.readAll();
-    file.close();
-#endif
-
-    QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QString), q, QNSIGNAL(NoteEditor,cantConvertToNote,QString));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteEditorHtmlUpdated,QString), q, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString));
-
-    q->setPage(page);
-    q->setAcceptDrops(true);
-
+    Q_Q(NoteEditor);
     m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {
         QString error = QT_TR_NOOP("Can't get resource file storage folder");
         QNWARNING(error);
         throw ResourceLocalFileStorageFolderNotFoundException(error);
     }
-
     QNTRACE("Resource local file storage folder: " << m_resourceLocalFileStorageFolder);
 
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
@@ -909,7 +753,194 @@ void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
     QNDEBUG("Queued javascript command to provide src for img tags: " << javascript);
 }
 
+void NoteEditorPrivate::setupWebSocketServer()
+{
+    QNDEBUG("NoteEditorPrivate::setupWebSocketServer");
+
+    if (!m_pWebSocketServer->listen(QHostAddress::LocalHost, 0)) {
+        QNFATAL("Cannot open web socket server: " << m_pWebSocketServer->errorString());
+        // TODO: throw appropriate exception
+        return;
+    }
+
+    m_webSocketServerPort = m_pWebSocketServer->serverPort();
+    QNDEBUG("Using automatically selected websocket server port " << m_webSocketServerPort);
+
+    QObject::connect(m_pWebSocketClientWrapper, &WebSocketClientWrapper::clientConnected,
+                     m_pWebChannel, &QWebChannel::connectTo);
+}
+
+void NoteEditorPrivate::setupJavaScriptObjects()
+{
+    QNDEBUG("NoteEditorPrivate::setupJavaScriptObjects");
+
+    Q_Q(NoteEditor);
+
+    // As long as QWebEnginePage doesn't offer a convenience signal on its content change,
+    // need to reinvent the wheel using JavaScript
+    QObject::connect(m_pPageMutationHandler, &PageMutationHandler::contentsChanged,
+                     q, &NoteEditor::contentChanged);
+    QObject::connect(m_pPageMutationHandler, &PageMutationHandler::contentsChanged,
+                     this, &NoteEditorPrivate::onContentChanged);
+
+    m_pMimeTypeIconJavaScriptHandler = new MimeTypeIconJavaScriptHandler(m_noteEditorPageFolderPath,
+                                                                         m_pIOThread, this);
+
+    QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementClickHandler::decrypt,
+                     this, &NoteEditorPrivate::onEnCryptElementClicked);
+
+    m_pWebChannel->registerObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler);
+    m_pWebChannel->registerObject("enCryptElementClickHandler", m_pEnCryptElementClickHandler);
+    m_pWebChannel->registerObject("pageMutationObserver", m_pPageMutationHandler);
+    m_pWebChannel->registerObject("mimeTypeIconHandler", m_pMimeTypeIconJavaScriptHandler);
+    QNDEBUG("Registered objects exposed to JavaScript");
+}
+
 #endif
+
+void NoteEditorPrivate::setupFileIO()
+{
+    QNDEBUG("NoteEditorPrivate::setupFileIO");
+
+    m_pIOThread = new QThread;
+    QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished), m_pIOThread, QNSLOT(QThread,deleteLater));
+    m_pIOThread->start(QThread::LowPriority);
+
+    m_pFileIOThreadWorker = new FileIOThreadWorker;
+    m_pFileIOThreadWorker->moveToThread(m_pIOThread);
+
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,readDroppedFileData,QString,QUuid),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
+                     this, QNSLOT(NoteEditorPrivate,onDroppedFileRead,bool,QString,QByteArray,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeNoteHtmlToFile,QString,QByteArray,QUuid),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
+                     this, QNSLOT(NoteEditorPrivate,onWriteFileRequestProcessed,bool,QString,QUuid));
+
+    m_pResourceFileStorageManager = new ResourceFileStorageManager;
+    m_pResourceFileStorageManager->moveToThread(m_pIOThread);
+
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToStorage,QString,QByteArray,QByteArray,QUuid),
+                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QUuid));
+    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,int,QString),
+                     this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,int,QString));
+
+}
+
+void NoteEditorPrivate::setupScripts()
+{
+    QNDEBUG("NoteEditorPrivate::setupScripts");
+
+    __initNoteEditorResources();
+
+    QFile file(":/javascript/jquery/jquery-2.1.3.min.js");
+    file.open(QIODevice::ReadOnly);
+    m_jQuery = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/colResizable/colResizable-1.5.min.js");
+    file.open(QIODevice::ReadOnly);
+    m_resizableColumnsPlugin = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/onFixedWidthTableResize.js");
+    file.open(QIODevice::ReadOnly);
+    m_onFixedWidthTableResize = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/getSelectionHtml.js");
+    file.open(QIODevice::ReadOnly);
+    m_getSelectionHtml = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/replaceSelectionWithHtml.js");
+    file.open(QIODevice::ReadOnly);
+    m_replaceSelectionWithHtml = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/provideSrcForResourceImgTags.js");
+    file.open(QIODevice::ReadOnly);
+    m_provideSrcForResourceImgTags = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/enToDoTagsSetup.js");
+    file.open(QIODevice::ReadOnly);
+    m_setupEnToDoTags = file.readAll();
+    file.close();
+
+#ifdef USE_QT_WEB_ENGINE
+    file.setFileName(":/qtwebchannel/qwebchannel.js");
+    file.open(QIODevice::ReadOnly);
+    m_qWebChannelJs = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/qWebChannelSetup.js");
+    file.open(QIODevice::ReadOnly);
+    m_qWebChannelSetupJs = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/pageMutationObserver.js");
+    file.open(QIODevice::ReadOnly);
+    m_pageMutationObserverJs = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js");
+    file.open(QIODevice::ReadOnly);
+    m_provideSrcAndOnClickScriptForEnCryptImgTags = file.readAll();
+    file.close();
+
+    file.setFileName(":/javascript/scripts/provideSrcForGenericResourceIcons.js");
+    file.open(QIODevice::ReadOnly);
+    m_provideSrcForGenericResourceIcons = file.readAll();
+    file.close();
+#endif
+}
+
+void NoteEditorPrivate::setupNoteEditorPage()
+{
+    QNDEBUG("NoteEditorPrivate::setupNoteEditorPage");
+
+    Q_Q(NoteEditor);
+
+    NoteEditorPage * page = new NoteEditorPage(*q);
+    page->settings()->setAttribute(WebSettings::LocalContentCanAccessFileUrls, true);
+    page->settings()->setAttribute(WebSettings::LocalContentCanAccessRemoteUrls, true);
+
+#ifndef USE_QT_WEB_ENGINE
+    page->settings()->setAttribute(QWebSettings::PluginsEnabled, false);
+    page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+    page->setContentEditable(true);
+
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
+
+    page->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler,
+                                                   QScriptEngine::QtOwnership);
+#endif
+
+#ifndef USE_QT_WEB_ENGINE
+    m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager,
+                                                  *m_pFileIOThreadWorker, page);
+    page->setPluginFactory(m_pluginFactory);
+
+    EncryptedAreaPlugin * encryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager, q);
+    m_errorCachedMemory.resize(0);
+    NoteEditorPluginFactory::PluginIdentifier encryptedAreaPluginId = m_pluginFactory->addPlugin(encryptedAreaPlugin, m_errorCachedMemory);
+    if (!encryptedAreaPluginId) {
+        throw NoteEditorPluginInitializationException("Can't initialize note editor plugin for managing the encrypted text");
+    }
+#endif
+
+    QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QString), q, QNSIGNAL(NoteEditor,cantConvertToNote,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteEditorHtmlUpdated,QString), q, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString));
+
+    q->setPage(page);
+    q->setAcceptDrops(true);
+}
 
 void NoteEditorPrivate::setPageEditable(const bool editable)
 {

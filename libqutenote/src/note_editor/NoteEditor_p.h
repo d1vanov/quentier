@@ -231,7 +231,13 @@ private:
 
 #ifdef USE_QT_WEB_ENGINE
     void provideSrcAndOnClickScriptForImgEnCryptTags();
+
+    void setupWebSocketServer();
+    void setupJavaScriptObjects();
 #endif
+    void setupFileIO();
+    void setupScripts();
+    void setupNoteEditorPage();
 
     bool isPageEditable() const { return m_isPageEditable; }
     void setPageEditable(const bool editable);

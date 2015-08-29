@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/QuteNoteApplication.h>
+#include <qute_note/types/RegisterMetatypes.h>
 
 int main(int argc, char *argv[])
 {
@@ -13,6 +14,8 @@ int main(int argc, char *argv[])
 
     QsLogging::Logger & logger = QsLogging::Logger::instance();
     logger.addDestination(QsLogging::DestinationFactory::MakeDebugOutputDestination());
+
+    qute_note::registerMetatypes();
 
     MainWindow w;
     w.show();
