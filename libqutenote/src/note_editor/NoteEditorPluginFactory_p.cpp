@@ -56,6 +56,9 @@ NoteEditorPluginFactoryPrivate::PluginIdentifier NoteEditorPluginFactoryPrivate:
                                                                                            QString & errorDescription,
                                                                                            const bool forceOverrideTypeKeys)
 {
+    QNDEBUG("NoteEditorPluginFactoryPrivate::addPlugin: " << (plugin ? plugin->name() : QString("<null>"))
+            << ", force override type keys = " << (forceOverrideTypeKeys ? "true" : "false"));
+
     if (!plugin) {
         errorDescription = QT_TR_NOOP("Detected attempt to install null note editor plugin");
         QNWARNING(errorDescription);
@@ -145,12 +148,18 @@ NoteEditorPluginFactoryPrivate::PluginIdentifier NoteEditorPluginFactoryPrivate:
         m_specificParameterPlugins[m_parameterKeyCache] = plugin;
     }
 
-    return m_lastFreePluginId++;
+    PluginIdentifier pluginId = m_lastFreePluginId;
+    ++m_lastFreePluginId;
+
+    QNTRACE("Assigned id " << pluginId << " to plugin " << plugin->name());
+    return pluginId;
 }
 
 bool NoteEditorPluginFactoryPrivate::removePlugin(const NoteEditorPluginFactoryPrivate::PluginIdentifier id,
                                                   QString & errorDescription)
 {
+    QNDEBUG("NoteEditorPluginFactoryPrivate::removePlugin: " << id);
+
     auto it = m_plugins.find(id);
     if (it == m_plugins.end()) {
         errorDescription = QT_TR_NOOP("Can't uninstall note editor plugin: plugin with id " +
@@ -160,6 +169,8 @@ bool NoteEditorPluginFactoryPrivate::removePlugin(const NoteEditorPluginFactoryP
     }
 
     INoteEditorPlugin * plugin = it.value();
+    QString pluginName = (plugin ? plugin->name() : QString("<null>"));
+    QNTRACE("Plugin to remove: " << pluginName);
 
     const QList<QPair<QString, QString> > specificParameters = plugin->specificParameters();
     const int numSpecificParameters = specificParameters.size();
@@ -180,6 +191,7 @@ bool NoteEditorPluginFactoryPrivate::removePlugin(const NoteEditorPluginFactoryP
     Q_Q(NoteEditorPluginFactory);
     q->refreshPlugins();
 
+    QNTRACE("Done removing plugin " << id << " (" << pluginName << ")");
     return true;
 }
 
@@ -244,6 +256,9 @@ void NoteEditorPluginFactoryPrivate::setFallbackResourceIcon(const QIcon & icon)
 
 void NoteEditorPluginFactoryPrivate::setGenericResourceDisplayWidget(IGenericResourceDisplayWidget * genericResourceDisplayWidget)
 {
+    QNDEBUG("NoteEditorPluginFactoryPrivate::setGenericResourceDisplayWidget: "
+            << (genericResourceDisplayWidget ? genericResourceDisplayWidget->objectName() : QString("<null>")));
+
     if (!genericResourceDisplayWidget) {
         QNWARNING("detected attempt to set null generic resource display widget to note editor plugin factory");
         return;
@@ -297,7 +312,6 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
         const int numArguments = argumentNames.size();
         for(int i = 0; i < numArguments; ++i)
         {
-
             const QString & currentArgumentName = argumentNames[i];
             const QString & currentArgumentValue = argumentValues[i];
             m_parameterKeyCache = currentArgumentName + ":" + currentArgumentValue;
@@ -424,7 +438,6 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
                                              resourceDataSize, fileSuffixes, filterString,
                                              *pCurrentResource, *m_pResourceFileStorageManager,
                                              *m_pFileIOThreadWorker);
-
     return genericResourceDisplayWidget;
 }
 

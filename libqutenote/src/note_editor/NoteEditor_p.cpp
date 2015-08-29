@@ -908,7 +908,7 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessRemoteUrls, true);
 
 #ifndef USE_QT_WEB_ENGINE
-    page->settings()->setAttribute(QWebSettings::PluginsEnabled, false);
+    page->settings()->setAttribute(QWebSettings::PluginsEnabled, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     page->setContentEditable(true);
 
@@ -917,9 +917,7 @@ void NoteEditorPrivate::setupNoteEditorPage()
 
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
-#endif
 
-#ifndef USE_QT_WEB_ENGINE
     m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager,
                                                   *m_pFileIOThreadWorker, page);
     page->setPluginFactory(m_pluginFactory);
@@ -1198,6 +1196,10 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
             QNTRACE("Removed non-per-session saved passphrases from decrypted text manager");
         }
     }
+
+#ifndef USE_QT_WEB_ENGINE
+        m_pluginFactory->setNote(*m_pNote);
+#endif
 
     noteToEditorContent();
 }

@@ -82,4 +82,10 @@ bool NoteEditorPluginFactory::hasPluginForMimeType(const QRegExp & mimeTypeRegex
     return d->hasPluginForMimeType(mimeTypeRegex);
 }
 
+void NoteEditorPluginFactory::setNote(const Note & note)
+{
+    Q_D(NoteEditorPluginFactory);
+    return d->setNote(note);
+}
+
 } // namespace qute_note
