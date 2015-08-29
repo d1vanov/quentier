@@ -199,6 +199,7 @@ public:
 Q_SIGNALS:
     void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash, QUuid requestId);
     void readDroppedFileData(QString absoluteFilePath, QUuid requestId);
+    void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId);
 
 private Q_SLOTS:
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
@@ -212,6 +213,8 @@ private Q_SLOTS:
     void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
     void onJavaScriptLoaded();
 #endif
+
+    void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
 private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
@@ -291,6 +294,8 @@ private:
 
     quint16     m_webSocketServerPort;
 #endif
+
+    QUuid       m_writeNoteHtmlToFileRequestId;
 
     bool        m_isPageEditable;
     bool        m_pendingConversionToNote;

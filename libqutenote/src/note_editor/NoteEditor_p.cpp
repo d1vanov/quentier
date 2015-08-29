@@ -65,6 +65,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pJavaScriptInOrderExecutor(new JavaScriptInOrderExecutor(noteEditor, this)),
     m_webSocketServerPort(0),
 #endif
+    m_writeNoteHtmlToFileRequestId(),
     m_isPageEditable(false),
     m_pendingConversionToNote(false),
     m_pNote(nullptr),
@@ -104,6 +105,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     q_ptr(&noteEditor)
 {
     Q_Q(NoteEditor);
+    QString initialHtml = m_pagePrefix + "<body></body></html>";
 
 #ifdef USE_QT_WEB_ENGINE
     if (!m_pWebSocketServer->listen(QHostAddress::LocalHost, 0)) {
@@ -126,30 +128,18 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished), m_pIOThread, QNSLOT(QThread,deleteLater));
     m_pIOThread->start(QThread::LowPriority);
 
-    QString initialHtml = m_pagePrefix + "<body></body></html>";
-    QString pageFilePath = applicationPersistentStoragePath() + "/NoteEditorPage/index.html";
-    QFileInfo pageFileInfo(pageFilePath);
-    QDir pageFilePathDir = pageFileInfo.absoluteDir();
-    m_noteEditorPageFolderPath = pageFilePathDir.absolutePath();
-    if (!pageFilePathDir.exists())
-    {
-        bool created = pageFilePathDir.mkpath(m_noteEditorPageFolderPath);
-        if (!created) {
-            QNFATAL("Can't create folder to store the content for note editor web page");
-            // TODO: throw appropriate exception
-            return;
-        }
-    }
+    m_pFileIOThreadWorker = new FileIOThreadWorker;
+    m_pFileIOThreadWorker->moveToThread(m_pIOThread);
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,readDroppedFileData,QString,QUuid),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
+                     this, QNSLOT(NoteEditorPrivate,onDroppedFileRead,bool,QString,QByteArray,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeNoteHtmlToFile,QString,QByteArray,QUuid),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
+                     this, QNSLOT(NoteEditorPrivate,onWriteFileRequestProcessed,bool,QString,QUuid));
 
-    QFile pageFile(pageFilePath);
-    bool pageFileOpen = pageFile.open(QIODevice::WriteOnly);
-    if (!pageFileOpen) {
-        QNFATAL("Can't open file to store the content for note editor web page");
-        // TODO: throw appropriate exception
-        return;
-    }
-    Q_UNUSED(pageFile.write(initialHtml.toLocal8Bit()));
-    pageFile.close();
+    m_noteEditorPageFolderPath = applicationPersistentStoragePath() + "/NoteEditorPage";
 
     m_pMimeTypeIconJavaScriptHandler = new MimeTypeIconJavaScriptHandler(m_noteEditorPageFolderPath,
                                                                          m_pIOThread, this);
@@ -183,9 +173,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pResourceFileStorageManager = new ResourceFileStorageManager;
     m_pResourceFileStorageManager->moveToThread(m_pIOThread);
 
-    m_pFileIOThreadWorker = new FileIOThreadWorker;
-    m_pFileIOThreadWorker->moveToThread(m_pIOThread);
-
 #ifndef USE_QT_WEB_ENGINE
     m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager,
                                                   *m_pFileIOThreadWorker, page);
@@ -204,10 +191,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,int,QString),
                      this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,int,QString));
 
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,readDroppedFileData,QString,QUuid),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
-                     this, QNSLOT(NoteEditorPrivate,onDroppedFileRead,bool,QString,QByteArray,QUuid));
 
 #ifndef USE_QT_WEB_ENGINE
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler,
@@ -289,8 +272,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 
     q->setPage(page);
     q->setAcceptDrops(true);
-    q->load(QUrl(pageFilePath));
-    QNDEBUG("Loaded page file with path " << pageFilePath);
 
     m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {
@@ -300,6 +281,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     }
 
     QNTRACE("Resource local file storage folder: " << m_resourceLocalFileStorageFolder);
+
+    m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
+    emit writeNoteHtmlToFile(m_noteEditorPageFolderPath + "/index.html", initialHtml.toLocal8Bit(),
+                             m_writeNoteHtmlToFileRequestId);
+    QNTRACE("Emitted the request to write the index html file, request id: " << m_writeNoteHtmlToFileRequestId);
 }
 
 NoteEditorPrivate::~NoteEditorPrivate()
@@ -528,7 +514,32 @@ void NoteEditorPrivate::onJavaScriptLoaded()
 {
     QNDEBUG("NoteEditorPrivate::onJavaScriptLoaded");
 }
+
 #endif
+
+void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
+{
+    if (requestId == m_writeNoteHtmlToFileRequestId)
+    {
+        QNDEBUG("Write note html to file completed: success = " << (success ? "true" : "false")
+                << ", error description = " << errorDescription << ", request id = " << requestId);
+
+        m_writeNoteHtmlToFileRequestId = QUuid();
+
+        if (!success) {
+            clearEditorContent();
+            errorDescription.prepend(QT_TR_NOOP("Could not write note html to file: "));
+            emit notifyError(errorDescription);
+            QNWARNING(errorDescription);
+            return;
+        }
+
+        Q_Q(NoteEditor);
+        QUrl url("file://" + m_noteEditorPageFolderPath + "/index.html");
+        q->load(url);
+        QNTRACE("Loaded url: " << url);
+    }
+}
 
 void NoteEditorPrivate::timerEvent(QTimerEvent * event)
 {
@@ -578,8 +589,10 @@ void NoteEditorPrivate::clearEditorContent()
 
     m_modified = false;
 
-    Q_Q(NoteEditor);
-    q->setHtml(m_pagePrefix + "<body></body></html>");
+    QString initialHtml = m_pagePrefix + "<body></body></html>";
+    m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
+    emit writeNoteHtmlToFile(m_noteEditorPageFolderPath + "/index.html", initialHtml.toLocal8Bit(),
+                             m_writeNoteHtmlToFileRequestId);
 }
 
 void NoteEditorPrivate::noteToEditorContent()
@@ -638,8 +651,6 @@ void NoteEditorPrivate::noteToEditorContent()
 
     m_htmlCachedMemory.replace("<br></br>", "</br>");   // Webkit-specific fix
 
-    Q_Q(NoteEditor);
-
     bool readOnly = false;
     if (m_pNote->hasActive() && !m_pNote->active()) {
         QNDEBUG("Current note is not active, setting it to read-only state");
@@ -652,6 +663,7 @@ void NoteEditorPrivate::noteToEditorContent()
         if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
             QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
 #ifndef USE_QT_WEB_ENGINE
+            Q_Q(NoteEditor);
             QWebPage * page = q->page();
             if (Q_LIKELY(page)) {
                 page->setContentEditable(false);
@@ -668,7 +680,9 @@ void NoteEditorPrivate::noteToEditorContent()
         setPageEditable(true);
     }
 
-    q->setHtml(m_htmlCachedMemory);
+    m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
+    emit writeNoteHtmlToFile(m_noteEditorPageFolderPath + "/index.html", m_htmlCachedMemory.toLocal8Bit(),
+                             m_writeNoteHtmlToFileRequestId);
     QNTRACE("Done setting the current note and notebook");
 }
 
