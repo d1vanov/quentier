@@ -114,8 +114,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     setupJavaScriptObjects();
 #endif
 
-    setupScripts();
     setupNoteEditorPage();
+    setupScripts();
 
     Q_Q(NoteEditor);
     m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
@@ -161,6 +161,9 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     if (Q_UNLIKELY(!frame)) {
         return;
     }
+
+    frame->addToJavaScriptWindowObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler,
+                                       QScriptEngine::QtOwnership);
 
     Q_UNUSED(frame->evaluateJavaScript(m_jQuery));
     Q_UNUSED(frame->evaluateJavaScript(m_resizableColumnsPlugin));
