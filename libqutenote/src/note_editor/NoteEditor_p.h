@@ -226,7 +226,7 @@ private:
 
     bool htmlToNoteContent(QString & errorDescription);
 
-    void checkResourceLocalFilesAndProvideSrcForImgResources(const QString & noteContentHtml);
+    void saveNoteResourcesToLocalFiles();
     void provideScrForImgResourcesFromCache();
 
 #ifdef USE_QT_WEB_ENGINE
@@ -359,7 +359,6 @@ private:
     QHash<QUuid, QString> m_resourceLocalGuidBySaveToStorageRequestIds;
 
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFileNamesAndMimeTypesByReadRequestIds;
-    QSet<QUuid> m_saveNewResourcesToStorageRequestIds;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

@@ -101,7 +101,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_resourceLocalFileStorageFolder(),
     m_resourceLocalGuidBySaveToStorageRequestIds(),
     m_droppedFileNamesAndMimeTypesByReadRequestIds(),
-    m_saveNewResourcesToStorageRequestIds(),
     q_ptr(&noteEditor)
 {
     QString initialHtml = m_pagePrefix + "<body></body></html>";
@@ -201,7 +200,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 #endif
 
     updateColResizableTableBindings();
-    checkResourceLocalFilesAndProvideSrcForImgResources(m_htmlCachedMemory);
+    saveNoteResourcesToLocalFiles();
 
 #ifdef USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
@@ -281,12 +280,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
     Q_UNUSED(m_resourceLocalGuidBySaveToStorageRequestIds.erase(it));
 
-    auto sit = m_saveNewResourcesToStorageRequestIds.find(requestId);
-    if (sit != m_saveNewResourcesToStorageRequestIds.end())
-    {
-        noteToEditorContent();
-    }
-    else if (m_resourceLocalGuidBySaveToStorageRequestIds.isEmpty()) {
+    if (m_resourceLocalGuidBySaveToStorageRequestIds.isEmpty()) {
         QNTRACE("All current note's resources were saved to local file storage and are actual. "
                 "Will set filepaths to these local files to src attributes of img resource tags");
         provideScrForImgResourcesFromCache();
@@ -327,8 +321,6 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
     QUuid saveResourceToStorageRequestId = QUuid::createUuid();
     m_resourceLocalGuidBySaveToStorageRequestIds[saveResourceToStorageRequestId] = newResourceLocalGuid;
     emit saveResourceToStorage(newResourceLocalGuid, data, dataHash, saveResourceToStorageRequestId);
-
-    Q_UNUSED(m_saveNewResourcesToStorageRequestIds.insert(saveResourceToStorageRequestId));
 }
 
 #ifdef USE_QT_WEB_ENGINE
@@ -622,9 +614,9 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
     return true;
 }
 
-void NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources(const QString & noteContentHtml)
+void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
 {
-    QNDEBUG("NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources");
+    QNDEBUG("NoteEditorPrivate::saveNoteResourcesToLocalFiles");
 
     if (!m_pNote) {
         QNTRACE("No note is set for the editor");
@@ -642,87 +634,55 @@ void NoteEditorPrivate::checkResourceLocalFilesAndProvideSrcForImgResources(cons
 
     size_t numPendingResourceWritesToLocalFiles = 0;
 
-    QXmlStreamReader reader(noteContentHtml);
-    while(!reader.atEnd())
+    for(auto it = resourceAdaptersConstBegin; it != resourceAdaptersConstEnd; ++it)
     {
-        Q_UNUSED(reader.readNext());
+        const ResourceAdapter & resourceAdapter = *it;
 
-        if (!reader.isStartElement()) {
+        if (!resourceAdapter.hasDataBody() && !resourceAdapter.hasAlternateDataBody()) {
+            QNINFO("Detected resource without data body: " << resourceAdapter);
             continue;
         }
 
-        QStringRef name = reader.name();
-        if (name != "img") {
+        if (!resourceAdapter.hasDataHash() && !resourceAdapter.hasAlternateDataHash()) {
+            QNINFO("Detected resource without data hash: " << resourceAdapter);
             continue;
         }
 
-        const QXmlStreamAttributes attributes = reader.attributes();
-        if (!attributes.hasAttribute("en-tag")) {
-            continue;
-        }
+        const QByteArray & dataBody = (resourceAdapter.hasDataBody()
+                                       ? resourceAdapter.dataBody()
+                                       : resourceAdapter.alternateDataBody());
 
-        if (attributes.value("en-tag") != "en-media") {
-            continue;
-        }
+        const QByteArray & dataHash = (resourceAdapter.hasDataHash()
+                                       ? resourceAdapter.dataHash()
+                                       : resourceAdapter.alternateDataHash());
 
-        if (!attributes.hasAttribute("hash")) {
-            continue;
-        }
+        QString dataHashStr = QString::fromLocal8Bit(dataHash.constData(), dataHash.size());
 
-        QStringRef hash = attributes.value("hash");
-        for(auto it = resourceAdaptersConstBegin; it != resourceAdaptersConstEnd; ++it)
+        QNTRACE("Found current note's resource corresponding to the data hash "
+                << dataHashStr << ": " << resourceAdapter);
+
+        if (!m_resourceLocalFileInfoCache.contains(dataHashStr))
         {
-            const ResourceAdapter & resourceAdapter = *it;
-
-            if (!resourceAdapter.hasDataBody() && !resourceAdapter.hasAlternateDataBody()) {
-                QNINFO("Detected resource without data body: " << resourceAdapter);
-                continue;
-            }
-
-            if (!resourceAdapter.hasDataHash() && !resourceAdapter.hasAlternateDataHash()) {
-                QNINFO("Detected resource without data hash: " << resourceAdapter);
-                continue;
-            }
-
-            const QByteArray & dataBody = (resourceAdapter.hasDataBody()
-                                           ? resourceAdapter.dataBody()
-                                           : resourceAdapter.alternateDataBody());
-
-            const QByteArray & dataHash = (resourceAdapter.hasDataHash()
-                                           ? resourceAdapter.dataHash()
-                                           : resourceAdapter.alternateDataHash());
-
-            QString dataHashStr = QString::fromLocal8Bit(dataHash.constData(), dataHash.size());
-            if (dataHashStr != hash) {
-                continue;
-            }
-
-            QNTRACE("Found current note's resource corresponding to the data hash "
-                    << hash << ": " << resourceAdapter);
-
-            if (!m_resourceLocalFileInfoCache.contains(hash.toString()))
-            {
-                const QString resourceLocalGuid = resourceAdapter.localGuid();
-                QUuid saveResourceRequestId = QUuid::createUuid();
-                m_resourceLocalGuidBySaveToStorageRequestIds[saveResourceRequestId] = resourceLocalGuid;
-                emit saveResourceToStorage(resourceLocalGuid, dataBody, dataHash, saveResourceRequestId);
-                QNTRACE("Sent request to save resource to file storage: request id = " << saveResourceRequestId
-                        << ", resource local guid = " << resourceLocalGuid << ", data hash = " << dataHash);
-                ++numPendingResourceWritesToLocalFiles;
-            }
+            const QString resourceLocalGuid = resourceAdapter.localGuid();
+            QUuid saveResourceRequestId = QUuid::createUuid();
+            m_resourceLocalGuidBySaveToStorageRequestIds[saveResourceRequestId] = resourceLocalGuid;
+            emit saveResourceToStorage(resourceLocalGuid, dataBody, dataHash, saveResourceRequestId);
+            QNTRACE("Sent request to save resource to file storage: request id = " << saveResourceRequestId
+                    << ", resource local guid = " << resourceLocalGuid << ", data hash = " << dataHash);
+            ++numPendingResourceWritesToLocalFiles;
         }
     }
 
-    if (numPendingResourceWritesToLocalFiles != 0) {
-        QNTRACE("Scheduled writing of " << numPendingResourceWritesToLocalFiles
-                << " to local files, will wait until they are written "
-                "and add the src attributes to img resources when the files are ready");
+    if (numPendingResourceWritesToLocalFiles == 0) {
+        QNTRACE("All current note's resources are written to local files and are actual. "
+                "Will set filepaths to these local files to src attributes of img resource tags");
+        provideScrForImgResourcesFromCache();
         return;
     }
 
-    QNTRACE("All current note's resources are written to local files and are actual. "
-            "Will set filepaths to these local files to src attributes of img resource tags");
-    provideScrForImgResourcesFromCache();
+    QNTRACE("Scheduled writing of " << numPendingResourceWritesToLocalFiles
+            << " to local files, will wait until they are written "
+            "and add the src attributes to img resources when the files are ready");
 }
 
 void NoteEditorPrivate::provideScrForImgResourcesFromCache()

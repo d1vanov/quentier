@@ -19,7 +19,7 @@ function provideSrcForResourceImgTags() {
             }
         }
         var hash = element.getAttribute("hash");
-        var resourceLocalFilePath = resourceCache.getResourceLocalFilePath(hash);
+        var resourceLocalFilePath = resourceCache.getResourceLocalFilePath(hash.toString());
         if ((resourceLocalFilePath == null) || (resourceLocalFilePath == "")) {
             continue;
         }
