@@ -56,15 +56,15 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     m_preferredFileSuffixes = preferredFileSuffixes;
     m_filterString = filterString;
 
-    m_pUI->resourceDisplayNameLabel->setText("<html><head/><body><p><span style=\" font-size:14pt; font-weight:600;\">" +
+    m_pUI->resourceDisplayNameLabel->setText("<html><head/><body><p><span style=\" font-size:8pt;\">" +
                                              name + "</span></p></body></head></html>");
     m_pUI->resourceDisplayNameLabel->setTextFormat(Qt::RichText);
 
-    m_pUI->resourceSizeLabel->setText("<html><head/><body><p><span style=\" font-size:12pt; font-weight:600;\">" + size +
+    m_pUI->resourceSizeLabel->setText("<html><head/><body><p><span style=\" font-size:8pt;\">" + size +
                                       "</span></p></body></head></html>");
     m_pUI->resourceSizeLabel->setTextFormat(Qt::RichText);
 
-    m_pUI->resourceIconLabel->setPixmap(icon.pixmap(QSize(32,32)));
+    m_pUI->resourceIconLabel->setPixmap(icon.pixmap(QSize(16,16)));
 
     if (!QIcon::hasThemeIcon("document-open")) {
         m_pUI->openResourceButton->setIcon(QIcon(":/generic_resource_icons/png/open_with.png"));

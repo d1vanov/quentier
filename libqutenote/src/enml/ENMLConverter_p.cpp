@@ -1013,6 +1013,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
     else
     {
         writer.writeAttribute("en-tag", "en-media");
+        writer.writeAttribute("class", "en-media-generic hvr-border-color");
 
 #ifndef USE_QT_WEB_ENGINE
         const int numAttributes = attributes.size();
