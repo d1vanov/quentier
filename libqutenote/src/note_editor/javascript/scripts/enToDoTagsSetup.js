@@ -14,7 +14,7 @@ function onEnToDoTagClick() {
 (function(){
     var toDoTags = document.querySelectorAll(".checkbox_checked,.checkbox_unchecked");
     console.log("Found " + toDoTags.length.toString() + " todo tags");
-    for(var i = 0; i < toDoTags.length; ++i) {
-        toDoTags[i].onclick = onEnToDoTagClick;
+    for(var index = 0; index < toDoTags.length; ++index) {
+        toDoTags[index].onclick = onEnToDoTagClick;
     }
 })();

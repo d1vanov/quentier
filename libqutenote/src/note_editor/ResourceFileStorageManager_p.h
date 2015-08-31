@@ -19,18 +19,20 @@ public:
     static QString resourceFileStorageLocation(QWidget * context);
 
 Q_SIGNALS:
-    void writeResourceToFileCompleted(QUuid requestId, QByteArray dataHash, int errorCode, QString errorDescription);
+    void writeResourceToFileCompleted(QUuid requestId, QByteArray dataHash, QString fileStoragePath,
+                                      int errorCode, QString errorDescription);
     void readResourceFromFileCompleted(QUuid requestId, QByteArray data, QByteArray dataHash,
                                        int errorCode, QString errorDescription);
 
 public Q_SLOTS:
-    void onWriteResourceToFileRequest(QString localGuid, QByteArray data, QByteArray dataHash, QUuid requestId);
+    void onWriteResourceToFileRequest(QString localGuid, QByteArray data, QByteArray dataHash,
+                                      QString fileStoragePath, QUuid requestId);
     void onReadResourceFromFileRequest(QString localGuid, QUuid requestId);
 
 private:
     void createConnections();
     QByteArray calculateHash(const QByteArray & data) const;
-    bool checkIfResourceFileExistsAndIsActual(const QString & localGuid,
+    bool checkIfResourceFileExistsAndIsActual(const QString & localGuid, const QString & fileStoragePath,
                                               const QByteArray & dataHash) const;
 
 private:

@@ -1,31 +1,27 @@
 function provideSrcForResourceImgTags() {
-    var imgElements = [];
-    imgElements = document.getElementsByTagName("img");
-    for(var index = 0; index < imgElements.length; ++index) {
+    var imgElements = document.getElementsByTagName("img");
+    var numElements = imgElements.length;
+    console.log("Found " + numElements + " img tags");
+    for(var index = 0; index < numElements; ++index) {
         var element = imgElements[index];
-        if (!element.hasAttribute("en-tag")) {
-            continue;
-        }
         if (element.getAttribute("en-tag") != "en-media") {
+            console.log("Skipping non en-media tag: " + element.getAttribute("en-tag"));
             continue;
         }
-        if (!element.hasAttribute("hash")) {
+
+        var srcAttr = element.getAttribute("src");
+        if (srcAttr && srcAttr != "") {
+            console.log("Skipping tag with src attribute: " + srcAttr);
             continue;
         }
-        if (element.hasAttribute("src")) {
-            var srcAttr = element.getAttribute("src");
-            if ((srcAttr != null) && (srcAttr != "")) {
-                continue;
-            }
-        }
+
         var hash = element.getAttribute("hash");
-        var resourceLocalFilePath = resourceCache.getResourceLocalFilePath(hash.toString());
-        if ((resourceLocalFilePath == null) || (resourceLocalFilePath == "")) {
+        if (!hash) {
+            element.getAttribute("Skipping img resource without hash attribute");
             continue;
         }
-        // automatically escape special characters in the path
-        resourceLocalFilePath = resourceLocalFilePath.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
-        element.setAttribute("src", resourceLocalFilePath);
-        console.log("Set src to", resourceLocalFilePath, "for resource with hash", hash);
+
+        resourceCache.getResourceLocalFilePath(hash);
+        console.log("Requested resource local file path for hash " + hash);
     }
 }

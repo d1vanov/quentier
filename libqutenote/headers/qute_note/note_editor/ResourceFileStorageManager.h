@@ -44,7 +44,8 @@ public:
     };
 
 Q_SIGNALS:
-    void writeResourceToFileCompleted(QUuid requestId, QByteArray dataHash, int errorCode, QString errorDescription);
+    void writeResourceToFileCompleted(QUuid requestId, QByteArray dataHash,
+                                      QString fileStoragePath, int errorCode, QString errorDescription);
     void readResourceFromFileCompleted(QUuid requestId, QByteArray data, QByteArray dataHash,
                                        int errorCode, QString errorDescription);
 
@@ -56,9 +57,12 @@ public Q_SLOTS:
      * @param localGuid - the local guid of the resource for which the data is written to file
      * @param data - the resource data to be written to file
      * @param dataHash - the hash of the resource data; if it's empty, it would be calculated by the method itself
+     * @param fileStoragePath - user specified storage path for the resource; if empty, the method would
+     * figure out the appropriate path on its own
      * @param requestId - request identifier for writing the data to file
      */
-    void onWriteResourceToFileRequest(QString localGuid, QByteArray data, QByteArray dataHash, QUuid requestId);
+    void onWriteResourceToFileRequest(QString localGuid, QByteArray data, QByteArray dataHash,
+                                      QString fileStoragePath, QUuid requestId);
 
     /**
      * @brief onReadResourceFromFileRequest - slot being called when the resource data and hash need to be read

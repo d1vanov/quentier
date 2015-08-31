@@ -13,10 +13,12 @@ QString ResourceFileStorageManager::resourceFileStorageLocation(QWidget * contex
     return ResourceFileStorageManagerPrivate::resourceFileStorageLocation(context);
 }
 
-void ResourceFileStorageManager::onWriteResourceToFileRequest(QString localGuid, QByteArray data, QByteArray dataHash, QUuid requestId)
+void ResourceFileStorageManager::onWriteResourceToFileRequest(QString localGuid, QByteArray data,
+                                                              QByteArray dataHash, QString fileStoragePath,
+                                                              QUuid requestId)
 {
     Q_D(ResourceFileStorageManager);
-    d->onWriteResourceToFileRequest(localGuid, data, dataHash, requestId);
+    d->onWriteResourceToFileRequest(localGuid, data, dataHash, fileStoragePath, requestId);
 }
 
 void ResourceFileStorageManager::onReadResourceFromFileRequest(QString localGuid, QUuid requestId)

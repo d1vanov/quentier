@@ -47,8 +47,11 @@ public:
         m_cache(cache)
     {}
 
+Q_SIGNALS:
+    void resourceLocalFilePathForHash(const QString & resourceHash, const QString & resourceLocalFilePath) const;
+
 public Q_SLOTS:
-    QString getResourceLocalFilePath(const QString & resourceHash) const;
+    void getResourceLocalFilePath(const QString & resourceHash) const;
 
 private:
     const ResourceLocalFileInfoCache & m_cache;
@@ -197,15 +200,18 @@ public:
 
 // private signals:
 Q_SIGNALS:
-    void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash, QUuid requestId);
+    void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash,
+                               QString fileStoragePath, QUuid requestId);
     void readDroppedFileData(QString absoluteFilePath, QUuid requestId);
     void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId);
+    void writeImageResourceToFile(QString absoluteFilePath, QByteArray imageData, QUuid requestId);
 
 private Q_SLOTS:
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
     void onNoteLoadFinished(bool ok);
     void onContentChanged();
-    void onResourceSavedToStorage(QUuid requestId, QByteArray dataHash,
+
+    void onResourceSavedToStorage(QUuid requestId, QByteArray dataHash, QString fileStoragePath,
                                   int errorCode, QString errorDescription);
     void onDroppedFileRead(bool success, QString errorDescription, QByteArray data, QUuid requestId);
 
@@ -274,6 +280,8 @@ private:
 
 private:
     QString     m_noteEditorPageFolderPath;
+    QString     m_noteEditorPagePath;
+    QString     m_noteEditorImageResourcesStoragePath;
 
     // JavaScript scripts
     QString     m_jQuery;
@@ -356,7 +364,8 @@ private:
 
     QString     m_resourceLocalFileStorageFolder;
 
-    QHash<QUuid, QString> m_resourceLocalGuidBySaveToStorageRequestIds;
+    QHash<QUuid, QString> m_genericResourceLocalGuidBySaveToStorageRequestIds;
+    QHash<QUuid, QString> m_imageResourceLocalGuidBySaveToStorageRequestIds;
 
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFileNamesAndMimeTypesByReadRequestIds;
 
