@@ -208,6 +208,13 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 #endif
 
     QNTRACE("Evaluated all JavaScript helper functions");
+
+#ifndef USE_QT_WEB_ENGINE
+    m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
+    onPageHtmlReceived(m_htmlCachedMemory);
+#else
+    q->page()->toHtml(HtmlRetrieveFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
+#endif
 }
 
 void NoteEditorPrivate::onContentChanged()
@@ -603,6 +610,8 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
 
     Q_Q(const NoteEditor);
 
+    m_pendingConversionToNote = true;
+
 #ifndef USE_QT_WEB_ENGINE
     m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
     onPageHtmlReceived(m_htmlCachedMemory);
@@ -975,14 +984,14 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
 
     emit noteEditorHtmlUpdated(html);
 
-    if (!m_pNote)
-    {
-        if (m_pendingConversionToNote) {
-            m_pendingConversionToNote = false;
-            m_errorCachedMemory = QT_TR_NOOP("No current note is set to note editor");
-            emit cantConvertToNote(m_errorCachedMemory);
-        }
+    if (!m_pendingConversionToNote) {
+        return;
+    }
 
+    if (!m_pNote) {
+        m_pendingConversionToNote = false;
+        m_errorCachedMemory = QT_TR_NOOP("No current note is set to note editor");
+        emit cantConvertToNote(m_errorCachedMemory);
         return;
     }
 
@@ -997,19 +1006,15 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
         QNWARNING(m_errorCachedMemory)
         emit notifyError(m_errorCachedMemory);
 
-        if (m_pendingConversionToNote) {
-            m_pendingConversionToNote = false;
-            emit cantConvertToNote(m_errorCachedMemory);
-        }
+        m_pendingConversionToNote = false;
+        emit cantConvertToNote(m_errorCachedMemory);
 
         return;
     }
 
     m_pNote->setContent(m_enmlCachedMemory);
-    if (m_pendingConversionToNote) {
-        m_pendingConversionToNote = false;
-        emit convertedToNote(*m_pNote);
-    }
+    m_pendingConversionToNote = false;
+    emit convertedToNote(*m_pNote);
 }
 
 void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant & selectedHtmlData,
