@@ -168,7 +168,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                     for(int i = 0; i < numAttributes; ++i)
                     {
                         const QStringRef attributeName = lastElementAttributes[i].name();
-                        if ((attributeName == "en-tag") || (attributeName == "class")) {
+                        if ((attributeName == "en-tag") || (attributeName == "class") || (attributeName == "src")) {
                             continue;
                         }
 
