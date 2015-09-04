@@ -54,7 +54,9 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForResourceImgTags(),
     m_setupEnToDoTags(),
     m_onResourceLocalFilePathForHashReceivedJs(),
-#ifdef USE_QT_WEB_ENGINE
+#ifndef USE_QT_WEB_ENGINE
+    m_qWebKitSetupJs(),
+#else
     m_provideSrcForGenericResourceIcons(),
     m_provideSrcAndOnClickScriptForEnCryptImgTags(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
@@ -172,6 +174,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     Q_UNUSED(frame->evaluateJavaScript(m_onFixedWidthTableResize));
     Q_UNUSED(frame->evaluateJavaScript(m_getSelectionHtml));
     Q_UNUSED(frame->evaluateJavaScript(m_replaceSelectionWithHtml));
+    Q_UNUSED(frame->evaluateJavaScript(m_onResourceLocalFilePathForHashReceivedJs));
+    Q_UNUSED(frame->evaluateJavaScript(m_qWebKitSetupJs));
     Q_UNUSED(frame->evaluateJavaScript(m_provideSrcForResourceImgTags));
     Q_UNUSED(frame->evaluateJavaScript(m_setupEnToDoTags));
 #else
@@ -855,14 +859,14 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTags);
     SETUP_SCRIPT("javascript/scripts/onResourceLocalFilePathForHashReceived.js", m_onResourceLocalFilePathForHashReceivedJs);
 
-#ifdef USE_QT_WEB_ENGINE
+#ifndef USE_QT_WEB_ENGINE
+    SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
+#else
     SETUP_SCRIPT("qtwebchannel/qwebchannel.js", m_qWebChannelJs);
     SETUP_SCRIPT("javascript/scripts/qWebChannelSetup.js", m_qWebChannelSetupJs);
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTags);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceIcons.js", m_provideSrcForGenericResourceIcons);
-#else
-    // TODO: run the script to do QtWebKit setup
 #endif
 
 #undef SETUP_SCRIPT

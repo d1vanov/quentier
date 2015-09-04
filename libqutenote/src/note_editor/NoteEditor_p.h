@@ -293,7 +293,9 @@ private:
     QString     m_setupEnToDoTags;
     QString     m_onResourceLocalFilePathForHashReceivedJs;
 
-#ifdef USE_QT_WEB_ENGINE
+#ifndef USE_QT_WEB_ENGINE
+    QString     m_qWebKitSetupJs;
+#else
     QString     m_provideSrcForGenericResourceIcons;
     QString     m_provideSrcAndOnClickScriptForEnCryptImgTags;
     QString     m_qWebChannelJs;

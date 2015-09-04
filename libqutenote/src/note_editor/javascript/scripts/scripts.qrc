@@ -10,5 +10,6 @@
         <file>enToDoTagsSetup.js</file>
         <file>provideSrcForGenericResourceIcons.js</file>
         <file>onResourceLocalFilePathForHashReceived.js</file>
+        <file>qWebKitSetup.js</file>
     </qresource>
 </RCC>

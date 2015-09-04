@@ -12,6 +12,6 @@ function onResourceLocalFilePathForHashReceived(resourceHash, filePath) {
         // automatically escape special characters in the path
         var resourceLocalFilePath = filePath.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
         resources[index].setAttribute("src", resourceLocalFilePath);
-        console.log("Set src to", resourceLocalFilePath, "for resource with hash", resourceHash);
+        console.log("Set src to " + resourceLocalFilePath + " for resource with hash " + resourceHash.toString());
     }
 }
