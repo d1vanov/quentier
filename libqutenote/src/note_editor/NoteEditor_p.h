@@ -291,6 +291,7 @@ private:
     QString     m_replaceSelectionWithHtml;
     QString     m_provideSrcForResourceImgTags;
     QString     m_setupEnToDoTags;
+    QString     m_onResourceLocalFilePathForHashReceivedJs;
 
 #ifdef USE_QT_WEB_ENGINE
     QString     m_provideSrcForGenericResourceIcons;

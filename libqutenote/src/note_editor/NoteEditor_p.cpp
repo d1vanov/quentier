@@ -53,6 +53,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_replaceSelectionWithHtml(),
     m_provideSrcForResourceImgTags(),
     m_setupEnToDoTags(),
+    m_onResourceLocalFilePathForHashReceivedJs(),
 #ifdef USE_QT_WEB_ENGINE
     m_provideSrcForGenericResourceIcons(),
     m_provideSrcAndOnClickScriptForEnCryptImgTags(),
@@ -187,6 +188,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     m_pJavaScriptInOrderExecutor->append(QString("(function(){window.websocketserverport = ") +
                                          QString::number(m_webSocketServerPort) + QString("})();"));
 
+    m_pJavaScriptInOrderExecutor->append(m_onResourceLocalFilePathForHashReceivedJs);
     m_pJavaScriptInOrderExecutor->append(m_qWebChannelSetupJs);
     m_pJavaScriptInOrderExecutor->append(m_jQuery);
     m_pJavaScriptInOrderExecutor->append(m_resizableColumnsPlugin);
@@ -836,67 +838,34 @@ void NoteEditorPrivate::setupScripts()
 
     __initNoteEditorResources();
 
-    QFile file(":/javascript/jquery/jquery-2.1.3.min.js");
-    file.open(QIODevice::ReadOnly);
-    m_jQuery = file.readAll();
-    file.close();
+    QFile file;
 
-    file.setFileName(":/javascript/colResizable/colResizable-1.5.min.js");
-    file.open(QIODevice::ReadOnly);
-    m_resizableColumnsPlugin = file.readAll();
-    file.close();
+#define SETUP_SCRIPT(scriptPathPart, scriptVarName) \
+    file.setFileName(":/" scriptPathPart); \
+    file.open(QIODevice::ReadOnly); \
+    scriptVarName = file.readAll(); \
+    file.close()
 
-    file.setFileName(":/javascript/scripts/onFixedWidthTableResize.js");
-    file.open(QIODevice::ReadOnly);
-    m_onFixedWidthTableResize = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/getSelectionHtml.js");
-    file.open(QIODevice::ReadOnly);
-    m_getSelectionHtml = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/replaceSelectionWithHtml.js");
-    file.open(QIODevice::ReadOnly);
-    m_replaceSelectionWithHtml = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/provideSrcForResourceImgTags.js");
-    file.open(QIODevice::ReadOnly);
-    m_provideSrcForResourceImgTags = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/enToDoTagsSetup.js");
-    file.open(QIODevice::ReadOnly);
-    m_setupEnToDoTags = file.readAll();
-    file.close();
+    SETUP_SCRIPT("javascript/jquery/jquery-2.1.3.min.js", m_jQuery);
+    SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableColumnsPlugin);
+    SETUP_SCRIPT("javascript/scripts/onFixedWidthTableResize.js", m_onFixedWidthTableResize);
+    SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtml);
+    SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtml);
+    SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTags);
+    SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTags);
+    SETUP_SCRIPT("javascript/scripts/onResourceLocalFilePathForHashReceived.js", m_onResourceLocalFilePathForHashReceivedJs);
 
 #ifdef USE_QT_WEB_ENGINE
-    file.setFileName(":/qtwebchannel/qwebchannel.js");
-    file.open(QIODevice::ReadOnly);
-    m_qWebChannelJs = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/qWebChannelSetup.js");
-    file.open(QIODevice::ReadOnly);
-    m_qWebChannelSetupJs = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/pageMutationObserver.js");
-    file.open(QIODevice::ReadOnly);
-    m_pageMutationObserverJs = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js");
-    file.open(QIODevice::ReadOnly);
-    m_provideSrcAndOnClickScriptForEnCryptImgTags = file.readAll();
-    file.close();
-
-    file.setFileName(":/javascript/scripts/provideSrcForGenericResourceIcons.js");
-    file.open(QIODevice::ReadOnly);
-    m_provideSrcForGenericResourceIcons = file.readAll();
-    file.close();
+    SETUP_SCRIPT("qtwebchannel/qwebchannel.js", m_qWebChannelJs);
+    SETUP_SCRIPT("javascript/scripts/qWebChannelSetup.js", m_qWebChannelSetupJs);
+    SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
+    SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTags);
+    SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceIcons.js", m_provideSrcForGenericResourceIcons);
+#else
+    // TODO: run the script to do QtWebKit setup
 #endif
+
+#undef SETUP_SCRIPT
 }
 
 void NoteEditorPrivate::setupNoteEditorPage()
