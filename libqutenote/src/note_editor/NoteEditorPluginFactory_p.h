@@ -60,8 +60,6 @@ private:
     QIcon                                           m_fallbackResourceIcon;
     QMimeDatabase                                   m_mimeDatabase;
 
-    QHash<QString, INoteEditorPlugin*>              m_specificParameterPlugins;
-
     const ResourceFileStorageManager *              m_pResourceFileStorageManager;
     const FileIOThreadWorker *                      m_pFileIOThreadWorker;
 
@@ -71,10 +69,6 @@ private:
 
     NoteEditorPluginFactory * const                 q_ptr;
     Q_DECLARE_PUBLIC(NoteEditorPluginFactory)
-
-private:
-    // Memory cache helpers
-    mutable QString         m_parameterKeyCache;
 };
 
 } // namespace qute_note;

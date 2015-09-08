@@ -26,7 +26,6 @@ NoteEditorPluginFactoryPrivate::NoteEditorPluginFactoryPrivate(NoteEditorPluginF
     m_pCurrentNote(nullptr),
     m_fallbackResourceIcon(QIcon::fromTheme("unknown")),
     m_mimeDatabase(),
-    m_specificParameterPlugins(),
     m_pResourceFileStorageManager(&resourceFileStorageManager),
     m_pFileIOThreadWorker(&fileIOThreadWorker),
     m_resourceIconCache(),
@@ -76,11 +75,8 @@ NoteEditorPluginFactoryPrivate::PluginIdentifier NoteEditorPluginFactoryPrivate:
         }
     }
 
-    const QList<QPair<QString, QString> > specificParameters = plugin->specificParameters();
-    const int numSpecificParameters = specificParameters.size();
-
     const QStringList mimeTypes = plugin->mimeTypes();
-    if (mimeTypes.isEmpty() && specificParameters.isEmpty()) {
+    if (mimeTypes.isEmpty()) {
         errorDescription = QT_TR_NOOP("Can't install note editor plugin without specified mime types");
         QNWARNING(errorDescription);
         return 0;
@@ -109,47 +105,12 @@ NoteEditorPluginFactoryPrivate::PluginIdentifier NoteEditorPluginFactoryPrivate:
         }
     }
 
-    if (!forceOverrideTypeKeys)
-    {
-        for(int i = 0; i < numSpecificParameters; ++i)
-        {
-            const QPair<QString, QString> & specificParameter = specificParameters[i];
-
-            auto parameterPluginsEnd = m_specificParameterPlugins.end();
-            for(auto it = m_specificParameterPlugins.begin(); it != parameterPluginsEnd; ++it)
-            {
-                const INoteEditorPlugin * currentPlugin = it.value();
-                const QList<QPair<QString, QString> > currentPluginSpecificParameters =
-                        currentPlugin->specificParameters();
-                if (currentPluginSpecificParameters.contains(specificParameter))
-                {
-                    errorDescription = QT_TR_NOOP("Can't install note editor plugin: found conflicting specific parameter");
-                    errorDescription += " ";
-                    errorDescription += specificParameter.first;
-                    errorDescription += ": ";
-                    errorDescription += specificParameter.second;
-                    errorDescription += " ";
-                    errorDescription += QT_TR_NOOP("from plugin");
-                    errorDescription += " ";
-                    errorDescription += currentPlugin->name();
-                    QNINFO(errorDescription);
-                    return 0;
-                }
-            }
-        }
-    }
-
     plugin->setParent(nullptr);
-    m_plugins[m_lastFreePluginId] = plugin;
-
-    for(int i = 0; i < numSpecificParameters; ++i) {
-        const QPair<QString, QString> & specificParameter = specificParameters[i];
-        m_parameterKeyCache = specificParameter.first + ":" + specificParameter.second;
-        m_specificParameterPlugins[m_parameterKeyCache] = plugin;
-    }
 
     PluginIdentifier pluginId = m_lastFreePluginId;
     ++m_lastFreePluginId;
+
+    m_plugins[pluginId] = plugin;
 
     QNTRACE("Assigned id " << pluginId << " to plugin " << plugin->name());
     return pluginId;
@@ -172,20 +133,9 @@ bool NoteEditorPluginFactoryPrivate::removePlugin(const NoteEditorPluginFactoryP
     QString pluginName = (plugin ? plugin->name() : QString("<null>"));
     QNTRACE("Plugin to remove: " << pluginName);
 
-    const QList<QPair<QString, QString> > specificParameters = plugin->specificParameters();
-    const int numSpecificParameters = specificParameters.size();
-    for(int i = 0; i < numSpecificParameters; ++i)
-    {
-        const QPair<QString, QString> & specificParameter = specificParameters[i];
-        m_parameterKeyCache = specificParameter.first + ":" + specificParameter.second;
-        auto parameterPluginIter = m_specificParameterPlugins.find(m_parameterKeyCache);
-        if (parameterPluginIter != m_specificParameterPlugins.end()) {
-            Q_UNUSED(m_specificParameterPlugins.erase(parameterPluginIter));
-            QNTRACE("Removed note editor plugin for specific parameter " << m_parameterKeyCache);
-        }
-    }
-
     delete plugin;
+    plugin = nullptr;
+
     Q_UNUSED(m_plugins.erase(it));
 
     Q_Q(NoteEditorPluginFactory);
@@ -306,55 +256,28 @@ QObject * NoteEditorPluginFactoryPrivate::create(const QString & mimeType, const
         }
     }
 
+    QNTRACE("Number of installed plugins: " << m_plugins.size());
+
     if (!m_plugins.isEmpty())
     {
         Q_Q(const NoteEditorPluginFactory);
-        const int numArguments = argumentNames.size();
-        for(int i = 0; i < numArguments; ++i)
-        {
-            const QString & currentArgumentName = argumentNames[i];
-            const QString & currentArgumentValue = argumentValues[i];
-            m_parameterKeyCache = currentArgumentName + ":" + currentArgumentValue;
-
-            auto it = m_specificParameterPlugins.find(m_parameterKeyCache);
-            if (it == m_specificParameterPlugins.end()) {
-                continue;
-            }
-
-            const INoteEditorPlugin * plugin = it.value();
-            QNTRACE("Will use plugin " << plugin->name() << " based on specific parameters");
-
-            INoteEditorPlugin * newPlugin = plugin->clone();
-            QString errorDescription;
-            bool res = newPlugin->initialize(mimeType, url, argumentNames, argumentValues, *q,
-                                             pCurrentResource, errorDescription);
-            if (!res) {
-                QNINFO("Can't initialize note editor plugin " << plugin->name() << ": " << errorDescription);
-                delete newPlugin;
-                continue;
-            }
-
-            return newPlugin;
-        }
-
-        // If we got here, the plugin we are looking for is not specific parameters based
-        // but resource based; so we need to ensure the resource was actually found
-        if (!pCurrentResource) {
-            QNFATAL("Can't find resource in note by data hash: " << resourceHash
-                    << ", note: " << *m_pCurrentNote);
-            return nullptr;
-        }
 
         // Need to loop through installed mime type-based plugins considering the last installed plugins first
         // Sadly, Qt doesn't support proper reverse iterators for its own containers without STL compatibility so will emulate them
         auto pluginsBegin = m_plugins.begin();
+        auto pluginsBeforeBegin = pluginsBegin;
+        --pluginsBeforeBegin;
+
         auto pluginsLast = m_plugins.end();
         --pluginsLast;
-        for(auto it = pluginsLast; it != pluginsBegin; --it)
+
+        for(auto it = pluginsLast; it != pluginsBeforeBegin; --it)
         {
             const INoteEditorPlugin * plugin = it.value();
 
             const QStringList mimeTypes = plugin->mimeTypes();
+            QNTRACE("Testing plugin " << plugin->name() << " with id " << it.key() << ", mime types: " << mimeTypes.join("; "));
+
             if (mimeTypes.contains(mimeType))
             {
                 QNTRACE("Will use plugin " << plugin->name());

@@ -18,13 +18,18 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encry
     m_pUI(new Ui::EncryptedAreaPlugin),
     m_encryptionManager(encryptionManager),
     m_decryptedTextManager(decryptedTextManager),
+    m_mimeTypesList(),
     m_hint(),
     m_cipher(),
     m_keyLength(0)
 {
+    QNDEBUG("EncryptedAreaPlugin: constructor");
+
     m_pUI->setupUi(this);
 
     QUTE_NOTE_CHECK_PTR(m_encryptionManager.data())
+
+    m_mimeTypesList << "application/vnd.qutenote.encrypt";
 
     if (!QIcon::hasThemeIcon("security-high")) {
         QIcon lockIcon;
@@ -45,6 +50,7 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encry
 
 EncryptedAreaPlugin::~EncryptedAreaPlugin()
 {
+    QNDEBUG("EncryptedAreaPlugin: destructor");
     delete m_pUI;
 }
 
@@ -74,7 +80,7 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
         return false;
     }
 
-    int encryptedTextIndex = parameterNames.indexOf("encryptedText");
+    int encryptedTextIndex = parameterNames.indexOf("encrypted-text");
     if (encryptedTextIndex < 0) {
         errorDescription = QT_TR_NOOP("encrypted text parameter was not found within object with encrypted text");
         return false;
@@ -139,17 +145,12 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
 
 QStringList EncryptedAreaPlugin::mimeTypes() const
 {
-    return QStringList();
+    return m_mimeTypesList;
 }
 
 QHash<QString, QStringList> EncryptedAreaPlugin::fileExtensions() const
 {
     return QHash<QString, QStringList>();
-}
-
-QList<QPair<QString, QString> > EncryptedAreaPlugin::specificParameters() const
-{
-    return QList<QPair<QString, QString> >() << QPair<QString, QString>("en-tag", "en-crypt");
 }
 
 QString EncryptedAreaPlugin::name() const

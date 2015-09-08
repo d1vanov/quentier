@@ -63,20 +63,6 @@ public:
     virtual QHash<QString, QStringList> fileExtensions() const = 0;
 
     /**
-     * @brief specificParameters - the method should be used by plugins which do not
-     * represent the real resources; instead, the plugins are identified via specific attributes
-     * within the <param> tag of the parent <object> HTML element.
-     * @return the list of name-value pairs representing specific parameter names and values
-     * which presence within the HTML of the inspected <param> child of <object> element should
-     * trigger the choice of this exact plugin by the factory; the default implementation in INoteEditorPlugin
-     * returns the empty list. NOTE: the plugins not representing the real resources
-     * should return the empty list of mime types in mimeTypes() method and the empty list of file extensions
-     * in fileExtensions() method, otherwise the specific parameters returned by this method
-     * would be ignored by the factory
-     */
-    virtual QList<QPair<QString, QString> > specificParameters() const;
-
-    /**
      * @brief name - the method returning the name of the plugin
      * @return the name of the plugin
      */

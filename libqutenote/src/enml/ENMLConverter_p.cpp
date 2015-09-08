@@ -887,12 +887,14 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
 #ifndef USE_QT_WEB_ENGINE
     writer.writeStartElement("object");
+    writer.writeAttribute("type", "application/vnd.qutenote.encrypt");
 #else
     writer.writeStartElement("img");
     writer.writeAttribute("src", QString());
 #endif
 
     writer.writeAttribute("en-tag", "en-crypt");
+    writer.writeAttribute("class", "en-crypt hvr-border-color");
 
     if (!hint.isEmpty())
     {
@@ -937,7 +939,6 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
     writer.writeEndElement();
 #else
     writer.writeAttribute("encrypted_text", encryptedTextCharacters.toString());
-    writer.writeAttribute("class", "en-crypt hvr-border-color");
 #endif
 
     QNTRACE("Wrote custom "
