@@ -42,6 +42,8 @@ public:
     bool isFreeAccount() const;
     void setFreeAccount(const bool isFreeAccount);
 
+    QString displayName() const;
+
     int indexInNote() const;
     void setIndexInNote(const int index);
 

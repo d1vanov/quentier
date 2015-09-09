@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
 
+#include "ResourceInfo.h"
 #include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/enml/ENMLConverter.h>
@@ -22,40 +23,13 @@ QT_FORWARD_DECLARE_CLASS(WebSocketClientWrapper)
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(ResourceInfoJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(JavaScriptInOrderExecutor)
 #endif
-
-typedef QHash<QString, QString> ResourceLocalFileInfoCache;
-
-// The instance of this class would be exposed to JavaScript code to provide
-// read-only access to resource hashes and local file paths by resource local guids;
-//
-// Unfortunately, metaobject features are not supported for nested classes,
-// so here is the non-nested helper class for exposure to JavaScript
-//
-class ResourceLocalFileInfoJavaScriptHandler: public QObject
-{
-    Q_OBJECT
-public:
-    explicit ResourceLocalFileInfoJavaScriptHandler(const ResourceLocalFileInfoCache & cache,
-                                                    QObject * parent = nullptr) :
-        QObject(parent),
-        m_cache(cache)
-    {}
-
-Q_SIGNALS:
-    void resourceLocalFilePathForHash(const QString & resourceHash, const QString & resourceLocalFilePath) const;
-
-public Q_SLOTS:
-    void getResourceLocalFilePath(const QString & resourceHash) const;
-
-private:
-    const ResourceLocalFileInfoCache & m_cache;
-};
 
 #ifdef USE_QT_WEB_ENGINE
 
@@ -233,7 +207,7 @@ private:
     bool htmlToNoteContent(QString & errorDescription);
 
     void saveNoteResourcesToLocalFiles();
-    void provideScrForImgResourcesFromCache();
+    void updateResourceInfoOnJavaScriptSide();
 
 #ifdef USE_QT_WEB_ENGINE
     void provideSrcAndOnClickScriptForImgEnCryptTags();
@@ -290,6 +264,7 @@ private:
     QString     m_getSelectionHtml;
     QString     m_replaceSelectionWithHtml;
     QString     m_provideSrcForResourceImgTags;
+    QString     m_provideGenericResourceDisplayNameAndSizeJs;
     QString     m_setupEnToDoTags;
     QString     m_onResourceLocalFilePathForHashReceivedJs;
 
@@ -316,6 +291,7 @@ private:
 
     bool        m_isPageEditable;
     bool        m_pendingConversionToNote;
+    bool        m_pendingNotePageLoad;
 
     Note *      m_pNote;
     Notebook *  m_pNotebook;
@@ -362,8 +338,8 @@ private:
     ResourceFileStorageManager *    m_pResourceFileStorageManager;
     FileIOThreadWorker *            m_pFileIOThreadWorker;
 
-    ResourceLocalFileInfoCache      m_resourceLocalFileInfoCache;
-    ResourceLocalFileInfoJavaScriptHandler * m_pResourceLocalFileInfoJavaScriptHandler;
+    ResourceInfo                    m_resourceInfo;
+    ResourceInfoJavaScriptHandler * m_pResourceInfoJavaScriptHandler;
 
     QString     m_resourceLocalFileStorageFolder;
 

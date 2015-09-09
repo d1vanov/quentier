@@ -1,7 +1,12 @@
 function provideSrcForResourceImgTags() {
     var imgElements = document.getElementsByTagName("img");
     var numElements = imgElements.length;
+    if (!numElements) {
+        return;
+    }
+
     console.log("Found " + numElements + " img tags");
+
     for(var index = 0; index < numElements; ++index) {
         var element = imgElements[index];
         if (element.getAttribute("en-tag") != "en-media") {
@@ -10,18 +15,18 @@ function provideSrcForResourceImgTags() {
         }
 
         var srcAttr = element.getAttribute("src");
-        if (srcAttr && srcAttr != "") {
+        if (srcAttr && srcAttr !== "") {
             console.log("Skipping tag with src attribute: " + srcAttr);
             continue;
         }
 
         var hash = element.getAttribute("hash");
         if (!hash) {
-            element.getAttribute("Skipping img resource without hash attribute");
+            console.log("Skipping img resource without hash attribute");
             continue;
         }
 
-        resourceCache.getResourceLocalFilePath(hash);
-        console.log("Requested resource local file path for hash " + hash);
+        resourceCache.findResourceInfo(hash);
+        console.log("Requested resource info for hash " + hash);
     }
 }

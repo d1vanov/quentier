@@ -33,6 +33,14 @@
 #define QStringLiteral(x) QString(QLatin1String(x))
 #endif
 
+#ifndef Q_NULLPTR
+#ifdef CPP11_COMPLIANT
+#define Q_NULLPTR nullptr
+#else
+#define Q_NULLPTR NULL
+#endif
+#endif
+
 #endif // QT_VERSION
 
 #ifdef QNSIGNAL

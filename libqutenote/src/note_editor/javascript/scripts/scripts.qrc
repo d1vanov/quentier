@@ -9,7 +9,8 @@
         <file>provideSrcAndOnClickScriptForEnCryptImgTags.js</file>
         <file>enToDoTagsSetup.js</file>
         <file>provideSrcForGenericResourceIcons.js</file>
-        <file>onResourceLocalFilePathForHashReceived.js</file>
+        <file>onResourceInfoReceived.js</file>
         <file>qWebKitSetup.js</file>
+        <file>provideGenericResourceDisplayNameAndSize.js</file>
     </qresource>
 </RCC>

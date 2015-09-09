@@ -223,6 +223,22 @@ void IResource::setFreeAccount(const bool isFreeAccount)
     m_isFreeAccount = isFreeAccount;
 }
 
+QString IResource::displayName() const
+{
+    const qevercloud::Resource & enResource = GetEnResource();
+    if (enResource.attributes.isSet())
+    {
+        if (enResource.attributes->fileName.isSet()) {
+            return enResource.attributes->fileName.ref();
+        }
+        else if (enResource.attributes->sourceURL.isSet()) {
+            return enResource.attributes->fileName.ref();
+        }
+    }
+
+    return QString();
+}
+
 int IResource::indexInNote() const
 {
     return m_indexInNote;

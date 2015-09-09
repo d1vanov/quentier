@@ -158,6 +158,8 @@ set(PRIVATE_HEADERS
     src/note_editor/NoteEditor_p.h
     src/note_editor/NoteDecryptionDialog.h
     src/note_editor/ResourceFileStorageManager_p.h
+    src/note_editor/ResourceInfo.h
+    src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.h
     src/types/data/DataElementWithShortcutData.h
     src/types/data/LocalStorageDataElementData.h
     src/types/data/LinkedNotebookData.h
@@ -204,6 +206,8 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/NoteDecryptionDialog.cpp
     src/note_editor/ResourceFileStorageManager.cpp
     src/note_editor/ResourceFileStorageManager_p.cpp
+    src/note_editor/ResourceInfo.cpp
+    src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.cpp
     src/types/ISharedNotebook.cpp
     src/types/IResource.cpp
     src/types/IUser.cpp

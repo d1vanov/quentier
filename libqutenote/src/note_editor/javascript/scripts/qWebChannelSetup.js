@@ -16,17 +16,17 @@
         new QWebChannel(socket, function(channel) {
             // make resourceCache, pageMutationObserver and enCryptElementClickHandler objects accessible globally
             window.resourceCache = channel.objects.resourceCache;
-            window.resourceCache.resourceLocalFilePathForHash.connect(onResourceLocalFilePathForHashReceived);
+            window.resourceCache.notifyResourceInfo.connect(onResourceInfoReceived);
 
             window.pageMutationObserver = channel.objects.pageMutationObserver;
             window.enCryptElementClickHandler = channel.objects.enCryptElementClickHandler;
             window.mimeTypeIconHandler = channel.objects.mimeTypeIconHandler;
             window.mimeTypeIconHandler.gotIconFilePathForMimeType.connect(function(mimeType, iconFilePath) {
-                console.log("Response to the event of icon file path for mime type update: mime type = " + mimeType.toString() +
-                            ", icon file path = " + iconFilePath.toString());
-                var genericResources = document.querySelectorAll('.resource-icon[type="' + mimeType.toString() + '"]');
+                console.log("Response to the event of icon file path for mime type update: mime type = " +
+                            mimeType + ", icon file path = " + iconFilePath);
+                var genericResources = document.querySelectorAll('.resource-icon[type="' + mimeType + '"]');
                 var numResources = genericResources.length;
-                console.log("Found " + numResources + " generic resources for mime type " + mimeType.toString() +
+                console.log("Found " + numResources + " generic resources for mime type " + mimeType +
                             "; icon file path = " + iconFilePath);
                 var index = 0;
                 for(; index < numResources; ++index) {

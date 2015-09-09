@@ -1,6 +1,7 @@
 #include "NoteEditor_p.h"
 #include "NoteEditorPage.h"
 #include "EncryptedAreaPlugin.h"
+#include "javascript_glue/ResourceInfoJavaScriptHandler.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
@@ -29,6 +30,7 @@ typedef QWebEngineSettings WebSettings;
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
+#include <qute_note/utility/DesktopServices.h>
 #include <QFile>
 #include <QFileInfo>
 #include <QTemporaryFile>
@@ -52,6 +54,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_getSelectionHtml(),
     m_replaceSelectionWithHtml(),
     m_provideSrcForResourceImgTags(),
+    m_provideGenericResourceDisplayNameAndSizeJs(),
     m_setupEnToDoTags(),
     m_onResourceLocalFilePathForHashReceivedJs(),
 #ifndef USE_QT_WEB_ENGINE
@@ -71,6 +74,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_writeNoteHtmlToFileRequestId(),
     m_isPageEditable(false),
     m_pendingConversionToNote(false),
+    m_pendingNotePageLoad(false),
     m_pNote(nullptr),
     m_pNotebook(nullptr),
     m_modified(false),
@@ -99,8 +103,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pIOThread(nullptr),
     m_pResourceFileStorageManager(nullptr),
     m_pFileIOThreadWorker(nullptr),
-    m_resourceLocalFileInfoCache(),
-    m_pResourceLocalFileInfoJavaScriptHandler(new ResourceLocalFileInfoJavaScriptHandler(m_resourceLocalFileInfoCache, this)),
+    m_resourceInfo(),
+    m_pResourceInfoJavaScriptHandler(new ResourceInfoJavaScriptHandler(m_resourceInfo, this)),
     m_resourceLocalFileStorageFolder(),
     m_genericResourceLocalGuidBySaveToStorageRequestIds(),
     m_droppedFileNamesAndMimeTypesByReadRequestIds(),
@@ -148,6 +152,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 {
     QNDEBUG("NoteEditorPrivate::onNoteLoadFinished: ok = " << (ok ? "true" : "false"));
 
+    m_pendingNotePageLoad = false;
+
     if (!ok) {
         QNWARNING("Note page was not loaded successfully");
         return;
@@ -166,7 +172,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
         return;
     }
 
-    frame->addToJavaScriptWindowObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler,
+    frame->addToJavaScriptWindowObject("resourceCache", m_pResourceInfoJavaScriptHandler,
                                        QScriptEngine::QtOwnership);
 
     Q_UNUSED(frame->evaluateJavaScript(m_jQuery));
@@ -177,6 +183,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     Q_UNUSED(frame->evaluateJavaScript(m_onResourceLocalFilePathForHashReceivedJs));
     Q_UNUSED(frame->evaluateJavaScript(m_qWebKitSetupJs));
     Q_UNUSED(frame->evaluateJavaScript(m_provideSrcForResourceImgTags));
+    Q_UNUSED(frame->evaluateJavaScript(m_provideGenericResourceDisplayNameAndSizeJs));
     Q_UNUSED(frame->evaluateJavaScript(m_setupEnToDoTags));
 #else
     QWebEnginePage * page = q->page();
@@ -200,6 +207,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     m_pJavaScriptInOrderExecutor->append(m_getSelectionHtml);
     m_pJavaScriptInOrderExecutor->append(m_replaceSelectionWithHtml);
     m_pJavaScriptInOrderExecutor->append(m_provideSrcForResourceImgTags);
+    m_pJavaScriptInOrderExecutor->append(m_provideGenericResourceDisplayNameAndSizeJs);
     m_pJavaScriptInOrderExecutor->append(m_setupEnToDoTags);
     m_pJavaScriptInOrderExecutor->append(m_provideSrcAndOnClickScriptForEnCryptImgTags);
     m_pJavaScriptInOrderExecutor->append(m_provideSrcForGenericResourceIcons);
@@ -262,6 +270,9 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
     const QString & localGuid = it.value();
 
+    QString resourceDisplayName;
+    QString resourceDisplaySize;
+
     if (m_pNote)
     {
         QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
@@ -276,21 +287,25 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
             if (!resourceAdapter.hasDataHash()) {
                 resourceAdapter.setDataHash(dataHash);
             }
+
+            resourceDisplayName = resourceAdapter.displayName();
+            if (resourceAdapter.hasDataSize()) {
+                resourceDisplaySize = humanReadableSize(resourceAdapter.dataSize());
+            }
         }
     }
 
     QString dataHashStr = QString::fromLocal8Bit(dataHash.constData(), dataHash.size());
 
-    m_resourceLocalFileInfoCache[dataHashStr] = fileStoragePath;
-    QNTRACE("Cached resource local file path " << fileStoragePath
-            << " for resource hash " << dataHashStr);
+    m_resourceInfo.cacheResourceInfo(dataHashStr, resourceDisplayName,
+                                     resourceDisplaySize, fileStoragePath);
 
     Q_UNUSED(m_genericResourceLocalGuidBySaveToStorageRequestIds.erase(it));
 
-    if (m_genericResourceLocalGuidBySaveToStorageRequestIds.isEmpty()) {
+    if (m_genericResourceLocalGuidBySaveToStorageRequestIds.isEmpty() && !m_pendingNotePageLoad) {
         QNTRACE("All current note's resources were saved to local file storage and are actual. "
                 "Will set filepaths to these local files to src attributes of img resource tags");
-        provideScrForImgResourcesFromCache();
+        updateResourceInfoOnJavaScriptSide();
     }
 }
 
@@ -405,6 +420,7 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
         QUrl url("file://" + m_noteEditorPagePath);
         q->load(url);
         QNTRACE("Loaded url: " << url);
+        m_pendingNotePageLoad = true;
     }
 }
 
@@ -687,7 +703,7 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
         QNTRACE("Found current note's resource corresponding to the data hash "
                 << dataHashStr << ": " << resourceAdapter);
 
-        if (!m_resourceLocalFileInfoCache.contains(dataHashStr))
+        if (!m_resourceInfo.contains(dataHashStr))
         {
             const QString resourceLocalGuid = resourceAdapter.localGuid();
             QUuid saveResourceRequestId = QUuid::createUuid();
@@ -707,10 +723,13 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
         }
     }
 
-    if (numPendingResourceWritesToLocalFiles == 0) {
+    if (numPendingResourceWritesToLocalFiles == 0)
+    {
         QNTRACE("All current note's resources are written to local files and are actual. "
                 "Will set filepaths to these local files to src attributes of img resource tags");
-        provideScrForImgResourcesFromCache();
+        if (!m_pendingNotePageLoad) {
+            updateResourceInfoOnJavaScriptSide();
+        }
         return;
     }
 
@@ -719,15 +738,17 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
             "and add the src attributes to img resources when the files are ready");
 }
 
-void NoteEditorPrivate::provideScrForImgResourcesFromCache()
+void NoteEditorPrivate::updateResourceInfoOnJavaScriptSide()
 {
-    QNDEBUG("NoteEditorPrivate::provideScrForImgResourcesFromCache");
+    QNDEBUG("NoteEditorPrivate::updateResourceInfoOnJavaScriptSide");
 
 #ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
     q->page()->mainFrame()->evaluateJavaScript("provideSrcForResourceImgTags();");
 #else
     m_pJavaScriptInOrderExecutor->append("provideSrcForResourceImgTags();");
+    m_pJavaScriptInOrderExecutor->append("provideGenericResourceDisplayNameAndSize();");
+    m_pJavaScriptInOrderExecutor->append("provideSrcForGenericResourceIcons();");
     if (!m_pJavaScriptInOrderExecutor->inProgress()) {
         m_pJavaScriptInOrderExecutor->start();
     }
@@ -795,7 +816,7 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementClickHandler::decrypt,
                      this, &NoteEditorPrivate::onEnCryptElementClicked);
 
-    m_pWebChannel->registerObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler);
+    m_pWebChannel->registerObject("resourceCache", m_pResourceInfoJavaScriptHandler);
     m_pWebChannel->registerObject("enCryptElementClickHandler", m_pEnCryptElementClickHandler);
     m_pWebChannel->registerObject("pageMutationObserver", m_pPageMutationHandler);
     m_pWebChannel->registerObject("mimeTypeIconHandler", m_pMimeTypeIconJavaScriptHandler);
@@ -856,8 +877,9 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtml);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtml);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTags);
+    SETUP_SCRIPT("javascript/scripts/provideGenericResourceDisplayNameAndSize.js", m_provideGenericResourceDisplayNameAndSizeJs);
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTags);
-    SETUP_SCRIPT("javascript/scripts/onResourceLocalFilePathForHashReceived.js", m_onResourceLocalFilePathForHashReceivedJs);
+    SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceLocalFilePathForHashReceivedJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
@@ -890,7 +912,7 @@ void NoteEditorPrivate::setupNoteEditorPage()
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
 
-    page->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceLocalFileInfoJavaScriptHandler,
+    page->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceInfoJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
 
     m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager,
@@ -1588,19 +1610,6 @@ void NoteEditorPrivate::dropFile(QString & filepath)
     emit readDroppedFileData(filepath, readDroppedFileRequestId);
 }
 
-void ResourceLocalFileInfoJavaScriptHandler::getResourceLocalFilePath(const QString & resourceHash) const
-{
-    QNTRACE("ResourceLocalFileInfoJavaScriptHandler::getResourceLocalFilePath: " << resourceHash);
-
-    auto it = m_cache.find(resourceHash);
-    if (it == m_cache.end()) {
-        QNTRACE("Resource local file was not found");
-        return;
-    }
-
-    emit resourceLocalFilePathForHash(resourceHash, it.value());
-}
-
 #ifdef USE_QT_WEB_ENGINE
 
 MimeTypeIconJavaScriptHandler::MimeTypeIconJavaScriptHandler(const QString & noteEditorPageFolder,
@@ -1610,9 +1619,10 @@ MimeTypeIconJavaScriptHandler::MimeTypeIconJavaScriptHandler(const QString & not
     m_iconFilePathCache(),
     m_mimeTypeAndLocalFilePathByWriteIconRequestId(),
     m_mimeTypesWithIconsWriteInProgress(),
-    m_iconWriter(new FileIOThreadWorker(this))
+    m_iconWriter(Q_NULLPTR)
 {
     Q_ASSERT(ioThread);
+    m_iconWriter = new FileIOThreadWorker;
     m_iconWriter->moveToThread(ioThread);
 
     QObject::connect(this, QNSIGNAL(MimeTypeIconJavaScriptHandler,writeIconToFile,QString,QByteArray,QUuid),

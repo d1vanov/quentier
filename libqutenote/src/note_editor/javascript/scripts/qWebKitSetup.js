@@ -1,4 +1,4 @@
 (function(){
     console.log("Running qWebKitSetup.js");
-    window.resourceCache.resourceLocalFilePathForHash.connect(onResourceLocalFilePathForHashReceived);
+    window.resourceCache.notifyResourceInfo.connect(onResourceInfoReceived);
 })();
