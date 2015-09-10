@@ -1,9 +1,9 @@
 #include "NoteEditor_p.h"
 #include "NoteEditorPage.h"
-#include "EncryptedAreaPlugin.h"
 #include "javascript_glue/ResourceInfoJavaScriptHandler.h"
 
 #ifndef USE_QT_WEB_ENGINE
+#include "EncryptedAreaPlugin.h"
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
 #include <QWebFrame>
 typedef QWebSettings WebSettings;

@@ -1,13 +1,14 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DECRYPTED_TEXT_MANAGER_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__DECRYPTED_TEXT_MANAGER_H
 
+#include <qute_note/utility/Linkage.h>
 #include <QtGlobal>
 
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(DecryptedTextManagerPrivate)
 
-class DecryptedTextManager
+class QUTE_NOTE_EXPORT DecryptedTextManager
 {
 public:
     DecryptedTextManager();

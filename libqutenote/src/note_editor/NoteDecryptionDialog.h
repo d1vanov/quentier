@@ -1,7 +1,6 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
 
-#include "EncryptedAreaPlugin.h"
 #include <qute_note/utility/EncryptionManager.h>
 #include <QDialog>
 #include <QSharedPointer>

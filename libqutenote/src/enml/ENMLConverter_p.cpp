@@ -937,17 +937,12 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
     writer.writeAttribute("name", "encrypted-text");
     writer.writeAttribute("value", encryptedTextCharacters.toString());
     writer.writeEndElement();
+    QNTRACE("Wrote custom \"object\" element corresponding to en-crypt ENML tag");
 #else
     writer.writeAttribute("encrypted_text", encryptedTextCharacters.toString());
+    QNTRACE("Wrote custom \"img\" element corresponding to en-crypt ENML tag");
 #endif
 
-    QNTRACE("Wrote custom "
-#ifndef USE_QT_WEB_ENGINE
-            "\"object\" "
-#else
-            "\"img\" "
-#endif
-            "element corresponding to en-crypt ENML tag");
     return true;
 }
 
