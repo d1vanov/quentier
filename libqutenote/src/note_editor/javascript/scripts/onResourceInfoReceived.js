@@ -15,8 +15,8 @@ function onResourceInfoReceived(resourceHash, filePath, displayName, displaySize
 
     var resourceName = resource.getElementsByClassName("resource-name");
     if (resourceName && resourceName[0]) {
-        resourceName[0].innerHtml = displayName;
-        console.log("Set display name to " + displayName + " for element " + resourceName[0]);
+        resourceName[0].textContent = displayName;
+        console.log("Set resource display name to " + displayName);
     }
     else {
         console.log("Can't find child element for resource display name");
@@ -24,8 +24,8 @@ function onResourceInfoReceived(resourceHash, filePath, displayName, displaySize
 
     var resourceSize = resource.getElementsByClassName("resource-size");
     if (resourceSize && resourceSize[0]) {
-        resourceSize[0].innerHtml = displaySize;
-        console.log("Set display size to " + displaySize + " for element " + resourceSize[0]);
+        resourceSize[0].textContent = displaySize;
+        console.log("Set resource display size to " + displaySize);
     }
     else {
         console.log("Can't find child element for resource display size");
