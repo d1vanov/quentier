@@ -2,6 +2,7 @@
 #define __LIB_QUTE_NOTE__TYPES__I_LOCAL_STORAGE_DATA_ELEMENT_H
 
 #include <qute_note/utility/Linkage.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QString>
 #include <QUuid>
 
@@ -38,9 +39,9 @@ public:
     }
 
 #define QN_DECLARE_LOCAL_GUID \
-    virtual const QString localGuid() const; \
-    virtual void setLocalGuid(const QString & guid); \
-    virtual void unsetLocalGuid();
+    virtual const QString localGuid() const Q_DECL_OVERRIDE; \
+    virtual void setLocalGuid(const QString & guid) Q_DECL_OVERRIDE; \
+    virtual void unsetLocalGuid() Q_DECL_OVERRIDE;
 
 #define QN_DEFINE_LOCAL_GUID(type) \
     _DEFINE_LOCAL_GUID_GETTER(type) \

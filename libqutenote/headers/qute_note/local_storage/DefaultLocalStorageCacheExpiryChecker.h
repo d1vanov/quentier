@@ -17,13 +17,13 @@ public:
     DefaultLocalStorageCacheExpiryChecker(const LocalStorageCacheManager & cacheManager);
     virtual ~DefaultLocalStorageCacheExpiryChecker();
 
-    virtual DefaultLocalStorageCacheExpiryChecker * clone() const;
+    virtual DefaultLocalStorageCacheExpiryChecker * clone() const Q_DECL_OVERRIDE;
 
-    virtual bool checkNotes() const;
-    virtual bool checkNotebooks() const;
-    virtual bool checkTags() const;
-    virtual bool checkLinkedNotebooks() const;
-    virtual bool checkSavedSearches() const;
+    virtual bool checkNotes() const Q_DECL_OVERRIDE;
+    virtual bool checkNotebooks() const Q_DECL_OVERRIDE;
+    virtual bool checkTags() const Q_DECL_OVERRIDE;
+    virtual bool checkLinkedNotebooks() const Q_DECL_OVERRIDE;
+    virtual bool checkSavedSearches() const Q_DECL_OVERRIDE;
 
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 

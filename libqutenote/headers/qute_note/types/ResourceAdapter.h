@@ -32,7 +32,7 @@ private:
     virtual const qevercloud::Resource & GetEnResource() const Q_DECL_OVERRIDE;
     virtual qevercloud::Resource & GetEnResource() Q_DECL_OVERRIDE;
 
-    virtual QTextStream & Print(QTextStream & strm) const;
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     ResourceAdapter() Q_DECL_DELETE;
 

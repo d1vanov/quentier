@@ -20,10 +20,10 @@ public:
 };
 
 #define _DECLARE_HAS_SHORTCUT \
-    virtual bool hasShortcut() const;
+    virtual bool hasShortcut() const Q_DECL_OVERRIDE;
 
 #define _DECLARE_SET_SHORTCUT \
-    virtual void setShortcut(const bool shortcut);
+    virtual void setShortcut(const bool shortcut) Q_DECL_OVERRIDE;
 
 #define QN_DECLARE_SHORTCUT \
     _DECLARE_HAS_SHORTCUT \

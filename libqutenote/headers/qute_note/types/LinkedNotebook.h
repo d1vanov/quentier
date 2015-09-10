@@ -32,7 +32,7 @@ public:
     bool operator==(const LinkedNotebook & other) const;
     bool operator!=(const LinkedNotebook & other) const;
 
-    virtual void clear();
+    virtual void clear() Q_DECL_OVERRIDE;
 
     virtual bool hasGuid() const Q_DECL_OVERRIDE;
     virtual const QString & guid() const Q_DECL_OVERRIDE;
@@ -84,12 +84,12 @@ private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     // hide useless methods inherited from the base class from the public interface
-    virtual const QString localGuid() const { return QString(); }
-    virtual void setLocalGuid(const QString &) {}
-    virtual void unsetLocalGuid() {}
+    virtual const QString localGuid() const Q_DECL_OVERRIDE { return QString(); }
+    virtual void setLocalGuid(const QString &) Q_DECL_OVERRIDE {}
+    virtual void unsetLocalGuid() Q_DECL_OVERRIDE {}
 
-    virtual bool isLocal() const { return false; }
-    virtual void setLocal(const bool) {}
+    virtual bool isLocal() const Q_DECL_OVERRIDE { return false; }
+    virtual void setLocal(const bool) Q_DECL_OVERRIDE {}
 
     QSharedDataPointer<LinkedNotebookData> d;
 };

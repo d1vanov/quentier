@@ -37,10 +37,10 @@ protected:
 };
 
 #define _DECLARE_IS_DIRTY \
-    virtual bool isDirty() const;
+    virtual bool isDirty() const Q_DECL_OVERRIDE;
 
 #define _DECLARE_SET_DIRTY \
-    virtual void setDirty(const bool isDirty);
+    virtual void setDirty(const bool isDirty) Q_DECL_OVERRIDE;
 
 #define QN_DECLARE_DIRTY \
     _DECLARE_IS_DIRTY \
@@ -61,10 +61,10 @@ protected:
     _DEFINE_SET_DIRTY(type)
 
 #define _DECLARE_IS_LOCAL \
-    virtual bool isLocal() const;
+    virtual bool isLocal() const Q_DECL_OVERRIDE;
 
 #define _DECLARE_SET_LOCAL \
-    virtual void setLocal(const bool isLocal);
+    virtual void setLocal(const bool isLocal) Q_DECL_OVERRIDE;
 
 #define QN_DECLARE_LOCAL \
     _DECLARE_IS_LOCAL \
