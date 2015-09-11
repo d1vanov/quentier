@@ -476,18 +476,25 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         {
             attributes.applicationData = qevercloud::LazyMap();
             attributes.applicationData->keysOnly = QSet<QString>();
-            attributes.applicationData->fullMap = QMap<QString,QString>();
+            auto & keysOnly = attributes.applicationData->keysOnly.ref();
+            keysOnly.insert(applicationData[i/numApplicationData]);
 
-            attributes.applicationData->keysOnly->insert(applicationData[i/numApplicationData]);
-            attributes.applicationData->fullMap->insert(applicationData[i/numApplicationData],
-                    QString("Application data value at key ") + applicationData[i/numApplicationData]);
+            attributes.applicationData->fullMap = QMap<QString,QString>();
+            auto & fullMap = attributes.applicationData->fullMap.ref();
+            fullMap.insert(applicationData[i/numApplicationData],
+                           QString("Application data value at key ") + applicationData[i/numApplicationData]);
         }
 
         if (i == 6)
         {
-            attributes.applicationData->keysOnly->insert(applicationData[1]);
-            attributes.applicationData->fullMap->insert(applicationData[1],
-                    QString("Application data value at key ") + applicationData[1]);
+            attributes.applicationData->keysOnly = QSet<QString>();
+            auto & keysOnly = attributes.applicationData->keysOnly.ref();
+            keysOnly.insert(applicationData[1]);
+
+            attributes.applicationData->fullMap = QMap<QString,QString>();
+            auto & fullMap = attributes.applicationData->fullMap.ref();
+            fullMap.insert(applicationData[1],
+                           QString("Application data value at key ") + applicationData[1]);
         }
 
         if ((i != 0) && (i != 1) && (i != 2)) {

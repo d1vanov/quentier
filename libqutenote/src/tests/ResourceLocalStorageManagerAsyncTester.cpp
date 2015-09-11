@@ -188,14 +188,18 @@ void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Noteb
         attributes.applicationData = qevercloud::LazyMap();
         qevercloud::LazyMap & appData = attributes.applicationData.ref();
         appData.keysOnly = QSet<QString>();
-        appData.keysOnly->insert("key_1");
-        appData.keysOnly->insert("key_2");
-        appData.keysOnly->insert("key_3");
+        auto & keysOnly = appData.keysOnly.ref();
+        keysOnly.reserve(3);
+        keysOnly.insert("key_1");
+        keysOnly.insert("key_2");
+        keysOnly.insert("key_3");
 
         appData.fullMap = QMap<QString, QString>();
-        appData.fullMap->operator[]("key_1") = "value_1";
-        appData.fullMap->operator[]("key_2") = "value_2";
-        appData.fullMap->operator[]("key_3") = "value_3";
+        auto & fullMap = appData.fullMap.ref();
+        fullMap = QMap<QString, QString>();
+        fullMap["key_1"] = "value_1";
+        fullMap["key_2"] = "value_2";
+        fullMap["key_3"] = "value_3";
 
         m_state = STATE_SENT_ADD_REQUEST;
         emit addResourceRequest(m_initialResource, m_note);

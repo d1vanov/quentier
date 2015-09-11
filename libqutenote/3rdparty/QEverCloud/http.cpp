@@ -88,7 +88,7 @@ void ReplyFetcher::onError()
 void ReplyFetcher::onSslErrors(QList<QSslError> l)
 {
     QString errorText = QStringLiteral("SSL Errors:\n");
-    foreach(QSslError e, l) {
+    foreach(const QSslError & e, l) {
         errorText += e.errorString().append('\n');
     }
     setError(errorText);

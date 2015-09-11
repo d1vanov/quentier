@@ -381,7 +381,8 @@ void Note::removeTagGuid(const QString & guid)
         return;
     }
 
-    int removed = d->m_qecNote.tagGuids->removeAll(guid);
+    QList<qevercloud::Guid> & tagGuids = d->m_qecNote.tagGuids.ref();
+    int removed = tagGuids.removeAll(guid);
     if (removed > 0) {
         QNDEBUG("Removed tag guid " << guid << " (" << removed << ") occurences");
     }
@@ -521,7 +522,8 @@ void Note::removeResource(const IResource & resource)
         return;
     }
 
-    int removed = d->m_qecNote.resources->removeAll(resource.GetEnResource());
+    QList<qevercloud::Resource> & resources = d->m_qecNote.resources.ref();
+    int removed = resources.removeAll(resource.GetEnResource());
     if (removed > 0) {
         QNDEBUG("Removed resource " << resource << " from note (" << removed << ") occurences");
         NoteData::ResourceAdditionalInfo info;

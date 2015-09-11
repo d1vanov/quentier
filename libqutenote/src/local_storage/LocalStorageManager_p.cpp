@@ -6906,6 +6906,7 @@ bool LocalStorageManagerPrivate::findAndSetResourcesPerNote(Note & note, QString
     QNDEBUG("Found " << numResources << " resources");
 
     QList<ResourceWrapper> resources;
+    resources.reserve(std::max(numResources, 0));
     foreach(const QString & resourceGuid, resourceGuids)
     {
         resources << ResourceWrapper();

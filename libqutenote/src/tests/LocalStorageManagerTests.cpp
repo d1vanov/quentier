@@ -612,10 +612,15 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     resourceAttributes.cameraModel = "Fake resource camera model";
 
     resourceAttributes.applicationData = qevercloud::LazyMap();
+
     resourceAttributes.applicationData->keysOnly = QSet<QString>();
-    resourceAttributes.applicationData->keysOnly->insert("key 1");
+    auto & keysOnly = resourceAttributes.applicationData->keysOnly.ref();
+    keysOnly.reserve(1);
+    keysOnly.insert("key 1");
+
     resourceAttributes.applicationData->fullMap = QMap<QString, QString>();
-    resourceAttributes.applicationData->fullMap.ref()["key 1 map"] = "value 1";
+    auto & fullMap = resourceAttributes.applicationData->fullMap.ref();
+    fullMap["key 1 map"] = "value 1";
 
     modifiedNote.addResource(newResource);
 

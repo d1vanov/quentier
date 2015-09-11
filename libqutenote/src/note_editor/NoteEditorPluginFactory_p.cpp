@@ -384,6 +384,7 @@ QList<QWebPluginFactory::Plugin> NoteEditorPluginFactoryPrivate::plugins() const
         const auto & currentPluginFileExtensions = currentPlugin.fileExtensions();
 
         const int numMimeTypes = currentPluginMimeTypes.size();
+        mimeTypes.reserve(std::max(numMimeTypes, 0));
         for(int i = 0; i < numMimeTypes; ++i)
         {
             mimeTypes.push_back(QWebPluginFactory::MimeType());

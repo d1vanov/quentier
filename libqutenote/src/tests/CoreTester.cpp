@@ -1385,7 +1385,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         const LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Descending;
         foundTags = localStorageManager.listAllTagsPerNote(note, error, flag, limit, offset,
                                                            order, orderDirection);
-        if (foundTags.size() != limit) {
+        if (foundTags.size() != static_cast<int>(limit)) {
             QFAIL(qPrintable("Found unexpected amount of tags: expected to find " + QString::number(limit) +
                              " tags, found " + QString::number(foundTags.size()) + " tags"));
         }
@@ -1527,7 +1527,7 @@ void CoreTester::localStorageManagerListNotesTest()
         foundNotes = localStorageManager.listAllNotesPerNotebook(notebook, error, /* with resource binary data = */ true,
                                                                  LocalStorageManager::ListElementsWithGuid, limit, offset,
                                                                  order, orderDirection);
-        if (foundNotes.size() != limit) {
+        if (foundNotes.size() != static_cast<int>(limit)) {
             QFAIL(qPrintable("Found unexpected amount of notes: expected to find " + QString::number(limit) +
                              " notes, found " + QString::number(foundNotes.size()) + " notes"));
         }
@@ -1622,6 +1622,7 @@ void CoreTester::localStorageManagerListNotebooksTest()
 
         int numNotebooks = 5;
         QList<Notebook> notebooks;
+        notebooks.reserve(numNotebooks);
         for(int i = 0; i < numNotebooks; ++i)
         {
             notebooks << Notebook();
