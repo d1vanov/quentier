@@ -6,6 +6,7 @@
 #include <QString>
 #include <QHash>
 #include <QSet>
+#include <QSize>
 
 QT_FORWARD_DECLARE_CLASS(QThread)
 
@@ -26,13 +27,15 @@ Q_SIGNALS:
 public Q_SLOTS:
     /**
      * @brief onIconFilePathForIconThemeNameRequest - public slot called from JavaScript
-     * to determine the path to icon identified by its name in the icon theme; the method
-     * first looks up in the cache, then in the folder where the icon should reside;
-     * if the path to the icon file is still not found, the method schedules the async job
-     * of writing the icon to local file
+     * to determine the path to icon identified by its name in the icon theme and the desired size;
+     * the method first looks up in the cache for icon with this theme name and size, then
+     * in the folder where the icon should reside; if the path to the icon file is still not found,
+     * the method schedules the async job of writing the icon to local file
      * @param iconThemeName - the name of the icon within the icon theme, for example, document-open
+     * @param height - the desired height of the icon
+     * @param width - the desired width of the icon
      */
-    void onIconFilePathForIconThemeNameRequest(const QString & iconThemeName);
+    void onIconFilePathForIconThemeNameRequest(const QString & iconThemeName, const int height, const int width);
 
 // private signals
 Q_SIGNALS:
@@ -43,6 +46,7 @@ private Q_SLOTS:
 
 private:
     const QString fallbackIconFilePathForThemeName(const QString & iconThemeName) const;
+    const QString sizeToString(const QSize & size) const;
 
 private:
     QString                 m_noteEditorPageFolder;

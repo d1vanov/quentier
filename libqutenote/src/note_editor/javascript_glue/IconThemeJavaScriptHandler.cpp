@@ -31,9 +31,14 @@ IconThemeJavaScriptHandler::IconThemeJavaScriptHandler(const QString & noteEdito
     QNDEBUG("Initialized IconThemeJavaScriptHandler");
 }
 
-void IconThemeJavaScriptHandler::onIconFilePathForIconThemeNameRequest(const QString & iconThemeName)
+void IconThemeJavaScriptHandler::onIconFilePathForIconThemeNameRequest(const QString & iconThemeName,
+                                                                       const int height, const int width)
 {
-    QNDEBUG("IconThemeJavaScriptHandler::onIconFilePathForIconThemeNameRequest: " << iconThemeName);
+    QSize size(height, width);
+    QString sizeString = sizeToString(size);
+
+    QNDEBUG("IconThemeJavaScriptHandler::onIconFilePathForIconThemeNameRequest: "
+            << iconThemeName << ", size: " << sizeString);
 
     // First try to find it in the cache
     auto it = m_iconFilePathCache.find(iconThemeName);
@@ -46,7 +51,7 @@ void IconThemeJavaScriptHandler::onIconFilePathForIconThemeNameRequest(const QSt
     // Ok, try to find the already written icon in the appropriate folder
     QString iconsFolderPath = m_noteEditorPageFolder + "/cachedThemeIcons";
 
-    QString iconFilePath = iconsFolderPath + "/" + iconThemeName + ".png";
+    QString iconFilePath = iconsFolderPath + "/" + iconThemeName + "_" + sizeString + ".png";
 
     QFileInfo iconFileInfo(iconFilePath);
     if (iconFileInfo.exists() && iconFileInfo.isFile() && iconFileInfo.isReadable()) {
@@ -81,7 +86,7 @@ void IconThemeJavaScriptHandler::onIconFilePathForIconThemeNameRequest(const QSt
         return;
     }
 
-    QImage iconImage = icon.pixmap(QSize(24, 24)).toImage();
+    QImage iconImage = icon.pixmap(height).toImage();
 
     QByteArray iconRawData;
     QBuffer buffer(&iconRawData);
@@ -150,6 +155,23 @@ const QString IconThemeJavaScriptHandler::fallbackIconFilePathForThemeName(const
     }
 
     return fallbackIconFilePath;
+}
+
+const QString IconThemeJavaScriptHandler::sizeToString(const QSize & size) const
+{
+    if (size.isEmpty()) {
+        return "<empty>";
+    }
+
+    if (size.isNull()) {
+        return "<null>";
+    }
+
+    if (!size.isValid()) {
+        return "<invalid>";
+    }
+
+    return QString::number(size.height()) + "x" + QString::number(size.width());
 }
 
 } // namespace qute_note

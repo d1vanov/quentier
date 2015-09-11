@@ -5,6 +5,6 @@ function provideSrcForGenericResourceOpenAndSaveIcons() {
         return;
     }
 
-    iconThemeHandler.onIconFilePathForIconThemeNameRequest("document-open");
-    iconThemeHandler.onIconFilePathForIconThemeNameRequest("document-save-as");
+    iconThemeHandler.onIconFilePathForIconThemeNameRequest("document-open", 24, 24);
+    iconThemeHandler.onIconFilePathForIconThemeNameRequest("document-save-as", 24, 24);
 }
