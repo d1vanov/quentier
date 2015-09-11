@@ -219,24 +219,25 @@ private:
     QString     m_noteEditorImageResourcesStoragePath;
 
     // JavaScript scripts
-    QString     m_jQuery;
-    QString     m_resizableColumnsPlugin;
-    QString     m_onFixedWidthTableResize;
-    QString     m_getSelectionHtml;
-    QString     m_replaceSelectionWithHtml;
-    QString     m_provideSrcForResourceImgTags;
+    QString     m_jQueryJs;
+    QString     m_resizableTableColumnsJs;
+    QString     m_onFixedWidthTableResizeJs;
+    QString     m_getSelectionHtmlJs;
+    QString     m_replaceSelectionWithHtmlJs;
+    QString     m_provideSrcForResourceImgTagsJs;
     QString     m_provideGenericResourceDisplayNameAndSizeJs;
-    QString     m_setupEnToDoTags;
+    QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
 #else
-    QString     m_provideSrcForGenericResourceIcons;
-    QString     m_provideSrcAndOnClickScriptForEnCryptImgTags;
+    QString     m_provideSrcForGenericResourceIconsJs;
+    QString     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs;
     QString     m_qWebChannelJs;
     QString     m_qWebChannelSetupJs;
     QString     m_pageMutationObserverJs;
+
     QWebSocketServer * m_pWebSocketServer;
     WebSocketClientWrapper * m_pWebSocketClientWrapper;
     QWebChannel * m_pWebChannel;

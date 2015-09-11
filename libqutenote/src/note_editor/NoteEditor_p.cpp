@@ -52,20 +52,20 @@ namespace qute_note {
 NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject(&noteEditor),
     m_noteEditorPageFolderPath(),
-    m_jQuery(),
-    m_resizableColumnsPlugin(),
-    m_onFixedWidthTableResize(),
-    m_getSelectionHtml(),
-    m_replaceSelectionWithHtml(),
-    m_provideSrcForResourceImgTags(),
+    m_jQueryJs(),
+    m_resizableTableColumnsJs(),
+    m_onFixedWidthTableResizeJs(),
+    m_getSelectionHtmlJs(),
+    m_replaceSelectionWithHtmlJs(),
+    m_provideSrcForResourceImgTagsJs(),
     m_provideGenericResourceDisplayNameAndSizeJs(),
-    m_setupEnToDoTags(),
+    m_setupEnToDoTagsJs(),
     m_onResourceInfoReceivedJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
-    m_provideSrcForGenericResourceIcons(),
-    m_provideSrcAndOnClickScriptForEnCryptImgTags(),
+    m_provideSrcForGenericResourceIconsJs(),
+    m_provideSrcAndOnClickScriptForEnCryptImgTagsJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
     m_pWebChannel(new QWebChannel(this)),
@@ -184,16 +184,16 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_qWebChannelSetupJs);
     page->executeJavaScript(m_provideGenericResourceDisplayNameAndSizeJs);
-    page->executeJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTags);
-    page->executeJavaScript(m_provideSrcForGenericResourceIcons);
+    page->executeJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
+    page->executeJavaScript(m_provideSrcForGenericResourceIconsJs);
 #endif
 
-    page->executeJavaScript(m_jQuery);
-    page->executeJavaScript(m_resizableColumnsPlugin);
-    page->executeJavaScript(m_onFixedWidthTableResize);
-    page->executeJavaScript(m_replaceSelectionWithHtml);
-    page->executeJavaScript(m_provideSrcForResourceImgTags);
-    page->executeJavaScript(m_setupEnToDoTags);
+    page->executeJavaScript(m_jQueryJs);
+    page->executeJavaScript(m_resizableTableColumnsJs);
+    page->executeJavaScript(m_onFixedWidthTableResizeJs);
+    page->executeJavaScript(m_replaceSelectionWithHtmlJs);
+    page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
+    page->executeJavaScript(m_setupEnToDoTagsJs);
 
     setPageEditable(true);
 
@@ -846,14 +846,14 @@ void NoteEditorPrivate::setupScripts()
     scriptVarName = file.readAll(); \
     file.close()
 
-    SETUP_SCRIPT("javascript/jquery/jquery-2.1.3.min.js", m_jQuery);
-    SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableColumnsPlugin);
-    SETUP_SCRIPT("javascript/scripts/onFixedWidthTableResize.js", m_onFixedWidthTableResize);
-    SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtml);
-    SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtml);
-    SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTags);
+    SETUP_SCRIPT("javascript/jquery/jquery-2.1.3.min.js", m_jQueryJs);
+    SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
+    SETUP_SCRIPT("javascript/scripts/onFixedWidthTableResize.js", m_onFixedWidthTableResizeJs);
+    SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
+    SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
+    SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideGenericResourceDisplayNameAndSize.js", m_provideGenericResourceDisplayNameAndSizeJs);
-    SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTags);
+    SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
 
 #ifndef USE_QT_WEB_ENGINE
@@ -862,8 +862,8 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("qtwebchannel/qwebchannel.js", m_qWebChannelJs);
     SETUP_SCRIPT("javascript/scripts/qWebChannelSetup.js", m_qWebChannelSetupJs);
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
-    SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTags);
-    SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceIcons.js", m_provideSrcForGenericResourceIcons);
+    SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
+    SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceIcons.js", m_provideSrcForGenericResourceIconsJs);
 #endif
 
 #undef SETUP_SCRIPT
@@ -1317,7 +1317,7 @@ void NoteEditorPrivate::insertToDoCheckbox()
 {
     QString html = ENMLConverter::getToDoCheckboxHtml(/* checked = */ false);
     QString javascript = QString("document.execCommand('insertHtml', false, '%1'); ").arg(html);
-    javascript += m_setupEnToDoTags;
+    javascript += m_setupEnToDoTagsJs;
 
     Q_Q(NoteEditor);
     GET_PAGE()
