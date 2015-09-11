@@ -9,7 +9,6 @@
 typedef QWebSettings WebSettings;
 #else
 #include "javascript_glue/MimeTypeIconJavaScriptHandler.h"
-#include "JavaScriptInOrderExecutor.h"
 #include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
@@ -41,6 +40,13 @@ typedef QWebEngineSettings WebSettings;
 #include <QMimeDatabase>
 #include <QThread>
 
+#define GET_PAGE() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(q->page()); \
+    if (Q_UNLIKELY(!page)) { \
+        QNFATAL("Can't get access to note editor's underlying page!"); \
+        return; \
+    }
+
 namespace qute_note {
 
 NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
@@ -54,7 +60,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForResourceImgTags(),
     m_provideGenericResourceDisplayNameAndSizeJs(),
     m_setupEnToDoTags(),
-    m_onResourceLocalFilePathForHashReceivedJs(),
+    m_onResourceInfoReceivedJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -66,7 +72,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pPageMutationHandler(new PageMutationHandler(this)),
     m_pMimeTypeIconJavaScriptHandler(nullptr),
     m_pEnCryptElementClickHandler(new EnCryptElementClickHandler(this)),
-    m_pJavaScriptInOrderExecutor(new JavaScriptInOrderExecutor(noteEditor, this)),
     m_webSocketServerPort(0),
 #endif
     m_writeNoteHtmlToFileRequestId(),
@@ -158,13 +163,9 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     }
 
     Q_Q(NoteEditor);
+    GET_PAGE()
 
 #ifndef USE_QT_WEB_ENGINE
-    QWebPage * page = q->page();
-    if (Q_UNLIKELY(!page)) {
-        return;
-    }
-
     QWebFrame * frame = page->mainFrame();
     if (Q_UNLIKELY(!frame)) {
         return;
@@ -173,45 +174,28 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     frame->addToJavaScriptWindowObject("resourceCache", m_pResourceInfoJavaScriptHandler,
                                        QScriptEngine::QtOwnership);
 
-    Q_UNUSED(frame->evaluateJavaScript(m_jQuery));
-    Q_UNUSED(frame->evaluateJavaScript(m_resizableColumnsPlugin));
-    Q_UNUSED(frame->evaluateJavaScript(m_onFixedWidthTableResize));
-    Q_UNUSED(frame->evaluateJavaScript(m_getSelectionHtml));
-    Q_UNUSED(frame->evaluateJavaScript(m_replaceSelectionWithHtml));
-    Q_UNUSED(frame->evaluateJavaScript(m_onResourceLocalFilePathForHashReceivedJs));
-    Q_UNUSED(frame->evaluateJavaScript(m_qWebKitSetupJs));
-    Q_UNUSED(frame->evaluateJavaScript(m_provideSrcForResourceImgTags));
-    Q_UNUSED(frame->evaluateJavaScript(m_provideGenericResourceDisplayNameAndSizeJs));
-    Q_UNUSED(frame->evaluateJavaScript(m_setupEnToDoTags));
+    page->executeJavaScript(m_onResourceInfoReceivedJs);
+    page->executeJavaScript(m_qWebKitSetupJs);
 #else
-    QWebEnginePage * page = q->page();
-    if (!page) {
-        return;
-    }
+    page->executeJavaScript(m_pageMutationObserverJs, /* clear previous queue = */ true);
+    page->executeJavaScript(m_qWebChannelJs);
+    page->executeJavaScript(QString("(function(){window.websocketserverport = ") +
+                            QString::number(m_webSocketServerPort) + QString("})();"));
+    page->executeJavaScript(m_onResourceInfoReceivedJs);
+    page->executeJavaScript(m_qWebChannelSetupJs);
+    page->executeJavaScript(m_provideGenericResourceDisplayNameAndSizeJs);
+    page->executeJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTags);
+    page->executeJavaScript(m_provideSrcForGenericResourceIcons);
+#endif
 
-    m_pJavaScriptInOrderExecutor->clear();
-    m_pJavaScriptInOrderExecutor->append(m_pageMutationObserverJs);
-    m_pJavaScriptInOrderExecutor->append(m_qWebChannelJs);
-
-    // Expose websocket server port number to JavaScript
-    m_pJavaScriptInOrderExecutor->append(QString("(function(){window.websocketserverport = ") +
-                                         QString::number(m_webSocketServerPort) + QString("})();"));
-
-    m_pJavaScriptInOrderExecutor->append(m_onResourceLocalFilePathForHashReceivedJs);
-    m_pJavaScriptInOrderExecutor->append(m_qWebChannelSetupJs);
-    m_pJavaScriptInOrderExecutor->append(m_jQuery);
-    m_pJavaScriptInOrderExecutor->append(m_resizableColumnsPlugin);
-    m_pJavaScriptInOrderExecutor->append(m_onFixedWidthTableResize);
-    m_pJavaScriptInOrderExecutor->append(m_getSelectionHtml);
-    m_pJavaScriptInOrderExecutor->append(m_replaceSelectionWithHtml);
-    m_pJavaScriptInOrderExecutor->append(m_provideSrcForResourceImgTags);
-    m_pJavaScriptInOrderExecutor->append(m_provideGenericResourceDisplayNameAndSizeJs);
-    m_pJavaScriptInOrderExecutor->append(m_setupEnToDoTags);
-    m_pJavaScriptInOrderExecutor->append(m_provideSrcAndOnClickScriptForEnCryptImgTags);
-    m_pJavaScriptInOrderExecutor->append(m_provideSrcForGenericResourceIcons);
+    page->executeJavaScript(m_jQuery);
+    page->executeJavaScript(m_resizableColumnsPlugin);
+    page->executeJavaScript(m_onFixedWidthTableResize);
+    page->executeJavaScript(m_replaceSelectionWithHtml);
+    page->executeJavaScript(m_provideSrcForResourceImgTags);
+    page->executeJavaScript(m_setupEnToDoTags);
 
     setPageEditable(true);
-#endif
 
     updateColResizableTableBindings();
     saveNoteResourcesToLocalFiles();
@@ -243,7 +227,8 @@ void NoteEditorPrivate::onContentChanged()
     m_pageToNoteContentPostponeTimerId = startTimer(SEC_TO_MSEC(m_secondsToWaitBeforeConversionStart));
     m_watchingForContentChange = true;
     m_contentChangedSinceWatchingStart = false;
-    QNTRACE("Started timer to postpone note editor page's content to ENML conversion");
+    QNTRACE("Started timer to postpone note editor page's content to ENML conversion: timer id = "
+            << m_pageToNoteContentPostponeTimerId);
 }
 
 void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dataHash,
@@ -588,15 +573,9 @@ void NoteEditorPrivate::updateColResizableTableBindings()
 
     QNTRACE("colResizable js code: " << colResizable);
 
-#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
-    q->page()->mainFrame()->evaluateJavaScript(colResizable);
-#else
-    m_pJavaScriptInOrderExecutor->append(colResizable);
-    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
-        m_pJavaScriptInOrderExecutor->start();
-    }
-#endif
+    GET_PAGE()
+    page->executeJavaScript(colResizable);
 }
 
 bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
@@ -740,16 +719,14 @@ void NoteEditorPrivate::updateResourceInfoOnJavaScriptSide()
 {
     QNDEBUG("NoteEditorPrivate::updateResourceInfoOnJavaScriptSide");
 
-#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
-    q->page()->mainFrame()->evaluateJavaScript("provideSrcForResourceImgTags();");
-#else
-    m_pJavaScriptInOrderExecutor->append("provideSrcForResourceImgTags();");
-    m_pJavaScriptInOrderExecutor->append("provideGenericResourceDisplayNameAndSize();");
-    m_pJavaScriptInOrderExecutor->append("provideSrcForGenericResourceIcons();");
-    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
-        m_pJavaScriptInOrderExecutor->start();
-    }
+    GET_PAGE()
+
+    page->executeJavaScript("provideSrcForResourceImgTags();");
+
+#ifdef USE_QT_WEB_ENGINE
+    page->executeJavaScript("provideGenericResourceDisplayNameAndSize();");
+    page->executeJavaScript("provideSrcForGenericResourceIcons();");
 #endif
 }
 
@@ -769,12 +746,12 @@ void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
     }
 
     QString iconPath = "qrc:/encrypted_area_icons/en-crypt/en-crypt.png";
-
     QString javascript = "provideSrcAndOnClickScriptForEnCryptImgTags(\"" + iconPath + "\")";
-    m_pJavaScriptInOrderExecutor->append(javascript);
-    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
-        m_pJavaScriptInOrderExecutor->start();
-    }
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    page->executeJavaScript(javascript);
     QNDEBUG("Queued javascript command to provide src for img tags: " << javascript);
 }
 
@@ -877,7 +854,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTags);
     SETUP_SCRIPT("javascript/scripts/provideGenericResourceDisplayNameAndSize.js", m_provideGenericResourceDisplayNameAndSizeJs);
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTags);
-    SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceLocalFilePathForHashReceivedJs);
+    SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
@@ -939,20 +916,15 @@ void NoteEditorPrivate::setPageEditable(const bool editable)
 {
     QNTRACE("NoteEditorPrivate::setPageEditable: " << (editable ? "true" : "false"));
 
-#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
-    QWebPage * page = q->page();
-    if (Q_LIKELY(page)) {
-        page->setContentEditable(editable);
-    }
+    GET_PAGE()
+
+#ifndef USE_QT_WEB_ENGINE
+    page->setContentEditable(editable);
 #else
     QString javascript = QString("document.body.contentEditable='") + QString(editable ? "true" : "false") + QString("'; ") +
                          QString("document.designMode='") + QString(editable ? "on" : "off") + QString("'; void 0;");
-    m_pJavaScriptInOrderExecutor->append(javascript);
-    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
-        m_pJavaScriptInOrderExecutor->start();
-    }
-
+    page->executeJavaScript(javascript);
     QNINFO("Queued javascript to make page " << (editable ? "editable" : "non-editable") << ": " << javascript);
 #endif
 
@@ -1080,16 +1052,12 @@ void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant &
 
     encryptedTextHtmlObject += "<object/>";
 
-#ifndef USE_QT_WEB_ENGINE
+    QString javascript = QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject);
+    // TODO: for QtWebKit: see whether contentChanged signal would be emitted automatically
+
     Q_Q(NoteEditor);
-    q->page()->mainFrame()->evaluateJavaScript(QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject));
-    // TODO: see whether contentChanged signal should be emitted manually here
-#else
-    m_pJavaScriptInOrderExecutor->append(QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject));
-    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
-        m_pJavaScriptInOrderExecutor->start();
-    }
-#endif
+    GET_PAGE()
+    page->executeJavaScript(javascript);
 }
 
 #define COMMAND_TO_JS(command) \
@@ -1123,34 +1091,18 @@ QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & comm
 void NoteEditorPrivate::execJavascriptCommand(const QString & command)
 {
     COMMAND_TO_JS(command);
-#ifndef USE_QT_WEB_ENGINE
+
     Q_Q(NoteEditor);
-    QWebFrame * frame = q->page()->mainFrame();
-    QVariant result = frame->evaluateJavaScript(javascript);
-    QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
-#else
-    m_pJavaScriptInOrderExecutor->append(javascript);
-    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
-        m_pJavaScriptInOrderExecutor->start();
-    }
-#endif
+    GET_PAGE()
+    page->executeJavaScript(javascript);
 }
 
 void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args)
 {
     COMMAND_WITH_ARGS_TO_JS(command, args);
-#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
-    QWebFrame * frame = q->page()->mainFrame();
-    QVariant result = frame->evaluateJavaScript(javascript);
-    QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
-    return;
-#else
-    m_pJavaScriptInOrderExecutor->append(javascript);
-    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
-        m_pJavaScriptInOrderExecutor->start();
-    }
-#endif
+    GET_PAGE()
+    page->executeJavaScript(javascript);
 }
 
 void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & notebook)
@@ -1367,25 +1319,9 @@ void NoteEditorPrivate::insertToDoCheckbox()
     QString javascript = QString("document.execCommand('insertHtml', false, '%1'); ").arg(html);
     javascript += m_setupEnToDoTags;
 
-#ifndef USE_QT_WEB_ENGINE
     Q_Q(NoteEditor);
-    QWebPage * page = q->page();
-    if (Q_UNLIKELY(!page)) {
-        return;
-    }
-
-    QWebFrame * frame = page->mainFrame();
-    if (Q_UNLIKELY(!frame)) {
-        return;
-    }
-
-    Q_UNUSED(frame->evaluateJavaScript(javascript));
-#else
-    m_pJavaScriptInOrderExecutor->append(javascript);
-    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
-        m_pJavaScriptInOrderExecutor->start();
-    }
-#endif
+    GET_PAGE()
+    page->executeJavaScript(javascript);
 }
 
 void NoteEditorPrivate::setFont(const QFont & font)

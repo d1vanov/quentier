@@ -9,10 +9,16 @@ JavaScriptInOrderExecutor::JavaScriptInOrderExecutor(QWebEngineView & view, QObj
     m_inProgress(false)
 {}
 
+void JavaScriptInOrderExecutor::append(const QString &script)
+{
+    m_javaScriptsQueue.enqueue(script);
+}
+
 void JavaScriptInOrderExecutor::start()
 {
-    QString script = m_javaScriptsQueue.takeFirst();
+    QString script = m_javaScriptsQueue.dequeue();
     m_view.page()->runJavaScript(script, JavaScriptCallback(*this));
+    m_inProgress = true;
 }
 
 void JavaScriptInOrderExecutor::next()

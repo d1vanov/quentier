@@ -20,7 +20,8 @@ void FileIOThreadWorkerPrivate::setIdleTimePeriod(const qint32 seconds)
 
 #define RESTART_TIMER() \
     killTimer(m_postOperationTimerId); \
-    m_postOperationTimerId = startTimer(SEC_TO_MSEC(m_idleTimePeriodSeconds))
+    m_postOperationTimerId = startTimer(SEC_TO_MSEC(m_idleTimePeriodSeconds)); \
+    QNTRACE("FileIOThreadWorkerPrivate: started timer with id " << m_postOperationTimerId)
 
 void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QByteArray data, QUuid requestId)
 {
@@ -90,13 +91,13 @@ void FileIOThreadWorkerPrivate::timerEvent(QTimerEvent * pEvent)
     }
 
     qint32 timerId = pEvent->timerId();
-    killTimer(timerId);
 
     if (timerId != m_postOperationTimerId) {
-        QNWARNING("Received unidentified timer event for FileIOThreadWorkerPrivate");
+        QNTRACE("Received unidentified timer event for FileIOThreadWorkerPrivate");
         return;
     }
 
+    killTimer(timerId);
     emit readyForIO();
 }
 

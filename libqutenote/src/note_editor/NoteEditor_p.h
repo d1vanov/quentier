@@ -28,7 +28,6 @@ QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(MimeTypeIconJavaScriptHandler)
-QT_FORWARD_DECLARE_CLASS(JavaScriptInOrderExecutor)
 #endif
 
 #ifdef USE_QT_WEB_ENGINE
@@ -228,7 +227,7 @@ private:
     QString     m_provideSrcForResourceImgTags;
     QString     m_provideGenericResourceDisplayNameAndSizeJs;
     QString     m_setupEnToDoTags;
-    QString     m_onResourceLocalFilePathForHashReceivedJs;
+    QString     m_onResourceInfoReceivedJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
@@ -244,7 +243,6 @@ private:
     PageMutationHandler * m_pPageMutationHandler;
     MimeTypeIconJavaScriptHandler * m_pMimeTypeIconJavaScriptHandler;
     EnCryptElementClickHandler * m_pEnCryptElementClickHandler;
-    JavaScriptInOrderExecutor * m_pJavaScriptInOrderExecutor;
 
     quint16     m_webSocketServerPort;
 #endif

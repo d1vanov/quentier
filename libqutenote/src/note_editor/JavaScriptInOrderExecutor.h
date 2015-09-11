@@ -13,7 +13,7 @@ class JavaScriptInOrderExecutor: public QObject
 public:
     explicit JavaScriptInOrderExecutor(QWebEngineView & view, QObject * parent = nullptr);
 
-    void append(const QString & script) { m_javaScriptsQueue.append(script); }
+    void append(const QString & script);
     int size() const { return m_javaScriptsQueue.size(); }
     void clear() { m_javaScriptsQueue.clear(); }
 

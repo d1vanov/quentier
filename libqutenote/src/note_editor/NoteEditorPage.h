@@ -14,6 +14,10 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
 
+#ifdef USE_QT_WEB_ENGINE
+QT_FORWARD_DECLARE_CLASS(JavaScriptInOrderExecutor)
+#endif
+
 class QUTE_NOTE_EXPORT NoteEditorPage:
 #ifndef USE_QT_WEB_ENGINE
         public QWebPage
@@ -31,6 +35,8 @@ Q_SIGNALS:
 public Q_SLOTS:
     bool shouldInterruptJavaScript();
 
+    void executeJavaScript(const QString & script, const bool clearPreviousQueue = false);
+
 private:
 #ifndef USE_QT_WEB_ENGINE
     virtual void javaScriptAlert(QWebFrame * pFrame, const QString & message) Q_DECL_OVERRIDE;
@@ -45,6 +51,10 @@ private:
 
 private:
     NoteEditor * m_parent;
+
+#ifdef USE_QT_WEB_ENGINE
+    JavaScriptInOrderExecutor * m_pJavaScriptInOrderExecutor;
+#endif
 };
 
 } // namespace qute_note

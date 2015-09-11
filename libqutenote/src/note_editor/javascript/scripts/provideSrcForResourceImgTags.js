@@ -1,4 +1,10 @@
 function provideSrcForResourceImgTags() {
+    console.log("provideSrcForResourceImgTags()");
+    if (!window.hasOwnProperty('resourceCache')) {
+        console.log("resourceCache global variable is not defined");
+        return;
+    }
+
     var imgElements = document.getElementsByTagName("img");
     var numElements = imgElements.length;
     if (!numElements) {

@@ -1,4 +1,10 @@
 function provideGenericResourceDisplayNameAndSize() {
+    console.log("provideGenericResourceDisplayNameAndSize()");
+    if (!window.hasOwnProperty('resourceCache')) {
+        console.log("resourceCache global variable is not defined");
+        return;
+    }
+
     var genericResources = document.querySelectorAll(".en-media-generic");
     var numGenericResources = genericResources.length;
     console.log("Found " + numGenericResources + " generic resource tags");
