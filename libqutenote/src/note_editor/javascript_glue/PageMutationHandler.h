@@ -7,7 +7,7 @@
 namespace qute_note {
 
 /**
- * @brief The PageMutationHandler class is used as object providing slot
+ * @brief The PageMutationHandler class represents an object providing slot
  * to be called from JavaScript on the change of note editor page's content;
  * it is a workaround for QWebEnginePage's inability to signal of page content changes natively
  */

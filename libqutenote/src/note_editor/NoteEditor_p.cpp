@@ -10,6 +10,7 @@ typedef QWebSettings WebSettings;
 #else
 #include "javascript_glue/MimeTypeIconJavaScriptHandler.h"
 #include "javascript_glue/PageMutationHandler.h"
+#include "javascript_glue/EnCryptElementOnClickHandler.h"
 #include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
@@ -72,7 +73,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pWebChannel(new QWebChannel(this)),
     m_pPageMutationHandler(new PageMutationHandler(this)),
     m_pMimeTypeIconJavaScriptHandler(nullptr),
-    m_pEnCryptElementClickHandler(new EnCryptElementClickHandler(this)),
+    m_pEnCryptElementClickHandler(new EnCryptElementOnClickHandler(this)),
     m_webSocketServerPort(0),
 #endif
     m_writeNoteHtmlToFileRequestId(),
@@ -789,7 +790,7 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pMimeTypeIconJavaScriptHandler = new MimeTypeIconJavaScriptHandler(m_noteEditorPageFolderPath,
                                                                          m_pIOThread, this);
 
-    QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementClickHandler::decrypt,
+    QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementOnClickHandler::decrypt,
                      this, &NoteEditorPrivate::onEnCryptElementClicked);
 
     m_pWebChannel->registerObject("resourceCache", m_pResourceInfoJavaScriptHandler);

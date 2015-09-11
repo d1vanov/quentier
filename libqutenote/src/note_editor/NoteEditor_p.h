@@ -29,28 +29,7 @@ QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(MimeTypeIconJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
-#endif
-
-#ifdef USE_QT_WEB_ENGINE
-
-// The instance of this class would be exposed to JavaScript call in order to propagate
-// the click on en-crypt element to the C++ code
-class EnCryptElementClickHandler: public QObject
-{
-    Q_OBJECT
-public:
-    explicit EnCryptElementClickHandler(QObject * parent = nullptr) :
-        QObject(parent)
-    {}
-
-Q_SIGNALS:
-    void decrypt(QString encryptedText, QString cipher, QString length, QString hint);
-
-public Q_SLOTS:
-    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint)
-    { emit decrypt(encryptedText, cipher, length, hint); }
-};
-
+QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
 #endif
 
 class NoteEditorPrivate: public QObject
@@ -226,7 +205,7 @@ private:
     QWebChannel * m_pWebChannel;
     PageMutationHandler * m_pPageMutationHandler;
     MimeTypeIconJavaScriptHandler * m_pMimeTypeIconJavaScriptHandler;
-    EnCryptElementClickHandler * m_pEnCryptElementClickHandler;
+    EnCryptElementOnClickHandler * m_pEnCryptElementClickHandler;
 
     quint16     m_webSocketServerPort;
 #endif
