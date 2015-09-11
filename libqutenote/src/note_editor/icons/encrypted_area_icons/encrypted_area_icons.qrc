@@ -5,5 +5,6 @@
         <file>lock/png/lock-32x32.png</file>
         <file>lock/png/lock-48x48.png</file>
         <file>en-crypt/en-crypt.png</file>
+        <file>en-crypt/en-crypt-no-lock.png</file>
     </qresource>
 </RCC>

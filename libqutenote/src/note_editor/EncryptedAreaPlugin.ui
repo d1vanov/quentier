@@ -117,8 +117,8 @@ background-color: rgb(255, 255, 255);
        <height>16</height>
       </size>
      </property>
-     <property name="text">
-      <string notr="true">●●●●●●●</string>
+     <property name="pixmap">
+      <pixmap resource="icons/encrypted_area_icons/encrypted_area_icons.qrc">:/encrypted_area_icons/en-crypt/en-crypt-no-lock.png</pixmap>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -161,6 +161,8 @@ background-color: rgb(255, 255, 255);
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="icons/encrypted_area_icons/encrypted_area_icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
