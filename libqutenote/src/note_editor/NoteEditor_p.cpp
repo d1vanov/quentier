@@ -9,6 +9,7 @@
 typedef QWebSettings WebSettings;
 #else
 #include "javascript_glue/MimeTypeIconJavaScriptHandler.h"
+#include "javascript_glue/PageMutationHandler.h"
 #include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"

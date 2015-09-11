@@ -28,27 +28,10 @@ QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(MimeTypeIconJavaScriptHandler)
+QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 #endif
 
 #ifdef USE_QT_WEB_ENGINE
-
-// The instance of this class would be exposed to JavaScript call
-// in order to emulate the contentsChanged signal that way because - surprise! -
-// QWebEnginePage doesn't provide such a signal natively!
-class PageMutationHandler: public QObject
-{
-    Q_OBJECT
-public:
-    explicit PageMutationHandler(QObject * parent = nullptr) :
-        QObject(parent)
-    {}
-
-Q_SIGNALS:
-    void contentsChanged();
-
-public Q_SLOTS:
-    void onPageMutation() { emit contentsChanged(); }
-};
 
 // The instance of this class would be exposed to JavaScript call in order to propagate
 // the click on en-crypt element to the C++ code
