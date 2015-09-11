@@ -21,7 +21,7 @@
             window.pageMutationObserver = channel.objects.pageMutationObserver;
             window.enCryptElementClickHandler = channel.objects.enCryptElementClickHandler;
             window.mimeTypeIconHandler = channel.objects.mimeTypeIconHandler;
-            window.mimeTypeIconHandler.gotIconFilePathForMimeType.connect(function(mimeType, iconFilePath) {
+            window.mimeTypeIconHandler.notifyIconFilePathForMimeType.connect(function(mimeType, iconFilePath) {
                 console.log("Response to the event of icon file path for mime type update: mime type = " +
                             mimeType + ", icon file path = " + iconFilePath);
                 var genericResources = document.querySelectorAll('.resource-icon[type="' + mimeType + '"]');

@@ -34,10 +34,14 @@ void QUTE_NOTE_EXPORT questionMessageBox(QWidget * parent, const QString & title
 // ("Internal error") and brief text so the caller only needs to provide the detailed text
 void QUTE_NOTE_EXPORT internalErrorMessageBox(QWidget * parent, QString detailedText = QString());
 
-// Convenience functions for file dialogues with proper modality on Mac OS X
+// Convenience function for file dialogues with proper modality on Mac OS X
 const QString QUTE_NOTE_EXPORT getExistingFolderDialog(QWidget * parent, const QString & title,
                                                        const QString & initialFolder,
                                                        QFileDialog::Options options = QFileDialog::ShowDirsOnly);
+
+// Convenience function to convert the absolute path to the relative one with respect to the given folder name
+const QString QUTE_NOTE_EXPORT relativePathFromAbsolutePath(const QString & absolutePath,
+                                                            const QString & relativePathRootFolder);
 
 } // namespace qute_note
 

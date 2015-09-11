@@ -1,5 +1,6 @@
 #include "MimeTypeIconJavaScriptHandler.h"
 #include <qute_note/utility/FileIOThreadWorker.h>
+#include <qute_note/utility/DesktopServices.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QFileInfo>
 #include <QImage>
@@ -31,7 +32,7 @@ MimeTypeIconJavaScriptHandler::MimeTypeIconJavaScriptHandler(const QString & not
     QNDEBUG("Initialized MimeTypeIconJavaScriptHandler");
 }
 
-void MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & mimeType)
+void MimeTypeIconJavaScriptHandler::onIconFilePathForMimeTypeRequest(const QString & mimeType)
 {
     QNDEBUG("MimeTypeIconJavaScriptHandler::iconFilePathForMimeType: " << mimeType);
 
@@ -39,7 +40,7 @@ void MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & mime
     auto it = m_iconFilePathCache.find(mimeType);
     if (it != m_iconFilePathCache.end()) {
         QNTRACE("Found cached icon for mime type " << mimeType << ": " << it.value());
-        emit gotIconFilePathForMimeType(mimeType, it.value());
+        emit notifyIconFilePathForMimeType(mimeType, it.value());
         return;
     }
 
@@ -53,9 +54,9 @@ void MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & mime
     QFileInfo mimeTypeIconInfo(iconFilePath);
     if (mimeTypeIconInfo.exists() && mimeTypeIconInfo.isFile() && mimeTypeIconInfo.isReadable()) {
         QNTRACE("Found existing icon written to file: " << iconFilePath);
-        QString relativeIconFilePath = relativePath(iconFilePath);
+        QString relativeIconFilePath = relativePathFromAbsolutePath(iconFilePath, "NoteEditorPage");
         m_iconFilePathCache[mimeType] = relativeIconFilePath;
-        emit gotIconFilePathForMimeType(mimeType, relativeIconFilePath);
+        emit notifyIconFilePathForMimeType(mimeType, relativeIconFilePath);
         return;
     }
 
@@ -67,7 +68,7 @@ void MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & mime
     auto mimeTypeIconWriteInProgressIter = m_mimeTypesWithIconsWriteInProgress.find(mimeType);
     if (mimeTypeIconWriteInProgressIter != m_mimeTypesWithIconsWriteInProgress.end()) {
         QNTRACE("Writing icon for mime type " << mimeType << " is still in progress");
-        emit gotIconFilePathForMimeType(mimeType, fallbackIconFilePath);
+        emit notifyIconFilePathForMimeType(mimeType, fallbackIconFilePath);
         return;
     }
 
@@ -85,7 +86,7 @@ void MimeTypeIconJavaScriptHandler::iconFilePathForMimeType(const QString & mime
         QNTRACE("Haven't found the icon corresponding to mime type " << mimeType
                 << ", will use the default icon instead");
         m_iconFilePathCache[mimeType] = fallbackIconFilePath;
-        emit gotIconFilePathForMimeType(mimeType, fallbackIconFilePath);
+        emit notifyIconFilePathForMimeType(mimeType, fallbackIconFilePath);
         return;
     }
 
@@ -129,23 +130,14 @@ void MimeTypeIconJavaScriptHandler::onWriteFileRequestProcessed(bool success, QS
                   << " to local file: " << errorDescription);
         QString fallbackIconFilePath = "qrc:/generic_resource_icons/png/attachment.png";
         m_iconFilePathCache[mimeTypeAndFilePath.first] = fallbackIconFilePath;
-        emit gotIconFilePathForMimeType(mimeTypeAndFilePath.first, fallbackIconFilePath);
+        emit notifyIconFilePathForMimeType(mimeTypeAndFilePath.first, fallbackIconFilePath);
         return;
     }
 
-    QString relativeIconFilePath = relativePath(mimeTypeAndFilePath.second);
+    QString relativeIconFilePath = relativePathFromAbsolutePath(mimeTypeAndFilePath.second, "NoteEditorPage");
     m_iconFilePathCache[mimeTypeAndFilePath.first] = relativeIconFilePath;
     QNTRACE("Emitting the signal to update icon file path for mime type " << mimeTypeAndFilePath.first);
-    emit gotIconFilePathForMimeType(mimeTypeAndFilePath.first, relativeIconFilePath);
+    emit notifyIconFilePathForMimeType(mimeTypeAndFilePath.first, relativeIconFilePath);
 }
 
-QString MimeTypeIconJavaScriptHandler::relativePath(const QString & absolutePath) const
-{
-    int position = absolutePath.indexOf("NoteEditorPage", 0, Qt::CaseInsensitive);
-    if (position < 0) {
-        return QString();
-    }
-
-    return absolutePath.mid(position + 15);
-}
 } // namespace qute_note

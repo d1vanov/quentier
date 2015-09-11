@@ -190,5 +190,24 @@ const QString getExistingFolderDialog(QWidget * parent, const QString & title,
     }
 }
 
+const QString relativePathFromAbsolutePath(const QString & absolutePath, const QString & relativePathRootFolder)
+{
+    QNDEBUG("relativePathFromAbsolutePath: " << absolutePath);
+
+    int position = absolutePath.indexOf(relativePathRootFolder, 0,
+#if defined(Q_OS_WIN) || defined(Q_OS_MAC)
+                                        Qt::CaseInsensitive
+#else
+                                        Qt::CaseSensitive
+#endif
+                                        );
+    if (position < 0) {
+        QNINFO("Can't find folder " << relativePathRootFolder << " within path " << absolutePath);
+        return QString();
+    }
+
+    return absolutePath.mid(position + relativePathRootFolder.length() + 1);   // NOTE: additional symbol for slash
+}
+
 } // namespace qute_note
 

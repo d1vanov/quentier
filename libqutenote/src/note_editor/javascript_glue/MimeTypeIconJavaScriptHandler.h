@@ -26,16 +26,19 @@ public:
                                            QThread * ioThread, QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
-    void gotIconFilePathForMimeType(const QString & mimeType, const QString & filePath);
+    void notifyIconFilePathForMimeType(const QString & mimeType, const QString & filePath);
 
 public Q_SLOTS:
     /**
-     * Searches for icon file path in the cache, then in the folder where the icon should reside;
-     * if it's not there, uses QMimeDatabase to find the icon, if successful, schedules the async job
-     * of writing it to local file and returns empty string; when the icon is written to file,
-     * emits the signal
+     * @brief onIconFilePathForMimeTypeRequest - public slot called from JavaScript
+     * to determine the path to the icon for given mime type. The method first searches
+     * for icon file path in the cache, then in the folder where the icon should reside;
+     * if it's not found, the method uses QMimeDatabase to find the icon, if successful,
+     * schedules the async job of writing that icon to local file; when the icon is written
+     * to file, emits the notification signal for JavaScript to receive and handle
+     * @param mimeType - the mime type for which the icon is required
      */
-    void iconFilePathForMimeType(const QString & mimeType);
+    void onIconFilePathForMimeTypeRequest(const QString & mimeType);
 
 // private signals
 Q_SIGNALS:
@@ -43,9 +46,6 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
-
-private:
-    QString relativePath(const QString & absolutePath) const;
 
 private:
     QString                 m_noteEditorPageFolder;

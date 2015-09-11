@@ -12,10 +12,10 @@ function provideSrcForGenericResourceIcons() {
         var currentResourceIcon = genericResourceIcons[index];
         var mimeType = currentResourceIcon.getAttribute("type");
         if (!mimeType) {
-            console.log("Detected resource with undetermined mime type");
+            console.warn("Detected resource with undetermined mime type");
             continue;
         }
 
-        mimeTypeIconHandler.iconFilePathForMimeType(mimeType.toString());
+        mimeTypeIconHandler.onIconFilePathForMimeTypeRequest(mimeType);
     }
 }
