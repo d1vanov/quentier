@@ -30,6 +30,7 @@ QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(MimeTypeIconJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
+QT_FORWARD_DECLARE_CLASS(IconThemeJavaScriptHandler)
 #endif
 
 class NoteEditorPrivate: public QObject
@@ -134,6 +135,7 @@ private:
 
 #ifdef USE_QT_WEB_ENGINE
     void provideSrcAndOnClickScriptForImgEnCryptTags();
+    void provideSrcForGenericResourceOpenAndSaveIcons();
 
     void setupWebSocketServer();
     void setupJavaScriptObjects();
@@ -199,6 +201,8 @@ private:
     QString     m_qWebChannelJs;
     QString     m_qWebChannelSetupJs;
     QString     m_pageMutationObserverJs;
+    QString     m_onIconFilePathForIconThemeNameReceivedJs;
+    QString     m_provideSrcForGenericResourceOpenAndSaveIconsJs;
 
     QWebSocketServer * m_pWebSocketServer;
     WebSocketClientWrapper * m_pWebSocketClientWrapper;
@@ -206,6 +210,7 @@ private:
     PageMutationHandler * m_pPageMutationHandler;
     MimeTypeIconJavaScriptHandler * m_pMimeTypeIconJavaScriptHandler;
     EnCryptElementOnClickHandler * m_pEnCryptElementClickHandler;
+    IconThemeJavaScriptHandler * m_pIconThemeJavaScriptHandler;
 
     quint16     m_webSocketServerPort;
 #endif

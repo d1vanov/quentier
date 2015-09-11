@@ -11,6 +11,7 @@ typedef QWebSettings WebSettings;
 #include "javascript_glue/MimeTypeIconJavaScriptHandler.h"
 #include "javascript_glue/PageMutationHandler.h"
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
+#include "javascript_glue/IconThemeJavaScriptHandler.h"
 #include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
@@ -68,12 +69,17 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #else
     m_provideSrcForGenericResourceIconsJs(),
     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs(),
+    m_qWebChannelJs(),
+    m_qWebChannelSetupJs(),
+    m_pageMutationObserverJs(),
+    m_onIconFilePathForIconThemeNameReceivedJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
     m_pWebChannel(new QWebChannel(this)),
     m_pPageMutationHandler(new PageMutationHandler(this)),
-    m_pMimeTypeIconJavaScriptHandler(nullptr),
+    m_pMimeTypeIconJavaScriptHandler(Q_NULLPTR),
     m_pEnCryptElementClickHandler(new EnCryptElementOnClickHandler(this)),
+    m_pIconThemeJavaScriptHandler(Q_NULLPTR),
     m_webSocketServerPort(0),
 #endif
     m_writeNoteHtmlToFileRequestId(),
@@ -184,10 +190,12 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(QString("(function(){window.websocketserverport = ") +
                             QString::number(m_webSocketServerPort) + QString("})();"));
     page->executeJavaScript(m_onResourceInfoReceivedJs);
+    page->executeJavaScript(m_onIconFilePathForIconThemeNameReceivedJs);
     page->executeJavaScript(m_qWebChannelSetupJs);
     page->executeJavaScript(m_provideGenericResourceDisplayNameAndSizeJs);
     page->executeJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     page->executeJavaScript(m_provideSrcForGenericResourceIconsJs);
+    page->executeJavaScript(m_provideSrcForGenericResourceOpenAndSaveIconsJs);
 #endif
 
     page->executeJavaScript(m_jQueryJs);
@@ -204,6 +212,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 
 #ifdef USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
+    provideSrcForGenericResourceOpenAndSaveIcons();
 #endif
 
     QNTRACE("Evaluated all JavaScript helper functions");
@@ -754,7 +763,16 @@ void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
     GET_PAGE()
 
     page->executeJavaScript(javascript);
-    QNDEBUG("Queued javascript command to provide src for img tags: " << javascript);
+}
+
+void NoteEditorPrivate::provideSrcForGenericResourceOpenAndSaveIcons()
+{
+    QString javascript = "provideSrcForGenericResourceOpenAndSaveIcons()";
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    page->executeJavaScript(javascript);
 }
 
 void NoteEditorPrivate::setupWebSocketServer()
@@ -790,6 +808,9 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pMimeTypeIconJavaScriptHandler = new MimeTypeIconJavaScriptHandler(m_noteEditorPageFolderPath,
                                                                          m_pIOThread, this);
 
+    m_pIconThemeJavaScriptHandler = new IconThemeJavaScriptHandler(m_noteEditorPageFolderPath,
+                                                                   m_pIOThread, this);
+
     QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementOnClickHandler::decrypt,
                      this, &NoteEditorPrivate::onEnCryptElementClicked);
 
@@ -797,6 +818,7 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pWebChannel->registerObject("enCryptElementClickHandler", m_pEnCryptElementClickHandler);
     m_pWebChannel->registerObject("pageMutationObserver", m_pPageMutationHandler);
     m_pWebChannel->registerObject("mimeTypeIconHandler", m_pMimeTypeIconJavaScriptHandler);
+    m_pWebChannel->registerObject("iconThemeHandler", m_pIconThemeJavaScriptHandler);
     QNDEBUG("Registered objects exposed to JavaScript");
 }
 
@@ -866,6 +888,8 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceIcons.js", m_provideSrcForGenericResourceIconsJs);
+    SETUP_SCRIPT("javascript/scripts/onIconFilePathForIconThemeNameReceived.js", m_onIconFilePathForIconThemeNameReceivedJs);
+    SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceOpenAndSaveIcons.js", m_provideSrcForGenericResourceOpenAndSaveIconsJs);
 #endif
 
 #undef SETUP_SCRIPT

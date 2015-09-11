@@ -18,6 +18,9 @@
             window.resourceCache = channel.objects.resourceCache;
             window.resourceCache.notifyResourceInfo.connect(onResourceInfoReceived);
 
+            window.iconThemeHandler = channel.objects.iconThemeHandler;
+            window.iconThemeHandler.notifyIconFilePathForIconThemeName.connect(onIconFilePathForIconThemeNameReceived);
+
             window.pageMutationObserver = channel.objects.pageMutationObserver;
             window.enCryptElementClickHandler = channel.objects.enCryptElementClickHandler;
             window.mimeTypeIconHandler = channel.objects.mimeTypeIconHandler;
