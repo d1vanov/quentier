@@ -193,6 +193,7 @@ else()
        src/note_editor/javascript_glue/PageMutationHandler.h
        src/note_editor/javascript_glue/EnCryptElementOnClickHandler.h
        src/note_editor/javascript_glue/IconThemeJavaScriptHandler.h
+       src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h
        src/note_editor/JavaScriptInOrderExecutor.h
        src/note_editor/WebSocketClientWrapper.h
        src/note_editor/WebSocketTransport.h)
@@ -294,6 +295,7 @@ else()
     src/note_editor/javascript_glue/PageMutationHandler.cpp
     src/note_editor/javascript_glue/EnCryptElementOnClickHandler.cpp
     src/note_editor/javascript_glue/IconThemeJavaScriptHandler.cpp
+    src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.cpp
     src/note_editor/JavaScriptInOrderExecutor.cpp
     src/note_editor/WebSocketTransport.cpp
     src/note_editor/WebSocketClientWrapper.cpp)
