@@ -103,6 +103,9 @@ Q_SIGNALS:
     void readDroppedFileData(QString absoluteFilePath, QUuid requestId);
     void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId);
     void writeImageResourceToFile(QString absoluteFilePath, QByteArray imageData, QUuid requestId);
+#ifdef USE_QT_WEB_ENGINE
+    void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId);
+#endif
 
 private Q_SLOTS:
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
@@ -115,6 +118,7 @@ private Q_SLOTS:
 
 #ifdef USE_QT_WEB_ENGINE
     void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
+    void onSaveResourceButtonClicked(const QString & resourceHash);
     void onJavaScriptLoaded();
 #endif
 
@@ -136,6 +140,8 @@ private:
 #ifdef USE_QT_WEB_ENGINE
     void provideSrcAndOnClickScriptForImgEnCryptTags();
     void provideSrcForGenericResourceOpenAndSaveIcons();
+
+    void manualSaveResourceToFile(const IResource & resource);
 
     void setupWebSocketServer();
     void setupJavaScriptObjects();
@@ -271,8 +277,16 @@ private:
 
     QString     m_resourceLocalFileStorageFolder;
 
-    QHash<QUuid, QString> m_genericResourceLocalGuidBySaveToStorageRequestIds;
-    QHash<QUuid, QString> m_imageResourceLocalGuidBySaveToStorageRequestIds;
+    QHash<QUuid, QString>           m_genericResourceLocalGuidBySaveToStorageRequestIds;
+    QSet<QString>                   m_localGuidsOfResourcesWrittenToFiles;
+#ifdef USE_QT_WEB_ENGINE
+    QSet<QString>                   m_localGuidsOfResourcesWantedToBeSaved;
+
+    QHash<QString, QStringList>     m_fileSuffixesForMimeType;
+    QHash<QString, QString>         m_fileFilterStringForMimeType;
+
+    QSet<QUuid>                     m_manualSaveResourceToFileRequestIds;
+#endif
 
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFileNamesAndMimeTypesByReadRequestIds;
 

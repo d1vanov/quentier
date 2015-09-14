@@ -15,6 +15,7 @@ typedef QWebSettings WebSettings;
 #include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
+#include <qute_note/utility/ApplicationSettings.h>
 #include <QtWebSockets/QWebSocketServer>
 #include <QtWebChannel>
 #include <QWebEngineSettings>
@@ -118,6 +119,13 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pResourceInfoJavaScriptHandler(new ResourceInfoJavaScriptHandler(m_resourceInfo, this)),
     m_resourceLocalFileStorageFolder(),
     m_genericResourceLocalGuidBySaveToStorageRequestIds(),
+    m_localGuidsOfResourcesWrittenToFiles(),
+#ifdef USE_QT_WEB_ENGINE
+    m_localGuidsOfResourcesWantedToBeSaved(),
+    m_fileSuffixesForMimeType(),
+    m_fileFilterStringForMimeType(),
+    m_manualSaveResourceToFileRequestIds(),
+#endif
     m_droppedFileNamesAndMimeTypesByReadRequestIds(),
     q_ptr(&noteEditor)
 {
@@ -263,6 +271,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
     }
 
     const QString & localGuid = it.value();
+    Q_UNUSED(m_localGuidsOfResourcesWrittenToFiles.insert(localGuid));
 
     QString resourceDisplayName;
     QString resourceDisplaySize;
@@ -301,6 +310,36 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
                 "Will set filepaths to these local files to src attributes of img resource tags");
         updateResourceInfoOnJavaScriptSide();
     }
+
+#ifdef USE_QT_WEB_ENGINE
+    auto saveIt = m_localGuidsOfResourcesWantedToBeSaved.find(localGuid);
+    if (saveIt != m_localGuidsOfResourcesWantedToBeSaved.end())
+    {
+        QNTRACE("Resource with local guid " << localGuid << " is pending manual saving to file");
+
+        if (Q_UNLIKELY(!m_pNote)) {
+            QString error = QT_TR_NOOP("Can't save resource: no note is set to the editor");
+            QNINFO(error << ", resource local guid = " << localGuid);
+            emit notifyError(error);
+            return;
+        }
+
+        QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
+        int numResources = resourceAdapters.size();
+        for(int i = 0; i < numResources; ++i)
+        {
+            const ResourceAdapter & resource = resourceAdapters[i];
+            if (resource.localGuid() == localGuid) {
+                manualSaveResourceToFile(resource);
+                return;
+            }
+        }
+
+        QString error = QT_TR_NOOP("Can't save resource: can't find resource to save within note's resources");
+        QNINFO(error << ", resource local guid = " << localGuid);
+        emit notifyError(error);
+    }
+#endif
 }
 
 void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription,
@@ -386,6 +425,50 @@ void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString c
     QNTRACE("Executed note decryption dialog");
 }
 
+void NoteEditorPrivate::onSaveResourceButtonClicked(const QString & resourceHash)
+{
+    QNDEBUG("NoteEditorPrivate::onSaveResourceButtonClicked: " << resourceHash);
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        QString error = QT_TR_NOOP("Can't save resource: no note is set to the editor");
+        QNINFO(error << ", resource hash = " << resourceHash);
+        emit notifyError(error);
+        return;
+    }
+
+    int resourceIndex = -1;
+    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
+    int numResources = resourceAdapters.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
+        if (resourceAdapter.hasDataHash() && (resourceAdapter.dataHash() == resourceHash)) {
+            resourceIndex = i;
+            break;
+        }
+    }
+
+    if (Q_UNLIKELY(resourceIndex < 0)) {
+        QString error = QT_TR_NOOP("Resource to be saved was not found in the note");
+        QNINFO(error << ", resource hash = " << resourceHash);
+        return;
+    }
+
+    const ResourceAdapter & resource = resourceAdapters[resourceIndex];
+    const QString resourceLocalGuid = resource.localGuid();
+
+    // See whether this resource has already been written to file
+    auto it = m_localGuidsOfResourcesWrittenToFiles.find(resourceLocalGuid);
+    if (it == m_localGuidsOfResourcesWrittenToFiles.end()) {
+        // It must be being written to file at the moment - all note's resources are saved to files on note load -
+        // so just mark this resource local guid as pending for save
+        Q_UNUSED(m_localGuidsOfResourcesWantedToBeSaved.insert(resourceLocalGuid));
+        return;
+    }
+
+    manualSaveResourceToFile(resource);
+}
+
 void NoteEditorPrivate::onJavaScriptLoaded()
 {
     QNDEBUG("NoteEditorPrivate::onJavaScriptLoaded");
@@ -416,6 +499,22 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
         QNTRACE("Loaded url: " << url);
         m_pendingNotePageLoad = true;
     }
+
+#ifdef USE_QT_WEB_ENGINE
+    auto manualSaveResourceIt = m_manualSaveResourceToFileRequestIds.find(requestId);
+    if (manualSaveResourceIt != m_manualSaveResourceToFileRequestIds.end())
+    {
+        if (success) {
+            QNDEBUG("Successfully saved resource to file for request id " << requestId);
+        }
+        else {
+            QNWARNING("Could not save resource to file: " << errorDescription);
+        }
+
+        Q_UNUSED(m_manualSaveResourceToFileRequestIds.erase(manualSaveResourceIt));
+        return;
+    }
+#endif
 }
 
 void NoteEditorPrivate::timerEvent(QTimerEvent * event)
@@ -775,6 +874,143 @@ void NoteEditorPrivate::provideSrcForGenericResourceOpenAndSaveIcons()
     page->executeJavaScript(javascript);
 }
 
+void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
+{
+    QNDEBUG("NoteEditorPrivate::manualSaveResourceToFile");
+
+    if (Q_UNLIKELY(!resource.hasDataBody() && !resource.hasAlternateDataBody())) {
+        QString error = QT_TR_NOOP("Can't save resource: resource has neither data body nor alternate data body");
+        QNINFO(error << ", resource: " << resource);
+        emit notifyError(error);
+        return;
+    }
+
+    if (Q_UNLIKELY(!resource.hasMime())) {
+        QString error = QT_TR_NOOP("Can't save resource: resource has no mime type");
+        QNINFO(error << ", resource: " << resource);
+        emit notifyError(error);
+        return;
+    }
+
+    const QString & mimeTypeName = resource.mime();
+
+    auto preferredSuffixesIter = m_fileSuffixesForMimeType.find(mimeTypeName);
+    auto fileFilterStringIter = m_fileFilterStringForMimeType.find(mimeTypeName);
+
+    if ( (preferredSuffixesIter == m_fileSuffixesForMimeType.end()) ||
+         (fileFilterStringIter == m_fileFilterStringForMimeType.end()) )
+    {
+        QMimeDatabase mimeDatabase;
+        QMimeType mimeType = mimeDatabase.mimeTypeForName(mimeTypeName);
+        if (Q_UNLIKELY(!mimeType.isValid())) {
+            QString error = QT_TR_NOOP("Can't save resource: can't identify resource's mime type");
+            QNINFO(error << ", mime type name: " << mimeTypeName);
+            emit notifyError(error);
+            return;
+        }
+
+        if (preferredSuffixesIter == m_fileSuffixesForMimeType.end()) {
+            preferredSuffixesIter = m_fileSuffixesForMimeType.insert(mimeTypeName, mimeType.suffixes());
+        }
+
+        if (fileFilterStringIter == m_fileFilterStringForMimeType.end()) {
+            fileFilterStringIter = m_fileFilterStringForMimeType.insert(mimeTypeName, mimeType.filterString());
+        }
+    }
+
+    QString preferredSuffix;
+    QString preferredFolderPath;
+
+    const QStringList & preferredSuffixes = preferredSuffixesIter.value();
+    if (!preferredSuffixes.isEmpty())
+    {
+        ApplicationSettings appSettings;
+        QStringList childGroups = appSettings.childGroups();
+        int attachmentsSaveLocGroupIndex = childGroups.indexOf("AttachmentSaveLocations");
+        if (attachmentsSaveLocGroupIndex >= 0)
+        {
+            QNTRACE("Found cached attachment save location group within application settings");
+
+            appSettings.beginGroup("AttachmentSaveLocations");
+            QStringList cachedFileSuffixes = appSettings.childKeys();
+            const int numPreferredSuffixes = preferredSuffixes.size();
+            for(int i = 0; i < numPreferredSuffixes; ++i)
+            {
+                preferredSuffix = preferredSuffixes[i];
+                int indexInCache = cachedFileSuffixes.indexOf(preferredSuffix);
+                if (indexInCache < 0) {
+                    QNTRACE("Haven't found cached attachment save directory for file suffix " << preferredSuffix);
+                    continue;
+                }
+
+                QVariant dirValue = appSettings.value(preferredSuffix);
+                if (dirValue.isNull() || !dirValue.isValid()) {
+                    QNTRACE("Found inappropriate attachment save directory for file suffix " << preferredSuffix);
+                    continue;
+                }
+
+                QFileInfo dirInfo(dirValue.toString());
+                if (!dirInfo.exists()) {
+                    QNTRACE("Cached attachment save directory for file suffix " << preferredSuffix
+                            << " does not exist: " << dirInfo.absolutePath());
+                    continue;
+                }
+                else if (!dirInfo.isDir()) {
+                    QNTRACE("Cached attachment save directory for file suffix " << preferredSuffix
+                            << " is not a directory: " << dirInfo.absolutePath());
+                    continue;
+                }
+                else if (!dirInfo.isWritable()) {
+                    QNTRACE("Cached attachment save directory for file suffix " << preferredSuffix
+                            << " is not writable: " << dirInfo.absolutePath());
+                    continue;
+                }
+
+                preferredFolderPath = dirInfo.absolutePath();
+                break;
+            }
+
+            appSettings.endGroup();
+        }
+    }
+
+    const QString & filterString = fileFilterStringIter.value();
+
+    Q_Q(NoteEditor);
+    QString absoluteFilePath = QFileDialog::getSaveFileName(q, QObject::tr("Save as..."),
+                                                    preferredFolderPath, filterString);
+    if (absoluteFilePath.isEmpty()) {
+        QNINFO("User cancelled saving resource to file");
+        return;
+    }
+
+    bool foundSuffix = false;
+    const int numPreferredSuffixes = preferredSuffixes.size();
+    for(int i = 0; i < numPreferredSuffixes; ++i)
+    {
+        const QString & currentSuffix = preferredSuffixes[i];
+        if (absoluteFilePath.endsWith(currentSuffix, Qt::CaseInsensitive)) {
+            foundSuffix = true;
+            break;
+        }
+    }
+
+    if (!foundSuffix) {
+        absoluteFilePath += "." + preferredSuffix;
+    }
+
+    QUuid saveResourceToFileRequestId = QUuid::createUuid();
+
+    const QByteArray & data = (resource.hasDataBody()
+                               ? resource.dataBody()
+                               : resource.alternateDataBody());
+
+    Q_UNUSED(m_manualSaveResourceToFileRequestIds.insert(saveResourceToFileRequestId));
+    emit saveResourceToFile(absoluteFilePath, data, saveResourceToFileRequestId);
+    QNDEBUG("Sent request to manually save resource to file, request id = " << saveResourceToFileRequestId
+            << ", resource local guid = " << resource.localGuid());
+}
+
 void NoteEditorPrivate::setupWebSocketServer()
 {
     QNDEBUG("NoteEditorPrivate::setupWebSocketServer");
@@ -843,6 +1079,10 @@ void NoteEditorPrivate::setupFileIO()
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeImageResourceToFile,QString,QByteArray,QUuid),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
+#ifdef USE_QT_WEB_ENGINE
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToFile,QString,QByteArray,QUuid),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
+#endif
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
                      this, QNSLOT(NoteEditorPrivate,onWriteFileRequestProcessed,bool,QString,QUuid));
 
@@ -1157,6 +1397,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
              (!m_pNote->hasContent() || (m_pNote->content() == note.content())) )
         {
             QNDEBUG("This note has already been set for the editor and its content hasn't changed");
+            return;
         }
         else
         {
@@ -1167,7 +1408,12 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         }
     }
 
-#ifndef USE_QT_WEB_ENGINE
+    // Clear the caches from previous note
+    m_genericResourceLocalGuidBySaveToStorageRequestIds.clear();
+    m_localGuidsOfResourcesWrittenToFiles.clear();
+#ifdef USE_QT_WEB_ENGINE
+    m_localGuidsOfResourcesWantedToBeSaved.clear();
+#else
     m_pluginFactory->setNote(*m_pNote);
 #endif
 

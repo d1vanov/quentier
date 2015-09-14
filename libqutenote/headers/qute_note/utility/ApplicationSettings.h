@@ -16,7 +16,7 @@ public:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
-    Q_DISABLE_COPY(ApplicationSettings);
+    Q_DISABLE_COPY(ApplicationSettings)
 };
 
 } // namespace qute_note
