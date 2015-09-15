@@ -23,6 +23,8 @@
 
             window.pageMutationObserver = channel.objects.pageMutationObserver;
             window.enCryptElementClickHandler = channel.objects.enCryptElementClickHandler;
+            window.openAndSaveResourceButtonsHandler = channel.objects.openAndSaveResourceButtonsHandler;
+
             window.mimeTypeIconHandler = channel.objects.mimeTypeIconHandler;
             window.mimeTypeIconHandler.notifyIconFilePathForMimeType.connect(function(mimeType, iconFilePath) {
                 console.log("Response to the event of icon file path for mime type update: mime type = " +

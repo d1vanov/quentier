@@ -14,5 +14,6 @@
         <file>provideGenericResourceDisplayNameAndSize.js</file>
         <file>onIconFilePathForIconThemeNameReceived.js</file>
         <file>provideSrcForGenericResourceOpenAndSaveIcons.js</file>
+        <file>setupSaveResourceButtonOnClickHandler.js</file>
     </qresource>
 </RCC>

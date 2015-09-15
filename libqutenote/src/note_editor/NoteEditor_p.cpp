@@ -12,6 +12,7 @@ typedef QWebSettings WebSettings;
 #include "javascript_glue/PageMutationHandler.h"
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
 #include "javascript_glue/IconThemeJavaScriptHandler.h"
+#include "javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h"
 #include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
@@ -74,6 +75,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_qWebChannelSetupJs(),
     m_pageMutationObserverJs(),
     m_onIconFilePathForIconThemeNameReceivedJs(),
+    m_provideSrcForGenericResourceOpenAndSaveIconsJs(),
+    m_setupSaveResourceButtonOnClickHandlerJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
     m_pWebChannel(new QWebChannel(this)),
@@ -81,6 +84,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pMimeTypeIconJavaScriptHandler(Q_NULLPTR),
     m_pEnCryptElementClickHandler(new EnCryptElementOnClickHandler(this)),
     m_pIconThemeJavaScriptHandler(Q_NULLPTR),
+    m_pGenericResourceOpenAndSaveButtonsOnClickHandler(new GenericResourceOpenAndSaveButtonsOnClickHandler(this)),
     m_webSocketServerPort(0),
 #endif
     m_writeNoteHtmlToFileRequestId(),
@@ -204,6 +208,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     page->executeJavaScript(m_provideSrcForGenericResourceIconsJs);
     page->executeJavaScript(m_provideSrcForGenericResourceOpenAndSaveIconsJs);
+    page->executeJavaScript(m_setupSaveResourceButtonOnClickHandlerJs);
 #endif
 
     page->executeJavaScript(m_jQueryJs);
@@ -221,6 +226,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 #ifdef USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
     provideSrcForGenericResourceOpenAndSaveIcons();
+    setupSaveResourceButtonOnClickHandler();
 #endif
 
     QNTRACE("Evaluated all JavaScript helper functions");
@@ -423,6 +429,13 @@ void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString c
     QNTRACE("Will exec note decryption dialog now");
     pDecryptionDialog->exec();
     QNTRACE("Executed note decryption dialog");
+}
+
+void NoteEditorPrivate::onOpenResourceButtonClicked(const QString & resourceHash)
+{
+    QNDEBUG("NoteEditorPrivate::onOpenResourceButtonClicked: " << resourceHash);
+
+    // TODO: implement
 }
 
 void NoteEditorPrivate::onSaveResourceButtonClicked(const QString & resourceHash)
@@ -866,7 +879,17 @@ void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
 
 void NoteEditorPrivate::provideSrcForGenericResourceOpenAndSaveIcons()
 {
-    QString javascript = "provideSrcForGenericResourceOpenAndSaveIcons()";
+    QString javascript = "provideSrcForGenericResourceOpenAndSaveIcons();";
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    page->executeJavaScript(javascript);
+}
+
+void NoteEditorPrivate::setupSaveResourceButtonOnClickHandler()
+{
+    QString javascript = "setupSaveResourceButtonOnClickHandler();";
 
     Q_Q(NoteEditor);
     GET_PAGE()
@@ -1050,11 +1073,18 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementOnClickHandler::decrypt,
                      this, &NoteEditorPrivate::onEnCryptElementClicked);
 
+    QObject::connect(m_pGenericResourceOpenAndSaveButtonsOnClickHandler, &GenericResourceOpenAndSaveButtonsOnClickHandler::saveResourceRequest,
+                     this, &NoteEditorPrivate::onSaveResourceButtonClicked);
+
+    QObject::connect(m_pGenericResourceOpenAndSaveButtonsOnClickHandler, &GenericResourceOpenAndSaveButtonsOnClickHandler::openResourceRequest,
+                     this, &NoteEditorPrivate::onOpenResourceButtonClicked);
+
     m_pWebChannel->registerObject("resourceCache", m_pResourceInfoJavaScriptHandler);
     m_pWebChannel->registerObject("enCryptElementClickHandler", m_pEnCryptElementClickHandler);
     m_pWebChannel->registerObject("pageMutationObserver", m_pPageMutationHandler);
     m_pWebChannel->registerObject("mimeTypeIconHandler", m_pMimeTypeIconJavaScriptHandler);
     m_pWebChannel->registerObject("iconThemeHandler", m_pIconThemeJavaScriptHandler);
+    m_pWebChannel->registerObject("openAndSaveResourceButtonsHandler", m_pGenericResourceOpenAndSaveButtonsOnClickHandler);
     QNDEBUG("Registered objects exposed to JavaScript");
 }
 
@@ -1130,6 +1160,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceIcons.js", m_provideSrcForGenericResourceIconsJs);
     SETUP_SCRIPT("javascript/scripts/onIconFilePathForIconThemeNameReceived.js", m_onIconFilePathForIconThemeNameReceivedJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceOpenAndSaveIcons.js", m_provideSrcForGenericResourceOpenAndSaveIconsJs);
+    SETUP_SCRIPT("javascript/scripts/setupSaveResourceButtonOnClickHandler.js", m_setupSaveResourceButtonOnClickHandlerJs);
 #endif
 
 #undef SETUP_SCRIPT

@@ -31,6 +31,7 @@ QT_FORWARD_DECLARE_CLASS(MimeTypeIconJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(IconThemeJavaScriptHandler)
+QT_FORWARD_DECLARE_CLASS(GenericResourceOpenAndSaveButtonsOnClickHandler)
 #endif
 
 class NoteEditorPrivate: public QObject
@@ -118,6 +119,7 @@ private Q_SLOTS:
 
 #ifdef USE_QT_WEB_ENGINE
     void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
+    void onOpenResourceButtonClicked(const QString & resourceHash);
     void onSaveResourceButtonClicked(const QString & resourceHash);
     void onJavaScriptLoaded();
 #endif
@@ -140,6 +142,7 @@ private:
 #ifdef USE_QT_WEB_ENGINE
     void provideSrcAndOnClickScriptForImgEnCryptTags();
     void provideSrcForGenericResourceOpenAndSaveIcons();
+    void setupSaveResourceButtonOnClickHandler();
 
     void manualSaveResourceToFile(const IResource & resource);
 
@@ -209,6 +212,7 @@ private:
     QString     m_pageMutationObserverJs;
     QString     m_onIconFilePathForIconThemeNameReceivedJs;
     QString     m_provideSrcForGenericResourceOpenAndSaveIconsJs;
+    QString     m_setupSaveResourceButtonOnClickHandlerJs;
 
     QWebSocketServer * m_pWebSocketServer;
     WebSocketClientWrapper * m_pWebSocketClientWrapper;
@@ -217,6 +221,7 @@ private:
     MimeTypeIconJavaScriptHandler * m_pMimeTypeIconJavaScriptHandler;
     EnCryptElementOnClickHandler * m_pEnCryptElementClickHandler;
     IconThemeJavaScriptHandler * m_pIconThemeJavaScriptHandler;
+    GenericResourceOpenAndSaveButtonsOnClickHandler * m_pGenericResourceOpenAndSaveButtonsOnClickHandler;
 
     quint16     m_webSocketServerPort;
 #endif
