@@ -143,8 +143,10 @@ private:
     void provideSrcAndOnClickScriptForImgEnCryptTags();
     void provideSrcForGenericResourceOpenAndSaveIcons();
     void setupSaveResourceButtonOnClickHandler();
+    void setupOpenResourceButtonOnClickHandler();
 
     void manualSaveResourceToFile(const IResource & resource);
+    void openResource(const QString & resourceAbsoluteFilePath);
 
     void setupWebSocketServer();
     void setupJavaScriptObjects();
@@ -213,6 +215,7 @@ private:
     QString     m_onIconFilePathForIconThemeNameReceivedJs;
     QString     m_provideSrcForGenericResourceOpenAndSaveIconsJs;
     QString     m_setupSaveResourceButtonOnClickHandlerJs;
+    QString     m_setupOpenResourceButtonOnClickHandlerJs;
 
     QWebSocketServer * m_pWebSocketServer;
     WebSocketClientWrapper * m_pWebSocketClientWrapper;
@@ -283,9 +286,10 @@ private:
     QString     m_resourceLocalFileStorageFolder;
 
     QHash<QUuid, QString>           m_genericResourceLocalGuidBySaveToStorageRequestIds;
-    QSet<QString>                   m_localGuidsOfResourcesWrittenToFiles;
+    QHash<QString, QString>         m_resourceFileStoragePathsByResourceLocalGuid;
 #ifdef USE_QT_WEB_ENGINE
     QSet<QString>                   m_localGuidsOfResourcesWantedToBeSaved;
+    QSet<QString>                   m_localGuidsOfResourcesWantedToBeOpened;
 
     QHash<QString, QStringList>     m_fileSuffixesForMimeType;
     QHash<QString, QString>         m_fileFilterStringForMimeType;

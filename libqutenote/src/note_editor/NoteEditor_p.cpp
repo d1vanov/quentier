@@ -17,6 +17,7 @@ typedef QWebSettings WebSettings;
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
 #include <qute_note/utility/ApplicationSettings.h>
+#include <QDesktopServices>
 #include <QtWebSockets/QWebSocketServer>
 #include <QtWebChannel>
 #include <QWebEngineSettings>
@@ -77,6 +78,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_onIconFilePathForIconThemeNameReceivedJs(),
     m_provideSrcForGenericResourceOpenAndSaveIconsJs(),
     m_setupSaveResourceButtonOnClickHandlerJs(),
+    m_setupOpenResourceButtonOnClickHandlerJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
     m_pWebChannel(new QWebChannel(this)),
@@ -123,9 +125,10 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pResourceInfoJavaScriptHandler(new ResourceInfoJavaScriptHandler(m_resourceInfo, this)),
     m_resourceLocalFileStorageFolder(),
     m_genericResourceLocalGuidBySaveToStorageRequestIds(),
-    m_localGuidsOfResourcesWrittenToFiles(),
+    m_resourceFileStoragePathsByResourceLocalGuid(),
 #ifdef USE_QT_WEB_ENGINE
     m_localGuidsOfResourcesWantedToBeSaved(),
+    m_localGuidsOfResourcesWantedToBeOpened(),
     m_fileSuffixesForMimeType(),
     m_fileFilterStringForMimeType(),
     m_manualSaveResourceToFileRequestIds(),
@@ -209,6 +212,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_provideSrcForGenericResourceIconsJs);
     page->executeJavaScript(m_provideSrcForGenericResourceOpenAndSaveIconsJs);
     page->executeJavaScript(m_setupSaveResourceButtonOnClickHandlerJs);
+    page->executeJavaScript(m_setupOpenResourceButtonOnClickHandlerJs);
 #endif
 
     page->executeJavaScript(m_jQueryJs);
@@ -227,6 +231,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     provideSrcAndOnClickScriptForImgEnCryptTags();
     provideSrcForGenericResourceOpenAndSaveIcons();
     setupSaveResourceButtonOnClickHandler();
+    setupOpenResourceButtonOnClickHandler();
 #endif
 
     QNTRACE("Evaluated all JavaScript helper functions");
@@ -277,7 +282,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
     }
 
     const QString & localGuid = it.value();
-    Q_UNUSED(m_localGuidsOfResourcesWrittenToFiles.insert(localGuid));
+    m_resourceFileStoragePathsByResourceLocalGuid[localGuid] = fileStoragePath;
 
     QString resourceDisplayName;
     QString resourceDisplaySize;
@@ -323,6 +328,8 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
     {
         QNTRACE("Resource with local guid " << localGuid << " is pending manual saving to file");
 
+        Q_UNUSED(m_localGuidsOfResourcesWantedToBeSaved.erase(saveIt));
+
         if (Q_UNLIKELY(!m_pNote)) {
             QString error = QT_TR_NOOP("Can't save resource: no note is set to the editor");
             QNINFO(error << ", resource local guid = " << localGuid);
@@ -344,6 +351,13 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
         QString error = QT_TR_NOOP("Can't save resource: can't find resource to save within note's resources");
         QNINFO(error << ", resource local guid = " << localGuid);
         emit notifyError(error);
+    }
+
+    auto openIt = m_localGuidsOfResourcesWantedToBeOpened.find(localGuid);
+    if (openIt != m_localGuidsOfResourcesWantedToBeOpened.end()) {
+        QNTRACE("Resource with local guid " << localGuid << " is pending opening in application");
+        Q_UNUSED(m_localGuidsOfResourcesWantedToBeOpened.erase(openIt));
+        openResource(fileStoragePath);
     }
 #endif
 }
@@ -435,7 +449,44 @@ void NoteEditorPrivate::onOpenResourceButtonClicked(const QString & resourceHash
 {
     QNDEBUG("NoteEditorPrivate::onOpenResourceButtonClicked: " << resourceHash);
 
-    // TODO: implement
+    if (Q_UNLIKELY(!m_pNote)) {
+        QString error = QT_TR_NOOP("Can't open resource: no note is set to the editor");
+        QNINFO(error << ", resource hash = " << resourceHash);
+        emit notifyError(error);
+        return;
+    }
+
+    int resourceIndex = -1;
+    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
+    int numResources = resourceAdapters.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
+        if (resourceAdapter.hasDataHash() && (resourceAdapter.dataHash() == resourceHash)) {
+            resourceIndex = i;
+            break;
+        }
+    }
+
+    if (Q_UNLIKELY(resourceIndex < 0)) {
+        QString error = QT_TR_NOOP("Resource to be opened was not found in the note");
+        QNINFO(error << ", resource hash = " << resourceHash);
+        return;
+    }
+
+    const ResourceAdapter & resource = resourceAdapters[resourceIndex];
+    const QString resourceLocalGuid = resource.localGuid();
+
+    // See whether this resource has already been written to file
+    auto it = m_resourceFileStoragePathsByResourceLocalGuid.find(resourceLocalGuid);
+    if (it == m_resourceFileStoragePathsByResourceLocalGuid.end()) {
+        // It must be being written to file at the moment - all note's resources are saved to files on note load -
+        // so just mark this resource local guid as pending for open
+        Q_UNUSED(m_localGuidsOfResourcesWantedToBeOpened.insert(resourceLocalGuid));
+        return;
+    }
+
+    openResource(it.value());
 }
 
 void NoteEditorPrivate::onSaveResourceButtonClicked(const QString & resourceHash)
@@ -471,8 +522,8 @@ void NoteEditorPrivate::onSaveResourceButtonClicked(const QString & resourceHash
     const QString resourceLocalGuid = resource.localGuid();
 
     // See whether this resource has already been written to file
-    auto it = m_localGuidsOfResourcesWrittenToFiles.find(resourceLocalGuid);
-    if (it == m_localGuidsOfResourcesWrittenToFiles.end()) {
+    auto it = m_resourceFileStoragePathsByResourceLocalGuid.find(resourceLocalGuid);
+    if (it == m_resourceFileStoragePathsByResourceLocalGuid.end()) {
         // It must be being written to file at the moment - all note's resources are saved to files on note load -
         // so just mark this resource local guid as pending for save
         Q_UNUSED(m_localGuidsOfResourcesWantedToBeSaved.insert(resourceLocalGuid));
@@ -897,6 +948,16 @@ void NoteEditorPrivate::setupSaveResourceButtonOnClickHandler()
     page->executeJavaScript(javascript);
 }
 
+void NoteEditorPrivate::setupOpenResourceButtonOnClickHandler()
+{
+    QString javascript = "setupOpenResourceButtonOnClickHandler();";
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    page->executeJavaScript(javascript);
+}
+
 void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
 {
     QNDEBUG("NoteEditorPrivate::manualSaveResourceToFile");
@@ -1034,6 +1095,12 @@ void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
             << ", resource local guid = " << resource.localGuid());
 }
 
+void NoteEditorPrivate::openResource(const QString & resourceAbsoluteFilePath)
+{
+    QNDEBUG("NoteEditorPrivate::openResource: " << resourceAbsoluteFilePath);
+    QDesktopServices::openUrl(QUrl("file://" + resourceAbsoluteFilePath));
+}
+
 void NoteEditorPrivate::setupWebSocketServer()
 {
     QNDEBUG("NoteEditorPrivate::setupWebSocketServer");
@@ -1161,6 +1228,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/onIconFilePathForIconThemeNameReceived.js", m_onIconFilePathForIconThemeNameReceivedJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceOpenAndSaveIcons.js", m_provideSrcForGenericResourceOpenAndSaveIconsJs);
     SETUP_SCRIPT("javascript/scripts/setupSaveResourceButtonOnClickHandler.js", m_setupSaveResourceButtonOnClickHandlerJs);
+    SETUP_SCRIPT("javascript/scripts/setupOpenResourceButtonOnClickHandler.js", m_setupOpenResourceButtonOnClickHandlerJs);
 #endif
 
 #undef SETUP_SCRIPT
@@ -1441,7 +1509,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
 
     // Clear the caches from previous note
     m_genericResourceLocalGuidBySaveToStorageRequestIds.clear();
-    m_localGuidsOfResourcesWrittenToFiles.clear();
+    m_resourceFileStoragePathsByResourceLocalGuid.clear();
 #ifdef USE_QT_WEB_ENGINE
     m_localGuidsOfResourcesWantedToBeSaved.clear();
 #else
