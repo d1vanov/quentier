@@ -38,14 +38,14 @@ Q_SIGNALS:
 
 // private signals
 Q_SIGNALS:
-    void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash, QUuid requestId);
+    void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash, QString manualFileStoragePath, QUuid requestId);
     void saveResourceToFile(QString filePath, QByteArray data, QUuid requestId);
 
 private Q_SLOTS:
     void onOpenWithButtonPressed();
     void onSaveAsButtonPressed();
 
-    void onSaveResourceToStorageRequestProcessed(QUuid requestId, QByteArray dataHash, int errorCode, QString errorDescription);
+    void onSaveResourceToStorageRequestProcessed(QUuid requestId, QByteArray dataHash, QString fileStoragePath, int errorCode, QString errorDescription);
     void onSaveResourceToFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
 private:

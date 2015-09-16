@@ -79,10 +79,10 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     QObject::connect(m_pUI->saveResourceButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(GenericResourceDisplayWidget,onSaveAsButtonPressed));
 
-    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,int,QString),
-                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToStorageRequestProcessed,QUuid,QByteArray,int,QString));
-    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToStorage,QString,QByteArray,QByteArray,QUuid),
-                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QUuid));
+    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
+                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToStorageRequestProcessed,QUuid,QByteArray,QString,int,QString));
+    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToStorage,QString,QByteArray,QByteArray,QString,QUuid),
+                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QString,QUuid));
 
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
                      this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToFileRequestProcessed,bool,QString,QUuid));
@@ -121,7 +121,7 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
 
     // Write resource's data to file asynchronously so that it can further be opened in some application
     m_saveResourceToStorageRequestId = QUuid::createUuid();
-    emit saveResourceToStorage(m_pResource->localGuid(), data, *dataHash, m_saveResourceToStorageRequestId);
+    emit saveResourceToStorage(m_pResource->localGuid(), data, *dataHash, QString(), m_saveResourceToStorageRequestId);
     QNTRACE("Emitted request to save the attachment to own file storage location, request id = "
             << m_saveResourceToStorageRequestId << ", resource local guid = " << m_pResource->localGuid());
 }
@@ -239,12 +239,12 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
     QNDEBUG("Sent request to save resource to file, request id = " << m_saveResourceToFileRequestId);
 }
 
-void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid requestId,
-                                                                           QByteArray dataHash,
-                                                                           int errorCode,
+void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid requestId, QByteArray dataHash,
+                                                                           QString fileStoragePath, int errorCode,
                                                                            QString errorDescription)
 {
     Q_UNUSED(dataHash);
+    Q_UNUSED(fileStoragePath);
 
     if (requestId == m_saveResourceToStorageRequestId)
     {
