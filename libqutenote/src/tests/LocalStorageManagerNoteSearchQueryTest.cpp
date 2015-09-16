@@ -487,11 +487,15 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
         if (i == 6)
         {
-            attributes.applicationData->keysOnly = QSet<QString>();
+            if (!attributes.applicationData->keysOnly.isSet()) {
+                attributes.applicationData->keysOnly = QSet<QString>();
+            }
             auto & keysOnly = attributes.applicationData->keysOnly.ref();
             keysOnly.insert(applicationData[1]);
 
-            attributes.applicationData->fullMap = QMap<QString,QString>();
+            if (!attributes.applicationData->fullMap.isSet()) {
+                attributes.applicationData->fullMap = QMap<QString,QString>();
+            }
             auto & fullMap = attributes.applicationData->fullMap.ref();
             fullMap.insert(applicationData[1],
                            QString("Application data value at key ") + applicationData[1]);
