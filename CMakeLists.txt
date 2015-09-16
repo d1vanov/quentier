@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 2.8)
+
 if(POLICY CMP0020)
   cmake_policy(SET CMP0020 NEW)
 endif()
+if(POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW)
+endif()
+
 project(QuteNote)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libqutenote/cmake/modules)

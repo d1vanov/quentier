@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 2.8)
+
 if(POLICY CMP0020)
   cmake_policy(SET CMP0020 NEW)
 endif()
+if(POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW)
+endif()
+
 project(qutenote)
 
 include(QuteNoteAdditionalCompilerWarnings)
@@ -53,7 +58,7 @@ else()
   qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 endif()
 
-add_executable(${PROJECT_NAME}
+add_executable(${PROJECT_NAME} MACOSX_BUNDLE
                ${${PROJECT_NAME}_HEADERS}
                ${${PROJECT_NAME}_SOURCES}
                ${${PROJECT_NAME}_FORMS_HEADERS}

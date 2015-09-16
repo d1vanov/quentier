@@ -9,7 +9,9 @@
 #include <qwindowdefs.h>
 #include <QtGui/qwindowdefs_win.h>
 #elif defined Q_OS_MAC
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
 #include <QMacStyle>
+#endif
 #else
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
@@ -68,7 +70,9 @@ QStyle * applicationStyle()
 #endif
 
 #ifdef Q_OS_MAC
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     return new QMacStyle;
+#endif
 #endif
 
     const QStringList styleNames = QStyleFactory::keys();

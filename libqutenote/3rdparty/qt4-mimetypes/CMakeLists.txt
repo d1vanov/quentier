@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.6)
+
 if(POLICY CMP0020)
   cmake_policy(SET CMP0020 NEW)
+endif()
+if(POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW)
 endif()
 
 if(USE_QT5)
