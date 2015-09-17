@@ -15,8 +15,36 @@ public:
 Q_SIGNALS:
     void textCursorPositionChanged();
 
+    void textCursorPositionBoldState(bool bold);
+    void textCursorPositionItalicState(bool italic);
+    void textCursorPositionUnderlineState(bool underline);
+    void textCursorPositionStrikethgouthState(bool strikethrough);
+
+    void textCursorPositionLeftAlignment();
+    void textCursorPositionCenterAlignment();
+    void textCursorPositionRightAlignment();
+
+    void textCursorPositionInsideOrderedListState(bool insideOrderedList);
+    void textCursorPositionInsideUnorderedListState(bool insideUnorderedList);
+
+    void textCursorPositionInsideTableState(bool insideTable);
+
 public Q_SLOTS:
     void onTextCursorPositionChange();
+
+    void setTextCursorPositionBoldState(bool bold);
+    void setTextCursorPositionItalicState(bool italic);
+    void setTextCursorPositionUnderlineState(bool underline);
+    void setTextCursorPositionStrikethroughState(bool strikethrough);
+
+    void setTextCursorPositionLeftAlignment();
+    void setTextCursorPositionCenterAlignment();
+    void setTextCursorPositionRightAlignment();
+
+    void setTextCursorPositionInsideOrderedListState(bool insideOrderedList);
+    void setTextCursorPositionInsideUnorderedListState(bool insideUnorderedList);
+
+    void setTextCursorPositionInsideTableState(bool insideTable);
 };
 
 } // namespace qute_note
