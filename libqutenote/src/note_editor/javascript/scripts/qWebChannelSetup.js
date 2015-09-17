@@ -24,6 +24,7 @@
             window.pageMutationObserver = channel.objects.pageMutationObserver;
             window.enCryptElementClickHandler = channel.objects.enCryptElementClickHandler;
             window.openAndSaveResourceButtonsHandler = channel.objects.openAndSaveResourceButtonsHandler;
+            window.textCursorPositionHandler = channel.objects.textCursorPositionHandler;
 
             window.mimeTypeIconHandler = channel.objects.mimeTypeIconHandler;
             window.mimeTypeIconHandler.notifyIconFilePathForMimeType.connect(function(mimeType, iconFilePath) {

@@ -19,7 +19,9 @@ void FileIOThreadWorkerPrivate::setIdleTimePeriod(const qint32 seconds)
 }
 
 #define RESTART_TIMER() \
-    killTimer(m_postOperationTimerId); \
+    if (m_postOperationTimerId != 0) { \
+        killTimer(m_postOperationTimerId); \
+    } \
     m_postOperationTimerId = startTimer(SEC_TO_MSEC(m_idleTimePeriodSeconds)); \
     QNTRACE("FileIOThreadWorkerPrivate: started timer with id " << m_postOperationTimerId)
 
@@ -98,6 +100,8 @@ void FileIOThreadWorkerPrivate::timerEvent(QTimerEvent * pEvent)
     }
 
     killTimer(timerId);
+    m_postOperationTimerId = 0;
+
     emit readyForIO();
 }
 

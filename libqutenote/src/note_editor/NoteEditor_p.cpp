@@ -13,6 +13,7 @@ typedef QWebSettings WebSettings;
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
 #include "javascript_glue/IconThemeJavaScriptHandler.h"
 #include "javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h"
+#include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 #include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
@@ -79,6 +80,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForGenericResourceOpenAndSaveIconsJs(),
     m_setupSaveResourceButtonOnClickHandlerJs(),
     m_setupOpenResourceButtonOnClickHandlerJs(),
+    m_notifyTextCursorPositionChangedJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
     m_pWebChannel(new QWebChannel(this)),
@@ -87,6 +89,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pEnCryptElementClickHandler(new EnCryptElementOnClickHandler(this)),
     m_pIconThemeJavaScriptHandler(Q_NULLPTR),
     m_pGenericResourceOpenAndSaveButtonsOnClickHandler(new GenericResourceOpenAndSaveButtonsOnClickHandler(this)),
+    m_pTextCursorPositionJavaScriptHandler(new TextCursorPositionJavaScriptHandler(this)),
     m_webSocketServerPort(0),
 #endif
     m_writeNoteHtmlToFileRequestId(),
@@ -213,6 +216,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_provideSrcForGenericResourceOpenAndSaveIconsJs);
     page->executeJavaScript(m_setupSaveResourceButtonOnClickHandlerJs);
     page->executeJavaScript(m_setupOpenResourceButtonOnClickHandlerJs);
+    page->executeJavaScript(m_notifyTextCursorPositionChangedJs);
 #endif
 
     page->executeJavaScript(m_jQueryJs);
@@ -232,6 +236,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     provideSrcForGenericResourceOpenAndSaveIcons();
     setupSaveResourceButtonOnClickHandler();
     setupOpenResourceButtonOnClickHandler();
+    setupTextCursorPositionTracking();
 #endif
 
     QNTRACE("Evaluated all JavaScript helper functions");
@@ -539,6 +544,13 @@ void NoteEditorPrivate::onJavaScriptLoaded()
 }
 
 #endif
+
+void NoteEditorPrivate::onTextCursorPositionChange()
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorPositionChange");
+
+    // TODO: implement
+}
 
 void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
 {
@@ -1101,6 +1113,19 @@ void NoteEditorPrivate::openResource(const QString & resourceAbsoluteFilePath)
     QDesktopServices::openUrl(QUrl("file://" + resourceAbsoluteFilePath));
 }
 
+void NoteEditorPrivate::setupTextCursorPositionTracking()
+{
+    QNDEBUG("NoteEditorPrivate::setupTextCursorPositionTracking");
+
+    QString javascript = "document.body.onkeyup = notifyTextCursorPositionChanged; "
+                         "document.body.onmouseup = notifyTextCursorPositionChanged;";
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    page->executeJavaScript(javascript);
+}
+
 void NoteEditorPrivate::setupWebSocketServer()
 {
     QNDEBUG("NoteEditorPrivate::setupWebSocketServer");
@@ -1146,12 +1171,16 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     QObject::connect(m_pGenericResourceOpenAndSaveButtonsOnClickHandler, &GenericResourceOpenAndSaveButtonsOnClickHandler::openResourceRequest,
                      this, &NoteEditorPrivate::onOpenResourceButtonClicked);
 
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, &TextCursorPositionJavaScriptHandler::textCursorPositionChanged,
+                     this, &NoteEditorPrivate::onTextCursorPositionChange);
+
     m_pWebChannel->registerObject("resourceCache", m_pResourceInfoJavaScriptHandler);
     m_pWebChannel->registerObject("enCryptElementClickHandler", m_pEnCryptElementClickHandler);
     m_pWebChannel->registerObject("pageMutationObserver", m_pPageMutationHandler);
     m_pWebChannel->registerObject("mimeTypeIconHandler", m_pMimeTypeIconJavaScriptHandler);
     m_pWebChannel->registerObject("iconThemeHandler", m_pIconThemeJavaScriptHandler);
     m_pWebChannel->registerObject("openAndSaveResourceButtonsHandler", m_pGenericResourceOpenAndSaveButtonsOnClickHandler);
+    m_pWebChannel->registerObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler);
     QNDEBUG("Registered objects exposed to JavaScript");
 }
 
@@ -1229,6 +1258,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceOpenAndSaveIcons.js", m_provideSrcForGenericResourceOpenAndSaveIconsJs);
     SETUP_SCRIPT("javascript/scripts/setupSaveResourceButtonOnClickHandler.js", m_setupSaveResourceButtonOnClickHandlerJs);
     SETUP_SCRIPT("javascript/scripts/setupOpenResourceButtonOnClickHandler.js", m_setupOpenResourceButtonOnClickHandlerJs);
+    SETUP_SCRIPT("javascript/scripts/notifyTextCursorPositionChanged.js", m_notifyTextCursorPositionChangedJs);
 #endif
 
 #undef SETUP_SCRIPT
@@ -1265,6 +1295,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
     if (!encryptedAreaPluginId) {
         throw NoteEditorPluginInitializationException("Can't initialize note editor plugin for managing the encrypted text");
     }
+
+    QObject::connect(page, QNSIGNAL(NoteEditor,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
 #endif
 
     QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));

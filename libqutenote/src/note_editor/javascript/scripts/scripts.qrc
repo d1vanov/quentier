@@ -16,5 +16,6 @@
         <file>provideSrcForGenericResourceOpenAndSaveIcons.js</file>
         <file>setupSaveResourceButtonOnClickHandler.js</file>
         <file>setupOpenResourceButtonOnClickHandler.js</file>
+        <file>notifyTextCursorPositionChanged.js</file>
     </qresource>
 </RCC>

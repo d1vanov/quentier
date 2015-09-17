@@ -32,6 +32,7 @@ QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(IconThemeJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceOpenAndSaveButtonsOnClickHandler)
+QT_FORWARD_DECLARE_CLASS(TextCursorPositionJavaScriptHandler)
 #endif
 
 class NoteEditorPrivate: public QObject
@@ -119,10 +120,14 @@ private Q_SLOTS:
 
 #ifdef USE_QT_WEB_ENGINE
     void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
+
     void onOpenResourceButtonClicked(const QString & resourceHash);
     void onSaveResourceButtonClicked(const QString & resourceHash);
+
     void onJavaScriptLoaded();
 #endif
+
+    void onTextCursorPositionChange();
 
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
@@ -147,6 +152,8 @@ private:
 
     void manualSaveResourceToFile(const IResource & resource);
     void openResource(const QString & resourceAbsoluteFilePath);
+
+    void setupTextCursorPositionTracking();
 
     void setupWebSocketServer();
     void setupJavaScriptObjects();
@@ -216,6 +223,7 @@ private:
     QString     m_provideSrcForGenericResourceOpenAndSaveIconsJs;
     QString     m_setupSaveResourceButtonOnClickHandlerJs;
     QString     m_setupOpenResourceButtonOnClickHandlerJs;
+    QString     m_notifyTextCursorPositionChangedJs;
 
     QWebSocketServer * m_pWebSocketServer;
     WebSocketClientWrapper * m_pWebSocketClientWrapper;
@@ -225,6 +233,7 @@ private:
     EnCryptElementOnClickHandler * m_pEnCryptElementClickHandler;
     IconThemeJavaScriptHandler * m_pIconThemeJavaScriptHandler;
     GenericResourceOpenAndSaveButtonsOnClickHandler * m_pGenericResourceOpenAndSaveButtonsOnClickHandler;
+    TextCursorPositionJavaScriptHandler * m_pTextCursorPositionJavaScriptHandler;
 
     quint16     m_webSocketServerPort;
 #endif
