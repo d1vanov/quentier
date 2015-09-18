@@ -46,10 +46,11 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   endif()
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC12")
   message(STATUS "Visual C++ 2013 compiler supports C++11 standard.")
-  add_definitions("-DCPP11_COMPLIANT=1")
+  add_definitions("-DCPP11_COMPLIANT=1 -D_SCL_SECURE_NO_WARNINGS=1")
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC11" OR
        ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC10")
   message(STATUS "This version of Visual C++ compiler is capable of building QuteNote")
+  add_definitions("-D_SCL_SECURE_NO_WARNINGS=1")
 else()
   message(WARNING "Your C++ compiler is not officially supported for building of this application.
                    If you'd get any compilation errors, consider upgrading to a compiler version

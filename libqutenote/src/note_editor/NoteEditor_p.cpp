@@ -570,7 +570,7 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
         }
 
         Q_Q(NoteEditor);
-        QUrl url("file://" + m_noteEditorPagePath);
+        QUrl url = QUrl::fromLocalFile(m_noteEditorPagePath);
         q->load(url);
         QNTRACE("Loaded url: " << url);
         m_pendingNotePageLoad = true;
