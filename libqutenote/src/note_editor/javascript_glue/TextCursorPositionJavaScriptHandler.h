@@ -20,9 +20,9 @@ Q_SIGNALS:
     void textCursorPositionUnderlineState(bool underline);
     void textCursorPositionStrikethgouthState(bool strikethrough);
 
-    void textCursorPositionLeftAlignment();
-    void textCursorPositionCenterAlignment();
-    void textCursorPositionRightAlignment();
+    void textCursorPositionAlignLeftState(bool state);
+    void textCursorPositionAlignCenterState(bool state);
+    void textCursorPositionAlignRightState(bool state);
 
     void textCursorPositionInsideOrderedListState(bool insideOrderedList);
     void textCursorPositionInsideUnorderedListState(bool insideUnorderedList);
@@ -37,9 +37,9 @@ public Q_SLOTS:
     void setTextCursorPositionUnderlineState(bool underline);
     void setTextCursorPositionStrikethroughState(bool strikethrough);
 
-    void setTextCursorPositionLeftAlignment();
-    void setTextCursorPositionCenterAlignment();
-    void setTextCursorPositionRightAlignment();
+    void setTextCursorPositionAlignLeftState(bool state);
+    void setTextCursorPositionAlignCenterState(bool state);
+    void setTextCursorPositionAlignRightState(bool state);
 
     void setTextCursorPositionInsideOrderedListState(bool insideOrderedList);
     void setTextCursorPositionInsideUnorderedListState(bool insideUnorderedList);

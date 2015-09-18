@@ -17,5 +17,6 @@
         <file>setupSaveResourceButtonOnClickHandler.js</file>
         <file>setupOpenResourceButtonOnClickHandler.js</file>
         <file>notifyTextCursorPositionChanged.js</file>
+        <file>determineStatesForCurrentTextCursorPosition.js</file>
     </qresource>
 </RCC>

@@ -165,6 +165,7 @@ set(PRIVATE_HEADERS
     src/note_editor/ResourceFileStorageManager_p.h
     src/note_editor/ResourceInfo.h
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.h
+    src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.h
     src/types/data/DataElementWithShortcutData.h
     src/types/data/LocalStorageDataElementData.h
     src/types/data/LinkedNotebookData.h
@@ -199,7 +200,6 @@ else()
        src/note_editor/javascript_glue/EnCryptElementOnClickHandler.h
        src/note_editor/javascript_glue/IconThemeJavaScriptHandler.h
        src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h
-       src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.h
        src/note_editor/JavaScriptInOrderExecutor.h
        src/note_editor/WebSocketClientWrapper.h
        src/note_editor/WebSocketTransport.h)
@@ -219,6 +219,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ResourceFileStorageManager_p.cpp
     src/note_editor/ResourceInfo.cpp
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.cpp
+    src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.cpp
     src/types/ISharedNotebook.cpp
     src/types/IResource.cpp
     src/types/IUser.cpp
@@ -302,7 +303,6 @@ else()
     src/note_editor/javascript_glue/EnCryptElementOnClickHandler.cpp
     src/note_editor/javascript_glue/IconThemeJavaScriptHandler.cpp
     src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.cpp
-    src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.cpp
     src/note_editor/JavaScriptInOrderExecutor.cpp
     src/note_editor/WebSocketTransport.cpp
     src/note_editor/WebSocketClientWrapper.cpp)

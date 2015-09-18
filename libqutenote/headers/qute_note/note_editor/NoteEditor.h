@@ -53,6 +53,18 @@ Q_SIGNALS:
 
     void noteEditorHtmlUpdated(QString html);
 
+    // Signals to notify anyone interested of the formatting at the current cursor position
+    void textBoldState(bool state);
+    void textItalicState(bool state);
+    void textUnderlineState(bool state);
+    void textStrikethroughState(bool state);
+    void textAlignLeftState(bool state);
+    void textAlignCenterState(bool state);
+    void textAlignRightState(bool state);
+    void textInsideOrderedListState(bool state);
+    void textInsideUnorderedListState(bool state);
+    void textInsideTableState(bool state);
+
 public Q_SLOTS:
     void convertToNote();
     void undo();

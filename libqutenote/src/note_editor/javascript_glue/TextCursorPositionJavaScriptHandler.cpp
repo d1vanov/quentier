@@ -31,19 +31,19 @@ void TextCursorPositionJavaScriptHandler::setTextCursorPositionStrikethroughStat
     emit textCursorPositionStrikethgouthState(strikethrough);
 }
 
-void TextCursorPositionJavaScriptHandler::setTextCursorPositionLeftAlignment()
+void TextCursorPositionJavaScriptHandler::setTextCursorPositionAlignLeftState(bool state)
 {
-    emit textCursorPositionLeftAlignment();
+    emit textCursorPositionAlignLeftState(state);
 }
 
-void TextCursorPositionJavaScriptHandler::setTextCursorPositionCenterAlignment()
+void TextCursorPositionJavaScriptHandler::setTextCursorPositionAlignCenterState(bool state)
 {
-    emit textCursorPositionCenterAlignment();
+    emit textCursorPositionAlignCenterState(state);
 }
 
-void TextCursorPositionJavaScriptHandler::setTextCursorPositionRightAlignment()
+void TextCursorPositionJavaScriptHandler::setTextCursorPositionAlignRightState(bool state)
 {
-    emit textCursorPositionRightAlignment();
+    emit textCursorPositionAlignRightState(state);
 }
 
 void TextCursorPositionJavaScriptHandler::setTextCursorPositionInsideOrderedListState(bool insideOrderedList)

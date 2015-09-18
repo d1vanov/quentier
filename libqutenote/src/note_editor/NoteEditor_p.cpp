@@ -1,6 +1,7 @@
 #include "NoteEditor_p.h"
 #include "NoteEditorPage.h"
 #include "javascript_glue/ResourceInfoJavaScriptHandler.h"
+#include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include "EncryptedAreaPlugin.h"
@@ -13,7 +14,6 @@ typedef QWebSettings WebSettings;
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
 #include "javascript_glue/IconThemeJavaScriptHandler.h"
 #include "javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h"
-#include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 #include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
@@ -68,6 +68,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideGenericResourceDisplayNameAndSizeJs(),
     m_setupEnToDoTagsJs(),
     m_onResourceInfoReceivedJs(),
+    m_determineStatesForCurrentTextCursorPositionJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -89,13 +90,14 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pEnCryptElementClickHandler(new EnCryptElementOnClickHandler(this)),
     m_pIconThemeJavaScriptHandler(Q_NULLPTR),
     m_pGenericResourceOpenAndSaveButtonsOnClickHandler(new GenericResourceOpenAndSaveButtonsOnClickHandler(this)),
-    m_pTextCursorPositionJavaScriptHandler(new TextCursorPositionJavaScriptHandler(this)),
     m_webSocketServerPort(0),
 #endif
+    m_pTextCursorPositionJavaScriptHandler(new TextCursorPositionJavaScriptHandler(this)),
     m_writeNoteHtmlToFileRequestId(),
     m_isPageEditable(false),
     m_pendingConversionToNote(false),
     m_pendingNotePageLoad(false),
+    m_pendingIndexHtmlWritingToFile(false),
     m_pNote(nullptr),
     m_pNotebook(nullptr),
     m_modified(false),
@@ -151,6 +153,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     setupJavaScriptObjects();
 #endif
 
+    setupTextCursorPositionJavaScriptHandlerConnections();
     setupNoteEditorPage();
     setupScripts();
 
@@ -166,6 +169,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
     emit writeNoteHtmlToFile(m_noteEditorPagePath, initialHtml.toLocal8Bit(),
                              m_writeNoteHtmlToFileRequestId);
+    m_pendingIndexHtmlWritingToFile = true;
     QNTRACE("Emitted the request to write the index html file, request id: " << m_writeNoteHtmlToFileRequestId);
 }
 
@@ -199,6 +203,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 
     frame->addToJavaScriptWindowObject("resourceCache", m_pResourceInfoJavaScriptHandler,
                                        QScriptEngine::QtOwnership);
+    frame->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
+                                       QScriptEngine::QtOwnership);
 
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_qWebKitSetupJs);
@@ -225,6 +231,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
+    page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
 
     setPageEditable(true);
 
@@ -548,8 +555,9 @@ void NoteEditorPrivate::onJavaScriptLoaded()
 void NoteEditorPrivate::onTextCursorPositionChange()
 {
     QNDEBUG("NoteEditorPrivate::onTextCursorPositionChange");
-
-    // TODO: implement
+    if (!m_pendingIndexHtmlWritingToFile && !m_pendingNotePageLoad) {
+        determineStatesForCurrentTextCursorPosition();
+    }
 }
 
 void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
@@ -560,6 +568,7 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
                 << ", error description = " << errorDescription << ", request id = " << requestId);
 
         m_writeNoteHtmlToFileRequestId = QUuid();
+        m_pendingIndexHtmlWritingToFile = false;
 
         if (!success) {
             clearEditorContent();
@@ -645,6 +654,7 @@ void NoteEditorPrivate::clearEditorContent()
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
     emit writeNoteHtmlToFile(m_noteEditorPagePath, initialHtml.toLocal8Bit(),
                              m_writeNoteHtmlToFileRequestId);
+    m_pendingIndexHtmlWritingToFile = true;
 }
 
 void NoteEditorPrivate::noteToEditorContent()
@@ -735,6 +745,7 @@ void NoteEditorPrivate::noteToEditorContent()
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
     emit writeNoteHtmlToFile(m_noteEditorPagePath, m_htmlCachedMemory.toLocal8Bit(),
                              m_writeNoteHtmlToFileRequestId);
+    m_pendingIndexHtmlWritingToFile = true;
     QNTRACE("Done setting the current note and notebook");
 }
 
@@ -1113,19 +1124,6 @@ void NoteEditorPrivate::openResource(const QString & resourceAbsoluteFilePath)
     QDesktopServices::openUrl(QUrl("file://" + resourceAbsoluteFilePath));
 }
 
-void NoteEditorPrivate::setupTextCursorPositionTracking()
-{
-    QNDEBUG("NoteEditorPrivate::setupTextCursorPositionTracking");
-
-    QString javascript = "document.body.onkeyup = notifyTextCursorPositionChanged; "
-                         "document.body.onmouseup = notifyTextCursorPositionChanged;";
-
-    Q_Q(NoteEditor);
-    GET_PAGE()
-
-    page->executeJavaScript(javascript);
-}
-
 void NoteEditorPrivate::setupWebSocketServer()
 {
     QNDEBUG("NoteEditorPrivate::setupWebSocketServer");
@@ -1182,6 +1180,19 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pWebChannel->registerObject("openAndSaveResourceButtonsHandler", m_pGenericResourceOpenAndSaveButtonsOnClickHandler);
     m_pWebChannel->registerObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler);
     QNDEBUG("Registered objects exposed to JavaScript");
+}
+
+void NoteEditorPrivate::setupTextCursorPositionTracking()
+{
+    QNDEBUG("NoteEditorPrivate::setupTextCursorPositionTracking");
+
+    QString javascript = "document.body.onkeyup = notifyTextCursorPositionChanged; "
+                         "document.body.onmouseup = notifyTextCursorPositionChanged;";
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    page->executeJavaScript(javascript);
 }
 
 #endif
@@ -1245,6 +1256,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/provideGenericResourceDisplayNameAndSize.js", m_provideGenericResourceDisplayNameAndSizeJs);
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
+    SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
@@ -1284,6 +1296,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
 
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceInfoJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
+    page->mainFrame()->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
+                                                   QScriptEngine::QtOwnership);
 
     m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager,
                                                   *m_pFileIOThreadWorker, page);
@@ -1307,6 +1321,48 @@ void NoteEditorPrivate::setupNoteEditorPage()
 
     q->setPage(page);
     q->setAcceptDrops(true);
+}
+
+void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()
+{
+    QNDEBUG("NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections");
+
+    Q_Q(NoteEditor);
+
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionBoldState,bool),
+                     q, QNSIGNAL(NoteEditor,textBoldState,bool));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionItalicState,bool),
+                     q, QNSIGNAL(NoteEditor,textItalicState,bool));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionUnderlineState,bool),
+                     q, QNSIGNAL(NoteEditor,textUnderlineState,bool));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionStrikethgouthState,bool),
+                     q, QNSIGNAL(NoteEditor,textStrikethroughState,bool));
+
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionAlignLeftState,bool),
+                     q, QNSIGNAL(NoteEditor,textAlignLeftState,bool));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionAlignCenterState,bool),
+                     q, QNSIGNAL(NoteEditor,textAlignCenterState,bool));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionAlignRightState,bool),
+                     q, QNSIGNAL(NoteEditor,textAlignRightState,bool));
+
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionInsideOrderedListState,bool),
+                     q, QNSIGNAL(NoteEditor,textInsideOrderedListState,bool));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionInsideUnorderedListState,bool),
+                     q, QNSIGNAL(NoteEditor,textInsideUnorderedListState,bool));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionInsideTableState,bool),
+                     q, QNSIGNAL(NoteEditor,textInsideTableState,bool));
+}
+
+void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()
+{
+    QNDEBUG("NoteEditorPrivate::determineStatesForCurrentTextCursorPosition");
+
+    QString javascript = "determineStatesForCurrentTextCursorPosition();";
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    page->executeJavaScript(javascript);
 }
 
 void NoteEditorPrivate::setPageEditable(const bool editable)

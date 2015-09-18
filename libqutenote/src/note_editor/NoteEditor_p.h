@@ -25,6 +25,7 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(ResourceInfoJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+QT_FORWARD_DECLARE_CLASS(TextCursorPositionJavaScriptHandler)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(MimeTypeIconJavaScriptHandler)
@@ -32,7 +33,6 @@ QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(IconThemeJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceOpenAndSaveButtonsOnClickHandler)
-QT_FORWARD_DECLARE_CLASS(TextCursorPositionJavaScriptHandler)
 #endif
 
 class NoteEditorPrivate: public QObject
@@ -153,14 +153,17 @@ private:
     void manualSaveResourceToFile(const IResource & resource);
     void openResource(const QString & resourceAbsoluteFilePath);
 
-    void setupTextCursorPositionTracking();
 
     void setupWebSocketServer();
     void setupJavaScriptObjects();
+    void setupTextCursorPositionTracking();
 #endif
     void setupFileIO();
     void setupScripts();
     void setupNoteEditorPage();
+    void setupTextCursorPositionJavaScriptHandlerConnections();
+
+    void determineStatesForCurrentTextCursorPosition();
 
     bool isPageEditable() const { return m_isPageEditable; }
     void setPageEditable(const bool editable);
@@ -210,6 +213,7 @@ private:
     QString     m_provideGenericResourceDisplayNameAndSizeJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;
+    QString     m_determineStatesForCurrentTextCursorPositionJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
@@ -233,16 +237,18 @@ private:
     EnCryptElementOnClickHandler * m_pEnCryptElementClickHandler;
     IconThemeJavaScriptHandler * m_pIconThemeJavaScriptHandler;
     GenericResourceOpenAndSaveButtonsOnClickHandler * m_pGenericResourceOpenAndSaveButtonsOnClickHandler;
-    TextCursorPositionJavaScriptHandler * m_pTextCursorPositionJavaScriptHandler;
 
     quint16     m_webSocketServerPort;
 #endif
+
+    TextCursorPositionJavaScriptHandler * m_pTextCursorPositionJavaScriptHandler;
 
     QUuid       m_writeNoteHtmlToFileRequestId;
 
     bool        m_isPageEditable;
     bool        m_pendingConversionToNote;
     bool        m_pendingNotePageLoad;
+    bool        m_pendingIndexHtmlWritingToFile;
 
     Note *      m_pNote;
     Notebook *  m_pNotebook;
