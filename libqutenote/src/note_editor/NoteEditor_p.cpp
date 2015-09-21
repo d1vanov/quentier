@@ -93,6 +93,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_webSocketServerPort(0),
 #endif
     m_pTextCursorPositionJavaScriptHandler(new TextCursorPositionJavaScriptHandler(this)),
+    m_currentTextFormattingState(),
     m_writeNoteHtmlToFileRequestId(),
     m_isPageEditable(false),
     m_pendingConversionToNote(false),
@@ -558,6 +559,95 @@ void NoteEditorPrivate::onTextCursorPositionChange()
     if (!m_pendingIndexHtmlWritingToFile && !m_pendingNotePageLoad) {
         determineStatesForCurrentTextCursorPosition();
     }
+}
+
+void NoteEditorPrivate::onTextCursorBoldStateChanged(bool state)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorBoldStateChanged: " << (state ? "bold" : "not bold"));
+    m_currentTextFormattingState.m_bold = state;
+
+    // TODO: emit the signal from NoteEditor
+}
+
+void NoteEditorPrivate::onTextCursorItalicStateChanged(bool state)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorItalicStateChanged: " << (state ? "italic" : "not italic"));
+    m_currentTextFormattingState.m_italic = state;
+
+    // TODO: emit the signal from NoteEditor
+}
+
+void NoteEditorPrivate::onTextCursorUnderlineStateChanged(bool state)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorUnderlineStateChanged: " << (state ? "underline" : "not underline"));
+    m_currentTextFormattingState.m_underline = state;
+
+    // TODO: emit the signal from NoteEditor
+}
+
+void NoteEditorPrivate::onTextCursorStrikethgouthStateChanged(bool state)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorStrikethgouthStateChanged: " << (state ? "strikethrough" : "not strikethrough"));
+    m_currentTextFormattingState.m_strikethrough = state;
+
+    // TODO: emit the signal from NoteEditor
+}
+
+void NoteEditorPrivate::onTextCursorAlignLeftStateChanged(bool state)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorAlignLeftStateChanged: " << (state ? "true" : "false"));
+
+    if (state) {
+        m_currentTextFormattingState.m_alignment = Alignment::Left;
+    }
+
+    // TODO: emit the signal from NoteEditor
+}
+
+void NoteEditorPrivate::onTextCursorAlignCenterStateChanged(bool state)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorAlignCenterStateChanged: " << (state ? "true" : "false"));
+
+    if (state) {
+        m_currentTextFormattingState.m_alignment = Alignment::Center;
+    }
+
+    // TODO: emit the signal from NoteEditor
+}
+
+void NoteEditorPrivate::onTextCursorAlignRightStateChanged(bool state)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorAlignRightStateChanged: " << (state ? "true" : "false"));
+
+    if (state) {
+        m_currentTextFormattingState.m_alignment = Alignment::Right;
+    }
+
+    // TODO: emit the signal from NoteEditor
+}
+
+void NoteEditorPrivate::onTextCursorInsideOrderedListStateChanged(bool state)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorInsideOrderedListStateChanged: " << (state ? "true" : "false"));
+    m_currentTextFormattingState.m_insideOrderedList = state;
+
+    // TODO: emit the signal from NoteEditor
+}
+
+void NoteEditorPrivate::onTextCursorInsideUnorderedListStateChanged(bool state)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorInsideUnorderedListStateChanged: " << (state ? "true" : "false"));
+    m_currentTextFormattingState.m_insideUnorderedList = state;
+
+    // TODO: emit the signal from NoteEditor
+}
+
+void NoteEditorPrivate::onTextCursorInsideTableStateChanged(bool state)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorInsideTableStateChanged: " << (state ? "true" : "false"));
+    m_currentTextFormattingState.m_insideTable = state;
+
+    // TODO: emit the signal from NoteEditor
 }
 
 void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)

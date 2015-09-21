@@ -129,6 +129,17 @@ private Q_SLOTS:
 
     void onTextCursorPositionChange();
 
+    void onTextCursorBoldStateChanged(bool state);
+    void onTextCursorItalicStateChanged(bool state);
+    void onTextCursorUnderlineStateChanged(bool state);
+    void onTextCursorStrikethgouthStateChanged(bool state);
+    void onTextCursorAlignLeftStateChanged(bool state);
+    void onTextCursorAlignCenterStateChanged(bool state);
+    void onTextCursorAlignRightStateChanged(bool state);
+    void onTextCursorInsideOrderedListStateChanged(bool state);
+    void onTextCursorInsideUnorderedListStateChanged(bool state);
+    void onTextCursorInsideTableStateChanged(bool state);
+
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
 private:
@@ -198,6 +209,40 @@ private:
     friend class HtmlRetrieveFunctor<QString>;
     friend class HtmlRetrieveFunctor<QVariant>;
 
+    struct Alignment
+    {
+        enum type {
+            Left = 0,
+            Center,
+            Right
+        };
+    };
+
+    struct TextFormattingState
+    {
+        TextFormattingState() :
+            m_bold(false),
+            m_italic(false),
+            m_underline(false),
+            m_strikethrough(false),
+            m_alignment(Alignment::Left),
+            m_insideOrderedList(false),
+            m_insideUnorderedList(false),
+            m_insideTable(false)
+        {}
+
+        bool m_bold;
+        bool m_italic;
+        bool m_underline;
+        bool m_strikethrough;
+
+        Alignment::type m_alignment;
+
+        bool m_insideOrderedList;
+        bool m_insideUnorderedList;
+        bool m_insideTable;
+    };
+
 private:
     QString     m_noteEditorPageFolderPath;
     QString     m_noteEditorPagePath;
@@ -242,6 +287,8 @@ private:
 #endif
 
     TextCursorPositionJavaScriptHandler * m_pTextCursorPositionJavaScriptHandler;
+
+    TextFormattingState     m_currentTextFormattingState;
 
     QUuid       m_writeNoteHtmlToFileRequestId;
 
