@@ -147,21 +147,25 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
 void MainWindow::onNoteTextBoldToggled()
 {
     m_pNoteEditor->textBold();
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextItalicToggled()
 {
     m_pNoteEditor->textItalic();
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextUnderlineToggled()
 {
     m_pNoteEditor->textUnderline();
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextStrikethroughToggled()
 {
     m_pNoteEditor->textStrikethrough();
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextAlignLeftAction()
@@ -172,6 +176,7 @@ void MainWindow::onNoteTextAlignLeftAction()
     }
 
     m_pNoteEditor->alignLeft();
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextAlignCenterAction()
@@ -182,6 +187,7 @@ void MainWindow::onNoteTextAlignCenterAction()
     }
 
     m_pNoteEditor->alignCenter();
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextAlignRightAction()
@@ -192,41 +198,49 @@ void MainWindow::onNoteTextAlignRightAction()
     }
 
     m_pNoteEditor->alignRight();
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextAddHorizontalLineAction()
 {
     m_pNoteEditor->insertHorizontalLine();
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextIncreaseIndentationAction()
 {
     m_pNoteEditor->changeIndentation(/* increase = */ true);
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextDecreaseIndentationAction()
 {
     m_pNoteEditor->changeIndentation(/* increase = */ false);
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextInsertUnorderedListAction()
 {
     m_pNoteEditor->insertBulletedList();
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextInsertOrderedListAction()
 {
     m_pNoteEditor->insertNumberedList();
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteChooseTextColor()
 {
     // TODO: implement
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteChooseSelectedTextColor()
 {
     // TODO: implement
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextInsertToDoCheckBoxAction()
