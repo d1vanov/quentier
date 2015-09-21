@@ -36,8 +36,8 @@ using namespace qute_note;
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
-    m_currentStatusBarChildWidget(nullptr),
-    m_pNoteEditor(nullptr),
+    m_currentStatusBarChildWidget(Q_NULLPTR),
+    m_pNoteEditor(Q_NULLPTR),
     m_lastNoteEditorHtml(),
     m_testNotebook(),
     m_testNote()
@@ -130,9 +130,9 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
 {
     QStatusBar * pStatusBar = m_pUI->statusBar;
 
-    if (m_currentStatusBarChildWidget != nullptr) {
+    if (m_currentStatusBarChildWidget != Q_NULLPTR) {
         pStatusBar->removeWidget(m_currentStatusBarChildWidget);
-        m_currentStatusBarChildWidget = nullptr;
+        m_currentStatusBarChildWidget = Q_NULLPTR;
     }
 
     if (duration == 0) {
@@ -401,6 +401,13 @@ void MainWindow::onNoteEditorHtmlUpdate(QString html)
     }
 
     updateNoteHtmlView(html);
+}
+
+void MainWindow::onNoteEditorError(QString error)
+{
+    QNINFO("MainWindow::onNoteEditorError: " << error);
+
+    onSetStatusBarText(error, 20);
 }
 
 void MainWindow::onNoteEditorBoldStateChanged(bool state)

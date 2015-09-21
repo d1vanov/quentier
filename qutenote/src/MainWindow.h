@@ -3,6 +3,7 @@
 
 #include <qute_note/types/Notebook.h>
 #include <qute_note/types/Note.h>
+#include <qute_note/utility/Qt4Helper.h>
 
 #include <QtCore>
 
@@ -27,7 +28,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit MainWindow(QWidget * pParentWidget = nullptr);
+    explicit MainWindow(QWidget * pParentWidget = Q_NULLPTR);
     virtual ~MainWindow();
 
 private:
@@ -65,6 +66,7 @@ private Q_SLOTS:
     void onSetTestNoteWithResources();
 
     void onNoteEditorHtmlUpdate(QString html);
+    void onNoteEditorError(QString error);
 
     // Slots used to reflect the change of formatting for the piece of text being the one currently pointed to by the text cursor in the note editor
     void onNoteEditorBoldStateChanged(bool state);
