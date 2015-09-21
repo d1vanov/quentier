@@ -32,38 +32,51 @@ public:
 
 private:
     void connectActionsToEditorSlots();
+    void connectEditorSignalsToSlots();
 
 public Q_SLOTS:
     void onSetStatusBarText(QString message, const int duration = 0);
 
 private Q_SLOTS:
-    void noteTextBold();
-    void noteTextItalic();
-    void noteTextUnderline();
-    void noteTextStrikeThrough();
-    void noteTextAlignLeft();
-    void noteTextAlignCenter();
-    void noteTextAlignRight();
-    void noteTextAddHorizontalLine();
-    void noteTextIncreaseIndentation();
-    void noteTextDecreaseIndentation();
-    void noteTextInsertUnorderedList();
-    void noteTextInsertOrderedList();
+    void onNoteTextBoldToggled();
+    void onNoteTextItalicToggled();
+    void onNoteTextUnderlineToggled();
+    void onNoteTextStrikethroughToggled();
+    void onNoteTextAlignLeftAction();
+    void onNoteTextAlignCenterAction();
+    void onNoteTextAlignRightAction();
+    void onNoteTextAddHorizontalLineAction();
+    void onNoteTextIncreaseIndentationAction();
+    void onNoteTextDecreaseIndentationAction();
+    void onNoteTextInsertUnorderedListAction();
+    void onNoteTextInsertOrderedListAction();
 
-    void noteChooseTextColor();
-    void noteChooseSelectedTextColor();
+    void onNoteChooseTextColor();
+    void onNoteChooseSelectedTextColor();
 
-    void noteTextSpellCheck() { /* TODO: implement */ }
-    void noteTextInsertToDoCheckBox();
+    void onNoteTextSpellCheckToggled() { /* TODO: implement */ }
+    void onNoteTextInsertToDoCheckBoxAction();
 
-    void noteTextInsertTableDialog();
-    void noteTextInsertTable(int rows, int columns, double width, bool relativeWidth);
+    void onNoteTextInsertTableDialogAction();
+    void onNoteTextInsertTable(int rows, int columns, double width, bool relativeWidth);
 
     void onShowNoteSource();
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
 
     void onNoteEditorHtmlUpdate(QString html);
+
+    // Slots used to reflect the change of formatting for the piece of text being the one currently pointed to by the text cursor in the note editor
+    void onNoteEditorBoldStateChanged(bool state);
+    void onNoteEditorItalicStateChanged(bool state);
+    void onNoteEditorUnderlineStateChanged(bool state);
+    void onNoteEditorStrikethroughStateChanged(bool state);
+    void onNoteEditorAlignLeftStateChanged(bool state);
+    void onNoteEditorAlignCenterStateChanged(bool state);
+    void onNoteEditorAlignRightStateChanged(bool state);
+    void onNoteEditorInsideOrderedListStateChanged(bool state);
+    void onNoteEditorInsideUnorderedListStateChanged(bool state);
+    void onNoteEditorInsideTableStateChanged(bool state);
 
 private:
     void checkThemeIconsAndSetFallbacks();

@@ -660,7 +660,7 @@ color: rgb(255, 255, 255);</string>
                  <string>Ctrl+B</string>
                 </property>
                 <property name="checkable">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="flat">
                  <bool>true</bool>
@@ -681,7 +681,7 @@ color: rgb(255, 255, 255);</string>
                  <string>Ctrl+I</string>
                 </property>
                 <property name="checkable">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="flat">
                  <bool>true</bool>
@@ -702,7 +702,7 @@ color: rgb(255, 255, 255);</string>
                  <string>Ctrl+U</string>
                 </property>
                 <property name="checkable">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="flat">
                  <bool>true</bool>
@@ -723,7 +723,7 @@ color: rgb(255, 255, 255);</string>
                  <string>Ctrl+Shift+S</string>
                 </property>
                 <property name="checkable">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="flat">
                  <bool>true</bool>
@@ -740,6 +740,9 @@ color: rgb(255, 255, 255);</string>
                   <normaloff/>
                  </iconset>
                 </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
                 <property name="flat">
                  <bool>true</bool>
                 </property>
@@ -755,6 +758,9 @@ color: rgb(255, 255, 255);</string>
                   <normaloff/>
                  </iconset>
                 </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
                 <property name="flat">
                  <bool>true</bool>
                 </property>
@@ -769,6 +775,9 @@ color: rgb(255, 255, 255);</string>
                  <iconset theme="format-justify-right">
                   <normaloff/>
                  </iconset>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
                 </property>
                 <property name="flat">
                  <bool>true</bool>
@@ -939,6 +948,9 @@ color: rgb(255, 255, 255);</string>
                   <normaloff/>
                  </iconset>
                 </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
                 <property name="flat">
                  <bool>true</bool>
                 </property>
@@ -953,6 +965,9 @@ color: rgb(255, 255, 255);</string>
                  <iconset theme="format-list-unordered">
                   <normaloff/>
                  </iconset>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
                 </property>
                 <property name="flat">
                  <bool>true</bool>
