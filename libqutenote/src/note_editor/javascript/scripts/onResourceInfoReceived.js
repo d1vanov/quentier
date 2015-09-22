@@ -11,6 +11,10 @@ function onResourceInfoReceived(resourceHash, filePath, displayName, displaySize
     var escapedPath = filePath.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
 
     var resource = resources[0];
+    if (!resource) {
+        return;
+    }
+
     resource.setAttribute("src", escapedPath);
 
     var resourceName = resource.getElementsByClassName("resource-name");
