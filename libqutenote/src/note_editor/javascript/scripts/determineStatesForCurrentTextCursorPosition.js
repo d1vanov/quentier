@@ -27,9 +27,50 @@ function determineStatesForCurrentTextCursorPosition() {
 
     var foundTable = false;
 
+    var foundImageResource = false;
+    var foundNonImageResource = false;
+    var resourceHash = "";
+
+    var foundEnCryptTag = false;
+    var cipher = "";
+    var encryptedText = "";
+    var length = "";
+
     var textAlign;
 
     while(element) {
+        if( Object.prototype.toString.call( element ) === '[object Array]' ) {
+            element = element[0];
+            if (!element) {
+                break;
+            }
+        }
+
+        if (element.nodeType == 1) {
+            console.log("Testing for resource...");
+            if (element.getAttribute("en-tag") == "en-media") {
+                if (element.nodeName == "img") {
+                    foundImageResource = true;
+                    resourceHash = element.getAttribute("hash");
+                    break;
+                }
+                else if (element.nodeName == "div") {
+                    foundNonImageResource = true;
+                    resourceHash = element.getAttribute("hash");
+                    break;
+                }
+            }
+
+            console.log("Testing for en-crypt tag...");
+            if (element.getAttribute("en-tag") == "en-crypt") {
+                foundEnCryptTag = true;
+                cipher = element.getAttribute("cipher");
+                length = element.getAttribute("length");
+                encryptedText = element.getAttribute("encrypted_text");
+                break;
+            }
+        }
+
         if (element.nodeName == "B") {
             foundBold = true;
         }
@@ -74,6 +115,14 @@ function determineStatesForCurrentTextCursorPosition() {
         }
 
         element = element.parentNode;
+    }
+
+    textCursorPositionHandler.setOnImageResourceState(foundImageResource, resourceHash);
+    textCursorPositionHandler.setOnNonImageResourceState(foundNonImageResource, resourceHash);
+    textCursorPositionHandler.setOnEnCryptTagState(foundEnCryptTag, encryptedText, cipher, length);
+
+    if (foundImageResource || foundNonImageResource || foundEnCryptTag) {
+        return;
     }
 
     textCursorPositionHandler.setTextCursorPositionBoldState(foundBold);

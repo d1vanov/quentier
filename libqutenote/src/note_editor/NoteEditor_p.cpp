@@ -46,6 +46,7 @@ typedef QWebEngineSettings WebSettings;
 #include <QMimeData>
 #include <QMimeDatabase>
 #include <QThread>
+#include <QContextMenuEvent>
 
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(q->page()); \
@@ -566,7 +567,7 @@ void NoteEditorPrivate::onTextCursorBoldStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorBoldStateChanged: " << (state ? "bold" : "not bold"));
     m_currentTextFormattingState.m_bold = state;
 
-    // TODO: emit the signal from NoteEditor
+    emit textCursorPositionBoldState(state);
 }
 
 void NoteEditorPrivate::onTextCursorItalicStateChanged(bool state)
@@ -574,7 +575,7 @@ void NoteEditorPrivate::onTextCursorItalicStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorItalicStateChanged: " << (state ? "italic" : "not italic"));
     m_currentTextFormattingState.m_italic = state;
 
-    // TODO: emit the signal from NoteEditor
+    emit textCursorPositionItalicState(state);
 }
 
 void NoteEditorPrivate::onTextCursorUnderlineStateChanged(bool state)
@@ -582,7 +583,7 @@ void NoteEditorPrivate::onTextCursorUnderlineStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorUnderlineStateChanged: " << (state ? "underline" : "not underline"));
     m_currentTextFormattingState.m_underline = state;
 
-    // TODO: emit the signal from NoteEditor
+    emit textCursorPositionUnderlineState(state);
 }
 
 void NoteEditorPrivate::onTextCursorStrikethgouthStateChanged(bool state)
@@ -590,7 +591,7 @@ void NoteEditorPrivate::onTextCursorStrikethgouthStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorStrikethgouthStateChanged: " << (state ? "strikethrough" : "not strikethrough"));
     m_currentTextFormattingState.m_strikethrough = state;
 
-    // TODO: emit the signal from NoteEditor
+    emit textCursorPositionStrikethgouthState(state);
 }
 
 void NoteEditorPrivate::onTextCursorAlignLeftStateChanged(bool state)
@@ -601,7 +602,7 @@ void NoteEditorPrivate::onTextCursorAlignLeftStateChanged(bool state)
         m_currentTextFormattingState.m_alignment = Alignment::Left;
     }
 
-    // TODO: emit the signal from NoteEditor
+    emit textCursorPositionAlignLeftState(state);
 }
 
 void NoteEditorPrivate::onTextCursorAlignCenterStateChanged(bool state)
@@ -612,7 +613,7 @@ void NoteEditorPrivate::onTextCursorAlignCenterStateChanged(bool state)
         m_currentTextFormattingState.m_alignment = Alignment::Center;
     }
 
-    // TODO: emit the signal from NoteEditor
+    emit textCursorPositionAlignCenterState(state);
 }
 
 void NoteEditorPrivate::onTextCursorAlignRightStateChanged(bool state)
@@ -623,7 +624,7 @@ void NoteEditorPrivate::onTextCursorAlignRightStateChanged(bool state)
         m_currentTextFormattingState.m_alignment = Alignment::Right;
     }
 
-    // TODO: emit the signal from NoteEditor
+    emit textCursorPositionAlignRightState(state);
 }
 
 void NoteEditorPrivate::onTextCursorInsideOrderedListStateChanged(bool state)
@@ -631,7 +632,7 @@ void NoteEditorPrivate::onTextCursorInsideOrderedListStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorInsideOrderedListStateChanged: " << (state ? "true" : "false"));
     m_currentTextFormattingState.m_insideOrderedList = state;
 
-    // TODO: emit the signal from NoteEditor
+    emit textCursorPositionInsideOrderedListState(state);
 }
 
 void NoteEditorPrivate::onTextCursorInsideUnorderedListStateChanged(bool state)
@@ -639,7 +640,7 @@ void NoteEditorPrivate::onTextCursorInsideUnorderedListStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorInsideUnorderedListStateChanged: " << (state ? "true" : "false"));
     m_currentTextFormattingState.m_insideUnorderedList = state;
 
-    // TODO: emit the signal from NoteEditor
+    emit textCursorPositionInsideUnorderedListState(state);
 }
 
 void NoteEditorPrivate::onTextCursorInsideTableStateChanged(bool state)
@@ -647,7 +648,41 @@ void NoteEditorPrivate::onTextCursorInsideTableStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorInsideTableStateChanged: " << (state ? "true" : "false"));
     m_currentTextFormattingState.m_insideTable = state;
 
-    // TODO: emit the signal from NoteEditor
+    emit textCursorPositionInsideTableState(state);
+}
+
+void NoteEditorPrivate::onTextCursorOnImageResourceStateChanged(bool state, QString resourceHash)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorOnImageResourceStateChanged: " << (state ? "yes" : "no")
+            << ", resource hash = " << resourceHash);
+
+    m_currentTextFormattingState.m_onImageResource = state;
+    if (state) {
+        m_currentTextFormattingState.m_resourceHash = resourceHash;
+    }
+}
+
+void NoteEditorPrivate::onTextCursorOnNonImageResourceStateChanged(bool state, QString resourceHash)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorOnNonImageResourceStateChanged: " << (state ? "yes" : "no")
+            << ", resource hash = " << resourceHash);
+
+    m_currentTextFormattingState.m_onNonImageResource = state;
+    if (state) {
+        m_currentTextFormattingState.m_resourceHash = resourceHash;
+    }
+}
+
+void NoteEditorPrivate::onTextCursorOnEnCryptTagStateChanged(bool state, QString encryptedText, QString cipher, QString length)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorOnEnCryptTagStateChanged: " << (state ? "yes" : "no")
+            << ", encrypted text = " << encryptedText << ", cipher = " << cipher << ", length = " << length);
+    m_currentTextFormattingState.m_onEnCryptTag = state;
+    if (state) {
+        m_currentTextFormattingState.m_encryptedText = encryptedText;
+        m_currentTextFormattingState.m_cipher = cipher;
+        m_currentTextFormattingState.m_length = length;
+    }
 }
 
 void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
@@ -1417,30 +1452,52 @@ void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()
 {
     QNDEBUG("NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections");
 
-    Q_Q(NoteEditor);
-
+    // Connect JavaScript glue object's signals to slots
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionBoldState,bool),
-                     q, QNSIGNAL(NoteEditor,textBoldState,bool));
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorBoldStateChanged,bool));
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionItalicState,bool),
-                     q, QNSIGNAL(NoteEditor,textItalicState,bool));
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorItalicStateChanged,bool));
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionUnderlineState,bool),
-                     q, QNSIGNAL(NoteEditor,textUnderlineState,bool));
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorUnderlineStateChanged,bool));
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionStrikethgouthState,bool),
-                     q, QNSIGNAL(NoteEditor,textStrikethroughState,bool));
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorStrikethgouthStateChanged,bool));
 
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionAlignLeftState,bool),
-                     q, QNSIGNAL(NoteEditor,textAlignLeftState,bool));
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorAlignLeftStateChanged,bool));
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionAlignCenterState,bool),
-                     q, QNSIGNAL(NoteEditor,textAlignCenterState,bool));
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorAlignCenterStateChanged,bool));
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionAlignRightState,bool),
-                     q, QNSIGNAL(NoteEditor,textAlignRightState,bool));
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorAlignRightStateChanged,bool));
 
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionInsideOrderedListState,bool),
-                     q, QNSIGNAL(NoteEditor,textInsideOrderedListState,bool));
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorInsideOrderedListStateChanged,bool));
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionInsideUnorderedListState,bool),
-                     q, QNSIGNAL(NoteEditor,textInsideUnorderedListState,bool));
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorInsideUnorderedListStateChanged,bool));
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionInsideTableState,bool),
-                     q, QNSIGNAL(NoteEditor,textInsideTableState,bool));
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorInsideTableStateChanged,bool));
+
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionOnImageResourceState,bool,QString),
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorOnImageResourceStateChanged,bool,QString));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionOnNonImageResourceState,bool,QString),
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorOnNonImageResourceStateChanged,bool,QString));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionOnEnCryptTagState,bool,QString,QString,QString),
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorOnEnCryptTagStateChanged,bool,QString,QString,QString));
+
+    // Connect signals to signals of public class
+    Q_Q(NoteEditor);
+
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionBoldState,bool), q, QNSIGNAL(NoteEditor,textBoldState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionItalicState,bool), q, QNSIGNAL(NoteEditor,textItalicState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionUnderlineState,bool), q, QNSIGNAL(NoteEditor,textUnderlineState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionStrikethgouthState,bool), q, QNSIGNAL(NoteEditor,textStrikethroughState,bool));
+
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionAlignLeftState,bool), q, QNSIGNAL(NoteEditor,textAlignLeftState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionAlignCenterState,bool), q, QNSIGNAL(NoteEditor,textAlignCenterState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionAlignRightState,bool), q, QNSIGNAL(NoteEditor,textAlignRightState,bool));
+
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionInsideOrderedListState,bool), q, QNSIGNAL(NoteEditor,textInsideOrderedListState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionInsideUnorderedListState,bool), q, QNSIGNAL(NoteEditor,textInsideUnorderedListState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionInsideTableState,bool), q, QNSIGNAL(NoteEditor,textInsideTableState,bool));
 }
 
 void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()
@@ -2091,6 +2148,18 @@ void NoteEditorPrivate::dropFile(QString & filepath)
     pair.first = fileInfo.fileName();
     pair.second = mimeType;
     emit readDroppedFileData(filepath, readDroppedFileRequestId);
+}
+
+void NoteEditorPrivate::onContextMenuEvent(QContextMenuEvent * event)
+{
+    QNDEBUG("NoteEditorPrivate::onContextMenuEvent");
+
+    if (Q_UNLIKELY(!event)) {
+        QNTRACE("Null context menu event detected");
+        return;
+    }
+
+    // TODO: continue from here
 }
 
 } // namespace qute_note

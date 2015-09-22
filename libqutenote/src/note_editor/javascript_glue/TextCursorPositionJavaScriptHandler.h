@@ -15,6 +15,10 @@ public:
 Q_SIGNALS:
     void textCursorPositionChanged();
 
+    void textCursorPositionOnImageResourceState(bool state, QString resourceHash);
+    void textCursorPositionOnNonImageResourceState(bool state, QString resourceHash);
+    void textCursorPositionOnEnCryptTagState(bool state, QString encryptedText, QString cipher, QString length);
+
     void textCursorPositionBoldState(bool bold);
     void textCursorPositionItalicState(bool italic);
     void textCursorPositionUnderlineState(bool underline);
@@ -31,6 +35,10 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void onTextCursorPositionChange();
+
+    void setOnImageResourceState(bool state, QString resourceHash);
+    void setOnNonImageResourceState(bool state, QString resourceHash);
+    void setOnEnCryptTagState(bool state, QString encryptedText, QString cipher, QString length);
 
     void setTextCursorPositionBoldState(bool bold);
     void setTextCursorPositionItalicState(bool italic);

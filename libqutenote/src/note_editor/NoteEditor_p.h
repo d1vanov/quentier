@@ -13,6 +13,7 @@ QT_FORWARD_DECLARE_CLASS(QByteArray)
 QT_FORWARD_DECLARE_CLASS(QMimeType)
 QT_FORWARD_DECLARE_CLASS(QImage)
 QT_FORWARD_DECLARE_CLASS(QThread)
+QT_FORWARD_DECLARE_CLASS(QContextMenuEvent)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(QWebChannel)
@@ -75,6 +76,8 @@ public:
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
 
+    void onContextMenuEvent(QContextMenuEvent * event);
+
     // Returns the local guid of the new resource
     QString attachResourceToNote(const QByteArray & data, const QByteArray &dataHash,
                                  const QMimeType & mimeType, const QString & filename);
@@ -109,6 +112,17 @@ Q_SIGNALS:
     void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId);
 #endif
 
+    void textCursorPositionBoldState(bool state);
+    void textCursorPositionItalicState(bool state);
+    void textCursorPositionUnderlineState(bool state);
+    void textCursorPositionStrikethgouthState(bool state);
+    void textCursorPositionAlignLeftState(bool state);
+    void textCursorPositionAlignCenterState(bool state);
+    void textCursorPositionAlignRightState(bool state);
+    void textCursorPositionInsideOrderedListState(bool state);
+    void textCursorPositionInsideUnorderedListState(bool state);
+    void textCursorPositionInsideTableState(bool state);
+
 private Q_SLOTS:
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
     void onNoteLoadFinished(bool ok);
@@ -140,6 +154,10 @@ private Q_SLOTS:
     void onTextCursorInsideUnorderedListStateChanged(bool state);
     void onTextCursorInsideTableStateChanged(bool state);
 
+    void onTextCursorOnImageResourceStateChanged(bool state, QString resourceHash);
+    void onTextCursorOnNonImageResourceStateChanged(bool state, QString resourceHash);
+    void onTextCursorOnEnCryptTagStateChanged(bool state, QString encryptedText, QString cipher, QString length);
+
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
 private:
@@ -163,7 +181,6 @@ private:
 
     void manualSaveResourceToFile(const IResource & resource);
     void openResource(const QString & resourceAbsoluteFilePath);
-
 
     void setupWebSocketServer();
     void setupJavaScriptObjects();
@@ -228,7 +245,14 @@ private:
             m_alignment(Alignment::Left),
             m_insideOrderedList(false),
             m_insideUnorderedList(false),
-            m_insideTable(false)
+            m_insideTable(false),
+            m_onImageResource(false),
+            m_onNonImageResource(false),
+            m_resourceHash(),
+            m_onEnCryptTag(false),
+            m_encryptedText(),
+            m_cipher(),
+            m_length()
         {}
 
         bool m_bold;
@@ -241,6 +265,15 @@ private:
         bool m_insideOrderedList;
         bool m_insideUnorderedList;
         bool m_insideTable;
+
+        bool m_onImageResource;
+        bool m_onNonImageResource;
+        QString m_resourceHash;
+
+        bool m_onEnCryptTag;
+        QString m_encryptedText;
+        QString m_cipher;
+        QString m_length;
     };
 
 private:

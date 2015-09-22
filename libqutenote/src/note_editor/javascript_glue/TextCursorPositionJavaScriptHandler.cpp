@@ -11,6 +11,21 @@ void TextCursorPositionJavaScriptHandler::onTextCursorPositionChange()
     emit textCursorPositionChanged();
 }
 
+void TextCursorPositionJavaScriptHandler::setOnImageResourceState(bool state, QString resourceHash)
+{
+    emit textCursorPositionOnImageResourceState(state, resourceHash);
+}
+
+void TextCursorPositionJavaScriptHandler::setOnNonImageResourceState(bool state, QString resourceHash)
+{
+    emit textCursorPositionOnNonImageResourceState(state, resourceHash);
+}
+
+void TextCursorPositionJavaScriptHandler::setOnEnCryptTagState(bool state, QString encryptedText, QString cipher, QString length)
+{
+    emit textCursorPositionOnEnCryptTagState(state, encryptedText, cipher, length);
+}
+
 void TextCursorPositionJavaScriptHandler::setTextCursorPositionBoldState(bool bold)
 {
     emit textCursorPositionBoldState(bold);

@@ -15,6 +15,8 @@ typedef QWebView WebView;
 typedef QWebPage WebPage;
 #endif
 
+QT_FORWARD_DECLARE_CLASS(QContextMenuEvent)
+
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Notebook)
@@ -97,6 +99,7 @@ public Q_SLOTS:
 
 private:
     virtual void dropEvent(QDropEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     NoteEditorPrivate * const   d_ptr;
