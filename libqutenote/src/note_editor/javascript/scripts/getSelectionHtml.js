@@ -14,5 +14,5 @@ function getSelectionHtml() {
             html = document.selection.createRange().htmlText;
         }
     }
-    alert(html);
+    return html;
 }

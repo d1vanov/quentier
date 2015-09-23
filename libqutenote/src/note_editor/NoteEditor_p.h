@@ -13,7 +13,6 @@ QT_FORWARD_DECLARE_CLASS(QByteArray)
 QT_FORWARD_DECLARE_CLASS(QMimeType)
 QT_FORWARD_DECLARE_CLASS(QImage)
 QT_FORWARD_DECLARE_CLASS(QThread)
-QT_FORWARD_DECLARE_CLASS(QContextMenuEvent)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(QWebChannel)
@@ -75,8 +74,6 @@ public:
 
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
-
-    void onContextMenuEvent(QContextMenuEvent * event);
 
     // Returns the local guid of the new resource
     QString attachResourceToNote(const QByteArray & data, const QByteArray &dataHash,
@@ -292,6 +289,7 @@ private:
     QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
+    QString     m_contextMenuEventHandlerJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;

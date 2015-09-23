@@ -46,7 +46,6 @@ typedef QWebEngineSettings WebSettings;
 #include <QMimeData>
 #include <QMimeDatabase>
 #include <QThread>
-#include <QContextMenuEvent>
 
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(q->page()); \
@@ -70,6 +69,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_setupEnToDoTagsJs(),
     m_onResourceInfoReceivedJs(),
     m_determineStatesForCurrentTextCursorPositionJs(),
+    m_contextMenuEventHandlerJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -230,10 +230,13 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_jQueryJs);
     page->executeJavaScript(m_resizableTableColumnsJs);
     page->executeJavaScript(m_onFixedWidthTableResizeJs);
+    page->executeJavaScript(m_getSelectionHtmlJs);
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
+    page->executeJavaScript(m_contextMenuEventHandlerJs);
+    page->executeJavaScript("document.addEventListener(\"contextmenu\", contextMenuEventHandler);");
 
     setPageEditable(true);
 
@@ -1382,6 +1385,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
+    SETUP_SCRIPT("javascript/scripts/contextMenuEventHandler.js", m_contextMenuEventHandlerJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
@@ -2148,18 +2152,6 @@ void NoteEditorPrivate::dropFile(QString & filepath)
     pair.first = fileInfo.fileName();
     pair.second = mimeType;
     emit readDroppedFileData(filepath, readDroppedFileRequestId);
-}
-
-void NoteEditorPrivate::onContextMenuEvent(QContextMenuEvent * event)
-{
-    QNDEBUG("NoteEditorPrivate::onContextMenuEvent");
-
-    if (Q_UNLIKELY(!event)) {
-        QNTRACE("Null context menu event detected");
-        return;
-    }
-
-    // TODO: continue from here
 }
 
 } // namespace qute_note

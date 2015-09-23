@@ -9,7 +9,6 @@
 #include <qute_note/types/Notebook.h>
 #include <QFont>
 #include <QColor>
-#include <QContextMenuEvent>
 
 namespace qute_note {
 
@@ -248,12 +247,6 @@ void NoteEditor::dropEvent(QDropEvent * pEvent)
 {
     Q_D(NoteEditor);
     d->onDropEvent(pEvent);
-}
-
-void NoteEditor::contextMenuEvent(QContextMenuEvent * pEvent)
-{
-    Q_D(NoteEditor);
-    d->onContextMenuEvent(pEvent);
 }
 
 } // namespace qute_note

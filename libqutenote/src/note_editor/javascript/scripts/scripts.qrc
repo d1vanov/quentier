@@ -18,5 +18,6 @@
         <file>setupOpenResourceButtonOnClickHandler.js</file>
         <file>notifyTextCursorPositionChanged.js</file>
         <file>determineStatesForCurrentTextCursorPosition.js</file>
+        <file>contextMenuEventHandler.js</file>
     </qresource>
 </RCC>
