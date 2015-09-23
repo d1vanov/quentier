@@ -6,6 +6,11 @@ function determineStatesForCurrentTextCursorPosition() {
     }
 
     var selection = window.getSelection();
+    if (!selection) {
+        console.log("selection is null");
+        return;
+    }
+
     if (!selection.anchorNode) {
         console.log("selection.anchorNode is null");
         return;
@@ -47,22 +52,20 @@ function determineStatesForCurrentTextCursorPosition() {
         }
 
         if (element.nodeType == 1) {
-            console.log("Testing for resource...");
-            if (element.getAttribute("en-tag") == "en-media") {
-                if (element.nodeName == "img") {
+            var enTag = element.getAttribute("en-tag");
+            if (enTag == "en-media") {
+                if (element.nodeName == "IMG") {
                     foundImageResource = true;
                     resourceHash = element.getAttribute("hash");
                     break;
                 }
-                else if (element.nodeName == "div") {
+                else if (element.nodeName == "DIV") {
                     foundNonImageResource = true;
                     resourceHash = element.getAttribute("hash");
                     break;
                 }
             }
-
-            console.log("Testing for en-crypt tag...");
-            if (element.getAttribute("en-tag") == "en-crypt") {
+            else if (enTag == "en-crypt") {
                 foundEnCryptTag = true;
                 cipher = element.getAttribute("cipher");
                 length = element.getAttribute("length");
