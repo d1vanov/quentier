@@ -2,7 +2,12 @@ function contextMenuEventHandler(event) {
     console.log("contextMenuEventHandler");
 
     // Figure out on which element the cursor is
-    var element = document.elementFromPoint(event.pageX, event.pageY);
+    var x = event.pageX - window.pageXOffset;
+    var y = event.pageY - window.pageYOffset;
+    var element = document.elementFromPoint(x, y);
+    if (!element) {
+        console.log("Can't get element from point: (" + x + "; " + y + ")");
+    }
     
     var onImageResource = false;
     var onNonImageResource = false;
@@ -10,13 +15,16 @@ function contextMenuEventHandler(event) {
 
     while(element) {
         if( Object.prototype.toString.call( element ) === '[object Array]' ) {
+            console.log("Detected array of elements under the cursor");
             element = element[0];
             if (!element) {
+                console.log("The first element is null, breaking away from the loop");
                 break;
             }
         }
 
         if (element.nodeType != 1) {
+            console.log("element.nodeType = " + element.nodeType);
             element = element.parent;
             continue;
         }
@@ -33,7 +41,7 @@ function contextMenuEventHandler(event) {
             }
             else if (element.nodeName == "DIV") {
                 console.log("Found non-image resource under cursor");
-                foundNonImageResource = true;
+                onNonImageResource = true;
                 break;
             }
         }

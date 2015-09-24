@@ -6,11 +6,23 @@ function snapSelectionToWord() {
         return;
     }
 
+    if (!sel.rangeCount) {
+        return;
+    }
+
     var rng2 = sel.getRangeAt(0);
+    if (!rng2 || !rng2.startContainer || !rng2.startContainer.data) {
+        return;
+    }
 
     var startOffset = 0;
     for(var i = rng2.startOffset; i >= 0; i--) {
-        if (rng2.startContainer.data[i].match(/\S/) != null) {
+        var str = rng2.startContainer.data[i];
+        if (!str) {
+            return;
+        }
+
+        if (str.match(/\S/) != null) {
             startOffset++;
         } 
         else {
@@ -25,7 +37,12 @@ function snapSelectionToWord() {
 
     var endOffset = 0;
     for(var i = rng2.endOffset; i < rng2.endContainer.data.length; i++) {
-        if (rng2.endContainer.data[i].match(/\S/)) {
+        var str = rng2.startContainer.data[i];
+        if (!str) {
+            return;
+        }
+
+        if (str.match(/\S/)) {
             endOffset++;
         } 
         else {
