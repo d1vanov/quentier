@@ -283,6 +283,7 @@ private:
     QString     m_resizableTableColumnsJs;
     QString     m_onFixedWidthTableResizeJs;
     QString     m_getSelectionHtmlJs;
+    QString     m_snapSelectionToWordJs;
     QString     m_replaceSelectionWithHtmlJs;
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_provideGenericResourceDisplayNameAndSizeJs;
@@ -290,6 +291,7 @@ private:
     QString     m_onResourceInfoReceivedJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
     QString     m_contextMenuEventHandlerJs;
+
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;

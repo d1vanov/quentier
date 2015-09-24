@@ -42,6 +42,8 @@ function contextMenuEventHandler(event) {
             onEnCryptTag = true;
             break;
         }
+
+        element = element.parent;
     }
 
     if (onImageResource || onNonImageResource || onEnCryptTag) {
@@ -53,10 +55,10 @@ function contextMenuEventHandler(event) {
     event.preventDefault();
 
     var selectedHtml = getSelectionHtml();
-    console.log("Selected html: " + selectedHtml);
 
     if (!selectedHtml) {
-        // TODO: select the word under cursor and return it as the selection
+        snapSelectionToWord();
+        selectedHtml = getSelectionHtml();
     }
 
     // TODO: continue from here

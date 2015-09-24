@@ -63,6 +63,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_resizableTableColumnsJs(),
     m_onFixedWidthTableResizeJs(),
     m_getSelectionHtmlJs(),
+    m_snapSelectionToWordJs(),
     m_replaceSelectionWithHtmlJs(),
     m_provideSrcForResourceImgTagsJs(),
     m_provideGenericResourceDisplayNameAndSizeJs(),
@@ -231,6 +232,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_resizableTableColumnsJs);
     page->executeJavaScript(m_onFixedWidthTableResizeJs);
     page->executeJavaScript(m_getSelectionHtmlJs);
+    page->executeJavaScript(m_snapSelectionToWordJs);
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
@@ -1379,6 +1381,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
     SETUP_SCRIPT("javascript/scripts/onFixedWidthTableResize.js", m_onFixedWidthTableResizeJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
+    SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideGenericResourceDisplayNameAndSize.js", m_provideGenericResourceDisplayNameAndSizeJs);
