@@ -1215,7 +1215,7 @@ void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
 
     Q_Q(NoteEditor);
     QString absoluteFilePath = QFileDialog::getSaveFileName(q, QObject::tr("Save as..."),
-                                                    preferredFolderPath, filterString);
+                                                            preferredFolderPath, filterString);
     if (absoluteFilePath.isEmpty()) {
         QNINFO("User cancelled saving resource to file");
         return;
