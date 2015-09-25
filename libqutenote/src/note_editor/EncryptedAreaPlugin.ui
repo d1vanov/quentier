@@ -82,9 +82,8 @@ background-color: rgb(255, 255, 255);
       <string notr="true"/>
      </property>
      <property name="icon">
-      <iconset theme="security-high">
-       <normaloff/>
-      </iconset>
+      <iconset resource="images/icons/encrypted_area_icons/encrypted_area_icons.qrc">
+       <normaloff>:/encrypted_area_icons/lock/png/lock-16x16.png</normaloff>:/encrypted_area_icons/lock/png/lock-16x16.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -118,7 +117,7 @@ background-color: rgb(255, 255, 255);
       </size>
      </property>
      <property name="pixmap">
-      <pixmap resource="icons/encrypted_area_icons/encrypted_area_icons.qrc">:/encrypted_area_icons/en-crypt/en-crypt-no-lock.png</pixmap>
+      <pixmap resource="images/icons/encrypted_area_icons/encrypted_area_icons.qrc">:/encrypted_area_icons/en-crypt/en-crypt-no-lock.png</pixmap>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -162,7 +161,7 @@ background-color: rgb(255, 255, 255);
   </layout>
  </widget>
  <resources>
-  <include location="icons/encrypted_area_icons/encrypted_area_icons.qrc"/>
+  <include location="images/icons/encrypted_area_icons/encrypted_area_icons.qrc"/>
  </resources>
  <connections/>
 </ui>

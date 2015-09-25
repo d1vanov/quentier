@@ -31,15 +31,6 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encry
 
     m_mimeTypesList << "application/vnd.qutenote.encrypt";
 
-    if (!QIcon::hasThemeIcon("security-high")) {
-        QIcon lockIcon;
-        lockIcon.addFile(":/encrypted_area_icons/png/lock-16x16", QSize(16, 16));
-        lockIcon.addFile(":/encrypted_area_icons/png/lock-24x24", QSize(24, 24));
-        lockIcon.addFile(":/encrypted_area_icons/png/lock-32x32", QSize(32, 32));
-        lockIcon.addFile(":/encrypted_area_icons/png/lock-48x48", QSize(48, 48));
-        m_pUI->iconPushButton->setIcon(lockIcon);
-    }
-
     QAction * showEncryptedTextAction = new QAction(this);
     showEncryptedTextAction->setText(QObject::tr("Show encrypted text") + "...");
     QObject::connect(showEncryptedTextAction, QNSIGNAL(QAction,triggered), this, QNSLOT(EncryptedAreaPlugin,decrypt));
