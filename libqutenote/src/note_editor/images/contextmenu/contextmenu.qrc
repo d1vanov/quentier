@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/jquery_contextmenu">
+       <file>cmenu-human-menu-item-hover.gif</file>
+       <file>cmenu-osx-menu-item-hover.gif</file>
+       <file>cmenu-vista-bg.gif</file>
+       <file>cmenu-vista-menu-item-hover.gif</file>
+       <file>cmenu-xp-bg.gif</file>
+    </qresource>
+</RCC>

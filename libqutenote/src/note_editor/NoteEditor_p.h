@@ -280,6 +280,7 @@ private:
 
     // JavaScript scripts
     QString     m_jQueryJs;
+    QString     m_jQueryContextMenuPluginJs;
     QString     m_resizableTableColumnsJs;
     QString     m_onFixedWidthTableResizeJs;
     QString     m_getSelectionHtmlJs;
@@ -291,7 +292,6 @@ private:
     QString     m_onResourceInfoReceivedJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
     QString     m_contextMenuEventHandlerJs;
-
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;

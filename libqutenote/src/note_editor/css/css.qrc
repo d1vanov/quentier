@@ -5,6 +5,6 @@
         <file>en-decrypted.css</file>
         <file>en-media-generic.css</file>
         <file>en-todo.css</file>
-        <file>context-menu.css</file>
+        <file>jquery.contextmenu.css</file>
     </qresource>
 </RCC>
