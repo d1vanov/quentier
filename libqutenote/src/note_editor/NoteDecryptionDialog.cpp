@@ -38,8 +38,10 @@ NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
     setRememberPassphraseDefaultState(rememberPassphraseForSessionDefault);
     m_pUI->onErrorTextLabel->setVisible(false);
 
+    QObject::connect(m_pUI->showPasswordCheckBox, QNSIGNAL(QCheckBox,stateChanged,int),
+                     this, QNSLOT(NoteDecryptionDialog,onShowPasswordStateChanged,int));
     QObject::connect(m_pUI->rememberPasswordCheckBox, QNSIGNAL(QCheckBox,stateChanged,int),
-                     this, QNSLOT(NoteDecryptionDialog,onRememberPassphraseStateChanged));
+                     this, QNSLOT(NoteDecryptionDialog,onRememberPassphraseStateChanged,int));
 }
 
 NoteDecryptionDialog::~NoteDecryptionDialog()
@@ -91,6 +93,11 @@ void NoteDecryptionDialog::onRememberPassphraseStateChanged(int checked)
         appSettings.setValue("General/rememberPassphraseForSession",
                              QVariant(m_pUI->rememberPasswordCheckBox->isChecked()));
     }
+}
+
+void NoteDecryptionDialog::onShowPasswordStateChanged(int checked)
+{
+    m_pUI->passwordLineEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
 }
 
 void NoteDecryptionDialog::accept()

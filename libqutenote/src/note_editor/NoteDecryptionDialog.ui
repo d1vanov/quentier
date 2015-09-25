@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>298</width>
-    <height>182</height>
+    <height>224</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,6 +34,16 @@ spacing: 4px;
     <widget class="QLineEdit" name="passwordLineEdit">
      <property name="text">
       <string notr="true"/>
+     </property>
+     <property name="echoMode">
+      <enum>QLineEdit::Password</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="showPasswordCheckBox">
+     <property name="text">
+      <string>Show password</string>
      </property>
     </widget>
    </item>
