@@ -98,6 +98,7 @@ void NoteDecryptionDialog::onRememberPassphraseStateChanged(int checked)
 void NoteDecryptionDialog::onShowPasswordStateChanged(int checked)
 {
     m_pUI->passwordLineEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
+    m_pUI->passwordLineEdit->setFocus();
 }
 
 void NoteDecryptionDialog::accept()
