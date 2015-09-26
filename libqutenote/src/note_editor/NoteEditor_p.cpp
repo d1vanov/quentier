@@ -418,8 +418,14 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
     QUuid saveResourceToStorageRequestId = QUuid::createUuid();
 
     QString fileStoragePath;
-    if (mimeType.name().startsWith("image/")) {
-        fileStoragePath = m_noteEditorImageResourcesStoragePath + "/" + newResourceLocalGuid;
+    if (mimeType.name().startsWith("image/"))
+    {
+        fileStoragePath = newResourceLocalGuid;
+        // Removing opening and closing curvy braces as they tend to trigger the bug in serializing/deserializing JSON messages for QWebEngine
+        fileStoragePath.remove(0, 1);
+        fileStoragePath.remove(fileStoragePath.size() - 1, 1);
+        fileStoragePath.prepend(m_noteEditorImageResourcesStoragePath + "/");
+
         const QStringList suffixes = mimeType.suffixes();
         if (!suffixes.isEmpty()) {
             fileStoragePath += "." + suffixes.front();
@@ -1016,8 +1022,20 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
             QUuid saveResourceRequestId = QUuid::createUuid();
 
             QString fileStoragePath;
-            if (resourceAdapter.mime().startsWith("image/")) {
-                fileStoragePath = m_noteEditorImageResourcesStoragePath + "/" + resourceLocalGuid;
+            if (resourceAdapter.mime().startsWith("image/"))
+            {
+                fileStoragePath = resourceLocalGuid;
+                // Removing opening and closing curvy braces as they tend to trigger the bug in serializing/deserializing JSON messages for QWebEngine
+                fileStoragePath.remove(0, 1);
+                fileStoragePath.remove(fileStoragePath.size() - 1, 1);
+                fileStoragePath.prepend(m_noteEditorImageResourcesStoragePath + "/");
+
+                QMimeDatabase mimeDatabase;
+                QMimeType mimeType = mimeDatabase.mimeTypeForName(resourceAdapter.mime());
+                const QStringList suffixes = mimeType.suffixes();
+                if (!suffixes.isEmpty()) {
+                    fileStoragePath += "." + suffixes.front();
+                }
             }
 
             m_genericResourceLocalGuidBySaveToStorageRequestIds[saveResourceRequestId] = resourceLocalGuid;
@@ -2168,8 +2186,8 @@ void __initNoteEditorResources()
     Q_INIT_RESOURCE(css);
     Q_INIT_RESOURCE(checkbox_icons);
     Q_INIT_RESOURCE(generic_resource_icons);
-    Q_INIT_RESOURCE(contextmenu);
     Q_INIT_RESOURCE(jquery);
+    Q_INIT_RESOURCE(contextmenu);
     Q_INIT_RESOURCE(colResizable);
     Q_INIT_RESOURCE(scripts);
 
