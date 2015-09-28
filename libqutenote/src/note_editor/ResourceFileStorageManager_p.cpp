@@ -116,11 +116,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString loc
             return;
         }
 
-        fileStoragePath = localGuid;
-        // Removing opening and closing curvy braces as they tend to trigger the bug in serializing/deserializing JSON messages for QWebEngine
-        fileStoragePath.remove(0, 1);
-        fileStoragePath.remove(fileStoragePath.size() - 1, 1);
-        fileStoragePath.prepend(m_resourceFileStorageLocation + "/");
+        fileStoragePath = m_resourceFileStorageLocation + "/" + localGuid;
     }
     else
     {

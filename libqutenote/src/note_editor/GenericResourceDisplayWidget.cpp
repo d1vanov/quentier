@@ -95,11 +95,7 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
         return;
     }
 
-    m_ownFilePath = m_pResource->localGuid();
-    // Removing opening and closing curvy braces as they tend to trigger the bug in serializing/deserializing JSON messages for QWebEngine
-    m_ownFilePath.remove(0, 1);
-    m_ownFilePath.remove(m_ownFilePath.size() - 1, 1);
-    m_ownFilePath.prepend(resourceFileStorageLocation + "/");
+    m_ownFilePath = resourceFileStorageLocation + "/" + m_pResource->localGuid();
 
     if (!m_pResource->hasDataBody() && !m_pResource->hasAlternateDataBody()) {
         QNWARNING("Resource passed to GenericResourceDisplayWidget has no data: " << *m_pResource);

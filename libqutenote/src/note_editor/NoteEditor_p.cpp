@@ -420,11 +420,7 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
     QString fileStoragePath;
     if (mimeType.name().startsWith("image/"))
     {
-        fileStoragePath = newResourceLocalGuid;
-        // Removing opening and closing curvy braces as they tend to trigger the bug in serializing/deserializing JSON messages for QWebEngine
-        fileStoragePath.remove(0, 1);
-        fileStoragePath.remove(fileStoragePath.size() - 1, 1);
-        fileStoragePath.prepend(m_noteEditorImageResourcesStoragePath + "/");
+        fileStoragePath = m_noteEditorImageResourcesStoragePath + "/" + newResourceLocalGuid;
 
         const QStringList suffixes = mimeType.suffixes();
         if (!suffixes.isEmpty()) {
@@ -1024,11 +1020,7 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
             QString fileStoragePath;
             if (resourceAdapter.mime().startsWith("image/"))
             {
-                fileStoragePath = resourceLocalGuid;
-                // Removing opening and closing curvy braces as they tend to trigger the bug in serializing/deserializing JSON messages for QWebEngine
-                fileStoragePath.remove(0, 1);
-                fileStoragePath.remove(fileStoragePath.size() - 1, 1);
-                fileStoragePath.prepend(m_noteEditorImageResourcesStoragePath + "/");
+                fileStoragePath = m_noteEditorImageResourcesStoragePath + "/" + resourceLocalGuid;
 
                 QMimeDatabase mimeDatabase;
                 QMimeType mimeType = mimeDatabase.mimeTypeForName(resourceAdapter.mime());

@@ -24,7 +24,10 @@ public:
             return QString(); \
         } \
         else { \
-            return d->m_localGuid.toString(); \
+            QString result = d->m_localGuid.toString(); \
+            result.remove(0,1); \
+            result.remove(result.size()-1,1); \
+            return result; \
         } \
     }
 
