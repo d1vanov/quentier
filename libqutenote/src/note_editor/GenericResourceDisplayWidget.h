@@ -52,6 +52,8 @@ private:
     void setPendingMode(const bool pendingMode);
     void openResource();
 
+    void setupFilterString(const QString & defaultFilterString);
+
 private:
     Q_DISABLE_COPY(GenericResourceDisplayWidget)
 

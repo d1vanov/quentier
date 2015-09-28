@@ -54,7 +54,8 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     m_pResourceFileStorageManager = &resourceFileStorageManager;
     m_pFileIOThreadWorker = &fileIOThreadWorker;
     m_preferredFileSuffixes = preferredFileSuffixes;
-    m_filterString = filterString;
+
+    setupFilterString(filterString);
 
     m_pUI->resourceDisplayNameLabel->setText("<html><head/><body><p><span style=\" font-size:8pt;\">" +
                                              name + "</span></p></body></head></html>");
@@ -96,6 +97,10 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     }
 
     m_ownFilePath = resourceFileStorageLocation + "/" + m_pResource->localGuid();
+    QString resourcePreferredSuffix = m_pResource->preferredFileSuffix();
+    if (!resourcePreferredSuffix.isEmpty()) {
+        m_ownFilePath += "." + resourcePreferredSuffix;
+    }
 
     if (!m_pResource->hasDataBody() && !m_pResource->hasAlternateDataBody()) {
         QNWARNING("Resource passed to GenericResourceDisplayWidget has no data: " << *m_pResource);
@@ -121,7 +126,7 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
 
     // Write resource's data to file asynchronously so that it can further be opened in some application
     m_saveResourceToStorageRequestId = QUuid::createUuid();
-    emit saveResourceToStorage(m_pResource->localGuid(), data, *dataHash, QString(), m_saveResourceToStorageRequestId);
+    emit saveResourceToStorage(m_pResource->localGuid(), data, *dataHash, m_ownFilePath, m_saveResourceToStorageRequestId);
     QNTRACE("Emitted request to save the attachment to own file storage location, request id = "
             << m_saveResourceToStorageRequestId << ", resource local guid = " << m_pResource->localGuid());
 }
@@ -316,6 +321,49 @@ void GenericResourceDisplayWidget::openResource()
 {
     QNDEBUG("GenericResourceDisplayWidget::openResource: " << m_ownFilePath);
     QDesktopServices::openUrl(QUrl("file://" + m_ownFilePath));
+}
+
+void GenericResourceDisplayWidget::setupFilterString(const QString & defaultFilterString)
+{
+    QNDEBUG("GenericResourceDisplayWidget::setupFilterString: default = " << defaultFilterString);
+
+    m_filterString = defaultFilterString;
+
+    if (Q_UNLIKELY(!m_pResource)) {
+        return;
+    }
+
+    QString resourcePreferredSuffix = m_pResource->preferredFileSuffix();
+    QString resourcePreferredFilterString;
+    if (!resourcePreferredSuffix.isEmpty()) {
+        resourcePreferredFilterString = "(*." + resourcePreferredSuffix + ")";
+    }
+
+    QNTRACE("Resource preferred file suffix = " << resourcePreferredSuffix
+            << ", resource preferred filter string = " << resourcePreferredFilterString);
+
+    bool shouldSkipResourcePreferredSuffix = false;
+    if (!resourcePreferredSuffix.isEmpty() && !m_preferredFileSuffixes.contains(resourcePreferredSuffix))
+    {
+        const int numSuffixes = m_preferredFileSuffixes.size();
+        for(int i = 0; i < numSuffixes; ++i)
+        {
+            const QString & currentSuffix = m_preferredFileSuffixes[i];
+            if (resourcePreferredSuffix.contains(currentSuffix)) {
+                shouldSkipResourcePreferredSuffix = true;
+                break;
+            }
+        }
+
+        if (!shouldSkipResourcePreferredSuffix) {
+            m_preferredFileSuffixes.prepend(resourcePreferredSuffix);
+        }
+    }
+
+    if (!shouldSkipResourcePreferredSuffix && !resourcePreferredFilterString.isEmpty()) {
+        m_filterString = resourcePreferredFilterString + ";;" + m_filterString;
+        QNTRACE("m_filterString = " << m_filterString);
+    }
 }
 
 } // namespace qute_note

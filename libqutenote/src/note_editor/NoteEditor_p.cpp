@@ -143,7 +143,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_fileFilterStringForMimeType(),
     m_manualSaveResourceToFileRequestIds(),
 #endif
-    m_droppedFileNamesAndMimeTypesByReadRequestIds(),
+    m_droppedFilePathsAndMimeTypesByReadRequestIds(),
     q_ptr(&noteEditor)
 {
     QString initialHtml = m_pagePrefix + "<body></body></html>";
@@ -390,15 +390,17 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
     QNTRACE("NoteEditorPrivate::onDroppedFileRead: success = " << (success ? "true" : "false")
             << ", error description = " << errorDescription << ", request id = " << requestId);
 
-    auto it = m_droppedFileNamesAndMimeTypesByReadRequestIds.find(requestId);
-    if (it == m_droppedFileNamesAndMimeTypesByReadRequestIds.end()) {
+    auto it = m_droppedFilePathsAndMimeTypesByReadRequestIds.find(requestId);
+    if (it == m_droppedFilePathsAndMimeTypesByReadRequestIds.end()) {
         return;
     }
 
-    const QString fileName = it.value().first;
+    const QString filePath = it.value().first;
+    QFileInfo fileInfo(filePath);
+
     const QMimeType mimeType = it.value().second;
 
-    Q_UNUSED(m_droppedFileNamesAndMimeTypesByReadRequestIds.erase(it));
+    Q_UNUSED(m_droppedFilePathsAndMimeTypesByReadRequestIds.erase(it));
 
     if (!success) {
         QNDEBUG("Could not read the content of the dropped file for request id " << requestId
@@ -413,15 +415,27 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
 
     QNDEBUG("Successfully read the content of the dropped file for request id " << requestId);
     QByteArray dataHash;
-    QString newResourceLocalGuid = attachResourceToNote(data, dataHash, mimeType, fileName);
+    QString newResourceLocalGuid = attachResourceToNote(data, dataHash, mimeType, fileInfo.fileName());
 
     QUuid saveResourceToStorageRequestId = QUuid::createUuid();
 
     QString fileStoragePath;
-    if (mimeType.name().startsWith("image/"))
-    {
-        fileStoragePath = m_noteEditorImageResourcesStoragePath + "/" + newResourceLocalGuid;
+    if (mimeType.name().startsWith("image/")) {
+        fileStoragePath = m_noteEditorImageResourcesStoragePath;
+    }
+    else {
+        fileStoragePath = m_resourceLocalFileStorageFolder;
+    }
 
+    fileStoragePath += "/" + newResourceLocalGuid;
+
+    QString fileInfoSuffix = fileInfo.completeSuffix();
+    if (!fileInfoSuffix.isEmpty())
+    {
+        fileStoragePath += "." + fileInfoSuffix;
+    }
+    else
+    {
         const QStringList suffixes = mimeType.suffixes();
         if (!suffixes.isEmpty()) {
             fileStoragePath += "." + suffixes.front();
@@ -1018,16 +1032,17 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
             QUuid saveResourceRequestId = QUuid::createUuid();
 
             QString fileStoragePath;
-            if (resourceAdapter.mime().startsWith("image/"))
-            {
-                fileStoragePath = m_noteEditorImageResourcesStoragePath + "/" + resourceLocalGuid;
+            if (resourceAdapter.mime().startsWith("image/")) {
+                fileStoragePath = m_noteEditorImageResourcesStoragePath;
+            }
+            else {
+                fileStoragePath = m_resourceLocalFileStorageFolder;
+            }
 
-                QMimeDatabase mimeDatabase;
-                QMimeType mimeType = mimeDatabase.mimeTypeForName(resourceAdapter.mime());
-                const QStringList suffixes = mimeType.suffixes();
-                if (!suffixes.isEmpty()) {
-                    fileStoragePath += "." + suffixes.front();
-                }
+            fileStoragePath += "/" + resourceLocalGuid;
+            QString preferredFileSuffix = resourceAdapter.preferredFileSuffix();
+            if (!preferredFileSuffix.isEmpty()) {
+                fileStoragePath += "." + preferredFileSuffix;
             }
 
             m_genericResourceLocalGuidBySaveToStorageRequestIds[saveResourceRequestId] = resourceLocalGuid;
@@ -1142,6 +1157,12 @@ void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
         return;
     }
 
+    QString resourcePreferredSuffix = resource.preferredFileSuffix();
+    QString resourcePreferredFilterString;
+    if (!resourcePreferredSuffix.isEmpty()) {
+        resourcePreferredFilterString = "(*." + resourcePreferredSuffix + ")";
+    }
+
     const QString & mimeTypeName = resource.mime();
 
     auto preferredSuffixesIter = m_fileSuffixesForMimeType.find(mimeTypeName);
@@ -1159,12 +1180,36 @@ void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
             return;
         }
 
+        bool shouldSkipResourcePreferredSuffix = false;
+        QStringList suffixes = mimeType.suffixes();
+        if (!resourcePreferredSuffix.isEmpty() && !suffixes.contains(resourcePreferredSuffix))
+        {
+            const int numSuffixes = suffixes.size();
+            for(int i = 0; i < numSuffixes; ++i)
+            {
+                const QString & currentSuffix = suffixes[i];
+                if (resourcePreferredSuffix.contains(currentSuffix)) {
+                    shouldSkipResourcePreferredSuffix = true;
+                    break;
+                }
+            }
+
+            if (!shouldSkipResourcePreferredSuffix) {
+                suffixes.prepend(resourcePreferredSuffix);
+            }
+        }
+
+        QString filterString = mimeType.filterString();
+        if (!shouldSkipResourcePreferredSuffix && !resourcePreferredFilterString.isEmpty()) {
+            filterString += ";;" + resourcePreferredFilterString;
+        }
+
         if (preferredSuffixesIter == m_fileSuffixesForMimeType.end()) {
-            preferredSuffixesIter = m_fileSuffixesForMimeType.insert(mimeTypeName, mimeType.suffixes());
+            preferredSuffixesIter = m_fileSuffixesForMimeType.insert(mimeTypeName, suffixes);
         }
 
         if (fileFilterStringIter == m_fileFilterStringForMimeType.end()) {
-            fileFilterStringIter = m_fileFilterStringForMimeType.insert(mimeTypeName, mimeType.filterString());
+            fileFilterStringIter = m_fileFilterStringForMimeType.insert(mimeTypeName, filterString);
         }
     }
 
@@ -1226,9 +1271,14 @@ void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
 
     const QString & filterString = fileFilterStringIter.value();
 
+    QString * pSelectedFilter = (filterString.contains(resourcePreferredFilterString)
+                                 ? &resourcePreferredFilterString
+                                 : Q_NULLPTR);
+
     Q_Q(NoteEditor);
     QString absoluteFilePath = QFileDialog::getSaveFileName(q, QObject::tr("Save as..."),
-                                                            preferredFolderPath, filterString);
+                                                            preferredFolderPath, filterString,
+                                                            pSelectedFilter);
     if (absoluteFilePath.isEmpty()) {
         QNINFO("User cancelled saving resource to file");
         return;
@@ -2165,8 +2215,8 @@ void NoteEditorPrivate::dropFile(QString & filepath)
     }
 
     QUuid readDroppedFileRequestId = QUuid::createUuid();
-    auto & pair = m_droppedFileNamesAndMimeTypesByReadRequestIds[readDroppedFileRequestId];
-    pair.first = fileInfo.fileName();
+    auto & pair = m_droppedFilePathsAndMimeTypesByReadRequestIds[readDroppedFileRequestId];
+    pair.first = fileInfo.filePath();
     pair.second = mimeType;
     emit readDroppedFileData(filepath, readDroppedFileRequestId);
 }

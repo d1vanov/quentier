@@ -392,7 +392,7 @@ private:
     QSet<QUuid>                     m_manualSaveResourceToFileRequestIds;
 #endif
 
-    QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFileNamesAndMimeTypesByReadRequestIds;
+    QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFilePathsAndMimeTypesByReadRequestIds;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

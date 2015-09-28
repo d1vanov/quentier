@@ -1,6 +1,9 @@
 #include "data/NoteStoreDataElementData.h"
 #include <qute_note/types/IResource.h>
 #include <qute_note/utility/Utility.h>
+#include <QFileInfo>
+#include <QMimeDatabase>
+#include <QMimeType>
 
 namespace qute_note {
 
@@ -232,8 +235,29 @@ QString IResource::displayName() const
             return enResource.attributes->fileName.ref();
         }
         else if (enResource.attributes->sourceURL.isSet()) {
-            return enResource.attributes->fileName.ref();
+            return enResource.attributes->sourceURL.ref();
         }
+    }
+
+    return QString();
+}
+
+QString IResource::preferredFileSuffix() const
+{
+    const qevercloud::Resource & enResource = GetEnResource();
+    if (enResource.attributes.isSet() && enResource.attributes->fileName.isSet())
+    {
+        QFileInfo fileInfo(enResource.attributes->fileName.ref());
+        QString completeSuffix = fileInfo.completeSuffix();
+        if (!completeSuffix.isEmpty()) {
+            return completeSuffix;
+        }
+    }
+
+    if (enResource.mime.isSet()) {
+        QMimeDatabase mimeDatabase;
+        QMimeType mimeType = mimeDatabase.mimeTypeForName(enResource.mime.ref());
+        return mimeType.preferredSuffix();
     }
 
     return QString();
