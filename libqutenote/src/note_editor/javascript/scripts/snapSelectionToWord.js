@@ -2,7 +2,7 @@ function snapSelectionToWord() {
     console.log("snapSelectionToWord");
 
     var sel = window.getSelection();
-    if (!sel.isCollapsed) {
+    if (!sel || !sel.isCollapsed) {
         return;
     }
 

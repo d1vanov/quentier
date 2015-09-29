@@ -321,7 +321,7 @@ set(RESOURCES
     src/note_editor/images/icons/checkbox_icons/checkbox_icons.qrc
     src/note_editor/images/icons/encrypted_area_icons/encrypted_area_icons.qrc
     src/note_editor/images/icons/generic_resource_icons/generic_resource_icons.qrc
-    src/note_editor/images/contextmenu/contextmenu.qrc
+    src/note_editor/images/contextmenu/contextmenu_images.qrc
     src/note_editor/javascript/jquery/jquery.qrc
     src/note_editor/javascript/contextmenu/contextmenu.qrc
     src/note_editor/javascript/colResizable/colResizable.qrc

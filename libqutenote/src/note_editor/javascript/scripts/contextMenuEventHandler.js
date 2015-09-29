@@ -62,12 +62,39 @@ function contextMenuEventHandler(event) {
 
     event.preventDefault();
 
+    // If nothing is selected currently, select the word under cursor
     var selectedHtml = getSelectionHtml();
-
     if (!selectedHtml) {
         snapSelectionToWord();
         selectedHtml = getSelectionHtml();
     }
 
-    // TODO: continue from here
+    // Setup and call the function to bring up the actual context menu
+    $(function() {
+        // Wrap the current selection to separate element to allow jQuery context menu run on it
+        var selection = window.getSelection();
+        if (!selection || !selection.rangeCount || !selection.getRangeAt) {
+            console.log("Selection is missing");
+            return;
+        }
+
+        var span = document.createElement("span");
+
+        var range = selection.getRangeAt(0).cloneRange();
+        range.surroundContents(span);
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        // Setup the list of menu items
+        var textMenu = [
+            { 'Cut':function(menuItem, menu) { console.log("Clicked cut"); } },
+            { 'Copy':function(menuItem, menu) { console.log("Clicked copy"); } },
+            { 'Paste':function(menuItem, menu) { console.log("Clicked paste"); } },
+            { 'Paste as text':function(menuItem, menu) { console.log("Clicked paste as text"); } }
+        ];
+
+        console.log("Bringing up the context menu: " + JSON.stringify(textMenu) + ", target: " + $(span).prop("tagName"));
+        $(span).contextMenu(textMenu);
+        console.log("Done with context menu");
+    });
 }

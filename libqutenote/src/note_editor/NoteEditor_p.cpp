@@ -1441,7 +1441,7 @@ void NoteEditorPrivate::setupScripts()
     file.close()
 
     SETUP_SCRIPT("javascript/jquery/jquery-2.1.3.min.js", m_jQueryJs);
-    SETUP_SCRIPT("javascript/contextmenu/jquery.contextmenu.js", m_jQueryContextMenuPluginJs);
+    SETUP_SCRIPT("javascript/contextmenu/jquery-contextmenu.js", m_jQueryContextMenuPluginJs);
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
     SETUP_SCRIPT("javascript/scripts/onFixedWidthTableResize.js", m_onFixedWidthTableResizeJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
@@ -2226,7 +2226,9 @@ void NoteEditorPrivate::dropFile(QString & filepath)
 void __initNoteEditorResources()
 {
     Q_INIT_RESOURCE(css);
+    Q_INIT_RESOURCE(contextmenu_images);
     Q_INIT_RESOURCE(checkbox_icons);
+    Q_INIT_RESOURCE(encrypted_area_icons);
     Q_INIT_RESOURCE(generic_resource_icons);
     Q_INIT_RESOURCE(jquery);
     Q_INIT_RESOURCE(contextmenu);
