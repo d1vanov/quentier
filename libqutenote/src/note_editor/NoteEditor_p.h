@@ -280,7 +280,8 @@ private:
 
     // JavaScript scripts
     QString     m_jQueryJs;
-    QString     m_jQueryContextMenuPluginJs;
+    QString     m_jQueryUiJs;
+    QString     m_jQueryUiContextMenuJs;
     QString     m_resizableTableColumnsJs;
     QString     m_onFixedWidthTableResizeJs;
     QString     m_getSelectionHtmlJs;

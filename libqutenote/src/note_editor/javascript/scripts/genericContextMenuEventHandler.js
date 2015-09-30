@@ -88,39 +88,29 @@ function genericContextMenuEventHandler(event) {
 
     // Setup the list of menu items
     var textMenu = [
-    { 'Cut':{
-            onclick:function(menuItem, menu) { console.log("Clicked cut"); },
-            disabled:emptySelection
-        }
+    { title: "Cut", cmd: "cut", uiIcon: "ui-icon-cut", disabled:emptySelection },
+    { title: "Copy", cmd: "copy", uiIcon: "ui-icon-cut", disabled:emptySelection },
+    { title: "Paste", cmd: "paste", uiIcon: "ui-icon-paste" },
+    { title: "Paste as unformatted text", uiIcon: "ui-icon-paste",
+      action: function(event, ui) { console.log("Clicked paste as unformatted text"); } },
+    { title: "---" },
+    { title: "Font", disabled:emptySelection, children: [
+        { title: "Bold", action: function(event, ui) { console.log("Clicked sub-menu text bold"); } },
+        { title: "Italic", action: function(event, ui) { console.log("Clicked sub-menu text italic"); } }
+      ]
     },
-    { 'Copy':{
-            onclick:function(menuItem, menu) { console.log("Clicked copy"); },
-            disabled:emptySelection
-        }
-    },
-    { 'Paste':function(menuItem, menu) { console.log("Clicked paste"); } },
-    { 'Paste as unformatted text':function(menuItem, menu) { console.log("Clicked paste as text"); } },
-    $.contextMenu.separator,
-    { 'Insert ToDo checkbox':function(menuItem, menu) { console.log("Clicked insert ToDo checkbox"); } },
-    { 'Insert special symbol...':function(menuItem, menu) { console.log("Clicked insert special symbol"); } },
-    { 'Insert table...':function(menuItem, menu) { console.log("Clicked insert table"); } },
-    { 'Insert horizontal line':function(menuItem, menu) { console.log("Clicked insert horizontal line"); } },
-    { 'Hyperlink...':function(menuItem, menu) { console.log("Clicked hyperlink"); } },
-    $.contextMenu.separator,
-    { 'Encrypt selected fragment':{
-             onclick:function(menuItem, menu) { console.log("Clicked encrypt selected fragment"); },
-             disabled:emptySelection
-        }
-    }
+    { title: "---" },
+    { title: "Insert ToDo checkbox", action: function(event, ui) { console.log("Clicked insert ToDo checkbox"); } },
+    { title: "Insert special symbol...", action: function(event, ui) { console.log("Clicked insert special symbol"); } },
+    { title: "Insert table...", action: function(event, ui) { console.log("Clicked insert table"); } },
+    { title: "Insert horizontal line", action: function(event, ui) { console.log("Clicked insert horizontal line"); } },
+    { title: "Hyperlink...", action: function(event, ui) { console.log("Clicked hyperlink"); } },
+    { title: "---" },
+    { title: "Encrypt selected fragment",
+      action: function(event, ui) { console.log("Clicked encrypt selected fragment"); },
+      disabled:emptySelection }
     ];
 
-    var contextMenuTheme = "xp";
-    if (navigator.appVersion.indexOf("Mac")!=-1) {
-        contextMenuTheme = "osx";
-    }
-
-    $(span).triggerContextMenu(event,textMenu,{
-        theme:contextMenuTheme,
-        hideCallback:function(){$(span).contents().unwrap();}
-    });
+    $(span).contextmenu({ delegate: document, menu: textMenu });
+    $(span).contextmenu("open", $(span), textMenu);
 }

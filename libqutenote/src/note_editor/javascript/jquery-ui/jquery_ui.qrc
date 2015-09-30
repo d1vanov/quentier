@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/javascript/jquery-ui">
+        <file>jquery-ui.min.js</file>
+    </qresource>
+</RCC>

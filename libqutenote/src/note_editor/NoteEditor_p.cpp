@@ -60,7 +60,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject(&noteEditor),
     m_noteEditorPageFolderPath(),
     m_jQueryJs(),
-    m_jQueryContextMenuPluginJs(),
+    m_jQueryUiJs(),
+    m_jQueryUiContextMenuJs(),
     m_resizableTableColumnsJs(),
     m_onFixedWidthTableResizeJs(),
     m_getSelectionHtmlJs(),
@@ -118,6 +119,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
+                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/jquery-ui/css/jquery-ui.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-crypt.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/hover.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-decrypted.css\">"
@@ -231,7 +233,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 #endif
 
     page->executeJavaScript(m_jQueryJs);
-    page->executeJavaScript(m_jQueryContextMenuPluginJs);
+    page->executeJavaScript(m_jQueryUiJs);
+    page->executeJavaScript(m_jQueryUiContextMenuJs);
     page->executeJavaScript(m_resizableTableColumnsJs);
     page->executeJavaScript(m_onFixedWidthTableResizeJs);
     page->executeJavaScript(m_getSelectionHtmlJs);
@@ -1441,7 +1444,8 @@ void NoteEditorPrivate::setupScripts()
     file.close()
 
     SETUP_SCRIPT("javascript/jquery/jquery-2.1.3.min.js", m_jQueryJs);
-    SETUP_SCRIPT("javascript/contextmenu/jquery-contextmenu.js", m_jQueryContextMenuPluginJs);
+    SETUP_SCRIPT("javascript/jquery-ui/jquery-ui.min.js", m_jQueryUiJs);
+    SETUP_SCRIPT("javascript/contextmenu/jquery.ui-contextmenu.min.js", m_jQueryUiContextMenuJs);
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
     SETUP_SCRIPT("javascript/scripts/onFixedWidthTableResize.js", m_onFixedWidthTableResizeJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
@@ -2226,11 +2230,14 @@ void NoteEditorPrivate::dropFile(QString & filepath)
 void __initNoteEditorResources()
 {
     Q_INIT_RESOURCE(css);
+    Q_INIT_RESOURCE(jquery_ui_images);
+    Q_INIT_RESOURCE(jquery_ui_css);
     Q_INIT_RESOURCE(contextmenu_images);
     Q_INIT_RESOURCE(checkbox_icons);
     Q_INIT_RESOURCE(encrypted_area_icons);
     Q_INIT_RESOURCE(generic_resource_icons);
     Q_INIT_RESOURCE(jquery);
+    Q_INIT_RESOURCE(jquery_ui);
     Q_INIT_RESOURCE(contextmenu);
     Q_INIT_RESOURCE(colResizable);
     Q_INIT_RESOURCE(scripts);

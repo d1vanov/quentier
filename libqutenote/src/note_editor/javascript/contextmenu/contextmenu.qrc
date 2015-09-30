@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/javascript/contextmenu">
-        <file>jquery-contextmenu.js</file>
+        <file>jquery.ui-contextmenu.min.js</file>
     </qresource>
 </RCC>

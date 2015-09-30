@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/jquery-ui/css">
+        <file>jquery-ui.css</file>
+    </qresource>
+</RCC>
