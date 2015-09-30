@@ -18,6 +18,8 @@
  * Copyright (c) 2008 Matt Kruse (javascripttoolbox.com)
  * Dual licensed under the MIT and GPL licenses. 
  *
+ * Copyright (c) 2015 Dmitry Ivanov - add function triggerContextMenu
+ *
  * @version 1.1
  * @history 1.1 2010-01-25 Fixed a problem with 1.4 which caused undesired show/hide animations
  * @history 1.0 2008-10-20 Initial Release
@@ -262,4 +264,15 @@
 			$(this).bind('contextmenu',function(e){cmenu.show(this,e);return false;});
 		});
 	};
+
+    // Add another function to the jQuery namespace which would allow triggering
+    // the context menu on element instead of binding the context menu function to this element
+    $.fn.triggerContextMenu = function(event,menu,options) {
+        var cmenu = $.contextMenu.create(menu,options);
+        return this.each(function(){
+            var func = function(e){cmenu.show(this,e);return false;};
+            func.call(this,event);
+        });
+    };
+
 })(jQuery);
