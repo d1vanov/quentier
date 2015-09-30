@@ -84,16 +84,44 @@ function contextMenuEventHandler(event) {
     selection.removeAllRanges();
     selection.addRange(range);
 
+    var emptySelection = $(span).is(':empty');
+    console.log("emptySelection is " + (emptySelection ? "true" : "false"));
+
     // Setup the list of menu items
     var textMenu = [
-    { 'Cut':function(menuItem, menu) { console.log("Clicked cut"); } },
-    { 'Copy':function(menuItem, menu) { console.log("Clicked copy"); } },
+    { 'Cut':{
+            onclick:function(menuItem, menu) { console.log("Clicked cut"); },
+            disabled:emptySelection
+        }
+    },
+    { 'Copy':{
+            onclick:function(menuItem, menu) { console.log("Clicked copy"); },
+            disabled:emptySelection
+        }
+    },
     { 'Paste':function(menuItem, menu) { console.log("Clicked paste"); } },
-    { 'Paste as text':function(menuItem, menu) { console.log("Clicked paste as text"); } }
+    { 'Paste as unformatted text':function(menuItem, menu) { console.log("Clicked paste as text"); } },
+    $.contextMenu.separator,
+    { 'Insert ToDo checkbox':function(menuItem, menu) { console.log("Clicked insert ToDo checkbox"); } },
+    { 'Insert special symbol...':function(menuItem, menu) { console.log("Clicked insert special symbol"); } },
+    { 'Insert table...':function(menuItem, menu) { console.log("Clicked insert table"); } },
+    { 'Insert horizontal line':function(menuItem, menu) { console.log("Clicked insert horizontal line"); } },
+    { 'Hyperlink...':function(menuItem, menu) { console.log("Clicked hyperlink"); } },
+    $.contextMenu.separator,
+    { 'Encrypt selected fragment':{
+             onclick:function(menuItem, menu) { console.log("Clicked encrypt selected fragment"); },
+             disabled:emptySelection
+        }
+    }
     ];
 
+    var contextMenuTheme = "xp";
+    if (navigator.appVersion.indexOf("Mac")!=-1) {
+        contextMenuTheme = "osx";
+    }
+
     $(span).triggerContextMenu(event,textMenu,{
-        theme:'xp',
+        theme:contextMenuTheme,
         hideCallback:function(){$(span).contents().unwrap();}
     });
 }
