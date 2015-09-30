@@ -71,7 +71,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_setupEnToDoTagsJs(),
     m_onResourceInfoReceivedJs(),
     m_determineStatesForCurrentTextCursorPositionJs(),
-    m_contextMenuEventHandlerJs(),
+    m_genericContextMenuEventHandlerJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -240,8 +240,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
-    page->executeJavaScript(m_contextMenuEventHandlerJs);
-    page->executeJavaScript("document.addEventListener(\"contextmenu\", contextMenuEventHandler);");
+    page->executeJavaScript(m_genericContextMenuEventHandlerJs);
+    page->executeJavaScript("document.addEventListener(\"contextmenu\", genericContextMenuEventHandler);");
 
     setPageEditable(true);
 
@@ -1452,7 +1452,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
-    SETUP_SCRIPT("javascript/scripts/contextMenuEventHandler.js", m_contextMenuEventHandlerJs);
+    SETUP_SCRIPT("javascript/scripts/genericContextMenuEventHandler.js", m_genericContextMenuEventHandlerJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);

@@ -291,7 +291,7 @@ private:
     QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
-    QString     m_contextMenuEventHandlerJs;
+    QString     m_genericContextMenuEventHandlerJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;

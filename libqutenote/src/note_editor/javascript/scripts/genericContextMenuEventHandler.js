@@ -1,4 +1,4 @@
-function contextMenuEventHandler(event) {
+function genericContextMenuEventHandler(event) {
     console.log("contextMenuEventHandler");
 
     // Figure out on which element the cursor is
@@ -85,7 +85,6 @@ function contextMenuEventHandler(event) {
     selection.addRange(range);
 
     var emptySelection = $(span).is(':empty');
-    console.log("emptySelection is " + (emptySelection ? "true" : "false"));
 
     // Setup the list of menu items
     var textMenu = [
