@@ -88,15 +88,21 @@ function genericContextMenuEventHandler(event) {
 
     // Setup the list of menu items
     var textMenu = [
-    { title: "Cut", cmd: "cut", uiIcon: "ui-icon-cut", disabled:emptySelection },
-    { title: "Copy", cmd: "copy", uiIcon: "ui-icon-cut", disabled:emptySelection },
-    { title: "Paste", cmd: "paste", uiIcon: "ui-icon-paste" },
-    { title: "Paste as unformatted text", uiIcon: "ui-icon-paste",
+    { title: "Cut", uiIcon: "ui-icon-scissors", disabled:emptySelection,
+      action: function(event, ui) { console.log("Clicked cut"); } },
+    { title: "Copy", uiIcon: "ui-icon-copy", disabled:emptySelection,
+      action: function(event, ui) { console.log("Clicked copy"); } },
+    { title: "Paste", uiIcon: "ui-icon-clipboard",
+      action: function(event, ui) { console.log("Clicked paste"); } },
+    { title: "Paste as unformatted text", uiIcon: "ui-icon-clipboard",
       action: function(event, ui) { console.log("Clicked paste as unformatted text"); } },
     { title: "---" },
-    { title: "Font", disabled:emptySelection, children: [
-        { title: "Bold", action: function(event, ui) { console.log("Clicked sub-menu text bold"); } },
-        { title: "Italic", action: function(event, ui) { console.log("Clicked sub-menu text italic"); } }
+    { title: "Font...", disabled:emptySelection, action: function(event, ui) { console.log("Font menu clicked"); } },
+    { title: "Style", disabled:emptySelection, children: [
+        { title: "Bold", action: function(event, ui) { console.log("Clicked style bold"); } },
+        { title: "Italic", action: function(event, ui) { console.log("Clicked style italic"); } },
+        { title: "Underline", action: function(event, ui) { console.log("Clicked style underline"); } },
+        { title: "Strikethrough", action: function(event, ui) { console.log("Clicked style strikethrough"); } }
       ]
     },
     { title: "---" },
