@@ -105,16 +105,35 @@ function genericContextMenuEventHandler(event) {
         { title: "Strikethrough", action: function(event, ui) { console.log("Clicked style strikethrough"); } }
       ]
     },
+    { title: "Paragraph", children: [
+        { title: "Justify left", action: function(event, ui) { console.log("Clicked justify left"); } },
+        { title: "Justify center", action: function(event, ui) { console.log("Clicked justify center"); } },
+        { title: "Justify right", action: function(event, ui) { console.log("Clicked justify right"); } },
+        { title: "Justify width", action: function(event, ui) { console.log("Clicked justify width"); } },
+        { title: "---" },
+        { title: "Indent less", action: function(event, ui) { console.log("Clicked indent less"); } },
+        { title: "Indent more", action: function(event, ui) { console.log("Clicked indent more"); } },
+        { title: "---" },
+        { title: "Increase font size", action: function(event, ui) { console.log("Clicked increase font size"); } },
+        { title: "Decrease font size", action: function(event, ui) { console.log("Clicked decrease font size"); } },
+        { title: "---" },
+        { title: "Bulleted list", action: function(event, ui) { console.log("Toggled bulleted list"); } },
+        { title: "Numbered list", action: function(event, ui) { console.log("Toggled numbered list"); } }
+      ]
+    },
     { title: "---" },
     { title: "Insert ToDo checkbox", action: function(event, ui) { console.log("Clicked insert ToDo checkbox"); } },
     { title: "Insert special symbol...", action: function(event, ui) { console.log("Clicked insert special symbol"); } },
     { title: "Insert table...", action: function(event, ui) { console.log("Clicked insert table"); } },
     { title: "Insert horizontal line", action: function(event, ui) { console.log("Clicked insert horizontal line"); } },
     { title: "Hyperlink...", action: function(event, ui) { console.log("Clicked hyperlink"); } },
+    { title: "Attach resource...", action: function(event, ui) { console.log("Clicked attach resource"); } },
     { title: "---" },
     { title: "Encrypt selected fragment",
       action: function(event, ui) { console.log("Clicked encrypt selected fragment"); },
-      disabled:emptySelection }
+      disabled:emptySelection },
+    { title: "---" },
+    { title: "Note statistics", action: function(event, ui) { console.log("Clicked note statistics"); } }
     ];
 
     $(span).contextmenu({
