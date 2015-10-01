@@ -9,7 +9,7 @@ function genericContextMenuEventHandler(event) {
         console.log("Can't get element from point: (" + x + "; " + y + ")");
         return;
     }
-    
+
     var onImageResource = false;
     var onNonImageResource = false;
     var onEnCryptTag = false;
@@ -111,6 +111,11 @@ function genericContextMenuEventHandler(event) {
       disabled:emptySelection }
     ];
 
-    $(span).contextmenu({ delegate: document, menu: textMenu });
+    $(span).contextmenu({
+        delegate: document,
+        menu: textMenu,
+        close: function(event, ui) { $(span).contents().unwrap(); }
+    });
+
     $(span).contextmenu("open", $(span), textMenu);
 }
