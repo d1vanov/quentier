@@ -6,7 +6,11 @@
 #ifndef USE_QT_WEB_ENGINE
 #include "EncryptedAreaPlugin.h"
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
+#include <qute_note/utility/ApplicationSettings.h>
 #include <QWebFrame>
+#include <QMenu>
+#include <QKeySequence>
+#include <QContextMenuEvent>
 typedef QWebSettings WebSettings;
 #else
 #include "javascript_glue/MimeTypeIconJavaScriptHandler.h"
@@ -60,8 +64,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject(&noteEditor),
     m_noteEditorPageFolderPath(),
     m_jQueryJs(),
-    m_jQueryUiJs(),
-    m_jQueryUiContextMenuJs(),
     m_resizableTableColumnsJs(),
     m_onFixedWidthTableResizeJs(),
     m_getSelectionHtmlJs(),
@@ -72,14 +74,16 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_setupEnToDoTagsJs(),
     m_onResourceInfoReceivedJs(),
     m_determineStatesForCurrentTextCursorPositionJs(),
-    m_genericContextMenuEventHandlerJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
+    m_jQueryUiJs(),
+    m_jQueryUiContextMenuJs(),
     m_provideSrcForGenericResourceIconsJs(),
     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs(),
     m_qWebChannelJs(),
     m_qWebChannelSetupJs(),
+    m_genericContextMenuEventHandlerJs(),
     m_pageMutationObserverJs(),
     m_onIconFilePathForIconThemeNameReceivedJs(),
     m_provideSrcForGenericResourceOpenAndSaveIconsJs(),
@@ -114,7 +118,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_decryptedTextManager(),
     m_enmlConverter(),
 #ifndef USE_QT_WEB_ENGINE
-    m_pluginFactory(nullptr),
+    m_pluginFactory(Q_NULLPTR),
+    m_pContextMenu(Q_NULLPTR),
 #endif
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
@@ -130,9 +135,9 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_enmlCachedMemory(),
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
-    m_pIOThread(nullptr),
-    m_pResourceFileStorageManager(nullptr),
-    m_pFileIOThreadWorker(nullptr),
+    m_pIOThread(Q_NULLPTR),
+    m_pResourceFileStorageManager(Q_NULLPTR),
+    m_pFileIOThreadWorker(Q_NULLPTR),
     m_resourceInfo(),
     m_pResourceInfoJavaScriptHandler(new ResourceInfoJavaScriptHandler(m_resourceInfo, this)),
     m_resourceLocalFileStorageFolder(),
@@ -158,6 +163,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #ifdef USE_QT_WEB_ENGINE
     setupWebSocketServer();
     setupJavaScriptObjects();
+#else
+    setupContextMenu();
 #endif
 
     setupTextCursorPositionJavaScriptHandlerConnections();
@@ -202,6 +209,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     Q_Q(NoteEditor);
     GET_PAGE()
 
+    page->executeJavaScript(m_jQueryJs);
+
 #ifndef USE_QT_WEB_ENGINE
     QWebFrame * frame = page->mainFrame();
     if (Q_UNLIKELY(!frame)) {
@@ -216,6 +225,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_qWebKitSetupJs);
 #else
+    page->executeJavaScript(m_jQueryUiJs);
+    page->executeJavaScript(m_jQueryUiContextMenuJs);
     page->executeJavaScript(m_pageMutationObserverJs, /* clear previous queue = */ true);
     page->executeJavaScript(m_qWebChannelJs);
     page->executeJavaScript(QString("(function(){window.websocketserverport = ") +
@@ -223,6 +234,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_onIconFilePathForIconThemeNameReceivedJs);
     page->executeJavaScript(m_qWebChannelSetupJs);
+    page->executeJavaScript(m_genericContextMenuEventHandlerJs);
+    page->executeJavaScript("document.addEventListener(\"contextmenu\", genericContextMenuEventHandler);");
     page->executeJavaScript(m_provideGenericResourceDisplayNameAndSizeJs);
     page->executeJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     page->executeJavaScript(m_provideSrcForGenericResourceIconsJs);
@@ -232,9 +245,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_notifyTextCursorPositionChangedJs);
 #endif
 
-    page->executeJavaScript(m_jQueryJs);
-    page->executeJavaScript(m_jQueryUiJs);
-    page->executeJavaScript(m_jQueryUiContextMenuJs);
     page->executeJavaScript(m_resizableTableColumnsJs);
     page->executeJavaScript(m_onFixedWidthTableResizeJs);
     page->executeJavaScript(m_getSelectionHtmlJs);
@@ -243,8 +253,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
-    page->executeJavaScript(m_genericContextMenuEventHandlerJs);
-    page->executeJavaScript("document.addEventListener(\"contextmenu\", genericContextMenuEventHandler);");
 
     setPageEditable(true);
 
@@ -577,6 +585,20 @@ void NoteEditorPrivate::onSaveResourceButtonClicked(const QString & resourceHash
 void NoteEditorPrivate::onJavaScriptLoaded()
 {
     QNDEBUG("NoteEditorPrivate::onJavaScriptLoaded");
+}
+
+#else
+
+void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
+{
+    QNTRACE("NoteEditorPrivate::contextMenuEvent");
+
+    if (Q_UNLIKELY(!pEvent)) {
+        QNINFO("detected null pointer to context menu event");
+        return;
+    }
+
+    m_pContextMenu->exec(pEvent->globalPos());
 }
 
 #endif
@@ -1391,6 +1413,128 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
     page->executeJavaScript(javascript);
 }
 
+#else
+
+void NoteEditorPrivate::setupContextMenu()
+{
+    QNDEBUG("NoteEditorPrivate::setupContextMenu");
+
+    Q_Q(NoteEditor);
+
+    delete m_pContextMenu;
+    m_pContextMenu = new QMenu(q);
+
+#define ADD_ACTION(name, menu, slot) \
+    { \
+        QAction * action = new QAction(QObject::tr(#name), menu); \
+        menu->addAction(action); \
+        QObject::connect(action, QNSIGNAL(QAction,triggered), q, QNSLOT(NoteEditor,slot)); \
+    }
+
+#define ADD_ACTION_WITH_SHORTCUT(key, name, menu, slot) \
+    { \
+        QAction * action = new QAction(QObject::tr(#key), menu); \
+        setupShortcut(#key, *action); \
+        menu->addAction(action); \
+        QObject::connect(action, QNSIGNAL(QAction,triggered), q, QNSLOT(NoteEditor,slot)); \
+    }
+
+    ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pContextMenu, cut);
+    ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pContextMenu, copy);
+    ADD_ACTION_WITH_SHORTCUT(Paste, Paste, m_pContextMenu, paste);
+    ADD_ACTION_WITH_SHORTCUT(Paste unformatted, Paste as unformatted text, m_pContextMenu, pasteUnformatted);
+    Q_UNUSED(m_pContextMenu->addSeparator());
+    ADD_ACTION_WITH_SHORTCUT(Font, Font..., m_pContextMenu, fontMenu);
+    QMenu * styleSubMenu = m_pContextMenu->addMenu(QObject::tr("Style"));
+    ADD_ACTION_WITH_SHORTCUT(Bold, Bold, styleSubMenu, textBold);
+    ADD_ACTION_WITH_SHORTCUT(Italic, Italic, styleSubMenu, textItalic);
+    ADD_ACTION_WITH_SHORTCUT(Underline, Underline, styleSubMenu, textUnderline);
+    ADD_ACTION_WITH_SHORTCUT(Strikethrough, Strikethrough, styleSubMenu, textStrikethrough);
+    // TODO: continue
+}
+
+void NoteEditorPrivate::setupShortcut(const QString & key, QAction & action)
+{
+    QNDEBUG("NoteEditorPrivate::setupShortcut: key = " << key);
+
+    ApplicationSettings appSettings;
+    QString shortcut = appSettings.value(key).toString();
+    if (!shortcut.isEmpty()) {
+        action.setShortcut(QKeySequence(shortcut));
+        return;
+    }
+
+    if (key == "Cut") {
+        action.setShortcut(Qt::CTRL + Qt::Key_X);
+    }
+    else if (key == "Copy") {
+        action.setShortcut(Qt::CTRL + Qt::Key_C);
+    }
+    else if (key == "Paste") {
+        action.setShortcut(Qt::CTRL + Qt::Key_V);
+    }
+    else if (key == "Paste unformatted") {
+        action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_V);
+    }
+    else if (key == "Font") {
+        action.setShortcut(Qt::CTRL + Qt::Key_D);
+    }
+    else if (key == "Bold") {
+        action.setShortcut(Qt::CTRL + Qt::Key_B);
+    }
+    else if (key == "Italic") {
+        action.setShortcut(Qt::CTRL + Qt::Key_I);
+    }
+    else if (key == "Underline") {
+        action.setShortcut(Qt::CTRL + Qt::Key_U);
+    }
+    else if (key == "Strikethrough") {
+        action.setShortcut(Qt::CTRL + Qt::Key_T);
+    }
+    else if (key == "Justify left") {
+        action.setShortcut(Qt::CTRL + Qt::Key_L);
+    }
+    else if (key == "Justify center") {
+        action.setShortcut(Qt::CTRL + Qt::Key_E);
+    }
+    else if (key == "Justify right") {
+        action.setShortcut(Qt::CTRL + Qt::Key_R);
+    }
+    else if (key == "Justify width") {
+        action.setShortcut(Qt::CTRL + Qt::Key_J);
+    }
+    else if (key == "Indent") {
+        action.setShortcut(Qt::CTRL + Qt::Key_M);
+    }
+    else if (key == "Unindent") {
+        action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_M);
+    }
+    else if (key == "Numbered list") {
+        action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_N);
+    }
+    else if (key == "Bulleted list") {
+        action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_B);
+    }
+    else if (key == "Horizontal line") {
+        action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Minus);
+    }
+    else if (key == "ToDo") {
+        action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_C);
+    }
+    else if (key == "Add hyperlink") {
+        action.setShortcut(Qt::CTRL + Qt::Key_K);
+    }
+    else if (key == "Edit hyperlink") {
+        action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_K);
+    }
+    else if (key == "Remove hyperlink") {
+        action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_R);
+    }
+    else if (key == "Encrypt") {
+        action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_X);
+    }
+}
+
 #endif
 
 void NoteEditorPrivate::setupFileIO()
@@ -1444,8 +1588,6 @@ void NoteEditorPrivate::setupScripts()
     file.close()
 
     SETUP_SCRIPT("javascript/jquery/jquery-2.1.3.min.js", m_jQueryJs);
-    SETUP_SCRIPT("javascript/jquery-ui/jquery-ui.min.js", m_jQueryUiJs);
-    SETUP_SCRIPT("javascript/contextmenu/jquery.ui-contextmenu.min.js", m_jQueryUiContextMenuJs);
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
     SETUP_SCRIPT("javascript/scripts/onFixedWidthTableResize.js", m_onFixedWidthTableResizeJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
@@ -1456,13 +1598,15 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
-    SETUP_SCRIPT("javascript/scripts/genericContextMenuEventHandler.js", m_genericContextMenuEventHandlerJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
 #else
+    SETUP_SCRIPT("javascript/jquery-ui/jquery-ui.min.js", m_jQueryUiJs);
+    SETUP_SCRIPT("javascript/contextmenu/jquery.ui-contextmenu.min.js", m_jQueryUiContextMenuJs);
     SETUP_SCRIPT("qtwebchannel/qwebchannel.js", m_qWebChannelJs);
     SETUP_SCRIPT("javascript/scripts/qWebChannelSetup.js", m_qWebChannelSetupJs);
+    SETUP_SCRIPT("javascript/scripts/genericContextMenuEventHandler.js", m_genericContextMenuEventHandlerJs);
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceIcons.js", m_provideSrcForGenericResourceIconsJs);

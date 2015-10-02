@@ -142,5 +142,6 @@ function genericContextMenuEventHandler(event) {
         close: function(event, ui) { $(span).contents().unwrap(); }
     });
 
+    console.log("Opening the context menu");
     $(span).contextmenu("open", $(span), textMenu);
 }

@@ -136,6 +136,8 @@ private Q_SLOTS:
     void onSaveResourceButtonClicked(const QString & resourceHash);
 
     void onJavaScriptLoaded();
+#else
+    void contextMenuEvent(QContextMenuEvent * pEvent);
 #endif
 
     void onTextCursorPositionChange();
@@ -182,6 +184,9 @@ private:
     void setupWebSocketServer();
     void setupJavaScriptObjects();
     void setupTextCursorPositionTracking();
+#else
+    void setupContextMenu();
+    void setupShortcut(const QString & key, QAction & action);
 #endif
     void setupFileIO();
     void setupScripts();
@@ -280,8 +285,6 @@ private:
 
     // JavaScript scripts
     QString     m_jQueryJs;
-    QString     m_jQueryUiJs;
-    QString     m_jQueryUiContextMenuJs;
     QString     m_resizableTableColumnsJs;
     QString     m_onFixedWidthTableResizeJs;
     QString     m_getSelectionHtmlJs;
@@ -292,15 +295,17 @@ private:
     QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
-    QString     m_genericContextMenuEventHandlerJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
 #else
+    QString     m_jQueryUiJs;
+    QString     m_jQueryUiContextMenuJs;
     QString     m_provideSrcForGenericResourceIconsJs;
     QString     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs;
     QString     m_qWebChannelJs;
     QString     m_qWebChannelSetupJs;
+    QString     m_genericContextMenuEventHandlerJs;
     QString     m_pageMutationObserverJs;
     QString     m_onIconFilePathForIconThemeNameReceivedJs;
     QString     m_provideSrcForGenericResourceOpenAndSaveIconsJs;
@@ -364,6 +369,7 @@ private:
 
 #ifndef USE_QT_WEB_ENGINE
     NoteEditorPluginFactory *               m_pluginFactory;
+    QMenu *                                 m_pContextMenu;
 #endif
 
     const QString     m_pagePrefix;

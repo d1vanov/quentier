@@ -9,6 +9,7 @@
 #include <qute_note/types/Notebook.h>
 #include <QFont>
 #include <QColor>
+#include <QContextMenuEvent>
 
 namespace qute_note {
 
@@ -81,6 +82,16 @@ void NoteEditor::copy()
 void NoteEditor::paste()
 {
     page()->triggerAction(WebPage::Paste);
+}
+
+void NoteEditor::pasteUnformatted()
+{
+    page()->triggerAction(WebPage::PasteAndMatchStyle);
+}
+
+void NoteEditor::fontMenu()
+{
+    // TODO: implement
 }
 
 void NoteEditor::textBold()
@@ -248,5 +259,13 @@ void NoteEditor::dropEvent(QDropEvent * pEvent)
     Q_D(NoteEditor);
     d->onDropEvent(pEvent);
 }
+
+#ifndef USE_QT_WEB_ENGINE
+void NoteEditor::contextMenuEvent(QContextMenuEvent * pEvent)
+{
+    Q_D(NoteEditor);
+    d->contextMenuEvent(pEvent);
+}
+#endif
 
 } // namespace qute_note
