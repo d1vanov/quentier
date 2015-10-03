@@ -2,15 +2,13 @@
 #include "NoteEditorPage.h"
 #include "javascript_glue/ResourceInfoJavaScriptHandler.h"
 #include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
+#include "javascript_glue/ContextMenuEventJavaScriptHandler.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include "EncryptedAreaPlugin.h"
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
 #include <qute_note/utility/ApplicationSettings.h>
 #include <QWebFrame>
-#include <QMenu>
-#include <QKeySequence>
-#include <QContextMenuEvent>
 typedef QWebSettings WebSettings;
 #else
 #include "javascript_glue/MimeTypeIconJavaScriptHandler.h"
@@ -50,6 +48,11 @@ typedef QWebEngineSettings WebSettings;
 #include <QMimeData>
 #include <QMimeDatabase>
 #include <QThread>
+#include <QApplication>
+#include <QClipboard>
+#include <QMenu>
+#include <QKeySequence>
+#include <QContextMenuEvent>
 
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(q->page()); \
@@ -77,13 +80,10 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
-    m_jQueryUiJs(),
-    m_jQueryUiContextMenuJs(),
     m_provideSrcForGenericResourceIconsJs(),
     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs(),
     m_qWebChannelJs(),
     m_qWebChannelSetupJs(),
-    m_genericContextMenuEventHandlerJs(),
     m_pageMutationObserverJs(),
     m_onIconFilePathForIconThemeNameReceivedJs(),
     m_provideSrcForGenericResourceOpenAndSaveIconsJs(),
@@ -100,6 +100,9 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pGenericResourceOpenAndSaveButtonsOnClickHandler(new GenericResourceOpenAndSaveButtonsOnClickHandler(this)),
     m_webSocketServerPort(0),
 #endif
+    m_contextMenuSequenceNumber(1),     // NOTE: must start from 1 as JavaScript treats 0 as null!
+    m_lastContextMenuEventGlobalPos(),
+    m_pContextMenuEventJavaScriptHandler(new ContextMenuEventJavaScriptHandler(this)),
     m_pTextCursorPositionJavaScriptHandler(new TextCursorPositionJavaScriptHandler(this)),
     m_currentTextFormattingState(),
     m_writeNoteHtmlToFileRequestId(),
@@ -119,18 +122,19 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_enmlConverter(),
 #ifndef USE_QT_WEB_ENGINE
     m_pluginFactory(Q_NULLPTR),
-    m_pContextMenu(Q_NULLPTR),
 #endif
+    m_pGenericTextContextMenu(Q_NULLPTR),
+    m_pImageResourceContextMenu(Q_NULLPTR),
+    m_pNonImageResourceContextMenu(Q_NULLPTR),
+    m_pEncryptedTextContextMenu(Q_NULLPTR),
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
-                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/jquery-ui/css/jquery-ui.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-crypt.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/hover.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-decrypted.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-media-generic.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-todo.css\">"
-                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/jquery.contextmenu.css\">"
                  "<title></title></head>"),
     m_enmlCachedMemory(),
     m_htmlCachedMemory(),
@@ -164,7 +168,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     setupWebSocketServer();
     setupJavaScriptObjects();
 #else
-    setupContextMenu();
+    setupGenericTextContextMenu();
 #endif
 
     setupTextCursorPositionJavaScriptHandlerConnections();
@@ -221,12 +225,12 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
                                        QScriptEngine::QtOwnership);
     frame->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
                                        QScriptEngine::QtOwnership);
+    frame->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
+                                       QScriptEngine::QtOwnership);
 
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_qWebKitSetupJs);
 #else
-    page->executeJavaScript(m_jQueryUiJs);
-    page->executeJavaScript(m_jQueryUiContextMenuJs);
     page->executeJavaScript(m_pageMutationObserverJs, /* clear previous queue = */ true);
     page->executeJavaScript(m_qWebChannelJs);
     page->executeJavaScript(QString("(function(){window.websocketserverport = ") +
@@ -234,8 +238,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_onIconFilePathForIconThemeNameReceivedJs);
     page->executeJavaScript(m_qWebChannelSetupJs);
-    page->executeJavaScript(m_genericContextMenuEventHandlerJs);
-    page->executeJavaScript("document.addEventListener(\"contextmenu\", genericContextMenuEventHandler);");
     page->executeJavaScript(m_provideGenericResourceDisplayNameAndSizeJs);
     page->executeJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     page->executeJavaScript(m_provideSrcForGenericResourceIconsJs);
@@ -587,7 +589,7 @@ void NoteEditorPrivate::onJavaScriptLoaded()
     QNDEBUG("NoteEditorPrivate::onJavaScriptLoaded");
 }
 
-#else
+#endif
 
 void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
 {
@@ -598,10 +600,47 @@ void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
-    m_pContextMenu->exec(pEvent->globalPos());
+    if (m_pendingIndexHtmlWritingToFile || m_pendingNotePageLoad) {
+        QNINFO("Ignoring context menu event for now, until the note is fully loaded...");
+        return;
+    }
+
+    m_lastContextMenuEventGlobalPos = pEvent->globalPos();
+
+    QNTRACE("Saved global pos: x = " << m_lastContextMenuEventGlobalPos.x() << ", y = " << m_lastContextMenuEventGlobalPos.y()
+            << ", increased context menu sequence number = " << m_contextMenuSequenceNumber);
+
+    determineContextMenuContent();
 }
 
-#endif
+void NoteEditorPrivate::onContextMenuEventReply(QString contentType, quint64 sequenceNumber)
+{
+    QNDEBUG("NoteEditorPrivate::onContextMenuEventReply: content type = " << contentType
+            << ", sequence number = " << sequenceNumber);
+
+    if (!checkContextMenuSequenceNumber(sequenceNumber)) {
+        QNTRACE("Sequence number is not valid, not doing anything");
+        return;
+    }
+
+    ++m_contextMenuSequenceNumber;
+
+    if (contentType == "GenericText") {
+        setupGenericTextContextMenu();
+    }
+    else if (contentType == "ImageResource") {
+        setupImageResourceContextMenu();
+    }
+    else if (contentType == "NonImageResource") {
+        setupNonImageResourceContextMenu();
+    }
+    else if (contentType == "EncryptedText") {
+        setupEncryptedTextContextMenu();
+    }
+    else {
+        QNWARNING("Unknown content type on context menu event reply: " << contentType << ", sequence number " << sequenceNumber);
+    }
+}
 
 void NoteEditorPrivate::onTextCursorPositionChange()
 {
@@ -823,6 +862,9 @@ void NoteEditorPrivate::clearEditorContent()
     m_contentChangedSinceWatchingStart = false;
 
     m_modified = false;
+
+    m_contextMenuSequenceNumber = 1;
+    m_lastContextMenuEventGlobalPos = QPoint();
 
     QString initialHtml = m_pagePrefix + "<body></body></html>";
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
@@ -1390,6 +1432,9 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, &TextCursorPositionJavaScriptHandler::textCursorPositionChanged,
                      this, &NoteEditorPrivate::onTextCursorPositionChange);
 
+    QObject::connect(m_pContextMenuEventJavaScriptHandler, &ContextMenuEventJavaScriptHandler::contextMenuEventReply,
+                     this, &NoteEditorPrivate::onContextMenuEventReply);
+
     m_pWebChannel->registerObject("resourceCache", m_pResourceInfoJavaScriptHandler);
     m_pWebChannel->registerObject("enCryptElementClickHandler", m_pEnCryptElementClickHandler);
     m_pWebChannel->registerObject("pageMutationObserver", m_pPageMutationHandler);
@@ -1397,6 +1442,7 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pWebChannel->registerObject("iconThemeHandler", m_pIconThemeJavaScriptHandler);
     m_pWebChannel->registerObject("openAndSaveResourceButtonsHandler", m_pGenericResourceOpenAndSaveButtonsOnClickHandler);
     m_pWebChannel->registerObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler);
+    m_pWebChannel->registerObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler);
     QNDEBUG("Registered objects exposed to JavaScript");
 }
 
@@ -1413,16 +1459,16 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
     page->executeJavaScript(javascript);
 }
 
-#else
+#endif
 
-void NoteEditorPrivate::setupContextMenu()
+void NoteEditorPrivate::setupGenericTextContextMenu()
 {
-    QNDEBUG("NoteEditorPrivate::setupContextMenu");
+    QNDEBUG("NoteEditorPrivate::setupGenericTextContextMenu");
 
     Q_Q(NoteEditor);
 
-    delete m_pContextMenu;
-    m_pContextMenu = new QMenu(q);
+    delete m_pGenericTextContextMenu;
+    m_pGenericTextContextMenu = new QMenu(q);
 
 #define ADD_ACTION(name, menu, slot) \
     { \
@@ -1434,28 +1480,106 @@ void NoteEditorPrivate::setupContextMenu()
 #define ADD_ACTION_WITH_SHORTCUT(key, name, menu, slot) \
     { \
         QAction * action = new QAction(QObject::tr(#key), menu); \
-        setupShortcut(#key, *action); \
+        setupActionShortcut(#key, *action); \
         menu->addAction(action); \
         QObject::connect(action, QNSIGNAL(QAction,triggered), q, QNSLOT(NoteEditor,slot)); \
     }
 
-    ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pContextMenu, cut);
-    ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pContextMenu, copy);
-    ADD_ACTION_WITH_SHORTCUT(Paste, Paste, m_pContextMenu, paste);
-    ADD_ACTION_WITH_SHORTCUT(Paste unformatted, Paste as unformatted text, m_pContextMenu, pasteUnformatted);
-    Q_UNUSED(m_pContextMenu->addSeparator());
-    ADD_ACTION_WITH_SHORTCUT(Font, Font..., m_pContextMenu, fontMenu);
-    QMenu * styleSubMenu = m_pContextMenu->addMenu(QObject::tr("Style"));
-    ADD_ACTION_WITH_SHORTCUT(Bold, Bold, styleSubMenu, textBold);
-    ADD_ACTION_WITH_SHORTCUT(Italic, Italic, styleSubMenu, textItalic);
-    ADD_ACTION_WITH_SHORTCUT(Underline, Underline, styleSubMenu, textUnderline);
-    ADD_ACTION_WITH_SHORTCUT(Strikethrough, Strikethrough, styleSubMenu, textStrikethrough);
-    // TODO: continue
+    ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pGenericTextContextMenu, cut);
+    ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pGenericTextContextMenu, copy);
+
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
+        QNTRACE("Clipboard buffer has something, adding paste actions");
+        ADD_ACTION_WITH_SHORTCUT(Paste, Paste, m_pGenericTextContextMenu, paste);
+        ADD_ACTION_WITH_SHORTCUT(Paste unformatted, Paste as unformatted text, m_pGenericTextContextMenu, pasteUnformatted);
+    }
+
+    Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
+
+    ADD_ACTION_WITH_SHORTCUT(Font, Font..., m_pGenericTextContextMenu, fontMenu);
+    QMenu * pStyleSubMenu = m_pGenericTextContextMenu->addMenu(QObject::tr("Style"));
+    ADD_ACTION_WITH_SHORTCUT(Bold, Bold, pStyleSubMenu, textBold);
+    ADD_ACTION_WITH_SHORTCUT(Italic, Italic, pStyleSubMenu, textItalic);
+    ADD_ACTION_WITH_SHORTCUT(Underline, Underline, pStyleSubMenu, textUnderline);
+    ADD_ACTION_WITH_SHORTCUT(Strikethrough, Strikethrough, pStyleSubMenu, textStrikethrough);
+    // TODO: continue filling the menu items
+
+    m_pGenericTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
 
-void NoteEditorPrivate::setupShortcut(const QString & key, QAction & action)
+void NoteEditorPrivate::setupImageResourceContextMenu()
 {
-    QNDEBUG("NoteEditorPrivate::setupShortcut: key = " << key);
+    QNDEBUG("NoteEditorPrivate::setupImageResourceContextMenu");
+
+    Q_Q(NoteEditor);
+
+    delete m_pImageResourceContextMenu;
+    m_pImageResourceContextMenu = new QMenu(q);
+
+    ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pImageResourceContextMenu, cut);
+    ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pImageResourceContextMenu, copy);
+
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
+        QNTRACE("Clipboard buffer has something, adding paste action");
+        ADD_ACTION_WITH_SHORTCUT(Paste, Paste, m_pImageResourceContextMenu, paste);
+    }
+
+    // TODO: continue filling the menu items
+
+    m_pImageResourceContextMenu->exec(m_lastContextMenuEventGlobalPos);
+}
+
+void NoteEditorPrivate::setupNonImageResourceContextMenu()
+{
+    QNDEBUG("NoteEditorPrivate::setupNonImageResourceContextMenu");
+
+    Q_Q(NoteEditor);
+
+    delete m_pNonImageResourceContextMenu;
+    m_pNonImageResourceContextMenu = new QMenu(q);
+
+    ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pNonImageResourceContextMenu, cut);
+    ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pNonImageResourceContextMenu, copy);
+
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
+        QNTRACE("Clipboard buffer has something, adding paste action");
+        ADD_ACTION_WITH_SHORTCUT(Paste, Paste, m_pNonImageResourceContextMenu, paste);
+    }
+
+    // TODO: continue filling the menu items
+
+    m_pNonImageResourceContextMenu->exec(m_lastContextMenuEventGlobalPos);
+}
+
+void NoteEditorPrivate::setupEncryptedTextContextMenu()
+{
+    QNDEBUG("NoteEditorPrivate::setupEncryptedTextContextMenu");
+
+    Q_Q(NoteEditor);
+
+    delete m_pEncryptedTextContextMenu;
+    m_pEncryptedTextContextMenu = new QMenu(q);
+
+    ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pEncryptedTextContextMenu, cut);
+    ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pEncryptedTextContextMenu, copy);
+
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
+        QNTRACE("Clipboard buffer has something, adding paste action");
+        ADD_ACTION_WITH_SHORTCUT(Paste, Paste, m_pEncryptedTextContextMenu, paste);
+    }
+
+    // TODO: continue filling the menu items
+
+    m_pEncryptedTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
+}
+
+void NoteEditorPrivate::setupActionShortcut(const QString & key, QAction & action)
+{
+    QNDEBUG("NoteEditorPrivate::setupActionShortcut: key = " << key);
 
     ApplicationSettings appSettings;
     QString shortcut = appSettings.value(key).toString();
@@ -1535,8 +1659,6 @@ void NoteEditorPrivate::setupShortcut(const QString & key, QAction & action)
     }
 }
 
-#endif
-
 void NoteEditorPrivate::setupFileIO()
 {
     QNDEBUG("NoteEditorPrivate::setupFileIO");
@@ -1602,11 +1724,8 @@ void NoteEditorPrivate::setupScripts()
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
 #else
-    SETUP_SCRIPT("javascript/jquery-ui/jquery-ui.min.js", m_jQueryUiJs);
-    SETUP_SCRIPT("javascript/contextmenu/jquery.ui-contextmenu.min.js", m_jQueryUiContextMenuJs);
     SETUP_SCRIPT("qtwebchannel/qwebchannel.js", m_qWebChannelJs);
     SETUP_SCRIPT("javascript/scripts/qWebChannelSetup.js", m_qWebChannelSetupJs);
-    SETUP_SCRIPT("javascript/scripts/genericContextMenuEventHandler.js", m_genericContextMenuEventHandlerJs);
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceIcons.js", m_provideSrcForGenericResourceIconsJs);
@@ -1642,6 +1761,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
                                                    QScriptEngine::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
+    page->mainFrame()->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
+                                                   QScriptEngine::QtOwnership);
 
     m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager,
                                                   *m_pFileIOThreadWorker, page);
@@ -1657,6 +1778,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
     QObject::connect(page, QNSIGNAL(NoteEditor,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
 #endif
 
+    QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,quint64),
+                     this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,quint64));
     QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
@@ -1723,7 +1846,19 @@ void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()
 {
     QNDEBUG("NoteEditorPrivate::determineStatesForCurrentTextCursorPosition");
 
-    QString javascript = "determineStatesForCurrentTextCursorPosition();";
+    QString javascript = "determineStatesForCurrentTextCursorPosition(null);";
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    page->executeJavaScript(javascript);
+}
+
+void NoteEditorPrivate::determineContextMenuContent()
+{
+    QNDEBUG("NoteEditorPrivate::determineContextMenuContent");
+
+    QString javascript = "determineStatesForCurrentTextCursorPosition(" + QString::number(m_contextMenuSequenceNumber) + ")";
 
     Q_Q(NoteEditor);
     GET_PAGE()
@@ -1748,6 +1883,11 @@ void NoteEditorPrivate::setPageEditable(const bool editable)
 #endif
 
     m_isPageEditable = editable;
+}
+
+bool NoteEditorPrivate::checkContextMenuSequenceNumber(const quint64 sequenceNumber) const
+{
+    return m_contextMenuSequenceNumber == sequenceNumber;
 }
 
 void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
@@ -2374,15 +2514,10 @@ void NoteEditorPrivate::dropFile(QString & filepath)
 void __initNoteEditorResources()
 {
     Q_INIT_RESOURCE(css);
-    Q_INIT_RESOURCE(jquery_ui_images);
-    Q_INIT_RESOURCE(jquery_ui_css);
-    Q_INIT_RESOURCE(contextmenu_images);
     Q_INIT_RESOURCE(checkbox_icons);
     Q_INIT_RESOURCE(encrypted_area_icons);
     Q_INIT_RESOURCE(generic_resource_icons);
     Q_INIT_RESOURCE(jquery);
-    Q_INIT_RESOURCE(jquery_ui);
-    Q_INIT_RESOURCE(contextmenu);
     Q_INIT_RESOURCE(colResizable);
     Q_INIT_RESOURCE(scripts);
 

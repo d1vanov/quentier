@@ -166,6 +166,7 @@ set(PRIVATE_HEADERS
     src/note_editor/ResourceInfo.h
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.h
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.h
+    src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.h
     src/types/data/DataElementWithShortcutData.h
     src/types/data/LocalStorageDataElementData.h
     src/types/data/LinkedNotebookData.h
@@ -220,6 +221,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ResourceInfo.cpp
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.cpp
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.cpp
+    src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.cpp
     src/types/ISharedNotebook.cpp
     src/types/IResource.cpp
     src/types/IUser.cpp
@@ -318,15 +320,10 @@ endif()
 
 set(RESOURCES
     src/note_editor/css/css.qrc
-    src/note_editor/css/jquery_ui_css.qrc
     src/note_editor/images/icons/checkbox_icons/checkbox_icons.qrc
     src/note_editor/images/icons/encrypted_area_icons/encrypted_area_icons.qrc
     src/note_editor/images/icons/generic_resource_icons/generic_resource_icons.qrc
-    src/note_editor/images/jquery-ui/jquery_ui_images.qrc
-    src/note_editor/images/contextmenu/contextmenu_images.qrc
     src/note_editor/javascript/jquery/jquery.qrc
-    src/note_editor/javascript/jquery-ui/jquery_ui.qrc
-    src/note_editor/javascript/contextmenu/contextmenu.qrc
     src/note_editor/javascript/colResizable/colResizable.qrc
     src/note_editor/javascript/scripts/scripts.qrc
     src/enml/enml.qrc)

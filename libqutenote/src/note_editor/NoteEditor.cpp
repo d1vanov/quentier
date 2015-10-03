@@ -260,12 +260,10 @@ void NoteEditor::dropEvent(QDropEvent * pEvent)
     d->onDropEvent(pEvent);
 }
 
-#ifndef USE_QT_WEB_ENGINE
 void NoteEditor::contextMenuEvent(QContextMenuEvent * pEvent)
 {
     Q_D(NoteEditor);
     d->contextMenuEvent(pEvent);
 }
-#endif
 
 } // namespace qute_note

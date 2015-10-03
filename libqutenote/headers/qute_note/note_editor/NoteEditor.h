@@ -99,10 +99,7 @@ public Q_SLOTS:
 
 private:
     virtual void dropEvent(QDropEvent * pEvent) Q_DECL_OVERRIDE;
-
-#ifndef USE_QT_WEB_ENGINE
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
-#endif
 
 private:
     NoteEditorPrivate * const   d_ptr;

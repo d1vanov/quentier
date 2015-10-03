@@ -26,6 +26,7 @@ QT_FORWARD_DECLARE_CLASS(ResourceInfoJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(TextCursorPositionJavaScriptHandler)
+QT_FORWARD_DECLARE_CLASS(ContextMenuEventJavaScriptHandler)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(MimeTypeIconJavaScriptHandler)
@@ -136,9 +137,10 @@ private Q_SLOTS:
     void onSaveResourceButtonClicked(const QString & resourceHash);
 
     void onJavaScriptLoaded();
-#else
-    void contextMenuEvent(QContextMenuEvent * pEvent);
 #endif
+
+    void contextMenuEvent(QContextMenuEvent * pEvent);
+    void onContextMenuEventReply(QString contentType, quint64 sequenceNumber);
 
     void onTextCursorPositionChange();
 
@@ -184,19 +186,26 @@ private:
     void setupWebSocketServer();
     void setupJavaScriptObjects();
     void setupTextCursorPositionTracking();
-#else
-    void setupContextMenu();
-    void setupShortcut(const QString & key, QAction & action);
 #endif
+
+    void setupGenericTextContextMenu();
+    void setupImageResourceContextMenu();
+    void setupNonImageResourceContextMenu();
+    void setupEncryptedTextContextMenu();
+    void setupActionShortcut(const QString & key, QAction & action);
+
     void setupFileIO();
     void setupScripts();
     void setupNoteEditorPage();
     void setupTextCursorPositionJavaScriptHandlerConnections();
 
     void determineStatesForCurrentTextCursorPosition();
+    void determineContextMenuContent();
 
     bool isPageEditable() const { return m_isPageEditable; }
     void setPageEditable(const bool editable);
+
+    bool checkContextMenuSequenceNumber(const quint64 sequenceNumber) const;
 
     void onPageHtmlReceived(const QString & html, const QVector<QPair<QString,QString> > & extraData = QVector<QPair<QString,QString> >());
     void onPageSelectedHtmlForEncryptionReceived(const QVariant & selectedHtmlData,
@@ -299,13 +308,10 @@ private:
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
 #else
-    QString     m_jQueryUiJs;
-    QString     m_jQueryUiContextMenuJs;
     QString     m_provideSrcForGenericResourceIconsJs;
     QString     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs;
     QString     m_qWebChannelJs;
     QString     m_qWebChannelSetupJs;
-    QString     m_genericContextMenuEventHandlerJs;
     QString     m_pageMutationObserverJs;
     QString     m_onIconFilePathForIconThemeNameReceivedJs;
     QString     m_provideSrcForGenericResourceOpenAndSaveIconsJs;
@@ -324,6 +330,10 @@ private:
 
     quint16     m_webSocketServerPort;
 #endif
+
+    quint64     m_contextMenuSequenceNumber;
+    QPoint      m_lastContextMenuEventGlobalPos;
+    ContextMenuEventJavaScriptHandler * m_pContextMenuEventJavaScriptHandler;
 
     TextCursorPositionJavaScriptHandler * m_pTextCursorPositionJavaScriptHandler;
 
@@ -369,8 +379,12 @@ private:
 
 #ifndef USE_QT_WEB_ENGINE
     NoteEditorPluginFactory *               m_pluginFactory;
-    QMenu *                                 m_pContextMenu;
 #endif
+
+    QMenu *                                 m_pGenericTextContextMenu;
+    QMenu *                                 m_pImageResourceContextMenu;
+    QMenu *                                 m_pNonImageResourceContextMenu;
+    QMenu *                                 m_pEncryptedTextContextMenu;
 
     const QString     m_pagePrefix;
 

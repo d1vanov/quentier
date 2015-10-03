@@ -14,7 +14,6 @@
     socket.onopen = function() {
         console.log("WebSocket connected, setting up QWebChannel.");
         new QWebChannel(socket, function(channel) {
-            // make resourceCache, pageMutationObserver and enCryptElementClickHandler objects accessible globally
             window.resourceCache = channel.objects.resourceCache;
             window.resourceCache.notifyResourceInfo.connect(onResourceInfoReceived);
 
@@ -25,6 +24,7 @@
             window.enCryptElementClickHandler = channel.objects.enCryptElementClickHandler;
             window.openAndSaveResourceButtonsHandler = channel.objects.openAndSaveResourceButtonsHandler;
             window.textCursorPositionHandler = channel.objects.textCursorPositionHandler;
+            window.contextMenuEventHandler = channel.objects.contextMenuEventHandler;
 
             window.mimeTypeIconHandler = channel.objects.mimeTypeIconHandler;
             window.mimeTypeIconHandler.notifyIconFilePathForMimeType.connect(function(mimeType, iconFilePath) {
