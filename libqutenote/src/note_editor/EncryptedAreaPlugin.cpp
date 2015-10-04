@@ -71,7 +71,7 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
         return false;
     }
 
-    int encryptedTextIndex = parameterNames.indexOf("encrypted-text");
+    int encryptedTextIndex = parameterNames.indexOf("encrypted_text");
     if (encryptedTextIndex < 0) {
         errorDescription = QT_TR_NOOP("encrypted text parameter was not found within object with encrypted text");
         return false;
