@@ -169,8 +169,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #ifdef USE_QT_WEB_ENGINE
     setupWebSocketServer();
     setupJavaScriptObjects();
-#else
-    setupGenericTextContextMenu();
 #endif
 
     setupTextCursorPositionJavaScriptHandlerConnections();
