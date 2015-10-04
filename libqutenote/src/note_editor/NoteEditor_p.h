@@ -200,7 +200,7 @@ private:
     void setupTextCursorPositionJavaScriptHandlerConnections();
 
     void determineStatesForCurrentTextCursorPosition();
-    void determineContextMenuContent();
+    void determineContextMenuEventTarget();
 
     bool isPageEditable() const { return m_isPageEditable; }
     void setPageEditable(const bool editable);
@@ -304,6 +304,7 @@ private:
     QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
+    QString     m_determineContextMenuEventTargetJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
@@ -333,6 +334,7 @@ private:
 
     quint64     m_contextMenuSequenceNumber;
     QPoint      m_lastContextMenuEventGlobalPos;
+    QPoint      m_lastContextMenuEventPagePos;
     ContextMenuEventJavaScriptHandler * m_pContextMenuEventJavaScriptHandler;
 
     TextCursorPositionJavaScriptHandler * m_pTextCursorPositionJavaScriptHandler;

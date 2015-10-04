@@ -1,6 +1,6 @@
-function determineStatesForCurrentTextCursorPosition(contextMenuSequenceNumber) {
-    console.log("determineStatesForCurrentTextCursorPosition, context menu sequence number = " + 
-                (contextMenuSequenceNumber ? contextMenuSequenceNumber.toString() : "null"));
+function determineStatesForCurrentTextCursorPosition() {
+    console.log("determineStatesForCurrentTextCursorPosition");
+
     if (!window.hasOwnProperty('textCursorPositionHandler')) {
         console.log("textCursorPositionHandler global variable is not defined");
         return;
@@ -35,17 +35,12 @@ function determineStatesForCurrentTextCursorPosition(contextMenuSequenceNumber) 
 
     var foundImageResource = false;
     var foundNonImageResource = false;
-    var resourceHash = "";
-
     var foundEnCryptTag = false;
-    var cipher = "";
-    var encryptedText = "";
-    var length = "";
 
     var textAlign;
 
     while(element) {
-        if( Object.prototype.toString.call( element ) === '[object Array]' ) {
+        if (Object.prototype.toString.call( element ) === '[object Array]') {
             console.log("Found array of elements");
             element = element[0];
             if (!element) {
@@ -62,24 +57,18 @@ function determineStatesForCurrentTextCursorPosition(contextMenuSequenceNumber) 
                 console.log("Found tag with en-tag = en-media");
                 if (element.nodeName == "IMG") {
                     foundImageResource = true;
-                    resourceHash = element.getAttribute("hash");
-                    console.log("Found image resource with hash " + resourceHash);
+                    console.log("Found image resource");
                     break;
                 }
                 else if (element.nodeName == "DIV") {
                     foundNonImageResource = true;
-                    resourceHash = element.getAttribute("hash");
-                    console.log("Found non-image resource with hash " + resourceHash);
+                    console.log("Found non-image resource");
                     break;
                 }
             }
             else if (enTag == "en-crypt") {
                 foundEnCryptTag = true;
-                cipher = element.getAttribute("cipher");
-                length = element.getAttribute("length");
-                encryptedText = element.getAttribute("encrypted_text");
-                console.log("Found en-crypt tag: encryptedText = " + encryptedText + 
-                            ", cipher = " + cipher + ", length = " + length);
+                console.log("Found en-crypt tag");
                 break;
             }
         }
@@ -131,22 +120,6 @@ function determineStatesForCurrentTextCursorPosition(contextMenuSequenceNumber) 
         console.log("Checking the next parent");
     }
 
-    textCursorPositionHandler.setOnImageResourceState(foundImageResource, resourceHash);
-    textCursorPositionHandler.setOnNonImageResourceState(foundNonImageResource, resourceHash);
-    textCursorPositionHandler.setOnEnCryptTagState(foundEnCryptTag, encryptedText, cipher, length);
-
-    if (contextMenuSequenceNumber) {
-        if (foundImageResource) {
-            contextMenuEventHandler.setContextMenuContent("ImageResource", contextMenuSequenceNumber);
-        }
-        else if (foundNonImageResource) {
-            contextMenuEventHandler.setContextMenuContent("NonImageResource", contextMenuSequenceNumber);
-        }
-        else if (foundEnCryptTag) {
-            contextMenuEventHandler.setContextMenuContent("EncryptedText", contextMenuSequenceNumber);
-        }
-    }
-
     if (foundImageResource || foundNonImageResource || foundEnCryptTag) {
         console.log("foundImageResource = " + (foundImageResource ? "true" : "false") +
                     ", foundNonImageResource = " + (foundNonImageResource ? "true" : "false") +
@@ -167,8 +140,4 @@ function determineStatesForCurrentTextCursorPosition(contextMenuSequenceNumber) 
     textCursorPositionHandler.setTextCursorPositionInsideUnorderedListState(foundUnorderedList);
 
     textCursorPositionHandler.setTextCursorPositionInsideTableState(foundTable);
-
-    if (contextMenuSequenceNumber) {
-        contextMenuEventHandler.setContextMenuContent("GenericText", contextMenuSequenceNumber);
-    }
 }

@@ -77,6 +77,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_setupEnToDoTagsJs(),
     m_onResourceInfoReceivedJs(),
     m_determineStatesForCurrentTextCursorPositionJs(),
+    m_determineContextMenuEventTargetJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -102,6 +103,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #endif
     m_contextMenuSequenceNumber(1),     // NOTE: must start from 1 as JavaScript treats 0 as null!
     m_lastContextMenuEventGlobalPos(),
+    m_lastContextMenuEventPagePos(),
     m_pContextMenuEventJavaScriptHandler(new ContextMenuEventJavaScriptHandler(this)),
     m_pTextCursorPositionJavaScriptHandler(new TextCursorPositionJavaScriptHandler(this)),
     m_currentTextFormattingState(),
@@ -255,6 +257,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
+    page->executeJavaScript(m_determineContextMenuEventTargetJs);
 
     setPageEditable(true);
 
@@ -606,11 +609,14 @@ void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
     }
 
     m_lastContextMenuEventGlobalPos = pEvent->globalPos();
+    m_lastContextMenuEventPagePos = pEvent->pos();
 
-    QNTRACE("Saved global pos: x = " << m_lastContextMenuEventGlobalPos.x() << ", y = " << m_lastContextMenuEventGlobalPos.y()
-            << ", increased context menu sequence number = " << m_contextMenuSequenceNumber);
+    QNTRACE("Context menu event's global pos: x = " << m_lastContextMenuEventGlobalPos.x()
+            << ", y = " << m_lastContextMenuEventGlobalPos.y() << "; pos relative to child widget: x = "
+            << m_lastContextMenuEventPagePos.x() << ", y = " << m_lastContextMenuEventPagePos.y()
+            << "; context menu sequence number = " << m_contextMenuSequenceNumber);
 
-    determineContextMenuContent();
+    determineContextMenuEventTarget();
 }
 
 void NoteEditorPrivate::onContextMenuEventReply(QString contentType, quint64 sequenceNumber)
@@ -865,6 +871,7 @@ void NoteEditorPrivate::clearEditorContent()
 
     m_contextMenuSequenceNumber = 1;
     m_lastContextMenuEventGlobalPos = QPoint();
+    m_lastContextMenuEventPagePos = QPoint();
 
     QString initialHtml = m_pagePrefix + "<body></body></html>";
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
@@ -1720,6 +1727,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
+    SETUP_SCRIPT("javascript/scripts/determineContextMenuEventTarget.js", m_determineContextMenuEventTargetJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
@@ -1846,7 +1854,7 @@ void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()
 {
     QNDEBUG("NoteEditorPrivate::determineStatesForCurrentTextCursorPosition");
 
-    QString javascript = "determineStatesForCurrentTextCursorPosition(null);";
+    QString javascript = "determineStatesForCurrentTextCursorPosition();";
 
     Q_Q(NoteEditor);
     GET_PAGE()
@@ -1854,11 +1862,13 @@ void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()
     page->executeJavaScript(javascript);
 }
 
-void NoteEditorPrivate::determineContextMenuContent()
+void NoteEditorPrivate::determineContextMenuEventTarget()
 {
-    QNDEBUG("NoteEditorPrivate::determineContextMenuContent");
+    QNDEBUG("NoteEditorPrivate::determineContextMenuEventTarget");
 
-    QString javascript = "determineStatesForCurrentTextCursorPosition(" + QString::number(m_contextMenuSequenceNumber) + ")";
+    QString javascript = "determineContextMenuEventTarget(" + QString::number(m_contextMenuSequenceNumber) +
+                         ", " + QString::number(m_lastContextMenuEventPagePos.x()) + ", " +
+                         QString::number(m_lastContextMenuEventPagePos.y()) + ");";
 
     Q_Q(NoteEditor);
     GET_PAGE()
