@@ -77,39 +77,45 @@ MainWindow::~MainWindow()
 
 void MainWindow::connectActionsToEditorSlots()
 {
+    // Undo/redo actions
+    QObject::connect(m_pUI->ActionUndo, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,undo));
+    QObject::connect(m_pUI->ActionRedo, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,redo));
+    // Undo/redo buttons
+    QObject::connect(m_pUI->undoPushButton, QNSIGNAL(QPushButton,clicked), m_pNoteEditor, QNSLOT(NoteEditor,undo));
+    QObject::connect(m_pUI->redoPushButton, QNSIGNAL(QPushButton,clicked), m_pNoteEditor, QNSLOT(NoteEditor,redo));
     // Font actions
-    QObject::connect(m_pUI->ActionFontBold, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextBoldToggled));
-    QObject::connect(m_pUI->ActionFontItalic, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextItalicToggled));
-    QObject::connect(m_pUI->ActionFontUnderlined, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextUnderlineToggled));
-    QObject::connect(m_pUI->ActionFontStrikeout, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextStrikethroughToggled));
+    QObject::connect(m_pUI->ActionFontBold, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextBoldToggled));
+    QObject::connect(m_pUI->ActionFontItalic, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextItalicToggled));
+    QObject::connect(m_pUI->ActionFontUnderlined, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextUnderlineToggled));
+    QObject::connect(m_pUI->ActionFontStrikeout, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextStrikethroughToggled));
     // Font buttons
-    QObject::connect(m_pUI->fontBoldPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextBoldToggled));
-    QObject::connect(m_pUI->fontItalicPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextItalicToggled));
-    QObject::connect(m_pUI->fontUnderlinePushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextUnderlineToggled));
-    QObject::connect(m_pUI->fontStrikethroughPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextStrikethroughToggled));
+    QObject::connect(m_pUI->fontBoldPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextBoldToggled));
+    QObject::connect(m_pUI->fontItalicPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextItalicToggled));
+    QObject::connect(m_pUI->fontUnderlinePushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextUnderlineToggled));
+    QObject::connect(m_pUI->fontStrikethroughPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextStrikethroughToggled));
     // Format actions
-    QObject::connect(m_pUI->ActionAlignLeft, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextAlignLeftAction));
-    QObject::connect(m_pUI->ActionAlignCenter, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextAlignCenterAction));
-    QObject::connect(m_pUI->ActionAlignRight, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextAlignRightAction));
-    QObject::connect(m_pUI->ActionInsertHorizontalLine, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextAddHorizontalLineAction));
-    QObject::connect(m_pUI->ActionIncreaseIndentation, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextIncreaseIndentationAction));
-    QObject::connect(m_pUI->ActionDecreaseIndentation, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextDecreaseIndentationAction));
-    QObject::connect(m_pUI->ActionInsertBulletedList, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextInsertUnorderedListAction));
-    QObject::connect(m_pUI->ActionInsertNumberedList, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextInsertOrderedListAction));
-    QObject::connect(m_pUI->ActionInsertTable, QNSIGNAL(QAction, triggered), this, QNSLOT(MainWindow, onNoteTextInsertTableDialogAction));
+    QObject::connect(m_pUI->ActionAlignLeft, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignLeftAction));
+    QObject::connect(m_pUI->ActionAlignCenter, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignCenterAction));
+    QObject::connect(m_pUI->ActionAlignRight, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignRightAction));
+    QObject::connect(m_pUI->ActionInsertHorizontalLine, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAddHorizontalLineAction));
+    QObject::connect(m_pUI->ActionIncreaseIndentation, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextIncreaseIndentationAction));
+    QObject::connect(m_pUI->ActionDecreaseIndentation, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextDecreaseIndentationAction));
+    QObject::connect(m_pUI->ActionInsertBulletedList, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextInsertUnorderedListAction));
+    QObject::connect(m_pUI->ActionInsertNumberedList, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextInsertOrderedListAction));
+    QObject::connect(m_pUI->ActionInsertTable, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextInsertTableDialogAction));
     // Format buttons
-    QObject::connect(m_pUI->formatJustifyLeftPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextAlignLeftAction));
-    QObject::connect(m_pUI->formatJustifyCenterPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextAlignCenterAction));
-    QObject::connect(m_pUI->formatJustifyRightPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextAlignRightAction));
-    QObject::connect(m_pUI->insertHorizontalLinePushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextAddHorizontalLineAction));
-    QObject::connect(m_pUI->formatIndentMorePushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextIncreaseIndentationAction));
-    QObject::connect(m_pUI->formatIndentLessPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextDecreaseIndentationAction));
-    QObject::connect(m_pUI->formatListUnorderedPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextInsertUnorderedListAction));
-    QObject::connect(m_pUI->formatListOrderedPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextInsertOrderedListAction));
-    QObject::connect(m_pUI->insertToDoCheckboxPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteTextInsertToDoCheckBoxAction));
-    QObject::connect(m_pUI->chooseTextColorPushButton, QNSIGNAL(QPushButton, clicked), this, QNSLOT(MainWindow, onNoteChooseTextColor));
-    QObject::connect(m_pUI->insertTableToolButton, QNSIGNAL(InsertTableToolButton, createdTable,int,int,double,bool),
-                     this, QNSLOT(MainWindow, onNoteTextInsertTable,int,int,double,bool));
+    QObject::connect(m_pUI->formatJustifyLeftPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextAlignLeftAction));
+    QObject::connect(m_pUI->formatJustifyCenterPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextAlignCenterAction));
+    QObject::connect(m_pUI->formatJustifyRightPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextAlignRightAction));
+    QObject::connect(m_pUI->insertHorizontalLinePushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextAddHorizontalLineAction));
+    QObject::connect(m_pUI->formatIndentMorePushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextIncreaseIndentationAction));
+    QObject::connect(m_pUI->formatIndentLessPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextDecreaseIndentationAction));
+    QObject::connect(m_pUI->formatListUnorderedPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextInsertUnorderedListAction));
+    QObject::connect(m_pUI->formatListOrderedPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextInsertOrderedListAction));
+    QObject::connect(m_pUI->insertToDoCheckboxPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextInsertToDoCheckBoxAction));
+    QObject::connect(m_pUI->chooseTextColorPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteChooseTextColor));
+    QObject::connect(m_pUI->insertTableToolButton, QNSIGNAL(InsertTableToolButton,createdTable,int,int,double,bool),
+                     this, QNSLOT(MainWindow,onNoteTextInsertTable,int,int,double,bool));
 }
 
 void MainWindow::connectEditorSignalsToSlots()

@@ -164,11 +164,11 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                 {
                     QXmlStreamAttributes filteredAttributes;
                     const int numAttributes = lastElementAttributes.size();
-                    filteredAttributes.reserve(std::max(numAttributes - 2, 0)); // All except en-tag and class should fit
+                    filteredAttributes.reserve(std::max(numAttributes - 4, 0));
                     for(int i = 0; i < numAttributes; ++i)
                     {
                         const QStringRef attributeName = lastElementAttributes[i].name();
-                        if ((attributeName == "en-tag") || (attributeName == "class") || (attributeName == "src")) {
+                        if ((attributeName == "en-tag") || (attributeName == "class") || (attributeName == "src") || (attributeName == "contenteditable")) {
                             continue;
                         }
 
@@ -1010,6 +1010,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
     {
         writer.writeAttribute("en-tag", "en-media");
         writer.writeAttribute("class", "en-media-generic hvr-border-color");
+        writer.writeAttribute("contenteditable", "false");
 
 #ifndef USE_QT_WEB_ENGINE
         const int numAttributes = attributes.size();
@@ -1047,19 +1048,21 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         // Resource name div - the actual name is not specified here, let JavaScript communicating with NoteEditor's C++ code handle it
         writer.writeStartElement("div");
         writer.writeAttribute("class", "resource-name");
-        writer.writeAttribute("readonly", "true");
-        writer.writeCharacters("Sample resource name");  // TODO: remove later, will be replaced with proper resource name
+        writer.writeAttribute("contenteditable", "false");
+        writer.writeCharacters("Sample resource name");
         writer.writeEndElement();
 
         // Resource size div - the actual size is not specified here as well as the name
         writer.writeStartElement("div");
         writer.writeAttribute("class", "resource-size");
-        writer.writeCharacters("Sample resource size");  // TODO: remove later, will be replaced with proper resource size
+        writer.writeAttribute("contenteditable", "false");
+        writer.writeCharacters("Sample resource size");
         writer.writeEndElement();
 
         // Open resource button
         writer.writeStartElement("img");
         writer.writeAttribute("class", "open-resource-button");
+        writer.writeAttribute("contenteditable", "false");
 
         // TODO: remove later
         writer.writeAttribute("src", "qrc:/generic_resource_icons/png/open_with.png");
@@ -1069,6 +1072,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         // Save resource to file button
         writer.writeStartElement("img");
         writer.writeAttribute("class", "save-resource-button");
+        writer.writeAttribute("contenteditable", "false");
 
         // TODO: remove later
         writer.writeAttribute("src", "qrc:/generic_resource_icons/png/save.png");

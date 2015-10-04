@@ -2127,7 +2127,7 @@ const Note * NoteEditorPrivate::getNote()
 
     if (!m_pNote) {
         QNTRACE("No note was set to the editor");
-        return nullptr;
+        return Q_NULLPTR;
     }
 
     if (m_modified)
@@ -2136,7 +2136,7 @@ const Note * NoteEditorPrivate::getNote()
 
         bool res = htmlToNoteContent(m_errorCachedMemory);
         if (!res) {
-            return nullptr;
+            return Q_NULLPTR;
         }
 
         m_modified = false;
