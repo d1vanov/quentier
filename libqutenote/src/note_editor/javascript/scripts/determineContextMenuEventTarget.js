@@ -21,7 +21,7 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
     console.log("Context menu event target: " + $(element).html());
 
     while(element) {
-        if (Object.prototype.toString.call( element ) === '[object Array]') {
+        if (Object.prototype.toString.call(element) === '[object Array]') {
             console.log("Found array of elements");
             element = element[0];
             if (!element) {
@@ -42,7 +42,7 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
                     console.log("Found image resource with hash " + resourceHash);
                     break;
                 }
-                else if (element.nodeName == "DIV") {
+                else if ((element.nodeName == "DIV") || (element.nodeName == "OBJECT")) {
                     foundNonImageResource = true;
                     resourceHash = element.getAttribute("hash");
                     console.log("Found non-image resource with hash " + resourceHash);
