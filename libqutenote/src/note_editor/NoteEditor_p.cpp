@@ -1770,7 +1770,7 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
 
-    EncryptedAreaPlugin * encryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager, q);
+    EncryptedAreaPlugin * encryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager);
     m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker,
                                                   encryptedAreaPlugin, page);
     page->setPluginFactory(m_pluginFactory);

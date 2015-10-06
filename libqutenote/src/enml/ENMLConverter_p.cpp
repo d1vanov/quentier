@@ -296,6 +296,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                 QStringRef enTag = lastElementAttributes.value("en-tag");
                 if (enTag == "en-media")
                 {
+                    bool isImage = (lastElementName == "img");
                     lastElementName = "en-media";
                     writer.writeStartElement(lastElementName);
                     ++writeElementCounter;
@@ -310,7 +311,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                         const QString attributeQualifiedName = attribute.qualifiedName().toString();
                         const QString attributeValue = attribute.value().toString();
 
-                        if (lastElementName == "object")
+                        if (!isImage)
                         {
                             if (attributeQualifiedName == "resource-mime-type") {
                                 enMediaAttributes.append("type", attributeValue);
@@ -943,9 +944,10 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         writer.writeAttribute("en-tag", "en-media");
         writer.writeAttribute("class", "en-media-generic hvr-border-color");
         writer.writeAttribute("contenteditable", "false");
-        writer.writeAttribute("type", RESOURCE_PLUGIN_HTML_OBJECT_TYPE);
 
 #ifndef USE_QT_WEB_ENGINE
+        writer.writeAttribute("type", RESOURCE_PLUGIN_HTML_OBJECT_TYPE);
+
         const int numAttributes = attributes.size();
         for(int i = 0; i < numAttributes; ++i)
         {
