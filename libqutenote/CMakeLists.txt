@@ -76,7 +76,8 @@ if(NOT USE_QT_WEB_ENGINE)
   list(APPEND NOTE_EDITOR_HEADERS
        headers/qute_note/note_editor/IGenericResourceDisplayWidget.h
        headers/qute_note/note_editor/NoteEditorPluginFactory.h
-       headers/qute_note/note_editor/INoteEditorPlugin.h)
+       headers/qute_note/note_editor/INoteEditorResourcePlugin.h
+       headers/qute_note/note_editor/INoteEditorEncryptedAreaPlugin.h)
 endif()
 
 set(TYPES_HEADERS
@@ -295,7 +296,8 @@ if(NOT USE_QT_WEB_ENGINE)
     src/note_editor/EncryptedAreaPlugin.cpp
     src/note_editor/GenericResourceDisplayWidget.cpp
     src/note_editor/IGenericResourceDisplayWidget.cpp
-    src/note_editor/INoteEditorPlugin.cpp
+    src/note_editor/INoteEditorResourcePlugin.cpp
+    src/note_editor/INoteEditorEncryptedAreaPlugin.cpp
     src/note_editor/NoteEditorPluginFactory.cpp
     src/note_editor/NoteEditorPluginFactory_p.cpp)
 else()

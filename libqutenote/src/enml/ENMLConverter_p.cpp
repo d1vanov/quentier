@@ -285,82 +285,50 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                     continue;
                 }
             }
-            else if (lastElementName == "param")
-            {
-                if (insideEnMediaElement)
-                {
-                    if (!lastElementAttributes.hasAttribute("name")) {
-                        errorDescription = QT_TR_NOOP("Can't convert note to ENML: can't parse en-crypt or en-media tag: nested param tag doesn't have name attribute");
-                        QNWARNING(errorDescription << ", html = " << html << ", cleaned up xml = " << m_cachedConvertedXml);
-                        return false;
-                    }
-
-                    if (!lastElementAttributes.hasAttribute("value")) {
-                        errorDescription = QT_TR_NOOP("Can't convert note to ENML: can't parse en-crypt or en-media tag: nested param tag doesn't have value attribute");
-                        QNWARNING(errorDescription << ", html = " << html << ", cleaned up xml = " << m_cachedConvertedXml);
-                        return false;
-                    }
-
-                    QStringRef name = lastElementAttributes.value("name");
-                    QStringRef value = lastElementAttributes.value("value");
-
-                    if (insideEnMediaElement) {
-                        enMediaAttributes.append(name.toString(), value.toString());
-                    }
-                    else {
-                        QNINFO("Skipping <param> tag occasionally encountered when no parsing en-crypt or en-media tags");
-                    }
-                }
-
-                continue;
-            }
 
             if ((lastElementName == "object") || (lastElementName == "img"))
             {
-                if (!lastElementAttributes.hasAttribute("en-tag"))
-                {
+                if (!lastElementAttributes.hasAttribute("en-tag")) {
                     QNTRACE("Skipping <object> or <img> element without en-tag attribute");
                     continue;
                 }
-                else
+
+                QStringRef enTag = lastElementAttributes.value("en-tag");
+                if (enTag == "en-media")
                 {
-                    bool isImage = (lastElementName == "img");
-                    QStringRef enTag = lastElementAttributes.value("en-tag");
-                    if (enTag == "en-media")
+                    lastElementName = "en-media";
+                    writer.writeStartElement(lastElementName);
+                    ++writeElementCounter;
+                    enMediaAttributes.clear();
+                    insideEnMediaElement = true;
+
+                    // Simple case - all necessary attributes are already in the tag
+                    const int numAttributes = lastElementAttributes.size();
+                    for(int i = 0; i < numAttributes; ++i)
                     {
-                        lastElementName = "en-media";
-                        writer.writeStartElement(lastElementName);
-                        ++writeElementCounter;
-                        enMediaAttributes.clear();
+                        const QXmlStreamAttribute & attribute = lastElementAttributes[i];
+                        const QString attributeQualifiedName = attribute.qualifiedName().toString();
+                        const QString attributeValue = attribute.value().toString();
 
-                        if (isImage)
+                        if (lastElementName == "object")
                         {
-                            // Simple case - all necessary attributes are already in the tag
-                            const int numAttributes = lastElementAttributes.size();
-                            for(int i = 0; i < numAttributes; ++i)
-                            {
-                                const QXmlStreamAttribute & attribute = lastElementAttributes[i];
-                                const QString attributeQualifiedName = attribute.qualifiedName().toString();
-                                const QString attributeValue = attribute.value().toString();
-
-                                if (allowedEnMediaAttributes.contains(attributeQualifiedName)) {
-                                    enMediaAttributes.append(attributeQualifiedName, attributeValue);
-                                }
+                            if (attributeQualifiedName == "resource-mime-type") {
+                                enMediaAttributes.append("type", attributeValue);
                             }
-
-                            writer.writeAttributes(enMediaAttributes);
-                            enMediaAttributes.clear();
-                            QNTRACE("Wrote en-media element from img element in HTML");
+                            else if (allowedEnMediaAttributes.contains(attributeQualifiedName) && (attributeQualifiedName != "type")) {
+                                enMediaAttributes.append(attributeQualifiedName, attributeValue);
+                            }
                         }
-                        else
-                        {
-                            // Complicated case - the necessary attributes must be retrieved from nested tags
-                            insideEnMediaElement = true;
-                            QNTRACE("Started writing en-media element");
+                        else if (allowedEnMediaAttributes.contains(attributeQualifiedName)) { // img
+                            enMediaAttributes.append(attributeQualifiedName, attributeValue);
                         }
-
-                        continue;
                     }
+
+                    writer.writeAttributes(enMediaAttributes);
+                    enMediaAttributes.clear();
+                    QNTRACE("Wrote en-media element from img element in HTML");
+
+                    continue;
                 }
             }
 
@@ -388,7 +356,8 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
             if (insideEnMediaElement) {
                 continue;
             }
-            else if (insideEnCryptElement) {
+
+            if (insideEnCryptElement) {
                 writer.writeCharacters(encryptedText);
                 encryptedText.resize(0);
                 insideEnCryptElement = false;
@@ -409,17 +378,8 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
         if ((writeElementCounter > 0) && reader.isEndElement())
         {
-            if (insideEnMediaElement)
-            {
-                if ((reader.name() == "object") || (reader.name() == "img")) {
-                    insideEnMediaElement = false;
-                    writer.writeAttributes(enMediaAttributes);
-                    enMediaAttributes.clear();
-                }
-                else {
-                    // Don't write end of element corresponding to ends of en-media <object> or <img> tag's child elements
-                    continue;
-                }
+            if (insideEnMediaElement) {
+                insideEnMediaElement = false;
             }
 
             writer.writeEndElement();
@@ -887,7 +847,7 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
 #ifndef USE_QT_WEB_ENGINE
     writer.writeStartElement("object");
-    writer.writeAttribute("type", "application/vnd.qutenote.encrypt");
+    writer.writeAttribute("type", ENCRYPTED_AREA_PLUGIN_OBJECT_TYPE);
 #else
     writer.writeStartElement("img");
     writer.writeAttribute("src", QString());
@@ -948,7 +908,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         if (pluginFactory)
         {
             QRegExp regex("^image\\/.+");
-            bool res = pluginFactory->hasPluginForMimeType(regex);
+            bool res = pluginFactory->hasResourcePluginForMimeType(regex);
             if (!res) {
                 convertToImage = true;
             }
@@ -983,6 +943,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         writer.writeAttribute("en-tag", "en-media");
         writer.writeAttribute("class", "en-media-generic hvr-border-color");
         writer.writeAttribute("contenteditable", "false");
+        writer.writeAttribute("type", RESOURCE_PLUGIN_HTML_OBJECT_TYPE);
 
 #ifndef USE_QT_WEB_ENGINE
         const int numAttributes = attributes.size();
@@ -996,11 +957,16 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
 
             const QString value = attribute.value().toString();
 
-            writer.writeStartElement("param");
-            writer.writeAttribute("name", qualifiedName);
-            writer.writeAttribute("value", value);
-            writer.writeEndElement();
+            if (qualifiedName == "type") {
+                writer.writeAttribute("resource-mime-type", value);
+            }
+            else {
+                writer.writeAttribute(qualifiedName, value);
+            }
         }
+
+        // Required for webkit, otherwise it can't seem to handle self-enclosing object tag properly
+        writer.writeCharacters("some fake characters to prevent self-enclosing html tag confusing webkit");
 #else
         writer.writeAttributes(attributes);
         writer.writeAttribute("class", "en-media-generic hvr-border-color");

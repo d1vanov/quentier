@@ -1770,16 +1770,12 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
 
-    m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager,
-                                                  *m_pFileIOThreadWorker, page);
+    EncryptedAreaPlugin * encryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager, q);
+    m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker,
+                                                  encryptedAreaPlugin, page);
     page->setPluginFactory(m_pluginFactory);
 
-    EncryptedAreaPlugin * encryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager, q);
     m_errorCachedMemory.resize(0);
-    NoteEditorPluginFactory::PluginIdentifier encryptedAreaPluginId = m_pluginFactory->addPlugin(encryptedAreaPlugin, m_errorCachedMemory);
-    if (!encryptedAreaPluginId) {
-        throw NoteEditorPluginInitializationException("Can't initialize note editor plugin for managing the encrypted text");
-    }
 
     QObject::connect(page, QNSIGNAL(NoteEditor,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
 #endif

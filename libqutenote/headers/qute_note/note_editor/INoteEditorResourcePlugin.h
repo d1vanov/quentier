@@ -1,9 +1,9 @@
-#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_H
-#define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_H
+#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__I_NOTE_EDITOR_RESOURCE_PLUGIN_H
+#define __LIB_QUTE_NOTE__NOTE_EDITOR__I_NOTE_EDITOR_RESOURCE_PLUGIN_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/Linkage.h>
 #include <QWidget>
-#include <QUrl>
 
 namespace qute_note {
 
@@ -11,47 +11,47 @@ QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 
 /**
- * @brief The INoteEditorPlugin class is the interface for any class wishing to implement
- * the display for any custom object embedded inside the note editor,
- * such as embedded pdf viewer, embedded video viewer etc.
+ * @brief The INoteEditorResourcePlugin class is the interface for note editor plugin
+ * implementing the widget displaying the resources of certain mime types
+ * built in the note. For example, such plugin could represent the embedded pdf viewer,
+ * embedded video viewer etc.
  */
-class QUTE_NOTE_EXPORT INoteEditorPlugin: public QWidget
+class QUTE_NOTE_EXPORT INoteEditorResourcePlugin: public QWidget
 {
 protected:
-    explicit INoteEditorPlugin(QWidget * parent = nullptr);
+    explicit INoteEditorResourcePlugin(QWidget * parent = Q_NULLPTR);
 
 public:
     /**
      * @brief clone - pure virtual method cloning the current plugin
-     * @return pointer to the new clone of the plugin. NOTE: there's no need to worry about the ownership
-     * over the cloned plugin, it is caller's responsibility to take care about it
+     * @return pointer to the new clone of the plugin. NOTE: it is
+     * caller's responsibility to take care about the ownership
+     * of the returned pointer
      */
-    virtual INoteEditorPlugin * clone() const = 0;
+    virtual INoteEditorResourcePlugin * clone() const = 0;
 
     /**
      * @brief initialize - the method used to initialize the note editor plugin
-     * @param mimeType - mime type of the data meant to be displayed by the plugin
-     * @param url - url of the content to be displayed by the plugin
+     * @param mimeType - mime type of the resource data meant to be displayed by the plugin
      * @param parameterNames - names of string parameters stored in HTML <object> tag for the plugin
      * @param parameterValues - values of string parameters stored in HTML <object> tag for the plugin
      * @param pluginFactory - plugin factory object which initializes plugins; here intended to be used
      * for setting up the signal-slot connections, if necessary
-     * @param resource - const pointer to resource which needs to be displayed by the plugin or null
-     * if the plugin does not represent the resource
+     * @param resource - const reference to the resource which needs to be displayed by the plugin
      * @param errorDescription - error description in case the plugin can't be initialized properly
      * with this set of parameters
      * @return true if initialization was successful, false otherwise
      */
-    virtual bool initialize(const QString & mimeType, const QUrl & url,
+    virtual bool initialize(const QString & mimeType,
                             const QStringList & parameterNames,
                             const QStringList & parameterValues,
                             const NoteEditorPluginFactory & pluginFactory,
-                            const IResource * resource,
+                            const IResource & resource,
                             QString & errorDescription) = 0;
 
     /**
-     * @brief mimeTypes - the method telling which mime types the plugin can work with
-     * @return the list of mime types the plugin supports
+     * @brief mimeTypes - the method telling which are the mime types of the resources the plugin can work with
+     * @return the list of resource mime types the plugin supports
      */
     virtual QStringList mimeTypes() const = 0;
 
@@ -77,4 +77,4 @@ public:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_H
+#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__I_NOTE_EDITOR_RESOURCE_PLUGIN_H

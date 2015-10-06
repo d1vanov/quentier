@@ -9,9 +9,10 @@ namespace qute_note {
 NoteEditorPluginFactory::NoteEditorPluginFactory(const NoteEditor & noteEditor,
                                                  const ResourceFileStorageManager & resourceFileStorageManager,
                                                  const FileIOThreadWorker & fileIOThreadWorker,
+                                                 INoteEditorEncryptedAreaPlugin * pEncryptedAreaPlugin,
                                                  QObject * parent) :
     QWebPluginFactory(parent),
-    d_ptr(new NoteEditorPluginFactoryPrivate(*this, noteEditor, resourceFileStorageManager, fileIOThreadWorker, this))
+    d_ptr(new NoteEditorPluginFactoryPrivate(*this, noteEditor, resourceFileStorageManager, fileIOThreadWorker, pEncryptedAreaPlugin, this))
 {}
 
 NoteEditorPluginFactory::~NoteEditorPluginFactory()
@@ -23,25 +24,25 @@ const NoteEditor & NoteEditorPluginFactory::noteEditor() const
     return d->noteEditor();
 }
 
-NoteEditorPluginFactory::PluginIdentifier NoteEditorPluginFactory::addPlugin(INoteEditorPlugin * plugin,
-                                                                             QString & errorDescription,
-                                                                             const bool forceOverrideTypeKeys)
+NoteEditorPluginFactory::ResourcePluginIdentifier NoteEditorPluginFactory::addResourcePlugin(INoteEditorResourcePlugin * plugin,
+                                                                                             QString & errorDescription,
+                                                                                             const bool forceOverrideTypeKeys)
 {
     Q_D(NoteEditorPluginFactory);
-    return d->addPlugin(plugin, errorDescription, forceOverrideTypeKeys);
+    return d->addResourcePlugin(plugin, errorDescription, forceOverrideTypeKeys);
 }
 
-bool NoteEditorPluginFactory::removePlugin(const NoteEditorPluginFactory::PluginIdentifier id,
+bool NoteEditorPluginFactory::removeResourcePlugin(const NoteEditorPluginFactory::ResourcePluginIdentifier id,
                                            QString & errorDescription)
 {
     Q_D(NoteEditorPluginFactory);
-    return d->removePlugin(id, errorDescription);
+    return d->removeResourcePlugin(id, errorDescription);
 }
 
-bool NoteEditorPluginFactory::hasPlugin(const NoteEditorPluginFactory::PluginIdentifier id) const
+bool NoteEditorPluginFactory::hasResourcePlugin(const NoteEditorPluginFactory::ResourcePluginIdentifier id) const
 {
     Q_D(const NoteEditorPluginFactory);
-    return d->hasPlugin(id);
+    return d->hasResourcePlugin(id);
 }
 
 void NoteEditorPluginFactory::setFallbackResourceIcon(const QIcon & icon)
@@ -54,6 +55,12 @@ void NoteEditorPluginFactory::setGenericResourceDisplayWidget(IGenericResourceDi
 {
     Q_D(NoteEditorPluginFactory);
     d->setGenericResourceDisplayWidget(genericResourceDisplayWidget);
+}
+
+void NoteEditorPluginFactory::setEncryptedAreaPlugin(INoteEditorEncryptedAreaPlugin * encryptedAreaPlugin)
+{
+    Q_D(NoteEditorPluginFactory);
+    d->setEncryptedAreaPlugin(encryptedAreaPlugin);
 }
 
 QObject * NoteEditorPluginFactory::create(const QString & mimeType, const QUrl & url,
@@ -70,16 +77,16 @@ QList<QWebPluginFactory::Plugin> NoteEditorPluginFactory::plugins() const
     return d->plugins();
 }
 
-bool NoteEditorPluginFactory::hasPluginForMimeType(const QString & mimeType) const
+bool NoteEditorPluginFactory::hasResourcePluginForMimeType(const QString & mimeType) const
 {
     Q_D(const NoteEditorPluginFactory);
-    return d->hasPluginForMimeType(mimeType);
+    return d->hasResourcePluginForMimeType(mimeType);
 }
 
-bool NoteEditorPluginFactory::hasPluginForMimeType(const QRegExp & mimeTypeRegex) const
+bool NoteEditorPluginFactory::hasResourcePluginForMimeType(const QRegExp & mimeTypeRegex) const
 {
     Q_D(const NoteEditorPluginFactory);
-    return d->hasPluginForMimeType(mimeTypeRegex);
+    return d->hasResourcePluginForMimeType(mimeTypeRegex);
 }
 
 void NoteEditorPluginFactory::setNote(const Note & note)

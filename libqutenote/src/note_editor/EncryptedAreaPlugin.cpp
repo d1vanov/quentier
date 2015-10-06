@@ -4,7 +4,6 @@
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
 #include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <qute_note/types/IResource.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <QIcon>
 #include <QMouseEvent>
@@ -14,11 +13,10 @@ namespace qute_note {
 EncryptedAreaPlugin::EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encryptionManager,
                                          DecryptedTextManager & decryptedTextManager,
                                          QWidget * parent) :
-    INoteEditorPlugin(parent),
+    INoteEditorEncryptedAreaPlugin(parent),
     m_pUI(new Ui::EncryptedAreaPlugin),
     m_encryptionManager(encryptionManager),
     m_decryptedTextManager(decryptedTextManager),
-    m_mimeTypesList(),
     m_hint(),
     m_cipher(),
     m_keyLength(0)
@@ -28,8 +26,6 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encry
     m_pUI->setupUi(this);
 
     QUTE_NOTE_CHECK_PTR(m_encryptionManager.data())
-
-    m_mimeTypesList << "application/vnd.qutenote.encrypt";
 
     QAction * showEncryptedTextAction = new QAction(this);
     showEncryptedTextAction->setText(QObject::tr("Show encrypted text") + "...");
@@ -51,17 +47,11 @@ EncryptedAreaPlugin * EncryptedAreaPlugin::clone() const
                                    qobject_cast<QWidget*>(parent()));
 }
 
-bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
-                                     const QStringList & parameterNames,
-                                     const QStringList & parameterValues,
-                                     const NoteEditorPluginFactory & pluginFactory,
-                                     const IResource * resource, QString & errorDescription)
+bool EncryptedAreaPlugin::initialize(const QStringList & parameterNames, const QStringList & parameterValues,
+                                     const NoteEditorPluginFactory & pluginFactory, QString & errorDescription)
 {
-    QNDEBUG("EncryptedAreaPlugin::initialize: mime type = " << mimeType
-            << ", url = " << url.toString() << ", parameter names = " << parameterNames.join(", ")
+    QNDEBUG("EncryptedAreaPlugin::initialize: parameter names = " << parameterNames.join(", ")
             << ", parameter values = " << parameterValues.join(", "));
-
-    Q_UNUSED(resource);
 
     const int numParameterValues = parameterValues.size();
 
@@ -132,16 +122,6 @@ bool EncryptedAreaPlugin::initialize(const QString & mimeType, const QUrl & url,
             << ", length = " << m_keyLength << ", hint = " << m_hint
             << ", encrypted text = " << m_encryptedText);
     return true;
-}
-
-QStringList EncryptedAreaPlugin::mimeTypes() const
-{
-    return m_mimeTypesList;
-}
-
-QHash<QString, QStringList> EncryptedAreaPlugin::fileExtensions() const
-{
-    return QHash<QString, QStringList>();
 }
 
 QString EncryptedAreaPlugin::name() const
