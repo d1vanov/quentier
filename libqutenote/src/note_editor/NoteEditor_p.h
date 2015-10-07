@@ -183,6 +183,11 @@ private:
     void manualSaveResourceToFile(const IResource & resource);
     void openResource(const QString & resourceAbsoluteFilePath);
 
+    void setupGenericResourceImages();
+
+    // Returns true if the resource image gets built and is being saved to a file asynchronously
+    bool findOrBuildGenericResourceImage(const IResource & resource);
+
     void setupWebSocketServer();
     void setupJavaScriptObjects();
     void setupTextCursorPositionTracking();

@@ -1389,6 +1389,70 @@ void NoteEditorPrivate::openResource(const QString & resourceAbsoluteFilePath)
     QDesktopServices::openUrl(QUrl("file://" + resourceAbsoluteFilePath));
 }
 
+void NoteEditorPrivate::setupGenericResourceImages()
+{
+    QNDEBUG("NoteEditorPrivate::setupGenericResourceImages");
+
+    if (!m_pNote) {
+        QNDEBUG("No note to build generic resource images for");
+        return;
+    }
+
+    if (!m_pNote->hasResources()) {
+        QNDEBUG("Note has no resources, nothing to do");
+        return;
+    }
+
+    QString mimeTypeName;
+    size_t resourceImagesCounter = 0;
+    bool shouldWaitForResourceImagesToSave = false;
+
+    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
+    const int numResources = resourceAdapters.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
+
+        if (resourceAdapter.hasMime())
+        {
+            mimeTypeName = resourceAdapter.mime();
+            if (mimeTypeName.startsWith("image/")) {
+                QNTRACE("Skipping image resource " << resourceAdapter);
+                continue;
+            }
+        }
+
+        shouldWaitForResourceImagesToSave |= findOrBuildGenericResourceImage(resourceAdapter);
+        ++resourceImagesCounter;
+    }
+
+    if (resourceImagesCounter == 0) {
+        QNDEBUG("No generic resources requiring building custom images were found");
+        return;
+    }
+
+    if (shouldWaitForResourceImagesToSave) {
+        QNTRACE("Some generic resource images are being saved to files, waiting");
+        return;
+    }
+
+    QNTRACE("All generic resource images are ready");
+    // TODO: provide src for generic resource image tags
+}
+
+bool NoteEditorPrivate::findOrBuildGenericResourceImage(const IResource & resource)
+{
+    QNDEBUG("NoteEditorPrivate::findOrBuildGenericResourceImage: " << resource);
+
+    const QString localGuid = resource.localGuid();
+
+    // TODO: lookup within the cache of images by local guid
+    // TODO: if found, compare hashes, if they don't match, rebuild the image and replace the cached one with the built one
+    // TODO: if not found, build the image and put it in the cache
+
+    return true;
+}
+
 void NoteEditorPrivate::setupWebSocketServer()
 {
     QNDEBUG("NoteEditorPrivate::setupWebSocketServer");
