@@ -8,6 +8,12 @@
 #include <qute_note/utility/EncryptionManager.h>
 #include <QObject>
 #include <QMimeType>
+#include <QFont>
+#include <QColor>
+
+#ifdef USE_QT_WEB_ENGINE
+#include <QImage>
+#endif
 
 QT_FORWARD_DECLARE_CLASS(QByteArray)
 QT_FORWARD_DECLARE_CLASS(QMimeType)
@@ -187,6 +193,8 @@ private:
 
     // Returns true if the resource image gets built and is being saved to a file asynchronously
     bool findOrBuildGenericResourceImage(const IResource & resource);
+    QImage buildGenericResourceImage(const IResource & resource);
+    void saveGenericResourceImage(const QImage & image);
 
     void setupWebSocketServer();
     void setupJavaScriptObjects();
@@ -297,6 +305,10 @@ private:
     QString     m_noteEditorPagePath;
     QString     m_noteEditorImageResourcesStoragePath;
 
+    QFont       m_font;
+    QColor      m_fontColor;
+    QColor      m_backgroundColor;
+
     // JavaScript scripts
     QString     m_jQueryJs;
     QString     m_resizableTableColumnsJs;
@@ -406,7 +418,7 @@ private:
     ResourceInfo                    m_resourceInfo;
     ResourceInfoJavaScriptHandler * m_pResourceInfoJavaScriptHandler;
 
-    QString     m_resourceLocalFileStorageFolder;
+    QString                         m_resourceLocalFileStorageFolder;
 
     QHash<QUuid, QString>           m_genericResourceLocalGuidBySaveToStorageRequestIds;
     QHash<QString, QString>         m_resourceFileStoragePathsByResourceLocalGuid;
@@ -418,6 +430,8 @@ private:
     QHash<QString, QString>         m_fileFilterStringForMimeType;
 
     QSet<QUuid>                     m_manualSaveResourceToFileRequestIds;
+
+    QHash<QByteArray, QString>      m_genericResourceImageFilePathsByResourceHash;
 #endif
 
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFilePathsAndMimeTypesByReadRequestIds;

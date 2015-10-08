@@ -21,6 +21,10 @@ typedef QWebSettings WebSettings;
 #include "WebSocketTransport.h"
 #include <qute_note/utility/ApplicationSettings.h>
 #include <QDesktopServices>
+#include <QPainter>
+#include <QIcon>
+#include <QFontMetrics>
+#include <QPixmap>
 #include <QtWebSockets/QWebSocketServer>
 #include <QtWebChannel>
 #include <QWebEngineSettings>
@@ -66,6 +70,10 @@ namespace qute_note {
 NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject(&noteEditor),
     m_noteEditorPageFolderPath(),
+    m_noteEditorPagePath(),
+    m_noteEditorImageResourcesStoragePath(),
+    m_font(),
+    m_backgroundColor(),
     m_jQueryJs(),
     m_resizableTableColumnsJs(),
     m_onFixedWidthTableResizeJs(),
@@ -155,6 +163,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_fileSuffixesForMimeType(),
     m_fileFilterStringForMimeType(),
     m_manualSaveResourceToFileRequestIds(),
+    m_genericResourceImageFilePathsByResourceHash(),
 #endif
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
     q_ptr(&noteEditor)
@@ -1444,13 +1453,142 @@ bool NoteEditorPrivate::findOrBuildGenericResourceImage(const IResource & resour
 {
     QNDEBUG("NoteEditorPrivate::findOrBuildGenericResourceImage: " << resource);
 
+    if (!resource.hasDataHash() && !resource.hasAlternateDataHash()) {
+        QString errorDescription = QT_TR_NOOP("Found resource without either data hash or alternate data hash");
+        QNWARNING(errorDescription << ": " << resource);
+        emit notifyError(errorDescription);
+        return true;
+    }
+
     const QString localGuid = resource.localGuid();
 
-    // TODO: lookup within the cache of images by local guid
-    // TODO: if found, compare hashes, if they don't match, rebuild the image and replace the cached one with the built one
-    // TODO: if not found, build the image and put it in the cache
+    const QByteArray & resourceHash = (resource.hasDataHash()
+                                       ? resource.dataHash()
+                                       : resource.alternateDataHash());
 
+    auto it = m_genericResourceImageFilePathsByResourceHash.find(resourceHash);
+    if (it != m_genericResourceImageFilePathsByResourceHash.end()) {
+        QNTRACE("Found generic resource image file path for resource with hash " << resourceHash << " and local guid "
+                << localGuid << ": " << it.value());
+        return false;
+    }
+
+    QImage img = buildGenericResourceImage(resource);
+    if (img.isNull()) {
+        QNDEBUG("Can't build generic resource image");
+        return true;
+    }
+
+    saveGenericResourceImage(img);
     return true;
+}
+
+QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
+{
+    QNDEBUG("NoteEditorPrivate::buildGenericResourceImage");
+
+    QString resourceDisplayName = resource.displayName();
+    if (Q_UNLIKELY(resourceDisplayName.isEmpty())) {
+        resourceDisplayName = QObject::tr("Attachment");
+    }
+
+    QFont font = m_font;
+    font.setPointSize(10);
+
+    const int maxResourceDisplayNameWidth = 140;
+    QFontMetrics fontMetrics(font);
+    int width = fontMetrics.width(resourceDisplayName);
+    while(width > maxResourceDisplayNameWidth)
+    {
+        int widthOverflow = width - maxResourceDisplayNameWidth - fontMetrics.width("...");
+        int singleCharWidth = fontMetrics.width("n");
+        int numCharsToSkip = widthOverflow / singleCharWidth;
+
+        int dotIndex = resourceDisplayName.indexOf(".");
+        if (dotIndex != 0 && (dotIndex > resourceDisplayName.size() / 2))
+        {
+            // Try to shorten the name while preserving the file extension. Need to skip some chars before the dot index
+            int startSkipPos = dotIndex - numCharsToSkip;
+            if (startSkipPos >= 0) {
+                resourceDisplayName.replace(startSkipPos, numCharsToSkip, "...");
+                width = fontMetrics.width(resourceDisplayName);
+                continue;
+            }
+        }
+
+        // Either no file extension or name contains a dot, skip some chars without attempt to preserve the file extension
+        resourceDisplayName.replace(resourceDisplayName.size() - numCharsToSkip, numCharsToSkip, "...");
+        width = fontMetrics.width(resourceDisplayName);
+    }
+
+    QNTRACE("(possibly) shortened resource display name: " << resourceDisplayName);
+
+    QString resourceHumanReadableSize;
+    if (resource.hasDataSize() || resource.hasAlternateDataSize()) {
+        resourceHumanReadableSize = humanReadableSize(resource.hasDataSize() ? resource.dataSize() : resource.alternateDataSize());
+    }
+
+    QIcon resourceIcon;
+    bool useFallbackGenericResourceIcon = false;
+
+    if (resource.hasMime())
+    {
+        const QString & resourceMimeTypeName = resource.mime();
+        QMimeDatabase mimeDatabase;
+        QMimeType mimeType = mimeDatabase.mimeTypeForName(resourceMimeTypeName);
+        if (mimeType.isValid())
+        {
+            resourceIcon = QIcon::fromTheme(mimeType.genericIconName());
+            if (resourceIcon.isNull()) {
+                QNTRACE("Can't get icon from theme by name " << mimeType.genericIconName());
+                useFallbackGenericResourceIcon = true;
+            }
+        }
+        else
+        {
+            QNTRACE("Can't get valid mime type for name " << resourceMimeTypeName
+                    << ", will use fallback generic resource icon");
+            useFallbackGenericResourceIcon = true;
+        }
+    }
+    else
+    {
+        QNINFO("Found resource without mime type set: " << resource);
+        QNTRACE("Will use fallback generic resource icon");
+        useFallbackGenericResourceIcon = true;
+    }
+
+    if (useFallbackGenericResourceIcon) {
+        resourceIcon = QIcon(":/generic_resource_icons/png/attachment.png");
+    }
+
+    QPixmap pixmap(230, 32);
+    pixmap.fill();
+
+    QPainter painter;
+    painter.begin(&pixmap);
+    painter.setFont(font);
+
+    // Draw resource icon
+    painter.drawPixmap(QPoint(0,4), resourceIcon.pixmap(QSize(24,24)));
+
+    // Draw resource display name
+    painter.drawText(QPoint(26, 14), resourceDisplayName);
+
+    // Draw resource display size
+    painter.drawText(QPoint(26, 28), resourceHumanReadableSize);
+
+    // TODO: write open and save resource icons
+
+    painter.end();
+
+    return pixmap.toImage();
+}
+
+void NoteEditorPrivate::saveGenericResourceImage(const QImage & image)
+{
+    // TODO: implement
+    Q_UNUSED(image);
 }
 
 void NoteEditorPrivate::setupWebSocketServer()
@@ -2174,6 +2312,9 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     m_resourceFileStoragePathsByResourceLocalGuid.clear();
 #ifdef USE_QT_WEB_ENGINE
     m_localGuidsOfResourcesWantedToBeSaved.clear();
+    if (m_genericResourceImageFilePathsByResourceHash.size() > 30) {
+        m_genericResourceImageFilePathsByResourceHash.clear();
+    }
 #else
     m_pluginFactory->setNote(*m_pNote);
 #endif
@@ -2359,6 +2500,7 @@ void NoteEditorPrivate::insertToDoCheckbox()
 
 void NoteEditorPrivate::setFont(const QFont & font)
 {
+    m_font = font;
     QString fontName = font.family();
     execJavascriptCommand("fontName", fontName);
 }
@@ -2366,6 +2508,7 @@ void NoteEditorPrivate::setFont(const QFont & font)
 void NoteEditorPrivate::setFontHeight(const int height)
 {
     if (height > 0) {
+        m_font.setPointSize(height);
         execJavascriptCommand("fontSize", QString::number(height));
     }
     else {
@@ -2378,6 +2521,7 @@ void NoteEditorPrivate::setFontHeight(const int height)
 void NoteEditorPrivate::setFontColor(const QColor & color)
 {
     if (color.isValid()) {
+        m_fontColor = color;
         execJavascriptCommand("foreColor", color.name());
     }
     else {
@@ -2390,6 +2534,7 @@ void NoteEditorPrivate::setFontColor(const QColor & color)
 void NoteEditorPrivate::setBackgroundColor(const QColor & color)
 {
     if (color.isValid()) {
+        m_backgroundColor = color;
         execJavascriptCommand("hiliteColor", color.name());
     }
     else {
