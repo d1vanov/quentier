@@ -28,6 +28,9 @@
     <height>32</height>
    </size>
   </property>
+  <property name="cursor">
+   <cursorShape>ArrowCursor</cursorShape>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
