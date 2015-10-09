@@ -19,7 +19,7 @@ void GenericResourceImageWriter::setStorageFolderPath(const QString & storageFol
 
 void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QString resourceLocalGuid, const QByteArray resourceImageData,
                                                                     const QString resourceFileSuffix, const QByteArray resourceActualHash,
-                                                                    const QUuid requestId)
+                                                                    const QString resourceDisplayName, const QUuid requestId)
 {
     QNDEBUG("GenericResourceImageWriter::onGenericResourceImageWriteRequest: resource local guid = " << resourceLocalGuid
             << ", resource actual hash = " << resourceActualHash << ", request id = " << requestId);
@@ -54,6 +54,7 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
         RETURN_WITH_ERROR("resource image file is not writable");
     }
 
+    bool resourceHashChanged = true;
     QFileInfo resourceHashFileInfo(m_storageFolderPath + "/" + resourceLocalGuid + ".hash");
     bool resourceHashFileExists = resourceHashFileInfo.exists();
     if (resourceHashFileExists)
@@ -69,16 +70,54 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
             QByteArray previousResourceHash = resourceHashFile.readAll();
 
             if (resourceActualHash == previousResourceHash) {
-                QNDEBUG("resource hash hasn't changed, won't rewrite the resource's image");
-                emit genericResourceImageWriteReply(/* success = */ true, resourceActualHash,
-                                                    resourceImageFileInfo.absoluteFilePath(),
-                                                    QString(), requestId);
-                return;
+                QNTRACE("Resource hash hasn't changed");
+                resourceHashChanged = false;
             }
         }
     }
 
-    QNTRACE("Writing both resource image file and resource hash file");
+    bool resourceDisplayNameChanged = false;
+    QFileInfo resourceNameFileInfo(m_storageFolderPath + "/" + resourceLocalGuid + ".name");
+    if (!resourceHashChanged)
+    {
+        bool resourceNameFileExists = resourceNameFileInfo.exists();
+        if (resourceNameFileExists)
+        {
+            if (Q_UNLIKELY(!resourceNameFileInfo.isWritable())) {
+                RETURN_WITH_ERROR("resource name file is not writable");
+            }
+
+            if (Q_UNLIKELY(!resourceNameFileInfo.isReadable()))
+            {
+                QNINFO("Helper file with resource name for generic resource image is not readable: " +
+                       resourceNameFileInfo.absoluteFilePath() + " which is quite strange...");
+                resourceDisplayNameChanged = true;
+            }
+            else
+            {
+                QFile resourceNameFile(resourceNameFileInfo.absoluteFilePath());
+                Q_UNUSED(resourceNameFile.open(QIODevice::ReadOnly));
+                QString previousResourceName = resourceNameFile.readAll();
+
+                if (resourceDisplayName != previousResourceName) {
+                    QNTRACE("Resource display name has changed from " << previousResourceName
+                            << " to " << resourceDisplayName);
+                    resourceDisplayNameChanged = true;
+                }
+            }
+        }
+    }
+
+    if (!resourceHashChanged && !resourceDisplayNameChanged)
+    {
+        QNDEBUG("resource hash and display name haven't changed, won't rewrite the resource's image");
+        emit genericResourceImageWriteReply(/* success = */ true, resourceActualHash,
+                                            resourceImageFileInfo.absoluteFilePath(),
+                                            QString(), requestId);
+        return;
+    }
+
+    QNTRACE("Writing resource image file and helper files with hash and display name");
 
     QDir resourceImageDir(m_storageFolderPath);
     if (Q_UNLIKELY(!resourceImageDir.exists()))
@@ -103,7 +142,14 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
     resourceHashFile.write(resourceActualHash);
     resourceHashFile.close();
 
-    QNTRACE("Successfully wrote both resource image file and resource hash file for request " << requestId);
+    QFile resourceNameFile(resourceNameFileInfo.absoluteFilePath());
+    if (Q_UNLIKELY(!resourceNameFile.open(QIODevice::ReadWrite))) {
+        RETURN_WITH_ERROR("can't open resource name file for writing");
+    }
+    resourceNameFile.write(resourceDisplayName.toLocal8Bit());
+    resourceNameFile.close();
+
+    QNTRACE("Successfully wrote resource image file and helper files with hash and display name for request " << requestId);
     emit genericResourceImageWriteReply(/* success = */ true, resourceActualHash,
                                         resourceImageFileInfo.absoluteFilePath(),
                                         QString(), requestId);

@@ -1648,7 +1648,7 @@ void NoteEditorPrivate::saveGenericResourceImage(const IResource & resource, con
             << resource.localGuid() << ", request id " << requestId);
     emit saveGenericResourceImageToFile(resource.localGuid(), imageData, "png",
                                         (resource.hasDataHash() ? resource.dataHash() : resource.alternateDataHash()),
-                                        requestId);
+                                        resource.displayName(), requestId);
 }
 
 void NoteEditorPrivate::provideSrcForGenericResourceImages()

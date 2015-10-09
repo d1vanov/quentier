@@ -117,7 +117,7 @@ Q_SIGNALS:
     void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId);
     void saveGenericResourceImageToFile(const QString resourceLocalGuid, const QByteArray resourceImageData,
                                         const QString resourceFileSuffix, const QByteArray resourceActualHash,
-                                        const QUuid requestId);
+                                        const QString resourceDisplayName, const QUuid requestId);
 #endif
 
     void textCursorPositionBoldState(bool state);

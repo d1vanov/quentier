@@ -27,7 +27,7 @@ Q_SIGNALS:
 public Q_SLOTS:
     void onGenericResourceImageWriteRequest(const QString resourceLocalGuid, const QByteArray resourceImageData,
                                             const QString resourceFileSuffix, const QByteArray resourceActualHash,
-                                            const QUuid requestId);
+                                            const QString resourceDisplayName, const QUuid requestId);
 
 private:
     QString     m_storageFolderPath;
