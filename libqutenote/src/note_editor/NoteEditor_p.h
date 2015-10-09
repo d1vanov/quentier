@@ -40,6 +40,7 @@ QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(IconThemeJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceOpenAndSaveButtonsOnClickHandler)
+QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 #endif
 
 class NoteEditorPrivate: public QObject
@@ -114,6 +115,9 @@ Q_SIGNALS:
     void writeImageResourceToFile(QString absoluteFilePath, QByteArray imageData, QUuid requestId);
 #ifdef USE_QT_WEB_ENGINE
     void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId);
+    void saveGenericResourceImageToFile(const QString resourceLocalGuid, const QByteArray resourceImageData,
+                                        const QString resourceFileSuffix, const QByteArray resourceActualHash,
+                                        const QUuid requestId);
 #endif
 
     void textCursorPositionBoldState(bool state);
@@ -137,6 +141,10 @@ private Q_SLOTS:
     void onDroppedFileRead(bool success, QString errorDescription, QByteArray data, QUuid requestId);
 
 #ifdef USE_QT_WEB_ENGINE
+    void onGenericResourceImageSaved(const bool success, const QByteArray resourceActualHash,
+                                     const QString filePath, const QString errorDescription,
+                                     const QUuid requestId);
+
     void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
 
     void onOpenResourceButtonClicked(const QString & resourceHash);
@@ -194,7 +202,8 @@ private:
     // Returns true if the resource image gets built and is being saved to a file asynchronously
     bool findOrBuildGenericResourceImage(const IResource & resource);
     QImage buildGenericResourceImage(const IResource & resource);
-    void saveGenericResourceImage(const QImage & image);
+    void saveGenericResourceImage(const IResource & resource, const QImage & image);
+    void provideSrcForGenericResourceImages();
 
     void setupWebSocketServer();
     void setupJavaScriptObjects();
@@ -345,6 +354,7 @@ private:
     EnCryptElementOnClickHandler * m_pEnCryptElementClickHandler;
     IconThemeJavaScriptHandler * m_pIconThemeJavaScriptHandler;
     GenericResourceOpenAndSaveButtonsOnClickHandler * m_pGenericResourceOpenAndSaveButtonsOnClickHandler;
+    GenericResourceImageWriter * m_pGenericResourceImageWriter;
 
     quint16     m_webSocketServerPort;
 #endif
@@ -432,6 +442,7 @@ private:
     QSet<QUuid>                     m_manualSaveResourceToFileRequestIds;
 
     QHash<QByteArray, QString>      m_genericResourceImageFilePathsByResourceHash;
+    QSet<QUuid>                     m_saveGenericResourceImageToFileRequestIds;
 #endif
 
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFilePathsAndMimeTypesByReadRequestIds;

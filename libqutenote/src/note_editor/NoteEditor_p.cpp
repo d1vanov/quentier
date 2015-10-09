@@ -19,12 +19,14 @@ typedef QWebSettings WebSettings;
 #include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
+#include "GenericResourceImageWriter.h"
 #include <qute_note/utility/ApplicationSettings.h>
 #include <QDesktopServices>
 #include <QPainter>
 #include <QIcon>
 #include <QFontMetrics>
 #include <QPixmap>
+#include <QBuffer>
 #include <QtWebSockets/QWebSocketServer>
 #include <QtWebChannel>
 #include <QWebEngineSettings>
@@ -107,6 +109,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pEnCryptElementClickHandler(new EnCryptElementOnClickHandler(this)),
     m_pIconThemeJavaScriptHandler(Q_NULLPTR),
     m_pGenericResourceOpenAndSaveButtonsOnClickHandler(new GenericResourceOpenAndSaveButtonsOnClickHandler(this)),
+    m_pGenericResourceImageWriter(Q_NULLPTR),
     m_webSocketServerPort(0),
 #endif
     m_contextMenuSequenceNumber(1),     // NOTE: must start from 1 as JavaScript treats 0 as null!
@@ -120,8 +123,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pendingConversionToNote(false),
     m_pendingNotePageLoad(false),
     m_pendingIndexHtmlWritingToFile(false),
-    m_pNote(nullptr),
-    m_pNotebook(nullptr),
+    m_pNote(Q_NULLPTR),
+    m_pNotebook(Q_NULLPTR),
     m_modified(false),
     m_watchingForContentChange(false),
     m_contentChangedSinceWatchingStart(false),
@@ -164,6 +167,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_fileFilterStringForMimeType(),
     m_manualSaveResourceToFileRequestIds(),
     m_genericResourceImageFilePathsByResourceHash(),
+    m_saveGenericResourceImageToFileRequestIds(),
 #endif
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
     q_ptr(&noteEditor)
@@ -277,6 +281,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     setupSaveResourceButtonOnClickHandler();
     setupOpenResourceButtonOnClickHandler();
     setupTextCursorPositionTracking();
+    setupGenericResourceImages();
 #endif
 
     QNTRACE("Evaluated all JavaScript helper functions");
@@ -474,6 +479,36 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
 }
 
 #ifdef USE_QT_WEB_ENGINE
+void NoteEditorPrivate::onGenericResourceImageSaved(const bool success, const QByteArray resourceActualHash,
+                                                    const QString filePath, const QString errorDescription,
+                                                    const QUuid requestId)
+{
+    QNDEBUG("NoteEditorPrivate::onGenericResourceImageSaved: success = " << (success ? "true" : "false")
+            << ", resource actual hash = " << resourceActualHash
+            << ", file path = " << filePath << ", error description = " << errorDescription
+            << ", requestId = " << requestId);
+
+    auto it = m_saveGenericResourceImageToFileRequestIds.find(requestId);
+    if (it == m_saveGenericResourceImageToFileRequestIds.end()) {
+        QNDEBUG("Haven't found request id in the cache");
+        return;
+    }
+
+    Q_UNUSED(m_saveGenericResourceImageToFileRequestIds.erase(it));
+
+    if (Q_UNLIKELY(!success)) {
+        emit notifyError(QT_TR_NOOP("Can't save generic resource image to file: ") + errorDescription);
+        return;
+    }
+
+    m_genericResourceImageFilePathsByResourceHash[resourceActualHash] = filePath;
+    QNDEBUG("Cached generic resource image file path " << filePath << " for resource hash " << resourceActualHash);
+
+    if (m_saveGenericResourceImageToFileRequestIds.empty()) {
+        provideSrcForGenericResourceImages();
+    }
+}
+
 void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint)
 {
     QNDEBUG("NoteEditorPrivate::onEnCryptElementClicked");
@@ -1446,7 +1481,7 @@ void NoteEditorPrivate::setupGenericResourceImages()
     }
 
     QNTRACE("All generic resource images are ready");
-    // TODO: provide src for generic resource image tags
+    provideSrcForGenericResourceImages();
 }
 
 bool NoteEditorPrivate::findOrBuildGenericResourceImage(const IResource & resource)
@@ -1479,7 +1514,7 @@ bool NoteEditorPrivate::findOrBuildGenericResourceImage(const IResource & resour
         return true;
     }
 
-    saveGenericResourceImage(img);
+    saveGenericResourceImage(resource, img);
     return true;
 }
 
@@ -1495,7 +1530,7 @@ QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
     QFont font = m_font;
     font.setPointSize(10);
 
-    const int maxResourceDisplayNameWidth = 140;
+    const int maxResourceDisplayNameWidth = 146;
     QFontMetrics fontMetrics(font);
     int width = fontMetrics.width(resourceDisplayName);
     while(width > maxResourceDisplayNameWidth)
@@ -1570,25 +1605,56 @@ QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
     painter.setFont(font);
 
     // Draw resource icon
-    painter.drawPixmap(QPoint(0,4), resourceIcon.pixmap(QSize(24,24)));
+    painter.drawPixmap(QPoint(2,4), resourceIcon.pixmap(QSize(24,24)));
 
     // Draw resource display name
-    painter.drawText(QPoint(26, 14), resourceDisplayName);
+    painter.drawText(QPoint(28, 14), resourceDisplayName);
 
     // Draw resource display size
-    painter.drawText(QPoint(26, 28), resourceHumanReadableSize);
+    painter.drawText(QPoint(28, 28), resourceHumanReadableSize);
 
-    // TODO: write open and save resource icons
+    // Draw open resource icon
+    QIcon openResourceIcon = QIcon::fromTheme("document-open", QIcon(":/generic_resource_icons/png/open_with.png"));
+    painter.drawPixmap(QPoint(174,4), openResourceIcon.pixmap(QSize(24,24)));
+
+    // Draw save resource icon
+    QIcon saveResourceIcon = QIcon::fromTheme("document-save", QIcon(":/generic_resource_icons/png/save.png"));
+    painter.drawPixmap(QPoint(202,4), saveResourceIcon.pixmap(QSize(24,24)));
 
     painter.end();
-
     return pixmap.toImage();
 }
 
-void NoteEditorPrivate::saveGenericResourceImage(const QImage & image)
+void NoteEditorPrivate::saveGenericResourceImage(const IResource & resource, const QImage & image)
 {
+    QNDEBUG("NoteEditorPrivate::saveGenericResourceImage: resource local guid = " << resource.localGuid());
+
+    if (Q_UNLIKELY(!resource.hasDataHash() && !resource.hasAlternateDataHash())) {
+        QString error = QT_TR_NOOP("Can't save generic resource image: resource has neither data hash nor alternate data hash");
+        QNWARNING(error << ", resource: " << resource);
+        emit notifyError(error);
+        return;
+    }
+
+    QByteArray imageData;
+    QBuffer buffer(&imageData);
+    Q_UNUSED(buffer.open(QIODevice::WriteOnly));
+    image.save(&buffer, "PNG");
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_saveGenericResourceImageToFileRequestIds.insert(requestId));
+
+    QNDEBUG("Emitting request to write generic resource image for resource with local guid "
+            << resource.localGuid() << ", request id " << requestId);
+    emit saveGenericResourceImageToFile(resource.localGuid(), imageData, "png",
+                                        (resource.hasDataHash() ? resource.dataHash() : resource.alternateDataHash()),
+                                        requestId);
+}
+
+void NoteEditorPrivate::provideSrcForGenericResourceImages()
+{
+    QNDEBUG("NoteEditorPrivate::provideSrcForGenericResourceImages");
     // TODO: implement
-    Q_UNUSED(image);
 }
 
 void NoteEditorPrivate::setupWebSocketServer()
@@ -1900,6 +1966,16 @@ void NoteEditorPrivate::setupFileIO()
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                      this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
+#ifdef USE_QT_WEB_ENGINE
+    m_pGenericResourceImageWriter = new GenericResourceImageWriter;
+    m_pGenericResourceImageWriter->setStorageFolderPath(m_noteEditorPageFolderPath + "/GenericResourceImages");
+    m_pGenericResourceImageWriter->moveToThread(m_pIOThread);
+
+    QObject::connect(this, &NoteEditorPrivate::saveGenericResourceImageToFile,
+                     m_pGenericResourceImageWriter, &GenericResourceImageWriter::onGenericResourceImageWriteRequest);
+    QObject::connect(m_pGenericResourceImageWriter, &GenericResourceImageWriter::genericResourceImageWriteReply,
+                     this, &NoteEditorPrivate::onGenericResourceImageSaved);
+#endif
 }
 
 void NoteEditorPrivate::setupScripts()
@@ -2315,6 +2391,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     if (m_genericResourceImageFilePathsByResourceHash.size() > 30) {
         m_genericResourceImageFilePathsByResourceHash.clear();
     }
+    m_saveGenericResourceImageToFileRequestIds.clear();
 #else
     m_pluginFactory->setNote(*m_pNote);
 #endif
