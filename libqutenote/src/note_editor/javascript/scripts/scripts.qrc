@@ -13,6 +13,8 @@
         <file>onResourceInfoReceived.js</file>
         <file>qWebKitSetup.js</file>
         <file>provideGenericResourceDisplayNameAndSize.js</file>
+        <file>provideSrcForGenericResourceImages.js</file>
+        <file>onGenericResourceImageReceived.js</file>
         <file>onIconFilePathForIconThemeNameReceived.js</file>
         <file>provideSrcForGenericResourceOpenAndSaveIcons.js</file>
         <file>setupSaveResourceButtonOnClickHandler.js</file>

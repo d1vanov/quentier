@@ -41,6 +41,7 @@ QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(IconThemeJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceOpenAndSaveButtonsOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
+QT_FORWARD_DECLARE_CLASS(GenericResourceImageJavaScriptHandler)
 #endif
 
 class NoteEditorPrivate: public QObject
@@ -335,6 +336,8 @@ private:
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
 #else
+    QString     m_provideSrcForGenericResourceImagesJs;
+    QString     m_onGenericResourceImageReceivedJs;
     QString     m_provideSrcForGenericResourceIconsJs;
     QString     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs;
     QString     m_qWebChannelJs;
@@ -442,6 +445,8 @@ private:
     QSet<QUuid>                     m_manualSaveResourceToFileRequestIds;
 
     QHash<QByteArray, QString>      m_genericResourceImageFilePathsByResourceHash;
+    GenericResourceImageJavaScriptHandler *  m_pGenericResoureImageJavaScriptHandler;
+
     QSet<QUuid>                     m_saveGenericResourceImageToFileRequestIds;
 #endif
 

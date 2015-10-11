@@ -17,6 +17,9 @@
             window.resourceCache = channel.objects.resourceCache;
             window.resourceCache.notifyResourceInfo.connect(onResourceInfoReceived);
 
+            window.genericResourceImageHandler = channel.objects.genericResourceImageHandler;
+            window.genericResourceImageHandler.genericResourceImageFound.connect(onGenericResourceImageReceived);
+
             window.iconThemeHandler = channel.objects.iconThemeHandler;
             window.iconThemeHandler.notifyIconFilePathForIconThemeName.connect(onIconFilePathForIconThemeNameReceived);
 

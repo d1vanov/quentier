@@ -16,6 +16,7 @@ typedef QWebSettings WebSettings;
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
 #include "javascript_glue/IconThemeJavaScriptHandler.h"
 #include "javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h"
+#include "javascript_glue/GenericResourceImageJavaScriptHandler.h"
 #include "NoteDecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
@@ -91,6 +92,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
+    m_provideSrcForGenericResourceImagesJs(),
+    m_onGenericResourceImageReceivedJs(),
     m_provideSrcForGenericResourceIconsJs(),
     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs(),
     m_qWebChannelJs(),
@@ -167,6 +170,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_fileFilterStringForMimeType(),
     m_manualSaveResourceToFileRequestIds(),
     m_genericResourceImageFilePathsByResourceHash(),
+    m_pGenericResoureImageJavaScriptHandler(new GenericResourceImageJavaScriptHandler(m_genericResourceImageFilePathsByResourceHash, this)),
     m_saveGenericResourceImageToFileRequestIds(),
 #endif
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
@@ -250,9 +254,11 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
                             QString::number(m_webSocketServerPort) + QString("})();"));
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_onIconFilePathForIconThemeNameReceivedJs);
+    page->executeJavaScript(m_onGenericResourceImageReceivedJs);
     page->executeJavaScript(m_qWebChannelSetupJs);
     page->executeJavaScript(m_provideGenericResourceDisplayNameAndSizeJs);
     page->executeJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
+    page->executeJavaScript(m_provideSrcForGenericResourceImagesJs);
     page->executeJavaScript(m_provideSrcForGenericResourceIconsJs);
     page->executeJavaScript(m_provideSrcForGenericResourceOpenAndSaveIconsJs);
     page->executeJavaScript(m_setupSaveResourceButtonOnClickHandlerJs);
@@ -1716,6 +1722,7 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pWebChannel->registerObject("openAndSaveResourceButtonsHandler", m_pGenericResourceOpenAndSaveButtonsOnClickHandler);
     m_pWebChannel->registerObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler);
     m_pWebChannel->registerObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler);
+    m_pWebChannel->registerObject("genericResourceImageHandler", m_pGenericResoureImageJavaScriptHandler);
     QNDEBUG("Registered objects exposed to JavaScript");
 }
 
@@ -2012,6 +2019,8 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/qWebChannelSetup.js", m_qWebChannelSetupJs);
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
+    SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceImages.js", m_provideSrcForGenericResourceImagesJs);
+    SETUP_SCRIPT("javascript/scripts/onGenericResourceImageReceived.js", m_onGenericResourceImageReceivedJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceIcons.js", m_provideSrcForGenericResourceIconsJs);
     SETUP_SCRIPT("javascript/scripts/onIconFilePathForIconThemeNameReceived.js", m_onIconFilePathForIconThemeNameReceivedJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceOpenAndSaveIcons.js", m_provideSrcForGenericResourceOpenAndSaveIconsJs);

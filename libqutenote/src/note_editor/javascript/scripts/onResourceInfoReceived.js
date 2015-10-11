@@ -8,13 +8,12 @@ function onResourceInfoReceived(resourceHash, filePath, displayName, displaySize
         return;
     }
 
-    var escapedPath = filePath.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
-
     var resource = resources[0];
     if (!resource) {
         return;
     }
 
+    var escapedPath = filePath.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
     resource.setAttribute("src", escapedPath);
 
     var resourceName = resource.getElementsByClassName("resource-name");
