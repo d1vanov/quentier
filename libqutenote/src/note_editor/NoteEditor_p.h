@@ -200,6 +200,7 @@ private:
     QImage buildGenericResourceImage(const IResource & resource);
     void saveGenericResourceImage(const IResource & resource, const QImage & image);
     void provideSrcForGenericResourceImages();
+    void setupGenericResourceOnClickHandler();
 
     void setupWebSocketServer();
     void setupJavaScriptObjects();
@@ -337,6 +338,8 @@ private:
     QString     m_qWebChannelSetupJs;
     QString     m_pageMutationObserverJs;
     QString     m_notifyTextCursorPositionChangedJs;
+    QString     m_genericResourceOnClickHandlerJs;
+    QString     m_setupGenericResourceOnClickHandlerJs;
 
     QWebSocketServer * m_pWebSocketServer;
     WebSocketClientWrapper * m_pWebSocketClientWrapper;

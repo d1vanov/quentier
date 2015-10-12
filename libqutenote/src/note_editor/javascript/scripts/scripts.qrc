@@ -16,5 +16,7 @@
         <file>notifyTextCursorPositionChanged.js</file>
         <file>determineStatesForCurrentTextCursorPosition.js</file>
         <file>determineContextMenuEventTarget.js</file>
+        <file>genericResourceOnClickHandler.js</file>
+        <file>setupGenericResourceOnClickHandler.js</file>
     </qresource>
 </RCC>

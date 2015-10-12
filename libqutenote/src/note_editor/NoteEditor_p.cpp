@@ -96,6 +96,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_qWebChannelSetupJs(),
     m_pageMutationObserverJs(),
     m_notifyTextCursorPositionChangedJs(),
+    m_genericResourceOnClickHandlerJs(),
+    m_setupGenericResourceOnClickHandlerJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
     m_pWebChannel(new QWebChannel(this)),
@@ -245,6 +247,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_onGenericResourceImageReceivedJs);
     page->executeJavaScript(m_qWebChannelSetupJs);
+    page->executeJavaScript(m_genericResourceOnClickHandlerJs);
+    page->executeJavaScript(m_setupGenericResourceOnClickHandlerJs);
     page->executeJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     page->executeJavaScript(m_provideSrcForGenericResourceImagesJs);
     page->executeJavaScript(m_notifyTextCursorPositionChangedJs);
@@ -493,6 +497,7 @@ void NoteEditorPrivate::onGenericResourceImageSaved(const bool success, const QB
 
     if (m_saveGenericResourceImageToFileRequestIds.empty()) {
         provideSrcForGenericResourceImages();
+        setupGenericResourceOnClickHandler();
     }
 }
 
@@ -1434,6 +1439,7 @@ void NoteEditorPrivate::setupGenericResourceImages()
 
     QNTRACE("All generic resource images are ready");
     provideSrcForGenericResourceImages();
+    setupGenericResourceOnClickHandler();
 }
 
 bool NoteEditorPrivate::findOrBuildGenericResourceImage(const IResource & resource)
@@ -1611,6 +1617,16 @@ void NoteEditorPrivate::provideSrcForGenericResourceImages()
     GET_PAGE()
 
     page->executeJavaScript("provideSrcForGenericResourceImages();");
+}
+
+void NoteEditorPrivate::setupGenericResourceOnClickHandler()
+{
+    QNDEBUG("NoteEditorPrivate::setupGenericResourceOnClickHandler");
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    page->executeJavaScript("setupGenericResourceOnClickHandler();");
 }
 
 void NoteEditorPrivate::setupWebSocketServer()
@@ -1962,6 +1978,8 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceImages.js", m_provideSrcForGenericResourceImagesJs);
     SETUP_SCRIPT("javascript/scripts/onGenericResourceImageReceived.js", m_onGenericResourceImageReceivedJs);
+    SETUP_SCRIPT("javascript/scripts/genericResourceOnClickHandler.js", m_genericResourceOnClickHandlerJs);
+    SETUP_SCRIPT("javascript/scripts/setupGenericResourceOnClickHandler.js", m_setupGenericResourceOnClickHandlerJs);
     SETUP_SCRIPT("javascript/scripts/notifyTextCursorPositionChanged.js", m_notifyTextCursorPositionChangedJs);
 #endif
 
