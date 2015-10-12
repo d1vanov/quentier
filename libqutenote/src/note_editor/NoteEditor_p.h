@@ -35,10 +35,8 @@ QT_FORWARD_DECLARE_CLASS(TextCursorPositionJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(ContextMenuEventJavaScriptHandler)
 
 #ifdef USE_QT_WEB_ENGINE
-QT_FORWARD_DECLARE_CLASS(MimeTypeIconJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
-QT_FORWARD_DECLARE_CLASS(IconThemeJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceOpenAndSaveButtonsOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageJavaScriptHandler)
@@ -187,13 +185,10 @@ private:
     bool htmlToNoteContent(QString & errorDescription);
 
     void saveNoteResourcesToLocalFiles();
-    void updateResourceInfoOnJavaScriptSide();
+    void provideSrcForResourceImgTags();
 
 #ifdef USE_QT_WEB_ENGINE
     void provideSrcAndOnClickScriptForImgEnCryptTags();
-    void provideSrcForGenericResourceOpenAndSaveIcons();
-    void setupSaveResourceButtonOnClickHandler();
-    void setupOpenResourceButtonOnClickHandler();
 
     void manualSaveResourceToFile(const IResource & resource);
     void openResource(const QString & resourceAbsoluteFilePath);
@@ -327,7 +322,6 @@ private:
     QString     m_snapSelectionToWordJs;
     QString     m_replaceSelectionWithHtmlJs;
     QString     m_provideSrcForResourceImgTagsJs;
-    QString     m_provideGenericResourceDisplayNameAndSizeJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
@@ -338,24 +332,17 @@ private:
 #else
     QString     m_provideSrcForGenericResourceImagesJs;
     QString     m_onGenericResourceImageReceivedJs;
-    QString     m_provideSrcForGenericResourceIconsJs;
     QString     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs;
     QString     m_qWebChannelJs;
     QString     m_qWebChannelSetupJs;
     QString     m_pageMutationObserverJs;
-    QString     m_onIconFilePathForIconThemeNameReceivedJs;
-    QString     m_provideSrcForGenericResourceOpenAndSaveIconsJs;
-    QString     m_setupSaveResourceButtonOnClickHandlerJs;
-    QString     m_setupOpenResourceButtonOnClickHandlerJs;
     QString     m_notifyTextCursorPositionChangedJs;
 
     QWebSocketServer * m_pWebSocketServer;
     WebSocketClientWrapper * m_pWebSocketClientWrapper;
     QWebChannel * m_pWebChannel;
     PageMutationHandler * m_pPageMutationHandler;
-    MimeTypeIconJavaScriptHandler * m_pMimeTypeIconJavaScriptHandler;
     EnCryptElementOnClickHandler * m_pEnCryptElementClickHandler;
-    IconThemeJavaScriptHandler * m_pIconThemeJavaScriptHandler;
     GenericResourceOpenAndSaveButtonsOnClickHandler * m_pGenericResourceOpenAndSaveButtonsOnClickHandler;
     GenericResourceImageWriter * m_pGenericResourceImageWriter;
 

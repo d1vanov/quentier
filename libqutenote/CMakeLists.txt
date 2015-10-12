@@ -198,10 +198,8 @@ if(NOT USE_QT_WEB_ENGINE)
 else()
   list(APPEND PRIVATE_HEADERS
        src/note_editor/GenericResourceImageWriter.h
-       src/note_editor/javascript_glue/MimeTypeIconJavaScriptHandler.h
        src/note_editor/javascript_glue/PageMutationHandler.h
        src/note_editor/javascript_glue/EnCryptElementOnClickHandler.h
-       src/note_editor/javascript_glue/IconThemeJavaScriptHandler.h
        src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h
        src/note_editor/javascript_glue/GenericResourceImageJavaScriptHandler.h
        src/note_editor/JavaScriptInOrderExecutor.h
@@ -305,10 +303,8 @@ if(NOT USE_QT_WEB_ENGINE)
 else()
   list(APPEND ${PROJECT_NAME}_SOURCES
     src/note_editor/GenericResourceImageWriter.cpp
-    src/note_editor/javascript_glue/MimeTypeIconJavaScriptHandler.cpp
     src/note_editor/javascript_glue/PageMutationHandler.cpp
     src/note_editor/javascript_glue/EnCryptElementOnClickHandler.cpp
-    src/note_editor/javascript_glue/IconThemeJavaScriptHandler.cpp
     src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.cpp
     src/note_editor/javascript_glue/GenericResourceImageJavaScriptHandler.cpp
     src/note_editor/JavaScriptInOrderExecutor.cpp

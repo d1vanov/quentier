@@ -11,10 +11,8 @@
 #include <QWebFrame>
 typedef QWebSettings WebSettings;
 #else
-#include "javascript_glue/MimeTypeIconJavaScriptHandler.h"
 #include "javascript_glue/PageMutationHandler.h"
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
-#include "javascript_glue/IconThemeJavaScriptHandler.h"
 #include "javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h"
 #include "javascript_glue/GenericResourceImageJavaScriptHandler.h"
 #include "NoteDecryptionDialog.h"
@@ -84,7 +82,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_snapSelectionToWordJs(),
     m_replaceSelectionWithHtmlJs(),
     m_provideSrcForResourceImgTagsJs(),
-    m_provideGenericResourceDisplayNameAndSizeJs(),
     m_setupEnToDoTagsJs(),
     m_onResourceInfoReceivedJs(),
     m_determineStatesForCurrentTextCursorPositionJs(),
@@ -94,23 +91,16 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #else
     m_provideSrcForGenericResourceImagesJs(),
     m_onGenericResourceImageReceivedJs(),
-    m_provideSrcForGenericResourceIconsJs(),
     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs(),
     m_qWebChannelJs(),
     m_qWebChannelSetupJs(),
     m_pageMutationObserverJs(),
-    m_onIconFilePathForIconThemeNameReceivedJs(),
-    m_provideSrcForGenericResourceOpenAndSaveIconsJs(),
-    m_setupSaveResourceButtonOnClickHandlerJs(),
-    m_setupOpenResourceButtonOnClickHandlerJs(),
     m_notifyTextCursorPositionChangedJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
     m_pWebChannel(new QWebChannel(this)),
     m_pPageMutationHandler(new PageMutationHandler(this)),
-    m_pMimeTypeIconJavaScriptHandler(Q_NULLPTR),
     m_pEnCryptElementClickHandler(new EnCryptElementOnClickHandler(this)),
-    m_pIconThemeJavaScriptHandler(Q_NULLPTR),
     m_pGenericResourceOpenAndSaveButtonsOnClickHandler(new GenericResourceOpenAndSaveButtonsOnClickHandler(this)),
     m_pGenericResourceImageWriter(Q_NULLPTR),
     m_webSocketServerPort(0),
@@ -253,16 +243,10 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(QString("(function(){window.websocketserverport = ") +
                             QString::number(m_webSocketServerPort) + QString("})();"));
     page->executeJavaScript(m_onResourceInfoReceivedJs);
-    page->executeJavaScript(m_onIconFilePathForIconThemeNameReceivedJs);
     page->executeJavaScript(m_onGenericResourceImageReceivedJs);
     page->executeJavaScript(m_qWebChannelSetupJs);
-    page->executeJavaScript(m_provideGenericResourceDisplayNameAndSizeJs);
     page->executeJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     page->executeJavaScript(m_provideSrcForGenericResourceImagesJs);
-    page->executeJavaScript(m_provideSrcForGenericResourceIconsJs);
-    page->executeJavaScript(m_provideSrcForGenericResourceOpenAndSaveIconsJs);
-    page->executeJavaScript(m_setupSaveResourceButtonOnClickHandlerJs);
-    page->executeJavaScript(m_setupOpenResourceButtonOnClickHandlerJs);
     page->executeJavaScript(m_notifyTextCursorPositionChangedJs);
 #endif
 
@@ -283,9 +267,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 
 #ifdef USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
-    provideSrcForGenericResourceOpenAndSaveIcons();
-    setupSaveResourceButtonOnClickHandler();
-    setupOpenResourceButtonOnClickHandler();
     setupTextCursorPositionTracking();
     setupGenericResourceImages();
 #endif
@@ -375,7 +356,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
     if (m_genericResourceLocalGuidBySaveToStorageRequestIds.isEmpty() && !m_pendingNotePageLoad) {
         QNTRACE("All current note's resources were saved to local file storage and are actual. "
                 "Will set filepaths to these local files to src attributes of img resource tags");
-        updateResourceInfoOnJavaScriptSide();
+        provideSrcForResourceImgTags();
     }
 
 #ifdef USE_QT_WEB_ENGINE
@@ -1182,7 +1163,7 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
         QNTRACE("All current note's resources are written to local files and are actual. "
                 "Will set filepaths to these local files to src attributes of img resource tags");
         if (!m_pendingNotePageLoad) {
-            updateResourceInfoOnJavaScriptSide();
+            provideSrcForResourceImgTags();
         }
         return;
     }
@@ -1192,19 +1173,14 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
             "and add the src attributes to img resources when the files are ready");
 }
 
-void NoteEditorPrivate::updateResourceInfoOnJavaScriptSide()
+void NoteEditorPrivate::provideSrcForResourceImgTags()
 {
-    QNDEBUG("NoteEditorPrivate::updateResourceInfoOnJavaScriptSide");
+    QNDEBUG("NoteEditorPrivate::provideSrcForResourceImgTags");
 
     Q_Q(NoteEditor);
     GET_PAGE()
 
     page->executeJavaScript("provideSrcForResourceImgTags();");
-
-#ifdef USE_QT_WEB_ENGINE
-    page->executeJavaScript("provideGenericResourceDisplayNameAndSize();");
-    page->executeJavaScript("provideSrcForGenericResourceIcons();");
-#endif
 }
 
 #ifdef USE_QT_WEB_ENGINE
@@ -1224,36 +1200,6 @@ void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
 
     QString iconPath = "qrc:/encrypted_area_icons/en-crypt/en-crypt.png";
     QString javascript = "provideSrcAndOnClickScriptForEnCryptImgTags(\"" + iconPath + "\")";
-
-    Q_Q(NoteEditor);
-    GET_PAGE()
-
-    page->executeJavaScript(javascript);
-}
-
-void NoteEditorPrivate::provideSrcForGenericResourceOpenAndSaveIcons()
-{
-    QString javascript = "provideSrcForGenericResourceOpenAndSaveIcons();";
-
-    Q_Q(NoteEditor);
-    GET_PAGE()
-
-    page->executeJavaScript(javascript);
-}
-
-void NoteEditorPrivate::setupSaveResourceButtonOnClickHandler()
-{
-    QString javascript = "setupSaveResourceButtonOnClickHandler();";
-
-    Q_Q(NoteEditor);
-    GET_PAGE()
-
-    page->executeJavaScript(javascript);
-}
-
-void NoteEditorPrivate::setupOpenResourceButtonOnClickHandler()
-{
-    QString javascript = "setupOpenResourceButtonOnClickHandler();";
 
     Q_Q(NoteEditor);
     GET_PAGE()
@@ -1660,7 +1606,11 @@ void NoteEditorPrivate::saveGenericResourceImage(const IResource & resource, con
 void NoteEditorPrivate::provideSrcForGenericResourceImages()
 {
     QNDEBUG("NoteEditorPrivate::provideSrcForGenericResourceImages");
-    // TODO: implement
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    page->executeJavaScript("provideSrcForGenericResourceImages();");
 }
 
 void NoteEditorPrivate::setupWebSocketServer()
@@ -1693,12 +1643,6 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     QObject::connect(m_pPageMutationHandler, &PageMutationHandler::contentsChanged,
                      this, &NoteEditorPrivate::onContentChanged);
 
-    m_pMimeTypeIconJavaScriptHandler = new MimeTypeIconJavaScriptHandler(m_noteEditorPageFolderPath,
-                                                                         m_pIOThread, this);
-
-    m_pIconThemeJavaScriptHandler = new IconThemeJavaScriptHandler(m_noteEditorPageFolderPath,
-                                                                   m_pIOThread, this);
-
     QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementOnClickHandler::decrypt,
                      this, &NoteEditorPrivate::onEnCryptElementClicked);
 
@@ -1717,8 +1661,6 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pWebChannel->registerObject("resourceCache", m_pResourceInfoJavaScriptHandler);
     m_pWebChannel->registerObject("enCryptElementClickHandler", m_pEnCryptElementClickHandler);
     m_pWebChannel->registerObject("pageMutationObserver", m_pPageMutationHandler);
-    m_pWebChannel->registerObject("mimeTypeIconHandler", m_pMimeTypeIconJavaScriptHandler);
-    m_pWebChannel->registerObject("iconThemeHandler", m_pIconThemeJavaScriptHandler);
     m_pWebChannel->registerObject("openAndSaveResourceButtonsHandler", m_pGenericResourceOpenAndSaveButtonsOnClickHandler);
     m_pWebChannel->registerObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler);
     m_pWebChannel->registerObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler);
@@ -2006,7 +1948,6 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
-    SETUP_SCRIPT("javascript/scripts/provideGenericResourceDisplayNameAndSize.js", m_provideGenericResourceDisplayNameAndSizeJs);
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
@@ -2021,11 +1962,6 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceImages.js", m_provideSrcForGenericResourceImagesJs);
     SETUP_SCRIPT("javascript/scripts/onGenericResourceImageReceived.js", m_onGenericResourceImageReceivedJs);
-    SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceIcons.js", m_provideSrcForGenericResourceIconsJs);
-    SETUP_SCRIPT("javascript/scripts/onIconFilePathForIconThemeNameReceived.js", m_onIconFilePathForIconThemeNameReceivedJs);
-    SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceOpenAndSaveIcons.js", m_provideSrcForGenericResourceOpenAndSaveIconsJs);
-    SETUP_SCRIPT("javascript/scripts/setupSaveResourceButtonOnClickHandler.js", m_setupSaveResourceButtonOnClickHandlerJs);
-    SETUP_SCRIPT("javascript/scripts/setupOpenResourceButtonOnClickHandler.js", m_setupOpenResourceButtonOnClickHandlerJs);
     SETUP_SCRIPT("javascript/scripts/notifyTextCursorPositionChanged.js", m_notifyTextCursorPositionChangedJs);
 #endif
 

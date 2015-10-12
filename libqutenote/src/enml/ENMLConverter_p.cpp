@@ -128,13 +128,13 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
             }
 
             auto tagIt = forbiddenXhtmlTags.find(lastElementName);
-            if ((tagIt != forbiddenXhtmlTags.end()) && (lastElementName != "object") && (lastElementName != "param")) {
+            if ((tagIt != forbiddenXhtmlTags.end()) && (lastElementName != "object")) {
                 QNTRACE("Skipping forbidden XHTML tag: " << lastElementName);
                 continue;
             }
 
             tagIt = allowedXhtmlTags.find(lastElementName);
-            if ((tagIt == allowedXhtmlTags.end()) && (lastElementName != "param"))
+            if (tagIt == allowedXhtmlTags.end())
             {
                 tagIt = evernoteSpecificXhtmlTags.find(lastElementName);
                 if (tagIt == evernoteSpecificXhtmlTags.end()) {
@@ -146,7 +146,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
             lastElementAttributes = reader.attributes();
 
-            if ( ((lastElementName == "div") || (lastElementName == "img")) &&
+            if ( ((lastElementName == "img") || (lastElementName == "object") || (lastElementName == "div")) &&
                  lastElementAttributes.hasAttribute("en-tag") )
             {
                 const QString enTag = lastElementAttributes.value("en-tag").toString();
@@ -160,42 +160,13 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
                     continue;
                 }
-#ifdef USE_QT_WEB_ENGINE
-                else if (enTag == "en-media")
+                else if (enTag == "en-todo")
                 {
-                    QXmlStreamAttributes filteredAttributes;
-                    const int numAttributes = lastElementAttributes.size();
-                    filteredAttributes.reserve(std::max(numAttributes - 4, 0));
-                    for(int i = 0; i < numAttributes; ++i)
-                    {
-                        const QStringRef attributeName = lastElementAttributes[i].name();
-                        if ((attributeName == "en-tag") || (attributeName == "class") || (attributeName == "src") || (attributeName == "contenteditable")) {
-                            continue;
-                        }
-
-                        filteredAttributes.push_back(lastElementAttributes[i]);
+                    if (!lastElementAttributes.hasAttribute("src")) {
+                        QNWARNING("Found en-todo tag without src attribute");
+                        continue;
                     }
 
-                    writer.writeStartElement("en-media");
-                    writer.writeAttributes(filteredAttributes);
-                    writer.writeEndElement();
-
-                    Q_UNUSED(reader.readElementText(QXmlStreamReader::SkipChildElements));
-                    continue;
-                }
-#endif
-            }
-
-            if (lastElementName == "img")
-            {
-                if (!lastElementAttributes.hasAttribute("en-tag")) {
-                    QNTRACE("Skipping img element without en-tag attribute");
-                    continue;
-                }
-
-                QStringRef enTag = lastElementAttributes.value("en-tag");
-                if ((enTag == "en-todo") && lastElementAttributes.hasAttribute("src"))
-                {
                     QStringRef srcValue = lastElementAttributes.value("src");
                     if (srcValue.contains("qrc:/checkbox_icons/checkbox_no.png")) {
                         writer.writeStartElement("en-todo");
@@ -209,7 +180,6 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                         continue;
                     }
                 }
-#ifdef USE_QT_WEB_ENGINE
                 else if (enTag == "en-crypt")
                 {
                     const QXmlStreamAttributes attributes = reader.attributes();
@@ -234,67 +204,12 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
                     writer.writeStartElement("en-crypt");
                     writer.writeAttributes(enCryptAttributes);
-                    writer.writeCharacters(attributes.value("encrypted_text").toString());
                     ++writeElementCounter;
                     QNTRACE("Started writing en-crypt tag");
-                    continue;
-                }
-#endif
-            }
-
-            if (lastElementName == "object")
-            {
-                if (!lastElementAttributes.hasAttribute("en-tag")) {
-                    QNTRACE("Skipping <object> tag without en-tag attribute");
-                    continue;
-                }
-
-                QStringRef enTag = lastElementAttributes.value("en-tag");
-                if (enTag == "en-crypt")
-                {
-                    lastElementName = "en-crypt";
-                    enCryptAttributes.clear();
                     insideEnCryptElement = true;
-                    writer.writeStartElement(lastElementName);
-                    ++writeElementCounter;
-
-                    if (lastElementAttributes.hasAttribute("hint")) {
-                        QStringRef hint = lastElementAttributes.value("hint");
-                        enCryptAttributes.append("hint", hint.toString());
-                    }
-
-                    if (lastElementAttributes.hasAttribute("cipher")) {
-                        QStringRef cipher = lastElementAttributes.value("cipher");
-                        enCryptAttributes.append("cipher", cipher.toString());
-                    }
-
-                    if (lastElementAttributes.hasAttribute("length")) {
-                        QStringRef length = lastElementAttributes.value("length");
-                        enCryptAttributes.append("length", length.toString());
-                    }
-
-                    writer.writeAttributes(enCryptAttributes);
-
-                    if (!lastElementAttributes.hasAttribute("encrypted_text")) {
-                        errorDescription = QT_TR_NOOP("Can't find encrypted_text attribute within en_crypt element");
-                        QNWARNING(errorDescription);
-                        return false;
-                    }
-
-                    encryptedText = lastElementAttributes.value("encrypted_text").toString();
                     continue;
                 }
-            }
-
-            if ((lastElementName == "object") || (lastElementName == "img"))
-            {
-                if (!lastElementAttributes.hasAttribute("en-tag")) {
-                    QNTRACE("Skipping <object> or <img> element without en-tag attribute");
-                    continue;
-                }
-
-                QStringRef enTag = lastElementAttributes.value("en-tag");
-                if (enTag == "en-media")
+                else if (enTag == "en-media")
                 {
                     bool isImage = (lastElementName == "img");
                     lastElementName = "en-media";
@@ -303,7 +218,6 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                     enMediaAttributes.clear();
                     insideEnMediaElement = true;
 
-                    // Simple case - all necessary attributes are already in the tag
                     const int numAttributes = lastElementAttributes.size();
                     for(int i = 0; i < numAttributes; ++i)
                     {
@@ -902,7 +816,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
     }
 
     QStringRef mimeType = attributes.value("type");
-    bool convertToImage = false;
+    bool inlineImage = false;
     if (mimeType.startsWith("image", Qt::CaseInsensitive))
     {
 #ifndef USE_QT_WEB_ENGINE
@@ -911,39 +825,37 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
             QRegExp regex("^image\\/.+");
             bool res = pluginFactory->hasResourcePluginForMimeType(regex);
             if (!res) {
-                convertToImage = true;
+                inlineImage = true;
             }
         }
         else
         {
-            convertToImage = true;
+            inlineImage = true;
         }
 #else
-        convertToImage = true;
+        inlineImage = true;
 #endif
     }
 
-    writer.writeStartElement(convertToImage
-                             ? "img"
 #ifndef USE_QT_WEB_ENGINE
-                             : "object");
+    writer.writeStartElement(inlineImage ? "img" : "object");
 #else
-                             : "div");
+    writer.writeStartElement("img");
 #endif
 
     // NOTE: ENMLConverterPrivate can't set src attribute for img tag as it doesn't know whether the resource is stored
     // in any local file yet. The user of noteContentToHtml should take care of those img tags and their src attributes
 
-    if (convertToImage)
+    writer.writeAttribute("en-tag", "en-media");
+
+    if (inlineImage)
     {
-        attributes.append("en-tag", "en-media");
         writer.writeAttributes(attributes);
+        writer.writeAttribute("class", "en-media-image");
     }
     else
     {
-        writer.writeAttribute("en-tag", "en-media");
         writer.writeAttribute("class", "en-media-generic hvr-border-color");
-        writer.writeAttribute("contenteditable", "false");
 
 #ifndef USE_QT_WEB_ENGINE
         writer.writeAttribute("type", RESOURCE_PLUGIN_HTML_OBJECT_TYPE);
@@ -971,53 +883,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         writer.writeCharacters("some fake characters to prevent self-enclosing html tag confusing webkit");
 #else
         writer.writeAttributes(attributes);
-        writer.writeAttribute("class", "en-media-generic hvr-border-color");
-
-        // Resource icon
-        writer.writeStartElement("img");
-        writer.writeAttribute("class", "resource-icon");
-
         writer.writeAttribute("src", "qrc:/generic_resource_icons/png/attachment.png");
-
-        QStringRef mimeType = attributes.value("type");
-        QNTRACE("Resource mime type: " << mimeType);
-        writer.writeAttribute("type", (mimeType.isNull() ? QString() : mimeType.toString()));
-
-        writer.writeEndElement();
-
-        // Resource name div - the actual name is not specified here, let JavaScript communicating with NoteEditor's C++ code handle it
-        writer.writeStartElement("div");
-        writer.writeAttribute("class", "resource-name");
-        writer.writeAttribute("contenteditable", "false");
-        writer.writeCharacters("Sample resource name");
-        writer.writeEndElement();
-
-        // Resource size div - the actual size is not specified here as well as the name
-        writer.writeStartElement("div");
-        writer.writeAttribute("class", "resource-size");
-        writer.writeAttribute("contenteditable", "false");
-        writer.writeCharacters("Sample resource size");
-        writer.writeEndElement();
-
-        // Open resource button
-        writer.writeStartElement("img");
-        writer.writeAttribute("class", "open-resource-button");
-        writer.writeAttribute("contenteditable", "false");
-
-        // TODO: remove later
-        writer.writeAttribute("src", "qrc:/generic_resource_icons/png/open_with.png");
-
-        writer.writeEndElement();
-
-        // Save resource to file button
-        writer.writeStartElement("img");
-        writer.writeAttribute("class", "save-resource-button");
-        writer.writeAttribute("contenteditable", "false");
-
-        // TODO: remove later
-        writer.writeAttribute("src", "qrc:/generic_resource_icons/png/save.png");
-
-        writer.writeEndElement();
 #endif
     }
 
