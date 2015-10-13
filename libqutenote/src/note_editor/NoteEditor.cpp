@@ -61,107 +61,92 @@ NoteEditorPluginFactory & NoteEditor::pluginFactory()
 
 void NoteEditor::undo()
 {
-    page()->triggerAction(WebPage::Undo);
+    Q_D(NoteEditor);
+    d->undo();
 }
 
 void NoteEditor::redo()
 {
-    page()->triggerAction(WebPage::Redo);
+    Q_D(NoteEditor);
+    d->redo();
 }
 
 void NoteEditor::cut()
 {
-    page()->triggerAction(WebPage::Cut);
+    Q_D(NoteEditor);
+    d->cut();
 }
 
 void NoteEditor::copy()
 {
-    page()->triggerAction(WebPage::Copy);
+    Q_D(NoteEditor);
+    d->copy();
 }
 
 void NoteEditor::paste()
 {
-    page()->triggerAction(WebPage::Paste);
+    Q_D(NoteEditor);
+    d->paste();
 }
 
 void NoteEditor::pasteUnformatted()
 {
-    page()->triggerAction(WebPage::PasteAndMatchStyle);
+    Q_D(NoteEditor);
+    d->pasteUnformatted();
 }
 
 void NoteEditor::fontMenu()
 {
-    // TODO: implement
+    Q_D(NoteEditor);
+    d->fontMenu();
 }
 
 void NoteEditor::textBold()
 {
-#ifndef USE_QT_WEB_ENGINE
-    page()->triggerAction(QWebPage::ToggleBold);
-#else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("bold");
-#endif
+    d->textBold();
 }
 
 void NoteEditor::textItalic()
 {
-#ifndef USE_QT_WEB_ENGINE
-    page()->triggerAction(QWebPage::ToggleItalic);
-#else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("italic");
-#endif
+    d->textItalic();
 }
 
 void NoteEditor::textUnderline()
 {
-#ifndef USE_QT_WEB_ENGINE
-    page()->triggerAction(QWebPage::ToggleUnderline);
-#else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("underline");
-#endif
+    d->textUnderline();
 }
 
 void NoteEditor::textStrikethrough()
 {
-#ifndef USE_QT_WEB_ENGINE
-    page()->triggerAction(QWebPage::ToggleStrikethrough);
-#else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("strikethrough");
-#endif
+    d->textStrikethrough();
+}
+
+void NoteEditor::textHighlight()
+{
+    Q_D(NoteEditor);
+    d->textHighlight();
 }
 
 void NoteEditor::alignLeft()
 {
-#ifndef USE_QT_WEB_ENGINE
-    page()->triggerAction(QWebPage::AlignLeft);
-#else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("justifyleft");
-#endif
+    d->alignLeft();
 }
 
 void NoteEditor::alignCenter()
 {
-#ifndef USE_QT_WEB_ENGINE
-    page()->triggerAction(QWebPage::AlignCenter);
-#else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("justifycenter");
-#endif
+    d->alignCenter();
 }
 
 void NoteEditor::alignRight()
 {
-#ifndef USE_QT_WEB_ENGINE
-    page()->triggerAction(QWebPage::AlignRight);
-#else
     Q_D(NoteEditor);
-    d->execJavascriptCommand("justifyright");
-#endif
+    d->alignRight();
 }
 
 void NoteEditor::insertToDoCheckbox()
@@ -172,8 +157,8 @@ void NoteEditor::insertToDoCheckbox()
 
 void NoteEditor::setSpellcheck(const bool enabled)
 {
-    // TODO: implement
-    Q_UNUSED(enabled)
+    Q_D(NoteEditor);
+    d->setSpellcheck(enabled);
 }
 
 void NoteEditor::setFont(const QFont & font)

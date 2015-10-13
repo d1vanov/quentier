@@ -78,6 +78,7 @@ public Q_SLOTS:
     void textItalic();
     void textUnderline();
     void textStrikethrough();
+    void textHighlight();
     void alignLeft();
     void alignCenter();
     void alignRight();

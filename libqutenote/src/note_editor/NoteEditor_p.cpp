@@ -2449,6 +2449,34 @@ void NoteEditorPrivate::onDropEvent(QDropEvent *pEvent)
     }
 }
 
+QString NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
+                                                const QMimeType & mimeType, const QString & filename)
+{
+    QNDEBUG("NoteEditorPrivate::attachResourceToNote: hash = " << dataHash
+            << ", mime type = " << mimeType.name());
+
+    if (!m_pNote) {
+        QNINFO("Can't attach resource to note editor: no actual note was selected");
+        return QString();
+    }
+
+    ResourceWrapper resource;
+    resource.setDataBody(data);
+    resource.setDataHash(dataHash);
+    resource.setDataSize(data.size());
+    resource.setMime(mimeType.name());
+    resource.setDirty(true);
+
+    if (!filename.isEmpty()) {
+        qevercloud::ResourceAttributes attributes;
+        attributes.fileName = filename;
+        resource.setResourceAttributes(attributes);
+    }
+
+    m_pNote->addResource(resource);
+    return resource.localGuid();
+}
+
 template <typename T>
 QString NoteEditorPrivate::composeHtmlTable(const T width, const T singleColumnWidth,
                                             const int rows, const int columns,
@@ -2499,33 +2527,110 @@ QString NoteEditorPrivate::composeHtmlTable(const T width, const T singleColumnW
     return htmlTable;
 }
 
-QString NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
-                                                const QMimeType & mimeType, const QString & filename)
+#define HANDLE_ACTION(name, item) \
+    QNDEBUG("NoteEditorPrivate::" #name); \
+    Q_Q(NoteEditor); \
+    GET_PAGE() \
+    page->triggerAction(WebPage::item); \
+    q->setFocus()
+
+void NoteEditorPrivate::undo()
 {
-    QNDEBUG("NoteEditorPrivate::attachResourceToNote: hash = " << dataHash
-            << ", mime type = " << mimeType.name());
-
-    if (!m_pNote) {
-        QNINFO("Can't attach resource to note editor: no actual note was selected");
-        return QString();
-    }
-
-    ResourceWrapper resource;
-    resource.setDataBody(data);
-    resource.setDataHash(dataHash);
-    resource.setDataSize(data.size());
-    resource.setMime(mimeType.name());
-    resource.setDirty(true);
-
-    if (!filename.isEmpty()) {
-        qevercloud::ResourceAttributes attributes;
-        attributes.fileName = filename;
-        resource.setResourceAttributes(attributes);
-    }
-
-    m_pNote->addResource(resource);
-    return resource.localGuid();
+    HANDLE_ACTION(undo, Undo);
 }
+
+void NoteEditorPrivate::redo()
+{
+    HANDLE_ACTION(redo, Redo);
+}
+
+void NoteEditorPrivate::cut()
+{
+    HANDLE_ACTION(cut, Cut);
+}
+
+void NoteEditorPrivate::copy()
+{
+    HANDLE_ACTION(copy, Copy);
+}
+
+void NoteEditorPrivate::paste()
+{
+    HANDLE_ACTION(paste, Paste);
+}
+
+void NoteEditorPrivate::pasteUnformatted()
+{
+    HANDLE_ACTION(pasteUnformatted, PasteAndMatchStyle);
+}
+
+void NoteEditorPrivate::fontMenu()
+{
+    QNDEBUG("stub: NoteEditorPrivate::fontMenu");
+    // TODO: implement
+
+    Q_Q(NoteEditor);
+    q->setFocus();
+}
+
+#undef HANDLE_ACTION
+
+#ifndef USE_QT_WEB_ENGINE
+#define HANDLE_ACTION(method, item, command) \
+    QNDEBUG("NoteEditorPrivate::" #method); \
+    Q_Q(NoteEditor); \
+    GET_PAGE() \
+    page->triggerAction(QWebPage::item); \
+    q->setFocus()
+#else
+#define HANDLE_ACTION(method, item, command) \
+    execJavascriptCommand(#command); \
+    Q_Q(NoteEditor); \
+    q->setFocus()
+#endif
+
+void NoteEditorPrivate::textBold()
+{
+    HANDLE_ACTION(textBold, ToggleBold, bold);
+}
+
+void NoteEditorPrivate::textItalic()
+{
+    HANDLE_ACTION(textItalic, ToggleItalic, italic);
+}
+
+void NoteEditorPrivate::textUnderline()
+{
+    HANDLE_ACTION(textUnderline, ToggleUnderline, underline);
+}
+
+void NoteEditorPrivate::textStrikethrough()
+{
+    HANDLE_ACTION(textStrikethrough, ToggleStrikethrough, strikethrough);
+}
+
+void NoteEditorPrivate::textHighlight()
+{
+    QNDEBUG("stub: NoteEditorPrivate::textHighlight");
+    // TODO: implement
+}
+
+void NoteEditorPrivate::alignLeft()
+{
+    HANDLE_ACTION(alignLeft, AlignLeft, justifyleft);
+}
+
+void NoteEditorPrivate::alignCenter()
+{
+    HANDLE_ACTION(alignCenter, AlignCenter, justifycenter);
+}
+
+void NoteEditorPrivate::alignRight()
+{
+    HANDLE_ACTION(alignRight, AlignRight, justifyright);
+}
+
+#undef HANDLE_ACTION
 
 void NoteEditorPrivate::insertToDoCheckbox()
 {
@@ -2536,6 +2641,17 @@ void NoteEditorPrivate::insertToDoCheckbox()
     Q_Q(NoteEditor);
     GET_PAGE()
     page->executeJavaScript(javascript);
+    q->setFocus();
+}
+
+void NoteEditorPrivate::setSpellcheck(bool enabled)
+{
+    QNDEBUG("stub: NoteEditorPrivate::setSpellcheck: enabled = "
+            << (enabled ? "true" : "false"));
+    // TODO: implement
+
+    Q_Q(NoteEditor);
+    q->setFocus();
 }
 
 void NoteEditorPrivate::setFont(const QFont & font)
@@ -2543,6 +2659,9 @@ void NoteEditorPrivate::setFont(const QFont & font)
     m_font = font;
     QString fontName = font.family();
     execJavascriptCommand("fontName", fontName);
+
+    Q_Q(NoteEditor);
+    q->setFocus();
 }
 
 void NoteEditorPrivate::setFontHeight(const int height)
@@ -2556,6 +2675,9 @@ void NoteEditorPrivate::setFontHeight(const int height)
         QNINFO(error);
         emit notifyError(error);
     }
+
+    Q_Q(NoteEditor);
+    q->setFocus();
 }
 
 void NoteEditorPrivate::setFontColor(const QColor & color)
@@ -2569,6 +2691,9 @@ void NoteEditorPrivate::setFontColor(const QColor & color)
         QNINFO(error);
         emit notifyError(error);
     }
+
+    Q_Q(NoteEditor);
+    q->setFocus();
 }
 
 void NoteEditorPrivate::setBackgroundColor(const QColor & color)
@@ -2582,26 +2707,37 @@ void NoteEditorPrivate::setBackgroundColor(const QColor & color)
         QNINFO(error);
         emit notifyError(error);
     }
+
+    Q_Q(NoteEditor);
+    q->setFocus();
 }
 
 void NoteEditorPrivate::insertHorizontalLine()
 {
     execJavascriptCommand("insertHorizontalRule");
+    Q_Q(NoteEditor);
+    q->setFocus();
 }
 
 void NoteEditorPrivate::changeIndentation(const bool increase)
 {
     execJavascriptCommand((increase ? "indent" : "outdent"));
+    Q_Q(NoteEditor);
+    q->setFocus();
 }
 
 void NoteEditorPrivate::insertBulletedList()
 {
     execJavascriptCommand("insertUnorderedList");
+    Q_Q(NoteEditor);
+    q->setFocus();
 }
 
 void NoteEditorPrivate::insertNumberedList()
 {
     execJavascriptCommand("insertOrderedList");
+    Q_Q(NoteEditor);
+    q->setFocus();
 }
 
 #define CHECK_NUM_COLUMNS() \
@@ -2656,6 +2792,7 @@ void NoteEditorPrivate::insertFixedWidthTable(const int rows, const int columns,
                                          /* relative = */ false);
     execJavascriptCommand("insertHTML", htmlTable);
     updateColResizableTableBindings();
+    q->setFocus();
 }
 
 void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth)
@@ -2683,6 +2820,8 @@ void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int colum
                                          /* relative = */ true);
     execJavascriptCommand("insertHTML", htmlTable);
     updateColResizableTableBindings();
+    Q_Q(NoteEditor);
+    q->setFocus();
 }
 
 void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,

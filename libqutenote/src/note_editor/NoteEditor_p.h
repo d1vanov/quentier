@@ -90,8 +90,24 @@ public:
     QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows,
                              const int columns, const bool relative);
 
+public:
+    void undo();
+    void redo();
+    void cut();
+    void copy();
+    void paste();
+    void pasteUnformatted();
+    void fontMenu();
+    void textBold();
+    void textItalic();
+    void textUnderline();
+    void textStrikethrough();
+    void textHighlight();
+    void alignLeft();
+    void alignCenter();
+    void alignRight();
     void insertToDoCheckbox();
-
+    void setSpellcheck(bool enabled);
     void setFont(const QFont & font);
     void setFontHeight(const int height);
     void setFontColor(const QColor & color);
