@@ -86,7 +86,6 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
     bool insideEnCryptElement = false;
     QXmlStreamAttributes enCryptAttributes;
-    QString encryptedText;
 
     bool insideEnMediaElement = false;
     QXmlStreamAttributes enMediaAttributes;
@@ -204,6 +203,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
                     writer.writeStartElement("en-crypt");
                     writer.writeAttributes(enCryptAttributes);
+                    writer.writeCharacters(attributes.value("encrypted_text").toString());
                     ++writeElementCounter;
                     QNTRACE("Started writing en-crypt tag");
                     insideEnCryptElement = true;
@@ -273,9 +273,6 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
             }
 
             if (insideEnCryptElement) {
-                writer.writeCharacters(encryptedText);
-                encryptedText.resize(0);
-                insideEnCryptElement = false;
                 continue;
             }
 
@@ -295,6 +292,10 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
         {
             if (insideEnMediaElement) {
                 insideEnMediaElement = false;
+            }
+
+            if (insideEnCryptElement) {
+                insideEnCryptElement = false;
             }
 
             writer.writeEndElement();
@@ -675,6 +676,8 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
                                                QXmlStreamWriter & writer,
                                                DecryptedTextManager & decryptedTextManager) const
 {
+    QNDEBUG("ENMLConverterPrivate::encryptedTextToHtml: encrypted text = " << encryptedTextCharacters);
+
     QString cipher;
     if (enCryptAttributes.hasAttribute("cipher")) {
         cipher = enCryptAttributes.value("cipher").toString();

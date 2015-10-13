@@ -37,7 +37,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   add_definitions("-DQSLOG_IS_SHARED_LIBRARY")
 endif()
 
-add_definitions("-DQS_LOG_LINE_NUMBERS -DQS_LOG_SEPARATE_THREAD -DQSLOG_IS_SHARED_LIBRARY")
+add_definitions("-DQSLOG_IS_SHARED_LIBRARY")
 
 add_library(${PROJECT_NAME} SHARED ${HEADERS} ${SOURCES})
 

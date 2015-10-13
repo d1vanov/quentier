@@ -3,6 +3,10 @@
 
 #include <qute_note/exception/LoggerInitializationException.h>
 #include <qute_note/utility/DesktopServices.h>
+
+#define QS_LOG_LINE_NUMBERS
+#define QS_LOG_SEPARATE_THREAD
+
 #include <QsLog.h>
 #include <QsLogLevel.h>
 #include <QsLogDest.h>

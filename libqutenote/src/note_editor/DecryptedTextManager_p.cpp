@@ -57,9 +57,12 @@ bool DecryptedTextManagerPrivate::findDecryptedTextByEncryptedText(const QString
     DataHash::const_iterator dataIt = m_dataHash.find(encryptedText);
     if (dataIt == m_dataHash.end())
     {
+        QNTRACE("Can't find the entry in the up to date data hash, trying the stale hash");
+
         // Try the stale data hash
         dataIt = m_staleDataHash.find(encryptedText);
         if (dataIt == m_staleDataHash.end()) {
+            QNTRACE("Can't find the entry in the stale data hash as well");
             return false;
         }
     }
@@ -67,6 +70,7 @@ bool DecryptedTextManagerPrivate::findDecryptedTextByEncryptedText(const QString
     const Data & data = dataIt.value();
     decryptedText = data.m_decryptedText;
     rememberForSession = data.m_rememberForSession;
+    QNTRACE("Found decrypted text");
     return true;
 }
 
