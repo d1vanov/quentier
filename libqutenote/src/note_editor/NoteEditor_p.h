@@ -116,9 +116,17 @@ public:
     void changeIndentation(const bool increase);
     void insertBulletedList();
     void insertNumberedList();
+    void insertTableDialog();
     void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels);
     void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
+    void addAttachmentDialog();
+    void encryptSelectedTextDialog();
     void encryptSelectedText(const QString & passphrase, const QString & hint);
+    void addHyperlinkDialog();
+    void editHyperlinkDialog();
+    void copyHyperlink();
+    void removeHyperlink();
+
     void onNoteLoadCancelled();
 
 // private signals:

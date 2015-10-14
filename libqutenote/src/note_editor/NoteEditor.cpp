@@ -191,6 +191,18 @@ void NoteEditor::insertHorizontalLine()
     d->insertHorizontalLine();
 }
 
+void NoteEditor::increaseIndentation()
+{
+    Q_D(NoteEditor);
+    d->changeIndentation(/* increase = */ true);
+}
+
+void NoteEditor::decreaseIndentation()
+{
+    Q_D(NoteEditor);
+    d->changeIndentation(/* increase = */ false);
+}
+
 void NoteEditor::changeIndentation(const bool increase)
 {
     Q_D(NoteEditor);
@@ -209,6 +221,12 @@ void NoteEditor::insertNumberedList()
     d->insertNumberedList();
 }
 
+void NoteEditor::insertTableDialog()
+{
+    Q_D(NoteEditor);
+    d->insertTableDialog();
+}
+
 void NoteEditor::insertFixedWidthTable(const int rows, const int columns, const int widthInPixels)
 {
     Q_D(NoteEditor);
@@ -221,10 +239,46 @@ void NoteEditor::insertRelativeWidthTable(const int rows, const int columns, con
     d->insertRelativeWidthTable(rows, columns, relativeWidth);
 }
 
+void NoteEditor::addAttachmentDialog()
+{
+    Q_D(NoteEditor);
+    d->addAttachmentDialog();
+}
+
+void NoteEditor::encryptSelectedTextDialog()
+{
+    Q_D(NoteEditor);
+    d->encryptSelectedTextDialog();
+}
+
 void NoteEditor::encryptSelectedText(const QString & passphrase, const QString & hint)
 {
     Q_D(NoteEditor);
     d->encryptSelectedText(passphrase, hint);
+}
+
+void NoteEditor::addHyperlinkDialog()
+{
+    Q_D(NoteEditor);
+    d->addHyperlinkDialog();
+}
+
+void NoteEditor::editHyperlinkDialog()
+{
+    Q_D(NoteEditor);
+    d->editHyperlinkDialog();
+}
+
+void NoteEditor::copyHyperlink()
+{
+    Q_D(NoteEditor);
+    d->copyHyperlink();
+}
+
+void NoteEditor::removeHyperlink()
+{
+    Q_D(NoteEditor);
+    d->removeHyperlink();
 }
 
 void NoteEditor::onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession)

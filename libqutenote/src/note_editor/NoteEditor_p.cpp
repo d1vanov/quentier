@@ -1717,7 +1717,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu()
 
 #define ADD_ACTION_WITH_SHORTCUT(key, name, menu, slot) \
     { \
-        QAction * action = new QAction(QObject::tr(#key), menu); \
+        QAction * action = new QAction(QObject::tr(#name), menu); \
         setupActionShortcut(#key, *action); \
         menu->addAction(action); \
         QObject::connect(action, QNSIGNAL(QAction,triggered), q, QNSLOT(NoteEditor,slot)); \
@@ -1736,12 +1736,45 @@ void NoteEditorPrivate::setupGenericTextContextMenu()
     Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
 
     ADD_ACTION_WITH_SHORTCUT(Font, Font..., m_pGenericTextContextMenu, fontMenu);
+
+    QMenu * pParagraphSubMenu = m_pGenericTextContextMenu->addMenu(QObject::tr("Paragraph"));
+    ADD_ACTION_WITH_SHORTCUT(Justify left, Justify left, pParagraphSubMenu, alignLeft);
+    ADD_ACTION_WITH_SHORTCUT(Justify center, Justify center, pParagraphSubMenu, alignCenter);
+    ADD_ACTION_WITH_SHORTCUT(Justify right, Justify right, pParagraphSubMenu, alignRight);
+    Q_UNUSED(pParagraphSubMenu->addSeparator());
+    ADD_ACTION_WITH_SHORTCUT(Indent, Increase indentation, pParagraphSubMenu, increaseIndentation);
+    ADD_ACTION_WITH_SHORTCUT(Unindent, Decrease indentation, pParagraphSubMenu, decreaseIndentation);
+    Q_UNUSED(pParagraphSubMenu->addSeparator());
+    ADD_ACTION_WITH_SHORTCUT(Numbered list, Numbered list, pParagraphSubMenu, insertNumberedList);
+    ADD_ACTION_WITH_SHORTCUT(Bulleted list, Bulleted list, pParagraphSubMenu, insertBulletedList);
+
     QMenu * pStyleSubMenu = m_pGenericTextContextMenu->addMenu(QObject::tr("Style"));
     ADD_ACTION_WITH_SHORTCUT(Bold, Bold, pStyleSubMenu, textBold);
     ADD_ACTION_WITH_SHORTCUT(Italic, Italic, pStyleSubMenu, textItalic);
     ADD_ACTION_WITH_SHORTCUT(Underline, Underline, pStyleSubMenu, textUnderline);
     ADD_ACTION_WITH_SHORTCUT(Strikethrough, Strikethrough, pStyleSubMenu, textStrikethrough);
-    // TODO: continue filling the menu items
+    ADD_ACTION_WITH_SHORTCUT(Highlight, Highlight, pStyleSubMenu, textHighlight);
+
+    Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
+
+    ADD_ACTION_WITH_SHORTCUT(, Insert table..., m_pGenericTextContextMenu, insertTableDialog);
+    ADD_ACTION_WITH_SHORTCUT(Horizontal line, Insert horizontal line, m_pGenericTextContextMenu, insertHorizontalLine);
+    ADD_ACTION_WITH_SHORTCUT(, Add attachment..., m_pGenericTextContextMenu, addAttachmentDialog);
+
+    Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
+
+    ADD_ACTION_WITH_SHORTCUT(ToDo, Insert ToDo tag, m_pGenericTextContextMenu, insertToDoCheckbox);
+
+    QMenu * pHyperlinkMenu = m_pGenericTextContextMenu->addMenu(QObject::tr("Hyperlink"));
+    ADD_ACTION_WITH_SHORTCUT(Add hyperlink, Add..., pHyperlinkMenu, addHyperlinkDialog);
+    ADD_ACTION_WITH_SHORTCUT(Edit hyperlink, Edit..., pHyperlinkMenu, editHyperlinkDialog);
+    ADD_ACTION_WITH_SHORTCUT(, Copy, pHyperlinkMenu, copyHyperlink);
+    ADD_ACTION_WITH_SHORTCUT(Remove hyperlink, Remove, pHyperlinkMenu, removeHyperlink);
+
+    if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
+        Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
+        ADD_ACTION_WITH_SHORTCUT(Encrypt, Encrypt selected fragment..., m_pGenericTextContextMenu, encryptSelectedTextDialog);
+    }
 
     m_pGenericTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
@@ -1819,6 +1852,10 @@ void NoteEditorPrivate::setupActionShortcut(const QString & key, QAction & actio
 {
     QNDEBUG("NoteEditorPrivate::setupActionShortcut: key = " << key);
 
+    if (key.isEmpty()) {
+        return;
+    }
+
     ApplicationSettings appSettings;
     QString shortcut = appSettings.value(key).toString();
     if (!shortcut.isEmpty()) {
@@ -1853,6 +1890,9 @@ void NoteEditorPrivate::setupActionShortcut(const QString & key, QAction & actio
     else if (key == "Strikethrough") {
         action.setShortcut(Qt::CTRL + Qt::Key_T);
     }
+    else if (key == "Highlight") {
+        action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_H);
+    }
     else if (key == "Justify left") {
         action.setShortcut(Qt::CTRL + Qt::Key_L);
     }
@@ -1870,6 +1910,12 @@ void NoteEditorPrivate::setupActionShortcut(const QString & key, QAction & actio
     }
     else if (key == "Unindent") {
         action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_M);
+    }
+    else if (key == "Increase font size") {
+        action.setShortcut(Qt::CTRL + Qt::Key_Plus);
+    }
+    else if (key == "Decrease font size") {
+        action.setShortcut(Qt::CTRL + Qt::Key_Minus);
     }
     else if (key == "Numbered list") {
         action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_N);
@@ -2634,6 +2680,8 @@ void NoteEditorPrivate::alignRight()
 
 void NoteEditorPrivate::insertToDoCheckbox()
 {
+    QNDEBUG("NoteEditorPrivate::insertToDoCheckbox");
+
     QString html = ENMLConverter::getToDoCheckboxHtml(/* checked = */ false);
     QString javascript = QString("document.execCommand('insertHtml', false, '%1'); ").arg(html);
     javascript += m_setupEnToDoTagsJs;
@@ -2656,6 +2704,9 @@ void NoteEditorPrivate::setSpellcheck(bool enabled)
 
 void NoteEditorPrivate::setFont(const QFont & font)
 {
+    QNDEBUG("NoteEditorPrivate::setFont: " << font.family()
+            << ", point size = " << font.pointSize());
+
     m_font = font;
     QString fontName = font.family();
     execJavascriptCommand("fontName", fontName);
@@ -2666,6 +2717,8 @@ void NoteEditorPrivate::setFont(const QFont & font)
 
 void NoteEditorPrivate::setFontHeight(const int height)
 {
+    QNDEBUG("NoteEditorPrivate::setFontHeight: " << height);
+
     if (height > 0) {
         m_font.setPointSize(height);
         execJavascriptCommand("fontSize", QString::number(height));
@@ -2682,6 +2735,9 @@ void NoteEditorPrivate::setFontHeight(const int height)
 
 void NoteEditorPrivate::setFontColor(const QColor & color)
 {
+    QNDEBUG("NoteEditorPrivate::setFontColor: " << color.name()
+            << ", rgb: " << QString::number(color.rgb(), 16));
+
     if (color.isValid()) {
         m_fontColor = color;
         execJavascriptCommand("foreColor", color.name());
@@ -2698,6 +2754,9 @@ void NoteEditorPrivate::setFontColor(const QColor & color)
 
 void NoteEditorPrivate::setBackgroundColor(const QColor & color)
 {
+    QNDEBUG("NoteEditorPrivate::setBackgroundColor: " << color.name()
+            << ", rgb: " << QString::number(color.rgb(), 16));
+
     if (color.isValid()) {
         m_backgroundColor = color;
         execJavascriptCommand("hiliteColor", color.name());
@@ -2714,6 +2773,8 @@ void NoteEditorPrivate::setBackgroundColor(const QColor & color)
 
 void NoteEditorPrivate::insertHorizontalLine()
 {
+    QNDEBUG("NoteEditorPrivate::insertHorizontalLine");
+
     execJavascriptCommand("insertHorizontalRule");
     Q_Q(NoteEditor);
     q->setFocus();
@@ -2721,6 +2782,8 @@ void NoteEditorPrivate::insertHorizontalLine()
 
 void NoteEditorPrivate::changeIndentation(const bool increase)
 {
+    QNDEBUG("NoteEditorPrivate::changeIndentation: increase = " << (increase ? "true" : "false"));
+
     execJavascriptCommand((increase ? "indent" : "outdent"));
     Q_Q(NoteEditor);
     q->setFocus();
@@ -2728,6 +2791,8 @@ void NoteEditorPrivate::changeIndentation(const bool increase)
 
 void NoteEditorPrivate::insertBulletedList()
 {
+    QNDEBUG("NoteEditorPrivate::insertBulletedList");
+
     execJavascriptCommand("insertUnorderedList");
     Q_Q(NoteEditor);
     q->setFocus();
@@ -2735,7 +2800,19 @@ void NoteEditorPrivate::insertBulletedList()
 
 void NoteEditorPrivate::insertNumberedList()
 {
+    QNDEBUG("NoteEditorPrivate::insertNumberedList");
+
     execJavascriptCommand("insertOrderedList");
+    Q_Q(NoteEditor);
+    q->setFocus();
+}
+
+void NoteEditorPrivate::insertTableDialog()
+{
+    QNDEBUG("NoteEditorPrivate::insertTableDialog");
+
+    // TODO: implement
+
     Q_Q(NoteEditor);
     q->setFocus();
 }
@@ -2758,6 +2835,10 @@ void NoteEditorPrivate::insertNumberedList()
 
 void NoteEditorPrivate::insertFixedWidthTable(const int rows, const int columns, const int widthInPixels)
 {
+    QNDEBUG("NoteEditorPrivate::insertFixedWidthTable: rows = " << rows
+            << ", columns = " << columns << ", width in pixels = "
+            << widthInPixels);
+
     CHECK_NUM_COLUMNS();
     CHECK_NUM_ROWS();
 
@@ -2797,6 +2878,9 @@ void NoteEditorPrivate::insertFixedWidthTable(const int rows, const int columns,
 
 void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth)
 {
+    QNDEBUG("NoteEditorPrivate::insertRelativeWidthTable: rows = " << rows
+            << ", columns = " << columns << ", relative width = " << relativeWidth);
+
     CHECK_NUM_COLUMNS();
     CHECK_NUM_ROWS();
 
@@ -2820,6 +2904,26 @@ void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int colum
                                          /* relative = */ true);
     execJavascriptCommand("insertHTML", htmlTable);
     updateColResizableTableBindings();
+    Q_Q(NoteEditor);
+    q->setFocus();
+}
+
+void NoteEditorPrivate::addAttachmentDialog()
+{
+    QNDEBUG("NoteEditorPrivate::addAttachmentDialog");
+
+    // TODO: implement
+
+    Q_Q(NoteEditor);
+    q->setFocus();
+}
+
+void NoteEditorPrivate::encryptSelectedTextDialog()
+{
+    QNDEBUG("NoteEditorPrivate::encryptSelectedTextDialog");
+
+    // TODO: implement
+
     Q_Q(NoteEditor);
     q->setFocus();
 }
@@ -2852,6 +2956,46 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
 #else
     q->page()->runJavaScript("getSelectionHtml", HtmlRetrieveFunctor<QVariant>(this, &NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived, extraData));
 #endif
+}
+
+void NoteEditorPrivate::addHyperlinkDialog()
+{
+    QNDEBUG("NoteEditorPrivate::addHyperlinkDialog");
+
+    // TODO: implement
+
+    Q_Q(NoteEditor);
+    q->setFocus();
+}
+
+void NoteEditorPrivate::editHyperlinkDialog()
+{
+    QNDEBUG("NoteEditorPrivate::editHyperlinkDialog");
+
+    // TODO: implement
+
+    Q_Q(NoteEditor);
+    q->setFocus();
+}
+
+void NoteEditorPrivate::copyHyperlink()
+{
+    QNDEBUG("NoteEditorPrivate::copyHyperlink");
+
+    // TODO: implement
+
+    Q_Q(NoteEditor);
+    q->setFocus();
+}
+
+void NoteEditorPrivate::removeHyperlink()
+{
+    QNDEBUG("NoteEditorPrivate::removeHyperlink");
+
+    // TODO: implement
+
+    Q_Q(NoteEditor);
+    q->setFocus();
 }
 
 void NoteEditorPrivate::onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession)
