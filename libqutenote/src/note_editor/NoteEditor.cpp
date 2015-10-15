@@ -95,6 +95,12 @@ void NoteEditor::pasteUnformatted()
     d->pasteUnformatted();
 }
 
+void NoteEditor::selectAll()
+{
+    Q_D(NoteEditor);
+    d->selectAll();
+}
+
 void NoteEditor::fontMenu()
 {
     Q_D(NoteEditor);

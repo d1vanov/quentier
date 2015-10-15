@@ -1232,7 +1232,7 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1516</width>
-     <height>25</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2502,6 +2502,9 @@ stop: 1 #0EB7FF);
    <property name="text">
     <string>Select all</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
   </action>
   <action name="ActionDelete">
    <property name="icon">
@@ -2589,6 +2592,9 @@ stop: 1 #0EB7FF);
    </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
   <action name="ActionShowSidePanel">

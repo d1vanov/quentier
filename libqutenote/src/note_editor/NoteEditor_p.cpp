@@ -1856,6 +1856,8 @@ void NoteEditorPrivate::setupActionShortcut(const QString & key, QAction & actio
         return;
     }
 
+    action.setShortcutContext(Qt::WidgetShortcut);
+
     ApplicationSettings appSettings;
     QString shortcut = appSettings.value(key).toString();
     if (!shortcut.isEmpty()) {
@@ -2608,6 +2610,11 @@ void NoteEditorPrivate::paste()
 void NoteEditorPrivate::pasteUnformatted()
 {
     HANDLE_ACTION(pasteUnformatted, PasteAndMatchStyle);
+}
+
+void NoteEditorPrivate::selectAll()
+{
+    HANDLE_ACTION(selectAll, SelectAll);
 }
 
 void NoteEditorPrivate::fontMenu()

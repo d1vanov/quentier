@@ -97,6 +97,7 @@ public:
     void copy();
     void paste();
     void pasteUnformatted();
+    void selectAll();
     void fontMenu();
     void textBold();
     void textItalic();
