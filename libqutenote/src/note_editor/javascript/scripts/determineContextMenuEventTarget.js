@@ -1,5 +1,5 @@
 function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
-    console.log("determineContextMenuEventTarget: contextMenuSequenceNumber = " + 
+    console.log("determineContextMenuEventTarget: contextMenuSequenceNumber = " +
                 contextMenuSequenceNumber + ", x = " + x + ", y = " + y);
 
     if (!window.hasOwnProperty('contextMenuEventHandler')) {
@@ -54,7 +54,7 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
                 cipher = element.getAttribute("cipher");
                 length = element.getAttribute("length");
                 encryptedText = element.getAttribute("encrypted_text");
-                console.log("Found en-crypt tag: encryptedText = " + encryptedText + 
+                console.log("Found en-crypt tag: encryptedText = " + encryptedText +
                             ", cipher = " + cipher + ", length = " + length);
                 break;
             }
@@ -74,6 +74,11 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
         contextMenuEventHandler.setContextMenuContent("EncryptedText", contextMenuSequenceNumber);
     }
     else {
+        var selectedHtml = getSelectionHtml();
+        if (!selectedHtml) {
+            snapSelectionToWord();
+        }
+
         contextMenuEventHandler.setContextMenuContent("GenericText", contextMenuSequenceNumber);
     }
 }
