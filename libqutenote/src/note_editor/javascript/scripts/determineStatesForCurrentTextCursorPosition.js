@@ -39,9 +39,7 @@ function determineStatesForCurrentTextCursorPosition() {
     var foundEnCryptTag = false;
 
     var textAlign;
-
-    var lastElementNodeType;
-    var styleSourceNode;
+    var firstElement = true;
     var style;
 
     while(element) {
@@ -54,11 +52,13 @@ function determineStatesForCurrentTextCursorPosition() {
             }
         }
 
-        lastElementNodeType = element.nodeType;
-        styleSourceNode = (lastElementNodeType == 3 ? element.parentNode : element);
-        style = window.getComputedStyle(styleSourceNode);
+        if (firstElement) {
+            var styleSource = (element.nodeType == 3 ? element.parentNode : element);
+            style = window.getComputedStyle(styleSource);
+            console.log("Got style for element " + $(styleSource).contents() + ": " + style);
+        }
 
-        if (lastElementNodeType == 1) {
+        if (element.nodeType == 1) {
             console.log("Found element with nodeType == 1");
             var enTag = element.getAttribute("en-tag");
             console.log("enTag = " + enTag + ", node name = " + element.nodeName);
@@ -82,27 +82,27 @@ function determineStatesForCurrentTextCursorPosition() {
             }
         }
 
-        if (lastElementNodeType == "B") {
+        if (element.nodeType == "B") {
             foundBold = true;
         }
-        else if (lastElementNodeType == "I") {
+        else if (element.nodeType == "I") {
             foundItalic = true;
         }
-        else if (lastElementNodeType == "U") {
+        else if (element.nodeType == "U") {
             foundUnderline = true;
         }
-        else if ((lastElementNodeType == "S") ||
-                 (lastElementNodeType == "DEL") ||
-                 (lastElementNodeType == "STRIKE")) {
+        else if ((element.nodeType == "S") ||
+                 (element.nodeType == "DEL") ||
+                 (element.nodeType == "STRIKE")) {
             foundStrikethrough = true;
         }
-        else if ((lastElementNodeType == "OL") && !foundUnorderedList) {
+        else if ((element.nodeType == "OL") && !foundUnorderedList) {
             foundOrderedList = true;
         }
-        else if ((lastElementNodeType == "UL") && !foundOrderedList) {
+        else if ((element.nodeType == "UL") && !foundOrderedList) {
             foundUnorderedList = true;
         }
-        else if (lastElementNodeType == "TBODY") {
+        else if (element.nodeType == "TBODY") {
             foundTable = true;
         }
 
@@ -126,6 +126,7 @@ function determineStatesForCurrentTextCursorPosition() {
         }
 
         element = element.parentNode;
+        firstElement = false;
         console.log("Checking the next parent");
     }
 
@@ -151,7 +152,11 @@ function determineStatesForCurrentTextCursorPosition() {
     textCursorPositionHandler.setTextCursorPositionInsideTableState(foundTable);
 
     if (style) {
+        console.log("Notifying of font params change, style: " + style);
         textCursorPositionHandler.setTextCursorPositionFontName(style.fontFamily);
         textCursorPositionHandler.setTextCursorPositionFontSize(style.fontSize);
+    }
+    else {
+        console.log("Computed style is null");
     }
 }
