@@ -76,4 +76,14 @@ void TextCursorPositionJavaScriptHandler::setTextCursorPositionInsideTableState(
     emit textCursorPositionInsideTableState(insideTable);
 }
 
+void TextCursorPositionJavaScriptHandler::setTextCursorPositionFontName(QString fontSize)
+{
+    emit textCursorPositionFontName(fontSize);
+}
+
+void TextCursorPositionJavaScriptHandler::setTextCursorPositionFontSize(int fontSize)
+{
+    emit textCursorPositionFontSize(fontSize);
+}
+
 } // namespace qute_note

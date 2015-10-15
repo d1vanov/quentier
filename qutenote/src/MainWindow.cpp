@@ -103,6 +103,10 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->fontItalicPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextItalicToggled));
     QObject::connect(m_pUI->fontUnderlinePushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextUnderlineToggled));
     QObject::connect(m_pUI->fontStrikethroughPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextStrikethroughToggled));
+    // Font combo box
+    QObject::connect(m_pUI->fontComboBox, QNSIGNAL(QFontComboBox,currentFontChanged,QFont), m_pNoteEditor, QNSLOT(NoteEditor,setFont,QFont));
+    // Font size combo box
+    QObject::connect(m_pUI->fontSizeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onFontSizeComboBoxIndexChanged(int)));
     // Format actions
     QObject::connect(m_pUI->ActionAlignLeft, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignLeftAction));
     QObject::connect(m_pUI->ActionAlignCenter, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignCenterAction));
@@ -140,6 +144,8 @@ void MainWindow::connectEditorSignalsToSlots()
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textInsideOrderedListState,bool), this, QNSLOT(MainWindow,onNoteEditorInsideOrderedListStateChanged,bool));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textInsideUnorderedListState,bool), this, QNSLOT(MainWindow,onNoteEditorInsideUnorderedListStateChanged,bool));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textInsideTableState,bool), this, QNSLOT(MainWindow,onNoteEditorInsideTableStateChanged,bool));
+    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textFontFamilyChanged,QString), this, QNSLOT(MainWindow,onNoteEditorFontFamilyChanged,QString));
+    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textFontSizeChanged,int), this, QNSLOT(MainWindow,onNoteEditorFontSizeChanged,int));
 }
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)
@@ -512,6 +518,55 @@ void MainWindow::onNoteEditorInsideTableStateChanged(bool state)
 {
     QNDEBUG("MainWindow::onNoteEditorInsideTableStateChanged: " << (state ? "true" : "false"));
     m_pUI->insertTableToolButton->setEnabled(!state);
+}
+
+void MainWindow::onNoteEditorFontFamilyChanged(QString fontFamily)
+{
+    QNDEBUG("MainWindow::onNoteEditorFontFamilyChanged: font family = " << fontFamily);
+    int fontIndex = m_pUI->fontComboBox->findText(fontFamily);
+    if (fontIndex >= 0) {
+        m_pUI->fontComboBox->setCurrentIndex(fontIndex);
+    }
+    else {
+        QNWARNING("Can't fint font family " << fontFamily << " within those listed in font combobox");
+    }
+}
+
+void MainWindow::onNoteEditorFontSizeChanged(int fontSize)
+{
+    QNDEBUG("MainWindow::onNoteEditorFontSizeChanged: font size = " << fontSize);
+    int fontSizeIndex = m_pUI->fontSizeComboBox->findData(QVariant(fontSize));
+    if (fontSizeIndex >= 0) {
+        m_pUI->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
+    }
+    else {
+        QNWARNING("Can't find font size " << fontSize << " within those listed in font size combobox");
+    }
+}
+
+void MainWindow::onFontSizeComboBoxIndexChanged(int currentIndex)
+{
+    QNDEBUG("MainWindow::onFontSizeComboBoxIndexChanged: current index = " << currentIndex);
+
+    if (Q_UNLIKELY(!m_pNoteEditor)) {
+        QNDEBUG("Note editor is not set");
+        return;
+    }
+
+    if (Q_UNLIKELY(currentIndex < 0)) {
+        QNDEBUG("Invalid font size combo box index = " << currentIndex);
+        return;
+    }
+
+    QVariant value = m_pUI->fontSizeComboBox->itemData(currentIndex);
+    bool conversionResult = false;
+    int valueInt = value.toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QNWARNING("Can't convert font size combo box value to int");
+        return;
+    }
+
+    m_pNoteEditor->setFontHeight(valueInt);
 }
 
 void MainWindow::checkThemeIconsAndSetFallbacks()

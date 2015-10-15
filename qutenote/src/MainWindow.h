@@ -79,6 +79,10 @@ private Q_SLOTS:
     void onNoteEditorInsideOrderedListStateChanged(bool state);
     void onNoteEditorInsideUnorderedListStateChanged(bool state);
     void onNoteEditorInsideTableStateChanged(bool state);
+    void onNoteEditorFontFamilyChanged(QString fontFamily);
+    void onNoteEditorFontSizeChanged(int fontSize);
+
+    void onFontSizeComboBoxIndexChanged(int currentIndex);
 
 private:
     void checkThemeIconsAndSetFallbacks();

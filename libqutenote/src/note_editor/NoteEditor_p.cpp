@@ -185,6 +185,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     setupScripts();
 
     Q_Q(NoteEditor);
+
     m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {
         QString error = QT_TR_NOOP("Can't get resource file storage folder");
@@ -811,6 +812,18 @@ void NoteEditorPrivate::onTextCursorOnEnCryptTagStateChanged(bool state, QString
         m_currentTextFormattingState.m_cipher = cipher;
         m_currentTextFormattingState.m_length = length;
     }
+}
+
+void NoteEditorPrivate::onTextCursorFontNameChanged(QString fontName)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorFontNameChanged: font name = " << fontName);
+    emit textFontFamilyChanged(fontName);
+}
+
+void NoteEditorPrivate::onTextCursorFontSizeChanged(int fontSize)
+{
+    QNDEBUG("NoteEditorPrivate::onTextCursorFontSizeChanged: font size = " << fontSize);
+    emit textFontSizeChanged(fontSize);
 }
 
 void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
@@ -2116,6 +2129,11 @@ void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionOnEnCryptTagState,bool,QString,QString,QString),
                      this, QNSLOT(NoteEditorPrivate,onTextCursorOnEnCryptTagStateChanged,bool,QString,QString,QString));
 
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionFontName,QString),
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorFontNameChanged,QString));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionFontSize,int),
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorFontSizeChanged,int));
+
     // Connect signals to signals of public class
     Q_Q(NoteEditor);
 
@@ -2131,6 +2149,10 @@ void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionInsideOrderedListState,bool), q, QNSIGNAL(NoteEditor,textInsideOrderedListState,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionInsideUnorderedListState,bool), q, QNSIGNAL(NoteEditor,textInsideUnorderedListState,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionInsideTableState,bool), q, QNSIGNAL(NoteEditor,textInsideTableState,bool));
+
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textFontFamilyChanged,QString), q, QNSIGNAL(NoteEditor,textFontFamilyChanged,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textFontSizeChanged,int), q, QNSIGNAL(NoteEditor,textFontSizeChanged,int));
+
 }
 
 void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()

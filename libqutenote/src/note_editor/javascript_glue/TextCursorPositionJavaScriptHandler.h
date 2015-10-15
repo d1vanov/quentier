@@ -33,6 +33,9 @@ Q_SIGNALS:
 
     void textCursorPositionInsideTableState(bool insideTable);
 
+    void textCursorPositionFontName(QString fontName);
+    void textCursorPositionFontSize(int fontSize);
+
 public Q_SLOTS:
     void onTextCursorPositionChange();
 
@@ -53,6 +56,9 @@ public Q_SLOTS:
     void setTextCursorPositionInsideUnorderedListState(bool insideUnorderedList);
 
     void setTextCursorPositionInsideTableState(bool insideTable);
+
+    void setTextCursorPositionFontName(QString name);
+    void setTextCursorPositionFontSize(int fontSize);
 };
 
 } // namespace qute_note

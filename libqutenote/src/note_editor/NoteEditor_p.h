@@ -71,6 +71,9 @@ Q_SIGNALS:
 
     void noteEditorHtmlUpdated(QString html);
 
+    void textFontFamilyChanged(QString fontFamily);
+    void textFontSizeChanged(int fontSize);
+
 public:
     bool isModified() const;
 
@@ -196,6 +199,9 @@ private Q_SLOTS:
     void onTextCursorOnImageResourceStateChanged(bool state, QString resourceHash);
     void onTextCursorOnNonImageResourceStateChanged(bool state, QString resourceHash);
     void onTextCursorOnEnCryptTagStateChanged(bool state, QString encryptedText, QString cipher, QString length);
+
+    void onTextCursorFontNameChanged(QString fontName);
+    void onTextCursorFontSizeChanged(int fontSize);
 
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 

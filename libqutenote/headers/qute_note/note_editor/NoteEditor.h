@@ -31,7 +31,7 @@ class QUTE_NOTE_EXPORT NoteEditor: public WebView
 public:
 
 public:
-    explicit NoteEditor(QWidget * parent = nullptr);
+    explicit NoteEditor(QWidget * parent = Q_NULLPTR);
     virtual ~NoteEditor();
 
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
@@ -64,6 +64,9 @@ Q_SIGNALS:
     void textInsideOrderedListState(bool state);
     void textInsideUnorderedListState(bool state);
     void textInsideTableState(bool state);
+
+    void textFontFamilyChanged(QString fontFamily);
+    void textFontSizeChanged(int fontSize);
 
 public Q_SLOTS:
     void convertToNote();

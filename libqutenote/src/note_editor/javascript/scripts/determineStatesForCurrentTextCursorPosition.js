@@ -12,18 +12,19 @@ function determineStatesForCurrentTextCursorPosition() {
         return;
     }
 
-    if (!selection.anchorNode) {
+    var anchorNode = selection.anchorNode;
+    if (!anchorNode) {
         console.log("selection.anchorNode is null");
         return;
     }
 
-    var element = selection.anchorNode.parentNode;
+    var element = anchorNode.parentNode;
 
     var foundBold = false;
     var foundItalic = false;
     var foundUnderline = false;
     var foundStrikethrough = false;
-    
+
     var foundAlignLeft = false;
     var foundAlignCenter = false;
     var foundAlignRight = false;
@@ -39,6 +40,10 @@ function determineStatesForCurrentTextCursorPosition() {
 
     var textAlign;
 
+    var lastElementNodeType;
+    var styleSourceNode;
+    var style;
+
     while(element) {
         if (Object.prototype.toString.call( element ) === '[object Array]') {
             console.log("Found array of elements");
@@ -49,7 +54,11 @@ function determineStatesForCurrentTextCursorPosition() {
             }
         }
 
-        if (element.nodeType == 1) {
+        lastElementNodeType = element.nodeType;
+        styleSourceNode = (lastElementNodeType == 3 ? element.parentNode : element);
+        style = window.getComputedStyle(styleSourceNode);
+
+        if (lastElementNodeType == 1) {
             console.log("Found element with nodeType == 1");
             var enTag = element.getAttribute("en-tag");
             console.log("enTag = " + enTag + ", node name = " + element.nodeName);
@@ -73,30 +82,30 @@ function determineStatesForCurrentTextCursorPosition() {
             }
         }
 
-        if (element.nodeName == "B") {
+        if (lastElementNodeType == "B") {
             foundBold = true;
         }
-        else if (element.nodeName == "I") {
+        else if (lastElementNodeType == "I") {
             foundItalic = true;
         }
-        else if (element.nodeName == "U") {
+        else if (lastElementNodeType == "U") {
             foundUnderline = true;
         }
-        else if ((element.nodeName == "S") ||
-                 (element.nodeName == "DEL") || 
-                 (element.nodeName == "STRIKE")) {
+        else if ((lastElementNodeType == "S") ||
+                 (lastElementNodeType == "DEL") ||
+                 (lastElementNodeType == "STRIKE")) {
             foundStrikethrough = true;
         }
-        else if ((element.nodeName == "OL") && !foundUnorderedList) {
+        else if ((lastElementNodeType == "OL") && !foundUnorderedList) {
             foundOrderedList = true;
         }
-        else if ((element.nodeName == "UL") && !foundOrderedList) {
+        else if ((lastElementNodeType == "UL") && !foundOrderedList) {
             foundUnorderedList = true;
         }
-        else if (element.nodeName == "TBODY") {
+        else if (lastElementNodeType == "TBODY") {
             foundTable = true;
         }
- 
+
         if (!foundAlignLeft && !foundAlignCenter && !foundAlignRight)
         {
             textAlign = element.style.textAlign;
@@ -140,4 +149,9 @@ function determineStatesForCurrentTextCursorPosition() {
     textCursorPositionHandler.setTextCursorPositionInsideUnorderedListState(foundUnorderedList);
 
     textCursorPositionHandler.setTextCursorPositionInsideTableState(foundTable);
+
+    if (style) {
+        textCursorPositionHandler.setTextCursorPositionFontName(style.fontFamily);
+        textCursorPositionHandler.setTextCursorPositionFontSize(style.fontSize);
+    }
 }
