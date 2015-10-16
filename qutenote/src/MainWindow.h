@@ -98,6 +98,8 @@ private:
 
     qute_note::Notebook    m_testNotebook;
     qute_note::Note        m_testNote;
+
+    int                    m_lastFontSizeComboBoxIndex;
 };
 
 #endif // __QUTE_NOTE__MAINWINDOW_H

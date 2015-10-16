@@ -55,7 +55,7 @@ function determineStatesForCurrentTextCursorPosition() {
         if (firstElement) {
             var styleSource = (element.nodeType == 3 ? element.parentNode : element);
             style = window.getComputedStyle(styleSource);
-            console.log("Got style for element " + $(styleSource).contents() + ": " + style);
+            console.log("Got style: font family = " + style.fontFamily + ", font size = " + style.fontSize);
         }
 
         if (element.nodeType == 1) {
@@ -152,9 +152,16 @@ function determineStatesForCurrentTextCursorPosition() {
     textCursorPositionHandler.setTextCursorPositionInsideTableState(foundTable);
 
     if (style) {
-        console.log("Notifying of font params change, style: " + style);
+        var dpi = 96.0;
+        if (navigator.appVersion.indexOf("Mac")!=-1) {
+            dpi = 72.0;
+        }
+        var convertedFontSize = (parseFloat(parseInt(style.fontSize) * 72.0 / dpi)).toFixed(2);
+        console.log("Notifying of font params change: font family = " + style.fontFamily +
+                    ", font size = " + style.fontSize + ", converted font size in pt = " +
+                    convertedFontSize);
         textCursorPositionHandler.setTextCursorPositionFontName(style.fontFamily);
-        textCursorPositionHandler.setTextCursorPositionFontSize(style.fontSize);
+        textCursorPositionHandler.setTextCursorPositionFontSize(Math.round(convertedFontSize));
     }
     else {
         console.log("Computed style is null");

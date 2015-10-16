@@ -86,6 +86,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_onResourceInfoReceivedJs(),
     m_determineStatesForCurrentTextCursorPositionJs(),
     m_determineContextMenuEventTargetJs(),
+    m_changeFontSizeForSelectionJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -264,6 +265,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
     page->executeJavaScript(m_determineContextMenuEventTargetJs);
+    page->executeJavaScript(m_changeFontSizeForSelectionJs);
 
     setPageEditable(true);
 
@@ -2029,6 +2031,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
     SETUP_SCRIPT("javascript/scripts/determineContextMenuEventTarget.js", m_determineContextMenuEventTargetJs);
+    SETUP_SCRIPT("javascript/scripts/changeFontSizeForSelection.js", m_changeFontSizeForSelectionJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
@@ -2748,9 +2751,12 @@ void NoteEditorPrivate::setFontHeight(const int height)
 {
     QNDEBUG("NoteEditorPrivate::setFontHeight: " << height);
 
+    Q_Q(NoteEditor);
+
     if (height > 0) {
-        m_font.setPointSize(height);
-        execJavascriptCommand("fontSize", QString::number(height));
+        m_font.setPixelSize(height);
+        GET_PAGE()
+        page->executeJavaScript("changeFontSizeForSelection(" + QString::number(height) + ");");
     }
     else {
         QString error = QT_TR_NOOP("Detected incorrect font size: " + QString::number(height));
@@ -2758,7 +2764,6 @@ void NoteEditorPrivate::setFontHeight(const int height)
         emit notifyError(error);
     }
 
-    Q_Q(NoteEditor);
     q->setFocus();
 }
 

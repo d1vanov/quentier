@@ -18,5 +18,6 @@
         <file>determineContextMenuEventTarget.js</file>
         <file>genericResourceOnClickHandler.js</file>
         <file>setupGenericResourceOnClickHandler.js</file>
+        <file>changeFontSizeForSelection.js</file>
     </qresource>
 </RCC>

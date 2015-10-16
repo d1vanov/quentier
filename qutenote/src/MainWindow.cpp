@@ -26,6 +26,7 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 #include <QScopedPointer>
 #include <QMessageBox>
 #include <QtDebug>
+#include <QFontDatabase>
 
 #ifndef USE_QT_WEB_ENGINE
 #include <QWebFrame>
@@ -40,10 +41,20 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pNoteEditor(Q_NULLPTR),
     m_lastNoteEditorHtml(),
     m_testNotebook(),
-    m_testNote()
+    m_testNote(),
+    m_lastFontSizeComboBoxIndex(-1)
 {
+    QNTRACE("MainWindow constructor");
+
     m_pUI->setupUi(this);
     m_pUI->noteSourceView->setHidden(true);
+
+    m_pUI->fontSizeComboBox->clear();
+    QNTRACE("fontSizeComboBox num items: " << m_pUI->fontSizeComboBox->count());
+    for(int i = 0; i < m_pUI->fontSizeComboBox->count(); ++i) {
+        QVariant value = m_pUI->fontSizeComboBox->itemData(i, Qt::UserRole);
+        QNTRACE("Font size value for index[" << i << "] = " << value);
+    }
 
     BasicXMLSyntaxHighlighter * highlighter = new BasicXMLSyntaxHighlighter(m_pUI->noteSourceView->document());
     Q_UNUSED(highlighter);
@@ -523,30 +534,77 @@ void MainWindow::onNoteEditorInsideTableStateChanged(bool state)
 void MainWindow::onNoteEditorFontFamilyChanged(QString fontFamily)
 {
     QNDEBUG("MainWindow::onNoteEditorFontFamilyChanged: font family = " << fontFamily);
-    int fontIndex = m_pUI->fontComboBox->findText(fontFamily);
-    if (fontIndex >= 0) {
-        m_pUI->fontComboBox->setCurrentIndex(fontIndex);
+
+    QFont currentFont(fontFamily);
+    m_pUI->fontComboBox->setCurrentFont(currentFont);
+
+    QFontDatabase fontDatabase;
+    QList<int> fontSizes = fontDatabase.smoothSizes(fontFamily, currentFont.styleName());
+
+    m_lastFontSizeComboBoxIndex = 0;    // NOTE: clearing out font sizes combo box causes unwanted update of its index to 0, workarounding it
+    m_pUI->fontSizeComboBox->clear();
+    const int numFontSizes = fontSizes.size();
+    for(int i = 0; i < numFontSizes; ++i) {
+        m_pUI->fontSizeComboBox->addItem(QString::number(fontSizes[i]), QVariant(fontSizes[i]));
+        QNTRACE("Added item " << fontSizes[i] << "pt for index " << i);
     }
-    else {
-        QNWARNING("Can't fint font family " << fontFamily << " within those listed in font combobox");
-    }
+    m_lastFontSizeComboBoxIndex = -1;
 }
 
 void MainWindow::onNoteEditorFontSizeChanged(int fontSize)
 {
     QNDEBUG("MainWindow::onNoteEditorFontSizeChanged: font size = " << fontSize);
-    int fontSizeIndex = m_pUI->fontSizeComboBox->findData(QVariant(fontSize));
-    if (fontSizeIndex >= 0) {
+    int fontSizeIndex = m_pUI->fontSizeComboBox->findData(QVariant(fontSize), Qt::UserRole);
+    if (fontSizeIndex >= 0)
+    {
+        m_lastFontSizeComboBoxIndex = fontSizeIndex;
         m_pUI->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
+        QNTRACE("fontSizeComboBox: set current index to " << fontSizeIndex << ", found font size = " << QVariant(fontSize));
     }
-    else {
-        QNWARNING("Can't find font size " << fontSize << " within those listed in font size combobox");
+    else
+    {
+        QNDEBUG("Can't find font size " << fontSize << " within those listed in font size combobox, "
+                "will try to choose the closest one instead");
+        const int numFontSizes = m_pUI->fontSizeComboBox->count();
+        int currentSmallestDiscrepancy = 1e5;
+        int currentClosestIndex = -1;
+        for(int i = 0; i < numFontSizes; ++i)
+        {
+            QVariant value = m_pUI->fontSizeComboBox->itemData(i, Qt::UserRole);
+            bool conversionResult = false;
+            int valueInt = value.toInt(&conversionResult);
+            if (!conversionResult) {
+                QNWARNING("Can't convert value from font size combo box to int: " << value);
+                continue;
+            }
+
+            int discrepancy = std::abs(valueInt - fontSize);
+            if (currentSmallestDiscrepancy > discrepancy) {
+                currentSmallestDiscrepancy = discrepancy;
+                currentClosestIndex = i;
+                QNTRACE("Updated current closest index to " << i << ": font size = " << valueInt);
+            }
+        }
+
+        if (currentClosestIndex >= 0) {
+            QNTRACE("Setting current font size index to " << currentClosestIndex);
+            m_lastFontSizeComboBoxIndex = currentClosestIndex;
+            m_pUI->fontComboBox->setCurrentIndex(currentClosestIndex);
+        }
+        else {
+            QNDEBUG("Couldn't find closest font size to " << fontSize);
+        }
     }
 }
 
 void MainWindow::onFontSizeComboBoxIndexChanged(int currentIndex)
 {
     QNDEBUG("MainWindow::onFontSizeComboBoxIndexChanged: current index = " << currentIndex);
+
+    if (currentIndex == m_lastFontSizeComboBoxIndex) {
+        QNTRACE("Already cached that index");
+        return;
+    }
 
     if (Q_UNLIKELY(!m_pNoteEditor)) {
         QNDEBUG("Note editor is not set");
@@ -558,14 +616,22 @@ void MainWindow::onFontSizeComboBoxIndexChanged(int currentIndex)
         return;
     }
 
-    QVariant value = m_pUI->fontSizeComboBox->itemData(currentIndex);
-    bool conversionResult = false;
-    int valueInt = value.toInt(&conversionResult);
-    if (Q_UNLIKELY(!conversionResult)) {
-        QNWARNING("Can't convert font size combo box value to int");
+    if (m_pUI->fontSizeComboBox->count() == 0) {
+        QNDEBUG("Font size combo box is empty");
         return;
     }
 
+    QVariant value = m_pUI->fontSizeComboBox->itemData(currentIndex, Qt::UserRole);
+    bool conversionResult = false;
+    int valueInt = value.toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QNWARNING("Can't convert font size combo box value to int: " << value);
+        return;
+    }
+
+    m_lastFontSizeComboBoxIndex = currentIndex;
+
+    QNTRACE("Parsed font size " << valueInt << " from value " << value);
     m_pNoteEditor->setFontHeight(valueInt);
 }
 
