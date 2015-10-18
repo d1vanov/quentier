@@ -58,6 +58,7 @@ typedef QWebEngineSettings WebSettings;
 #include <QMenu>
 #include <QKeySequence>
 #include <QContextMenuEvent>
+#include <QDesktopWidget>
 
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(q->page()); \
@@ -84,6 +85,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForResourceImgTagsJs(),
     m_setupEnToDoTagsJs(),
     m_onResourceInfoReceivedJs(),
+    m_provideDpiSettingsJs(),
     m_determineStatesForCurrentTextCursorPositionJs(),
     m_determineContextMenuEventTargetJs(),
     m_changeFontSizeForSelectionJs(),
@@ -263,12 +265,13 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
+    page->executeJavaScript(m_provideDpiSettingsJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
     page->executeJavaScript(m_determineContextMenuEventTargetJs);
     page->executeJavaScript(m_changeFontSizeForSelectionJs);
 
+    provideDpiSettings();
     setPageEditable(true);
-
     updateColResizableTableBindings();
     saveNoteResourcesToLocalFiles();
 
@@ -2029,6 +2032,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
+    SETUP_SCRIPT("javascript/scripts/provideDpiSettings.js", m_provideDpiSettingsJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
     SETUP_SCRIPT("javascript/scripts/determineContextMenuEventTarget.js", m_determineContextMenuEventTargetJs);
     SETUP_SCRIPT("javascript/scripts/changeFontSizeForSelection.js", m_changeFontSizeForSelectionJs);
@@ -2156,6 +2160,29 @@ void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textFontFamilyChanged,QString), q, QNSIGNAL(NoteEditor,textFontFamilyChanged,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textFontSizeChanged,int), q, QNSIGNAL(NoteEditor,textFontSizeChanged,int));
 
+}
+
+void NoteEditorPrivate::provideDpiSettings()
+{
+    QNDEBUG("NoteEditorPrivate::provideDpiSettings");
+
+    QDesktopWidget * pDesktopWidget = QApplication::desktop();
+    if (Q_UNLIKELY(!pDesktopWidget)) {
+        QNWARNING("Can't determine DPI settings, QDesktopWidget is null");
+        return;
+    }
+
+    int logicalDpiX = pDesktopWidget->logicalDpiX();
+    int logicalDpiY = pDesktopWidget->logicalDpiY();
+    int physicalDpiX = pDesktopWidget->physicalDpiX();
+    int physicalDpiY = pDesktopWidget->physicalDpiY();
+
+    QString javascript = "provideDpiSettings(" + QString::number(logicalDpiX) + ", " +
+                         QString::number(logicalDpiY) + ", " + QString::number(physicalDpiX) + ", " +
+                         QString::number(physicalDpiY) + ");";
+    Q_Q(NoteEditor);
+    GET_PAGE()
+    page->executeJavaScript(javascript);
 }
 
 void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()

@@ -152,10 +152,7 @@ function determineStatesForCurrentTextCursorPosition() {
     textCursorPositionHandler.setTextCursorPositionInsideTableState(foundTable);
 
     if (style) {
-        var dpi = 96.0;
-        if (navigator.appVersion.indexOf("Mac")!=-1) {
-            dpi = 72.0;
-        }
+        var dpi = window.logicalDpiY || 96;
         var convertedFontSize = (parseFloat(parseInt(style.fontSize) * 72.0 / dpi)).toFixed(2);
         console.log("Notifying of font params change: font family = " + style.fontFamily +
                     ", font size = " + style.fontSize + ", converted font size in pt = " +

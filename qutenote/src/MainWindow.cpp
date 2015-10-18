@@ -539,11 +539,19 @@ void MainWindow::onNoteEditorFontFamilyChanged(QString fontFamily)
     m_pUI->fontComboBox->setCurrentFont(currentFont);
 
     QFontDatabase fontDatabase;
-    QList<int> fontSizes = fontDatabase.smoothSizes(fontFamily, currentFont.styleName());
+    QList<int> fontSizes = fontDatabase.pointSizes(currentFont.family(), currentFont.styleName());
+    // NOTE: it is important to use currentFont.family() in the call above instead of fontFamily variable
+    // because the two can be different by presence/absence of apostrophes around the font family name
+    if (fontSizes.isEmpty()) {
+        QNTRACE("Coulnd't find point sizes for font family " << currentFont.family() << ", will use standard sizes instead");
+        fontSizes = fontDatabase.standardSizes();
+    }
 
     m_lastFontSizeComboBoxIndex = 0;    // NOTE: clearing out font sizes combo box causes unwanted update of its index to 0, workarounding it
     m_pUI->fontSizeComboBox->clear();
-    const int numFontSizes = fontSizes.size();
+    int numFontSizes = fontSizes.size();
+    QNTRACE("Found " << numFontSizes << " font sizes for font family " << currentFont.family());
+
     for(int i = 0; i < numFontSizes; ++i) {
         m_pUI->fontSizeComboBox->addItem(QString::number(fontSizes[i]), QVariant(fontSizes[i]));
         QNTRACE("Added item " << fontSizes[i] << "pt for index " << i);

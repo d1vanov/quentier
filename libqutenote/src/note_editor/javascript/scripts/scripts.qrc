@@ -19,5 +19,6 @@
         <file>genericResourceOnClickHandler.js</file>
         <file>setupGenericResourceOnClickHandler.js</file>
         <file>changeFontSizeForSelection.js</file>
+        <file>provideDpiSettings.js</file>
     </qresource>
 </RCC>
