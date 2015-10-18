@@ -58,6 +58,7 @@ function determineStatesForCurrentTextCursorPosition() {
             console.log("Got style: font family = " + style.fontFamily + ", font size = " + style.fontSize);
         }
 
+        console.log("element.nodeType = " + element.nodeType);
         if (element.nodeType == 1) {
             console.log("Found element with nodeType == 1");
             var enTag = element.getAttribute("en-tag");
@@ -82,28 +83,35 @@ function determineStatesForCurrentTextCursorPosition() {
             }
         }
 
-        if (element.nodeType == "B") {
+        if (element.nodeName == "B") {
             foundBold = true;
+            console.log("Found bold");
         }
-        else if (element.nodeType == "I") {
+        else if (element.nodeName == "I") {
             foundItalic = true;
+            console.log("Found italic");
         }
-        else if (element.nodeType == "U") {
+        else if (element.nodeName == "U") {
             foundUnderline = true;
+            console.log("Fount underline");
         }
-        else if ((element.nodeType == "S") ||
-                 (element.nodeType == "DEL") ||
-                 (element.nodeType == "STRIKE")) {
+        else if ((element.nodeName == "S") ||
+                 (element.nodeName == "DEL") ||
+                 (element.nodeName == "STRIKE")) {
             foundStrikethrough = true;
+            console.log("Found strikethrough");
         }
-        else if ((element.nodeType == "OL") && !foundUnorderedList) {
+        else if ((element.nodeName == "OL") && !foundUnorderedList) {
             foundOrderedList = true;
+            console.log("Found ordered list");
         }
-        else if ((element.nodeType == "UL") && !foundOrderedList) {
+        else if ((element.nodeName == "UL") && !foundOrderedList) {
             foundUnorderedList = true;
+            console.log("Found unordered list");
         }
-        else if (element.nodeType == "TBODY") {
+        else if (element.nodeName == "TBODY") {
             foundTable = true;
+            console.log("Found table");
         }
 
         if (!foundAlignLeft && !foundAlignCenter && !foundAlignRight)
@@ -112,16 +120,20 @@ function determineStatesForCurrentTextCursorPosition() {
             if (textAlign) {
                 if (textAlign == "left") {
                     foundAlignLeft = true;
+                    console.log("Found text align left");
                 }
                 else if (textAlign == "center") {
                     foundAlignCenter = true;
+                    console.log("Found text align center");
                 }
                 else if (textAlign == "right") {
                     foundAlignRight = true;
+                    console.log("Found text align right");
                 }
             }
             else {
                 foundAlignLeft = true;
+                console.log("Assuming text align left");
             }
         }
 
@@ -129,6 +141,8 @@ function determineStatesForCurrentTextCursorPosition() {
         firstElement = false;
         console.log("Checking the next parent");
     }
+
+    console.log("End of the loop over target elements");
 
     if (foundImageResource || foundNonImageResource || foundEnCryptTag) {
         console.log("foundImageResource = " + (foundImageResource ? "true" : "false") +

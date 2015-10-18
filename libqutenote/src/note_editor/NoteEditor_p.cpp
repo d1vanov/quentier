@@ -59,6 +59,7 @@ typedef QWebEngineSettings WebSettings;
 #include <QKeySequence>
 #include <QContextMenuEvent>
 #include <QDesktopWidget>
+#include <QFontDialog>
 
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(q->page()); \
@@ -2672,10 +2673,29 @@ void NoteEditorPrivate::selectAll()
 void NoteEditorPrivate::fontMenu()
 {
     QNDEBUG("stub: NoteEditorPrivate::fontMenu");
-    // TODO: implement
 
     Q_Q(NoteEditor);
-    q->setFocus();
+
+    bool fontWasChosen = false;
+    QFont chosenFont = QFontDialog::getFont(&fontWasChosen, m_font, q);
+    if (!fontWasChosen) {
+        q->setFocus();
+        return;
+    }
+
+    setFont(chosenFont);
+
+    textBold();
+    emit textCursorPositionBoldState(chosenFont.bold());
+
+    textItalic();
+    emit textCursorPositionItalicState(chosenFont.italic());
+
+    textUnderline();
+    emit textCursorPositionUnderlineState(chosenFont.underline());
+
+    textStrikethrough();
+    emit textCursorPositionStrikethgouthState(chosenFont.strikeOut());
 }
 
 #undef HANDLE_ACTION
