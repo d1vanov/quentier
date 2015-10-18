@@ -21,8 +21,10 @@
 
 #include "kwallet_interface.h"
 #else
+#include <QMetaType>
 
-class QDBusPendingCallWatcher;
+class QDBusPendingCallWatcher {};
+Q_DECLARE_METATYPE(QDBusPendingCallWatcher*);
 
 #endif
 

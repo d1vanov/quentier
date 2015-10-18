@@ -578,7 +578,7 @@ void MainWindow::onNoteEditorFontSizeChanged(int fontSize)
                 continue;
             }
 
-            int discrepancy = std::abs(valueInt - fontSize);
+            int discrepancy = abs(valueInt - fontSize);
             if (currentSmallestDiscrepancy > discrepancy) {
                 currentSmallestDiscrepancy = discrepancy;
                 currentClosestIndex = i;
