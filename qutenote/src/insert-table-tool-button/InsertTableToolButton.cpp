@@ -23,6 +23,7 @@
 */
 
 #include "InsertTableToolButton.h"
+#include "TableSettingsDialog.h"
 #include "TableSizeSelectorActionWidget.h"
 #include "TableSizeConstraintsActionWidget.h"
 #include <QMenu>
@@ -41,12 +42,33 @@ InsertTableToolButton::InsertTableToolButton(QWidget * parent) :
 
     setMenu(m_menu);
 
+    QAction * showTableSettingsDialogAction = new QAction(this);
+    QObject::connect(showTableSettingsDialogAction, SIGNAL(triggered(bool)), this, SLOT(onTableSettingsDialogAction()));
+
+    setDefaultAction(showTableSettingsDialogAction);
+
     QObject::connect(sizeSelectorAction, SIGNAL(tableSizeSelected(int,int)), this, SLOT(onTableSizeChosen(int,int)));
     QObject::connect(constraintsSelectorAction, SIGNAL(chosenTableWidthConstraints(double,bool)),
                      this, SLOT(onTableSizeConstraintsChosen(double,bool)));
 
     m_currentWidth = constraintsSelectorAction->width();
     m_currentWidthIsRelative = constraintsSelectorAction->isRelative();
+}
+
+void InsertTableToolButton::onTableSettingsDialogAction()
+{
+    QScopedPointer<TableSettingsDialog> tableSettingsDialogHolder(new TableSettingsDialog(this));
+    TableSettingsDialog * tableSettingsDialog = tableSettingsDialogHolder.data();
+    if (tableSettingsDialog->exec() == QDialog::Accepted)
+    {
+        int numRows = tableSettingsDialog->numRows();
+        int numColumns = tableSettingsDialog->numColumns();
+        double tableWidth = tableSettingsDialog->tableWidth();
+        bool relativeWidth = tableSettingsDialog->relativeWidth();
+
+        onTableSizeChosen(numRows, numColumns);
+        onTableSizeConstraintsChosen(tableWidth, relativeWidth);
+    }
 }
 
 void InsertTableToolButton::onTableSizeChosen(int rows, int columns)

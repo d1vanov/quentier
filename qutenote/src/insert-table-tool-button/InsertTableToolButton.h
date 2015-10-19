@@ -37,6 +37,7 @@ Q_SIGNALS:
     void createdTable(int rows, int columns, double width, bool relative);
 
 private Q_SLOTS:
+    void onTableSettingsDialogAction();
     void onTableSizeChosen(int rows, int columns);
     void onTableSizeConstraintsChosen(double width, bool relative);
 

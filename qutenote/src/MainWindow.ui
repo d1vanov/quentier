@@ -982,10 +982,10 @@ color: rgb(255, 255, 255);</string>
                  </iconset>
                 </property>
                 <property name="popupMode">
-                 <enum>QToolButton::InstantPopup</enum>
+                 <enum>QToolButton::MenuButtonPopup</enum>
                 </property>
                 <property name="autoRaise">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                </widget>
               </item>

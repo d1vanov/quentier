@@ -19,9 +19,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqutenote/headers)
 
 set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
-    src/TableSettingsDialog.h
     src/BasicXMLSyntaxHighlighter.h
     src/insert-table-tool-button/InsertTableToolButton.h
+    src/insert-table-tool-button/TableSettingsDialog.h
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
@@ -29,9 +29,9 @@ set(${PROJECT_NAME}_HEADERS
 
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
-    src/TableSettingsDialog.cpp
     src/BasicXMLSyntaxHighlighter.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
+    src/insert-table-tool-button/TableSettingsDialog.cpp
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelectorActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelector.cpp
@@ -40,7 +40,7 @@ set(${PROJECT_NAME}_SOURCES
 
 set(FORMS
     src/MainWindow.ui
-    src/TableSettingsDialog.ui)
+    src/insert-table-tool-button/TableSettingsDialog.ui)
 
 if(USE_QT5)
   qt5_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})

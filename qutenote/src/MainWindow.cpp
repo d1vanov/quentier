@@ -1,8 +1,8 @@
 #include "MainWindow.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
+#include "insert-table-tool-button/TableSettingsDialog.h"
 #include "tests/ManualTestingHelper.h"
 #include "BasicXMLSyntaxHighlighter.h"
-#include "TableSettingsDialog.h"
 
 #include <qute_note/note_editor/NoteEditor.h>
 using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work with namespaces
