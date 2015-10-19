@@ -37,7 +37,15 @@ function changeFontSizeForSelection(newFontSize) {
         return;
     }
 
-    var selectedHtml = getSelectionHtml();
-    document.execCommand('insertHtml', false, "<span style=\"font-size:" + newFontSize + "pt;\">" + selectedHtml + "</span>");
+    var selectedText = "";
+    if (selection.rangeCount) {
+        var container = document.createElement("div");
+        for (var i = 0, len = selection.rangeCount; i < len; ++i) {
+            container.appendChild(selection.getRangeAt(i).cloneContents());
+        }
+        selectedText = container.textContent;
+    }
+
+    document.execCommand('insertHtml', false, "<span style=\"font-size:" + newFontSize + "pt;\">" + selectedText + "</span>");
     console.log("Set font size to: " + newFontSize + "pt");
 }
