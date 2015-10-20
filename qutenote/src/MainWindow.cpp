@@ -43,7 +43,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_lastNoteEditorHtml(),
     m_testNotebook(),
     m_testNote(),
-    m_lastFontSizeComboBoxIndex(-1)
+    m_lastFontSizeComboBoxIndex(-1),
+    m_lastFontComboBoxFontFamily()
 {
     QNTRACE("MainWindow constructor");
 
@@ -116,7 +117,7 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->fontUnderlinePushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextUnderlineToggled));
     QObject::connect(m_pUI->fontStrikethroughPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextStrikethroughToggled));
     // Font combo box
-    QObject::connect(m_pUI->fontComboBox, QNSIGNAL(QFontComboBox,currentFontChanged,QFont), m_pNoteEditor, QNSLOT(NoteEditor,setFont,QFont));
+    QObject::connect(m_pUI->fontComboBox, QNSIGNAL(QFontComboBox,currentFontChanged,QFont), this, QNSLOT(MainWindow,onFontComboBoxFontChanged,QFont));
     // Font size combo box
     QObject::connect(m_pUI->fontSizeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onFontSizeComboBoxIndexChanged(int)));
     // Format actions
@@ -276,8 +277,7 @@ void MainWindow::onNoteChooseTextColor(QColor color)
 
 void MainWindow::onNoteChooseBackgroundColor(QColor color)
 {
-    // TODO: implement
-    Q_UNUSED(color);
+    m_pNoteEditor->setBackgroundColor(color);
     m_pNoteEditor->setFocus();
 }
 
@@ -540,8 +540,17 @@ void MainWindow::onNoteEditorFontFamilyChanged(QString fontFamily)
 {
     QNDEBUG("MainWindow::onNoteEditorFontFamilyChanged: font family = " << fontFamily);
 
+    if (m_lastFontComboBoxFontFamily == fontFamily) {
+        QNTRACE("Font family didn't change");
+        return;
+    }
+
+    m_lastFontComboBoxFontFamily = fontFamily;
+
     QFont currentFont(fontFamily);
     m_pUI->fontComboBox->setCurrentFont(currentFont);
+    QNTRACE("Font family from combo box: " << m_pUI->fontComboBox->currentFont().family()
+            << ", font family set by QFont's constructor from it: " << currentFont.family());
 
     QFontDatabase fontDatabase;
     QList<int> fontSizes = fontDatabase.pointSizes(currentFont.family(), currentFont.styleName());
@@ -571,8 +580,10 @@ void MainWindow::onNoteEditorFontSizeChanged(int fontSize)
     if (fontSizeIndex >= 0)
     {
         m_lastFontSizeComboBoxIndex = fontSizeIndex;
-        m_pUI->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
-        QNTRACE("fontSizeComboBox: set current index to " << fontSizeIndex << ", found font size = " << QVariant(fontSize));
+        if (m_pUI->fontSizeComboBox->currentIndex() != fontSizeIndex) {
+            m_pUI->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
+            QNTRACE("fontSizeComboBox: set current index to " << fontSizeIndex << ", found font size = " << QVariant(fontSize));
+        }
     }
     else
     {
@@ -602,12 +613,22 @@ void MainWindow::onNoteEditorFontSizeChanged(int fontSize)
         if (currentClosestIndex >= 0) {
             QNTRACE("Setting current font size index to " << currentClosestIndex);
             m_lastFontSizeComboBoxIndex = currentClosestIndex;
-            m_pUI->fontComboBox->setCurrentIndex(currentClosestIndex);
+            if (m_pUI->fontSizeComboBox->currentIndex() != currentClosestIndex) {
+                m_pUI->fontSizeComboBox->setCurrentIndex(currentClosestIndex);
+            }
         }
         else {
             QNDEBUG("Couldn't find closest font size to " << fontSize);
         }
     }
+}
+
+void MainWindow::onFontComboBoxFontChanged(QFont font)
+{
+    QNDEBUG("MainWindow::onFontComboBoxFontChanged: font family = " << font.family());
+
+    m_pNoteEditor->setFont(font);
+    m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onFontSizeComboBoxIndexChanged(int currentIndex)

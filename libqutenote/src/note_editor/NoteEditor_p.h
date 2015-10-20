@@ -249,7 +249,6 @@ private:
     void setupNoteEditorPage();
     void setupTextCursorPositionJavaScriptHandlerConnections();
 
-    void provideDpiSettings();
     void determineStatesForCurrentTextCursorPosition();
     void determineContextMenuEventTarget();
 
@@ -357,7 +356,6 @@ private:
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;
-    QString     m_provideDpiSettingsJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
     QString     m_determineContextMenuEventTargetJs;
     QString     m_changeFontSizeForSelectionJs;

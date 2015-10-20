@@ -82,6 +82,7 @@ private Q_SLOTS:
     void onNoteEditorFontFamilyChanged(QString fontFamily);
     void onNoteEditorFontSizeChanged(int fontSize);
 
+    void onFontComboBoxFontChanged(QFont font);
     void onFontSizeComboBoxIndexChanged(int currentIndex);
 
 private:
@@ -100,6 +101,7 @@ private:
     qute_note::Note        m_testNote;
 
     int                    m_lastFontSizeComboBoxIndex;
+    QString                m_lastFontComboBoxFontFamily;
 };
 
 #endif // __QUTE_NOTE__MAINWINDOW_H

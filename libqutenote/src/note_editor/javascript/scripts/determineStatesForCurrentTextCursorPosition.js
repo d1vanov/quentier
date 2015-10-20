@@ -166,13 +166,13 @@ function determineStatesForCurrentTextCursorPosition() {
     textCursorPositionHandler.setTextCursorPositionInsideTableState(foundTable);
 
     if (style) {
-        var dpi = window.logicalDpiY || 96;
-        var convertedFontSize = (parseFloat(parseInt(style.fontSize) * 72.0 / dpi)).toFixed(2);
+        var scaledFontSize = parseFloat(style.fontSize) * 3.0 / 4;
+        var convertedFontSize = parseInt(Math.round(scaledFontSize));
         console.log("Notifying of font params change: font family = " + style.fontFamily +
                     ", font size = " + style.fontSize + ", converted font size in pt = " +
                     convertedFontSize);
         textCursorPositionHandler.setTextCursorPositionFontName(style.fontFamily);
-        textCursorPositionHandler.setTextCursorPositionFontSize(Math.round(convertedFontSize));
+        textCursorPositionHandler.setTextCursorPositionFontSize(convertedFontSize);
     }
     else {
         console.log("Computed style is null");

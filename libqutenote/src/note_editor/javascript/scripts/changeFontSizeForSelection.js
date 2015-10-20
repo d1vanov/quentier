@@ -30,9 +30,10 @@ function changeFontSizeForSelection(newFontSize) {
 
     var computedStyle = window.getComputedStyle(element);
 
-    var dpi = window.logicalDpiY || 96;
-    var currentFontSizeInPt = parseInt((parseFloat(computedStyle.fontSize * 72.0 / dpi).toFixed(2)));
-    if (currentFontSizeInPt === newFontSize) {
+    var scaledFontSize = parseFloat(computedStyle.fontSize) * 3.0 / 4;
+    console.log("Scaled font size = " + scaledFontSize);
+    var convertedFontSize = parseInt(Math.round(scaledFontSize));
+    if (convertedFontSize === newFontSize) {
         console.log("current font size is already equal to the new applied one");
         return;
     }
