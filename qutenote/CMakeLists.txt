@@ -20,6 +20,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqutenote/headers)
 set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
     src/BasicXMLSyntaxHighlighter.h
+    src/color-picker-tool-button/ColorPickerActionWidget.h
+    src/color-picker-tool-button/ColorPickerToolButton.h
     src/insert-table-tool-button/InsertTableToolButton.h
     src/insert-table-tool-button/TableSettingsDialog.h
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
@@ -30,6 +32,8 @@ set(${PROJECT_NAME}_HEADERS
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
     src/BasicXMLSyntaxHighlighter.cpp
+    src/color-picker-tool-button/ColorPickerActionWidget.cpp
+    src/color-picker-tool-button/ColorPickerToolButton.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
     src/insert-table-tool-button/TableSettingsDialog.cpp
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp

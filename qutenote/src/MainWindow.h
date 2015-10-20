@@ -52,8 +52,8 @@ private Q_SLOTS:
     void onNoteTextInsertUnorderedListAction();
     void onNoteTextInsertOrderedListAction();
 
-    void onNoteChooseTextColor();
-    void onNoteChooseSelectedTextColor();
+    void onNoteChooseTextColor(QColor color);
+    void onNoteChooseBackgroundColor(QColor color);
 
     void onNoteTextSpellCheckToggled() { /* TODO: implement */ }
     void onNoteTextInsertToDoCheckBoxAction();

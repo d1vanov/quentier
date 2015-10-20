@@ -870,7 +870,7 @@ color: rgb(255, 255, 255);</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="chooseTextColorPushButton">
+               <widget class="ColorPickerToolButton" name="chooseTextColorToolButton">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -885,8 +885,21 @@ color: rgb(255, 255, 255);</string>
                   <normaloff/>
                  </iconset>
                 </property>
-                <property name="flat">
-                 <bool>true</bool>
+                <property name="popupMode">
+                 <enum>QToolButton::MenuButtonPopup</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="ColorPickerToolButton" name="chooseBackgroundColorToolButton">
+                <property name="text">
+                 <string>...</string>
+                </property>
+                <property name="icon">
+                 <iconset theme="fill-color"/>
+                </property>
+                <property name="popupMode">
+                 <enum>QToolButton::MenuButtonPopup</enum>
                 </property>
                </widget>
               </item>
@@ -2700,6 +2713,11 @@ stop: 1 #0EB7FF);
    <class>InsertTableToolButton</class>
    <extends>QToolButton</extends>
    <header>insert-table-tool-button/InsertTableToolButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ColorPickerToolButton</class>
+   <extends>QToolButton</extends>
+   <header>color-picker-tool-button/ColorPickerToolButton.h</header>
   </customwidget>
  </customwidgets>
  <resources>

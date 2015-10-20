@@ -61,5 +61,6 @@
         <file>fallback_icons/png/22x22/unknown.png</file>
         <file>fallback_icons/png/32x32/unknown.png</file>
         <file>fallback_icons/png/48x48/unknown.png</file>
+        <file>fallback_icons/png/color-fill.png</file>
     </qresource>
 </RCC>

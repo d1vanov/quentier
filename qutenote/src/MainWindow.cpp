@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
 #include "tests/ManualTestingHelper.h"
@@ -138,7 +139,10 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->formatListUnorderedPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextInsertUnorderedListAction));
     QObject::connect(m_pUI->formatListOrderedPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextInsertOrderedListAction));
     QObject::connect(m_pUI->insertToDoCheckboxPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextInsertToDoCheckBoxAction));
-    QObject::connect(m_pUI->chooseTextColorPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteChooseTextColor));
+    QObject::connect(m_pUI->chooseTextColorToolButton, QNSIGNAL(ColorPickerToolButton,colorSelected,QColor),
+                     this, QNSLOT(MainWindow,onNoteChooseTextColor,QColor));
+    QObject::connect(m_pUI->chooseBackgroundColorToolButton, QNSIGNAL(ColorPickerToolButton,colorSelected,QColor),
+                     this, QNSLOT(MainWindow,onNoteChooseBackgroundColor,QColor));
     QObject::connect(m_pUI->insertTableToolButton, QNSIGNAL(InsertTableToolButton,createdTable,int,int,double,bool),
                      this, QNSLOT(MainWindow,onNoteTextInsertTable,int,int,double,bool));
 }
@@ -264,15 +268,16 @@ void MainWindow::onNoteTextInsertOrderedListAction()
     m_pNoteEditor->setFocus();
 }
 
-void MainWindow::onNoteChooseTextColor()
+void MainWindow::onNoteChooseTextColor(QColor color)
 {
-    // TODO: implement
+    m_pNoteEditor->setFontColor(color);
     m_pNoteEditor->setFocus();
 }
 
-void MainWindow::onNoteChooseSelectedTextColor()
+void MainWindow::onNoteChooseBackgroundColor(QColor color)
 {
     // TODO: implement
+    Q_UNUSED(color);
     m_pNoteEditor->setFocus();
 }
 
@@ -779,8 +784,14 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 
     if (!QIcon::hasThemeIcon("format-text-color")) {
         QIcon formatTextColorIcon(":/fallback_icons/png/format-text-color.png");
-        m_pUI->chooseTextColorPushButton->setIcon(formatTextColorIcon);
+        m_pUI->chooseTextColorToolButton->setIcon(formatTextColorIcon);
         QNTRACE("set fallback format-text-color icon");
+    }
+
+    if (!QIcon::hasThemeIcon("color-fill")) {
+        QIcon colorFillIcon(":/fallback_icons/png/color-fill.png");
+        m_pUI->chooseBackgroundColorToolButton->setIcon(colorFillIcon);
+        QNTRACE("set fallback color-fill icon");
     }
 
     if (!QIcon::hasThemeIcon("format-text-italic")) {
