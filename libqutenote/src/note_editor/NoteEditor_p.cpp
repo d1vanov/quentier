@@ -60,6 +60,7 @@ typedef QWebEngineSettings WebSettings;
 #include <QContextMenuEvent>
 #include <QDesktopWidget>
 #include <QFontDialog>
+#include <QFontDatabase>
 
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(q->page()); \
@@ -905,6 +906,89 @@ void NoteEditorPrivate::timerEvent(QTimerEvent * event)
     }
 }
 
+void NoteEditorPrivate::changeFontSize(const bool increase)
+{
+    QNDEBUG("NoteEditorPrivate::changeFontSize: increase = " << (increase ? "true" : "false"));
+
+    int fontSize = m_font.pointSize();
+    if (fontSize < 0) {
+        QNTRACE("Font size is negative which most likely means the font is not set yet, nothing to do. "
+                "Current font: " << m_font);
+        return;
+    }
+
+    QFontDatabase fontDatabase;
+    QList<int> fontSizes = fontDatabase.pointSizes(m_font.family(), m_font.styleName());
+    if (fontSizes.isEmpty()) {
+        QNTRACE("Coulnd't find point sizes for font family " << m_font.family() << ", will use standard sizes instead");
+        fontSizes = fontDatabase.standardSizes();
+    }
+
+    int fontSizeIndex = fontSizes.indexOf(fontSize);
+    if (fontSizeIndex < 0)
+    {
+        QNTRACE("Couldn't find font size " << fontSize << " within the available sizes, will take the closest one instead");
+        const int numFontSizes = fontSizes.size();
+        int currentSmallestDiscrepancy = 1e5;
+        int currentClosestIndex = -1;
+        for(int i = 0; i < numFontSizes; ++i)
+        {
+            int value = fontSizes[i];
+
+            int discrepancy = abs(value - fontSize);
+            if (currentSmallestDiscrepancy > discrepancy) {
+                currentSmallestDiscrepancy = discrepancy;
+                currentClosestIndex = i;
+                QNTRACE("Updated current closest index to " << i << ": font size = " << value);
+            }
+        }
+
+        if (currentClosestIndex >= 0) {
+            fontSizeIndex = currentClosestIndex;
+        }
+    }
+
+    if (fontSizeIndex >= 0)
+    {
+        if (increase && (fontSizeIndex < (fontSizes.size() - 1))) {
+            fontSize = fontSizes.at(fontSizeIndex + 1);
+        }
+        else if (!increase && (fontSizeIndex != 0)) {
+            fontSize = fontSizes.at(fontSizeIndex - 1);
+        }
+        else {
+            QNTRACE("Can't " << (increase ? "increase" : "decrease") << " the font size: hit the boundary of "
+                    "available font sizes");
+            return;
+        }
+    }
+    else
+    {
+        QNTRACE("Wasn't able to find even the closest font size within the available ones, will simply "
+                << (increase ? "increase" : "decrease") << " the given font size by 1 pt and see what happens");
+        if (increase) {
+            ++fontSize;
+        }
+        else {
+            --fontSize;
+            if (!fontSize) {
+                fontSize = 1;
+            }
+        }
+    }
+
+    setFontHeight(fontSize);
+}
+
+void NoteEditorPrivate::changeIndentation(const bool increase)
+{
+    QNDEBUG("NoteEditorPrivate::changeIndentation: increase = " << (increase ? "true" : "false"));
+
+    execJavascriptCommand((increase ? "indent" : "outdent"));
+    Q_Q(NoteEditor);
+    q->setFocus();
+}
+
 void NoteEditorPrivate::clearEditorContent()
 {
     QNDEBUG("NoteEditorPrivate::clearEditorContent");
@@ -1735,8 +1819,9 @@ void NoteEditorPrivate::setupGenericTextContextMenu()
     { \
         QAction * action = new QAction(QObject::tr(#name), menu); \
         setupActionShortcut(#key, *action); \
-        menu->addAction(action); \
+        QNTRACE("Set up shortcut for action " #name ": " << action->shortcut()); \
         QObject::connect(action, QNSIGNAL(QAction,triggered), q, QNSLOT(NoteEditor,slot)); \
+        menu->addAction(action); \
     }
 
     ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pGenericTextContextMenu, cut);
@@ -1760,6 +1845,9 @@ void NoteEditorPrivate::setupGenericTextContextMenu()
     Q_UNUSED(pParagraphSubMenu->addSeparator());
     ADD_ACTION_WITH_SHORTCUT(Indent, Increase indentation, pParagraphSubMenu, increaseIndentation);
     ADD_ACTION_WITH_SHORTCUT(Unindent, Decrease indentation, pParagraphSubMenu, decreaseIndentation);
+    Q_UNUSED(pParagraphSubMenu->addSeparator());
+    ADD_ACTION_WITH_SHORTCUT(Increase font size, Increase font size, pParagraphSubMenu, increaseFontSize);
+    ADD_ACTION_WITH_SHORTCUT(Decrease font size, Decrease font size, pParagraphSubMenu, decreaseFontSize);
     Q_UNUSED(pParagraphSubMenu->addSeparator());
     ADD_ACTION_WITH_SHORTCUT(Numbered list, Numbered list, pParagraphSubMenu, insertNumberedList);
     ADD_ACTION_WITH_SHORTCUT(Bulleted list, Bulleted list, pParagraphSubMenu, insertBulletedList);
@@ -2770,7 +2858,7 @@ void NoteEditorPrivate::setFont(const QFont & font)
     m_font = font;
     QString fontName = font.family();
     execJavascriptCommand("fontName", fontName);
-
+    emit textFontFamilyChanged(font.family());
     q->setFocus();
 }
 
@@ -2784,6 +2872,7 @@ void NoteEditorPrivate::setFontHeight(const int height)
         m_font.setPointSize(height);
         GET_PAGE()
         page->executeJavaScript("changeFontSizeForSelection(" + QString::number(height) + ");");
+        emit textFontSizeChanged(height);
     }
     else {
         QString error = QT_TR_NOOP("Detected incorrect font size: " + QString::number(height));
@@ -2841,13 +2930,24 @@ void NoteEditorPrivate::insertHorizontalLine()
     q->setFocus();
 }
 
-void NoteEditorPrivate::changeIndentation(const bool increase)
+void NoteEditorPrivate::increaseFontSize()
 {
-    QNDEBUG("NoteEditorPrivate::changeIndentation: increase = " << (increase ? "true" : "false"));
+    changeFontSize(/* increase = */ true);
+}
 
-    execJavascriptCommand((increase ? "indent" : "outdent"));
-    Q_Q(NoteEditor);
-    q->setFocus();
+void NoteEditorPrivate::decreaseFontSize()
+{
+    changeFontSize(/* decrease = */ false);
+}
+
+void NoteEditorPrivate::increaseIndentation()
+{
+    changeIndentation(/* increase = */ true);
+}
+
+void NoteEditorPrivate::decreaseIndentation()
+{
+    changeIndentation(/* increase = */ false);
 }
 
 void NoteEditorPrivate::insertBulletedList()

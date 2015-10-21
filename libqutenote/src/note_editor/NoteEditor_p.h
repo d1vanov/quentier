@@ -117,7 +117,10 @@ public:
     void setFontColor(const QColor & color);
     void setBackgroundColor(const QColor & color);
     void insertHorizontalLine();
-    void changeIndentation(const bool increase);
+    void increaseFontSize();
+    void decreaseFontSize();
+    void increaseIndentation();
+    void decreaseIndentation();
     void insertBulletedList();
     void insertNumberedList();
     void insertTableDialog();
@@ -209,6 +212,9 @@ private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
 
 private:
+    void changeFontSize(const bool increase);
+    void changeIndentation(const bool increase);
+
     void clearEditorContent();
     void noteToEditorContent();
     void updateColResizableTableBindings();

@@ -896,7 +896,9 @@ color: rgb(255, 255, 255);</string>
                  <string>...</string>
                 </property>
                 <property name="icon">
-                 <iconset theme="fill-color"/>
+                 <iconset theme="fill-color">
+                  <normaloff/>
+                 </iconset>
                 </property>
                 <property name="popupMode">
                  <enum>QToolButton::MenuButtonPopup</enum>
@@ -1245,7 +1247,7 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1516</width>
-     <height>23</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1410,6 +1412,13 @@ background-color: rgb(205, 221, 229);
      <addaction name="ActionInsertBulletedList"/>
      <addaction name="ActionInsertNumberedList"/>
     </widget>
+    <widget class="QMenu" name="menuFontSize">
+     <property name="title">
+      <string>Font size</string>
+     </property>
+     <addaction name="actionIncreaseFontSize"/>
+     <addaction name="actionDecreaseFontSize"/>
+    </widget>
     <addaction name="ActionFontBold"/>
     <addaction name="ActionFontUnderlined"/>
     <addaction name="ActionFontItalic"/>
@@ -1426,6 +1435,7 @@ background-color: rgb(205, 221, 229);
     <addaction name="menuAlign"/>
     <addaction name="menuList"/>
     <addaction name="menuIndentation"/>
+    <addaction name="menuFontSize"/>
    </widget>
    <widget class="QMenu" name="menuService">
     <property name="locale">
@@ -2698,6 +2708,28 @@ stop: 1 #0EB7FF);
   <action name="ActionSetTestNoteWithResources">
    <property name="text">
     <string>Set test note with resources</string>
+   </property>
+  </action>
+  <action name="actionIncreaseFontSize">
+   <property name="icon">
+    <iconset theme="format-font-size-more"/>
+   </property>
+   <property name="text">
+    <string>Increase</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+, Ctrl++</string>
+   </property>
+  </action>
+  <action name="actionDecreaseFontSize">
+   <property name="icon">
+    <iconset theme="format-font-size-less"/>
+   </property>
+   <property name="text">
+    <string>Decrease</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
    </property>
   </action>
  </widget>

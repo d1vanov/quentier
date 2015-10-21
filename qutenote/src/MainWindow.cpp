@@ -111,6 +111,8 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->ActionFontItalic, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextItalicToggled));
     QObject::connect(m_pUI->ActionFontUnderlined, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextUnderlineToggled));
     QObject::connect(m_pUI->ActionFontStrikeout, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextStrikethroughToggled));
+    QObject::connect(m_pUI->actionIncreaseFontSize, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextIncreaseFontSizeAction));
+    QObject::connect(m_pUI->actionDecreaseFontSize, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextDecreaseFontSizeAction));
     // Font buttons
     QObject::connect(m_pUI->fontBoldPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextBoldToggled));
     QObject::connect(m_pUI->fontItalicPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextItalicToggled));
@@ -245,15 +247,27 @@ void MainWindow::onNoteTextAddHorizontalLineAction()
     m_pNoteEditor->setFocus();
 }
 
+void MainWindow::onNoteTextIncreaseFontSizeAction()
+{
+    m_pNoteEditor->increaseFontSize();
+    m_pNoteEditor->setFocus();
+}
+
+void MainWindow::onNoteTextDecreaseFontSizeAction()
+{
+    m_pNoteEditor->decreaseFontSize();
+    m_pNoteEditor->setFocus();
+}
+
 void MainWindow::onNoteTextIncreaseIndentationAction()
 {
-    m_pNoteEditor->changeIndentation(/* increase = */ true);
+    m_pNoteEditor->increaseIndentation();
     m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onNoteTextDecreaseIndentationAction()
 {
-    m_pNoteEditor->changeIndentation(/* increase = */ false);
+    m_pNoteEditor->decreaseIndentation();
     m_pNoteEditor->setFocus();
 }
 

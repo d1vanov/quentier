@@ -93,9 +93,10 @@ public Q_SLOTS:
     void setFontColor(const QColor & color);
     void setBackgroundColor(const QColor & color);
     void insertHorizontalLine();
+    void increaseFontSize();
+    void decreaseFontSize();
     void increaseIndentation();
     void decreaseIndentation();
-    void changeIndentation(const bool increase);
     void insertBulletedList();
     void insertNumberedList();
     void insertTableDialog();

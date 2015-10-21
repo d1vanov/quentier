@@ -197,22 +197,28 @@ void NoteEditor::insertHorizontalLine()
     d->insertHorizontalLine();
 }
 
+void NoteEditor::increaseFontSize()
+{
+    Q_D(NoteEditor);
+    d->increaseFontSize();
+}
+
+void NoteEditor::decreaseFontSize()
+{
+    Q_D(NoteEditor);
+    d->decreaseFontSize();
+}
+
 void NoteEditor::increaseIndentation()
 {
     Q_D(NoteEditor);
-    d->changeIndentation(/* increase = */ true);
+    d->increaseIndentation();
 }
 
 void NoteEditor::decreaseIndentation()
 {
     Q_D(NoteEditor);
-    d->changeIndentation(/* increase = */ false);
-}
-
-void NoteEditor::changeIndentation(const bool increase)
-{
-    Q_D(NoteEditor);
-    d->changeIndentation(increase);
+    d->decreaseIndentation();
 }
 
 void NoteEditor::insertBulletedList()
