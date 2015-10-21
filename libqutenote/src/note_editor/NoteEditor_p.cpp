@@ -2781,7 +2781,7 @@ void NoteEditorPrivate::setFontHeight(const int height)
     Q_Q(NoteEditor);
 
     if (height > 0) {
-        m_font.setPixelSize(height);
+        m_font.setPointSize(height);
         GET_PAGE()
         page->executeJavaScript("changeFontSizeForSelection(" + QString::number(height) + ");");
     }
