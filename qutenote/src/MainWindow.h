@@ -49,6 +49,7 @@ private Q_SLOTS:
     void onNoteTextAddHorizontalLineAction();
     void onNoteTextIncreaseFontSizeAction();
     void onNoteTextDecreaseFontSizeAction();
+    void onNoteTextHighlightAction();
     void onNoteTextIncreaseIndentationAction();
     void onNoteTextDecreaseIndentationAction();
     void onNoteTextInsertUnorderedListAction();

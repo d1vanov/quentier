@@ -77,7 +77,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_noteEditorPagePath(),
     m_noteEditorImageResourcesStoragePath(),
     m_font(),
-    m_backgroundColor(),
     m_jQueryJs(),
     m_resizableTableColumnsJs(),
     m_onFixedWidthTableResizeJs(),
@@ -2797,8 +2796,8 @@ void NoteEditorPrivate::textStrikethrough()
 
 void NoteEditorPrivate::textHighlight()
 {
-    QNDEBUG("stub: NoteEditorPrivate::textHighlight");
-    // TODO: implement
+    QNDEBUG("NoteEditorPrivate::textHighlight");
+    setBackgroundColor(QColor(255, 255, 127));
 }
 
 void NoteEditorPrivate::alignLeft()
@@ -2889,7 +2888,6 @@ void NoteEditorPrivate::setFontColor(const QColor & color)
             << ", rgb: " << QString::number(color.rgb(), 16));
 
     if (color.isValid()) {
-        m_fontColor = color;
         execJavascriptCommand("foreColor", color.name());
     }
     else {
@@ -2908,7 +2906,6 @@ void NoteEditorPrivate::setBackgroundColor(const QColor & color)
             << ", rgb: " << QString::number(color.rgb(), 16));
 
     if (color.isValid()) {
-        m_backgroundColor = color;
         execJavascriptCommand("hiliteColor", color.name());
     }
     else {

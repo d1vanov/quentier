@@ -349,8 +349,6 @@ private:
     QString     m_noteEditorImageResourcesStoragePath;
 
     QFont       m_font;
-    QColor      m_fontColor;
-    QColor      m_backgroundColor;
 
     // JavaScript scripts
     QString     m_jQueryJs;
