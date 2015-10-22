@@ -15,7 +15,7 @@ typedef QWebSettings WebSettings;
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
 #include "javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h"
 #include "javascript_glue/GenericResourceImageJavaScriptHandler.h"
-#include "NoteDecryptionDialog.h"
+#include "DecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
 #include "GenericResourceImageWriter.h"
@@ -525,12 +525,12 @@ void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString c
     }
 
     Q_Q(NoteEditor);
-    QScopedPointer<NoteDecryptionDialog> pDecryptionDialog(new NoteDecryptionDialog(encryptedText,
-                                                                                    cipher, hint, keyLength,
-                                                                                    m_encryptionManager,
-                                                                                    m_decryptedTextManager, q));
+    QScopedPointer<DecryptionDialog> pDecryptionDialog(new DecryptionDialog(encryptedText,
+                                                                            cipher, hint, keyLength,
+                                                                            m_encryptionManager,
+                                                                            m_decryptedTextManager, q));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(pDecryptionDialog.data(), QNSIGNAL(NoteDecryptionDialog,accepted,QString,QString,bool),
+    QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,QString,bool),
                      this,QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,QString,bool));
     QNTRACE("Will exec note decryption dialog now");
     pDecryptionDialog->exec();

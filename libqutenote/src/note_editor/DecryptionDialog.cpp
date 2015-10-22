@@ -1,5 +1,5 @@
-#include "NoteDecryptionDialog.h"
-#include "ui_NoteDecryptionDialog.h"
+#include "DecryptionDialog.h"
+#include "ui_DecryptionDialog.h"
 #include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/logging/QuteNoteLogger.h>
@@ -7,14 +7,13 @@
 
 namespace qute_note {
 
-NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
-                                           const QString & cipher,
-                                           const QString & hint, const size_t keyLength,
-                                           QSharedPointer<EncryptionManager> encryptionManager,
-                                           DecryptedTextManager & decryptedTextManager,
-                                           QWidget * parent) :
+DecryptionDialog::DecryptionDialog(const QString & encryptedText, const QString & cipher,
+                                   const QString & hint, const size_t keyLength,
+                                   QSharedPointer<EncryptionManager> encryptionManager,
+                                   DecryptedTextManager & decryptedTextManager,
+                                   QWidget * parent) :
     QDialog(parent),
-    m_pUI(new Ui::NoteDecryptionDialog),
+    m_pUI(new Ui::DecryptionDialog),
     m_encryptedText(encryptedText),
     m_cipher(cipher),
     m_hint(hint),
@@ -39,49 +38,49 @@ NoteDecryptionDialog::NoteDecryptionDialog(const QString & encryptedText,
     m_pUI->onErrorTextLabel->setVisible(false);
 
     QObject::connect(m_pUI->showPasswordCheckBox, QNSIGNAL(QCheckBox,stateChanged,int),
-                     this, QNSLOT(NoteDecryptionDialog,onShowPasswordStateChanged,int));
+                     this, QNSLOT(DecryptionDialog,onShowPasswordStateChanged,int));
     QObject::connect(m_pUI->rememberPasswordCheckBox, QNSIGNAL(QCheckBox,stateChanged,int),
-                     this, QNSLOT(NoteDecryptionDialog,onRememberPassphraseStateChanged,int));
+                     this, QNSLOT(DecryptionDialog,onRememberPassphraseStateChanged,int));
 }
 
-NoteDecryptionDialog::~NoteDecryptionDialog()
+DecryptionDialog::~DecryptionDialog()
 {
     delete m_pUI;
 }
 
-QString NoteDecryptionDialog::passphrase() const
+QString DecryptionDialog::passphrase() const
 {
     return m_pUI->passwordLineEdit->text();
 }
 
-bool NoteDecryptionDialog::rememberPassphrase() const
+bool DecryptionDialog::rememberPassphrase() const
 {
     return m_pUI->rememberPasswordCheckBox->isChecked();
 }
 
-QString NoteDecryptionDialog::decryptedText() const
+QString DecryptionDialog::decryptedText() const
 {
     return m_cachedDecryptedText;
 }
 
-void NoteDecryptionDialog::setError(const QString & error)
+void DecryptionDialog::setError(const QString & error)
 {
     m_pUI->onErrorTextLabel->setText(error);
     m_pUI->onErrorTextLabel->setVisible(true);
 }
 
-void NoteDecryptionDialog::setHint(const QString & hint)
+void DecryptionDialog::setHint(const QString & hint)
 {
     m_pUI->hintLabel->setText(QObject::tr("Hint: ") +
                               (hint.isEmpty() ? QObject::tr("No hint available") : hint));
 }
 
-void NoteDecryptionDialog::setRememberPassphraseDefaultState(const bool checked)
+void DecryptionDialog::setRememberPassphraseDefaultState(const bool checked)
 {
     m_pUI->rememberPasswordCheckBox->setChecked(checked);
 }
 
-void NoteDecryptionDialog::onRememberPassphraseStateChanged(int checked)
+void DecryptionDialog::onRememberPassphraseStateChanged(int checked)
 {
     Q_UNUSED(checked)
 
@@ -95,13 +94,13 @@ void NoteDecryptionDialog::onRememberPassphraseStateChanged(int checked)
     }
 }
 
-void NoteDecryptionDialog::onShowPasswordStateChanged(int checked)
+void DecryptionDialog::onShowPasswordStateChanged(int checked)
 {
     m_pUI->passwordLineEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
     m_pUI->passwordLineEdit->setFocus();
 }
 
-void NoteDecryptionDialog::accept()
+void DecryptionDialog::accept()
 {
     QString passphrase = m_pUI->passwordLineEdit->text();
 

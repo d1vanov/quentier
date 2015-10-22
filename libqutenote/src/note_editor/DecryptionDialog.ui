@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>NoteDecryptionDialog</class>
- <widget class="QDialog" name="NoteDecryptionDialog">
+ <class>DecryptionDialog</class>
+ <widget class="QDialog" name="DecryptionDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -88,7 +88,7 @@ spacing: 4px;
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>NoteDecryptionDialog</receiver>
+   <receiver>DecryptionDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -104,7 +104,7 @@ spacing: 4px;
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>NoteDecryptionDialog</receiver>
+   <receiver>DecryptionDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

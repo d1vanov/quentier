@@ -1,6 +1,6 @@
 #include "EncryptedAreaPlugin.h"
 #include "ui_EncryptedAreaPlugin.h"
-#include "NoteDecryptionDialog.h"
+#include "DecryptionDialog.h"
 #include <qute_note/note_editor/NoteEditorPluginFactory.h>
 #include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/logging/QuteNoteLogger.h>
@@ -142,12 +142,9 @@ void EncryptedAreaPlugin::decrypt()
 
 void EncryptedAreaPlugin::raiseNoteDecryptionDialog()
 {
-    QScopedPointer<NoteDecryptionDialog> pDecryptionDialog(new NoteDecryptionDialog(m_encryptedText,
-                                                                                    m_cipher, m_hint,
-                                                                                    m_keyLength,
-                                                                                    m_encryptionManager,
-                                                                                    m_decryptedTextManager,
-                                                                                    this));
+    QScopedPointer<DecryptionDialog> pDecryptionDialog(new DecryptionDialog(m_encryptedText, m_cipher, m_hint,
+                                                                            m_keyLength, m_encryptionManager,
+                                                                            m_decryptedTextManager, this));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
 
     int res = pDecryptionDialog->exec();

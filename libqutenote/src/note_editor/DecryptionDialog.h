@@ -1,30 +1,31 @@
-#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
-#define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
+#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DECRYPTION_DIALOG_H
+#define __LIB_QUTE_NOTE__NOTE_EDITOR__DECRYPTION_DIALOG_H
 
 #include <qute_note/utility/EncryptionManager.h>
+#include <qute_note/utility/Qt4Helper.h>
 #include <QDialog>
 #include <QSharedPointer>
 
 namespace Ui {
-QT_FORWARD_DECLARE_CLASS(NoteDecryptionDialog)
+QT_FORWARD_DECLARE_CLASS(DecryptionDialog)
 }
 
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 
-class NoteDecryptionDialog: public QDialog
+class DecryptionDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit NoteDecryptionDialog(const QString & encryptedText,
-                                  const QString & cipher,
-                                  const QString & hint,
-                                  const size_t keyLength,
-                                  QSharedPointer<EncryptionManager> encryptionManager,
-                                  DecryptedTextManager & decryptedTextManager,
-                                  QWidget * parent = nullptr);
-    virtual ~NoteDecryptionDialog();
+    explicit DecryptionDialog(const QString & encryptedText,
+                              const QString & cipher,
+                              const QString & hint,
+                              const size_t keyLength,
+                              QSharedPointer<EncryptionManager> encryptionManager,
+                              DecryptedTextManager & decryptedTextManager,
+                              QWidget * parent = Q_NULLPTR);
+    virtual ~DecryptionDialog();
 
     QString passphrase() const;
     bool rememberPassphrase() const;
@@ -46,7 +47,7 @@ private:
     void setError(const QString & error);
 
 private:
-    Ui::NoteDecryptionDialog *          m_pUI;
+    Ui::DecryptionDialog *              m_pUI;
     QString                             m_encryptedText;
     QString                             m_cipher;
     QString                             m_hint;
@@ -61,4 +62,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_DECRYPTION_DIALOG_H
+#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__DECRYPTION_DIALOG_H
