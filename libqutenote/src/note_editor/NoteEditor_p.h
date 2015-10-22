@@ -74,6 +74,8 @@ Q_SIGNALS:
     void textFontFamilyChanged(QString fontFamily);
     void textFontSizeChanged(int fontSize);
 
+    void insertTableDialogRequested();
+
 public:
     bool isModified() const;
 

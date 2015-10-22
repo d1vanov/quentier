@@ -68,6 +68,8 @@ Q_SIGNALS:
     void textFontFamilyChanged(QString fontFamily);
     void textFontSizeChanged(int fontSize);
 
+    void insertTableDialogRequested();
+
 public Q_SLOTS:
     void convertToNote();
     void undo();

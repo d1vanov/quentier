@@ -2180,6 +2180,7 @@ void NoteEditorPrivate::setupNoteEditorPage()
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QString), q, QNSIGNAL(NoteEditor,cantConvertToNote,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteEditorHtmlUpdated,QString), q, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,insertTableDialogRequested), q, QNSIGNAL(NoteEditor,insertTableDialogRequested));
 
     q->setPage(page);
     q->setAcceptDrops(true);
@@ -2968,11 +2969,7 @@ void NoteEditorPrivate::insertNumberedList()
 void NoteEditorPrivate::insertTableDialog()
 {
     QNDEBUG("NoteEditorPrivate::insertTableDialog");
-
-    // TODO: implement
-
-    Q_Q(NoteEditor);
-    q->setFocus();
+    emit insertTableDialogRequested();
 }
 
 #define CHECK_NUM_COLUMNS() \

@@ -165,6 +165,7 @@ void MainWindow::connectEditorSignalsToSlots()
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textInsideTableState,bool), this, QNSLOT(MainWindow,onNoteEditorInsideTableStateChanged,bool));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textFontFamilyChanged,QString), this, QNSLOT(MainWindow,onNoteEditorFontFamilyChanged,QString));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textFontSizeChanged,int), this, QNSLOT(MainWindow,onNoteEditorFontSizeChanged,int));
+    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,insertTableDialogRequested), this, QNSLOT(MainWindow,onNoteTextInsertTableDialogAction));
 }
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)
