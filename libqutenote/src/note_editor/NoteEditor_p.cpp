@@ -1830,10 +1830,36 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const bool hasSelection)
         ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pGenericTextContextMenu, copy);
     }
 
+    bool clipboardHasHtml = false;
+    bool clipboardHasText = false;
+    bool clipboardHasImage = false;
+    bool clipboardHasUrls = false;
+
     QClipboard * pClipboard = QApplication::clipboard();
-    if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
-        QNTRACE("Clipboard buffer has something, adding paste actions");
+    const QMimeData * pClipboardMimeData = (pClipboard ? pClipboard->mimeData(QClipboard::Clipboard) : Q_NULLPTR);
+    if (pClipboardMimeData)
+    {
+        if (pClipboardMimeData->hasHtml()) {
+            clipboardHasHtml = !pClipboardMimeData->html().isEmpty();
+        }
+        else if (pClipboardMimeData->hasText()) {
+            clipboardHasText = !pClipboardMimeData->text().isEmpty();
+        }
+        else if (pClipboardMimeData->hasImage()) {
+            clipboardHasImage = true;
+        }
+        else if (pClipboardMimeData->hasUrls()) {
+            clipboardHasUrls = true;
+        }
+    }
+
+    if (clipboardHasHtml || clipboardHasText || clipboardHasImage || clipboardHasUrls) {
+        QNTRACE("Clipboard buffer has something, adding paste action");
         ADD_ACTION_WITH_SHORTCUT(Paste, Paste, m_pGenericTextContextMenu, paste);
+    }
+
+    if (clipboardHasHtml) {
+        QNTRACE("Clipboard buffer has html, adding paste unformatted action");
         ADD_ACTION_WITH_SHORTCUT(Paste unformatted, Paste as unformatted text, m_pGenericTextContextMenu, pasteUnformatted);
     }
 
