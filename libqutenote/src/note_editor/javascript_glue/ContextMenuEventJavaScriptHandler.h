@@ -11,7 +11,8 @@ namespace qute_note {
  * when it is asked to assist with the processing of context menu event.
  *
  * JavaScript needs to identify the type of object the context menu referred which is assumed to be the type of object
- * being currently under cursor. The JavaScript calls public slot setContextMenuContent of this object which in turn
+ * being currently under cursor. If it's text, the information whether some piece of this text is currently selected is passed
+ * to C++ code as well. The JavaScript calls public slot setContextMenuContent of this object which in turn
  * relays this information further via signal contextMenuEventReply to anyone connected to that signal.
  *
  * The sequence number is used by these signals to ensure the possibility to find out which context menu reply
@@ -24,10 +25,10 @@ public:
     explicit ContextMenuEventJavaScriptHandler(QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
-    void contextMenuEventReply(QString contentType, quint64 sequenceNumber);
+    void contextMenuEventReply(QString contentType, bool hasSelection, quint64 sequenceNumber);
 
 public Q_SLOTS:
-    void setContextMenuContent(QString contentType, quint64 sequenceNumber);
+    void setContextMenuContent(QString contentType, bool hasSelection, quint64 sequenceNumber);
 };
 
 } // namespace qute_note

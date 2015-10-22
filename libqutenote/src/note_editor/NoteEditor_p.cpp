@@ -657,9 +657,10 @@ void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
     determineContextMenuEventTarget();
 }
 
-void NoteEditorPrivate::onContextMenuEventReply(QString contentType, quint64 sequenceNumber)
+void NoteEditorPrivate::onContextMenuEventReply(QString contentType, bool hasSelection, quint64 sequenceNumber)
 {
     QNDEBUG("NoteEditorPrivate::onContextMenuEventReply: content type = " << contentType
+            << ", has selection = " << (hasSelection ? "true" : "false")
             << ", sequence number = " << sequenceNumber);
 
     if (!checkContextMenuSequenceNumber(sequenceNumber)) {
@@ -670,7 +671,7 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, quint64 seq
     ++m_contextMenuSequenceNumber;
 
     if (contentType == "GenericText") {
-        setupGenericTextContextMenu();
+        setupGenericTextContextMenu(hasSelection);
     }
     else if (contentType == "ImageResource") {
         setupImageResourceContextMenu();
@@ -1798,9 +1799,10 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
 
 #endif
 
-void NoteEditorPrivate::setupGenericTextContextMenu()
+void NoteEditorPrivate::setupGenericTextContextMenu(const bool hasSelection)
 {
-    QNDEBUG("NoteEditorPrivate::setupGenericTextContextMenu");
+    QNDEBUG("NoteEditorPrivate::setupGenericTextContextMenu: hasSelection = "
+            << (hasSelection ? "true" : "false"));
 
     Q_Q(NoteEditor);
 
@@ -1823,8 +1825,10 @@ void NoteEditorPrivate::setupGenericTextContextMenu()
         menu->addAction(action); \
     }
 
-    ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pGenericTextContextMenu, cut);
-    ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pGenericTextContextMenu, copy);
+    if (hasSelection) {
+        ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pGenericTextContextMenu, cut);
+        ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pGenericTextContextMenu, copy);
+    }
 
     QClipboard * pClipboard = QApplication::clipboard();
     if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
@@ -1845,9 +1849,13 @@ void NoteEditorPrivate::setupGenericTextContextMenu()
     ADD_ACTION_WITH_SHORTCUT(Indent, Increase indentation, pParagraphSubMenu, increaseIndentation);
     ADD_ACTION_WITH_SHORTCUT(Unindent, Decrease indentation, pParagraphSubMenu, decreaseIndentation);
     Q_UNUSED(pParagraphSubMenu->addSeparator());
-    ADD_ACTION_WITH_SHORTCUT(Increase font size, Increase font size, pParagraphSubMenu, increaseFontSize);
-    ADD_ACTION_WITH_SHORTCUT(Decrease font size, Decrease font size, pParagraphSubMenu, decreaseFontSize);
-    Q_UNUSED(pParagraphSubMenu->addSeparator());
+
+    if (hasSelection) {
+        ADD_ACTION_WITH_SHORTCUT(Increase font size, Increase font size, pParagraphSubMenu, increaseFontSize);
+        ADD_ACTION_WITH_SHORTCUT(Decrease font size, Decrease font size, pParagraphSubMenu, decreaseFontSize);
+        Q_UNUSED(pParagraphSubMenu->addSeparator());
+    }
+
     ADD_ACTION_WITH_SHORTCUT(Numbered list, Numbered list, pParagraphSubMenu, insertNumberedList);
     ADD_ACTION_WITH_SHORTCUT(Bulleted list, Bulleted list, pParagraphSubMenu, insertBulletedList);
 
@@ -1874,7 +1882,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu()
     ADD_ACTION_WITH_SHORTCUT(, Copy, pHyperlinkMenu, copyHyperlink);
     ADD_ACTION_WITH_SHORTCUT(Remove hyperlink, Remove, pHyperlinkMenu, removeHyperlink);
 
-    if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
+    if (hasSelection) {
         Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
         ADD_ACTION_WITH_SHORTCUT(Encrypt, Encrypt selected fragment..., m_pGenericTextContextMenu, encryptSelectedTextDialog);
     }
@@ -2173,8 +2181,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
     QObject::connect(page, QNSIGNAL(NoteEditor,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
 #endif
 
-    QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,quint64),
-                     this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,quint64));
+    QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,bool,quint64),
+                     this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,bool,quint64));
     QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));

@@ -186,7 +186,7 @@ private Q_SLOTS:
 #endif
 
     void contextMenuEvent(QContextMenuEvent * pEvent);
-    void onContextMenuEventReply(QString contentType, quint64 sequenceNumber);
+    void onContextMenuEventReply(QString contentType, bool hasSelection, quint64 sequenceNumber);
 
     void onTextCursorPositionChange();
 
@@ -246,7 +246,7 @@ private:
     void setupTextCursorPositionTracking();
 #endif
 
-    void setupGenericTextContextMenu();
+    void setupGenericTextContextMenu(const bool hasSelection);
     void setupImageResourceContextMenu();
     void setupNonImageResourceContextMenu();
     void setupEncryptedTextContextMenu();

@@ -65,20 +65,21 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
     }
 
     if (foundImageResource) {
-        contextMenuEventHandler.setContextMenuContent("ImageResource", contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("ImageResource", false, contextMenuSequenceNumber);
     }
     else if (foundNonImageResource) {
-        contextMenuEventHandler.setContextMenuContent("NonImageResource", contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("NonImageResource", false, contextMenuSequenceNumber);
     }
     else if (foundEnCryptTag) {
-        contextMenuEventHandler.setContextMenuContent("EncryptedText", contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("EncryptedText", false, contextMenuSequenceNumber);
     }
     else {
         var selectedHtml = getSelectionHtml();
         if (!selectedHtml) {
             snapSelectionToWord();
+            selectedHtml = getSelectionHtml();
         }
 
-        contextMenuEventHandler.setContextMenuContent("GenericText", contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("GenericText", (selectedHtml ? true : false), contextMenuSequenceNumber);
     }
 }
