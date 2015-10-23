@@ -128,7 +128,7 @@ void DecryptionDialog::accept()
     QNTRACE("Cached decrypted text for encryptedText: " << m_encryptedText
             << "; remember for session = " << (rememberForSession ? "true" : "false"));
 
-    emit accepted(m_encryptedText, m_cachedDecryptedText, m_pUI->rememberPasswordCheckBox->isChecked());
+    emit accepted(m_encryptedText, m_cachedDecryptedText, rememberForSession);
     QDialog::accept();
 }
 
