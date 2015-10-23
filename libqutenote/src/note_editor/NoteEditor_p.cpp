@@ -287,7 +287,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
     onPageHtmlReceived(m_htmlCachedMemory);
 #else
-    q->page()->toHtml(HtmlRetrieveFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
+    q->page()->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
 #endif
 }
 
@@ -1000,55 +1000,19 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedText(const QString & sel
 
     Q_UNUSED(selectedText);
 
-    QString encryptedTextHtmlObject;
+    QString encryptedTextHtmlObject = ENMLConverter::encryptedTextHtml(encryptedText, hint, "AES", 128);
+    QString javascript = QString("document.execCommand('insertHtml', false, '%1'); ").arg(encryptedTextHtmlObject);
 
-#ifdef USE_QT_WEB_ENGINE
-    encryptedTextHtmlObject = "<img ";
-#else
-    encryptedTextHtmlObject = "<object type=\"application/vnd.qutenote.encrypt\" ";
-#endif
-    encryptedTextHtmlObject +=  "en-tag=\"en-crypt\" "
-                                "cipher=\"AES\" length=\"128\" class=\"en-crypt hvr-border-color\" "
-                                "encrypted_text=\"";
-    encryptedTextHtmlObject += encryptedText;
-    encryptedTextHtmlObject += "\" ";
-
-    if (!hint.isEmpty()) {
-        encryptedTextHtmlObject += "hint=\"";
-
-        QString hintWithEscapedDoubleQuotes = hint;
-        for(int i = 0; i < hintWithEscapedDoubleQuotes.size(); ++i)
-        {
-            if (hintWithEscapedDoubleQuotes.at(i) == QChar('"'))
-            {
-                if (i == 0) {
-                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
-                }
-                else if (hintWithEscapedDoubleQuotes.at(i-1) != QChar('\\')) {
-                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
-                }
-            }
-        }
-
-        encryptedTextHtmlObject += hintWithEscapedDoubleQuotes;
-        encryptedTextHtmlObject += "\" ";
-    }
-
-#ifdef USE_QT_WEB_ENGINE
-    encryptedTextHtmlObject += ">";
-#else
-    encryptedTextHtmlObject += ">some fake characters to prevent self-enclosing html tag confusing webkit</object>";
-#endif
-
-    QString javascript = QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject);
-    // TODO: for QtWebKit: see whether contentChanged signal would be emitted automatically
+    QNTRACE("script: " << javascript);
 
     Q_Q(NoteEditor);
-    GET_PAGE()
-    page->executeJavaScript(javascript);
-
-#ifdef USE_QT_WEB_ENGINE
-    provideSrcAndOnClickScriptForImgEnCryptTags();
+#ifndef USE_QT_WEB_ENGINE
+    q->page()->mainFrame()->evaluateJavaScript(javascript);
+    // TODO: for QtWebKit: see whether contentChanged signal would be emitted automatically
+    onSelectedTextEncryptionDone(QVariant(), QVector<QPair<QString,QString> >());
+#else
+    QVector<QPair<QString,QString> > extraData;
+    q->page()->runJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSelectedTextEncryptionDone, extraData));
 #endif
 }
 
@@ -1239,7 +1203,7 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
     m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
     onPageHtmlReceived(m_htmlCachedMemory);
 #else
-    q->page()->toHtml(HtmlRetrieveFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
+    q->page()->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
 #endif
 
     return true;
@@ -2486,6 +2450,26 @@ void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant &
     replaceSelectedTextWithEncryptedText(selectedHtml, encryptedText, hint);
 }
 
+void NoteEditorPrivate::onSelectedTextEncryptionDone(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onSelectedTextEncryptionDone");
+
+    Q_UNUSED(dummy);
+    Q_UNUSED(extraData);
+
+    Q_Q(NoteEditor);
+
+    m_pendingConversionToNote = true;
+
+#ifndef USE_QT_WEB_ENGINE
+    m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
+    onPageHtmlReceived(m_htmlCachedMemory);
+#else
+    q->page()->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
+    provideSrcAndOnClickScriptForImgEnCryptTags();
+#endif
+}
+
 #define COMMAND_TO_JS(command) \
     QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command)
 
@@ -3184,7 +3168,7 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
 
     onPageSelectedHtmlForEncryptionReceived(selectedHtml, extraData);
 #else
-    q->page()->runJavaScript("getSelectionHtml", HtmlRetrieveFunctor<QVariant>(this, &NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived, extraData));
+    q->page()->runJavaScript("getSelectionHtml", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived, extraData));
 #endif
 }
 

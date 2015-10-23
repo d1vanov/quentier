@@ -603,6 +603,55 @@ QString ENMLConverterPrivate::getToDoCheckboxHtml(const bool checked)
     return html;
 }
 
+QString ENMLConverterPrivate::encryptedTextHtml(const QString & encryptedText, const QString & hint,
+                                                const QString & cipher, const size_t keyLength)
+{
+    QString encryptedTextHtmlObject;
+
+#ifdef USE_QT_WEB_ENGINE
+    encryptedTextHtmlObject = "<img ";
+#else
+    encryptedTextHtmlObject = "<object type=\"application/vnd.qutenote.encrypt\" ";
+#endif
+    encryptedTextHtmlObject +=  "en-tag=\"en-crypt\" cipher=\"";
+    encryptedTextHtmlObject += cipher;
+    encryptedTextHtmlObject += "\" length=\"";
+    encryptedTextHtmlObject += QString::number(keyLength);
+    encryptedTextHtmlObject += "\" class=\"en-crypt hvr-border-color\" encrypted_text=\"";
+    encryptedTextHtmlObject += encryptedText;
+    encryptedTextHtmlObject += "\" ";
+
+    if (!hint.isEmpty())
+    {
+        encryptedTextHtmlObject += "hint=\"";
+
+        QString hintWithEscapedDoubleQuotes = hint;
+        for(int i = 0; i < hintWithEscapedDoubleQuotes.size(); ++i)
+        {
+            if (hintWithEscapedDoubleQuotes.at(i) == QChar('"'))
+            {
+                if (i == 0) {
+                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
+                }
+                else if (hintWithEscapedDoubleQuotes.at(i-1) != QChar('\\')) {
+                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
+                }
+            }
+        }
+
+        encryptedTextHtmlObject += hintWithEscapedDoubleQuotes;
+        encryptedTextHtmlObject += "\" ";
+    }
+
+#ifdef USE_QT_WEB_ENGINE
+    encryptedTextHtmlObject += ">";
+#else
+    encryptedTextHtmlObject += ">some fake characters to prevent self-enclosing html tag confusing webkit</object>";
+#endif
+
+    return encryptedTextHtmlObject;
+}
+
 bool ENMLConverterPrivate::isForbiddenXhtmlTag(const QString & tagName)
 {
     auto it = forbiddenXhtmlTags.find(tagName);

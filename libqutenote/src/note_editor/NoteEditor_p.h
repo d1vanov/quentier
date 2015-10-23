@@ -274,20 +274,21 @@ private:
     void onPageHtmlReceived(const QString & html, const QVector<QPair<QString,QString> > & extraData = QVector<QPair<QString,QString> >());
     void onPageSelectedHtmlForEncryptionReceived(const QVariant & selectedHtmlData,
                                                  const QVector<QPair<QString,QString> > & extraData);
+    void onSelectedTextEncryptionDone(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData);
 
     template <class T>
-    class HtmlRetrieveFunctor
+    class NoteEditorCallbackFunctor
     {
     public:
-        HtmlRetrieveFunctor(NoteEditorPrivate * editor,
-                            void (NoteEditorPrivate::* method)(const T & result,
-                                                               const QVector<QPair<QString,QString> > & extraData),
-                            const QVector<QPair<QString,QString> > & extraData = QVector<QPair<QString,QString> >()) :
+        NoteEditorCallbackFunctor(NoteEditorPrivate * editor,
+                                  void (NoteEditorPrivate::* method)(const T & result,
+                                                                     const QVector<QPair<QString,QString> > & extraData),
+                                  const QVector<QPair<QString,QString> > & extraData = QVector<QPair<QString,QString> >()) :
             m_editor(editor), m_method(method), m_extraData(extraData)
         {}
 
-        HtmlRetrieveFunctor(const HtmlRetrieveFunctor<T> & other) : m_editor(other.m_editor), m_method(other.m_method), m_extraData(other.m_extraData) {}
-        HtmlRetrieveFunctor & operator=(const HtmlRetrieveFunctor<T> & other)
+        NoteEditorCallbackFunctor(const NoteEditorCallbackFunctor<T> & other) : m_editor(other.m_editor), m_method(other.m_method), m_extraData(other.m_extraData) {}
+        NoteEditorCallbackFunctor & operator=(const NoteEditorCallbackFunctor<T> & other)
         { if (this != &other) { m_editor = other.m_editor; m_method = other.m_method; m_extraData = other.m_extraData; } return *this; }
 
         void operator()(const T & result) { (m_editor->*m_method)(result, m_extraData); }
@@ -298,8 +299,8 @@ private:
         QVector<QPair<QString, QString> > m_extraData;
     };
 
-    friend class HtmlRetrieveFunctor<QString>;
-    friend class HtmlRetrieveFunctor<QVariant>;
+    friend class NoteEditorCallbackFunctor<QString>;
+    friend class NoteEditorCallbackFunctor<QVariant>;
 
     struct Alignment
     {

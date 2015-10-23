@@ -27,7 +27,7 @@ public:
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
                            DecryptedTextManager & decryptedTextManager
 #ifndef USE_QT_WEB_ENGINE
-                           , const NoteEditorPluginFactory * pluginFactory = nullptr
+                           , const NoteEditorPluginFactory * pluginFactory = Q_NULLPTR
 #endif
                            ) const;
 
@@ -37,11 +37,14 @@ public:
                                        QString & errorMessage);
 
     static bool noteContentToListOfWords(const QString & noteContent, QStringList & listOfWords,
-                                         QString & errorMessage, QString * plainText = nullptr);
+                                         QString & errorMessage, QString * plainText = Q_NULLPTR);
 
     static QStringList plainTextToListOfWords(const QString & plainText);
 
     static QString getToDoCheckboxHtml(const bool checked);
+
+    static QString encryptedTextHtml(const QString & encryptedText, const QString & hint,
+                                     const QString & cipher, const size_t keyLength);
 
 private:
     Q_DISABLE_COPY(ENMLConverter)

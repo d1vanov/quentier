@@ -72,5 +72,11 @@ QString ENMLConverter::getToDoCheckboxHtml(const bool checked)
     return ENMLConverterPrivate::getToDoCheckboxHtml(checked);
 }
 
+QString ENMLConverter::encryptedTextHtml(const QString & encryptedText, const QString & hint,
+                                         const QString & cipher, const size_t keyLength)
+{
+    return ENMLConverterPrivate::encryptedTextHtml(encryptedText, hint, cipher, keyLength);
+}
+
 } // namespace qute_note
 

@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
 #define __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <QtGlobal>
 #include <QStringList>
 
@@ -39,11 +40,14 @@ public:
                                        QString & errorMessage);
 
     static bool noteContentToListOfWords(const QString & noteContent, QStringList & listOfWords,
-                                         QString & errorMessage, QString * plainText = nullptr);
+                                         QString & errorMessage, QString * plainText = Q_NULLPTR);
 
     static QStringList plainTextToListOfWords(const QString & plainText);
 
     static QString getToDoCheckboxHtml(const bool checked);
+
+    static QString encryptedTextHtml(const QString & encryptedText, const QString & hint,
+                                     const QString & cipher, const size_t keyLength);
 
 private:
     static bool isForbiddenXhtmlTag(const QString & tagName);
