@@ -365,7 +365,6 @@ private:
     QString     m_onFixedWidthTableResizeJs;
     QString     m_getSelectionHtmlJs;
     QString     m_snapSelectionToWordJs;
-    QString     m_replaceSelectionWithHtmlJs;
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;
